@@ -53,6 +53,9 @@ The root build stages the browser Worker and database migrations into `dist/` fo
 
 ## Documentation
 
+- [Agent-first migration audit](docs/agent-first/audit.md)
+- [Versioned execution plans](docs/exec-plans/README.md)
+- [Repository map and verification scope](docs/agent-first/repository-map.md)
 - [Product specification](docs/product-spec.md)
 - [UI guidelines](docs/ui-guidelines.md)
 - [Architecture and sync contract](docs/architecture.md)
