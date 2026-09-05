@@ -1,0 +1,17 @@
+node_modules/
+dist/
+.next/
+.wrangler/
+.env
+.env.*
+!.env.example
+!.env.production.example
+*.tsbuildinfo
+.DS_Store
+coverage/
+*.sqlite*
+.build/
+DerivedData/
+*.xcuserstate
+apps/ios/Vocabularium.xcodeproj/
+.artifacts/

@@ -1,0 +1,15 @@
+{
+  "name": "vocabularium",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix apps/web run dev",
+    "build": "npm --prefix apps/web run build && node scripts/stage-site.mjs",
+    "test": "npm --prefix apps/web test",
+    "typecheck": "npm --prefix apps/web run typecheck",
+    "setup": "npm --prefix apps/web ci"
+  },
+  "engines": {
+    "node": ">=22.13.0"
+  }
+}
