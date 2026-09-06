@@ -1,6 +1,6 @@
 # 001 — Make development commands reproducible
 
-Version: 1 | Status: Planned | Owner: Assign at execution
+Version: 2 | Status: Complete | Owner: Primary migration agent
 Baseline: `a958e4d36cf791b87d15ca60cd4d48e2c43d540a` (record new start SHA)
 Depends on: 000
 
@@ -67,11 +67,26 @@ Never run `npm ci` over another agent's active dependency directory.
 
 Accepted audit challenges F02/F10: use the already-tested pair first; document
 dormant config. The audit's cached install is a starting result, not completion
-of these new command/CI gates. Independent execution review: pending.
+of these new command/CI gates. Independent execution review completed 2026-09-06:
+reviewer found and verified fixes for symlink entry no-op, non-executable tool
+paths, contradictory pins and malformed configuration shapes. CLI regression
+tests now cover those failures and actual child exit propagation.
 
 ## Execution record
 
-- Starting commit/environment: pending.
-- Commands/results/evidence: pending; audit results are historical input.
-- Deviations and open issues: none resolved by this plan yet.
-- Completion/remaining work: not started.
+- Starting commit/environment: `4188dfc`; 2026-09-06, macOS, Node 22.21.0/npm 10.9.4.
+- Commands/results/evidence: `npm run doctor` 52/52; tooling tests 7/7; root
+  `npm run verify` passed (31 application tests, types, syntax, build/staging).
+  Independent reviewer reran doctor/tooling tests and accepted fixes.
+- Fresh source export plus new tooling: offline cached `npm run setup` installed
+  571 packages; final `npm run verify` passed in `/private/tmp/vocab-plan001.IY96cJ`.
+  No personal env/state copied. Local migration applied seven SQL commands;
+  sanitized dev server returned HTTP 200 at its printed localhost:4311 origin.
+  Preview stopped afterward. Loopback checks required sandbox escalation.
+- Lockfile SHA-1 remained `bba15a073d80a015757d7f645d9af8f22c91fa33`; application
+  source, schema and hosting manifests unchanged. No deployment or live services.
+- Deviations/limits: macOS only; no cross-platform claim or CI execution yet.
+  Cached install is not empty-cache/hermetic proof. Direct application scripts
+  remain available; aggregate verification and setup enforce the exact toolchain.
+- Completion: 001 complete. Parallel/profile isolation and additional runtime
+  checks remain in 002/003; lint debt remains explicit until 005.

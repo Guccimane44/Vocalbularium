@@ -6,10 +6,12 @@ Repository: [Guccimane44/Vocalbularium](https://github.com/Guccimane44/Vocalbula
 
 ## Run the browser MVP locally
 
-Requires Node.js 22.13 or later.
+Use Node.js 22.21.0 and npm 10.9.4, pinned for the verified macOS environment.
+See [reproducible development](docs/development.md) for setup, checks and limitations.
 
 ```sh
 npm run setup
+npm run doctor
 npm --prefix apps/web run db:migrate
 npm run dev
 ```
@@ -37,6 +39,7 @@ Create a wordlist and explicitly choose its answer languages, or choose **Explor
 npm test
 npm run typecheck
 npm run build
+npm run verify
 ```
 
 The root build stages the browser Worker and database migrations into `dist/` for private Sites deployment. Both hosting manifests reference the same registered Site. The GitHub repository contains the whole monorepo.

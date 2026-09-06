@@ -52,7 +52,9 @@ database, secret store, access policy, or deployment.
 
 | Command from root | What it establishes | Important limit |
 | --- | --- | --- |
-| `npm run setup` | `npm ci` using `apps/web/package-lock.json` | Node is only bounded below; npm/runtime not pinned. |
+| `npm run setup` | Metadata/toolchain preflight then `npm ci` using `apps/web/package-lock.json` | Node 22.21.0/npm 10.9.4 pinned; verified on macOS only. |
+| `npm run doctor` | Read-only runtime/metadata/dependency/executable checks | Native tools optional, no live service checks. |
+| `npm run verify:fast` / `npm run verify` | Tooling/application tests, types, JS syntax; full adds build/staging | At plan 001, no actual HTTP/browser lane or lint ratchet yet. |
 | `npm --prefix apps/web run db:migrate` | Local Wrangler D1 migrations | Mutates that checkout's local database; use a disposable checkout for audit/reset. |
 | `npm run dev` | Vinext development server with local preview integration | Development identity and behavior do not certify production offline shell. |
 | `npm test` | 31 existing Node tests at baseline | No actual HTTP/browser/iOS suite. |

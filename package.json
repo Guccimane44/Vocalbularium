@@ -2,14 +2,20 @@
   "name": "vocabularium",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "npm@10.9.4",
   "scripts": {
     "dev": "npm --prefix apps/web run dev",
     "build": "npm --prefix apps/web run build && node scripts/stage-site.mjs",
     "test": "npm --prefix apps/web test",
     "typecheck": "npm --prefix apps/web run typecheck",
-    "setup": "npm --prefix apps/web ci"
+    "presetup": "node scripts/doctor.mjs --bootstrap",
+    "setup": "npm --prefix apps/web ci",
+    "doctor": "node scripts/doctor.mjs",
+    "verify:fast": "node scripts/verify.mjs --fast",
+    "verify": "node scripts/verify.mjs"
   },
   "engines": {
-    "node": ">=22.13.0"
+    "node": "22.21.0",
+    "npm": "10.9.4"
   }
 }

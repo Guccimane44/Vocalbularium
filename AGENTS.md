@@ -18,7 +18,10 @@ storage, change authentication, or upgrade dependencies as incidental cleanup.
 ## Current commands
 
 From the repository root: `npm run setup`, `npm test`, `npm run typecheck`,
-`npm run build`. Dependencies and lockfile live in `apps/web`. For local D1:
+`npm run build`. Use Node 22.21.0/npm 10.9.4. `npm run doctor` checks prerequisites;
+`npm run verify:fast` adds tooling/application tests, types and JS syntax;
+`npm run verify` also builds/stages. See [development](docs/development.md).
+Dependencies and lockfile live in `apps/web`. For local D1:
 `npm --prefix apps/web run db:migrate`; then `npm run dev`.
 
 Tests cover domain/auth/provider logic and simulated Chrome workers. Type checking
