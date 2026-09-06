@@ -57,6 +57,8 @@ database, secret store, access policy, or deployment.
 | `npm run verify:fast` / `npm run verify` | Tooling/application tests, types, JS syntax; full adds build/staging | At plan 001, no actual HTTP/browser lane or lint ratchet yet. |
 | `npm --prefix apps/web run db:migrate` | Local Wrangler D1 migrations | Mutates that checkout's local database; use a disposable checkout for audit/reset. |
 | `npm run dev` | Vinext development server with local preview integration | Development identity and behavior do not certify production offline shell. |
+| `npm run dev:isolated -- --run-id <id>` / `npm run test:reset -- --run-id <id>` | Owned disposable runtime and guarded cleanup | macOS only; see development guide for resume and stale-state limits. |
+| `npm run setup:browser` / `npm run test:isolation` | Pinned browser installation; two actual local runtimes and browser/extension storage separation | Profile isolation, not full product/browser acceptance; separate from current verify commands. |
 | `npm test` | 31 existing Node tests at baseline | No actual HTTP/browser/iOS suite. |
 | `npm run typecheck` | Web TypeScript | Not Swift SDK compilation or extension runtime verification. |
 | `npm run build` | Worker/client build, matching-manifest staging | Replaces generated root `dist`; does not deploy or test hosted connectivity. |

@@ -11,6 +11,10 @@
     "presetup": "node scripts/doctor.mjs --bootstrap",
     "setup": "npm --prefix apps/web ci",
     "doctor": "node scripts/doctor.mjs",
+    "dev:isolated": "node scripts/isolation.mjs",
+    "test:reset": "node scripts/isolation.mjs --reset",
+    "test:isolation": "node --test scripts/tests/isolation.test.mjs scripts/tests/isolation-runtime.test.mjs",
+    "setup:browser": "node scripts/browser-install.mjs",
     "verify:fast": "node scripts/verify.mjs --fast",
     "verify": "node scripts/verify.mjs"
   },

@@ -14,7 +14,7 @@ refactoring is deferred, not pre-authorized by these plans.
 | --- | --- | --- | --- | --- |
 | 000 | [Baseline and repository knowledge](000-baseline.md) | Complete | None | This audit, map, behavior ledger, initial AGENTS guidance, reviewed plans. |
 | 001 | [Reproducible commands and environment](001-reproducibility.md) | Complete | 000 | Pin the tested runtime; repeatable bootstrap/doctor/verification contract. |
-| 002 | [Isolation and safe local state](002-isolation.md) | Planned | 001 | Disposable local runtime, profiles, reset, secret-file exclusions. |
+| 002 | [Isolation and safe local state](002-isolation.md) | Complete | 001 | Disposable local runtime, profiles, reset, secret-file exclusions. |
 | 003 | [Behavioral characterization](003-behavioral-verification.md) | Planned | 001,002 | Ordered migrations, actual Worker/API, browser and client failure evidence. |
 | 004 | [Agent legibility and working protocol](004-agent-legibility.md) | Planned | 000; finalize after 001–003 | Scoped guidance, task-to-check map, maintained evidence, fresh-agent navigation exercise. |
 | 005 | [Mechanical guardrails](005-mechanical-guardrails.md) | Planned | 001–004 | CI, boundary checks, migration/secret/artifact guards, lint/format debt ratchets. |

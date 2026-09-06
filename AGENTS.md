@@ -45,8 +45,7 @@ Proposed commands in plans do not exist until their implementation is recorded.
   real providers, live account deletion, and access-policy changes are separate
   release work, outside this foundation migration.
 - Keep tokens, `.env*`, `.dev.vars*`, database files, and user snapshots out of
-  Git and test artifacts. `.dev.vars*` ignore coverage is a known baseline gap;
-  do not create those files here until plan 002 adds coverage.
+  Git and test artifacts. `.dev.vars*` is ignored; fixture launchers also exclude active environment files.
 
 ## Finish a change
 

@@ -1,6 +1,6 @@
 # 002 — Isolate local work and mutable state
 
-Version: 1 | Status: Planned | Owner: Assign at execution
+Version: 3 | Status: Complete | Owner: Primary migration agent
 Baseline: `a958e4d36cf791b87d15ca60cd4d48e2c43d540a` (record new start SHA)
 Depends on: 001
 
@@ -78,11 +78,41 @@ browser profiles and native Keychain/App Group identifiers stay untouched.
 
 Accepted F05/F06: isolate every mutable surface, add secret-name ignore coverage,
 and treat inherited local-tool environment as a contamination risk. Avoid a
-generic container/platform migration. Independent execution review: pending.
+generic container/platform migration. Independent execution review completed by `isolation_review`. Review challenged
+symlink/profile and lifecycle races, inherited npm configuration/log paths, and
+process-group ownership. Earlier findings were addressed before the 10-test
+runtime result. Final review found a cancellation window between controller
+readiness/port release and runtime launch; explicit cancellation checks and a
+deterministic zero-launch regression resolve it. Reviewer confirmed no remaining
+blocking findings. Network access permits all loopback ports; install steps are
+outside that restriction. Cleanup covers inherited process groups, not deliberately
+detached daemons. Neither guarantee is a hostile-code containment claim.
 
 ## Execution record
 
-- Starting commit/environment: pending.
-- Commands/results/evidence: pending.
-- Deviations and open issues: native runtime gate requires full Xcode.
-- Completion/remaining work: not started.
+- Starting commit/environment: `9fe7e70`, 2026-09-06; verified macOS toolchain.
+- `npm run test:isolation` with dummy ambient provider/auth settings: 10/10 pass,
+  33.99 seconds, macOS; two live Workers with owned D1, Chromium 153.0.8010.12
+  (Playwright 1.63.0, revision 1243), real unpacked extension profiles. Both use the
+  same local plugin identity, with distinct data markers and databases. Restart A
+  preserves cookies/IndexedDB/outbox/cache/extension data; reset A leaves B live.
+- Final cancellation regression plus safety tests: 10/10 pass. The runtime test
+  plus these safety tests totals 11 cases; the final combined run passed 11/11
+  in 34.00 seconds (`/private/tmp/vocab-plan002-complete-isolation.log`).
+  No application source changed.
+- `npm run setup:browser` and `npm run verify`: exit 0; doctor, 7 tooling tests,
+  original 31 application tests, typecheck, JavaScript syntax, production build
+  and staging passed. This verify command does not yet include isolation (005).
+- Root/nested `.dev.vars` and suffixed variants pass `git check-ignore --no-index`;
+  `.env.example` remains tracked. Lockfile adds only pinned test-browser packages.
+- Local logs: `/private/tmp/vocab-plan002-final-isolation.log`,
+  `/private/tmp/vocab-plan002-cancellation.log`, `/private/tmp/vocab-plan002-verify.log`.
+  These temporary logs are not durable artifacts; the commands, versions, assertions
+  and results here are the versioned evidence. Tests retain only disposable state.
+- [Development guide](../development.md) records launcher, resume/reset, worktree,
+  network, process ownership and native isolation limits.
+- Deviations and open issues: native runtime isolation is **Blocked** by missing
+  full Xcode; owner native release maintainer, next action run app/share-extension
+  isolation on separate disposable simulators. This explicit external gate is
+  permitted by this plan; web/Chrome profile isolation is verified on macOS only.
+- Completion: required local gates complete; product journeys continue in 003.

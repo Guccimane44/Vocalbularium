@@ -48,10 +48,61 @@ separate, known-red baseline; no rules were weakened.
 Dependencies live in `apps/web/node_modules`; builds replace `apps/web/dist` and
 root `dist`. D1, registry and logs use web-local `.wrangler` paths by default.
 Browser data belongs to its origin/profile, not the checkout. Never reset a
-personal database/profile for tests. Until plan 002's launcher is available,
-bootstrap verification uses one disposable checkout at a time with no personal
-`.env`/`.dev.vars`, no live credentials, and separate temporary state. A branch
-does not isolate the shared registered Site; none of these commands deploys.
+personal database/profile for tests. A branch does not isolate the shared
+registered Site; none of these commands deploys.
+
+## Disposable fixture runs
+
+On the verified macOS environment:
+
+```sh
+npm run setup:browser
+npm run dev:isolated -- --run-id my-check
+# Ctrl-C stops the owned runtime and retains its disposable state.
+npm run dev:isolated -- --run-id my-check --resume
+# Close its test browser before reset (may be run from another terminal).
+npm run test:reset -- --run-id my-check
+npm run test:isolation
+```
+
+The launcher prints its exact loopback origin and `.artifacts/runs/<id>` path.
+Each run snapshots tracked and unignored source, installs its own dependencies,
+and owns its local D1, registry, logs, temporary home and browser profile. Edits
+to the original checkout after launch do not update that snapshot. Resume uses
+the saved snapshot and origin; use a new run ID to test new source. Optional
+`--port` fails if occupied. IDs must start with a lowercase letter and contain
+only lowercase letters, digits and hyphens (at most 32 characters).
+
+The launch environment excludes inherited auth/provider settings and personal
+npm configuration. Source snapshots exclude active environment files and local
+state. Runtime and Chromium use the macOS sandbox to deny non-loopback outbound
+network access (all loopback ports, not only the owned server); dependency/browser installation is a separate registry/download
+step. Worker metadata lookup may log its blocked network fallback. Other operating
+systems fail closed until an equivalent network restriction is implemented and
+verified. These restrictions are fixture isolation, not a sandbox for hostile code.
+
+Pinned Chromium and npm package downloads are shared under `.artifacts/browsers`
+and `.artifacts/npm-cache`; databases, build output, npm logs, cookies, IndexedDB,
+outboxes, caches and extension storage are run-local. Setup does not use a personal
+Chrome profile. The installed extension smoke verifies storage separation, not
+hosted connectivity or real capture acceptance. Both local servers use the Sites
+plugin's same synthetic identity; separate D1 databases establish run isolation,
+not two-account authorization on one server.
+
+Reset authenticates to a live controller and never signals a PID read from disk.
+A supervisor drains its owned process group, including descendants that inherit
+that group, before state is removed. Deliberately detached daemons are outside
+that guarantee. Active browser/lifecycle locks, unowned directories, links and
+stale controllers cause refusal. For stale state, inspect the specific run and
+verify its processes/profile are closed before manual recovery; do not delete
+locks blindly or kill by port. Reset removes only that marked run directory.
+
+Use a dedicated checkout/worktree and one writer for each overlapping file set.
+Shared remote Site operations remain separately authorized release work. For iOS,
+use a separate disposable simulator per run and keep the existing App Group and
+Keychain identifiers within it; app/share-extension communication, restart and
+cross-simulator separation require full Xcode. That proof is currently blocked,
+owned by the native release maintainer; syntax parsing does not close it.
 
 ## Server environment inventory
 
