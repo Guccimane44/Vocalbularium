@@ -2,7 +2,7 @@
 
 Capture a word, explore its meanings in your chosen languages, and remember it with spaced repetition.
 
-Repository: [Guccimane44/Vocalbularium](https://github.com/Guccimane44/Vocalbularium) · **private**. The repository spelling is intentional; the product remains Vocabularium.
+Repository: [Guccimane44/Vocalbularium](https://github.com/Guccimane44/Vocalbularium) · **public as checked on 2026-09-08**. The repository spelling is intentional; the product remains Vocabularium.
 
 ## Run the browser MVP locally
 
@@ -66,3 +66,5 @@ The root build stages the browser Worker and database migrations into `dist/` fo
 - [Implementation status](docs/implementation-status.md)
 - [Chrome setup](apps/chrome/README.md)
 - [iOS setup](apps/ios/README.md)
+
+See [dotfiles harness onboarding](docs/agent-first/dotfiles-onboarding.md) for the supervised issue workflow and pending pilot gates.

@@ -54,3 +54,11 @@ results, and limitations. Update the relevant plan and behavior evidence. Ask an
 independent agent/reviewer to challenge significant migration changes. Record
 disagreements and their disposition. A known failure needs an explicit owner and
 follow-up; a skipped check is not a pass.
+
+## Dotfiles harness onboarding
+
+Use the bounded GitHub issue as the task/feedback record; link the applicable
+execution plan. See [the onboarding guide](docs/agent-first/dotfiles-onboarding.md)
+and root project.json for checks and remaining activation gates. Simple drafting
+uses Luna; complex implementation and analysis use Astra. Preserve checkpoints
+and inspect saved changes before resuming; a completed turn is not acceptance.
