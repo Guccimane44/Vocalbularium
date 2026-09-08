@@ -2,14 +2,16 @@
 
 Capture a word, explore its meanings in your chosen languages, and remember it with spaced repetition.
 
-Repository: [Guccimane44/Vocalbularium](https://github.com/Guccimane44/Vocalbularium) · **private**. The repository spelling is intentional; the product remains Vocabularium.
+Repository: [Guccimane44/Vocalbularium](https://github.com/Guccimane44/Vocalbularium) · **public as checked on 2026-09-08**. The repository spelling is intentional; the product remains Vocabularium.
 
 ## Run the browser MVP locally
 
-Requires Node.js 22.13 or later.
+Use Node.js 22.21.0 and npm 10.9.4, pinned for the verified macOS environment.
+See [reproducible development](docs/development.md) for setup, checks and limitations.
 
 ```sh
 npm run setup
+npm run doctor
 npm --prefix apps/web run db:migrate
 npm run dev
 ```
@@ -37,6 +39,7 @@ Create a wordlist and explicitly choose its answer languages, or choose **Explor
 npm test
 npm run typecheck
 npm run build
+npm run verify
 ```
 
 The root build stages the browser Worker and database migrations into `dist/` for private Sites deployment. Both hosting manifests reference the same registered Site. The GitHub repository contains the whole monorepo.
@@ -53,6 +56,9 @@ The root build stages the browser Worker and database migrations into `dist/` fo
 
 ## Documentation
 
+- [Agent-first migration audit](docs/agent-first/audit.md)
+- [Versioned execution plans](docs/exec-plans/README.md)
+- [Repository map and verification scope](docs/agent-first/repository-map.md)
 - [Product specification](docs/product-spec.md)
 - [UI guidelines](docs/ui-guidelines.md)
 - [Architecture and sync contract](docs/architecture.md)
@@ -60,3 +66,5 @@ The root build stages the browser Worker and database migrations into `dist/` fo
 - [Implementation status](docs/implementation-status.md)
 - [Chrome setup](apps/chrome/README.md)
 - [iOS setup](apps/ios/README.md)
+
+See [dotfiles harness onboarding](docs/agent-first/dotfiles-onboarding.md) for the supervised issue workflow and pending pilot gates.

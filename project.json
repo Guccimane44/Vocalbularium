@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "repository": "Guccimane44/Vocalbularium",
+  "default_branch": "main",
+  "scope": "Supervised foundation maintenance only; preserve product behavior and local unfinished work. No deployment, remote migrations, live providers, or automatic dispatch.",
+  "stack": "Node 22.21.0/npm 10.9.4; React 19, Vinext/Vite, Cloudflare Worker/D1, TypeScript; Chrome extension and unverified SwiftUI targets",
+  "setup": ["npm", "run", "setup"],
+  "checks": [
+    {"name": "Existing foundation verification (tests, types, syntax, build)", "command": ["npm", "run", "verify"]},
+    {"name": "Patch whitespace", "command": ["git", "diff", "--check"]}
+  ],
+  "policy": {
+    "workers": 4,
+    "attempt_minutes": 20,
+    "weekly_reserve": 3,
+    "short_reserve": 25,
+    "retry_authority": "supervising-agent",
+    "automatic_publication": false,
+    "dispatch_enabled": false
+  }
+}
