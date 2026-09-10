@@ -41,7 +41,7 @@ Until a separately reviewed multi-repository adapter exists, the supervisor runs
 native checks locally and records exact commit/diff, results, limitations, and
 review evidence in the authorized issue/PR. No automated product acceptance is enabled.
 
-## Manual pilot gate
+## Manual workflow and completed pilot
 
 The issue launcher starts from the remote default branch, so merge the reviewed
 foundation/onboarding prerequisites before preparing an implementation worker.
@@ -74,8 +74,10 @@ Revert only onboarding files/edits to remove this integration. Do not reset the
 original dirty checkout, delete its tests, alter database migrations or clear user
 state. The dotfiles runtime and scheduler allowlist are unchanged.
 
-Next: review/merge these prerequisites, reconcile the preserved unfinished plan-003
-work in its own task, then authorize a bounded pilot. Add automatic product dispatch
+The prerequisites were merged in PR #2. The bounded documentation pilot in
+[PR #4](https://github.com/Guccimane44/Vocalbularium/pull/4) completed controlled
+stop/resume and supervisory review. Reconcile preserved unfinished plan-003 work
+in its own task. Add automatic product dispatch
 only after repository-scoped verification/review and isolation are implemented and
 proven. Optional skills/expertise remain unloaded unless a specific task needs them.
 
@@ -103,5 +105,42 @@ Independent review: a separate Luna reviewer checked scope, baseline ancestry,
 commands, and harness boundaries. The reviewer found wording that could imply plans
 003–006 were absent; it was corrected to distinguish present plans from completed
 prerequisites and uncommitted work. No blocking contract or scope finding remained.
-Automatic dispatch and the pilot remain inactive; merging this onboarding still
-does not establish behavioral or product acceptance.
+At the 2026-09-08 prerequisite review, automatic dispatch and the pilot remained
+inactive; merging those prerequisites did not establish behavioral or product acceptance.
+
+## Manual onboarding completion — 2026-09-10
+
+The foundation contract reached `main` in merge `c2a63a0` (PR #2). The
+[checklist pilot](first-task-checklist.md), issue #3 / PR #4, produced commit
+`86e4bf2`. The supervisor rechecked its private recovery evidence: two Luna
+attempts in the same saved session/workspace, a controlled checkpoint stop,
+preserved pre-resume checkpoint, and a scoped completed document. Independent
+review confirmed that evidence. Fresh `npm run setup` and `npm run verify` passed
+on the isolated PR checkout: doctor 53/53, tooling tests 7/7, application tests
+31/31, web types, JavaScript syntax, build and staging. Contract structure,
+documentation links and `git diff --check` also passed. The existing Vinext
+route-classification warning remains. PR #4 records the reviewed revision.
+
+Manual onboarding is complete when PR #4 is merged: prepare bounded issues from
+a clean checkout of the remote default branch, run the contract's native checks,
+and supervise review/recovery using this guide. No further model attempts are
+needed to repeat this demonstrated documentation recovery gate. This is not a
+crash-recovery or product-coding benchmark.
+
+Attempt 1 accounting is unknown. Attempt 2 reported 112,566 input tokens
+(104,192 cached) and 2,175 output tokens. Supervisor accounting and total cost
+are unknown; tokens are not subscription cost. No savings claim is made.
+
+The original local migration branch later drafted a second onboarding plan
+without reconciling this merged contract and pilot. Its added HTTP/browser lanes
+belong to unfinished plan 003, not the committed onboarding contract. A fresh
+2026-09-10 diagnostic reproduced an oversized-request follow-up failure with
+Miniflare's `Network connection lost` response before the sync handler. That lane
+remains unresolved under plan 003; it is neither a passing check nor evidence
+that this manual launcher/recovery pilot failed. No test assertion was weakened
+and no application source was changed to close onboarding.
+
+Automatic product dispatch remains disabled. Generalizing the dotfiles-only
+scheduler and recorded verification/review with explicit repository allowlisting
+and isolation/recovery tests is separate infrastructure work. Plans 003–006,
+lint debt, native SDK/device acceptance and live services retain their own gates.
