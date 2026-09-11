@@ -97,6 +97,21 @@ export function createApplication({ filename = ':memory:', authOptions, provider
           if (typeof body.payload?.deckId !== 'string') throw new StoreError('invalid', 'Choose a deck.');
           result = store.deleteDeck(body.operationId, body.payload);
           generation.cancelDeleted();
+        } else if (path === '/api/card/create') {
+          if (typeof body.payload?.deckId !== 'string') throw new StoreError('invalid', 'Choose a deck.');
+          result = store.createManual(body.operationId, body.payload);
+        } else if (path === '/api/card/save') {
+          if (typeof body.payload?.cardId !== 'string') throw new StoreError('invalid', 'Choose a card.');
+          result = store.savePages(body.operationId, body.payload);
+        } else if (path === '/api/card/delete') {
+          if (typeof body.payload?.cardId !== 'string') throw new StoreError('invalid', 'Choose a card.');
+          result = store.deleteCard(body.operationId, body.payload.cardId);
+          generation.cancelDeleted();
+        } else if (path === '/api/card/retry') {
+          sessionValue(body.payload?.session);
+          if (typeof body.payload?.cardId !== 'string' || typeof body.payload?.pageId !== 'string') throw new StoreError('invalid', 'Choose a card page.');
+          result = store.retry(body.operationId, body.payload);
+          if (!result.replayed) generation.start(body.payload.cardId, body.payload.pageId);
         } else if (path === '/api/poll') {
           sessionValue(body.session);
           const attempts = store.pendingAttempts(body.session);

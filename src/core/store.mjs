@@ -308,6 +308,7 @@ export class AccountStore {
   savePages(operationId, { cardId, changes }) {
     return this.command(operationId, 'save-pages', { cardId, changes }, () => {
       const card = this.card(cardId);
+      if (!Array.isArray(changes) || new Set(changes.map(change => change.pageId)).size !== changes.length) fail('invalid', 'Choose each changed page once.');
       for (const change of changes) {
         const page = card.pages.find(page => page.page_id === change.pageId);
         if (!page) fail('deleted', 'A changed page no longer exists.');
@@ -317,6 +318,20 @@ export class AccountStore {
       for (const change of changes) this.db.prepare('UPDATE pages SET text = ? WHERE card_id = ? AND page_id = ?')
         .run(change.text, cardId, change.pageId);
       return { cardId };
+    });
+  }
+
+  createManual(operationId, { deckId, pages }) {
+    return this.command(operationId, 'create-manual', { deckId, pages }, () => {
+      const deck = this.deck(deckId);
+      if (!Array.isArray(pages) || new Set(pages.map(page => page.pageId)).size !== pages.length || pages.some(page => typeof page.text !== 'string')) fail('invalid', 'Each page needs plain-text content.');
+      for (const page of pages) if (!deck.pages.some(saved => saved.id === page.pageId)) fail('deleted', 'A page in this draft was deleted. Your draft is preserved.');
+      const id = randomUUID();
+      this.db.prepare('INSERT INTO cards (id, deck_id, selected_text, created_at) VALUES (?, ?, NULL, ?)')
+        .run(id, deckId, new Date().toISOString());
+      for (const page of deck.pages) this.db.prepare('INSERT INTO pages (card_id, page_id, text) VALUES (?, ?, ?)')
+        .run(id, page.id, pages.find(draft => draft.pageId === page.id)?.text ?? '');
+      return { cardId: id };
     });
   }
 

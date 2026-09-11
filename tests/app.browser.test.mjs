@@ -207,6 +207,7 @@ test('deck UI: draft previews, all modules, page limits, content-loss confirmati
   assert.deepEqual(created.pages[1].modules.map(module => module.type), ['german-explanation', 'german-examples']);
   await a.page.getByLabel('Options for Everyday Chinese').click();
   await a.page.locator('article.deck').filter({ hasText: 'Everyday Chinese' }).getByRole('button', { name: 'Set as default', exact: true }).click();
+  await a.page.locator('article.deck').filter({ hasText: 'Everyday Chinese' }).getByText('DEFAULT DECK', { exact: true }).waitFor();
   assert.equal(application.store.snapshot().id, created.id);
 
   const session = { installationId: 'fixture', sessionId: 'fixture-browser', epoch: 1 };
@@ -234,4 +235,118 @@ test('deck UI: draft previews, all modules, page limits, content-loss confirmati
   await a.page.getByRole('heading', { name: 'Everyday Chinese', exact: true }).waitFor({ state: 'detached' });
   assert.equal(application.store.snapshot().name, 'My Deck');
   assert.equal(application.store.cards().length, 0);
+});
+
+test('manual card UI: multi-page drafts, leave choices, sorting, failed-save recovery, and deletion', { timeout: 45000 }, async t => {
+  const directory = await mkdtemp(join(tmpdir(), 'vocabularium-manual-browser-'));
+  const filename = join(directory, 'account.sqlite');
+  let application = createApplication({ filename }); await application.start();
+  const a = await launch(join(directory, 'a'));
+  t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
+  await signIn(a.page);
+  await a.page.getByRole('heading', { name: 'My Deck', exact: true }).click();
+  await a.page.getByRole('button', { name: 'Add card manually', exact: true }).click();
+  await a.page.getByLabel('Page 1 content', { exact: true }).fill('zebra');
+  await a.page.getByRole('button', { name: 'Page 2', exact: true }).click();
+  await a.page.getByLabel('Page 2 content', { exact: true }).fill('== literal note ==\n: second page');
+  await a.page.getByRole('button', { name: 'Page 1', exact: true }).click();
+  assert.equal(await a.page.getByLabel('Page 1 content', { exact: true }).inputValue(), 'zebra');
+  await a.page.getByRole('button', { name: '← My Deck', exact: true }).click();
+  await a.page.getByRole('dialog').getByRole('button', { name: 'Continue editing', exact: true }).click();
+  assert.equal(await a.page.getByLabel('Page 1 content', { exact: true }).inputValue(), 'zebra');
+  await a.page.getByRole('button', { name: '← My Deck', exact: true }).click();
+  await a.page.getByRole('dialog').getByRole('button', { name: 'Save', exact: true }).click();
+  await a.page.getByRole('button', { name: 'zebra', exact: true }).waitFor();
+  const card = application.store.cards()[0]; assert.equal(card.status, null); assert.equal(card.pages[1].text, '== literal note ==\n: second page');
+  await a.page.getByRole('button', { name: 'zebra', exact: true }).click();
+  assert.equal(await a.page.getByRole('button', { name: 'Retry', exact: true }).count(), 0);
+  await a.page.getByRole('button', { name: 'Edit card manually', exact: true }).click();
+  await a.page.getByLabel('Page 1 content', { exact: true }).fill('discard this');
+  await a.page.getByRole('button', { name: '← My Deck', exact: true }).click();
+  await a.page.getByRole('dialog').getByRole('button', { name: 'Discard', exact: true }).click();
+  assert.equal(application.store.card(card.id).pages[0].text, 'zebra');
+  await a.page.getByRole('button', { name: 'zebra', exact: true }).click();
+  await a.page.getByRole('button', { name: 'Edit card manually', exact: true }).click();
+  await a.page.getByLabel('Page 1 content', { exact: true }).fill('cancel this');
+  await a.page.getByRole('button', { name: 'Page 2', exact: true }).click();
+  await a.page.getByLabel('Page 2 content', { exact: true }).fill('cancel both');
+  await a.page.getByRole('button', { name: 'Cancel', exact: true }).click();
+  assert.equal(application.store.card(card.id).pages[0].text, 'zebra');
+  await a.page.getByRole('button', { name: 'Edit card manually', exact: true }).click();
+  await a.page.getByLabel('Page 2 content', { exact: true }).fill('saved second page');
+  await a.page.getByRole('button', { name: 'Page 1', exact: true }).click();
+  await a.page.getByLabel('Page 1 content', { exact: true }).fill('alpha');
+  await application.close();
+  await a.page.getByRole('button', { name: 'Save', exact: true }).click();
+  await a.page.getByRole('button', { name: 'Try saving again', exact: true }).waitFor();
+  assert.equal(await a.page.getByLabel('Page 1 content', { exact: true }).inputValue(), 'alpha');
+  application = createApplication({ filename }); await application.start();
+  await a.page.getByRole('button', { name: 'Try saving again', exact: true }).click();
+  await a.page.getByRole('button', { name: 'Edit card manually', exact: true }).waitFor();
+  assert.deepEqual(application.store.card(card.id).pages.map(page => page.text), ['alpha', 'saved second page']);
+  assert.equal(application.store.card(card.id).created_at, card.created_at);
+  await a.page.getByRole('button', { name: '← My Deck', exact: true }).click();
+  await a.page.getByRole('button', { name: 'Add card manually', exact: true }).click();
+  await a.page.getByRole('button', { name: 'Save', exact: true }).click();
+  await a.page.getByRole('button', { name: 'Edit card manually', exact: true }).waitFor();
+  await a.page.getByRole('button', { name: '← My Deck', exact: true }).click();
+  await a.page.getByLabel('Sort cards', { exact: true }).selectOption('az');
+  assert.deepEqual(await a.page.locator('table .entry').allTextContents(), ['Empty front page', 'alpha']);
+  assert.deepEqual(await a.page.locator('table tr td:first-child').allTextContents(), ['001', '002']);
+  await a.page.getByLabel('Sort cards', { exact: true }).selectOption('za');
+  assert.deepEqual(await a.page.locator('table .entry').allTextContents(), ['alpha', 'Empty front page']);
+  await a.page.getByRole('button', { name: 'alpha', exact: true }).click();
+  await a.page.getByRole('button', { name: 'Edit card manually', exact: true }).click();
+  await a.page.getByRole('button', { name: 'Delete card', exact: true }).click();
+  await a.page.getByRole('dialog').getByRole('button', { name: 'Cancel', exact: true }).click();
+  assert.equal(application.store.cards().length, 2);
+  await a.page.getByRole('button', { name: 'Delete card', exact: true }).click();
+  await a.page.getByRole('dialog').getByRole('button', { name: 'Delete card', exact: true }).click();
+  await a.page.getByRole('button', { name: 'Empty front page', exact: true }).waitFor();
+  assert.equal(application.store.cards().length, 1);
+});
+
+test('page retry UI: exact confirmation and two-installation lock preserve all drafts until explicit resubmission', { timeout: 35000 }, async t => {
+  const directory = await mkdtemp(join(tmpdir(), 'vocabularium-retry-browser-'));
+  let release;
+  const application = createApplication({ provider: {
+    interpret: async () => ({ inputType: 'word_phrase', sourceLanguage: 'Chinese' }),
+    generate: (_, signal) => new Promise((resolve, reject) => { release = resolve; signal.addEventListener('abort', () => reject(Error('aborted')), { once: true }); })
+  } });
+  await application.start();
+  const session = { installationId: 'fixture', sessionId: 'fixture', epoch: 1 }; application.store.openSession('fixture', session);
+  const { cardId } = application.store.capture('fixture-capture', { session, selectedText: '幸福', snapshot: application.store.snapshot() });
+  application.store.establishInterpretation(cardId, { inputType: 'word_phrase', sourceLanguage: 'Chinese' });
+  for (const page of application.store.card(cardId).pages) {
+    application.store.stage(page.attempt_id, { ok: true, text: 'saved original' }); application.store.publish(page.page_id, { attemptId: page.attempt_id, session });
+  }
+  const a = await launch(join(directory, 'a')), b = await launch(join(directory, 'b'));
+  t.after(async () => { await a.context.close(); await b.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
+  await signIn(a.page); await signIn(b.page);
+  await a.page.goto(`chrome-extension://${a.id}/app.html#card/${cardId}`);
+  await b.page.goto(`chrome-extension://${b.id}/app.html#card/${cardId}`);
+  await b.page.getByRole('button', { name: 'Edit card manually', exact: true }).click();
+  await b.page.getByLabel('Page 1 content', { exact: true }).fill('draft front');
+  await b.page.getByRole('button', { name: 'Page 2', exact: true }).click();
+  await b.page.getByLabel('Page 2 content', { exact: true }).fill('draft back');
+  await a.page.getByRole('button', { name: 'Page 2', exact: true }).click();
+  await a.page.getByRole('button', { name: 'Retry', exact: true }).click();
+  assert.equal(await a.page.getByRole('dialog').locator('p').textContent(), 'Retry will delete all content on this page, including manual edits and previous generated content, and generate it again. Other pages will not change.');
+  await a.page.getByRole('dialog').getByRole('button', { name: 'Cancel', exact: true }).click();
+  assert.equal(application.store.card(cardId).pages[1].text, 'saved original');
+  await a.page.getByRole('button', { name: 'Retry', exact: true }).click();
+  await a.page.getByRole('dialog').getByRole('button', { name: 'Confirm', exact: true }).click();
+  await waitFor(() => release, 'retry provider started');
+  await a.page.getByRole('button', { name: 'Retry', exact: true }).waitFor();
+  assert.equal(await a.page.getByRole('button', { name: 'Retry', exact: true }).isDisabled(), true);
+  await b.page.getByRole('button', { name: 'Save', exact: true }).click();
+  await b.page.getByRole('alert').filter({ hasText: 'still generating' }).waitFor();
+  assert.deepEqual(application.store.card(cardId).pages.map(page => page.text), ['saved original', '']);
+  assert.equal(await b.page.getByLabel('Page 2 content', { exact: true }).inputValue(), 'draft back');
+  release('regenerated page');
+  await waitFor(() => application.store.card(cardId).pages[1].status === 'completed', 'retry saved');
+  assert.deepEqual(application.store.card(cardId).pages.map(page => page.text), ['saved original', 'regenerated page']);
+  await b.page.getByRole('button', { name: 'Try saving again', exact: true }).click();
+  await b.page.getByRole('button', { name: 'Edit card manually', exact: true }).waitFor();
+  assert.deepEqual(application.store.card(cardId).pages.map(page => page.text), ['draft front', 'draft back']);
 });

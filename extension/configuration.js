@@ -61,7 +61,10 @@ export function configurationView({ app, draft, element, button, send, onSaved, 
     fields.append(library); controls.append(fields);
     const actions = element('div', undefined, 'dialog-actions');
     const save = button(draft.pending ? 'Try saving again' : 'Save', saveDraft, 'primary'); save.disabled = Boolean(draft.saving);
-    actions.append(button('Cancel', onCancel), save); controls.append(actions);
+    actions.append(button('Cancel', async () => {
+      if (draft.pending) await chrome.storage.local.remove(`save-${draft.pending.operationId}`);
+      onCancel();
+    }), save); controls.append(actions);
     if (draft.error) controls.append(element('p', draft.error, 'notice error'));
     const showcase = element('section', undefined, 'showcase');
     showcase.append(element('h2', 'Example previews'), element('p', 'Illustrative samples only. Previews do not create or change cards.', 'muted'));

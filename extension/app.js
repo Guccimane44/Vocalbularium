@@ -1,3 +1,5 @@
+import { cardViews } from './cards.js';
+import { SORT_ORDERS, sortCards } from './sorting.js';
 import { configurationView, newDeckDraft } from './configuration.js';
 import { dialog } from './dialog.js';
 
@@ -52,7 +54,7 @@ function login() {
   section.append(form); app.replaceChildren(section);
 }
 function pendingSaves(local) {
-  if (location.hash.startsWith('#configure/')) return;
+  if (location.hash.startsWith('#configure/') || cardUI.isEditing()) return;
   const pending = Object.entries(local).filter(([key]) => key.startsWith('save-')).map(([, value]) => value);
   for (const item of pending) {
     const notice = element('div', undefined, 'notice');
@@ -97,31 +99,19 @@ function recentCaptures(local) {
     app.append(row);
   }
 }
-function cardContent(cardId, selectedPageId) {
-  const card = account.cards.find(card => card.id === cardId);
-  if (!card) { app.append(element('h1', 'Card unavailable'), element('p', 'This card has been deleted.')); return; }
-  const deck = account.decks.find(deck => deck.id === card.deck_id);
-  app.append(button(`← ${deck.name}`, () => { location.hash = `deck/${deck.id}`; }, 'back'), element('h1', 'Card content'));
-  if (card.status) app.append(statusLabel(card.status, 'Card: '));
-  const selected = card.pages.find(page => page.page_id === selectedPageId) ?? card.pages[0];
-  const bar = element('nav', undefined, 'pages'); bar.setAttribute('aria-label', 'Card pages');
-  card.pages.forEach((page, index) => {
-    const tab = button(`Page ${index + 1}`, () => { location.hash = `card/${card.id}/${page.page_id}`; });
-    tab.setAttribute('aria-current', String(page === selected)); bar.append(tab);
-  });
-  app.append(bar);
-  const panel = element('section', undefined, 'card-page');
-  if (selected.status) panel.append(statusLabel(selected.status, 'Page: '));
-  panel.append(selected.text ? element('pre', selected.text) : element('p', selected.status === 'loading' ? 'Generating this page…' : selected.status === 'failed' ? 'Generation failed for this page.' : 'This page is empty.', 'muted'));
-  app.append(panel);
-}
+const cardUI = cardViews({ app, getAccount: () => account, element, button, statusLabel, send, showError,
+  navigate: hash => { location.hash = hash; },
+  applyState: async (next, redraw = true) => { account = next.account; signedIn = next.signedIn; if (redraw) await render(); }
+});
+let lastHash = location.hash;
 async function render() {
+  const active = document.activeElement?.id === 'page-content' ? { start: document.activeElement.selectionStart, end: document.activeElement.selectionEnd } : null;
   const version = ++renderVersion;
   const local = await chrome.storage.local.get(null);
   if (version !== renderVersion) return;
   if (!signedIn) { login(); return; }
   actions.replaceChildren(button('Log out', async () => {
-    try { await send({ type: 'logout' }); location.hash = ''; login(); } catch (error) { showError(error); }
+    try { if (!await cardUI.leave()) return; await send({ type: 'logout' }); location.hash = ''; login(); } catch (error) { showError(error); }
   }));
   app.replaceChildren();
   const deckId = location.hash.startsWith('#deck/') ? decodeURIComponent(location.hash.slice(6)) : null;
@@ -135,13 +125,19 @@ async function render() {
     configurationView({ app, draft: configuration, element, button, send, showError, onSaved: async next => {
       account = next.account; signedIn = next.signedIn; configuration = undefined; location.hash = ''; await render();
     }, onCancel: () => { configuration = undefined; location.hash = ''; } });
-  } else if (location.hash.startsWith('#card/')) {
-    const [, cardId, pageId] = location.hash.split('/'); cardContent(cardId, pageId);
+  } else if (location.hash.startsWith('#card/') || location.hash.startsWith('#new-card/')) {
+    cardUI.render(location.hash);
   } else if (deckId) {
     const deck = account.decks.find(deck => deck.id === deckId);
     if (!deck) { location.hash = ''; return; }
     app.append(button('← All decks', () => { location.hash = ''; }, 'back'), element('p', 'YOUR COLLECTION', 'eyebrow'), element('h1', deck.name));
-    const cards = account.cards.filter(card => card.deck_id === deckId);
+    const order = localStorage.getItem(`sort-${deckId}`) ?? 'newest';
+    const select = element('select'); select.id = 'card-sort';
+    for (const [value, label] of SORT_ORDERS) { const option = element('option', label); option.value = value; select.append(option); }
+    select.value = order; select.onchange = () => { localStorage.setItem(`sort-${deckId}`, select.value); void render(); };
+    const sortLabel = element('label', 'Sort cards'); sortLabel.htmlFor = select.id;
+    app.append(button('Add card manually', () => { location.hash = `new-card/${deckId}`; }, 'primary'), sortLabel, select);
+    const cards = sortCards(account.cards.filter(card => card.deck_id === deckId), order);
     if (!cards.length) app.append(element('div', 'No cards in this deck yet.', 'empty'));
     else {
       const table = element('table', undefined, 'list');
@@ -185,9 +181,19 @@ async function render() {
     recentCaptures(local);
   }
   pendingSaves(local);
+  if (active) { const input = document.querySelector('#page-content'); input?.focus(); input?.setSelectionRange(active.start, active.end); }
 }
 
-window.addEventListener('hashchange', () => { void render(); });
+window.addEventListener('hashchange', async () => {
+  const target = location.hash;
+  if (cardUI.isEditing() && !cardUI.matches(target)) {
+    history.replaceState(null, '', location.pathname + lastHash);
+    if (!await cardUI.leave()) return;
+    history.replaceState(null, '', location.pathname + target);
+  }
+  lastHash = location.hash;
+  await render();
+});
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area === 'local' && signedIn && Object.keys(changes).some(key => key.startsWith('capture-') || key.startsWith('save-'))) void render();
 });

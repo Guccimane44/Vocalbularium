@@ -86,8 +86,12 @@ async function run(message) {
       await chrome.storage.local.remove(`save-${operationId}`);
       return run({ type: 'refresh' });
     }
-    const paths = { 'save-deck': '/api/deck/save', 'delete-deck': '/api/deck/delete' };
+    const paths = { 'save-deck': '/api/deck/save', 'delete-deck': '/api/deck/delete', 'create-card': '/api/card/create', 'save-card': '/api/card/save', 'delete-card': '/api/card/delete', 'retry-page': '/api/card/retry' };
     if (paths[message.type]) {
+      if (message.type === 'retry-page') {
+        const { session } = await chrome.storage.session.get('session');
+        message.payload = { ...message.payload, session };
+      }
       const operationId = message.operationId ?? crypto.randomUUID();
       const key = `save-${operationId}`;
       const pending = { operationId, path: paths[message.type], payload: { operationId, payload: message.payload } };
@@ -99,6 +103,7 @@ async function run(message) {
         throw error;
       }
       await chrome.storage.local.remove(key);
+      if (message.type === 'retry-page') void captures.poll().catch(captures.recordError);
       return { ...await run({ type: 'refresh' }), saved };
     }
     if (message.type === 'try-saving-again') {
@@ -110,8 +115,10 @@ async function run(message) {
       const key = `save-${message.operationId}`;
       const { [key]: pending } = await chrome.storage.local.get(key);
       if (pending) {
-        await request(pending.path, pending.payload, auth.token);
+        const saved = await request(pending.path, pending.payload, auth.token);
         await chrome.storage.local.remove(key);
+        void captures.poll().catch(captures.recordError);
+        return { ...await run({ type: 'refresh' }), saved };
       }
       return run({ type: 'refresh' });
     }
