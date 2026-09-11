@@ -2,7 +2,7 @@
 
 Related: [M0 issue #6](https://github.com/Guccimane44/Vocalbularium/issues/6), [delivery tracker #5](https://github.com/Guccimane44/Vocalbularium/issues/5), and [implementation plan](MVP-Implementation-plan.md#m0--validate-the-foundation).
 
-Status: in progress. The owner authorized simple defaults and will set up the Windows test environment later. No hosted service or live generation credentials have been configured.
+Status: local foundation validated; Windows acceptance and hosted connections remain pending. The owner authorized simple defaults and explicitly requested continued implementation while arranging Windows later. No hosted service or live generation credentials have been configured. [Draft PR #13](https://github.com/Guccimane44/Vocalbularium/pull/13) contains this work.
 
 ## Selected defaults
 
@@ -25,7 +25,7 @@ The backend first stages generation results. Only a separate request from the or
 
 Short polling runs while attempts are active; a Chrome alarm provides recovery after worker suspension. Capture receipts and pending publication requests are saved locally before transmission. No dashboard tab is required for processing. Chrome documents independent worker termination and the differing local/session storage lifetimes: [worker lifecycle](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle), [storage](https://developer.chrome.com/docs/extensions/reference/api/storage).
 
-This approach detects a full browser-session transition on reopening. It does not claim an instantaneous server-side browser-exit notification. In particular, abrupt termination, background-mode behavior, and the boundary between final result publication and browser exit require explicit verification before closing M0.
+This approach detects a full browser-session transition on reopening. It does not claim an instantaneous server-side browser-exit notification. Forced process termination is tested below; Windows background-mode behavior and the boundary between final result publication and browser exit remain explicit acceptance checks.
 
 ## Persistence design under test
 
@@ -48,10 +48,12 @@ Run commands from [the README](../README.md#verification). Record passing eviden
 | Check | Current evidence |
 | --- | --- |
 | Syntax, JSON, and whitespace | Passed on 11 September 2026. |
-| Account database tests | 10 passed on Node.js 24.19.0: persistence, operation receipts, duplicate captures, publication ownership, session recovery, save ordering, atomic lock rejection, snapshots, and deletion. |
-| Real Chromium lifecycle and feedback | In progress. |
-| Native context menu and restricted-page fallback | Pending manual check. |
-| Abrupt process termination and publication/exit boundary | Pending. |
+| Account database tests | 11 passed on Node.js 24.19.0: persistence, operation receipts, duplicate captures, canonical payload comparison after storage roundtrips, publication ownership, session recovery, save ordering, atomic lock rejection, snapshots, and deletion. |
+| Real Chromium lifecycle and feedback | Passed on Chromium 151.0.7922.34 / macOS: three-second feedback, dismissal, repeated captures, dashboard closure, actual worker stop/restart, two browser profiles, normal browser close/reopen, and explicit recovery from an incomplete save acknowledgment. |
+| Native context menu | Passed through the visible macOS Chrome UI: selected `幸福` and the child-frame sentence `我真的很幸福`; invoked the native action; observed feedback and both saved cards through the extension button. |
+| Restricted-page fallback | Automated fallback-window creation and manual dismissal passed. Native focus/presentation on the owner's Windows environment remains pending. |
+| Abrupt process termination | Passed by forcibly terminating the disposable browser process during generation, allowing a server result to arrive, reopening the same profile, and checking interruption and stale-result rejection. |
+| Publication/exit boundary and Windows background mode | Pending Windows acceptance. |
 | Owner's Windows environment | Pending owner setup. |
 | Hosted account access and live provider | Pending M1/M2 service setup and credentials. |
 
@@ -59,4 +61,4 @@ Run commands from [the README](../README.md#verification). Record passing eviden
 
 This prototype intentionally contains no product login or complete card/deck editor, and its generated-looking text is illustrative. M1/M2 still need authenticated API validation, full pending-save recovery across session changes, provider error handling, and live generation. The existing specifications remain unchanged.
 
-Keep M0 open while its lifecycle and browser-surface evidence is incomplete. The linked GitHub issue and draft PR record completed substeps and outstanding checks.
+Keep M0 open for its remaining acceptance evidence. Continue the local M1 implementation using the validated foundation, as the owner requested. The linked GitHub issue and draft PR record completed substeps and outstanding checks separately from later milestone work.

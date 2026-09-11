@@ -53,6 +53,8 @@ Each milestone ends with a working demonstration and its relevant checks. Build 
 
 These are completion gates, not calendar commitments. Estimate delivery after M0 establishes the runtime approach, service access, and available implementation time. Do not trade away specified behavior to meet an unverified date.
 
+Execution update, 11 September 2026: the owner will arrange Windows testing later and requested continued implementation. Locally validated foundation work may proceed into M1 while M0's Windows acceptance remains open and tracked. This does not waive any product requirement or the final Windows delivery gate.
+
 ### M0 — Validate the foundation
 
 **Work**

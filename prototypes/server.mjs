@@ -8,6 +8,7 @@ import { AccountStore } from '../src/core/store.mjs';
 export function createPrototype({ filename = ':memory:', delayMs = 5000 } = {}) {
   const store = new AccountStore(filename);
   const timers = new Set();
+  let dropCaptureResponse = false;
   function generate(cardId) {
     const card = store.card(cardId);
     for (const page of card.pages) {
@@ -55,6 +56,12 @@ export function createPrototype({ filename = ':memory:', delayMs = 5000 } = {}) 
         else if (request.url === '/capture') {
           result = store.capture(body.operationId, body.payload);
           if (!result.replayed) generate(result.cardId);
+          if (dropCaptureResponse) {
+            dropCaptureResponse = false;
+            response.writeHead(200, { 'Content-Type': 'application/json' });
+            response.end('{'); // Commit succeeded, but no usable acknowledgment arrives.
+            return;
+          }
         } else if (request.url === '/poll') {
           store.requireSession(body.session);
           const ready = store.db.prepare(`SELECT id FROM attempts WHERE installation_id = ? AND session_id = ?
@@ -75,6 +82,7 @@ export function createPrototype({ filename = ':memory:', delayMs = 5000 } = {}) 
   });
   return {
     store, server,
+    dropNextCaptureResponse() { dropCaptureResponse = true; },
     async start(port = 4317) {
       await new Promise((resolve, reject) => { server.once('error', reject); server.listen(port, '127.0.0.1', resolve); });
       return `http://127.0.0.1:${server.address().port}`;

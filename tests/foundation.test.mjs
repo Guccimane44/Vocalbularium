@@ -29,15 +29,18 @@ const code = expected => error => error.code === expected;
 
 test('account initialization is persistent and occurs once', t => {
   const directory = mkdtempSync(join(tmpdir(), 'vocabularium-db-'));
-  t.after(() => rmSync(directory, { recursive: true, force: true }));
+  let reopened;
+  t.after(() => {
+    reopened?.close();
+    rmSync(directory, { recursive: true, force: true });
+  });
   const filename = join(directory, 'account.sqlite');
   const first = new AccountStore(filename);
   first.openSession('open-a', a);
   const initial = first.snapshot();
   const { cardId } = capture(first);
   first.close();
-  const reopened = new AccountStore(filename);
-  t.after(() => reopened.close());
+  reopened = new AccountStore(filename);
   assert.deepEqual(reopened.snapshot(), initial);
   assert.equal(reopened.cards().length, 1);
   assert.equal(reopened.card(cardId).selected_text, '  幸福\n');
@@ -74,6 +77,20 @@ test('worker reconnection in the same browser session does not interrupt generat
   store.openSession('worker-reconnect', a);
   complete(store, card);
   assert.equal(store.card(cardId).status, 'completed');
+});
+
+test('storage roundtrips may reorder object keys without changing an operation', t => {
+  const store = fixture(t);
+  const reordered = { epoch: a.epoch, sessionId: a.sessionId, installationId: a.installationId };
+  const replay = store.openSession('open-a', reordered);
+  assert.equal(replay.replayed, true);
+  const original = capture(store);
+  const reorderedPayload = {
+    snapshot: { pages: original.payload.snapshot.pages, id: original.payload.snapshot.id, name: original.payload.snapshot.name },
+    selectedText: original.payload.selectedText,
+    session: reordered
+  };
+  assert.equal(store.capture('capture', reorderedPayload).cardId, original.cardId);
 });
 
 test('browser restart fails only its unfinished pages and fences late results', t => {

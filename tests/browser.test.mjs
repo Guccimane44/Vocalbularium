@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve, join } from 'node:path';
+import { once } from 'node:events';
 import { chromium } from 'playwright';
 import { createPrototype } from '../prototypes/server.mjs';
 
@@ -85,20 +86,37 @@ test('real Chromium extension: feedback, independent captures, worker restart, a
   assert.equal(prototype.store.cards().filter(card => card.selected_text === frameSelection).length, 2);
   assert.equal(reading.url(), 'http://127.0.0.1:4317/fixture');
 
+  prototype.dropNextCaptureResponse();
+  const uncertainId = await invoke(a.worker, 'save response lost');
+  const uncertain = prototype.store.cards().find(card => card.selected_text === 'save response lost');
+  const attemptIds = uncertain.pages.map(page => page.attempt_id);
+  const pending = await a.worker.evaluate(async id => (await chrome.storage.local.get(`capture-${id}`))[`capture-${id}`], uncertainId);
+  assert.equal(pending.state, 'pending');
+  const recovery = await a.context.newPage();
+  await recovery.goto(`chrome-extension://${a.id}/dashboard.html`);
+  await recovery.getByRole('button', { name: 'Try saving again' }).click();
+  await waitFor(() => prototype.store.card(uncertain.id).status === 'completed', 'uncertain save explicitly resubmitted');
+  assert.equal(prototype.store.cards().filter(card => card.selected_text === 'save response lost').length, 1);
+  assert.deepEqual(prototype.store.card(uncertain.id).pages.map(page => page.attempt_id), attemptIds);
+  await recovery.close();
+
   // Stopping the worker is deliberately different from closing its browser profile.
   const priorSession = await a.worker.evaluate(async () => (await chrome.storage.session.get('session')).session);
-  const devtools = await a.context.newCDPSession(reading);
-  const { targetInfos } = await devtools.send('Target.getTargets');
-  const workerTarget = targetInfos.find(target => target.type === 'service_worker' && target.url === a.worker.url());
-  assert.ok(workerTarget, 'extension worker target is available');
-  const newWorker = a.context.waitForEvent('serviceworker');
-  await devtools.send('Target.closeTarget', { targetId: workerTarget.targetId });
+  await a.worker.evaluate(() => { globalThis.workerProbe = 'before-stop'; });
+  const internals = await a.context.newPage();
+  await internals.goto('chrome://serviceworker-internals');
+  const registration = internals.locator('.serviceworker-registration').filter({ hasText: a.worker.url() });
+  await registration.getByRole('button', { name: 'Stop', exact: true }).click();
+  await waitFor(async () => (await registration.locator('.serviceworker-running-status .value').textContent()) === 'STOPPED', 'actual worker stopped');
   const dashboard = await a.context.newPage();
   await dashboard.goto(`chrome-extension://${a.id}/dashboard.html`);
-  a.worker = await newWorker;
+  await waitFor(async () => (await registration.locator('.serviceworker-running-status .value').textContent()) === 'RUNNING', 'worker restarted');
+  a.worker = a.context.serviceWorkers().find(worker => worker.url().includes(a.id));
+  assert.ok(a.worker);
+  assert.equal(await a.worker.evaluate(() => globalThis.workerProbe), undefined, 'worker memory was discarded');
   const sameSession = await a.worker.evaluate(() => globalThis.foundation.initialize());
   assert.deepEqual(sameSession, priorSession);
-  await devtools.detach();
+  await internals.close();
 
   const b = await launch(join(directory, 'profile-b'));
   contexts.add(b.context);
@@ -121,5 +139,53 @@ test('real Chromium extension: feedback, independent captures, worker restart, a
   assert.equal(prototype.store.card(otherCard.id).status, 'completed');
   assert.equal(prototype.store.card(firstCardId).status, 'completed');
   assert.throws(() => prototype.store.stage(interruptedCard.pages[0].attempt_id, { ok: true, text: 'late' }), error => error.code === 'stale_attempt');
+
+  const restrictedId = await a.worker.evaluate(async () => (await chrome.tabs.create({ url: 'chrome://version' })).id);
+  await a.worker.evaluate(tabId => globalThis.foundation.handleCapture({ selectionText: 'restricted surface' }, { id: tabId }), restrictedId);
+  await waitFor(() => a.context.pages().some(page => page.url().includes('/feedback.html')), 'restricted-surface fallback opened', 2500);
+  const popup = a.context.pages().find(page => page.url().includes('/feedback.html'));
+  assert.equal(await popup.getByRole('status').textContent(), 'Capture received');
+  await popup.getByRole('button', { name: 'Close', exact: true }).click();
+  await waitFor(() => popup.isClosed(), 'fallback popup manual dismissal');
   console.log(`Browser evidence: ${a.context.browser()?.version() ?? 'Chromium'}, persistent profiles, independent installations, actual worker stop/restart and browser close/reopen.`);
+});
+
+test('abrupt browser-process termination cannot publish staged output after restart', { timeout: 45000 }, async t => {
+  const directory = await mkdtemp(join(tmpdir(), 'vocabularium-crash-'));
+  const profile = join(directory, 'profile');
+  const prototype = createPrototype({ filename: join(directory, 'test.sqlite'), delayMs: 4000 });
+  let initial;
+  let reopened;
+  t.after(async () => {
+    await initial?.context.close().catch(() => {});
+    await reopened?.context.close().catch(() => {});
+    await prototype.close();
+    await rm(directory, { recursive: true, force: true });
+  });
+  await prototype.start();
+  initial = await launch(profile);
+  const oldSession = await initial.worker.evaluate(() => globalThis.foundation.initialize());
+  const page = await initial.context.newPage();
+  await page.goto('http://127.0.0.1:4317/fixture');
+  await invoke(initial.worker, 'abrupt termination');
+  const card = prototype.store.cards()[0];
+  assert.equal(card.status, 'loading');
+  const browser = initial.context.browser();
+  const protocol = await browser.newBrowserCDPSession();
+  const { processInfo } = await protocol.send('SystemInfo.getProcessInfo');
+  const ownedBrowser = processInfo.find(info => info.type === 'browser');
+  assert.ok(ownedBrowser?.id, 'PID belongs to the disposable browser launched by this test');
+  const disconnected = once(browser, 'disconnected');
+  process.kill(ownedBrowser.id, 'SIGKILL');
+  await disconnected;
+  await waitFor(() => prototype.store.attempt(card.pages[0].attempt_id).result !== null, 'server result staged after browser termination');
+  assert.equal(prototype.store.card(card.id).pages[0].text, '');
+  reopened = await launch(profile);
+  const newSession = await reopened.worker.evaluate(() => globalThis.foundation.initialize());
+  assert.equal(newSession.installationId, oldSession.installationId);
+  assert.equal(newSession.epoch, oldSession.epoch + 1);
+  assert.equal(prototype.store.card(card.id).status, 'failed');
+  assert.throws(() => prototype.store.publish('late-publish', {
+    attemptId: card.pages[0].attempt_id, session: oldSession
+  }), error => error.code === 'stale_session');
 });

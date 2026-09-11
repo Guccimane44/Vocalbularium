@@ -5,6 +5,13 @@ export class StoreError extends Error {
   constructor(code, message) { super(message); this.code = code; }
 }
 const fail = (code, message) => { throw new StoreError(code, message); };
+function canonical(value) {
+  if (Array.isArray(value)) return value.map(canonical);
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(Object.keys(value).sort().map(key => [key, canonical(value[key])]));
+  }
+  return value;
+}
 
 // A single synchronous writer gives complete commands an explicit arrival order.
 // No generation or network work runs inside these transactions.
@@ -62,7 +69,7 @@ export class AccountStore {
 
   command(operationId, kind, payload, action) {
     if (typeof operationId !== 'string' || !operationId) fail('invalid', 'An operation ID is required.');
-    const fingerprint = createHash('sha256').update(JSON.stringify([kind, payload])).digest('hex');
+    const fingerprint = createHash('sha256').update(JSON.stringify(canonical([kind, payload]))).digest('hex');
     this.db.exec('BEGIN IMMEDIATE');
     try {
       const receipt = this.db.prepare('SELECT * FROM receipts WHERE operation_id = ?').get(operationId);
