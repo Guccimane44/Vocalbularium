@@ -207,6 +207,7 @@ test('deck UI: draft previews, all modules, page limits, content-loss confirmati
   assert.deepEqual(created.pages[1].modules.map(module => module.type), ['german-explanation', 'german-examples']);
   await a.page.getByLabel('Options for Everyday Chinese').click();
   await a.page.locator('article.deck').filter({ hasText: 'Everyday Chinese' }).getByRole('button', { name: 'Set as default', exact: true }).click();
+  await a.page.locator('article.deck').filter({ hasText: 'Everyday Chinese' }).getByText('DEFAULT DECK', { exact: true }).waitFor();
   assert.equal(application.store.snapshot().id, created.id);
 
   const session = { installationId: 'fixture', sessionId: 'fixture-browser', epoch: 1 };
