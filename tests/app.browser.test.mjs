@@ -75,6 +75,45 @@ test('account extension: login, two installations, reopening, server failure, an
   await b.page.getByRole('heading', { name: 'A growing collection.' }).waitFor();
 });
 
+test('free host: startup HTML is actionable and an erased account requires fresh sign-in', { timeout: 45000 }, async t => {
+  const directory = await mkdtemp(join(tmpdir(), 'vocabularium-free-host-'));
+  let application = createApplication();
+  let browser;
+  t.after(async () => {
+    await browser?.context.close();
+    await application.close();
+    await rm(directory, { recursive: true, force: true });
+  });
+  const handler = application.server.listeners('request')[0];
+  application.server.removeListener('request', handler);
+  let waking = true;
+  application.server.on('request', (request, response) => {
+    if (!waking) return handler(request, response);
+    response.writeHead(200, { 'Content-Type': 'text/html' });
+    response.end('<html>Service starting</html>');
+  });
+  await application.start();
+  browser = await launch(join(directory, 'profile'));
+  await browser.page.getByLabel('Username', { exact: true }).fill('admin');
+  await browser.page.getByLabel('Password', { exact: true }).fill('admin');
+  await browser.page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await browser.page.getByRole('alert').filter({ hasText: 'The account server is unavailable or waking up. Wait a minute and try again.' }).waitFor();
+  waking = false;
+  await signIn(browser.page);
+  application.store.createDeck('Before reset');
+  await browser.page.reload();
+  await browser.page.getByRole('heading', { name: 'Before reset', exact: true }).waitFor();
+
+  await application.close();
+  application = createApplication();
+  await application.start();
+  await browser.page.reload();
+  await browser.page.getByRole('heading', { name: 'Welcome back.' }).waitFor();
+  await signIn(browser.page);
+  await browser.page.getByRole('heading', { name: 'My Deck', exact: true }).waitFor();
+  assert.equal(await browser.page.getByRole('heading', { name: 'Before reset', exact: true }).count(), 0);
+});
+
 async function waitFor(predicate, message, timeout = 12000) {
   const start = Date.now();
   while (Date.now() - start < timeout) {

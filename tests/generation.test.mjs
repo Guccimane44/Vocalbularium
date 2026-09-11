@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { AccountStore } from '../src/core/store.mjs';
 import { Generation } from '../src/server/generation.mjs';
-import { OpenAIProvider } from '../src/server/openai.mjs';
+import { OpenCodeProvider } from '../src/server/opencode.mjs';
 import { renderPage } from '../src/core/modules.mjs';
 import { createApplication } from '../src/server/app.mjs';
 
@@ -106,24 +106,82 @@ test('an unsaved capture recovered after browser closure saves one failed record
   assert.equal(store.cards().length, 1);
 });
 
-test('OpenAI requests use structured output, selected data only, and reject incomplete/refused/invalid output', async () => {
+function completion(content, finish_reason = 'stop', extra = {}) {
+  return { choices: [{ finish_reason, message: { role: 'assistant', content, ...extra } }] };
+}
+
+test('OpenCode requests the free MiMo model with only selection data and validates interpretation', async () => {
   let body;
-  const provider = new OpenAIProvider({ apiKey: 'test-only', fetchImpl: async (url, options) => {
-    assert.equal(url, 'https://api.openai.com/v1/responses'); body = JSON.parse(options.body);
-    return Response.json({ status: 'completed', output: [{ type: 'message', content: [{ type: 'output_text', text: JSON.stringify(word) }] }] });
+  const provider = new OpenCodeProvider({ apiKey: 'test-only', fetchImpl: async (url, options) => {
+    assert.equal(url, 'https://opencode.ai/zen/v1/chat/completions'); body = JSON.parse(options.body);
+    assert.equal(options.headers.Authorization, 'Bearer test-only');
+    assert.equal(options.method, 'POST'); assert.ok(options.signal instanceof AbortSignal);
+    return Response.json(completion(JSON.stringify(word)));
   } });
   assert.deepEqual(await provider.interpret('幸福'), word);
-  assert.equal(body.store, false); assert.equal(body.text.format.strict, true);
-  assert.deepEqual(JSON.parse(body.input), { selectedText: '幸福' });
+  assert.equal(body.model, 'mimo-v2.5-free'); assert.equal(body.stream, false);
+  assert.equal(body.messages.length, 2); assert.equal(body.messages[0].role, 'system');
+  assert.match(body.messages[0].content, /JSON schema/);
+  assert.equal(body.messages[1].role, 'user');
+  assert.deepEqual(JSON.parse(body.messages[1].content), { selectedText: '幸福' });
+});
+
+test('OpenCode rejects incomplete, refused, malformed, and wrong-schema responses', async () => {
+  const provider = new OpenCodeProvider({ apiKey: 'test-only' });
   for (const result of [
-    { status: 'incomplete', output: [] },
-    { status: 'completed', output: [{ type: 'message', content: [{ type: 'refusal' }] }] },
-    { status: 'completed', output: [{ type: 'message', content: [{ type: 'output_text', text: 'not JSON' }] }] }
+    null, {}, { choices: [] }, { error: { message: 'upstream failure' } },
+    completion(JSON.stringify(word), 'length'), completion(JSON.stringify(word), 'content_filter'),
+    completion(JSON.stringify(word), 'stop', { refusal: 'declined' }),
+    completion(JSON.stringify(word), 'stop', { role: 'user' }),
+    completion(JSON.stringify(word), 'stop', { tool_calls: [{ id: 'call' }] }),
+    completion(JSON.stringify(word), 'stop', { function_call: { name: 'tool' } }),
+    completion(null), completion('not JSON'), completion('```json\n{}\n```'),
+    ...[null, [], {}, { ...word, inputType: 'paragraph' }, { ...word, sourceLanguage: '' },
+      { ...word, sourceLanguage: ['Chinese'] }, { ...word, sourceLanguage: ' ' }, { ...word, unexpected: true }]
+      .map(value => completion(JSON.stringify(value)))
   ]) {
     provider.fetch = async () => Response.json(result);
     await assert.rejects(provider.interpret('幸福'));
   }
-  await assert.rejects(new OpenAIProvider({ apiKey: '' }).interpret('幸福'), /not configured/);
+  provider.fetch = async () => new Response('<html>Gateway unavailable</html>');
+  await assert.rejects(provider.interpret('幸福'), /invalid result/);
+});
+
+test('OpenCode preserves module context and literal multiline output; rejects empty or extra fields', async () => {
+  const input = { module: { id: 'example-2', type: 'german-examples' }, selectedText: '幸福', interpretation: word, avoid: ['previous example'] };
+  const output = '== Chinesisch (幸福, xìngfú) ==\n=== Bedeutungen ===\n: [1] Glück\n=== Beispiele ===\n: [1] 幸福就在身边。\n:: Das Glück ist ganz nah.';
+  const provider = new OpenCodeProvider({ apiKey: 'test-only', model: 'configured-model', fetchImpl: async (url, options) => {
+    const body = JSON.parse(options.body);
+    assert.equal(body.model, 'configured-model');
+    assert.deepEqual(JSON.parse(body.messages[1].content), { selectedText: input.selectedText, interpretation: word, instanceId: 'example-2', avoid: input.avoid });
+    return Response.json(completion(JSON.stringify({ text: output })));
+  } });
+  assert.equal(await provider.generate(input), output);
+  for (const value of [{ text: '' }, { text: ' ' }, { text: 7 }, { text: output, extra: 'ignored?' }, {}]) {
+    provider.fetch = async () => Response.json(completion(JSON.stringify(value)));
+    await assert.rejects(provider.generate(input), /invalid result/);
+  }
+});
+
+test('OpenCode authentication and rate failures make no fallback requests and keep upstream details private', async () => {
+  const provider = new OpenCodeProvider({ apiKey: 'test-only' });
+  for (const status of [401, 403, 404, 429, 500]) {
+    let calls = 0;
+    provider.fetch = async () => { calls++; return Response.json({ error: { message: 'private upstream details' } }, { status }); };
+    await assert.rejects(provider.interpret('幸福'), { message: 'The generation service could not complete this request.' });
+    assert.equal(calls, 1);
+  }
+  await assert.rejects(new OpenCodeProvider({ apiKey: '', fetchImpl: () => assert.fail('No request without a key') }).interpret('幸福'), /not configured/);
+});
+
+test('OpenCode aborts in-flight requests when their generation is canceled', async () => {
+  const controller = new AbortController();
+  const provider = new OpenCodeProvider({ apiKey: 'test-only', fetchImpl: async (_, { signal }) => new Promise((resolve, reject) => {
+    signal.addEventListener('abort', () => reject(signal.reason), { once: true });
+  }) });
+  const pending = provider.interpret('幸福', controller.signal);
+  controller.abort();
+  await assert.rejects(pending, { name: 'AbortError' });
 });
 
 test('authenticated capture saves before generation, repeats safely, and publishes only from its origin', async t => {

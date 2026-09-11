@@ -3,12 +3,18 @@ import { captureRuntime } from './capture.js';
 
 let initialization;
 async function request(path, body, token) {
-  const response = await fetch(API_URL + path, {
-    method: body ? 'POST' : 'GET',
-    headers: { ...(body ? { 'Content-Type': 'application/json' } : {}), ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-    body: body && JSON.stringify(body), signal: AbortSignal.timeout(10000)
-  });
-  const result = await response.json();
+  let response, result;
+  try {
+    response = await fetch(API_URL + path, {
+      method: body ? 'POST' : 'GET',
+      headers: { ...(body ? { 'Content-Type': 'application/json' } : {}), ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      body: body && JSON.stringify(body), signal: AbortSignal.timeout(10000)
+    });
+    result = await response.json();
+    if (!result || typeof result !== 'object') throw new Error();
+  } catch {
+    throw new Error('The account server is unavailable or waking up. Wait a minute and try again.');
+  }
   if (!response.ok) throw Object.assign(new Error(result.error), { code: result.code, status: response.status, details: result.details });
   return result;
 }

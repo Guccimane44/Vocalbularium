@@ -1,10 +1,10 @@
 import { renderPage, validateInterpretation } from '../core/modules.mjs';
-import { OpenAIProvider } from './openai.mjs';
+import { OpenCodeProvider } from './opencode.mjs';
 import { mkdirSync, readdirSync, readFileSync, writeFileSync, renameSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 
 export class Generation {
-  constructor(store, provider = new OpenAIProvider()) {
+  constructor(store, provider = new OpenCodeProvider()) {
     this.store = store; this.provider = provider;
     this.tasks = new Map(); this.interpretations = new Map(); this.outputs = new Map();
     this.pendingResults = new Map();

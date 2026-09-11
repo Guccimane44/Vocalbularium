@@ -10,28 +10,47 @@ const textSchema = {
   properties: { text: { type: 'string' } }, required: ['text']
 };
 
-export class OpenAIProvider {
-  constructor({ apiKey = process.env.OPENAI_API_KEY, model = process.env.OPENAI_MODEL ?? 'gpt-5.4-mini-2026-03-17', fetchImpl = fetch } = {}) {
+export class OpenCodeProvider {
+  constructor({ apiKey = process.env.OPENCODE_API_KEY, model = process.env.OPENCODE_MODEL ?? 'mimo-v2.5-free', fetchImpl = fetch } = {}) {
     this.apiKey = apiKey; this.model = model; this.fetch = fetchImpl;
   }
   async structured(name, schema, instructions, input, signal) {
     if (!this.apiKey) throw new Error('Generation is not configured on the server.');
-    const response = await this.fetch('https://api.openai.com/v1/responses', {
+    const response = await this.fetch('https://opencode.ai/zen/v1/chat/completions', {
       method: 'POST', headers: { Authorization: `Bearer ${this.apiKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: this.model, store: false, max_output_tokens: 4096, reasoning: { effort: 'low' },
-        instructions, input: JSON.stringify(input),
-        text: { format: { type: 'json_schema', name, strict: true, schema } }
+        model: this.model, stream: false, max_tokens: 4096,
+        messages: [
+          { role: 'system', content: `${instructions}\nReturn exactly one JSON object for ${name}, with no surrounding text or code fences. Match this JSON schema: ${JSON.stringify(schema)}` },
+          { role: 'user', content: JSON.stringify(input) }
+        ]
       }),
       signal: AbortSignal.any([AbortSignal.timeout(60000), ...(signal ? [signal] : [])])
     });
     if (!response.ok) throw new Error('The generation service could not complete this request.');
-    const result = await response.json();
-    if (result.status !== 'completed') throw new Error('Generation returned an incomplete result.');
-    const content = (result.output ?? []).filter(item => item.type === 'message').flatMap(item => item.content ?? []);
-    if (content.some(item => item.type === 'refusal')) throw new Error('The generation service did not produce this content.');
-    const text = content.filter(item => item.type === 'output_text').map(item => item.text).join('');
-    try { return JSON.parse(text); } catch { throw new Error('Generation returned an invalid result.'); }
+    let result;
+    try { result = await response.json(); } catch { throw new Error('Generation returned an invalid result.'); }
+    const choice = result?.choices?.[0];
+    if (result?.error || !Array.isArray(result?.choices) || result.choices.length !== 1 || choice?.finish_reason !== 'stop') {
+      throw new Error('Generation returned an incomplete result.');
+    }
+    const message = choice.message;
+    if (message?.role !== 'assistant' || message.refusal || message.tool_calls?.length || message.function_call) {
+      throw new Error('The generation service did not produce this content.');
+    }
+    // Prompted JSON is not a provider-side schema guarantee. Validate before any result can be staged.
+    try {
+      if (typeof message.content !== 'string') throw new Error();
+      const value = JSON.parse(message.content);
+      if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error();
+      if (Object.keys(value).some(key => !Object.hasOwn(schema.properties, key))) throw new Error();
+      for (const key of schema.required) {
+        const field = schema.properties[key];
+        if (!Object.hasOwn(value, key) || typeof value[key] !== field.type || !value[key].trim()) throw new Error();
+        if (field.enum && !field.enum.includes(value[key])) throw new Error();
+      }
+      return value;
+    } catch { throw new Error('Generation returned an invalid result.'); }
   }
   async interpret(selectedText, signal) {
     const result = await this.structured('vocabulary_interpretation', interpretationSchema,

@@ -13,7 +13,7 @@ async function files(directory) {
 }
 let checked = 0;
 for (const file of await files('.')) {
-  if (!['.js', '.mjs', '.json', '.md', '.html', '.css', '.yml'].includes(extname(file))) continue;
+  if (!['.js', '.mjs', '.json', '.md', '.html', '.css', '.yml', '.yaml'].includes(extname(file))) continue;
   const content = await readFile(file, 'utf8');
   if (content.split('\n').some(line => /[\t ]+$/.test(line))) throw new Error(`Trailing whitespace: ${file}`);
   if (extname(file) === '.json') JSON.parse(content);

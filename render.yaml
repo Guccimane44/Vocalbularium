@@ -2,7 +2,7 @@ services:
   - type: web
     name: vocabularium
     runtime: node
-    plan: starter
+    plan: free
     buildCommand: npm ci --omit=dev
     startCommand: npm start
     healthCheckPath: /health
@@ -13,8 +13,8 @@ services:
       - key: HOST
         value: "0.0.0.0"
       - key: DATA_DIR
-        value: /var/data/vocabularium
-    disk:
-      name: vocabularium-account
-      mountPath: /var/data
-      sizeGB: 1
+        value: .data
+      - key: OPENCODE_API_KEY
+        sync: false
+      - key: OPENCODE_MODEL
+        value: mimo-v2.5-free

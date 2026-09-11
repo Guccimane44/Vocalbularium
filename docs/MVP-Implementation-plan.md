@@ -55,6 +55,8 @@ These are completion gates, not calendar commitments. Estimate delivery after M0
 
 Execution update, 11 September 2026: the owner will arrange Windows testing later and requested continued implementation. Locally validated foundation work may proceed into M1 while M0's Windows acceptance remains open and tracked. This does not waive any product requirement or the final Windows delivery gate.
 
+Execution update, 11 September 2026: for MVP testing, use OpenCode's free model access with `mimo-v2.5-free` and deploy the backend as a Render Free web service. This keeps the single-owner test phase at zero hosting and model subscription cost. The generation adapter must use OpenCode's Chat Completions endpoint and validate model output before publishing it. Render Free's sleeping service and ephemeral filesystem are accepted test-phase constraints; persistent storage and always-on responsiveness remain open requirements for hosted production use.
+
 ### M0 — Validate the foundation
 
 **Work**
@@ -168,7 +170,7 @@ Use focused automated tests for state transitions, mutation ordering, atomic wri
 | --- | --- | --- |
 | Runtime stack and browser lifecycle mechanism | End of M0 | Decision record and passing lifecycle prototype. |
 | Backend host and persistent database access | M1 | Both installations read/write the same account. |
-| Generation provider, model, and server credentials | M2 | Live capture through the initial layout; recorded runtime defaults. |
+| Generation provider, model, and server credentials | M2 | Live capture through the initial layout; recorded runtime defaults. The MVP test default is OpenCode `mimo-v2.5-free`; keep the adapter configurable for a later provider switch. |
 | Popup mechanism and browser surface constraints | End of M0 | Demonstrated capture feedback and documented platform findings. |
 | Refresh cadence and deterministic sorting convention | M1 / M4 | Documented choices and consistent two-installation/list behavior. |
 | Windows PC and second Chrome installation for verification | M0 prototype; required again in M5–M6 | Recorded lifecycle findings and packaged-build acceptance. |

@@ -6,7 +6,7 @@ Each action has a durable local receipt and a separate operation identity, so tw
 
 ## Provider
 
-The server uses [OpenAI Responses](https://developers.openai.com/api/docs/guides/structured-outputs) with strict structured output and [gpt-5.4-mini](https://developers.openai.com/api/docs/models/gpt-5.4-mini), pinned to `gpt-5.4-mini-2026-03-17` by default. It sends only the selected text, shared interpretation, module instructions, and prior outputs needed for distinct examples. No webpage context or API credentials enter the extension's capture payload. Missing credentials, refusal, incomplete output, and invalid structured output fail the dependent page.
+The server now uses [OpenCode Zen](https://opencode.ai/docs/zen/) Chat Completions with `mimo-v2.5-free` for owner testing. It sends only the selected text, shared interpretation, module instructions, and prior outputs needed for distinct examples. The adapter requests JSON through its instructions and validates completion status and the expected fields locally. No webpage context or API credentials enter the extension's capture payload. Missing credentials, refusal, incomplete output, and invalid JSON or fields fail the dependent page. There is no automatic fallback to a different model.
 
 ## Verification performed
 

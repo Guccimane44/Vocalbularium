@@ -13,22 +13,22 @@ This records evidence against the eleven [MVP completion criteria](MVP-Product-s
 | 5. Browse/sort/pages | Plain-text pages, all four sort orders, stable ties, calculated indices, empty-front placeholder | Owner walkthrough |
 | 6. Manual workflows | Multi-page drafts, Save/Cancel/all leave choices, failed-save recovery, card/deck deletion | Owner walkthrough |
 | 7. Layout migration | Stable retained pages, empty appends, content-loss digest revalidation, stale layout rejection | Hosted concurrent configuration pass |
-| 8. Persistence/sync | Two isolated profiles, backend restart, failed saves before commit and lost acknowledgments after commit | Hosted disk/redeploy and extension update |
+| 8. Persistence/sync | Two isolated profiles, backend restart, failed saves before commit and lost acknowledgments after commit | Hosted two-installation test and extension update; durable hosted persistence deferred by the free-test exception |
 | 9. Feedback | Independent three-second receipts, dismissal, unaffected reading activity; M0 native selection checks | Native product/Windows restricted surfaces |
 | 10. Browser interruption | Product worker Stop/restart, normal origin closure, abrupt owned-browser termination, other-profile continuation, late-result rejection | Windows background mode and final publication/exit boundary |
 | 11. Save ordering | Same/different-page FIFO, atomic multi-page generation lock, explicit resubmission, deletion races | Hosted two-installation pass |
 
 ## Checks performed
 
-38 store/server/module/card tests and eight browser scenarios pass locally with Node.js 24 and Chromium 151.0.7922.34 on macOS. Six browser scenarios exercise the actual product extension; two retain the M0 laboratory lifecycle checks. Syntax, JSON, whitespace, and extension build checks pass. GitHub also runs the store/server suite on Windows and Linux and the browser suite on Linux.
+42 store/server/module/card tests and nine browser scenarios pass locally with Node.js 24 and Chromium 151.0.7922.34 on macOS, including the OpenCode/Render Free update on 12 September 2026. Seven browser scenarios exercise the actual product extension; two retain the M0 laboratory lifecycle checks. The new provider checks cover request format, output validation, rate/authentication failures without model fallback, and cancellation. The free-host browser scenario simulates a startup HTML response and an erased backend account, then verifies the explanatory message and fresh sign-in. These controlled checks do not establish live MiMo quality or actual Render behavior. GitHub also runs the store/server suite on Windows and Linux and the browser suite on Linux.
 
 The assembled reliability scenario discards responses only after the actual server request completes. It verifies that replaying a capture does not make another card or generate again, and that replaying an edit or generated-page publication does not overwrite a later saved edit. It stops the real extension worker, then terminates only its disposable browser PID. The second installation continues and the originating installation rejects its late result on reopening. Deleting a card through the authenticated API aborts its active provider work.
 
-A separate controlled result-write failure verifies that completed generation is not relabeled as provider failure. The server journals the complete result before the account write, retains it for explicit save retry, and recovers it after a server restart without calling the provider again. The journal lives beside the account database on the persistent disk. A controlled database-write failure followed by a server restart passes. Like the account database, it depends on available writable storage.
+A separate controlled result-write failure verifies that completed generation is not relabeled as provider failure. The server journals the complete result before the account write, retains it for explicit save retry, and recovers it after a server restart without calling the provider again. The journal lives beside the account database in `DATA_DIR`. A controlled database-write failure followed by a server restart passes when that directory survives. Render Free erases both the database and journal on sleep, restart, or redeploy; it cannot pass this durability check. See the [test-phase exception](MVP-Product-scope.md#10-first-iteration-delivery-and-deferred-work).
 
 ## Live verification
 
-Once the owner configures the ignored `.env` file, run:
+Once the owner configures `OPENCODE_API_KEY` in the ignored `.env` file, run:
 
 ```sh
 npm run smoke:generation

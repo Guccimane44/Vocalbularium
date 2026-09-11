@@ -29,7 +29,7 @@ npm run build
 
 The output is `artifacts/extension`. For a hosted backend, set `VOCABULARIUM_API_URL` to its HTTPS origin when building; the build writes the matching extension host permission. No credentials are embedded in the package.
 
-The [Render configuration](render.yaml) defines one service and a persistent disk. It has not been provisioned. Use `HOST`, `PORT`, and `DATA_DIR` to configure a server; `.env.example` documents the local defaults. Login sessions last seven days, and active views refresh every five seconds. Windows installation and delivery-preparation instructions are linked above; owner acceptance remains pending.
+The [Render configuration](render.yaml) defines one Free web service for disposable MVP testing, with no paid disk. It has not been provisioned. Render discards its local SQLite data on sleep, restart, or redeploy; local development still persists data in `.data`. See the [free-host testing procedure](docs/M6-Delivery.md#connect-render-free-when-access-is-ready). Use `HOST`, `PORT`, and `DATA_DIR` to configure a server; `.env.example` documents the local defaults. Login sessions last seven days unless the test server resets, and active views refresh every five seconds.
 
 ## Deck configuration
 
@@ -45,7 +45,9 @@ Manual drafts remain intact when switching pages. **Save** writes all changed pa
 
 ## Generation
 
-Copy `.env.example` to the ignored `.env` file and configure `OPENAI_API_KEY` there, then restart the account server. Keep the key on the server. The extension never receives it. The default provider is OpenAI Responses with `gpt-5.4-mini-2026-03-17`; `OPENAI_MODEL` can override it.
+Copy `.env.example` to the ignored `.env` file (or add its generation settings to your existing file), configure `OPENCODE_API_KEY` with your OpenCode Zen key, then restart the account server. Keep the key on the server. The extension never receives it. The default is `mimo-v2.5-free` through `https://opencode.ai/zen/v1/chat/completions`; `OPENCODE_MODEL` can override the model. Requests never fall back to another model automatically.
+
+The adapter requests JSON in its instructions and validates the completion status, object fields, input classification, and nonempty text locally before publishing. It does not depend on undocumented provider support for strict structured outputs. Each request has a 60-second limit and a 4,096-token output budget. [OpenCode lists MiMo as free for a limited time](https://opencode.ai/docs/zen/); collected data may be used to improve that model. Use sample vocabulary for testing.
 
 Without a key, the original capture is still saved. Pages requiring interpretation or generation fail visibly; exact-selection pages still complete. Automated checks inject controlled provider responses and do not spend API credits. Live-provider verification is pending owner configuration.
 

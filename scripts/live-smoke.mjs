@@ -1,10 +1,10 @@
 import { mkdir, writeFile } from 'node:fs/promises';
-import { OpenAIProvider } from '../src/server/openai.mjs';
+import { OpenCodeProvider } from '../src/server/opencode.mjs';
 import { renderPage } from '../src/core/modules.mjs';
 
-if (!process.env.OPENAI_API_KEY) throw new Error('Configure OPENAI_API_KEY in the ignored .env file first.');
-const provider = new OpenAIProvider();
-const evidence = { date: new Date().toISOString(), model: provider.model, captures: [] };
+if (!process.env.OPENCODE_API_KEY) throw new Error('Configure OPENCODE_API_KEY in the ignored .env file first.');
+const provider = new OpenCodeProvider();
+const evidence = { date: new Date().toISOString(), provider: 'OpenCode Zen', model: provider.model, captures: [] };
 for (const selectedText of ['幸福', '我真的很幸福']) {
   const interpretation = await provider.interpret(selectedText);
   const outputs = [];
