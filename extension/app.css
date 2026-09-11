@@ -33,4 +33,14 @@ button:disabled { opacity: .5; cursor: default; }
 .list { width: 100%; border-collapse: collapse; margin-top: 26px; }
 .list td, .list th { text-align: left; border-bottom: 1px solid #dbe1d7; padding: 14px 12px; }
 pre { font: inherit; white-space: pre-wrap; overflow-wrap: anywhere; }
+.section-title { margin-top: 50px; }
+.capture { padding: 18px 0; border-bottom: 1px solid #dbe1d7; }
+.capture > button, .capture > .badge { margin-right: 10px; }
+.capture-text { white-space: pre-wrap; overflow-wrap: anywhere; }
+.status-failed { color: #8c3535; background: #f9e4df; }
+.status-loading { color: #6d5623; background: #f4edd7; }
+.entry { text-align: left; border: 0; max-width: 720px; padding-left: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.pages { display: flex; gap: 10px; margin: 24px 0; }
+.pages [aria-current="true"] { background: #2d553c; color: white; }
+.card-page { background: white; border: 1px solid #dbe1d7; border-radius: 14px; padding: 28px; min-height: 260px; }
 @media (max-width: 600px) { header { padding: 24px; } main { margin-top: 30px; padding: 0 24px; } h1 { font-size: 38px; } .login { margin: 40px auto; } }

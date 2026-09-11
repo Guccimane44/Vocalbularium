@@ -46,6 +46,9 @@ export class AccountStore {
         sequence INTEGER PRIMARY KEY AUTOINCREMENT, operation_id TEXT UNIQUE NOT NULL,
         fingerprint TEXT NOT NULL, result TEXT NOT NULL);
     `);
+    if (!this.db.prepare('PRAGMA table_info(cards)').all().some(column => column.name === 'interpretation')) {
+      this.db.exec('ALTER TABLE cards ADD COLUMN interpretation TEXT');
+    }
     if (!this.db.prepare('SELECT id FROM account').get()) {
       this.db.exec('BEGIN IMMEDIATE');
       try {
@@ -147,23 +150,31 @@ export class AccountStore {
     const states = pages.map(page => page.status).filter(Boolean);
     const status = states.includes('failed') ? 'failed' : states.includes('loading') ? 'loading'
       : states.length ? 'completed' : null;
-    return { ...card, pages, status };
+    return { ...card, interpretation: card.interpretation ? JSON.parse(card.interpretation) : null, pages, status };
   }
   cards() { return this.db.prepare('SELECT id FROM cards ORDER BY created_at DESC, id').all().map(({ id }) => this.card(id)); }
 
-  capture(operationId, { session, selectedText, snapshot }) {
+  capture(operationId, { session, selectedText, snapshot }, { recoverySession } = {}) {
     return this.command(operationId, 'capture', { session, selectedText, snapshot }, () => {
-      this.requireSession(session);
+      this.requireSession(recoverySession ?? session);
+      const interrupted = recoverySession && (recoverySession.sessionId !== session.sessionId || recoverySession.epoch !== session.epoch);
+      if (recoverySession && (recoverySession.installationId !== session.installationId || recoverySession.epoch < session.epoch)) {
+        fail('wrong_session', 'Capture recovery belongs to its originating installation.');
+      }
       if (typeof selectedText !== 'string' || selectedText.length === 0) fail('invalid', 'Select some text first.');
       const deck = this.deck(snapshot.id);
       const id = randomUUID();
-      this.db.prepare('INSERT INTO cards VALUES (?, ?, ?, ?)').run(id, deck.id, selectedText, new Date().toISOString());
+      this.db.prepare('INSERT INTO cards (id, deck_id, selected_text, created_at) VALUES (?, ?, ?, ?)')
+        .run(id, deck.id, selectedText, new Date().toISOString());
       for (const page of deck.pages) {
         this.db.prepare('INSERT INTO pages (card_id, page_id) VALUES (?, ?)').run(id, page.id);
         const capturedPage = snapshot.pages.find(captured => captured.id === page.id);
-        if (capturedPage) this.startAttempt(id, page.id, session, capturedPage.modules);
+        if (capturedPage) {
+          const attemptId = this.startAttempt(id, page.id, session, capturedPage.modules);
+          if (interrupted) this.failAttempt(attemptId);
+        }
       }
-      return { cardId: id };
+      return { cardId: id, interrupted: Boolean(interrupted) };
     });
   }
 
@@ -180,6 +191,26 @@ export class AccountStore {
     const attempt = this.db.prepare('SELECT * FROM attempts WHERE id = ?').get(id);
     if (!attempt) fail('deleted', 'The attempt no longer exists.');
     return { ...attempt, modules: JSON.parse(attempt.modules), result: attempt.result && JSON.parse(attempt.result) };
+  }
+  failAttempt(attemptId) {
+    this.db.prepare(`UPDATE pages SET text = '', status = 'failed' WHERE attempt_id = ? AND status = 'loading'`).run(attemptId);
+    this.db.prepare(`UPDATE attempts SET state = 'failed', result = NULL WHERE id = ? AND state = 'loading'`).run(attemptId);
+  }
+  establishInterpretation(cardId, interpretation, attemptIds) {
+    const card = this.card(cardId);
+    if (card.interpretation) return card.interpretation;
+    const active = this.db.prepare("SELECT id FROM attempts WHERE card_id = ? AND state = 'loading'").all(cardId);
+    if (!active.some(attempt => !attemptIds || attemptIds.includes(attempt.id))) {
+      fail('stale_attempt', 'No active attempt requires this interpretation.');
+    }
+    this.db.prepare('UPDATE cards SET interpretation = ? WHERE id = ? AND interpretation IS NULL')
+      .run(JSON.stringify(interpretation), cardId);
+    return interpretation;
+  }
+  pendingAttempts(session) {
+    this.requireSession(session);
+    return this.db.prepare(`SELECT id FROM attempts WHERE installation_id = ? AND session_id = ? AND state = 'loading'`)
+      .all(session.installationId, session.sessionId).map(({ id }) => this.attempt(id));
   }
 
   // Provider completion only stages a result. It cannot publish page content.

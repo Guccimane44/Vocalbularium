@@ -1,6 +1,6 @@
 # Vocabularium
 
-A vocabulary capture extension being built for Chrome on Windows. The product specifications define the first iteration. The account/login/dashboard milestone is under development; the complete MVP is not yet delivered.
+A vocabulary capture extension being built for Chrome on Windows. The product specifications define the first iteration. Account access and the first capture workflow are implemented; the complete MVP is not yet delivered.
 
 - [MVP delivery tracker and milestone issues](https://github.com/Guccimane44/Vocalbularium/issues/5)
 - [Implementation plan](docs/MVP-Implementation-plan.md)
@@ -18,7 +18,7 @@ npm start
 
 In Chrome, load the repository's `extension` folder through `chrome://extensions` → Developer mode → **Load unpacked**. Click the extension button and sign in with username `admin` and password `admin`.
 
-The account server listens on `127.0.0.1:4318` and persists data in `.data/account.sqlite`. Both extension installations use the same account when pointed at this server. Capture and the remaining editor workflows are added by subsequent milestones.
+The account server listens on `127.0.0.1:4318` and persists data in `.data/account.sqlite`. Both extension installations use the same account when pointed at this server. Select text on a webpage and choose **Add to default deck**. Recent outcomes appear on the dashboard; open a card to navigate its plain-text pages. Deck configuration and editing follow in the next milestones.
 
 Build an installable extension folder with:
 
@@ -29,6 +29,14 @@ npm run build
 The output is `artifacts/extension`. For a hosted backend, set `VOCABULARIUM_API_URL` to its HTTPS origin when building; the build writes the matching extension host permission. No credentials are embedded in the package.
 
 The [Render configuration](render.yaml) defines one service and a persistent disk. It has not been provisioned. Use `HOST`, `PORT`, and `DATA_DIR` to configure a server; `.env.example` documents the local defaults. Login sessions last seven days, and active views refresh every five seconds. Full Windows delivery instructions follow in M6.
+
+## Generation
+
+Copy `.env.example` to the ignored `.env` file and configure `OPENAI_API_KEY` there, then restart the account server. Keep the key on the server. The extension never receives it. The default provider is OpenAI Responses with `gpt-5.4-mini-2026-03-17`; `OPENAI_MODEL` can override it.
+
+Without a key, the original capture is still saved. Pages requiring interpretation or generation fail visibly; exact-selection pages still complete. Automated checks inject controlled provider responses and do not spend API credits. Live-provider verification is pending owner configuration.
+
+Capture receipts remain local until their account write succeeds. **Try saving again** resubmits the existing operation. Generation results are published only through their originating Chrome session; reopening Chrome fails its interrupted attempts. See [capture implementation evidence](docs/M2-Capture.md) and the authoritative [Select and Add rules](docs/MVP-Product-spec-select-and-add.md).
 
 ## Local foundation prototype
 

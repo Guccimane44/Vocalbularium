@@ -1,4 +1,5 @@
 import { API_URL } from './config.js';
+import { captureRuntime } from './capture.js';
 
 let initialization;
 async function request(path, body, token) {
@@ -34,7 +35,10 @@ async function initialize() {
     await request('/api/session', { operationId: `session-${session.sessionId}`, session }, auth.token);
     const account = await request('/api/account', null, auth.token);
     await chrome.storage.local.set({ account });
-    // Capture is connected in M2. Until then there is no non-working capture action.
+    await captures.reconcile(session);
+    await chrome.contextMenus.removeAll();
+    chrome.contextMenus.create({ id: 'capture', title: 'Add to default deck', contexts: ['selection'] });
+    await chrome.alarms.create('recover', { periodInMinutes: 0.5 });
     return { signedIn: true, account };
   })();
   try { return await initialization; }
@@ -63,6 +67,7 @@ async function run(message) {
   }
   if (message.type === 'initialize') {
     const initialized = await initialize();
+    if (initialized.signedIn) void captures.poll().catch(captures.recordError);
     return initialized.signedIn ? run({ type: 'refresh' }) : initialized;
   }
   const { auth } = await chrome.storage.local.get('auth');
@@ -82,6 +87,11 @@ async function run(message) {
       return run({ type: 'refresh' });
     }
     if (message.type === 'try-saving-again') {
+      const captureKey = `capture-${message.operationId}`;
+      const { [captureKey]: receipt } = await chrome.storage.local.get(captureKey);
+      if (receipt && receipt.state !== 'saved') {
+        await captures.submit(receipt); return run({ type: 'refresh' });
+      }
       const key = `save-${message.operationId}`;
       const { [key]: pending } = await chrome.storage.local.get(key);
       if (pending) {
@@ -97,11 +107,20 @@ async function run(message) {
   }
 }
 
+const captures = captureRuntime({ request, initialize, refresh: () => run({ type: 'refresh' }), removeAccess });
+export const handleCapture = captures.handleCapture;
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+  if (info.menuItemId === 'capture') void handleCapture(info, tab).catch(captures.recordError);
+});
+chrome.alarms.onAlarm.addListener(alarm => {
+  if (alarm.name === 'recover') void captures.poll().catch(captures.recordError);
+});
+
 chrome.runtime.onMessage.addListener((message, sender, respond) => {
   if (sender.id !== chrome.runtime.id || !sender.url?.startsWith(chrome.runtime.getURL(''))) return;
   run(message).then(respond, error => respond({ error: error.message, code: error.code }));
   return true;
 });
 chrome.action.onClicked.addListener(() => { void chrome.tabs.create({ url: chrome.runtime.getURL('app.html') }); });
-chrome.runtime.onInstalled.addListener(() => { void initialize().catch(() => {}); });
-chrome.runtime.onStartup.addListener(() => { void initialize().catch(() => {}); });
+chrome.runtime.onInstalled.addListener(() => { void initialize().then(state => state.signedIn && captures.poll()).catch(captures.recordError); });
+chrome.runtime.onStartup.addListener(() => { void initialize().then(state => state.signedIn && captures.poll()).catch(captures.recordError); });
