@@ -126,6 +126,19 @@ export class AccountStore {
     const { default_deck_id: id } = this.db.prepare('SELECT * FROM account').get();
     return this.deck(id);
   }
+  account() {
+    const { default_deck_id: defaultDeckId } = this.db.prepare('SELECT * FROM account').get();
+    const decks = this.db.prepare('SELECT id FROM decks ORDER BY rowid').all().map(({ id }) => this.deck(id));
+    const { sequence } = this.db.prepare('SELECT COALESCE(MAX(sequence), 0) AS sequence FROM receipts').get();
+    return { defaultDeckId, decks, cards: this.cards(), sequence };
+  }
+  setDefault(operationId, deckId) {
+    return this.command(operationId, 'set-default', { deckId }, () => {
+      this.deck(deckId);
+      this.db.prepare('UPDATE account SET default_deck_id = ? WHERE id = 1').run(deckId);
+      return { defaultDeckId: deckId };
+    });
+  }
   card(id) {
     const card = this.db.prepare('SELECT * FROM cards WHERE id = ?').get(id);
     if (!card) fail('deleted', 'The card no longer exists.');

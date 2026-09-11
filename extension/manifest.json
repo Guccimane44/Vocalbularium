@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "Vocabularium",
+  "version": "0.1.0",
+  "description": "Save language as you discover it.",
+  "minimum_chrome_version": "120",
+  "permissions": ["storage", "contextMenus", "activeTab", "scripting", "alarms"],
+  "host_permissions": ["http://127.0.0.1/*"],
+  "background": { "service_worker": "background.js", "type": "module" },
+  "action": { "default_title": "Open Vocabularium" }
+}

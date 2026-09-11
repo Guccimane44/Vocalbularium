@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: vocabularium
+    runtime: node
+    plan: starter
+    buildCommand: npm ci --omit=dev
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeploy: false
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+      - key: HOST
+        value: "0.0.0.0"
+      - key: DATA_DIR
+        value: /var/data/vocabularium
+    disk:
+      name: vocabularium-account
+      mountPath: /var/data
+      sizeGB: 1
