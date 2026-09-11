@@ -1,0 +1,62 @@
+# M0 foundation decisions and evidence
+
+Related: [M0 issue #6](https://github.com/Guccimane44/Vocalbularium/issues/6), [delivery tracker #5](https://github.com/Guccimane44/Vocalbularium/issues/5), and [implementation plan](MVP-Implementation-plan.md#m0--validate-the-foundation).
+
+Status: in progress. The owner authorized simple defaults and will set up the Windows test environment later. No hosted service or live generation credentials have been configured.
+
+## Selected defaults
+
+| Area | Decision and reason |
+| --- | --- |
+| Extension | Manifest V3; native JavaScript modules, HTML, and CSS. The small plain-text MVP can use browser controls without a UI framework or bundler. |
+| Browser baseline | Chrome 120 or newer as an initial compatibility baseline. The actually tested Chromium version is recorded below; minimum-version and Windows confirmation remain separate checks. |
+| Backend | Node.js 24, one application process and one synchronous account mutation writer. Network/model work stays outside database transactions. |
+| Storage | SQLite through Node's built-in `node:sqlite` API. Stable page IDs and foreign keys preserve layout identity and prevent deleted objects from being recreated by late writes. Keep one backend instance for this iteration. See [Node SQLite documentation](https://nodejs.org/api/sqlite.html). |
+| Hosting | One Render web service with a persistent disk for SQLite. Provision the real account service in M1; the local prototype is not deployable production code. Render disks persist only data under their mount path and attach to one service instance, fitting this initial topology. See [Render persistent disks](https://render.com/docs/disks). |
+| Generation | OpenAI Responses API, initially `gpt-5.4-mini-2026-03-17`, with structured responses for interpretation and generated module output. Keep the model configurable on the server. The model supports Responses and structured outputs; actual account access and live behavior are unverified. See [model documentation](https://developers.openai.com/api/docs/models/gpt-5.4-mini) and [structured outputs](https://developers.openai.com/api/docs/guides/structured-outputs). |
+| Account refresh | Start with refresh when a view opens and every five seconds while active, retaining unsaved drafts. Record any later adjustment with the runtime defaults. |
+| Verification | Node's test runner for database behavior and Playwright with Chromium for the extension. The laboratory provider stages deterministic text after 5.5 seconds in browser tests. |
+
+## Lifecycle design under test
+
+An installation ID persists locally. Each new browser session receives an ID in `chrome.storage.session` and increments a durable local session counter. The counter orders sessions for this installation only; it is not used to order account edits. Worker reconnection reuses the same session. A newer session invalidates unfinished attempts from the previous session of that installation.
+
+The backend first stages generation results. Only a separate request from the originating, still-current browser session can publish them to page content. Reopening Chrome reconciles the previous session before processing results. A delayed session-registration request cannot replace a newer session. Detailed expected outcomes remain in the [interruption rules](MVP-Product-spec-select-and-add.md#chrome-closing-during-generation).
+
+Short polling runs while attempts are active; a Chrome alarm provides recovery after worker suspension. Capture receipts and pending publication requests are saved locally before transmission. No dashboard tab is required for processing. Chrome documents independent worker termination and the differing local/session storage lifetimes: [worker lifecycle](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle), [storage](https://developer.chrome.com/docs/extensions/reference/api/storage).
+
+This approach detects a full browser-session transition on reopening. It does not claim an instantaneous server-side browser-exit notification. In particular, abrupt termination, background-mode behavior, and the boundary between final result publication and browser exit require explicit verification before closing M0.
+
+## Persistence design under test
+
+Complete mutation commands enter one synchronous database writer. Successful transactions receive monotonically increasing receipt sequences. Multi-page saves validate all affected pages before writing, and generation happens outside transactions. Failed lock checks do not create success receipts, so explicit resubmission can be evaluated again.
+
+Every distinct action has an operation ID and payload fingerprint. A retransmission of a committed operation returns its original receipt without applying it again. Reusing that ID for a different payload is rejected. Repeated user captures get new IDs. This supports the [saving contract](MVP-Product-spec-select-and-add.md#saving-and-synchronization-failures) without content-based deduplication.
+
+Saved page text, deck module instructions, and original input are separate data. Attempt records retain module snapshots; current layouts determine which stable page identities still exist. The prototype tests these persistence mechanisms directly; the complete layout editor and confirmation flow belong to M3.
+
+## Capture feedback approach
+
+On an ordinary page, inject an isolated, non-modal feedback surface into the top frame. The captured text comes from the context-menu selection, including selections in child frames. Each action has its own feedback item and timer. On a surface where injection is prohibited, try a small unfocused extension popup window. The exact user interaction remains governed by the [feedback specification](MVP-Product-spec-select-and-add.md#capture-feedback-popup).
+
+The implementation uses documented [script injection](https://developer.chrome.com/docs/extensions/reference/api/scripting) and [window creation](https://developer.chrome.com/docs/extensions/reference/api/windows). Native context-menu behavior, restricted-surface fallback focus, and Windows presentation need manual confirmation; browser tests that call the capture handler do not prove native menu interaction.
+
+## Verification record
+
+Run commands from [the README](../README.md#verification). Record passing evidence only after the corresponding check actually completes.
+
+| Check | Current evidence |
+| --- | --- |
+| Syntax, JSON, and whitespace | Passed on 11 September 2026. |
+| Account database tests | 10 passed on Node.js 24.19.0: persistence, operation receipts, duplicate captures, publication ownership, session recovery, save ordering, atomic lock rejection, snapshots, and deletion. |
+| Real Chromium lifecycle and feedback | In progress. |
+| Native context menu and restricted-page fallback | Pending manual check. |
+| Abrupt process termination and publication/exit boundary | Pending. |
+| Owner's Windows environment | Pending owner setup. |
+| Hosted account access and live provider | Pending M1/M2 service setup and credentials. |
+
+## Remaining scope
+
+This prototype intentionally contains no product login or complete card/deck editor, and its generated-looking text is illustrative. M1/M2 still need authenticated API validation, full pending-save recovery across session changes, provider error handling, and live generation. The existing specifications remain unchanged.
+
+Keep M0 open while its lifecycle and browser-surface evidence is incomplete. The linked GitHub issue and draft PR record completed substeps and outstanding checks.

@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "Vocabularium Foundation Prototype",
+  "version": "0.0.1",
+  "description": "Local M0 laboratory with illustrative output; not the MVP release.",
+  "minimum_chrome_version": "120",
+  "permissions": ["contextMenus", "storage", "scripting", "activeTab", "alarms"],
+  "host_permissions": ["http://127.0.0.1/*"],
+  "background": { "service_worker": "background.js", "type": "module" },
+  "action": { "default_title": "Open foundation prototype" }
+}
