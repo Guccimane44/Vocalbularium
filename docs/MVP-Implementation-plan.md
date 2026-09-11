@@ -173,4 +173,4 @@ Use focused automated tests for state transitions, mutation ordering, atomic wri
 | Refresh cadence and deterministic sorting convention | M1 / M4 | Documented choices and consistent two-installation/list behavior. |
 | Windows PC and second Chrome installation for verification | M0 prototype; required again in M5–M6 | Recorded lifecycle findings and packaged-build acceptance. |
 
-The next implementation task is **M0: validate the foundation**. Work through the milestones in order, keeping requirement changes in the relevant specification and implementation evidence alongside the delivered code.
+Local implementation has progressed through M5, with M6 packaging and handoff preparation available. Current PRs and open exit gates are tracked in [GitHub issue #5](https://github.com/Guccimane44/Vocalbularium/issues/5); [the acceptance record](M5-Acceptance.md) maps the available evidence to all eleven completion criteria. Hosted, live-provider, and owner Windows acceptance remain open.

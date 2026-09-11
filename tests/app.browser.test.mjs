@@ -7,7 +7,7 @@ import { once } from 'node:events';
 import { chromium } from 'playwright';
 import { createApplication } from '../src/server/app.mjs';
 
-async function launch(profile, extension = resolve('extension')) {
+async function launch(profile, extension = resolve(process.env.VOCABULARIUM_TEST_EXTENSION ?? 'extension')) {
   const context = await chromium.launchPersistentContext(profile, {
     channel: 'chromium', headless: true,
     args: [`--disable-extensions-except=${extension}`, `--load-extension=${extension}`]

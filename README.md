@@ -5,6 +5,7 @@ A vocabulary capture extension being built for Chrome on Windows. The product sp
 - [MVP delivery tracker and milestone issues](https://github.com/Guccimane44/Vocalbularium/issues/5)
 - [Implementation plan](docs/MVP-Implementation-plan.md)
 - [Foundation decisions and verification](docs/M0-Foundation.md)
+- [Windows installation](docs/Windows-Install.md) and [delivery preparation](docs/M6-Delivery.md)
 - [MVP scope](docs/MVP-Product-scope.md)
 
 ## Account and dashboard
@@ -28,7 +29,7 @@ npm run build
 
 The output is `artifacts/extension`. For a hosted backend, set `VOCABULARIUM_API_URL` to its HTTPS origin when building; the build writes the matching extension host permission. No credentials are embedded in the package.
 
-The [Render configuration](render.yaml) defines one service and a persistent disk. It has not been provisioned. Use `HOST`, `PORT`, and `DATA_DIR` to configure a server; `.env.example` documents the local defaults. Login sessions last seven days, and active views refresh every five seconds. Full Windows delivery instructions follow in M6.
+The [Render configuration](render.yaml) defines one service and a persistent disk. It has not been provisioned. Use `HOST`, `PORT`, and `DATA_DIR` to configure a server; `.env.example` documents the local defaults. Login sessions last seven days, and active views refresh every five seconds. Windows installation and delivery-preparation instructions are linked above; owner acceptance remains pending.
 
 ## Deck configuration
 
@@ -78,4 +79,4 @@ npm run test:browser
 
 Browser checks use temporary isolated profiles and their own servers on ports 4317 and 4318; stop manual servers first. The tests remove their temporary data afterwards. Linux machines may need `npx playwright install --with-deps chromium`.
 
-For updates, pull the working branch, run `npm ci`, restart the prototype server, and click **Reload** on its extension entry. Extension reload creates a new prototype session and reconciles its unfinished attempts. Final Windows package and update instructions belong to M6.
+For updates, pull the working branch, run `npm ci`, restart the prototype server, and click **Reload** on its extension entry. Extension reload creates a new prototype session and reconciles its unfinished attempts. For the product extension, follow the linked Windows installation/update instructions.
