@@ -1,10 +1,5 @@
-export const MODULES = Object.freeze({
-  selected: { label: '<The selected>', applies: 'any', interpretation: false },
-  'selected-language': { label: '<The selected + original language tag>', applies: 'any', interpretation: true },
-  'german-explanation': { label: '<German explanation>', applies: 'word_phrase', interpretation: true },
-  'german-examples': { label: '<German explanation + examples>', applies: 'word_phrase', interpretation: true },
-  'sentence-usage': { label: '<Sentence usage>', applies: 'sentence', interpretation: true }
-});
+import { MODULES } from '../../extension/modules.js';
+export { MODULES };
 
 export function validateInterpretation(value) {
   if (!value || !['word_phrase', 'sentence'].includes(value.inputType) || typeof value.sourceLanguage !== 'string' || !value.sourceLanguage.trim()) {

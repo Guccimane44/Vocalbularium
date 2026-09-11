@@ -52,7 +52,8 @@ test('account extension: login, two installations, reopening, server failure, an
   await a.page.reload();
   await a.page.getByRole('heading', { name: 'Second deck', exact: true }).waitFor();
   await application.close();
-  await a.page.getByRole('button', { name: 'Set as default', exact: true }).click();
+  await a.page.getByLabel('Options for Second deck').click();
+  await a.page.locator('article').filter({ hasText: 'Second deck' }).getByRole('button', { name: 'Set as default', exact: true }).click();
   await a.page.getByRole('button', { name: 'Try saving again', exact: true }).waitFor();
   application = createApplication({ filename }); await application.start();
   await a.page.getByRole('button', { name: 'Try saving again', exact: true }).click();
@@ -167,4 +168,70 @@ test('capture extension: receipt lifetime, exact duplicate cards, shared outcome
   await a.page.getByRole('button', { name: 'Try saving again', exact: true }).click();
   await waitFor(() => application.store.cards().find(card => card.selected_text === 'not saved yet')?.status === 'completed', 'explicit unsaved capture recovery');
   assert.equal(application.store.cards().filter(card => card.selected_text === 'not saved yet').length, 1);
+});
+
+test('deck UI: draft previews, all modules, page limits, content-loss confirmation, and default deletion', { timeout: 40000 }, async t => {
+  const directory = await mkdtemp(join(tmpdir(), 'vocabularium-decks-browser-'));
+  const application = createApplication(); await application.start();
+  const a = await launch(join(directory, 'a'));
+  t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
+  await signIn(a.page);
+  await a.page.getByRole('button', { name: 'Add new deck', exact: true }).click();
+  await a.page.getByLabel('Deck name', { exact: true }).fill('Discard this draft');
+  await a.page.getByRole('button', { name: 'Cancel', exact: true }).click();
+  assert.equal(application.store.account().decks.length, 1);
+
+  await a.page.getByRole('button', { name: 'Add new deck', exact: true }).click();
+  await a.page.getByLabel('Deck name', { exact: true }).fill('Everyday Chinese');
+  await a.page.getByLabel('Number of pages', { exact: true }).selectOption('4');
+  assert.equal(await a.page.locator('.preview').count(), 4);
+  assert.equal(await a.page.getByRole('button', { name: 'Remove this page', exact: true }).count(), 0);
+  await a.page.getByRole('button', { name: 'Add <The selected + original language tag>', exact: true }).click();
+  await a.page.getByRole('button', { name: 'Page 2', exact: true }).click();
+  await a.page.getByRole('button', { name: 'Add <German explanation>', exact: true }).click();
+  await a.page.getByRole('button', { name: 'Move module 2 up', exact: true }).click();
+  await a.page.getByRole('button', { name: 'Page 3', exact: true }).click();
+  await a.page.getByRole('button', { name: 'Add <Sentence usage>', exact: true }).click();
+  await a.page.getByRole('button', { name: 'Add <Sentence usage>', exact: true }).click();
+  assert.equal(await a.page.locator('.module-block').count(), 2);
+  assert.equal(await a.page.locator('.module-library button').count(), 5);
+  await a.page.getByLabel('Sample input', { exact: true }).selectOption('sentence');
+  assert.match(await a.page.locator('.preview').nth(2).textContent(), /我真的很幸福/);
+  assert.match(await a.page.locator('.preview').nth(3).textContent(), /Empty page/);
+  assert.equal(application.store.cards().length, 0); assert.equal(application.store.account().decks.length, 1);
+  await a.page.screenshot({ path: 'artifacts/m3-configuration.png', fullPage: true });
+  await a.page.getByRole('button', { name: 'Save', exact: true }).click();
+  await a.page.getByRole('heading', { name: 'Everyday Chinese', exact: true }).waitFor();
+  const created = application.store.account().decks.find(deck => deck.name === 'Everyday Chinese');
+  assert.equal(created.pages.length, 4);
+  assert.deepEqual(created.pages[1].modules.map(module => module.type), ['german-explanation', 'german-examples']);
+  await a.page.getByLabel('Options for Everyday Chinese').click();
+  await a.page.locator('article.deck').filter({ hasText: 'Everyday Chinese' }).getByRole('button', { name: 'Set as default', exact: true }).click();
+  assert.equal(application.store.snapshot().id, created.id);
+
+  const session = { installationId: 'fixture', sessionId: 'fixture-browser', epoch: 1 };
+  application.store.openSession('fixture-session', session);
+  const cardId = application.store.capture('fixture-capture', { session, selectedText: '幸福', snapshot: application.store.snapshot() }).cardId;
+  for (const page of application.store.card(cardId).pages) {
+    application.store.stage(page.attempt_id, { ok: true, text: page.page_id === created.pages[1].id ? 'Saved manual content' : '' });
+    application.store.publish(`fixture-${page.page_id}`, { attemptId: page.attempt_id, session });
+  }
+  await a.page.getByLabel('Options for Everyday Chinese').click();
+  await a.page.locator('article.deck').filter({ hasText: 'Everyday Chinese' }).getByRole('button', { name: 'Configure deck', exact: true }).click();
+  await a.page.getByRole('button', { name: 'Page 2', exact: true }).click();
+  await a.page.getByRole('button', { name: 'Remove this page', exact: true }).click();
+  await a.page.getByRole('button', { name: 'Save', exact: true }).click();
+  await a.page.getByRole('dialog').getByRole('button', { name: 'Cancel', exact: true }).click();
+  assert.equal(application.store.card(cardId).pages.length, 4);
+  await a.page.getByRole('button', { name: 'Save', exact: true }).click();
+  await a.page.getByRole('dialog').getByRole('button', { name: 'Confirm', exact: true }).click();
+  await a.page.getByRole('heading', { name: 'Everyday Chinese', exact: true }).waitFor();
+  assert.equal(application.store.card(cardId).pages.length, 3);
+  assert.equal(application.store.card(cardId).pages[1].page_id, created.pages[2].id);
+  await a.page.getByLabel('Options for Everyday Chinese').click();
+  await a.page.locator('article.deck').filter({ hasText: 'Everyday Chinese' }).getByRole('button', { name: 'Delete deck', exact: true }).click();
+  await a.page.getByRole('dialog').getByRole('button', { name: 'Delete deck', exact: true }).click();
+  await a.page.getByRole('heading', { name: 'Everyday Chinese', exact: true }).waitFor({ state: 'detached' });
+  assert.equal(application.store.snapshot().name, 'My Deck');
+  assert.equal(application.store.cards().length, 0);
 });

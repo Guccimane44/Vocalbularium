@@ -67,4 +67,13 @@ export class Generation {
     for (const { controller } of this.tasks.values()) controller.abort();
     await Promise.allSettled([...this.tasks.values()].map(({ task }) => task));
   }
+  cancelDeleted() {
+    for (const [id, { controller }] of this.tasks) {
+      if (!this.store.db.prepare('SELECT id FROM attempts WHERE id = ?').get(id)) controller.abort();
+    }
+    for (const [key, { controller }] of this.interpretations) {
+      const cardId = key.split(':')[0];
+      if (!this.store.db.prepare("SELECT id FROM attempts WHERE card_id = ? AND state = 'loading'").get(cardId)) controller.abort();
+    }
+  }
 }

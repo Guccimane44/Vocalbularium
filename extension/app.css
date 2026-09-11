@@ -44,3 +44,22 @@ pre { font: inherit; white-space: pre-wrap; overflow-wrap: anywhere; }
 .pages [aria-current="true"] { background: #2d553c; color: white; }
 .card-page { background: white; border: 1px solid #dbe1d7; border-radius: 14px; padding: 28px; min-height: 260px; }
 @media (max-width: 600px) { header { padding: 24px; } main { margin-top: 30px; padding: 0 24px; } h1 { font-size: 38px; } .login { margin: 40px auto; } }
+.deck-menu { margin-left: auto; position: relative; }
+.deck-menu summary { cursor: pointer; list-style: none; padding: 0 10px; font-weight: bold; }
+.menu-choices { position: absolute; right: 0; top: 30px; z-index: 3; display: grid; min-width: 180px; background: #fff; padding: 8px; border: 1px solid #dbe1d7; border-radius: 10px; box-shadow: 0 6px 18px #0001; }
+.menu-choices button { border: 0; text-align: left; }
+.configuration { display: grid; grid-template-columns: 1.1fr 1fr; gap: 40px; align-items: start; }
+fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+.module-page, .preview { background: #fff; padding: 22px; border: 1px solid #dbe1d7; border-radius: 12px; margin: 20px 0; }
+.module-block { display: flex; gap: 6px; align-items: center; background: #eef1e8; padding: 12px; border-radius: 8px; margin: 12px 0; }
+.module-block span { flex: 1; font-size: 13px; }
+.module-block button { padding: 5px 8px; font-size: 12px; }
+.module-library { display: grid; gap: 8px; }
+.module-library button { text-align: left; }
+.showcase { border-left: 1px solid #dbe1d7; padding-left: 30px; }
+.preview pre { font-size: 14px; }
+h3 { font-size: 14px; font-weight: 500; }
+dialog { color: inherit; max-width: 520px; border: 1px solid #b8c5b9; border-radius: 16px; padding: 30px; }
+dialog::backdrop { background: #15291e66; }
+.dialog-actions { display: flex; justify-content: flex-end; gap: 10px; margin: 25px 0 0; }
+@media (max-width: 800px) { .configuration { grid-template-columns: 1fr; } .showcase { border-left: 0; padding-left: 0; } }

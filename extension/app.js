@@ -1,8 +1,12 @@
+import { configurationView, newDeckDraft } from './configuration.js';
+import { dialog } from './dialog.js';
+
 const app = document.querySelector('#app');
 const actions = document.querySelector('#session-actions');
 let account;
 let signedIn = false;
 let renderVersion = 0;
+let configuration;
 
 const element = (tag, text, className) => {
   const node = document.createElement(tag);
@@ -17,7 +21,7 @@ function button(text, onclick, className) {
 }
 async function send(message) {
   const result = await chrome.runtime.sendMessage(message);
-  if (result.error) throw new Error(result.error);
+  if (result.error) throw Object.assign(new Error(result.error), { code: result.code, details: result.details });
   return result;
 }
 function showError(error) {
@@ -48,6 +52,7 @@ function login() {
   section.append(form); app.replaceChildren(section);
 }
 function pendingSaves(local) {
+  if (location.hash.startsWith('#configure/')) return;
   const pending = Object.entries(local).filter(([key]) => key.startsWith('save-')).map(([, value]) => value);
   for (const item of pending) {
     const notice = element('div', undefined, 'notice');
@@ -120,7 +125,17 @@ async function render() {
   }));
   app.replaceChildren();
   const deckId = location.hash.startsWith('#deck/') ? decodeURIComponent(location.hash.slice(6)) : null;
-  if (location.hash.startsWith('#card/')) {
+  if (location.hash.startsWith('#configure/')) {
+    const id = location.hash.slice(11);
+    if (configuration?.route !== id) {
+      const deck = id === 'new' ? newDeckDraft() : account.decks.find(deck => deck.id === id);
+      if (!deck) { location.hash = ''; return; }
+      configuration = { route: id, deck: structuredClone(deck), basePageIds: deck.id ? deck.pages.map(page => page.id) : [], selectedPage: deck.pages[0].id };
+    }
+    configurationView({ app, draft: configuration, element, button, send, showError, onSaved: async next => {
+      account = next.account; signedIn = next.signedIn; configuration = undefined; location.hash = ''; await render();
+    }, onCancel: () => { configuration = undefined; location.hash = ''; } });
+  } else if (location.hash.startsWith('#card/')) {
     const [, cardId, pageId] = location.hash.split('/'); cardContent(cardId, pageId);
   } else if (deckId) {
     const deck = account.decks.find(deck => deck.id === deckId);
@@ -140,7 +155,7 @@ async function render() {
       app.append(table);
     }
   } else {
-    app.append(element('p', 'YOUR VOCABULARY', 'eyebrow'), element('h1', 'A growing collection.'), element('p', 'Keep the words and expressions you want to come back to.', 'muted'));
+    app.append(element('p', 'YOUR VOCABULARY', 'eyebrow'), element('h1', 'A growing collection.'), element('p', 'Keep the words and expressions you want to come back to.', 'muted'), button('Add new deck', () => { configuration = undefined; location.hash = 'configure/new'; }, 'primary'));
     const grid = element('div', undefined, 'grid');
     for (const deck of account.decks) {
       const article = element('article', undefined, 'deck');
@@ -148,10 +163,22 @@ async function render() {
       open.append(element('h2', deck.name), element('p', `${account.cards.filter(card => card.deck_id === deck.id).length} cards · ${deck.pages.length} pages`, 'muted'));
       const footer = element('footer');
       if (deck.id === account.defaultDeckId) footer.append(element('span', 'DEFAULT DECK', 'badge'));
-      else footer.append(button('Set as default', async () => {
+      const menu = element('details', undefined, 'deck-menu');
+      const summary = element('summary', '•••'); summary.setAttribute('aria-label', `Options for ${deck.name}`); menu.append(summary);
+      const choices = element('div', undefined, 'menu-choices');
+      const setDefault = button('Set as default', async () => {
         try { const result = await send({ type: 'set-default', deckId: deck.id }); account = result.account; signedIn = result.signedIn; await render(); }
         catch (error) { await render(); showError(error); }
+      });
+      setDefault.disabled = deck.id === account.defaultDeckId;
+      choices.append(setDefault, button('Configure deck', () => { configuration = undefined; location.hash = `configure/${deck.id}`; }), button('Delete deck', async () => {
+        const replacements = deck.id === account.defaultDeckId ? account.decks.filter(item => item.id !== deck.id) : [];
+        const decision = await dialog({ title: 'Delete deck?', message: `“${deck.name}” and all its cards will be deleted.${account.decks.length === 1 ? ' A new empty My Deck will replace it.' : ''}`, choices: ['Cancel', 'Delete deck'], select: replacements.length ? { label: 'New default deck', options: replacements.map(item => ({ value: item.id, label: item.name })) } : undefined });
+        if (decision.choice !== 'Delete deck') return;
+        try { const next = await send({ type: 'delete-deck', payload: { deckId: deck.id, replacementId: decision.value } }); account = next.account; signedIn = next.signedIn; await render(); }
+        catch (error) { showError(error); }
       }));
+      menu.append(choices); footer.append(menu);
       article.append(open, footer); grid.append(article);
     }
     app.append(grid);
@@ -177,6 +204,6 @@ setInterval(async () => {
   try {
     const next = await send({ type: 'refresh' });
     if (!next.signedIn) { login(); return; }
-    if (JSON.stringify(next.account) !== JSON.stringify(account)) { account = next.account; await render(); }
+    if (JSON.stringify(next.account) !== JSON.stringify(account)) { account = next.account; if (!location.hash.startsWith('#configure/')) await render(); }
   } catch (error) { showError(error); }
 }, 5000);

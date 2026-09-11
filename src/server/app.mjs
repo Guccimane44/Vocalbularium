@@ -90,6 +90,13 @@ export function createApplication({ filename = ':memory:', authOptions, provider
           if (body.recoverySession) sessionValue(body.recoverySession);
           result = store.capture(body.operationId, body.payload, { recoverySession: body.recoverySession });
           if (!result.replayed && !result.interrupted) generation.start(result.cardId);
+        } else if (path === '/api/deck/save') {
+          result = store.saveDeck(body.operationId, body.payload ?? {});
+          generation.cancelDeleted();
+        } else if (path === '/api/deck/delete') {
+          if (typeof body.payload?.deckId !== 'string') throw new StoreError('invalid', 'Choose a deck.');
+          result = store.deleteDeck(body.operationId, body.payload);
+          generation.cancelDeleted();
         } else if (path === '/api/poll') {
           sessionValue(body.session);
           const attempts = store.pendingAttempts(body.session);
@@ -106,7 +113,7 @@ export function createApplication({ filename = ':memory:', authOptions, provider
       const known = error instanceof StoreError;
       respond(response, known ? (error.code === 'invalid' ? 400 : 409) : error instanceof SyntaxError ? 400 : 500,
         { error: known ? error.message : error instanceof SyntaxError ? 'The request is not valid JSON.' : 'The save could not be completed. Try again.',
-          code: known ? error.code : 'server_error' });
+          code: known ? error.code : 'server_error', ...(known && error.details ? { details: error.details } : {}) });
       if (!known && !(error instanceof SyntaxError)) console.error(error);
     }
   });

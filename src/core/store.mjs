@@ -1,8 +1,9 @@
 import { DatabaseSync } from 'node:sqlite';
 import { createHash, randomUUID } from 'node:crypto';
+import { MODULES } from './modules.mjs';
 
 export class StoreError extends Error {
-  constructor(code, message) { super(message); this.code = code; }
+  constructor(code, message, details) { super(message); this.code = code; this.details = details; }
 }
 const fail = (code, message) => { throw new StoreError(code, message); };
 function canonical(value) {
@@ -140,6 +141,69 @@ export class AccountStore {
       this.deck(deckId);
       this.db.prepare('UPDATE account SET default_deck_id = ? WHERE id = 1').run(deckId);
       return { defaultDeckId: deckId };
+    });
+  }
+  saveDeck(operationId, { deck, basePageIds = [], confirmation }) {
+    return this.command(operationId, 'save-deck', { deck, basePageIds, confirmation }, () => {
+      if (!deck || typeof deck.name !== 'string' || !deck.name.trim() || !Array.isArray(deck.pages) || deck.pages.length < 1 || deck.pages.length > 4) {
+        fail('invalid', 'Give the deck a name and choose one to four pages.');
+      }
+      const pageIds = new Set(), moduleIds = new Set();
+      for (const page of deck.pages) {
+        if (!page || typeof page.id !== 'string' || !page.id || pageIds.has(page.id) || !Array.isArray(page.modules)) fail('invalid', 'Each page needs its own identity.');
+        pageIds.add(page.id);
+        for (const module of page.modules) {
+          if (!module || typeof module.id !== 'string' || !module.id || moduleIds.has(module.id) || !Object.hasOwn(MODULES, module.type)) fail('invalid', 'Choose supported modules from the library.');
+          moduleIds.add(module.id);
+        }
+      }
+      if (!Array.isArray(basePageIds)) fail('invalid', 'The saved page configuration is required.');
+      const current = deck.id ? this.deck(deck.id) : null;
+      const id = current?.id ?? randomUUID();
+      if (current) {
+        if (deck.pages[0].id !== current.pages[0].id) fail('front_page', 'The front page must stay first and cannot be removed.');
+        const retained = deck.pages.filter(page => current.pages.some(saved => saved.id === page.id)).map(page => page.id);
+        if (JSON.stringify(retained) !== JSON.stringify(current.pages.filter(page => pageIds.has(page.id)).map(page => page.id))) fail('invalid', 'Retained pages must keep their order.');
+        const newIndex = deck.pages.findIndex(page => !current.pages.some(saved => saved.id === page.id));
+        if (newIndex >= 0 && deck.pages.slice(newIndex).some(page => current.pages.some(saved => saved.id === page.id))) fail('invalid', 'New pages must be appended.');
+        for (const page of deck.pages) if (basePageIds.includes(page.id) && !current.pages.some(saved => saved.id === page.id)) fail('deleted', 'A page in this draft was deleted. Reopen the saved configuration.');
+        const removed = current.pages.filter(page => !pageIds.has(page.id));
+        const lostContent = removed.flatMap(page => this.db.prepare("SELECT card_id, page_id, text FROM pages WHERE page_id = ? AND text != '' ORDER BY card_id").all(page.id));
+        if (lostContent.length) {
+          const digest = createHash('sha256').update(JSON.stringify(lostContent)).digest('hex');
+          if (confirmation !== digest) throw new StoreError('content_loss', 'Removing these pages will delete their saved content, including manual edits, from every affected card.', { confirmation: digest });
+        }
+        this.db.prepare('UPDATE decks SET name = ? WHERE id = ?').run(deck.name.trim(), id);
+        for (const page of removed) this.db.prepare('DELETE FROM layout_pages WHERE id = ?').run(page.id);
+      } else this.db.prepare('INSERT INTO decks VALUES (?, ?)').run(id, deck.name.trim());
+      for (const [position, page] of deck.pages.entries()) {
+        const saved = this.db.prepare('SELECT deck_id FROM layout_pages WHERE id = ?').get(page.id);
+        if (saved && saved.deck_id !== id) fail('invalid', 'This page belongs to another deck.');
+        if (saved) this.db.prepare('UPDATE layout_pages SET position = ?, modules = ? WHERE id = ?').run(position, JSON.stringify(page.modules), page.id);
+        else {
+          this.db.prepare('INSERT INTO layout_pages VALUES (?, ?, ?, ?)').run(page.id, id, position, JSON.stringify(page.modules));
+          this.db.prepare('INSERT INTO pages (card_id, page_id) SELECT id, ? FROM cards WHERE deck_id = ?').run(page.id, id);
+        }
+      }
+      return { deckId: id };
+    });
+  }
+  deleteDeck(operationId, { deckId, replacementId }) {
+    return this.command(operationId, 'delete-deck', { deckId, replacementId }, () => {
+      this.deck(deckId);
+      const { default_deck_id: defaultId } = this.db.prepare('SELECT * FROM account').get();
+      const other = this.db.prepare('SELECT id FROM decks WHERE id != ? ORDER BY rowid').all(deckId);
+      let nextDefault = defaultId;
+      if (defaultId === deckId) {
+        if (!other.length) nextDefault = this.createDeck('My Deck').id;
+        else {
+          if (!other.some(deck => deck.id === replacementId)) fail('replacement', 'Choose another deck as the default.');
+          nextDefault = replacementId;
+        }
+        this.db.prepare('UPDATE account SET default_deck_id = ? WHERE id = 1').run(nextDefault);
+      }
+      this.db.prepare('DELETE FROM decks WHERE id = ?').run(deckId);
+      return { deckId, defaultDeckId: nextDefault };
     });
   }
   card(id) {

@@ -1,6 +1,6 @@
 # Vocabularium
 
-A vocabulary capture extension being built for Chrome on Windows. The product specifications define the first iteration. Account access and the first capture workflow are implemented; the complete MVP is not yet delivered.
+A vocabulary capture extension being built for Chrome on Windows. The product specifications define the first iteration. Account access, capture, and deck configuration are implemented; the complete MVP is not yet delivered.
 
 - [MVP delivery tracker and milestone issues](https://github.com/Guccimane44/Vocalbularium/issues/5)
 - [Implementation plan](docs/MVP-Implementation-plan.md)
@@ -18,7 +18,7 @@ npm start
 
 In Chrome, load the repository's `extension` folder through `chrome://extensions` → Developer mode → **Load unpacked**. Click the extension button and sign in with username `admin` and password `admin`.
 
-The account server listens on `127.0.0.1:4318` and persists data in `.data/account.sqlite`. Both extension installations use the same account when pointed at this server. Select text on a webpage and choose **Add to default deck**. Recent outcomes appear on the dashboard; open a card to navigate its plain-text pages. Deck configuration and editing follow in the next milestones.
+The account server listens on `127.0.0.1:4318` and persists data in `.data/account.sqlite`. Both extension installations use the same account when pointed at this server. Select text on a webpage and choose **Add to default deck**. Recent outcomes appear on the dashboard; open a card to navigate its plain-text pages. Use **Add new deck** or a deck’s **••• → Configure deck** menu to edit its pages and modules. Card editing follows in the next milestone.
 
 Build an installable extension folder with:
 
@@ -29,6 +29,12 @@ npm run build
 The output is `artifacts/extension`. For a hosted backend, set `VOCABULARIUM_API_URL` to its HTTPS origin when building; the build writes the matching extension host permission. No credentials are embedded in the package.
 
 The [Render configuration](render.yaml) defines one service and a persistent disk. It has not been provisioned. Use `HOST`, `PORT`, and `DATA_DIR` to configure a server; `.env.example` documents the local defaults. Login sessions last seven days, and active views refresh every five seconds. Full Windows delivery instructions follow in M6.
+
+## Deck configuration
+
+Deck drafts support all five modules, repeated instances, one to four pages, and word/sentence sample previews. Save applies the layout to existing cards: new pages are empty, retained pages keep their text, and removing saved content requires confirmation against the latest account data. Deleting the default deck requires a replacement; deleting the sole deck creates a fresh empty My Deck.
+
+See [deck verification evidence](docs/M3-Decks.md).
 
 ## Generation
 

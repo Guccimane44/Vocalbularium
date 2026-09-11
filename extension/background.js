@@ -9,7 +9,7 @@ async function request(path, body, token) {
     body: body && JSON.stringify(body), signal: AbortSignal.timeout(10000)
   });
   const result = await response.json();
-  if (!response.ok) throw Object.assign(new Error(result.error), { code: result.code, status: response.status });
+  if (!response.ok) throw Object.assign(new Error(result.error), { code: result.code, status: response.status, details: result.details });
   return result;
 }
 
@@ -86,6 +86,21 @@ async function run(message) {
       await chrome.storage.local.remove(`save-${operationId}`);
       return run({ type: 'refresh' });
     }
+    const paths = { 'save-deck': '/api/deck/save', 'delete-deck': '/api/deck/delete' };
+    if (paths[message.type]) {
+      const operationId = message.operationId ?? crypto.randomUUID();
+      const key = `save-${operationId}`;
+      const pending = { operationId, path: paths[message.type], payload: { operationId, payload: message.payload } };
+      await chrome.storage.local.set({ [key]: pending });
+      let saved;
+      try { saved = await request(pending.path, pending.payload, auth.token); }
+      catch (error) {
+        if (['content_loss', 'invalid', 'front_page', 'deleted', 'replacement'].includes(error.code)) await chrome.storage.local.remove(key);
+        throw error;
+      }
+      await chrome.storage.local.remove(key);
+      return { ...await run({ type: 'refresh' }), saved };
+    }
     if (message.type === 'try-saving-again') {
       const captureKey = `capture-${message.operationId}`;
       const { [captureKey]: receipt } = await chrome.storage.local.get(captureKey);
@@ -118,7 +133,7 @@ chrome.alarms.onAlarm.addListener(alarm => {
 
 chrome.runtime.onMessage.addListener((message, sender, respond) => {
   if (sender.id !== chrome.runtime.id || !sender.url?.startsWith(chrome.runtime.getURL(''))) return;
-  run(message).then(respond, error => respond({ error: error.message, code: error.code }));
+  run(message).then(respond, error => respond({ error: error.message, code: error.code, details: error.details }));
   return true;
 });
 chrome.action.onClicked.addListener(() => { void chrome.tabs.create({ url: chrome.runtime.getURL('app.html') }); });
