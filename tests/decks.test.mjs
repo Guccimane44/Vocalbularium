@@ -80,3 +80,20 @@ test('deleting default requires replacement, deleting sole deck restores one emp
   const defaultId = store.snapshot().id;
   store.deleteDeck('delete-last', { deckId: otherId }); assert.equal(store.snapshot().id, defaultId);
 });
+
+test('capture preparation resolves the shared default once and replays that configuration after later account changes', t => {
+  const store = fixture(t), original = store.snapshot();
+  const nextId = save(store, { name: 'Remote default', pages: [page('selected-language')] }).deckId;
+  store.setDefault('remote-default', nextId);
+  const payload = { session, selectedText: '幸福' };
+  const prepared = store.prepareCapture('prepare', payload);
+  assert.equal(prepared.snapshot.id, nextId);
+  store.setDefault('later-default', original.id);
+  const updated = store.deck(nextId); updated.pages[0].modules = [];
+  save(store, updated);
+  const replay = store.prepareCapture('prepare', payload);
+  assert.deepEqual(replay.snapshot, prepared.snapshot);
+  const captured = store.capture('capture-prepared', { ...payload, snapshot: replay.snapshot });
+  assert.equal(store.card(captured.cardId).deck_id, nextId);
+  assert.equal(store.attempt(store.card(captured.cardId).pages[0].attempt_id).modules[0].type, 'selected-language');
+});

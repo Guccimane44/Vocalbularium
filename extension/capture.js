@@ -16,6 +16,19 @@ export function captureRuntime({ request, initialize, refresh, removeAccess }) {
     const key = `capture-${receipt.operationId}`;
     try {
       const { auth, session } = await context();
+      if (!receipt.prepared) {
+        try {
+          const prepared = await request('/api/capture/prepare', {
+            operationId: `prepare-${receipt.operationId}`,
+            payload: { session: receipt.payload.session, selectedText: receipt.payload.selectedText }
+          }, auth.token);
+          receipt = { ...receipt, prepared: true, payload: { ...receipt.payload, snapshot: prepared.snapshot } };
+          await chrome.storage.local.set({ [key]: receipt });
+        } catch (error) {
+          // A capture first recovered after browser exit keeps its invocation snapshot and records failure.
+          if (error.code !== 'stale_session' || session.sessionId === receipt.payload.session.sessionId) throw error;
+        }
+      }
       const result = await request('/api/capture', {
         operationId: receipt.operationId, payload: receipt.payload, recoverySession: session
       }, auth.token);
@@ -29,7 +42,7 @@ export function captureRuntime({ request, initialize, refresh, removeAccess }) {
     }
   }
   async function handleCapture(info, tab) {
-    // Freeze the currently synchronized destination before any network work.
+    // Keep an offline receipt immediately; the first server acceptance freezes the shared configuration.
     const [{ auth, account }, { session }] = await Promise.all([
       chrome.storage.local.get(['auth', 'account']), chrome.storage.session.get('session')
     ]);
@@ -52,6 +65,12 @@ export function captureRuntime({ request, initialize, refresh, removeAccess }) {
       while (true) {
         const result = await request('/api/poll', { session }, auth.token);
         let failedSave = false;
+        for (const attemptId of result.saveFailed ?? []) {
+          const operationId = `publish-${attemptId}`;
+          const pending = { operationId, path: '/api/publish', payload: { operationId, payload: { attemptId, session } } };
+          await chrome.storage.local.set({ [`save-${operationId}`]: pending });
+          failedSave = true;
+        }
         for (const attemptId of result.ready) {
           const operationId = `publish-${attemptId}`, key = `save-${operationId}`;
           if ((await chrome.storage.local.get(key))[key]) { failedSave = true; continue; }

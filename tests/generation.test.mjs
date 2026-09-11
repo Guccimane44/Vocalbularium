@@ -1,5 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { AccountStore } from '../src/core/store.mjs';
 import { Generation } from '../src/server/generation.mjs';
@@ -145,4 +148,42 @@ test('authenticated capture saves before generation, repeats safely, and publish
   for (const attemptId of polled.body.ready) assert.equal((await post('/api/publish', { operationId: `publish-${attemptId}`, payload: { attemptId, session } })).status, 200);
   assert.equal(application.store.card(captured.body.cardId).status, 'completed');
   assert.equal((await post('/api/capture', { operationId: 'invalid', payload: {} })).status, 400);
+});
+
+test('a failed result write retains the complete generated output for explicit save recovery without a new model call', async t => {
+  let calls = 0;
+  const { store, generation, capture } = fixture(t, { interpret: async () => word, generate: async () => { calls++; return 'complete generated page'; } });
+  const stage = store.stage.bind(store);
+  let failWrite = true;
+  store.stage = (id, result) => { if (failWrite && result.text === 'complete generated page') throw Error('controlled disk write failure'); return stage(id, result); };
+  const card = capture();
+  await Promise.all([...generation.tasks.values()].map(item => item.task));
+  const back = card.pages[1];
+  assert.equal(store.card(card.id).pages[1].status, 'loading');
+  assert.deepEqual(generation.pendingResults.get(back.attempt_id), { ok: true, text: 'complete generated page' });
+  failWrite = false;
+  generation.saveResult(back.attempt_id, session);
+  store.publish('recover-output', { attemptId: back.attempt_id, session });
+  assert.equal(store.card(card.id).pages[1].text, 'complete generated page'); assert.equal(calls, 1);
+});
+
+test('the result recovery journal survives a failed database write and server restart without regenerating', async t => {
+  const directory = await mkdtemp(join(tmpdir(), 'vocabularium-result-journal-'));
+  const filename = join(directory, 'account.sqlite');
+  let store = new AccountStore(filename), calls = 0;
+  let generation = new Generation(store, { interpret: async () => word, generate: async () => { calls++; return 'journaled result'; } });
+  t.after(async () => { await generation.close(); store.close(); await rm(directory, { recursive: true, force: true }); });
+  store.openSession('open', session);
+  const { cardId } = store.capture('capture', { session, selectedText: '幸福', snapshot: store.snapshot() });
+  const originalStage = store.stage.bind(store);
+  store.stage = (id, result) => { if (result.text === 'journaled result') throw Error('database temporarily unavailable'); return originalStage(id, result); };
+  generation.start(cardId);
+  await Promise.all([...generation.tasks.values()].map(item => item.task));
+  const attemptId = store.card(cardId).pages[1].attempt_id;
+  assert.ok(generation.pendingResults.has(attemptId));
+  await generation.close(); store.close();
+  store = new AccountStore(filename); generation = new Generation(store, { interpret: async () => assert.fail(), generate: async () => assert.fail() });
+  assert.deepEqual(store.attempt(attemptId).result, { ok: true, text: 'journaled result' });
+  store.publish('recovered', { attemptId, session });
+  assert.equal(store.card(cardId).pages[1].text, 'journaled result'); assert.equal(calls, 1);
 });

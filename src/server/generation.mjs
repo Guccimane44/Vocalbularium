@@ -1,12 +1,32 @@
 import { renderPage, validateInterpretation } from '../core/modules.mjs';
 import { OpenAIProvider } from './openai.mjs';
+import { mkdirSync, readdirSync, readFileSync, writeFileSync, renameSync, rmSync } from 'node:fs';
+import { join } from 'node:path';
 
 export class Generation {
   constructor(store, provider = new OpenAIProvider()) {
     this.store = store; this.provider = provider;
     this.tasks = new Map(); this.interpretations = new Map(); this.outputs = new Map();
+    this.pendingResults = new Map();
+    this.outbox = store.filename === ':memory:' ? null : `${store.filename}.generation-outbox`;
+    if (this.outbox) {
+      mkdirSync(this.outbox, { recursive: true });
+      for (const file of readdirSync(this.outbox).filter(file => file.endsWith('.json'))) {
+        const id = file.slice(0, -5);
+        try {
+          const result = JSON.parse(readFileSync(join(this.outbox, file), 'utf8'));
+          this.pendingResults.set(id, result);
+          this.store.stage(id, result);
+          this.clearResult(id);
+        } catch (error) {
+          if (['deleted', 'stale_session', 'stale_attempt'].includes(error.code)) this.clearResult(id);
+        }
+      }
+    }
     // A server restart cannot resume model calls that it no longer owns.
-    for (const { id } of store.db.prepare("SELECT id FROM attempts WHERE state = 'loading' AND result IS NULL").all()) store.failAttempt(id);
+    for (const { id } of store.db.prepare("SELECT id FROM attempts WHERE state = 'loading' AND result IS NULL").all()) {
+      if (!this.pendingResults.has(id)) store.failAttempt(id);
+    }
   }
   async interpretation(card, attempt) {
     const current = this.store.card(card.id).interpretation;
@@ -31,6 +51,7 @@ export class Generation {
       if (attempt.result) continue;
       const controller = new AbortController();
       const task = (async () => {
+        let result;
         try {
           const needed = attempt.modules.some(module => module.type !== 'selected');
           const interpretation = needed ? await this.interpretation(card, attempt) : null;
@@ -45,12 +66,21 @@ export class Generation {
               seen.add(output); this.outputs.set(key, seen); return true;
             }
           });
-          this.store.stage(attempt.id, { ok: true, text });
+          result = { ok: true, text };
         } catch (error) {
-          try { this.store.stage(attempt.id, { ok: false }); }
-          catch (stale) {
-            if (!['deleted', 'stale_session', 'stale_attempt'].includes(stale.code)) console.error(stale);
-          }
+          result = { ok: false };
+        }
+        this.pendingResults.set(attempt.id, result);
+        if (this.outbox) {
+          try {
+            const path = join(this.outbox, `${attempt.id}.json`);
+            writeFileSync(path + '.tmp', JSON.stringify(result), { flush: true });
+            renameSync(path + '.tmp', path);
+          } catch { /* Still attempt the primary account write; retain the in-memory result if both writes fail. */ }
+        }
+        try { this.store.stage(attempt.id, result); this.clearResult(attempt.id); }
+        catch (error) {
+          if (['deleted', 'stale_session', 'stale_attempt'].includes(error.code)) this.clearResult(attempt.id);
         }
       })();
       this.tasks.set(attempt.id, { task, controller, cardId });
@@ -68,12 +98,30 @@ export class Generation {
     await Promise.allSettled([...this.tasks.values()].map(({ task }) => task));
   }
   cancelDeleted() {
+    for (const id of this.pendingResults.keys()) {
+      if (!this.store.db.prepare("SELECT id FROM attempts WHERE id = ? AND state = 'loading'").get(id)) this.clearResult(id);
+    }
     for (const [id, { controller }] of this.tasks) {
       if (!this.store.db.prepare('SELECT id FROM attempts WHERE id = ?').get(id)) controller.abort();
     }
     for (const [key, { controller }] of this.interpretations) {
       const cardId = key.split(':')[0];
       if (!this.store.db.prepare("SELECT id FROM attempts WHERE card_id = ? AND state = 'loading'").get(cardId)) controller.abort();
+    }
+  }
+  saveResult(attemptId, session) {
+    if (!this.pendingResults.has(attemptId)) return;
+    this.store.requireSession(session);
+    const attempt = this.store.attempt(attemptId);
+    if (attempt.installation_id !== session.installationId || attempt.session_id !== session.sessionId) return;
+    this.store.stage(attemptId, this.pendingResults.get(attemptId));
+    this.clearResult(attemptId);
+  }
+  clearResult(attemptId) {
+    this.pendingResults.delete(attemptId);
+    if (this.outbox) {
+      rmSync(join(this.outbox, `${attemptId}.json`), { force: true });
+      rmSync(join(this.outbox, `${attemptId}.json.tmp`), { force: true });
     }
   }
 }

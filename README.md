@@ -63,6 +63,10 @@ In Chrome, open `chrome://extensions`, enable Developer mode, choose **Load unpa
 
 The prototype backend listens only on `127.0.0.1:4317`. It stores its test account in `.data/foundation.sqlite` and produces clearly labeled illustrative text after a delay. It does not implement login, live generation, or the complete product screens. Do not deploy this laboratory server as the account backend.
 
+## Acceptance status
+
+The [acceptance record](docs/M5-Acceptance.md) maps all eleven criteria to local evidence and open release gates. Live provider, hosted persistence, and owner Windows acceptance are still pending. Once the key is configured, `npm run smoke:generation` records a small live integration sample for review.
+
 ## Verification
 
 ```sh

@@ -1,4 +1,4 @@
-name: Verify foundation
+name: Verify MVP
 
 on:
   push:
@@ -23,6 +23,7 @@ jobs:
       - run: npm ci
       - run: npm run check
       - run: npm test
+      - run: npm run build
   browser:
     runs-on: ubuntu-latest
     steps:

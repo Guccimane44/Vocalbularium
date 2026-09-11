@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtemp, rm, cp, appendFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import { once } from 'node:events';
 import { chromium } from 'playwright';
 import { createApplication } from '../src/server/app.mjs';
 
@@ -349,4 +350,122 @@ test('page retry UI: exact confirmation and two-installation lock preserve all d
   await b.page.getByRole('button', { name: 'Try saving again', exact: true }).click();
   await b.page.getByRole('button', { name: 'Edit card manually', exact: true }).waitFor();
   assert.deepEqual(application.store.card(cardId).pages.map(page => page.text), ['draft front', 'draft back']);
+});
+
+async function loseNextAcknowledgment(worker, path) {
+  await worker.evaluate(path => {
+    globalThis.originalTestFetch ??= globalThis.fetch;
+    globalThis.dropTestPath = path;
+    globalThis.fetch = async (url, ...options) => {
+      const response = await globalThis.originalTestFetch(url, ...options);
+      if (String(url).endsWith(globalThis.dropTestPath)) {
+        globalThis.dropTestPath = undefined;
+        return new Response('{', { status: 200, headers: { 'Content-Type': 'application/json' } });
+      }
+      return response;
+    };
+  }, path);
+}
+
+test('assembled reliability: lost acknowledgments, worker suspension, abrupt origin exit, other installation, and cancellation', { timeout: 65000 }, async t => {
+  const directory = await mkdtemp(join(tmpdir(), 'vocabularium-reliability-browser-'));
+  const extension = join(directory, 'extension'); await cp(resolve('extension'), extension, { recursive: true });
+  await appendFile(join(extension, 'background.js'), '\nglobalThis.captureForTest = handleCapture;\n');
+  const held = new Map(), calls = new Map(), canceled = new Set();
+  const application = createApplication({ provider: {
+    interpret: async () => ({ inputType: 'word_phrase', sourceLanguage: 'Chinese' }),
+    generate: ({ selectedText }, signal) => {
+      calls.set(selectedText, (calls.get(selectedText) ?? 0) + 1);
+      if (!selectedText.startsWith('hold-')) return Promise.resolve(`Generated: ${selectedText}`);
+      return new Promise((resolve, reject) => {
+        held.set(selectedText, () => resolve(`Generated: ${selectedText}`));
+        signal.addEventListener('abort', () => { canceled.add(selectedText); reject(Error('aborted')); }, { once: true });
+      });
+    }
+  } }); await application.start();
+  const contexts = new Set();
+  t.after(async () => { for (const context of contexts) await context.close().catch(() => {}); await application.close(); await rm(directory, { recursive: true, force: true }); });
+  const profile = join(directory, 'a');
+  let a = await launch(profile, extension); contexts.add(a.context); await signIn(a.page);
+  let reading = await a.context.newPage(); await reading.goto('http://127.0.0.1:4318/health');
+  await loseNextAcknowledgment(a.worker, '/api/capture');
+  await captureFrom(a, 'uncertain capture');
+  const card = application.store.cards().find(card => card.selected_text === 'uncertain capture');
+  const attempts = card.pages.map(page => page.attempt_id);
+  await a.page.getByRole('button', { name: 'Try saving again', exact: true }).waitFor();
+  await a.page.getByRole('button', { name: 'Try saving again', exact: true }).click();
+  await waitFor(() => application.store.card(card.id).status === 'completed', 'uncertain capture recovered');
+  assert.equal(application.store.cards().length, 1); assert.equal(calls.get('uncertain capture'), 1);
+  assert.deepEqual(application.store.card(card.id).pages.map(page => page.attempt_id), attempts);
+
+  await a.page.goto(`chrome-extension://${a.id}/app.html#card/${card.id}`);
+  await a.page.getByRole('button', { name: 'Edit card manually', exact: true }).click();
+  await a.page.getByLabel('Page 1 content', { exact: true }).fill('save with lost acknowledgment');
+  await loseNextAcknowledgment(a.worker, '/api/card/save');
+  await a.page.getByRole('button', { name: 'Save', exact: true }).click();
+  await a.page.getByRole('button', { name: 'Try saving again', exact: true }).waitFor();
+  application.store.savePages('later-remote-edit', { cardId: card.id, changes: [{ pageId: card.pages[0].page_id, text: 'later remote edit' }] });
+  await a.page.getByRole('button', { name: 'Try saving again', exact: true }).click();
+  await a.page.getByRole('button', { name: 'Edit card manually', exact: true }).waitFor();
+  assert.equal(application.store.card(card.id).pages[0].text, 'later remote edit');
+  assert.equal(calls.get('uncertain capture'), 1);
+
+  await loseNextAcknowledgment(a.worker, '/api/publish');
+  await captureFrom(a, 'publication acknowledgment');
+  let pending;
+  await waitFor(async () => {
+    pending = await a.worker.evaluate(async () => Object.entries(await chrome.storage.local.get(null)).find(([key]) => key.startsWith('save-publish-'))?.[1]);
+    return pending;
+  }, 'publication acknowledgment was lost');
+  const publishedAttempt = application.store.attempt(pending.payload.payload.attemptId);
+  application.store.savePages('later-than-publication', { cardId: publishedAttempt.card_id, changes: [{ pageId: publishedAttempt.page_id, text: 'manual text after publication' }] });
+  await a.page.getByRole('button', { name: 'Try saving again', exact: true }).click();
+  await waitFor(async () => !(await a.worker.evaluate(async id => (await chrome.storage.local.get(`save-${id}`))[`save-${id}`], pending.operationId)), 'publication receipt recovered');
+  assert.equal(application.store.card(publishedAttempt.card_id).pages.find(page => page.page_id === publishedAttempt.page_id).text, 'manual text after publication');
+
+  await captureFrom(a, 'hold-worker');
+  await waitFor(() => held.has('hold-worker'), 'worker test generation started');
+  const oldSession = await a.worker.evaluate(async () => (await chrome.storage.session.get('session')).session);
+  await a.worker.evaluate(() => { globalThis.workerProbe = 'old'; });
+  const internals = await a.context.newPage(); await internals.goto('chrome://serviceworker-internals');
+  const registration = internals.locator('.serviceworker-registration').filter({ hasText: a.worker.url() });
+  await registration.getByRole('button', { name: 'Stop', exact: true }).click();
+  await waitFor(async () => (await registration.locator('.serviceworker-running-status .value').textContent()) === 'STOPPED', 'product worker stopped');
+  held.get('hold-worker')();
+  await a.page.reload();
+  await a.page.getByRole('button', { name: 'Edit card manually', exact: true }).waitFor();
+  a.worker = a.context.serviceWorkers().find(worker => worker.url().includes(a.id));
+  assert.equal(await a.worker.evaluate(() => globalThis.workerProbe), undefined);
+  assert.deepEqual(await a.worker.evaluate(async () => (await chrome.storage.session.get('session')).session), oldSession);
+  await waitFor(() => application.store.cards().find(card => card.selected_text === 'hold-worker')?.status === 'completed', 'worker suspension did not interrupt generation');
+  await internals.close();
+
+  const b = await launch(join(directory, 'b'), extension); contexts.add(b.context); await signIn(b.page);
+  const otherReading = await b.context.newPage(); await otherReading.goto('http://127.0.0.1:4318/health');
+  await captureFrom(a, 'hold-origin'); await captureFrom(b, 'hold-other');
+  const interrupted = application.store.cards().find(card => card.selected_text === 'hold-origin');
+  await waitFor(() => application.store.card(interrupted.id).pages[0].status === 'completed', 'front persisted before crash');
+  const browser = a.context.browser(), protocol = await browser.newBrowserCDPSession();
+  const { processInfo } = await protocol.send('SystemInfo.getProcessInfo'); const processId = processInfo.find(process => process.type === 'browser')?.id;
+  assert.ok(processId); await protocol.detach();
+  const disconnected = once(browser, 'disconnected'); process.kill(processId, 'SIGKILL'); await disconnected;
+  contexts.delete(a.context);
+  held.get('hold-origin')(); held.get('hold-other')();
+  await waitFor(() => application.store.attempt(interrupted.pages[1].attempt_id).result, 'origin result staged after crash');
+  await waitFor(() => application.store.cards().find(card => card.selected_text === 'hold-other')?.status === 'completed', 'other installation completed');
+  a = await launch(profile, extension); contexts.add(a.context);
+  await a.page.getByRole('heading', { name: 'A growing collection.' }).waitFor();
+  assert.deepEqual(application.store.card(interrupted.id).pages.map(page => page.status), ['completed', 'failed']);
+  assert.throws(() => application.store.publish('stale-origin', { attemptId: interrupted.pages[1].attempt_id, session: oldSession }), { code: 'stale_session' });
+
+  await captureFrom(b, 'hold-delete'); await waitFor(() => held.has('hold-delete'), 'deletion test generation started');
+  const deleted = application.store.cards().find(card => card.selected_text === 'hold-delete');
+  const auth = await b.worker.evaluate(async () => (await chrome.storage.local.get('auth')).auth);
+  const response = await fetch('http://127.0.0.1:4318/api/card/delete', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.token}` }, body: JSON.stringify({ operationId: 'delete-running', payload: { cardId: deleted.id } }) });
+  assert.equal(response.status, 200); await waitFor(() => canceled.has('hold-delete'), 'deleted card canceled model work');
+  assert.throws(() => application.store.card(deleted.id), { code: 'deleted' });
+  const shared = application.store.createDeck('Fresh shared default');
+  application.store.setDefault('remote-default-before-capture', shared.id);
+  await captureFrom(b, 'fresh shared destination');
+  assert.equal(application.store.cards().find(card => card.selected_text === 'fresh shared destination').deck_id, shared.id);
 });

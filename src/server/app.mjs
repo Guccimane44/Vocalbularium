@@ -82,9 +82,13 @@ export function createApplication({ filename = ':memory:', authOptions, provider
         } else if (path === '/api/session') {
           sessionValue(body.session);
           result = store.openSession(body.operationId, body.session);
+          generation.cancelDeleted();
         } else if (path === '/api/default-deck') {
           if (typeof body.deckId !== 'string') throw new StoreError('invalid', 'Choose a deck.');
           result = store.setDefault(body.operationId, body.deckId);
+        } else if (path === '/api/capture/prepare') {
+          sessionValue(body.payload?.session);
+          result = store.prepareCapture(body.operationId, body.payload);
         } else if (path === '/api/capture') {
           captureValue(body.payload);
           if (body.recoverySession) sessionValue(body.recoverySession);
@@ -115,10 +119,12 @@ export function createApplication({ filename = ':memory:', authOptions, provider
         } else if (path === '/api/poll') {
           sessionValue(body.session);
           const attempts = store.pendingAttempts(body.session);
-          result = { ready: attempts.filter(attempt => attempt.result).map(attempt => attempt.id), loading: attempts.length > 0 };
+          result = { ready: attempts.filter(attempt => attempt.result).map(attempt => attempt.id), loading: attempts.length > 0,
+            saveFailed: attempts.filter(attempt => generation.pendingResults.has(attempt.id)).map(attempt => attempt.id) };
         } else if (path === '/api/publish') {
           sessionValue(body.payload?.session);
           if (typeof body.payload?.attemptId !== 'string') throw new StoreError('invalid', 'A page attempt is required.');
+          generation.saveResult(body.payload.attemptId, body.payload.session);
           result = store.publish(body.operationId, body.payload);
         } else { respond(response, 404, { error: 'This action is unavailable.', code: 'not_found' }); return; }
         respond(response, 200, result); return;

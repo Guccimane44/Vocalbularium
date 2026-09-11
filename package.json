@@ -12,7 +12,8 @@
     "start": "node --env-file-if-exists=.env src/server/start.mjs",
     "build": "node scripts/build.mjs",
     "prototype": "node prototypes/server.mjs",
-    "check": "node scripts/check.mjs"
+    "check": "node scripts/check.mjs",
+    "smoke:generation": "node --env-file-if-exists=.env scripts/live-smoke.mjs"
   },
   "devDependencies": {
     "playwright": "1.62.1"

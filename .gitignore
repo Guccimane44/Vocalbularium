@@ -11,3 +11,5 @@ playwright-report/
 *.sqlite-shm
 *.sqlite-wal
 
+
+*.generation-outbox/

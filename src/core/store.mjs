@@ -18,6 +18,7 @@ function canonical(value) {
 // No generation or network work runs inside these transactions.
 export class AccountStore {
   constructor(filename = ':memory:') {
+    this.filename = filename;
     this.db = new DatabaseSync(filename);
     this.db.exec(`
       PRAGMA foreign_keys = ON;
@@ -239,6 +240,13 @@ export class AccountStore {
         }
       }
       return { cardId: id, interrupted: Boolean(interrupted) };
+    });
+  }
+  prepareCapture(operationId, { session, selectedText }) {
+    return this.command(operationId, 'prepare-capture', { session, selectedText }, () => {
+      this.requireSession(session);
+      if (typeof selectedText !== 'string' || !selectedText.length) fail('invalid', 'Select some text first.');
+      return { snapshot: this.snapshot() };
     });
   }
 
