@@ -1,0 +1,12 @@
+{
+  "date": "2026-09-12T13:15:03.200Z",
+  "origin": "https://vocabularium.onrender.com",
+  "browser": "151.0.7922.34",
+  "checks": [
+    "Generated pages displayed in two real extension installations",
+    "Manual card created and synchronized",
+    "Remote page edit refreshed in the first installation",
+    "Manual test card deleted through the extension"
+  ],
+  "result": "passed"
+}

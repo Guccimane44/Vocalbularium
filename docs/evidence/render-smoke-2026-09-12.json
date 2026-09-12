@@ -1,0 +1,64 @@
+{
+  "date": "2026-09-12T18:30:59.357Z",
+  "origin": "https://vocabularium.onrender.com",
+  "checks": [
+    "Health and unauthenticated account protection",
+    "Explicit page retry preserves the other page",
+    "Word, phrase and sentence generation; initial-layout applicability; duplicate operation replay; visibility from a second installation",
+    "Manual creation, ordered same-page edits, preserved other-page edits, replay without overwriting newer content, and deletion synchronize",
+    "Concurrent deck configuration: empty appends, retained page identity, content-loss confirmation revalidated after a remote edit, and stale deleted-page rejection"
+  ],
+  "captures": [
+    {
+      "selectedText": "幸福",
+      "interpretation": {
+        "inputType": "word_phrase",
+        "sourceLanguage": "Chinese"
+      },
+      "pages": [
+        {
+          "text": "幸福",
+          "status": "completed"
+        },
+        {
+          "text": "== Chinesisch (幸福, xìngfú) ==\n\n=== Bedeutungen ===\n: [1] Zustand des Glücks und inneren Wohlbefindens; Glück, Zufriedenheit.\n: [2] sich glücklich fühlend; glücklich, zufrieden.\n\n=== Beispiele ===\n: [1] 金钱买不到幸福。\n:: Geld kann Glück nicht kaufen.\n: [2] 她有一个幸福的家庭。\n:: Sie hat eine glückliche Familie.",
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "selectedText": "画蛇添足",
+      "interpretation": {
+        "inputType": "word_phrase",
+        "sourceLanguage": "Chinese"
+      },
+      "pages": [
+        {
+          "text": "画蛇添足",
+          "status": "completed"
+        },
+        {
+          "text": "== Chinesisch (画蛇添足, huà shé tiān zú) ==\n\n=== Bedeutungen ===\n: [1] eine überflüssige Ergänzung vornehmen, die die Sache verdirbt; etwas durch unnötiges Hinzufügen verschlimmern; wörtlich: „einer Schlange Füße malen“.\n\n=== Beispiele ===\n: [1] 这篇文章已经很完整了，再加一段就是画蛇添足。\n:: Dieser Artikel ist bereits vollständig; noch einen Absatz hinzuzufügen wäre, als würde man einer Schlange Füße malen.",
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "selectedText": "我真的很幸福",
+      "interpretation": {
+        "inputType": "sentence",
+        "sourceLanguage": "Chinese"
+      },
+      "pages": [
+        {
+          "text": "我真的很幸福",
+          "status": "completed"
+        },
+        {
+          "text": "",
+          "status": "completed"
+        }
+      ]
+    }
+  ]
+}
