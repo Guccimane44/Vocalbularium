@@ -14,3 +14,13 @@ Keep work within the first-iteration scope. Features explicitly deferred in the 
 The project has been restarted. Use the current documents as the starting point; do not restore the previous implementation or infrastructure from Git history unless requested.
 
 When behavior intentionally changes, update the relevant specification. Add setup and verification commands once they actually exist, and report the checks performed and any limitations when finishing a change.
+
+## Reusable workflows
+
+Use the project skill that matches the work; ordinary changes do not require running all three:
+
+- [Vocabularium Change](.agents/skills/vocabularium-change/SKILL.md) — scope an increment and keep issues and PRs current.
+- [Vocabularium Verify](.agents/skills/vocabularium-verify/SKILL.md) — choose regression checks, investigate failures, and record evidence.
+- [Vocabularium Deliver](.agents/skills/vocabularium-deliver/SKILL.md) — package a candidate, validate its ZIP, and prepare the owner handoff.
+
+The skills reuse the current specifications, commands, and deployment records. Update those sources when behavior or tooling changes; keep historical results and temporary environment details out of the reusable instructions.

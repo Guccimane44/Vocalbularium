@@ -1,0 +1,4 @@
+interface:
+  display_name: "Vocabularium Deliver"
+  short_description: "Package and verify an extension candidate"
+  default_prompt: "Use $vocabularium-deliver to prepare a verified Vocabularium candidate for the agreed backend."

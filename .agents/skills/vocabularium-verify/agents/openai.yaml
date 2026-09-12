@@ -1,0 +1,4 @@
+interface:
+  display_name: "Vocabularium Verify"
+  short_description: "Choose and run focused regression checks"
+  default_prompt: "Use $vocabularium-verify to verify the current Vocabularium change and record the evidence."

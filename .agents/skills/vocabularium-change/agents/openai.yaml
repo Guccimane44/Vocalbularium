@@ -1,0 +1,4 @@
+interface:
+  display_name: "Vocabularium Change"
+  short_description: "Track incremental changes with issues and PRs"
+  default_prompt: "Use $vocabularium-change to turn this requested change into scoped work with GitHub progress."
