@@ -1,0 +1,73 @@
+{
+  "date": "2026-09-12T12:59:55.565Z",
+  "provider": "OpenCode Go",
+  "model": "deepseek-v4.1-flash",
+  "captures": [
+    {
+      "selectedText": "幸福",
+      "interpretation": {
+        "inputType": "word_phrase",
+        "sourceLanguage": "Chinese"
+      },
+      "outputs": [
+        {
+          "type": "selected",
+          "text": "幸福"
+        },
+        {
+          "type": "selected-language",
+          "text": "幸福\nChinese"
+        },
+        {
+          "type": "german-explanation",
+          "text": "== Chinesisch (幸福, xìngfú) ==\n=== Bedeutungen ===\n: [1] Glück; Wohlbefinden; Zufriedenheit.\n: [2] glücklich; beglückt."
+        },
+        {
+          "type": "german-examples",
+          "text": "== Chinesisch (幸福, xìngfú) ==\n\n=== Bedeutungen ===\n: [1] Zustand des inneren Wohlbefindens und der Zufriedenheit; Glück, Glückseligkeit.\n: [2] das Gefühl oder die Eigenschaft, glücklich zu sein; glücklich.\n\n=== Beispiele ===\n: [1] 家人的健康是我最大的幸福。\n:: Die Gesundheit meiner Familie ist mein größtes Glück.\n: [2] 她过着幸福的生活。\n:: Sie führt ein glückliches Leben."
+        },
+        {
+          "type": "sentence-usage",
+          "text": ""
+        },
+        {
+          "type": "sentence-usage",
+          "text": ""
+        }
+      ]
+    },
+    {
+      "selectedText": "我真的很幸福",
+      "interpretation": {
+        "inputType": "sentence",
+        "sourceLanguage": "Chinese"
+      },
+      "outputs": [
+        {
+          "type": "selected",
+          "text": "我真的很幸福"
+        },
+        {
+          "type": "selected-language",
+          "text": "我真的很幸福\nChinese"
+        },
+        {
+          "type": "german-explanation",
+          "text": ""
+        },
+        {
+          "type": "german-examples",
+          "text": ""
+        },
+        {
+          "type": "sentence-usage",
+          "text": "看着孩子们在院子里笑着跑来跑去，我心里想：我真的很幸福。"
+        },
+        {
+          "type": "sentence-usage",
+          "text": "看着孩子们在院子里跑来跑去，爸妈坐在旁边笑着聊天，我真的很幸福。"
+        }
+      ]
+    }
+  ]
+}

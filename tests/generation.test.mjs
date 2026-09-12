@@ -110,16 +110,18 @@ function completion(content, finish_reason = 'stop', extra = {}) {
   return { choices: [{ finish_reason, message: { role: 'assistant', content, ...extra } }] };
 }
 
-test('OpenCode requests the free MiMo model with only selection data and validates interpretation', async () => {
+test('OpenCode uses the Go endpoint, selected DeepSeek model, and only selection data', async () => {
   let body;
   const provider = new OpenCodeProvider({ apiKey: 'test-only', fetchImpl: async (url, options) => {
-    assert.equal(url, 'https://opencode.ai/zen/v1/chat/completions'); body = JSON.parse(options.body);
+    assert.equal(url, 'https://opencode.ai/zen/go/v1/chat/completions'); body = JSON.parse(options.body);
     assert.equal(options.headers.Authorization, 'Bearer test-only');
+    assert.equal(options.headers['User-Agent'], 'Vocabularium/0.1.0');
+    assert.equal(options.headers['x-opencode-session'], 'capture-conversation');
     assert.equal(options.method, 'POST'); assert.ok(options.signal instanceof AbortSignal);
     return Response.json(completion(JSON.stringify(word)));
   } });
-  assert.deepEqual(await provider.interpret('幸福'), word);
-  assert.equal(body.model, 'mimo-v2.5-free'); assert.equal(body.stream, false);
+  assert.deepEqual(await provider.interpret('幸福', undefined, 'capture-conversation'), word);
+  assert.equal(body.model, 'deepseek-v4.1-flash'); assert.equal(body.stream, false);
   assert.equal(body.messages.length, 2); assert.equal(body.messages[0].role, 'system');
   assert.match(body.messages[0].content, /JSON schema/);
   assert.equal(body.messages[1].role, 'user');
@@ -182,6 +184,24 @@ test('OpenCode aborts in-flight requests when their generation is canceled', asy
   const pending = provider.interpret('幸福', controller.signal);
   controller.abort();
   await assert.rejects(pending, { name: 'AbortError' });
+});
+
+test('Go requests share a stable conversation per card across interpretation, modules, and retry', async t => {
+  const sessions = [];
+  const provider = new OpenCodeProvider({ apiKey: 'test-only', fetchImpl: async (_, options) => {
+    sessions.push(options.headers['x-opencode-session']);
+    const input = JSON.parse(JSON.parse(options.body).messages[1].content);
+    return Response.json(completion(JSON.stringify(input.interpretation ? { text: 'German explanation' } : word)));
+  } });
+  const { store, generation, capture } = fixture(t, provider);
+  const first = capture(); await finish(store, generation);
+  assert.deepEqual(sessions, [first.id, first.id]);
+  store.retry('retry-go-page', { cardId: first.id, pageId: first.pages[1].page_id, session });
+  generation.start(first.id, first.pages[1].page_id); await finish(store, generation);
+  assert.deepEqual(sessions, [first.id, first.id, first.id]);
+  const second = capture(); await finish(store, generation);
+  assert.deepEqual(sessions.slice(3), [second.id, second.id]);
+  assert.notEqual(first.id, second.id);
 });
 
 test('authenticated capture saves before generation, repeats safely, and publishes only from its origin', async t => {

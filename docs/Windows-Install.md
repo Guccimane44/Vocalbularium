@@ -28,7 +28,7 @@ Saved decks and cards belong to the backend account. Keep the local backend's ac
 
 - **No capture menu:** open Vocabularium and sign in; make sure the extension is enabled and some text is selected.
 - **Cannot sign in:** check the server address in `package-info.json`. A local package requires its local backend to be running. For Render Free, open the server's `/health` address and allow it to wake up before trying again.
-- **Capture received, but generation failed:** the request receipt confirms capture only. Check the saved card's page outcome. Server generation needs the owner's OpenCode Zen API key and access to `mimo-v2.5-free`.
+- **Capture received, but generation failed:** the request receipt confirms capture only. Check the saved card's page outcome. Server generation needs the owner's OpenCode Go API key and access to `deepseek-v4.1-flash`.
 - **Test cards disappeared or sign-in is requested again:** the Render Free server may have reset. Sign in and create fresh test data; an old pending save cannot restore the erased account.
 - **Try saving again:** this resubmits the pending save. **Retry** on a captured page starts replacement generation after a warning.
 - **Chrome closed during generation:** reopen it and review the card's failed page; use explicit page Retry when ready.

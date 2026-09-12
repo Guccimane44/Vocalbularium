@@ -6,7 +6,7 @@ Each action has a durable local receipt and a separate operation identity, so tw
 
 ## Provider
 
-The server now uses [OpenCode Zen](https://opencode.ai/docs/zen/) Chat Completions with `mimo-v2.5-free` for owner testing. It sends only the selected text, shared interpretation, module instructions, and prior outputs needed for distinct examples. The adapter requests JSON through its instructions and validates completion status and the expected fields locally. No webpage context or API credentials enter the extension's capture payload. Missing credentials, refusal, incomplete output, and invalid JSON or fields fail the dependent page. There is no automatic fallback to a different model.
+The server now uses [OpenCode Go](https://opencode.ai/docs/go/) Chat Completions with `deepseek-v4.1-flash` for owner testing. It sends only the selected text, shared interpretation, module instructions, and prior outputs needed for distinct examples. The adapter requests JSON through its instructions and validates completion status and the expected fields locally. No webpage context or API credentials enter the extension's capture payload. Missing credentials, refusal, incomplete output, and invalid JSON or fields fail the dependent page. There is no automatic fallback to a different model.
 
 ## Verification performed
 
@@ -18,4 +18,4 @@ The product browser test calls the capture event handler through a hook appended
 
 ## Open acceptance
 
-The owner will configure the API key locally, arrange Render access, and provide Windows testing later. Live word/phrase and sentence capture, hosted two-installation access, Windows popup presentation/background-mode behavior, and the final publish-versus-browser-exit boundary remain unverified. M2 stays open until the live-provider gate passes. The owner requested continued implementation while these dependencies are arranged.
+The owner configured the Go API key and signed in to Render. The live word/sentence provider smoke passed; its [sample output](evidence/deepseek-v4.1-flash-smoke-2026-09-12.json) records interpretation, applicability, German formatting/translations, and distinct sentence examples. Native live word/phrase/sentence capture, hosted two-installation access, Windows popup presentation/background-mode behavior, and the final publish-versus-browser-exit boundary remain unverified. M2 stays open until the live-provider gate passes. The owner requested continued implementation while these dependencies are arranged.

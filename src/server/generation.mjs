@@ -35,7 +35,7 @@ export class Generation {
     if (!this.interpretations.has(key)) {
       const controller = new AbortController();
       const attempts = card.pages.filter(page => page.status === 'loading').map(page => page.attempt_id);
-      const promise = this.provider.interpret(card.selected_text, controller.signal)
+      const promise = this.provider.interpret(card.selected_text, controller.signal, card.id)
         .then(value => this.store.establishInterpretation(card.id, validateInterpretation(value), attempts));
       this.interpretations.set(key, { promise, controller });
       promise.finally(() => this.interpretations.delete(key)).catch(() => {});
@@ -57,7 +57,7 @@ export class Generation {
           const interpretation = needed ? await this.interpretation(card, attempt) : null;
           const text = await renderPage({
             selectedText: card.selected_text, modules: attempt.modules, interpretation,
-            generate: input => this.provider.generate(input, controller.signal),
+            generate: input => this.provider.generate({ ...input, sessionId: card.id }, controller.signal),
             claimOutput: (type, output) => {
               if (!['german-examples', 'sentence-usage'].includes(type)) return true;
               const key = `${card.id}:${type}`;
