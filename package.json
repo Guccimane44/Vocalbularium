@@ -13,7 +13,9 @@
     "build": "node scripts/build.mjs",
     "prototype": "node prototypes/server.mjs",
     "check": "node scripts/check.mjs",
-    "smoke:generation": "node --env-file-if-exists=.env scripts/live-smoke.mjs"
+    "smoke:generation": "node --env-file-if-exists=.env scripts/live-smoke.mjs",
+    "smoke:hosted": "node scripts/hosted-smoke.mjs",
+    "smoke:hosted:browser": "node --test tests/hosted.browser.test.mjs"
   },
   "devDependencies": {
     "playwright": "1.62.1"

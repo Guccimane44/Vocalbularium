@@ -1,6 +1,6 @@
 # Vocabularium
 
-A vocabulary capture extension being built for Chrome on Windows. The product specifications define the first iteration. Account access, capture, deck configuration, and card workflows are implemented; the complete MVP is not yet delivered.
+A vocabulary capture extension being built for Chrome on Windows. Account access, capture, deck configuration, and card workflows are implemented. The Render Free backend and OpenCode Go generation are live; owner Windows acceptance remains open.
 
 - [MVP delivery tracker and milestone issues](https://github.com/Guccimane44/Vocalbularium/issues/5)
 - [Implementation plan](docs/MVP-Implementation-plan.md)
@@ -29,7 +29,7 @@ npm run build
 
 The output is `artifacts/extension`. For a hosted backend, set `VOCABULARIUM_API_URL` to its HTTPS origin when building; the build writes the matching extension host permission. No credentials are embedded in the package.
 
-The [Render configuration](render.yaml) defines one Free web service for disposable MVP testing, with no paid disk. It has not been provisioned. Render discards its local SQLite data on sleep, restart, or redeploy; local development still persists data in `.data`. See the [free-host testing procedure](docs/M6-Delivery.md#connect-render-free-when-access-is-ready). Use `HOST`, `PORT`, and `DATA_DIR` to configure a server; `.env.example` documents the local defaults. Login sessions last seven days unless the test server resets, and active views refresh every five seconds.
+The [Render test backend](https://vocabularium.onrender.com/health) is live on the Free plan, with no paid disk. Render discards its local SQLite data on sleep, restart, or redeploy; local development still persists data in `.data`. See the [deployment and hosted testing procedure](docs/M6-Delivery.md#render-free-deployment). Use `HOST`, `PORT`, and `DATA_DIR` to configure a server; `.env.example` documents the local defaults. Login sessions last seven days unless the test server resets, and active views refresh every five seconds.
 
 ## Deck configuration
 
@@ -47,9 +47,9 @@ Manual drafts remain intact when switching pages. **Save** writes all changed pa
 
 Copy `.env.example` to the ignored `.env` file (or add its generation settings to your existing file), configure `OPENCODE_API_KEY` with your OpenCode Go key, then restart the account server. Keep the key on the server. The extension never receives it. The default is `deepseek-v4.1-flash` through `https://opencode.ai/zen/go/v1/chat/completions`; `OPENCODE_MODEL` can override the model. Requests never fall back to another model automatically.
 
-The adapter requests JSON in its instructions and validates the completion status, object fields, input classification, and nonempty text locally before publishing. It does not depend on undocumented provider support for strict structured outputs. Each request has a 60-second limit and a 4,096-token output budget. Requests identify this app as `Vocabularium/0.1.0` and use one stable conversation ID per card, including page retries. [OpenCode Go](https://opencode.ai/docs/go/) is a subscription service intended for coding-agent traffic; vocabulary-app support still requires a live check. Keep its console **Use balance** option off to stop at subscription limits instead of drawing from Zen credits. The app does not change that account setting.
+The adapter requests JSON in its instructions and validates the completion status, object fields, input classification, and nonempty text locally before publishing. It does not depend on undocumented provider support for strict structured outputs. Each request has a 60-second limit and a 4,096-token output budget. Requests identify this app as `Vocabularium/0.1.0` and use one stable conversation ID per card, including page retries. [OpenCode Go](https://opencode.ai/docs/go/) is a subscription service intended for coding-agent traffic; the app's live requests succeeded with the owner's key on 12 September 2026. Keep its console **Use balance** option off to stop at subscription limits instead of drawing from Zen credits. The app does not change that account setting.
 
-Without a key, the original capture is still saved. Pages requiring interpretation or generation fail visibly; exact-selection pages still complete. Automated checks inject controlled provider responses and do not spend API credits. The live word/sentence smoke passed with the configured Go key; see the [recorded samples](docs/evidence/deepseek-v4.1-flash-smoke-2026-09-12.json). Hosted and native Windows acceptance remain separate checks.
+Without a key, the original capture is still saved. Pages requiring interpretation or generation fail visibly; exact-selection pages still complete. Automated checks inject controlled provider responses and do not spend API credits. The live word/sentence smoke passed with the configured Go key; see the [recorded provider samples](docs/evidence/deepseek-v4.1-flash-smoke-2026-09-12.json) and [hosted word/phrase/sentence results](docs/evidence/render-smoke-2026-09-12.json).
 
 Capture receipts remain local until their account write succeeds. **Try saving again** resubmits the existing operation. Generation results are published only through their originating Chrome session; reopening Chrome fails its interrupted attempts. See [capture implementation evidence](docs/M2-Capture.md) and the authoritative [Select and Add rules](docs/MVP-Product-spec-select-and-add.md).
 
@@ -68,7 +68,7 @@ The prototype backend listens only on `127.0.0.1:4317`. It stores its test accou
 
 ## Acceptance status
 
-The [acceptance record](docs/M5-Acceptance.md) maps all eleven criteria to local evidence and open release gates. Live provider, hosted persistence, and owner Windows acceptance are still pending. Once the key is configured, `npm run smoke:generation` records a small live integration sample for review.
+The [acceptance record](docs/M5-Acceptance.md) maps all eleven criteria to evidence and open release gates. Live generation and hosted synchronization pass, including two real extension installations. Native owner Windows acceptance and the remaining lifecycle boundaries are pending. Render Free does not satisfy durable hosted persistence. `npm run smoke:generation` records a small live integration sample; the [hosted smoke commands](docs/M6-Delivery.md#hosted-verification) exercise the deployed backend explicitly.
 
 ## Verification
 

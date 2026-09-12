@@ -23,7 +23,7 @@ archive = root / 'artifacts' / f'vocabularium-{version}-{variant}-candidate.zip'
 revision = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=root, text=True).strip()
 dirty = bool(subprocess.check_output(['git', 'status', '--porcelain'], cwd=root, text=True).strip())
 metadata = {'version': version, 'serverOrigin': origin, 'sourceRevision': revision, 'uncommittedChanges': dirty,
-            'status': 'Candidate — owner Windows and hosted acceptance pending'}
+            'status': 'Candidate — owner Windows acceptance pending; see INSTALL-WINDOWS.md and issue #12 for hosted evidence'}
 with zipfile.ZipFile(archive, 'w', compression=zipfile.ZIP_DEFLATED) as output:
     for path in sorted(extension.rglob('*')):
         if path.is_file():

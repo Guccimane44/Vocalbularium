@@ -1,12 +1,12 @@
 # Install Vocabularium in Chrome on Windows
 
-This is an MVP testing candidate. The package's `package-info.json` identifies its version, server address, and source revision. Hosted and owner Windows acceptance are still pending.
+This is an MVP testing candidate. The package's `package-info.json` identifies its version, server address, and source revision. Live generation and hosted synchronization pass; owner Windows acceptance is still pending.
 
 ## Before installing
 
-Use current Google Chrome (minimum supported version 120). A package labeled **local** connects to a server on the same computer at `127.0.0.1:4318`. The hosted package will be built with the Render address after access is arranged; both test installations must use that same hosted address.
+Use current Google Chrome (minimum supported version 120). Choose `vocabularium-0.1.0-configured-candidate.zip` for the hosted test backend at `https://vocabularium.onrender.com`. Both test installations must use that same address. A package labeled **local** connects to a server on the same computer at `127.0.0.1:4318`.
 
-The Render Free test server can take about a minute to wake up. Open its address followed by `/health`, wait for the healthy response, then sign in. Its test decks, cards, login sessions, and pending server results can be erased when it sleeps, restarts, or is redeployed. Use disposable examples; this candidate does not provide durable hosted storage.
+The Render Free test server can take about a minute to wake up. Open [the backend health check](https://vocabularium.onrender.com/health), wait for the healthy response, then sign in. Its test decks, cards, login sessions, and pending server results can be erased when it sleeps, restarts, or is redeployed. Use disposable examples; this candidate does not provide durable hosted storage.
 
 ## Install
 

@@ -2,7 +2,7 @@
 
 Related: [M0 issue #6](https://github.com/Guccimane44/Vocalbularium/issues/6), [delivery tracker #5](https://github.com/Guccimane44/Vocalbularium/issues/5), and [implementation plan](MVP-Implementation-plan.md#m0--validate-the-foundation).
 
-Status: local foundation validated; Windows acceptance and hosted connections remain pending. The owner authorized simple defaults and explicitly requested continued implementation while arranging Windows later. No hosted service or live generation credentials have been configured. [Draft PR #13](https://github.com/Guccimane44/Vocalbularium/pull/13) contains this work.
+Foundation-stage status: local foundation validated; Windows acceptance and hosted connections were pending at that stage. The owner authorized simple defaults and explicitly requested continued implementation while arranging Windows later. [Draft PR #13](https://github.com/Guccimane44/Vocalbularium/pull/13) contains this work. The later [M6 deployment record](M6-Delivery.md#render-free-deployment) documents the now-live Render Free backend and OpenCode Go generation; owner Windows acceptance remains open.
 
 ## Selected defaults
 

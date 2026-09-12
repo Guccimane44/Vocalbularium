@@ -1,6 +1,6 @@
-# M6 delivery preparation
+# M6 delivery candidate
 
-A local candidate can be built and packaged now. It is not the hosted Windows release, and this milestone remains open until the owner's environment is connected and accepted.
+A configured candidate connects to the live Render Free backend and passes hosted generation and two-installation synchronization checks. This milestone remains open until the owner tests installation and updates on Windows and the remaining acceptance items are resolved.
 
 ## Build and package
 
@@ -11,7 +11,13 @@ npm ci
 npm run build
 ```
 
-For a configured backend, set `VOCABULARIUM_API_URL` to its actual HTTPS origin before running the build. The build writes that address and its matching Chrome host permission. It rejects addresses containing credentials, a path, or a query. Service credentials stay on the backend.
+For the deployed test backend, build with:
+
+```sh
+VOCABULARIUM_API_URL=https://vocabularium.onrender.com npm run build
+```
+
+In PowerShell, use `$env:VOCABULARIUM_API_URL='https://vocabularium.onrender.com'` followed by `npm run build`. The build writes that address and its matching Chrome host permission. It rejects addresses containing credentials, a path, or a query. Service credentials stay on the backend.
 
 The ZIP packager requires Python 3 and uses only its standard library:
 
@@ -21,7 +27,17 @@ python3 scripts/package.py
 
 On Windows, `py -3 scripts/package.py` can be used instead. Output is `artifacts/vocabularium-0.1.0-local-candidate.zip` for local builds or `artifacts/vocabularium-0.1.0-configured-candidate.zip` when a remote origin is configured. Each ZIP contains the extension folder, [Windows instructions](Windows-Install.md), source revision, and server address. A SHA-256 checksum accompanies it. The package is labeled as awaiting acceptance.
 
-## Connect Render Free when access is ready
+## Render Free deployment
+
+Deployed on 12 September 2026 and confirmed **Live**:
+
+- Origin: `https://vocabularium.onrender.com`; [health check](https://vocabularium.onrender.com/health).
+- Service: `srv-daiksf5g1s2s73fonl9g`; [deployment record](https://dashboard.render.com/web/srv-daiksf5g1s2s73fonl9g/deploys/dep-daiksflg1s2s73fonnu0).
+- Backend source: `de86975bb4183d4ef3300af7b23a497087fe2bad` on `codex/opencode-render-free`.
+- Free compute in Frankfurt, Node 24 (deployed runtime 24.21.0), no persistent disk, automatic deploys off.
+- OpenCode Go `deepseek-v4.1-flash`, with the owner-approved API key stored in Render's secret environment settings.
+
+Later documentation, smoke-test, and packaging commits do not change this running backend revision. Deploying a newer revision is an explicit operation because automatic deploys are off.
 
 Use the repository's `render.yaml` for one **Free** Node web service. Deploy branch `codex/opencode-render-free` while the implementation PRs are awaiting integration; `main` does not yet contain the app. If using a Blueprint, select that branch and confirm the created web service's branch also matches it. The settings are `npm ci --omit=dev` for build, `npm start` for start, Node 24, `HOST=0.0.0.0`, `DATA_DIR=.data`, and `/health` for readiness. Render supplies `PORT`. Leave automatic deploys off for controlled testing.
 
@@ -33,9 +49,23 @@ Record the resulting HTTPS origin and build the extension for it. Open the servi
 
 Local backend restart tests still verify persistence when `DATA_DIR` survives. Durable hosted storage and always-on responsiveness remain open under the [test-phase scope exception](MVP-Product-scope.md#10-first-iteration-delivery-and-deferred-work).
 
-The Render service has not been provisioned, and no deployment or account access is claimed.
+## Hosted verification
 
-## Local package verification
+The live provider smoke, hosted API smoke, and two-profile browser smoke passed on 12 September 2026. The API check creates three synthetic sample captures in the initial default layout and uses the live provider. It also verifies retry, operation replay, ordered page edits, preservation of other pages, and deletion from a second client. The browser check uses those samples and creates, edits, synchronizes, and deletes its own manual card through the real extension UI.
+
+Run explicitly against the disposable test account, with the initial My Deck layout and Chromium installed:
+
+```sh
+VOCABULARIUM_API_URL=https://vocabularium.onrender.com npm run smoke:hosted
+VOCABULARIUM_API_URL=https://vocabularium.onrender.com npm run build
+VOCABULARIUM_API_URL=https://vocabularium.onrender.com npm run smoke:hosted:browser
+```
+
+Reports are written to `.data/hosted-smoke.json` and `.data/hosted-browser-smoke.json`. The reviewed [API samples](evidence/render-smoke-2026-09-12.json) and [browser result](evidence/render-browser-smoke-2026-09-12.json) are committed without credentials or session tokens. Ordinary unit/browser CI does not invoke this live service or spend provider usage. Use `VOCABULARIUM_TEST_EXTENSION` to run the hosted browser check against an extracted configured ZIP.
+
+Actual Render sleep/reset recovery, hosted concurrent deck configuration, native Windows selection/feedback, and extension updates remain open acceptance checks. Local reset simulations establish client handling, not an observed host reset.
+
+## Package verification
 
 The 0.1.0 local candidate ZIP passes its archive integrity check. It contains only the extension, Windows instructions, and package metadata; no server code, API key, or test-only capture hook is included. The extension extracted from the ZIP passes the account/login/reopening scenario and the manual-card workflow scenario in isolated Chromium profiles on macOS.
 

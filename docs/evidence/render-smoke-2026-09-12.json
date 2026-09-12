@@ -1,0 +1,63 @@
+{
+  "date": "2026-09-12T13:08:52.245Z",
+  "origin": "https://vocabularium.onrender.com",
+  "checks": [
+    "Health and unauthenticated account protection",
+    "Explicit page retry preserves the other page",
+    "Word, phrase and sentence generation; initial-layout applicability; duplicate operation replay; visibility from a second installation",
+    "Manual creation, ordered same-page edits, preserved other-page edits, replay without overwriting newer content, and deletion synchronize"
+  ],
+  "captures": [
+    {
+      "selectedText": "幸福",
+      "interpretation": {
+        "inputType": "word_phrase",
+        "sourceLanguage": "Chinese"
+      },
+      "pages": [
+        {
+          "text": "幸福",
+          "status": "completed"
+        },
+        {
+          "text": "== Chinesisch (幸福, xìngfú) ==\n=== Bedeutungen ===\n: [1] Zustand inneren Glücks und tiefen Wohlbefindens; Glück, Glückseligkeit.\n: [2] sich in einem Zustand des Glücks befindend; glücklich, zufrieden.\n\n=== Beispiele ===\n: [1] 健康是人生最大的幸福。\n:: Gesundheit ist das größte Glück im Leben.\n: [2] 她有一个幸福的家庭。\n:: Sie hat eine glückliche Familie.",
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "selectedText": "画蛇添足",
+      "interpretation": {
+        "inputType": "word_phrase",
+        "sourceLanguage": "Chinese"
+      },
+      "pages": [
+        {
+          "text": "画蛇添足",
+          "status": "completed"
+        },
+        {
+          "text": "== Chinesisch (画蛇添足, huà shé tiān zú) ==\n\n=== Bedeutungen ===\n: [1] wörtlich: eine Schlange malen und ihr Füße hinzufügen.\n: [2] übertragen: durch eine überflüssige Zutat die Wirkung verderben; etwas unnötig ausschmücken oder übertreiben.\n\n=== Beispiele ===\n: [1] 他画了一条蛇，又添上脚。\n:: Er malte eine Schlange und fügte ihr noch Füße hinzu.\n: [2] 这篇文章已经够好了，再加那些话就是画蛇添足。\n:: Dieser Artikel ist schon gut genug; diese zusätzlichen Sätze sind überflüssig und verderben die Wirkung.",
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "selectedText": "我真的很幸福",
+      "interpretation": {
+        "inputType": "sentence",
+        "sourceLanguage": "Chinese"
+      },
+      "pages": [
+        {
+          "text": "我真的很幸福",
+          "status": "completed"
+        },
+        {
+          "text": "",
+          "status": "completed"
+        }
+      ]
+    }
+  ]
+}
