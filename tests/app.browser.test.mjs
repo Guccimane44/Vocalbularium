@@ -451,13 +451,19 @@ test('assembled reliability: lost acknowledgments, worker suspension, abrupt ori
 
   await loseNextAcknowledgment(a.worker, '/api/publish');
   await captureFrom(a, 'publication acknowledgment');
+  const publicationCard = application.store.cards().find(card => card.selected_text === 'publication acknowledgment');
   let pending;
   await waitFor(async () => {
-    pending = await a.worker.evaluate(async () => Object.entries(await chrome.storage.local.get(null)).find(([key]) => key.startsWith('save-publish-'))?.[1]);
-    return pending;
+    const receipts = await a.worker.evaluate(async () => Object.entries(await chrome.storage.local.get(null)).filter(([key]) => key.startsWith('save-publish-')).map(([, value]) => value));
+    // Wait for both server publications and removal of the successful receipt.
+    // Otherwise a still-in-flight save can be mistaken for the deliberately lost acknowledgment.
+    if (application.store.card(publicationCard.id).status !== 'completed' || receipts.length !== 1) return false;
+    pending = receipts[0];
+    return true;
   }, 'publication acknowledgment was lost');
   const publishedAttempt = application.store.attempt(pending.payload.payload.attemptId);
   application.store.savePages('later-than-publication', { cardId: publishedAttempt.card_id, changes: [{ pageId: publishedAttempt.page_id, text: 'manual text after publication' }] });
+  await waitFor(async () => await a.page.getByRole('button', { name: 'Try saving again', exact: true }).count() === 1, 'only the lost acknowledgment needs retry');
   await a.page.getByRole('button', { name: 'Try saving again', exact: true }).click();
   await waitFor(async () => !(await a.worker.evaluate(async id => (await chrome.storage.local.get(`save-${id}`))[`save-${id}`], pending.operationId)), 'publication receipt recovered');
   assert.equal(application.store.card(publishedAttempt.card_id).pages.find(page => page.page_id === publishedAttempt.page_id).text, 'manual text after publication');
@@ -466,12 +472,16 @@ test('assembled reliability: lost acknowledgments, worker suspension, abrupt ori
   await waitFor(() => held.has('hold-worker'), 'worker test generation started');
   const oldSession = await a.worker.evaluate(async () => (await chrome.storage.session.get('session')).session);
   await a.worker.evaluate(() => { globalThis.workerProbe = 'old'; });
+  // Keep Chrome open, but remove automatic wake sources while observing the stopped state.
+  const cardURL = a.page.url();
+  await a.page.close();
+  await a.worker.evaluate(() => chrome.alarms.clear('recover'));
   const internals = await a.context.newPage(); await internals.goto('chrome://serviceworker-internals');
   const registration = internals.locator('.serviceworker-registration').filter({ hasText: a.worker.url() });
   await registration.getByRole('button', { name: 'Stop', exact: true }).click();
   await waitFor(async () => (await registration.locator('.serviceworker-running-status .value').textContent()) === 'STOPPED', 'product worker stopped');
   held.get('hold-worker')();
-  await a.page.reload();
+  a.page = await a.context.newPage(); await a.page.goto(cardURL);
   await a.page.getByRole('button', { name: 'Edit card manually', exact: true }).waitFor();
   a.worker = a.context.serviceWorkers().find(worker => worker.url().includes(a.id));
   assert.equal(await a.worker.evaluate(() => globalThis.workerProbe), undefined);

@@ -51,7 +51,7 @@ Local backend restart tests still verify persistence when `DATA_DIR` survives. D
 
 ## Hosted verification
 
-The live provider smoke, hosted API smoke, and two-profile browser smoke passed on 12 September 2026. The API check creates three synthetic sample captures in the initial default layout and uses the live provider. It also verifies retry, operation replay, ordered page edits, preservation of other pages, and deletion from a second client. The browser check uses those samples and creates, edits, synchronizes, and deletes its own manual card through the real extension UI.
+The live provider smoke, hosted API smoke, and two-profile browser smoke passed on 12 September 2026. Each API run creates three synthetic sample captures in the initial default layout and uses the live provider. It also verifies retry, operation replay, ordered page edits, preservation of other pages, deletion, and concurrent deck configuration with revalidated content-loss warnings. Its temporary configuration deck is deleted afterwards. The browser check uses the samples and creates, edits, synchronizes, and deletes its own manual card through the real extension UI.
 
 Run explicitly against the disposable test account, with the initial My Deck layout and Chromium installed:
 
@@ -63,7 +63,7 @@ VOCABULARIUM_API_URL=https://vocabularium.onrender.com npm run smoke:hosted:brow
 
 Reports are written to `.data/hosted-smoke.json` and `.data/hosted-browser-smoke.json`. The reviewed [API samples](evidence/render-smoke-2026-09-12.json) and [browser result](evidence/render-browser-smoke-2026-09-12.json) are committed without credentials or session tokens. Ordinary unit/browser CI does not invoke this live service or spend provider usage. Use `VOCABULARIUM_TEST_EXTENSION` to run the hosted browser check against an extracted configured ZIP.
 
-Actual Render sleep/reset recovery, hosted concurrent deck configuration, native Windows selection/feedback, and extension updates remain open acceptance checks. Local reset simulations establish client handling, not an observed host reset.
+A fresh sign-in after an idle interval found an empty My Deck; another live generation pass succeeded. This is consistent with the expected Free-host reset limitation. A controlled sleep/redeploy reset with stale extension credentials and pending saves, native Windows selection/feedback, and extension updates remain open acceptance checks.
 
 ## Package verification
 
