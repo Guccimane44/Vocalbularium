@@ -6,7 +6,7 @@ This document is the authoritative source for detailed page-completion, failure,
 
 ## Availability and default deck
 
-When the Chrome extension is installed, enabled, initialized, and the user is logged in, its browser context-menu action **Add to default deck** is available for selected text. Capture is unavailable before login. The MVP uses the built-in `admin` account described in the scope document; it does not implement registration.
+When the Chrome extension is installed, enabled, initialized, and the user is logged in, its browser context-menu action **Create a card in “{default deck name}”** is available for selected text. Capture is unavailable before login. The label names the last successfully synchronized default deck. It updates after successful initialization, login, default changes, renames, replacement/deletion, and account refreshes. Other installations' changes appear on the next successful synchronization, including background recovery while Chrome is running. Offline use retains the last synchronized name; unsaved drafts do not change the label. Logout, expired access, or missing default/session readiness make capture unavailable. Label updates do not replace the generation session. The MVP uses the built-in `admin` account described in the scope document; it does not implement registration.
 
 The account initially has one default deck, **My Deck**. The user can configure this deck or set another deck as the default from the dashboard. There is exactly one default deck per account, and its choice synchronizes with the account.
 
@@ -15,7 +15,7 @@ The default deck defines the pages and modules used by Select and Add. Supported
 ## Capture scenario
 
 1. A logged-in user is reading a webpage and selects an unfamiliar word, phrase, or sentence, such as `幸福`.
-2. The user right-clicks the selection and chooses **Add to default deck**.
+2. The user right-clicks the selection and chooses **Create a card in “{default deck name}”**.
 3. Vocabularium takes the selected text exactly as selected. It does not include surrounding webpage text or other webpage context.
 4. It automatically saves a card record containing the original selected text and the configured pages to the destination deck. This record remains accessible if generation later fails; its existence does not mean generation succeeded.
 5. Where required by the configured modules, it determines the input type and one source language from the selected text. It evaluates the modules in the default deck's configuration.
@@ -24,11 +24,11 @@ The default deck defines the pages and modules used by Select and Add. Supported
 
 The destination is the default deck at the time the capture action is invoked. Changing the default deck while generation is running does not redirect that capture. Each card belongs to exactly one deck.
 
-Each separate **Add to default deck** action creates a new card, even if the same selected text or resulting content already exists in that deck or another deck. Duplicate cards are allowed without a warning, automatic merging, or content-based deduplication. They remain independently editable and deletable.
+Each separate **Create a card in “{default deck name}”** action creates a new card, even if the same selected text or resulting content already exists in that deck or another deck. Duplicate cards are allowed without a warning, automatic merging, or content-based deduplication. They remain independently editable and deletable.
 
 Initial generation starts with the page and module configuration at capture time. Changes to modules apply to subsequent captures and explicitly requested page retries, not to an attempt already running. If pages are added while a capture is running, those additional pages remain empty on its resulting card. If pages are removed, output for those removed pages is discarded; output for retained pages follows those pages into their current order. Deleting a card or its destination deck cancels its pending generation and retries; they must not recreate deleted cards, decks, or pages.
 
-The saved card record appears in the destination deck's card view page, including while generation is loading or after it fails. Clicking its entry opens the **card content page**, where a horizontal bar navigates its pages and **Retry** applies to the current page. Page content is plain text, including literal markup, following the [Modules specification](MVP-Product-spec-modules.md). The MVP does not automatically open the newly generated card or move the user away from the webpage they are reading.
+The saved card record appears in the destination deck's card view page, including while generation is loading or after it fails. Clicking its row opens the **card content page**, where a horizontal bar navigates its pages and **Retry** applies to the current page. Page content is plain text, including literal markup, following the [Modules specification](MVP-Product-spec-modules.md). The MVP does not automatically open the newly generated card or move the user away from the webpage they are reading.
 
 Clicking the extension button opens the dashboard in a Chrome tab. The dashboard provides access to recent capture outcomes and their destination decks, including requests that have not yet produced a saved card.
 

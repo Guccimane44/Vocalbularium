@@ -5,7 +5,7 @@
 The first MVP iteration is a Google Chrome extension for the owner's testing on a Windows PC. It is a working prototype to improve through later iterations, with convenient manual delivery rather than a full public release. It must support the following end-to-end experience after login:
 
 1. The user selects a word, phrase, or sentence on a webpage.
-2. The user opens the context menu and chooses **Add to default deck**.
+2. The user opens the context menu and chooses **Create a card in “{default deck name}”**.
 3. Vocabularium creates a card from the selected text using the default deck’s configuration.
 4. The card is saved automatically to the default deck and becomes available through the dashboard and the deck's card view page.
 
@@ -38,7 +38,7 @@ Clicking the Vocabularium extension button opens the user's dashboard in a Chrom
 
 ## 3. Select and Add
 
-When the extension is installed, enabled, initialized, and the user is logged in, the browser context menu must include **Add to default deck** whenever the user has selected text. The action must be unavailable when these conditions are not met.
+When the extension is installed, enabled, initialized, and the user is logged in, the browser context menu must include **Create a card in “{default deck name}”** whenever the user has selected text. The action must be unavailable when these conditions are not met.
 
 Select and Add supports words, phrases, and sentences. It uses only the selected text, without additional webpage context, and generates content using the current default deck's pages and modules. Where language interpretation is needed, the MVP automatically chooses one source language per capture and uses it consistently across modules.
 
@@ -50,7 +50,7 @@ Closing Chrome during generation is handled as failure under the [interruption r
 
 ## 4. Dashboard
 
-The dashboard is the main view for the user's decks.
+The dashboard is the main view for the user's decks. Its heading is **Your decks.** The shared header has no “Your words, kept close.” tagline, and the dashboard has no “YOUR VOCABULARY” eyebrow.
 
 The dashboard must:
 
@@ -65,6 +65,8 @@ Each deck displayed on the dashboard must support the following interactions:
    - **Set as default**
    - **Configure deck**
    - **Delete deck**
+
+The same three-dot actions are available on the deck's card view page. The current default's **Set as default** action is disabled. A menu closes immediately after an action is selected, on navigation or rerender, and on Escape. Keyboard users can open it and activate its actions; dismissal returns focus to its trigger when that trigger still exists. Canceling a dialog does not reopen the menu. Deleting the deck currently being viewed returns to the dashboard.
 
 Selecting **Set as default** makes that deck the user’s default deck. Only one deck can be the default at a time.
 
@@ -149,7 +151,7 @@ The card view page displays all cards in the selected deck as a list with two co
 1. **Index** — a presentation-only sequential number.
 2. **Entry** — the text shown on the card’s first page.
 
-Clicking an entry opens that card's **card content page**. If the first page has multiple pieces of text, the entry presents them in their displayed order. If it contains no text, show **Empty front page** as a clickable placeholder; this label is not saved into the card.
+Clicking any part of a card row (index, entry, state cue, or whitespace) opens that card's **card content page**. Each row has one keyboard navigation target with the entry in its accessible name and a visible focus indicator. Selecting text does not activate navigation. If the first page has multiple pieces of text, the entry presents them in their displayed order. If it contains no text, show **Empty front page** as a clickable placeholder; this label is not saved into the card.
 
 The page also provides **Add card manually**, which opens a new draft card on the card content page in manual edit mode. The draft has the deck's current pages, initially empty, and generation is not required.
 
@@ -169,6 +171,12 @@ When the order is set to **Alphabetical, A to Z**, the first entry alphabeticall
 The index identifies a card’s current position in the displayed list. It is not a permanent card identifier and may change when the user selects a different ordering or when cards are added or removed.
 
 Cards with equal sort values must use a consistent secondary order so that the displayed list remains stable.
+
+### 7.1 List state presentation
+
+Deck card rows and dashboard recent captures use whole-row state tints and distinct icons with accessible descriptions: completed uses blue-green/check, pending (`loading`) uses amber/clock, and failed uses vermilion/warning. No visible generation badges appear in these lists. Cards with no generation outcome stay neutral. Detailed card/page status remains on the card content page, and the default-deck badge remains separate. The outcome and precedence rules are defined in [Select and Add](MVP-Product-spec-select-and-add.md#page-completion-and-failure).
+
+An actively saving capture receipt has the pending treatment and “Saving to your account…”. A receipt awaiting resubmission has the attention/failure treatment, “Not saved to your account,” the error, and **Try saving again**. It is a save problem, not a generation failure; color never implies successful persistence. Recent captures retain their separate deck, open-card, and recovery controls.
 
 ## 8. Card content page and manual editing
 
@@ -221,3 +229,11 @@ For this owner testing phase, use OpenCode `deepseek-v4.1-flash` and a Render Fr
 On 13 September 2026, the owner accepted the Windows/M5 baseline and explicitly deferred verification of stale extension sign-in and pending saves after a Render sleep/redeploy reset. [The owner decision](https://github.com/Guccimane44/Vocalbularium/issues/11#issuecomment-5653175433) is tracked in [follow-up #24](https://github.com/Guccimane44/Vocalbularium/issues/24). This scenario is untested; deferring its verification does not change the saving or recovery rules or establish durable hosted persistence.
 
 Later iterations will address richer card rendering and manual-editing design, systematic generation-quality evaluation, and detailed generation limits. These are follow-up areas, not prerequisites for planning the first working MVP. Implementation may choose basic runtime defaults for the initial test version and record them with its setup instructions.
+
+## 11. Appearance (v0.2.0)
+
+A labeled Light/Dark control in the shared header is available on login and every product view. Light is the initial preference. The explicit choice is stored per Chrome installation, independently of account/session data, and survives logout/login, closing views, browser restart, and an in-place extension update. Other installations may choose different themes.
+
+Changing theme updates all open extension views, dialogs, and active capture feedback immediately without losing drafts, selection, navigation, or dialog state. It does not restart the three-second feedback timer. Both the injected feedback overlay and fallback popup follow this preference; browser-owned native menus and frames use Chrome's appearance. Account storage remains restricted to trusted extension contexts.
+
+Both themes retain readable hover/focus states, non-color status cues and forced-colors usability. Normal text targets 4.5:1 contrast; large text and necessary control/status/focus cues target 3:1 against adjacent colors. The [v0.2.0 acceptance matrix](v0.2.0-Acceptance.md) tracks verification.

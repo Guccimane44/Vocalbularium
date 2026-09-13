@@ -1,16 +1,16 @@
 # v0.2.0 execution plan
 
-**Status: draft for owner review. Implementation has not started.**
+**Status: approved by the owner on 13 September 2026. Implementation in progress.**
 
-GitHub tracking: [v0.2.0 plan review, #26](https://github.com/Guccimane44/Vocalbularium/issues/26).
+GitHub tracking: [v0.2.0 iteration tracker, #26](https://github.com/Guccimane44/Vocalbularium/issues/26).
 
 This plan turns [the owner's v0.2.0 changes](MVP-Iteration-v0.2.0.md) into reviewable milestones. The baseline is the accepted v0.1.0 product on main at `4a0d11e5b5faa2f3e33448a3a01edd5a4ad30937`. The [MVP scope](MVP-Product-scope.md), [modules](MVP-Product-spec-modules.md), and [Select and Add](MVP-Product-spec-select-and-add.md) continue to govern behavior outside the requested interface changes.
 
 The expected result is a clearer dashboard and card list, consistent deck actions, a context menu that names the destination deck, and a persistent Light/Dark preference. The work is primarily in the extension; no database migration, provider change, or backend deployment is expected.
 
-## Decisions proposed for review
+## Approved decisions
 
-| Decision | Recommended default |
+| Decision | Accepted default |
 | --- | --- |
 | Theme scope and initial value | Start in Light, matching the current MVP. Store the explicit Light/Dark choice per Chrome installation. It survives logout, extension reopening, browser restart, and an in-place extension update. Different installations may choose different themes. |
 | Toggle location | A labeled Light/Dark control in the shared header, available on login and every product view. Changing it updates all open extension views and active capture feedback without discarding drafts or closing dialogs. |
@@ -19,7 +19,7 @@ The expected result is a clearer dashboard and card list, consistent deck action
 | Context-menu freshness | A local rename/default change updates the label after its successful save and refresh. Changes from another installation update on the next successful account synchronization, including background refresh while Chrome is running. Offline use retains the last synchronized name; instant cross-device updates are not proposed. |
 | Badge-removal boundary | Remove generation badges from deck card rows and dashboard recent captures. Keep detailed card/page generation information and recovery controls on the card content page. The default-deck badge is a separate indicator. |
 
-The first review should confirm these defaults and the milestone order. After approval, record the accepted choices in the relevant specifications before implementing them.
+The owner accepted these defaults and the milestone order. The specifications and [acceptance matrix](v0.2.0-Acceptance.md) record the implementation contract.
 
 ## Scope coverage
 
@@ -152,12 +152,12 @@ Use synthetic examples. Theme/menu/navigation work should not require new model 
 - Use explicit progress states: planned, implementing, checks passed, ready for review, merged, candidate delivered, owner accepted. Link relevant commits and CI/evidence.
 - Keep the explicitly deferred Render reset/stale-client scenario in [issue #24](https://github.com/Guccimane44/Vocalbularium/issues/24). It is not a prerequisite for this iteration unless the owner changes that decision. Production storage, provider changes, richer card rendering, and new modules remain outside this plan.
 
-## Review checklist
+## Owner review checklist
 
-- [ ] The seven requested changes and scope boundaries are correct.
-- [ ] Light by default, installation-local theme persistence, and the shared toggle location are accepted.
-- [ ] State colors/icons, pending/save-error treatment, and the badge-removal boundary are accepted.
-- [ ] Context-menu names updating on successful synchronization is the intended cross-installation behavior.
-- [ ] Milestone order, regression coverage, and the Windows delivery gate are accepted.
+- [x] The seven requested changes and scope boundaries are correct.
+- [x] Light by default, installation-local theme persistence, and the shared toggle location are accepted.
+- [x] State colors/icons, pending/save-error treatment, and the badge-removal boundary are accepted.
+- [x] Context-menu names updating on successful synchronization is the intended cross-installation behavior.
+- [x] Milestone order, regression coverage, and the Windows delivery gate are accepted.
 
-Approval of this plan starts the implementation milestones. This draft records proposed work and does not mark any v0.2.0 acceptance check as passed.
+Owner approval starts implementation; it does not mark any v0.2.0 product acceptance check as passed. M0–M5 are tracked in issues #28–#33 under the v0.2.0 milestone. Implementation is grouped into milestone commits in one iteration PR so work can proceed without a long chain of unmerged PRs.
