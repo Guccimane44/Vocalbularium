@@ -1,8 +1,11 @@
+import { rowState, openCardRow } from './row-state.js';
+import { initializeTheme } from './theme.js';
 import { cardViews } from './cards.js';
 import { SORT_ORDERS, sortCards } from './sorting.js';
 import { configurationView, newDeckDraft } from './configuration.js';
 import { deckActions } from './deck-actions.js';
 
+await initializeTheme();
 const app = document.querySelector('#app');
 const actions = document.querySelector('#session-actions');
 let account;
@@ -82,11 +85,13 @@ function recentCaptures(local) {
   if (!entries.length) app.append(element('p', 'Select text on a webpage, then choose “Create a card in…” followed by your default deck name from the context menu.', 'muted'));
   for (const entry of entries) {
     const row = element('article', undefined, 'capture');
+    const state = entry.card?.status ?? (entry.receipt ? entry.receipt.state === 'saving' ? 'loading' : 'failed' : null);
+    const cue = rowState(row, state, entry.receipt ? entry.receipt.state === 'saving' ? 'Saving to your account' : 'Not saved to your account' : undefined);
+    if (cue) row.append(cue);
     row.append(element('p', entry.text, 'capture-text'));
     const deck = account.decks.find(deck => deck.id === entry.deckId);
     if (deck) row.append(button(deck.name, () => { location.hash = `deck/${deck.id}`; }));
     if (entry.card) {
-      if (entry.card.status) row.append(statusLabel(entry.card.status));
       row.append(button('Open card', () => { location.hash = `card/${entry.card.id}`; }));
     } else {
       row.append(element('p', entry.receipt.state === 'saving' ? 'Saving to your account…' : 'Not saved to your account.', 'muted'));
@@ -151,9 +156,13 @@ async function render() {
       const table = element('table', undefined, 'list');
       const heading = element('tr'); heading.append(element('th', 'Index'), element('th', 'Entry')); table.append(heading);
       for (const [index, card] of cards.entries()) {
-        const row = element('tr'), entry = element('td');
-        entry.append(button(card.pages[0]?.text || 'Empty front page', () => { location.hash = `card/${card.id}`; }, 'entry'));
-        if (card.status) entry.append(statusLabel(card.status));
+        const row = element('tr', undefined, 'card-row'), entry = element('td');
+        row.dataset.cardId = card.id;
+        const open = button(card.pages[0]?.text || 'Empty front page', () => {}, 'entry');
+        const cue = rowState(row, card.status);
+        if (cue) { open.setAttribute('aria-describedby', cue.id); entry.append(cue); }
+        entry.append(open);
+        openCardRow(row, open, () => { location.hash = `card/${card.id}`; });
         row.append(element('td', String(index + 1).padStart(3, '0')), entry); table.append(row);
       }
       app.append(table);

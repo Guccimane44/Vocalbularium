@@ -1,6 +1,7 @@
 import { API_URL } from './config.js';
 import { captureRuntime } from './capture.js';
 import { captureMenu } from './context-menu.js';
+import { relayFeedbackTheme } from './feedback.js';
 
 let initialization;
 let accessVersion = 0, sessionReady = false;
@@ -120,7 +121,7 @@ async function run(message) {
   const { auth } = await chrome.storage.local.get('auth');
   if (!auth) return { signedIn: false };
   try {
-    if (message.type === 'refresh') return refreshAccount();
+    if (message.type === 'refresh') return sessionReady ? refreshAccount() : initialize();
     if (message.type === 'set-default') {
       const operationId = message.operationId ?? crypto.randomUUID();
       const pending = { operationId, path: '/api/default-deck', payload: { operationId, deckId: message.deckId } };
@@ -171,6 +172,10 @@ async function run(message) {
     throw error;
   }
 }
+
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === 'local' && changes.theme) void relayFeedbackTheme(changes.theme.newValue).catch(() => {});
+});
 
 const captures = captureRuntime({ request, initialize, refresh: () => run({ type: 'refresh' }), removeAccess });
 export const handleCapture = captures.handleCapture;

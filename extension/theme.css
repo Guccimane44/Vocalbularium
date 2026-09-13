@@ -1,0 +1,25 @@
+:root, :host {
+  color-scheme: light;
+  --background: #f7f6f0; --surface: #ffffff; --text: #233a2e; --muted: #526257;
+  --border: #78877c; --line: #c4cdc4; --hover: #e6ece5;
+  --primary: #2d553c; --primary-hover: #21422d; --on-primary: #ffffff;
+  --focus: #355fc2; --completed-bg: #e0f1ed; --completed-cue: #186351;
+  --pending-bg: #fff0d0; --pending-cue: #82520c; --failed-bg: #fbe8e0; --failed-cue: #a33f20;
+}
+:root[data-theme="dark"], :host([data-theme="dark"]) {
+  color-scheme: dark;
+  --background: #151d19; --surface: #202d25; --text: #edf2eb; --muted: #b9c7bd;
+  --border: #809287; --line: #46584c; --hover: #304437;
+  --primary: #a8d2b2; --primary-hover: #bce1c4; --on-primary: #122019;
+  --focus: #b1c6ff; --completed-bg: #173e35; --completed-cue: #8bdac1;
+  --pending-bg: #433516; --pending-cue: #f7cc74; --failed-bg: #482b23; --failed-cue: #ffb293;
+}
+@media (forced-colors: active) {
+  :root, :host, :root[data-theme="dark"], :host([data-theme="dark"]) {
+    --background: Canvas; --surface: Canvas; --text: CanvasText; --muted: CanvasText;
+    --border: ButtonText; --line: CanvasText; --hover: Canvas;
+    --primary: ButtonFace; --primary-hover: ButtonFace; --on-primary: ButtonText; --focus: Highlight;
+    --completed-bg: Canvas; --pending-bg: Canvas; --failed-bg: Canvas;
+    --completed-cue: CanvasText; --pending-cue: CanvasText; --failed-cue: CanvasText;
+  }
+}

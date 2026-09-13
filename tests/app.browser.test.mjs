@@ -332,6 +332,186 @@ test('deck menus: card-list actions, Escape, cancellation, replacement and sole-
   assert.equal(application.store.account().decks.length, 1);
 });
 
+test('appearance: all open views, drafts, dialogs, feedback lifetime, logout and browser restart', { timeout: 45000 }, async t => {
+  const directory = await mkdtemp(join(tmpdir(), 'vocabularium-theme-browser-'));
+  const application = createApplication(); await application.start();
+  const testingExtension = join(directory, 'extension');
+  await cp(resolve('extension'), testingExtension, { recursive: true });
+  await appendFile(join(testingExtension, 'background.js'), '\nimport { showFeedback } from \'./feedback.js\';\nglobalThis.feedbackForTest = showFeedback;\n');
+  let a = await launch(join(directory, 'a'), testingExtension);
+  const b = await launch(join(directory, 'b'), testingExtension);
+  t.after(async () => { await a.context.close(); await b.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
+  const theme = (page, value) => page.getByLabel('Appearance', { exact: true }).selectOption(value);
+  const hasTheme = (page, value) => page.waitForFunction(value => document.documentElement.dataset.theme === value, value);
+  await hasTheme(a.page, 'light');
+  await theme(a.page, 'dark');
+  await a.page.screenshot({ path: 'artifacts/v0.2.0-login-dark.png', fullPage: true });
+  await signIn(a.page);
+  await hasTheme(a.page, 'dark'); await hasTheme(b.page, 'light');
+  const other = await a.context.newPage(); await other.goto(`chrome-extension://${a.id}/app.html`);
+  await hasTheme(other, 'dark');
+  await a.page.getByRole('heading', { name: 'My Deck', exact: true }).click();
+  await a.page.getByRole('button', { name: 'Add card manually', exact: true }).click();
+  const editor = a.page.getByLabel('Page 1 content', { exact: true });
+  await editor.fill('Keep this unsaved draft');
+  await editor.evaluate(node => node.setSelectionRange(5, 9));
+  await theme(other, 'light'); await hasTheme(a.page, 'light');
+  assert.equal(await editor.inputValue(), 'Keep this unsaved draft');
+  assert.deepEqual(await editor.evaluate(node => [node.selectionStart, node.selectionEnd]), [5, 9]);
+  await a.page.getByRole('button', { name: '← My Deck', exact: true }).click();
+  await a.page.getByRole('dialog').waitFor();
+  await theme(other, 'dark'); await hasTheme(a.page, 'dark');
+  await a.page.getByRole('dialog').screenshot({ path: 'artifacts/v0.2.0-dialog-dark.png' });
+  await a.page.getByRole('dialog').getByRole('button', { name: 'Continue editing', exact: true }).click();
+  assert.equal(await editor.inputValue(), 'Keep this unsaved draft');
+  const reading = await a.context.newPage(); await reading.goto('http://127.0.0.1:4318/health');
+  const tabId = await a.worker.evaluate(async () => (await chrome.tabs.query({ url: 'http://127.0.0.1:4318/health' }))[0].id);
+  const started = Date.now();
+  await a.worker.evaluate(async tabId => globalThis.feedbackForTest(tabId, 'Capture received'), tabId);
+  await reading.getByRole('status').waitFor();
+  assert.equal(await reading.locator('vocabularium-feedback').getAttribute('data-theme'), 'dark');
+  await reading.screenshot({ path: 'artifacts/v0.2.0-feedback-dark.png' });
+  await theme(other, 'light');
+  await reading.waitForFunction(() => document.querySelector('vocabularium-feedback')?.dataset.theme === 'light');
+  await reading.screenshot({ path: 'artifacts/v0.2.0-feedback-light.png' });
+  assert.equal(await a.worker.evaluate(async tabId => {
+    const [result] = await chrome.scripting.executeScript({ target: { tabId }, func: async () => {
+      try { await chrome.storage.local.get('theme'); return true; } catch { return false; }
+    } }); return result.result;
+  }, tabId), false, 'injected scripts cannot read trusted local account storage');
+  await reading.locator('vocabularium-feedback').waitFor({ state: 'detached', timeout: 4000 });
+  assert.ok(Date.now() - started < 4200, 'theme change does not restart feedback lifetime');
+
+  const restrictedPromise = a.context.waitForEvent('page');
+  const restrictedId = await a.worker.evaluate(async () => (await chrome.tabs.create({ url: 'chrome://extensions' })).id);
+  const restricted = await restrictedPromise; await restricted.waitForLoadState();
+  const popupPromise = a.context.waitForEvent('page');
+  await a.worker.evaluate(async id => globalThis.feedbackForTest(id, 'Capture unavailable.', true), restrictedId);
+  const popup = await popupPromise;
+  await popup.getByRole('status').waitFor(); await hasTheme(popup, 'light');
+  const closePromise = popup.waitForEvent('close');
+  await theme(other, 'dark'); await hasTheme(popup, 'dark');
+  await popup.screenshot({ path: 'artifacts/v0.2.0-feedback-popup-dark.png' });
+  await closePromise;
+  await a.page.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await a.page.getByRole('button', { name: 'Log out', exact: true }).click();
+  await a.page.getByRole('heading', { name: 'Welcome back.' }).waitFor(); await hasTheme(a.page, 'dark');
+  await a.context.close();
+  a = await launch(join(directory, 'a'), testingExtension);
+  await hasTheme(a.page, 'dark'); await signIn(a.page); await hasTheme(a.page, 'dark');
+});
+
+test('card rows: accessible states, sorting, every pointer target, text selection and keyboard navigation', { timeout: 45000 }, async t => {
+  const directory = await mkdtemp(join(tmpdir(), 'vocabularium-rows-browser-'));
+  const application = createApplication(); await application.start();
+  const a = await launch(join(directory, 'a'));
+  t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
+  const store = application.store, deck = store.snapshot();
+  const session = { installationId: 'fixture', sessionId: 'rows', epoch: 1 }; store.openSession('rows-session', session);
+  const ids = {};
+  for (const state of ['completed', 'loading', 'failed']) {
+    const { cardId } = store.capture(`row-${state}`, { session, selectedText: state, snapshot: deck }); ids[state] = cardId;
+    const pages = store.card(cardId).pages;
+    store.stage(pages[0].attempt_id, { ok: true, text: `${state} entry` });
+    store.publish(`row-front-${state}`, { attemptId: pages[0].attempt_id, session });
+    if (state === 'completed') {
+      store.stage(pages[1].attempt_id, { ok: true, text: '' });
+      store.publish('row-completed-back', { attemptId: pages[1].attempt_id, session });
+    } else if (state === 'failed') store.failAttempt(pages[1].attempt_id);
+  }
+  ids.neutral = store.createManual('row-neutral', { deckId: deck.id, pages: deck.pages.map(page => ({ pageId: page.id, text: '' })) }).cardId;
+  await signIn(a.page);
+  assert.equal(await a.page.locator('.capture .badge').count(), 0);
+  assert.deepEqual((await a.page.locator('.capture .state-icon').evaluateAll(nodes => nodes.map(node => node.getAttribute('aria-label')))).sort(), ['Completed', 'Failed', 'Pending: generating']);
+  await a.worker.evaluate(async deck => {
+    const now = new Date().toISOString();
+    await chrome.storage.local.set({
+      'capture-visual-saving': { operationId: 'visual-saving', state: 'saving', createdAt: now, payload: { selectedText: 'Saving example', snapshot: deck } },
+      'capture-visual-failed': { operationId: 'visual-failed', state: 'pending', error: 'Controlled save failure', createdAt: now, payload: { selectedText: 'Unsaved example', snapshot: deck } }
+    });
+  }, deck);
+  const unsaved = a.page.locator('.capture').filter({ hasText: 'Unsaved example' });
+  await unsaved.getByRole('button', { name: 'Try saving again', exact: true }).waitFor();
+  assert.equal(await unsaved.getAttribute('data-state'), 'failed');
+  assert.equal(await unsaved.getByRole('img').getAttribute('aria-label'), 'Not saved to your account');
+  assert.equal(await a.page.locator('.capture').filter({ hasText: 'Saving example' }).getAttribute('data-state'), 'loading');
+  for (const theme of ['light', 'dark']) {
+    await a.page.getByLabel('Appearance', { exact: true }).selectOption(theme);
+    await a.page.screenshot({ path: `artifacts/v0.2.0-dashboard-${theme}.png`, fullPage: true });
+  }
+  await a.worker.evaluate(() => chrome.storage.local.remove(['capture-visual-saving', 'capture-visual-failed']));
+  await a.page.getByRole('heading', { name: 'My Deck', exact: true }).click();
+  const row = state => a.page.locator(`tr[data-card-id="${ids[state]}"]`);
+  for (const state of Object.keys(ids)) {
+    assert.equal(await row(state).getAttribute('data-state'), state);
+    assert.equal(await row(state).locator('button').count(), 1);
+    assert.equal(await row(state).locator('.badge').count(), 0);
+  }
+  assert.equal(await row('neutral').getByRole('img').count(), 0);
+  assert.equal(await row('loading').getByRole('img').getAttribute('aria-label'), 'Pending: generating');
+  for (const theme of ['light', 'dark']) {
+    await a.page.getByLabel('Appearance', { exact: true }).selectOption(theme);
+    await row('completed').getByRole('button').focus();
+    await a.page.screenshot({ path: `artifacts/v0.2.0-rows-${theme}.png`, fullPage: true });
+    const report = await a.page.evaluate(() => {
+      const style = getComputedStyle(document.documentElement);
+      const luminance = color => {
+        const rgb = color.trim().replace('#', '').match(/../g).map(value => parseInt(value, 16) / 255).map(v => v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4);
+        return rgb[0] * .2126 + rgb[1] * .7152 + rgb[2] * .0722;
+      };
+      const ratio = (a, b) => { const [hi, lo] = [a, b].map(name => luminance(style.getPropertyValue(`--${name}`))).sort((a, b) => b - a); return (hi + .05) / (lo + .05); };
+      const backgrounds = ['background', 'surface', 'hover', 'completed-bg', 'pending-bg', 'failed-bg'];
+      return [
+        ...backgrounds.flatMap(bg => ['text', 'muted'].map(fg => ({ pair: `${fg}/${bg}`, ratio: ratio(fg, bg), minimum: 4.5 }))),
+        ...backgrounds.map(bg => ({ pair: `focus/${bg}`, ratio: ratio('focus', bg), minimum: 3 })),
+        ...['completed', 'pending', 'failed'].map(state => ({ pair: `${state} cue`, ratio: ratio(`${state}-cue`, `${state}-bg`), minimum: 3 })),
+        ...['surface', 'background'].map(bg => ({ pair: `border/${bg}`, ratio: ratio('border', bg), minimum: 3 })),
+        ...['primary', 'primary-hover'].map(bg => ({ pair: `on-primary/${bg}`, ratio: ratio('on-primary', bg), minimum: 4.5 }))
+      ];
+    });
+    for (const item of report) assert.ok(item.ratio >= item.minimum, `${theme} ${item.pair}: ${item.ratio.toFixed(2)}`);
+    t.diagnostic(`${theme} minimum text ${Math.min(...report.filter(item => item.minimum === 4.5).map(item => item.ratio)).toFixed(2)}:1; minimum cue/focus/border ${Math.min(...report.filter(item => item.minimum === 3).map(item => item.ratio)).toFixed(2)}:1`);
+  }
+  for (const order of ['newest', 'oldest', 'az', 'za']) {
+    await a.page.getByLabel('Sort cards', { exact: true }).selectOption(order);
+    assert.deepEqual(await a.page.locator('table tr td:first-child').allTextContents(), ['001', '002', '003', '004']);
+    const rendered = await a.page.locator('tr[data-card-id]').evaluateAll(rows => rows.map(row => row.dataset.cardId));
+    const { sortCards } = await import('../extension/sorting.js');
+    assert.deepEqual(rendered, sortCards(store.cards(), order).map(card => card.id));
+  }
+  for (const target of ['index', 'entry', 'cue', 'space', 'keyboard']) {
+    const completed = row('completed');
+    if (target === 'index') await completed.locator('td').first().click();
+    else if (target === 'entry') await completed.getByRole('button').click();
+    else if (target === 'cue') await completed.getByRole('img').click();
+    else if (target === 'space') {
+      const box = await completed.boundingBox(); await a.page.mouse.click(box.x + box.width - 8, box.y + box.height / 2);
+    } else { await completed.getByRole('button').focus(); await a.page.keyboard.press('Enter'); }
+    await a.page.getByRole('button', { name: 'Edit card manually', exact: true }).waitFor();
+    assert.ok(a.page.url().endsWith(`#card/${ids.completed}`));
+    assert.ok(await a.page.locator('.status-completed').count() > 0, 'card detail keeps status information');
+    await a.page.getByRole('button', { name: '← My Deck', exact: true }).click();
+  }
+  await row('completed').getByRole('button').evaluate(node => {
+    const selection = getSelection(), range = document.createRange(); range.selectNodeContents(node); selection.removeAllRanges(); selection.addRange(range);
+    node.dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 }));
+  });
+  assert.ok(a.page.url().endsWith(`#deck/${deck.id}`), 'selecting entry text does not navigate');
+  store.savePages('row-long-text', { cardId: ids.completed, changes: [{ pageId: deck.pages[0].id, text: 'LongWord'.repeat(40) + ' 幸福 — Grüße' }] });
+  await a.page.reload();
+  await row('completed').waitFor();
+  await a.page.setViewportSize({ width: 390, height: 760 });
+  await a.page.screenshot({ path: 'artifacts/v0.2.0-rows-narrow.png', fullPage: true });
+  assert.equal(await a.page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+  await a.page.emulateMedia({ forcedColors: 'active' });
+  await row('failed').getByRole('button').focus();
+  await a.page.screenshot({ path: 'artifacts/v0.2.0-rows-forced-colors.png', fullPage: true });
+  assert.equal(await row('failed').getByRole('img').getAttribute('aria-label'), 'Failed');
+  await row('neutral').getByRole('button', { name: 'Empty front page', exact: true }).press('Space');
+  await a.page.getByRole('button', { name: 'Edit card manually', exact: true }).waitFor();
+  assert.ok(a.page.url().endsWith(`#card/${ids.neutral}`));
+});
+
 test('manual card UI: multi-page drafts, leave choices, sorting, failed-save recovery, and deletion', { timeout: 45000 }, async t => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-manual-browser-'));
   const filename = join(directory, 'account.sqlite');
