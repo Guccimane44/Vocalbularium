@@ -1,6 +1,6 @@
 # M6 delivery candidate
 
-A configured candidate connects to the live Render Free backend and passes hosted generation and two-installation synchronization checks. This milestone remains open until the owner tests installation and updates on Windows and the remaining acceptance items are resolved.
+A configured candidate connects to the live Render Free backend and passes hosted generation and two-installation synchronization checks. The owner accepted the package 0.1.0 MVP baseline on Windows on 13 September 2026, explicitly deferring the Render reset/stale-client scenario. See the [owner acceptance record](evidence/windows-owner-acceptance-2026-09-13.md).
 
 ## Build and package
 
@@ -39,7 +39,7 @@ Deployed on 12 September 2026 and confirmed **Live**:
 
 Later documentation, smoke-test, and packaging commits do not change this running backend revision. Deploying a newer revision is an explicit operation because automatic deploys are off.
 
-Use the repository's `render.yaml` for one **Free** Node web service. Deploy branch `codex/opencode-render-free` while the implementation PRs are awaiting integration; `main` does not yet contain the app. If using a Blueprint, select that branch and confirm the created web service's branch also matches it. The settings are `npm ci --omit=dev` for build, `npm start` for start, Node 24, `HOST=0.0.0.0`, `DATA_DIR=.data`, and `/health` for readiness. Render supplies `PORT`. Leave automatic deploys off for controlled testing.
+Use the repository's `render.yaml` for one **Free** Node web service. The app is integrated into `main` through PR #23. For a future authorized deployment, select the agreed source branch and confirm the service's branch matches it. The existing deployment record above remains historical evidence; merging into main did not redeploy it. The settings are `npm ci --omit=dev` for build, `npm start` for start, Node 24, `HOST=0.0.0.0`, `DATA_DIR=.data`, and `/health` for readiness. Render supplies `PORT`. Leave automatic deploys off for controlled testing.
 
 Set `OPENCODE_API_KEY` in Render's secret environment settings. The Blueprint requests this value instead of storing it in Git. `OPENCODE_MODEL` defaults to `deepseek-v4.1-flash`. This candidate uses no paid disk or database. Generation uses the owner's [OpenCode Go subscription](https://opencode.ai/docs/go/) through the Go endpoint. The app identifies itself honestly and does not switch models or use the separate Zen endpoint. Leave **Use balance** disabled in OpenCode if usage must stop at the subscription limit. The server does not change that console setting.
 
@@ -63,7 +63,7 @@ VOCABULARIUM_API_URL=https://vocabularium.onrender.com npm run smoke:hosted:brow
 
 Reports are written to `.data/hosted-smoke.json` and `.data/hosted-browser-smoke.json`. The reviewed [API samples](evidence/render-smoke-2026-09-12.json) and [browser result](evidence/render-browser-smoke-2026-09-12.json) are committed without credentials or session tokens. Ordinary unit/browser CI does not invoke this live service or spend provider usage. Use `VOCABULARIUM_TEST_EXTENSION` to run the hosted browser check against an extracted configured ZIP.
 
-A fresh sign-in after an idle interval found an empty My Deck; another live generation pass succeeded. This is consistent with the expected Free-host reset limitation. A controlled sleep/redeploy reset with stale extension credentials and pending saves, native Windows selection/feedback, and extension updates remain open acceptance checks.
+A fresh sign-in after an idle interval found an empty My Deck; another live generation pass succeeded. This is consistent with the expected Free-host reset limitation. The controlled sleep/redeploy reset with stale extension credentials and pending saves is explicitly deferred to [issue #24](https://github.com/Guccimane44/Vocalbularium/issues/24), with no passing result claimed. The owner reports Windows installation/reload and native capture/feedback passed.
 
 ## Package verification
 
@@ -73,19 +73,13 @@ GitHub verification also builds and packages a local candidate on Windows and Li
 
 ## Owner acceptance record
 
-Complete these fields in issue #12 once the Windows environment is available:
+The [owner's comments](evidence/windows-owner-acceptance-2026-09-13.md) report package 0.1.0 on Windows 11, Chrome 153.9.8010.37 (official build, 64-bit):
 
-- Package version and checksum:
-- Source revision:
-- Hosted backend origin:
-- Windows version:
-- Chrome version and background-mode setting:
-- Installation/update result:
-- Word/phrase/sentence capture and live module results:
-- Manual editing, retry, deck changes, and second-installation synchronization:
-- Normal/abrupt Chrome exit and restricted-page feedback:
-- Render sleep/redeploy reset and fresh sign-in (expected test limitation):
-- Durable hosted persistence (deferred; not satisfied by Render Free):
-- Remaining issues and next-iteration feedback:
+- Installation/reload and word/phrase/sentence capture passed.
+- Native context-menu capture, feedback, editing, retry, deletion, and synchronization passed.
+- Background behavior and the final publication/exit boundary passed.
+- All other M5 acceptance checks passed; the owner also marked offline ordering complete.
 
-Use the [eleven-criterion evidence matrix](M5-Acceptance.md) for the remaining checks. The final publication-versus-exit boundary and offline capture ordering are still explicit acceptance items.
+The exact background-mode setting and tested archive checksum were not supplied in those comments. The delivered candidate's separate source, checksum, and backend record remains in [issue #12](https://github.com/Guccimane44/Vocalbularium/issues/12). A later package is not automatically covered by this acceptance.
+
+Use the [eleven-criterion evidence matrix](M5-Acceptance.md) for the evidence mapping. Stale-client recovery after a Render reset is deferred in #24 and remains untested. Durable hosted storage and always-on availability remain production work under the test-phase exception.

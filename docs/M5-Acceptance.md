@@ -1,22 +1,22 @@
 # M5 reliability acceptance record
 
-This records evidence against the eleven [MVP completion criteria](MVP-Product-scope.md#9-mvp-completion-criteria). It is not a release sign-off. The owner requested continued local implementation while arranging credentials, hosting, and Windows testing.
+This records evidence against the eleven [MVP completion criteria](MVP-Product-scope.md#9-mvp-completion-criteria). On 13 September 2026, the owner accepted the current MVP baseline and reported the remaining M5 checks passed, explicitly deferring the Render stale-client reset scenario. The [Windows acceptance record](evidence/windows-owner-acceptance-2026-09-13.md) links the original comments and records the tested environment.
 
 ## Acceptance matrix
 
-| Criterion | Passing evidence | Remaining acceptance |
+| Criterion | Automated and hosted evidence | Owner acceptance / deferred work |
 | --- | --- | --- |
-| 1. Login/dashboard | Product browser login/logout, two profiles, persisted account, reopening | Packaged Windows extension-button entry |
-| 2. Decks/previews/default | Four-page UI, all modules, repeated instances, preview isolation, create/cancel/delete, default replacement | Owner walkthrough |
-| 3. Capture/modules | Exact text, duplicates, shared interpretation, all five runtime rules; live provider samples and hosted word/phrase/sentence generation | Native packaged capture |
-| 4. Generation/retry | Atomic page failure, empty success, exact retry warning, original input/current modules, cross-installation locks; live model and hosted page retry | Native Windows walkthrough |
-| 5. Browse/sort/pages | Plain-text pages, all four sort orders, stable ties, calculated indices, empty-front placeholder | Owner walkthrough |
-| 6. Manual workflows | Multi-page drafts, Save/Cancel/all leave choices, failed-save recovery, card/deck deletion | Owner walkthrough |
-| 7. Layout migration | Stable retained pages, empty appends, content-loss digest revalidation, stale layout rejection; also verified with two clients on Render | Owner Windows walkthrough |
-| 8. Persistence/sync | Two isolated profiles, local backend restart, failed saves before commit and lost acknowledgments after commit; two real extensions reading/writing Render | Windows extension update and actual host reset/fresh sign-in; durable hosted persistence deferred by the free-test exception |
-| 9. Feedback | Independent three-second receipts, dismissal, unaffected reading activity; M0 native selection checks | Native product/Windows restricted surfaces |
-| 10. Browser interruption | Product worker Stop/restart, normal origin closure, abrupt owned-browser termination, other-profile continuation, late-result rejection | Windows background mode and final publication/exit boundary |
-| 11. Save ordering | Same/different-page FIFO, atomic multi-page generation lock, explicit resubmission, deletion races; hosted ordered edits and replay without overwriting newer text | Native owner walkthrough |
+| 1. Login/dashboard | Product browser login/logout, two profiles, persisted account, reopening | Accepted in owner M5 summary |
+| 2. Decks/previews/default | Four-page UI, all modules, repeated instances, preview isolation, create/cancel/delete, default replacement | Accepted in owner M5 summary |
+| 3. Capture/modules | Exact text, duplicates, shared interpretation, all five runtime rules; live provider samples and hosted word/phrase/sentence generation | Owner reports word/phrase/sentence and native context-menu capture passed |
+| 4. Generation/retry | Atomic page failure, empty success, exact retry warning, original input/current modules, cross-installation locks; live model and hosted page retry | Owner reports retry passed; other checks accepted in M5 summary |
+| 5. Browse/sort/pages | Plain-text pages, all four sort orders, stable ties, calculated indices, empty-front placeholder | Accepted in owner M5 summary |
+| 6. Manual workflows | Multi-page drafts, Save/Cancel/all leave choices, failed-save recovery, card/deck deletion | Owner reports editing and deletion passed; other checks accepted in M5 summary |
+| 7. Layout migration | Stable retained pages, empty appends, content-loss digest revalidation, stale layout rejection; also verified with two clients on Render | Accepted in owner M5 summary |
+| 8. Persistence/sync | Two isolated profiles, local backend restart, failed saves before commit and lost acknowledgments after commit; two real extensions reading/writing Render | Owner reports installation/reload and synchronization passed; actual Render reset/stale-client check deferred to #24; durable hosted storage remains deferred |
+| 9. Feedback | Independent three-second receipts, dismissal, unaffected reading activity; M0 native selection checks | Owner reports native feedback passed; other checks accepted in M5 summary |
+| 10. Browser interruption | Product worker Stop/restart, normal origin closure, abrupt owned-browser termination, other-profile continuation, late-result rejection | Owner reports background behavior and final publication/exit boundary passed |
+| 11. Save ordering | Same/different-page FIFO, atomic multi-page generation lock, explicit resubmission, deletion races; hosted ordered edits and replay without overwriting newer text | Accepted in owner M5 summary; offline-ordering checklist marked complete by owner |
 
 ## Checks performed
 
@@ -44,11 +44,10 @@ An additional [hosted browser check](evidence/render-browser-smoke-2026-09-12.js
 
 The extended hosted API check also passes concurrent deck configuration: appended pages start empty, retained pages keep their identity and content, a content-loss confirmation becomes invalid after another client's edit, and a stale draft cannot restore a deleted page. Its disposable deck is removed afterwards. A later fresh sign-in after an idle interval found an empty My Deck, consistent with Free-host resets; fresh live generation then passed again. This observation does not replace a controlled reset with stale extension credentials and pending saves.
 
-## Release gates still open
+## Deferred verification and evidence boundaries
 
-- Live provider, hosted generation/synchronization, and concurrent deck configuration pass. Native extension capture and a controlled Render reset with stale extension credentials/pending saves remain to be verified.
-- Owner Windows installation, native feedback, background-mode behavior, and update acceptance are pending.
-- The strict boundary where Chrome exits while its final publication request is already in flight remains unverified. Existing tests prove that server generation alone cannot publish after browser exit, and that reopening fences old sessions; they do not prove the final in-flight request race.
-- Capture preparation resolves the shared default/configuration once on server arrival and preserves it through resubmission. A remote default change before capture passes. Exact click-time ordering across an offline interval remains unverified; browser clocks are not used to reorder account operations.
+- The controlled Render reset with stale extension credentials and pending saves is explicitly deferred by the owner in [issue #24](https://github.com/Guccimane44/Vocalbularium/issues/24). It has not been tested and is not recorded as passed. Durable hosted storage remains outside the accepted Free-host testing constraints.
+- The owner reports Windows installation/reload, native feedback, background behavior, and the final publication/exit boundary passed. The existing automated suite still does not independently establish the final in-flight publication race; its earlier coverage remains recorded above.
+- The owner marked offline ordering complete and accepted the other M5 checks. The implementation still resolves capture configuration on server arrival and preserves it through resubmission; browser clocks are not used to reorder account operations. No implementation or automated-test change is implied by the owner result.
 
-These remain visible in #11 and #12. Passing local checks does not close the complete MVP gate.
+The accepted MVP baseline and the explicit deferral are recorded in [issue #5](https://github.com/Guccimane44/Vocalbularium/issues/5). The linked owner evidence completes the former Windows gates; it does not claim production durability or an observed Render reset.
