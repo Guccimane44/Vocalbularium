@@ -289,6 +289,7 @@ test('deck menus: card-list actions, Escape, cancellation, replacement and sole-
   const second = application.store.createDeck('Second deck');
   await a.page.reload();
   await a.page.getByRole('heading', { name: 'Second deck', exact: true }).click();
+  await a.page.getByRole('button', { name: 'Add card manually', exact: true }).waitFor();
   const trigger = a.page.getByLabel('Options for Second deck', { exact: true });
   await trigger.focus(); await a.page.keyboard.press('Enter');
   await a.page.getByRole('button', { name: 'Set as default', exact: true }).waitFor();
@@ -300,6 +301,7 @@ test('deck menus: card-list actions, Escape, cancellation, replacement and sole-
   await a.page.getByLabel('Deck name', { exact: true }).waitFor();
   await a.page.getByRole('button', { name: 'Cancel', exact: true }).click();
   await a.page.getByRole('heading', { name: 'Second deck', exact: true }).click();
+  await a.page.getByRole('button', { name: 'Add card manually', exact: true }).waitFor();
   await application.close();
   await trigger.click();
   await a.page.getByRole('button', { name: 'Set as default', exact: true }).click();
@@ -322,6 +324,7 @@ test('deck menus: card-list actions, Escape, cancellation, replacement and sole-
   await a.page.getByRole('heading', { name: 'Your decks.' }).waitFor();
   assert.equal(application.store.account().decks.length, 1);
   await a.page.getByRole('heading', { name: 'My Deck', exact: true }).click();
+  await a.page.getByRole('button', { name: 'Add card manually', exact: true }).waitFor();
   const original = application.store.snapshot().id;
   await a.page.getByLabel('Options for My Deck').click();
   await a.page.getByRole('button', { name: 'Delete deck', exact: true }).click();
