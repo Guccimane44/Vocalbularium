@@ -22,7 +22,7 @@ async function signIn(page) {
   await page.getByLabel('Username', { exact: true }).fill('admin');
   await page.getByLabel('Password', { exact: true }).fill('admin');
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
-  await page.getByRole('heading', { name: 'A growing collection.' }).waitFor();
+  await page.getByRole('heading', { name: 'Your decks.' }).waitFor();
 }
 
 test('account extension: login, two installations, reopening, server failure, and logout', { timeout: 45000 }, async t => {
@@ -65,14 +65,14 @@ test('account extension: login, two installations, reopening, server failure, an
 
   await a.context.close(); contexts.delete(a.context);
   a = await launch(aProfile); contexts.add(a.context);
-  await a.page.getByRole('heading', { name: 'A growing collection.' }).waitFor();
+  await a.page.getByRole('heading', { name: 'Your decks.' }).waitFor();
   assert.equal(application.store.account().decks.length, 2);
   await a.page.getByRole('button', { name: 'Log out', exact: true }).click();
   await a.page.getByRole('heading', { name: 'Welcome back.' }).waitFor();
   await a.page.reload();
   await a.page.getByRole('heading', { name: 'Welcome back.' }).waitFor();
   await b.page.reload();
-  await b.page.getByRole('heading', { name: 'A growing collection.' }).waitFor();
+  await b.page.getByRole('heading', { name: 'Your decks.' }).waitFor();
 });
 
 test('free host: startup HTML is actionable and an erased account requires fresh sign-in', { timeout: 45000 }, async t => {
@@ -193,7 +193,7 @@ test('capture extension: receipt lifetime, exact duplicate cards, shared outcome
   held.get('held-interrupted')();
   await waitFor(() => application.store.attempt(interrupted.pages[1].attempt_id).result, 'late provider result staged');
   a = await launch(profile, testingExtension); contexts.add(a.context);
-  await a.page.getByRole('heading', { name: 'A growing collection.' }).waitFor();
+  await a.page.getByRole('heading', { name: 'Your decks.' }).waitFor();
   assert.deepEqual(application.store.card(interrupted.id).pages.map(page => page.status), ['completed', 'failed']);
 
   reading = await a.context.newPage(); await reading.goto('http://127.0.0.1:4318/health');
@@ -275,6 +275,61 @@ test('deck UI: draft previews, all modules, page limits, content-loss confirmati
   await a.page.getByRole('heading', { name: 'Everyday Chinese', exact: true }).waitFor({ state: 'detached' });
   assert.equal(application.store.snapshot().name, 'My Deck');
   assert.equal(application.store.cards().length, 0);
+});
+
+test('deck menus: card-list actions, Escape, cancellation, replacement and sole-deck reset', { timeout: 40000 }, async t => {
+  const directory = await mkdtemp(join(tmpdir(), 'vocabularium-menu-browser-'));
+  const filename = join(directory, 'account.sqlite');
+  let application = createApplication({ filename }); await application.start();
+  const a = await launch(join(directory, 'a'));
+  t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
+  await signIn(a.page);
+  assert.equal(await a.page.getByText('YOUR VOCABULARY', { exact: true }).count(), 0);
+  assert.equal(await a.page.getByText('YOUR WORDS, KEPT CLOSE.', { exact: true }).count(), 0);
+  const second = application.store.createDeck('Second deck');
+  await a.page.reload();
+  await a.page.getByRole('heading', { name: 'Second deck', exact: true }).click();
+  const trigger = a.page.getByLabel('Options for Second deck', { exact: true });
+  await trigger.focus(); await a.page.keyboard.press('Enter');
+  await a.page.getByRole('button', { name: 'Set as default', exact: true }).waitFor();
+  await a.page.keyboard.press('Escape');
+  assert.equal(await a.page.locator('.deck-menu[open]').count(), 0);
+  assert.equal(await trigger.evaluate(node => node === document.activeElement), true);
+  await trigger.click();
+  await a.page.getByRole('button', { name: 'Configure deck', exact: true }).click();
+  await a.page.getByLabel('Deck name', { exact: true }).waitFor();
+  await a.page.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await a.page.getByRole('heading', { name: 'Second deck', exact: true }).click();
+  await application.close();
+  await trigger.click();
+  await a.page.getByRole('button', { name: 'Set as default', exact: true }).click();
+  await a.page.getByRole('button', { name: 'Try saving again', exact: true }).waitFor();
+  assert.equal(await a.page.locator('.deck-menu[open]').count(), 0);
+  application = createApplication({ filename }); await application.start();
+  await a.page.getByRole('button', { name: 'Try saving again', exact: true }).click();
+  await waitFor(() => application.store.account().defaultDeckId === second.id, 'card-list default saved');
+  await waitFor(() => a.page.getByRole('button', { name: 'Set as default', exact: true, includeHidden: true }).isDisabled(), 'current default disabled');
+  await trigger.click();
+  await a.page.getByRole('button', { name: 'Delete deck', exact: true }).click();
+  assert.equal(await a.page.locator('.deck-menu[open]').count(), 0);
+  await a.page.getByRole('dialog').getByRole('button', { name: 'Cancel', exact: true }).click();
+  assert.match(a.page.url(), /#deck\//);
+  assert.equal(await trigger.evaluate(node => node === document.activeElement), true);
+  await trigger.click();
+  await a.page.getByRole('button', { name: 'Delete deck', exact: true }).click();
+  assert.equal(await a.page.getByRole('dialog').getByLabel('New default deck').inputValue(), application.store.account().decks.find(deck => deck.id !== second.id).id);
+  await a.page.getByRole('dialog').getByRole('button', { name: 'Delete deck', exact: true }).click();
+  await a.page.getByRole('heading', { name: 'Your decks.' }).waitFor();
+  assert.equal(application.store.account().decks.length, 1);
+  await a.page.getByRole('heading', { name: 'My Deck', exact: true }).click();
+  const original = application.store.snapshot().id;
+  await a.page.getByLabel('Options for My Deck').click();
+  await a.page.getByRole('button', { name: 'Delete deck', exact: true }).click();
+  await a.page.getByRole('dialog').getByText(/A new empty My Deck will replace it/).waitFor();
+  await a.page.getByRole('dialog').getByRole('button', { name: 'Delete deck', exact: true }).click();
+  await a.page.getByRole('heading', { name: 'Your decks.' }).waitFor();
+  assert.notEqual(application.store.snapshot().id, original);
+  assert.equal(application.store.account().decks.length, 1);
 });
 
 test('manual card UI: multi-page drafts, leave choices, sorting, failed-save recovery, and deletion', { timeout: 45000 }, async t => {
@@ -377,7 +432,7 @@ test('page retry UI: exact confirmation and two-installation lock preserve all d
   await a.page.getByRole('button', { name: 'Retry', exact: true }).click();
   await a.page.getByRole('dialog').getByRole('button', { name: 'Confirm', exact: true }).click();
   await waitFor(() => release, 'retry provider started');
-  await a.page.getByRole('button', { name: 'Retry', exact: true }).waitFor();
+  await waitFor(() => a.page.getByRole('button', { name: 'Retry', exact: true }).isDisabled(), 'retry disables its control while generating');
   assert.equal(await a.page.getByRole('button', { name: 'Retry', exact: true }).isDisabled(), true);
   await b.page.getByRole('button', { name: 'Save', exact: true }).click();
   await b.page.getByRole('alert').filter({ hasText: 'still generating' }).waitFor();
@@ -503,7 +558,7 @@ test('assembled reliability: lost acknowledgments, worker suspension, abrupt ori
   await waitFor(() => application.store.attempt(interrupted.pages[1].attempt_id).result, 'origin result staged after crash');
   await waitFor(() => application.store.cards().find(card => card.selected_text === 'hold-other')?.status === 'completed', 'other installation completed');
   a = await launch(profile, extension); contexts.add(a.context);
-  await a.page.getByRole('heading', { name: 'A growing collection.' }).waitFor();
+  await a.page.getByRole('heading', { name: 'Your decks.' }).waitFor();
   assert.deepEqual(application.store.card(interrupted.id).pages.map(page => page.status), ['completed', 'failed']);
   assert.throws(() => application.store.publish('stale-origin', { attemptId: interrupted.pages[1].attempt_id, session: oldSession }), { code: 'stale_session' });
 

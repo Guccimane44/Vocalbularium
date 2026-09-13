@@ -41,7 +41,7 @@ test('hosted candidate: two real installations, generated pages, and manual-card
     await page.getByLabel('Username', { exact: true }).fill('admin');
     await page.getByLabel('Password', { exact: true }).fill('admin');
     await page.getByRole('button', { name: 'Sign in', exact: true }).click();
-    await page.getByRole('heading', { name: 'A growing collection.' }).waitFor();
+    await page.getByRole('heading', { name: 'Your decks.' }).waitFor();
     return page;
   }
   const a = await launch('a'), b = await launch('b');

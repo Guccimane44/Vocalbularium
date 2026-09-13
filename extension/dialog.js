@@ -1,7 +1,8 @@
 export function dialog({ title, message, choices, select }) {
   return new Promise(resolve => {
     const modal = document.createElement('dialog');
-    const heading = document.createElement('h2'); heading.textContent = title;
+    const heading = document.createElement('h2'); heading.textContent = title; heading.id = `dialog-${crypto.randomUUID()}`;
+    modal.setAttribute('aria-labelledby', heading.id);
     const text = document.createElement('p'); text.textContent = message;
     modal.append(heading, text);
     let input;
