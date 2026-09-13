@@ -1,7 +1,36 @@
 import { API_URL } from './config.js';
 import { captureRuntime } from './capture.js';
+import { captureMenu } from './context-menu.js';
 
 let initialization;
+let accessVersion = 0, sessionReady = false;
+let writes = Promise.resolve(), refreshes = Promise.resolve();
+const updateCaptureMenu = captureMenu();
+function writeState(action) {
+  const next = writes.then(action); writes = next.catch(() => {}); return next;
+}
+function refreshAccount() {
+  const version = accessVersion;
+  const next = refreshes.then(async () => {
+    if (version !== accessVersion) return { signedIn: false };
+    const { auth } = await chrome.storage.local.get('auth');
+    if (!auth) return { signedIn: false };
+    let account;
+    try { account = await request('/api/account', null, auth.token); }
+    catch (error) {
+      if (version !== accessVersion) return { signedIn: false };
+      if (error.status === 401) { await removeAccess(); return { signedIn: false }; }
+      throw error;
+    }
+    return writeState(async () => {
+      if (version !== accessVersion) return { signedIn: false };
+      await chrome.storage.local.set({ account });
+      await updateCaptureMenu(sessionReady ? account : null);
+      return version === accessVersion ? { signedIn: true, account } : { signedIn: false };
+    });
+  });
+  refreshes = next.catch(() => {}); return next;
+}
 async function request(path, body, token) {
   let response, result;
   try {
@@ -20,17 +49,25 @@ async function request(path, body, token) {
 }
 
 async function removeAccess() {
-  initialization = undefined;
-  await chrome.contextMenus.removeAll();
-  await chrome.storage.local.remove(['auth', 'account']);
+  const version = ++accessVersion;
+  initialization = undefined; sessionReady = false;
+  await writeState(async () => {
+    if (version !== accessVersion) return;
+    await chrome.storage.local.remove(['auth', 'account']);
+    await updateCaptureMenu(null);
+  });
 }
 
 async function initialize() {
   if (initialization) return initialization;
-  initialization = (async () => {
+  const version = accessVersion;
+  const pending = (async () => {
     await chrome.storage.local.setAccessLevel({ accessLevel: 'TRUSTED_CONTEXTS' });
     const { auth } = await chrome.storage.local.get('auth');
-    if (!auth) { await chrome.contextMenus.removeAll(); return { signedIn: false }; }
+    if (!auth) {
+      await writeState(async () => { if (version === accessVersion) await updateCaptureMenu(null); });
+      return { signedIn: false };
+    }
     let { session } = await chrome.storage.session.get('session');
     if (!session) {
       const local = await chrome.storage.local.get(['installationId', 'epoch']);
@@ -39,27 +76,30 @@ async function initialize() {
       await chrome.storage.session.set({ session });
     }
     await request('/api/session', { operationId: `session-${session.sessionId}`, session }, auth.token);
-    const account = await request('/api/account', null, auth.token);
-    await chrome.storage.local.set({ account });
+    if (version !== accessVersion) return { signedIn: false };
     await captures.reconcile(session);
-    await chrome.contextMenus.removeAll();
-    chrome.contextMenus.create({ id: 'capture', title: 'Add to default deck', contexts: ['selection'] });
-    await chrome.alarms.create('recover', { periodInMinutes: 0.5 });
-    return { signedIn: true, account };
+    if (version !== accessVersion) return { signedIn: false };
+    sessionReady = true;
+    const state = await refreshAccount();
+    if (version === accessVersion) await chrome.alarms.create('recover', { periodInMinutes: 0.5 });
+    return state;
   })();
-  try { return await initialization; }
+  initialization = pending;
+  try { return await pending; }
   catch (error) {
-    initialization = undefined;
-    if (error.status === 401) await removeAccess();
+    if (initialization === pending) initialization = undefined;
+    if (error.status === 401 && version === accessVersion) await removeAccess();
     throw error;
   }
 }
 
 async function run(message) {
   if (message.type === 'login') {
+    const version = ++accessVersion;
+    initialization = undefined; sessionReady = false;
     const auth = await request('/api/login', { username: message.username, password: message.password });
-    await chrome.storage.local.set({ auth });
-    initialization = undefined;
+    await writeState(async () => { if (version === accessVersion) { await chrome.storage.local.set({ auth }); await updateCaptureMenu(null); } });
+    if (version !== accessVersion) return { signedIn: false };
     return initialize();
   }
   if (message.type === 'logout') {
@@ -76,14 +116,11 @@ async function run(message) {
     if (initialized.signedIn) void captures.poll().catch(captures.recordError);
     return initialized.signedIn ? run({ type: 'refresh' }) : initialized;
   }
+  const version = accessVersion;
   const { auth } = await chrome.storage.local.get('auth');
   if (!auth) return { signedIn: false };
   try {
-    if (message.type === 'refresh') {
-      const account = await request('/api/account', null, auth.token);
-      await chrome.storage.local.set({ account });
-      return { signedIn: true, account };
-    }
+    if (message.type === 'refresh') return refreshAccount();
     if (message.type === 'set-default') {
       const operationId = message.operationId ?? crypto.randomUUID();
       const pending = { operationId, path: '/api/default-deck', payload: { operationId, deckId: message.deckId } };
@@ -130,7 +167,7 @@ async function run(message) {
     }
     throw new Error('This action is unavailable.');
   } catch (error) {
-    if (error.status === 401) { await removeAccess(); return { signedIn: false }; }
+    if (error.status === 401) { if (version === accessVersion) await removeAccess(); return { signedIn: false }; }
     throw error;
   }
 }

@@ -16,7 +16,7 @@ The Render Free test server can take about a minute to wake up. Open [the backen
 4. Open Chrome's Extensions menu and select **Vocabularium**. Pin it if you want the button visible.
 5. Sign in with username **admin** and password **admin**.
 
-The initial dashboard contains **My Deck**. Select text on a normal webpage, right-click, and choose **Add to default deck**. “Capture received” disappears after three seconds. Open the dashboard to check the save and generation outcome, then open the saved card.
+The initial dashboard contains **My Deck**. Select text on a normal webpage, right-click, and choose **Create a card in “{your default deck name}”**. “Capture received” disappears after three seconds. Open the dashboard to check the save and generation outcome, then open the saved card.
 
 ## Update an installed copy
 
