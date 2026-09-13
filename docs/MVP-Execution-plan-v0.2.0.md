@@ -1,6 +1,6 @@
 # v0.2.0 execution plan
 
-**Status: approved by the owner on 13 September 2026. Implementation in progress.**
+**Status: approved by the owner on 13 September 2026. M0–M4 implemented and locally verified; M5 delivery in progress.**
 
 GitHub tracking: [v0.2.0 iteration tracker, #26](https://github.com/Guccimane44/Vocalbularium/issues/26).
 
@@ -133,7 +133,7 @@ Chrome supports updating a menu item's title and availability; its selection-con
 
 ## Verification commands and evidence
 
-Use Node 24 as required by `package.json`. These commands already exist; this planning change does not run live or product acceptance tests.
+Use Node 24 as required by `package.json`. These commands are used during execution; current results are recorded in the acceptance matrix and delivery issue.
 
 | Stage | Checks to run during execution |
 | --- | --- |

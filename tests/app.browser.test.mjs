@@ -399,6 +399,16 @@ test('appearance: all open views, drafts, dialogs, feedback lifetime, logout and
   await a.context.close();
   a = await launch(join(directory, 'a'), testingExtension);
   await hasTheme(a.page, 'dark'); await signIn(a.page); await hasTheme(a.page, 'dark');
+  await a.page.getByRole('button', { name: 'Add new deck', exact: true }).click();
+  await a.page.getByLabel('Deck name', { exact: true }).fill('Unsaved configuration');
+  await a.page.getByRole('button', { name: 'Page 2', exact: true }).click();
+  for (const appearance of ['dark', 'light']) {
+    await theme(a.page, appearance);
+    assert.equal(await a.page.getByLabel('Deck name', { exact: true }).inputValue(), 'Unsaved configuration');
+    assert.equal(await a.page.locator('.pages [aria-current="true"]').textContent(), 'Page 2');
+    await a.page.screenshot({ path: `artifacts/v0.2.0-configuration-${appearance}.png`, fullPage: true });
+  }
+  await a.page.getByRole('button', { name: 'Cancel', exact: true }).click();
 });
 
 test('card rows: accessible states, sorting, every pointer target, text selection and keyboard navigation', { timeout: 45000 }, async t => {
@@ -453,6 +463,12 @@ test('card rows: accessible states, sorting, every pointer target, text selectio
     await a.page.getByLabel('Appearance', { exact: true }).selectOption(theme);
     await row('completed').getByRole('button').focus();
     await a.page.screenshot({ path: `artifacts/v0.2.0-rows-${theme}.png`, fullPage: true });
+    const cdp = await a.context.newCDPSession(a.page);
+    for (const type of ['deuteranopia', 'protanopia', 'tritanopia', 'achromatopsia']) {
+      await cdp.send('Emulation.setEmulatedVisionDeficiency', { type });
+      await a.page.screenshot({ path: `artifacts/v0.2.0-rows-${theme}-${type}.png`, fullPage: true });
+    }
+    await cdp.send('Emulation.setEmulatedVisionDeficiency', { type: 'none' }); await cdp.detach();
     const report = await a.page.evaluate(() => {
       const style = getComputedStyle(document.documentElement);
       const luminance = color => {
@@ -465,7 +481,7 @@ test('card rows: accessible states, sorting, every pointer target, text selectio
         ...backgrounds.flatMap(bg => ['text', 'muted'].map(fg => ({ pair: `${fg}/${bg}`, ratio: ratio(fg, bg), minimum: 4.5 }))),
         ...backgrounds.map(bg => ({ pair: `focus/${bg}`, ratio: ratio('focus', bg), minimum: 3 })),
         ...['completed', 'pending', 'failed'].map(state => ({ pair: `${state} cue`, ratio: ratio(`${state}-cue`, `${state}-bg`), minimum: 3 })),
-        ...['surface', 'background'].map(bg => ({ pair: `border/${bg}`, ratio: ratio('border', bg), minimum: 3 })),
+        ...backgrounds.map(bg => ({ pair: `border/${bg}`, ratio: ratio('border', bg), minimum: 3 })),
         ...['primary', 'primary-hover'].map(bg => ({ pair: `on-primary/${bg}`, ratio: ratio('on-primary', bg), minimum: 4.5 }))
       ];
     });

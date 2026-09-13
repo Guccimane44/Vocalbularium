@@ -17,6 +17,7 @@ export async function relayFeedbackTheme(theme) {
   await Promise.all([...tabs].map(tabId => chrome.tabs.sendMessage(tabId, { type: 'feedback-theme', theme: theme === 'dark' ? 'dark' : 'light' }).catch(() => {})));
 }
 export async function showFeedback(tabId, message, failed = false) {
+  let injected = false;
   try {
     const [{ theme = 'light' }, css] = await Promise.all([chrome.storage.local.get('theme'), styles()]);
     const result = await chrome.scripting.executeScript({
@@ -57,6 +58,7 @@ export async function showFeedback(tabId, message, failed = false) {
       },
       args: [message, failed, theme, css]
     });
+    injected = true;
     // Session metadata lets a newly woken worker find only still-active feedback.
     const key = `feedback-${crypto.randomUUID()}`;
     const expiresAt = result[0].result;
@@ -65,6 +67,7 @@ export async function showFeedback(tabId, message, failed = false) {
     const current = await chrome.storage.local.get('theme');
     await relayFeedbackTheme(current.theme);
   } catch {
+    if (injected) return; // A metadata failure must not duplicate feedback already displayed.
     // Restricted pages cannot receive injected UI. Keep the reading tab focused.
     await chrome.windows.create({
       type: 'popup', focused: false, width: 380, height: 170,

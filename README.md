@@ -68,6 +68,8 @@ The prototype backend listens only on `127.0.0.1:4317`. It stores its test accou
 
 ## Acceptance status
 
+The approved v0.2.0 interface iteration adds shared deck actions, a destination-naming capture menu, installation-local Light/Dark appearance and accessible full-row card navigation. Its current checks and owner Windows handoff are tracked in the [v0.2.0 acceptance matrix](docs/v0.2.0-Acceptance.md) and [PR #34](https://github.com/Guccimane44/Vocalbularium/pull/34). The previous Windows acceptance below applies to v0.1.0.
+
 The [acceptance record](docs/M5-Acceptance.md) maps all eleven criteria to automated, hosted, and owner-reported evidence. The owner confirmed Windows and the remaining M5 checks passed, explicitly deferring stale-client recovery after a Render reset to [issue #24](https://github.com/Guccimane44/Vocalbularium/issues/24). That scenario is untested. Render Free does not satisfy durable hosted persistence. `npm run smoke:generation` records a small live integration sample; the [hosted smoke commands](docs/M6-Delivery.md#hosted-verification) exercise the deployed backend explicitly.
 
 ## Verification

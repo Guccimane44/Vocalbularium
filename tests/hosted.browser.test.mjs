@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { chromium } from 'playwright';
 
-test('hosted candidate: two real installations, generated pages, and manual-card synchronization', {
+test('hosted candidate: two real installations and synchronized card editing', {
   skip: !process.env.VOCABULARIUM_API_URL, timeout: 120000
 }, async t => {
   const origin = new URL(process.env.VOCABULARIUM_API_URL).origin;
@@ -14,7 +14,8 @@ test('hosted candidate: two real installations, generated pages, and manual-card
   assert.ok((await readFile(join(extension, 'config.js'), 'utf8')).includes(JSON.stringify(origin)), 'Build the candidate for this test origin first.');
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-hosted-browser-'));
   const contexts = [];
-  let cleanupPage, cleanupURL;
+  const interfaceOnly = process.env.VOCABULARIUM_HOSTED_CHECK === 'interface';
+  let cleanupPage, cleanupURL, cleanupDeckURL;
   t.after(async () => {
     try {
       if (cleanupURL) {
@@ -23,6 +24,13 @@ test('hosted candidate: two real installations, generated pages, and manual-card
         await cleanupPage.getByRole('button', { name: 'Delete card', exact: true }).click();
         await cleanupPage.getByRole('dialog').getByRole('button', { name: 'Delete card', exact: true }).click();
         await cleanupPage.getByRole('button', { name: 'Add card manually', exact: true }).waitFor();
+      }
+      if (cleanupDeckURL) {
+        await cleanupPage.goto(cleanupDeckURL);
+        await cleanupPage.locator('.deck-menu summary').click();
+        await cleanupPage.getByRole('button', { name: 'Delete deck', exact: true }).click();
+        await cleanupPage.getByRole('dialog').getByRole('button', { name: 'Delete deck', exact: true }).click();
+        await cleanupPage.getByRole('heading', { name: 'Your decks.' }).waitFor();
       }
     } finally {
       for (const context of contexts) await context.close().catch(() => {});
@@ -45,7 +53,21 @@ test('hosted candidate: two real installations, generated pages, and manual-card
     return page;
   }
   const a = await launch('a'), b = await launch('b');
-  for (const page of [a, b]) {
+  if (interfaceOnly) {
+    const deckName = `Interface check ${Date.now()}`;
+    await a.getByRole('button', { name: 'Add new deck', exact: true }).click();
+    await a.getByLabel('Deck name', { exact: true }).fill(deckName);
+    await a.getByRole('button', { name: 'Save', exact: true }).click();
+    await a.getByRole('heading', { name: deckName, exact: true }).click();
+    cleanupPage = a; cleanupDeckURL = a.url();
+    await b.reload();
+    await b.getByRole('heading', { name: deckName, exact: true }).click();
+    await a.getByLabel('Appearance', { exact: true }).selectOption('dark');
+    await a.reload();
+    await a.waitForFunction(() => document.documentElement.dataset.theme === 'dark');
+    assert.equal(await a.getByLabel('Appearance', { exact: true }).inputValue(), 'dark');
+    assert.equal(await b.getByLabel('Appearance', { exact: true }).inputValue(), 'light');
+  } else for (const page of [a, b]) {
     await page.locator('article.capture').filter({ has: page.getByText('幸福', { exact: true }) }).last().getByRole('button', { name: 'Open card', exact: true }).click();
     assert.equal(await page.locator('pre').textContent(), '幸福');
     await page.getByRole('button', { name: 'Page 2', exact: true }).click();
@@ -76,13 +98,21 @@ test('hosted candidate: two real installations, generated pages, and manual-card
   await a.getByRole('dialog').getByRole('button', { name: 'Delete card', exact: true }).click();
   await a.getByRole('button', { name: 'Add card manually', exact: true }).waitFor();
   cleanupURL = undefined;
+  if (interfaceOnly) {
+    assert.equal(await a.locator('.card-row').count(), 0);
+    await a.locator('.deck-menu summary').click();
+    await a.getByRole('button', { name: 'Delete deck', exact: true }).click();
+    await a.getByRole('dialog').getByRole('button', { name: 'Delete deck', exact: true }).click();
+    await a.getByRole('heading', { name: 'Your decks.' }).waitFor();
+    cleanupDeckURL = undefined;
+  }
   await mkdir('.data', { recursive: true });
   await writeFile('.data/hosted-browser-smoke.json', JSON.stringify({
     date: new Date().toISOString(), origin, browser: contexts[0].browser().version(),
-    checks: ['Generated pages displayed in two real extension installations',
+    checks: [interfaceOnly ? 'Disposable deck created; existing decks/default preserved; independent themes persist' : 'Generated pages displayed in two real extension installations',
       'Manual card created and synchronized', 'Remote page edit refreshed in the first installation',
-      'Manual test card deleted through the extension'],
+      'Manual test card deleted through the extension', ...(interfaceOnly ? ['Disposable deck deleted through its card-list menu'] : [])],
     result: 'passed'
   }, null, 2) + '\n');
-  console.log('Hosted browser evidence: generated pages visible in two profiles; manual card saved, synchronized, edited remotely, and deleted through the real candidate.');
+  console.log(`Hosted browser evidence: ${interfaceOnly ? 'independent themes and disposable deck cleanup' : 'generated pages'} verified in two profiles; manual card saved, synchronized, edited remotely, and deleted through the real candidate.`);
 });

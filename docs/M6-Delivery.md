@@ -83,3 +83,7 @@ The [owner's comments](evidence/windows-owner-acceptance-2026-09-13.md) report p
 The exact background-mode setting and tested archive checksum were not supplied in those comments. The delivered candidate's separate source, checksum, and backend record remains in [issue #12](https://github.com/Guccimane44/Vocalbularium/issues/12). A later package is not automatically covered by this acceptance.
 
 Use the [eleven-criterion evidence matrix](M5-Acceptance.md) for the evidence mapping. Stale-client recovery after a Render reset is deferred in #24 and remains untested. Durable hosted storage and always-on availability remain production work under the test-phase exception.
+
+## v0.2.0 interface walkthrough
+
+For an extension-only iteration, use `VOCABULARIUM_HOSTED_CHECK=interface` with `smoke:hosted:browser`. This mode needs no existing sample captures or initial default-deck layout: it creates its own temporary two-page deck and manual card, checks independent theme persistence and cross-installation editing, then deletes both through the extension. It makes no generation requests and leaves existing decks and the default choice alone. Use an extracted configured candidate through `VOCABULARIUM_TEST_EXTENSION`. The [v0.2.0 matrix](v0.2.0-Acceptance.md) records its actual result separately from the historical live-generation evidence above.
