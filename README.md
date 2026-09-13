@@ -1,6 +1,6 @@
 # Vocabularium
 
-A vocabulary capture extension being built for Chrome on Windows. Account access, capture, deck configuration, and card workflows are implemented. The Render Free backend and OpenCode Go generation are live; owner Windows acceptance remains open.
+A vocabulary capture extension for Chrome on Windows. Account access, capture, deck configuration, and card workflows are implemented. The Render Free backend and OpenCode Go generation are live. The owner accepted the MVP baseline on 13 September 2026; see the [Windows acceptance record](docs/evidence/windows-owner-acceptance-2026-09-13.md).
 
 - [MVP delivery tracker and milestone issues](https://github.com/Guccimane44/Vocalbularium/issues/5)
 - [Implementation plan](docs/MVP-Implementation-plan.md)
@@ -68,7 +68,7 @@ The prototype backend listens only on `127.0.0.1:4317`. It stores its test accou
 
 ## Acceptance status
 
-The [acceptance record](docs/M5-Acceptance.md) maps all eleven criteria to evidence and open release gates. Live generation and hosted synchronization pass, including two real extension installations. Native owner Windows acceptance and the remaining lifecycle boundaries are pending. Render Free does not satisfy durable hosted persistence. `npm run smoke:generation` records a small live integration sample; the [hosted smoke commands](docs/M6-Delivery.md#hosted-verification) exercise the deployed backend explicitly.
+The [acceptance record](docs/M5-Acceptance.md) maps all eleven criteria to automated, hosted, and owner-reported evidence. The owner confirmed Windows and the remaining M5 checks passed, explicitly deferring stale-client recovery after a Render reset to [issue #24](https://github.com/Guccimane44/Vocalbularium/issues/24). That scenario is untested. Render Free does not satisfy durable hosted persistence. `npm run smoke:generation` records a small live integration sample; the [hosted smoke commands](docs/M6-Delivery.md#hosted-verification) exercise the deployed backend explicitly.
 
 ## Verification
 

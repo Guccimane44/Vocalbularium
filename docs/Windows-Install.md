@@ -1,6 +1,6 @@
 # Install Vocabularium in Chrome on Windows
 
-This is an MVP testing candidate. The package's `package-info.json` identifies its version, server address, and source revision. Live generation and hosted synchronization pass; owner Windows acceptance is still pending.
+This is an MVP testing candidate. The package's `package-info.json` identifies its version, server address, and source revision. The owner accepted package 0.1.0 on Windows 11 on 13 September 2026; see the [Windows acceptance record](https://github.com/Guccimane44/Vocalbularium/issues/12). New candidates need verification for their own source and backend.
 
 ## Before installing
 
@@ -32,6 +32,6 @@ Saved decks and cards belong to the backend account. Keep the local backend's ac
 - **Test cards disappeared or sign-in is requested again:** the Render Free server may have reset. Sign in and create fresh test data; an old pending save cannot restore the erased account.
 - **Try saving again:** this resubmits the pending save. **Retry** on a captured page starts replacement generation after a warning.
 - **Chrome closed during generation:** reopen it and review the card's failed page; use explicit page Retry when ready.
-- **Feedback on a restricted page:** Chrome can prevent a page overlay. A separate brief feedback window is the fallback; owner Windows presentation remains part of acceptance.
+- **Feedback on a restricted page:** Chrome can prevent a page overlay. A separate brief feedback window is the fallback. Include the affected page and visible behavior when reporting a feedback problem.
 
 Report the package version, Chrome version, Windows version, steps, and visible message in the linked [Windows milestone](https://github.com/Guccimane44/Vocalbularium/issues/12). Do not include API keys.
