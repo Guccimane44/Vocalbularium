@@ -32,8 +32,7 @@ export function captureRuntime({ request, initialize, refresh, removeAccess }) {
       const result = await request('/api/capture', {
         operationId: receipt.operationId, payload: receipt.payload, recoverySession: session
       }, auth.token);
-      await chrome.storage.local.set({ [key]: { ...receipt, state: 'saved', cardId: result.cardId, error: null } });
-      await refresh();
+      await refresh({ ...receipt, state: 'saved', cardId: result.cardId, error: null });
       void poll().catch(recordError);
     } catch (error) {
       await chrome.storage.local.set({ [key]: { ...receipt, state: 'pending', error: error.message } });

@@ -210,6 +210,67 @@ test('capture extension: receipt lifetime, exact duplicate cards, shared outcome
   assert.equal(application.store.cards().filter(card => card.selected_text === 'not saved yet').length, 1);
 });
 
+test('recent captures: the pending receipt hands off to its account card without an empty or duplicate frame', { timeout: 35000 }, async t => {
+  const directory = await mkdtemp(join(tmpdir(), 'vocabularium-capture-handoff-'));
+  const testingExtension = join(directory, 'extension');
+  await cp(resolve('extension'), testingExtension, { recursive: true });
+  await appendFile(join(testingExtension, 'background.js'), '\nglobalThis.captureForTest = handleCapture;\n');
+  let releaseGeneration, holdAccounts = false;
+  const heldAccounts = [];
+  const application = createApplication({ provider: {
+    async interpret() {
+      await new Promise(resolve => { releaseGeneration = resolve; });
+      return { inputType: 'word_phrase', sourceLanguage: 'English' };
+    },
+    async generate() { return 'Controlled explanation'; }
+  } });
+  const handler = application.server.listeners('request')[0];
+  application.server.removeListener('request', handler);
+  application.server.on('request', (request, response) => {
+    if (holdAccounts && request.url === '/api/account' && application.store.cards().length) {
+      heldAccounts.push(() => handler(request, response)); return;
+    }
+    handler(request, response);
+  });
+  await application.start();
+  const a = await launch(join(directory, 'profile'), testingExtension);
+  t.after(async () => {
+    holdAccounts = false; for (const resume of heldAccounts.splice(0)) resume(); releaseGeneration?.();
+    await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true });
+  });
+  await signIn(a.page);
+  const reading = await a.context.newPage(); await reading.goto('http://127.0.0.1:4318/health');
+  await a.page.evaluate(() => {
+    const sample = () => {
+      const count = [...document.querySelectorAll('.capture-text')].filter(node => node.textContent === 'handoff').length;
+      if (count) state.seen = true;
+      if (state.seen && count !== 1) state.invalidCounts.push(count);
+    };
+    const state = { seen: false, invalidCounts: [] }; window.handoffObservation = state;
+    const observer = new MutationObserver(sample);
+    observer.observe(document.querySelector('#app'), { childList: true, subtree: true });
+    window.stopHandoffObservation = () => observer.disconnect();
+  });
+  holdAccounts = true;
+  const capture = captureFrom(a, 'handoff');
+  await waitFor(() => a.page.evaluate(() => window.handoffObservation.seen), 'local receipt appeared');
+  await waitFor(() => heldAccounts.length, 'post-capture account refresh held');
+  // Let storage events and a paint complete while the account response is held.
+  await a.page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  const row = a.page.locator('.capture').filter({ has: a.page.getByText('handoff', { exact: true }) });
+  assert.equal(await row.count(), 1, 'receipt remains visible until its account card is ready');
+  assert.equal(await row.getAttribute('data-state'), 'loading');
+  holdAccounts = false; for (const resume of heldAccounts.splice(0)) resume();
+  await capture;
+  await row.getByRole('button', { name: 'Open card', exact: true }).waitFor();
+  assert.equal(await row.getAttribute('data-state'), 'loading', 'saved card still shows generation pending');
+  assert.deepEqual(await a.page.evaluate(() => window.handoffObservation.invalidCounts), [], 'no disappearance or duplicate row during handoff');
+  await a.page.evaluate(() => window.stopHandoffObservation());
+  releaseGeneration();
+  await waitFor(() => application.store.cards()[0]?.status === 'completed', 'generation completed normally');
+  assert.equal(application.store.cards().length, 1);
+});
+
 test('deck UI: draft previews, all modules, page limits, content-loss confirmation, and default deletion', { timeout: 40000 }, async t => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-decks-browser-'));
   const application = createApplication(); await application.start();

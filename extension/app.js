@@ -122,6 +122,8 @@ async function render() {
   const local = await chrome.storage.local.get(null);
   if (version !== renderVersion) return;
   if (!signedIn) { login(); return; }
+  // Render account cards and capture receipts from the same storage snapshot.
+  if (local.account) account = local.account;
   actions.replaceChildren(button('Log out', async () => {
     try { if (!await cardUI.leave()) return; await send({ type: 'logout' }); location.hash = ''; login(); } catch (error) { showError(error); }
   }));

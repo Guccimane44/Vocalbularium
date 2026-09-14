@@ -10,7 +10,7 @@ const updateCaptureMenu = captureMenu();
 function writeState(action) {
   const next = writes.then(action); writes = next.catch(() => {}); return next;
 }
-function refreshAccount() {
+function refreshAccount(savedCapture) {
   const version = accessVersion;
   const next = refreshes.then(async () => {
     if (version !== accessVersion) return { signedIn: false };
@@ -25,7 +25,8 @@ function refreshAccount() {
     }
     return writeState(async () => {
       if (version !== accessVersion) return { signedIn: false };
-      await chrome.storage.local.set({ account });
+      // Replace the local capture receipt and its account snapshot together.
+      await chrome.storage.local.set({ account, ...(savedCapture ? { [`capture-${savedCapture.operationId}`]: savedCapture } : {}) });
       await updateCaptureMenu(sessionReady ? account : null);
       return version === accessVersion ? { signedIn: true, account } : { signedIn: false };
     });
@@ -177,7 +178,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
   if (area === 'local' && changes.theme) void relayFeedbackTheme(changes.theme.newValue).catch(() => {});
 });
 
-const captures = captureRuntime({ request, initialize, refresh: () => run({ type: 'refresh' }), removeAccess });
+const captures = captureRuntime({ request, initialize, refresh: refreshAccount, removeAccess });
 export const handleCapture = captures.handleCapture;
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === 'capture') void handleCapture(info, tab).catch(captures.recordError);

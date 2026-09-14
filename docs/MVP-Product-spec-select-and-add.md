@@ -30,7 +30,7 @@ Initial generation starts with the page and module configuration at capture time
 
 The saved card record appears in the destination deck's card view page, including while generation is loading or after it fails. Clicking its row opens the **card content page**, where a horizontal bar navigates its pages and **Retry** applies to the current page. Page content is plain text, including literal markup, following the [Modules specification](MVP-Product-spec-modules.md). The MVP does not automatically open the newly generated card or move the user away from the webpage they are reading.
 
-Clicking the extension button opens the dashboard in a Chrome tab. The dashboard provides access to recent capture outcomes and their destination decks, including requests that have not yet produced a saved card.
+Clicking the extension button opens the dashboard in a Chrome tab. The dashboard provides access to recent capture outcomes and their destination decks, including requests that have not yet produced a saved card. A new capture remains visible while its local pending receipt hands off to the saved account card; a delayed account refresh must not briefly remove the row.
 
 ## Capture-feedback popup
 

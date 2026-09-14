@@ -20,7 +20,7 @@ The initial dashboard contains **My Deck**. Select text on a normal webpage, rig
 
 ## Update an installed copy
 
-Finish or cancel manual edits and allow active generation to finish. Replace the files in the same permanent extension folder with the new package, then select **Reload** on Vocabularium's entry at `chrome://extensions`. Keep the backend address unchanged to access the same account. Reloading the extension ends its browser session, so unfinished generation is reconciled as failed.
+Finish or cancel manual edits and allow active generation to finish. Replace the files in the same permanent extension folder with the new package, then select **Reload** on Vocabularium's entry at `chrome://extensions`. Reload any already-open Vocabularium dashboard tabs as well. Keep the backend address unchanged to access the same account. Reloading the extension ends its browser session, so unfinished generation is reconciled as failed.
 
 Saved decks and cards belong to the backend account. Keep the local backend's account-data directory when updating it. Render Free deployments reset that directory and require a fresh sign-in.
 
@@ -31,6 +31,7 @@ Saved decks and cards belong to the backend account. Keep the local backend's ac
 - Use the three-dot menu from a deck's card list. Try canceling deletion, changing the default and configuring a deck. Menus close when you choose an action or press Escape.
 - Rename the default deck and check **Create a card in “{deck name}”** on a selected word. Repeat after switching the default and after a change from your other installation has synchronized. Chrome may shorten a long title; a literal `%s` in a deck name must not turn into the selected text.
 - Check completed/check, pending/clock, failed/warning and neutral rows in both themes. Click the index and empty row space, and use Tab plus Enter/Space to open cards. Card detail still shows generation status; unsaved captures retain their recovery action.
+- With **Recent captures** visible, capture a new word. Its pending row should stay visible as the saved card becomes available, including on a slow connection.
 - Capture, edit, retry, save and synchronize a disposable example. Reopen Chrome and check that Appearance persists. Report the Windows/Chrome versions and any differences from 0.1.0 in [issue #33](https://github.com/Guccimane44/Vocalbularium/issues/33).
 
 ## If something does not work
