@@ -58,8 +58,8 @@ def verify_package(archive, expected_origin, expected_revision):
             content = package.read(member)
             require(not any(secret in content for secret in supplied_secrets), 'Archive contains a supplied API secret.')
             if is_extension and path.suffix == '.js':
-                require(not any(marker in content for marker in (b'captureForTest', b'__testCapture', b'test-capture')),
-                        'Extension contains a known capture test hook.')
+                require(not any(marker in content for marker in (b'captureForTest', b'__testCapture', b'test-capture', b'feedbackForTest')),
+                        'Extension contains a known extension test hook.')
         metadata = json.loads(package.read('package-info.json'))
         manifest = json.loads(package.read('extension/manifest.json'))
         require(isinstance(metadata, dict) and isinstance(manifest, dict), 'Package metadata must be JSON objects.')

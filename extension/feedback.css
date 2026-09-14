@@ -1,0 +1,13 @@
+.feedback-item {
+  font: 15px/1.5 system-ui, sans-serif; color: var(--text); background: var(--surface);
+  padding: 14px 18px; margin: 0 0 8px; border: 1px solid var(--border);
+  border-radius: 12px; box-shadow: 0 4px 20px #0002; max-width: min(380px, calc(100vw - 36px));
+  overflow-wrap: anywhere;
+}
+.feedback-item.failed { border-color: var(--failed-cue); }
+.feedback-item button {
+  font: inherit; color: inherit; background: transparent; border: 1px solid var(--border);
+  border-radius: 6px; cursor: pointer; padding: 2px 8px; margin-left: 16px;
+}
+.feedback-item button:hover { background: var(--hover); }
+.feedback-item button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
