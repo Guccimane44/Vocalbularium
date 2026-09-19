@@ -912,6 +912,7 @@ test('dashboard capture feedback: shared appearance, original lifetime, originat
   });
   await capture('timer');
   const original = await feedback(a.page).elementHandle();
+  await a.page.waitForTimeout(1200); // A restarted timer would now exceed the original deadline below.
   // Force an account-content rerender by changing local receipt storage.
   await a.worker.evaluate(() => chrome.storage.local.set({ 'capture-rerender-test': { state: 'saved' } }));
   await a.page.getByLabel('Appearance', { exact: true }).selectOption('light');

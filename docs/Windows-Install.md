@@ -4,7 +4,7 @@ This is an MVP testing candidate. The package's `package-info.json` identifies i
 
 ## Before installing
 
-Use current Google Chrome (minimum supported version 120). Choose `vocabularium-0.2.0-configured-candidate.zip` for the hosted test backend at `https://vocabularium.onrender.com`. Both test installations must use that same address. A package labeled **local** connects to a server on the same computer at `127.0.0.1:4318`.
+Use current Google Chrome (minimum supported version 120). Choose `vocabularium-0.2.1-configured-candidate.zip` for the hosted test backend at `https://vocabularium.onrender.com`. Both test installations must use that same address. A package labeled **local** connects to a server on the same computer at `127.0.0.1:4318`.
 
 The Render Free test server can take about a minute to wake up. Open [the backend health check](https://vocabularium.onrender.com/health), wait for the healthy response, then sign in. Its test decks, cards, login sessions, and pending server results can be erased when it sleeps, restarts, or is redeployed. Use disposable examples; this candidate does not provide durable hosted storage.
 
@@ -24,9 +24,19 @@ Finish or cancel manual edits and allow active generation to finish. Replace the
 
 Saved decks and cards belong to the backend account. Keep the local backend's account-data directory when updating it. Render Free deployments reset that directory and require a fresh sign-in.
 
-## Check the v0.2.0 update
+## Check the v0.2.1 update
 
-- Confirm version **0.2.0** in Chrome. The dashboard heading is **Your decks.**
+- Confirm version **0.2.1** in Chrome, and reload already-open dashboard tabs after the in-place update.
+- In both Light and Dark, check that empty Recent captures has no selection instruction, and pending captures show only their clock/tint and **Pending** tooltip without the removed saving sentence.
+- Select text on the Vocabularium dashboard and use its capture context menu repeatedly. Confirm **Capture received** appears inside that dashboard, with no extra Chrome window or blank-window flash and no focus or route change.
+- Compare that popup with capture on an ordinary webpage: wording, placement, appearance, close control and three-second lifetime should match. Confirm the external-page experience is unchanged.
+- Open two dashboards and confirm only the originating one shows feedback. Try separate rapid captures, manual dismissal and a theme change during feedback; each capture should save once and the original timer should continue through refreshes.
+- Keep the pending-to-saved row visible on a slow connection and check the existing save-recovery action after a failure.
+- Report Windows/Chrome versions, package source/checksum and these results in [issue #35](https://github.com/Guccimane44/Vocalbularium/issues/35). Automated Chromium checks do not establish native Windows acceptance.
+
+## Retained v0.2.0 interface checks
+
+- The dashboard heading is **Your decks.**
 - Choose Light or Dark using **Appearance** in the header. Check login, decks, configuration, cards, dialogs and capture feedback. Keep the extension installed in the same folder when updating so the preference is retained.
 - Use the three-dot menu from a deck's card list. Try canceling deletion, changing the default and configuring a deck. Menus close when you choose an action or press Escape.
 - Rename the default deck and check **Create a card in “{deck name}”** on a selected word. Repeat after switching the default and after a change from your other installation has synchronized. Chrome may shorten a long title; a literal `%s` in a deck name must not turn into the selected text.
@@ -44,4 +54,4 @@ Saved decks and cards belong to the backend account. Keep the local backend's ac
 - **Chrome closed during generation:** reopen it and review the card's failed page; use explicit page Retry when ready.
 - **Feedback on a restricted page:** Chrome can prevent a page overlay. A separate brief feedback window is the fallback. Include the affected page and visible behavior when reporting a feedback problem.
 
-Report the package version, Chrome version, Windows version, steps, and visible message in the [v0.2.0 delivery issue](https://github.com/Guccimane44/Vocalbularium/issues/33). Do not include API keys.
+Report the package version, Chrome version, Windows version, steps, and visible message in the [v0.2.1 delivery issue](https://github.com/Guccimane44/Vocalbularium/issues/35). Do not include API keys.
