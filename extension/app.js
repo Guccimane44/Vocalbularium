@@ -82,11 +82,10 @@ function recentCaptures(local) {
     ...unsaved.map(item => ({ receipt: item, text: item.payload.selectedText, deckId: item.payload.snapshot.id, date: item.createdAt })),
     ...account.cards.filter(card => card.selected_text !== null).map(card => ({ card, text: card.selected_text, deckId: card.deck_id, date: card.created_at }))
   ].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 20);
-  if (!entries.length) app.append(element('p', 'Select text on a webpage, then choose “Create a card in…” followed by your default deck name from the context menu.', 'muted'));
   for (const entry of entries) {
     const row = element('article', undefined, 'capture');
     const state = entry.card?.status ?? (entry.receipt ? entry.receipt.state === 'saving' ? 'loading' : 'failed' : null);
-    const cue = rowState(row, state, entry.receipt ? entry.receipt.state === 'saving' ? 'Saving to your account' : 'Not saved to your account' : undefined);
+    const cue = rowState(row, state, entry.receipt ? entry.receipt.state === 'saving' ? 'Pending' : 'Not saved to your account' : undefined);
     if (cue) row.append(cue);
     row.append(element('p', entry.text, 'capture-text'));
     const deck = account.decks.find(deck => deck.id === entry.deckId);
@@ -94,7 +93,7 @@ function recentCaptures(local) {
     if (entry.card) {
       row.append(button('Open card', () => { location.hash = `card/${entry.card.id}`; }));
     } else {
-      row.append(element('p', entry.receipt.state === 'saving' ? 'Saving to your account…' : 'Not saved to your account.', 'muted'));
+      if (entry.receipt.state !== 'saving') row.append(element('p', 'Not saved to your account.', 'muted'));
       if (entry.receipt.error) row.append(element('p', entry.receipt.error, 'error'));
       if (entry.receipt.state === 'pending') row.append(button('Try saving again', async () => {
         try { const next = await send({ type: 'try-saving-again', operationId: entry.receipt.operationId }); account = next.account; signedIn = next.signedIn; await render(); }
