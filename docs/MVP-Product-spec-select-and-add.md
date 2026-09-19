@@ -36,6 +36,8 @@ Clicking the extension button opens the dashboard in a Chrome tab. The dashboard
 
 When Select and Add accepts the selected text, immediately show a brief popup confirming receipt, such as **Capture received**. This confirms that the request was received, not that generation or account saving has completed. If the capture cannot be accepted, show a failure message instead.
 
+The same popup appears on ordinary webpages and the originating Vocabularium dashboard, with identical wording, page-relative top-right placement, dimensions, styling, close control, and Light/Dark behavior. Dashboard capture creates no additional Chrome window and does not change focus or route. Other open dashboards do not receive its feedback. Account rerenders preserve the popup; theme changes update its appearance without restarting its timer. If the originating dashboard closes or navigates away, capture continues without redirecting feedback or opening a window. Chrome-restricted external pages retain the separate feedback-window fallback.
+
 The popup closes automatically three seconds after it appears. This duration is fixed at three seconds for the MVP. It also includes a close control so the user can dismiss it sooner. Each new capture receives its own feedback with the same three-second duration.
 
 Closing the popup manually or waiting for it to disappear does not cancel the capture, end generation, or open the generated card. Generation may take longer than the popup's lifetime; progress and final outcomes remain available in the dashboard and card content page.

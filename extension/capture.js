@@ -47,13 +47,13 @@ export function captureRuntime({ request, initialize, refresh, removeAccess }) {
     ]);
     const snapshot = account?.decks.find(deck => deck.id === account.defaultDeckId);
     if (!auth || !session || !snapshot || typeof info.selectionText !== 'string' || !info.selectionText.length) {
-      await showFeedback(tab.id, 'Capture unavailable. Open Vocabularium to sign in.', true); return;
+      await showFeedback(tab.id, 'Capture unavailable. Open Vocabularium to sign in.', true, info.pageUrl ?? tab.url); return;
     }
     const operationId = crypto.randomUUID();
     const receipt = { operationId, payload: { session, snapshot, selectedText: info.selectionText }, state: 'saving', createdAt: new Date().toISOString() };
     try { await chrome.storage.local.set({ [`capture-${operationId}`]: receipt }); }
-    catch { await showFeedback(tab.id, 'Capture could not be received.', true); return; }
-    await showFeedback(tab.id, 'Capture received');
+    catch { await showFeedback(tab.id, 'Capture could not be received.', true, info.pageUrl ?? tab.url); return; }
+    await showFeedback(tab.id, 'Capture received', false, info.pageUrl ?? tab.url);
     await submit(receipt).catch(recordError);
     return operationId;
   }

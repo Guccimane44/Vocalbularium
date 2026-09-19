@@ -1,3 +1,4 @@
+import { initializeFeedback } from './feedback-dashboard.js';
 import { rowState, openCardRow } from './row-state.js';
 import { initializeTheme } from './theme.js';
 import { cardViews } from './cards.js';
@@ -5,6 +6,7 @@ import { SORT_ORDERS, sortCards } from './sorting.js';
 import { configurationView, newDeckDraft } from './configuration.js';
 import { deckActions } from './deck-actions.js';
 
+await initializeFeedback();
 await initializeTheme();
 const app = document.querySelector('#app');
 const actions = document.querySelector('#session-actions');

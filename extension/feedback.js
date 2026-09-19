@@ -1,3 +1,4 @@
+import { renderFeedback } from './feedback-view.js';
 let feedbackStyles;
 async function styles() {
   feedbackStyles ??= Promise.all(['theme.css', 'feedback.css'].map(async file => {
@@ -16,46 +17,27 @@ export async function relayFeedbackTheme(theme) {
   if (expired.length) await chrome.storage.session.remove(expired);
   await Promise.all([...tabs].map(tabId => chrome.tabs.sendMessage(tabId, { type: 'feedback-theme', theme: theme === 'dark' ? 'dark' : 'light' }).catch(() => {})));
 }
-export async function showFeedback(tabId, message, failed = false) {
+export async function showFeedback(tabId, message, failed = false, sourceUrl) {
+  // The capture-time URL keeps closed/navigated product tabs out of the window fallback.
+  if (sourceUrl === undefined) {
+    try {
+      const [context] = await chrome.runtime.getContexts({ tabIds: [tabId], frameIds: [0] });
+      sourceUrl = context?.documentUrl ?? (await chrome.tabs.get(tabId)).url;
+    } catch { return; }
+  }
+  if (sourceUrl?.startsWith(chrome.runtime.getURL(''))) {
+    try {
+      const [{ theme = 'light' }, css] = await Promise.all([chrome.storage.local.get('theme'), styles()]);
+      await chrome.runtime.sendMessage({ type: 'dashboard-feedback', tabId, message, failed, theme, css });
+    } catch { /* Closing the originating page never interrupts capture or creates a window. */ }
+    return;
+  }
   let injected = false;
   try {
     const [{ theme = 'light' }, css] = await Promise.all([chrome.storage.local.get('theme'), styles()]);
     const result = await chrome.scripting.executeScript({
       target: { tabId },
-      func: (message, failed, theme, css) => {
-        // This reference lives in the isolated extension world, not page scripts.
-        let active = globalThis.vocabulariumFeedback;
-        if (active && !active.host.isConnected) { chrome.runtime.onMessage.removeListener(active.listener); active = undefined; }
-        if (!active) {
-          const host = document.createElement('vocabularium-feedback');
-          host.style.cssText = 'all:initial;position:fixed;top:18px;right:18px;z-index:2147483647;display:block;';
-          host.attachShadow({ mode: 'open' });
-          const style = document.createElement('style'); style.textContent = css; host.shadowRoot.append(style);
-          const listener = (message, sender) => {
-            if (sender.id === chrome.runtime.id && message.type === 'feedback-theme') host.dataset.theme = message.theme === 'dark' ? 'dark' : 'light';
-          };
-          chrome.runtime.onMessage.addListener(listener);
-          active = { host, listener }; globalThis.vocabulariumFeedback = active;
-          document.documentElement.append(host);
-        }
-        const { host, listener } = active;
-        host.dataset.theme = theme === 'dark' ? 'dark' : 'light';
-        const item = document.createElement('div'); item.className = `feedback-item${failed ? ' failed' : ''}`;
-        item.setAttribute('role', 'status');
-        const text = document.createElement('span'); text.textContent = message;
-        const close = document.createElement('button'); close.textContent = '×'; close.setAttribute('aria-label', 'Close capture feedback');
-        const remove = () => {
-          clearTimeout(timer); item.remove();
-          if (!host.shadowRoot.querySelector('.feedback-item')) {
-            chrome.runtime.onMessage.removeListener(listener); host.remove();
-            if (globalThis.vocabulariumFeedback === active) delete globalThis.vocabulariumFeedback;
-          }
-        };
-        close.onclick = remove; item.append(text, close); host.shadowRoot.append(item);
-        const expiresAt = Date.now() + 3000;
-        const timer = setTimeout(remove, 3000);
-        return expiresAt;
-      },
+      func: renderFeedback,
       args: [message, failed, theme, css]
     });
     injected = true;
