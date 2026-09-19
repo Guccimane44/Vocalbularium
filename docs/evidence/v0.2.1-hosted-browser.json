@@ -1,0 +1,13 @@
+{
+  "date": "2026-09-19T18:55:46.909Z",
+  "origin": "https://vocabularium.onrender.com",
+  "browser": "151.0.7922.34",
+  "checks": [
+    "Disposable deck created; existing decks/default preserved; independent themes persist",
+    "Manual card created and synchronized",
+    "Remote page edit refreshed in the first installation",
+    "Manual test card deleted through the extension",
+    "Disposable deck deleted through its card-list menu"
+  ],
+  "result": "passed"
+}

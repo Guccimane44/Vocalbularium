@@ -75,7 +75,7 @@ Record combined evidence and the candidate in [#35](https://github.com/Guccimane
 - [x] Feedback survives account rerenders, supports manual close, and keeps its original three-second lifetime across theme changes.
 - [x] Rapid separate captures and multiple open dashboards produce the correct independent feedback/cards.
 - [x] Ordinary webpage feedback, restricted-page fallback and browser-lifetime regressions pass.
-- [ ] The 0.2.1 package has recorded source, origin, checksum, current CI and hosted evidence.
+- [x] The 0.2.1 package has recorded source, origin, checksum, current CI and hosted evidence.
 - [ ] The owner confirms the two fixes on Windows before iteration acceptance.
 
 ## Progress and review
