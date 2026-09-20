@@ -97,6 +97,8 @@ The generation lock applies across installations. Another installation may alrea
 
 Page generation outcomes and persistence are distinct. Persisting a failed card record makes it accessible for page-level retry; it does not label incomplete generation as successful. Never report unsaved content as saved or synchronized.
 
+Ordinary in-flight saves retain their recovery record internally without showing a recovery panel or **Try saving again**. A successful save must not briefly insert such a panel in Recent captures or the deck card list. If the extension worker stops before a save is acknowledged, make its retained operation available for explicit recovery when the worker starts again; do not silently resubmit it. The existing browser-session interruption rules still apply to generation and publication from an ended session.
+
 If saving or synchronization fails, retain the pending change and offer **Try saving again**. This action only resubmits the same pending save for that card; it does not start another capture, generate content, discard manual edits, or require the destructive page-retry warning. This is distinct from **Retry** on the current card page, which starts fresh generation after confirmation.
 
 Account synchronization follows the [MVP scope](MVP-Product-scope.md). Saved changes from different installations are applied in server-arrival order (FIFO); a later save to the same page replaces the earlier saved text. The current page's generation lock still applies while an attempt is active, and late results from a canceled or interrupted attempt must not overwrite a subsequent save or retry.

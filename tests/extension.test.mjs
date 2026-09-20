@@ -98,3 +98,59 @@ test('account refresh: overlapping requests apply in order and retain the latest
   assert.equal(fixture.api.storage.local.data.account.decks[0].name, 'Newest name');
   assert.equal(fixture.api.items.get('capture').title, captureMenuTitle('Newest name'));
 });
+
+test('save receipts: active work stays distinct from failure, and retry preserves the operation', async () => {
+  const { saveOperations } = await import('../extension/save-operations.js');
+  const local = storage(), receipt = { operationId: 'one', path: '/api/publish', payload: { operationId: 'one', payload: { attemptId: 'attempt' } } };
+  let release, calls = 0;
+  const saves = saveOperations({ storage: local, request: async (path, payload) => {
+    calls++; assert.equal(path, receipt.path); assert.deepEqual(payload, receipt.payload);
+    return new Promise((resolve, reject) => { release = { resolve, reject }; });
+  } });
+  await saves.recover();
+  const attempt = saves.perform(receipt, 'token');
+  assert.equal(saves.perform(receipt, 'token'), attempt, 'overlapping retry shares the active request');
+  while (!release) await Promise.resolve();
+  assert.equal(local.data['save-one'].state, 'saving');
+  await saves.recover(); await saves.recordPending(receipt);
+  assert.equal(local.data['save-one'].state, 'saving', 'polling and reinitialization do not expose an active save as failed');
+  release.reject(Error('network failed'));
+  await assert.rejects(attempt, /network failed/);
+  assert.equal(local.data['save-one'].state, 'pending');
+  release = undefined;
+  const retry = saves.perform(local.data['save-one'], 'token');
+  while (!release) await Promise.resolve();
+  assert.equal(local.data['save-one'].state, 'saving');
+  release.resolve({ saved: true });
+  assert.deepEqual(await retry, { saved: true });
+  assert.equal(local.data['save-one'], undefined);
+  assert.equal(calls, 2);
+});
+
+test('save receipts: a new worker recovers interrupted saves and preserves legacy records', async () => {
+  const { saveOperations } = await import('../extension/save-operations.js');
+  const local = storage();
+  const receipt = { operationId: 'interrupted', path: '/api/card/save', payload: { operationId: 'interrupted', payload: { text: 'draft' } }, state: 'saving' };
+  const legacy = { operationId: 'legacy', path: '/api/default-deck', payload: { operationId: 'legacy', deckId: 'deck' } };
+  await local.set({ 'save-interrupted': receipt, 'save-legacy': legacy, 'capture-one': { state: 'saving' } });
+  let calls = 0;
+  const restarted = saveOperations({ storage: local, request: async (path, payload) => {
+    calls++; assert.equal(path, receipt.path); assert.deepEqual(payload, receipt.payload); return { ok: true };
+  } });
+  await restarted.recover();
+  assert.equal(calls, 0, 'interruption does not automatically resubmit work');
+  assert.deepEqual(local.data['save-interrupted'], { ...receipt, state: 'pending' });
+  assert.deepEqual(local.data['save-legacy'], legacy);
+  assert.equal(local.data['capture-one'].state, 'saving', 'capture interruption keeps its own existing rules');
+  await restarted.perform(local.data['save-interrupted'], 'token');
+  assert.equal(calls, 1);
+  assert.equal(local.data['save-interrupted'], undefined);
+});
+
+test('save receipts: rejected edits discard only the existing non-retryable validation errors', async () => {
+  const { saveOperations } = await import('../extension/save-operations.js');
+  const local = storage();
+  const saves = saveOperations({ storage: local, request: async () => { throw Object.assign(Error('Confirm content loss'), { code: 'content_loss' }); } });
+  await assert.rejects(saves.perform({ operationId: 'edit', path: '/api/deck/save', payload: {} }, 'token', ['content_loss']), /Confirm content loss/);
+  assert.equal(local.data['save-edit'], undefined);
+});

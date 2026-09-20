@@ -1,6 +1,6 @@
 import { showFeedback } from './feedback.js';
 
-export function captureRuntime({ request, initialize, refresh, removeAccess }) {
+export function captureRuntime({ request, initialize, refresh, removeAccess, saves }) {
   let polling;
   async function context() {
     const state = await initialize();
@@ -67,17 +67,15 @@ export function captureRuntime({ request, initialize, refresh, removeAccess }) {
         for (const attemptId of result.saveFailed ?? []) {
           const operationId = `publish-${attemptId}`;
           const pending = { operationId, path: '/api/publish', payload: { operationId, payload: { attemptId, session } } };
-          await chrome.storage.local.set({ [`save-${operationId}`]: pending });
+          await saves.recordPending(pending);
           failedSave = true;
         }
         for (const attemptId of result.ready) {
           const operationId = `publish-${attemptId}`, key = `save-${operationId}`;
           if ((await chrome.storage.local.get(key))[key]) { failedSave = true; continue; }
           const pending = { operationId, path: '/api/publish', payload: { operationId, payload: { attemptId, session } } };
-          await chrome.storage.local.set({ [key]: pending });
           try {
-            await request(pending.path, pending.payload, auth.token);
-            await chrome.storage.local.remove(key);
+            await saves.perform(pending, auth.token);
           } catch (error) { failedSave = true; await recordError(error); }
         }
         await refresh();
