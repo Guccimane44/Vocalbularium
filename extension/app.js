@@ -1,8 +1,11 @@
+import { rowState, openCardRow } from './row-state.js';
+import { initializeTheme } from './theme.js';
 import { cardViews } from './cards.js';
 import { SORT_ORDERS, sortCards } from './sorting.js';
 import { configurationView, newDeckDraft } from './configuration.js';
-import { dialog } from './dialog.js';
+import { deckActions } from './deck-actions.js';
 
+await initializeTheme();
 const app = document.querySelector('#app');
 const actions = document.querySelector('#session-actions');
 let account;
@@ -79,14 +82,16 @@ function recentCaptures(local) {
     ...unsaved.map(item => ({ receipt: item, text: item.payload.selectedText, deckId: item.payload.snapshot.id, date: item.createdAt })),
     ...account.cards.filter(card => card.selected_text !== null).map(card => ({ card, text: card.selected_text, deckId: card.deck_id, date: card.created_at }))
   ].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 20);
-  if (!entries.length) app.append(element('p', 'Select text on a webpage, then choose “Add to default deck” from the context menu.', 'muted'));
+  if (!entries.length) app.append(element('p', 'Select text on a webpage, then choose “Create a card in…” followed by your default deck name from the context menu.', 'muted'));
   for (const entry of entries) {
     const row = element('article', undefined, 'capture');
+    const state = entry.card?.status ?? (entry.receipt ? entry.receipt.state === 'saving' ? 'loading' : 'failed' : null);
+    const cue = rowState(row, state, entry.receipt ? entry.receipt.state === 'saving' ? 'Saving to your account' : 'Not saved to your account' : undefined);
+    if (cue) row.append(cue);
     row.append(element('p', entry.text, 'capture-text'));
     const deck = account.decks.find(deck => deck.id === entry.deckId);
     if (deck) row.append(button(deck.name, () => { location.hash = `deck/${deck.id}`; }));
     if (entry.card) {
-      if (entry.card.status) row.append(statusLabel(entry.card.status));
       row.append(button('Open card', () => { location.hash = `card/${entry.card.id}`; }));
     } else {
       row.append(element('p', entry.receipt.state === 'saving' ? 'Saving to your account…' : 'Not saved to your account.', 'muted'));
@@ -104,12 +109,21 @@ const cardUI = cardViews({ app, getAccount: () => account, element, button, stat
   applyState: async (next, redraw = true) => { account = next.account; signedIn = next.signedIn; if (redraw) await render(); }
 });
 let lastHash = location.hash;
+function deckMenu(deck) {
+  return deckActions({ deck, getAccount: () => account, element, button, send, showError,
+    configure: id => { configuration = undefined; location.hash = `configure/${id}`; },
+    applyState: async next => { account = next.account; signedIn = next.signedIn; await render(); }
+  });
+}
 async function render() {
+  const focusedMenu = document.activeElement?.dataset.deckOptions;
   const active = document.activeElement?.id === 'page-content' ? { start: document.activeElement.selectionStart, end: document.activeElement.selectionEnd } : null;
   const version = ++renderVersion;
   const local = await chrome.storage.local.get(null);
   if (version !== renderVersion) return;
   if (!signedIn) { login(); return; }
+  // Render account cards and capture receipts from the same storage snapshot.
+  if (local.account) account = local.account;
   actions.replaceChildren(button('Log out', async () => {
     try { if (!await cardUI.leave()) return; await send({ type: 'logout' }); location.hash = ''; login(); } catch (error) { showError(error); }
   }));
@@ -131,6 +145,7 @@ async function render() {
     const deck = account.decks.find(deck => deck.id === deckId);
     if (!deck) { location.hash = ''; return; }
     app.append(button('← All decks', () => { location.hash = ''; }, 'back'), element('p', 'YOUR COLLECTION', 'eyebrow'), element('h1', deck.name));
+    app.append(deckMenu(deck));
     const order = localStorage.getItem(`sort-${deckId}`) ?? 'newest';
     const select = element('select'); select.id = 'card-sort';
     for (const [value, label] of SORT_ORDERS) { const option = element('option', label); option.value = value; select.append(option); }
@@ -143,15 +158,19 @@ async function render() {
       const table = element('table', undefined, 'list');
       const heading = element('tr'); heading.append(element('th', 'Index'), element('th', 'Entry')); table.append(heading);
       for (const [index, card] of cards.entries()) {
-        const row = element('tr'), entry = element('td');
-        entry.append(button(card.pages[0]?.text || 'Empty front page', () => { location.hash = `card/${card.id}`; }, 'entry'));
-        if (card.status) entry.append(statusLabel(card.status));
+        const row = element('tr', undefined, 'card-row'), entry = element('td');
+        row.dataset.cardId = card.id;
+        const open = button(card.pages[0]?.text || 'Empty front page', () => {}, 'entry');
+        const cue = rowState(row, card.status);
+        if (cue) { open.setAttribute('aria-describedby', cue.id); entry.append(cue); }
+        entry.append(open);
+        openCardRow(row, open, () => { location.hash = `card/${card.id}`; });
         row.append(element('td', String(index + 1).padStart(3, '0')), entry); table.append(row);
       }
       app.append(table);
     }
   } else {
-    app.append(element('p', 'YOUR VOCABULARY', 'eyebrow'), element('h1', 'A growing collection.'), element('p', 'Keep the words and expressions you want to come back to.', 'muted'), button('Add new deck', () => { configuration = undefined; location.hash = 'configure/new'; }, 'primary'));
+    app.append(element('h1', 'Your decks.'), element('p', 'Keep the words and expressions you want to come back to.', 'muted'), button('Add new deck', () => { configuration = undefined; location.hash = 'configure/new'; }, 'primary'));
     const grid = element('div', undefined, 'grid');
     for (const deck of account.decks) {
       const article = element('article', undefined, 'deck');
@@ -159,28 +178,14 @@ async function render() {
       open.append(element('h2', deck.name), element('p', `${account.cards.filter(card => card.deck_id === deck.id).length} cards · ${deck.pages.length} pages`, 'muted'));
       const footer = element('footer');
       if (deck.id === account.defaultDeckId) footer.append(element('span', 'DEFAULT DECK', 'badge'));
-      const menu = element('details', undefined, 'deck-menu');
-      const summary = element('summary', '•••'); summary.setAttribute('aria-label', `Options for ${deck.name}`); menu.append(summary);
-      const choices = element('div', undefined, 'menu-choices');
-      const setDefault = button('Set as default', async () => {
-        try { const result = await send({ type: 'set-default', deckId: deck.id }); account = result.account; signedIn = result.signedIn; await render(); }
-        catch (error) { await render(); showError(error); }
-      });
-      setDefault.disabled = deck.id === account.defaultDeckId;
-      choices.append(setDefault, button('Configure deck', () => { configuration = undefined; location.hash = `configure/${deck.id}`; }), button('Delete deck', async () => {
-        const replacements = deck.id === account.defaultDeckId ? account.decks.filter(item => item.id !== deck.id) : [];
-        const decision = await dialog({ title: 'Delete deck?', message: `“${deck.name}” and all its cards will be deleted.${account.decks.length === 1 ? ' A new empty My Deck will replace it.' : ''}`, choices: ['Cancel', 'Delete deck'], select: replacements.length ? { label: 'New default deck', options: replacements.map(item => ({ value: item.id, label: item.name })) } : undefined });
-        if (decision.choice !== 'Delete deck') return;
-        try { const next = await send({ type: 'delete-deck', payload: { deckId: deck.id, replacementId: decision.value } }); account = next.account; signedIn = next.signedIn; await render(); }
-        catch (error) { showError(error); }
-      }));
-      menu.append(choices); footer.append(menu);
+      footer.append(deckMenu(deck));
       article.append(open, footer); grid.append(article);
     }
     app.append(grid);
     recentCaptures(local);
   }
   pendingSaves(local);
+  if (focusedMenu) [...app.querySelectorAll('[data-deck-options]')].find(node => node.dataset.deckOptions === focusedMenu)?.focus();
   if (active) { const input = document.querySelector('#page-content'); input?.focus(); input?.setSelectionRange(active.start, active.end); }
 }
 
