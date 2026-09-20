@@ -508,9 +508,14 @@ test('card rows: accessible states, sorting, every pointer target, text selectio
   await unsaved.getByRole('button', { name: 'Try saving again', exact: true }).waitFor();
   assert.equal(await unsaved.getAttribute('data-state'), 'failed');
   assert.equal(await unsaved.getByRole('img').getAttribute('aria-label'), 'Not saved to your account');
-  assert.equal(await a.page.locator('.capture').filter({ hasText: 'Saving example' }).getAttribute('data-state'), 'loading');
+  const saving = a.page.locator('.capture').filter({ hasText: 'Saving example' });
+  assert.equal(await saving.getAttribute('data-state'), 'loading');
   for (const theme of ['light', 'dark']) {
     await a.page.getByLabel('Appearance', { exact: true }).selectOption(theme);
+    assert.equal(await saving.getByRole('img').getAttribute('aria-label'), 'Pending');
+    assert.equal(await saving.getByRole('img').getAttribute('title'), 'Pending');
+    assert.equal(await saving.locator('p').count(), 1, 'only captured text remains, without helper or empty paragraph');
+    assert.equal(await unsaved.getByText('Not saved to your account.', { exact: true }).count(), 1);
     await a.page.screenshot({ path: `artifacts/v0.2.0-dashboard-${theme}.png`, fullPage: true });
   }
   await a.worker.evaluate(() => chrome.storage.local.remove(['capture-visual-saving', 'capture-visual-failed']));
@@ -832,4 +837,109 @@ test('assembled reliability: lost acknowledgments, worker suspension, abrupt ori
   application.store.setDefault('remote-default-before-capture', shared.id);
   await captureFrom(b, 'fresh shared destination');
   assert.equal(application.store.cards().find(card => card.selected_text === 'fresh shared destination').deck_id, shared.id);
+});
+
+test('dashboard capture feedback: shared appearance, original lifetime, originating tab, rerenders and zero windows', { timeout: 45000 }, async t => {
+  const directory = await mkdtemp(join(tmpdir(), 'vocabularium-dashboard-feedback-'));
+  const testingExtension = join(directory, 'extension');
+  await cp(resolve('extension'), testingExtension, { recursive: true });
+  await appendFile(join(testingExtension, 'background.js'), `
+    globalThis.captureForTest = handleCapture;
+    globalThis.feedbackWindows = { calls: 0, events: 0 };
+    const createWindow = chrome.windows.create.bind(chrome.windows);
+    chrome.windows.create = (...args) => { globalThis.feedbackWindows.calls++; return createWindow(...args); };
+    chrome.windows.onCreated.addListener(() => { globalThis.feedbackWindows.events++; });
+  `);
+  const application = createApplication({ provider: {
+    async interpret() { return { inputType: 'word_phrase', sourceLanguage: 'English' }; },
+    async generate() { return 'Controlled explanation'; }
+  } });
+  await application.start();
+  const a = await launch(join(directory, 'profile'), testingExtension);
+  t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
+  await signIn(a.page);
+  const other = await a.context.newPage(); await other.goto(`chrome-extension://${a.id}/app.html`);
+  await other.getByRole('heading', { name: 'Your decks.' }).waitFor();
+  const reading = await a.context.newPage(); await reading.goto('http://127.0.0.1:4318/health');
+  for (const theme of ['light', 'dark']) {
+    await a.page.getByLabel('Appearance', { exact: true }).selectOption(theme);
+    assert.equal(await a.page.getByRole('heading', { name: 'Recent captures', exact: true }).evaluate(node => node.nextElementSibling === null), true, 'empty section has no replacement paragraph or gap');
+    await a.page.screenshot({ path: `artifacts/v0.2.1-empty-dashboard-${theme}.png`, fullPage: true });
+  }
+  const tabId = await a.page.evaluate(async () => (await chrome.tabs.getCurrent()).id);
+  const capture = text => a.worker.evaluate(async ({ tabId, text }) => globalThis.captureForTest(
+    { menuItemId: 'capture', selectionText: text }, await chrome.tabs.get(tabId)), { tabId, text });
+  const feedback = page => page.locator('vocabularium-feedback .feedback-item');
+  const appearance = page => feedback(page).evaluate(node => {
+    const properties = ['fontFamily', 'fontSize', 'lineHeight', 'color', 'backgroundColor', 'padding', 'margin', 'border', 'borderRadius', 'boxShadow', 'maxWidth'];
+    const inspect = element => {
+      const style = getComputedStyle(element), rect = element.getBoundingClientRect();
+      return { css: Object.fromEntries(properties.map(key => [key, style[key]])), x: rect.x, y: rect.y, width: rect.width, height: rect.height };
+    };
+    return { text: node.textContent, item: inspect(node), close: inspect(node.querySelector('button')), label: node.querySelector('button').getAttribute('aria-label') };
+  });
+  for (const theme of ['light', 'dark']) {
+    await a.page.getByLabel('Appearance', { exact: true }).selectOption(theme);
+    assert.equal(await a.page.locator('#app p').filter({ hasText: /Select text on a webpage/ }).count(), 0);
+    await a.page.bringToFront();
+    const originalURL = a.page.url();
+    await capture(`dashboard-${theme}`);
+    await feedback(a.page).waitFor();
+    assert.equal(await feedback(a.page).count(), 1);
+    assert.equal(await feedback(other).count(), 0);
+    assert.equal(a.page.url(), originalURL);
+    assert.equal(await a.page.evaluate(() => document.hasFocus()), true);
+    await captureFrom(a, `external-${theme}`);
+    await feedback(reading).waitFor();
+    await a.page.mouse.move(0, 0); await reading.mouse.move(0, 0);
+    assert.deepEqual(await appearance(a.page), await appearance(reading), 'dashboard matches the accepted external-page presentation');
+    await a.page.screenshot({ path: `artifacts/v0.2.1-dashboard-feedback-${theme}.png` });
+    await reading.screenshot({ path: `artifacts/v0.2.1-external-feedback-${theme}.png` });
+    await a.page.getByRole('button', { name: 'Close capture feedback' }).click();
+    await reading.getByRole('button', { name: 'Close capture feedback' }).click();
+    assert.equal(await feedback(a.page).count(), 0);
+  }
+  // The renderer's DOM lifetime is observed independently of capture/network timing.
+  await a.page.evaluate(() => {
+    window.feedbackLifetimes = [];
+    const starts = new Map();
+    new MutationObserver(records => {
+      for (const record of records) {
+        for (const node of record.addedNodes) if (node.nodeName === 'VOCABULARIUM-FEEDBACK') starts.set(node, performance.now());
+        for (const node of record.removedNodes) if (starts.has(node)) window.feedbackLifetimes.push(performance.now() - starts.get(node));
+      }
+    }).observe(document.documentElement, { childList: true });
+  });
+  await capture('timer');
+  const original = await feedback(a.page).elementHandle();
+  await a.page.waitForTimeout(1200); // A restarted timer would now exceed the original deadline below.
+  // Force an account-content rerender by changing local receipt storage.
+  await a.worker.evaluate(() => chrome.storage.local.set({ 'capture-rerender-test': { state: 'saved' } }));
+  await a.page.getByLabel('Appearance', { exact: true }).selectOption('light');
+  await a.page.waitForFunction(() => document.querySelector('vocabularium-feedback')?.dataset.theme === 'light');
+  assert.equal(await original.evaluate(node => node.isConnected), true);
+  await feedback(a.page).waitFor({ state: 'detached', timeout: 4000 });
+  const [lifetime] = await a.page.evaluate(() => window.feedbackLifetimes);
+  assert.ok(lifetime >= 2900 && lifetime < 3800, `original three-second lifetime: ${lifetime}ms`);
+  await a.worker.evaluate(() => chrome.storage.local.remove('capture-rerender-test'));
+  await Promise.all([capture('rapid-one'), capture('rapid-two')]);
+  assert.equal(await feedback(a.page).count(), 2);
+  await a.page.getByRole('button', { name: 'Close capture feedback' }).first().click();
+  assert.equal(await feedback(a.page).count(), 1);
+  await feedback(a.page).waitFor({ state: 'detached', timeout: 4000 });
+  // A dashboard cannot forge the worker-only route, even for a valid tab id.
+  await other.evaluate(async tabId => { await chrome.runtime.sendMessage({ type: 'dashboard-feedback', tabId, message: 'Forged', css: '' }); }, tabId);
+  assert.equal(await feedback(a.page).count(), 0);
+  // Preserve the capture-time tab data through closure and navigation races.
+  const closedTab = await other.evaluate(async () => ({ ...await chrome.tabs.getCurrent(), url: location.href }));
+  await other.close();
+  await a.worker.evaluate(tab => globalThis.captureForTest({ menuItemId: 'capture', selectionText: 'closed-origin' }, tab), closedTab);
+  const navigatedTab = await a.page.evaluate(async () => ({ ...await chrome.tabs.getCurrent(), url: location.href }));
+  await a.page.goto('http://127.0.0.1:4318/health');
+  await a.worker.evaluate(tab => globalThis.captureForTest({ menuItemId: 'capture', selectionText: 'navigated-origin' }, tab), navigatedTab);
+  assert.equal(await feedback(a.page).count(), 0);
+  assert.equal(await feedback(reading).count(), 0);
+  await waitFor(() => application.store.cards().length === 9 && application.store.cards().every(card => card.status === 'completed'), 'each invocation saves and completes exactly one card');
+  assert.equal(new Set(application.store.cards().map(card => card.selected_text)).size, 9);
+  assert.deepEqual(await a.worker.evaluate(() => globalThis.feedbackWindows), { calls: 0, events: 0 });
 });

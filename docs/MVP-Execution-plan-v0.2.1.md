@@ -1,6 +1,6 @@
 # v0.2.1 execution plan
 
-**Status: proposed for owner review, 14 September 2026. Diagnosis completed; product changes have not started.**
+**Status: execution authorized by the owner on 19 September 2026; both fixes implemented and local checks passed. Candidate/CI/hosted evidence is recorded in #35; native Windows acceptance remains pending.**
 
 Tracker: [#35](https://github.com/Guccimane44/Vocalbularium/issues/35). Milestone: [v0.2.1](https://github.com/Guccimane44/Vocalbularium/milestone/2).
 
@@ -67,21 +67,25 @@ Record combined evidence and the candidate in [#35](https://github.com/Guccimane
 
 ## Acceptance checklist
 
-- [ ] Empty Recent captures has no selection instruction or replacement helper paragraph.
-- [ ] Pending receipts have no Saving to your account paragraph/tooltip; no empty paragraph remains.
-- [ ] Pending cues, save-failure recovery and the v0.2.0 continuous row handoff still work.
-- [ ] Dashboard capture creates zero new Chrome windows and shows feedback only in its originating page.
-- [ ] Dashboard feedback matches the accepted external-page popup in wording, placement, appearance, close control, lifetime and theme behavior; external-page feedback is preserved.
-- [ ] Feedback survives account rerenders, supports manual close, and keeps its original three-second lifetime across theme changes.
-- [ ] Rapid separate captures and multiple open dashboards produce the correct independent feedback/cards.
-- [ ] Ordinary webpage feedback, restricted-page fallback and browser-lifetime regressions pass.
-- [ ] The 0.2.1 package has recorded source, origin, checksum, current CI and hosted evidence.
+- [x] Empty Recent captures has no selection instruction or replacement helper paragraph.
+- [x] Pending receipts have no Saving to your account paragraph/tooltip; no empty paragraph remains.
+- [x] Pending cues, save-failure recovery and the v0.2.0 continuous row handoff still work.
+- [x] Dashboard capture creates zero new Chrome windows and shows feedback only in its originating page.
+- [x] Dashboard feedback matches the accepted external-page popup in wording, placement, appearance, close control, lifetime and theme behavior; external-page feedback is preserved.
+- [x] Feedback survives account rerenders, supports manual close, and keeps its original three-second lifetime across theme changes.
+- [x] Rapid separate captures and multiple open dashboards produce the correct independent feedback/cards.
+- [x] Ordinary webpage feedback, restricted-page fallback and browser-lifetime regressions pass.
+- [x] The 0.2.1 package has recorded source, origin, checksum, current CI and hosted evidence.
 - [ ] The owner confirms the two fixes on Windows before iteration acceptance.
 
 ## Progress and review
 
 Use one focused implementation PR with separate commits for the two fixes and final verification, linked to #35–#37. Track each issue as planned, implementing, checks passed, ready for review, then accepted/merged as applicable. Keep implementation and Windows acceptance distinct. Merge only with the owner's applicable authorization.
 
-During this planning pass, only the isolated diagnosis and document checks are performed. After plan approval, use `npm run check`, `npm test`, `npm run test:browser`, and the existing build/package/hosted commands through the project verification and delivery skills. No new setup command is introduced by this plan.
+The planning pass performed only isolated diagnosis and document checks. The owner subsequently authorized execution; verification uses `npm run check`, `npm test`, `npm run test:browser`, and the existing build/package/hosted commands through the project verification and delivery skills. No new setup command is introduced by this plan.
 
 The Render reset/stale-client scenario remains deferred in [#24](https://github.com/Guccimane44/Vocalbularium/issues/24). Other UI copy, product features and infrastructure are outside these two fixes.
+
+## Execution evidence — 19 September 2026
+
+The two fixes are committed separately: `3b883b6` removes the copy; `12ee3e7` shares the existing popup renderer and adds the originating-tab route. See [local verification and screenshots](evidence/v0.2.1-local-verification.md). The configured candidate source, checksum, current CI and extracted-ZIP hosted result are recorded in [#35](https://github.com/Guccimane44/Vocalbularium/issues/35). Windows acceptance and merging remain separate owner steps.

@@ -176,7 +176,7 @@ Cards with equal sort values must use a consistent secondary order so that the d
 
 Deck card rows and dashboard recent captures use whole-row state tints and distinct icons with accessible descriptions: completed uses blue-green/check, pending (`loading`) uses amber/clock, and failed uses vermilion/warning. No visible generation badges appear in these lists. Cards with no generation outcome stay neutral. Detailed card/page status remains on the card content page, and the default-deck badge remains separate. The outcome and precedence rules are defined in [Select and Add](MVP-Product-spec-select-and-add.md#page-completion-and-failure).
 
-An actively saving capture receipt has the pending treatment and “Saving to your account…”. A receipt awaiting resubmission has the attention/failure treatment, “Not saved to your account,” the error, and **Try saving again**. It is a save problem, not a generation failure; color never implies successful persistence. Recent captures retain their separate deck, open-card, and recovery controls.
+An actively saving capture receipt has the pending icon and tint, with the accessible label and tooltip **Pending**, without a helper paragraph. Empty Recent captures retains its heading and normal layout without an instruction or replacement helper paragraph. A receipt awaiting resubmission has the attention/failure treatment, “Not saved to your account,” the error, and **Try saving again**. It is a save problem, not a generation failure; color never implies successful persistence. Recent captures retain their separate deck, open-card, and recovery controls.
 
 ## 8. Card content page and manual editing
 
