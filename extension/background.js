@@ -1,3 +1,4 @@
+import { saveOperations } from './save-operations.js';
 import { API_URL } from './config.js';
 import { captureRuntime } from './capture.js';
 import { captureMenu } from './context-menu.js';
@@ -7,6 +8,7 @@ let initialization;
 let accessVersion = 0, sessionReady = false;
 let writes = Promise.resolve(), refreshes = Promise.resolve();
 const updateCaptureMenu = captureMenu();
+const saves = saveOperations({ request });
 function writeState(action) {
   const next = writes.then(action); writes = next.catch(() => {}); return next;
 }
@@ -61,6 +63,7 @@ async function removeAccess() {
 }
 
 async function initialize() {
+  await saves.recover();
   if (initialization) return initialization;
   const version = accessVersion;
   const pending = (async () => {
@@ -96,6 +99,7 @@ async function initialize() {
 }
 
 async function run(message) {
+  await saves.recover();
   if (message.type === 'login') {
     const version = ++accessVersion;
     initialization = undefined; sessionReady = false;
@@ -126,9 +130,7 @@ async function run(message) {
     if (message.type === 'set-default') {
       const operationId = message.operationId ?? crypto.randomUUID();
       const pending = { operationId, path: '/api/default-deck', payload: { operationId, deckId: message.deckId } };
-      await chrome.storage.local.set({ [`save-${operationId}`]: pending });
-      await request(pending.path, pending.payload, auth.token);
-      await chrome.storage.local.remove(`save-${operationId}`);
+      await saves.perform(pending, auth.token);
       return run({ type: 'refresh' });
     }
     const paths = { 'save-deck': '/api/deck/save', 'delete-deck': '/api/deck/delete', 'create-card': '/api/card/create', 'save-card': '/api/card/save', 'delete-card': '/api/card/delete', 'retry-page': '/api/card/retry' };
@@ -138,16 +140,8 @@ async function run(message) {
         message.payload = { ...message.payload, session };
       }
       const operationId = message.operationId ?? crypto.randomUUID();
-      const key = `save-${operationId}`;
       const pending = { operationId, path: paths[message.type], payload: { operationId, payload: message.payload } };
-      await chrome.storage.local.set({ [key]: pending });
-      let saved;
-      try { saved = await request(pending.path, pending.payload, auth.token); }
-      catch (error) {
-        if (['content_loss', 'invalid', 'front_page', 'deleted', 'replacement'].includes(error.code)) await chrome.storage.local.remove(key);
-        throw error;
-      }
-      await chrome.storage.local.remove(key);
+      const saved = await saves.perform(pending, auth.token, ['content_loss', 'invalid', 'front_page', 'deleted', 'replacement']);
       if (message.type === 'retry-page') void captures.poll().catch(captures.recordError);
       return { ...await run({ type: 'refresh' }), saved };
     }
@@ -160,8 +154,7 @@ async function run(message) {
       const key = `save-${message.operationId}`;
       const { [key]: pending } = await chrome.storage.local.get(key);
       if (pending) {
-        const saved = await request(pending.path, pending.payload, auth.token);
-        await chrome.storage.local.remove(key);
+        const saved = await saves.perform(pending, auth.token);
         void captures.poll().catch(captures.recordError);
         return { ...await run({ type: 'refresh' }), saved };
       }
@@ -178,7 +171,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
   if (area === 'local' && changes.theme) void relayFeedbackTheme(changes.theme.newValue).catch(() => {});
 });
 
-const captures = captureRuntime({ request, initialize, refresh: refreshAccount, removeAccess });
+const captures = captureRuntime({ request, initialize, saves, refresh: refreshAccount, removeAccess });
 export const handleCapture = captures.handleCapture;
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === 'capture') void handleCapture(info, tab).catch(captures.recordError);

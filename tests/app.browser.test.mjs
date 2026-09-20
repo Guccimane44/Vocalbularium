@@ -943,3 +943,125 @@ test('dashboard capture feedback: shared appearance, original lifetime, originat
   assert.equal(new Set(application.store.cards().map(card => card.selected_text)).size, 9);
   assert.deepEqual(await a.worker.evaluate(() => globalThis.feedbackWindows), { calls: 0, events: 0 });
 });
+
+test('save feedback: successful publication stays quiet in both lists, failures and retries remain recoverable', { timeout: 45000 }, async t => {
+  const directory = await mkdtemp(join(tmpdir(), 'vocabularium-save-feedback-'));
+  const extension = join(directory, 'extension'); await cp(resolve('extension'), extension, { recursive: true });
+  await appendFile(join(extension, 'background.js'), '\nglobalThis.captureForTest = handleCapture;\n');
+  const application = createApplication({ provider: {
+    async interpret() { return { inputType: 'word_phrase', sourceLanguage: 'English' }; },
+    async generate() { return 'Controlled explanation'; }
+  } });
+  const handler = application.server.listeners('request')[0];
+  application.server.removeListener('request', handler);
+  let hold = true, fail = false, requests = 0;
+  const held = [];
+  application.server.on('request', (request, response) => {
+    if (request.url === '/api/publish') {
+      requests++;
+      if (hold) { held.push(() => handler(request, response)); return; }
+      if (fail) { response.writeHead(503, { 'Content-Type': 'application/json' }); response.end(JSON.stringify({ error: 'Controlled publication failure' })); return; }
+    }
+    handler(request, response);
+  });
+  let a;
+  t.after(async () => { hold = false; for (const resume of held.splice(0)) resume(); await a?.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
+  await application.start(); a = await launch(join(directory, 'profile'), extension); await signIn(a.page);
+  const deck = await a.context.newPage(); await deck.goto(`chrome-extension://${a.id}/app.html`);
+  await deck.getByRole('heading', { name: 'My Deck', exact: true }).click();
+  await deck.getByRole('button', { name: 'Add card manually', exact: true }).waitFor();
+  const pages = [a.page, deck];
+  const recovery = page => page.locator('.notice').filter({ hasText: 'A change is waiting' });
+  for (const page of pages) await page.evaluate(() => {
+    window.recoveryPanels = [];
+    new MutationObserver(() => {
+      for (const node of document.querySelectorAll('.notice')) if (node.textContent.includes('A change is waiting')) window.recoveryPanels.push(node.textContent);
+    }).observe(document.querySelector('#app'), { childList: true, subtree: true });
+  });
+  const capture = text => a.worker.evaluate(async text => {
+    const [tab] = await chrome.runtime.getContexts({ contextTypes: ['TAB'], documentUrls: [chrome.runtime.getURL('app.html')] });
+    return globalThis.captureForTest({ menuItemId: 'capture', selectionText: text, pageUrl: tab.documentUrl }, { id: tab.tabId, url: tab.documentUrl });
+  }, text);
+  for (const theme of ['light', 'dark']) {
+    hold = true;
+    await a.page.getByLabel('Appearance', { exact: true }).selectOption(theme);
+    await capture(`successful-${theme}`);
+    await waitFor(() => held.length > 0, 'publication is deliberately held');
+    for (const [index, page] of pages.entries()) {
+      await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+      assert.equal(await recovery(page).count(), 0, 'an in-flight save is not a failure');
+      assert.deepEqual(await page.evaluate(() => window.recoveryPanels), [], 'no transient panel appeared');
+      await page.screenshot({ path: `artifacts/v0.2.2-${index ? 'deck' : 'recent'}-${theme}.png`, fullPage: true });
+    }
+    hold = false; for (const resume of held.splice(0)) resume();
+    await waitFor(() => application.store.cards().find(card => card.selected_text === `successful-${theme}`)?.status === 'completed', 'successful publication completes');
+    await waitFor(async () => !(await a.worker.evaluate(async () => Object.keys(await chrome.storage.local.get(null)).some(key => key.startsWith('save-')))), 'successful receipts cleared');
+  }
+  for (const page of pages) assert.deepEqual(await page.evaluate(() => window.recoveryPanels), [], 'success never inserts a recovery panel');
+  fail = true;
+  await capture('failed-publication');
+  for (const page of pages) await recovery(page).first().waitFor();
+  const receipts = await a.worker.evaluate(async () => Object.entries(await chrome.storage.local.get(null)).filter(([key]) => key.startsWith('save-publish-')).map(([, value]) => value));
+  assert.ok(receipts.length > 0); assert.ok(receipts.every(receipt => receipt.state === 'pending'));
+  const count = application.store.cards().length;
+  fail = false; hold = true;
+  await recovery(a.page).first().getByRole('button', { name: 'Try saving again' }).click();
+  await waitFor(() => held.length > 0, 'explicit retry is in flight');
+  for (const page of pages) assert.equal(await recovery(page).count(), receipts.length - 1, 'only the retried operation is hidden while active');
+  hold = false; for (const resume of held.splice(0)) resume();
+  await waitFor(async () => await recovery(a.page).count() === receipts.length - 1, 'retry completed');
+  while (await recovery(a.page).count()) {
+    await recovery(a.page).first().getByRole('button', { name: 'Try saving again' }).click();
+    await waitFor(async () => !(await a.worker.evaluate(async () => Object.values(await chrome.storage.local.get(null)).some(item => item?.state === 'saving'))), 'next retry settled');
+  }
+  await waitFor(() => application.store.cards().every(card => card.status === 'completed'), 'all pages recovered');
+  assert.equal(application.store.cards().length, count, 'retry does not duplicate cards');
+  assert.equal(count, 3); assert.ok(requests >= 6);
+});
+
+test('save feedback: worker loss exposes an interrupted save and replays its original operation', { timeout: 35000 }, async t => {
+  const directory = await mkdtemp(join(tmpdir(), 'vocabularium-save-interruption-'));
+  const application = createApplication();
+  const handler = application.server.listeners('request')[0];
+  application.server.removeListener('request', handler);
+  let hold = true, release;
+  application.server.on('request', (request, response) => {
+    if (hold && request.url === '/api/default-deck') {
+      const end = response.end.bind(response);
+      response.end = (...args) => { release = () => end(...args); return response; };
+    }
+    handler(request, response);
+  });
+  let a;
+  t.after(async () => { release?.(); await a?.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
+  await application.start();
+  const original = application.store.snapshot().id;
+  const second = application.store.createDeck('Second deck');
+  a = await launch(join(directory, 'profile')); await signIn(a.page);
+  await a.page.getByLabel('Options for Second deck').click();
+  await a.page.locator('article').filter({ hasText: 'Second deck' }).getByRole('button', { name: 'Set as default', exact: true }).click();
+  await waitFor(() => release, 'server committed the save but acknowledgment is held');
+  assert.equal(application.store.account().defaultDeckId, second.id);
+  const receipt = await a.worker.evaluate(async () => Object.entries(await chrome.storage.local.get(null)).find(([key]) => key.startsWith('save-'))[1]);
+  assert.equal(receipt.state, 'saving');
+  assert.equal(await a.page.getByRole('button', { name: 'Try saving again', exact: true }).count(), 0);
+  await a.worker.evaluate(() => { globalThis.workerProbe = 'old'; });
+  await a.page.close(); await a.worker.evaluate(() => chrome.alarms.clear('recover'));
+  const internals = await a.context.newPage(); await internals.goto('chrome://serviceworker-internals');
+  const registration = internals.locator('.serviceworker-registration').filter({ hasText: a.worker.url() });
+  await registration.getByRole('button', { name: 'Stop', exact: true }).click();
+  await waitFor(async () => (await registration.locator('.serviceworker-running-status .value').textContent()) === 'STOPPED', 'worker actually stopped');
+  hold = false; release(); release = undefined;
+  // A newer action must survive replay of the interrupted, already committed operation.
+  application.store.setDefault('later-default-change', original);
+  a.page = await a.context.newPage(); await a.page.goto(`chrome-extension://${a.id}/app.html`);
+  await a.page.getByRole('button', { name: 'Try saving again', exact: true }).waitFor();
+  a.worker = a.context.serviceWorkers().find(worker => worker.url().includes(a.id));
+  assert.equal(await a.worker.evaluate(() => globalThis.workerProbe), undefined);
+  const recovered = await a.worker.evaluate(async id => (await chrome.storage.local.get(`save-${id}`))[`save-${id}`], receipt.operationId);
+  assert.deepEqual(recovered, { ...receipt, state: 'pending' });
+  await a.page.getByRole('button', { name: 'Try saving again', exact: true }).click();
+  await waitFor(async () => !(await a.worker.evaluate(async id => (await chrome.storage.local.get(`save-${id}`))[`save-${id}`], receipt.operationId)), 'original operation acknowledged');
+  assert.equal(application.store.account().defaultDeckId, original, 'replay does not overwrite the newer default');
+  assert.equal(application.store.account().decks.length, 2);
+});

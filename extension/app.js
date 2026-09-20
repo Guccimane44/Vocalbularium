@@ -60,7 +60,7 @@ function login() {
 }
 function pendingSaves(local) {
   if (location.hash.startsWith('#configure/') || cardUI.isEditing()) return;
-  const pending = Object.entries(local).filter(([key]) => key.startsWith('save-')).map(([, value]) => value);
+  const pending = Object.entries(local).filter(([key, item]) => key.startsWith('save-') && item.state !== 'saving').map(([, value]) => value);
   for (const item of pending) {
     const notice = element('div', undefined, 'notice');
     notice.append(element('p', 'A change is waiting to be saved to your account.'));
