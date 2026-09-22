@@ -3,6 +3,7 @@ import { API_URL } from './config.js';
 import { captureRuntime } from './capture.js';
 import { captureMenu } from './context-menu.js';
 import { relayFeedbackTheme } from './feedback.js';
+import { isApiFailure } from './api-failure.js';
 
 let initialization;
 let accessVersion = 0, sessionReady = false;
@@ -48,7 +49,10 @@ async function request(path, body, token) {
   } catch {
     throw new Error('The account server is unavailable or waking up. Wait a minute and try again.');
   }
-  if (!response.ok) throw Object.assign(new Error(result.error), { code: result.code, status: response.status, details: result.details });
+  if (!response.ok) {
+    const failure = isApiFailure(result) ? result : { error: 'The account server rejected the request.', code: 'server_error' };
+    throw Object.assign(new Error(failure.error), { code: failure.code, status: response.status, details: failure.details });
+  }
   return result;
 }
 

@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "skipLibCheck": true,
+    "allowJs": true,
+    "checkJs": false,
+    "noEmit": true
+  },
+  "include": [
+    "packages/contracts/src/**/*.ts",
+    "packages/domain/src/**/*.ts",
+    "src/core/store-records.ts",
+    "extension/editor-drafts.ts",
+    "extension/chrome.d.ts",
+    "extension/api-failure.js",
+    "extension/save-operations.js",
+    "src/server/api-failure.mjs",
+    "src/server/contract-validation.mjs"
+  ]
+}

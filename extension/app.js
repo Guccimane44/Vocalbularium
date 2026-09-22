@@ -5,6 +5,7 @@ import { cardViews } from './cards.js';
 import { SORT_ORDERS, sortCards } from './sorting.js';
 import { configurationView, newDeckDraft } from './configuration.js';
 import { deckActions } from './deck-actions.js';
+/** @typedef {import('./editor-drafts.js').DeckEditorDraft} DeckEditorDraft */
 
 await initializeFeedback();
 await initializeTheme();
@@ -13,6 +14,7 @@ const actions = document.querySelector('#session-actions');
 let account;
 let signedIn = false;
 let renderVersion = 0;
+/** @type {DeckEditorDraft | undefined} */
 let configuration;
 
 const element = (tag, text, className) => {
