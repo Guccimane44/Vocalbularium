@@ -28,5 +28,13 @@ export function loadConfig(environment = process.env) {
     throw new Error('Invalid LOG_LEVEL: choose trace, debug, info, warn, error, fatal, or silent.');
   }
 
-  return Object.freeze({ host, port, directory: resolve(dataDirectory), logLevel });
+  const databaseUrl = environment.DATABASE_URL;
+  try {
+    const url = new URL(databaseUrl);
+    if (!['postgres:', 'postgresql:'].includes(url.protocol) || !url.hostname || url.pathname.length < 2) throw new Error();
+  } catch { throw new Error('Invalid DATABASE_URL: provide a PostgreSQL database connection URL.'); }
+  if (!['127.0.0.1', 'localhost', '::1'].includes(host)) {
+    throw new Error('The owner-testing API must bind to loopback.');
+  }
+  return Object.freeze({ host, port, directory: resolve(dataDirectory), logLevel, databaseUrl });
 }

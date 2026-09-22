@@ -1,24 +1,23 @@
 import { createServer } from 'node:http';
-import { mkdirSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
+import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { AccountStore } from '../src/core/store.mjs';
-
 // Local-only M0 laboratory. No authentication or real model calls are implemented here.
-export function createPrototype({ filename = ':memory:', delayMs = 5000 } = {}) {
-  const store = new AccountStore(filename);
+export function createPrototype({ store, delayMs = 5000 } = {}) {
+  if (!store)
+    throw new Error('Provide a disposable PostgreSQL account store for the prototype.');
   const timers = new Set();
   let dropCaptureResponse = false;
-  function generate(cardId) {
-    const card = store.card(cardId);
+  async function generate(cardId) {
+    const card = await store.card(cardId);
     for (const page of card.pages) {
-      const timer = setTimeout(() => {
+      const timer = setTimeout(async () => {
         timers.delete(timer);
         try {
-          const attempt = store.attempt(page.attempt_id);
+          const attempt = await store.attempt(page.attempt_id);
           const outputs = attempt.modules.map(module => module.type === 'selected' ? card.selected_text
             : `Illustrative prototype output for: ${card.selected_text}`);
-          store.stage(page.attempt_id, { ok: true, text: outputs.join('\n\n') });
+          await store.stage(page.attempt_id, { ok: true, text: outputs.join('\n\n') });
         } catch (error) {
           if (!['stale_attempt', 'stale_session', 'deleted'].includes(error.code)) console.error(error);
         }
@@ -44,7 +43,7 @@ export function createPrototype({ filename = ':memory:', delayMs = 5000 } = {}) 
         response.end('<!doctype html><p id="frame-selection">我真的很幸福</p>'); return;
       }
       let result;
-      if (request.method === 'GET' && request.url === '/state') result = { snapshot: store.snapshot(), cards: store.cards() };
+      if (request.method === 'GET' && request.url === '/state') result = { snapshot: (await store.snapshot()), cards: (await store.cards()) };
       else if (request.method === 'POST') {
         let raw = '';
         for await (const chunk of request) {
@@ -52,10 +51,11 @@ export function createPrototype({ filename = ':memory:', delayMs = 5000 } = {}) 
           if (raw.length > 1024 * 1024) throw new Error('Prototype request is too large.');
         }
         const body = JSON.parse(raw);
-        if (request.url === '/session') result = store.openSession(body.operationId, body.session);
+        if (request.url === '/session') result = (await store.openSession(body.operationId, body.session));
         else if (request.url === '/capture') {
-          result = store.capture(body.operationId, body.payload);
-          if (!result.replayed) generate(result.cardId);
+          result = (await store.capture(body.operationId, body.payload));
+          if (!result.replayed)
+            await generate(result.cardId);
           if (dropCaptureResponse) {
             dropCaptureResponse = false;
             response.writeHead(200, { 'Content-Type': 'application/json' });
@@ -63,14 +63,10 @@ export function createPrototype({ filename = ':memory:', delayMs = 5000 } = {}) 
             return;
           }
         } else if (request.url === '/poll') {
-          store.requireSession(body.session);
-          const ready = store.db.prepare(`SELECT id FROM attempts WHERE installation_id = ? AND session_id = ?
-            AND state = 'loading' AND result IS NOT NULL`).all(body.session.installationId, body.session.sessionId);
-          const loading = store.db.prepare(`SELECT id FROM attempts WHERE installation_id = ? AND session_id = ?
-            AND state = 'loading'`).all(body.session.installationId, body.session.sessionId);
-          result = { ready: ready.map(item => item.id), loading: loading.length };
-        } else if (request.url === '/publish') result = store.publish(body.operationId, body.payload);
-        else if (request.url === '/save') result = store.savePages(body.operationId, body.payload);
+          const attempts = await store.pendingAttempts(body.session);
+          result = { ready: attempts.filter(item => item.result).map(item => item.id), loading: attempts.length };
+        } else if (request.url === '/publish') result = (await store.publish(body.operationId, body.payload));
+        else if (request.url === '/save') result = (await store.savePages(body.operationId, body.payload));
         else { response.writeHead(404); response.end(); return; }
       } else { response.writeHead(404); response.end(); return; }
       response.setHeader('Content-Type', 'application/json');
@@ -90,15 +86,14 @@ export function createPrototype({ filename = ':memory:', delayMs = 5000 } = {}) 
     async close() {
       for (const timer of timers) clearTimeout(timer);
       await new Promise(resolve => { server.close(resolve); server.closeAllConnections(); });
-      store.close();
+      await store.close();
     }
   };
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
-  const filename = resolve('.data/foundation.sqlite');
-  mkdirSync(dirname(filename), { recursive: true });
-  const prototype = createPrototype({ filename });
+  const store = await AccountStore.open({ databaseUrl: process.env.PROTOTYPE_DATABASE_URL });
+  const prototype = createPrototype({ store });
   console.log(`Foundation prototype: ${await prototype.start()}/fixture`);
   console.log('Illustrative output only. Load prototypes/extension as an unpacked extension.');
   for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, async () => { await prototype.close(); process.exit(0); });

@@ -5,8 +5,9 @@ import { loadConfig } from './config.mjs';
 
 const config = loadConfig();
 mkdirSync(config.directory, { recursive: true });
-const application = createApplication({
-  filename: resolve(config.directory, 'account.sqlite'),
+const application = await createApplication({
+  databaseUrl: config.databaseUrl,
+  outbox: resolve(config.directory, 'generation-outbox'),
   logger: { level: config.logLevel }
 });
 
