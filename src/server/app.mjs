@@ -3,6 +3,8 @@ import { AccountStore, StoreError } from '../core/store.mjs';
 import { Authentication } from './auth.mjs';
 import { Generation } from './generation.mjs';
 import { MODULES } from '../core/modules.mjs';
+import { isCapturePayload } from './contract-validation.mjs';
+import { apiFailure } from './api-failure.mjs';
 
 function sessionValue(session) {
   if (!session || typeof session.installationId !== 'string' || typeof session.sessionId !== 'string' ||
@@ -13,11 +15,10 @@ function sessionValue(session) {
 function captureValue(payload) {
   if (!payload || typeof payload.selectedText !== 'string' || !payload.selectedText.length) throw new StoreError('invalid', 'Select some text first.');
   sessionValue(payload.session);
+  if (!isCapturePayload(payload)) throw new StoreError('invalid', 'A saved deck configuration is required.');
   const snapshot = payload.snapshot;
-  if (!snapshot || typeof snapshot.id !== 'string' || !Array.isArray(snapshot.pages) || snapshot.pages.length < 1 || snapshot.pages.length > 4 ||
-    snapshot.pages.some(page => !page || typeof page !== 'object' || typeof page.id !== 'string' || !Array.isArray(page.modules) || page.modules.some(module =>
-      !module || typeof module.id !== 'string' || !Object.hasOwn(MODULES, module.type))) ||
-    new Set(snapshot.pages.map(page => page.id)).size !== snapshot.pages.length) {
+  if (snapshot.pages.some(page => page.modules.some(module => !Object.hasOwn(MODULES, module.type))) ||
+      new Set(snapshot.pages.map(page => page.id)).size !== snapshot.pages.length) {
     throw new StoreError('invalid', 'A saved deck configuration is required.');
   }
 }
@@ -133,8 +134,8 @@ export function createApplication({ filename = ':memory:', authOptions, provider
     } catch (error) {
       const known = error instanceof StoreError;
       respond(response, known ? (error.code === 'invalid' ? 400 : 409) : error instanceof SyntaxError ? 400 : 500,
-        { error: known ? error.message : error instanceof SyntaxError ? 'The request is not valid JSON.' : 'The save could not be completed. Try again.',
-          code: known ? error.code : 'server_error', ...(known && error.details ? { details: error.details } : {}) });
+        apiFailure(known ? error.message : error instanceof SyntaxError ? 'The request is not valid JSON.' : 'The save could not be completed. Try again.',
+          known ? error.code : error instanceof SyntaxError ? 'invalid' : 'server_error', known && error.details ? error.details : undefined));
       if (!known && !(error instanceof SyntaxError)) console.error(error);
     }
   });
