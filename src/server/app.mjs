@@ -15,7 +15,7 @@ function captureValue(payload) {
   sessionValue(payload.session);
   const snapshot = payload.snapshot;
   if (!snapshot || typeof snapshot.id !== 'string' || !Array.isArray(snapshot.pages) || snapshot.pages.length < 1 || snapshot.pages.length > 4 ||
-    snapshot.pages.some(page => typeof page.id !== 'string' || !Array.isArray(page.modules) || page.modules.some(module =>
+    snapshot.pages.some(page => !page || typeof page !== 'object' || typeof page.id !== 'string' || !Array.isArray(page.modules) || page.modules.some(module =>
       !module || typeof module.id !== 'string' || !Object.hasOwn(MODULES, module.type))) ||
     new Set(snapshot.pages.map(page => page.id)).size !== snapshot.pages.length) {
     throw new StoreError('invalid', 'A saved deck configuration is required.');
