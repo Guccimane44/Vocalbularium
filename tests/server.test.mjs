@@ -89,3 +89,24 @@ test('invalid commands and untrusted webpage origins cannot alter account data',
   const account = await call(url, '/api/account', undefined, token);
   assert.equal(account.data.decks.length, 1);
 });
+
+test('nested malformed commands return validation errors without a partial write', async t => {
+  const { url, application } = await fixture(t);
+  const token = await login(url);
+  const before = application.store.account();
+  const deckId = before.defaultDeckId;
+  const cardId = application.store.createManual('malformed-fixture-card', { deckId, pages: [] }).cardId;
+  const baseline = application.store.account();
+  for (const [path, payload] of [
+    ['/api/deck/save', { deck: { id: deckId, name: 'Changed', pages: [null] } }],
+    ['/api/card/create', { deckId, pages: [null] }],
+    ['/api/card/create', { deckId, pages: [false] }],
+    ['/api/card/save', { cardId, changes: [null] }],
+    ['/api/capture', { session: { installationId: 'x', sessionId: 'y', epoch: 1 }, selectedText: 'text', snapshot: { id: deckId, pages: [null] } }]
+  ]) {
+    const result = await call(url, path, { operationId: crypto.randomUUID(), payload }, token);
+    assert.equal(result.status, 400, `${path}: ${JSON.stringify(result.data)}`);
+    assert.equal(result.data.code, 'invalid');
+    assert.deepEqual(application.store.account(), baseline);
+  }
+});
