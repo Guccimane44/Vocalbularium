@@ -1,5 +1,5 @@
 import { dialog } from './dialog.js';
-/** @typedef {import('./editor-drafts.js').CardEditorDraft} CardEditorDraft */
+/** @typedef {import('../types/editor-drafts.js').CardEditorDraft} CardEditorDraft */
 const RETRY_WARNING = 'Retry will delete all content on this page, including manual edits and previous generated content, and generate it again. Other pages will not change.';
 
 export function cardViews({ app, getAccount, element, button, statusLabel, send, applyState, navigate, showError }) {
