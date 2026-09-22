@@ -14,6 +14,7 @@
     "test": "node --test tests/foundation.test.mjs tests/server.test.mjs tests/generation.test.mjs tests/decks.test.mjs tests/cards.test.mjs tests/extension.test.mjs",
     "test:browser": "node --test tests/browser.test.mjs tests/app.browser.test.mjs",
     "start": "npm run build:packages && node --env-file-if-exists=.env src/server/start.mjs",
+    "openapi": "npm run build:packages && node scripts/generate-openapi.mjs",
     "build:packages": "node scripts/build-packages.mjs",
     "pretest": "npm run build:packages",
     "pretest:browser": "npm run build:packages && node scripts/build.mjs",
@@ -28,5 +29,9 @@
   "devDependencies": {
     "playwright": "1.62.1",
     "typescript": "7.0.2"
+  },
+  "dependencies": {
+    "@fastify/swagger": "9.8.0",
+    "fastify": "5.12.5"
   }
 }
