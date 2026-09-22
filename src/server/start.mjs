@@ -1,12 +1,44 @@
 import { mkdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createApplication } from './app.mjs';
+import { loadConfig } from './config.mjs';
 
-const directory = resolve(process.env.DATA_DIR ?? '.data');
-mkdirSync(directory, { recursive: true });
-const application = createApplication({ filename: resolve(directory, 'account.sqlite') });
-const address = await application.start({ port: Number(process.env.PORT ?? 4318), host: process.env.HOST ?? '127.0.0.1' });
-console.log(`Vocabularium account server: ${address}`);
-for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, async () => {
-  await application.close(); process.exit(0);
+const config = loadConfig();
+mkdirSync(config.directory, { recursive: true });
+const application = createApplication({
+  filename: resolve(config.directory, 'account.sqlite'),
+  logger: { level: config.logLevel }
 });
+
+let stopping = false;
+for (const signal of ['SIGINT', 'SIGTERM']) {
+  process.once(signal, () => {
+    if (stopping) return;
+    stopping = true;
+    void (async () => {
+      application.log.info({ signal }, 'Shutting down account API');
+      try {
+        await application.close();
+      } catch (error) {
+        application.log.error({
+          signal,
+          errorType: typeof error?.name === 'string' ? error.name : 'Error',
+          errorCode: typeof error?.code === 'string' ? error.code : undefined
+        }, 'Account API shutdown failed');
+        process.exitCode = 1;
+      }
+    })();
+  });
+}
+
+try {
+  const address = await application.start({ port: config.port, host: config.host });
+  application.log.info({ address }, 'Vocabularium account API listening');
+} catch (error) {
+  application.log.error({
+    errorType: typeof error?.name === 'string' ? error.name : 'Error',
+    errorCode: typeof error?.code === 'string' ? error.code : undefined
+  }, 'Vocabularium account API failed to start');
+  await application.close();
+  throw error;
+}

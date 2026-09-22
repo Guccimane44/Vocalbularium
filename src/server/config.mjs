@@ -1,0 +1,32 @@
+import { resolve } from 'node:path';
+
+const logLevels = new Set(['trace', 'debug', 'info', 'warn', 'error', 'fatal', 'silent']);
+
+/** @param {NodeJS.ProcessEnv} [environment] */
+export function loadConfig(environment = process.env) {
+  const portText = environment.PORT ?? '4318';
+  if (typeof portText !== 'string' || !/^\d+$/.test(portText)) {
+    throw new Error('Invalid PORT: expected an integer from 0 to 65535.');
+  }
+  const port = Number(portText);
+  if (!Number.isSafeInteger(port) || port < 0 || port > 65535) {
+    throw new Error('Invalid PORT: expected an integer from 0 to 65535.');
+  }
+
+  const host = environment.HOST ?? '127.0.0.1';
+  if (typeof host !== 'string' || !host.trim() || host.includes('\0')) {
+    throw new Error('Invalid HOST: expected a non-empty hostname or IP address.');
+  }
+
+  const dataDirectory = environment.DATA_DIR ?? '.data';
+  if (typeof dataDirectory !== 'string' || !dataDirectory.trim() || dataDirectory.includes('\0')) {
+    throw new Error('Invalid DATA_DIR: expected a non-empty directory path.');
+  }
+
+  const logLevel = environment.LOG_LEVEL ?? 'info';
+  if (typeof logLevel !== 'string' || !logLevels.has(logLevel)) {
+    throw new Error('Invalid LOG_LEVEL: choose trace, debug, info, warn, error, fatal, or silent.');
+  }
+
+  return Object.freeze({ host, port, directory: resolve(dataDirectory), logLevel });
+}

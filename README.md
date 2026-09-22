@@ -31,6 +31,8 @@ The output is `artifacts/extension`. For a hosted backend, set `VOCABULARIUM_API
 
 The [Render test backend](https://vocabularium.onrender.com/health) is live on the Free plan, with no paid disk. Render discards its local SQLite data on sleep, restart, or redeploy; local development still persists data in `.data`. See the [deployment and hosted testing procedure](docs/M6-Delivery.md#render-free-deployment). Use `HOST`, `PORT`, and `DATA_DIR` to configure a server; `.env.example` documents the local defaults. Login sessions last seven days unless the test server resets, and active views refresh every five seconds.
 
+The local API uses Fastify and validates its startup settings. Set `HOST`, `PORT`, `DATA_DIR`, and `LOG_LEVEL` in `.env`. `GET /health/live` checks process liveness; `GET /health/ready` and the compatible `GET /health` check database readiness. The [OpenAPI JSON reference](docs/api/openapi.json) is generated with `npm run openapi`.
+
 ## Deck configuration
 
 Deck drafts support all five modules, repeated instances, one to four pages, and word/sentence sample previews. Save applies the layout to existing cards: new pages are empty, retained pages keep their text, and removing saved content requires confirmation against the latest account data. Deleting the default deck requires a replacement; deleting the sole deck creates a fresh empty My Deck.
