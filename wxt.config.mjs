@@ -9,6 +9,7 @@ export default defineConfig({
   srcDir: 'extension',
   outDir: 'artifacts',
   outDirTemplate: 'extension',
+  modules: ['@wxt-dev/module-react'],
   manifest: {
     ...identityAndPermissions,
     host_permissions: [hostPermission]
