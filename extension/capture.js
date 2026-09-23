@@ -2,6 +2,7 @@ import { showFeedback } from './feedback.js';
 
 export function captureRuntime({ request, initialize, refresh, removeAccess, saves }) {
   let polling;
+  let pollAgain = false;
   async function context() {
     const state = await initialize();
     if (!state.signedIn) throw new Error('Sign in to capture vocabulary.');
@@ -58,32 +59,40 @@ export function captureRuntime({ request, initialize, refresh, removeAccess, sav
     return operationId;
   }
   async function poll() {
-    if (polling) return polling;
+    // A capture can be accepted while an older poll is about to observe no
+    // loading attempts. Keep its wakeup instead of returning the older poll.
+    if (polling) { pollAgain = true; return polling; }
     polling = (async () => {
-      const { auth, session } = await context();
-      while (true) {
-        const result = await request('/api/poll', { session }, auth.token);
-        let failedSave = false;
-        for (const attemptId of result.saveFailed ?? []) {
-          const operationId = `publish-${attemptId}`;
-          const pending = { operationId, path: '/api/publish', payload: { operationId, payload: { attemptId, session } } };
-          await saves.recordPending(pending);
-          failedSave = true;
+      do {
+        pollAgain = false;
+        const { auth, session } = await context();
+        while (true) {
+          const result = await request('/api/poll', { session }, auth.token);
+          let failedSave = false;
+          for (const attemptId of result.saveFailed ?? []) {
+            const operationId = `publish-${attemptId}`;
+            const pending = { operationId, path: '/api/publish', payload: { operationId, payload: { attemptId, session } } };
+            await saves.recordPending(pending);
+            failedSave = true;
+          }
+          for (const attemptId of result.ready) {
+            const operationId = `publish-${attemptId}`, key = `save-${operationId}`;
+            if ((await chrome.storage.local.get(key))[key]) { failedSave = true; continue; }
+            const pending = { operationId, path: '/api/publish', payload: { operationId, payload: { attemptId, session } } };
+            try {
+              await saves.perform(pending, auth.token);
+            } catch (error) { failedSave = true; await recordError(error); }
+          }
+          await refresh();
+          if (!result.loading || failedSave) break;
+          await new Promise(resolve => setTimeout(resolve, 1000));
         }
-        for (const attemptId of result.ready) {
-          const operationId = `publish-${attemptId}`, key = `save-${operationId}`;
-          if ((await chrome.storage.local.get(key))[key]) { failedSave = true; continue; }
-          const pending = { operationId, path: '/api/publish', payload: { operationId, payload: { attemptId, session } } };
-          try {
-            await saves.perform(pending, auth.token);
-          } catch (error) { failedSave = true; await recordError(error); }
-        }
-        await refresh();
-        if (!result.loading || failedSave) break;
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      }
+      } while (pollAgain);
     })();
-    try { await polling; } finally { polling = undefined; }
+    try { await polling; } finally {
+      polling = undefined;
+      if (pollAgain) { pollAgain = false; void poll().catch(recordError); }
+    }
   }
   async function reconcile(session) {
     const local = await chrome.storage.local.get(null);

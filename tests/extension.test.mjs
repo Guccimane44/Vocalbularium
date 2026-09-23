@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { captureMenu, captureMenuTitle } from '../extension/context-menu.js';
+import { captureRuntime } from '../extension/capture.js';
 
 function menuAPI() {
   const items = new Map();
@@ -67,6 +68,35 @@ async function background(t) {
 
 const reply = (status, value) => ({ ok: status >= 200 && status < 300, status, async json() { return value; } });
 
+test('a capture wakeup during an ending poll starts a fresh result check', async t => {
+  const prior = globalThis.chrome;
+  const local = storage(), session = storage();
+  await local.set({ auth: { token: 'test-token' } });
+  await session.set({ session: { sessionId: 'browser-session' } });
+  globalThis.chrome = { storage: { local, session } };
+  t.after(() => { globalThis.chrome = prior; });
+  let releaseFirst, signalFirst;
+  const firstStarted = new Promise(resolve => { signalFirst = resolve; });
+  let checks = 0;
+  const runtime = captureRuntime({
+    initialize: async () => ({ signedIn: true }),
+    request: async path => {
+      assert.equal(path, '/api/poll');
+      checks++;
+      if (checks === 1) { signalFirst(); await new Promise(resolve => { releaseFirst = resolve; }); }
+      return { loading: false, ready: [] };
+    },
+    refresh: async () => {}, removeAccess: async () => {},
+    saves: { perform: async () => {}, recordPending: async () => {} }
+  });
+  const first = runtime.poll();
+  await firstStarted;
+  const second = runtime.poll();
+  releaseFirst();
+  await Promise.all([first, second]);
+  assert.equal(checks, 2, 'the later capture must not inherit an empty earlier result');
+});
+
 test('mutations report missing or expired access without clearing the original save receipt', async t => {
   const fixture = await background(t);
   const { api, send } = fixture;
@@ -81,6 +111,25 @@ test('mutations report missing or expired access without clearing the original s
   assert.equal(api.storage.local.data['save-auth-save'].state, 'pending');
   assert.deepEqual(api.storage.local.data['save-auth-save'].payload.payload, save.payload);
   assert.equal(api.storage.local.data.auth, undefined);
+});
+
+test('a busy page Retry is a rejected confirmation, not a pending save to resubmit', async t => {
+  const fixture = await background(t);
+  const { api, send } = fixture;
+  await send({ type: 'login', username: 'admin', password: 'admin' });
+  let attempts = 0;
+  fixture.intercept(path => {
+    if (path === '/api/card/retry') {
+      attempts++;
+      return reply(429, { error: 'Generation is busy. Try Retry again later.', code: 'generation_busy' });
+    }
+    return null;
+  });
+  const result = await send({ type: 'retry-page', operationId: 'busy-retry', payload: { cardId: 'card', pageId: 'page' } });
+  assert.equal(result.code, 'generation_busy');
+  assert.equal(api.storage.local.data['save-busy-retry'], undefined);
+  await send({ type: 'try-saving-again', operationId: 'busy-retry' });
+  assert.equal(attempts, 1, 'a recovery action cannot silently start generation');
 });
 
 test('authentication loss during refresh does not turn an acknowledged mutation into editor success', async t => {

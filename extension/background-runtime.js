@@ -154,7 +154,7 @@ export function startBackground() {
         }
         const operationId = message.operationId ?? crypto.randomUUID();
         const pending = { operationId, path: paths[message.type], payload: { operationId, payload: message.payload } };
-        const saved = await saves.perform(pending, auth.token, ['content_loss', 'invalid', 'front_page', 'deleted', 'replacement']);
+        const saved = await saves.perform(pending, auth.token, ['content_loss', 'invalid', 'front_page', 'deleted', 'replacement', 'generation_busy']);
         if (message.type === 'retry-page') void captures.poll().catch(captures.recordError);
         return refreshAfterMutation(saved);
       }
