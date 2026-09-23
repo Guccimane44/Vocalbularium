@@ -8,6 +8,7 @@ mkdirSync(config.directory, { recursive: true });
 const application = await createApplication({
   databaseUrl: config.databaseUrl,
   outbox: resolve(config.directory, 'generation-outbox'),
+  generationOptions: { maxActive: config.generationMaxActive, maxQueued: config.generationMaxQueued },
   logger: { level: config.logLevel }
 });
 

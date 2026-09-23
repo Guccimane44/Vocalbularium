@@ -66,6 +66,12 @@ Fully completed pages elsewhere on the card remain intact. Pages with no generat
 
 When a generation attempt evaluates a page with no modules or only inapplicable modules, it completes successfully with no content. A page containing only `<The selected>` completes without generative output. The same module's output does not rescue a page on which another applicable module failed. A card still has all its configured pages even when they are empty.
 
+### Generation capacity
+
+The local API admits only a bounded number of active and waiting page attempts. When a capture is saved while generation capacity is full, its card remains saved and accessible. Each page attempt that cannot be admitted becomes **Failed** without a provider call. The user can explicitly **Retry** a failed page later. A successful card save or capture feedback does not imply that generation was admitted or completed.
+
+If capacity is full when the user confirms **Retry** for a page, report that generation is busy and leave that page's existing content and generation state unchanged. The user may confirm a fresh **Retry** later. The rejected confirmation is not kept as an automatic or **Try saving again** generation request. An admitted retry follows the replacement rules below.
+
 ## Chrome closing during generation
 
 If Chrome closes on the installation that started a capture or page retry, its unfinished generation is considered failed. For an initial capture, mark unfinished page attempts failed; fully completed and saved pages remain intact. For a page retry, the affected page remains empty and failed under the existing replacement rule. Closing Chrome on another installation does not fail work initiated elsewhere.

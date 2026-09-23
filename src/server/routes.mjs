@@ -19,12 +19,12 @@ const errorResponses = {
   500: ApiFailureSchema
 };
 
-function routeSchema(summary, body, { publicRoute = false, success = JsonObjectSchema } = {}) {
+function routeSchema(summary, body, { publicRoute = false, success = JsonObjectSchema, errors = {} } = {}) {
   return {
     summary,
     tags: ['account'],
     ...(body ? { body } : {}),
-    response: { 200: success, ...errorResponses },
+    response: { 200: success, ...errorResponses, ...errors },
     security: publicRoute ? [] : [{ bearerAuth: [] }]
   };
 }
@@ -88,7 +88,7 @@ export function registerRoutes(fastify, { store, authentication, generation }) {
     const body = request.body;
     sessionValue(body.session);
     const result = await store.openSession(body.operationId, body.session);
-    await generation.cancelDeleted();
+    await generation.cancelObsolete();
     return result;
   });
 
@@ -123,7 +123,7 @@ export function registerRoutes(fastify, { store, authentication, generation }) {
     schema: routeSchema('Create or update a deck', DeckSaveRequestSchema)
   }, async request => {
     const result = await store.saveDeck(request.body.operationId, request.body.payload ?? {});
-    await generation.cancelDeleted();
+    await generation.cancelObsolete();
     return result;
   });
 
@@ -133,7 +133,7 @@ export function registerRoutes(fastify, { store, authentication, generation }) {
     const body = request.body;
     if (typeof body.payload?.deckId !== 'string') throw new StoreError('invalid', 'Choose a deck.');
     const result = await store.deleteDeck(body.operationId, body.payload);
-    await generation.cancelDeleted();
+    await generation.cancelObsolete();
     return result;
   });
 
@@ -159,21 +159,29 @@ export function registerRoutes(fastify, { store, authentication, generation }) {
     const body = request.body;
     if (typeof body.payload?.cardId !== 'string') throw new StoreError('invalid', 'Choose a card.');
     const result = await store.deleteCard(body.operationId, body.payload.cardId);
-    await generation.cancelDeleted();
+    await generation.cancelObsolete();
     return result;
   });
 
   fastify.post('/api/card/retry', {
-    schema: routeSchema('Retry generation for one card page', CardRetryRequestSchema)
+    schema: routeSchema('Retry generation for one card page', CardRetryRequestSchema, { errors: { 429: ApiFailureSchema } })
   }, async request => {
     const body = request.body;
     sessionValue(body.payload?.session);
     if (typeof body.payload?.cardId !== 'string' || typeof body.payload?.pageId !== 'string') {
       throw new StoreError('invalid', 'Choose a card page.');
     }
-    const result = await store.retry(body.operationId, body.payload);
-    if (!result.replayed) await generation.start(body.payload.cardId, body.payload.pageId);
-    return result;
+    let reservation;
+    try {
+      const result = await store.retry(body.operationId, body.payload, { admit: () => {
+        reservation = generation.reserve();
+        if (!reservation) throw new StoreError('generation_busy', 'Generation is busy. Try Retry again later.');
+      } });
+      if (!result.replayed) await generation.start(body.payload.cardId, body.payload.pageId, { reservation });
+      return result;
+    } finally {
+      generation.release(reservation);
+    }
   });
 
   fastify.post('/api/poll', {

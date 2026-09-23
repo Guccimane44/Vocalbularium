@@ -10,13 +10,14 @@ const textSchema = {
   type: 'object', additionalProperties: false,
   properties: { text: { type: 'string' } }, required: ['text']
 };
+const failure = (code, message) => Object.assign(new Error(message), { code });
 
 export class OpenCodeProvider {
   constructor({ apiKey = process.env.OPENCODE_API_KEY, model = process.env.OPENCODE_MODEL ?? 'deepseek-v4.1-flash', fetchImpl = fetch } = {}) {
     this.apiKey = apiKey; this.model = model; this.fetch = fetchImpl;
   }
   async structured(name, schema, instructions, input, signal, sessionId = randomUUID()) {
-    if (!this.apiKey) throw new Error('Generation is not configured on the server.');
+    if (!this.apiKey) throw failure('provider_unconfigured', 'Generation is not configured on the server.');
     const response = await this.fetch('https://opencode.ai/zen/go/v1/chat/completions', {
       method: 'POST', headers: {
         Authorization: `Bearer ${this.apiKey}`, 'Content-Type': 'application/json',
@@ -31,16 +32,16 @@ export class OpenCodeProvider {
       }),
       signal: AbortSignal.any([AbortSignal.timeout(60000), ...(signal ? [signal] : [])])
     });
-    if (!response.ok) throw new Error('The generation service could not complete this request.');
+    if (!response.ok) throw failure('provider_response', 'The generation service could not complete this request.');
     let result;
-    try { result = await response.json(); } catch { throw new Error('Generation returned an invalid result.'); }
+    try { result = await response.json(); } catch { throw failure('provider_invalid', 'Generation returned an invalid result.'); }
     const choice = result?.choices?.[0];
     if (result?.error || !Array.isArray(result?.choices) || result.choices.length !== 1 || choice?.finish_reason !== 'stop') {
-      throw new Error('Generation returned an incomplete result.');
+      throw failure('provider_incomplete', 'Generation returned an incomplete result.');
     }
     const message = choice.message;
     if (message?.role !== 'assistant' || message.refusal || message.tool_calls?.length || message.function_call) {
-      throw new Error('The generation service did not produce this content.');
+      throw failure('provider_refused', 'The generation service did not produce this content.');
     }
     // Prompted JSON is not a provider-side schema guarantee. Validate before any result can be staged.
     try {
@@ -54,7 +55,7 @@ export class OpenCodeProvider {
         if (field.enum && !field.enum.includes(value[key])) throw new Error();
       }
       return value;
-    } catch { throw new Error('Generation returned an invalid result.'); }
+    } catch { throw failure('provider_invalid', 'Generation returned an invalid result.'); }
   }
   async interpret(selectedText, signal, sessionId) {
     const result = await this.structured('vocabulary_interpretation', interpretationSchema,
