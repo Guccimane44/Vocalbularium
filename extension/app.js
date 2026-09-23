@@ -69,25 +69,12 @@ function login() {
   };
   section.append(form); app.replaceChildren(section);
 }
-function pendingSaves(local) {
-  if (location.hash.startsWith('#configure/') || cardUI.isEditing()) return;
-  const pending = Object.entries(local).filter(([key, item]) => key.startsWith('save-') && item.state !== 'saving').map(([, value]) => value);
-  for (const item of pending) {
-    const notice = element('div', undefined, 'notice');
-    notice.append(element('p', 'A change is waiting to be saved to your account.'));
-    notice.append(button('Try saving again', async event => {
-      const target = event.currentTarget;
-      target.disabled = true;
-      try { const result = await send({ type: 'try-saving-again', operationId: item.operationId }); account = result.account; signedIn = result.signedIn; await render(); }
-      catch (error) { showError(error); target.disabled = false; }
-    }));
-    app.append(notice);
-  }
-}
-function statusLabel(status, prefix = '') {
-  return element('span', prefix + status[0].toUpperCase() + status.slice(1), `badge status-${status}`);
-}
-const cardUI = cardViews({ app, getAccount: () => account, element, button, statusLabel, send, showError,
+const cardUI = cardViews({ getAccount: () => account, send, showError,
+  renderView: (Component, props) => {
+    if (!viewRoot) viewRoot = createRoot(app);
+    flushSync(() => viewRoot.render(createElement(Component, props)));
+  },
+  refresh: () => render(),
   navigate: hash => { location.hash = hash; },
   applyState: async (next, redraw = true) => { account = next.account; signedIn = next.signedIn; if (redraw) await render(); }
 });
@@ -141,10 +128,8 @@ async function render() {
     })));
     return;
   }
-  if (viewRoot) { viewRoot.unmount(); viewRoot = undefined; }
-  app.replaceChildren();
-  cardUI.render(location.hash);
-  pendingSaves(local);
+  const error = nextError; nextError = undefined;
+  cardUI.render(location.hash, local, error);
   if (focusedMenu) [...app.querySelectorAll('[data-deck-options]')].find(node => node.dataset.deckOptions === focusedMenu)?.focus();
   if (active) { const input = document.querySelector('#page-content'); input?.focus(); input?.setSelectionRange(active.start, active.end); }
 }
