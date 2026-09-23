@@ -29,9 +29,9 @@ function routeSchema(summary, body, { publicRoute = false, success = JsonObjectS
   };
 }
 
-function healthReply(store, reply) {
+async function healthReply(store, reply) {
   try {
-    store.db.prepare('SELECT 1').get();
+    await store.ready();
     return { ok: true };
   } catch {
     return reply.code(503).send({ ok: false });
@@ -78,7 +78,7 @@ export function registerRoutes(fastify, { store, authentication, generation }) {
   fastify.post('/api/logout', {
     schema: routeSchema('End the current account session', JsonObjectSchema)
   }, async request => {
-    authentication.logout(request.authToken);
+    await authentication.logout(request.authToken);
     return { ok: true };
   });
 
@@ -87,8 +87,8 @@ export function registerRoutes(fastify, { store, authentication, generation }) {
   }, async request => {
     const body = request.body;
     sessionValue(body.session);
-    const result = store.openSession(body.operationId, body.session);
-    generation.cancelDeleted();
+    const result = await store.openSession(body.operationId, body.session);
+    await generation.cancelDeleted();
     return result;
   });
 
@@ -114,16 +114,16 @@ export function registerRoutes(fastify, { store, authentication, generation }) {
     const body = request.body;
     captureValue(body.payload);
     if (body.recoverySession) sessionValue(body.recoverySession);
-    const result = store.capture(body.operationId, body.payload, { recoverySession: body.recoverySession });
-    if (!result.replayed && !result.interrupted) generation.start(result.cardId);
+    const result = await store.capture(body.operationId, body.payload, { recoverySession: body.recoverySession });
+    if (!result.replayed && !result.interrupted) await generation.start(result.cardId);
     return result;
   });
 
   fastify.post('/api/deck/save', {
     schema: routeSchema('Create or update a deck', DeckSaveRequestSchema)
   }, async request => {
-    const result = store.saveDeck(request.body.operationId, request.body.payload ?? {});
-    generation.cancelDeleted();
+    const result = await store.saveDeck(request.body.operationId, request.body.payload ?? {});
+    await generation.cancelDeleted();
     return result;
   });
 
@@ -132,8 +132,8 @@ export function registerRoutes(fastify, { store, authentication, generation }) {
   }, async request => {
     const body = request.body;
     if (typeof body.payload?.deckId !== 'string') throw new StoreError('invalid', 'Choose a deck.');
-    const result = store.deleteDeck(body.operationId, body.payload);
-    generation.cancelDeleted();
+    const result = await store.deleteDeck(body.operationId, body.payload);
+    await generation.cancelDeleted();
     return result;
   });
 
@@ -158,8 +158,8 @@ export function registerRoutes(fastify, { store, authentication, generation }) {
   }, async request => {
     const body = request.body;
     if (typeof body.payload?.cardId !== 'string') throw new StoreError('invalid', 'Choose a card.');
-    const result = store.deleteCard(body.operationId, body.payload.cardId);
-    generation.cancelDeleted();
+    const result = await store.deleteCard(body.operationId, body.payload.cardId);
+    await generation.cancelDeleted();
     return result;
   });
 
@@ -171,8 +171,8 @@ export function registerRoutes(fastify, { store, authentication, generation }) {
     if (typeof body.payload?.cardId !== 'string' || typeof body.payload?.pageId !== 'string') {
       throw new StoreError('invalid', 'Choose a card page.');
     }
-    const result = store.retry(body.operationId, body.payload);
-    if (!result.replayed) generation.start(body.payload.cardId, body.payload.pageId);
+    const result = await store.retry(body.operationId, body.payload);
+    if (!result.replayed) await generation.start(body.payload.cardId, body.payload.pageId);
     return result;
   });
 
@@ -180,7 +180,7 @@ export function registerRoutes(fastify, { store, authentication, generation }) {
     schema: routeSchema('Poll for generation results', PollRequestSchema)
   }, async request => {
     sessionValue(request.body.session);
-    const attempts = store.pendingAttempts(request.body.session);
+    const attempts = await store.pendingAttempts(request.body.session);
     return {
       ready: attempts.filter(attempt => attempt.result).map(attempt => attempt.id),
       loading: attempts.length > 0,
@@ -194,7 +194,7 @@ export function registerRoutes(fastify, { store, authentication, generation }) {
     const body = request.body;
     sessionValue(body.payload?.session);
     if (typeof body.payload?.attemptId !== 'string') throw new StoreError('invalid', 'A page attempt is required.');
-    generation.saveResult(body.payload.attemptId, body.payload.session);
+    await generation.saveResult(body.payload.attemptId, body.payload.session);
     return store.publish(body.operationId, body.payload);
   });
 }

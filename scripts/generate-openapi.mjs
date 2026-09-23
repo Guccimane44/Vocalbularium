@@ -5,7 +5,7 @@ import { createApplication } from '../src/server/app.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const output = resolve(root, 'docs/api/openapi.json');
-const application = createApplication();
+const application = await createApplication({ documentationOnly: true });
 
 try {
   const document = await application.openapi();

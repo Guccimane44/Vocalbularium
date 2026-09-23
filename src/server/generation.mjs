@@ -8,7 +8,15 @@ export class Generation {
     this.store = store; this.provider = provider;
     this.tasks = new Map(); this.interpretations = new Map(); this.outputs = new Map();
     this.pendingResults = new Map();
-    this.outbox = store.filename === ':memory:' ? null : `${store.filename}.generation-outbox`;
+    this.outbox = store.outbox;
+  }
+  static async create(store, provider) {
+    const generation = new Generation(store, provider);
+    await generation.initialize();
+    return generation;
+  }
+  async initialize() {
+    const store = this.store;
     if (this.outbox) {
       mkdirSync(this.outbox, { recursive: true });
       for (const file of readdirSync(this.outbox).filter(file => file.endsWith('.json'))) {
@@ -16,7 +24,7 @@ export class Generation {
         try {
           const result = JSON.parse(readFileSync(join(this.outbox, file), 'utf8'));
           this.pendingResults.set(id, result);
-          this.store.stage(id, result);
+          await this.store.stage(id, result);
           this.clearResult(id);
         } catch (error) {
           if (['deleted', 'stale_session', 'stale_attempt'].includes(error.code)) this.clearResult(id);
@@ -24,12 +32,12 @@ export class Generation {
       }
     }
     // A server restart cannot resume model calls that it no longer owns.
-    for (const { id } of store.db.prepare("SELECT id FROM attempts WHERE state = 'loading' AND result IS NULL").all()) {
-      if (!this.pendingResults.has(id)) store.failAttempt(id);
+    for (const { id } of (await store.loadingAttempts()).filter(attempt => !attempt.result)) {
+      if (!this.pendingResults.has(id)) await store.failAttempt(id);
     }
   }
   async interpretation(card, attempt) {
-    const current = this.store.card(card.id).interpretation;
+    const current = (await this.store.card(card.id)).interpretation;
     if (current) return current;
     const key = `${card.id}:${attempt.session_id}`;
     if (!this.interpretations.has(key)) {
@@ -42,15 +50,15 @@ export class Generation {
     }
     return this.interpretations.get(key).promise;
   }
-  start(cardId, pageId) {
-    const card = this.store.card(cardId);
+  async start(cardId, pageId) {
+    const card = await this.store.card(cardId);
     for (const page of card.pages) {
       if (pageId && page.page_id !== pageId) continue;
       if (page.status !== 'loading' || this.tasks.has(page.attempt_id)) continue;
-      const attempt = this.store.attempt(page.attempt_id);
+      const attempt = await this.store.attempt(page.attempt_id);
       if (attempt.result) continue;
       const controller = new AbortController();
-      const task = (async () => {
+      const task = this.store.background(async () => {
         let result;
         try {
           const needed = attempt.modules.some(module => module.type !== 'selected');
@@ -78,11 +86,11 @@ export class Generation {
             renameSync(path + '.tmp', path);
           } catch { /* Still attempt the primary account write; retain the in-memory result if both writes fail. */ }
         }
-        try { this.store.stage(attempt.id, result); this.clearResult(attempt.id); }
+        try { await this.store.stage(attempt.id, result); this.clearResult(attempt.id); }
         catch (error) {
           if (['deleted', 'stale_session', 'stale_attempt'].includes(error.code)) this.clearResult(attempt.id);
         }
-      })();
+      });
       this.tasks.set(attempt.id, { task, controller, cardId });
       task.finally(() => {
         this.tasks.delete(attempt.id);
@@ -97,24 +105,21 @@ export class Generation {
     for (const { controller } of this.tasks.values()) controller.abort();
     await Promise.allSettled([...this.tasks.values()].map(({ task }) => task));
   }
-  cancelDeleted() {
-    for (const id of this.pendingResults.keys()) {
-      if (!this.store.db.prepare("SELECT id FROM attempts WHERE id = ? AND state = 'loading'").get(id)) this.clearResult(id);
-    }
-    for (const [id, { controller }] of this.tasks) {
-      if (!this.store.db.prepare('SELECT id FROM attempts WHERE id = ?').get(id)) controller.abort();
-    }
+  async cancelDeleted() {
+    const active = await this.store.loadingAttempts();
+    const ids = new Set(active.map(attempt => attempt.id));
+    for (const id of this.pendingResults.keys()) if (!ids.has(id)) this.clearResult(id);
+    for (const [id, { controller }] of this.tasks) if (!ids.has(id)) controller.abort();
     for (const [key, { controller }] of this.interpretations) {
-      const cardId = key.split(':')[0];
-      if (!this.store.db.prepare("SELECT id FROM attempts WHERE card_id = ? AND state = 'loading'").get(cardId)) controller.abort();
+      if (!active.some(attempt => attempt.card_id === key.split(':')[0])) controller.abort();
     }
   }
-  saveResult(attemptId, session) {
+  async saveResult(attemptId, session) {
     if (!this.pendingResults.has(attemptId)) return;
-    this.store.requireSession(session);
-    const attempt = this.store.attempt(attemptId);
+    await this.store.requireSession(session);
+    const attempt = await this.store.attempt(attemptId);
     if (attempt.installation_id !== session.installationId || attempt.session_id !== session.sessionId) return;
-    this.store.stage(attemptId, this.pendingResults.get(attemptId));
+    await this.store.stage(attemptId, this.pendingResults.get(attemptId));
     this.clearResult(attemptId);
   }
   clearResult(attemptId) {

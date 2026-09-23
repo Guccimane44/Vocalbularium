@@ -11,9 +11,9 @@
     "node": ">=24.0.0 <25"
   },
   "scripts": {
-    "test": "node --test tests/foundation.test.mjs tests/server.test.mjs tests/generation.test.mjs tests/decks.test.mjs tests/cards.test.mjs tests/extension.test.mjs",
-    "test:browser": "node --test tests/browser.test.mjs tests/app.browser.test.mjs",
-    "start": "npm run build:packages && node --env-file-if-exists=.env src/server/start.mjs",
+    "test": "node --env-file-if-exists=.env.postgres --test tests/postgres.test.mjs tests/foundation.test.mjs tests/server.test.mjs tests/generation.test.mjs tests/decks.test.mjs tests/cards.test.mjs tests/extension.test.mjs",
+    "test:browser": "node --env-file-if-exists=.env.postgres --test tests/browser.test.mjs tests/app.browser.test.mjs",
+    "start": "npm run build:packages && node --env-file-if-exists=.env --env-file-if-exists=.env.postgres src/server/start.mjs",
     "openapi": "npm run build:packages && node scripts/generate-openapi.mjs",
     "build:packages": "node scripts/build-packages.mjs",
     "pretest": "npm run build:packages",
@@ -24,14 +24,28 @@
     "prototype": "node prototypes/server.mjs",
     "smoke:generation": "node --env-file-if-exists=.env scripts/live-smoke.mjs",
     "smoke:hosted": "node scripts/hosted-smoke.mjs",
-    "smoke:hosted:browser": "node --test tests/hosted.browser.test.mjs"
+    "smoke:hosted:browser": "node --test tests/hosted.browser.test.mjs",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "node --env-file-if-exists=.env.postgres scripts/migrate.mjs",
+    "db:setup": "node scripts/setup-postgres.mjs",
+    "db:backup": "node --env-file=.env.postgres scripts/database-backup.mjs backup",
+    "db:restore": "node --env-file=.env.postgres scripts/database-backup.mjs restore"
   },
   "devDependencies": {
+    "@types/pg": "8.23.1",
+    "drizzle-kit": "0.31.11",
     "playwright": "1.62.1",
     "typescript": "7.0.2"
   },
   "dependencies": {
     "@fastify/swagger": "9.8.0",
-    "fastify": "5.12.5"
+    "drizzle-orm": "0.45.3",
+    "fastify": "5.12.5",
+    "pg": "8.23.0"
+  },
+  "overrides": {
+    "@esbuild-kit/core-utils": {
+      "esbuild": "0.28.2"
+    }
   }
 }

@@ -1,11 +1,10 @@
-import test from 'node:test';
+import test, { createTestApplication } from './helpers/database.mjs';
 import assert from 'node:assert/strict';
 import { mkdtemp, rm, cp, appendFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { once } from 'node:events';
 import { chromium } from 'playwright';
-import { createApplication } from '../src/server/app.mjs';
 
 async function launch(profile, extension = resolve(process.env.VOCABULARIUM_TEST_EXTENSION ?? 'artifacts/extension')) {
   const context = await chromium.launchPersistentContext(profile, {
@@ -25,13 +24,13 @@ async function signIn(page) {
   await page.getByRole('heading', { name: 'Your decks.' }).waitFor();
 }
 
-test('account extension: login, two installations, reopening, server failure, and logout', { timeout: 45000 }, async t => {
+test('account extension: login, two installations, reopening, server failure, and logout', { timeout: 45000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-account-browser-'));
-  const filename = join(directory, 'account.sqlite');
-  let application = createApplication({ filename });
+  const databaseKey = join(directory, 'account-fixture');
+  let application = await createTestApplication(t, { databaseKey });
   const contexts = new Set();
   t.after(async () => {
-    for (const context of contexts) await context.close().catch(() => {});
+    for (const context of contexts) await context.close().catch(() => { });
     await application.close();
     await rm(directory, { recursive: true, force: true });
   });
@@ -47,26 +46,26 @@ test('account extension: login, two installations, reopening, server failure, an
   await a.page.getByRole('heading', { name: 'My Deck', exact: true }).waitFor();
   const b = await launch(join(directory, 'b')); contexts.add(b.context);
   await signIn(b.page);
-  assert.equal(application.store.account().decks.length, 1);
+  assert.equal((await application.store.account()).decks.length, 1);
 
-  const second = application.store.createDeck('Second deck');
+  const second = await application.store.createDeck('Second deck');
   await a.page.reload();
   await a.page.getByRole('heading', { name: 'Second deck', exact: true }).waitFor();
   await application.close();
   await a.page.getByLabel('Options for Second deck').click();
   await a.page.locator('article').filter({ hasText: 'Second deck' }).getByRole('button', { name: 'Set as default', exact: true }).click();
   await a.page.getByRole('button', { name: 'Try saving again', exact: true }).waitFor();
-  application = createApplication({ filename }); await application.start();
+  application = (await createTestApplication(t, { databaseKey })); await application.start();
   await a.page.getByRole('button', { name: 'Try saving again', exact: true }).click();
   await a.page.locator('article').filter({ hasText: 'Second deck' }).getByText('DEFAULT DECK', { exact: true }).waitFor();
-  assert.equal(application.store.account().defaultDeckId, second.id);
+  assert.equal((await application.store.account()).defaultDeckId, second.id);
   await b.page.reload();
   await b.page.locator('article').filter({ hasText: 'Second deck' }).getByText('DEFAULT DECK', { exact: true }).waitFor();
 
   await a.context.close(); contexts.delete(a.context);
   a = await launch(aProfile); contexts.add(a.context);
   await a.page.getByRole('heading', { name: 'Your decks.' }).waitFor();
-  assert.equal(application.store.account().decks.length, 2);
+  assert.equal((await application.store.account()).decks.length, 2);
   await a.page.getByRole('button', { name: 'Log out', exact: true }).click();
   await a.page.getByRole('heading', { name: 'Welcome back.' }).waitFor();
   await a.page.reload();
@@ -75,33 +74,33 @@ test('account extension: login, two installations, reopening, server failure, an
   await b.page.getByRole('heading', { name: 'Your decks.' }).waitFor();
 });
 
-test('expired access keeps a card draft and pending operation for explicit replay', { timeout: 30000 }, async t => {
+test('expired access keeps a card draft and pending operation for explicit replay', { timeout: 30000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-auth-draft-'));
-  const application = createApplication();
+  const application = await createTestApplication(t);
   await application.start();
   const browser = await launch(join(directory, 'profile'));
   t.after(async () => { await browser.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
   await signIn(browser.page);
-  const deckId = application.store.account().defaultDeckId;
-  const cardId = application.store.createManual('auth-draft-fixture', { deckId, pages: [] }).cardId;
+  const deckId = (await application.store.account()).defaultDeckId;
+  const cardId = (await application.store.createManual('auth-draft-fixture', { deckId, pages: [] })).cardId;
   await browser.page.reload();
   await browser.page.goto(`chrome-extension://${browser.id}/app.html#card/${cardId}`);
   await browser.page.getByRole('button', { name: 'Edit card manually', exact: true }).click();
   await browser.page.getByLabel('Page 1 content', { exact: true }).fill('draft survives expired access');
   const auth = await browser.worker.evaluate(async () => (await chrome.storage.local.get('auth')).auth);
-  application.authentication.logout(auth.token);
+  await application.authentication.logout(auth.token);
   await browser.page.getByRole('button', { name: 'Save', exact: true }).click();
   await browser.page.getByRole('alert').filter({ hasText: 'Sign in to continue.' }).waitFor();
   assert.equal(await browser.page.getByLabel('Page 1 content', { exact: true }).inputValue(), 'draft survives expired access');
-  assert.equal(application.store.card(cardId).pages[0].text, '');
+  assert.equal((await application.store.card(cardId)).pages[0].text, '');
   const operation = await browser.worker.evaluate(async () => Object.entries(await chrome.storage.local.get(null)).find(([key]) => key.startsWith('save-'))?.[1]);
   assert.equal(operation.state, 'pending');
   assert.equal(operation.payload.payload.changes[0].text, 'draft survives expired access');
 });
 
-test('free host: startup HTML is actionable and an erased account requires fresh sign-in', { timeout: 45000 }, async t => {
+test('free host: startup HTML is actionable and an erased account requires fresh sign-in', { timeout: 45000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-free-host-'));
-  let application = createApplication();
+  let application = await createTestApplication(t);
   let browser;
   t.after(async () => {
     await browser?.context.close();
@@ -124,12 +123,12 @@ test('free host: startup HTML is actionable and an erased account requires fresh
   await browser.page.getByRole('alert').filter({ hasText: 'The account server is unavailable or waking up. Wait a minute and try again.' }).waitFor();
   waking = false;
   await signIn(browser.page);
-  application.store.createDeck('Before reset');
+  await application.store.createDeck('Before reset');
   await browser.page.reload();
   await browser.page.getByRole('heading', { name: 'Before reset', exact: true }).waitFor();
 
   await application.close();
-  application = createApplication();
+  application = (await createTestApplication(t));
   await application.start();
   await browser.page.reload();
   await browser.page.getByRole('heading', { name: 'Welcome back.' }).waitFor();
@@ -147,15 +146,15 @@ async function waitFor(predicate, message, timeout = 12000) {
   throw new Error(`Timed out: ${message}`);
 }
 async function captureFrom(browser, text) {
-  return browser.worker.evaluate(async text => {
+  return browser.worker.evaluate(async (text) => {
     const tabs = await chrome.tabs.query({ url: 'http://127.0.0.1:4318/health' });
     return globalThis.captureForTest({ menuItemId: 'capture', selectionText: text }, tabs[0]);
   }, text);
 }
 
-test('capture extension: receipt lifetime, exact duplicate cards, shared outcomes, interruption, and unsaved capture recovery', { timeout: 65000 }, async t => {
+test('capture extension: receipt lifetime, exact duplicate cards, shared outcomes, interruption, and unsaved capture recovery', { timeout: 65000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-capture-browser-'));
-  const filename = join(directory, 'account.sqlite');
+  const databaseKey = join(directory, 'account-fixture');
   const testingExtension = join(directory, 'extension');
   await cp(resolve('artifacts/extension'), testingExtension, { recursive: true });
   await appendFile(join(testingExtension, 'background.js'), '\nglobalThis.captureForTest = handleCapture;\n');
@@ -170,11 +169,11 @@ test('capture extension: receipt lifetime, exact duplicate cards, shared outcome
     },
     async generate() { return '== Chinesisch ==\n=== Bedeutungen ===\n: [1] Glück\n=== Beispiele ===\n: [1] 她很幸福。\n:: Sie ist glücklich.'; }
   };
-  let application = createApplication({ filename, provider });
+  let application = await createTestApplication(t, { databaseKey, provider });
   await application.start();
   const contexts = new Set();
   t.after(async () => {
-    for (const context of contexts) await context.close().catch(() => {});
+    for (const context of contexts) await context.close().catch(() => { });
     await application.close(); await rm(directory, { recursive: true, force: true });
   });
   const profile = join(directory, 'a');
@@ -190,9 +189,9 @@ test('capture extension: receipt lifetime, exact duplicate cards, shared outcome
   await reading.getByRole('button', { name: 'Close capture feedback' }).first().click();
   assert.equal(await reading.getByRole('status').count(), 1);
   await reading.getByRole('status').waitFor({ state: 'detached', timeout: 4500 });
-  await waitFor(() => application.store.cards().filter(card => card.status === 'completed').length === 2, 'duplicate word cards completed');
-  assert.equal(application.store.cards()[0].selected_text, selected);
-  assert.equal(application.store.cards()[0].pages[0].text, selected);
+  await waitFor(async () => (await application.store.cards()).filter(card => card.status === 'completed').length === 2, 'duplicate word cards completed');
+  assert.equal((await application.store.cards())[0].selected_text, selected);
+  assert.equal((await application.store.cards())[0].pages[0].text, selected);
   await b.page.reload();
   await waitFor(async () => await b.page.getByRole('button', { name: 'Open card', exact: true }).count() === 2, 'second installation synchronized duplicate captures');
   assert.equal(await b.page.getByRole('button', { name: 'Open card', exact: true }).count(), 2);
@@ -202,57 +201,59 @@ test('capture extension: receipt lifetime, exact duplicate cards, shared outcome
   assert.equal(await b.page.locator('.card-page h2').count(), 0);
 
   await captureFrom(a, '我真的很幸福'); await captureFrom(a, 'fail');
-  await waitFor(() => application.store.cards().find(card => card.selected_text === 'fail')?.status === 'failed', 'failed interpretation persisted');
-  const sentenceCard = application.store.cards().find(card => card.selected_text === '我真的很幸福');
+  await waitFor(async () => (await application.store.cards()).find(card => card.selected_text === 'fail')?.status === 'failed', 'failed interpretation persisted');
+  const sentenceCard = (await application.store.cards()).find(card => card.selected_text === '我真的很幸福');
   assert.equal(sentenceCard.pages[1].text, ''); assert.equal(sentenceCard.status, 'completed');
 
   await captureFrom(a, 'held-after-close');
   await a.page.close();
   held.get('held-after-close')();
-  await waitFor(() => application.store.cards().find(card => card.selected_text === 'held-after-close')?.status === 'completed', 'dashboard closure leaves generation running');
+  await waitFor(async () => (await application.store.cards()).find(card => card.selected_text === 'held-after-close')?.status === 'completed', 'dashboard closure leaves generation running');
 
   await captureFrom(a, 'held-interrupted');
-  const interrupted = application.store.cards().find(card => card.selected_text === 'held-interrupted');
-  await waitFor(() => application.store.card(interrupted.id).pages[0].status === 'completed', 'completed front before exit');
+  const interrupted = (await application.store.cards()).find(card => card.selected_text === 'held-interrupted');
+  await waitFor(async () => (await application.store.card(interrupted.id)).pages[0].status === 'completed', 'completed front before exit');
   await a.context.close(); contexts.delete(a.context);
   held.get('held-interrupted')();
-  await waitFor(() => application.store.attempt(interrupted.pages[1].attempt_id).result, 'late provider result staged');
+  await waitFor(async () => (await application.store.attempt(interrupted.pages[1].attempt_id)).result, 'late provider result staged');
   a = await launch(profile, testingExtension); contexts.add(a.context);
   await a.page.getByRole('heading', { name: 'Your decks.' }).waitFor();
-  assert.deepEqual(application.store.card(interrupted.id).pages.map(page => page.status), ['completed', 'failed']);
+  assert.deepEqual((await application.store.card(interrupted.id)).pages.map(page => page.status), ['completed', 'failed']);
 
   reading = await a.context.newPage(); await reading.goto('http://127.0.0.1:4318/health');
   await application.close();
   const pendingId = await captureFrom(a, 'not saved yet');
   await a.page.reload();
   // Cached account views remain accessible when the refresh fails.
-  const receipt = await a.worker.evaluate(async id => (await chrome.storage.local.get(`capture-${id}`))[`capture-${id}`], pendingId);
+  const receipt = await a.worker.evaluate(async (id) => (await chrome.storage.local.get(`capture-${id}`))[`capture-${id}`], pendingId);
   assert.equal(receipt.state, 'pending');
-  application = createApplication({ filename, provider }); await application.start();
+  application = (await createTestApplication(t, { databaseKey, provider })); await application.start();
   await a.page.reload();
   await a.page.getByRole('button', { name: 'Try saving again', exact: true }).click();
-  await waitFor(() => application.store.cards().find(card => card.selected_text === 'not saved yet')?.status === 'completed', 'explicit unsaved capture recovery');
-  assert.equal(application.store.cards().filter(card => card.selected_text === 'not saved yet').length, 1);
+  await waitFor(async () => (await application.store.cards()).find(card => card.selected_text === 'not saved yet')?.status === 'completed', 'explicit unsaved capture recovery');
+  assert.equal((await application.store.cards()).filter(card => card.selected_text === 'not saved yet').length, 1);
 });
 
-test('recent captures: the pending receipt hands off to its account card without an empty or duplicate frame', { timeout: 35000 }, async t => {
+test('recent captures: the pending receipt hands off to its account card without an empty or duplicate frame', { timeout: 35000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-capture-handoff-'));
   const testingExtension = join(directory, 'extension');
   await cp(resolve('artifacts/extension'), testingExtension, { recursive: true });
   await appendFile(join(testingExtension, 'background.js'), '\nglobalThis.captureForTest = handleCapture;\n');
   let releaseGeneration, holdAccounts = false;
   const heldAccounts = [];
-  const application = createApplication({ provider: {
-    async interpret() {
-      await new Promise(resolve => { releaseGeneration = resolve; });
-      return { inputType: 'word_phrase', sourceLanguage: 'English' };
-    },
-    async generate() { return 'Controlled explanation'; }
-  } });
+  const application = await createTestApplication(t, {
+    provider: {
+      async interpret() {
+        await new Promise(resolve => { releaseGeneration = resolve; });
+        return { inputType: 'word_phrase', sourceLanguage: 'English' };
+      },
+      async generate() { return 'Controlled explanation'; }
+    }
+  });
   const handler = application.server.listeners('request')[0];
   application.server.removeListener('request', handler);
-  application.server.on('request', (request, response) => {
-    if (holdAccounts && request.url === '/api/account' && application.store.cards().length) {
+  application.server.on('request', async (request, response) => {
+    if (holdAccounts && request.url === '/api/account' && (await application.store.cards()).length) {
       heldAccounts.push(() => handler(request, response)); return;
     }
     handler(request, response);
@@ -292,20 +293,20 @@ test('recent captures: the pending receipt hands off to its account card without
   assert.deepEqual(await a.page.evaluate(() => window.handoffObservation.invalidCounts), [], 'no disappearance or duplicate row during handoff');
   await a.page.evaluate(() => window.stopHandoffObservation());
   releaseGeneration();
-  await waitFor(() => application.store.cards()[0]?.status === 'completed', 'generation completed normally');
-  assert.equal(application.store.cards().length, 1);
+  await waitFor(async () => (await application.store.cards())[0]?.status === 'completed', 'generation completed normally');
+  assert.equal((await application.store.cards()).length, 1);
 });
 
-test('deck UI: draft previews, all modules, page limits, content-loss confirmation, and default deletion', { timeout: 40000 }, async t => {
+test('deck UI: draft previews, all modules, page limits, content-loss confirmation, and default deletion', { timeout: 40000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-decks-browser-'));
-  const application = createApplication(); await application.start();
+  const application = await createTestApplication(t); await application.start();
   const a = await launch(join(directory, 'a'));
   t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
   await signIn(a.page);
   await a.page.getByRole('button', { name: 'Add new deck', exact: true }).click();
   await a.page.getByLabel('Deck name', { exact: true }).fill('Discard this draft');
   await a.page.getByRole('button', { name: 'Cancel', exact: true }).click();
-  assert.equal(application.store.account().decks.length, 1);
+  assert.equal((await application.store.account()).decks.length, 1);
 
   await a.page.getByRole('button', { name: 'Add new deck', exact: true }).click();
   await a.page.getByLabel('Deck name', { exact: true }).fill('Everyday Chinese');
@@ -324,24 +325,24 @@ test('deck UI: draft previews, all modules, page limits, content-loss confirmati
   await a.page.getByLabel('Sample input', { exact: true }).selectOption('sentence');
   assert.match(await a.page.locator('.preview').nth(2).textContent(), /我真的很幸福/);
   assert.match(await a.page.locator('.preview').nth(3).textContent(), /Empty page/);
-  assert.equal(application.store.cards().length, 0); assert.equal(application.store.account().decks.length, 1);
+  assert.equal((await application.store.cards()).length, 0); assert.equal((await application.store.account()).decks.length, 1);
   await a.page.screenshot({ path: 'artifacts/m3-configuration.png', fullPage: true });
   await a.page.getByRole('button', { name: 'Save', exact: true }).click();
   await a.page.getByRole('heading', { name: 'Everyday Chinese', exact: true }).waitFor();
-  const created = application.store.account().decks.find(deck => deck.name === 'Everyday Chinese');
+  const created = (await application.store.account()).decks.find(deck => deck.name === 'Everyday Chinese');
   assert.equal(created.pages.length, 4);
   assert.deepEqual(created.pages[1].modules.map(module => module.type), ['german-explanation', 'german-examples']);
   await a.page.getByLabel('Options for Everyday Chinese').click();
   await a.page.locator('article.deck').filter({ hasText: 'Everyday Chinese' }).getByRole('button', { name: 'Set as default', exact: true }).click();
   await a.page.locator('article.deck').filter({ hasText: 'Everyday Chinese' }).getByText('DEFAULT DECK', { exact: true }).waitFor();
-  assert.equal(application.store.snapshot().id, created.id);
+  assert.equal((await application.store.snapshot()).id, created.id);
 
   const session = { installationId: 'fixture', sessionId: 'fixture-browser', epoch: 1 };
-  application.store.openSession('fixture-session', session);
-  const cardId = application.store.capture('fixture-capture', { session, selectedText: '幸福', snapshot: application.store.snapshot() }).cardId;
-  for (const page of application.store.card(cardId).pages) {
-    application.store.stage(page.attempt_id, { ok: true, text: page.page_id === created.pages[1].id ? 'Saved manual content' : '' });
-    application.store.publish(`fixture-${page.page_id}`, { attemptId: page.attempt_id, session });
+  await application.store.openSession('fixture-session', session);
+  const cardId = (await application.store.capture('fixture-capture', { session, selectedText: '幸福', snapshot: (await application.store.snapshot()) })).cardId;
+  for (const page of (await application.store.card(cardId)).pages) {
+    await application.store.stage(page.attempt_id, { ok: true, text: page.page_id === created.pages[1].id ? 'Saved manual content' : '' });
+    await application.store.publish(`fixture-${page.page_id}`, { attemptId: page.attempt_id, session });
   }
   await a.page.getByLabel('Options for Everyday Chinese').click();
   await a.page.locator('article.deck').filter({ hasText: 'Everyday Chinese' }).getByRole('button', { name: 'Configure deck', exact: true }).click();
@@ -349,30 +350,30 @@ test('deck UI: draft previews, all modules, page limits, content-loss confirmati
   await a.page.getByRole('button', { name: 'Remove this page', exact: true }).click();
   await a.page.getByRole('button', { name: 'Save', exact: true }).click();
   await a.page.getByRole('dialog').getByRole('button', { name: 'Cancel', exact: true }).click();
-  assert.equal(application.store.card(cardId).pages.length, 4);
+  assert.equal((await application.store.card(cardId)).pages.length, 4);
   await a.page.getByRole('button', { name: 'Save', exact: true }).click();
   await a.page.getByRole('dialog').getByRole('button', { name: 'Confirm', exact: true }).click();
   await a.page.getByRole('heading', { name: 'Everyday Chinese', exact: true }).waitFor();
-  assert.equal(application.store.card(cardId).pages.length, 3);
-  assert.equal(application.store.card(cardId).pages[1].page_id, created.pages[2].id);
+  assert.equal((await application.store.card(cardId)).pages.length, 3);
+  assert.equal((await application.store.card(cardId)).pages[1].page_id, created.pages[2].id);
   await a.page.getByLabel('Options for Everyday Chinese').click();
   await a.page.locator('article.deck').filter({ hasText: 'Everyday Chinese' }).getByRole('button', { name: 'Delete deck', exact: true }).click();
   await a.page.getByRole('dialog').getByRole('button', { name: 'Delete deck', exact: true }).click();
   await a.page.getByRole('heading', { name: 'Everyday Chinese', exact: true }).waitFor({ state: 'detached' });
-  assert.equal(application.store.snapshot().name, 'My Deck');
-  assert.equal(application.store.cards().length, 0);
+  assert.equal((await application.store.snapshot()).name, 'My Deck');
+  assert.equal((await application.store.cards()).length, 0);
 });
 
-test('deck menus: card-list actions, Escape, cancellation, replacement and sole-deck reset', { timeout: 40000 }, async t => {
+test('deck menus: card-list actions, Escape, cancellation, replacement and sole-deck reset', { timeout: 40000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-menu-browser-'));
-  const filename = join(directory, 'account.sqlite');
-  let application = createApplication({ filename }); await application.start();
+  const databaseKey = join(directory, 'account-fixture');
+  let application = await createTestApplication(t, { databaseKey }); await application.start();
   const a = await launch(join(directory, 'a'));
   t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
   await signIn(a.page);
   assert.equal(await a.page.getByText('YOUR VOCABULARY', { exact: true }).count(), 0);
   assert.equal(await a.page.getByText('YOUR WORDS, KEPT CLOSE.', { exact: true }).count(), 0);
-  const second = application.store.createDeck('Second deck');
+  const second = await application.store.createDeck('Second deck');
   await a.page.reload();
   await a.page.getByRole('heading', { name: 'Second deck', exact: true }).click();
   await a.page.getByRole('button', { name: 'Add card manually', exact: true }).waitFor();
@@ -393,9 +394,9 @@ test('deck menus: card-list actions, Escape, cancellation, replacement and sole-
   await a.page.getByRole('button', { name: 'Set as default', exact: true }).click();
   await a.page.getByRole('button', { name: 'Try saving again', exact: true }).waitFor();
   assert.equal(await a.page.locator('.deck-menu[open]').count(), 0);
-  application = createApplication({ filename }); await application.start();
+  application = (await createTestApplication(t, { databaseKey })); await application.start();
   await a.page.getByRole('button', { name: 'Try saving again', exact: true }).click();
-  await waitFor(() => application.store.account().defaultDeckId === second.id, 'card-list default saved');
+  await waitFor(async () => (await application.store.account()).defaultDeckId === second.id, 'card-list default saved');
   await waitFor(() => a.page.getByRole('button', { name: 'Set as default', exact: true, includeHidden: true }).isDisabled(), 'current default disabled');
   await trigger.click();
   await a.page.getByRole('button', { name: 'Delete deck', exact: true }).click();
@@ -405,25 +406,25 @@ test('deck menus: card-list actions, Escape, cancellation, replacement and sole-
   assert.equal(await trigger.evaluate(node => node === document.activeElement), true);
   await trigger.click();
   await a.page.getByRole('button', { name: 'Delete deck', exact: true }).click();
-  assert.equal(await a.page.getByRole('dialog').getByLabel('New default deck').inputValue(), application.store.account().decks.find(deck => deck.id !== second.id).id);
+  assert.equal(await a.page.getByRole('dialog').getByLabel('New default deck').inputValue(), (await application.store.account()).decks.find(deck => deck.id !== second.id).id);
   await a.page.getByRole('dialog').getByRole('button', { name: 'Delete deck', exact: true }).click();
   await a.page.getByRole('heading', { name: 'Your decks.' }).waitFor();
-  assert.equal(application.store.account().decks.length, 1);
+  assert.equal((await application.store.account()).decks.length, 1);
   await a.page.getByRole('heading', { name: 'My Deck', exact: true }).click();
   await a.page.getByRole('button', { name: 'Add card manually', exact: true }).waitFor();
-  const original = application.store.snapshot().id;
+  const original = (await application.store.snapshot()).id;
   await a.page.getByLabel('Options for My Deck').click();
   await a.page.getByRole('button', { name: 'Delete deck', exact: true }).click();
   await a.page.getByRole('dialog').getByText(/A new empty My Deck will replace it/).waitFor();
   await a.page.getByRole('dialog').getByRole('button', { name: 'Delete deck', exact: true }).click();
   await a.page.getByRole('heading', { name: 'Your decks.' }).waitFor();
-  assert.notEqual(application.store.snapshot().id, original);
-  assert.equal(application.store.account().decks.length, 1);
+  assert.notEqual((await application.store.snapshot()).id, original);
+  assert.equal((await application.store.account()).decks.length, 1);
 });
 
-test('appearance: all open views, drafts, dialogs, feedback lifetime, logout and browser restart', { timeout: 45000 }, async t => {
+test('appearance: all open views, drafts, dialogs, feedback lifetime, logout and browser restart', { timeout: 45000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-theme-browser-'));
-  const application = createApplication(); await application.start();
+  const application = await createTestApplication(t); await application.start();
   const testingExtension = join(directory, 'extension');
   await cp(resolve('artifacts/extension'), testingExtension, { recursive: true });
   await appendFile(join(testingExtension, 'background.js'), '\nimport { showFeedback } from \'./feedback.js\';\nglobalThis.feedbackForTest = showFeedback;\n');
@@ -456,17 +457,19 @@ test('appearance: all open views, drafts, dialogs, feedback lifetime, logout and
   const reading = await a.context.newPage(); await reading.goto('http://127.0.0.1:4318/health');
   const tabId = await a.worker.evaluate(async () => (await chrome.tabs.query({ url: 'http://127.0.0.1:4318/health' }))[0].id);
   const started = Date.now();
-  await a.worker.evaluate(async tabId => globalThis.feedbackForTest(tabId, 'Capture received'), tabId);
+  await a.worker.evaluate(async (tabId) => globalThis.feedbackForTest(tabId, 'Capture received'), tabId);
   await reading.getByRole('status').waitFor();
   assert.equal(await reading.locator('vocabularium-feedback').getAttribute('data-theme'), 'dark');
   await reading.screenshot({ path: 'artifacts/v0.2.0-feedback-dark.png' });
   await theme(other, 'light');
   await reading.waitForFunction(() => document.querySelector('vocabularium-feedback')?.dataset.theme === 'light');
   await reading.screenshot({ path: 'artifacts/v0.2.0-feedback-light.png' });
-  assert.equal(await a.worker.evaluate(async tabId => {
-    const [result] = await chrome.scripting.executeScript({ target: { tabId }, func: async () => {
-      try { await chrome.storage.local.get('theme'); return true; } catch { return false; }
-    } }); return result.result;
+  assert.equal(await a.worker.evaluate(async (tabId) => {
+    const [result] = await chrome.scripting.executeScript({
+      target: { tabId }, func: async () => {
+        try { await chrome.storage.local.get('theme'); return true; } catch { return false; }
+      }
+    }); return result.result;
   }, tabId), false, 'injected scripts cannot read trusted local account storage');
   await reading.locator('vocabularium-feedback').waitFor({ state: 'detached', timeout: 4000 });
   assert.ok(Date.now() - started < 4200, 'theme change does not restart feedback lifetime');
@@ -475,7 +478,7 @@ test('appearance: all open views, drafts, dialogs, feedback lifetime, logout and
   const restrictedId = await a.worker.evaluate(async () => (await chrome.tabs.create({ url: 'chrome://extensions' })).id);
   const restricted = await restrictedPromise; await restricted.waitForLoadState();
   const popupPromise = a.context.waitForEvent('page');
-  await a.worker.evaluate(async id => globalThis.feedbackForTest(id, 'Capture unavailable.', true), restrictedId);
+  await a.worker.evaluate(async (id) => globalThis.feedbackForTest(id, 'Capture unavailable.', true), restrictedId);
   const popup = await popupPromise;
   await popup.getByRole('status').waitFor(); await hasTheme(popup, 'light');
   const closePromise = popup.waitForEvent('close');
@@ -500,29 +503,31 @@ test('appearance: all open views, drafts, dialogs, feedback lifetime, logout and
   await a.page.getByRole('button', { name: 'Cancel', exact: true }).click();
 });
 
-test('card rows: accessible states, sorting, every pointer target, text selection and keyboard navigation', { timeout: 45000 }, async t => {
+test('card rows: accessible states, sorting, every pointer target, text selection and keyboard navigation', { timeout: 45000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-rows-browser-'));
-  const application = createApplication(); await application.start();
+  const application = await createTestApplication(t); await application.start();
   const a = await launch(join(directory, 'a'));
   t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
-  const store = application.store, deck = store.snapshot();
-  const session = { installationId: 'fixture', sessionId: 'rows', epoch: 1 }; store.openSession('rows-session', session);
+  const store = application.store, deck = await store.snapshot();
+  const session = { installationId: 'fixture', sessionId: 'rows', epoch: 1 };
+  await store.openSession('rows-session', session);
   const ids = {};
   for (const state of ['completed', 'loading', 'failed']) {
-    const { cardId } = store.capture(`row-${state}`, { session, selectedText: state, snapshot: deck }); ids[state] = cardId;
-    const pages = store.card(cardId).pages;
-    store.stage(pages[0].attempt_id, { ok: true, text: `${state} entry` });
-    store.publish(`row-front-${state}`, { attemptId: pages[0].attempt_id, session });
+    const { cardId } = await store.capture(`row-${state}`, { session, selectedText: state, snapshot: deck }); ids[state] = cardId;
+    const pages = (await store.card(cardId)).pages;
+    await store.stage(pages[0].attempt_id, { ok: true, text: `${state} entry` });
+    await store.publish(`row-front-${state}`, { attemptId: pages[0].attempt_id, session });
     if (state === 'completed') {
-      store.stage(pages[1].attempt_id, { ok: true, text: '' });
-      store.publish('row-completed-back', { attemptId: pages[1].attempt_id, session });
-    } else if (state === 'failed') store.failAttempt(pages[1].attempt_id);
+      await store.stage(pages[1].attempt_id, { ok: true, text: '' });
+      await store.publish('row-completed-back', { attemptId: pages[1].attempt_id, session });
+    } else if (state === 'failed')
+      await store.failAttempt(pages[1].attempt_id);
   }
-  ids.neutral = store.createManual('row-neutral', { deckId: deck.id, pages: deck.pages.map(page => ({ pageId: page.id, text: '' })) }).cardId;
+  ids.neutral = (await store.createManual('row-neutral', { deckId: deck.id, pages: deck.pages.map(page => ({ pageId: page.id, text: '' })) })).cardId;
   await signIn(a.page);
   assert.equal(await a.page.locator('.capture .badge').count(), 0);
   assert.deepEqual((await a.page.locator('.capture .state-icon').evaluateAll(nodes => nodes.map(node => node.getAttribute('aria-label')))).sort(), ['Completed', 'Failed', 'Pending: generating']);
-  await a.worker.evaluate(async deck => {
+  await a.worker.evaluate(async (deck) => {
     const now = new Date().toISOString();
     await chrome.storage.local.set({
       'capture-visual-saving': { operationId: 'visual-saving', state: 'saving', createdAt: now, payload: { selectedText: 'Saving example', snapshot: deck } },
@@ -587,7 +592,7 @@ test('card rows: accessible states, sorting, every pointer target, text selectio
     assert.deepEqual(await a.page.locator('table tr td:first-child').allTextContents(), ['001', '002', '003', '004']);
     const rendered = await a.page.locator('tr[data-card-id]').evaluateAll(rows => rows.map(row => row.dataset.cardId));
     const { sortCards } = await import('../extension/sorting.js');
-    assert.deepEqual(rendered, sortCards(store.cards(), order).map(card => card.id));
+    assert.deepEqual(rendered, sortCards((await store.cards()), order).map(card => card.id));
   }
   for (const target of ['index', 'entry', 'cue', 'space', 'keyboard']) {
     const completed = row('completed');
@@ -607,7 +612,7 @@ test('card rows: accessible states, sorting, every pointer target, text selectio
     node.dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 }));
   });
   assert.ok(a.page.url().endsWith(`#deck/${deck.id}`), 'selecting entry text does not navigate');
-  store.savePages('row-long-text', { cardId: ids.completed, changes: [{ pageId: deck.pages[0].id, text: 'LongWord'.repeat(40) + ' 幸福 — Grüße' }] });
+  await store.savePages('row-long-text', { cardId: ids.completed, changes: [{ pageId: deck.pages[0].id, text: 'LongWord'.repeat(40) + ' 幸福 — Grüße' }] });
   await a.page.reload();
   await row('completed').waitFor();
   await a.page.setViewportSize({ width: 390, height: 760 });
@@ -622,10 +627,10 @@ test('card rows: accessible states, sorting, every pointer target, text selectio
   assert.ok(a.page.url().endsWith(`#card/${ids.neutral}`));
 });
 
-test('manual card UI: multi-page drafts, leave choices, sorting, failed-save recovery, and deletion', { timeout: 45000 }, async t => {
+test('manual card UI: multi-page drafts, leave choices, sorting, failed-save recovery, and deletion', { timeout: 45000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-manual-browser-'));
-  const filename = join(directory, 'account.sqlite');
-  let application = createApplication({ filename }); await application.start();
+  const databaseKey = join(directory, 'account-fixture');
+  let application = await createTestApplication(t, { databaseKey }); await application.start();
   const a = await launch(join(directory, 'a'));
   t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
   await signIn(a.page);
@@ -642,21 +647,21 @@ test('manual card UI: multi-page drafts, leave choices, sorting, failed-save rec
   await a.page.getByRole('button', { name: '← My Deck', exact: true }).click();
   await a.page.getByRole('dialog').getByRole('button', { name: 'Save', exact: true }).click();
   await a.page.getByRole('button', { name: 'zebra', exact: true }).waitFor();
-  const card = application.store.cards()[0]; assert.equal(card.status, null); assert.equal(card.pages[1].text, '== literal note ==\n: second page');
+  const card = (await application.store.cards())[0]; assert.equal(card.status, null); assert.equal(card.pages[1].text, '== literal note ==\n: second page');
   await a.page.getByRole('button', { name: 'zebra', exact: true }).click();
   assert.equal(await a.page.getByRole('button', { name: 'Retry', exact: true }).count(), 0);
   await a.page.getByRole('button', { name: 'Edit card manually', exact: true }).click();
   await a.page.getByLabel('Page 1 content', { exact: true }).fill('discard this');
   await a.page.getByRole('button', { name: '← My Deck', exact: true }).click();
   await a.page.getByRole('dialog').getByRole('button', { name: 'Discard', exact: true }).click();
-  assert.equal(application.store.card(card.id).pages[0].text, 'zebra');
+  assert.equal((await application.store.card(card.id)).pages[0].text, 'zebra');
   await a.page.getByRole('button', { name: 'zebra', exact: true }).click();
   await a.page.getByRole('button', { name: 'Edit card manually', exact: true }).click();
   await a.page.getByLabel('Page 1 content', { exact: true }).fill('cancel this');
   await a.page.getByRole('button', { name: 'Page 2', exact: true }).click();
   await a.page.getByLabel('Page 2 content', { exact: true }).fill('cancel both');
   await a.page.getByRole('button', { name: 'Cancel', exact: true }).click();
-  assert.equal(application.store.card(card.id).pages[0].text, 'zebra');
+  assert.equal((await application.store.card(card.id)).pages[0].text, 'zebra');
   await a.page.getByRole('button', { name: 'Edit card manually', exact: true }).click();
   await a.page.getByLabel('Page 2 content', { exact: true }).fill('saved second page');
   await a.page.getByRole('button', { name: 'Page 1', exact: true }).click();
@@ -665,11 +670,11 @@ test('manual card UI: multi-page drafts, leave choices, sorting, failed-save rec
   await a.page.getByRole('button', { name: 'Save', exact: true }).click();
   await a.page.getByRole('button', { name: 'Try saving again', exact: true }).waitFor();
   assert.equal(await a.page.getByLabel('Page 1 content', { exact: true }).inputValue(), 'alpha');
-  application = createApplication({ filename }); await application.start();
+  application = (await createTestApplication(t, { databaseKey })); await application.start();
   await a.page.getByRole('button', { name: 'Try saving again', exact: true }).click();
   await a.page.getByRole('button', { name: 'Edit card manually', exact: true }).waitFor();
-  assert.deepEqual(application.store.card(card.id).pages.map(page => page.text), ['alpha', 'saved second page']);
-  assert.equal(application.store.card(card.id).created_at, card.created_at);
+  assert.deepEqual((await application.store.card(card.id)).pages.map(page => page.text), ['alpha', 'saved second page']);
+  assert.equal((await application.store.card(card.id)).created_at, card.created_at);
   await a.page.getByRole('button', { name: '← My Deck', exact: true }).click();
   await a.page.getByRole('button', { name: 'Add card manually', exact: true }).click();
   await a.page.getByRole('button', { name: 'Save', exact: true }).click();
@@ -684,26 +689,30 @@ test('manual card UI: multi-page drafts, leave choices, sorting, failed-save rec
   await a.page.getByRole('button', { name: 'Edit card manually', exact: true }).click();
   await a.page.getByRole('button', { name: 'Delete card', exact: true }).click();
   await a.page.getByRole('dialog').getByRole('button', { name: 'Cancel', exact: true }).click();
-  assert.equal(application.store.cards().length, 2);
+  assert.equal((await application.store.cards()).length, 2);
   await a.page.getByRole('button', { name: 'Delete card', exact: true }).click();
   await a.page.getByRole('dialog').getByRole('button', { name: 'Delete card', exact: true }).click();
   await a.page.getByRole('button', { name: 'Empty front page', exact: true }).waitFor();
-  assert.equal(application.store.cards().length, 1);
+  assert.equal((await application.store.cards()).length, 1);
 });
 
-test('page retry UI: exact confirmation and two-installation lock preserve all drafts until explicit resubmission', { timeout: 35000 }, async t => {
+test('page retry UI: exact confirmation and two-installation lock preserve all drafts until explicit resubmission', { timeout: 35000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-retry-browser-'));
   let release;
-  const application = createApplication({ provider: {
-    interpret: async () => ({ inputType: 'word_phrase', sourceLanguage: 'Chinese' }),
-    generate: (_, signal) => new Promise((resolve, reject) => { release = resolve; signal.addEventListener('abort', () => reject(Error('aborted')), { once: true }); })
-  } });
+  const application = await createTestApplication(t, {
+    provider: {
+      interpret: async () => ({ inputType: 'word_phrase', sourceLanguage: 'Chinese' }),
+      generate: (_, signal) => new Promise((resolve, reject) => { release = resolve; signal.addEventListener('abort', () => reject(Error('aborted')), { once: true }); })
+    }
+  });
   await application.start();
-  const session = { installationId: 'fixture', sessionId: 'fixture', epoch: 1 }; application.store.openSession('fixture', session);
-  const { cardId } = application.store.capture('fixture-capture', { session, selectedText: '幸福', snapshot: application.store.snapshot() });
-  application.store.establishInterpretation(cardId, { inputType: 'word_phrase', sourceLanguage: 'Chinese' });
-  for (const page of application.store.card(cardId).pages) {
-    application.store.stage(page.attempt_id, { ok: true, text: 'saved original' }); application.store.publish(page.page_id, { attemptId: page.attempt_id, session });
+  const session = { installationId: 'fixture', sessionId: 'fixture', epoch: 1 };
+  await application.store.openSession('fixture', session);
+  const { cardId } = await application.store.capture('fixture-capture', { session, selectedText: '幸福', snapshot: (await application.store.snapshot()) });
+  await application.store.establishInterpretation(cardId, { inputType: 'word_phrase', sourceLanguage: 'Chinese' });
+  for (const page of (await application.store.card(cardId)).pages) {
+    await application.store.stage(page.attempt_id, { ok: true, text: 'saved original' });
+    await application.store.publish(page.page_id, { attemptId: page.attempt_id, session });
   }
   const a = await launch(join(directory, 'a')), b = await launch(join(directory, 'b'));
   t.after(async () => { await a.context.close(); await b.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
@@ -718,7 +727,7 @@ test('page retry UI: exact confirmation and two-installation lock preserve all d
   await a.page.getByRole('button', { name: 'Retry', exact: true }).click();
   assert.equal(await a.page.getByRole('dialog').locator('p').textContent(), 'Retry will delete all content on this page, including manual edits and previous generated content, and generate it again. Other pages will not change.');
   await a.page.getByRole('dialog').getByRole('button', { name: 'Cancel', exact: true }).click();
-  assert.equal(application.store.card(cardId).pages[1].text, 'saved original');
+  assert.equal((await application.store.card(cardId)).pages[1].text, 'saved original');
   await a.page.getByRole('button', { name: 'Retry', exact: true }).click();
   await a.page.getByRole('dialog').getByRole('button', { name: 'Confirm', exact: true }).click();
   await waitFor(() => release, 'retry provider started');
@@ -726,14 +735,14 @@ test('page retry UI: exact confirmation and two-installation lock preserve all d
   assert.equal(await a.page.getByRole('button', { name: 'Retry', exact: true }).isDisabled(), true);
   await b.page.getByRole('button', { name: 'Save', exact: true }).click();
   await b.page.getByRole('alert').filter({ hasText: 'still generating' }).waitFor();
-  assert.deepEqual(application.store.card(cardId).pages.map(page => page.text), ['saved original', '']);
+  assert.deepEqual((await application.store.card(cardId)).pages.map(page => page.text), ['saved original', '']);
   assert.equal(await b.page.getByLabel('Page 2 content', { exact: true }).inputValue(), 'draft back');
   release('regenerated page');
-  await waitFor(() => application.store.card(cardId).pages[1].status === 'completed', 'retry saved');
-  assert.deepEqual(application.store.card(cardId).pages.map(page => page.text), ['saved original', 'regenerated page']);
+  await waitFor(async () => (await application.store.card(cardId)).pages[1].status === 'completed', 'retry saved');
+  assert.deepEqual((await application.store.card(cardId)).pages.map(page => page.text), ['saved original', 'regenerated page']);
   await b.page.getByRole('button', { name: 'Try saving again', exact: true }).click();
   await b.page.getByRole('button', { name: 'Edit card manually', exact: true }).waitFor();
-  assert.deepEqual(application.store.card(cardId).pages.map(page => page.text), ['draft front', 'draft back']);
+  assert.deepEqual((await application.store.card(cardId)).pages.map(page => page.text), ['draft front', 'draft back']);
 });
 
 async function loseNextAcknowledgment(worker, path) {
@@ -751,37 +760,39 @@ async function loseNextAcknowledgment(worker, path) {
   }, path);
 }
 
-test('assembled reliability: lost acknowledgments, worker suspension, abrupt origin exit, other installation, and cancellation', { timeout: 65000 }, async t => {
+test('assembled reliability: lost acknowledgments, worker suspension, abrupt origin exit, other installation, and cancellation', { timeout: 65000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-reliability-browser-'));
   const extension = join(directory, 'extension'); await cp(resolve('artifacts/extension'), extension, { recursive: true });
   await appendFile(join(extension, 'background.js'), '\nglobalThis.captureForTest = handleCapture;\n');
   const held = new Map(), calls = new Map(), canceled = new Set();
-  const application = createApplication({ provider: {
-    interpret: async () => ({ inputType: 'word_phrase', sourceLanguage: 'Chinese' }),
-    generate: ({ selectedText }, signal) => {
-      calls.set(selectedText, (calls.get(selectedText) ?? 0) + 1);
-      if (!selectedText.startsWith('hold-')) return Promise.resolve(`Generated: ${selectedText}`);
-      return new Promise((resolve, reject) => {
-        held.set(selectedText, () => resolve(`Generated: ${selectedText}`));
-        signal.addEventListener('abort', () => { canceled.add(selectedText); reject(Error('aborted')); }, { once: true });
-      });
+  const application = await createTestApplication(t, {
+    provider: {
+      interpret: async () => ({ inputType: 'word_phrase', sourceLanguage: 'Chinese' }),
+      generate: ({ selectedText }, signal) => {
+        calls.set(selectedText, (calls.get(selectedText) ?? 0) + 1);
+        if (!selectedText.startsWith('hold-')) return Promise.resolve(`Generated: ${selectedText}`);
+        return new Promise((resolve, reject) => {
+          held.set(selectedText, () => resolve(`Generated: ${selectedText}`));
+          signal.addEventListener('abort', () => { canceled.add(selectedText); reject(Error('aborted')); }, { once: true });
+        });
+      }
     }
-  } }); await application.start();
+  }); await application.start();
   const contexts = new Set();
-  t.after(async () => { for (const context of contexts) await context.close().catch(() => {}); await application.close(); await rm(directory, { recursive: true, force: true }); });
+  t.after(async () => { for (const context of contexts) await context.close().catch(() => { }); await application.close(); await rm(directory, { recursive: true, force: true }); });
   const profile = join(directory, 'a');
   let a = await launch(profile, extension); contexts.add(a.context); await signIn(a.page);
   let reading = await a.context.newPage(); await reading.goto('http://127.0.0.1:4318/health');
   await loseNextAcknowledgment(a.worker, '/api/capture');
   await captureFrom(a, 'uncertain capture');
-  await waitFor(() => application.store.cards().some(card => card.selected_text === 'uncertain capture'), 'uncertain capture committed');
-  const card = application.store.cards().find(card => card.selected_text === 'uncertain capture');
+  await waitFor(async () => (await application.store.cards()).some(card => card.selected_text === 'uncertain capture'), 'uncertain capture committed');
+  const card = (await application.store.cards()).find(card => card.selected_text === 'uncertain capture');
   const attempts = card.pages.map(page => page.attempt_id);
   await a.page.getByRole('button', { name: 'Try saving again', exact: true }).waitFor();
   await a.page.getByRole('button', { name: 'Try saving again', exact: true }).click();
-  await waitFor(() => application.store.card(card.id).status === 'completed', 'uncertain capture recovered');
-  assert.equal(application.store.cards().length, 1); assert.equal(calls.get('uncertain capture'), 1);
-  assert.deepEqual(application.store.card(card.id).pages.map(page => page.attempt_id), attempts);
+  await waitFor(async () => (await application.store.card(card.id)).status === 'completed', 'uncertain capture recovered');
+  assert.equal((await application.store.cards()).length, 1); assert.equal(calls.get('uncertain capture'), 1);
+  assert.deepEqual((await application.store.card(card.id)).pages.map(page => page.attempt_id), attempts);
 
   await a.page.goto(`chrome-extension://${a.id}/app.html#card/${card.id}`);
   await a.page.getByRole('button', { name: 'Edit card manually', exact: true }).click();
@@ -789,31 +800,31 @@ test('assembled reliability: lost acknowledgments, worker suspension, abrupt ori
   await loseNextAcknowledgment(a.worker, '/api/card/save');
   await a.page.getByRole('button', { name: 'Save', exact: true }).click();
   await a.page.getByRole('button', { name: 'Try saving again', exact: true }).waitFor();
-  await waitFor(() => application.store.card(card.id).pages[0].text === 'save with lost acknowledgment', 'original page save committed');
-  application.store.savePages('later-remote-edit', { cardId: card.id, changes: [{ pageId: card.pages[0].page_id, text: 'later remote edit' }] });
+  await waitFor(async () => (await application.store.card(card.id)).pages[0].text === 'save with lost acknowledgment', 'original page save committed');
+  await application.store.savePages('later-remote-edit', { cardId: card.id, changes: [{ pageId: card.pages[0].page_id, text: 'later remote edit' }] });
   await a.page.getByRole('button', { name: 'Try saving again', exact: true }).click();
   await a.page.getByRole('button', { name: 'Edit card manually', exact: true }).waitFor();
-  assert.equal(application.store.card(card.id).pages[0].text, 'later remote edit');
+  assert.equal((await application.store.card(card.id)).pages[0].text, 'later remote edit');
   assert.equal(calls.get('uncertain capture'), 1);
 
   await loseNextAcknowledgment(a.worker, '/api/publish');
   await captureFrom(a, 'publication acknowledgment');
-  const publicationCard = application.store.cards().find(card => card.selected_text === 'publication acknowledgment');
+  const publicationCard = (await application.store.cards()).find(card => card.selected_text === 'publication acknowledgment');
   let pending;
   await waitFor(async () => {
     const receipts = await a.worker.evaluate(async () => Object.entries(await chrome.storage.local.get(null)).filter(([key]) => key.startsWith('save-publish-')).map(([, value]) => value));
     // Wait for both server publications and removal of the successful receipt.
     // Otherwise a still-in-flight save can be mistaken for the deliberately lost acknowledgment.
-    if (application.store.card(publicationCard.id).status !== 'completed' || receipts.length !== 1) return false;
+    if ((await application.store.card(publicationCard.id)).status !== 'completed' || receipts.length !== 1) return false;
     pending = receipts[0];
     return true;
   }, 'publication acknowledgment was lost');
-  const publishedAttempt = application.store.attempt(pending.payload.payload.attemptId);
-  application.store.savePages('later-than-publication', { cardId: publishedAttempt.card_id, changes: [{ pageId: publishedAttempt.page_id, text: 'manual text after publication' }] });
+  const publishedAttempt = await application.store.attempt(pending.payload.payload.attemptId);
+  await application.store.savePages('later-than-publication', { cardId: publishedAttempt.card_id, changes: [{ pageId: publishedAttempt.page_id, text: 'manual text after publication' }] });
   await waitFor(async () => await a.page.getByRole('button', { name: 'Try saving again', exact: true }).count() === 1, 'only the lost acknowledgment needs retry');
   await a.page.getByRole('button', { name: 'Try saving again', exact: true }).click();
-  await waitFor(async () => !(await a.worker.evaluate(async id => (await chrome.storage.local.get(`save-${id}`))[`save-${id}`], pending.operationId)), 'publication receipt recovered');
-  assert.equal(application.store.card(publishedAttempt.card_id).pages.find(page => page.page_id === publishedAttempt.page_id).text, 'manual text after publication');
+  await waitFor(async () => !(await a.worker.evaluate(async (id) => (await chrome.storage.local.get(`save-${id}`))[`save-${id}`], pending.operationId)), 'publication receipt recovered');
+  assert.equal((await application.store.card(publishedAttempt.card_id)).pages.find(page => page.page_id === publishedAttempt.page_id).text, 'manual text after publication');
 
   await captureFrom(a, 'hold-worker');
   await waitFor(() => held.has('hold-worker'), 'worker test generation started');
@@ -833,40 +844,40 @@ test('assembled reliability: lost acknowledgments, worker suspension, abrupt ori
   a.worker = a.context.serviceWorkers().find(worker => worker.url().includes(a.id));
   assert.equal(await a.worker.evaluate(() => globalThis.workerProbe), undefined);
   assert.deepEqual(await a.worker.evaluate(async () => (await chrome.storage.session.get('session')).session), oldSession);
-  await waitFor(() => application.store.cards().find(card => card.selected_text === 'hold-worker')?.status === 'completed', 'worker suspension did not interrupt generation');
+  await waitFor(async () => (await application.store.cards()).find(card => card.selected_text === 'hold-worker')?.status === 'completed', 'worker suspension did not interrupt generation');
   await internals.close();
 
   const b = await launch(join(directory, 'b'), extension); contexts.add(b.context); await signIn(b.page);
   const otherReading = await b.context.newPage(); await otherReading.goto('http://127.0.0.1:4318/health');
   await captureFrom(a, 'hold-origin'); await captureFrom(b, 'hold-other');
-  const interrupted = application.store.cards().find(card => card.selected_text === 'hold-origin');
-  await waitFor(() => application.store.card(interrupted.id).pages[0].status === 'completed', 'front persisted before crash');
+  const interrupted = (await application.store.cards()).find(card => card.selected_text === 'hold-origin');
+  await waitFor(async () => (await application.store.card(interrupted.id)).pages[0].status === 'completed', 'front persisted before crash');
   const browser = a.context.browser(), protocol = await browser.newBrowserCDPSession();
   const { processInfo } = await protocol.send('SystemInfo.getProcessInfo'); const processId = processInfo.find(process => process.type === 'browser')?.id;
   assert.ok(processId); await protocol.detach();
   const disconnected = once(browser, 'disconnected'); process.kill(processId, 'SIGKILL'); await disconnected;
   contexts.delete(a.context);
   held.get('hold-origin')(); held.get('hold-other')();
-  await waitFor(() => application.store.attempt(interrupted.pages[1].attempt_id).result, 'origin result staged after crash');
-  await waitFor(() => application.store.cards().find(card => card.selected_text === 'hold-other')?.status === 'completed', 'other installation completed');
+  await waitFor(async () => (await application.store.attempt(interrupted.pages[1].attempt_id)).result, 'origin result staged after crash');
+  await waitFor(async () => (await application.store.cards()).find(card => card.selected_text === 'hold-other')?.status === 'completed', 'other installation completed');
   a = await launch(profile, extension); contexts.add(a.context);
   await a.page.getByRole('heading', { name: 'Your decks.' }).waitFor();
-  assert.deepEqual(application.store.card(interrupted.id).pages.map(page => page.status), ['completed', 'failed']);
-  assert.throws(() => application.store.publish('stale-origin', { attemptId: interrupted.pages[1].attempt_id, session: oldSession }), { code: 'stale_session' });
+  assert.deepEqual((await application.store.card(interrupted.id)).pages.map(page => page.status), ['completed', 'failed']);
+  await assert.rejects(async () => (await application.store.publish('stale-origin', { attemptId: interrupted.pages[1].attempt_id, session: oldSession })), { code: 'stale_session' });
 
   await captureFrom(b, 'hold-delete'); await waitFor(() => held.has('hold-delete'), 'deletion test generation started');
-  const deleted = application.store.cards().find(card => card.selected_text === 'hold-delete');
+  const deleted = (await application.store.cards()).find(card => card.selected_text === 'hold-delete');
   const auth = await b.worker.evaluate(async () => (await chrome.storage.local.get('auth')).auth);
   const response = await fetch('http://127.0.0.1:4318/api/card/delete', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.token}` }, body: JSON.stringify({ operationId: 'delete-running', payload: { cardId: deleted.id } }) });
   assert.equal(response.status, 200); await waitFor(() => canceled.has('hold-delete'), 'deleted card canceled model work');
-  assert.throws(() => application.store.card(deleted.id), { code: 'deleted' });
-  const shared = application.store.createDeck('Fresh shared default');
-  application.store.setDefault('remote-default-before-capture', shared.id);
+  await assert.rejects(async () => (await application.store.card(deleted.id)), { code: 'deleted' });
+  const shared = await application.store.createDeck('Fresh shared default');
+  await application.store.setDefault('remote-default-before-capture', shared.id);
   await captureFrom(b, 'fresh shared destination');
-  assert.equal(application.store.cards().find(card => card.selected_text === 'fresh shared destination').deck_id, shared.id);
+  assert.equal((await application.store.cards()).find(card => card.selected_text === 'fresh shared destination').deck_id, shared.id);
 });
 
-test('dashboard capture feedback: shared appearance, original lifetime, originating tab, rerenders and zero windows', { timeout: 45000 }, async t => {
+test('dashboard capture feedback: shared appearance, original lifetime, originating tab, rerenders and zero windows', { timeout: 45000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-dashboard-feedback-'));
   const testingExtension = join(directory, 'extension');
   await cp(resolve('artifacts/extension'), testingExtension, { recursive: true });
@@ -877,10 +888,12 @@ test('dashboard capture feedback: shared appearance, original lifetime, originat
     chrome.windows.create = (...args) => { globalThis.feedbackWindows.calls++; return createWindow(...args); };
     chrome.windows.onCreated.addListener(() => { globalThis.feedbackWindows.events++; });
   `);
-  const application = createApplication({ provider: {
-    async interpret() { return { inputType: 'word_phrase', sourceLanguage: 'English' }; },
-    async generate() { return 'Controlled explanation'; }
-  } });
+  const application = await createTestApplication(t, {
+    provider: {
+      async interpret() { return { inputType: 'word_phrase', sourceLanguage: 'English' }; },
+      async generate() { return 'Controlled explanation'; }
+    }
+  });
   await application.start();
   const a = await launch(join(directory, 'profile'), testingExtension);
   t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
@@ -949,13 +962,13 @@ test('dashboard capture feedback: shared appearance, original lifetime, originat
   const [lifetime] = await a.page.evaluate(() => window.feedbackLifetimes);
   assert.ok(lifetime >= 2900 && lifetime < 3800, `original three-second lifetime: ${lifetime}ms`);
   await a.worker.evaluate(() => chrome.storage.local.remove('capture-rerender-test'));
-  await Promise.all([capture('rapid-one'), capture('rapid-two')]);
+  await Promise.all([(await capture('rapid-one')), (await capture('rapid-two'))]);
   assert.equal(await feedback(a.page).count(), 2);
   await a.page.getByRole('button', { name: 'Close capture feedback' }).first().click();
   assert.equal(await feedback(a.page).count(), 1);
   await feedback(a.page).waitFor({ state: 'detached', timeout: 4000 });
   // A dashboard cannot forge the worker-only route, even for a valid tab id.
-  await other.evaluate(async tabId => { await chrome.runtime.sendMessage({ type: 'dashboard-feedback', tabId, message: 'Forged', css: '' }); }, tabId);
+  await other.evaluate(async (tabId) => { await chrome.runtime.sendMessage({ type: 'dashboard-feedback', tabId, message: 'Forged', css: '' }); }, tabId);
   assert.equal(await feedback(a.page).count(), 0);
   // Preserve the capture-time tab data through closure and navigation races.
   const closedTab = await other.evaluate(async () => ({ ...await chrome.tabs.getCurrent(), url: location.href }));
@@ -966,19 +979,21 @@ test('dashboard capture feedback: shared appearance, original lifetime, originat
   await a.worker.evaluate(tab => globalThis.captureForTest({ menuItemId: 'capture', selectionText: 'navigated-origin' }, tab), navigatedTab);
   assert.equal(await feedback(a.page).count(), 0);
   assert.equal(await feedback(reading).count(), 0);
-  await waitFor(() => application.store.cards().length === 9 && application.store.cards().every(card => card.status === 'completed'), 'each invocation saves and completes exactly one card');
-  assert.equal(new Set(application.store.cards().map(card => card.selected_text)).size, 9);
+  await waitFor(async () => (await application.store.cards()).length === 9 && (await application.store.cards()).every(card => card.status === 'completed'), 'each invocation saves and completes exactly one card');
+  assert.equal(new Set((await application.store.cards()).map(card => card.selected_text)).size, 9);
   assert.deepEqual(await a.worker.evaluate(() => globalThis.feedbackWindows), { calls: 0, events: 0 });
 });
 
-test('save feedback: successful publication stays quiet in both lists, failures and retries remain recoverable', { timeout: 45000 }, async t => {
+test('save feedback: successful publication stays quiet in both lists, failures and retries remain recoverable', { timeout: 45000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-save-feedback-'));
   const extension = join(directory, 'extension'); await cp(resolve('artifacts/extension'), extension, { recursive: true });
   await appendFile(join(extension, 'background.js'), '\nglobalThis.captureForTest = handleCapture;\n');
-  const application = createApplication({ provider: {
-    async interpret() { return { inputType: 'word_phrase', sourceLanguage: 'English' }; },
-    async generate() { return 'Controlled explanation'; }
-  } });
+  const application = await createTestApplication(t, {
+    provider: {
+      async interpret() { return { inputType: 'word_phrase', sourceLanguage: 'English' }; },
+      async generate() { return 'Controlled explanation'; }
+    }
+  });
   const handler = application.server.listeners('request')[0];
   application.server.removeListener('request', handler);
   let hold = true, fail = false, requests = 0;
@@ -1005,7 +1020,7 @@ test('save feedback: successful publication stays quiet in both lists, failures 
       for (const node of document.querySelectorAll('.notice')) if (node.textContent.includes('A change is waiting')) window.recoveryPanels.push(node.textContent);
     }).observe(document.querySelector('#app'), { childList: true, subtree: true });
   });
-  const capture = text => a.worker.evaluate(async text => {
+  const capture = text => a.worker.evaluate(async (text) => {
     const [tab] = await chrome.runtime.getContexts({ contextTypes: ['TAB'], documentUrls: [chrome.runtime.getURL('app.html')] });
     return globalThis.captureForTest({ menuItemId: 'capture', selectionText: text, pageUrl: tab.documentUrl }, { id: tab.tabId, url: tab.documentUrl });
   }, text);
@@ -1021,7 +1036,7 @@ test('save feedback: successful publication stays quiet in both lists, failures 
       await page.screenshot({ path: `artifacts/v0.2.2-${index ? 'deck' : 'recent'}-${theme}.png`, fullPage: true });
     }
     hold = false; for (const resume of held.splice(0)) resume();
-    await waitFor(() => application.store.cards().find(card => card.selected_text === `successful-${theme}`)?.status === 'completed', 'successful publication completes');
+    await waitFor(async () => (await application.store.cards()).find(card => card.selected_text === `successful-${theme}`)?.status === 'completed', 'successful publication completes');
     await waitFor(async () => !(await a.worker.evaluate(async () => Object.keys(await chrome.storage.local.get(null)).some(key => key.startsWith('save-')))), 'successful receipts cleared');
   }
   for (const page of pages) assert.deepEqual(await page.evaluate(() => window.recoveryPanels), [], 'success never inserts a recovery panel');
@@ -1030,7 +1045,7 @@ test('save feedback: successful publication stays quiet in both lists, failures 
   for (const page of pages) await recovery(page).first().waitFor();
   const receipts = await a.worker.evaluate(async () => Object.entries(await chrome.storage.local.get(null)).filter(([key]) => key.startsWith('save-publish-')).map(([, value]) => value));
   assert.ok(receipts.length > 0); assert.ok(receipts.every(receipt => receipt.state === 'pending'));
-  const count = application.store.cards().length;
+  const count = (await application.store.cards()).length;
   fail = false; hold = true;
   await recovery(a.page).first().getByRole('button', { name: 'Try saving again' }).click();
   await waitFor(() => held.length > 0, 'explicit retry is in flight');
@@ -1041,14 +1056,14 @@ test('save feedback: successful publication stays quiet in both lists, failures 
     await recovery(a.page).first().getByRole('button', { name: 'Try saving again' }).click();
     await waitFor(async () => !(await a.worker.evaluate(async () => Object.values(await chrome.storage.local.get(null)).some(item => item?.state === 'saving'))), 'next retry settled');
   }
-  await waitFor(() => application.store.cards().every(card => card.status === 'completed'), 'all pages recovered');
-  assert.equal(application.store.cards().length, count, 'retry does not duplicate cards');
+  await waitFor(async () => (await application.store.cards()).every(card => card.status === 'completed'), 'all pages recovered');
+  assert.equal((await application.store.cards()).length, count, 'retry does not duplicate cards');
   assert.equal(count, 3); assert.ok(requests >= 6);
 });
 
-test('save feedback: worker loss exposes an interrupted save and replays its original operation', { timeout: 35000 }, async t => {
+test('save feedback: worker loss exposes an interrupted save and replays its original operation', { timeout: 35000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-save-interruption-'));
-  const application = createApplication();
+  const application = await createTestApplication(t);
   const handler = application.server.listeners('request')[0];
   application.server.removeListener('request', handler);
   let hold = true, release;
@@ -1062,13 +1077,13 @@ test('save feedback: worker loss exposes an interrupted save and replays its ori
   let a;
   t.after(async () => { release?.(); await a?.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
   await application.start();
-  const original = application.store.snapshot().id;
-  const second = application.store.createDeck('Second deck');
+  const original = (await application.store.snapshot()).id;
+  const second = await application.store.createDeck('Second deck');
   a = await launch(join(directory, 'profile')); await signIn(a.page);
   await a.page.getByLabel('Options for Second deck').click();
   await a.page.locator('article').filter({ hasText: 'Second deck' }).getByRole('button', { name: 'Set as default', exact: true }).click();
   await waitFor(() => release, 'server committed the save but acknowledgment is held');
-  assert.equal(application.store.account().defaultDeckId, second.id);
+  assert.equal((await application.store.account()).defaultDeckId, second.id);
   const receipt = await a.worker.evaluate(async () => Object.entries(await chrome.storage.local.get(null)).find(([key]) => key.startsWith('save-'))[1]);
   assert.equal(receipt.state, 'saving');
   assert.equal(await a.page.getByRole('button', { name: 'Try saving again', exact: true }).count(), 0);
@@ -1080,15 +1095,15 @@ test('save feedback: worker loss exposes an interrupted save and replays its ori
   await waitFor(async () => (await registration.locator('.serviceworker-running-status .value').textContent()) === 'STOPPED', 'worker actually stopped');
   hold = false; release(); release = undefined;
   // A newer action must survive replay of the interrupted, already committed operation.
-  application.store.setDefault('later-default-change', original);
+  await application.store.setDefault('later-default-change', original);
   a.page = await a.context.newPage(); await a.page.goto(`chrome-extension://${a.id}/app.html`);
   await a.page.getByRole('button', { name: 'Try saving again', exact: true }).waitFor();
   a.worker = a.context.serviceWorkers().find(worker => worker.url().includes(a.id));
   assert.equal(await a.worker.evaluate(() => globalThis.workerProbe), undefined);
-  const recovered = await a.worker.evaluate(async id => (await chrome.storage.local.get(`save-${id}`))[`save-${id}`], receipt.operationId);
+  const recovered = await a.worker.evaluate(async (id) => (await chrome.storage.local.get(`save-${id}`))[`save-${id}`], receipt.operationId);
   assert.deepEqual(recovered, { ...receipt, state: 'pending' });
   await a.page.getByRole('button', { name: 'Try saving again', exact: true }).click();
-  await waitFor(async () => !(await a.worker.evaluate(async id => (await chrome.storage.local.get(`save-${id}`))[`save-${id}`], receipt.operationId)), 'original operation acknowledged');
-  assert.equal(application.store.account().defaultDeckId, original, 'replay does not overwrite the newer default');
-  assert.equal(application.store.account().decks.length, 2);
+  await waitFor(async () => !(await a.worker.evaluate(async (id) => (await chrome.storage.local.get(`save-${id}`))[`save-${id}`], receipt.operationId)), 'original operation acknowledged');
+  assert.equal((await application.store.account()).defaultDeckId, original, 'replay does not overwrite the newer default');
+  assert.equal((await application.store.account()).decks.length, 2);
 });

@@ -42,10 +42,14 @@ function requestFailure(error, request) {
   return { status: 500, value: apiFailure('The save could not be completed. Try again.', 'server_error') };
 }
 
-export function createApplication({ filename = ':memory:', authOptions, provider, logger = false } = {}) {
-  const store = new AccountStore(filename);
-  const authentication = new Authentication(store.db, authOptions);
-  const generation = new Generation(store, provider);
+export async function createApplication({ databaseUrl, outbox, accountId = 1, authOptions, provider, logger = false, documentationOnly = false } = {}) {
+  const store = documentationOnly ? null : await AccountStore.open({ databaseUrl, outbox, accountId });
+  const authentication = documentationOnly ? null : new Authentication(store.database, authOptions);
+  let generation;
+  try {
+    await authentication?.initialize();
+    generation = documentationOnly ? null : await Generation.create(store, provider);
+  } catch (error) { await store?.close(); throw error; }
   const fastify = Fastify({
     logger,
     bodyLimit: maxRequestBytes,
@@ -97,7 +101,7 @@ export function createApplication({ filename = ':memory:', authOptions, provider
     if (!isPublic) {
       const authorization = request.headers.authorization;
       const token = typeof authorization === 'string' ? authorization.match(/^Bearer (\S+)$/)?.[1] : undefined;
-      if (!authentication.accepts(token)) {
+      if (!token || !await store.ordered(() => authentication.accepts(token))) {
         return reply.code(401).send(apiFailure('Sign in to continue.', 'unauthorized'));
       }
       request.authToken = token;
@@ -106,6 +110,21 @@ export function createApplication({ filename = ':memory:', authOptions, provider
     if (request.method === 'POST' && !request.headers['content-type']?.startsWith('application/json')) {
       return reply.code(400).send(apiFailure('Send a JSON request.', 'invalid'));
     }
+  });
+
+  // A validated handler reserves its place before asynchronous authentication.
+  // Otherwise token lookups could reorder two already-arrived saves.
+  fastify.addHook('onRoute', options => {
+    if (publicHealthPaths.has(options.url) || options.url === '/api/login') return;
+    const handler = options.handler;
+    options.handler = function (request, reply) {
+      return store.ordered(async () => {
+        if (!await authentication.accepts(request.authToken)) {
+          return reply.code(401).send(apiFailure('Sign in to continue.', 'unauthorized'));
+        }
+        return handler.call(this, request, reply);
+      });
+    };
   });
 
   fastify.addHook('onSend', async (request, reply, payload) => {
@@ -128,12 +147,12 @@ export function createApplication({ filename = ':memory:', authOptions, provider
     return reply.code(failure.status).send(failure.value);
   });
 
-  fastify.setNotFoundHandler((request, reply) => {
+  fastify.setNotFoundHandler(async (request, reply) => {
     if (!request.authToken && !(request.method === 'GET' && publicHealthPaths.has(routePath(request)))) {
       const token = typeof request.headers.authorization === 'string'
         ? request.headers.authorization.match(/^Bearer (\S+)$/)?.[1]
         : undefined;
-      if (!authentication.accepts(token)) return reply.code(401).send(apiFailure('Sign in to continue.', 'unauthorized'));
+      if (!await authentication.accepts(token)) return reply.code(401).send(apiFailure('Sign in to continue.', 'unauthorized'));
     }
     return reply.code(404).send(apiFailure('This page is unavailable.', 'not_found'));
   });
@@ -171,8 +190,8 @@ export function createApplication({ filename = ':memory:', authOptions, provider
     },
     async close() {
       await fastify.close();
-      await generation.close();
-      store.close();
+      await generation?.close();
+      await store?.close();
     }
   };
 }
