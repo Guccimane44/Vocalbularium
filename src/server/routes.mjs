@@ -192,7 +192,7 @@ export function registerRoutes(fastify, { store, authentication, generation }) {
     return {
       ready: attempts.filter(attempt => attempt.result).map(attempt => attempt.id),
       loading: attempts.length > 0,
-      saveFailed: attempts.filter(attempt => generation.pendingResults.has(attempt.id)).map(attempt => attempt.id)
+      saveFailed: attempts.filter(attempt => generation.failedResults.has(attempt.id)).map(attempt => attempt.id)
     };
   });
 

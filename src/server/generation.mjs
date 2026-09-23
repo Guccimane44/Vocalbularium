@@ -15,6 +15,7 @@ export class Generation {
     this.admitted = 0; this.rejected = 0; this.closed = false;
     this.diagnostic = diagnostic;
     this.pendingResults = new Map();
+    this.failedResults = new Set();
     this.outbox = store.outbox;
   }
   static async create(store, provider, options) {
@@ -35,6 +36,7 @@ export class Generation {
           this.clearResult(id);
         } catch (error) {
           if (['deleted', 'stale_session', 'stale_attempt'].includes(error.code)) this.clearResult(id);
+          else this.failedResults.add(id);
         }
       }
     }
@@ -158,7 +160,7 @@ export class Generation {
     try { await this.store.stage(attemptId, result); this.clearResult(attemptId); }
     catch (error) {
       if (['deleted', 'stale_session', 'stale_attempt'].includes(error.code)) this.clearResult(attemptId);
-      else this.record('failed', 'persistence_failure', attemptId);
+      else { this.failedResults.add(attemptId); this.record('failed', 'persistence_failure', attemptId); }
     }
   }
   async start(cardId, pageId, { reservation } = {}) {
@@ -209,6 +211,7 @@ export class Generation {
   }
   clearResult(attemptId) {
     this.pendingResults.delete(attemptId);
+    this.failedResults.delete(attemptId);
     if (this.outbox) {
       rmSync(join(this.outbox, `${attemptId}.json`), { force: true });
       rmSync(join(this.outbox, `${attemptId}.json.tmp`), { force: true });

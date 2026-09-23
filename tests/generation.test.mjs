@@ -476,10 +476,38 @@ test('a failed result write retains the complete generated output for explicit s
   const back = card.pages[1];
   assert.equal((await store.card(card.id)).pages[1].status, 'loading');
   assert.deepEqual(generation.pendingResults.get(back.attempt_id), { ok: true, text: 'complete generated page' });
+  assert.equal(generation.failedResults.has(back.attempt_id), true);
   failWrite = false;
   await generation.saveResult(back.attempt_id, session);
+  assert.equal(generation.failedResults.has(back.attempt_id), false);
   await store.publish('recover-output', { attemptId: back.attempt_id, session });
   assert.equal((await store.card(card.id)).pages[1].text, 'complete generated page'); assert.equal(calls, 1);
+});
+
+test('an in-progress result write does not advertise save recovery', async t => {
+  const { store, generation, capture } = await fixture(t, {
+    interpret: async () => word, generate: async () => 'staged later'
+  });
+  const stage = store.stage.bind(store);
+  let releaseStage, signalStage;
+  const started = new Promise(resolve => { signalStage = resolve; });
+  store.stage = async (id, result) => {
+    if (result.text === 'staged later') {
+      signalStage();
+      await new Promise(resolve => { releaseStage = resolve; });
+    }
+    return stage(id, result);
+  };
+  const card = await capture();
+  await started;
+  const attemptId = card.pages[1].attempt_id;
+  assert.equal(generation.pendingResults.has(attemptId), true);
+  assert.equal(generation.failedResults.has(attemptId), false);
+  releaseStage();
+  await Promise.all([...generation.tasks.values()].map(item => item.task));
+  assert.equal(generation.pendingResults.has(attemptId), false);
+  assert.equal(generation.failedResults.has(attemptId), false);
+  assert.deepEqual((await store.attempt(attemptId)).result, { ok: true, text: 'staged later' });
 });
 
 test('the result recovery journal survives a failed database write and server restart without regenerating', async (t) => {
