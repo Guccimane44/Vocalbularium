@@ -1,7 +1,7 @@
 import { initializeFeedback } from './feedback-dashboard.js';
 import { initializeTheme } from './theme.js';
 import { cardViews } from './cards.js';
-import { configurationView, newDeckDraft } from './configuration.js';
+import { ConfigurationView, newDeckDraft } from './configuration.tsx';
 import { createElement } from 'react';
 import { flushSync } from 'react-dom';
 import { createRoot } from 'react-dom/client';
@@ -15,7 +15,7 @@ const actions = document.querySelector('#session-actions');
 let account;
 let signedIn = false;
 let renderVersion = 0;
-let dashboardRoot;
+let viewRoot;
 let nextError;
 /** @type {DeckEditorDraft | undefined} */
 let configuration;
@@ -37,7 +37,7 @@ async function send(message) {
   return result;
 }
 function showError(error) {
-  if (dashboardRoot) {
+  if (viewRoot) {
     nextError = error.message;
     void render();
     return;
@@ -48,7 +48,7 @@ function showError(error) {
 }
 function login() {
   signedIn = false; account = undefined; actions.replaceChildren();
-  if (dashboardRoot) { dashboardRoot.unmount(); dashboardRoot = undefined; }
+  if (viewRoot) { viewRoot.unmount(); viewRoot = undefined; }
   const section = element('section', undefined, 'login');
   section.append(element('p', 'A home for the language you discover', 'eyebrow'), element('h1', 'Welcome back.'), element('p', 'Sign in to open your decks and saved vocabulary.', 'muted'));
   const form = element('form');
@@ -105,12 +105,31 @@ async function render() {
     try { if (!await cardUI.leave()) return; await send({ type: 'logout' }); location.hash = ''; login(); } catch (error) { showError(error); }
   }));
   const deckId = location.hash.startsWith('#deck/') ? decodeURIComponent(location.hash.slice(6)) : null;
-  const legacyRoute = location.hash.startsWith('#configure/') || location.hash.startsWith('#card/') || location.hash.startsWith('#new-card/');
-  if (!legacyRoute) {
-    if (deckId && !account.decks.some(deck => deck.id === deckId)) { location.hash = ''; return; }
-    if (!dashboardRoot) dashboardRoot = createRoot(app);
+  const configId = location.hash.startsWith('#configure/') ? location.hash.slice(11) : null;
+  if (configId) {
+    if (configuration?.route !== configId) {
+      const deck = configId === 'new' ? newDeckDraft() : account.decks.find(deck => deck.id === configId);
+      if (!deck) { location.hash = ''; return; }
+      configuration = { route: configId, deck: structuredClone(deck), basePageIds: deck.id ? deck.pages.map(page => page.id) : [], selectedPage: deck.pages[0].id };
+    }
+    if (!viewRoot) viewRoot = createRoot(app);
     const error = nextError; nextError = undefined;
-    flushSync(() => dashboardRoot.render(createElement(Dashboard, {
+    flushSync(() => viewRoot.render(createElement(ConfigurationView, {
+      key: configId, draft: configuration, send, externalError: error,
+      onSaved: async next => {
+        account = next.account; signedIn = next.signedIn; configuration = undefined;
+        location.hash = ''; await render();
+      },
+      onCancel: () => { configuration = undefined; location.hash = ''; }
+    })));
+    return;
+  }
+  const cardRoute = location.hash.startsWith('#card/') || location.hash.startsWith('#new-card/');
+  if (!cardRoute) {
+    if (deckId && !account.decks.some(deck => deck.id === deckId)) { location.hash = ''; return; }
+    if (!viewRoot) viewRoot = createRoot(app);
+    const error = nextError; nextError = undefined;
+    flushSync(() => viewRoot.render(createElement(Dashboard, {
       account, local, deckId, focusedMenu, showPendingSaves: !cardUI.isEditing(), error,
       navigate: hash => { location.hash = hash; },
       configure: id => { configuration = undefined; location.hash = `configure/${id}`; },
@@ -122,21 +141,9 @@ async function render() {
     })));
     return;
   }
-  if (dashboardRoot) { dashboardRoot.unmount(); dashboardRoot = undefined; }
+  if (viewRoot) { viewRoot.unmount(); viewRoot = undefined; }
   app.replaceChildren();
-  if (location.hash.startsWith('#configure/')) {
-    const id = location.hash.slice(11);
-    if (configuration?.route !== id) {
-      const deck = id === 'new' ? newDeckDraft() : account.decks.find(deck => deck.id === id);
-      if (!deck) { location.hash = ''; return; }
-      configuration = { route: id, deck: structuredClone(deck), basePageIds: deck.id ? deck.pages.map(page => page.id) : [], selectedPage: deck.pages[0].id };
-    }
-    configurationView({ app, draft: configuration, element, button, send, showError, onSaved: async next => {
-      account = next.account; signedIn = next.signedIn; configuration = undefined; location.hash = ''; await render();
-    }, onCancel: () => { configuration = undefined; location.hash = ''; } });
-  } else if (location.hash.startsWith('#card/') || location.hash.startsWith('#new-card/')) {
-    cardUI.render(location.hash);
-  }
+  cardUI.render(location.hash);
   pendingSaves(local);
   if (focusedMenu) [...app.querySelectorAll('[data-deck-options]')].find(node => node.dataset.deckOptions === focusedMenu)?.focus();
   if (active) { const input = document.querySelector('#page-content'); input?.focus(); input?.setSelectionRange(active.start, active.end); }

@@ -21,6 +21,7 @@
     "extension/api-failure.js",
     "extension/save-operations.js",
     "extension/dashboard.tsx",
+    "extension/configuration.tsx",
     "src/server/api-failure.mjs",
     "src/server/contract-validation.mjs",
     "src/persistence/**/*.ts",
