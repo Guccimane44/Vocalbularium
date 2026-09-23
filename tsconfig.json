@@ -7,6 +7,8 @@
     "skipLibCheck": true,
     "allowJs": true,
     "checkJs": false,
+    "jsx": "react-jsx",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "noEmit": true,
     "allowImportingTsExtensions": true
   },
@@ -18,6 +20,7 @@
     "types/chrome.d.ts",
     "extension/api-failure.js",
     "extension/save-operations.js",
+    "extension/dashboard.tsx",
     "src/server/api-failure.mjs",
     "src/server/contract-validation.mjs",
     "src/persistence/**/*.ts",

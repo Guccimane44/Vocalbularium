@@ -1,6 +1,6 @@
 # Vocabularium
 
-A vocabulary capture extension for Chrome. This branch continues the approved v0.3.0 local architecture migration with Fastify, PostgreSQL 18, and a WXT extension build; account access, capture, deck configuration, and card workflows remain available. The earlier Render/OpenCode MVP is a separate testing environment. The owner accepted the MVP baseline on 13 September 2026; see the [Windows acceptance record](docs/evidence/windows-owner-acceptance-2026-09-13.md).
+A vocabulary capture extension for Chrome. This branch continues the approved v0.3.0 local architecture migration with Fastify, PostgreSQL 18, and a WXT extension build. React now renders the dashboard and deck card lists; the card and configuration editors follow in the next Stage 5 changes. Account access, capture, deck configuration, and card workflows remain available. The earlier Render/OpenCode MVP is a separate testing environment. The owner accepted the MVP baseline on 13 September 2026; see the [Windows acceptance record](docs/evidence/windows-owner-acceptance-2026-09-13.md).
 
 - [MVP delivery tracker and milestone issues](https://github.com/Guccimane44/Vocalbularium/issues/5)
 - [Implementation plan](docs/MVP-Implementation-plan.md)
