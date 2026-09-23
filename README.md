@@ -1,6 +1,6 @@
 # Vocabularium
 
-A vocabulary capture extension for Chrome. This branch continues the approved v0.3.0 local architecture migration with Fastify and PostgreSQL 18; account access, capture, deck configuration, and card workflows remain available. The earlier Render/OpenCode MVP is a separate testing environment. The owner accepted the MVP baseline on 13 September 2026; see the [Windows acceptance record](docs/evidence/windows-owner-acceptance-2026-09-13.md).
+A vocabulary capture extension for Chrome. This branch continues the approved v0.3.0 local architecture migration with Fastify, PostgreSQL 18, and a WXT extension build; account access, capture, deck configuration, and card workflows remain available. The earlier Render/OpenCode MVP is a separate testing environment. The owner accepted the MVP baseline on 13 September 2026; see the [Windows acceptance record](docs/evidence/windows-owner-acceptance-2026-09-13.md).
 
 - [MVP delivery tracker and milestone issues](https://github.com/Guccimane44/Vocalbularium/issues/5)
 - [Implementation plan](docs/MVP-Implementation-plan.md)
@@ -28,7 +28,7 @@ Build an installable extension folder with:
 npm run build
 ```
 
-The output is `artifacts/extension`. For a hosted backend, set `VOCABULARIUM_API_URL` to its HTTPS origin when building; the build writes the matching extension host permission. No credentials are embedded in the package.
+WXT writes the Chrome Manifest V3 build to `artifacts/extension`. For a hosted backend, set `VOCABULARIUM_API_URL` to its HTTPS origin when building; the build writes the matching extension host permission. No credentials are embedded in the package. The generated manifest is checked against the source identity and permissions during the build.
 
 The previous [Render testing procedure](docs/M6-Delivery.md#render-free-deployment) describes the historical SQLite deployment. Stage 4 does not deploy this branch or import that account. Preserve existing SQLite files and old extension profiles; see the [PostgreSQL cutover policy](docs/architecture/local-postgresql.md#keep-the-old-installation-separate).
 
