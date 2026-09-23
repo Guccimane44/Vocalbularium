@@ -35,7 +35,8 @@
     "@types/pg": "8.23.1",
     "drizzle-kit": "0.31.11",
     "playwright": "1.62.1",
-    "typescript": "7.0.2"
+    "typescript": "7.0.2",
+    "wxt": "0.21.4"
   },
   "dependencies": {
     "@fastify/swagger": "9.8.0",

@@ -6,6 +6,7 @@ packages/*/dist/
 .DS_Store
 .data/
 artifacts/
+.wxt/
 test-results/
 playwright-report/
 *.sqlite

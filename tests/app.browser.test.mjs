@@ -427,7 +427,7 @@ test('appearance: all open views, drafts, dialogs, feedback lifetime, logout and
   const application = await createTestApplication(t); await application.start();
   const testingExtension = join(directory, 'extension');
   await cp(resolve('artifacts/extension'), testingExtension, { recursive: true });
-  await appendFile(join(testingExtension, 'background.js'), '\nimport { showFeedback } from \'./feedback.js\';\nglobalThis.feedbackForTest = showFeedback;\n');
+  await appendFile(join(testingExtension, 'background.js'), '\nglobalThis.feedbackForTest = showFeedback;\n');
   let a = await launch(join(directory, 'a'), testingExtension);
   const b = await launch(join(directory, 'b'), testingExtension);
   t.after(async () => { await a.context.close(); await b.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
