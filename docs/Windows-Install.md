@@ -1,10 +1,10 @@
 # Install Vocabularium in Chrome on Windows
 
-This is an MVP testing candidate. The package's `package-info.json` identifies its version, server address, and source revision. The owner accepted package 0.1.0 on Windows 11 on 13 September 2026; see the [Windows acceptance record](https://github.com/Guccimane44/Vocalbularium/issues/12). New candidates need verification for their own source and backend.
+The package's `package-info.json` identifies its version, server address, and source revision. The owner accepted package 0.1.0 on Windows 11 on 13 September 2026; see the [Windows acceptance record](https://github.com/Guccimane44/Vocalbularium/issues/12). New candidates need verification for their own source and backend.
 
 ## Before installing
 
-Use current Google Chrome (minimum supported version 120). Choose `vocabularium-0.2.2-configured-candidate.zip` for the hosted test backend at `https://vocabularium.onrender.com`. Both test installations must use that same address. A package labeled **local** connects to a server on the same computer at `127.0.0.1:4318`.
+Use current Google Chrome (minimum supported version 120). The v0.3.0 **local** candidate connects to PostgreSQL-backed API on the **same computer** at `127.0.0.1:4318`; the API and database must be running first. Its automated and operational acceptance target is the development Mac. Native Windows PostgreSQL and browser behavior still need owner verification. The older `vocabularium-0.2.2-configured-candidate.zip` targets the separate historical Render test backend.
 
 The Render Free test server can take about a minute to wake up. Open [the backend health check](https://vocabularium.onrender.com/health), wait for the healthy response, then sign in. Its test decks, cards, login sessions, and pending server results can be erased when it sleeps, restarts, or is redeployed. Use disposable examples; this candidate does not provide durable hosted storage.
 
@@ -20,9 +20,17 @@ The initial dashboard contains **My Deck**. Select text on a normal webpage, rig
 
 ## Update an installed copy
 
-Finish or cancel manual edits and allow active generation to finish. Replace the files in the same permanent extension folder with the new package, then select **Reload** on Vocabularium's entry at `chrome://extensions`. Reload any already-open Vocabularium dashboard tabs as well. Keep the backend address unchanged to access the same account. Reloading the extension ends its browser session, so unfinished generation is reconciled as failed.
+For an update using the **same backend and Chrome profile**, finish or cancel manual edits and allow active generation to finish. Replace the files in the same permanent extension folder with the new package, then select **Reload** on Vocabularium's entry at `chrome://extensions`. Reload any already-open Vocabularium dashboard tabs as well. Reloading the extension ends its browser session, so unfinished generation is reconciled as failed. Use a separate Chrome profile for the v0.3.0 local backend instead of carrying pending operations or cached access from the older hosted account into it.
 
-Saved decks and cards belong to the backend account. Keep the local backend's account-data directory when updating it. Render Free deployments reset that directory and require a fresh sign-in.
+Saved decks and cards belong to the backend account. Back up and retain the local PostgreSQL database and generation journal when updating the API. Render Free deployments reset their old SQLite account data and require a fresh sign-in.
+
+## Check the v0.3.0 local candidate
+
+- Confirm version **0.3.0**, the `127.0.0.1:4318` server address in `package-info.json`, and a healthy local API before signing in.
+- Create a disposable manual card and capture a word. Check that Recent captures hands the pending row to the saved card without an empty or duplicate row. Open the card, edit a page, and check the same content after restarting the API and Chrome.
+- In a deck with more than 30 cards, load another page and try all four sort orders. In an account with more than 40 decks, load another deck page and choose a replacement for the default deck from that later page.
+- Check that a failed save retains **Try saving again** and the original draft. A page rejected while generation is busy remains failed on an already-saved card, ready for an explicit **Retry** later.
+- Record the Windows and Chrome versions, package source revision and SHA-256, and results in [v0.3.0 delivery issue #54](https://github.com/Guccimane44/Vocalbularium/issues/54). Automated Chromium checks on macOS do not establish native Windows acceptance.
 
 ## Check the v0.2.2 update
 
@@ -62,4 +70,4 @@ Saved decks and cards belong to the backend account. Keep the local backend's ac
 - **Chrome closed during generation:** reopen it and review the card's failed page; use explicit page Retry when ready.
 - **Feedback on a restricted page:** Chrome can prevent a page overlay. A separate brief feedback window is the fallback. Include the affected page and visible behavior when reporting a feedback problem.
 
-Report the package version, Chrome version, Windows version, steps, and visible message in the [v0.2.2 delivery issue](https://github.com/Guccimane44/Vocalbularium/issues/40). Do not include API keys.
+Report the package version, Chrome version, Windows version, steps, and visible message in the relevant delivery issue. Do not include API keys.

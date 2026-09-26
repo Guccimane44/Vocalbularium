@@ -1,4 +1,10 @@
-# M6 delivery candidate
+# M6 delivery candidates
+
+## v0.3.0 local candidate
+
+The current milestone targets the local PostgreSQL 18 API at `http://127.0.0.1:4318`. Build from a committed source revision with `npm run build`, then package with `python3 scripts/package.py`. The local ZIP, its SHA-256 sidecar and `package-info.json` identify the version, origin and source. Verify the extracted extension against the same local backend and use the [local setup and backup instructions](architecture/local-postgresql.md). Owner acceptance is tracked in [issue #54](https://github.com/Guccimane44/Vocalbularium/issues/54); no Render deployment is part of this milestone. The older hosted release notes below are historical and do not describe this candidate's backend.
+
+## Historical hosted MVP candidate
 
 A configured candidate connects to the live Render Free backend and passes hosted generation and two-installation synchronization checks. The owner accepted the package 0.1.0 MVP baseline on Windows on 13 September 2026, explicitly deferring the Render reset/stale-client scenario. See the [owner acceptance record](evidence/windows-owner-acceptance-2026-09-13.md).
 

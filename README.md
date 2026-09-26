@@ -1,6 +1,6 @@
 # Vocabularium
 
-A vocabulary capture extension for Chrome. This branch continues the approved v0.3.0 local architecture migration with Fastify, PostgreSQL 18, and a WXT extension build. React renders the dashboard, deck card lists, and deck configuration; the card editor follows in the next Stage 5 change. Account access, capture, deck configuration, and card workflows remain available. The earlier Render/OpenCode MVP is a separate testing environment. The owner accepted the MVP baseline on 13 September 2026; see the [Windows acceptance record](docs/evidence/windows-owner-acceptance-2026-09-13.md).
+A vocabulary capture extension for Chrome. The v0.3.0 local candidate uses Fastify, PostgreSQL 18, WXT and React for the dashboard, configuration and card editor. Account access, capture, deck configuration and card workflows remain available. The earlier Render/OpenCode MVP is a separate testing environment. The owner accepted that MVP baseline on 13 September 2026; see the [Windows acceptance record](docs/evidence/windows-owner-acceptance-2026-09-13.md).
 
 - [MVP delivery tracker and milestone issues](https://github.com/Guccimane44/Vocalbularium/issues/5)
 - [Implementation plan](docs/MVP-Implementation-plan.md)
@@ -30,7 +30,7 @@ npm run build
 
 WXT writes the Chrome Manifest V3 build to `artifacts/extension`. For a hosted backend, set `VOCABULARIUM_API_URL` to its HTTPS origin when building; the build writes the matching extension host permission. No credentials are embedded in the package. The generated manifest is checked against the source identity and permissions during the build.
 
-The previous [Render testing procedure](docs/M6-Delivery.md#render-free-deployment) describes the historical SQLite deployment. Stage 4 does not deploy this branch or import that account. Preserve existing SQLite files and old extension profiles; see the [PostgreSQL cutover policy](docs/architecture/local-postgresql.md#keep-the-old-installation-separate).
+The previous [Render testing procedure](docs/M6-Delivery.md#render-free-deployment) describes the historical SQLite deployment. v0.3.0 does not deploy this branch or import that account. Preserve existing SQLite files and old extension profiles; see the [PostgreSQL cutover policy](docs/architecture/local-postgresql.md#keep-the-old-installation-separate).
 
 The local API uses Fastify and validates its startup settings. `npm run db:setup` writes ignored `.env.postgres` with separate application, migration, and test connections. Set provider options, `HOST` (loopback only), `PORT`, `DATA_DIR` (generation journal), and `LOG_LEVEL` in `.env`. `GENERATION_MAX_ACTIVE` and `GENERATION_MAX_QUEUED` bound active and waiting page attempts (defaults: 4 and 16). Login sessions last seven days; active views refresh every five seconds. `GET /health/live` checks process liveness; `GET /health/ready` and the compatible `GET /health` check database readiness and API ownership. The [OpenAPI JSON reference](docs/api/openapi.json) is generated with `npm run openapi` without a database connection.
 
@@ -44,7 +44,7 @@ See [deck verification evidence](docs/M3-Decks.md).
 
 ## Card workflows
 
-The card list supports four sort orders. Alphabetical sorting uses Unicode NFKC normalization and lowercase text, followed by JavaScript code-unit order; ties use the stable card ID. Empty front pages sort using empty text, and displayed indices are calculated from the current list.
+The card list loads up to 30 cards at a time in any of four sort orders. Alphabetical sorting uses Unicode NFKC normalization and lowercase text, followed by JavaScript code-unit order; ties use the stable card ID. Empty front pages sort using empty text, and displayed indices are calculated from the loaded list. Decks load in pages of 40; card and deck detail is fetched when opened.
 
 Manual drafts remain intact when switching pages. **Save** writes all changed pages together; **Cancel** discards the editing session. Leaving the editor offers Save, Discard, or Continue editing. Failed saves retain their drafts and offer **Try saving again**. Only captured cards offer current-page **Retry**, with the required replacement warning. See [card workflow verification](docs/M4-Cards.md).
 
@@ -52,11 +52,11 @@ Manual drafts remain intact when switching pages. **Save** writes all changed pa
 
 Copy `.env.example` to the ignored `.env` file (or add its generation settings to your existing file), configure `OPENCODE_API_KEY` with your OpenCode Go key, then restart the account server. Keep the key on the server. The extension never receives it. The default is `deepseek-v4.1-flash` through `https://opencode.ai/zen/go/v1/chat/completions`; `OPENCODE_MODEL` can override the model. Requests never fall back to another model automatically.
 
-The adapter requests JSON in its instructions and validates the completion status, object fields, input classification, and nonempty text locally before publishing. It does not depend on undocumented provider support for strict structured outputs. Each request has a 60-second limit and a 4,096-token output budget. Requests identify this app as `Vocabularium/0.1.0` and use one stable conversation ID per card, including page retries. [OpenCode Go](https://opencode.ai/docs/go/) is a subscription service intended for coding-agent traffic; the app's live requests succeeded with the owner's key on 12 September 2026. Keep its console **Use balance** option off to stop at subscription limits instead of drawing from Zen credits. The app does not change that account setting.
+The adapter requests JSON in its instructions and validates the completion status, object fields, input classification, and nonempty text locally before publishing. It does not depend on undocumented provider support for strict structured outputs. Each request has a 60-second limit and a 4,096-token output budget. Requests identify this app as `Vocabularium/0.3.0` and use one stable conversation ID per card, including page retries. [OpenCode Go](https://opencode.ai/docs/go/) is a subscription service intended for coding-agent traffic; the app's live requests succeeded with the owner's key on 12 September 2026. Keep its console **Use balance** option off to stop at the subscription limit instead of drawing from Zen credits. The app does not change that account setting.
 
 Without a key, the original capture is still saved. Pages requiring interpretation or generation fail visibly; exact-selection pages still complete. Automated checks inject controlled provider responses and do not spend API credits. The live word/sentence smoke passed with the configured Go key; see the [recorded provider samples](docs/evidence/deepseek-v4.1-flash-smoke-2026-09-12.json) and [hosted word/phrase/sentence results](docs/evidence/render-smoke-2026-09-12.json).
 
-Capture receipts remain local until their account write succeeds. **Try saving again** resubmits the existing operation. Generation results are published only through their originating Chrome session; reopening Chrome fails its interrupted attempts. See [capture implementation evidence](docs/M2-Capture.md) and the authoritative [Select and Add rules](docs/MVP-Product-spec-select-and-add.md).
+Capture receipts remain local through confirmed handoff to server cards; pending receipts and saves remain available for explicit recovery. **Try saving again** resubmits the existing operation. Generation results are published only through their originating Chrome session; reopening Chrome fails its interrupted attempts. See [capture implementation evidence](docs/M2-Capture.md) and the authoritative [Select and Add rules](docs/MVP-Product-spec-select-and-add.md).
 
 ## Local foundation prototype
 
@@ -64,7 +64,7 @@ The historical M0 laboratory remains covered by PostgreSQL-backed browser fixtur
 
 ## Acceptance status
 
-The approved v0.2.0 interface iteration adds shared deck actions, a destination-naming capture menu, installation-local Light/Dark appearance and accessible full-row card navigation. Its current checks and owner Windows handoff are tracked in the [v0.2.0 acceptance matrix](docs/v0.2.0-Acceptance.md) and [PR #34](https://github.com/Guccimane44/Vocalbularium/pull/34). The previous Windows acceptance below applies to v0.1.0.
+The [v0.3.0 migration plan](docs/architecture/v0.3.0-migration-plan.md) tracks the local candidate and owner acceptance separately from the historical hosted MVP. Stage 6 [bounded-read evidence](docs/evidence/v0.3.0-stage6-bounded-reads.md) and [local PostgreSQL instructions](docs/architecture/local-postgresql.md) cover current automated checks and setup. Earlier Windows acceptance applies to the earlier delivered packages, not this local candidate.
 
 The [acceptance record](docs/M5-Acceptance.md) maps all eleven criteria to automated, hosted, and owner-reported evidence. The owner confirmed Windows and the remaining M5 checks passed, explicitly deferring stale-client recovery after a Render reset to [issue #24](https://github.com/Guccimane44/Vocalbularium/issues/24). That scenario is untested. Render Free does not satisfy durable hosted persistence. `npm run smoke:generation` records a small live integration sample; the [hosted smoke commands](docs/M6-Delivery.md#hosted-verification) exercise the deployed backend explicitly.
 
@@ -79,4 +79,4 @@ npm run test:browser
 
 Browser checks use temporary isolated profiles and their own servers on ports 4317 and 4318; stop manual servers first. The tests create and remove uniquely named PostgreSQL databases using `.env.postgres` or `TEST_DATABASE_ADMIN_URL`; they reject the development database as a reset target. Linux machines may need `npx playwright install --with-deps chromium`.
 
-For updates, pull the working branch, run `npm ci`, restart the prototype server, and click **Reload** on its extension entry. Extension reload creates a new prototype session and reconciles its unfinished attempts. For the product extension, follow the linked Windows installation/update instructions.
+For updates, pull the working branch, run `npm ci`, apply reviewed migrations with the API stopped, restart the API, then reload the unpacked extension and open dashboard tabs. Extension reload ends that installation's generation session; review interrupted pages using the [Select and Add rules](docs/MVP-Product-spec-select-and-add.md). Follow the linked installation/update instructions for the product extension.
