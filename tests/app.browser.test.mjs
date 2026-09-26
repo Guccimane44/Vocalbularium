@@ -607,7 +607,7 @@ test('card rows: accessible states, sorting, every pointer target, text selectio
   }
   for (const order of ['newest', 'oldest', 'az', 'za']) {
     await a.page.getByLabel('Sort cards', { exact: true }).selectOption(order);
-    const { sortCards } = await import('../extension/sorting.js');
+    const { sortCards } = await import('../extension/sorting.ts');
     const expected = sortCards((await store.cards()), order).map(card => card.id);
     await waitFor(async () => JSON.stringify(await a.page.locator('tr[data-card-id]').evaluateAll(rows => rows.map(row => row.dataset.cardId))) === JSON.stringify(expected), `${order} card order loaded`);
     assert.deepEqual(await a.page.locator('table tr td:first-child').allTextContents(), ['001', '002', '003', '004']);

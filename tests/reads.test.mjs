@@ -1,6 +1,6 @@
 import test, { createTestStore, createTestApplication } from './helpers/database.mjs';
 import assert from 'node:assert/strict';
-import { sortCards } from '../extension/sorting.js';
+import { sortCards } from '../extension/sorting.ts';
 
 test('bounded card pages preserve JavaScript ordering, ties, and cursor validity', async t => {
   const store = await createTestStore(t);

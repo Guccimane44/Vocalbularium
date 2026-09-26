@@ -1,7 +1,7 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import type { MouseEvent as ReactMouseEvent, ReactNode } from 'react';
-import { dialog } from './dialog.js';
-import { SORT_ORDERS } from './sorting.js';
+import { dialog } from './dialog.ts';
+import { SORT_ORDERS } from './sorting.ts';
 
 type Status = 'completed' | 'loading' | 'failed' | null;
 

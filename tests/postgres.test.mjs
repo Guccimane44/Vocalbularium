@@ -222,7 +222,7 @@ test('upgrading a populated prior schema backfills Unicode ordering without losi
   finally { await client.end(); }
   await migrateDatabase(database.databaseUrl);
   store = await AccountStore.open(database);
-  const { sortCards } = await import('../extension/sorting.js');
+  const { sortCards } = await import('../extension/sorting.ts');
   for (const order of ['az', 'za']) {
     assert.deepEqual((await store.listCards(deck.id, { order })).cards.map(card => card.id),
       sortCards(before, order).map(card => card.id));
