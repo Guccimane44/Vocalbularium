@@ -32,6 +32,7 @@ export function CardView({ card, deck, draft, selectedPageId, isNew, editing, bu
   navigate, begin, persist, save, cancel, discardUnavailable, deleteCard, retryPage }: Props) {
   const [retryBusy, setRetryBusy] = useState(false);
   if (!card || !deck) return <>
+    {error && error !== draft?.error && <p className="notice error" role="alert">{error}</p>}
     <h1>Card unavailable</h1>
     <p>This card or deck has been deleted.</p>
     {draft && <>
@@ -47,7 +48,7 @@ export function CardView({ card, deck, draft, selectedPageId, isNew, editing, bu
     ? Object.keys(draft.texts).filter(pageId => !card.pages.some(page => page.page_id === pageId))
     : [];
   return <>
-    {error && <p className="notice error" role="alert">{error}</p>}
+    {error && error !== draft?.error && <p className="notice error" role="alert">{error}</p>}
     <button className="back" onClick={() => navigate(`deck/${deck.id}`)}>← {deck.name}</button>
     <h1>{isNew ? 'A new card.' : 'Card content'}</h1>
     <Status status={card.status} prefix="Card: " />
