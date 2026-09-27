@@ -9,6 +9,7 @@ import {
 } from '@vocabularium/contracts';
 import { apiFailure } from './api-failure.mjs';
 import { isCapturePayload } from './contract-validation.mjs';
+import Type from 'typebox';
 
 const errorResponses = {
   400: ApiFailureSchema,
@@ -18,6 +19,13 @@ const errorResponses = {
   409: ApiFailureSchema,
   500: ApiFailureSchema
 };
+const listQuery = Type.Object({ cursor: Type.Optional(Type.String()), limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 50 })) }, { additionalProperties: false });
+const cardListQuery = Type.Object({
+  cursor: Type.Optional(Type.String()), limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 50 })),
+  order: Type.Optional(Type.Union(['newest', 'oldest', 'az', 'za'].map(value => Type.Literal(value))))
+}, { additionalProperties: false });
+const deckParams = Type.Object({ deckId: Type.String({ minLength: 1 }) });
+const cardParams = Type.Object({ cardId: Type.String({ minLength: 1 }) });
 
 function routeSchema(summary, body, { publicRoute = false, success = JsonObjectSchema, errors = {} } = {}) {
   return {
@@ -74,6 +82,30 @@ export function registerRoutes(fastify, { store, authentication, generation }) {
   fastify.get('/api/account', {
     schema: routeSchema('Read the signed-in account')
   }, async () => store.account());
+
+  fastify.get('/api/account/summary', {
+    schema: routeSchema('Read bounded account and default-deck metadata')
+  }, async () => store.summary());
+
+  fastify.get('/api/decks', {
+    schema: { ...routeSchema('Read one page of deck summaries'), querystring: listQuery }
+  }, async request => store.listDecks(request.query));
+
+  fastify.get('/api/decks/:deckId', {
+    schema: { ...routeSchema('Read one deck configuration'), params: deckParams }
+  }, async request => store.deck(request.params.deckId));
+
+  fastify.get('/api/decks/:deckId/cards', {
+    schema: { ...routeSchema('Read one ordered page of card summaries'), params: deckParams, querystring: cardListQuery }
+  }, async request => store.listCards(request.params.deckId, request.query));
+
+  fastify.get('/api/cards/:cardId', {
+    schema: { ...routeSchema('Read one card and its pages'), params: cardParams }
+  }, async request => store.card(request.params.cardId));
+
+  fastify.get('/api/captures/recent', {
+    schema: routeSchema('Read the twenty most recent saved captures')
+  }, async () => store.recentCaptures());
 
   fastify.post('/api/logout', {
     schema: routeSchema('End the current account session', JsonObjectSchema)

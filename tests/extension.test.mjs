@@ -57,7 +57,9 @@ async function background(t) {
     const overridden = await intercept?.(path, options);
     if (overridden) return overridden;
     if (path === '/api/session') sessionCalls++;
-    const value = path === '/api/login' ? { token: 'test-token' } : path === '/api/account' ? await (accountFetch ? accountFetch() : structuredClone(account)) : {};
+    const value = path === '/api/login' ? { token: 'test-token' }
+      : path === '/api/account/summary' ? await (accountFetch ? accountFetch() : structuredClone(account))
+        : path === '/api/captures/recent' ? { cards: [] } : {};
     return { ok: true, async json() { return value; } };
   };
   t.after(() => { globalThis.chrome = oldChrome; globalThis.fetch = oldFetch; });
@@ -67,6 +69,28 @@ async function background(t) {
 }
 
 const reply = (status, value) => ({ ok: status >= 200 && status < 300, status, async json() { return value; } });
+
+test('account refresh clears only confirmed, unchanged saved capture receipts', async t => {
+  const fixture = await background(t);
+  const { api, send } = fixture;
+  await send({ type: 'login', username: 'admin', password: 'admin' });
+  await api.storage.local.set({
+    'capture-recent': { state: 'saved', cardId: 'recent-card' },
+    'capture-race': { state: 'saved', cardId: 'race-card' },
+    'capture-pending': { state: 'pending', cardId: 'pending-card' }
+  });
+  fixture.intercept(async path => {
+    if (path === '/api/captures/recent') return reply(200, { cards: [{ id: 'recent-card' }] });
+    if (path === '/api/cards/race-card') {
+      await api.storage.local.set({ 'capture-race': { state: 'pending', cardId: 'race-card' } });
+      return reply(200, { id: 'race-card' });
+    }
+  });
+  await send({ type: 'refresh' });
+  assert.equal(api.storage.local.data['capture-recent'], undefined);
+  assert.equal(api.storage.local.data['capture-race'].state, 'pending');
+  assert.equal(api.storage.local.data['capture-pending'].state, 'pending');
+});
 
 test('a capture wakeup during an ending poll starts a fresh result check', async t => {
   const prior = globalThis.chrome;
@@ -140,7 +164,7 @@ test('authentication loss during refresh does not turn an acknowledged mutation 
   let committed = false;
   fixture.intercept(path => {
     if (path === '/api/card/save') { committed = true; return reply(200, { cardId: 'one' }); }
-    if (path === '/api/account' && committed) return reply(401, { error: 'Sign in to continue.', code: 'unauthorized' });
+    if (path === '/api/account/summary' && committed) return reply(401, { error: 'Sign in to continue.', code: 'unauthorized' });
     return null;
   });
   const result = await send({ type: 'save-card', operationId, payload: { cardId: 'one', changes: [] } });

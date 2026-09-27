@@ -21,21 +21,48 @@ export function startBackground() {
       const { auth } = await chrome.storage.local.get('auth');
       if (!auth) return { signedIn: false };
       let account;
-      try { account = await request('/api/account', null, auth.token); }
+      try {
+        const summary = await request('/api/account/summary', null, auth.token);
+        const recent = await request('/api/captures/recent', null, auth.token);
+        account = { ...summary, recentCards: recent.cards, cards: [] };
+      }
       catch (error) {
         if (version !== accessVersion) return { signedIn: false };
         if (error.status === 401) { await removeAccess(); return { signedIn: false }; }
         throw error;
       }
-      return writeState(async () => {
+      const result = await writeState(async () => {
         if (version !== accessVersion) return { signedIn: false };
         // Replace the local capture receipt and its account snapshot together.
         await chrome.storage.local.set({ account, ...(savedCapture ? { [`capture-${savedCapture.operationId}`]: savedCapture } : {}) });
         await updateCaptureMenu(sessionReady ? account : null);
         return version === accessVersion ? { signedIn: true, account } : { signedIn: false };
       });
+      if (result.signedIn) await clearHandedOffCaptures(account, auth.token, version);
+      return result;
     });
     refreshes = next.catch(() => {}); return next;
+  }
+  async function clearHandedOffCaptures(account, token, version) {
+    const local = await chrome.storage.local.get(null);
+    const recentIds = new Set(account.recentCards.map(card => card.id));
+    const confirmed = [];
+    let detailChecks = 0;
+    for (const [key, receipt] of Object.entries(local)) {
+      if (!key.startsWith('capture-') || receipt?.state !== 'saved' || !receipt.cardId) continue;
+      if (recentIds.has(receipt.cardId)) { confirmed.push([key, receipt.cardId]); continue; }
+      if (detailChecks++ >= 10) continue;
+      try {
+        const card = await request(`/api/cards/${encodeURIComponent(receipt.cardId)}`, null, token);
+        if (card.id === receipt.cardId) confirmed.push([key, receipt.cardId]);
+      } catch { /* Keep the receipt until handoff can be confirmed. */ }
+    }
+    if (confirmed.length) await writeState(async () => {
+      if (version !== accessVersion) return;
+      const current = await chrome.storage.local.get(confirmed.map(([key]) => key));
+      const removable = confirmed.filter(([key, cardId]) => current[key]?.state === 'saved' && current[key].cardId === cardId).map(([key]) => key);
+      if (removable.length) await chrome.storage.local.remove(removable);
+    });
   }
   async function request(path, body, token) {
     let response, result;
@@ -140,6 +167,14 @@ export function startBackground() {
     }
     try {
       if (message.type === 'refresh') return sessionReady ? refreshAccount() : initialize();
+      if (message.type === 'deck-detail') return request(`/api/decks/${encodeURIComponent(message.deckId)}`, null, auth.token);
+      if (message.type === 'card-detail') return request(`/api/cards/${encodeURIComponent(message.cardId)}`, null, auth.token);
+      if (message.type === 'deck-page') return request(`/api/decks?cursor=${encodeURIComponent(message.cursor)}`, null, auth.token);
+      if (message.type === 'deck-cards') {
+        const query = new URLSearchParams({ order: message.order ?? 'newest', limit: String(message.limit ?? 30) });
+        if (message.cursor) query.set('cursor', message.cursor);
+        return request(`/api/decks/${encodeURIComponent(message.deckId)}/cards?${query}`, null, auth.token);
+      }
       if (message.type === 'set-default') {
         const operationId = message.operationId ?? crypto.randomUUID();
         const pending = { operationId, path: '/api/default-deck', payload: { operationId, deckId: message.deckId } };

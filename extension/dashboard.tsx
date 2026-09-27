@@ -1,8 +1,7 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import type { MouseEvent as ReactMouseEvent, ReactNode } from 'react';
-import type { DeckLayout } from '@vocabularium/contracts';
 import { dialog } from './dialog.js';
-import { SORT_ORDERS, sortCards } from './sorting.js';
+import { SORT_ORDERS } from './sorting.js';
 
 type Status = 'completed' | 'loading' | 'failed' | null;
 
@@ -18,15 +17,20 @@ export type DashboardCard = {
 export type DashboardAccount = {
   defaultDeckId: string;
   decks: DashboardDeck[];
-  cards: DashboardCard[];
+  nextCursor?: string | null;
+  recentCards: DashboardCard[];
+  sequence: number;
 };
 
-type DashboardDeck = DeckLayout & { id: string };
+type DashboardDeck = { id: string; name: string; pageCount: number; cardCount: number };
+type CardPage = { cards: DashboardCard[]; nextCursor: string | null };
+type DeckPage = { decks: DashboardDeck[]; nextCursor: string | null };
 
 type CaptureReceipt = {
   operationId: string;
   state: 'saving' | 'pending' | 'saved';
   createdAt: string;
+  cardId?: string;
   error?: string | null;
   payload: { selectedText: string; snapshot: { id: string } };
 };
@@ -41,6 +45,8 @@ export type DashboardProps = {
   focusedMenu?: string;
   showPendingSaves: boolean;
   error?: string;
+  loadCards: (deckId: string, order: string, cursor?: string) => Promise<CardPage>;
+  loadDecks: (cursor: string) => Promise<DeckPage>;
   navigate: (hash: string) => void;
   configure: (id: string) => void;
   mutate: (command: Command) => Promise<void>;
@@ -98,7 +104,9 @@ function PendingSaveNotices({ local, mutate, reportError }: Pick<DashboardProps,
   </div>)}</>;
 }
 
-function DeckMenu({ deck, account, configure, mutate, reportError }: Pick<DashboardProps, 'account' | 'configure' | 'mutate' | 'reportError'> & { deck: DashboardDeck }) {
+function DeckMenu({ deck, account, replacementDecks, replacementCursor, loadDecks, configure, mutate, reportError }:
+  Pick<DashboardProps, 'account' | 'loadDecks' | 'configure' | 'mutate' | 'reportError'> &
+  { deck: DashboardDeck; replacementDecks: DashboardDeck[]; replacementCursor: string | null }) {
   const menu = useRef<HTMLDetailsElement>(null);
   const summary = useRef<HTMLElement>(null);
   const close = () => { if (menu.current) menu.current.open = false; summary.current?.focus(); };
@@ -107,12 +115,19 @@ function DeckMenu({ deck, account, configure, mutate, reportError }: Pick<Dashbo
     try { await run(); } catch (error) { reportError(error); }
   };
   const deleteDeck = action(async () => {
-    const replacements = deck.id === account.defaultDeckId ? account.decks.filter(item => item.id !== deck.id) : [];
+    const replacements = deck.id === account.defaultDeckId ? replacementDecks.filter(item => item.id !== deck.id) : [];
     const decision = await dialog({
       title: 'Delete deck?',
-      message: `“${deck.name}” and all its cards will be deleted.${account.decks.length === 1 ? ' A new empty My Deck will replace it.' : ''}`,
+      message: `“${deck.name}” and all its cards will be deleted.${replacementDecks.length === 1 && !replacementCursor ? ' A new empty My Deck will replace it.' : ''}`,
       choices: ['Cancel', 'Delete deck'],
-      select: replacements.length ? { label: 'New default deck', options: replacements.map(item => ({ value: item.id, label: item.name })) } : undefined
+      select: replacements.length || replacementCursor ? {
+        label: 'New default deck', options: replacements.map(item => ({ value: item.id, label: item.name })),
+        cursor: replacementCursor,
+        loadMore: async (cursor: string) => {
+          const page = await loadDecks(cursor);
+          return { options: page.decks.filter(item => item.id !== deck.id).map(item => ({ value: item.id, label: item.name })), nextCursor: page.nextCursor };
+        }
+      } : undefined
     });
     if (decision.choice !== 'Delete deck') return;
     await mutate({ type: 'delete-deck', payload: { deckId: deck.id, replacementId: decision.value } });
@@ -149,24 +164,49 @@ function CardRow({ card, index, navigate }: { card: DashboardCard; index: number
   </tr>;
 }
 
-function DeckList({ deck, account, navigate, configure, mutate, reportError }: Omit<DashboardProps, 'local' | 'deckId' | 'focusedMenu' | 'showPendingSaves' | 'error'> & { deck: DashboardDeck }) {
+function DeckList({ deck, account, navigate, configure, mutate, reportError, loadCards, loadDecks }: Omit<DashboardProps, 'local' | 'deckId' | 'focusedMenu' | 'showPendingSaves' | 'error'> & { deck: DashboardDeck }) {
   const [order, setOrder] = useState(() => localStorage.getItem(`sort-${deck.id}`) ?? 'newest');
-  const cards = sortCards(account.cards.filter(card => card.deck_id === deck.id), order) as DashboardCard[];
+  const [cards, setCards] = useState<DashboardCard[]>([]);
+  const [cursor, setCursor] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    let active = true;
+    setCards([]);
+    setLoading(true);
+    void loadCards(deck.id, order).then(page => {
+      if (active) { setCards(page.cards); setCursor(page.nextCursor); setLoading(false); }
+    }).catch(error => { if (active) { setLoading(false); reportError(error); } });
+    return () => { active = false; };
+  }, [deck.id, order, account.sequence, loadCards, reportError]);
+  async function more() {
+    if (!cursor || loading) return;
+    setLoading(true);
+    try {
+      const page = await loadCards(deck.id, order, cursor);
+      setCards(previous => [...previous, ...page.cards]); setCursor(page.nextCursor);
+    } catch (error) {
+      if ((error as { code?: string }).code === 'stale_cursor') {
+        const page = await loadCards(deck.id, order);
+        setCards(page.cards); setCursor(page.nextCursor);
+      } else reportError(error);
+    } finally { setLoading(false); }
+  }
   return <>
     <button className="back" onClick={() => navigate('')}>← All decks</button>
     <p className="eyebrow">YOUR COLLECTION</p>
     <h1>{deck.name}</h1>
-    <DeckMenu deck={deck} account={account} configure={configure} mutate={mutate} reportError={reportError} />
+    <DeckMenu deck={deck} account={account} replacementDecks={account.decks} replacementCursor={account.nextCursor ?? null} loadDecks={loadDecks} configure={configure} mutate={mutate} reportError={reportError} />
     <button className="primary" onClick={() => navigate(`new-card/${deck.id}`)}>Add card manually</button>
     <label htmlFor="card-sort">Sort cards</label>
     <select id="card-sort" value={order} onChange={event => { localStorage.setItem(`sort-${deck.id}`, event.target.value); setOrder(event.target.value); }}>
       {SORT_ORDERS.map(([value, label]) => <option value={value} key={value}>{label}</option>)}
     </select>
-    {!cards.length ? <div className="empty">No cards in this deck yet.</div> :
+    {!cards.length ? <div className="empty">{loading ? 'Loading cards…' : 'No cards in this deck yet.'}</div> :
       <table className="list"><tbody>
         <tr><th>Index</th><th>Entry</th></tr>
         {cards.map((card, index) => <CardRow card={card} index={index} navigate={navigate} key={card.id} />)}
       </tbody></table>}
+    {cursor && <button disabled={loading} onClick={() => void more()}>Load more cards</button>}
   </>;
 }
 
@@ -177,20 +217,24 @@ function RecentCaptures({ account, local, navigate, mutate, reportError }: Pick<
     .filter(([key, item]) => key.startsWith('capture-') && isCaptureReceipt(item))
     .map(([, item]) => item as CaptureReceipt);
   const entries: CaptureEntry[] = [
-    ...receipts.filter(item => item.state !== 'saved').map(item => ({ key: `receipt-${item.operationId}`, receipt: item, text: item.payload.selectedText, deckId: item.payload.snapshot.id, date: item.createdAt })),
-    ...account.cards.filter(card => card.selected_text !== null).map(card => ({ key: `card-${card.id}`, card, text: card.selected_text!, deckId: card.deck_id, date: card.created_at }))
-  ].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 20);
+    ...receipts.filter(item => item.state !== 'saved' || !account.recentCards.some(card => card.id === item.cardId))
+      .map(item => ({ key: `receipt-${item.operationId}`, receipt: item, text: item.payload.selectedText, deckId: item.payload.snapshot.id, date: item.createdAt })),
+    ...account.recentCards.filter(card => card.selected_text !== null).map(card => ({ key: `card-${card.id}`, card, text: card.selected_text!, deckId: card.deck_id, date: card.created_at }))
+  ].sort((a, b) => b.date.localeCompare(a.date));
   return <>
     <h2 className="section-title">Recent captures</h2>
     {entries.map(entry => {
-      const state = entry.card?.status ?? (entry.receipt?.state === 'saving' ? 'loading' : entry.receipt ? 'failed' : null);
+      const state = entry.card?.status ?? (entry.receipt?.state === 'saving' ? 'loading' : entry.receipt?.state === 'pending' ? 'failed' : null);
       const deck = account.decks.find(item => item.id === entry.deckId);
       return <article className="capture state-row" data-state={state ?? 'neutral'} key={entry.key}>
         <StatusIcon status={state} description={entry.receipt ? entry.receipt.state === 'saving' ? 'Pending' : 'Not saved to your account' : undefined} />
         <p className="capture-text">{entry.text}</p>
         {deck && <button onClick={() => navigate(`deck/${deck.id}`)}>{deck.name}</button>}
         {entry.card ? <button onClick={() => navigate(`card/${entry.card!.id}`)}>Open card</button> : <>
-          {entry.receipt?.state !== 'saving' && <p className="muted">Not saved to your account.</p>}
+          {entry.receipt?.state === 'saved' ? <>
+            <p className="muted">Saved to your account.</p>
+            {entry.receipt.cardId && <button onClick={() => navigate(`card/${entry.receipt!.cardId}`)}>Open card</button>}
+          </> : entry.receipt?.state !== 'saving' && <p className="muted">Not saved to your account.</p>}
           {entry.receipt?.error && <p className="error">{entry.receipt.error}</p>}
           {entry.receipt?.state === 'pending' && <RecoveryButton operationId={entry.receipt.operationId} mutate={mutate} reportError={reportError} />}
         </>}
@@ -199,28 +243,41 @@ function RecentCaptures({ account, local, navigate, mutate, reportError }: Pick<
   </>;
 }
 
-function DeckGrid({ account, local, navigate, configure, mutate, reportError }: Pick<DashboardProps, 'account' | 'local' | 'navigate' | 'configure' | 'mutate' | 'reportError'>) {
+function DeckGrid({ account, local, navigate, configure, mutate, reportError, loadDecks }: Pick<DashboardProps, 'account' | 'local' | 'navigate' | 'configure' | 'mutate' | 'reportError' | 'loadDecks'>) {
+  const [additional, setAdditional] = useState<DashboardDeck[]>([]);
+  const [cursor, setCursor] = useState(account.nextCursor ?? null);
+  const [loading, setLoading] = useState(false);
+  useEffect(() => { setAdditional([]); setCursor(account.nextCursor ?? null); }, [account.sequence, account.nextCursor]);
+  const decks = [...account.decks, ...additional];
+  async function more() {
+    if (!cursor || loading) return;
+    setLoading(true);
+    try { const page = await loadDecks(cursor); setAdditional(value => [...value, ...page.decks]); setCursor(page.nextCursor); }
+    catch (error) { reportError(error); }
+    finally { setLoading(false); }
+  }
   return <>
     <h1>Your decks.</h1>
     <p className="muted">Keep the words and expressions you want to come back to.</p>
     <button className="primary" onClick={() => configure('new')}>Add new deck</button>
     <div className="grid">
-      {account.decks.map(deck => <article className="deck" key={deck.id}>
+      {decks.map(deck => <article className="deck" key={deck.id}>
         <button className="open" onClick={() => navigate(`deck/${deck.id}`)}>
           <h2>{deck.name}</h2>
-          <p className="muted">{account.cards.filter(card => card.deck_id === deck.id).length} cards · {deck.pages.length} pages</p>
+          <p className="muted">{deck.cardCount} cards · {deck.pageCount} pages</p>
         </button>
         <footer>
           {deck.id === account.defaultDeckId && <span className="badge">DEFAULT DECK</span>}
-          <DeckMenu deck={deck} account={account} configure={configure} mutate={mutate} reportError={reportError} />
+          <DeckMenu deck={deck} account={account} replacementDecks={decks} replacementCursor={cursor} loadDecks={loadDecks} configure={configure} mutate={mutate} reportError={reportError} />
         </footer>
       </article>)}
     </div>
+    {cursor && <button disabled={loading} onClick={() => void more()}>Load more decks</button>}
     <RecentCaptures account={account} local={local} navigate={navigate} mutate={mutate} reportError={reportError} />
   </>;
 }
 
-export function Dashboard({ account, local, deckId, focusedMenu, showPendingSaves, error, navigate, configure, mutate, reportError }: DashboardProps) {
+export function Dashboard({ account, local, deckId, focusedMenu, showPendingSaves, error, navigate, configure, mutate, reportError, loadCards, loadDecks }: DashboardProps) {
   useEffect(() => {
     const closeOutside = (event: PointerEvent) => {
       for (const menu of document.querySelectorAll<HTMLDetailsElement>('.deck-menu[open]')) if (!menu.contains(event.target as Node)) menu.open = false;
@@ -233,8 +290,8 @@ export function Dashboard({ account, local, deckId, focusedMenu, showPendingSave
   }, [account, deckId, focusedMenu]);
   const deck = deckId ? account.decks.find(item => item.id === deckId) : undefined;
   let content: ReactNode;
-  if (deck) content = <DeckList key={deck.id} deck={deck} account={account} navigate={navigate} configure={configure} mutate={mutate} reportError={reportError} />;
-  else content = <DeckGrid account={account} local={local} navigate={navigate} configure={configure} mutate={mutate} reportError={reportError} />;
+  if (deck) content = <DeckList key={deck.id} deck={deck} account={account} navigate={navigate} configure={configure} mutate={mutate} reportError={reportError} loadCards={loadCards} loadDecks={loadDecks} />;
+  else content = <DeckGrid account={account} local={local} navigate={navigate} configure={configure} mutate={mutate} reportError={reportError} loadDecks={loadDecks} />;
   return <>
     {error && <p className="notice error" role="alert">{error}</p>}
     {content}

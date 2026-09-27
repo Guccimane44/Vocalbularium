@@ -255,7 +255,7 @@ test('recent captures: the pending receipt hands off to its account card without
   const handler = application.server.listeners('request')[0];
   application.server.removeListener('request', handler);
   application.server.on('request', async (request, response) => {
-    if (holdAccounts && request.url === '/api/account' && (await application.store.cards()).length) {
+    if (holdAccounts && request.url === '/api/account/summary' && (await application.store.cards()).length) {
       heldAccounts.push(() => handler(request, response)); return;
     }
     handler(request, response);
@@ -422,6 +422,24 @@ test('deck menus: card-list actions, Escape, cancellation, replacement and sole-
   await a.page.getByRole('heading', { name: 'Your decks.' }).waitFor();
   assert.notEqual((await application.store.snapshot()).id, original);
   assert.equal((await application.store.account()).decks.length, 1);
+});
+
+test('default-deck deletion can choose a replacement beyond the first deck page', { timeout: 35000 }, async t => {
+  const directory = await mkdtemp(join(tmpdir(), 'vocabularium-deck-pages-'));
+  const application = await createTestApplication(t); await application.start();
+  let last;
+  for (let index = 0; index < 45; index++) last = await application.store.createDeck(`Deck ${index}`);
+  const a = await launch(join(directory, 'a'));
+  t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
+  await signIn(a.page);
+  await a.page.getByLabel('Options for My Deck').click();
+  await a.page.getByRole('button', { name: 'Delete deck', exact: true }).click();
+  const modal = a.page.getByRole('dialog');
+  assert.equal(await modal.getByLabel('New default deck').locator('option').count(), 39);
+  await modal.getByRole('button', { name: 'Load more decks' }).click();
+  await modal.getByLabel('New default deck').selectOption({ label: 'Deck 44' });
+  await modal.getByRole('button', { name: 'Delete deck', exact: true }).click();
+  await waitFor(async () => (await application.store.account()).defaultDeckId === last.id, 'later-page replacement saved');
 });
 
 test('appearance: all open views, drafts, dialogs, feedback lifetime, logout and browser restart', { timeout: 45000 }, async (t) => {
@@ -591,10 +609,10 @@ test('card rows: accessible states, sorting, every pointer target, text selectio
   }
   for (const order of ['newest', 'oldest', 'az', 'za']) {
     await a.page.getByLabel('Sort cards', { exact: true }).selectOption(order);
-    assert.deepEqual(await a.page.locator('table tr td:first-child').allTextContents(), ['001', '002', '003', '004']);
-    const rendered = await a.page.locator('tr[data-card-id]').evaluateAll(rows => rows.map(row => row.dataset.cardId));
     const { sortCards } = await import('../extension/sorting.js');
-    assert.deepEqual(rendered, sortCards((await store.cards()), order).map(card => card.id));
+    const expected = sortCards((await store.cards()), order).map(card => card.id);
+    await waitFor(async () => JSON.stringify(await a.page.locator('tr[data-card-id]').evaluateAll(rows => rows.map(row => row.dataset.cardId))) === JSON.stringify(expected), `${order} card order loaded`);
+    assert.deepEqual(await a.page.locator('table tr td:first-child').allTextContents(), ['001', '002', '003', '004']);
   }
   for (const target of ['index', 'entry', 'cue', 'space', 'keyboard']) {
     const completed = row('completed');
@@ -683,9 +701,11 @@ test('manual card UI: multi-page drafts, leave choices, sorting, failed-save rec
   await a.page.getByRole('button', { name: 'Edit card manually', exact: true }).waitFor();
   await a.page.getByRole('button', { name: '← My Deck', exact: true }).click();
   await a.page.getByLabel('Sort cards', { exact: true }).selectOption('az');
+  await waitFor(async () => JSON.stringify(await a.page.locator('table .entry').allTextContents()) === JSON.stringify(['Empty front page', 'alpha']), 'ascending card page loaded');
   assert.deepEqual(await a.page.locator('table .entry').allTextContents(), ['Empty front page', 'alpha']);
   assert.deepEqual(await a.page.locator('table tr td:first-child').allTextContents(), ['001', '002']);
   await a.page.getByLabel('Sort cards', { exact: true }).selectOption('za');
+  await waitFor(async () => JSON.stringify(await a.page.locator('table .entry').allTextContents()) === JSON.stringify(['alpha', 'Empty front page']), 'descending card page loaded');
   assert.deepEqual(await a.page.locator('table .entry').allTextContents(), ['alpha', 'Empty front page']);
   await a.page.getByRole('button', { name: 'alpha', exact: true }).click();
   await a.page.getByRole('button', { name: 'Edit card manually', exact: true }).click();

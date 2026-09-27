@@ -1,6 +1,7 @@
 import { Postgres, OWNER_ACCOUNT_ID } from '../persistence/postgres.ts';
 import { createHash, randomUUID } from 'node:crypto';
 import { MODULES } from './modules.mjs';
+import { frontSortKey } from './sort-key.mjs';
 /** @typedef {import('./store-records.js').CardRow} CardRow */
 /** @typedef {import('./store-records.js').PageRow} PageRow */
 /** @typedef {import('./store-records.js').AttemptRow} AttemptRow */
@@ -9,6 +10,37 @@ export class StoreError extends Error {
   constructor(code, message, details) { super(message); this.code = code; this.details = details; }
 }
 const fail = (code, message) => { throw new StoreError(code, message); };
+const encodeCursor = value => Buffer.from(JSON.stringify(value)).toString('base64url');
+function decodeCursor(value, kind, sequence) {
+  if (!value) return null;
+  if (typeof value !== 'string' || value.length > 2048 || !/^[A-Za-z0-9_-]+$/.test(value)) fail('invalid', 'The list cursor is invalid.');
+  let cursor;
+  try { cursor = JSON.parse(Buffer.from(value, 'base64url').toString('utf8')); }
+  catch { fail('invalid', 'The list cursor is invalid.'); }
+  if (!cursor || cursor.v !== 1 || cursor.kind !== kind || typeof cursor.id !== 'string' ||
+    (typeof cursor.key !== 'string' && typeof cursor.key !== 'number') || !Number.isSafeInteger(cursor.sequence)) {
+    fail('invalid', 'The list cursor is invalid.');
+  }
+  if (cursor.sequence !== sequence) fail('stale_cursor', 'The list changed. Start from its first page again.');
+  return cursor;
+}
+function pageLimit(value, fallback, maximum) {
+  if (value === undefined) return fallback;
+  const limit = Number(value);
+  if (!Number.isSafeInteger(limit) || limit < 1 || limit > maximum) fail('invalid', `Choose a page size from 1 to ${maximum}.`);
+  return limit;
+}
+const summaryFields = `b.id, b.deck_id, b.selected_text, b.created_at, b.front_sort_key,
+  p.page_id AS front_page_id, COALESCE(p.text, '') AS front_text, p.status AS front_status,
+  (SELECT CASE WHEN BOOL_OR(q.status = 'failed') THEN 'failed'
+    WHEN BOOL_OR(q.status = 'loading') THEN 'loading'
+    WHEN COUNT(q.status) > 0 THEN 'completed' ELSE NULL END
+    FROM pages q WHERE q.card_id = b.id) AS status`;
+const summaryJoin = `LEFT JOIN layout_pages l ON l.deck_id = b.deck_id AND l.position = 0
+  LEFT JOIN pages p ON p.card_id = b.id AND p.page_id = l.id`;
+const cardSummary = row => ({ id: row.id, deck_id: row.deck_id, selected_text: row.selected_text,
+  created_at: row.created_at, status: row.status,
+  pages: [{ page_id: row.front_page_id, text: row.front_text, status: row.front_status }] });
 function canonical(value) {
   if (Array.isArray(value)) return value.map(canonical);
   if (value && typeof value === 'object') {
@@ -122,6 +154,90 @@ export class AccountStore {
       for (const { id } of await this.database.all('SELECT id FROM decks ORDER BY ordinal')) decks.push(await this.deck(id));
       const { sequence } = await this.database.one("SELECT COALESCE(MAX(sequence), 0) AS sequence FROM receipts", []);
       return { defaultDeckId, decks, cards: (await this.cards()), sequence: Number(sequence) };
+    });
+  }
+  async readSequence() {
+    const { sequence } = await this.database.one('SELECT COALESCE(MAX(sequence), 0) AS sequence FROM receipts');
+    return Number(sequence);
+  }
+  async listDecks({ cursor, limit } = {}) {
+    return this.database.transaction(async () => {
+      const size = pageLimit(limit, 40, 50);
+      const sequence = await this.readSequence();
+      const after = decodeCursor(cursor, 'decks', sequence);
+      if (after && (!Number.isSafeInteger(after.key) || after.key < 0)) fail('invalid', 'The list cursor is invalid.');
+      const rows = await this.database.all(`WITH bounded AS MATERIALIZED (
+        SELECT id, name, ordinal FROM decks WHERE ordinal > $1 ORDER BY ordinal LIMIT $2
+      ) SELECT b.id, b.name, b.ordinal,
+        (SELECT COUNT(*) FROM layout_pages WHERE deck_id = b.id) AS page_count,
+        (SELECT COUNT(*) FROM cards WHERE deck_id = b.id) AS card_count
+        FROM bounded b ORDER BY b.ordinal`, [after?.key ?? 0, size + 1]);
+      const visible = rows.slice(0, size);
+      return {
+        decks: visible.map(row => ({ id: row.id, name: row.name, pageCount: Number(row.page_count), cardCount: Number(row.card_count) })),
+        nextCursor: rows.length > size ? encodeCursor({ v: 1, kind: 'decks', sequence, key: visible.at(-1).ordinal, id: visible.at(-1).id }) : null,
+        sequence
+      };
+    });
+  }
+  async summary() {
+    return this.database.transaction(async () => {
+      const { default_deck_id: defaultDeckId } = await this.database.one('SELECT default_deck_id FROM account WHERE id = $1', [this.accountId]);
+      const listed = await this.listDecks();
+      return { defaultDeckId, defaultDeckSnapshot: await this.deck(defaultDeckId), ...listed };
+    });
+  }
+  async syncFrontSortKey(cardId) {
+    const front = await this.database.one(`SELECT p.text FROM pages p JOIN layout_pages l ON l.id = p.page_id
+      WHERE p.card_id = $1 AND l.position = 0`, [cardId]);
+    await this.database.run('UPDATE cards SET front_sort_key = $1 WHERE id = $2', [frontSortKey(front?.text ?? ''), cardId]);
+  }
+  async listCards(deckId, { order = 'newest', cursor, limit } = {}) {
+    return this.database.transaction(async () => {
+      await this.deck(deckId);
+      const size = pageLimit(limit, 30, 50);
+      if (!['newest', 'oldest', 'az', 'za'].includes(order)) fail('invalid', 'Choose a supported card order.');
+      const sequence = await this.readSequence();
+      const after = decodeCursor(cursor, `cards:${deckId}:${order}`, sequence);
+      if (after && typeof after.key !== 'string') fail('invalid', 'The list cursor is invalid.');
+      const alphabetic = order === 'az' || order === 'za';
+      const column = alphabetic ? 'c.front_sort_key' : 'c.created_at COLLATE "C"';
+      const direction = order === 'newest' || order === 'za' ? 'DESC' : 'ASC';
+      const values = [deckId];
+      let afterClause = '';
+      if (after) {
+        values.push(alphabetic ? Buffer.from(after.key, 'base64url') : after.key, after.id);
+        afterClause = `AND (${column} ${direction === 'ASC' ? '>' : '<'} $2 OR
+          (${column} = $2 AND c.id COLLATE "C" > $3 COLLATE "C"))`;
+      }
+      values.push(size + 1);
+      const boundedOrder = `${column} ${direction}, c.id COLLATE "C" ASC`;
+      const outerColumn = alphabetic ? 'b.front_sort_key' : 'b.created_at COLLATE "C"';
+      const rows = await this.database.all(`WITH bounded AS MATERIALIZED (
+        SELECT c.id, c.deck_id, c.selected_text, c.created_at, c.front_sort_key
+        FROM cards c WHERE c.deck_id = $1 ${afterClause}
+        ORDER BY ${boundedOrder} LIMIT $${values.length}
+      ) SELECT ${summaryFields} FROM bounded b ${summaryJoin}
+        ORDER BY ${outerColumn} ${direction}, b.id COLLATE "C" ASC`, values);
+      const visible = rows.slice(0, size);
+      const last = visible.at(-1);
+      return {
+        cards: visible.map(cardSummary),
+        nextCursor: rows.length > size ? encodeCursor({ v: 1, kind: `cards:${deckId}:${order}`, sequence,
+          key: alphabetic ? last.front_sort_key.toString('base64url') : last.created_at, id: last.id }) : null,
+        sequence
+      };
+    });
+  }
+  async recentCaptures() {
+    return this.database.transaction(async () => {
+      const rows = await this.database.all(`WITH bounded AS MATERIALIZED (
+        SELECT c.id, c.deck_id, c.selected_text, c.created_at, c.front_sort_key
+        FROM cards c WHERE c.selected_text IS NOT NULL
+        ORDER BY c.created_at COLLATE "C" DESC, c.id COLLATE "C" ASC LIMIT 20
+      ) SELECT ${summaryFields} FROM bounded b ${summaryJoin}
+        ORDER BY b.created_at COLLATE "C" DESC, b.id COLLATE "C" ASC`);
+      return { cards: rows.map(cardSummary), sequence: await this.readSequence() };
     });
   }
   async setDefault(operationId, deckId) {
@@ -252,6 +368,7 @@ export class AccountStore {
     await this.database.run(`INSERT INTO attempts
       (id, card_id, page_id, installation_id, session_id, epoch, modules) VALUES ($1, $2, $3, $4, $5, $6, $7)`, [attemptId, cardId, pageId, session.installationId, session.sessionId, session.epoch, JSON.stringify(modules)]);
     await this.database.run("UPDATE pages SET text = '', status = 'loading', attempt_id = $1 WHERE card_id = $2 AND page_id = $3", [attemptId, cardId, pageId]);
+    await this.syncFrontSortKey(cardId);
     return attemptId;
   }
   async attempt(id) {
@@ -311,6 +428,7 @@ export class AccountStore {
         WHERE card_id = $3 AND page_id = $4 AND attempt_id = $5 AND status = 'loading'`, [text, state, attempt.card_id, attempt.page_id, attemptId]);
       if (!changed.rowCount) fail('stale_attempt', 'The page has moved on to another attempt.');
       await this.database.run("UPDATE attempts SET state = $1, result = NULL WHERE id = $2", [state, attemptId]);
+      await this.syncFrontSortKey(attempt.card_id);
       return { cardId: attempt.card_id, pageId: attempt.page_id, state };
     });
   }
@@ -327,6 +445,7 @@ export class AccountStore {
       }
       for (const change of changes)
         await this.database.run("UPDATE pages SET text = $1 WHERE card_id = $2 AND page_id = $3", [change.text, cardId, change.pageId]);
+      if (changes.length) await this.syncFrontSortKey(cardId);
       return { cardId };
     });
   }
@@ -340,6 +459,7 @@ export class AccountStore {
       await this.database.run("INSERT INTO cards (id, deck_id, selected_text, created_at) VALUES ($1, $2, NULL, $3)", [id, deckId, new Date().toISOString()]);
       for (const page of deck.pages)
         await this.database.run("INSERT INTO pages (card_id, page_id, text) VALUES ($1, $2, $3)", [id, page.id, pages.find(draft => draft.pageId === page.id)?.text ?? '']);
+      await this.syncFrontSortKey(id);
       return { cardId: id };
     });
   }

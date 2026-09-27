@@ -1,5 +1,7 @@
 import { sql } from 'drizzle-orm';
-import { pgTable, text, integer, bigint, bigserial, primaryKey, check, index, unique } from 'drizzle-orm/pg-core';
+import { pgTable, text, integer, bigint, bigserial, primaryKey, check, index, unique, customType } from 'drizzle-orm/pg-core';
+
+const bytea = customType<{ data: Buffer }>({ dataType: () => 'bytea' });
 
 // The local owner-testing account is deliberately a singleton. This is not a
 // multi-tenant authorization schema. Stable text IDs preserve the wire contract.
@@ -18,8 +20,16 @@ export const installations = pgTable('installations', {
 }, table => [check('session_epoch', sql`${table.epoch} > 0`)]);
 export const cards = pgTable('cards', {
   id: text().primaryKey(), deck_id: text().notNull().references(() => decks.id, { onDelete: 'cascade' }),
-  selected_text: text(), created_at: text().notNull(), interpretation: text()
-}, table => [index('cards_deck_created').on(table.deck_id, table.created_at, table.id)]);
+  selected_text: text(), created_at: text().notNull(), interpretation: text(),
+  front_sort_key: bytea().notNull().default(sql`'\\x'::bytea`)
+}, table => [
+  index('cards_deck_created').on(table.deck_id, table.created_at, table.id),
+  index('cards_deck_created_desc_id').on(table.deck_id, sql`${table.created_at} COLLATE "C" DESC`, sql`${table.id} COLLATE "C" ASC`),
+  index('cards_deck_created_asc_id').on(table.deck_id, sql`${table.created_at} COLLATE "C" ASC`, sql`${table.id} COLLATE "C" ASC`),
+  index('cards_deck_front_asc_id').on(table.deck_id, table.front_sort_key, sql`${table.id} COLLATE "C" ASC`),
+  index('cards_deck_front_desc_id').on(table.deck_id, sql`${table.front_sort_key} DESC`, sql`${table.id} COLLATE "C" ASC`),
+  index('cards_recent_captures').on(sql`${table.created_at} COLLATE "C" DESC`, sql`${table.id} COLLATE "C" ASC`).where(sql`${table.selected_text} IS NOT NULL`)
+]);
 export const pages = pgTable('pages', {
   card_id: text().notNull().references(() => cards.id, { onDelete: 'cascade' }),
   page_id: text().notNull().references(() => layoutPages.id, { onDelete: 'cascade' }),

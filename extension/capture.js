@@ -46,7 +46,7 @@ export function captureRuntime({ request, initialize, refresh, removeAccess, sav
     const [{ auth, account }, { session }] = await Promise.all([
       chrome.storage.local.get(['auth', 'account']), chrome.storage.session.get('session')
     ]);
-    const snapshot = account?.decks.find(deck => deck.id === account.defaultDeckId);
+    const snapshot = account?.defaultDeckSnapshot ?? account?.decks.find(deck => deck.id === account.defaultDeckId);
     if (!auth || !session || !snapshot || typeof info.selectionText !== 'string' || !info.selectionText.length) {
       await showFeedback(tab.id, 'Capture unavailable. Open Vocabularium to sign in.', true, info.pageUrl ?? tab.url); return;
     }
