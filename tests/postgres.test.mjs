@@ -202,6 +202,34 @@ test('reapplying reviewed migrations preserves an initialized database and opera
   assert.equal((await store.cards()).length, 1);
 });
 
+test('upgrading a populated prior schema backfills Unicode ordering without losing cards or receipts', async t => {
+  const database = await createTestDatabase(t);
+  let store = await AccountStore.open(database); database.resources.push({ close: () => store.close() });
+  const deck = await store.snapshot();
+  for (const [index, text] of ['😀', 'Ä', 'ａ', '\uE000'].entries()) {
+    await store.createManual(`prior-card-${index}`, { deckId: deck.id, pages: [{ pageId: deck.pages[0].id, text }] });
+  }
+  const before = await store.cards();
+  await store.close();
+  const client = new pg.Client({ connectionString: database.databaseUrl }); await client.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query('DROP INDEX cards_deck_created_desc_id, cards_deck_created_asc_id, cards_deck_front_asc_id, cards_deck_front_desc_id, cards_recent_captures');
+    await client.query('ALTER TABLE cards DROP COLUMN front_sort_key');
+    await client.query('DELETE FROM drizzle.__drizzle_migrations WHERE created_at = (SELECT MAX(created_at) FROM drizzle.__drizzle_migrations)');
+    await client.query('COMMIT');
+  } catch (error) { await client.query('ROLLBACK'); throw error; }
+  finally { await client.end(); }
+  await migrateDatabase(database.databaseUrl);
+  store = await AccountStore.open(database);
+  const { sortCards } = await import('../extension/sorting.ts');
+  for (const order of ['az', 'za']) {
+    assert.deepEqual((await store.listCards(deck.id, { order })).cards.map(card => card.id),
+      sortCards(before, order).map(card => card.id));
+  }
+  assert.equal((await store.createManual('prior-card-0', { deckId: deck.id, pages: [{ pageId: deck.pages[0].id, text: '😀' }] })).replayed, true);
+});
+
 test('test fixtures and restore tooling refuse the development database as a reset target', async t => {
   const previous = process.env.TEST_DATABASE_ADMIN_URL;
   process.env.TEST_DATABASE_ADMIN_URL = 'postgresql://vocabularium_test@127.0.0.1:5432/vocabularium_dev';

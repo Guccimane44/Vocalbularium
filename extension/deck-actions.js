@@ -1,4 +1,4 @@
-import { dialog } from './dialog.js';
+import { dialog } from './dialog.ts';
 
 // A native disclosure keeps normal Tab/Enter navigation for its action buttons.
 export function deckActions({ deck, getAccount, element, button, send, applyState, configure, showError }) {

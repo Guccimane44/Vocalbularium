@@ -1,4 +1,4 @@
-# Local PostgreSQL development (v0.3.0, Stage 4)
+# Local PostgreSQL development (v0.3.0)
 
 The API now requires Node 24 and PostgreSQL 18. PostgreSQL is its only runtime database. The Drizzle schema is in `src/persistence/schema.ts`; reviewed SQL and migration metadata are in `migrations/`. Current product behavior remains governed by the [MVP scope](../MVP-Product-scope.md) and [Select and Add](../MVP-Product-spec-select-and-add.md).
 
@@ -81,7 +81,7 @@ npm run db:restore -- .data/development-backup.dump vocabularium_restore_review
 
 Backup refuses an existing output path and creates a private custom-format dump. Restore creates a **new** database owned by the test role; it accepts only `vocabularium_restore_*` names and never drops or overwrites a database. The archive excludes ownership/grants. Inspect a restored database with the test role, using its generated password locally without sharing the connection URL. A failed restore leaves its new database available for diagnosis. Confirm application login, default-deck/page relationships, representative card text, and operation replay before using restored data. Do not overwrite the live development database as a restore test.
 
-A Stage 4 rehearsal restored the fresh development seed and verified its relationships and login. This establishes the commands, not the final release's populated-account/machine-restart acceptance; see the [Stage 4 evidence](../evidence/v0.3.0-stage4-postgresql.md).
+The [Stage 4 rehearsal](../evidence/v0.3.0-stage4-postgresql.md) restored the fresh development seed. The [Stage 7 rehearsal](../evidence/v0.3.0-stage7-local-candidate.md) additionally restored the current development backup and a separate populated synthetic account, then verified login, relationships, representative text and operation replay. The agent rehearsal did not include a physical machine reboot or native Windows PostgreSQL/browser run. The owner accepted Stage 7 without supplying itemized results of those checks; native Windows behavior remains unverified in this record.
 
 ## References
 

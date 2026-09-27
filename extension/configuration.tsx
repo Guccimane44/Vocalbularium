@@ -3,7 +3,7 @@ import type { DeckEditorDraft } from '../types/editor-drafts.js';
 import type { DeckLayout } from '@vocabularium/contracts';
 import { MODULES } from '@vocabularium/domain/modules';
 import type { ModuleType } from '@vocabularium/domain/modules';
-import { dialog } from './dialog.js';
+import { dialog } from './dialog.ts';
 
 const page = (type?: ModuleType) => ({
   id: crypto.randomUUID(),

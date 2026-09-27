@@ -1,4 +1,4 @@
-import { dialog } from './dialog.js';
+import { dialog } from './dialog.ts';
 import { CardView } from './card-view.tsx';
 /** @typedef {import('../types/editor-drafts.js').CardEditorDraft} CardEditorDraft */
 const RETRY_WARNING = 'Retry will delete all content on this page, including manual edits and previous generated content, and generate it again. Other pages will not change.';

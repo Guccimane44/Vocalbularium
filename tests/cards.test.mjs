@@ -1,7 +1,7 @@
 import test, { createTestStore } from './helpers/database.mjs';
 import assert from 'node:assert/strict';
 import { Generation } from '../src/server/generation.mjs';
-import { sortCards } from '../extension/sorting.js';
+import { sortCards } from '../extension/sorting.ts';
 async function fixture(t) { const store = await createTestStore(t); t.after(async () => (await store.close())); return store; }
 test('manual cards keep plain text, have no generation status or retry, and operation receipts prevent duplication', async (t) => {
   const store = await fixture(t), deck = await store.snapshot();
