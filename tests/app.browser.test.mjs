@@ -7,7 +7,7 @@ import { once } from 'node:events';
 import { chromium } from 'playwright';
 import { createApplication } from '../src/server/app.mjs';
 
-async function launch(profile, extension = resolve(process.env.VOCABULARIUM_TEST_EXTENSION ?? 'extension')) {
+async function launch(profile, extension = resolve(process.env.VOCABULARIUM_TEST_EXTENSION ?? 'artifacts/extension')) {
   const context = await chromium.launchPersistentContext(profile, {
     channel: 'chromium', headless: true,
     args: [`--disable-extensions-except=${extension}`, `--load-extension=${extension}`]
@@ -157,7 +157,7 @@ test('capture extension: receipt lifetime, exact duplicate cards, shared outcome
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-capture-browser-'));
   const filename = join(directory, 'account.sqlite');
   const testingExtension = join(directory, 'extension');
-  await cp(resolve('extension'), testingExtension, { recursive: true });
+  await cp(resolve('artifacts/extension'), testingExtension, { recursive: true });
   await appendFile(join(testingExtension, 'background.js'), '\nglobalThis.captureForTest = handleCapture;\n');
   const held = new Map();
   const provider = {
@@ -238,7 +238,7 @@ test('capture extension: receipt lifetime, exact duplicate cards, shared outcome
 test('recent captures: the pending receipt hands off to its account card without an empty or duplicate frame', { timeout: 35000 }, async t => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-capture-handoff-'));
   const testingExtension = join(directory, 'extension');
-  await cp(resolve('extension'), testingExtension, { recursive: true });
+  await cp(resolve('artifacts/extension'), testingExtension, { recursive: true });
   await appendFile(join(testingExtension, 'background.js'), '\nglobalThis.captureForTest = handleCapture;\n');
   let releaseGeneration, holdAccounts = false;
   const heldAccounts = [];
@@ -425,7 +425,7 @@ test('appearance: all open views, drafts, dialogs, feedback lifetime, logout and
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-theme-browser-'));
   const application = createApplication(); await application.start();
   const testingExtension = join(directory, 'extension');
-  await cp(resolve('extension'), testingExtension, { recursive: true });
+  await cp(resolve('artifacts/extension'), testingExtension, { recursive: true });
   await appendFile(join(testingExtension, 'background.js'), '\nimport { showFeedback } from \'./feedback.js\';\nglobalThis.feedbackForTest = showFeedback;\n');
   let a = await launch(join(directory, 'a'), testingExtension);
   const b = await launch(join(directory, 'b'), testingExtension);
@@ -753,7 +753,7 @@ async function loseNextAcknowledgment(worker, path) {
 
 test('assembled reliability: lost acknowledgments, worker suspension, abrupt origin exit, other installation, and cancellation', { timeout: 65000 }, async t => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-reliability-browser-'));
-  const extension = join(directory, 'extension'); await cp(resolve('extension'), extension, { recursive: true });
+  const extension = join(directory, 'extension'); await cp(resolve('artifacts/extension'), extension, { recursive: true });
   await appendFile(join(extension, 'background.js'), '\nglobalThis.captureForTest = handleCapture;\n');
   const held = new Map(), calls = new Map(), canceled = new Set();
   const application = createApplication({ provider: {
@@ -869,7 +869,7 @@ test('assembled reliability: lost acknowledgments, worker suspension, abrupt ori
 test('dashboard capture feedback: shared appearance, original lifetime, originating tab, rerenders and zero windows', { timeout: 45000 }, async t => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-dashboard-feedback-'));
   const testingExtension = join(directory, 'extension');
-  await cp(resolve('extension'), testingExtension, { recursive: true });
+  await cp(resolve('artifacts/extension'), testingExtension, { recursive: true });
   await appendFile(join(testingExtension, 'background.js'), `
     globalThis.captureForTest = handleCapture;
     globalThis.feedbackWindows = { calls: 0, events: 0 };
@@ -973,7 +973,7 @@ test('dashboard capture feedback: shared appearance, original lifetime, originat
 
 test('save feedback: successful publication stays quiet in both lists, failures and retries remain recoverable', { timeout: 45000 }, async t => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-save-feedback-'));
-  const extension = join(directory, 'extension'); await cp(resolve('extension'), extension, { recursive: true });
+  const extension = join(directory, 'extension'); await cp(resolve('artifacts/extension'), extension, { recursive: true });
   await appendFile(join(extension, 'background.js'), '\nglobalThis.captureForTest = handleCapture;\n');
   const application = createApplication({ provider: {
     async interpret() { return { inputType: 'word_phrase', sourceLanguage: 'English' }; },

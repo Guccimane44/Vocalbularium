@@ -1,7 +1,9 @@
 import { dialog } from './dialog.js';
+/** @typedef {import('../types/editor-drafts.js').CardEditorDraft} CardEditorDraft */
 const RETRY_WARNING = 'Retry will delete all content on this page, including manual edits and previous generated content, and generate it again. Other pages will not change.';
 
 export function cardViews({ app, getAccount, element, button, statusLabel, send, applyState, navigate, showError }) {
+  /** @type {CardEditorDraft | undefined} */
   let draft;
   try { draft = JSON.parse(sessionStorage.getItem('card-draft')); } catch { /* No recoverable draft. */ }
   let busy = false;

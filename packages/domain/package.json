@@ -1,0 +1,15 @@
+{
+  "name": "@vocabularium/domain",
+  "version": "0.2.2",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./modules": {
+      "types": "./dist/modules.d.ts",
+      "import": "./dist/modules.js"
+    }
+  },
+  "dependencies": {
+    "@vocabularium/contracts": "0.2.2"
+  }
+}

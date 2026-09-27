@@ -1,6 +1,10 @@
 import { DatabaseSync } from 'node:sqlite';
 import { createHash, randomUUID } from 'node:crypto';
 import { MODULES } from './modules.mjs';
+/** @typedef {import('./store-records.js').CardRow} CardRow */
+/** @typedef {import('./store-records.js').PageRow} PageRow */
+/** @typedef {import('./store-records.js').AttemptRow} AttemptRow */
+/** @typedef {import('./store-records.js').ReceiptRow} ReceiptRow */
 
 export class StoreError extends Error {
   constructor(code, message, details) { super(message); this.code = code; this.details = details; }

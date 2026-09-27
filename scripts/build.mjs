@@ -10,6 +10,8 @@ const output = resolve('artifacts/extension');
 await mkdir(resolve('artifacts'), { recursive: true });
 await rm(output, { recursive: true, force: true });
 await cp(resolve('extension'), output, { recursive: true });
+await mkdir(resolve(output, 'shared'), { recursive: true });
+await cp(resolve('packages/domain/dist/modules.js'), resolve(output, 'shared/modules.js'));
 const manifest = JSON.parse(await readFile(resolve(output, 'manifest.json'), 'utf8'));
 manifest.host_permissions = [`${url.protocol}//${url.hostname}/*`];
 await writeFile(resolve(output, 'manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
