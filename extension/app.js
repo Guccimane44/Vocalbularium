@@ -1,10 +1,11 @@
 import { initializeFeedback } from './feedback-dashboard.js';
-import { rowState, openCardRow } from './row-state.js';
 import { initializeTheme } from './theme.js';
 import { cardViews } from './cards.js';
-import { SORT_ORDERS, sortCards } from './sorting.js';
 import { configurationView, newDeckDraft } from './configuration.js';
-import { deckActions } from './deck-actions.js';
+import { createElement } from 'react';
+import { flushSync } from 'react-dom';
+import { createRoot } from 'react-dom/client';
+import { Dashboard } from './dashboard.tsx';
 /** @typedef {import('../types/editor-drafts.js').DeckEditorDraft} DeckEditorDraft */
 
 await initializeFeedback();
@@ -14,6 +15,8 @@ const actions = document.querySelector('#session-actions');
 let account;
 let signedIn = false;
 let renderVersion = 0;
+let dashboardRoot;
+let nextError;
 /** @type {DeckEditorDraft | undefined} */
 let configuration;
 
@@ -34,12 +37,18 @@ async function send(message) {
   return result;
 }
 function showError(error) {
+  if (dashboardRoot) {
+    nextError = error.message;
+    void render();
+    return;
+  }
   let notice = app.querySelector('[role="alert"]');
   if (!notice) { notice = element('p', '', 'notice error'); notice.setAttribute('role', 'alert'); app.prepend(notice); }
   notice.textContent = error.message;
 }
 function login() {
   signedIn = false; account = undefined; actions.replaceChildren();
+  if (dashboardRoot) { dashboardRoot.unmount(); dashboardRoot = undefined; }
   const section = element('section', undefined, 'login');
   section.append(element('p', 'A home for the language you discover', 'eyebrow'), element('h1', 'Welcome back.'), element('p', 'Sign in to open your decks and saved vocabulary.', 'muted'));
   const form = element('form');
@@ -78,46 +87,11 @@ function pendingSaves(local) {
 function statusLabel(status, prefix = '') {
   return element('span', prefix + status[0].toUpperCase() + status.slice(1), `badge status-${status}`);
 }
-function recentCaptures(local) {
-  app.append(element('h2', 'Recent captures', 'section-title'));
-  const receipts = Object.entries(local).filter(([key]) => key.startsWith('capture-')).map(([, value]) => value);
-  const unsaved = receipts.filter(item => item.state !== 'saved');
-  const entries = [
-    ...unsaved.map(item => ({ receipt: item, text: item.payload.selectedText, deckId: item.payload.snapshot.id, date: item.createdAt })),
-    ...account.cards.filter(card => card.selected_text !== null).map(card => ({ card, text: card.selected_text, deckId: card.deck_id, date: card.created_at }))
-  ].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 20);
-  for (const entry of entries) {
-    const row = element('article', undefined, 'capture');
-    const state = entry.card?.status ?? (entry.receipt ? entry.receipt.state === 'saving' ? 'loading' : 'failed' : null);
-    const cue = rowState(row, state, entry.receipt ? entry.receipt.state === 'saving' ? 'Pending' : 'Not saved to your account' : undefined);
-    if (cue) row.append(cue);
-    row.append(element('p', entry.text, 'capture-text'));
-    const deck = account.decks.find(deck => deck.id === entry.deckId);
-    if (deck) row.append(button(deck.name, () => { location.hash = `deck/${deck.id}`; }));
-    if (entry.card) {
-      row.append(button('Open card', () => { location.hash = `card/${entry.card.id}`; }));
-    } else {
-      if (entry.receipt.state !== 'saving') row.append(element('p', 'Not saved to your account.', 'muted'));
-      if (entry.receipt.error) row.append(element('p', entry.receipt.error, 'error'));
-      if (entry.receipt.state === 'pending') row.append(button('Try saving again', async () => {
-        try { const next = await send({ type: 'try-saving-again', operationId: entry.receipt.operationId }); account = next.account; signedIn = next.signedIn; await render(); }
-        catch (error) { showError(error); }
-      }));
-    }
-    app.append(row);
-  }
-}
 const cardUI = cardViews({ app, getAccount: () => account, element, button, statusLabel, send, showError,
   navigate: hash => { location.hash = hash; },
   applyState: async (next, redraw = true) => { account = next.account; signedIn = next.signedIn; if (redraw) await render(); }
 });
 let lastHash = location.hash;
-function deckMenu(deck) {
-  return deckActions({ deck, getAccount: () => account, element, button, send, showError,
-    configure: id => { configuration = undefined; location.hash = `configure/${id}`; },
-    applyState: async next => { account = next.account; signedIn = next.signedIn; await render(); }
-  });
-}
 async function render() {
   const focusedMenu = document.activeElement?.dataset.deckOptions;
   const active = document.activeElement?.id === 'page-content' ? { start: document.activeElement.selectionStart, end: document.activeElement.selectionEnd } : null;
@@ -130,8 +104,26 @@ async function render() {
   actions.replaceChildren(button('Log out', async () => {
     try { if (!await cardUI.leave()) return; await send({ type: 'logout' }); location.hash = ''; login(); } catch (error) { showError(error); }
   }));
-  app.replaceChildren();
   const deckId = location.hash.startsWith('#deck/') ? decodeURIComponent(location.hash.slice(6)) : null;
+  const legacyRoute = location.hash.startsWith('#configure/') || location.hash.startsWith('#card/') || location.hash.startsWith('#new-card/');
+  if (!legacyRoute) {
+    if (deckId && !account.decks.some(deck => deck.id === deckId)) { location.hash = ''; return; }
+    if (!dashboardRoot) dashboardRoot = createRoot(app);
+    const error = nextError; nextError = undefined;
+    flushSync(() => dashboardRoot.render(createElement(Dashboard, {
+      account, local, deckId, focusedMenu, showPendingSaves: !cardUI.isEditing(), error,
+      navigate: hash => { location.hash = hash; },
+      configure: id => { configuration = undefined; location.hash = `configure/${id}`; },
+      mutate: async command => {
+        const next = await send(command);
+        account = next.account; signedIn = next.signedIn; await render();
+      },
+      reportError: showError
+    })));
+    return;
+  }
+  if (dashboardRoot) { dashboardRoot.unmount(); dashboardRoot = undefined; }
+  app.replaceChildren();
   if (location.hash.startsWith('#configure/')) {
     const id = location.hash.slice(11);
     if (configuration?.route !== id) {
@@ -144,48 +136,6 @@ async function render() {
     }, onCancel: () => { configuration = undefined; location.hash = ''; } });
   } else if (location.hash.startsWith('#card/') || location.hash.startsWith('#new-card/')) {
     cardUI.render(location.hash);
-  } else if (deckId) {
-    const deck = account.decks.find(deck => deck.id === deckId);
-    if (!deck) { location.hash = ''; return; }
-    app.append(button('← All decks', () => { location.hash = ''; }, 'back'), element('p', 'YOUR COLLECTION', 'eyebrow'), element('h1', deck.name));
-    app.append(deckMenu(deck));
-    const order = localStorage.getItem(`sort-${deckId}`) ?? 'newest';
-    const select = element('select'); select.id = 'card-sort';
-    for (const [value, label] of SORT_ORDERS) { const option = element('option', label); option.value = value; select.append(option); }
-    select.value = order; select.onchange = () => { localStorage.setItem(`sort-${deckId}`, select.value); void render(); };
-    const sortLabel = element('label', 'Sort cards'); sortLabel.htmlFor = select.id;
-    app.append(button('Add card manually', () => { location.hash = `new-card/${deckId}`; }, 'primary'), sortLabel, select);
-    const cards = sortCards(account.cards.filter(card => card.deck_id === deckId), order);
-    if (!cards.length) app.append(element('div', 'No cards in this deck yet.', 'empty'));
-    else {
-      const table = element('table', undefined, 'list');
-      const heading = element('tr'); heading.append(element('th', 'Index'), element('th', 'Entry')); table.append(heading);
-      for (const [index, card] of cards.entries()) {
-        const row = element('tr', undefined, 'card-row'), entry = element('td');
-        row.dataset.cardId = card.id;
-        const open = button(card.pages[0]?.text || 'Empty front page', () => {}, 'entry');
-        const cue = rowState(row, card.status);
-        if (cue) { open.setAttribute('aria-describedby', cue.id); entry.append(cue); }
-        entry.append(open);
-        openCardRow(row, open, () => { location.hash = `card/${card.id}`; });
-        row.append(element('td', String(index + 1).padStart(3, '0')), entry); table.append(row);
-      }
-      app.append(table);
-    }
-  } else {
-    app.append(element('h1', 'Your decks.'), element('p', 'Keep the words and expressions you want to come back to.', 'muted'), button('Add new deck', () => { configuration = undefined; location.hash = 'configure/new'; }, 'primary'));
-    const grid = element('div', undefined, 'grid');
-    for (const deck of account.decks) {
-      const article = element('article', undefined, 'deck');
-      const open = button('', () => { location.hash = `deck/${deck.id}`; }, 'open');
-      open.append(element('h2', deck.name), element('p', `${account.cards.filter(card => card.deck_id === deck.id).length} cards · ${deck.pages.length} pages`, 'muted'));
-      const footer = element('footer');
-      if (deck.id === account.defaultDeckId) footer.append(element('span', 'DEFAULT DECK', 'badge'));
-      footer.append(deckMenu(deck));
-      article.append(open, footer); grid.append(article);
-    }
-    app.append(grid);
-    recentCaptures(local);
   }
   pendingSaves(local);
   if (focusedMenu) [...app.querySelectorAll('[data-deck-options]')].find(node => node.dataset.deckOptions === focusedMenu)?.focus();
