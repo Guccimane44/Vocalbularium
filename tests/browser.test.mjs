@@ -139,13 +139,23 @@ test('real Chromium extension: feedback, independent captures, worker restart, a
   assert.equal((await prototype.store.card(firstCardId)).status, 'completed');
   await assert.rejects(async () => (await prototype.store.stage(interruptedCard.pages[0].attempt_id, { ok: true, text: 'late' })), error => error.code === 'stale_attempt');
 
+  // Keep the fallback popup alive long enough to verify manual dismissal under slow CI scheduling.
+  await a.context.addInitScript(() => {
+    if (!location.pathname.endsWith('/feedback.html') ||
+        new URLSearchParams(location.search).get('message') !== 'Capture received') return;
+    const schedule = window.setTimeout.bind(window);
+    window.setTimeout = (callback, delay, ...args) => schedule(callback, delay === 3000 ? 30000 : delay, ...args);
+  });
   const restrictedId = await a.worker.evaluate(async () => (await chrome.tabs.create({ url: 'chrome://version' })).id);
   await a.worker.evaluate(tabId => globalThis.foundation.handleCapture({ selectionText: 'restricted surface' }, { id: tabId }), restrictedId);
   await waitFor(() => a.context.pages().some(page => page.url().includes('/feedback.html')), 'restricted-surface fallback opened', 2500);
   const popup = a.context.pages().find(page => page.url().includes('/feedback.html'));
   assert.equal(await popup.getByRole('status').textContent(), 'Capture received');
-  await popup.getByRole('button', { name: 'Close', exact: true }).click();
-  await waitFor(() => popup.isClosed(), 'fallback popup manual dismissal');
+  const closed = popup.waitForEvent('close', { timeout: 5000 });
+  try { await popup.getByRole('button', { name: 'Close', exact: true }).click({ noWaitAfter: true }); }
+  catch (error) { if (!popup.isClosed()) throw error; }
+  await closed;
+  assert.equal(popup.isClosed(), true, 'fallback popup manually dismissed');
   console.log(`Browser evidence: ${a.context.browser()?.version() ?? 'Chromium'}, persistent profiles, independent installations, actual worker stop/restart and browser close/reopen.`);
 });
 
