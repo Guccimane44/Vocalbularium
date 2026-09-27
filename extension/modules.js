@@ -1,1 +1,1 @@
-export { MODULES } from './shared/modules.js';
+export { MODULES } from '@vocabularium/domain/modules';
