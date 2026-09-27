@@ -6,14 +6,15 @@ test('bounded card pages preserve JavaScript ordering, ties, and cursor validity
   const store = await createTestStore(t);
   const deck = await store.snapshot();
   const front = deck.pages[0].id;
-  const samples = ['', 'A', 'ａ', 'Ä', '😀', '\uE000', 'abc', 'Z'];
+  const contentMarker = 'card-content-sentinel:abc';
+  const samples = ['', 'A', 'ａ', 'Ä', '😀', '\uE000', 'abc', 'Z', contentMarker];
   for (let index = 0; index < 64; index++) {
     await store.createManual(`seed-${index}`, { deckId: deck.id, pages: [{ pageId: front, text: samples[index % samples.length] }] });
   }
   const summary = await store.summary();
   assert.equal(summary.decks[0].cardCount, 64);
   assert.equal(summary.defaultDeckSnapshot.id, deck.id);
-  assert.equal(JSON.stringify(summary).includes('abc'), false, 'account summary has no card content');
+  assert.equal(JSON.stringify(summary).includes(contentMarker), false, 'account summary has no card content');
   const all = await store.cards();
   for (const order of ['newest', 'oldest', 'az', 'za']) {
     const collected = [];
