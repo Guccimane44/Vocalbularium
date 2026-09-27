@@ -54,7 +54,10 @@ jobs:
       - name: Create non-superuser fixture role
         env:
           PGPASSWORD: postgres-ci-only
-        run: psql -h 127.0.0.1 -U postgres -d postgres -v ON_ERROR_STOP=1 -c "CREATE ROLE vocabularium_test LOGIN CREATEDB NOSUPERUSER NOCREATEROLE PASSWORD 'test-ci-only'"
+        run: |
+          psql -h 127.0.0.1 -U postgres -d postgres -v ON_ERROR_STOP=1 \
+            -c "CREATE ROLE vocabularium_test LOGIN CREATEDB NOSUPERUSER NOCREATEROLE PASSWORD 'test-ci-only'" \
+            -c "GRANT pg_signal_backend TO vocabularium_test"
       - run: npm test
       - run: npx playwright install --with-deps chromium
       - run: npm run test:browser
