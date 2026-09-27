@@ -4,6 +4,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createApplication } from '../src/server/app.mjs';
+import { loadConfig } from '../src/server/config.mjs';
 
 async function fixture(t, options) {
   const application = createApplication(options);
@@ -109,4 +110,31 @@ test('nested malformed commands return validation errors without a partial write
     assert.equal(result.data.code, 'invalid');
     assert.deepEqual(application.store.account(), baseline);
   }
+});
+
+test('Fastify publishes route contracts and request IDs on health responses', async t => {
+  const { url, application } = await fixture(t);
+  const live = await fetch(url + '/health/live');
+  assert.equal(live.status, 200);
+  assert.deepEqual(await live.json(), { ok: true });
+  assert.match(live.headers.get('x-request-id'), /^[\da-f-]{36}$/);
+  assert.deepEqual(await (await fetch(url + '/health/ready')).json(), { ok: true });
+
+  const document = await application.openapi();
+  assert.equal(document.info.version, '0.3.0');
+  assert.ok(document.paths['/api/capture'].post.requestBody.content['application/json'].schema.properties.payload);
+  assert.deepEqual(document.paths['/api/capture'].post.security, [{ bearerAuth: [] }]);
+  assert.deepEqual(document.paths['/api/login'].post.security, []);
+  assert.ok(document.paths['/api/capture'].post.responses['400'].content['application/json'].schema);
+});
+
+test('startup configuration rejects invalid ports and log levels before listening', () => {
+  const config = loadConfig({ PORT: '0', HOST: '127.0.0.1', DATA_DIR: '.data-test', LOG_LEVEL: 'debug' });
+  assert.equal(config.port, 0);
+  assert.equal(config.host, '127.0.0.1');
+  assert.equal(config.logLevel, 'debug');
+  assert.ok(config.directory.endsWith('.data-test'));
+  assert.throws(() => loadConfig({ PORT: '4318junk' }), /Invalid PORT/);
+  assert.throws(() => loadConfig({ PORT: '65536' }), /Invalid PORT/);
+  assert.throws(() => loadConfig({ LOG_LEVEL: 'verbose' }), /Invalid LOG_LEVEL/);
 });
