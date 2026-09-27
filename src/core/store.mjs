@@ -47,7 +47,7 @@ export class AccountStore {
   ordered(action) { return this.database.ordered.run(action); }
   background(action) { return this.database.detached(action); }
   loadingAttempts() {
-    return this.database.transaction(() => this.database.all("SELECT id, card_id, result FROM attempts WHERE state = 'loading'"));
+    return this.database.transaction(() => this.database.all("SELECT id, card_id, session_id, result FROM attempts WHERE state = 'loading'"));
   }
   async createDeck(name) {
     return this.database.transaction(async () => {
@@ -343,7 +343,7 @@ export class AccountStore {
       return { cardId: id };
     });
   }
-  async retry(operationId, { cardId, pageId, session }) {
+  async retry(operationId, { cardId, pageId, session }, { admit } = {}) {
     return await this.command(operationId, 'retry', { cardId, pageId, session }, async () => {
       await this.requireSession(session);
       const card = await this.card(cardId);
@@ -352,6 +352,7 @@ export class AccountStore {
       if (!page) fail('deleted', 'The page no longer exists.');
       if (page.status === 'loading') fail('generating', 'This page is already generating.');
       const layout = (await this.deck(card.deck_id)).pages.find(page => page.id === pageId);
+      admit?.();
       return { attemptId: (await this.startAttempt(cardId, pageId, session, layout.modules)) };
     });
   }

@@ -133,10 +133,14 @@ test('startup configuration rejects invalid ports and log levels before listenin
   assert.equal(config.port, 0);
   assert.equal(config.host, '127.0.0.1');
   assert.equal(config.logLevel, 'debug');
+  assert.equal(config.generationMaxActive, 4);
+  assert.equal(config.generationMaxQueued, 16);
   assert.ok(config.directory.endsWith('.data-test'));
   assert.throws(() => loadConfig({ PORT: '4318junk' }), /Invalid PORT/);
   assert.throws(() => loadConfig({ PORT: '65536' }), /Invalid PORT/);
   assert.throws(() => loadConfig({ LOG_LEVEL: 'verbose' }), /Invalid LOG_LEVEL/);
+  assert.throws(() => loadConfig({ GENERATION_MAX_ACTIVE: '0' }), /GENERATION_MAX_ACTIVE/);
+  assert.throws(() => loadConfig({ GENERATION_MAX_QUEUED: '-1' }), /GENERATION_MAX_QUEUED/);
   assert.throws(() => loadConfig({}), /DATABASE_URL/);
   assert.throws(() => loadConfig({ DATABASE_URL: 'postgresql://test@127.0.0.1/test', HOST: '0.0.0.0' }), /loopback/);
 });

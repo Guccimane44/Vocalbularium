@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { CardEditorDraft } from '../types/editor-drafts.js';
 import type { DashboardCard } from './dashboard.js';
 
@@ -29,6 +30,7 @@ function Status({ status, prefix }: { status: string | null; prefix: string }) {
 
 export function CardView({ card, deck, draft, selectedPageId, isNew, editing, busy, error, pendingSaves, retryPendingSave,
   navigate, begin, persist, save, cancel, discardUnavailable, deleteCard, retryPage }: Props) {
+  const [retryBusy, setRetryBusy] = useState(false);
   if (!card || !deck) return <>
     <h1>Card unavailable</h1>
     <p>This card or deck has been deleted.</p>
@@ -79,7 +81,10 @@ export function CardView({ card, deck, draft, selectedPageId, isNew, editing, bu
           <p className="muted">{selected.status === 'loading' ? 'Generating this page…' : selected.status === 'failed' ? 'Generation failed for this page.' : 'This page is empty.'}</p>}
         <div className="dialog-actions">
           <button disabled={selected.status === 'loading'} onClick={begin}>Edit card manually</button>
-          {card.selected_text !== null && <button disabled={selected.status === 'loading'} onClick={() => void retryPage(selected.page_id)}>Retry</button>}
+          {card.selected_text !== null && <button disabled={retryBusy || selected.status === 'loading'} onClick={async () => {
+            setRetryBusy(true);
+            try { await retryPage(selected.page_id); } finally { setRetryBusy(false); }
+          }}>Retry</button>}
         </div>
       </>}
     </section>

@@ -28,6 +28,17 @@ export function loadConfig(environment = process.env) {
     throw new Error('Invalid LOG_LEVEL: choose trace, debug, info, warn, error, fatal, or silent.');
   }
 
+  const generationLimit = (name, fallback) => {
+    const value = environment[name] ?? String(fallback);
+    if (typeof value !== 'string' || !/^\d+$/.test(value) || !Number.isSafeInteger(Number(value)) ||
+      Number(value) < (name === 'GENERATION_MAX_ACTIVE' ? 1 : 0)) {
+      throw new Error(`Invalid ${name}: expected a non-negative safe integer${name === 'GENERATION_MAX_ACTIVE' ? ' greater than zero' : ''}.`);
+    }
+    return Number(value);
+  };
+  const generationMaxActive = generationLimit('GENERATION_MAX_ACTIVE', 4);
+  const generationMaxQueued = generationLimit('GENERATION_MAX_QUEUED', 16);
+
   const databaseUrl = environment.DATABASE_URL;
   try {
     const url = new URL(databaseUrl);
@@ -36,5 +47,6 @@ export function loadConfig(environment = process.env) {
   if (!['127.0.0.1', 'localhost', '::1'].includes(host)) {
     throw new Error('The owner-testing API must bind to loopback.');
   }
-  return Object.freeze({ host, port, directory: resolve(dataDirectory), logLevel, databaseUrl });
+  return Object.freeze({ host, port, directory: resolve(dataDirectory), logLevel, databaseUrl,
+    generationMaxActive, generationMaxQueued });
 }

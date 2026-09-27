@@ -22,7 +22,7 @@ function routePath(request) {
 function requestFailure(error, request) {
   if (error instanceof StoreError) {
     return {
-      status: error.code === 'invalid' ? 400 : 409,
+      status: error.code === 'invalid' ? 400 : error.code === 'generation_busy' ? 429 : 409,
       value: apiFailure(error.message, error.code, error.details)
     };
   }
@@ -42,13 +42,13 @@ function requestFailure(error, request) {
   return { status: 500, value: apiFailure('The save could not be completed. Try again.', 'server_error') };
 }
 
-export async function createApplication({ databaseUrl, outbox, accountId = 1, authOptions, provider, logger = false, documentationOnly = false } = {}) {
+export async function createApplication({ databaseUrl, outbox, accountId = 1, authOptions, provider, generationOptions, logger = false, documentationOnly = false } = {}) {
   const store = documentationOnly ? null : await AccountStore.open({ databaseUrl, outbox, accountId });
   const authentication = documentationOnly ? null : new Authentication(store.database, authOptions);
   let generation;
   try {
     await authentication?.initialize();
-    generation = documentationOnly ? null : await Generation.create(store, provider);
+    generation = documentationOnly ? null : await Generation.create(store, provider, generationOptions);
   } catch (error) { await store?.close(); throw error; }
   const fastify = Fastify({
     logger,
@@ -58,6 +58,7 @@ export async function createApplication({ databaseUrl, outbox, accountId = 1, au
     genReqId: () => randomUUID(),
     logController: new LogController({ disableRequestLogging: true })
   });
+  if (generation) generation.diagnostic = event => fastify.log.info(event, 'Generation work');
   fastify.server.requestTimeout = 15_000;
   fastify.decorateRequest('authToken', null);
 

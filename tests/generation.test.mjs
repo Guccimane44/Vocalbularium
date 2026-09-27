@@ -37,6 +37,196 @@ async function finish(store, generation) {
   }
 }
 
+test('bounded generation queues page attempts and fails an overloaded saved capture without provider work', async t => {
+  const store = await createTestStore(t);
+  const deck = await store.snapshot();
+  deck.pages = [{ id: deck.pages[0].id, modules: modules('german-explanation') }];
+  await store.saveDeck('one-page-layout', { deck });
+  await store.openSession('open', session);
+  let releaseFirst, firstStarted;
+  const started = new Promise(resolve => { firstStarted = resolve; });
+  const events = [];
+  let calls = 0, secondAttemptId, secondSettled;
+  const settled = new Promise(resolve => { secondSettled = resolve; });
+  const generation = await Generation.create(store, {
+    interpret: (_text, signal) => {
+      calls++;
+      if (calls > 1) return Promise.resolve(word);
+      return new Promise((resolve, reject) => {
+        releaseFirst = resolve; firstStarted();
+        signal.addEventListener('abort', () => reject(signal.reason), { once: true });
+      });
+    },
+    generate: async () => 'generated text'
+  }, { maxActive: 1, maxQueued: 1, diagnostic: event => {
+    events.push(event);
+    if (event.event === 'settled' && event.attemptId === secondAttemptId) secondSettled();
+  } });
+  t.after(async () => { await generation.close(); await store.close(); });
+  const capture = async id => {
+    const { cardId } = await store.capture(id, { session, selectedText: 'private selection', snapshot: await store.snapshot() });
+    await generation.start(cardId);
+    return store.card(cardId);
+  };
+  const first = await capture('first');
+  await started;
+  const second = await capture('second');
+  secondAttemptId = second.pages[0].attempt_id;
+  const third = await capture('third');
+  assert.equal(generation.tasks.size, 1);
+  assert.equal(generation.queue.length, 1);
+  assert.equal(calls, 1);
+  assert.equal(third.pages[0].status, 'failed');
+  assert.equal((await store.card(third.id)).status, 'failed');
+  assert.equal(events.some(event => event.category === 'generation_busy' && event.event === 'rejected'), true);
+  assert.equal(JSON.stringify(events).includes('private selection'), false);
+  releaseFirst(word);
+  await settled;
+  assert.equal(calls, 2, 'only admitted captures contacted the provider');
+  assert.equal((await store.card(first.id)).pages[0].status, 'loading', 'publication remains explicit');
+  await finish(store, generation);
+  assert.equal((await store.card(second.id)).status, 'completed');
+});
+
+test('a busy confirmed Retry returns 429 and preserves page text and attempt identity', async t => {
+  let release, started;
+  let interpretations = 0;
+  const providerStarted = new Promise(resolve => { started = resolve; });
+  const application = await createTestApplication(t, {
+    generationOptions: { maxActive: 1, maxQueued: 0 },
+    provider: {
+      interpret: (_text, signal) => ++interpretations > 1 ? Promise.resolve(word) : new Promise((resolve, reject) => {
+        release = resolve; started();
+        signal.addEventListener('abort', () => reject(signal.reason), { once: true });
+      }),
+      generate: async () => 'generated text'
+    }
+  });
+  t.after(() => application.close());
+  const { store, generation } = application;
+  const deck = await store.snapshot();
+  deck.pages = [{ id: deck.pages[0].id, modules: modules('german-explanation') }];
+  await store.saveDeck('one-page-layout', { deck });
+  await store.openSession('open', session);
+  const snapshot = await store.snapshot();
+  const targetId = (await store.capture('target', { session, selectedText: 'target', snapshot })).cardId;
+  const target = await store.card(targetId);
+  await store.failAttempt(target.pages[0].attempt_id);
+  await store.savePages('manual-edit', { cardId: targetId, changes: [{ pageId: target.pages[0].page_id, text: 'preserve me' }] });
+  const busyId = (await store.capture('busy', { session, selectedText: 'busy', snapshot })).cardId;
+  await generation.start(busyId);
+  await providerStarted;
+  const url = await application.start({ port: 0 });
+  const login = await fetch(url + '/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: 'admin', password: 'admin' }) }).then(response => response.json());
+  const response = await fetch(url + '/api/card/retry', { method: 'POST', headers: {
+    'Content-Type': 'application/json', Authorization: `Bearer ${login.token}`
+  }, body: JSON.stringify({ operationId: 'busy-retry', payload: { cardId: targetId, pageId: target.pages[0].page_id, session } }) });
+  assert.equal(response.status, 429);
+  assert.equal((await response.json()).code, 'generation_busy');
+  assert.equal(await store.database.transaction(() => store.database.one(
+    'SELECT operation_id FROM receipts WHERE operation_id = $1', ['busy-retry'])), undefined);
+  const after = await store.card(targetId);
+  assert.equal(after.pages[0].text, 'preserve me');
+  assert.equal(after.pages[0].attempt_id, target.pages[0].attempt_id);
+  assert.equal(after.pages[0].status, 'failed');
+  release(word);
+  await Promise.all([...generation.tasks.values()].map(item => item.task));
+  await generation.cancelObsolete();
+  const accepted = await fetch(url + '/api/card/retry', { method: 'POST', headers: {
+    'Content-Type': 'application/json', Authorization: `Bearer ${login.token}`
+  }, body: JSON.stringify({ operationId: 'fresh-retry', payload: { cardId: targetId, pageId: target.pages[0].page_id, session } }) });
+  assert.equal(accepted.status, 200);
+  const retried = await store.card(targetId);
+  assert.equal(retried.pages[0].text, '');
+  assert.equal(retried.pages[0].status, 'loading');
+  assert.notEqual(retried.pages[0].attempt_id, target.pages[0].attempt_id);
+});
+
+test('session invalidation aborts active interpretation and removes queued work', async t => {
+  const store = await createTestStore(t);
+  const deck = await store.snapshot();
+  deck.pages = [{ id: deck.pages[0].id, modules: modules('german-explanation') }];
+  await store.saveDeck('one-page-layout', { deck });
+  await store.openSession('open', session);
+  let started, aborted = 0, calls = 0;
+  const providerStarted = new Promise(resolve => { started = resolve; });
+  const generation = await Generation.create(store, {
+    interpret: (_text, signal) => {
+      calls++;
+      started();
+      return new Promise((_, reject) => signal.addEventListener('abort', () => {
+        aborted++; reject(signal.reason);
+      }, { once: true }));
+    }, generate: async () => assert.fail('obsolete attempt generated content')
+  }, { maxActive: 1, maxQueued: 1 });
+  t.after(async () => { await generation.close(); await store.close(); });
+  const capture = async id => {
+    const { cardId } = await store.capture(id, { session, selectedText: 'word', snapshot: await store.snapshot() });
+    await generation.start(cardId);
+    return cardId;
+  };
+  const first = await capture('first');
+  await providerStarted;
+  const second = await capture('second');
+  assert.equal(generation.queue.length, 1);
+  await store.openSession('next', { ...session, sessionId: 'next-browser', epoch: 2 });
+  await generation.cancelObsolete();
+  await Promise.all([...generation.tasks.values()].map(item => item.task));
+  assert.equal(aborted, 1);
+  assert.equal(calls, 1, 'the queued attempt never contacted the provider');
+  assert.equal(generation.queue.length, 0);
+  assert.equal((await store.card(first)).status, 'failed');
+  assert.equal((await store.card(second)).status, 'failed');
+});
+
+test('an obsolete interpretation is canceled even when the same card has a new-session retry', async t => {
+  const store = await createTestStore(t);
+  const deck = await store.snapshot();
+  deck.pages = [{ id: deck.pages[0].id, modules: modules('german-explanation') }];
+  await store.saveDeck('one-page-layout', { deck });
+  await store.openSession('open', session);
+  const signals = [], releases = [], started = [];
+  const firstStarted = new Promise(resolve => { started[0] = resolve; });
+  const secondStarted = new Promise(resolve => { started[1] = resolve; });
+  const generation = await Generation.create(store, {
+    interpret: (_text, signal) => {
+      const index = signals.push(signal) - 1;
+      return new Promise((resolve, reject) => {
+        releases[index] = resolve; started[index]();
+        signal.addEventListener('abort', () => reject(signal.reason), { once: true });
+      });
+    }, generate: async () => 'generated text'
+  }, { maxActive: 2, maxQueued: 0 });
+  t.after(async () => { await generation.close(); await store.close(); });
+  const { cardId } = await store.capture('capture', { session, selectedText: 'word', snapshot: await store.snapshot() });
+  await generation.start(cardId);
+  await firstStarted;
+  const pageId = (await store.card(cardId)).pages[0].page_id;
+  const nextSession = { ...session, sessionId: 'next-browser', epoch: 2 };
+  await store.openSession('next', nextSession);
+  await store.retry('retry', { cardId, pageId, session: nextSession });
+  await generation.start(cardId, pageId);
+  await secondStarted;
+  await generation.cancelObsolete();
+  assert.equal(signals[0].aborted, true);
+  assert.equal(signals[1].aborted, false);
+  releases[1](word);
+  await Promise.all([...generation.tasks.values()].map(item => item.task));
+});
+
+test('diagnostic failures cannot turn an admitted saved capture into a failed request', async t => {
+  const store = await createTestStore(t);
+  await store.openSession('open', session);
+  const generation = await Generation.create(store, { interpret: async () => word, generate: async () => 'text' },
+    { diagnostic: () => { throw new Error('logger unavailable'); } });
+  t.after(async () => { await generation.close(); await store.close(); });
+  const { cardId } = await store.capture('capture', { session, selectedText: 'word', snapshot: await store.snapshot() });
+  await generation.start(cardId);
+  await finish(store, generation);
+  assert.equal((await store.card(cardId)).status, 'completed');
+});
+
 test('modules preserve exact input, order, literal markers, and skip inapplicable output without separators', async () => {
   const text = '  幸福\n';
   const output = await renderPage({
@@ -82,17 +272,55 @@ test('repeated example modules request fresh output and fail the whole page if d
   assert.equal(calls, 4); assert.equal((await store.card(card.id)).pages[0].text, ''); assert.equal((await store.card(card.id)).status, 'failed');
 });
 
-test('late interpretation cannot seed a new attempt after the originating browser was interrupted', async (t) => {
-  let release;
-  const { store, generation, capture } = await fixture(t, { interpret: () => new Promise(resolve => { release = resolve; }), generate: async () => 'late' });
+test('a provider resolving after abort cannot stage output from an interrupted browser session', async (t) => {
+  let release, started, signal;
+  const providerStarted = new Promise(resolve => { started = resolve; });
+  const { store, generation, capture } = await fixture(t, { interpret: (_text, providerSignal) => new Promise(resolve => {
+    signal = providerSignal; release = resolve; started();
+  }), generate: async () => 'late' });
   const card = await capture();
+  await providerStarted;
+  const oldAttemptId = card.pages[1].attempt_id;
   const nextSession = { ...session, sessionId: 'new-browser', epoch: 2 };
   await store.openSession('reopen', nextSession);
   await store.retry('retry', { cardId: card.id, pageId: card.pages[1].page_id, session: nextSession });
+  await generation.cancelObsolete();
+  assert.equal(signal.aborted, true);
   release(word);
   await Promise.all([...generation.tasks.values()].map(item => item.task));
   assert.equal((await store.card(card.id)).interpretation, null);
   assert.equal((await store.card(card.id)).pages[1].status, 'loading');
+  assert.equal((await store.attempt(oldAttemptId)).result, null);
+  assert.equal(generation.pendingResults.has(oldAttemptId), false);
+});
+
+test('a late module response after cancellation is discarded before result staging', async t => {
+  const store = await createTestStore(t);
+  const deck = await store.snapshot();
+  deck.pages = [{ id: deck.pages[0].id, modules: modules('german-explanation') }];
+  await store.saveDeck('one-page-layout', { deck });
+  await store.openSession('open', session);
+  let release, started, providerSignal;
+  const providerStarted = new Promise(resolve => { started = resolve; });
+  const generation = await Generation.create(store, {
+    interpret: async () => word,
+    generate: (_input, signal) => new Promise(resolve => {
+      providerSignal = signal; release = resolve; started();
+    })
+  });
+  t.after(async () => { await generation.close(); await store.close(); });
+  const { cardId } = await store.capture('capture', { session, selectedText: 'word', snapshot: await store.snapshot() });
+  await generation.start(cardId);
+  await providerStarted;
+  const attemptId = (await store.card(cardId)).pages[0].attempt_id;
+  await store.openSession('next', { ...session, sessionId: 'next-browser', epoch: 2 });
+  await generation.cancelObsolete();
+  assert.equal(providerSignal.aborted, true);
+  release('late generated output');
+  await Promise.all([...generation.tasks.values()].map(item => item.task));
+  assert.equal((await store.attempt(attemptId)).result, null);
+  assert.equal((await store.card(cardId)).pages[0].status, 'failed');
+  assert.equal(generation.pendingResults.has(attemptId), false);
 });
 
 test('an unsaved capture recovered after browser closure saves one failed record without restarting generation', async (t) => {
@@ -248,10 +476,38 @@ test('a failed result write retains the complete generated output for explicit s
   const back = card.pages[1];
   assert.equal((await store.card(card.id)).pages[1].status, 'loading');
   assert.deepEqual(generation.pendingResults.get(back.attempt_id), { ok: true, text: 'complete generated page' });
+  assert.equal(generation.failedResults.has(back.attempt_id), true);
   failWrite = false;
   await generation.saveResult(back.attempt_id, session);
+  assert.equal(generation.failedResults.has(back.attempt_id), false);
   await store.publish('recover-output', { attemptId: back.attempt_id, session });
   assert.equal((await store.card(card.id)).pages[1].text, 'complete generated page'); assert.equal(calls, 1);
+});
+
+test('an in-progress result write does not advertise save recovery', async t => {
+  const { store, generation, capture } = await fixture(t, {
+    interpret: async () => word, generate: async () => 'staged later'
+  });
+  const stage = store.stage.bind(store);
+  let releaseStage, signalStage;
+  const started = new Promise(resolve => { signalStage = resolve; });
+  store.stage = async (id, result) => {
+    if (result.text === 'staged later') {
+      signalStage();
+      await new Promise(resolve => { releaseStage = resolve; });
+    }
+    return stage(id, result);
+  };
+  const card = await capture();
+  await started;
+  const attemptId = card.pages[1].attempt_id;
+  assert.equal(generation.pendingResults.has(attemptId), true);
+  assert.equal(generation.failedResults.has(attemptId), false);
+  releaseStage();
+  await Promise.all([...generation.tasks.values()].map(item => item.task));
+  assert.equal(generation.pendingResults.has(attemptId), false);
+  assert.equal(generation.failedResults.has(attemptId), false);
+  assert.deepEqual((await store.attempt(attemptId)).result, { ok: true, text: 'staged later' });
 });
 
 test('the result recovery journal survives a failed database write and server restart without regenerating', async (t) => {

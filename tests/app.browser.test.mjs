@@ -206,6 +206,7 @@ test('capture extension: receipt lifetime, exact duplicate cards, shared outcome
   assert.equal(sentenceCard.pages[1].text, ''); assert.equal(sentenceCard.status, 'completed');
 
   await captureFrom(a, 'held-after-close');
+  await waitFor(() => held.has('held-after-close'), 'dashboard-close interpretation started');
   await a.page.close();
   held.get('held-after-close')();
   await waitFor(async () => (await application.store.cards()).find(card => card.selected_text === 'held-after-close')?.status === 'completed', 'dashboard closure leaves generation running');
@@ -213,6 +214,7 @@ test('capture extension: receipt lifetime, exact duplicate cards, shared outcome
   await captureFrom(a, 'held-interrupted');
   const interrupted = (await application.store.cards()).find(card => card.selected_text === 'held-interrupted');
   await waitFor(async () => (await application.store.card(interrupted.id)).pages[0].status === 'completed', 'completed front before exit');
+  await waitFor(() => held.has('held-interrupted'), 'interrupted interpretation started');
   await a.context.close(); contexts.delete(a.context);
   held.get('held-interrupted')();
   await waitFor(async () => (await application.store.attempt(interrupted.pages[1].attempt_id)).result, 'late provider result staged');
@@ -770,7 +772,7 @@ test('assembled reliability: lost acknowledgments, worker suspension, abrupt ori
       interpret: async () => ({ inputType: 'word_phrase', sourceLanguage: 'Chinese' }),
       generate: ({ selectedText }, signal) => {
         calls.set(selectedText, (calls.get(selectedText) ?? 0) + 1);
-        if (!selectedText.startsWith('hold-')) return Promise.resolve(`Generated: ${selectedText}`);
+        if (!selectedText.startsWith('hold-') && selectedText !== 'publication acknowledgment') return Promise.resolve(`Generated: ${selectedText}`);
         return new Promise((resolve, reject) => {
           held.set(selectedText, () => resolve(`Generated: ${selectedText}`));
           signal.addEventListener('abort', () => { canceled.add(selectedText); reject(Error('aborted')); }, { once: true });
@@ -807,9 +809,12 @@ test('assembled reliability: lost acknowledgments, worker suspension, abrupt ori
   assert.equal((await application.store.card(card.id)).pages[0].text, 'later remote edit');
   assert.equal(calls.get('uncertain capture'), 1);
 
-  await loseNextAcknowledgment(a.worker, '/api/publish');
   await captureFrom(a, 'publication acknowledgment');
   const publicationCard = (await application.store.cards()).find(card => card.selected_text === 'publication acknowledgment');
+  await waitFor(async () => (await application.store.card(publicationCard.id)).pages[0].status === 'completed', 'front page published before lost acknowledgment');
+  await waitFor(() => held.has('publication acknowledgment'), 'publication generation started');
+  await loseNextAcknowledgment(a.worker, '/api/publish');
+  held.get('publication acknowledgment')();
   let pending;
   await waitFor(async () => {
     const receipts = await a.worker.evaluate(async () => Object.entries(await chrome.storage.local.get(null)).filter(([key]) => key.startsWith('save-publish-')).map(([, value]) => value));
@@ -819,6 +824,7 @@ test('assembled reliability: lost acknowledgments, worker suspension, abrupt ori
     pending = receipts[0];
     return true;
   }, 'publication acknowledgment was lost');
+  assert.equal(pending.payload.payload.attemptId, publicationCard.pages[1].attempt_id, 'the generated page lost its acknowledgment');
   const publishedAttempt = await application.store.attempt(pending.payload.payload.attemptId);
   await application.store.savePages('later-than-publication', { cardId: publishedAttempt.card_id, changes: [{ pageId: publishedAttempt.page_id, text: 'manual text after publication' }] });
   await waitFor(async () => await a.page.getByRole('button', { name: 'Try saving again', exact: true }).count() === 1, 'only the lost acknowledgment needs retry');
@@ -852,6 +858,7 @@ test('assembled reliability: lost acknowledgments, worker suspension, abrupt ori
   await captureFrom(a, 'hold-origin'); await captureFrom(b, 'hold-other');
   const interrupted = (await application.store.cards()).find(card => card.selected_text === 'hold-origin');
   await waitFor(async () => (await application.store.card(interrupted.id)).pages[0].status === 'completed', 'front persisted before crash');
+  await waitFor(() => held.has('hold-origin') && held.has('hold-other'), 'both provider calls started before origin exit');
   const browser = a.context.browser(), protocol = await browser.newBrowserCDPSession();
   const { processInfo } = await protocol.send('SystemInfo.getProcessInfo'); const processId = processInfo.find(process => process.type === 'browser')?.id;
   assert.ok(processId); await protocol.detach();
