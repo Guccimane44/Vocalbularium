@@ -7,7 +7,8 @@
     "skipLibCheck": true,
     "allowJs": true,
     "checkJs": false,
-    "noEmit": true
+    "noEmit": true,
+    "allowImportingTsExtensions": true
   },
   "include": [
     "packages/contracts/src/**/*.ts",
@@ -18,6 +19,8 @@
     "extension/api-failure.js",
     "extension/save-operations.js",
     "src/server/api-failure.mjs",
-    "src/server/contract-validation.mjs"
+    "src/server/contract-validation.mjs",
+    "src/persistence/**/*.ts",
+    "drizzle.config.ts"
   ]
 }

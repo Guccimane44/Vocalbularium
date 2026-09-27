@@ -1,57 +1,60 @@
-import test from 'node:test';
+import test, { createTestStore } from './helpers/database.mjs';
 import assert from 'node:assert/strict';
-import { AccountStore } from '../src/core/store.mjs';
 import { Generation } from '../src/server/generation.mjs';
 import { sortCards } from '../extension/sorting.js';
-
-function fixture(t) { const store = new AccountStore(); t.after(() => store.close()); return store; }
-test('manual cards keep plain text, have no generation status or retry, and operation receipts prevent duplication', t => {
-  const store = fixture(t), deck = store.snapshot();
+async function fixture(t) { const store = await createTestStore(t); t.after(async () => (await store.close())); return store; }
+test('manual cards keep plain text, have no generation status or retry, and operation receipts prevent duplication', async (t) => {
+  const store = await fixture(t), deck = await store.snapshot();
   const payload = { deckId: deck.id, pages: deck.pages.map((page, index) => ({ pageId: page.id, text: index ? '== literal ==\n: text' : '' })) };
-  const first = store.createManual('save', payload);
-  assert.equal(store.createManual('save', payload).cardId, first.cardId);
-  assert.equal(store.cards().length, 1);
-  const card = store.card(first.cardId);
+  const first = await store.createManual('save', payload);
+  assert.equal((await store.createManual('save', payload)).cardId, first.cardId);
+  assert.equal((await store.cards()).length, 1);
+  const card = await store.card(first.cardId);
   assert.equal(card.selected_text, null); assert.equal(card.status, null);
   assert.deepEqual(card.pages.map(page => page.status), [null, null]);
   assert.equal(card.pages[1].text, '== literal ==\n: text');
-  const session = { installationId: 'a', sessionId: 'browser', epoch: 1 }; store.openSession('open', session);
-  assert.throws(() => store.retry('retry', { cardId: card.id, pageId: card.pages[0].page_id, session }), { code: 'manual_card' });
+  const session = { installationId: 'a', sessionId: 'browser', epoch: 1 };
+  await store.openSession('open', session);
+  await assert.rejects(async () => (await store.retry('retry', { cardId: card.id, pageId: card.pages[0].page_id, session })), { code: 'manual_card' });
 });
 
-test('manual edits preserve creation time and other-page changes; delayed saves cannot recreate deleted pages/cards/decks', t => {
-  const store = fixture(t), deck = store.snapshot();
+test('manual edits preserve creation time and other-page changes; delayed saves cannot recreate deleted pages/cards/decks', async (t) => {
+  const store = await fixture(t), deck = await store.snapshot();
   const payload = { deckId: deck.id, pages: deck.pages.map(page => ({ pageId: page.id, text: '' })) };
-  const { cardId } = store.createManual('new', payload), created = store.card(cardId).created_at;
-  store.savePages('a', { cardId, changes: [{ pageId: deck.pages[0].id, text: 'A' }] });
-  store.savePages('b', { cardId, changes: [{ pageId: deck.pages[1].id, text: 'B' }] });
-  assert.deepEqual(store.card(cardId).pages.map(page => page.text), ['A', 'B']); assert.equal(store.card(cardId).created_at, created);
-  store.deleteCard('delete', cardId);
-  assert.throws(() => store.savePages('late', { cardId, changes: [{ pageId: deck.pages[0].id, text: 'late' }] }), { code: 'deleted' });
-  store.deleteDeck('delete-deck', { deckId: deck.id });
-  assert.throws(() => store.createManual('late-new', payload), { code: 'deleted' });
+  const { cardId } = await store.createManual('new', payload), created = (await store.card(cardId)).created_at;
+  await store.savePages('a', { cardId, changes: [{ pageId: deck.pages[0].id, text: 'A' }] });
+  await store.savePages('b', { cardId, changes: [{ pageId: deck.pages[1].id, text: 'B' }] });
+  assert.deepEqual((await store.card(cardId)).pages.map(page => page.text), ['A', 'B']); assert.equal((await store.card(cardId)).created_at, created);
+  await store.deleteCard('delete', cardId);
+  await assert.rejects(async () => (await store.savePages('late', { cardId, changes: [{ pageId: deck.pages[0].id, text: 'late' }] })), { code: 'deleted' });
+  await store.deleteDeck('delete-deck', { deckId: deck.id });
+  await assert.rejects(async () => (await store.createManual('late-new', payload)), { code: 'deleted' });
 });
 
-test('current-page retry uses original input, established interpretation and current saved modules, preserving other pages', async t => {
-  const store = fixture(t), session = { installationId: 'a', sessionId: 'browser', epoch: 1 };
-  store.openSession('open', session);
-  const { cardId } = store.capture('capture', { session, selectedText: 'original', snapshot: store.snapshot() });
+test('current-page retry uses original input, established interpretation and current saved modules, preserving other pages', async (t) => {
+  const store = await fixture(t), session = { installationId: 'a', sessionId: 'browser', epoch: 1 };
+  await store.openSession('open', session);
+  const { cardId } = await store.capture('capture', { session, selectedText: 'original', snapshot: (await store.snapshot()) });
   const interpretation = { inputType: 'word_phrase', sourceLanguage: 'English' };
-  store.establishInterpretation(cardId, interpretation);
-  for (const page of store.card(cardId).pages) { store.stage(page.attempt_id, { ok: true, text: 'initial' }); store.publish(page.page_id, { attemptId: page.attempt_id, session }); }
-  const card = store.card(cardId), target = card.pages[1].page_id;
-  store.savePages('manual', { cardId, changes: card.pages.map(page => ({ pageId: page.page_id, text: 'manual edit' })) });
-  const deck = store.snapshot(); deck.pages[1].modules = [{ id: 'language', type: 'selected-language' }];
-  store.saveDeck('config', { deck, basePageIds: deck.pages.map(page => page.id) });
-  const generation = new Generation(store, { interpret: async () => assert.fail('established interpretation must be reused'), generate: async () => assert.fail('tag must not generate') });
-  const retry = store.retry('retry', { cardId, pageId: target, session }); generation.start(cardId, target);
-  assert.equal(store.card(cardId).pages[1].text, ''); assert.equal(store.card(cardId).pages[0].text, 'manual edit');
-  assert.throws(() => store.savePages('locked', { cardId, changes: card.pages.map(page => ({ pageId: page.page_id, text: 'concurrent draft' })) }), { code: 'generating' });
+  await store.establishInterpretation(cardId, interpretation);
+  for (const page of (await store.card(cardId)).pages) {
+    await store.stage(page.attempt_id, { ok: true, text: 'initial' });
+    await store.publish(page.page_id, { attemptId: page.attempt_id, session });
+  }
+  const card = await store.card(cardId), target = card.pages[1].page_id;
+  await store.savePages('manual', { cardId, changes: card.pages.map(page => ({ pageId: page.page_id, text: 'manual edit' })) });
+  const deck = await store.snapshot(); deck.pages[1].modules = [{ id: 'language', type: 'selected-language' }];
+  await store.saveDeck('config', { deck, basePageIds: deck.pages.map(page => page.id) });
+  const generation = await Generation.create(store, { interpret: async () => assert.fail('established interpretation must be reused'), generate: async () => assert.fail('tag must not generate') });
+  const retry = await store.retry('retry', { cardId, pageId: target, session });
+  await generation.start(cardId, target);
+  assert.equal((await store.card(cardId)).pages[1].text, ''); assert.equal((await store.card(cardId)).pages[0].text, 'manual edit');
+  await assert.rejects(async () => (await store.savePages('locked', { cardId, changes: card.pages.map(page => ({ pageId: page.page_id, text: 'concurrent draft' })) })), { code: 'generating' });
   await Promise.all([...generation.tasks.values()].map(item => item.task));
-  store.publish('finish', { attemptId: retry.attemptId, session }); await generation.close();
-  assert.deepEqual(store.card(cardId).pages.map(page => page.text), ['manual edit', 'original\nEnglish']);
-  assert.equal(store.card(cardId).created_at, card.created_at);
-  assert.equal(store.retry('retry', { cardId, pageId: target, session }).attemptId, retry.attemptId);
+  await store.publish('finish', { attemptId: retry.attemptId, session }); await generation.close();
+  assert.deepEqual((await store.card(cardId)).pages.map(page => page.text), ['manual edit', 'original\nEnglish']);
+  assert.equal((await store.card(cardId)).created_at, card.created_at);
+  assert.equal((await store.retry('retry', { cardId, pageId: target, session })).attemptId, retry.attemptId);
 });
 
 test('four list orders use current front text, deterministic ties, and empty text rather than the display placeholder', () => {

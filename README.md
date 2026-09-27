@@ -1,6 +1,6 @@
 # Vocabularium
 
-A vocabulary capture extension for Chrome on Windows. Account access, capture, deck configuration, and card workflows are implemented. The Render Free backend and OpenCode Go generation are live. The owner accepted the MVP baseline on 13 September 2026; see the [Windows acceptance record](docs/evidence/windows-owner-acceptance-2026-09-13.md).
+A vocabulary capture extension for Chrome. This branch continues the approved v0.3.0 local architecture migration with Fastify and PostgreSQL 18; account access, capture, deck configuration, and card workflows remain available. The earlier Render/OpenCode MVP is a separate testing environment. The owner accepted the MVP baseline on 13 September 2026; see the [Windows acceptance record](docs/evidence/windows-owner-acceptance-2026-09-13.md).
 
 - [MVP delivery tracker and milestone issues](https://github.com/Guccimane44/Vocalbularium/issues/5)
 - [Implementation plan](docs/MVP-Implementation-plan.md)
@@ -10,16 +10,17 @@ A vocabulary capture extension for Chrome on Windows. Account access, capture, d
 
 ## Account and dashboard
 
-Install Node.js 24, then run from the repository root:
+Install Node.js 24 and start PostgreSQL 18 on loopback using the [local setup instructions](docs/architecture/local-postgresql.md), then run from the repository root:
 
 ```sh
 npm ci
+npm run db:setup
 npm start
 ```
 
 Build the extension with `npm run build`, then load `artifacts/extension` through `chrome://extensions` → Developer mode → **Load unpacked**. Click the extension button and sign in with username `admin` and password `admin`.
 
-The account server listens on `127.0.0.1:4318` and persists data in `.data/account.sqlite`. Both extension installations use the same account when pointed at this server. Select text on a webpage and choose **Add to default deck**. Recent outcomes appear on the dashboard; open a card to navigate its plain-text pages. Use **Add new deck** or a deck’s **••• → Configure deck** menu to edit its pages and modules. Open a card to edit its pages or retry a captured page; use **Add card manually** in a deck for a blank card.
+The account server listens on `127.0.0.1:4318` and persists data in the local `vocabularium_dev` PostgreSQL database. Both extension installations use the same account when pointed at this server. Use a separate Chrome profile for this fresh account. Select text on a webpage and choose **Create a card in “My Deck”** (or the current default deck name). Recent outcomes appear on the dashboard; open a card to navigate its plain-text pages. Use **Add new deck** or a deck’s **••• → Configure deck** menu to edit its pages and modules. Open a card to edit its pages or retry a captured page; use **Add card manually** in a deck for a blank card.
 
 Build an installable extension folder with:
 
@@ -29,9 +30,11 @@ npm run build
 
 The output is `artifacts/extension`. For a hosted backend, set `VOCABULARIUM_API_URL` to its HTTPS origin when building; the build writes the matching extension host permission. No credentials are embedded in the package.
 
-The [Render test backend](https://vocabularium.onrender.com/health) is live on the Free plan, with no paid disk. Render discards its local SQLite data on sleep, restart, or redeploy; local development still persists data in `.data`. See the [deployment and hosted testing procedure](docs/M6-Delivery.md#render-free-deployment). Use `HOST`, `PORT`, and `DATA_DIR` to configure a server; `.env.example` documents the local defaults. Login sessions last seven days unless the test server resets, and active views refresh every five seconds.
+The previous [Render testing procedure](docs/M6-Delivery.md#render-free-deployment) describes the historical SQLite deployment. Stage 4 does not deploy this branch or import that account. Preserve existing SQLite files and old extension profiles; see the [PostgreSQL cutover policy](docs/architecture/local-postgresql.md#keep-the-old-installation-separate).
 
-The local API uses Fastify and validates its startup settings. Set `HOST`, `PORT`, `DATA_DIR`, and `LOG_LEVEL` in `.env`. `GET /health/live` checks process liveness; `GET /health/ready` and the compatible `GET /health` check database readiness. The [OpenAPI JSON reference](docs/api/openapi.json) is generated with `npm run openapi`.
+The local API uses Fastify and validates its startup settings. `npm run db:setup` writes ignored `.env.postgres` with separate application, migration, and test connections. Set provider options, `HOST` (loopback only), `PORT`, `DATA_DIR` (generation journal), and `LOG_LEVEL` in `.env`. Login sessions last seven days; active views refresh every five seconds. `GET /health/live` checks process liveness; `GET /health/ready` and the compatible `GET /health` check database readiness and API ownership. The [OpenAPI JSON reference](docs/api/openapi.json) is generated with `npm run openapi` without a database connection.
+
+Use `npm run db:generate` to prepare reviewed schema changes and `npm run db:migrate` with the API stopped to apply them. Normal API requests use the restricted application role. [Backup/restore commands and ordering/recovery details](docs/architecture/local-postgresql.md) explain the one-process limit and durable journal requirement.
 
 ## Deck configuration
 
@@ -57,16 +60,7 @@ Capture receipts remain local until their account write succeeds. **Try saving a
 
 ## Local foundation prototype
 
-Install Node.js 24, then run from the repository root:
-
-```sh
-npm ci
-npm run prototype
-```
-
-In Chrome, open `chrome://extensions`, enable Developer mode, choose **Load unpacked**, and select the repository's `prototypes/extension` folder. Open the extension's dashboard, then use **Open reading fixture**. Select text and choose **Add to default deck** from the context menu.
-
-The prototype backend listens only on `127.0.0.1:4317`. It stores its test account in `.data/foundation.sqlite` and produces clearly labeled illustrative text after a delay. It does not implement login, live generation, or the complete product screens. Do not deploy this laboratory server as the account backend.
+The historical M0 laboratory remains covered by PostgreSQL-backed browser fixtures. Manual use of `npm run prototype` requires an explicitly provisioned disposable database in `PROTOTYPE_DATABASE_URL`. It listens on `127.0.0.1:4317` and generates illustrative output; do not point it at the development account or deploy it as the product backend.
 
 ## Acceptance status
 
@@ -83,6 +77,6 @@ npx playwright install chromium
 npm run test:browser
 ```
 
-Browser checks use temporary isolated profiles and their own servers on ports 4317 and 4318; stop manual servers first. The tests remove their temporary data afterwards. Linux machines may need `npx playwright install --with-deps chromium`.
+Browser checks use temporary isolated profiles and their own servers on ports 4317 and 4318; stop manual servers first. The tests create and remove uniquely named PostgreSQL databases using `.env.postgres` or `TEST_DATABASE_ADMIN_URL`; they reject the development database as a reset target. Linux machines may need `npx playwright install --with-deps chromium`.
 
 For updates, pull the working branch, run `npm ci`, restart the prototype server, and click **Reload** on its extension entry. Extension reload creates a new prototype session and reconciles its unfinished attempts. For the product extension, follow the linked Windows installation/update instructions.
