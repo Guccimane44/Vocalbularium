@@ -206,6 +206,7 @@ test('capture extension: receipt lifetime, exact duplicate cards, shared outcome
   assert.equal(sentenceCard.pages[1].text, ''); assert.equal(sentenceCard.status, 'completed');
 
   await captureFrom(a, 'held-after-close');
+  await waitFor(() => held.has('held-after-close'), 'dashboard-close interpretation started');
   await a.page.close();
   held.get('held-after-close')();
   await waitFor(async () => (await application.store.cards()).find(card => card.selected_text === 'held-after-close')?.status === 'completed', 'dashboard closure leaves generation running');
@@ -213,6 +214,7 @@ test('capture extension: receipt lifetime, exact duplicate cards, shared outcome
   await captureFrom(a, 'held-interrupted');
   const interrupted = (await application.store.cards()).find(card => card.selected_text === 'held-interrupted');
   await waitFor(async () => (await application.store.card(interrupted.id)).pages[0].status === 'completed', 'completed front before exit');
+  await waitFor(() => held.has('held-interrupted'), 'interrupted interpretation started');
   await a.context.close(); contexts.delete(a.context);
   held.get('held-interrupted')();
   await waitFor(async () => (await application.store.attempt(interrupted.pages[1].attempt_id)).result, 'late provider result staged');
@@ -852,6 +854,7 @@ test('assembled reliability: lost acknowledgments, worker suspension, abrupt ori
   await captureFrom(a, 'hold-origin'); await captureFrom(b, 'hold-other');
   const interrupted = (await application.store.cards()).find(card => card.selected_text === 'hold-origin');
   await waitFor(async () => (await application.store.card(interrupted.id)).pages[0].status === 'completed', 'front persisted before crash');
+  await waitFor(() => held.has('hold-origin') && held.has('hold-other'), 'both provider calls started before origin exit');
   const browser = a.context.browser(), protocol = await browser.newBrowserCDPSession();
   const { processInfo } = await protocol.send('SystemInfo.getProcessInfo'); const processId = processInfo.find(process => process.type === 'browser')?.id;
   assert.ok(processId); await protocol.detach();
