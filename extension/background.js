@@ -124,14 +124,22 @@ async function run(message) {
   }
   const version = accessVersion;
   const { auth } = await chrome.storage.local.get('auth');
-  if (!auth) return { signedIn: false };
+  if (!auth) {
+    if (message.type === 'refresh') return { signedIn: false };
+    throw Object.assign(new Error('Sign in to continue.'), { code: 'unauthorized' });
+  }
+  async function refreshAfterMutation(saved) {
+    const state = await run({ type: 'refresh' });
+    if (!state.signedIn) throw Object.assign(new Error('Sign in to confirm the saved change.'), { code: 'unauthorized' });
+    return saved === undefined ? state : { ...state, saved };
+  }
   try {
     if (message.type === 'refresh') return sessionReady ? refreshAccount() : initialize();
     if (message.type === 'set-default') {
       const operationId = message.operationId ?? crypto.randomUUID();
       const pending = { operationId, path: '/api/default-deck', payload: { operationId, deckId: message.deckId } };
       await saves.perform(pending, auth.token);
-      return run({ type: 'refresh' });
+      return refreshAfterMutation();
     }
     const paths = { 'save-deck': '/api/deck/save', 'delete-deck': '/api/deck/delete', 'create-card': '/api/card/create', 'save-card': '/api/card/save', 'delete-card': '/api/card/delete', 'retry-page': '/api/card/retry' };
     if (paths[message.type]) {
@@ -143,26 +151,26 @@ async function run(message) {
       const pending = { operationId, path: paths[message.type], payload: { operationId, payload: message.payload } };
       const saved = await saves.perform(pending, auth.token, ['content_loss', 'invalid', 'front_page', 'deleted', 'replacement']);
       if (message.type === 'retry-page') void captures.poll().catch(captures.recordError);
-      return { ...await run({ type: 'refresh' }), saved };
+      return refreshAfterMutation(saved);
     }
     if (message.type === 'try-saving-again') {
       const captureKey = `capture-${message.operationId}`;
       const { [captureKey]: receipt } = await chrome.storage.local.get(captureKey);
       if (receipt && receipt.state !== 'saved') {
-        await captures.submit(receipt); return run({ type: 'refresh' });
+        await captures.submit(receipt); return refreshAfterMutation();
       }
       const key = `save-${message.operationId}`;
       const { [key]: pending } = await chrome.storage.local.get(key);
       if (pending) {
         const saved = await saves.perform(pending, auth.token);
         void captures.poll().catch(captures.recordError);
-        return { ...await run({ type: 'refresh' }), saved };
+        return refreshAfterMutation(saved);
       }
-      return run({ type: 'refresh' });
+      return refreshAfterMutation();
     }
     throw new Error('This action is unavailable.');
   } catch (error) {
-    if (error.status === 401) { if (version === accessVersion) await removeAccess(); return { signedIn: false }; }
+    if (error.status === 401) { if (version === accessVersion) await removeAccess(); throw Object.assign(new Error('Sign in to continue.'), { code: 'unauthorized' }); }
     throw error;
   }
 }

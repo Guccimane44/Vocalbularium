@@ -75,6 +75,30 @@ test('account extension: login, two installations, reopening, server failure, an
   await b.page.getByRole('heading', { name: 'Your decks.' }).waitFor();
 });
 
+test('expired access keeps a card draft and pending operation for explicit replay', { timeout: 30000 }, async t => {
+  const directory = await mkdtemp(join(tmpdir(), 'vocabularium-auth-draft-'));
+  const application = createApplication();
+  await application.start();
+  const browser = await launch(join(directory, 'profile'));
+  t.after(async () => { await browser.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
+  await signIn(browser.page);
+  const deckId = application.store.account().defaultDeckId;
+  const cardId = application.store.createManual('auth-draft-fixture', { deckId, pages: [] }).cardId;
+  await browser.page.reload();
+  await browser.page.goto(`chrome-extension://${browser.id}/app.html#card/${cardId}`);
+  await browser.page.getByRole('button', { name: 'Edit card manually', exact: true }).click();
+  await browser.page.getByLabel('Page 1 content', { exact: true }).fill('draft survives expired access');
+  const auth = await browser.worker.evaluate(async () => (await chrome.storage.local.get('auth')).auth);
+  application.authentication.logout(auth.token);
+  await browser.page.getByRole('button', { name: 'Save', exact: true }).click();
+  await browser.page.getByRole('alert').filter({ hasText: 'Sign in to continue.' }).waitFor();
+  assert.equal(await browser.page.getByLabel('Page 1 content', { exact: true }).inputValue(), 'draft survives expired access');
+  assert.equal(application.store.card(cardId).pages[0].text, '');
+  const operation = await browser.worker.evaluate(async () => Object.entries(await chrome.storage.local.get(null)).find(([key]) => key.startsWith('save-'))?.[1]);
+  assert.equal(operation.state, 'pending');
+  assert.equal(operation.payload.payload.changes[0].text, 'draft survives expired access');
+});
+
 test('free host: startup HTML is actionable and an erased account requires fresh sign-in', { timeout: 45000 }, async t => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-free-host-'));
   let application = createApplication();
@@ -170,6 +194,7 @@ test('capture extension: receipt lifetime, exact duplicate cards, shared outcome
   assert.equal(application.store.cards()[0].selected_text, selected);
   assert.equal(application.store.cards()[0].pages[0].text, selected);
   await b.page.reload();
+  await waitFor(async () => await b.page.getByRole('button', { name: 'Open card', exact: true }).count() === 2, 'second installation synchronized duplicate captures');
   assert.equal(await b.page.getByRole('button', { name: 'Open card', exact: true }).count(), 2);
   await b.page.getByRole('button', { name: 'Open card', exact: true }).first().click();
   await b.page.getByRole('button', { name: 'Page 2', exact: true }).click();
@@ -749,6 +774,7 @@ test('assembled reliability: lost acknowledgments, worker suspension, abrupt ori
   let reading = await a.context.newPage(); await reading.goto('http://127.0.0.1:4318/health');
   await loseNextAcknowledgment(a.worker, '/api/capture');
   await captureFrom(a, 'uncertain capture');
+  await waitFor(() => application.store.cards().some(card => card.selected_text === 'uncertain capture'), 'uncertain capture committed');
   const card = application.store.cards().find(card => card.selected_text === 'uncertain capture');
   const attempts = card.pages.map(page => page.attempt_id);
   await a.page.getByRole('button', { name: 'Try saving again', exact: true }).waitFor();
@@ -763,6 +789,7 @@ test('assembled reliability: lost acknowledgments, worker suspension, abrupt ori
   await loseNextAcknowledgment(a.worker, '/api/card/save');
   await a.page.getByRole('button', { name: 'Save', exact: true }).click();
   await a.page.getByRole('button', { name: 'Try saving again', exact: true }).waitFor();
+  await waitFor(() => application.store.card(card.id).pages[0].text === 'save with lost acknowledgment', 'original page save committed');
   application.store.savePages('later-remote-edit', { cardId: card.id, changes: [{ pageId: card.pages[0].page_id, text: 'later remote edit' }] });
   await a.page.getByRole('button', { name: 'Try saving again', exact: true }).click();
   await a.page.getByRole('button', { name: 'Edit card manually', exact: true }).waitFor();

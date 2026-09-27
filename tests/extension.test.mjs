@@ -50,9 +50,11 @@ async function background(t) {
   api.alarms = { async create() {}, onAlarm: event() }; api.action = { onClicked: event() };
   const oldChrome = globalThis.chrome, oldFetch = globalThis.fetch;
   globalThis.chrome = api;
-  let account = accountNamed('My Deck'), accountFetch, sessionCalls = 0;
-  globalThis.fetch = async url => {
+  let account = accountNamed('My Deck'), accountFetch, intercept, sessionCalls = 0;
+  globalThis.fetch = async (url, options) => {
     const path = new URL(url).pathname;
+    const overridden = await intercept?.(path, options);
+    if (overridden) return overridden;
     if (path === '/api/session') sessionCalls++;
     const value = path === '/api/login' ? { token: 'test-token' } : path === '/api/account' ? await (accountFetch ? accountFetch() : structuredClone(account)) : {};
     return { ok: true, async json() { return value; } };
@@ -60,8 +62,49 @@ async function background(t) {
   t.after(() => { globalThis.chrome = oldChrome; globalThis.fetch = oldFetch; });
   await import(`../extension/background.js?test=${crypto.randomUUID()}`);
   const send = message => new Promise(resolve => api.runtime.onMessage.listeners[0](message, { id: 'test', url: api.runtime.getURL('app.html') }, resolve));
-  return { api, send, rename(name) { account = accountNamed(name); }, hold(fn) { accountFetch = fn; }, get sessionCalls() { return sessionCalls; } };
+  return { api, send, rename(name) { account = accountNamed(name); }, hold(fn) { accountFetch = fn; }, intercept(fn) { intercept = fn; }, get sessionCalls() { return sessionCalls; } };
 }
+
+const reply = (status, value) => ({ ok: status >= 200 && status < 300, status, async json() { return value; } });
+
+test('mutations report missing or expired access without clearing the original save receipt', async t => {
+  const fixture = await background(t);
+  const { api, send } = fixture;
+  await send({ type: 'login', username: 'admin', password: 'admin' });
+  const save = { type: 'save-card', operationId: 'auth-save', payload: { cardId: 'one', changes: [] } };
+  await api.storage.local.remove('auth');
+  assert.equal((await send(save)).code, 'unauthorized');
+  assert.equal(api.storage.local.data['save-auth-save'], undefined);
+  await send({ type: 'login', username: 'admin', password: 'admin' });
+  fixture.intercept(path => path === '/api/card/save' ? reply(401, { error: 'Sign in to continue.', code: 'unauthorized' }) : null);
+  assert.equal((await send(save)).code, 'unauthorized');
+  assert.equal(api.storage.local.data['save-auth-save'].state, 'pending');
+  assert.deepEqual(api.storage.local.data['save-auth-save'].payload.payload, save.payload);
+  assert.equal(api.storage.local.data.auth, undefined);
+});
+
+test('authentication loss during refresh does not turn an acknowledged mutation into editor success', async t => {
+  const fixture = await background(t);
+  const { api, send } = fixture;
+  await send({ type: 'login', username: 'admin', password: 'admin' });
+  const operationId = 'committed-save';
+  let committed = false;
+  fixture.intercept(path => {
+    if (path === '/api/card/save') { committed = true; return reply(200, { cardId: 'one' }); }
+    if (path === '/api/account' && committed) return reply(401, { error: 'Sign in to continue.', code: 'unauthorized' });
+    return null;
+  });
+  const result = await send({ type: 'save-card', operationId, payload: { cardId: 'one', changes: [] } });
+  assert.equal(committed, true);
+  assert.equal(result.code, 'unauthorized');
+  assert.equal(api.storage.local.data[`save-${operationId}`], undefined, 'acknowledged operation is not duplicated');
+  assert.equal(api.storage.local.data.auth, undefined);
+  fixture.intercept(null);
+  await send({ type: 'login', username: 'admin', password: 'admin' });
+  const replay = await send({ type: 'save-card', operationId, payload: { cardId: 'one', changes: [] } });
+  assert.equal(replay.signedIn, true);
+  assert.equal(api.storage.local.data[`save-${operationId}`], undefined);
+});
 
 test('account refresh: menu follows confirmed sync without replacing the session; late logout replies stay unavailable', async t => {
   const fixture = await background(t);

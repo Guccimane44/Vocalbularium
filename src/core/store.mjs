@@ -316,7 +316,8 @@ export class AccountStore {
   savePages(operationId, { cardId, changes }) {
     return this.command(operationId, 'save-pages', { cardId, changes }, () => {
       const card = this.card(cardId);
-      if (!Array.isArray(changes) || new Set(changes.map(change => change.pageId)).size !== changes.length) fail('invalid', 'Choose each changed page once.');
+      if (!Array.isArray(changes) || changes.some(change => !change || typeof change !== 'object') ||
+        new Set(changes.map(change => change.pageId)).size !== changes.length) fail('invalid', 'Choose each changed page once.');
       for (const change of changes) {
         const page = card.pages.find(page => page.page_id === change.pageId);
         if (!page) fail('deleted', 'A changed page no longer exists.');
@@ -332,7 +333,8 @@ export class AccountStore {
   createManual(operationId, { deckId, pages }) {
     return this.command(operationId, 'create-manual', { deckId, pages }, () => {
       const deck = this.deck(deckId);
-      if (!Array.isArray(pages) || new Set(pages.map(page => page.pageId)).size !== pages.length || pages.some(page => typeof page.text !== 'string')) fail('invalid', 'Each page needs plain-text content.');
+      if (!Array.isArray(pages) || pages.some(page => !page || typeof page !== 'object') ||
+        new Set(pages.map(page => page.pageId)).size !== pages.length || pages.some(page => typeof page.text !== 'string')) fail('invalid', 'Each page needs plain-text content.');
       for (const page of pages) if (!deck.pages.some(saved => saved.id === page.pageId)) fail('deleted', 'A page in this draft was deleted. Your draft is preserved.');
       const id = randomUUID();
       this.db.prepare('INSERT INTO cards (id, deck_id, selected_text, created_at) VALUES (?, ?, NULL, ?)')
