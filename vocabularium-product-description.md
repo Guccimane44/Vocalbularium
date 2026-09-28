@@ -2,34 +2,34 @@
 
 ## Product description
 
-Vocabularium is a vocabulary capture and learning system designed to make collecting new knowledge effortless. It lets users save unfamiliar language material—whether a word, phrase, or sentence—at the moment they encounter it, generates a useful contextual card, and places that card into a deck without interrupting the activity in which the vocabulary was discovered.
+Vocabularium is a generative knowledge capture program designed to make collecting and working with useful text effortless. It lets users save a word, phrase, sentence, or passage when they encounter it, generate a contextual card with the modules they choose, and place that card into a deck without interrupting their activity.
 
-Vocabularium is built around the idea that vocabulary learning should adapt to the learner, the language, and the context—not force every learner into the same dictionary format or study workflow.
+Vocabularium is built around the idea that people should be able to work with text in ways that fit their goals, the content, and its context.
 
 The vision we have for Vocabularium is that it should go beyond language flashcards and support all kinds of text-based content.
 
 ## The problem
 
-Most flashcard and language-learning applications create friction in two ways:
+Many tools for collecting and understanding text create friction in two ways:
 
-1. **Manual card creation interrupts discovery.** When users encounter unfamiliar language while reading, browsing, watching, or listening, they often have to leave that activity, switch applications, copy information, and construct a card by hand. This context switching makes consistent vocabulary collection less likely.
+1. **Manual card creation interrupts discovery.** When users encounter a useful term, passage, or idea while reading, browsing, watching, or listening, they often have to leave that activity, switch applications, copy information, and construct a card by hand. This context switching makes consistent capture less likely.
 
-2. **Fixed dictionary mappings are too limited.** A predefined word-to-word mapping cannot reliably cover expressions, slang, technical terminology, newly emerging usages, or words whose meaning depends heavily on context. This limitation is especially visible in languages such as Chinese, where meaning can be composed dynamically and the boundaries of a “word” are not always fixed.
+2. **Fixed interpretations are too limited.** A dictionary entry or predefined explanation cannot reliably cover expressions, technical concepts, newly emerging usages, or text whose meaning depends heavily on context. The same text may call for different explanations depending on the user's subject and purpose.
 
 Vocabularium addresses both problems by combining frictionless capture with generative, flexible cards.
 
 ## Core philosophy
 
-### Capture vocabulary where it is discovered
+### Capture text where it is discovered
 
-Adding vocabulary should require as little interruption as possible. Depending on the platform, a user may select text, use a pop-up action, press a hotkey, or share text to Vocabularium on iOS and other devices.
+Capturing text should require as little interruption as possible. Depending on the platform, a user may select text, use a pop-up action, press a hotkey, or share text to Vocabularium on iOS and other devices.
 
 The intended flow is:
 
 ```text
 reading, browsing, watching, or listening
                 ↓
-       encounter unfamiliar language
+     encounter useful or unfamiliar text
                 ↓
              select or share it
                 ↓
@@ -42,13 +42,13 @@ reading, browsing, watching, or listening
              continue the activity
 ```
 
-The user should not need to think about constructing a card while they are discovering vocabulary.
+The user should not need to think about constructing a card while exploring the source material.
 
 ### Generate contextual cards from any text
 
-Vocabularium uses a generative card model. A card can be generated from a selected word, phrase, or sentence together with available context, source and target languages, and the page layout of the destination deck. The generated result is shaped by the input’s size and meaning: a word may call for translation and grammatical information, while a sentence may call for translation, explanation, vocabulary extraction, grammar analysis, or other modules placed on the card’s pages.
+Vocabularium uses a generative card model. A card can be generated from selected text together with available context and the page layout of the destination deck. The result is shaped by the input and the chosen modules: a technical term may call for an explanation in its field, while a sentence may call for translation, summary, analysis, or another result placed on the card’s pages.
 
-This makes it possible to create useful cards for language material that may not exist in a conventional dictionary, including:
+This makes it possible to create useful cards for material that may not fit a fixed reference source, including:
 
 - contextual meanings;
 - multi-word expressions and idioms;
@@ -56,16 +56,27 @@ This makes it possible to create useful cards for language material that may not
 - technical or specialized terminology;
 - newly emerging usages;
 - language-specific grammatical information;
-- expressions whose meaning cannot be captured by a single fixed translation.
+- expressions whose meaning cannot be captured by a single fixed translation;
+- passages that call for explanation, summary, or a perspective from a particular field.
 
-The result is not merely a lookup result. It is a generated card shaped for a particular learning purpose.
+The result is a generated card shaped for the user's purpose.
+
+### Choose and combine modules
+
+One strength of Notion is that people can view the same information in different ways. Vocabularium follows a similar idea: users choose and combine modules to decide what a captured piece of text becomes, rather than accept one fixed card format.
+
+Vocabularium aims to offer a large and growing library of modules, many powered by generative AI. Each generative module has a focused prompt, so new modules can be introduced and improved quickly. Some modules support language learning; others can bring knowledge or perspectives from fields beyond it.
+
+For example, a computer science module could explain a selected term such as `frontend` in its technical context. A module inspired by Einstein could offer a speculative perspective on a captured idea.
+
+In the future, Vocabularium could also provide APIs that let users create and customize modules. The range of possible modules should grow with the interests and needs of its users.
 
 ## Two card-creation modalities
 
 Generated card creation supports two basic input modalities:
 
-1. **Word or phrase input.** The user submits a single word, compound word, expression, or other short language unit. Vocabularium generates the information represented by the modules on the card’s pages.
-2. **Sentence input.** The user submits a complete sentence. Vocabularium can generate a translation, contextual explanation, relevant vocabulary, grammar information, and any other modules placed on the destination deck’s pages.
+1. **Word or phrase input.** The user submits a term, compound word, expression, or other short piece of text. Vocabularium generates the information represented by the modules on the card’s pages.
+2. **Sentence input.** The user submits a complete sentence. Vocabularium can generate an explanation, translation, summary, analysis, or other content requested by modules on the destination deck’s pages.
 
 These are input modes for generation. Manual creation and editing are separate ways to work with cards. Users can also:
 
@@ -80,15 +91,9 @@ Generated content should be treated as useful starting material that remains und
 
 Users can explicitly regenerate one card page, replacing its content after confirmation. The [MVP Select and Add specification](docs/MVP-Product-spec-select-and-add.md#retry-the-current-page) defines the detailed retry behavior; its [page-completion rules](docs/MVP-Product-spec-select-and-add.md#page-completion-and-failure) distinguish failed generation from valid empty pages.
 
-### Use language-aware modules
-
-Different languages require different kinds of information. A German vocabulary card may benefit from an article, plural form, and conjugation. A Spanish card may need gender, pluralization, and conjugation. A Chinese card may benefit from pinyin, character decomposition, and a contextual explanation.
-
-Vocabularium therefore treats language-aware information as independent modules rather than assuming one universal dictionary structure. Users assemble the modules they need; they do not need to construct a complex configuration system.
-
 ## Decks are the primary repository concept
 
-A deck is the main place where vocabulary cards are collected, organized, and optionally studied. Users can create different decks for different languages, projects, sources, proficiency levels, or learning goals.
+A deck is the main place where cards made from captured text are collected, organized, and optionally studied. Users can create different decks for different subjects, languages, projects, sources, or goals.
 
 A deck defines the layout for its cards:
 
@@ -96,13 +101,13 @@ A deck defines the layout for its cards:
 - which modules are placed on each page;
 - whether memorization is enabled or disabled.
 
-Every card belongs to exactly one deck. A card can be copied and pasted into another deck or moved into another deck, but it does not belong to multiple decks at the same time. The important principle is that the deck—not a fixed collection or study format—is the user’s primary vocabulary repository.
+Every card belongs to exactly one deck. A card can be copied and pasted into another deck or moved into another deck, but it does not belong to multiple decks at the same time. In the card workflow, the deck is the user's primary repository for captured text and its generated content.
 
 The deck layout is mostly a definition of pages and generation modules. If a deck defines three pages, every card in that deck has three pages, even if generation produces no content for one or more of them.
 
 ## Pages are containers; modules are Lego blocks
 
-Each vocabulary card is presented as a sequence of pages. In the deck layout, a page is a simple container, and each module is an independent Lego-like generator that can be placed inside it. Pages and modules primarily exist in the layout definition; they are instructions for producing a card, not necessarily content that is stored or rendered by themselves.
+Each card is presented as a sequence of pages. In the deck layout, a page is a simple container, and each module is an independent Lego-like generator that can be placed inside it. Pages and modules primarily exist in the layout definition; they are instructions for producing a card, not necessarily content that is stored or rendered by themselves.
 
 The user should be able to assemble a deck layout by dragging modules into a page, rearranging them, or removing them. The same simple interaction defines how generated cards are produced.
 
@@ -197,7 +202,9 @@ The German article module is not triggered, so it produces no output and nothing
 
 ## Modules
 
-Modules are the Lego-like generators of a card page. A module represents one piece of vocabulary information or one useful interaction and should function independently. A module exists in the deck layout and generates output only when it is triggered by the card’s input. Possible modules include:
+Modules are independent building blocks that users choose and arrange on card pages. Each module has a focused purpose. A generative module uses a prompt to produce one kind of result from the captured text; another module may simply display the original input. A module contributes output only when it applies to that input.
+
+Language-learning modules could include:
 
 - the original input, word, phrase, or sentence;
 - translation;
@@ -213,15 +220,17 @@ Modules are the Lego-like generators of a card page. A module represents one pie
 - character or component decomposition;
 - images or other contextual material.
 
-This list is illustrative rather than exhaustive. The system should allow new module types to be introduced without changing the basic page model.
+The library can also grow beyond language learning. Possible modules could explain terms in a particular field, summarize a passage, extract key ideas, or offer a clearly speculative perspective on the text. These examples are illustrative.
+
+New modules should fit the same composition model so their prompts and outputs can be developed and improved without changing the basic page structure. In future iterations, APIs could let users create or customize modules of their own.
 
 ## Memorization is optional
 
-Vocabularium can support memorization and spaced review, but memorization is not the definition of the product. Some users may want to collect and consult vocabulary without formal review. Others may want to turn selected decks or cards into a study routine.
+Vocabularium can support memorization and spaced review, but memorization is not the definition of the product. Some users may want to collect and consult captured material without formal review. Others may want to turn selected decks or cards into a study routine.
 
 The same deck and card model should support both use cases:
 
-- vocabulary collection and reference;
+- collection and reference;
 - active memorization and review.
 
 Memorization should be easy to enable or disable at the deck or card level rather than assumed for every saved card.
@@ -230,21 +239,22 @@ Memorization should be easy to enable or disable at the deck or card level rathe
 
 Vocabularium should remain guided by these principles:
 
-1. **Minimize interruption.** Capturing vocabulary should fit into the user’s existing activity.
-2. **Generate for context.** Cards should reflect the input, language, context, and learning purpose.
-3. **Support any language.** The model should not depend on a closed set of fixed language-pair dictionaries.
-4. **Respect language differences.** Different languages should be able to use different modules and information structures.
-5. **Support different input sizes.** A word, phrase, or sentence can each become a meaningful generated card.
-6. **Keep composition simple.** Pages are containers, and independent generator modules can be added, removed, and rearranged without complex configuration.
-7. **Generate selectively.** Each module contributes only when it is relevant to the input; other modules may remain empty.
-8. **Keep generated content editable.** Users should be able to manually add cards and revise anything generation produces.
-9. **Use decks as the organizing foundation.** Every card belongs to one deck, and decks are where cards are collected, organized, and optionally studied.
-10. **Keep memorization optional.** Learning through review should be available without making it mandatory.
+1. **Minimize interruption.** Capturing text should fit into the user's existing activity.
+2. **Generate for context.** Cards should reflect the input, its context, and the user's purpose.
+3. **Grow through modules.** Offer a broad, evolving library of independent modules that users can combine, including AI-powered modules beyond language learning and, eventually, modules customized through APIs.
+4. **Support any language.** The model should not depend on a closed set of fixed language-pair dictionaries.
+5. **Respect language differences.** Different languages should be able to use different modules and information structures.
+6. **Support different input sizes.** A word, phrase, or sentence can each become a meaningful generated card.
+7. **Keep composition simple.** Pages are containers, and independent generator modules can be added, removed, and rearranged without complex configuration.
+8. **Generate selectively.** Each module contributes only when it is relevant to the input; other modules may remain empty.
+9. **Keep generated content editable.** Users should be able to manually add cards and revise anything generation produces.
+10. **Use decks as the organizing foundation for cards.** Every card belongs to one deck, where it can be collected, organized, and optionally studied.
+11. **Keep memorization optional.** Learning through review should be available without making it mandatory.
 
 ## Summary
 
-Vocabularium is a generative vocabulary system that is simple to assemble. It captures language material at the moment of discovery, creates contextual cards automatically, and organizes them in flexible decks. A word, phrase, or sentence can become a card through generation, while users can also add and edit cards manually. Each card consists of a mandatory front page followed by any number of pages, each acting as a container for independent language-aware modules that users can add, remove, and rearrange.
+Vocabularium is a generative knowledge capture program for working with text. It saves material at the moment of discovery, creates contextual cards automatically, and organizes them in flexible decks. Selected text can become a card through generation, while users can also add and edit cards manually. Each card consists of a mandatory front page followed by any number of pages, each acting as a container for independent modules that users can add, remove, and rearrange.
 
 The product’s central promise is simple:
 
-> Save language material without breaking your flow, and get a card shaped for how you want to learn it.
+> Save text without breaking your flow, and get a card shaped for what you want to do with it.
