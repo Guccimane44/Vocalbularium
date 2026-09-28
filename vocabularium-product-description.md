@@ -2,9 +2,11 @@
 
 ## Product description
 
-Vocabularium is a vocabulary capture and learning system designed to make collecting new language effortless. It lets users save unfamiliar language material—whether a word, phrase, or sentence—at the moment they encounter it, generates a useful contextual card, and places that card into a deck without interrupting the activity in which the vocabulary was discovered.
+Vocabularium is a vocabulary capture and learning system designed to make collecting new knowledge effortless. It lets users save unfamiliar language material—whether a word, phrase, or sentence—at the moment they encounter it, generates a useful contextual card, and places that card into a deck without interrupting the activity in which the vocabulary was discovered.
 
 Vocabularium is built around the idea that vocabulary learning should adapt to the learner, the language, and the context—not force every learner into the same dictionary format or study workflow.
+
+In future versions, Vocabularium should go beyond language flashcards and support all kinds of text-based content.
 
 ## The problem
 
