@@ -6,7 +6,7 @@ Vocabularium is a vocabulary capture and learning system designed to make collec
 
 Vocabularium is built around the idea that vocabulary learning should adapt to the learner, the language, and the context—not force every learner into the same dictionary format or study workflow.
 
-In future versions, Vocabularium should go beyond language flashcards and support all kinds of text-based content.
+The vision we have for Vocabularium is that it should go beyond language flashcards and support all kinds of text-based content.
 
 ## The problem
 
