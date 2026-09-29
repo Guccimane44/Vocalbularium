@@ -13,3 +13,11 @@ Canonical model, active prose, visible copy and accessibility labels use deck â†
 - Active documentation file links checked; links moved by the existing taxonomy refactor repaired.
 
 No hosted/provider calls, deployment, release publication, package handoff or owner acceptance performed.
+
+## Increment 2: implementation names
+
+Rename editor, row, draft and record types, store/query helpers, generation renderer, maintained prototype/smoke consumers, DOM/CSS names and test filenames. Dashboard query batches are explicitly `KarteBatch`/`DeckBatch`; Playwright pages and pagination are unchanged. HTTP fields, persisted fields, route/message strings, receipt operation kinds and schema SQL retain legacy names pending increment 3.
+
+- `npm run check`: passed.
+- `npm test`: 80 passed, zero failures.
+- Isolated `npm run test:browser`: 18 passed, zero failures on ports 44317/44318, including actual worker stop/restart and browser close/reopen.

@@ -60,16 +60,16 @@ test('real Chromium extension: feedback, independent captures, worker restart, a
   const feedback = reading.getByRole('status');
   assert.equal(await feedback.count(), 1);
   assert.equal(await feedback.textContent(), 'Capture received×');
-  assert.equal((await prototype.store.cards())[0].selected_text, chosen);
-  assert.equal((await prototype.store.cards())[0].status, 'loading');
-  const firstCardId = (await prototype.store.cards())[0].id;
+  assert.equal((await prototype.store.kartes())[0].selected_text, chosen);
+  assert.equal((await prototype.store.kartes())[0].status, 'loading');
+  const firstKarteId = (await prototype.store.kartes())[0].id;
   const before = Date.now();
   await feedback.waitFor({ state: 'detached', timeout: 4000 });
   const elapsed = Date.now() - before;
   assert.ok(elapsed >= 2500 && elapsed < 3800, `Feedback duration was ${elapsed} ms after handler return`);
-  assert.equal((await prototype.store.card(firstCardId)).status, 'loading');
+  assert.equal((await prototype.store.karte(firstKarteId)).status, 'loading');
   await a.dashboard.close();
-  await waitFor(async () => (await prototype.store.card(firstCardId)).status === 'completed', 'generation survives dashboard closure');
+  await waitFor(async () => (await prototype.store.karte(firstKarteId)).status === 'completed', 'generation survives dashboard closure');
 
   const frameSelection = await reading.frameLocator('iframe').locator('#frame-selection').evaluate(element => {
     const range = document.createRange(); range.selectNodeContents(element);
@@ -81,23 +81,23 @@ test('real Chromium extension: feedback, independent captures, worker restart, a
   assert.equal(await reading.getByRole('status').count(), 2);
   await reading.getByRole('button', { name: 'Close capture feedback' }).first().click();
   assert.equal(await reading.getByRole('status').count(), 1);
-  await waitFor(async () => (await prototype.store.cards()).every(card => card.status === 'completed'), 'duplicate captures complete');
-  assert.equal((await prototype.store.cards()).length, 3);
-  assert.equal((await prototype.store.cards()).filter(card => card.selected_text === frameSelection).length, 2);
+  await waitFor(async () => (await prototype.store.kartes()).every(karte => karte.status === 'completed'), 'duplicate captures complete');
+  assert.equal((await prototype.store.kartes()).length, 3);
+  assert.equal((await prototype.store.kartes()).filter(karte => karte.selected_text === frameSelection).length, 2);
   assert.equal(reading.url(), 'http://127.0.0.1:4317/fixture');
 
   prototype.dropNextCaptureResponse();
   const uncertainId = await invoke(a.worker, 'save response lost');
-  const uncertain = (await prototype.store.cards()).find(card => card.selected_text === 'save response lost');
+  const uncertain = (await prototype.store.kartes()).find(karte => karte.selected_text === 'save response lost');
   const attemptIds = uncertain.pages.map(page => page.attempt_id);
   const pending = await a.worker.evaluate(async (id) => (await chrome.storage.local.get(`capture-${id}`))[`capture-${id}`], uncertainId);
   assert.equal(pending.state, 'pending');
   const recovery = await a.context.newPage();
   await recovery.goto(`chrome-extension://${a.id}/dashboard.html`);
   await recovery.getByRole('button', { name: 'Try saving again' }).click();
-  await waitFor(async () => (await prototype.store.card(uncertain.id)).status === 'completed', 'uncertain save explicitly resubmitted');
-  assert.equal((await prototype.store.cards()).filter(card => card.selected_text === 'save response lost').length, 1);
-  assert.deepEqual((await prototype.store.card(uncertain.id)).pages.map(page => page.attempt_id), attemptIds);
+  await waitFor(async () => (await prototype.store.karte(uncertain.id)).status === 'completed', 'uncertain save explicitly resubmitted');
+  assert.equal((await prototype.store.kartes()).filter(karte => karte.selected_text === 'save response lost').length, 1);
+  assert.deepEqual((await prototype.store.karte(uncertain.id)).pages.map(page => page.attempt_id), attemptIds);
   await recovery.close();
   // Stopping the worker is deliberately different from closing its browser profile.
   const priorSession = await a.worker.evaluate(async () => (await chrome.storage.session.get('session')).session);
@@ -122,22 +122,22 @@ test('real Chromium extension: feedback, independent captures, worker restart, a
   const otherReading = await b.context.newPage();
   await otherReading.goto('http://127.0.0.1:4317/fixture');
   await invoke(a.worker, 'interrupted on A');
-  const interruptedCard = (await prototype.store.cards()).find(card => card.selected_text === 'interrupted on A');
+  const interruptedKarte = (await prototype.store.kartes()).find(karte => karte.selected_text === 'interrupted on A');
   await invoke(b.worker, 'continues on B');
-  const otherCard = (await prototype.store.cards()).find(card => card.selected_text === 'continues on B');
+  const otherKarte = (await prototype.store.kartes()).find(karte => karte.selected_text === 'continues on B');
   const pendingSession = await a.worker.evaluate(async () => (await chrome.storage.session.get('session')).session);
   await a.context.close(); contexts.delete(a.context);
-  await waitFor(async () => (await prototype.store.card(otherCard.id)).status === 'completed', 'other installation completes');
-  assert.equal((await prototype.store.card(interruptedCard.id)).pages[0].text, '', 'server must not publish without originating browser');
+  await waitFor(async () => (await prototype.store.karte(otherKarte.id)).status === 'completed', 'other installation completes');
+  assert.equal((await prototype.store.karte(interruptedKarte.id)).pages[0].text, '', 'server must not publish without originating browser');
   a = await launch(profileA); contexts.add(a.context);
   const nextSession = await a.worker.evaluate(() => globalThis.foundation.initialize());
   assert.equal(nextSession.installationId, pendingSession.installationId);
   assert.equal(nextSession.epoch, pendingSession.epoch + 1);
   assert.notEqual(nextSession.sessionId, pendingSession.sessionId);
-  assert.equal((await prototype.store.card(interruptedCard.id)).status, 'failed');
-  assert.equal((await prototype.store.card(otherCard.id)).status, 'completed');
-  assert.equal((await prototype.store.card(firstCardId)).status, 'completed');
-  await assert.rejects(async () => (await prototype.store.stage(interruptedCard.pages[0].attempt_id, { ok: true, text: 'late' })), error => error.code === 'stale_attempt');
+  assert.equal((await prototype.store.karte(interruptedKarte.id)).status, 'failed');
+  assert.equal((await prototype.store.karte(otherKarte.id)).status, 'completed');
+  assert.equal((await prototype.store.karte(firstKarteId)).status, 'completed');
+  await assert.rejects(async () => (await prototype.store.stage(interruptedKarte.pages[0].attempt_id, { ok: true, text: 'late' })), error => error.code === 'stale_attempt');
 
   // Keep the fallback popup alive long enough to verify manual dismissal under slow CI scheduling.
   await a.context.addInitScript(() => {
@@ -177,8 +177,8 @@ test('abrupt browser-process termination cannot publish staged output after rest
   const page = await initial.context.newPage();
   await page.goto('http://127.0.0.1:4317/fixture');
   await invoke(initial.worker, 'abrupt termination');
-  const card = (await prototype.store.cards())[0];
-  assert.equal(card.status, 'loading');
+  const karte = (await prototype.store.kartes())[0];
+  assert.equal(karte.status, 'loading');
   const browser = initial.context.browser();
   const protocol = await browser.newBrowserCDPSession();
   const { processInfo } = await protocol.send('SystemInfo.getProcessInfo');
@@ -187,14 +187,14 @@ test('abrupt browser-process termination cannot publish staged output after rest
   const disconnected = once(browser, 'disconnected');
   process.kill(ownedBrowser.id, 'SIGKILL');
   await disconnected;
-  await waitFor(async () => (await prototype.store.attempt(card.pages[0].attempt_id)).result !== null, 'server result staged after browser termination');
-  assert.equal((await prototype.store.card(card.id)).pages[0].text, '');
+  await waitFor(async () => (await prototype.store.attempt(karte.pages[0].attempt_id)).result !== null, 'server result staged after browser termination');
+  assert.equal((await prototype.store.karte(karte.id)).pages[0].text, '');
   reopened = await launch(profile);
   const newSession = await reopened.worker.evaluate(() => globalThis.foundation.initialize());
   assert.equal(newSession.installationId, oldSession.installationId);
   assert.equal(newSession.epoch, oldSession.epoch + 1);
-  assert.equal((await prototype.store.card(card.id)).status, 'failed');
+  assert.equal((await prototype.store.karte(karte.id)).status, 'failed');
   await assert.rejects(async () => (await prototype.store.publish('late-publish', {
-    attemptId: card.pages[0].attempt_id, session: oldSession
+    attemptId: karte.pages[0].attempt_id, session: oldSession
   })), error => error.code === 'stale_session');
 });

@@ -1,6 +1,6 @@
 import test, { createTestStore, createTestApplication } from './helpers/database.mjs';
 import assert from 'node:assert/strict';
-import { sortCards } from '../extension/sorting.ts';
+import { sortKartes } from '../extension/sorting.ts';
 
 test('bounded karte seites preserve JavaScript ordering, ties, and cursor validity', async t => {
   const store = await createTestStore(t);
@@ -15,25 +15,25 @@ test('bounded karte seites preserve JavaScript ordering, ties, and cursor validi
   assert.equal(summary.decks[0].cardCount, 64);
   assert.equal(summary.defaultDeckSnapshot.id, deck.id);
   assert.equal(JSON.stringify(summary).includes(contentMarker), false, 'account summary has no karte content');
-  const all = await store.cards();
+  const all = await store.kartes();
   for (const order of ['newest', 'oldest', 'az', 'za']) {
     const collected = [];
     let cursor;
     do {
-      const result = await store.listCards(deck.id, { order, cursor, limit: 7 });
+      const result = await store.listKartes(deck.id, { order, cursor, limit: 7 });
       assert.ok(result.cards.length <= 7);
-      assert.ok(result.cards.every(card => card.pages.length === 1), 'list rows contain only front-seite summaries');
-      collected.push(...result.cards.map(card => card.id));
+      assert.ok(result.cards.every(karte => karte.pages.length === 1), 'list rows contain only front-seite summaries');
+      collected.push(...result.cards.map(karte => karte.id));
       cursor = result.nextCursor;
     } while (cursor);
-    assert.deepEqual(collected, sortCards(all, order).map(card => card.id), order);
+    assert.deepEqual(collected, sortKartes(all, order).map(karte => karte.id), order);
   }
-  const first = await store.listCards(deck.id, { order: 'az', limit: 5 });
-  await store.savePages('change-front', { cardId: all[0].id, changes: [{ pageId: front, text: '0-new-first' }] });
-  await assert.rejects(store.listCards(deck.id, { order: 'az', limit: 5, cursor: first.nextCursor }), error => error.code === 'stale_cursor');
-  assert.equal((await store.card(all[0].id)).pages[0].text, '0-new-first');
-  assert.equal((await store.listCards(deck.id, { order: 'az', limit: 1 })).cards[0].id,
-    sortCards(await store.cards(), 'az')[0].id);
+  const first = await store.listKartes(deck.id, { order: 'az', limit: 5 });
+  await store.saveSeites('change-front', { cardId: all[0].id, changes: [{ pageId: front, text: '0-new-first' }] });
+  await assert.rejects(store.listKartes(deck.id, { order: 'az', limit: 5, cursor: first.nextCursor }), error => error.code === 'stale_cursor');
+  assert.equal((await store.karte(all[0].id)).pages[0].text, '0-new-first');
+  assert.equal((await store.listKartes(deck.id, { order: 'az', limit: 1 })).cards[0].id,
+    sortKartes(await store.kartes(), 'az')[0].id);
 });
 
 test('deck seites and recent captures remain bounded as the account grows', async t => {
@@ -53,8 +53,8 @@ test('deck seites and recent captures remain bounded as the account grows', asyn
   });
   const recent = await store.recentCaptures();
   assert.equal(recent.cards.length, 20);
-  assert.deepEqual(recent.cards.map(card => card.id), sortCards(await store.cards(), 'newest').slice(0, 20).map(card => card.id));
-  assert.ok(recent.cards.every(card => card.pages.length === 1));
+  assert.deepEqual(recent.cards.map(karte => karte.id), sortKartes(await store.kartes(), 'newest').slice(0, 20).map(karte => karte.id));
+  assert.ok(recent.cards.every(karte => karte.pages.length === 1));
 });
 
 test('bounded read routes require login and reject oversized seites and stale cursors', async t => {
@@ -73,19 +73,19 @@ test('bounded read routes require login and reject oversized seites and stale cu
   assert.equal(summary.data.decks.length, 1);
   assert.equal(summary.data.defaultDeckSnapshot.id, summary.data.defaultDeckId);
   const deckId = summary.data.defaultDeckId;
-  const cardId = (await application.store.createManual('read-route-card', {
+  const karteId = (await application.store.createManual('read-route-card', {
     deckId, pages: [{ pageId: summary.data.defaultDeckSnapshot.pages[0].id, text: 'Example' }]
   })).cardId;
   await application.store.createManual('read-route-card-two', {
     deckId, pages: [{ pageId: summary.data.defaultDeckSnapshot.pages[0].id, text: 'Second' }]
   });
   assert.equal((await request(`/api/decks/${deckId}`, token)).data.id, deckId);
-  assert.equal((await request(`/api/cards/${cardId}`, token)).data.pages[0].text, 'Example');
+  assert.equal((await request(`/api/cards/${karteId}`, token)).data.pages[0].text, 'Example');
   const page = await request(`/api/decks/${deckId}/cards?limit=1`, token);
   assert.equal(page.data.cards.length, 1);
   assert.ok(['Example', 'Second'].includes(page.data.cards[0].pages[0].text));
   assert.ok(page.data.nextCursor);
-  await application.store.savePages('read-route-edit', { cardId,
+  await application.store.saveSeites('read-route-edit', { cardId: karteId,
     changes: [{ pageId: summary.data.defaultDeckSnapshot.pages[0].id, text: 'Updated' }] });
   assert.equal((await request(`/api/decks/${deckId}/cards?limit=1&cursor=${encodeURIComponent(page.data.nextCursor)}`, token)).status, 409);
   assert.equal((await request('/api/decks?limit=51', token)).status, 400);

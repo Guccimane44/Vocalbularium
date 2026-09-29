@@ -1,10 +1,10 @@
 import { dialog } from './dialog.ts';
-import { CardView } from './card-view.tsx';
-/** @typedef {import('../types/editor-drafts.js').CardEditorDraft} CardEditorDraft */
+import { KarteView } from './karte-view.tsx';
+/** @typedef {import('../types/editor-drafts.js').KarteEditorDraft} KarteEditorDraft */
 const RETRY_WARNING = 'Retry will delete all content on this seite, including manual edits and previous generated content, and generate it again. Other seites will not change.';
 
-export function cardViews({ getAccount, renderView, refresh, send, applyState, navigate, showError }) {
-  /** @type {CardEditorDraft | undefined} */
+export function karteViews({ getAccount, renderView, refresh, send, applyState, navigate, showError }) {
+  /** @type {KarteEditorDraft | undefined} */
   let draft;
   try { draft = JSON.parse(sessionStorage.getItem('card-draft')); } catch { /* No recoverable draft. */ }
   let busy = false;
@@ -12,9 +12,9 @@ export function cardViews({ getAccount, renderView, refresh, send, applyState, n
   const identity = hash => hash.split('/').slice(0, 2).join('/');
   const matches = hash => draft && identity(hash) === draft.route;
   const dirty = () => Boolean(draft && (!draft.cardId || Object.keys(draft.texts).some(id => draft.texts[id] !== draft.base[id])));
-  function begin(card, route) {
-    draft = { route: identity(route), cardId: card.id, deckId: card.deck_id, base: {}, texts: {}, pageIds: card.pages.map(page => page.page_id) };
-    for (const page of card.pages) draft.base[page.page_id] = draft.texts[page.page_id] = page.text;
+  function begin(karte, route) {
+    draft = { route: identity(route), cardId: karte.id, deckId: karte.deck_id, base: {}, texts: {}, pageIds: karte.pages.map(seite => seite.page_id) };
+    for (const seite of karte.pages) draft.base[seite.page_id] = draft.texts[seite.page_id] = seite.text;
     persist();
   }
   async function discard() {
@@ -24,8 +24,8 @@ export function cardViews({ getAccount, renderView, refresh, send, applyState, n
   async function save() {
     if (busy || !draft) return false;
     const payload = draft.cardId
-      ? { cardId: draft.cardId, changes: Object.keys(draft.texts).filter(id => draft.texts[id] !== draft.base[id]).map(pageId => ({ pageId, text: draft.texts[pageId] })) }
-      : { deckId: draft.deckId, pages: Object.keys(draft.texts).map(pageId => ({ pageId, text: draft.texts[pageId] })) };
+      ? { cardId: draft.cardId, changes: Object.keys(draft.texts).filter(id => draft.texts[id] !== draft.base[id]).map(seiteId => ({ pageId: seiteId, text: draft.texts[seiteId] })) }
+      : { deckId: draft.deckId, pages: Object.keys(draft.texts).map(seiteId => ({ pageId: seiteId, text: draft.texts[seiteId] })) };
     if (draft.cardId && !payload.changes.length) { await discard(); void refresh(); return true; }
     if (draft.pending && JSON.stringify(payload) !== JSON.stringify(draft.pending.payload)) {
       await chrome.storage.local.remove(`save-${draft.pending.operationId}`); draft.pending = undefined;
@@ -35,9 +35,9 @@ export function cardViews({ getAccount, renderView, refresh, send, applyState, n
     try {
       const next = await send(draft.pending);
       const wasNew = !draft.cardId;
-      const cardId = next.saved?.cardId ?? draft.cardId;
+      const karteId = next.saved?.cardId ?? draft.cardId;
       draft = undefined; persist(); await applyState(next, false);
-      if (wasNew) navigate(`card/${cardId}`); else void refresh();
+      if (wasNew) navigate(`card/${karteId}`); else void refresh();
       return true;
     } catch (error) {
       draft.error = error.message; draft.errorCode = error.code; persist(); return false;
@@ -53,41 +53,41 @@ export function cardViews({ getAccount, renderView, refresh, send, applyState, n
     return save();
   }
   function render(hash, local, externalError) {
-    const [, id, selectedPageId] = hash.split('/');
+    const [, id, selectedSeiteId] = hash.split('/');
     const isNew = hash.startsWith('#new-card/');
     const account = getAccount();
-    let card = account.cards.find(card => card.id === id);
-    const deck = account.decks.find(deck => deck.id === (isNew ? id : card?.deck_id ?? draft?.deckId));
+    let karte = account.cards.find(karte => karte.id === id);
+    const deck = account.decks.find(deck => deck.id === (isNew ? id : karte?.deck_id ?? draft?.deckId));
     if (isNew && deck) {
-      card = { deck_id: deck.id, selected_text: null, pages: deck.pages.map(page => ({ page_id: page.id, text: '', status: null })) };
-      if (!matches(hash)) begin(card, hash);
+      karte = { deck_id: deck.id, selected_text: null, pages: deck.pages.map(seite => ({ page_id: seite.id, text: '', status: null })) };
+      if (!matches(hash)) begin(karte, hash);
     }
     const editing = Boolean(matches(hash));
-    if (editing && card) {
-      for (const page of card.pages) if (!Object.hasOwn(draft.texts, page.page_id)) draft.base[page.page_id] = draft.texts[page.page_id] = page.text;
+    if (editing && karte) {
+      for (const seite of karte.pages) if (!Object.hasOwn(draft.texts, seite.page_id)) draft.base[seite.page_id] = draft.texts[seite.page_id] = seite.text;
       persist();
     }
     const pendingSaves = Object.entries(local).filter(([key, item]) => key.startsWith('save-') && item?.state !== 'saving').map(([, item]) => item);
-    renderView(CardView, {
-      card, deck, draft, selectedPageId, isNew, editing, busy, error: externalError, navigate, persist, pendingSaves,
+    renderView(KarteView, {
+      card: karte, deck, draft, selectedPageId: selectedSeiteId, isNew, editing, busy, error: externalError, navigate, persist, pendingSaves,
       retryPendingSave: async operationId => {
         try { const next = await send({ type: 'try-saving-again', operationId }); await applyState(next); }
         catch (error) { showError(error); }
       },
-      begin: () => { begin(card, hash); void refresh(); },
+      begin: () => { begin(karte, hash); void refresh(); },
       save,
       cancel: async () => { await discard(); if (isNew) navigate(`deck/${deck.id}`); else void refresh(); },
       discardUnavailable: async () => { await discard(); navigate(''); },
-      deleteCard: async () => {
+      deleteKarte: async () => {
         const decision = await dialog({ title: 'Delete karte?', message: 'This karte and all its seite content will be deleted.', choices: ['Cancel', 'Delete karte'] });
         if (decision.choice !== 'Delete karte') return;
-        try { const next = await send({ type: 'delete-card', payload: { cardId: card.id } }); await discard(); await applyState(next); navigate(`deck/${deck.id}`); }
+        try { const next = await send({ type: 'delete-card', payload: { cardId: karte.id } }); await discard(); await applyState(next); navigate(`deck/${deck.id}`); }
         catch (error) { showError(error); }
       },
-      retryPage: async pageId => {
+      retrySeite: async seiteId => {
         const choice = await dialog({ title: 'Retry this seite?', message: RETRY_WARNING, choices: ['Cancel', 'Confirm'] });
         if (choice.choice !== 'Confirm') return;
-        try { const next = await send({ type: 'retry-page', payload: { cardId: card.id, pageId } }); await applyState(next); }
+        try { const next = await send({ type: 'retry-page', payload: { cardId: karte.id, pageId: seiteId } }); await applyState(next); }
         catch (error) { showError(error); }
       }
     });

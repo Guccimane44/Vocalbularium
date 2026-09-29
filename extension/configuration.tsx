@@ -5,14 +5,14 @@ import { MODULES } from '@vocabularium/domain/modules';
 import type { ModuleType } from '@vocabularium/domain/modules';
 import { dialog } from './dialog.ts';
 
-const page = (type?: ModuleType) => ({
+const seite = (type?: ModuleType) => ({
   id: crypto.randomUUID(),
   modules: type ? [{ id: crypto.randomUUID(), type }] : []
 });
 
 export const newDeckDraft = (): DeckLayout => ({
   name: '',
-  pages: [page('selected'), page('german-examples')]
+  pages: [seite('selected'), seite('german-examples')]
 });
 
 function sample(type: string, inputType: 'word_phrase' | 'sentence', instance: number): string {
@@ -100,21 +100,21 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
             draft.deck.name = event.target.value;
             refresh();
           }} />
-          <label htmlFor="page-count">Number of seites</label>
-          <select id="page-count" value={String(draft.deck.pages.length)} onChange={event => {
+          <label htmlFor="seite-count">Number of seites</label>
+          <select id="seite-count" value={String(draft.deck.pages.length)} onChange={event => {
             const target = Number(event.target.value);
-            while (draft.deck.pages.length < target) draft.deck.pages.push(page());
+            while (draft.deck.pages.length < target) draft.deck.pages.push(seite());
             draft.deck.pages.splice(target);
             refresh();
           }}>
             {[1, 2, 3, 4].map(count => <option value={count} key={count}>{count}</option>)}
           </select>
-          <nav className="pages" aria-label="Configure seites">
+          <nav className="seites" aria-label="Configure seites">
             {draft.deck.pages.map((item, index) => <button key={item.id}
               aria-current={item.id === draft.selectedPage}
               onClick={() => { draft.selectedPage = item.id; refresh(); }}>Seite {index + 1}</button>)}
           </nav>
-          <section className="module-page">
+          <section className="module-seite">
             <h2>{currentIndex === 0 ? 'Front seite' : 'Seite ' + (currentIndex + 1)}</h2>
             {!current.modules.length && <p className="muted">No modules. This seite will be empty.</p>}
             {current.modules.map((module, index) => {

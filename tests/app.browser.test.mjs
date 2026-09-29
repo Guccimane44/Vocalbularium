@@ -82,9 +82,9 @@ test('expired access keeps a karte draft and pending operation for explicit repl
   t.after(async () => { await browser.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
   await signIn(browser.page);
   const deckId = (await application.store.account()).defaultDeckId;
-  const cardId = (await application.store.createManual('auth-draft-fixture', { deckId, pages: [] })).cardId;
+  const karteId = (await application.store.createManual('auth-draft-fixture', { deckId, pages: [] })).cardId;
   await browser.page.reload();
-  await browser.page.goto(`chrome-extension://${browser.id}/app.html#card/${cardId}`);
+  await browser.page.goto(`chrome-extension://${browser.id}/app.html#card/${karteId}`);
   await browser.page.getByRole('button', { name: 'Edit karte manually', exact: true }).click();
   await browser.page.getByLabel('Seite 1 content', { exact: true }).fill('draft survives expired access');
   const auth = await browser.worker.evaluate(async () => (await chrome.storage.local.get('auth')).auth);
@@ -92,7 +92,7 @@ test('expired access keeps a karte draft and pending operation for explicit repl
   await browser.page.getByRole('button', { name: 'Save', exact: true }).click();
   await browser.page.getByRole('alert').filter({ hasText: 'Sign in to continue.' }).waitFor();
   assert.equal(await browser.page.getByLabel('Seite 1 content', { exact: true }).inputValue(), 'draft survives expired access');
-  assert.equal((await application.store.card(cardId)).pages[0].text, '');
+  assert.equal((await application.store.karte(karteId)).pages[0].text, '');
   const operation = await browser.worker.evaluate(async () => Object.entries(await chrome.storage.local.get(null)).find(([key]) => key.startsWith('save-'))?.[1]);
   assert.equal(operation.state, 'pending');
   assert.equal(operation.payload.payload.changes[0].text, 'draft survives expired access');
@@ -189,38 +189,38 @@ test('capture extension: receipt lifetime, exact duplicate kartes, shared outcom
   await reading.getByRole('button', { name: 'Close capture feedback' }).first().click();
   assert.equal(await reading.getByRole('status').count(), 1);
   await reading.getByRole('status').waitFor({ state: 'detached', timeout: 4500 });
-  await waitFor(async () => (await application.store.cards()).filter(card => card.status === 'completed').length === 2, 'duplicate word kartes completed');
-  assert.equal((await application.store.cards())[0].selected_text, selected);
-  assert.equal((await application.store.cards())[0].pages[0].text, selected);
+  await waitFor(async () => (await application.store.kartes()).filter(karte => karte.status === 'completed').length === 2, 'duplicate word kartes completed');
+  assert.equal((await application.store.kartes())[0].selected_text, selected);
+  assert.equal((await application.store.kartes())[0].pages[0].text, selected);
   await b.page.reload();
   await waitFor(async () => await b.page.getByRole('button', { name: 'Open karte', exact: true }).count() === 2, 'second installation synchronized duplicate captures');
   assert.equal(await b.page.getByRole('button', { name: 'Open karte', exact: true }).count(), 2);
   await b.page.getByRole('button', { name: 'Open karte', exact: true }).first().click();
   await b.page.getByRole('button', { name: 'Seite 2', exact: true }).click();
   await b.page.locator('pre').filter({ hasText: '=== Bedeutungen ===' }).waitFor();
-  assert.equal(await b.page.locator('.card-page h2').count(), 0);
+  assert.equal(await b.page.locator('.karte-seite h2').count(), 0);
 
   await captureFrom(a, '我真的很幸福'); await captureFrom(a, 'fail');
-  await waitFor(async () => (await application.store.cards()).find(card => card.selected_text === 'fail')?.status === 'failed', 'failed interpretation persisted');
-  const sentenceCard = (await application.store.cards()).find(card => card.selected_text === '我真的很幸福');
-  assert.equal(sentenceCard.pages[1].text, ''); assert.equal(sentenceCard.status, 'completed');
+  await waitFor(async () => (await application.store.kartes()).find(karte => karte.selected_text === 'fail')?.status === 'failed', 'failed interpretation persisted');
+  const sentenceKarte = (await application.store.kartes()).find(karte => karte.selected_text === '我真的很幸福');
+  assert.equal(sentenceKarte.pages[1].text, ''); assert.equal(sentenceKarte.status, 'completed');
 
   await captureFrom(a, 'held-after-close');
   await waitFor(() => held.has('held-after-close'), 'dashboard-close interpretation started');
   await a.page.close();
   held.get('held-after-close')();
-  await waitFor(async () => (await application.store.cards()).find(card => card.selected_text === 'held-after-close')?.status === 'completed', 'dashboard closure leaves generation running');
+  await waitFor(async () => (await application.store.kartes()).find(karte => karte.selected_text === 'held-after-close')?.status === 'completed', 'dashboard closure leaves generation running');
 
   await captureFrom(a, 'held-interrupted');
-  const interrupted = (await application.store.cards()).find(card => card.selected_text === 'held-interrupted');
-  await waitFor(async () => (await application.store.card(interrupted.id)).pages[0].status === 'completed', 'completed front before exit');
+  const interrupted = (await application.store.kartes()).find(karte => karte.selected_text === 'held-interrupted');
+  await waitFor(async () => (await application.store.karte(interrupted.id)).pages[0].status === 'completed', 'completed front before exit');
   await waitFor(() => held.has('held-interrupted'), 'interrupted interpretation started');
   await a.context.close(); contexts.delete(a.context);
   held.get('held-interrupted')();
   await waitFor(async () => (await application.store.attempt(interrupted.pages[1].attempt_id)).result, 'late provider result staged');
   a = await launch(profile, testingExtension); contexts.add(a.context);
   await a.page.getByRole('heading', { name: 'Your decks.' }).waitFor();
-  assert.deepEqual((await application.store.card(interrupted.id)).pages.map(page => page.status), ['completed', 'failed']);
+  assert.deepEqual((await application.store.karte(interrupted.id)).pages.map(page => page.status), ['completed', 'failed']);
 
   reading = await a.context.newPage(); await reading.goto('http://127.0.0.1:4318/health');
   await application.close();
@@ -232,8 +232,8 @@ test('capture extension: receipt lifetime, exact duplicate kartes, shared outcom
   application = (await createTestApplication(t, { databaseKey, provider })); await application.start();
   await a.page.reload();
   await a.page.getByRole('button', { name: 'Try saving again', exact: true }).click();
-  await waitFor(async () => (await application.store.cards()).find(card => card.selected_text === 'not saved yet')?.status === 'completed', 'explicit unsaved capture recovery');
-  assert.equal((await application.store.cards()).filter(card => card.selected_text === 'not saved yet').length, 1);
+  await waitFor(async () => (await application.store.kartes()).find(karte => karte.selected_text === 'not saved yet')?.status === 'completed', 'explicit unsaved capture recovery');
+  assert.equal((await application.store.kartes()).filter(karte => karte.selected_text === 'not saved yet').length, 1);
 });
 
 test('recent captures: the pending receipt hands off to its account karte without an empty or duplicate frame', { timeout: 35000 }, async (t) => {
@@ -255,7 +255,7 @@ test('recent captures: the pending receipt hands off to its account karte withou
   const handler = application.server.listeners('request')[0];
   application.server.removeListener('request', handler);
   application.server.on('request', async (request, response) => {
-    if (holdAccounts && request.url === '/api/account/summary' && (await application.store.cards()).length) {
+    if (holdAccounts && request.url === '/api/account/summary' && (await application.store.kartes()).length) {
       heldAccounts.push(() => handler(request, response)); return;
     }
     handler(request, response);
@@ -295,8 +295,8 @@ test('recent captures: the pending receipt hands off to its account karte withou
   assert.deepEqual(await a.page.evaluate(() => window.handoffObservation.invalidCounts), [], 'no disappearance or duplicate row during handoff');
   await a.page.evaluate(() => window.stopHandoffObservation());
   releaseGeneration();
-  await waitFor(async () => (await application.store.cards())[0]?.status === 'completed', 'generation completed normally');
-  assert.equal((await application.store.cards()).length, 1);
+  await waitFor(async () => (await application.store.kartes())[0]?.status === 'completed', 'generation completed normally');
+  assert.equal((await application.store.kartes()).length, 1);
 });
 
 test('deck UI: draft previews, all modules, seite limits, content-loss confirmation, and default deletion', { timeout: 40000 }, async (t) => {
@@ -327,7 +327,7 @@ test('deck UI: draft previews, all modules, seite limits, content-loss confirmat
   await a.page.getByLabel('Sample input', { exact: true }).selectOption('sentence');
   assert.match(await a.page.locator('.preview').nth(2).textContent(), /我真的很幸福/);
   assert.match(await a.page.locator('.preview').nth(3).textContent(), /Empty seite/);
-  assert.equal((await application.store.cards()).length, 0); assert.equal((await application.store.account()).decks.length, 1);
+  assert.equal((await application.store.kartes()).length, 0); assert.equal((await application.store.account()).decks.length, 1);
   await a.page.screenshot({ path: 'artifacts/m3-configuration.png', fullPage: true });
   await a.page.getByRole('button', { name: 'Save', exact: true }).click();
   await a.page.getByRole('heading', { name: 'Everyday Chinese', exact: true }).waitFor();
@@ -341,8 +341,8 @@ test('deck UI: draft previews, all modules, seite limits, content-loss confirmat
 
   const session = { installationId: 'fixture', sessionId: 'fixture-browser', epoch: 1 };
   await application.store.openSession('fixture-session', session);
-  const cardId = (await application.store.capture('fixture-capture', { session, selectedText: '幸福', snapshot: (await application.store.snapshot()) })).cardId;
-  for (const page of (await application.store.card(cardId)).pages) {
+  const karteId = (await application.store.capture('fixture-capture', { session, selectedText: '幸福', snapshot: (await application.store.snapshot()) })).cardId;
+  for (const page of (await application.store.karte(karteId)).pages) {
     await application.store.stage(page.attempt_id, { ok: true, text: page.page_id === created.pages[1].id ? 'Saved manual content' : '' });
     await application.store.publish(`fixture-${page.page_id}`, { attemptId: page.attempt_id, session });
   }
@@ -352,18 +352,18 @@ test('deck UI: draft previews, all modules, seite limits, content-loss confirmat
   await a.page.getByRole('button', { name: 'Remove this seite', exact: true }).click();
   await a.page.getByRole('button', { name: 'Save', exact: true }).click();
   await a.page.getByRole('dialog').getByRole('button', { name: 'Cancel', exact: true }).click();
-  assert.equal((await application.store.card(cardId)).pages.length, 4);
+  assert.equal((await application.store.karte(karteId)).pages.length, 4);
   await a.page.getByRole('button', { name: 'Save', exact: true }).click();
   await a.page.getByRole('dialog').getByRole('button', { name: 'Confirm', exact: true }).click();
   await a.page.getByRole('heading', { name: 'Everyday Chinese', exact: true }).waitFor();
-  assert.equal((await application.store.card(cardId)).pages.length, 3);
-  assert.equal((await application.store.card(cardId)).pages[1].page_id, created.pages[2].id);
+  assert.equal((await application.store.karte(karteId)).pages.length, 3);
+  assert.equal((await application.store.karte(karteId)).pages[1].page_id, created.pages[2].id);
   await a.page.getByLabel('Options for Everyday Chinese').click();
   await a.page.locator('article.deck').filter({ hasText: 'Everyday Chinese' }).getByRole('button', { name: 'Delete deck', exact: true }).click();
   await a.page.getByRole('dialog').getByRole('button', { name: 'Delete deck', exact: true }).click();
   await a.page.getByRole('heading', { name: 'Everyday Chinese', exact: true }).waitFor({ state: 'detached' });
   assert.equal((await application.store.snapshot()).name, 'My Deck');
-  assert.equal((await application.store.cards()).length, 0);
+  assert.equal((await application.store.kartes()).length, 0);
 });
 
 test('deck menus: karte-list actions, Escape, cancellation, replacement and sole-deck reset', { timeout: 40000 }, async (t) => {
@@ -517,7 +517,7 @@ test('appearance: all open views, drafts, dialogs, feedback lifetime, logout and
   for (const appearance of ['dark', 'light']) {
     await theme(a.page, appearance);
     assert.equal(await a.page.getByLabel('Deck name', { exact: true }).inputValue(), 'Unsaved configuration');
-    assert.equal(await a.page.locator('.pages [aria-current="true"]').textContent(), 'Seite 2');
+    assert.equal(await a.page.locator('.seites [aria-current="true"]').textContent(), 'Seite 2');
     await a.page.screenshot({ path: `artifacts/v0.2.0-configuration-${appearance}.png`, fullPage: true });
   }
   await a.page.getByRole('button', { name: 'Cancel', exact: true }).click();
@@ -533,8 +533,8 @@ test('karte rows: accessible states, sorting, every pointer target, text selecti
   await store.openSession('rows-session', session);
   const ids = {};
   for (const state of ['completed', 'loading', 'failed']) {
-    const { cardId } = await store.capture(`row-${state}`, { session, selectedText: state, snapshot: deck }); ids[state] = cardId;
-    const pages = (await store.card(cardId)).pages;
+    const { cardId: karteId } = await store.capture(`row-${state}`, { session, selectedText: state, snapshot: deck }); ids[state] = karteId;
+    const pages = (await store.karte(karteId)).pages;
     await store.stage(pages[0].attempt_id, { ok: true, text: `${state} entry` });
     await store.publish(`row-front-${state}`, { attemptId: pages[0].attempt_id, session });
     if (state === 'completed') {
@@ -570,7 +570,7 @@ test('karte rows: accessible states, sorting, every pointer target, text selecti
   }
   await a.worker.evaluate(() => chrome.storage.local.remove(['capture-visual-saving', 'capture-visual-failed']));
   await a.page.getByRole('heading', { name: 'My Deck', exact: true }).click();
-  const row = state => a.page.locator(`tr[data-card-id="${ids[state]}"]`);
+  const row = state => a.page.locator(`tr[data-karte-id="${ids[state]}"]`);
   for (const state of Object.keys(ids)) {
     assert.equal(await row(state).getAttribute('data-state'), state);
     assert.equal(await row(state).locator('button').count(), 1);
@@ -609,9 +609,9 @@ test('karte rows: accessible states, sorting, every pointer target, text selecti
   }
   for (const order of ['newest', 'oldest', 'az', 'za']) {
     await a.page.getByLabel('Sort kartes', { exact: true }).selectOption(order);
-    const { sortCards } = await import('../extension/sorting.ts');
-    const expected = sortCards((await store.cards()), order).map(card => card.id);
-    await waitFor(async () => JSON.stringify(await a.page.locator('tr[data-card-id]').evaluateAll(rows => rows.map(row => row.dataset.cardId))) === JSON.stringify(expected), `${order} karte order loaded`);
+    const { sortKartes } = await import('../extension/sorting.ts');
+    const expected = sortKartes((await store.kartes()), order).map(karte => karte.id);
+    await waitFor(async () => JSON.stringify(await a.page.locator('tr[data-karte-id]').evaluateAll(rows => rows.map(row => row.dataset.karteId))) === JSON.stringify(expected), `${order} karte order loaded`);
     assert.deepEqual(await a.page.locator('table tr td:first-child').allTextContents(), ['001', '002', '003', '004']);
   }
   for (const target of ['index', 'entry', 'cue', 'space', 'keyboard']) {
@@ -632,7 +632,7 @@ test('karte rows: accessible states, sorting, every pointer target, text selecti
     node.dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 }));
   });
   assert.ok(a.page.url().endsWith(`#deck/${deck.id}`), 'selecting entry text does not navigate');
-  await store.savePages('row-long-text', { cardId: ids.completed, changes: [{ pageId: deck.pages[0].id, text: 'LongWord'.repeat(40) + ' 幸福 — Grüße' }] });
+  await store.saveSeites('row-long-text', { cardId: ids.completed, changes: [{ pageId: deck.pages[0].id, text: 'LongWord'.repeat(40) + ' 幸福 — Grüße' }] });
   await a.page.reload();
   await row('completed').waitFor();
   await a.page.setViewportSize({ width: 390, height: 760 });
@@ -667,21 +667,21 @@ test('manual karte UI: multi-seite drafts, leave choices, sorting, failed-save r
   await a.page.getByRole('button', { name: '← My Deck', exact: true }).click();
   await a.page.getByRole('dialog').getByRole('button', { name: 'Save', exact: true }).click();
   await a.page.getByRole('button', { name: 'zebra', exact: true }).waitFor();
-  const card = (await application.store.cards())[0]; assert.equal(card.status, null); assert.equal(card.pages[1].text, '== literal note ==\n: second seite');
+  const karte = (await application.store.kartes())[0]; assert.equal(karte.status, null); assert.equal(karte.pages[1].text, '== literal note ==\n: second seite');
   await a.page.getByRole('button', { name: 'zebra', exact: true }).click();
   assert.equal(await a.page.getByRole('button', { name: 'Retry', exact: true }).count(), 0);
   await a.page.getByRole('button', { name: 'Edit karte manually', exact: true }).click();
   await a.page.getByLabel('Seite 1 content', { exact: true }).fill('discard this');
   await a.page.getByRole('button', { name: '← My Deck', exact: true }).click();
   await a.page.getByRole('dialog').getByRole('button', { name: 'Discard', exact: true }).click();
-  assert.equal((await application.store.card(card.id)).pages[0].text, 'zebra');
+  assert.equal((await application.store.karte(karte.id)).pages[0].text, 'zebra');
   await a.page.getByRole('button', { name: 'zebra', exact: true }).click();
   await a.page.getByRole('button', { name: 'Edit karte manually', exact: true }).click();
   await a.page.getByLabel('Seite 1 content', { exact: true }).fill('cancel this');
   await a.page.getByRole('button', { name: 'Seite 2', exact: true }).click();
   await a.page.getByLabel('Seite 2 content', { exact: true }).fill('cancel both');
   await a.page.getByRole('button', { name: 'Cancel', exact: true }).click();
-  assert.equal((await application.store.card(card.id)).pages[0].text, 'zebra');
+  assert.equal((await application.store.karte(karte.id)).pages[0].text, 'zebra');
   await a.page.getByRole('button', { name: 'Edit karte manually', exact: true }).click();
   await a.page.getByLabel('Seite 2 content', { exact: true }).fill('saved second seite');
   await a.page.getByRole('button', { name: 'Seite 1', exact: true }).click();
@@ -693,8 +693,8 @@ test('manual karte UI: multi-seite drafts, leave choices, sorting, failed-save r
   application = (await createTestApplication(t, { databaseKey })); await application.start();
   await a.page.getByRole('button', { name: 'Try saving again', exact: true }).click();
   await a.page.getByRole('button', { name: 'Edit karte manually', exact: true }).waitFor();
-  assert.deepEqual((await application.store.card(card.id)).pages.map(page => page.text), ['alpha', 'saved second seite']);
-  assert.equal((await application.store.card(card.id)).created_at, card.created_at);
+  assert.deepEqual((await application.store.karte(karte.id)).pages.map(page => page.text), ['alpha', 'saved second seite']);
+  assert.equal((await application.store.karte(karte.id)).created_at, karte.created_at);
   await a.page.getByRole('button', { name: '← My Deck', exact: true }).click();
   await a.page.getByRole('button', { name: 'Add karte manually', exact: true }).click();
   await a.page.getByRole('button', { name: 'Save', exact: true }).click();
@@ -711,11 +711,11 @@ test('manual karte UI: multi-seite drafts, leave choices, sorting, failed-save r
   await a.page.getByRole('button', { name: 'Edit karte manually', exact: true }).click();
   await a.page.getByRole('button', { name: 'Delete karte', exact: true }).click();
   await a.page.getByRole('dialog').getByRole('button', { name: 'Cancel', exact: true }).click();
-  assert.equal((await application.store.cards()).length, 2);
+  assert.equal((await application.store.kartes()).length, 2);
   await a.page.getByRole('button', { name: 'Delete karte', exact: true }).click();
   await a.page.getByRole('dialog').getByRole('button', { name: 'Delete karte', exact: true }).click();
   await a.page.getByRole('button', { name: 'Empty front seite', exact: true }).waitFor();
-  assert.equal((await application.store.cards()).length, 1);
+  assert.equal((await application.store.kartes()).length, 1);
 });
 
 test('seite retry UI: exact confirmation and two-installation lock preserve all drafts until explicit resubmission', { timeout: 35000 }, async (t) => {
@@ -730,17 +730,17 @@ test('seite retry UI: exact confirmation and two-installation lock preserve all 
   await application.start();
   const session = { installationId: 'fixture', sessionId: 'fixture', epoch: 1 };
   await application.store.openSession('fixture', session);
-  const { cardId } = await application.store.capture('fixture-capture', { session, selectedText: '幸福', snapshot: (await application.store.snapshot()) });
-  await application.store.establishInterpretation(cardId, { inputType: 'word_phrase', sourceLanguage: 'Chinese' });
-  for (const page of (await application.store.card(cardId)).pages) {
+  const { cardId: karteId } = await application.store.capture('fixture-capture', { session, selectedText: '幸福', snapshot: (await application.store.snapshot()) });
+  await application.store.establishInterpretation(karteId, { inputType: 'word_phrase', sourceLanguage: 'Chinese' });
+  for (const page of (await application.store.karte(karteId)).pages) {
     await application.store.stage(page.attempt_id, { ok: true, text: 'saved original' });
     await application.store.publish(page.page_id, { attemptId: page.attempt_id, session });
   }
   const a = await launch(join(directory, 'a')), b = await launch(join(directory, 'b'));
   t.after(async () => { await a.context.close(); await b.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
   await signIn(a.page); await signIn(b.page);
-  await a.page.goto(`chrome-extension://${a.id}/app.html#card/${cardId}`);
-  await b.page.goto(`chrome-extension://${b.id}/app.html#card/${cardId}`);
+  await a.page.goto(`chrome-extension://${a.id}/app.html#card/${karteId}`);
+  await b.page.goto(`chrome-extension://${b.id}/app.html#card/${karteId}`);
   await b.page.getByRole('button', { name: 'Edit karte manually', exact: true }).click();
   await b.page.getByLabel('Seite 1 content', { exact: true }).fill('draft front');
   await b.page.getByRole('button', { name: 'Seite 2', exact: true }).click();
@@ -749,7 +749,7 @@ test('seite retry UI: exact confirmation and two-installation lock preserve all 
   await a.page.getByRole('button', { name: 'Retry', exact: true }).click();
   assert.equal(await a.page.getByRole('dialog').locator('p').textContent(), 'Retry will delete all content on this seite, including manual edits and previous generated content, and generate it again. Other seites will not change.');
   await a.page.getByRole('dialog').getByRole('button', { name: 'Cancel', exact: true }).click();
-  assert.equal((await application.store.card(cardId)).pages[1].text, 'saved original');
+  assert.equal((await application.store.karte(karteId)).pages[1].text, 'saved original');
   await a.page.getByRole('button', { name: 'Retry', exact: true }).click();
   await a.page.getByRole('dialog').getByRole('button', { name: 'Confirm', exact: true }).click();
   await waitFor(() => release, 'retry provider started');
@@ -757,14 +757,14 @@ test('seite retry UI: exact confirmation and two-installation lock preserve all 
   assert.equal(await a.page.getByRole('button', { name: 'Retry', exact: true }).isDisabled(), true);
   await b.page.getByRole('button', { name: 'Save', exact: true }).click();
   await b.page.getByRole('alert').filter({ hasText: 'still generating' }).waitFor();
-  assert.deepEqual((await application.store.card(cardId)).pages.map(page => page.text), ['saved original', '']);
+  assert.deepEqual((await application.store.karte(karteId)).pages.map(page => page.text), ['saved original', '']);
   assert.equal(await b.page.getByLabel('Seite 2 content', { exact: true }).inputValue(), 'draft back');
   release('regenerated seite');
-  await waitFor(async () => (await application.store.card(cardId)).pages[1].status === 'completed', 'retry saved');
-  assert.deepEqual((await application.store.card(cardId)).pages.map(page => page.text), ['saved original', 'regenerated seite']);
+  await waitFor(async () => (await application.store.karte(karteId)).pages[1].status === 'completed', 'retry saved');
+  assert.deepEqual((await application.store.karte(karteId)).pages.map(page => page.text), ['saved original', 'regenerated seite']);
   await b.page.getByRole('button', { name: 'Try saving again', exact: true }).click();
   await b.page.getByRole('button', { name: 'Edit karte manually', exact: true }).waitFor();
-  assert.deepEqual((await application.store.card(cardId)).pages.map(page => page.text), ['draft front', 'draft back']);
+  assert.deepEqual((await application.store.karte(karteId)).pages.map(page => page.text), ['draft front', 'draft back']);
 });
 
 async function loseNextAcknowledgment(worker, path) {
@@ -807,31 +807,31 @@ test('assembled reliability: lost acknowledgments, worker suspension, abrupt ori
   let reading = await a.context.newPage(); await reading.goto('http://127.0.0.1:4318/health');
   await loseNextAcknowledgment(a.worker, '/api/capture');
   await captureFrom(a, 'uncertain capture');
-  await waitFor(async () => (await application.store.cards()).some(card => card.selected_text === 'uncertain capture'), 'uncertain capture committed');
-  const card = (await application.store.cards()).find(card => card.selected_text === 'uncertain capture');
-  const attempts = card.pages.map(page => page.attempt_id);
+  await waitFor(async () => (await application.store.kartes()).some(karte => karte.selected_text === 'uncertain capture'), 'uncertain capture committed');
+  const karte = (await application.store.kartes()).find(karte => karte.selected_text === 'uncertain capture');
+  const attempts = karte.pages.map(page => page.attempt_id);
   await a.page.getByRole('button', { name: 'Try saving again', exact: true }).waitFor();
   await a.page.getByRole('button', { name: 'Try saving again', exact: true }).click();
-  await waitFor(async () => (await application.store.card(card.id)).status === 'completed', 'uncertain capture recovered');
-  assert.equal((await application.store.cards()).length, 1); assert.equal(calls.get('uncertain capture'), 1);
-  assert.deepEqual((await application.store.card(card.id)).pages.map(page => page.attempt_id), attempts);
+  await waitFor(async () => (await application.store.karte(karte.id)).status === 'completed', 'uncertain capture recovered');
+  assert.equal((await application.store.kartes()).length, 1); assert.equal(calls.get('uncertain capture'), 1);
+  assert.deepEqual((await application.store.karte(karte.id)).pages.map(page => page.attempt_id), attempts);
 
-  await a.page.goto(`chrome-extension://${a.id}/app.html#card/${card.id}`);
+  await a.page.goto(`chrome-extension://${a.id}/app.html#card/${karte.id}`);
   await a.page.getByRole('button', { name: 'Edit karte manually', exact: true }).click();
   await a.page.getByLabel('Seite 1 content', { exact: true }).fill('save with lost acknowledgment');
   await loseNextAcknowledgment(a.worker, '/api/card/save');
   await a.page.getByRole('button', { name: 'Save', exact: true }).click();
   await a.page.getByRole('button', { name: 'Try saving again', exact: true }).waitFor();
-  await waitFor(async () => (await application.store.card(card.id)).pages[0].text === 'save with lost acknowledgment', 'original seite save committed');
-  await application.store.savePages('later-remote-edit', { cardId: card.id, changes: [{ pageId: card.pages[0].page_id, text: 'later remote edit' }] });
+  await waitFor(async () => (await application.store.karte(karte.id)).pages[0].text === 'save with lost acknowledgment', 'original seite save committed');
+  await application.store.saveSeites('later-remote-edit', { cardId: karte.id, changes: [{ pageId: karte.pages[0].page_id, text: 'later remote edit' }] });
   await a.page.getByRole('button', { name: 'Try saving again', exact: true }).click();
   await a.page.getByRole('button', { name: 'Edit karte manually', exact: true }).waitFor();
-  assert.equal((await application.store.card(card.id)).pages[0].text, 'later remote edit');
+  assert.equal((await application.store.karte(karte.id)).pages[0].text, 'later remote edit');
   assert.equal(calls.get('uncertain capture'), 1);
 
   await captureFrom(a, 'publication acknowledgment');
-  const publicationCard = (await application.store.cards()).find(card => card.selected_text === 'publication acknowledgment');
-  await waitFor(async () => (await application.store.card(publicationCard.id)).pages[0].status === 'completed', 'front seite published before lost acknowledgment');
+  const publicationKarte = (await application.store.kartes()).find(karte => karte.selected_text === 'publication acknowledgment');
+  await waitFor(async () => (await application.store.karte(publicationKarte.id)).pages[0].status === 'completed', 'front seite published before lost acknowledgment');
   await waitFor(() => held.has('publication acknowledgment'), 'publication generation started');
   await loseNextAcknowledgment(a.worker, '/api/publish');
   held.get('publication acknowledgment')();
@@ -840,24 +840,24 @@ test('assembled reliability: lost acknowledgments, worker suspension, abrupt ori
     const receipts = await a.worker.evaluate(async () => Object.entries(await chrome.storage.local.get(null)).filter(([key]) => key.startsWith('save-publish-')).map(([, value]) => value));
     // Wait for both server publications and removal of the successful receipt.
     // Otherwise a still-in-flight save can be mistaken for the deliberately lost acknowledgment.
-    if ((await application.store.card(publicationCard.id)).status !== 'completed' || receipts.length !== 1) return false;
+    if ((await application.store.karte(publicationKarte.id)).status !== 'completed' || receipts.length !== 1) return false;
     pending = receipts[0];
     return true;
   }, 'publication acknowledgment was lost');
-  assert.equal(pending.payload.payload.attemptId, publicationCard.pages[1].attempt_id, 'the generated seite lost its acknowledgment');
+  assert.equal(pending.payload.payload.attemptId, publicationKarte.pages[1].attempt_id, 'the generated seite lost its acknowledgment');
   const publishedAttempt = await application.store.attempt(pending.payload.payload.attemptId);
-  await application.store.savePages('later-than-publication', { cardId: publishedAttempt.card_id, changes: [{ pageId: publishedAttempt.page_id, text: 'manual text after publication' }] });
+  await application.store.saveSeites('later-than-publication', { cardId: publishedAttempt.card_id, changes: [{ pageId: publishedAttempt.page_id, text: 'manual text after publication' }] });
   await waitFor(async () => await a.page.getByRole('button', { name: 'Try saving again', exact: true }).count() === 1, 'only the lost acknowledgment needs retry');
   await a.page.getByRole('button', { name: 'Try saving again', exact: true }).click();
   await waitFor(async () => !(await a.worker.evaluate(async (id) => (await chrome.storage.local.get(`save-${id}`))[`save-${id}`], pending.operationId)), 'publication receipt recovered');
-  assert.equal((await application.store.card(publishedAttempt.card_id)).pages.find(page => page.page_id === publishedAttempt.page_id).text, 'manual text after publication');
+  assert.equal((await application.store.karte(publishedAttempt.card_id)).pages.find(page => page.page_id === publishedAttempt.page_id).text, 'manual text after publication');
 
   await captureFrom(a, 'hold-worker');
   await waitFor(() => held.has('hold-worker'), 'worker test generation started');
   const oldSession = await a.worker.evaluate(async () => (await chrome.storage.session.get('session')).session);
   await a.worker.evaluate(() => { globalThis.workerProbe = 'old'; });
   // Keep Chrome open, but remove automatic wake sources while observing the stopped state.
-  const cardURL = a.page.url();
+  const karteURL = a.page.url();
   await a.page.close();
   await a.worker.evaluate(() => chrome.alarms.clear('recover'));
   const internals = await a.context.newPage(); await internals.goto('chrome://serviceworker-internals');
@@ -865,19 +865,19 @@ test('assembled reliability: lost acknowledgments, worker suspension, abrupt ori
   await registration.getByRole('button', { name: 'Stop', exact: true }).click();
   await waitFor(async () => (await registration.locator('.serviceworker-running-status .value').textContent()) === 'STOPPED', 'product worker stopped');
   held.get('hold-worker')();
-  a.page = await a.context.newPage(); await a.page.goto(cardURL);
+  a.page = await a.context.newPage(); await a.page.goto(karteURL);
   await a.page.getByRole('button', { name: 'Edit karte manually', exact: true }).waitFor();
   a.worker = a.context.serviceWorkers().find(worker => worker.url().includes(a.id));
   assert.equal(await a.worker.evaluate(() => globalThis.workerProbe), undefined);
   assert.deepEqual(await a.worker.evaluate(async () => (await chrome.storage.session.get('session')).session), oldSession);
-  await waitFor(async () => (await application.store.cards()).find(card => card.selected_text === 'hold-worker')?.status === 'completed', 'worker suspension did not interrupt generation');
+  await waitFor(async () => (await application.store.kartes()).find(karte => karte.selected_text === 'hold-worker')?.status === 'completed', 'worker suspension did not interrupt generation');
   await internals.close();
 
   const b = await launch(join(directory, 'b'), extension); contexts.add(b.context); await signIn(b.page);
   const otherReading = await b.context.newPage(); await otherReading.goto('http://127.0.0.1:4318/health');
   await captureFrom(a, 'hold-origin'); await captureFrom(b, 'hold-other');
-  const interrupted = (await application.store.cards()).find(card => card.selected_text === 'hold-origin');
-  await waitFor(async () => (await application.store.card(interrupted.id)).pages[0].status === 'completed', 'front persisted before crash');
+  const interrupted = (await application.store.kartes()).find(karte => karte.selected_text === 'hold-origin');
+  await waitFor(async () => (await application.store.karte(interrupted.id)).pages[0].status === 'completed', 'front persisted before crash');
   await waitFor(() => held.has('hold-origin') && held.has('hold-other'), 'both provider calls started before origin exit');
   const browser = a.context.browser(), protocol = await browser.newBrowserCDPSession();
   const { processInfo } = await protocol.send('SystemInfo.getProcessInfo'); const processId = processInfo.find(process => process.type === 'browser')?.id;
@@ -886,22 +886,22 @@ test('assembled reliability: lost acknowledgments, worker suspension, abrupt ori
   contexts.delete(a.context);
   held.get('hold-origin')(); held.get('hold-other')();
   await waitFor(async () => (await application.store.attempt(interrupted.pages[1].attempt_id)).result, 'origin result staged after crash');
-  await waitFor(async () => (await application.store.cards()).find(card => card.selected_text === 'hold-other')?.status === 'completed', 'other installation completed');
+  await waitFor(async () => (await application.store.kartes()).find(karte => karte.selected_text === 'hold-other')?.status === 'completed', 'other installation completed');
   a = await launch(profile, extension); contexts.add(a.context);
   await a.page.getByRole('heading', { name: 'Your decks.' }).waitFor();
-  assert.deepEqual((await application.store.card(interrupted.id)).pages.map(page => page.status), ['completed', 'failed']);
+  assert.deepEqual((await application.store.karte(interrupted.id)).pages.map(page => page.status), ['completed', 'failed']);
   await assert.rejects(async () => (await application.store.publish('stale-origin', { attemptId: interrupted.pages[1].attempt_id, session: oldSession })), { code: 'stale_session' });
 
   await captureFrom(b, 'hold-delete'); await waitFor(() => held.has('hold-delete'), 'deletion test generation started');
-  const deleted = (await application.store.cards()).find(card => card.selected_text === 'hold-delete');
+  const deleted = (await application.store.kartes()).find(karte => karte.selected_text === 'hold-delete');
   const auth = await b.worker.evaluate(async () => (await chrome.storage.local.get('auth')).auth);
   const response = await fetch('http://127.0.0.1:4318/api/card/delete', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.token}` }, body: JSON.stringify({ operationId: 'delete-running', payload: { cardId: deleted.id } }) });
   assert.equal(response.status, 200); await waitFor(() => canceled.has('hold-delete'), 'deleted karte canceled model work');
-  await assert.rejects(async () => (await application.store.card(deleted.id)), { code: 'deleted' });
+  await assert.rejects(async () => (await application.store.karte(deleted.id)), { code: 'deleted' });
   const shared = await application.store.createDeck('Fresh shared default');
   await application.store.setDefault('remote-default-before-capture', shared.id);
   await captureFrom(b, 'fresh shared destination');
-  assert.equal((await application.store.cards()).find(card => card.selected_text === 'fresh shared destination').deck_id, shared.id);
+  assert.equal((await application.store.kartes()).find(karte => karte.selected_text === 'fresh shared destination').deck_id, shared.id);
 });
 
 test('dashboard capture feedback: shared appearance, original lifetime, originating tab, rerenders and zero windows', { timeout: 45000 }, async (t) => {
@@ -1006,8 +1006,8 @@ test('dashboard capture feedback: shared appearance, original lifetime, originat
   await a.worker.evaluate(tab => globalThis.captureForTest({ menuItemId: 'capture', selectionText: 'navigated-origin' }, tab), navigatedTab);
   assert.equal(await feedback(a.page).count(), 0);
   assert.equal(await feedback(reading).count(), 0);
-  await waitFor(async () => (await application.store.cards()).length === 9 && (await application.store.cards()).every(card => card.status === 'completed'), 'each invocation saves and completes exactly one karte');
-  assert.equal(new Set((await application.store.cards()).map(card => card.selected_text)).size, 9);
+  await waitFor(async () => (await application.store.kartes()).length === 9 && (await application.store.kartes()).every(karte => karte.status === 'completed'), 'each invocation saves and completes exactly one karte');
+  assert.equal(new Set((await application.store.kartes()).map(karte => karte.selected_text)).size, 9);
   assert.deepEqual(await a.worker.evaluate(() => globalThis.feedbackWindows), { calls: 0, events: 0 });
 });
 
@@ -1063,7 +1063,7 @@ test('save feedback: successful publication stays quiet in both lists, failures 
       await page.screenshot({ path: `artifacts/v0.2.2-${index ? 'deck' : 'recent'}-${theme}.png`, fullPage: true });
     }
     hold = false; for (const resume of held.splice(0)) resume();
-    await waitFor(async () => (await application.store.cards()).find(card => card.selected_text === `successful-${theme}`)?.status === 'completed', 'successful publication completes');
+    await waitFor(async () => (await application.store.kartes()).find(karte => karte.selected_text === `successful-${theme}`)?.status === 'completed', 'successful publication completes');
     await waitFor(async () => !(await a.worker.evaluate(async () => Object.keys(await chrome.storage.local.get(null)).some(key => key.startsWith('save-')))), 'successful receipts cleared');
   }
   for (const page of pages) assert.deepEqual(await page.evaluate(() => window.recoveryPanels), [], 'success never inserts a recovery panel');
@@ -1072,7 +1072,7 @@ test('save feedback: successful publication stays quiet in both lists, failures 
   for (const page of pages) await recovery(page).first().waitFor();
   const receipts = await a.worker.evaluate(async () => Object.entries(await chrome.storage.local.get(null)).filter(([key]) => key.startsWith('save-publish-')).map(([, value]) => value));
   assert.ok(receipts.length > 0); assert.ok(receipts.every(receipt => receipt.state === 'pending'));
-  const count = (await application.store.cards()).length;
+  const count = (await application.store.kartes()).length;
   fail = false; hold = true;
   await recovery(a.page).first().getByRole('button', { name: 'Try saving again' }).click();
   await waitFor(() => held.length > 0, 'explicit retry is in flight');
@@ -1083,8 +1083,8 @@ test('save feedback: successful publication stays quiet in both lists, failures 
     await recovery(a.page).first().getByRole('button', { name: 'Try saving again' }).click();
     await waitFor(async () => !(await a.worker.evaluate(async () => Object.values(await chrome.storage.local.get(null)).some(item => item?.state === 'saving'))), 'next retry settled');
   }
-  await waitFor(async () => (await application.store.cards()).every(card => card.status === 'completed'), 'all seites recovered');
-  assert.equal((await application.store.cards()).length, count, 'retry does not duplicate kartes');
+  await waitFor(async () => (await application.store.kartes()).every(karte => karte.status === 'completed'), 'all seites recovered');
+  assert.equal((await application.store.kartes()).length, count, 'retry does not duplicate kartes');
   assert.equal(count, 3); assert.ok(requests >= 6);
 });
 

@@ -99,7 +99,7 @@ test('hosted candidate: two real installations and synchronized karte editing', 
   await a.getByRole('button', { name: 'Add karte manually', exact: true }).waitFor();
   cleanupURL = undefined;
   if (interfaceOnly) {
-    assert.equal(await a.locator('.card-row').count(), 0);
+    assert.equal(await a.locator('.karte-row').count(), 0);
     await a.locator('.deck-menu summary').click();
     await a.getByRole('button', { name: 'Delete deck', exact: true }).click();
     await a.getByRole('dialog').getByRole('button', { name: 'Delete deck', exact: true }).click();

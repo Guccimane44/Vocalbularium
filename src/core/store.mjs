@@ -2,8 +2,8 @@ import { Postgres, OWNER_ACCOUNT_ID } from '../persistence/postgres.ts';
 import { createHash, randomUUID } from 'node:crypto';
 import { MODULES } from './modules.mjs';
 import { frontSortKey } from './sort-key.mjs';
-/** @typedef {import('./store-records.js').CardRow} CardRow */
-/** @typedef {import('./store-records.js').PageRow} PageRow */
+/** @typedef {import('./store-records.js').KarteRow} KarteRow */
+/** @typedef {import('./store-records.js').SeiteRow} SeiteRow */
 /** @typedef {import('./store-records.js').AttemptRow} AttemptRow */
 /** @typedef {import('./store-records.js').ReceiptRow} ReceiptRow */
 export class StoreError extends Error {
@@ -38,7 +38,7 @@ const summaryFields = `b.id, b.deck_id, b.selected_text, b.created_at, b.front_s
     FROM pages q WHERE q.card_id = b.id) AS status`;
 const summaryJoin = `LEFT JOIN layout_pages l ON l.deck_id = b.deck_id AND l.position = 0
   LEFT JOIN pages p ON p.card_id = b.id AND p.page_id = l.id`;
-const cardSummary = row => ({ id: row.id, deck_id: row.deck_id, selected_text: row.selected_text,
+const karteSummary = row => ({ id: row.id, deck_id: row.deck_id, selected_text: row.selected_text,
   created_at: row.created_at, status: row.status,
   pages: [{ page_id: row.front_page_id, text: row.front_text, status: row.front_status }] });
 function canonical(value) {
@@ -138,7 +138,7 @@ export class AccountStore {
     return this.database.transaction(async () => {
       const deck = await this.database.one("SELECT id, name FROM decks WHERE id = $1", [id]);
       if (!deck) fail('deleted', 'The deck no longer exists.');
-      return { ...deck, pages: (await this.database.all("SELECT * FROM layout_pages WHERE deck_id = $1 ORDER BY position", [id])).map(page => ({ id: page.id, modules: JSON.parse(page.modules) })) };
+      return { ...deck, pages: (await this.database.all("SELECT * FROM layout_pages WHERE deck_id = $1 ORDER BY position", [id])).map(seite => ({ id: seite.id, modules: JSON.parse(seite.modules) })) };
     });
   }
   async snapshot() {
@@ -153,7 +153,7 @@ export class AccountStore {
       const decks = [];
       for (const { id } of await this.database.all('SELECT id FROM decks ORDER BY ordinal')) decks.push(await this.deck(id));
       const { sequence } = await this.database.one("SELECT COALESCE(MAX(sequence), 0) AS sequence FROM receipts", []);
-      return { defaultDeckId, decks, cards: (await this.cards()), sequence: Number(sequence) };
+      return { defaultDeckId, decks, cards: (await this.kartes()), sequence: Number(sequence) };
     });
   }
   async readSequence() {
@@ -187,12 +187,12 @@ export class AccountStore {
       return { defaultDeckId, defaultDeckSnapshot: await this.deck(defaultDeckId), ...listed };
     });
   }
-  async syncFrontSortKey(cardId) {
+  async syncFrontSortKey(karteId) {
     const front = await this.database.one(`SELECT p.text FROM pages p JOIN layout_pages l ON l.id = p.page_id
-      WHERE p.card_id = $1 AND l.position = 0`, [cardId]);
-    await this.database.run('UPDATE cards SET front_sort_key = $1 WHERE id = $2', [frontSortKey(front?.text ?? ''), cardId]);
+      WHERE p.card_id = $1 AND l.position = 0`, [karteId]);
+    await this.database.run('UPDATE cards SET front_sort_key = $1 WHERE id = $2', [frontSortKey(front?.text ?? ''), karteId]);
   }
-  async listCards(deckId, { order = 'newest', cursor, limit } = {}) {
+  async listKartes(deckId, { order = 'newest', cursor, limit } = {}) {
     return this.database.transaction(async () => {
       await this.deck(deckId);
       const size = pageLimit(limit, 30, 50);
@@ -222,7 +222,7 @@ export class AccountStore {
       const visible = rows.slice(0, size);
       const last = visible.at(-1);
       return {
-        cards: visible.map(cardSummary),
+        cards: visible.map(karteSummary),
         nextCursor: rows.length > size ? encodeCursor({ v: 1, kind: `cards:${deckId}:${order}`, sequence,
           key: alphabetic ? last.front_sort_key.toString('base64url') : last.created_at, id: last.id }) : null,
         sequence
@@ -237,7 +237,7 @@ export class AccountStore {
         ORDER BY c.created_at COLLATE "C" DESC, c.id COLLATE "C" ASC LIMIT 20
       ) SELECT ${summaryFields} FROM bounded b ${summaryJoin}
         ORDER BY b.created_at COLLATE "C" DESC, b.id COLLATE "C" ASC`);
-      return { cards: rows.map(cardSummary), sequence: await this.readSequence() };
+      return { cards: rows.map(karteSummary), sequence: await this.readSequence() };
     });
   }
   async setDefault(operationId, deckId) {
@@ -247,50 +247,50 @@ export class AccountStore {
       return { defaultDeckId: deckId };
     });
   }
-  async saveDeck(operationId, { deck, basePageIds = [], confirmation }) {
-    return await this.command(operationId, 'save-deck', { deck, basePageIds, confirmation }, async () => {
+  async saveDeck(operationId, { deck, basePageIds: baseSeiteIds = [], confirmation }) {
+    return await this.command(operationId, 'save-deck', { deck, basePageIds: baseSeiteIds, confirmation }, async () => {
       if (!deck || typeof deck.name !== 'string' || !deck.name.trim() || !Array.isArray(deck.pages) || deck.pages.length < 1 || deck.pages.length > 4) {
         fail('invalid', 'Give the deck a name and choose one to four seites.');
       }
-      const pageIds = new Set(), moduleIds = new Set();
-      for (const page of deck.pages) {
-        if (!page || typeof page.id !== 'string' || !page.id || pageIds.has(page.id) || !Array.isArray(page.modules)) fail('invalid', 'Each seite needs its own identity.');
-        pageIds.add(page.id);
-        for (const module of page.modules) {
+      const seiteIds = new Set(), moduleIds = new Set();
+      for (const seite of deck.pages) {
+        if (!seite || typeof seite.id !== 'string' || !seite.id || seiteIds.has(seite.id) || !Array.isArray(seite.modules)) fail('invalid', 'Each seite needs its own identity.');
+        seiteIds.add(seite.id);
+        for (const module of seite.modules) {
           if (!module || typeof module.id !== 'string' || !module.id || moduleIds.has(module.id) || !Object.hasOwn(MODULES, module.type)) fail('invalid', 'Choose supported modules from the library.');
           moduleIds.add(module.id);
         }
       }
-      if (!Array.isArray(basePageIds)) fail('invalid', 'The saved seite configuration is required.');
+      if (!Array.isArray(baseSeiteIds)) fail('invalid', 'The saved seite configuration is required.');
       const current = deck.id ? (await this.deck(deck.id)) : null;
       const id = current?.id ?? randomUUID();
       if (current) {
         if (deck.pages[0].id !== current.pages[0].id) fail('front_page', 'The front seite must stay first and cannot be removed.');
-        const retained = deck.pages.filter(page => current.pages.some(saved => saved.id === page.id)).map(page => page.id);
-        if (JSON.stringify(retained) !== JSON.stringify(current.pages.filter(page => pageIds.has(page.id)).map(page => page.id))) fail('invalid', 'Retained seites must keep their order.');
-        const newIndex = deck.pages.findIndex(page => !current.pages.some(saved => saved.id === page.id));
-        if (newIndex >= 0 && deck.pages.slice(newIndex).some(page => current.pages.some(saved => saved.id === page.id))) fail('invalid', 'New seites must be appended.');
-        for (const page of deck.pages) if (basePageIds.includes(page.id) && !current.pages.some(saved => saved.id === page.id)) fail('deleted', 'A seite in this draft was deleted. Reopen the saved configuration.');
-        const removed = current.pages.filter(page => !pageIds.has(page.id));
+        const retained = deck.pages.filter(seite => current.pages.some(saved => saved.id === seite.id)).map(seite => seite.id);
+        if (JSON.stringify(retained) !== JSON.stringify(current.pages.filter(seite => seiteIds.has(seite.id)).map(seite => seite.id))) fail('invalid', 'Retained seites must keep their order.');
+        const newIndex = deck.pages.findIndex(seite => !current.pages.some(saved => saved.id === seite.id));
+        if (newIndex >= 0 && deck.pages.slice(newIndex).some(seite => current.pages.some(saved => saved.id === seite.id))) fail('invalid', 'New seites must be appended.');
+        for (const seite of deck.pages) if (baseSeiteIds.includes(seite.id) && !current.pages.some(saved => saved.id === seite.id)) fail('deleted', 'A seite in this draft was deleted. Reopen the saved configuration.');
+        const removed = current.pages.filter(seite => !seiteIds.has(seite.id));
         const lostContent = [];
-        for (const page of removed) lostContent.push(...await this.database.all("SELECT card_id, page_id, text FROM pages WHERE page_id = $1 AND text != '' ORDER BY card_id", [page.id]));
+        for (const seite of removed) lostContent.push(...await this.database.all("SELECT card_id, page_id, text FROM pages WHERE page_id = $1 AND text != '' ORDER BY card_id", [seite.id]));
         if (lostContent.length) {
           const digest = createHash('sha256').update(JSON.stringify(lostContent)).digest('hex');
           if (confirmation !== digest) throw new StoreError('content_loss', 'Removing these seites will delete their saved content, including manual edits, from every affected karte.', { confirmation: digest });
         }
         await this.database.run("UPDATE decks SET name = $1 WHERE id = $2", [deck.name.trim(), id]);
-        for (const page of removed)
-          await this.database.run("DELETE FROM layout_pages WHERE id = $1", [page.id]);
+        for (const seite of removed)
+          await this.database.run("DELETE FROM layout_pages WHERE id = $1", [seite.id]);
       } else
         await this.database.run("INSERT INTO decks (id, name) VALUES ($1, $2)", [id, deck.name.trim()]);
-      for (const [position, page] of deck.pages.entries()) {
-        const saved = await this.database.one("SELECT deck_id FROM layout_pages WHERE id = $1", [page.id]);
+      for (const [position, seite] of deck.pages.entries()) {
+        const saved = await this.database.one("SELECT deck_id FROM layout_pages WHERE id = $1", [seite.id]);
         if (saved && saved.deck_id !== id) fail('invalid', 'This seite belongs to another deck.');
         if (saved)
-          await this.database.run("UPDATE layout_pages SET position = $1, modules = $2 WHERE id = $3", [position, JSON.stringify(page.modules), page.id]);
+          await this.database.run("UPDATE layout_pages SET position = $1, modules = $2 WHERE id = $3", [position, JSON.stringify(seite.modules), seite.id]);
         else {
-          await this.database.run("INSERT INTO layout_pages VALUES ($1, $2, $3, $4)", [page.id, id, position, JSON.stringify(page.modules)]);
-          await this.database.run("INSERT INTO pages (card_id, page_id) SELECT id, $1 FROM cards WHERE deck_id = $2", [page.id, id]);
+          await this.database.run("INSERT INTO layout_pages VALUES ($1, $2, $3, $4)", [seite.id, id, position, JSON.stringify(seite.modules)]);
+          await this.database.run("INSERT INTO pages (card_id, page_id) SELECT id, $1 FROM cards WHERE deck_id = $2", [seite.id, id]);
         }
       }
       return { deckId: id };
@@ -314,23 +314,23 @@ export class AccountStore {
       return { deckId, defaultDeckId: nextDefault };
     });
   }
-  async card(id) {
+  async karte(id) {
     return this.database.transaction(async () => {
-      const card = await this.database.one("SELECT * FROM cards WHERE id = $1", [id]);
-      if (!card) fail('deleted', 'The karte no longer exists.');
-      const pages = await this.database.all(`SELECT p.* FROM pages p JOIN layout_pages l ON l.id = p.page_id
+      const karte = await this.database.one("SELECT * FROM cards WHERE id = $1", [id]);
+      if (!karte) fail('deleted', 'The karte no longer exists.');
+      const seites = await this.database.all(`SELECT p.* FROM pages p JOIN layout_pages l ON l.id = p.page_id
       WHERE card_id = $1 ORDER BY l.position`, [id]);
-      const states = pages.map(page => page.status).filter(Boolean);
+      const states = seites.map(seite => seite.status).filter(Boolean);
       const status = states.includes('failed') ? 'failed' : states.includes('loading') ? 'loading'
         : states.length ? 'completed' : null;
-      return { ...card, interpretation: card.interpretation ? JSON.parse(card.interpretation) : null, pages, status };
+      return { ...karte, interpretation: karte.interpretation ? JSON.parse(karte.interpretation) : null, pages: seites, status };
     });
   }
-  async cards() {
+  async kartes() {
     return this.database.transaction(async () => {
-      const cards = [];
-      for (const { id } of await this.database.all('SELECT id FROM cards ORDER BY created_at DESC, id')) cards.push(await this.card(id));
-      return cards;
+      const kartes = [];
+      for (const { id } of await this.database.all('SELECT id FROM cards ORDER BY created_at DESC, id')) kartes.push(await this.karte(id));
+      return kartes;
     });
   }
   async capture(operationId, { session, selectedText, snapshot }, { recoverySession } = {}) {
@@ -344,11 +344,11 @@ export class AccountStore {
       const deck = await this.deck(snapshot.id);
       const id = randomUUID();
       await this.database.run("INSERT INTO cards (id, deck_id, selected_text, created_at) VALUES ($1, $2, $3, $4)", [id, deck.id, selectedText, new Date().toISOString()]);
-      for (const page of deck.pages) {
-        await this.database.run("INSERT INTO pages (card_id, page_id) VALUES ($1, $2)", [id, page.id]);
-        const capturedPage = snapshot.pages.find(captured => captured.id === page.id);
-        if (capturedPage) {
-          const attemptId = await this.startAttempt(id, page.id, session, capturedPage.modules);
+      for (const seite of deck.pages) {
+        await this.database.run("INSERT INTO pages (card_id, page_id) VALUES ($1, $2)", [id, seite.id]);
+        const capturedSeite = snapshot.pages.find(captured => captured.id === seite.id);
+        if (capturedSeite) {
+          const attemptId = await this.startAttempt(id, seite.id, session, capturedSeite.modules);
           if (interrupted)
             await this.failAttempt(attemptId);
         }
@@ -363,12 +363,12 @@ export class AccountStore {
       return { snapshot: (await this.snapshot()) };
     });
   }
-  async startAttempt(cardId, pageId, session, modules) {
+  async startAttempt(karteId, seiteId, session, modules) {
     const attemptId = randomUUID();
     await this.database.run(`INSERT INTO attempts
-      (id, card_id, page_id, installation_id, session_id, epoch, modules) VALUES ($1, $2, $3, $4, $5, $6, $7)`, [attemptId, cardId, pageId, session.installationId, session.sessionId, session.epoch, JSON.stringify(modules)]);
-    await this.database.run("UPDATE pages SET text = '', status = 'loading', attempt_id = $1 WHERE card_id = $2 AND page_id = $3", [attemptId, cardId, pageId]);
-    await this.syncFrontSortKey(cardId);
+      (id, card_id, page_id, installation_id, session_id, epoch, modules) VALUES ($1, $2, $3, $4, $5, $6, $7)`, [attemptId, karteId, seiteId, session.installationId, session.sessionId, session.epoch, JSON.stringify(modules)]);
+    await this.database.run("UPDATE pages SET text = '', status = 'loading', attempt_id = $1 WHERE card_id = $2 AND page_id = $3", [attemptId, karteId, seiteId]);
+    await this.syncFrontSortKey(karteId);
     return attemptId;
   }
   async attempt(id) {
@@ -384,15 +384,15 @@ export class AccountStore {
       await this.database.run("UPDATE attempts SET state = 'failed', result = NULL WHERE id = $1 AND state = 'loading'", [attemptId]);
     });
   }
-  async establishInterpretation(cardId, interpretation, attemptIds) {
+  async establishInterpretation(karteId, interpretation, attemptIds) {
     return this.database.transaction(async () => {
-      const card = await this.card(cardId);
-      if (card.interpretation) return card.interpretation;
-      const active = await this.database.all("SELECT id FROM attempts WHERE card_id = $1 AND state = 'loading'", [cardId]);
+      const karte = await this.karte(karteId);
+      if (karte.interpretation) return karte.interpretation;
+      const active = await this.database.all("SELECT id FROM attempts WHERE card_id = $1 AND state = 'loading'", [karteId]);
       if (!active.some(attempt => !attemptIds || attemptIds.includes(attempt.id))) {
         fail('stale_attempt', 'No active attempt requires this interpretation.');
       }
-      await this.database.run("UPDATE cards SET interpretation = $1 WHERE id = $2 AND interpretation IS NULL", [JSON.stringify(interpretation), cardId]);
+      await this.database.run("UPDATE cards SET interpretation = $1 WHERE id = $2 AND interpretation IS NULL", [JSON.stringify(interpretation), karteId]);
       return interpretation;
     });
   }
@@ -432,55 +432,55 @@ export class AccountStore {
       return { cardId: attempt.card_id, pageId: attempt.page_id, state };
     });
   }
-  async savePages(operationId, { cardId, changes }) {
-    return await this.command(operationId, 'save-pages', { cardId, changes }, async () => {
-      const card = await this.card(cardId);
+  async saveSeites(operationId, { cardId: karteId, changes }) {
+    return await this.command(operationId, 'save-pages', { cardId: karteId, changes }, async () => {
+      const karte = await this.karte(karteId);
       if (!Array.isArray(changes) || changes.some(change => !change || typeof change !== 'object') ||
         new Set(changes.map(change => change.pageId)).size !== changes.length) fail('invalid', 'Choose each changed seite once.');
       for (const change of changes) {
-        const page = card.pages.find(page => page.page_id === change.pageId);
-        if (!page) fail('deleted', 'A changed seite no longer exists.');
-        if (page.status === 'loading') fail('generating', 'A seite is still generating. Your drafts are preserved.');
+        const seite = karte.pages.find(seite => seite.page_id === change.pageId);
+        if (!seite) fail('deleted', 'A changed seite no longer exists.');
+        if (seite.status === 'loading') fail('generating', 'A seite is still generating. Your drafts are preserved.');
         if (typeof change.text !== 'string') fail('invalid', 'Seite content must be text.');
       }
       for (const change of changes)
-        await this.database.run("UPDATE pages SET text = $1 WHERE card_id = $2 AND page_id = $3", [change.text, cardId, change.pageId]);
-      if (changes.length) await this.syncFrontSortKey(cardId);
-      return { cardId };
+        await this.database.run("UPDATE pages SET text = $1 WHERE card_id = $2 AND page_id = $3", [change.text, karteId, change.pageId]);
+      if (changes.length) await this.syncFrontSortKey(karteId);
+      return { cardId: karteId };
     });
   }
-  async createManual(operationId, { deckId, pages }) {
-    return await this.command(operationId, 'create-manual', { deckId, pages }, async () => {
+  async createManual(operationId, { deckId, pages: seites }) {
+    return await this.command(operationId, 'create-manual', { deckId, pages: seites }, async () => {
       const deck = await this.deck(deckId);
-      if (!Array.isArray(pages) || pages.some(page => !page || typeof page !== 'object') ||
-        new Set(pages.map(page => page.pageId)).size !== pages.length || pages.some(page => typeof page.text !== 'string')) fail('invalid', 'Each seite needs plain-text content.');
-      for (const page of pages) if (!deck.pages.some(saved => saved.id === page.pageId)) fail('deleted', 'A seite in this draft was deleted. Your draft is preserved.');
+      if (!Array.isArray(seites) || seites.some(seite => !seite || typeof seite !== 'object') ||
+        new Set(seites.map(seite => seite.pageId)).size !== seites.length || seites.some(seite => typeof seite.text !== 'string')) fail('invalid', 'Each seite needs plain-text content.');
+      for (const seite of seites) if (!deck.pages.some(saved => saved.id === seite.pageId)) fail('deleted', 'A seite in this draft was deleted. Your draft is preserved.');
       const id = randomUUID();
       await this.database.run("INSERT INTO cards (id, deck_id, selected_text, created_at) VALUES ($1, $2, NULL, $3)", [id, deckId, new Date().toISOString()]);
-      for (const page of deck.pages)
-        await this.database.run("INSERT INTO pages (card_id, page_id, text) VALUES ($1, $2, $3)", [id, page.id, pages.find(draft => draft.pageId === page.id)?.text ?? '']);
+      for (const seite of deck.pages)
+        await this.database.run("INSERT INTO pages (card_id, page_id, text) VALUES ($1, $2, $3)", [id, seite.id, seites.find(draft => draft.pageId === seite.id)?.text ?? '']);
       await this.syncFrontSortKey(id);
       return { cardId: id };
     });
   }
-  async retry(operationId, { cardId, pageId, session }, { admit } = {}) {
-    return await this.command(operationId, 'retry', { cardId, pageId, session }, async () => {
+  async retry(operationId, { cardId: karteId, pageId: seiteId, session }, { admit } = {}) {
+    return await this.command(operationId, 'retry', { cardId: karteId, pageId: seiteId, session }, async () => {
       await this.requireSession(session);
-      const card = await this.card(cardId);
-      if (card.selected_text === null) fail('manual_card', 'Manual kartes have no generation input.');
-      const page = card.pages.find(page => page.page_id === pageId);
-      if (!page) fail('deleted', 'The seite no longer exists.');
-      if (page.status === 'loading') fail('generating', 'This seite is already generating.');
-      const layout = (await this.deck(card.deck_id)).pages.find(page => page.id === pageId);
+      const karte = await this.karte(karteId);
+      if (karte.selected_text === null) fail('manual_card', 'Manual kartes have no generation input.');
+      const seite = karte.pages.find(seite => seite.page_id === seiteId);
+      if (!seite) fail('deleted', 'The seite no longer exists.');
+      if (seite.status === 'loading') fail('generating', 'This seite is already generating.');
+      const layout = (await this.deck(karte.deck_id)).pages.find(seite => seite.id === seiteId);
       admit?.();
-      return { attemptId: (await this.startAttempt(cardId, pageId, session, layout.modules)) };
+      return { attemptId: (await this.startAttempt(karteId, seiteId, session, layout.modules)) };
     });
   }
-  async deleteCard(operationId, cardId) {
-    return await this.command(operationId, 'delete-card', { cardId }, async () => {
-      await this.card(cardId);
-      await this.database.run("DELETE FROM cards WHERE id = $1", [cardId]);
-      return { cardId };
+  async deleteKarte(operationId, karteId) {
+    return await this.command(operationId, 'delete-card', { cardId: karteId }, async () => {
+      await this.karte(karteId);
+      await this.database.run("DELETE FROM cards WHERE id = $1", [karteId]);
+      return { cardId: karteId };
     });
   }
 }

@@ -1,1 +1,1 @@
-export { MODULES, renderPage, validateInterpretation } from '@vocabularium/domain/modules';
+export { MODULES, renderSeite, validateInterpretation } from '@vocabularium/domain/modules';
