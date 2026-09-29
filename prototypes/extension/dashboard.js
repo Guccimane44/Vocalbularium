@@ -37,7 +37,7 @@ async function refresh() {
       article.append(heading);
       for (const [index, page] of card.pages.entries()) {
         const status = document.createElement('small');
-        status.textContent = `Page ${index + 1} · ${page.status ?? 'No generation attempt'}`;
+        status.textContent = `Seite ${index + 1} · ${page.status ?? 'No generation attempt'}`;
         const content = document.createElement('pre');
         content.textContent = page.text;
         article.append(status, content);

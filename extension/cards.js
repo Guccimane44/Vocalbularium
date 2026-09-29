@@ -1,7 +1,7 @@
 import { dialog } from './dialog.ts';
 import { CardView } from './card-view.tsx';
 /** @typedef {import('../types/editor-drafts.js').CardEditorDraft} CardEditorDraft */
-const RETRY_WARNING = 'Retry will delete all content on this page, including manual edits and previous generated content, and generate it again. Other pages will not change.';
+const RETRY_WARNING = 'Retry will delete all content on this seite, including manual edits and previous generated content, and generate it again. Other seites will not change.';
 
 export function cardViews({ getAccount, renderView, refresh, send, applyState, navigate, showError }) {
   /** @type {CardEditorDraft | undefined} */
@@ -79,13 +79,13 @@ export function cardViews({ getAccount, renderView, refresh, send, applyState, n
       cancel: async () => { await discard(); if (isNew) navigate(`deck/${deck.id}`); else void refresh(); },
       discardUnavailable: async () => { await discard(); navigate(''); },
       deleteCard: async () => {
-        const decision = await dialog({ title: 'Delete card?', message: 'This card and all its page content will be deleted.', choices: ['Cancel', 'Delete card'] });
-        if (decision.choice !== 'Delete card') return;
+        const decision = await dialog({ title: 'Delete karte?', message: 'This karte and all its seite content will be deleted.', choices: ['Cancel', 'Delete karte'] });
+        if (decision.choice !== 'Delete karte') return;
         try { const next = await send({ type: 'delete-card', payload: { cardId: card.id } }); await discard(); await applyState(next); navigate(`deck/${deck.id}`); }
         catch (error) { showError(error); }
       },
       retryPage: async pageId => {
-        const choice = await dialog({ title: 'Retry this page?', message: RETRY_WARNING, choices: ['Cancel', 'Confirm'] });
+        const choice = await dialog({ title: 'Retry this seite?', message: RETRY_WARNING, choices: ['Cancel', 'Confirm'] });
         if (choice.choice !== 'Confirm') return;
         try { const next = await send({ type: 'retry-page', payload: { cardId: card.id, pageId } }); await applyState(next); }
         catch (error) { showError(error); }

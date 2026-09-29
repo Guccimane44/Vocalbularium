@@ -118,7 +118,7 @@ function DeckMenu({ deck, account, replacementDecks, replacementCursor, loadDeck
     const replacements = deck.id === account.defaultDeckId ? replacementDecks.filter(item => item.id !== deck.id) : [];
     const decision = await dialog({
       title: 'Delete deck?',
-      message: `“${deck.name}” and all its cards will be deleted.${replacementDecks.length === 1 && !replacementCursor ? ' A new empty My Deck will replace it.' : ''}`,
+      message: `“${deck.name}” and all its kartes will be deleted.${replacementDecks.length === 1 && !replacementCursor ? ' A new empty My Deck will replace it.' : ''}`,
       choices: ['Cancel', 'Delete deck'],
       select: replacements.length || replacementCursor ? {
         label: 'New default deck', options: replacements.map(item => ({ value: item.id, label: item.name })),
@@ -159,7 +159,7 @@ function CardRow({ card, index, navigate }: { card: DashboardCard; index: number
     <td>{String(index + 1).padStart(3, '0')}</td>
     <td>
       <StatusIcon status={card.status} id={card.status ? stateId : undefined} />
-      <button className="entry" aria-describedby={card.status ? stateId : undefined} onClick={activate}>{card.pages[0]?.text || 'Empty front page'}</button>
+      <button className="entry" aria-describedby={card.status ? stateId : undefined} onClick={activate}>{card.pages[0]?.text || 'Empty front seite'}</button>
     </td>
   </tr>;
 }
@@ -196,17 +196,17 @@ function DeckList({ deck, account, navigate, configure, mutate, reportError, loa
     <p className="eyebrow">YOUR COLLECTION</p>
     <h1>{deck.name}</h1>
     <DeckMenu deck={deck} account={account} replacementDecks={account.decks} replacementCursor={account.nextCursor ?? null} loadDecks={loadDecks} configure={configure} mutate={mutate} reportError={reportError} />
-    <button className="primary" onClick={() => navigate(`new-card/${deck.id}`)}>Add card manually</button>
-    <label htmlFor="card-sort">Sort cards</label>
+    <button className="primary" onClick={() => navigate(`new-card/${deck.id}`)}>Add karte manually</button>
+    <label htmlFor="card-sort">Sort kartes</label>
     <select id="card-sort" value={order} onChange={event => { localStorage.setItem(`sort-${deck.id}`, event.target.value); setOrder(event.target.value); }}>
       {SORT_ORDERS.map(([value, label]) => <option value={value} key={value}>{label}</option>)}
     </select>
-    {!cards.length ? <div className="empty">{loading ? 'Loading cards…' : 'No cards in this deck yet.'}</div> :
+    {!cards.length ? <div className="empty">{loading ? 'Loading kartes…' : 'No kartes in this deck yet.'}</div> :
       <table className="list"><tbody>
         <tr><th>Index</th><th>Entry</th></tr>
         {cards.map((card, index) => <CardRow card={card} index={index} navigate={navigate} key={card.id} />)}
       </tbody></table>}
-    {cursor && <button disabled={loading} onClick={() => void more()}>Load more cards</button>}
+    {cursor && <button disabled={loading} onClick={() => void more()}>Load more kartes</button>}
   </>;
 }
 
@@ -230,10 +230,10 @@ function RecentCaptures({ account, local, navigate, mutate, reportError }: Pick<
         <StatusIcon status={state} description={entry.receipt ? entry.receipt.state === 'saving' ? 'Pending' : 'Not saved to your account' : undefined} />
         <p className="capture-text">{entry.text}</p>
         {deck && <button onClick={() => navigate(`deck/${deck.id}`)}>{deck.name}</button>}
-        {entry.card ? <button onClick={() => navigate(`card/${entry.card!.id}`)}>Open card</button> : <>
+        {entry.card ? <button onClick={() => navigate(`card/${entry.card!.id}`)}>Open karte</button> : <>
           {entry.receipt?.state === 'saved' ? <>
             <p className="muted">Saved to your account.</p>
-            {entry.receipt.cardId && <button onClick={() => navigate(`card/${entry.receipt!.cardId}`)}>Open card</button>}
+            {entry.receipt.cardId && <button onClick={() => navigate(`card/${entry.receipt!.cardId}`)}>Open karte</button>}
           </> : entry.receipt?.state !== 'saving' && <p className="muted">Not saved to your account.</p>}
           {entry.receipt?.error && <p className="error">{entry.receipt.error}</p>}
           {entry.receipt?.state === 'pending' && <RecoveryButton operationId={entry.receipt.operationId} mutate={mutate} reportError={reportError} />}

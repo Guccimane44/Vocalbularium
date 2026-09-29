@@ -20,7 +20,7 @@ async function capture(store, id = 'capture', session = a, selectedText = '  幸
 }
 async function complete(store, card, session = a) {
   for (const page of card.pages) {
-    await store.stage(page.attempt_id, { ok: true, text: `page ${page.page_id}` });
+    await store.stage(page.attempt_id, { ok: true, text: `seite ${page.page_id}` });
     await store.publish(`publish-${page.attempt_id}`, { attemptId: page.attempt_id, session });
   }
 }
@@ -92,7 +92,7 @@ test('storage roundtrips may reorder object keys without changing an operation',
   assert.equal((await store.capture('capture', reorderedPayload)).cardId, original.cardId);
 });
 
-test('browser restart fails only its unfinished pages and fences late results', async (t) => {
+test('browser restart fails only its unfinished seites and fences late results', async (t) => {
   const store = await fixture(t);
   const own = await capture(store);
   const other = await capture(store, 'capture-b', b);
@@ -114,7 +114,7 @@ test('browser restart fails only its unfinished pages and fences late results', 
   await complete(store, other.card, b);
 });
 
-test('failed attempt discards content; a completed empty page is valid', async (t) => {
+test('failed attempt discards content; a completed empty seite is valid', async (t) => {
   const store = await fixture(t);
   const { cardId, card } = await capture(store);
   await store.stage(card.pages[0].attempt_id, { ok: true, text: '' });
@@ -129,7 +129,7 @@ test('failed attempt discards content; a completed empty page is valid', async (
   assert.equal((await store.card(cardId)).status, 'failed');
 });
 
-test('save arrival order wins for the same page and preserves different pages', async (t) => {
+test('save arrival order wins for the same seite and preserves different seites', async (t) => {
   const store = await fixture(t);
   const { cardId, card } = await capture(store);
   await complete(store, card);
@@ -143,7 +143,7 @@ test('save arrival order wins for the same page and preserves different pages', 
   assert.deepEqual((await store.card(cardId)).pages.map(page => page.text), ['B', 'C']);
 });
 
-test('generation rejects an entire multi-page save; explicit resubmission is a new arrival', async (t) => {
+test('generation rejects an entire multi-seite save; explicit resubmission is a new arrival', async (t) => {
   const store = await fixture(t);
   const { cardId, card } = await capture(store);
   await complete(store, card);
@@ -160,7 +160,7 @@ test('generation rejects an entire multi-page save; explicit resubmission is a n
   assert.deepEqual((await store.card(cardId)).pages.map(page => page.text), ['draft 1', 'draft 2']);
 });
 
-test('capture snapshot keeps its destination and instructions, with stable retained page identities', async (t) => {
+test('capture snapshot keeps its destination and instructions, with stable retained seite identities', async (t) => {
   const store = await fixture(t);
   const snapshot = await store.snapshot();
   const next = await store.createDeck('Another deck');
@@ -178,12 +178,12 @@ test('capture snapshot keeps its destination and instructions, with stable retai
   const shortened = structuredClone(changed);
   shortened.pages.splice(1, 1);
   await store.saveDeck('remove-middle', { deck: shortened, basePageIds: changed.pages.map(page => page.id) });
-  await store.stage(retained.attempt_id, { ok: true, text: 'retained page output' });
+  await store.stage(retained.attempt_id, { ok: true, text: 'retained seite output' });
   await store.publish('retained', { attemptId: retained.attempt_id, session: a });
-  assert.equal((await store.card(cardId)).pages[0].text, 'retained page output');
+  assert.equal((await store.card(cardId)).pages[0].text, 'retained seite output');
 });
 
-test('deletion prevents stale saves, retries, and generated results from recreating a card', async (t) => {
+test('deletion prevents stale saves, retries, and generated results from recreating a karte', async (t) => {
   const store = await fixture(t);
   const { cardId, card } = await capture(store);
   await store.deleteCard('delete', cardId);

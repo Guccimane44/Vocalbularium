@@ -96,11 +96,11 @@ export function registerRoutes(fastify, { store, authentication, generation }) {
   }, async request => store.deck(request.params.deckId));
 
   fastify.get('/api/decks/:deckId/cards', {
-    schema: { ...routeSchema('Read one ordered page of card summaries'), params: deckParams, querystring: cardListQuery }
+    schema: { ...routeSchema('Read one ordered page of karte summaries'), params: deckParams, querystring: cardListQuery }
   }, async request => store.listCards(request.params.deckId, request.query));
 
   fastify.get('/api/cards/:cardId', {
-    schema: { ...routeSchema('Read one card and its pages'), params: cardParams }
+    schema: { ...routeSchema('Read one karte and its seites'), params: cardParams }
   }, async request => store.card(request.params.cardId));
 
   fastify.get('/api/captures/recent', {
@@ -170,7 +170,7 @@ export function registerRoutes(fastify, { store, authentication, generation }) {
   });
 
   fastify.post('/api/card/create', {
-    schema: routeSchema('Create a manual card', ManualCardCreateRequestSchema)
+    schema: routeSchema('Create a manual karte', ManualCardCreateRequestSchema)
   }, async request => {
     const body = request.body;
     if (typeof body.payload?.deckId !== 'string') throw new StoreError('invalid', 'Choose a deck.');
@@ -178,30 +178,30 @@ export function registerRoutes(fastify, { store, authentication, generation }) {
   });
 
   fastify.post('/api/card/save', {
-    schema: routeSchema('Save card page edits', CardSaveRequestSchema)
+    schema: routeSchema('Save karte seite edits', CardSaveRequestSchema)
   }, async request => {
     const body = request.body;
-    if (typeof body.payload?.cardId !== 'string') throw new StoreError('invalid', 'Choose a card.');
+    if (typeof body.payload?.cardId !== 'string') throw new StoreError('invalid', 'Choose a karte.');
     return store.savePages(body.operationId, body.payload);
   });
 
   fastify.post('/api/card/delete', {
-    schema: routeSchema('Delete a card', CardDeleteRequestSchema)
+    schema: routeSchema('Delete a karte', CardDeleteRequestSchema)
   }, async request => {
     const body = request.body;
-    if (typeof body.payload?.cardId !== 'string') throw new StoreError('invalid', 'Choose a card.');
+    if (typeof body.payload?.cardId !== 'string') throw new StoreError('invalid', 'Choose a karte.');
     const result = await store.deleteCard(body.operationId, body.payload.cardId);
     await generation.cancelObsolete();
     return result;
   });
 
   fastify.post('/api/card/retry', {
-    schema: routeSchema('Retry generation for one card page', CardRetryRequestSchema, { errors: { 429: ApiFailureSchema } })
+    schema: routeSchema('Retry generation for one karte seite', CardRetryRequestSchema, { errors: { 429: ApiFailureSchema } })
   }, async request => {
     const body = request.body;
     sessionValue(body.payload?.session);
     if (typeof body.payload?.cardId !== 'string' || typeof body.payload?.pageId !== 'string') {
-      throw new StoreError('invalid', 'Choose a card page.');
+      throw new StoreError('invalid', 'Choose a karte seite.');
     }
     let reservation;
     try {
@@ -229,11 +229,11 @@ export function registerRoutes(fastify, { store, authentication, generation }) {
   });
 
   fastify.post('/api/publish', {
-    schema: routeSchema('Publish a completed page attempt', PublishRequestSchema)
+    schema: routeSchema('Publish a completed seite attempt', PublishRequestSchema)
   }, async request => {
     const body = request.body;
     sessionValue(body.payload?.session);
-    if (typeof body.payload?.attemptId !== 'string') throw new StoreError('invalid', 'A page attempt is required.');
+    if (typeof body.payload?.attemptId !== 'string') throw new StoreError('invalid', 'A seite attempt is required.');
     await generation.saveResult(body.payload.attemptId, body.payload.session);
     return store.publish(body.operationId, body.payload);
   });

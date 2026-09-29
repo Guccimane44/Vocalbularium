@@ -33,8 +33,8 @@ export function CardView({ card, deck, draft, selectedPageId, isNew, editing, bu
   const [retryBusy, setRetryBusy] = useState(false);
   if (!card || !deck) return <>
     {error && error !== draft?.error && <p className="notice error" role="alert">{error}</p>}
-    <h1>Card unavailable</h1>
-    <p>This card or deck has been deleted.</p>
+    <h1>Karte unavailable</h1>
+    <p>This karte or deck has been deleted.</p>
     {draft && <>
       <p className="notice">Your unsaved text is still here. Copy anything you want to keep before discarding it.</p>
       {Object.values(draft.texts).map((text, index) => <pre key={index}>{text}</pre>)}
@@ -50,38 +50,38 @@ export function CardView({ card, deck, draft, selectedPageId, isNew, editing, bu
   return <>
     {error && error !== draft?.error && <p className="notice error" role="alert">{error}</p>}
     <button className="back" onClick={() => navigate(`deck/${deck.id}`)}>← {deck.name}</button>
-    <h1>{isNew ? 'A new card.' : 'Card content'}</h1>
-    <Status status={card.status} prefix="Card: " />
-    <nav className="pages" aria-label="Card pages">
+    <h1>{isNew ? 'A new karte.' : 'Karte content'}</h1>
+    <Status status={card.status} prefix="Karte: " />
+    <nav className="pages" aria-label="Karte seites">
       {card.pages.map((page, index) => <button key={page.page_id}
         aria-current={page === selected}
         onClick={() => navigate(`${isNew ? 'new-card' : 'card'}/${isNew ? deck.id : card.id}/${page.page_id}`)}>
-        Page {index + 1}
+        Seite {index + 1}
       </button>)}
     </nav>
     <section className="card-page">
-      <Status status={selected.status} prefix="Page: " />
+      <Status status={selected.status} prefix="Seite: " />
       {editing && draft ? <>
-        <label htmlFor="page-content">Page {pageIndex + 1} content</label>
+        <label htmlFor="page-content">Seite {pageIndex + 1} content</label>
         <textarea key={selected.page_id} id="page-content" rows={12} defaultValue={draft.texts[selected.page_id] ?? ''}
           readOnly={busy || selected.status === 'loading' || Boolean(draft.pending && !draft.errorCode)}
           onChange={event => { draft.texts[selected.page_id] = event.target.value; persist(); }} />
-        {selected.status === 'loading' && <p className="notice">This page is generating. Your draft is preserved; save explicitly after generation finishes.</p>}
+        {selected.status === 'loading' && <p className="notice">This seite is generating. Your draft is preserved; save explicitly after generation finishes.</p>}
         {missingPages.map(pageId => <div key={pageId}>
-          <p className="notice">A draft page was removed from the deck. Its unsaved text is preserved below.</p>
+          <p className="notice">A draft seite was removed from the deck. Its unsaved text is preserved below.</p>
           <pre>{draft.texts[pageId]}</pre>
         </div>)}
         <div className="dialog-actions">
-          {!isNew && <button disabled={busy} onClick={() => void deleteCard()}>Delete card</button>}
+          {!isNew && <button disabled={busy} onClick={() => void deleteCard()}>Delete karte</button>}
           <button disabled={busy} onClick={() => void cancel()}>Cancel</button>
           <button className="primary" disabled={busy} onClick={() => void save()}>{draft.pending ? 'Try saving again' : 'Save'}</button>
         </div>
         {draft.error && <p className="notice error" role="alert">{draft.error}</p>}
       </> : <>
         {selected.text ? <pre>{selected.text}</pre> :
-          <p className="muted">{selected.status === 'loading' ? 'Generating this page…' : selected.status === 'failed' ? 'Generation failed for this page.' : 'This page is empty.'}</p>}
+          <p className="muted">{selected.status === 'loading' ? 'Generating this seite…' : selected.status === 'failed' ? 'Generation failed for this seite.' : 'This seite is empty.'}</p>}
         <div className="dialog-actions">
-          <button disabled={selected.status === 'loading'} onClick={begin}>Edit card manually</button>
+          <button disabled={selected.status === 'loading'} onClick={begin}>Edit karte manually</button>
           {card.selected_text !== null && <button disabled={retryBusy || selected.status === 'loading'} onClick={async () => {
             setRetryBusy(true);
             try { await retryPage(selected.page_id); } finally { setRetryBusy(false); }

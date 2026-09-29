@@ -3,7 +3,7 @@
   "info": {
     "title": "Vocabularium Account API",
     "version": "0.3.0",
-    "description": "Local account, capture, deck, card, and generation-session API."
+    "description": "Local account, capture, deck, karte, and generation-session API."
   },
   "components": {
     "securitySchemes": {
@@ -1174,7 +1174,7 @@
     },
     "/api/decks/{deckId}/cards": {
       "get": {
-        "summary": "Read one ordered page of card summaries",
+        "summary": "Read one ordered page of karte summaries",
         "tags": [
           "account"
         ],
@@ -1431,7 +1431,7 @@
     },
     "/api/cards/{cardId}": {
       "get": {
-        "summary": "Read one card and its pages",
+        "summary": "Read one karte and its seites",
         "tags": [
           "account"
         ],
@@ -3593,7 +3593,7 @@
     },
     "/api/card/create": {
       "post": {
-        "summary": "Create a manual card",
+        "summary": "Create a manual karte",
         "tags": [
           "account"
         ],
@@ -3841,7 +3841,7 @@
     },
     "/api/card/save": {
       "post": {
-        "summary": "Save card page edits",
+        "summary": "Save karte seite edits",
         "tags": [
           "account"
         ],
@@ -4089,7 +4089,7 @@
     },
     "/api/card/delete": {
       "post": {
-        "summary": "Delete a card",
+        "summary": "Delete a karte",
         "tags": [
           "account"
         ],
@@ -4317,7 +4317,7 @@
     },
     "/api/card/retry": {
       "post": {
-        "summary": "Retry generation for one card page",
+        "summary": "Retry generation for one karte seite",
         "tags": [
           "account"
         ],
@@ -4833,7 +4833,7 @@
     },
     "/api/publish": {
       "post": {
-        "summary": "Publish a completed page attempt",
+        "summary": "Publish a completed seite attempt",
         "tags": [
           "account"
         ],
@@ -5095,7 +5095,7 @@
     },
     {
       "name": "account",
-      "description": "Account and card operations"
+      "description": "Account and karte operations"
     }
   ]
 }

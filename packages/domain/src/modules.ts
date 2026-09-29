@@ -43,7 +43,7 @@ export async function renderPage(input: {
   const output: string[] = [];
   for (const module of input.modules) {
     const definition = MODULES[module.type];
-    if (!definition) throw new Error('The page contains an unsupported module.');
+    if (!definition) throw new Error('The seite contains an unsupported module.');
     if (module.type === 'selected') { output.push(input.selectedText); continue; }
     if (!input.interpretation) throw new Error('Input interpretation is unavailable.');
     if (definition.applies !== 'any' && definition.applies !== input.interpretation.inputType) continue;
