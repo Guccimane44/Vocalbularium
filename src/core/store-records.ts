@@ -11,16 +11,16 @@ export type KarteRow = Readonly<{
 }>;
 export type SeiteStatus = 'loading' | 'completed' | 'failed' | null;
 export type SeiteRow = Readonly<{
-  card_id: string;
-  page_id: string;
+  karte_id: string;
+  seite_id: string;
   text: string;
   status: SeiteStatus;
   attempt_id: string | null;
 }>;
 export type AttemptRow = Readonly<{
   id: string;
-  card_id: string;
-  page_id: string;
+  karte_id: string;
+  seite_id: string;
   installation_id: string;
   session_id: string;
   epoch: number;

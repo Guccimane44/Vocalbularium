@@ -1,3 +1,4 @@
+import { readLocal } from './recovery.js';
 import { showFeedback } from './feedback.js';
 
 export function captureRuntime({ request, initialize, refresh, removeAccess, saves }) {
@@ -6,7 +7,7 @@ export function captureRuntime({ request, initialize, refresh, removeAccess, sav
   async function context() {
     const state = await initialize();
     if (!state.signedIn) throw new Error('Sign in to capture vocabulary.');
-    const [{ auth }, { session }] = await Promise.all([chrome.storage.local.get('auth'), chrome.storage.session.get('session')]);
+    const [{ auth }, { session }] = await Promise.all([readLocal('auth'), chrome.storage.session.get('session')]);
     return { auth, session };
   }
   async function recordError(error) {
@@ -33,7 +34,7 @@ export function captureRuntime({ request, initialize, refresh, removeAccess, sav
       const result = await request('/api/capture', {
         operationId: receipt.operationId, payload: receipt.payload, recoverySession: session
       }, auth.token);
-      await refresh({ ...receipt, state: 'saved', cardId: result.cardId, error: null });
+      await refresh({ ...receipt, state: 'saved', karteId: result.karteId, error: null });
       void poll().catch(recordError);
     } catch (error) {
       await chrome.storage.local.set({ [key]: { ...receipt, state: 'pending', error: error.message } });
@@ -44,7 +45,7 @@ export function captureRuntime({ request, initialize, refresh, removeAccess, sav
   async function handleCapture(info, tab) {
     // Keep an offline receipt immediately; the first server acceptance freezes the shared configuration.
     const [{ auth, account }, { session }] = await Promise.all([
-      chrome.storage.local.get(['auth', 'account']), chrome.storage.session.get('session')
+      readLocal(['auth', 'account']), chrome.storage.session.get('session')
     ]);
     const snapshot = account?.defaultDeckSnapshot ?? account?.decks.find(deck => deck.id === account.defaultDeckId);
     if (!auth || !session || !snapshot || typeof info.selectionText !== 'string' || !info.selectionText.length) {
@@ -77,7 +78,7 @@ export function captureRuntime({ request, initialize, refresh, removeAccess, sav
           }
           for (const attemptId of result.ready) {
             const operationId = `publish-${attemptId}`, key = `save-${operationId}`;
-            if ((await chrome.storage.local.get(key))[key]) { failedSave = true; continue; }
+            if ((await readLocal(key))[key]) { failedSave = true; continue; }
             const pending = { operationId, path: '/api/publish', payload: { operationId, payload: { attemptId, session } } };
             try {
               await saves.perform(pending, auth.token);
@@ -95,7 +96,7 @@ export function captureRuntime({ request, initialize, refresh, removeAccess, sav
     }
   }
   async function reconcile(session) {
-    const local = await chrome.storage.local.get(null);
+    const local = await readLocal(null);
     for (const [key, item] of Object.entries(local)) {
       if (key.startsWith('save-publish-') && item.payload.payload.session.sessionId !== session.sessionId) {
         await chrome.storage.local.remove(key);

@@ -18,13 +18,13 @@ export async function migrateDatabase(databaseUrl) {
     let afterId = '';
     while (true) {
       const { rows } = await client.query(`SELECT c.id, COALESCE(p.text, '') AS front_text
-        FROM cards c LEFT JOIN layout_pages l ON l.deck_id = c.deck_id AND l.position = 0
-        LEFT JOIN pages p ON p.card_id = c.id AND p.page_id = l.id
+        FROM kartes c LEFT JOIN layout_seites l ON l.deck_id = c.deck_id AND l.position = 0
+        LEFT JOIN seites p ON p.karte_id = c.id AND p.seite_id = l.id
         WHERE c.id > $1 ORDER BY c.id LIMIT 500`, [afterId]);
       if (!rows.length) break;
       await client.query('BEGIN');
       try {
-        for (const row of rows) await client.query('UPDATE cards SET front_sort_key = $1 WHERE id = $2', [frontSortKey(row.front_text), row.id]);
+        for (const row of rows) await client.query('UPDATE kartes SET front_sort_key = $1 WHERE id = $2', [frontSortKey(row.front_text), row.id]);
         await client.query('COMMIT');
       } catch (error) { await client.query('ROLLBACK'); throw error; }
       afterId = rows.at(-1).id;

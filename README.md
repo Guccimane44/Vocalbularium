@@ -8,6 +8,8 @@ A vocabulary capture extension for Chrome. The v0.3.0 local candidate uses Fasti
 - [Windows installation](docs/guides/windows-install.md) and [delivery preparation](docs/history/mvp/M6-Delivery.md)
 - [MVP scope](docs/history/mvp/MVP-Product-scope.md)
 
+The [terminology migration](docs/plans/v0.3.0-plus-terminology-migration.md) establishes deck → karte → seite. Previous extension builds, saved links and recoverable operations remain supported by the [compatibility policy](docs/architecture/terminology-compatibility.md); install the updated backend and its reviewed migration before the new extension.
+
 ## Account and dashboard
 
 Install Node.js 24 and start PostgreSQL 18 on loopback using the [local setup instructions](docs/architecture/local-postgresql.md), then run from the repository root:

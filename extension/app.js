@@ -1,3 +1,5 @@
+import { currentHash } from '@vocabularium/contracts';
+import { readLocal } from './recovery.js';
 import { initializeFeedback } from './feedback-dashboard.js';
 import { initializeTheme } from './theme.js';
 import { karteViews } from './kartes.js';
@@ -22,10 +24,10 @@ let currentKarteDetail, currentDeckDetail;
 let configuration;
 function viewAccount(value) {
   if (Array.isArray(value?.recentKartes)) return value;
-  const kartes = value?.cards ?? [];
+  const kartes = value?.kartes ?? [];
   return { ...value, recentKartes: kartes.filter(karte => karte.selected_text !== null).slice(0, 20),
-    decks: value.decks.map(deck => ({ ...deck, pageCount: deck.pages.length,
-      cardCount: kartes.filter(karte => karte.deck_id === deck.id).length })),
+    decks: value.decks.map(deck => ({ ...deck, seiteCount: deck.seites.length,
+      karteCount: kartes.filter(karte => karte.deck_id === deck.id).length })),
     defaultDeckSnapshot: value.decks.find(deck => deck.id === value.defaultDeckId),
     nextCursor: null, sequence: value.sequence ?? 0 };
 }
@@ -46,7 +48,7 @@ async function send(message) {
   if (result.error) throw Object.assign(new Error(result.error), { code: result.code, details: result.details });
   return result;
 }
-const loadKartes = (deckId, order, cursor) => send({ type: 'deck-cards', deckId, order, cursor });
+const loadKartes = (deckId, order, cursor) => send({ type: 'deck-kartes', deckId, order, cursor });
 const loadDecks = cursor => send({ type: 'deck-page', cursor });
 function showError(error) {
   if (viewRoot) {
@@ -91,15 +93,20 @@ const karteUI = karteViews({ getAccount: () => account, send, showError,
   navigate: hash => { location.hash = hash; },
   applyState: async (next, redraw = true) => { account = next.account; signedIn = next.signedIn; if (redraw) await render(); }
 });
+const normalizeNavigation = () => {
+  const current = currentHash(location.hash);
+  if (current !== location.hash) history.replaceState(null, '', location.pathname + current);
+};
+normalizeNavigation();
 let lastHash = location.hash;
 async function render() {
   const focusedMenu = document.activeElement?.dataset.deckOptions;
   const active = document.activeElement?.id === 'seite-content' ? { start: document.activeElement.selectionStart, end: document.activeElement.selectionEnd } : null;
   const version = ++renderVersion;
-  const local = await chrome.storage.local.get(null);
+  const local = await readLocal(null);
   if (version !== renderVersion) return;
   if (!signedIn) { login(); return; }
-  // Render account cards and capture receipts from the same storage snapshot.
+  // Render account kartes and capture receipts from the same storage snapshot.
   if (local.account) account = viewAccount(local.account);
   actions.replaceChildren(button('Log out', async () => {
     try { if (!await karteUI.leave()) return; await send({ type: 'logout' }); location.hash = ''; login(); } catch (error) { showError(error); }
@@ -113,7 +120,7 @@ async function render() {
       catch (error) { showError(error); location.hash = ''; return; }
       if (version !== renderVersion) return;
       if (!deck) { location.hash = ''; return; }
-      configuration = { route: configId, deck: structuredClone(deck), basePageIds: deck.id ? deck.pages.map(page => page.id) : [], selectedPage: deck.pages[0].id };
+      configuration = { route: configId, deck: structuredClone(deck), baseSeiteIds: deck.id ? deck.seites.map(seite => seite.id) : [], selectedSeite: deck.seites[0].id };
     }
     if (!viewRoot) viewRoot = createRoot(app);
     const error = nextError; nextError = undefined;
@@ -127,13 +134,13 @@ async function render() {
     })));
     return;
   }
-  const karteRoute = location.hash.startsWith('#card/') || location.hash.startsWith('#new-card/');
+  const karteRoute = location.hash.startsWith('#karte/') || location.hash.startsWith('#new-karte/');
   if (!karteRoute) {
     if (deckId && !account.decks.some(deck => deck.id === deckId)) {
       try {
         const detail = await send({ type: 'deck-detail', deckId });
         if (version !== renderVersion) return;
-        account = { ...account, decks: [...account.decks, { ...detail, pageCount: detail.pages.length, cardCount: 0 }] };
+        account = { ...account, decks: [...account.decks, { ...detail, seiteCount: detail.seites.length, karteCount: 0 }] };
       } catch (error) { showError(error); location.hash = ''; return; }
     }
     if (!viewRoot) viewRoot = createRoot(app);
@@ -153,8 +160,8 @@ async function render() {
   const [, routeId] = location.hash.split('/');
   let detail, karte;
   try {
-    if (location.hash.startsWith('#card/')) {
-      karte = await send({ type: 'card-detail', cardId: routeId });
+    if (location.hash.startsWith('#karte/')) {
+      karte = await send({ type: 'karte-detail', karteId: routeId });
       detail = await send({ type: 'deck-detail', deckId: karte.deck_id });
     } else detail = await send({ type: 'deck-detail', deckId: routeId });
     currentKarteDetail = karte; currentDeckDetail = detail;
@@ -166,7 +173,7 @@ async function render() {
       : account.defaultDeckSnapshot?.id === routeId ? account.defaultDeckSnapshot : undefined;
   }
   if (version !== renderVersion) return;
-  account = { ...account, cards: karte ? [karte] : [], decks: detail
+  account = { ...account, kartes: karte ? [karte] : [], decks: detail
     ? [...account.decks.filter(deck => deck.id !== detail.id), detail] : account.decks };
   const error = nextError; nextError = undefined;
   karteUI.render(location.hash, local, error);
@@ -175,6 +182,7 @@ async function render() {
 }
 
 window.addEventListener('hashchange', async () => {
+  normalizeNavigation();
   const target = location.hash;
   if (karteUI.isEditing() && !karteUI.matches(target)) {
     history.replaceState(null, '', location.pathname + lastHash);
@@ -190,7 +198,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
 try {
   const state = await send({ type: 'initialize' }); signedIn = state.signedIn; account = state.account; await render();
 } catch (error) {
-  const cached = await chrome.storage.local.get(['auth', 'account']);
+  const cached = await readLocal(['auth', 'account']);
   if (cached.auth && cached.account) { signedIn = true; account = cached.account; await render(); }
   else login();
   showError(error);

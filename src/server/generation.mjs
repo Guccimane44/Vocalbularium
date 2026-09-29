@@ -51,7 +51,7 @@ export class Generation {
     const key = `${karte.id}:${attempt.session_id}`;
     if (!this.interpretations.has(key)) {
       const controller = new AbortController();
-      const attempts = karte.pages.filter(seite => seite.status === 'loading').map(seite => seite.attempt_id);
+      const attempts = karte.seites.filter(seite => seite.status === 'loading').map(seite => seite.attempt_id);
       const promise = this.provider.interpret(karte.selected_text, controller.signal, karte.id)
         .then(value => this.store.establishInterpretation(karte.id, validateInterpretation(value), attempts));
       this.interpretations.set(key, { promise, controller });
@@ -105,20 +105,20 @@ export class Generation {
     const controller = new AbortController();
     const started = performance.now();
     const task = this.store.background(() => this.execute(job, controller));
-    this.tasks.set(job.attemptId, { task, controller, cardId: job.cardId, sessionId: job.sessionId });
+    this.tasks.set(job.attemptId, { task, controller, karteId: job.karteId, sessionId: job.sessionId });
     task.finally(() => {
       this.tasks.delete(job.attemptId);
       this.pump();
-      if (![...this.tasks.values()].some(task => task.cardId === job.cardId) &&
-        !this.queue.some(waiting => waiting.cardId === job.cardId)) {
-        for (const key of this.outputs.keys()) if (key.startsWith(`${job.cardId}:`)) this.outputs.delete(key);
+      if (![...this.tasks.values()].some(task => task.karteId === job.karteId) &&
+        !this.queue.some(waiting => waiting.karteId === job.karteId)) {
+        for (const key of this.outputs.keys()) if (key.startsWith(`${job.karteId}:`)) this.outputs.delete(key);
       }
       this.record('settled', controller.signal.aborted ? 'canceled' : 'finished', job.attemptId,
         Math.round(performance.now() - started));
     }).catch(() => {});
   }
   async execute(job, controller) {
-    const { attemptId, cardId: karteId } = job;
+    const { attemptId, karteId } = job;
     let result;
     try {
       // Queued work can become obsolete before it reaches the active pool.
@@ -126,7 +126,7 @@ export class Generation {
       if (attempt.state !== 'loading' || attempt.result || controller.signal.aborted) return;
       await this.store.requireSession({ installationId: attempt.installation_id, sessionId: attempt.session_id, epoch: attempt.epoch });
       const karte = await this.store.karte(karteId);
-      if (!karte.pages.some(seite => seite.attempt_id === attemptId && seite.status === 'loading') || controller.signal.aborted) return;
+      if (!karte.seites.some(seite => seite.attempt_id === attemptId && seite.status === 'loading') || controller.signal.aborted) return;
       const needed = attempt.modules.some(module => module.type !== 'selected');
       const interpretation = needed ? await this.interpretation(karte, attempt) : null;
       if (controller.signal.aborted) return;
@@ -165,13 +165,13 @@ export class Generation {
   }
   async start(karteId, seiteId, { reservation } = {}) {
     const karte = await this.store.karte(karteId);
-    for (const seite of karte.pages) {
-      if (seiteId && seite.page_id !== seiteId) continue;
+    for (const seite of karte.seites) {
+      if (seiteId && seite.seite_id !== seiteId) continue;
       if (seite.status !== 'loading' || this.tasks.has(seite.attempt_id) ||
         this.queue.some(job => job.attemptId === seite.attempt_id)) continue;
       const attempt = await this.store.attempt(seite.attempt_id);
       if (attempt.result) continue;
-      if (!this.admit({ attemptId: attempt.id, cardId: karteId, sessionId: attempt.session_id }, reservation)) {
+      if (!this.admit({ attemptId: attempt.id, karteId, sessionId: attempt.session_id }, reservation)) {
         this.rejected++;
         await this.store.failAttempt(attempt.id);
         this.record('rejected', 'generation_busy', attempt.id);
@@ -197,7 +197,7 @@ export class Generation {
     });
     for (const [id, { controller }] of this.tasks) if (!ids.has(id)) controller.abort();
     for (const [key, { controller }] of this.interpretations) {
-      if (!active.some(attempt => `${attempt.card_id}:${attempt.session_id}` === key)) controller.abort();
+      if (!active.some(attempt => `${attempt.karte_id}:${attempt.session_id}` === key)) controller.abort();
     }
     this.pump();
   }

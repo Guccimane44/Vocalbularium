@@ -6,7 +6,7 @@ import { AccountStore } from '../../src/core/store.mjs';
 import { createApplication } from '../../src/server/app.mjs';
 
 const fixtures = new WeakMap();
-export async function createTestDatabase(t, key) {
+export async function createTestDatabase(t, key, { migrate = true } = {}) {
   let databases = fixtures.get(t);
   if (!databases) { databases = new Map(); fixtures.set(t, databases); }
   if (key && databases.has(key)) return databases.get(key);
@@ -30,7 +30,7 @@ export async function createTestDatabase(t, key) {
   // The databaseTest wrapper registers final cleanup after user cleanup hooks.
   const database = { databaseUrl: url.href, cleanup, resources: [] };
   databases.set(key ?? name, database);
-  try { await migrateDatabase(url.href); } catch (error) { await cleanup(); throw error; }
+  try { if (migrate) await migrateDatabase(url.href); } catch (error) { await cleanup(); throw error; }
   return database;
 }
 export async function createTestStore(t, databaseKey) {

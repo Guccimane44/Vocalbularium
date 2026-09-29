@@ -13,7 +13,7 @@ function menuAPI() {
     removeAll(callback) { items.clear(); callback(); }
   } };
 }
-const accountNamed = name => ({ defaultDeckId: 'one', decks: [{ id: 'one', name }], cards: [] });
+const accountNamed = name => ({ defaultDeckId: 'one', decks: [{ id: 'one', name }], kartes: [] });
 
 test('capture menu: safe names, missing default, and an existing item after worker restart', async () => {
   const api = menuAPI();
@@ -59,7 +59,7 @@ async function background(t) {
     if (path === '/api/session') sessionCalls++;
     const value = path === '/api/login' ? { token: 'test-token' }
       : path === '/api/account/summary' ? await (accountFetch ? accountFetch() : structuredClone(account))
-        : path === '/api/captures/recent' ? { cards: [] } : {};
+        : path === '/api/captures/recent' ? { kartes: [] } : {};
     return { ok: true, async json() { return value; } };
   };
   t.after(() => { globalThis.chrome = oldChrome; globalThis.fetch = oldFetch; });
@@ -75,15 +75,15 @@ test('account refresh clears only confirmed, unchanged saved capture receipts', 
   const { api, send } = fixture;
   await send({ type: 'login', username: 'admin', password: 'admin' });
   await api.storage.local.set({
-    'capture-recent': { state: 'saved', cardId: 'recent-card' },
-    'capture-race': { state: 'saved', cardId: 'race-card' },
-    'capture-pending': { state: 'pending', cardId: 'pending-card' }
+    'capture-recent': { state: 'saved', karteId: 'recent-karte' },
+    'capture-race': { state: 'saved', karteId: 'race-karte' },
+    'capture-pending': { state: 'pending', karteId: 'pending-karte' }
   });
   fixture.intercept(async path => {
-    if (path === '/api/captures/recent') return reply(200, { cards: [{ id: 'recent-card' }] });
-    if (path === '/api/cards/race-card') {
-      await api.storage.local.set({ 'capture-race': { state: 'pending', cardId: 'race-card' } });
-      return reply(200, { id: 'race-card' });
+    if (path === '/api/captures/recent') return reply(200, { kartes: [{ id: 'recent-karte' }] });
+    if (path === '/api/kartes/race-karte') {
+      await api.storage.local.set({ 'capture-race': { state: 'pending', karteId: 'race-karte' } });
+      return reply(200, { id: 'race-karte' });
     }
   });
   await send({ type: 'refresh' });
@@ -125,12 +125,12 @@ test('mutations report missing or expired access without clearing the original s
   const fixture = await background(t);
   const { api, send } = fixture;
   await send({ type: 'login', username: 'admin', password: 'admin' });
-  const save = { type: 'save-card', operationId: 'auth-save', payload: { cardId: 'one', changes: [] } };
+  const save = { type: 'save-karte', operationId: 'auth-save', payload: { karteId: 'one', changes: [] } };
   await api.storage.local.remove('auth');
   assert.equal((await send(save)).code, 'unauthorized');
   assert.equal(api.storage.local.data['save-auth-save'], undefined);
   await send({ type: 'login', username: 'admin', password: 'admin' });
-  fixture.intercept(path => path === '/api/card/save' ? reply(401, { error: 'Sign in to continue.', code: 'unauthorized' }) : null);
+  fixture.intercept(path => path === '/api/karte/save' ? reply(401, { error: 'Sign in to continue.', code: 'unauthorized' }) : null);
   assert.equal((await send(save)).code, 'unauthorized');
   assert.equal(api.storage.local.data['save-auth-save'].state, 'pending');
   assert.deepEqual(api.storage.local.data['save-auth-save'].payload.payload, save.payload);
@@ -143,13 +143,13 @@ test('a busy seite Retry is a rejected confirmation, not a pending save to resub
   await send({ type: 'login', username: 'admin', password: 'admin' });
   let attempts = 0;
   fixture.intercept(path => {
-    if (path === '/api/card/retry') {
+    if (path === '/api/karte/retry') {
       attempts++;
       return reply(429, { error: 'Generation is busy. Try Retry again later.', code: 'generation_busy' });
     }
     return null;
   });
-  const result = await send({ type: 'retry-page', operationId: 'busy-retry', payload: { cardId: 'card', pageId: 'page' } });
+  const result = await send({ type: 'retry-seite', operationId: 'busy-retry', payload: { karteId: 'karte', seiteId: 'page' } });
   assert.equal(result.code, 'generation_busy');
   assert.equal(api.storage.local.data['save-busy-retry'], undefined);
   await send({ type: 'try-saving-again', operationId: 'busy-retry' });
@@ -163,18 +163,18 @@ test('authentication loss during refresh does not turn an acknowledged mutation 
   const operationId = 'committed-save';
   let committed = false;
   fixture.intercept(path => {
-    if (path === '/api/card/save') { committed = true; return reply(200, { cardId: 'one' }); }
+    if (path === '/api/karte/save') { committed = true; return reply(200, { karteId: 'one' }); }
     if (path === '/api/account/summary' && committed) return reply(401, { error: 'Sign in to continue.', code: 'unauthorized' });
     return null;
   });
-  const result = await send({ type: 'save-card', operationId, payload: { cardId: 'one', changes: [] } });
+  const result = await send({ type: 'save-karte', operationId, payload: { karteId: 'one', changes: [] } });
   assert.equal(committed, true);
   assert.equal(result.code, 'unauthorized');
   assert.equal(api.storage.local.data[`save-${operationId}`], undefined, 'acknowledged operation is not duplicated');
   assert.equal(api.storage.local.data.auth, undefined);
   fixture.intercept(null);
   await send({ type: 'login', username: 'admin', password: 'admin' });
-  const replay = await send({ type: 'save-card', operationId, payload: { cardId: 'one', changes: [] } });
+  const replay = await send({ type: 'save-karte', operationId, payload: { karteId: 'one', changes: [] } });
   assert.equal(replay.signedIn, true);
   assert.equal(api.storage.local.data[`save-${operationId}`], undefined);
 });
@@ -246,7 +246,7 @@ test('save receipts: active work stays distinct from failure, and retry preserve
 test('save receipts: a new worker recovers interrupted saves and preserves legacy records', async () => {
   const { saveOperations } = await import('../extension/save-operations.js');
   const local = storage();
-  const receipt = { operationId: 'interrupted', path: '/api/card/save', payload: { operationId: 'interrupted', payload: { text: 'draft' } }, state: 'saving' };
+  const receipt = { operationId: 'interrupted', path: '/api/karte/save', payload: { operationId: 'interrupted', payload: { text: 'draft' } }, state: 'saving' };
   const legacy = { operationId: 'legacy', path: '/api/default-deck', payload: { operationId: 'legacy', deckId: 'deck' } };
   await local.set({ 'save-interrupted': receipt, 'save-legacy': legacy, 'capture-one': { state: 'saving' } });
   let calls = 0;
