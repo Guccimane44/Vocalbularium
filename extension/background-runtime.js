@@ -24,7 +24,7 @@ export function startBackground() {
       try {
         const summary = await request('/api/account/summary', null, auth.token);
         const recent = await request('/api/captures/recent', null, auth.token);
-        account = { ...summary, recentCards: recent.cards, cards: [] };
+        account = { ...summary, recentKartes: recent.cards, cards: [] };
       }
       catch (error) {
         if (version !== accessVersion) return { signedIn: false };
@@ -45,7 +45,7 @@ export function startBackground() {
   }
   async function clearHandedOffCaptures(account, token, version) {
     const local = await chrome.storage.local.get(null);
-    const recentIds = new Set(account.recentCards.map(card => card.id));
+    const recentIds = new Set(account.recentKartes.map(karte => karte.id));
     const confirmed = [];
     let detailChecks = 0;
     for (const [key, receipt] of Object.entries(local)) {
@@ -53,14 +53,14 @@ export function startBackground() {
       if (recentIds.has(receipt.cardId)) { confirmed.push([key, receipt.cardId]); continue; }
       if (detailChecks++ >= 10) continue;
       try {
-        const card = await request(`/api/cards/${encodeURIComponent(receipt.cardId)}`, null, token);
-        if (card.id === receipt.cardId) confirmed.push([key, receipt.cardId]);
+        const karte = await request(`/api/cards/${encodeURIComponent(receipt.cardId)}`, null, token);
+        if (karte.id === receipt.cardId) confirmed.push([key, receipt.cardId]);
       } catch { /* Keep the receipt until handoff can be confirmed. */ }
     }
     if (confirmed.length) await writeState(async () => {
       if (version !== accessVersion) return;
       const current = await chrome.storage.local.get(confirmed.map(([key]) => key));
-      const removable = confirmed.filter(([key, cardId]) => current[key]?.state === 'saved' && current[key].cardId === cardId).map(([key]) => key);
+      const removable = confirmed.filter(([key, karteId]) => current[key]?.state === 'saved' && current[key].cardId === karteId).map(([key]) => key);
       if (removable.length) await chrome.storage.local.remove(removable);
     });
   }

@@ -8,15 +8,15 @@ export function createPrototype({ store, delayMs = 5000 } = {}) {
     throw new Error('Provide a disposable PostgreSQL account store for the prototype.');
   const timers = new Set();
   let dropCaptureResponse = false;
-  async function generate(cardId) {
-    const card = await store.card(cardId);
-    for (const page of card.pages) {
+  async function generate(karteId) {
+    const karte = await store.karte(karteId);
+    for (const page of karte.pages) {
       const timer = setTimeout(async () => {
         timers.delete(timer);
         try {
           const attempt = await store.attempt(page.attempt_id);
-          const outputs = attempt.modules.map(module => module.type === 'selected' ? card.selected_text
-            : `Illustrative prototype output for: ${card.selected_text}`);
+          const outputs = attempt.modules.map(module => module.type === 'selected' ? karte.selected_text
+            : `Illustrative prototype output for: ${karte.selected_text}`);
           await store.stage(page.attempt_id, { ok: true, text: outputs.join('\n\n') });
         } catch (error) {
           if (!['stale_attempt', 'stale_session', 'deleted'].includes(error.code)) console.error(error);
@@ -43,7 +43,7 @@ export function createPrototype({ store, delayMs = 5000 } = {}) {
         response.end('<!doctype html><p id="frame-selection">我真的很幸福</p>'); return;
       }
       let result;
-      if (request.method === 'GET' && request.url === '/state') result = { snapshot: (await store.snapshot()), cards: (await store.cards()) };
+      if (request.method === 'GET' && request.url === '/state') result = { snapshot: (await store.snapshot()), cards: (await store.kartes()) };
       else if (request.method === 'POST') {
         let raw = '';
         for await (const chunk of request) {
@@ -66,7 +66,7 @@ export function createPrototype({ store, delayMs = 5000 } = {}) {
           const attempts = await store.pendingAttempts(body.session);
           result = { ready: attempts.filter(item => item.result).map(item => item.id), loading: attempts.length };
         } else if (request.url === '/publish') result = (await store.publish(body.operationId, body.payload));
-        else if (request.url === '/save') result = (await store.savePages(body.operationId, body.payload));
+        else if (request.url === '/save') result = (await store.saveSeites(body.operationId, body.payload));
         else { response.writeHead(404); response.end(); return; }
       } else { response.writeHead(404); response.end(); return; }
       response.setHeader('Content-Type', 'application/json');

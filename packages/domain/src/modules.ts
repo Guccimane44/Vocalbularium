@@ -33,7 +33,7 @@ export type GenerateModule = (request: {
   avoid: readonly string[];
 }) => Promise<string>;
 
-export async function renderPage(input: {
+export async function renderSeite(input: {
   selectedText: string;
   modules: readonly ModuleInstance[];
   interpretation?: InputInterpretation | null;

@@ -1,6 +1,6 @@
 import { initializeFeedback } from './feedback-dashboard.js';
 import { initializeTheme } from './theme.js';
-import { cardViews } from './cards.js';
+import { karteViews } from './kartes.js';
 import { ConfigurationView, newDeckDraft } from './configuration.tsx';
 import { createElement } from 'react';
 import { flushSync } from 'react-dom';
@@ -17,15 +17,15 @@ let signedIn = false;
 let renderVersion = 0;
 let viewRoot;
 let nextError;
-let currentCardDetail, currentDeckDetail;
+let currentKarteDetail, currentDeckDetail;
 /** @type {DeckEditorDraft | undefined} */
 let configuration;
 function viewAccount(value) {
-  if (Array.isArray(value?.recentCards)) return value;
-  const cards = value?.cards ?? [];
-  return { ...value, recentCards: cards.filter(card => card.selected_text !== null).slice(0, 20),
+  if (Array.isArray(value?.recentKartes)) return value;
+  const kartes = value?.cards ?? [];
+  return { ...value, recentKartes: kartes.filter(karte => karte.selected_text !== null).slice(0, 20),
     decks: value.decks.map(deck => ({ ...deck, pageCount: deck.pages.length,
-      cardCount: cards.filter(card => card.deck_id === deck.id).length })),
+      cardCount: kartes.filter(karte => karte.deck_id === deck.id).length })),
     defaultDeckSnapshot: value.decks.find(deck => deck.id === value.defaultDeckId),
     nextCursor: null, sequence: value.sequence ?? 0 };
 }
@@ -46,7 +46,7 @@ async function send(message) {
   if (result.error) throw Object.assign(new Error(result.error), { code: result.code, details: result.details });
   return result;
 }
-const loadCards = (deckId, order, cursor) => send({ type: 'deck-cards', deckId, order, cursor });
+const loadKartes = (deckId, order, cursor) => send({ type: 'deck-cards', deckId, order, cursor });
 const loadDecks = cursor => send({ type: 'deck-page', cursor });
 function showError(error) {
   if (viewRoot) {
@@ -60,7 +60,7 @@ function showError(error) {
 }
 function login() {
   signedIn = false; account = undefined; actions.replaceChildren();
-  currentCardDetail = undefined; currentDeckDetail = undefined;
+  currentKarteDetail = undefined; currentDeckDetail = undefined;
   if (viewRoot) { viewRoot.unmount(); viewRoot = undefined; }
   const section = element('section', undefined, 'login');
   section.append(element('p', 'A home for the language you discover', 'eyebrow'), element('h1', 'Welcome back.'), element('p', 'Sign in to open your decks and saved vocabulary.', 'muted'));
@@ -82,7 +82,7 @@ function login() {
   };
   section.append(form); app.replaceChildren(section);
 }
-const cardUI = cardViews({ getAccount: () => account, send, showError,
+const karteUI = karteViews({ getAccount: () => account, send, showError,
   renderView: (Component, props) => {
     if (!viewRoot) viewRoot = createRoot(app);
     flushSync(() => viewRoot.render(createElement(Component, props)));
@@ -94,7 +94,7 @@ const cardUI = cardViews({ getAccount: () => account, send, showError,
 let lastHash = location.hash;
 async function render() {
   const focusedMenu = document.activeElement?.dataset.deckOptions;
-  const active = document.activeElement?.id === 'page-content' ? { start: document.activeElement.selectionStart, end: document.activeElement.selectionEnd } : null;
+  const active = document.activeElement?.id === 'seite-content' ? { start: document.activeElement.selectionStart, end: document.activeElement.selectionEnd } : null;
   const version = ++renderVersion;
   const local = await chrome.storage.local.get(null);
   if (version !== renderVersion) return;
@@ -102,7 +102,7 @@ async function render() {
   // Render account cards and capture receipts from the same storage snapshot.
   if (local.account) account = viewAccount(local.account);
   actions.replaceChildren(button('Log out', async () => {
-    try { if (!await cardUI.leave()) return; await send({ type: 'logout' }); location.hash = ''; login(); } catch (error) { showError(error); }
+    try { if (!await karteUI.leave()) return; await send({ type: 'logout' }); location.hash = ''; login(); } catch (error) { showError(error); }
   }));
   const deckId = location.hash.startsWith('#deck/') ? decodeURIComponent(location.hash.slice(6)) : null;
   const configId = location.hash.startsWith('#configure/') ? location.hash.slice(11) : null;
@@ -127,8 +127,8 @@ async function render() {
     })));
     return;
   }
-  const cardRoute = location.hash.startsWith('#card/') || location.hash.startsWith('#new-card/');
-  if (!cardRoute) {
+  const karteRoute = location.hash.startsWith('#card/') || location.hash.startsWith('#new-card/');
+  if (!karteRoute) {
     if (deckId && !account.decks.some(deck => deck.id === deckId)) {
       try {
         const detail = await send({ type: 'deck-detail', deckId });
@@ -139,7 +139,7 @@ async function render() {
     if (!viewRoot) viewRoot = createRoot(app);
     const error = nextError; nextError = undefined;
     flushSync(() => viewRoot.render(createElement(Dashboard, {
-      account, local, deckId, focusedMenu, showPendingSaves: !cardUI.isEditing(), error, loadCards, loadDecks,
+      account, local, deckId, focusedMenu, showPendingSaves: !karteUI.isEditing(), error, loadKartes, loadDecks,
       navigate: hash => { location.hash = hash; },
       configure: id => { configuration = undefined; location.hash = `configure/${id}`; },
       mutate: async command => {
@@ -151,34 +151,34 @@ async function render() {
     return;
   }
   const [, routeId] = location.hash.split('/');
-  let detail, card;
+  let detail, karte;
   try {
     if (location.hash.startsWith('#card/')) {
-      card = await send({ type: 'card-detail', cardId: routeId });
-      detail = await send({ type: 'deck-detail', deckId: card.deck_id });
+      karte = await send({ type: 'card-detail', cardId: routeId });
+      detail = await send({ type: 'deck-detail', deckId: karte.deck_id });
     } else detail = await send({ type: 'deck-detail', deckId: routeId });
-    currentCardDetail = card; currentDeckDetail = detail;
+    currentKarteDetail = karte; currentDeckDetail = detail;
   } catch (error) {
     if (error.code !== 'deleted') nextError = error.message;
-    if (error.code === 'deleted') { currentCardDetail = undefined; currentDeckDetail = undefined; }
-    card = currentCardDetail?.id === routeId ? currentCardDetail : undefined;
-    detail = currentDeckDetail?.id === (card?.deck_id ?? routeId) ? currentDeckDetail
+    if (error.code === 'deleted') { currentKarteDetail = undefined; currentDeckDetail = undefined; }
+    karte = currentKarteDetail?.id === routeId ? currentKarteDetail : undefined;
+    detail = currentDeckDetail?.id === (karte?.deck_id ?? routeId) ? currentDeckDetail
       : account.defaultDeckSnapshot?.id === routeId ? account.defaultDeckSnapshot : undefined;
   }
   if (version !== renderVersion) return;
-  account = { ...account, cards: card ? [card] : [], decks: detail
+  account = { ...account, cards: karte ? [karte] : [], decks: detail
     ? [...account.decks.filter(deck => deck.id !== detail.id), detail] : account.decks };
   const error = nextError; nextError = undefined;
-  cardUI.render(location.hash, local, error);
+  karteUI.render(location.hash, local, error);
   if (focusedMenu) [...app.querySelectorAll('[data-deck-options]')].find(node => node.dataset.deckOptions === focusedMenu)?.focus();
-  if (active) { const input = document.querySelector('#page-content'); input?.focus(); input?.setSelectionRange(active.start, active.end); }
+  if (active) { const input = document.querySelector('#seite-content'); input?.focus(); input?.setSelectionRange(active.start, active.end); }
 }
 
 window.addEventListener('hashchange', async () => {
   const target = location.hash;
-  if (cardUI.isEditing() && !cardUI.matches(target)) {
+  if (karteUI.isEditing() && !karteUI.matches(target)) {
     history.replaceState(null, '', location.pathname + lastHash);
-    if (!await cardUI.leave()) return;
+    if (!await karteUI.leave()) return;
     history.replaceState(null, '', location.pathname + target);
   }
   lastHash = location.hash;

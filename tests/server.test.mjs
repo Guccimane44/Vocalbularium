@@ -96,13 +96,13 @@ test('nested malformed commands return validation errors without a partial write
   const token = await login(url);
   const before = await application.store.account();
   const deckId = before.defaultDeckId;
-  const cardId = (await application.store.createManual('malformed-fixture-card', { deckId, pages: [] })).cardId;
+  const karteId = (await application.store.createManual('malformed-fixture-card', { deckId, pages: [] })).cardId;
   const baseline = await application.store.account();
   for (const [path, payload] of [
     ['/api/deck/save', { deck: { id: deckId, name: 'Changed', pages: [null] } }],
     ['/api/card/create', { deckId, pages: [null] }],
     ['/api/card/create', { deckId, pages: [false] }],
-    ['/api/card/save', { cardId, changes: [null] }],
+    ['/api/card/save', { cardId: karteId, changes: [null] }],
     ['/api/capture', { session: { installationId: 'x', sessionId: 'y', epoch: 1 }, selectedText: 'text', snapshot: { id: deckId, pages: [null] } }]
   ]) {
     const result = await call(url, path, { operationId: crypto.randomUUID(), payload }, token);

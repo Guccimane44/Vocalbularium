@@ -1,19 +1,19 @@
 import type { DeckLayout, InputType, ModuleInstance, OperationId } from '@vocabularium/contracts';
 
-export type EditorPendingCardSave = Readonly<{
+export type EditorPendingKarteSave = Readonly<{
   operationId: OperationId;
   type: 'save-card' | 'create-card';
   payload: Readonly<Record<string, unknown>>;
 }>;
 
-export type CardEditorDraft = {
+export type KarteEditorDraft = {
   route: string;
   cardId?: string;
   deckId: string;
   base: Record<string, string>;
   texts: Record<string, string>;
   pageIds: string[];
-  pending?: EditorPendingCardSave;
+  pending?: EditorPendingKarteSave;
   error?: string;
   errorCode?: string;
 };

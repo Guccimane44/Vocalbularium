@@ -15,8 +15,8 @@ function latch() {
 async function captured(store) {
   await store.openSession('open', session);
   const snapshot = await store.snapshot();
-  const { cardId } = await store.capture('capture', { session, selectedText: 'fixture', snapshot });
-  return store.card(cardId);
+  const { cardId: karteId } = await store.capture('capture', { session, selectedText: 'fixture', snapshot });
+  return store.karte(karteId);
 }
 
 test('concurrent operation replay commits one karte and rejects a mismatched payload', async t => {
@@ -31,63 +31,63 @@ test('concurrent operation replay commits one karte and rejects a mismatched pay
   assert.equal(new Set(results.map(result => result.sequence)).size, 1);
   assert.equal(results.filter(result => !result.replayed).length, 1);
   assert.equal(settled[12].reason.code, 'operation_reused');
-  assert.equal((await store.cards()).length, 1);
+  assert.equal((await store.kartes()).length, 1);
 });
 
 test('queued writes keep admission order and independent seites; replay cannot overwrite a later save', async t => {
   const store = await createTestStore(t), deck = await store.snapshot();
-  const { cardId } = await store.createManual('create', { deckId: deck.id, pages: [] });
+  const { cardId: karteId } = await store.createManual('create', { deckId: deck.id, pages: [] });
   const gate = latch(), entered = latch();
   const blocker = store.ordered(async () => { entered.resolve(); await gate.promise; });
   await entered.promise;
-  const a = { cardId, changes: [{ pageId: deck.pages[0].id, text: 'first' }] };
-  const b = { cardId, changes: [{ pageId: deck.pages[0].id, text: 'second' }] };
-  const c = { cardId, changes: [{ pageId: deck.pages[1].id, text: 'independent' }] };
-  const writes = [store.savePages('a', a), store.savePages('b', b), store.savePages('c', c), store.savePages('a', a)];
+  const a = { cardId: karteId, changes: [{ pageId: deck.pages[0].id, text: 'first' }] };
+  const b = { cardId: karteId, changes: [{ pageId: deck.pages[0].id, text: 'second' }] };
+  const c = { cardId: karteId, changes: [{ pageId: deck.pages[1].id, text: 'independent' }] };
+  const writes = [store.saveSeites('a', a), store.saveSeites('b', b), store.saveSeites('c', c), store.saveSeites('a', a)];
   gate.resolve(); await blocker;
   const results = await Promise.all(writes);
   assert.ok(results[0].sequence < results[1].sequence && results[1].sequence < results[2].sequence);
   assert.equal(results[3].sequence, results[0].sequence);
-  assert.deepEqual((await store.card(cardId)).pages.map(page => page.text), ['second', 'independent']);
+  assert.deepEqual((await store.karte(karteId)).pages.map(page => page.text), ['second', 'independent']);
 });
 
 test('a save admitted during generation rejects atomically before later publication and requires explicit resubmission', async t => {
-  const store = await createTestStore(t), card = await captured(store);
-  for (const page of card.pages) {
+  const store = await createTestStore(t), karte = await captured(store);
+  for (const page of karte.pages) {
     await store.stage(page.attempt_id, { ok: true, text: 'original' });
     await store.publish(page.page_id, { attemptId: page.attempt_id, session });
   }
-  const { attemptId } = await store.retry('retry', { cardId: card.id, pageId: card.pages[1].page_id, session });
-  const payload = { cardId: card.id, changes: card.pages.map(page => ({ pageId: page.page_id, text: 'draft' })) };
+  const { attemptId } = await store.retry('retry', { cardId: karte.id, pageId: karte.pages[1].page_id, session });
+  const payload = { cardId: karte.id, changes: karte.pages.map(page => ({ pageId: page.page_id, text: 'draft' })) };
   const settled = await Promise.allSettled([
-    store.savePages('draft', payload), store.stage(attemptId, { ok: true, text: 'generated' }),
+    store.saveSeites('draft', payload), store.stage(attemptId, { ok: true, text: 'generated' }),
     store.publish('complete', { attemptId, session })
   ]);
   assert.equal(settled[0].reason.code, 'generating');
   assert.equal(settled[1].status, 'fulfilled'); assert.equal(settled[2].status, 'fulfilled');
-  assert.deepEqual((await store.card(card.id)).pages.map(page => page.text), ['original', 'generated']);
-  await store.savePages('draft', payload);
-  assert.deepEqual((await store.card(card.id)).pages.map(page => page.text), ['draft', 'draft']);
+  assert.deepEqual((await store.karte(karte.id)).pages.map(page => page.text), ['original', 'generated']);
+  await store.saveSeites('draft', payload);
+  assert.deepEqual((await store.karte(karte.id)).pages.map(page => page.text), ['draft', 'draft']);
 });
 
 test('layout removal, karte deletion, and session invalidation fence simultaneously submitted late results', async t => {
-  const store = await createTestStore(t), card = await captured(store), deck = await store.snapshot();
-  await store.stage(card.pages[1].attempt_id, { ok: true, text: 'obsolete' });
+  const store = await createTestStore(t), karte = await captured(store), deck = await store.snapshot();
+  await store.stage(karte.pages[1].attempt_id, { ok: true, text: 'obsolete' });
   deck.pages.pop();
   const layout = await Promise.allSettled([
-    store.saveDeck('remove', { deck }), store.publish('obsolete', { attemptId: card.pages[1].attempt_id, session })
+    store.saveDeck('remove', { deck }), store.publish('obsolete', { attemptId: karte.pages[1].attempt_id, session })
   ]);
   assert.equal(layout[0].status, 'fulfilled'); assert.equal(layout[1].reason.code, 'deleted');
   const sessionRace = await Promise.allSettled([
     store.openSession('restart', { ...session, sessionId: 'second', epoch: 2 }),
-    store.stage(card.pages[0].attempt_id, { ok: true, text: 'late' })
+    store.stage(karte.pages[0].attempt_id, { ok: true, text: 'late' })
   ]);
   assert.equal(sessionRace[0].status, 'fulfilled'); assert.equal(sessionRace[1].reason.code, 'stale_attempt');
   const deleted = await Promise.allSettled([
-    store.deleteCard('delete', card.id), store.savePages('late-save', { cardId: card.id, changes: [] })
+    store.deleteKarte('delete', karte.id), store.saveSeites('late-save', { cardId: karte.id, changes: [] })
   ]);
   assert.equal(deleted[0].status, 'fulfilled'); assert.equal(deleted[1].reason.code, 'deleted');
-  assert.equal((await store.cards()).length, 0);
+  assert.equal((await store.kartes()).length, 0);
 });
 
 test('rollback includes prior layout writes and receipts when a later seite belongs to another deck', async t => {
@@ -106,17 +106,17 @@ test('restart preserves staged output, fails unowned generation, and excludes a 
   const database = await createTestDatabase(t, databaseKey);
   let store = await AccountStore.open(database);
   database.resources.push({ close: () => store.close() });
-  const card = await captured(store);
-  await store.stage(card.pages[0].attempt_id, { ok: true, text: 'durably staged' });
+  const karte = await captured(store);
+  await store.stage(karte.pages[0].attempt_id, { ok: true, text: 'durably staged' });
   await assert.rejects(AccountStore.open(database), /already has an API owner/);
   await assert.rejects(migrateDatabase(database.databaseUrl), /Stop the API/);
   await store.close();
   store = await AccountStore.open(database);
   const generation = await Generation.create(store, { interpret: () => assert.fail('must not restart'), generate: () => assert.fail('must not restart') });
   t.after(() => generation.close());
-  assert.deepEqual((await store.card(card.id)).pages.map(page => page.status), ['loading', 'failed']);
-  await store.publish('publish-staged', { attemptId: card.pages[0].attempt_id, session });
-  assert.equal((await store.card(card.id)).pages[0].text, 'durably staged');
+  assert.deepEqual((await store.karte(karte.id)).pages.map(page => page.status), ['loading', 'failed']);
+  await store.publish('publish-staged', { attemptId: karte.pages[0].attempt_id, session });
+  assert.equal((await store.karte(karte.id)).pages[0].text, 'durably staged');
 });
 
 test('PostgreSQL lock waits are bounded and a failed command remains explicitly recoverable', async t => {
@@ -129,7 +129,7 @@ test('PostgreSQL lock waits are bounded and a failed command remains explicitly 
     await blocker.query('SELECT id FROM account FOR UPDATE');
     await assert.rejects(store.createManual('blocked', { deckId: deck.id, pages: [] }), { code: '55P03' });
   } finally { await blocker.query('ROLLBACK'); await blocker.end(); }
-  assert.equal((await store.cards()).length, 0);
+  assert.equal((await store.kartes()).length, 0);
   assert.equal((await store.createManual('blocked', { deckId: deck.id, pages: [] })).replayed, false);
 });
 
@@ -164,8 +164,8 @@ test('a lost database connection preserves generated output in the journal for r
   } });
   t.after(async () => { release.resolve(); await application.close(); await rm(directory, { recursive: true, force: true }); });
   const database = await createTestDatabase(t, key);
-  const card = await captured(application.store);
-  await application.generation.start(card.id);
+  const karte = await captured(application.store);
+  await application.generation.start(karte.id);
   await started.promise;
   // A model call waiting on the provider must not hold the account executor.
   await application.store.createDeck('Independent write during generation');
@@ -177,14 +177,14 @@ test('a lost database connection preserves generated output in the journal for r
   } finally { await killer.end(); }
   release.resolve();
   await Promise.all([...application.generation.tasks.values()].map(value => value.task));
-  const attemptId = card.pages[1].attempt_id;
+  const attemptId = karte.pages[1].attempt_id;
   assert.ok(application.generation.pendingResults.has(attemptId));
   await application.close();
   application = await createTestApplication(t, { databaseKey: key, provider: {
     interpret: () => assert.fail('restart must not generate'), generate: () => assert.fail('restart must not generate')
   } });
   await application.store.publish('recover-outage', { attemptId, session });
-  assert.equal((await application.store.card(card.id)).pages[1].text, 'survives a real database outage');
+  assert.equal((await application.store.karte(karte.id)).pages[1].text, 'survives a real database outage');
   assert.equal(calls, 1);
 });
 
@@ -199,7 +199,7 @@ test('reapplying reviewed migrations preserves an initialized database and opera
   store = await AccountStore.open(database);
   assert.deepEqual(await store.snapshot(), snapshot);
   assert.equal((await store.createManual('before-migration', payload)).sequence, receipt.sequence);
-  assert.equal((await store.cards()).length, 1);
+  assert.equal((await store.kartes()).length, 1);
 });
 
 test('upgrading a populated prior schema backfills Unicode ordering without losing kartes or receipts', async t => {
@@ -209,7 +209,7 @@ test('upgrading a populated prior schema backfills Unicode ordering without losi
   for (const [index, text] of ['😀', 'Ä', 'ａ', '\uE000'].entries()) {
     await store.createManual(`prior-card-${index}`, { deckId: deck.id, pages: [{ pageId: deck.pages[0].id, text }] });
   }
-  const before = await store.cards();
+  const before = await store.kartes();
   await store.close();
   const client = new pg.Client({ connectionString: database.databaseUrl }); await client.connect();
   try {
@@ -222,10 +222,10 @@ test('upgrading a populated prior schema backfills Unicode ordering without losi
   finally { await client.end(); }
   await migrateDatabase(database.databaseUrl);
   store = await AccountStore.open(database);
-  const { sortCards } = await import('../extension/sorting.ts');
+  const { sortKartes } = await import('../extension/sorting.ts');
   for (const order of ['az', 'za']) {
-    assert.deepEqual((await store.listCards(deck.id, { order })).cards.map(card => card.id),
-      sortCards(before, order).map(card => card.id));
+    assert.deepEqual((await store.listKartes(deck.id, { order })).cards.map(karte => karte.id),
+      sortKartes(before, order).map(karte => karte.id));
   }
   assert.equal((await store.createManual('prior-card-0', { deckId: deck.id, pages: [{ pageId: deck.pages[0].id, text: '😀' }] })).replayed, true);
 });

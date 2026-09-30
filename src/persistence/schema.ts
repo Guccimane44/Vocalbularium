@@ -11,14 +11,14 @@ export const decks = pgTable('decks', {
 export const account = pgTable('account', {
   id: integer().primaryKey(), default_deck_id: text().notNull().references(() => decks.id)
 }, table => [check('singleton_account', sql`${table.id} = 1`)]);
-export const layoutPages = pgTable('layout_pages', {
+export const layoutSeites = pgTable('layout_pages', {
   id: text().primaryKey(), deck_id: text().notNull().references(() => decks.id, { onDelete: 'cascade' }),
   position: integer().notNull(), modules: text().notNull()
 }, table => [index('layout_deck_position').on(table.deck_id, table.position), check('page_position', sql`${table.position} between 0 and 3`)]);
 export const installations = pgTable('installations', {
   id: text().primaryKey(), epoch: bigint({ mode: 'number' }).notNull(), session_id: text().notNull()
 }, table => [check('session_epoch', sql`${table.epoch} > 0`)]);
-export const cards = pgTable('cards', {
+export const kartes = pgTable('cards', {
   id: text().primaryKey(), deck_id: text().notNull().references(() => decks.id, { onDelete: 'cascade' }),
   selected_text: text(), created_at: text().notNull(), interpretation: text(),
   front_sort_key: bytea().notNull().default(sql`'\\x'::bytea`)
@@ -31,14 +31,14 @@ export const cards = pgTable('cards', {
   index('cards_recent_captures').on(sql`${table.created_at} COLLATE "C" DESC`, sql`${table.id} COLLATE "C" ASC`).where(sql`${table.selected_text} IS NOT NULL`)
 ]);
 export const pages = pgTable('pages', {
-  card_id: text().notNull().references(() => cards.id, { onDelete: 'cascade' }),
-  page_id: text().notNull().references(() => layoutPages.id, { onDelete: 'cascade' }),
+  card_id: text().notNull().references(() => kartes.id, { onDelete: 'cascade' }),
+  page_id: text().notNull().references(() => layoutSeites.id, { onDelete: 'cascade' }),
   text: text().notNull().default(''), status: text(), attempt_id: text()
 }, table => [primaryKey({ columns: [table.card_id, table.page_id] }), index('pages_layout').on(table.page_id),
   index('pages_attempt').on(table.attempt_id), check('page_status', sql`${table.status} in ('loading', 'completed', 'failed')`)]);
 export const attempts = pgTable('attempts', {
-  id: text().primaryKey(), card_id: text().notNull().references(() => cards.id, { onDelete: 'cascade' }),
-  page_id: text().notNull().references(() => layoutPages.id, { onDelete: 'cascade' }),
+  id: text().primaryKey(), card_id: text().notNull().references(() => kartes.id, { onDelete: 'cascade' }),
+  page_id: text().notNull().references(() => layoutSeites.id, { onDelete: 'cascade' }),
   installation_id: text().notNull().references(() => installations.id), session_id: text().notNull(),
   epoch: bigint({ mode: 'number' }).notNull(), modules: text().notNull(), state: text().notNull().default('loading'), result: text()
 }, table => [index('attempts_session_state').on(table.installation_id, table.session_id, table.state),

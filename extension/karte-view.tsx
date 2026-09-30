@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import type { CardEditorDraft } from '../types/editor-drafts.js';
-import type { DashboardCard } from './dashboard.js';
+import type { KarteEditorDraft } from '../types/editor-drafts.js';
+import type { DashboardKarte } from './dashboard.js';
 
 type Deck = { id: string; name: string };
 type Props = {
-  card?: DashboardCard;
+  card?: DashboardKarte;
   deck?: Deck;
-  draft?: CardEditorDraft;
+  draft?: KarteEditorDraft;
   selectedPageId?: string;
   isNew: boolean;
   editing: boolean;
@@ -20,18 +20,18 @@ type Props = {
   save: () => Promise<boolean>;
   cancel: () => Promise<void>;
   discardUnavailable: () => Promise<void>;
-  deleteCard: () => Promise<void>;
-  retryPage: (pageId: string) => Promise<void>;
+  deleteKarte: () => Promise<void>;
+  retrySeite: (seiteId: string) => Promise<void>;
 };
 
 function Status({ status, prefix }: { status: string | null; prefix: string }) {
   return status && <span className={`badge status-${status}`}>{prefix + status[0].toUpperCase() + status.slice(1)}</span>;
 }
 
-export function CardView({ card, deck, draft, selectedPageId, isNew, editing, busy, error, pendingSaves, retryPendingSave,
-  navigate, begin, persist, save, cancel, discardUnavailable, deleteCard, retryPage }: Props) {
+export function KarteView({ card: karte, deck, draft, selectedPageId: selectedSeiteId, isNew, editing, busy, error, pendingSaves, retryPendingSave,
+  navigate, begin, persist, save, cancel, discardUnavailable, deleteKarte, retrySeite }: Props) {
   const [retryBusy, setRetryBusy] = useState(false);
-  if (!card || !deck) return <>
+  if (!karte || !deck) return <>
     {error && error !== draft?.error && <p className="notice error" role="alert">{error}</p>}
     <h1>Karte unavailable</h1>
     <p>This karte or deck has been deleted.</p>
@@ -42,37 +42,37 @@ export function CardView({ card, deck, draft, selectedPageId, isNew, editing, bu
     </>}
   </>;
 
-  const selected = card.pages.find(page => page.page_id === selectedPageId) ?? card.pages[0];
-  const pageIndex = card.pages.indexOf(selected);
-  const missingPages = editing && draft
-    ? Object.keys(draft.texts).filter(pageId => !card.pages.some(page => page.page_id === pageId))
+  const selected = karte.pages.find(seite => seite.page_id === selectedSeiteId) ?? karte.pages[0];
+  const seiteIndex = karte.pages.indexOf(selected);
+  const missingSeites = editing && draft
+    ? Object.keys(draft.texts).filter(seiteId => !karte.pages.some(seite => seite.page_id === seiteId))
     : [];
   return <>
     {error && error !== draft?.error && <p className="notice error" role="alert">{error}</p>}
     <button className="back" onClick={() => navigate(`deck/${deck.id}`)}>← {deck.name}</button>
     <h1>{isNew ? 'A new karte.' : 'Karte content'}</h1>
-    <Status status={card.status} prefix="Karte: " />
-    <nav className="pages" aria-label="Karte seites">
-      {card.pages.map((page, index) => <button key={page.page_id}
-        aria-current={page === selected}
-        onClick={() => navigate(`${isNew ? 'new-card' : 'card'}/${isNew ? deck.id : card.id}/${page.page_id}`)}>
+    <Status status={karte.status} prefix="Karte: " />
+    <nav className="seites" aria-label="Karte seites">
+      {karte.pages.map((seite, index) => <button key={seite.page_id}
+        aria-current={seite === selected}
+        onClick={() => navigate(`${isNew ? 'new-card' : 'card'}/${isNew ? deck.id : karte.id}/${seite.page_id}`)}>
         Seite {index + 1}
       </button>)}
     </nav>
-    <section className="card-page">
+    <section className="karte-seite">
       <Status status={selected.status} prefix="Seite: " />
       {editing && draft ? <>
-        <label htmlFor="page-content">Seite {pageIndex + 1} content</label>
-        <textarea key={selected.page_id} id="page-content" rows={12} defaultValue={draft.texts[selected.page_id] ?? ''}
+        <label htmlFor="seite-content">Seite {seiteIndex + 1} content</label>
+        <textarea key={selected.page_id} id="seite-content" rows={12} defaultValue={draft.texts[selected.page_id] ?? ''}
           readOnly={busy || selected.status === 'loading' || Boolean(draft.pending && !draft.errorCode)}
           onChange={event => { draft.texts[selected.page_id] = event.target.value; persist(); }} />
         {selected.status === 'loading' && <p className="notice">This seite is generating. Your draft is preserved; save explicitly after generation finishes.</p>}
-        {missingPages.map(pageId => <div key={pageId}>
+        {missingSeites.map(seiteId => <div key={seiteId}>
           <p className="notice">A draft seite was removed from the deck. Its unsaved text is preserved below.</p>
-          <pre>{draft.texts[pageId]}</pre>
+          <pre>{draft.texts[seiteId]}</pre>
         </div>)}
         <div className="dialog-actions">
-          {!isNew && <button disabled={busy} onClick={() => void deleteCard()}>Delete karte</button>}
+          {!isNew && <button disabled={busy} onClick={() => void deleteKarte()}>Delete karte</button>}
           <button disabled={busy} onClick={() => void cancel()}>Cancel</button>
           <button className="primary" disabled={busy} onClick={() => void save()}>{draft.pending ? 'Try saving again' : 'Save'}</button>
         </div>
@@ -82,9 +82,9 @@ export function CardView({ card, deck, draft, selectedPageId, isNew, editing, bu
           <p className="muted">{selected.status === 'loading' ? 'Generating this seite…' : selected.status === 'failed' ? 'Generation failed for this seite.' : 'This seite is empty.'}</p>}
         <div className="dialog-actions">
           <button disabled={selected.status === 'loading'} onClick={begin}>Edit karte manually</button>
-          {card.selected_text !== null && <button disabled={retryBusy || selected.status === 'loading'} onClick={async () => {
+          {karte.selected_text !== null && <button disabled={retryBusy || selected.status === 'loading'} onClick={async () => {
             setRetryBusy(true);
-            try { await retryPage(selected.page_id); } finally { setRetryBusy(false); }
+            try { await retrySeite(selected.page_id); } finally { setRetryBusy(false); }
           }}>Retry</button>}
         </div>
       </>}

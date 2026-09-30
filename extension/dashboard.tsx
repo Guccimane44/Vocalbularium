@@ -5,7 +5,7 @@ import { SORT_ORDERS } from './sorting.ts';
 
 type Status = 'completed' | 'loading' | 'failed' | null;
 
-export type DashboardCard = {
+export type DashboardKarte = {
   id: string;
   deck_id: string;
   selected_text: string | null;
@@ -18,13 +18,13 @@ export type DashboardAccount = {
   defaultDeckId: string;
   decks: DashboardDeck[];
   nextCursor?: string | null;
-  recentCards: DashboardCard[];
+  recentKartes: DashboardKarte[];
   sequence: number;
 };
 
 type DashboardDeck = { id: string; name: string; pageCount: number; cardCount: number };
-type CardPage = { cards: DashboardCard[]; nextCursor: string | null };
-type DeckPage = { decks: DashboardDeck[]; nextCursor: string | null };
+type KarteBatch = { cards: DashboardKarte[]; nextCursor: string | null };
+type DeckBatch = { decks: DashboardDeck[]; nextCursor: string | null };
 
 type CaptureReceipt = {
   operationId: string;
@@ -45,8 +45,8 @@ export type DashboardProps = {
   focusedMenu?: string;
   showPendingSaves: boolean;
   error?: string;
-  loadCards: (deckId: string, order: string, cursor?: string) => Promise<CardPage>;
-  loadDecks: (cursor: string) => Promise<DeckPage>;
+  loadKartes: (deckId: string, order: string, cursor?: string) => Promise<KarteBatch>;
+  loadDecks: (cursor: string) => Promise<DeckBatch>;
   navigate: (hash: string) => void;
   configure: (id: string) => void;
   mutate: (command: Command) => Promise<void>;
@@ -146,48 +146,48 @@ function DeckMenu({ deck, account, replacementDecks, replacementCursor, loadDeck
   </details>;
 }
 
-function CardRow({ card, index, navigate }: { card: DashboardCard; index: number; navigate: DashboardProps['navigate'] }) {
+function KarteRow({ card: karte, index, navigate }: { card: DashboardKarte; index: number; navigate: DashboardProps['navigate'] }) {
   const row = useRef<HTMLTableRowElement>(null);
   const stateId = useId();
   const activate = (event: ReactMouseEvent<HTMLElement>) => {
     const selection = window.getSelection();
     if (event.detail && selection && !selection.isCollapsed && row.current?.contains(selection.anchorNode) && row.current.contains(selection.focusNode)) return;
-    navigate(`card/${card.id}`);
+    navigate(`card/${karte.id}`);
   };
-  return <tr className="card-row state-row" data-card-id={card.id} data-state={card.status ?? 'neutral'} ref={row}
+  return <tr className="karte-row state-row" data-karte-id={karte.id} data-state={karte.status ?? 'neutral'} ref={row}
     onClick={event => { if (!(event.target instanceof Element) || !event.target.closest('button')) activate(event); }}>
     <td>{String(index + 1).padStart(3, '0')}</td>
     <td>
-      <StatusIcon status={card.status} id={card.status ? stateId : undefined} />
-      <button className="entry" aria-describedby={card.status ? stateId : undefined} onClick={activate}>{card.pages[0]?.text || 'Empty front seite'}</button>
+      <StatusIcon status={karte.status} id={karte.status ? stateId : undefined} />
+      <button className="entry" aria-describedby={karte.status ? stateId : undefined} onClick={activate}>{karte.pages[0]?.text || 'Empty front seite'}</button>
     </td>
   </tr>;
 }
 
-function DeckList({ deck, account, navigate, configure, mutate, reportError, loadCards, loadDecks }: Omit<DashboardProps, 'local' | 'deckId' | 'focusedMenu' | 'showPendingSaves' | 'error'> & { deck: DashboardDeck }) {
+function DeckList({ deck, account, navigate, configure, mutate, reportError, loadKartes, loadDecks }: Omit<DashboardProps, 'local' | 'deckId' | 'focusedMenu' | 'showPendingSaves' | 'error'> & { deck: DashboardDeck }) {
   const [order, setOrder] = useState(() => localStorage.getItem(`sort-${deck.id}`) ?? 'newest');
-  const [cards, setCards] = useState<DashboardCard[]>([]);
+  const [kartes, setKartes] = useState<DashboardKarte[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
     let active = true;
-    setCards([]);
+    setKartes([]);
     setLoading(true);
-    void loadCards(deck.id, order).then(page => {
-      if (active) { setCards(page.cards); setCursor(page.nextCursor); setLoading(false); }
+    void loadKartes(deck.id, order).then(page => {
+      if (active) { setKartes(page.cards); setCursor(page.nextCursor); setLoading(false); }
     }).catch(error => { if (active) { setLoading(false); reportError(error); } });
     return () => { active = false; };
-  }, [deck.id, order, account.sequence, loadCards, reportError]);
+  }, [deck.id, order, account.sequence, loadKartes, reportError]);
   async function more() {
     if (!cursor || loading) return;
     setLoading(true);
     try {
-      const page = await loadCards(deck.id, order, cursor);
-      setCards(previous => [...previous, ...page.cards]); setCursor(page.nextCursor);
+      const page = await loadKartes(deck.id, order, cursor);
+      setKartes(previous => [...previous, ...page.cards]); setCursor(page.nextCursor);
     } catch (error) {
       if ((error as { code?: string }).code === 'stale_cursor') {
-        const page = await loadCards(deck.id, order);
-        setCards(page.cards); setCursor(page.nextCursor);
+        const page = await loadKartes(deck.id, order);
+        setKartes(page.cards); setCursor(page.nextCursor);
       } else reportError(error);
     } finally { setLoading(false); }
   }
@@ -197,29 +197,29 @@ function DeckList({ deck, account, navigate, configure, mutate, reportError, loa
     <h1>{deck.name}</h1>
     <DeckMenu deck={deck} account={account} replacementDecks={account.decks} replacementCursor={account.nextCursor ?? null} loadDecks={loadDecks} configure={configure} mutate={mutate} reportError={reportError} />
     <button className="primary" onClick={() => navigate(`new-card/${deck.id}`)}>Add karte manually</button>
-    <label htmlFor="card-sort">Sort kartes</label>
-    <select id="card-sort" value={order} onChange={event => { localStorage.setItem(`sort-${deck.id}`, event.target.value); setOrder(event.target.value); }}>
+    <label htmlFor="karte-sort">Sort kartes</label>
+    <select id="karte-sort" value={order} onChange={event => { localStorage.setItem(`sort-${deck.id}`, event.target.value); setOrder(event.target.value); }}>
       {SORT_ORDERS.map(([value, label]) => <option value={value} key={value}>{label}</option>)}
     </select>
-    {!cards.length ? <div className="empty">{loading ? 'Loading kartes…' : 'No kartes in this deck yet.'}</div> :
+    {!kartes.length ? <div className="empty">{loading ? 'Loading kartes…' : 'No kartes in this deck yet.'}</div> :
       <table className="list"><tbody>
         <tr><th>Index</th><th>Entry</th></tr>
-        {cards.map((card, index) => <CardRow card={card} index={index} navigate={navigate} key={card.id} />)}
+        {kartes.map((karte, index) => <KarteRow card={karte} index={index} navigate={navigate} key={karte.id} />)}
       </tbody></table>}
     {cursor && <button disabled={loading} onClick={() => void more()}>Load more kartes</button>}
   </>;
 }
 
-type CaptureEntry = { key: string; text: string; deckId: string; date: string; receipt?: CaptureReceipt; card?: DashboardCard };
+type CaptureEntry = { key: string; text: string; deckId: string; date: string; receipt?: CaptureReceipt; card?: DashboardKarte };
 
 function RecentCaptures({ account, local, navigate, mutate, reportError }: Pick<DashboardProps, 'account' | 'local' | 'navigate' | 'mutate' | 'reportError'>) {
   const receipts = Object.entries(local)
     .filter(([key, item]) => key.startsWith('capture-') && isCaptureReceipt(item))
     .map(([, item]) => item as CaptureReceipt);
   const entries: CaptureEntry[] = [
-    ...receipts.filter(item => item.state !== 'saved' || !account.recentCards.some(card => card.id === item.cardId))
+    ...receipts.filter(item => item.state !== 'saved' || !account.recentKartes.some(karte => karte.id === item.cardId))
       .map(item => ({ key: `receipt-${item.operationId}`, receipt: item, text: item.payload.selectedText, deckId: item.payload.snapshot.id, date: item.createdAt })),
-    ...account.recentCards.filter(card => card.selected_text !== null).map(card => ({ key: `card-${card.id}`, card, text: card.selected_text!, deckId: card.deck_id, date: card.created_at }))
+    ...account.recentKartes.filter(karte => karte.selected_text !== null).map(karte => ({ key: `card-${karte.id}`, card: karte, text: karte.selected_text!, deckId: karte.deck_id, date: karte.created_at }))
   ].sort((a, b) => b.date.localeCompare(a.date));
   return <>
     <h2 className="section-title">Recent captures</h2>
@@ -277,7 +277,7 @@ function DeckGrid({ account, local, navigate, configure, mutate, reportError, lo
   </>;
 }
 
-export function Dashboard({ account, local, deckId, focusedMenu, showPendingSaves, error, navigate, configure, mutate, reportError, loadCards, loadDecks }: DashboardProps) {
+export function Dashboard({ account, local, deckId, focusedMenu, showPendingSaves, error, navigate, configure, mutate, reportError, loadKartes, loadDecks }: DashboardProps) {
   useEffect(() => {
     const closeOutside = (event: PointerEvent) => {
       for (const menu of document.querySelectorAll<HTMLDetailsElement>('.deck-menu[open]')) if (!menu.contains(event.target as Node)) menu.open = false;
@@ -290,7 +290,7 @@ export function Dashboard({ account, local, deckId, focusedMenu, showPendingSave
   }, [account, deckId, focusedMenu]);
   const deck = deckId ? account.decks.find(item => item.id === deckId) : undefined;
   let content: ReactNode;
-  if (deck) content = <DeckList key={deck.id} deck={deck} account={account} navigate={navigate} configure={configure} mutate={mutate} reportError={reportError} loadCards={loadCards} loadDecks={loadDecks} />;
+  if (deck) content = <DeckList key={deck.id} deck={deck} account={account} navigate={navigate} configure={configure} mutate={mutate} reportError={reportError} loadKartes={loadKartes} loadDecks={loadDecks} />;
   else content = <DeckGrid account={account} local={local} navigate={navigate} configure={configure} mutate={mutate} reportError={reportError} loadDecks={loadDecks} />;
   return <>
     {error && <p className="notice error" role="alert">{error}</p>}
