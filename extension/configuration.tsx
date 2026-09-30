@@ -66,7 +66,7 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
       const failure = error as Error & { code?: string; details?: { confirmation?: string } };
       if (failure.code === 'content_loss') {
         const decision = await dialog({
-          title: 'Delete page content?',
+          title: 'Delete seite content?',
           message: failure.message + ' This includes content saved from other installations.',
           choices: ['Cancel', 'Confirm'],
           select: undefined
@@ -100,7 +100,7 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
             draft.deck.name = event.target.value;
             refresh();
           }} />
-          <label htmlFor="page-count">Number of pages</label>
+          <label htmlFor="page-count">Number of seites</label>
           <select id="page-count" value={String(draft.deck.pages.length)} onChange={event => {
             const target = Number(event.target.value);
             while (draft.deck.pages.length < target) draft.deck.pages.push(page());
@@ -109,14 +109,14 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
           }}>
             {[1, 2, 3, 4].map(count => <option value={count} key={count}>{count}</option>)}
           </select>
-          <nav className="pages" aria-label="Configure pages">
+          <nav className="pages" aria-label="Configure seites">
             {draft.deck.pages.map((item, index) => <button key={item.id}
               aria-current={item.id === draft.selectedPage}
-              onClick={() => { draft.selectedPage = item.id; refresh(); }}>Page {index + 1}</button>)}
+              onClick={() => { draft.selectedPage = item.id; refresh(); }}>Seite {index + 1}</button>)}
           </nav>
           <section className="module-page">
-            <h2>{currentIndex === 0 ? 'Front page' : 'Page ' + (currentIndex + 1)}</h2>
-            {!current.modules.length && <p className="muted">No modules. This page will be empty.</p>}
+            <h2>{currentIndex === 0 ? 'Front seite' : 'Seite ' + (currentIndex + 1)}</h2>
+            {!current.modules.length && <p className="muted">No modules. This seite will be empty.</p>}
             {current.modules.map((module, index) => {
               const definition = MODULES[module.type as ModuleType];
               return <div className="module-block" key={module.id}>
@@ -132,7 +132,7 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
             {currentIndex !== 0 && <button onClick={() => {
               draft.deck.pages = draft.deck.pages.filter(item => item !== current);
               refresh();
-            }}>Remove this page</button>}
+            }}>Remove this seite</button>}
           </section>
           <h2 className="section-title">Module library</h2>
           <div className="module-library">
@@ -157,7 +157,7 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
       </section>
       <section className="showcase">
         <h2>Example previews</h2>
-        <p className="muted">Illustrative samples only. Previews do not create or change cards.</p>
+        <p className="muted">Illustrative samples only. Previews do not create or change kartes.</p>
         <label htmlFor="sample-input">Sample input</label>
         <select id="sample-input" value={sampleType} onChange={event => {
           draft.sampleType = event.target.value as 'word_phrase' | 'sentence';
@@ -170,8 +170,8 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
           const text = item.modules.map((module, instance) => sample(module.type, sampleType, instance))
             .filter(Boolean).join('\n\n');
           return <article className="preview" key={item.id}>
-            <h3>{'Page ' + (index + 1) + ' · Example'}</h3>
-            {text ? <pre>{text}</pre> : <p className="muted">Empty page</p>}
+            <h3>{'Seite ' + (index + 1) + ' · Example'}</h3>
+            {text ? <pre>{text}</pre> : <p className="muted">Empty seite</p>}
           </article>;
         })}
       </section>

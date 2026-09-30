@@ -37,7 +37,7 @@ async function finish(store, generation) {
   }
 }
 
-test('bounded generation queues page attempts and fails an overloaded saved capture without provider work', async t => {
+test('bounded generation queues seite attempts and fails an overloaded saved capture without provider work', async t => {
   const store = await createTestStore(t);
   const deck = await store.snapshot();
   deck.pages = [{ id: deck.pages[0].id, modules: modules('german-explanation') }];
@@ -88,7 +88,7 @@ test('bounded generation queues page attempts and fails an overloaded saved capt
   assert.equal((await store.card(second.id)).status, 'completed');
 });
 
-test('a busy confirmed Retry returns 429 and preserves page text and attempt identity', async t => {
+test('a busy confirmed Retry returns 429 and preserves seite text and attempt identity', async t => {
   let release, started;
   let interpretations = 0;
   const providerStarted = new Promise(resolve => { started = resolve; });
@@ -180,7 +180,7 @@ test('session invalidation aborts active interpretation and removes queued work'
   assert.equal((await store.card(second)).status, 'failed');
 });
 
-test('an obsolete interpretation is canceled even when the same card has a new-session retry', async t => {
+test('an obsolete interpretation is canceled even when the same karte has a new-session retry', async t => {
   const store = await createTestStore(t);
   const deck = await store.snapshot();
   deck.pages = [{ id: deck.pages[0].id, modules: modules('german-explanation') }];
@@ -237,7 +237,7 @@ test('modules preserve exact input, order, literal markers, and skip inapplicabl
   assert.equal(await renderPage({ selectedText: text, modules: [], generate: () => assert.fail() }), '');
 });
 
-test('one shared interpretation, atomic pages, selected-only output survives a failed dependent page', async (t) => {
+test('one shared interpretation, atomic seites, selected-only output survives a failed dependent seite', async (t) => {
   let interpretations = 0;
   const { store, generation, capture } = await fixture(t, {
     interpret: async () => { interpretations++; return word; },
@@ -253,19 +253,19 @@ test('one shared interpretation, atomic pages, selected-only output survives a f
   assert.deepEqual(saved.interpretation, word);
 });
 
-test('initial sentence completes an empty second page without generating an explanation', async (t) => {
+test('initial sentence completes an empty second seite without generating an explanation', async (t) => {
   const { store, generation, capture } = await fixture(t, { interpret: async () => sentence, generate: async () => assert.fail('inapplicable module ran') });
   const card = await capture('我真的很幸福'); await finish(store, generation);
   assert.deepEqual((await store.card(card.id)).pages.map(page => [page.text, page.status]), [['我真的很幸福', 'completed'], ['', 'completed']]);
 });
 
-test('interpretation failure fails dependent pages, while exact selection and empty pages need no provider', async (t) => {
+test('interpretation failure fails dependent seites, while exact selection and empty seites need no provider', async (t) => {
   const { store, generation, capture } = await fixture(t, { interpret: async () => { throw Error('unavailable'); } }, [['selected'], [], ['selected-language']]);
   const card = await capture(); await finish(store, generation);
   assert.deepEqual((await store.card(card.id)).pages.map(page => page.status), ['completed', 'completed', 'failed']);
 });
 
-test('repeated example modules request fresh output and fail the whole page if distinct output cannot be produced', async (t) => {
+test('repeated example modules request fresh output and fail the whole seite if distinct output cannot be produced', async (t) => {
   let calls = 0;
   const { store, generation, capture } = await fixture(t, { interpret: async () => sentence, generate: async () => { calls++; return 'same example'; } }, [['sentence-usage', 'sentence-usage']]);
   const card = await capture(); await finish(store, generation);
@@ -421,7 +421,7 @@ test('OpenCode aborts in-flight requests when their generation is canceled', asy
   await assert.rejects(pending, { name: 'AbortError' });
 });
 
-test('Go requests share a stable conversation per card across interpretation, modules, and retry', async (t) => {
+test('Go requests share a stable conversation per karte across interpretation, modules, and retry', async (t) => {
   const sessions = [];
   const provider = new OpenCodeProvider({
     apiKey: 'test-only', fetchImpl: async (_, options) => {
@@ -467,21 +467,21 @@ test('authenticated capture saves before generation, repeats safely, and publish
 
 test('a failed result write retains the complete generated output for explicit save recovery without a new model call', async (t) => {
   let calls = 0;
-  const { store, generation, capture } = await fixture(t, { interpret: async () => word, generate: async () => { calls++; return 'complete generated page'; } });
+  const { store, generation, capture } = await fixture(t, { interpret: async () => word, generate: async () => { calls++; return 'complete generated seite'; } });
   const stage = store.stage.bind(store);
   let failWrite = true;
-  store.stage = (id, result) => { if (failWrite && result.text === 'complete generated page') throw Error('controlled disk write failure'); return stage(id, result); };
+  store.stage = (id, result) => { if (failWrite && result.text === 'complete generated seite') throw Error('controlled disk write failure'); return stage(id, result); };
   const card = await capture();
   await Promise.all([...generation.tasks.values()].map(item => item.task));
   const back = card.pages[1];
   assert.equal((await store.card(card.id)).pages[1].status, 'loading');
-  assert.deepEqual(generation.pendingResults.get(back.attempt_id), { ok: true, text: 'complete generated page' });
+  assert.deepEqual(generation.pendingResults.get(back.attempt_id), { ok: true, text: 'complete generated seite' });
   assert.equal(generation.failedResults.has(back.attempt_id), true);
   failWrite = false;
   await generation.saveResult(back.attempt_id, session);
   assert.equal(generation.failedResults.has(back.attempt_id), false);
   await store.publish('recover-output', { attemptId: back.attempt_id, session });
-  assert.equal((await store.card(card.id)).pages[1].text, 'complete generated page'); assert.equal(calls, 1);
+  assert.equal((await store.card(card.id)).pages[1].text, 'complete generated seite'); assert.equal(calls, 1);
 });
 
 test('an in-progress result write does not advertise save recovery', async t => {

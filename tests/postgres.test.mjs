@@ -19,7 +19,7 @@ async function captured(store) {
   return store.card(cardId);
 }
 
-test('concurrent operation replay commits one card and rejects a mismatched payload', async t => {
+test('concurrent operation replay commits one karte and rejects a mismatched payload', async t => {
   const store = await createTestStore(t);
   const deck = await store.snapshot();
   const payload = { deckId: deck.id, pages: [] };
@@ -34,7 +34,7 @@ test('concurrent operation replay commits one card and rejects a mismatched payl
   assert.equal((await store.cards()).length, 1);
 });
 
-test('queued writes keep admission order and independent pages; replay cannot overwrite a later save', async t => {
+test('queued writes keep admission order and independent seites; replay cannot overwrite a later save', async t => {
   const store = await createTestStore(t), deck = await store.snapshot();
   const { cardId } = await store.createManual('create', { deckId: deck.id, pages: [] });
   const gate = latch(), entered = latch();
@@ -70,7 +70,7 @@ test('a save admitted during generation rejects atomically before later publicat
   assert.deepEqual((await store.card(card.id)).pages.map(page => page.text), ['draft', 'draft']);
 });
 
-test('layout removal, card deletion, and session invalidation fence simultaneously submitted late results', async t => {
+test('layout removal, karte deletion, and session invalidation fence simultaneously submitted late results', async t => {
   const store = await createTestStore(t), card = await captured(store), deck = await store.snapshot();
   await store.stage(card.pages[1].attempt_id, { ok: true, text: 'obsolete' });
   deck.pages.pop();
@@ -90,7 +90,7 @@ test('layout removal, card deletion, and session invalidation fence simultaneous
   assert.equal((await store.cards()).length, 0);
 });
 
-test('rollback includes prior layout writes and receipts when a later page belongs to another deck', async t => {
+test('rollback includes prior layout writes and receipts when a later seite belongs to another deck', async t => {
   const store = await createTestStore(t), original = await store.snapshot();
   const other = await store.createDeck('other');
   const changed = { ...original, name: 'must roll back', pages: [original.pages[0], other.pages[1]] };
@@ -202,7 +202,7 @@ test('reapplying reviewed migrations preserves an initialized database and opera
   assert.equal((await store.cards()).length, 1);
 });
 
-test('upgrading a populated prior schema backfills Unicode ordering without losing cards or receipts', async t => {
+test('upgrading a populated prior schema backfills Unicode ordering without losing kartes or receipts', async t => {
   const database = await createTestDatabase(t);
   let store = await AccountStore.open(database); database.resources.push({ close: () => store.close() });
   const deck = await store.snapshot();

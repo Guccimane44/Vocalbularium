@@ -22,7 +22,7 @@ test('capture menu: safe names, missing default, and an existing item after work
     await sync(accountNamed(name));
     assert.equal(api.items.size, 1);
     const title = api.items.get('capture').title;
-    assert.equal(title.replaceAll('\u200b', ''), `Create a card in “${name}”`);
+    assert.equal(title.replaceAll('\u200b', ''), `Create a karte in “${name}”`);
     assert.equal(title.includes('%s'), false, 'selection cannot be substituted into a deck name');
   }
   await captureMenu(api)(accountNamed('After restart'));
@@ -137,7 +137,7 @@ test('mutations report missing or expired access without clearing the original s
   assert.equal(api.storage.local.data.auth, undefined);
 });
 
-test('a busy page Retry is a rejected confirmation, not a pending save to resubmit', async t => {
+test('a busy seite Retry is a rejected confirmation, not a pending save to resubmit', async t => {
   const fixture = await background(t);
   const { api, send } = fixture;
   await send({ type: 'login', username: 'admin', password: 'admin' });

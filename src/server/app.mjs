@@ -68,7 +68,7 @@ export async function createApplication({ databaseUrl, outbox, accountId = 1, au
       info: {
         title: 'Vocabularium Account API',
         version: '0.3.0',
-        description: 'Local account, capture, deck, card, and generation-session API.'
+        description: 'Local account, capture, deck, karte, and generation-session API.'
       },
       servers: [{ url: 'http://127.0.0.1:4318' }],
       components: {
@@ -78,7 +78,7 @@ export async function createApplication({ databaseUrl, outbox, accountId = 1, au
       },
       tags: [
         { name: 'health', description: 'Process and readiness probes' },
-        { name: 'account', description: 'Account and card operations' }
+        { name: 'account', description: 'Account and karte operations' }
       ]
     }
   });

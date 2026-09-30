@@ -8,7 +8,7 @@ async function save(store, deck, extra = {}) { return await store.saveDeck(rando
 async function capture(store) { return (await store.capture(randomUUID(), { session, selectedText: '幸福', snapshot: (await store.snapshot()) })).cardId; }
 async function fill(store, id) {
   for (const [index, p] of (await store.card(id)).pages.entries()) {
-    await store.stage(p.attempt_id, { ok: true, text: `saved page ${index + 1}` });
+    await store.stage(p.attempt_id, { ok: true, text: `saved seite ${index + 1}` });
     await store.publish(randomUUID(), { attemptId: p.attempt_id, session });
   }
 }
@@ -26,14 +26,14 @@ test('deck creation validates layout, preserves default, and resubmits without m
   }
 });
 
-test('append empty pages, preserve saved content on module edits, and remove a middle page with current-content confirmation', async (t) => {
+test('append empty seites, preserve saved content on module edits, and remove a middle seite with current-content confirmation', async (t) => {
   const store = await fixture(t), cardId = await capture(store);
   await fill(store, cardId);
   const deck = await store.snapshot(); deck.pages.push(page('sentence-usage'), page());
   deck.pages[0].modules = [];
   await save(store, deck);
-  assert.deepEqual((await store.card(cardId)).pages.map(p => [p.text, p.status]), [['saved page 1', 'completed'], ['saved page 2', 'completed'], ['', null], ['', null]]);
-  await store.savePages('manual', { cardId, changes: [{ pageId: deck.pages[2].id, text: 'keep the former third page' }] });
+  assert.deepEqual((await store.card(cardId)).pages.map(p => [p.text, p.status]), [['saved seite 1', 'completed'], ['saved seite 2', 'completed'], ['', null], ['', null]]);
+  await store.savePages('manual', { cardId, changes: [{ pageId: deck.pages[2].id, text: 'keep the former third seite' }] });
   const removed = structuredClone(deck); removed.pages.splice(1, 1);
   let confirmation;
   await assert.rejects(async () => (await save(store, removed)), error => { confirmation = error.details.confirmation; return error.code === 'content_loss'; });
@@ -41,11 +41,11 @@ test('append empty pages, preserve saved content on module edits, and remove a m
   await store.savePages('remote', { cardId, changes: [{ pageId: deck.pages[1].id, text: 'remote manual edit after warning' }] });
   await assert.rejects(async () => (await save(store, removed, { confirmation })), error => { assert.notEqual(error.details.confirmation, confirmation); confirmation = error.details.confirmation; return error.code === 'content_loss'; });
   await save(store, removed, { confirmation });
-  assert.deepEqual((await store.card(cardId)).pages.map(p => p.text), ['saved page 1', 'keep the former third page', '']);
+  assert.deepEqual((await store.card(cardId)).pages.map(p => p.text), ['saved seite 1', 'keep the former third seite', '']);
   assert.equal((await store.card(cardId)).pages[1].page_id, deck.pages[2].id);
 });
 
-test('front page stays permanent, retained pages keep order, and stale layout saves cannot recreate a deleted page', async (t) => {
+test('front seite stays permanent, retained seites keep order, and stale layout saves cannot recreate a deleted seite', async (t) => {
   const store = await fixture(t), original = await store.snapshot();
   const reversed = structuredClone(original); reversed.pages.reverse();
   await assert.rejects(async () => (await save(store, reversed)), { code: 'front_page' });
@@ -55,7 +55,7 @@ test('front page stays permanent, retained pages keep order, and stale layout sa
   assert.equal((await store.snapshot()).pages.length, 1);
 });
 
-test('configuration changes during generation preserve captured instructions and ignore removed-page results', async (t) => {
+test('configuration changes during generation preserve captured instructions and ignore removed-seite results', async (t) => {
   const store = await fixture(t), cardId = await capture(store), card = await store.card(cardId);
   const deck = await store.snapshot(), first = card.pages[0];
   deck.pages[0].modules = [{ id: randomUUID(), type: 'selected-language' }];

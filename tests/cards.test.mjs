@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { Generation } from '../src/server/generation.mjs';
 import { sortCards } from '../extension/sorting.ts';
 async function fixture(t) { const store = await createTestStore(t); t.after(async () => (await store.close())); return store; }
-test('manual cards keep plain text, have no generation status or retry, and operation receipts prevent duplication', async (t) => {
+test('manual kartes keep plain text, have no generation status or retry, and operation receipts prevent duplication', async (t) => {
   const store = await fixture(t), deck = await store.snapshot();
   const payload = { deckId: deck.id, pages: deck.pages.map((page, index) => ({ pageId: page.id, text: index ? '== literal ==\n: text' : '' })) };
   const first = await store.createManual('save', payload);
@@ -18,7 +18,7 @@ test('manual cards keep plain text, have no generation status or retry, and oper
   await assert.rejects(async () => (await store.retry('retry', { cardId: card.id, pageId: card.pages[0].page_id, session })), { code: 'manual_card' });
 });
 
-test('manual edits preserve creation time and other-page changes; delayed saves cannot recreate deleted pages/cards/decks', async (t) => {
+test('manual edits preserve creation time and other-seite changes; delayed saves cannot recreate deleted seites/kartes/decks', async (t) => {
   const store = await fixture(t), deck = await store.snapshot();
   const payload = { deckId: deck.id, pages: deck.pages.map(page => ({ pageId: page.id, text: '' })) };
   const { cardId } = await store.createManual('new', payload), created = (await store.card(cardId)).created_at;
@@ -31,7 +31,7 @@ test('manual edits preserve creation time and other-page changes; delayed saves 
   await assert.rejects(async () => (await store.createManual('late-new', payload)), { code: 'deleted' });
 });
 
-test('current-page retry uses original input, established interpretation and current saved modules, preserving other pages', async (t) => {
+test('current-seite retry uses original input, established interpretation and current saved modules, preserving other seites', async (t) => {
   const store = await fixture(t), session = { installationId: 'a', sessionId: 'browser', epoch: 1 };
   await store.openSession('open', session);
   const { cardId } = await store.capture('capture', { session, selectedText: 'original', snapshot: (await store.snapshot()) });

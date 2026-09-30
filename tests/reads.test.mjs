@@ -2,7 +2,7 @@ import test, { createTestStore, createTestApplication } from './helpers/database
 import assert from 'node:assert/strict';
 import { sortCards } from '../extension/sorting.ts';
 
-test('bounded card pages preserve JavaScript ordering, ties, and cursor validity', async t => {
+test('bounded karte seites preserve JavaScript ordering, ties, and cursor validity', async t => {
   const store = await createTestStore(t);
   const deck = await store.snapshot();
   const front = deck.pages[0].id;
@@ -14,7 +14,7 @@ test('bounded card pages preserve JavaScript ordering, ties, and cursor validity
   const summary = await store.summary();
   assert.equal(summary.decks[0].cardCount, 64);
   assert.equal(summary.defaultDeckSnapshot.id, deck.id);
-  assert.equal(JSON.stringify(summary).includes(contentMarker), false, 'account summary has no card content');
+  assert.equal(JSON.stringify(summary).includes(contentMarker), false, 'account summary has no karte content');
   const all = await store.cards();
   for (const order of ['newest', 'oldest', 'az', 'za']) {
     const collected = [];
@@ -22,7 +22,7 @@ test('bounded card pages preserve JavaScript ordering, ties, and cursor validity
     do {
       const result = await store.listCards(deck.id, { order, cursor, limit: 7 });
       assert.ok(result.cards.length <= 7);
-      assert.ok(result.cards.every(card => card.pages.length === 1), 'list rows contain only front-page summaries');
+      assert.ok(result.cards.every(card => card.pages.length === 1), 'list rows contain only front-seite summaries');
       collected.push(...result.cards.map(card => card.id));
       cursor = result.nextCursor;
     } while (cursor);
@@ -36,7 +36,7 @@ test('bounded card pages preserve JavaScript ordering, ties, and cursor validity
     sortCards(await store.cards(), 'az')[0].id);
 });
 
-test('deck pages and recent captures remain bounded as the account grows', async t => {
+test('deck seites and recent captures remain bounded as the account grows', async t => {
   const store = await createTestStore(t);
   const initial = await store.snapshot();
   for (let index = 0; index < 55; index++) await store.createDeck(`Deck ${index}`);
@@ -57,7 +57,7 @@ test('deck pages and recent captures remain bounded as the account grows', async
   assert.ok(recent.cards.every(card => card.pages.length === 1));
 });
 
-test('bounded read routes require login and reject oversized pages and stale cursors', async t => {
+test('bounded read routes require login and reject oversized seites and stale cursors', async t => {
   const application = await createTestApplication(t);
   const url = await application.start({ port: 0 });
   const request = async (path, token) => {

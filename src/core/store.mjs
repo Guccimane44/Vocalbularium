@@ -196,7 +196,7 @@ export class AccountStore {
     return this.database.transaction(async () => {
       await this.deck(deckId);
       const size = pageLimit(limit, 30, 50);
-      if (!['newest', 'oldest', 'az', 'za'].includes(order)) fail('invalid', 'Choose a supported card order.');
+      if (!['newest', 'oldest', 'az', 'za'].includes(order)) fail('invalid', 'Choose a supported karte order.');
       const sequence = await this.readSequence();
       const after = decodeCursor(cursor, `cards:${deckId}:${order}`, sequence);
       if (after && typeof after.key !== 'string') fail('invalid', 'The list cursor is invalid.');
@@ -250,33 +250,33 @@ export class AccountStore {
   async saveDeck(operationId, { deck, basePageIds = [], confirmation }) {
     return await this.command(operationId, 'save-deck', { deck, basePageIds, confirmation }, async () => {
       if (!deck || typeof deck.name !== 'string' || !deck.name.trim() || !Array.isArray(deck.pages) || deck.pages.length < 1 || deck.pages.length > 4) {
-        fail('invalid', 'Give the deck a name and choose one to four pages.');
+        fail('invalid', 'Give the deck a name and choose one to four seites.');
       }
       const pageIds = new Set(), moduleIds = new Set();
       for (const page of deck.pages) {
-        if (!page || typeof page.id !== 'string' || !page.id || pageIds.has(page.id) || !Array.isArray(page.modules)) fail('invalid', 'Each page needs its own identity.');
+        if (!page || typeof page.id !== 'string' || !page.id || pageIds.has(page.id) || !Array.isArray(page.modules)) fail('invalid', 'Each seite needs its own identity.');
         pageIds.add(page.id);
         for (const module of page.modules) {
           if (!module || typeof module.id !== 'string' || !module.id || moduleIds.has(module.id) || !Object.hasOwn(MODULES, module.type)) fail('invalid', 'Choose supported modules from the library.');
           moduleIds.add(module.id);
         }
       }
-      if (!Array.isArray(basePageIds)) fail('invalid', 'The saved page configuration is required.');
+      if (!Array.isArray(basePageIds)) fail('invalid', 'The saved seite configuration is required.');
       const current = deck.id ? (await this.deck(deck.id)) : null;
       const id = current?.id ?? randomUUID();
       if (current) {
-        if (deck.pages[0].id !== current.pages[0].id) fail('front_page', 'The front page must stay first and cannot be removed.');
+        if (deck.pages[0].id !== current.pages[0].id) fail('front_page', 'The front seite must stay first and cannot be removed.');
         const retained = deck.pages.filter(page => current.pages.some(saved => saved.id === page.id)).map(page => page.id);
-        if (JSON.stringify(retained) !== JSON.stringify(current.pages.filter(page => pageIds.has(page.id)).map(page => page.id))) fail('invalid', 'Retained pages must keep their order.');
+        if (JSON.stringify(retained) !== JSON.stringify(current.pages.filter(page => pageIds.has(page.id)).map(page => page.id))) fail('invalid', 'Retained seites must keep their order.');
         const newIndex = deck.pages.findIndex(page => !current.pages.some(saved => saved.id === page.id));
-        if (newIndex >= 0 && deck.pages.slice(newIndex).some(page => current.pages.some(saved => saved.id === page.id))) fail('invalid', 'New pages must be appended.');
-        for (const page of deck.pages) if (basePageIds.includes(page.id) && !current.pages.some(saved => saved.id === page.id)) fail('deleted', 'A page in this draft was deleted. Reopen the saved configuration.');
+        if (newIndex >= 0 && deck.pages.slice(newIndex).some(page => current.pages.some(saved => saved.id === page.id))) fail('invalid', 'New seites must be appended.');
+        for (const page of deck.pages) if (basePageIds.includes(page.id) && !current.pages.some(saved => saved.id === page.id)) fail('deleted', 'A seite in this draft was deleted. Reopen the saved configuration.');
         const removed = current.pages.filter(page => !pageIds.has(page.id));
         const lostContent = [];
         for (const page of removed) lostContent.push(...await this.database.all("SELECT card_id, page_id, text FROM pages WHERE page_id = $1 AND text != '' ORDER BY card_id", [page.id]));
         if (lostContent.length) {
           const digest = createHash('sha256').update(JSON.stringify(lostContent)).digest('hex');
-          if (confirmation !== digest) throw new StoreError('content_loss', 'Removing these pages will delete their saved content, including manual edits, from every affected card.', { confirmation: digest });
+          if (confirmation !== digest) throw new StoreError('content_loss', 'Removing these seites will delete their saved content, including manual edits, from every affected karte.', { confirmation: digest });
         }
         await this.database.run("UPDATE decks SET name = $1 WHERE id = $2", [deck.name.trim(), id]);
         for (const page of removed)
@@ -285,7 +285,7 @@ export class AccountStore {
         await this.database.run("INSERT INTO decks (id, name) VALUES ($1, $2)", [id, deck.name.trim()]);
       for (const [position, page] of deck.pages.entries()) {
         const saved = await this.database.one("SELECT deck_id FROM layout_pages WHERE id = $1", [page.id]);
-        if (saved && saved.deck_id !== id) fail('invalid', 'This page belongs to another deck.');
+        if (saved && saved.deck_id !== id) fail('invalid', 'This seite belongs to another deck.');
         if (saved)
           await this.database.run("UPDATE layout_pages SET position = $1, modules = $2 WHERE id = $3", [position, JSON.stringify(page.modules), page.id]);
         else {
@@ -317,7 +317,7 @@ export class AccountStore {
   async card(id) {
     return this.database.transaction(async () => {
       const card = await this.database.one("SELECT * FROM cards WHERE id = $1", [id]);
-      if (!card) fail('deleted', 'The card no longer exists.');
+      if (!card) fail('deleted', 'The karte no longer exists.');
       const pages = await this.database.all(`SELECT p.* FROM pages p JOIN layout_pages l ON l.id = p.page_id
       WHERE card_id = $1 ORDER BY l.position`, [id]);
       const states = pages.map(page => page.status).filter(Boolean);
@@ -410,7 +410,7 @@ export class AccountStore {
       const attempt = await this.attempt(attemptId);
       if (attempt.state !== 'loading' || attempt.result) fail('stale_attempt', 'The attempt no longer accepts results.');
       await this.requireSession({ installationId: attempt.installation_id, sessionId: attempt.session_id, epoch: attempt.epoch });
-      if (typeof result.ok !== 'boolean' || (result.ok && typeof result.text !== 'string')) fail('invalid', 'Invalid page result.');
+      if (typeof result.ok !== 'boolean' || (result.ok && typeof result.text !== 'string')) fail('invalid', 'Invalid seite result.');
       await this.database.run("UPDATE attempts SET result = $1 WHERE id = $2", [JSON.stringify(result), attemptId]);
     });
   }
@@ -426,7 +426,7 @@ export class AccountStore {
       const text = attempt.result.ok ? attempt.result.text : '';
       const changed = await this.database.run(`UPDATE pages SET text = $1, status = $2
         WHERE card_id = $3 AND page_id = $4 AND attempt_id = $5 AND status = 'loading'`, [text, state, attempt.card_id, attempt.page_id, attemptId]);
-      if (!changed.rowCount) fail('stale_attempt', 'The page has moved on to another attempt.');
+      if (!changed.rowCount) fail('stale_attempt', 'The seite has moved on to another attempt.');
       await this.database.run("UPDATE attempts SET state = $1, result = NULL WHERE id = $2", [state, attemptId]);
       await this.syncFrontSortKey(attempt.card_id);
       return { cardId: attempt.card_id, pageId: attempt.page_id, state };
@@ -436,12 +436,12 @@ export class AccountStore {
     return await this.command(operationId, 'save-pages', { cardId, changes }, async () => {
       const card = await this.card(cardId);
       if (!Array.isArray(changes) || changes.some(change => !change || typeof change !== 'object') ||
-        new Set(changes.map(change => change.pageId)).size !== changes.length) fail('invalid', 'Choose each changed page once.');
+        new Set(changes.map(change => change.pageId)).size !== changes.length) fail('invalid', 'Choose each changed seite once.');
       for (const change of changes) {
         const page = card.pages.find(page => page.page_id === change.pageId);
-        if (!page) fail('deleted', 'A changed page no longer exists.');
-        if (page.status === 'loading') fail('generating', 'A page is still generating. Your drafts are preserved.');
-        if (typeof change.text !== 'string') fail('invalid', 'Page content must be text.');
+        if (!page) fail('deleted', 'A changed seite no longer exists.');
+        if (page.status === 'loading') fail('generating', 'A seite is still generating. Your drafts are preserved.');
+        if (typeof change.text !== 'string') fail('invalid', 'Seite content must be text.');
       }
       for (const change of changes)
         await this.database.run("UPDATE pages SET text = $1 WHERE card_id = $2 AND page_id = $3", [change.text, cardId, change.pageId]);
@@ -453,8 +453,8 @@ export class AccountStore {
     return await this.command(operationId, 'create-manual', { deckId, pages }, async () => {
       const deck = await this.deck(deckId);
       if (!Array.isArray(pages) || pages.some(page => !page || typeof page !== 'object') ||
-        new Set(pages.map(page => page.pageId)).size !== pages.length || pages.some(page => typeof page.text !== 'string')) fail('invalid', 'Each page needs plain-text content.');
-      for (const page of pages) if (!deck.pages.some(saved => saved.id === page.pageId)) fail('deleted', 'A page in this draft was deleted. Your draft is preserved.');
+        new Set(pages.map(page => page.pageId)).size !== pages.length || pages.some(page => typeof page.text !== 'string')) fail('invalid', 'Each seite needs plain-text content.');
+      for (const page of pages) if (!deck.pages.some(saved => saved.id === page.pageId)) fail('deleted', 'A seite in this draft was deleted. Your draft is preserved.');
       const id = randomUUID();
       await this.database.run("INSERT INTO cards (id, deck_id, selected_text, created_at) VALUES ($1, $2, NULL, $3)", [id, deckId, new Date().toISOString()]);
       for (const page of deck.pages)
@@ -467,10 +467,10 @@ export class AccountStore {
     return await this.command(operationId, 'retry', { cardId, pageId, session }, async () => {
       await this.requireSession(session);
       const card = await this.card(cardId);
-      if (card.selected_text === null) fail('manual_card', 'Manual cards have no generation input.');
+      if (card.selected_text === null) fail('manual_card', 'Manual kartes have no generation input.');
       const page = card.pages.find(page => page.page_id === pageId);
-      if (!page) fail('deleted', 'The page no longer exists.');
-      if (page.status === 'loading') fail('generating', 'This page is already generating.');
+      if (!page) fail('deleted', 'The seite no longer exists.');
+      if (page.status === 'loading') fail('generating', 'This seite is already generating.');
       const layout = (await this.deck(card.deck_id)).pages.find(page => page.id === pageId);
       admit?.();
       return { attemptId: (await this.startAttempt(cardId, pageId, session, layout.modules)) };

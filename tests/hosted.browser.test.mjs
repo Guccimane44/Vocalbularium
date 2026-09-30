@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { chromium } from 'playwright';
 
-test('hosted candidate: two real installations and synchronized card editing', {
+test('hosted candidate: two real installations and synchronized karte editing', {
   skip: !process.env.VOCABULARIUM_API_URL, timeout: 120000
 }, async t => {
   const origin = new URL(process.env.VOCABULARIUM_API_URL).origin;
@@ -20,10 +20,10 @@ test('hosted candidate: two real installations and synchronized card editing', {
     try {
       if (cleanupURL) {
         await cleanupPage.goto(cleanupURL);
-        await cleanupPage.getByRole('button', { name: 'Edit card manually', exact: true }).click();
-        await cleanupPage.getByRole('button', { name: 'Delete card', exact: true }).click();
-        await cleanupPage.getByRole('dialog').getByRole('button', { name: 'Delete card', exact: true }).click();
-        await cleanupPage.getByRole('button', { name: 'Add card manually', exact: true }).waitFor();
+        await cleanupPage.getByRole('button', { name: 'Edit karte manually', exact: true }).click();
+        await cleanupPage.getByRole('button', { name: 'Delete karte', exact: true }).click();
+        await cleanupPage.getByRole('dialog').getByRole('button', { name: 'Delete karte', exact: true }).click();
+        await cleanupPage.getByRole('button', { name: 'Add karte manually', exact: true }).waitFor();
       }
       if (cleanupDeckURL) {
         await cleanupPage.goto(cleanupDeckURL);
@@ -68,35 +68,35 @@ test('hosted candidate: two real installations and synchronized card editing', {
     assert.equal(await a.getByLabel('Appearance', { exact: true }).inputValue(), 'dark');
     assert.equal(await b.getByLabel('Appearance', { exact: true }).inputValue(), 'light');
   } else for (const page of [a, b]) {
-    await page.locator('article.capture').filter({ has: page.getByText('幸福', { exact: true }) }).last().getByRole('button', { name: 'Open card', exact: true }).click();
+    await page.locator('article.capture').filter({ has: page.getByText('幸福', { exact: true }) }).last().getByRole('button', { name: 'Open karte', exact: true }).click();
     assert.equal(await page.locator('pre').textContent(), '幸福');
-    await page.getByRole('button', { name: 'Page 2', exact: true }).click();
+    await page.getByRole('button', { name: 'Seite 2', exact: true }).click();
     await page.locator('pre').filter({ hasText: '=== Beispiele ===' }).waitFor();
     await page.getByRole('button', { name: '← My Deck', exact: true }).click();
   }
   const title = `Hosted browser check ${Date.now()}`;
-  await a.getByRole('button', { name: 'Add card manually', exact: true }).click();
-  await a.getByLabel('Page 1 content', { exact: true }).fill(title);
-  await a.getByRole('button', { name: 'Page 2', exact: true }).click();
-  await a.getByLabel('Page 2 content', { exact: true }).fill('Saved in the first installation.');
+  await a.getByRole('button', { name: 'Add karte manually', exact: true }).click();
+  await a.getByLabel('Seite 1 content', { exact: true }).fill(title);
+  await a.getByRole('button', { name: 'Seite 2', exact: true }).click();
+  await a.getByLabel('Seite 2 content', { exact: true }).fill('Saved in the first installation.');
   await a.getByRole('button', { name: 'Save', exact: true }).click();
-  await a.getByRole('button', { name: 'Edit card manually', exact: true }).waitFor();
+  await a.getByRole('button', { name: 'Edit karte manually', exact: true }).waitFor();
   cleanupPage = a; cleanupURL = a.url();
   // Creating a card opens its front page. Observe page 2 before checking its remote edit.
-  await a.getByRole('button', { name: 'Page 2', exact: true }).click();
+  await a.getByRole('button', { name: 'Seite 2', exact: true }).click();
   await a.locator('pre').filter({ hasText: 'Saved in the first installation.' }).waitFor();
   await b.getByRole('button', { name: title, exact: true }).click();
-  await b.getByRole('button', { name: 'Page 2', exact: true }).click();
+  await b.getByRole('button', { name: 'Seite 2', exact: true }).click();
   assert.equal(await b.locator('pre').textContent(), 'Saved in the first installation.');
-  await b.getByRole('button', { name: 'Edit card manually', exact: true }).click();
-  await b.getByLabel('Page 2 content', { exact: true }).fill('Edited in the second installation.');
+  await b.getByRole('button', { name: 'Edit karte manually', exact: true }).click();
+  await b.getByLabel('Seite 2 content', { exact: true }).fill('Edited in the second installation.');
   await b.getByRole('button', { name: 'Save', exact: true }).click();
-  await b.getByRole('button', { name: 'Edit card manually', exact: true }).waitFor();
+  await b.getByRole('button', { name: 'Edit karte manually', exact: true }).waitFor();
   await a.locator('pre').filter({ hasText: 'Edited in the second installation.' }).waitFor();
-  await a.getByRole('button', { name: 'Edit card manually', exact: true }).click();
-  await a.getByRole('button', { name: 'Delete card', exact: true }).click();
-  await a.getByRole('dialog').getByRole('button', { name: 'Delete card', exact: true }).click();
-  await a.getByRole('button', { name: 'Add card manually', exact: true }).waitFor();
+  await a.getByRole('button', { name: 'Edit karte manually', exact: true }).click();
+  await a.getByRole('button', { name: 'Delete karte', exact: true }).click();
+  await a.getByRole('dialog').getByRole('button', { name: 'Delete karte', exact: true }).click();
+  await a.getByRole('button', { name: 'Add karte manually', exact: true }).waitFor();
   cleanupURL = undefined;
   if (interfaceOnly) {
     assert.equal(await a.locator('.card-row').count(), 0);
@@ -109,10 +109,10 @@ test('hosted candidate: two real installations and synchronized card editing', {
   await mkdir('.data', { recursive: true });
   await writeFile('.data/hosted-browser-smoke.json', JSON.stringify({
     date: new Date().toISOString(), origin, browser: contexts[0].browser().version(),
-    checks: [interfaceOnly ? 'Disposable deck created; existing decks/default preserved; independent themes persist' : 'Generated pages displayed in two real extension installations',
-      'Manual card created and synchronized', 'Remote page edit refreshed in the first installation',
-      'Manual test card deleted through the extension', ...(interfaceOnly ? ['Disposable deck deleted through its card-list menu'] : [])],
+    checks: [interfaceOnly ? 'Disposable deck created; existing decks/default preserved; independent themes persist' : 'Generated seites displayed in two real extension installations',
+      'Manual karte created and synchronized', 'Remote seite edit refreshed in the first installation',
+      'Manual test karte deleted through the extension', ...(interfaceOnly ? ['Disposable deck deleted through its karte-list menu'] : [])],
     result: 'passed'
   }, null, 2) + '\n');
-  console.log(`Hosted browser evidence: ${interfaceOnly ? 'independent themes and disposable deck cleanup' : 'generated pages'} verified in two profiles; manual card saved, synchronized, edited remotely, and deleted through the real candidate.`);
+  console.log(`Hosted browser evidence: ${interfaceOnly ? 'independent themes and disposable deck cleanup' : 'generated pages'} verified in two profiles; manual karte saved, synchronized, edited remotely, and deleted through the real candidate.`);
 });
