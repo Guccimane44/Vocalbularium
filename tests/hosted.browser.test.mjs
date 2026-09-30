@@ -82,7 +82,7 @@ test('hosted candidate: two real installations and synchronized karte editing', 
   await a.getByRole('button', { name: 'Save', exact: true }).click();
   await a.getByRole('button', { name: 'Edit karte manually', exact: true }).waitFor();
   cleanupPage = a; cleanupURL = a.url();
-  // Creating a card opens its front page. Observe page 2 before checking its remote edit.
+  // Creating a karte opens its front seite. Observe seite 2 before checking its remote edit.
   await a.getByRole('button', { name: 'Seite 2', exact: true }).click();
   await a.locator('pre').filter({ hasText: 'Saved in the first installation.' }).waitFor();
   await b.getByRole('button', { name: title, exact: true }).click();
@@ -114,5 +114,5 @@ test('hosted candidate: two real installations and synchronized karte editing', 
       'Manual test karte deleted through the extension', ...(interfaceOnly ? ['Disposable deck deleted through its karte-list menu'] : [])],
     result: 'passed'
   }, null, 2) + '\n');
-  console.log(`Hosted browser evidence: ${interfaceOnly ? 'independent themes and disposable deck cleanup' : 'generated pages'} verified in two profiles; manual karte saved, synchronized, edited remotely, and deleted through the real candidate.`);
+  console.log(`Hosted browser evidence: ${interfaceOnly ? 'independent themes and disposable deck cleanup' : 'generated seites'} verified in two profiles; manual karte saved, synchronized, edited remotely, and deleted through the real candidate.`);
 });

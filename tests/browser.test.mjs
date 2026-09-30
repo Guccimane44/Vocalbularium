@@ -89,7 +89,7 @@ test('real Chromium extension: feedback, independent captures, worker restart, a
   prototype.dropNextCaptureResponse();
   const uncertainId = await invoke(a.worker, 'save response lost');
   const uncertain = (await prototype.store.kartes()).find(karte => karte.selected_text === 'save response lost');
-  const attemptIds = uncertain.pages.map(page => page.attempt_id);
+  const attemptIds = uncertain.seites.map(page => page.attempt_id);
   const pending = await a.worker.evaluate(async (id) => (await chrome.storage.local.get(`capture-${id}`))[`capture-${id}`], uncertainId);
   assert.equal(pending.state, 'pending');
   const recovery = await a.context.newPage();
@@ -97,7 +97,7 @@ test('real Chromium extension: feedback, independent captures, worker restart, a
   await recovery.getByRole('button', { name: 'Try saving again' }).click();
   await waitFor(async () => (await prototype.store.karte(uncertain.id)).status === 'completed', 'uncertain save explicitly resubmitted');
   assert.equal((await prototype.store.kartes()).filter(karte => karte.selected_text === 'save response lost').length, 1);
-  assert.deepEqual((await prototype.store.karte(uncertain.id)).pages.map(page => page.attempt_id), attemptIds);
+  assert.deepEqual((await prototype.store.karte(uncertain.id)).seites.map(page => page.attempt_id), attemptIds);
   await recovery.close();
   // Stopping the worker is deliberately different from closing its browser profile.
   const priorSession = await a.worker.evaluate(async () => (await chrome.storage.session.get('session')).session);
@@ -128,7 +128,7 @@ test('real Chromium extension: feedback, independent captures, worker restart, a
   const pendingSession = await a.worker.evaluate(async () => (await chrome.storage.session.get('session')).session);
   await a.context.close(); contexts.delete(a.context);
   await waitFor(async () => (await prototype.store.karte(otherKarte.id)).status === 'completed', 'other installation completes');
-  assert.equal((await prototype.store.karte(interruptedKarte.id)).pages[0].text, '', 'server must not publish without originating browser');
+  assert.equal((await prototype.store.karte(interruptedKarte.id)).seites[0].text, '', 'server must not publish without originating browser');
   a = await launch(profileA); contexts.add(a.context);
   const nextSession = await a.worker.evaluate(() => globalThis.foundation.initialize());
   assert.equal(nextSession.installationId, pendingSession.installationId);
@@ -137,7 +137,7 @@ test('real Chromium extension: feedback, independent captures, worker restart, a
   assert.equal((await prototype.store.karte(interruptedKarte.id)).status, 'failed');
   assert.equal((await prototype.store.karte(otherKarte.id)).status, 'completed');
   assert.equal((await prototype.store.karte(firstKarteId)).status, 'completed');
-  await assert.rejects(async () => (await prototype.store.stage(interruptedKarte.pages[0].attempt_id, { ok: true, text: 'late' })), error => error.code === 'stale_attempt');
+  await assert.rejects(async () => (await prototype.store.stage(interruptedKarte.seites[0].attempt_id, { ok: true, text: 'late' })), error => error.code === 'stale_attempt');
 
   // Keep the fallback popup alive long enough to verify manual dismissal under slow CI scheduling.
   await a.context.addInitScript(() => {
@@ -187,14 +187,14 @@ test('abrupt browser-process termination cannot publish staged output after rest
   const disconnected = once(browser, 'disconnected');
   process.kill(ownedBrowser.id, 'SIGKILL');
   await disconnected;
-  await waitFor(async () => (await prototype.store.attempt(karte.pages[0].attempt_id)).result !== null, 'server result staged after browser termination');
-  assert.equal((await prototype.store.karte(karte.id)).pages[0].text, '');
+  await waitFor(async () => (await prototype.store.attempt(karte.seites[0].attempt_id)).result !== null, 'server result staged after browser termination');
+  assert.equal((await prototype.store.karte(karte.id)).seites[0].text, '');
   reopened = await launch(profile);
   const newSession = await reopened.worker.evaluate(() => globalThis.foundation.initialize());
   assert.equal(newSession.installationId, oldSession.installationId);
   assert.equal(newSession.epoch, oldSession.epoch + 1);
   assert.equal((await prototype.store.karte(karte.id)).status, 'failed');
   await assert.rejects(async () => (await prototype.store.publish('late-publish', {
-    attemptId: karte.pages[0].attempt_id, session: oldSession
+    attemptId: karte.seites[0].attempt_id, session: oldSession
   })), error => error.code === 'stale_session');
 });

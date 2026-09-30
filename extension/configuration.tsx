@@ -12,7 +12,7 @@ const seite = (type?: ModuleType) => ({
 
 export const newDeckDraft = (): DeckLayout => ({
   name: '',
-  pages: [seite('selected'), seite('german-examples')]
+  seites: [seite('selected'), seite('german-examples')]
 });
 
 function sample(type: string, inputType: 'word_phrase' | 'sentence', instance: number): string {
@@ -41,18 +41,18 @@ type Props = {
 export function ConfigurationView({ draft, send, onSaved, onCancel, externalError }: Props) {
   const [, redraw] = useReducer((value: number) => value + 1, 0);
   const refresh = () => redraw();
-  if (!draft.deck.pages.some(item => item.id === draft.selectedPage)) {
-    draft.selectedPage = draft.deck.pages[0].id;
+  if (!draft.deck.seites.some(item => item.id === draft.selectedSeite)) {
+    draft.selectedSeite = draft.deck.seites[0].id;
   }
-  const current = draft.deck.pages.find(item => item.id === draft.selectedPage)!;
-  const currentIndex = draft.deck.pages.indexOf(current);
+  const current = draft.deck.seites.find(item => item.id === draft.selectedSeite)!;
+  const currentIndex = draft.deck.seites.indexOf(current);
   const busy = Boolean(draft.saving || draft.pending);
   const sampleType = draft.sampleType ?? 'word_phrase';
 
   async function saveDraft(): Promise<void> {
     const pending = draft.pending ?? {
       operationId: crypto.randomUUID(),
-      payload: { deck: structuredClone(draft.deck), basePageIds: [...draft.basePageIds] }
+      payload: { deck: structuredClone(draft.deck), baseSeiteIds: [...draft.baseSeiteIds] }
     };
     draft.pending = pending;
     draft.saving = true;
@@ -79,7 +79,7 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
           return;
         }
       } else {
-        draft.pending = ['invalid', 'front_page', 'deleted', 'replacement'].includes(failure.code ?? '')
+        draft.pending = ['invalid', 'front_seite', 'deleted', 'replacement'].includes(failure.code ?? '')
           ? undefined : pending;
         draft.error = failure.message;
       }
@@ -101,18 +101,18 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
             refresh();
           }} />
           <label htmlFor="seite-count">Number of seites</label>
-          <select id="seite-count" value={String(draft.deck.pages.length)} onChange={event => {
+          <select id="seite-count" value={String(draft.deck.seites.length)} onChange={event => {
             const target = Number(event.target.value);
-            while (draft.deck.pages.length < target) draft.deck.pages.push(seite());
-            draft.deck.pages.splice(target);
+            while (draft.deck.seites.length < target) draft.deck.seites.push(seite());
+            draft.deck.seites.splice(target);
             refresh();
           }}>
             {[1, 2, 3, 4].map(count => <option value={count} key={count}>{count}</option>)}
           </select>
           <nav className="seites" aria-label="Configure seites">
-            {draft.deck.pages.map((item, index) => <button key={item.id}
-              aria-current={item.id === draft.selectedPage}
-              onClick={() => { draft.selectedPage = item.id; refresh(); }}>Seite {index + 1}</button>)}
+            {draft.deck.seites.map((item, index) => <button key={item.id}
+              aria-current={item.id === draft.selectedSeite}
+              onClick={() => { draft.selectedSeite = item.id; refresh(); }}>Seite {index + 1}</button>)}
           </nav>
           <section className="module-seite">
             <h2>{currentIndex === 0 ? 'Front seite' : 'Seite ' + (currentIndex + 1)}</h2>
@@ -130,7 +130,7 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
               </div>;
             })}
             {currentIndex !== 0 && <button onClick={() => {
-              draft.deck.pages = draft.deck.pages.filter(item => item !== current);
+              draft.deck.seites = draft.deck.seites.filter(item => item !== current);
               refresh();
             }}>Remove this seite</button>}
           </section>
@@ -166,7 +166,7 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
           <option value="word_phrase">Word / phrase: 幸福</option>
           <option value="sentence">Sentence: 我真的很幸福</option>
         </select>
-        {draft.deck.pages.map((item, index) => {
+        {draft.deck.seites.map((item, index) => {
           const text = item.modules.map((module, instance) => sample(module.type, sampleType, instance))
             .filter(Boolean).join('\n\n');
           return <article className="preview" key={item.id}>

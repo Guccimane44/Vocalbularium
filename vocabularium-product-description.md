@@ -35,7 +35,7 @@ reading, browsing, watching, or listening
                 ↓
        add it to Vocabularium
                 ↓
-      generate a card automatically
+      generate a karte automatically
                 ↓
           save it to a deck
                 ↓
@@ -135,19 +135,19 @@ The front seite will usually contain the original input or expression through a 
 A user learning several languages might assemble a karte like this:
 
 ```text
-Vocabulary card
+Vocabulary karte
 │
-├── Front page — required
+├── Front seite — required
 │   └── Word: house
 │
-├── German page
+├── German seite
 │   ├── Translation: das Haus
 │   ├── Article
 │   ├── Plural: die Häuser
 │   ├── Example
 │   └── Other customized German modules
 │
-└── Spanish page
+└── Spanish seite
     ├── Translation: la casa
     ├── Gender: feminine
     ├── Plural: las casas
@@ -160,16 +160,16 @@ This is a flagship use case, not a required template. Another user might create 
 For example:
 
 ```text
-Front page
+Front seite
 → Chinese expression + audio
 
-Page 2
+Seite 2
 → Pinyin + contextual explanation
 
-Page 3
+Seite 3
 → Character decomposition
 
-Page 4
+Seite 4
 → German translation
 ```
 
@@ -180,10 +180,10 @@ The seite and module system exists to support different purposes, not to enforce
 Consider a deck layout with two seites:
 
 ```text
-Page A
+Seite A
 └── Print input module
 
-Page B
+Seite B
 ├── German translation module
 └── German article module
 ```
@@ -191,10 +191,10 @@ Page B
 If the user adds an English sentence, the result is:
 
 ```text
-Page A
+Seite A
 └── The original sentence is printed
 
-Page B
+Seite B
 └── The German translation is printed
 ```
 

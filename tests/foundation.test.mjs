@@ -16,11 +16,11 @@ async function fixture(t, databaseKey) {
 async function capture(store, id = 'capture', session = a, selectedText = '  幸福\n') {
   const payload = { session, selectedText, snapshot: (await store.snapshot()) };
   const result = await store.capture(id, payload);
-  return { ...result, payload, card: (await store.karte(result.cardId)) };
+  return { ...result, payload, karte: (await store.karte(result.karteId)) };
 }
 async function complete(store, karte, session = a) {
-  for (const page of karte.pages) {
-    await store.stage(page.attempt_id, { ok: true, text: `seite ${page.page_id}` });
+  for (const page of karte.seites) {
+    await store.stage(page.attempt_id, { ok: true, text: `seite ${page.seite_id}` });
     await store.publish(`publish-${page.attempt_id}`, { attemptId: page.attempt_id, session });
   }
 }
@@ -37,7 +37,7 @@ test('account initialization is persistent and occurs once', async (t) => {
   const first = await createTestStore(t, databaseKey);
   await first.openSession('open-a', a);
   const initial = await first.snapshot();
-  const { cardId: karteId } = await capture(first);
+  const { karteId } = await capture(first);
   await first.close();
   reopened = (await createTestStore(t, databaseKey));
   assert.deepEqual((await reopened.snapshot()), initial);
@@ -50,29 +50,29 @@ test('uncertain capture resubmission preserves identity; separate identical capt
   const first = await capture(store);
   const replay = await store.capture('capture', first.payload);
   const second = await capture(store, 'capture-2');
-  assert.equal(replay.cardId, first.cardId);
+  assert.equal(replay.karteId, first.karteId);
   assert.equal(replay.sequence, first.sequence);
   assert.equal(replay.replayed, true);
-  assert.notEqual(second.cardId, first.cardId);
+  assert.notEqual(second.karteId, first.karteId);
   assert.equal((await store.kartes()).length, 2);
   await assert.rejects(async () => (await store.capture('capture', { ...first.payload, selectedText: 'other' })), code('operation_reused'));
 });
 
 test('server stage cannot publish; another installation cannot publish its result', async (t) => {
   const store = await fixture(t);
-  const { cardId: karteId, card: karte } = await capture(store);
-  const attemptId = karte.pages[0].attempt_id;
+  const { karteId, karte } = await capture(store);
+  const attemptId = karte.seites[0].attempt_id;
   await store.stage(attemptId, { ok: true, text: 'generated' });
-  assert.equal((await store.karte(karteId)).pages[0].text, '');
+  assert.equal((await store.karte(karteId)).seites[0].text, '');
   assert.equal((await store.karte(karteId)).status, 'loading');
   await assert.rejects(async () => (await store.publish('wrong', { attemptId, session: b })), code('wrong_session'));
   await store.publish('right', { attemptId, session: a });
-  assert.equal((await store.karte(karteId)).pages[0].text, 'generated');
+  assert.equal((await store.karte(karteId)).seites[0].text, 'generated');
 });
 
 test('worker reconnection in the same browser session does not interrupt generation', async (t) => {
   const store = await fixture(t);
-  const { cardId: karteId, card: karte } = await capture(store);
+  const { karteId, karte } = await capture(store);
   await store.openSession('worker-reconnect', a);
   await complete(store, karte);
   assert.equal((await store.karte(karteId)).status, 'completed');
@@ -85,79 +85,79 @@ test('storage roundtrips may reorder object keys without changing an operation',
   assert.equal(replay.replayed, true);
   const original = await capture(store);
   const reorderedPayload = {
-    snapshot: { pages: original.payload.snapshot.pages, id: original.payload.snapshot.id, name: original.payload.snapshot.name },
+    snapshot: { seites: original.payload.snapshot.seites, id: original.payload.snapshot.id, name: original.payload.snapshot.name },
     selectedText: original.payload.selectedText,
     session: reordered
   };
-  assert.equal((await store.capture('capture', reorderedPayload)).cardId, original.cardId);
+  assert.equal((await store.capture('capture', reorderedPayload)).karteId, original.karteId);
 });
 
 test('browser restart fails only its unfinished seites and fences late results', async (t) => {
   const store = await fixture(t);
   const own = await capture(store);
   const other = await capture(store, 'capture-b', b);
-  const doneId = own.card.pages[0].attempt_id;
-  const pendingId = own.card.pages[1].attempt_id;
+  const doneId = own.karte.seites[0].attempt_id;
+  const pendingId = own.karte.seites[1].attempt_id;
   await store.stage(doneId, { ok: true, text: 'already saved' });
   await store.publish('complete-one', { attemptId: doneId, session: a });
   await store.stage(pendingId, { ok: true, text: 'late result' });
   await store.openSession('restart-a', { ...a, sessionId: 'a-2', epoch: 2 });
-  const reconciled = await store.karte(own.cardId);
-  assert.equal(reconciled.pages[0].text, 'already saved');
-  assert.equal(reconciled.pages[1].text, '');
-  assert.equal(reconciled.pages[1].status, 'failed');
+  const reconciled = await store.karte(own.karteId);
+  assert.equal(reconciled.seites[0].text, 'already saved');
+  assert.equal(reconciled.seites[1].text, '');
+  assert.equal(reconciled.seites[1].status, 'failed');
   assert.equal(reconciled.status, 'failed');
-  assert.equal((await store.karte(other.cardId)).status, 'loading');
+  assert.equal((await store.karte(other.karteId)).status, 'loading');
   await assert.rejects(async () => (await store.publish('late-publish', { attemptId: pendingId, session: a })), code('stale_session'));
   await assert.rejects(async () => (await store.stage(pendingId, { ok: true, text: 'even later' })), code('stale_attempt'));
   await assert.rejects(async () => (await store.openSession('delayed-old-handshake', a)), code('stale_session'));
-  await complete(store, other.card, b);
+  await complete(store, other.karte, b);
 });
 
 test('failed attempt discards content; a completed empty seite is valid', async (t) => {
   const store = await fixture(t);
-  const { cardId: karteId, card: karte } = await capture(store);
-  await store.stage(karte.pages[0].attempt_id, { ok: true, text: '' });
-  await store.publish('empty', { attemptId: karte.pages[0].attempt_id, session: a });
-  await store.stage(karte.pages[1].attempt_id, { ok: false, text: 'must not publish' });
-  await store.publish('fail', { attemptId: karte.pages[1].attempt_id, session: a });
+  const { karteId, karte } = await capture(store);
+  await store.stage(karte.seites[0].attempt_id, { ok: true, text: '' });
+  await store.publish('empty', { attemptId: karte.seites[0].attempt_id, session: a });
+  await store.stage(karte.seites[1].attempt_id, { ok: false, text: 'must not publish' });
+  await store.publish('fail', { attemptId: karte.seites[1].attempt_id, session: a });
   const result = await store.karte(karteId);
-  assert.equal(result.pages[0].status, 'completed');
-  assert.equal(result.pages[1].text, '');
+  assert.equal(result.seites[0].status, 'completed');
+  assert.equal(result.seites[1].text, '');
   assert.equal(result.status, 'failed');
-  await store.saveSeites('manual-after-failure', { cardId: karteId, changes: [{ pageId: karte.pages[1].page_id, text: 'manual' }] });
+  await store.saveSeites('manual-after-failure', { karteId, changes: [{ seiteId: karte.seites[1].seite_id, text: 'manual' }] });
   assert.equal((await store.karte(karteId)).status, 'failed');
 });
 
 test('save arrival order wins for the same seite and preserves different seites', async (t) => {
   const store = await fixture(t);
-  const { cardId: karteId, card: karte } = await capture(store);
+  const { karteId, karte } = await capture(store);
   await complete(store, karte);
-  const [p1, p2] = karte.pages.map(page => page.page_id);
-  const first = await store.saveSeites('save-a', { cardId: karteId, changes: [{ pageId: p1, text: 'A' }] });
-  const second = await store.saveSeites('save-b', { cardId: karteId, changes: [{ pageId: p1, text: 'B' }] });
-  const third = await store.saveSeites('save-c', { cardId: karteId, changes: [{ pageId: p2, text: 'C' }] });
+  const [p1, p2] = karte.seites.map(page => page.seite_id);
+  const first = await store.saveSeites('save-a', { karteId, changes: [{ seiteId: p1, text: 'A' }] });
+  const second = await store.saveSeites('save-b', { karteId, changes: [{ seiteId: p1, text: 'B' }] });
+  const third = await store.saveSeites('save-c', { karteId, changes: [{ seiteId: p2, text: 'C' }] });
   assert.ok(first.sequence < second.sequence && second.sequence < third.sequence);
-  const replay = await store.saveSeites('save-a', { cardId: karteId, changes: [{ pageId: p1, text: 'A' }] });
+  const replay = await store.saveSeites('save-a', { karteId, changes: [{ seiteId: p1, text: 'A' }] });
   assert.equal(replay.replayed, true);
-  assert.deepEqual((await store.karte(karteId)).pages.map(page => page.text), ['B', 'C']);
+  assert.deepEqual((await store.karte(karteId)).seites.map(page => page.text), ['B', 'C']);
 });
 
 test('generation rejects an entire multi-seite save; explicit resubmission is a new arrival', async (t) => {
   const store = await fixture(t);
-  const { cardId: karteId, card: karte } = await capture(store);
+  const { karteId, karte } = await capture(store);
   await complete(store, karte);
-  const [p1, p2] = karte.pages.map(page => page.page_id);
-  const { attemptId } = await store.retry('retry', { cardId: karteId, pageId: p2, session: b });
-  const payload = { cardId: karteId, changes: [{ pageId: p1, text: 'draft 1' }, { pageId: p2, text: 'draft 2' }] };
+  const [p1, p2] = karte.seites.map(page => page.seite_id);
+  const { attemptId } = await store.retry('retry', { karteId, seiteId: p2, session: b });
+  const payload = { karteId, changes: [{ seiteId: p1, text: 'draft 1' }, { seiteId: p2, text: 'draft 2' }] };
   await assert.rejects(async () => (await store.saveSeites('save-draft', payload)), code('generating'));
-  assert.notEqual((await store.karte(karteId)).pages[0].text, 'draft 1');
-  await assert.rejects(async () => (await store.retry('retry-again', { cardId: karteId, pageId: p2, session: a })), code('generating'));
+  assert.notEqual((await store.karte(karteId)).seites[0].text, 'draft 1');
+  await assert.rejects(async () => (await store.retry('retry-again', { karteId, seiteId: p2, session: a })), code('generating'));
   await store.stage(attemptId, { ok: true, text: 'new generated text' });
   await store.publish('publish-retry', { attemptId, session: b });
-  assert.equal((await store.karte(karteId)).pages[1].text, 'new generated text');
+  assert.equal((await store.karte(karteId)).seites[1].text, 'new generated text');
   await store.saveSeites('save-draft', payload);
-  assert.deepEqual((await store.karte(karteId)).pages.map(page => page.text), ['draft 1', 'draft 2']);
+  assert.deepEqual((await store.karte(karteId)).seites.map(page => page.text), ['draft 1', 'draft 2']);
 });
 
 test('capture snapshot keeps its destination and instructions, with stable retained seite identities', async (t) => {
@@ -166,29 +166,29 @@ test('capture snapshot keeps its destination and instructions, with stable retai
   const next = await store.createDeck('Another deck');
   await store.setDefault('change-default', next.id);
   const changed = structuredClone(snapshot);
-  changed.pages[0].modules = [{ id: 'new-module', type: 'sentence-usage' }];
-  changed.pages.push({ id: 'appended', modules: [] });
-  await store.saveDeck('change-layout', { deck: changed, basePageIds: snapshot.pages.map(page => page.id) });
-  const { cardId: karteId } = await store.capture('old-snapshot', { session: a, selectedText: 'word', snapshot });
+  changed.seites[0].modules = [{ id: 'new-module', type: 'sentence-usage' }];
+  changed.seites.push({ id: 'appended', modules: [] });
+  await store.saveDeck('change-layout', { deck: changed, baseSeiteIds: snapshot.seites.map(page => page.id) });
+  const { karteId } = await store.capture('old-snapshot', { session: a, selectedText: 'word', snapshot });
   const karte = await store.karte(karteId);
   assert.equal(karte.deck_id, snapshot.id);
-  assert.deepEqual((await store.attempt(karte.pages[0].attempt_id)).modules, snapshot.pages[0].modules);
-  assert.equal(karte.pages[2].status, null);
-  const retained = karte.pages[0];
+  assert.deepEqual((await store.attempt(karte.seites[0].attempt_id)).modules, snapshot.seites[0].modules);
+  assert.equal(karte.seites[2].status, null);
+  const retained = karte.seites[0];
   const shortened = structuredClone(changed);
-  shortened.pages.splice(1, 1);
-  await store.saveDeck('remove-middle', { deck: shortened, basePageIds: changed.pages.map(page => page.id) });
+  shortened.seites.splice(1, 1);
+  await store.saveDeck('remove-middle', { deck: shortened, baseSeiteIds: changed.seites.map(page => page.id) });
   await store.stage(retained.attempt_id, { ok: true, text: 'retained seite output' });
   await store.publish('retained', { attemptId: retained.attempt_id, session: a });
-  assert.equal((await store.karte(karteId)).pages[0].text, 'retained seite output');
+  assert.equal((await store.karte(karteId)).seites[0].text, 'retained seite output');
 });
 
 test('deletion prevents stale saves, retries, and generated results from recreating a karte', async (t) => {
   const store = await fixture(t);
-  const { cardId: karteId, card: karte } = await capture(store);
+  const { karteId, karte } = await capture(store);
   await store.deleteKarte('delete', karteId);
-  await assert.rejects(async () => (await store.stage(karte.pages[0].attempt_id, { ok: true, text: 'late' })), code('deleted'));
-  await assert.rejects(async () => (await store.saveSeites('late-save', { cardId: karteId, changes: [] })), code('deleted'));
-  await assert.rejects(async () => (await store.retry('late-retry', { cardId: karteId, pageId: karte.pages[0].page_id, session: a })), code('deleted'));
+  await assert.rejects(async () => (await store.stage(karte.seites[0].attempt_id, { ok: true, text: 'late' })), code('deleted'));
+  await assert.rejects(async () => (await store.saveSeites('late-save', { karteId, changes: [] })), code('deleted'));
+  await assert.rejects(async () => (await store.retry('late-retry', { karteId, seiteId: karte.seites[0].seite_id, session: a })), code('deleted'));
   assert.equal((await store.kartes()).length, 0);
 });

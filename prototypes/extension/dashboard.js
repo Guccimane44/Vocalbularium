@@ -27,19 +27,19 @@ async function refresh() {
   try {
     const response = await fetch('http://127.0.0.1:4317/state');
     if (!response.ok) throw new Error('The prototype server is unavailable.');
-    const { cards: kartes } = await response.json();
+    const { kartes } = await response.json();
     connection.textContent = local.connectionError ?? 'Connected to local foundation server';
-    document.querySelector('#cards').replaceChildren(...kartes.map(karte => {
+    document.querySelector('#kartes').replaceChildren(...kartes.map(karte => {
       const article = document.createElement('article');
       article.dataset.karteId = karte.id;
       const heading = document.createElement('h3');
       heading.textContent = `${karte.selected_text} · ${karte.status ?? ''}`;
       article.append(heading);
-      for (const [index, page] of karte.pages.entries()) {
+      for (const [index, seite] of karte.seites.entries()) {
         const status = document.createElement('small');
-        status.textContent = `Seite ${index + 1} · ${page.status ?? 'No generation attempt'}`;
+        status.textContent = `Seite ${index + 1} · ${seite.status ?? 'No generation attempt'}`;
         const content = document.createElement('pre');
-        content.textContent = page.text;
+        content.textContent = seite.text;
         article.append(status, content);
       }
       return article;

@@ -10,14 +10,14 @@ export function createPrototype({ store, delayMs = 5000 } = {}) {
   let dropCaptureResponse = false;
   async function generate(karteId) {
     const karte = await store.karte(karteId);
-    for (const page of karte.pages) {
+    for (const seite of karte.seites) {
       const timer = setTimeout(async () => {
         timers.delete(timer);
         try {
-          const attempt = await store.attempt(page.attempt_id);
+          const attempt = await store.attempt(seite.attempt_id);
           const outputs = attempt.modules.map(module => module.type === 'selected' ? karte.selected_text
             : `Illustrative prototype output for: ${karte.selected_text}`);
-          await store.stage(page.attempt_id, { ok: true, text: outputs.join('\n\n') });
+          await store.stage(seite.attempt_id, { ok: true, text: outputs.join('\n\n') });
         } catch (error) {
           if (!['stale_attempt', 'stale_session', 'deleted'].includes(error.code)) console.error(error);
         }
@@ -43,7 +43,7 @@ export function createPrototype({ store, delayMs = 5000 } = {}) {
         response.end('<!doctype html><p id="frame-selection">我真的很幸福</p>'); return;
       }
       let result;
-      if (request.method === 'GET' && request.url === '/state') result = { snapshot: (await store.snapshot()), cards: (await store.kartes()) };
+      if (request.method === 'GET' && request.url === '/state') result = { snapshot: (await store.snapshot()), kartes: (await store.kartes()) };
       else if (request.method === 'POST') {
         let raw = '';
         for await (const chunk of request) {
@@ -55,7 +55,7 @@ export function createPrototype({ store, delayMs = 5000 } = {}) {
         else if (request.url === '/capture') {
           result = (await store.capture(body.operationId, body.payload));
           if (!result.replayed)
-            await generate(result.cardId);
+            await generate(result.karteId);
           if (dropCaptureResponse) {
             dropCaptureResponse = false;
             response.writeHead(200, { 'Content-Type': 'application/json' });

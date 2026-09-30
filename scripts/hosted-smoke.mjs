@@ -10,7 +10,7 @@ if (origin.protocol !== 'https:' || origin.pathname !== '/' || origin.search || 
 async function request(path, token, body, expectedStatus = 200) {
   const response = await fetch(new URL(path, origin), {
     method: body ? 'POST' : 'GET',
-    headers: { ...(body ? { 'Content-Type': 'application/json' } : {}), ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+    headers: { ...(body ? { 'Content-Type': 'application/json', 'X-Vocabularium-Terminology': 'karte-seite' } : {}), ...(token ? { Authorization: `Bearer ${token}` } : {}) },
     body: body ? JSON.stringify(body) : undefined, signal: AbortSignal.timeout(90000)
   });
   assert.equal(response.status, expectedStatus, `${path}: HTTP ${response.status}`);
@@ -32,7 +32,7 @@ try {
   const [a, b] = clients;
   const account = await request('/api/account', a.token);
   const deck = account.decks.find(deck => deck.id === account.defaultDeckId);
-  assert.deepEqual(deck.pages.map(page => page.modules.map(module => module.type)), [['selected'], ['german-examples']], 'Use the initial My Deck layout for this smoke check.');
+  assert.deepEqual(deck.seites.map(seite => seite.modules.map(module => module.type)), [['selected'], ['german-examples']], 'Use the initial My Deck layout for this smoke check.');
 
   async function complete(karteId) {
     const deadline = Date.now() + 150000;
@@ -42,7 +42,7 @@ try {
       for (const attemptId of polled.ready) {
         await request('/api/publish', a.token, { operationId: randomUUID(), payload: { attemptId, session: a.session } });
       }
-      const karte = (await request('/api/account', b.token)).cards.find(karte => karte.id === karteId);
+      const karte = (await request('/api/account', b.token)).kartes.find(karte => karte.id === karteId);
       assert.ok(karte, 'The second installation can see the saved capture.');
       if (karte.status !== 'loading') { assert.equal(karte.status, 'completed'); return karte; }
       await new Promise(resolve => setTimeout(resolve, 1500));
@@ -53,69 +53,69 @@ try {
   for (const [selectedText, inputType] of [['幸福', 'word_phrase'], ['画蛇添足', 'word_phrase'], ['我真的很幸福', 'sentence']]) {
     const { snapshot } = await request('/api/capture/prepare', a.token, { operationId: randomUUID(), payload: { session: a.session, selectedText } });
     const capture = { operationId: randomUUID(), payload: { session: a.session, selectedText, snapshot } };
-    const { cardId: karteId } = await request('/api/capture', a.token, capture);
+    const { karteId } = await request('/api/capture', a.token, capture);
     const repeated = await request('/api/capture', a.token, capture);
-    assert.equal(repeated.cardId, karteId); assert.equal(repeated.replayed, true);
+    assert.equal(repeated.karteId, karteId); assert.equal(repeated.replayed, true);
     let karte = await complete(karteId);
     assert.deepEqual(karte.interpretation, { inputType, sourceLanguage: 'Chinese' });
-    assert.equal(karte.pages[0].text, selectedText);
-    if (inputType === 'sentence') assert.equal(karte.pages[1].text, '');
+    assert.equal(karte.seites[0].text, selectedText);
+    if (inputType === 'sentence') assert.equal(karte.seites[1].text, '');
     else {
-      assert.match(karte.pages[1].text, /=== Bedeutungen ===/);
-      assert.match(karte.pages[1].text, /=== Beispiele ===/);
-      assert.match(karte.pages[1].text, /\n:: /);
+      assert.match(karte.seites[1].text, /=== Bedeutungen ===/);
+      assert.match(karte.seites[1].text, /=== Beispiele ===/);
+      assert.match(karte.seites[1].text, /\n:: /);
     }
     if (selectedText === '画蛇添足') {
-      await request('/api/card/retry', a.token, { operationId: randomUUID(), payload: { cardId: karteId, pageId: karte.pages[1].page_id, session: a.session } });
+      await request('/api/karte/retry', a.token, { operationId: randomUUID(), payload: { karteId, seiteId: karte.seites[1].seite_id, session: a.session } });
       karte = await complete(karteId);
-      assert.equal(karte.pages[0].text, selectedText);
-      assert.ok(karte.pages[1].text.trim());
-      evidence.checks.push('Explicit page retry preserves the other page');
+      assert.equal(karte.seites[0].text, selectedText);
+      assert.ok(karte.seites[1].text.trim());
+      evidence.checks.push('Explicit seite retry preserves the other seite');
     }
-    evidence.captures.push({ selectedText, interpretation: karte.interpretation, pages: karte.pages.map(({ text, status }) => ({ text, status })) });
+    evidence.captures.push({ selectedText, interpretation: karte.interpretation, seites: karte.seites.map(({ text, status }) => ({ text, status })) });
     console.log(`Hosted capture passed: ${inputType}`);
   }
   evidence.checks.push('Word, phrase and sentence generation; initial-layout applicability; duplicate operation replay; visibility from a second installation');
 
-  const { cardId: karteId } = await request('/api/card/create', a.token, { operationId: randomUUID(), payload: { deckId: deck.id, pages: deck.pages.map(page => ({ pageId: page.id, text: 'Hosted smoke draft' })) } });
-  const save = { operationId: randomUUID(), payload: { cardId: karteId, changes: [{ pageId: deck.pages[0].id, text: 'First installation' }] } };
-  await request('/api/card/save', a.token, save);
-  await request('/api/card/save', b.token, { operationId: randomUUID(), payload: { cardId: karteId, changes: [{ pageId: deck.pages[0].id, text: 'Second installation wins' }, { pageId: deck.pages[1].id, text: 'Second page stays' }] } });
-  await request('/api/card/save', a.token, save);
-  let karte = (await request('/api/account', a.token)).cards.find(karte => karte.id === karteId);
-  assert.deepEqual(karte.pages.map(page => page.text), ['Second installation wins', 'Second page stays']);
-  await request('/api/card/save', a.token, { operationId: randomUUID(), payload: { cardId: karteId, changes: [{ pageId: deck.pages[0].id, text: 'Later first page' }] } });
-  karte = (await request('/api/account', b.token)).cards.find(karte => karte.id === karteId);
-  assert.deepEqual(karte.pages.map(page => page.text), ['Later first page', 'Second page stays']);
-  await request('/api/card/delete', a.token, { operationId: randomUUID(), payload: { cardId: karteId } });
-  assert.equal((await request('/api/account', b.token)).cards.some(karte => karte.id === karteId), false);
-  evidence.checks.push('Manual creation, ordered same-page edits, preserved other-page edits, replay without overwriting newer content, and deletion synchronize');
+  const { karteId } = await request('/api/karte/create', a.token, { operationId: randomUUID(), payload: { deckId: deck.id, seites: deck.seites.map(seite => ({ seiteId: seite.id, text: 'Hosted smoke draft' })) } });
+  const save = { operationId: randomUUID(), payload: { karteId, changes: [{ seiteId: deck.seites[0].id, text: 'First installation' }] } };
+  await request('/api/karte/save', a.token, save);
+  await request('/api/karte/save', b.token, { operationId: randomUUID(), payload: { karteId, changes: [{ seiteId: deck.seites[0].id, text: 'Second installation wins' }, { seiteId: deck.seites[1].id, text: 'Second seite stays' }] } });
+  await request('/api/karte/save', a.token, save);
+  let karte = (await request('/api/account', a.token)).kartes.find(karte => karte.id === karteId);
+  assert.deepEqual(karte.seites.map(seite => seite.text), ['Second installation wins', 'Second seite stays']);
+  await request('/api/karte/save', a.token, { operationId: randomUUID(), payload: { karteId, changes: [{ seiteId: deck.seites[0].id, text: 'Later first seite' }] } });
+  karte = (await request('/api/account', b.token)).kartes.find(karte => karte.id === karteId);
+  assert.deepEqual(karte.seites.map(seite => seite.text), ['Later first seite', 'Second seite stays']);
+  await request('/api/karte/delete', a.token, { operationId: randomUUID(), payload: { karteId } });
+  assert.equal((await request('/api/account', b.token)).kartes.some(karte => karte.id === karteId), false);
+  evidence.checks.push('Manual creation, ordered same-seite edits, preserved other-seite edits, replay without overwriting newer content, and deletion synchronize');
 
-  const page = () => ({ id: randomUUID(), modules: [] });
-  const draft = { name: 'Hosted configuration check', pages: [page(), page()] };
+  const seite = () => ({ id: randomUUID(), modules: [] });
+  const draft = { name: 'Hosted configuration check', seites: [seite(), seite()] };
   const { deckId } = await request('/api/deck/save', a.token, { operationId: randomUUID(), payload: { deck: draft } });
   try {
     draft.id = deckId;
-    const { cardId: karteId } = await request('/api/card/create', a.token, { operationId: randomUUID(), payload: {
-      deckId, pages: draft.pages.map((page, index) => ({ pageId: page.id, text: `Retain page ${index + 1}` }))
+    const { karteId } = await request('/api/karte/create', a.token, { operationId: randomUUID(), payload: {
+      deckId, seites: draft.seites.map((seite, index) => ({ seiteId: seite.id, text: `Retain seite ${index + 1}` }))
     } });
-    const extended = structuredClone(draft); extended.pages.push(page());
-    await request('/api/deck/save', b.token, { operationId: randomUUID(), payload: { deck: extended, basePageIds: draft.pages.map(page => page.id) } });
-    const appended = (await request('/api/account', a.token)).cards.find(karte => karte.id === karteId);
-    assert.deepEqual(appended.pages.map(page => [page.text, page.status]), [['Retain page 1', null], ['Retain page 2', null], ['', null]]);
-    const removal = { deck: { ...extended, pages: [extended.pages[0], extended.pages[2]] }, basePageIds: extended.pages.map(page => page.id) };
+    const extended = structuredClone(draft); extended.seites.push(seite());
+    await request('/api/deck/save', b.token, { operationId: randomUUID(), payload: { deck: extended, baseSeiteIds: draft.seites.map(seite => seite.id) } });
+    const appended = (await request('/api/account', a.token)).kartes.find(karte => karte.id === karteId);
+    assert.deepEqual(appended.seites.map(seite => [seite.text, seite.status]), [['Retain seite 1', null], ['Retain seite 2', null], ['', null]]);
+    const removal = { deck: { ...extended, seites: [extended.seites[0], extended.seites[2]] }, baseSeiteIds: extended.seites.map(seite => seite.id) };
     const warning = await request('/api/deck/save', a.token, { operationId: randomUUID(), payload: removal }, 409);
     assert.equal(warning.code, 'content_loss');
-    await request('/api/card/save', b.token, { operationId: randomUUID(), payload: { cardId: karteId, changes: [{ pageId: draft.pages[1].id, text: 'Remote edit after the warning' }] } });
+    await request('/api/karte/save', b.token, { operationId: randomUUID(), payload: { karteId, changes: [{ seiteId: draft.seites[1].id, text: 'Remote edit after the warning' }] } });
     const changed = await request('/api/deck/save', a.token, { operationId: randomUUID(), payload: { ...removal, confirmation: warning.details.confirmation } }, 409);
     assert.equal(changed.code, 'content_loss');
     assert.notEqual(changed.details.confirmation, warning.details.confirmation);
     await request('/api/deck/save', a.token, { operationId: randomUUID(), payload: { ...removal, confirmation: changed.details.confirmation } });
-    const stale = await request('/api/deck/save', b.token, { operationId: randomUUID(), payload: { deck: draft, basePageIds: draft.pages.map(page => page.id) } }, 409);
+    const stale = await request('/api/deck/save', b.token, { operationId: randomUUID(), payload: { deck: draft, baseSeiteIds: draft.seites.map(seite => seite.id) } }, 409);
     assert.equal(stale.code, 'deleted');
-    const retained = (await request('/api/account', b.token)).cards.find(karte => karte.id === karteId);
-    assert.deepEqual(retained.pages.map(page => [page.page_id, page.text]), [[draft.pages[0].id, 'Retain page 1'], [extended.pages[2].id, '']]);
-    evidence.checks.push('Concurrent deck configuration: empty appends, retained page identity, content-loss confirmation revalidated after a remote edit, and stale deleted-page rejection');
+    const retained = (await request('/api/account', b.token)).kartes.find(karte => karte.id === karteId);
+    assert.deepEqual(retained.seites.map(seite => [seite.seite_id, seite.text]), [[draft.seites[0].id, 'Retain seite 1'], [extended.seites[2].id, '']]);
+    evidence.checks.push('Concurrent deck configuration: empty appends, retained seite identity, content-loss confirmation revalidated after a remote edit, and stale deleted-seite rejection');
   } finally {
     await request('/api/deck/delete', a.token, { operationId: randomUUID(), payload: { deckId } });
   }

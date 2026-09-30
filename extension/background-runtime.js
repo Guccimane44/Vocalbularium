@@ -1,3 +1,5 @@
+import { currentValue } from '@vocabularium/contracts';
+import { readLocal } from './recovery.js';
 import { saveOperations } from './save-operations.js';
 import { API_URL } from './config.js';
 import { captureRuntime } from './capture.js';
@@ -18,13 +20,13 @@ export function startBackground() {
     const version = accessVersion;
     const next = refreshes.then(async () => {
       if (version !== accessVersion) return { signedIn: false };
-      const { auth } = await chrome.storage.local.get('auth');
+      const { auth } = await readLocal('auth');
       if (!auth) return { signedIn: false };
       let account;
       try {
         const summary = await request('/api/account/summary', null, auth.token);
         const recent = await request('/api/captures/recent', null, auth.token);
-        account = { ...summary, recentKartes: recent.cards, cards: [] };
+        account = { ...summary, recentKartes: recent.kartes, kartes: [] };
       }
       catch (error) {
         if (version !== accessVersion) return { signedIn: false };
@@ -44,23 +46,23 @@ export function startBackground() {
     refreshes = next.catch(() => {}); return next;
   }
   async function clearHandedOffCaptures(account, token, version) {
-    const local = await chrome.storage.local.get(null);
+    const local = await readLocal(null);
     const recentIds = new Set(account.recentKartes.map(karte => karte.id));
     const confirmed = [];
     let detailChecks = 0;
     for (const [key, receipt] of Object.entries(local)) {
-      if (!key.startsWith('capture-') || receipt?.state !== 'saved' || !receipt.cardId) continue;
-      if (recentIds.has(receipt.cardId)) { confirmed.push([key, receipt.cardId]); continue; }
+      if (!key.startsWith('capture-') || receipt?.state !== 'saved' || !receipt.karteId) continue;
+      if (recentIds.has(receipt.karteId)) { confirmed.push([key, receipt.karteId]); continue; }
       if (detailChecks++ >= 10) continue;
       try {
-        const karte = await request(`/api/cards/${encodeURIComponent(receipt.cardId)}`, null, token);
-        if (karte.id === receipt.cardId) confirmed.push([key, receipt.cardId]);
+        const karte = await request(`/api/kartes/${encodeURIComponent(receipt.karteId)}`, null, token);
+        if (karte.id === receipt.karteId) confirmed.push([key, receipt.karteId]);
       } catch { /* Keep the receipt until handoff can be confirmed. */ }
     }
     if (confirmed.length) await writeState(async () => {
       if (version !== accessVersion) return;
-      const current = await chrome.storage.local.get(confirmed.map(([key]) => key));
-      const removable = confirmed.filter(([key, karteId]) => current[key]?.state === 'saved' && current[key].cardId === karteId).map(([key]) => key);
+      const current = await readLocal(confirmed.map(([key]) => key));
+      const removable = confirmed.filter(([key, karteId]) => current[key]?.state === 'saved' && current[key].karteId === karteId).map(([key]) => key);
       if (removable.length) await chrome.storage.local.remove(removable);
     });
   }
@@ -69,7 +71,7 @@ export function startBackground() {
     try {
       response = await fetch(API_URL + path, {
         method: body ? 'POST' : 'GET',
-        headers: { ...(body ? { 'Content-Type': 'application/json' } : {}), ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        headers: { 'X-Vocabularium-Terminology': 'karte-seite', ...(body ? { 'Content-Type': 'application/json' } : {}), ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: body && JSON.stringify(body), signal: AbortSignal.timeout(10000)
       });
       result = await response.json();
@@ -81,7 +83,7 @@ export function startBackground() {
       const failure = isApiFailure(result) ? result : { error: 'The account server rejected the request.', code: 'server_error' };
       throw Object.assign(new Error(failure.error), { code: failure.code, status: response.status, details: failure.details });
     }
-    return result;
+    return currentValue(result);
   }
 
   async function removeAccess() {
@@ -100,14 +102,14 @@ export function startBackground() {
     const version = accessVersion;
     const pending = (async () => {
       await chrome.storage.local.setAccessLevel({ accessLevel: 'TRUSTED_CONTEXTS' });
-      const { auth } = await chrome.storage.local.get('auth');
+      const { auth } = await readLocal('auth');
       if (!auth) {
         await writeState(async () => { if (version === accessVersion) await updateCaptureMenu(null); });
         return { signedIn: false };
       }
       let { session } = await chrome.storage.session.get('session');
       if (!session) {
-        const local = await chrome.storage.local.get(['installationId', 'epoch']);
+        const local = await readLocal(['installationId', 'epoch']);
         session = { installationId: local.installationId ?? crypto.randomUUID(), epoch: (local.epoch ?? 0) + 1, sessionId: crypto.randomUUID() };
         await chrome.storage.local.set({ installationId: session.installationId, epoch: session.epoch });
         await chrome.storage.session.set({ session });
@@ -131,6 +133,7 @@ export function startBackground() {
   }
 
   async function run(message) {
+    message = currentValue(message);
     await saves.recover();
     if (message.type === 'login') {
       const version = ++accessVersion;
@@ -141,7 +144,7 @@ export function startBackground() {
       return initialize();
     }
     if (message.type === 'logout') {
-      const { auth } = await chrome.storage.local.get('auth');
+      const { auth } = await readLocal('auth');
       if (auth) {
         try { await request('/api/logout', {}, auth.token); }
         catch (error) { if (error.status !== 401) throw error; }
@@ -155,7 +158,7 @@ export function startBackground() {
       return initialized.signedIn ? run({ type: 'refresh' }) : initialized;
     }
     const version = accessVersion;
-    const { auth } = await chrome.storage.local.get('auth');
+    const { auth } = await readLocal('auth');
     if (!auth) {
       if (message.type === 'refresh') return { signedIn: false };
       throw Object.assign(new Error('Sign in to continue.'), { code: 'unauthorized' });
@@ -168,12 +171,12 @@ export function startBackground() {
     try {
       if (message.type === 'refresh') return sessionReady ? refreshAccount() : initialize();
       if (message.type === 'deck-detail') return request(`/api/decks/${encodeURIComponent(message.deckId)}`, null, auth.token);
-      if (message.type === 'card-detail') return request(`/api/cards/${encodeURIComponent(message.cardId)}`, null, auth.token);
+      if (message.type === 'karte-detail') return request(`/api/kartes/${encodeURIComponent(message.karteId)}`, null, auth.token);
       if (message.type === 'deck-page') return request(`/api/decks?cursor=${encodeURIComponent(message.cursor)}`, null, auth.token);
-      if (message.type === 'deck-cards') {
+      if (message.type === 'deck-kartes') {
         const query = new URLSearchParams({ order: message.order ?? 'newest', limit: String(message.limit ?? 30) });
         if (message.cursor) query.set('cursor', message.cursor);
-        return request(`/api/decks/${encodeURIComponent(message.deckId)}/cards?${query}`, null, auth.token);
+        return request(`/api/decks/${encodeURIComponent(message.deckId)}/kartes?${query}`, null, auth.token);
       }
       if (message.type === 'set-default') {
         const operationId = message.operationId ?? crypto.randomUUID();
@@ -181,26 +184,26 @@ export function startBackground() {
         await saves.perform(pending, auth.token);
         return refreshAfterMutation();
       }
-      const paths = { 'save-deck': '/api/deck/save', 'delete-deck': '/api/deck/delete', 'create-card': '/api/card/create', 'save-card': '/api/card/save', 'delete-card': '/api/card/delete', 'retry-page': '/api/card/retry' };
+      const paths = { 'save-deck': '/api/deck/save', 'delete-deck': '/api/deck/delete', 'create-karte': '/api/karte/create', 'save-karte': '/api/karte/save', 'delete-karte': '/api/karte/delete', 'retry-seite': '/api/karte/retry' };
       if (paths[message.type]) {
-        if (message.type === 'retry-page') {
+        if (message.type === 'retry-seite') {
           const { session } = await chrome.storage.session.get('session');
           message.payload = { ...message.payload, session };
         }
         const operationId = message.operationId ?? crypto.randomUUID();
         const pending = { operationId, path: paths[message.type], payload: { operationId, payload: message.payload } };
-        const saved = await saves.perform(pending, auth.token, ['content_loss', 'invalid', 'front_page', 'deleted', 'replacement', 'generation_busy']);
-        if (message.type === 'retry-page') void captures.poll().catch(captures.recordError);
+        const saved = await saves.perform(pending, auth.token, ['content_loss', 'invalid', 'front_seite', 'deleted', 'replacement', 'generation_busy']);
+        if (message.type === 'retry-seite') void captures.poll().catch(captures.recordError);
         return refreshAfterMutation(saved);
       }
       if (message.type === 'try-saving-again') {
         const captureKey = `capture-${message.operationId}`;
-        const { [captureKey]: receipt } = await chrome.storage.local.get(captureKey);
+        const { [captureKey]: receipt } = await readLocal(captureKey);
         if (receipt && receipt.state !== 'saved') {
           await captures.submit(receipt); return refreshAfterMutation();
         }
         const key = `save-${message.operationId}`;
-        const { [key]: pending } = await chrome.storage.local.get(key);
+        const { [key]: pending } = await readLocal(key);
         if (pending) {
           const saved = await saves.perform(pending, auth.token);
           void captures.poll().catch(captures.recordError);
