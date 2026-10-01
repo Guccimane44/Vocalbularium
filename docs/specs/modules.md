@@ -51,4 +51,4 @@ Before implementing a new module or changing an existing one, its specification 
 
 A module should interpret supported inputs according to their meaning rather than mechanically inserting text into a template. Not every module must work on every kind of text. Curated options should offer useful control without requiring users to define the module's behavior from scratch.
 
-Systematic generation-quality evaluation, rich output, predefined variants beyond current choices, and advanced user-created modules remain subject to separate scope decisions. Open dependencies are recorded in the [modular product direction plan](../plans/modular-product-direction.md).
+Systematic generation-quality evaluation, rich output, predefined variants beyond current choices, and advanced user-created modules remain subject to separate scope decisions.

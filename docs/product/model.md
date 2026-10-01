@@ -32,7 +32,7 @@ An **input interpretation** identifies the input category and, where needed, its
 
 The vision's persistent semantic object refers to the karte as the lasting home for captured material and its useful representations. It does not introduce an additional entity between a deck and its kartes, identify every matching text as the same concept, or require a particular storage design.
 
-Preserving a chosen meaning or referent across future module runs is a product direction, not a current guarantee. Current interpretation does not establish a user-correctable, enduring semantic identity. Rules for contextual interpretation, corrections, and applying new modules to old captures remain open in the [modular product direction plan](../plans/modular-product-direction.md). Manually created kartes need not have captured input or an interpretation.
+Preserving a chosen meaning or referent across future module runs is a product direction, not a current guarantee. Current interpretation does not establish a user-correctable, enduring semantic identity. Rules for contextual interpretation, corrections, and applying new modules to old captures remain open. Manually created kartes need not have captured input or an interpretation.
 
 ## Seite and front seite
 

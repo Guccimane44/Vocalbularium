@@ -16,6 +16,8 @@ The central promise is:
 
 Language learning is one natural application of this generative knowledge-capture system. Translation is one possible contribution, and flashcard review is one possible interaction with a karte. Neither language pairs nor memorization define the underlying product model.
 
+The [owner's competitor critique](competitor-critique.md) records the rationale behind this direction.
+
 ## Problems to solve
 
 Manual karte creation interrupts discovery. People have to leave what they are reading, copy text, switch tools, and construct a karte. Vocabularium should reduce the effort between encountering useful material and keeping it.
@@ -53,7 +55,7 @@ Developing the module library is a primary product direction. Possibilities incl
 
 The standard experience should offer curated modules and suitable predefined variants. Advanced module creation or customization APIs remain separate possibilities; ordinary users should not need them to get useful results. The [module specification](../specs/modules.md) separates current behavior from the design contract for future additions.
 
-New modules could operate on previously captured material. Richer interpretation could retain a chosen meaning or referent across generations and let users correct it. The [modular product direction plan](../plans/modular-product-direction.md) records the decisions needed before these possibilities become supported behavior.
+New modules could operate on previously captured material. Richer interpretation could retain a chosen meaning or referent across generations and let users correct it.
 
 Users could assemble layouts for several languages or subjects, move or copy kartes between decks, and choose whether particular material participates in memorization or spaced review. Richer presentation and editing could make generated material easier to work with.
 
