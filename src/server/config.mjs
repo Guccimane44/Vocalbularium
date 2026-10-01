@@ -38,6 +38,9 @@ export function loadConfig(environment = process.env) {
   };
   const generationMaxActive = generationLimit('GENERATION_MAX_ACTIVE', 4);
   const generationMaxQueued = generationLimit('GENERATION_MAX_QUEUED', 16);
+  const diagnosticBudgetBytes = generationLimit('DIAGNOSTIC_BUDGET_BYTES', 256 * 1024 * 1024);
+  const diagnosticContent = environment.DIAGNOSTIC_CONTENT ?? 'full';
+  if (!['full', 'metadata'].includes(diagnosticContent)) throw new Error('Invalid DIAGNOSTIC_CONTENT: choose full or metadata.');
 
   const databaseUrl = environment.DATABASE_URL;
   try {
@@ -48,5 +51,5 @@ export function loadConfig(environment = process.env) {
     throw new Error('The owner-testing API must bind to loopback.');
   }
   return Object.freeze({ host, port, directory: resolve(dataDirectory), logLevel, databaseUrl,
-    generationMaxActive, generationMaxQueued });
+    generationMaxActive, generationMaxQueued, diagnosticBudgetBytes, diagnosticContent });
 }

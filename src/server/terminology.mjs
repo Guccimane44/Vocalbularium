@@ -6,10 +6,12 @@ import { StoreError } from '../core/store.mjs';
 export function registerTerminology(fastify) {
   fastify.decorateRequest('currentTerminology', false);
   fastify.addHook('onRequest', async request => {
+    if (request.url.startsWith('/api/diagnostics/')) { request.currentTerminology = true; return; }
     request.currentTerminology = request.headers['x-vocabularium-terminology'] === 'karte-seite' ||
       /\/kartes?(?:\/|\?|$)/.test(request.url);
   });
   fastify.addHook('preValidation', async request => {
+    if (request.url.startsWith('/api/diagnostics/')) return;
     request.currentTerminology ||= usesCurrentFields(request.body);
     try {
       request.body = currentValue(request.body);
