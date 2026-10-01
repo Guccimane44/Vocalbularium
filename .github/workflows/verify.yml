@@ -22,7 +22,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check
-      - run: node --test tests/extension.test.mjs
+      - run: node --test tests/extension.test.mjs tests/diagnostics.test.mjs
       - run: npm run build
       - run: python scripts/package.py
       - uses: actions/upload-artifact@v7

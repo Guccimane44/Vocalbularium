@@ -67,3 +67,20 @@ test('malformed batch writes nothing; damaged segment is reported and a later se
   await reopened.ingest([sample()]);
   assert.equal((await reopened.inspect()).events.length, 1);
 });
+test('a second collector degrades without taking ownership or changing acknowledged history', async t => {
+  const first = await fixture(t), event = sample();
+  await first.ingest([event]);
+  const second = new Diagnostics({ directory: first.directory }); await second.ready;
+  t.after(() => second.close());
+  assert.equal(second.status().degraded, true);
+  assert.deepEqual((await second.ingest([sample()])).accepted, []);
+  await second.close();
+  assert.equal((await first.inspect()).events.length, 1);
+  assert.equal((await first.ingest([sample()])).accepted.length, 1);
+});
+test('invalid inspection limits cannot bypass the bounded response', async t => {
+  const store = await fixture(t);
+  await store.ingest([sample()]);
+  for (const limit of [-1, 0, 1001, 'invalid', 1.5]) await assert.rejects(store.inspect({ limit }));
+  assert.equal((await store.inspect({ limit: 1 })).events.length, 1);
+});

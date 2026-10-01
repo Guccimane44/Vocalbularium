@@ -46,6 +46,10 @@ export async function createTestApplication(t, { databaseKey, ...options } = {})
     ...options, databaseUrl: database.databaseUrl,
     outbox: options.outbox === null ? undefined : databaseKey ? `${databaseKey}.generation-outbox` : undefined });
   database.resources.push(application);
+  if (process.env.TEST_API_PORT) {
+    const start = application.start.bind(application);
+    application.start = options => start({ port: Number(process.env.TEST_API_PORT), ...options });
+  }
   return application;
 }
 

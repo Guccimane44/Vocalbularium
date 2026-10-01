@@ -1,12 +1,15 @@
 import test, { createTestApplication } from './helpers/database.mjs';
 import assert from 'node:assert/strict';
-import { mkdtemp, rm, cp, appendFile } from 'node:fs/promises';
+import { mkdtemp, rm, cp, appendFile, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { once } from 'node:events';
 import { chromium } from 'playwright';
+const apiOrigin = process.env.VOCABULARIUM_API_URL ?? 'http://127.0.0.1:4318';
 
 async function launch(profile, extension = resolve(process.env.VOCABULARIUM_TEST_EXTENSION ?? 'artifacts/extension')) {
+  const config = await readFile(join(extension, 'config.js'), 'utf8');
+  assert.equal(JSON.parse(config.match(/^export const API_URL = (.+);/m)[1]), apiOrigin, 'Refuse a package pointed at a different API from the disposable fixture');
   const context = await chromium.launchPersistentContext(profile, {
     channel: 'chromium', headless: true,
     args: [`--disable-extensions-except=${extension}`, `--load-extension=${extension}`]
@@ -146,17 +149,17 @@ async function waitFor(predicate, message, timeout = 12000) {
   throw new Error(`Timed out: ${message}`);
 }
 async function captureFrom(browser, text) {
-  return browser.worker.evaluate(async (text) => {
-    const tabs = await chrome.tabs.query({ url: 'http://127.0.0.1:4318/health' });
+  return browser.worker.evaluate(async ({ text, origin }) => {
+    const tabs = await chrome.tabs.query({ url: origin + '/health' });
     return globalThis.captureForTest({ menuItemId: 'capture', selectionText: text }, tabs[0]);
-  }, text);
+  }, { text, origin: apiOrigin });
 }
 
 test('capture extension: receipt lifetime, exact duplicate kartes, shared outcomes, interruption, and unsaved capture recovery', { timeout: 65000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-capture-browser-'));
   const databaseKey = join(directory, 'account-fixture');
   const testingExtension = join(directory, 'extension');
-  await cp(resolve('artifacts/extension'), testingExtension, { recursive: true });
+  await cp(resolve(process.env.VOCABULARIUM_TEST_EXTENSION ?? 'artifacts/extension'), testingExtension, { recursive: true });
   await appendFile(join(testingExtension, 'background.js'), '\nglobalThis.captureForTest = handleCapture;\n');
   const held = new Map();
   const provider = {
@@ -179,7 +182,7 @@ test('capture extension: receipt lifetime, exact duplicate kartes, shared outcom
   const profile = join(directory, 'a');
   let a = await launch(profile, testingExtension); contexts.add(a.context); await signIn(a.page);
   const b = await launch(join(directory, 'b'), testingExtension); contexts.add(b.context); await signIn(b.page);
-  let reading = await a.context.newPage(); await reading.goto('http://127.0.0.1:4318/health');
+  let reading = await a.context.newPage(); await reading.goto(apiOrigin + '/health');
   await reading.setContent('<p id="selection">  幸福\n</p>');
   const selected = await reading.locator('#selection').evaluate(node => {
     const range = document.createRange(); range.selectNodeContents(node); getSelection().removeAllRanges(); getSelection().addRange(range); return getSelection().toString();
@@ -222,7 +225,7 @@ test('capture extension: receipt lifetime, exact duplicate kartes, shared outcom
   await a.page.getByRole('heading', { name: 'Your decks.' }).waitFor();
   assert.deepEqual((await application.store.karte(interrupted.id)).seites.map(page => page.status), ['completed', 'failed']);
 
-  reading = await a.context.newPage(); await reading.goto('http://127.0.0.1:4318/health');
+  reading = await a.context.newPage(); await reading.goto(apiOrigin + '/health');
   await application.close();
   const pendingId = await captureFrom(a, 'not saved yet');
   await a.page.reload();
@@ -239,7 +242,7 @@ test('capture extension: receipt lifetime, exact duplicate kartes, shared outcom
 test('recent captures: the pending receipt hands off to its account karte without an empty or duplicate frame', { timeout: 35000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-capture-handoff-'));
   const testingExtension = join(directory, 'extension');
-  await cp(resolve('artifacts/extension'), testingExtension, { recursive: true });
+  await cp(resolve(process.env.VOCABULARIUM_TEST_EXTENSION ?? 'artifacts/extension'), testingExtension, { recursive: true });
   await appendFile(join(testingExtension, 'background.js'), '\nglobalThis.captureForTest = handleCapture;\n');
   let releaseGeneration, holdAccounts = false;
   const heldAccounts = [];
@@ -267,7 +270,7 @@ test('recent captures: the pending receipt hands off to its account karte withou
     await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true });
   });
   await signIn(a.page);
-  const reading = await a.context.newPage(); await reading.goto('http://127.0.0.1:4318/health');
+  const reading = await a.context.newPage(); await reading.goto(apiOrigin + '/health');
   await a.page.evaluate(() => {
     const sample = () => {
       const count = [...document.querySelectorAll('.capture-text')].filter(node => node.textContent === 'handoff').length;
@@ -446,7 +449,7 @@ test('appearance: all open views, drafts, dialogs, feedback lifetime, logout and
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-theme-browser-'));
   const application = await createTestApplication(t); await application.start();
   const testingExtension = join(directory, 'extension');
-  await cp(resolve('artifacts/extension'), testingExtension, { recursive: true });
+  await cp(resolve(process.env.VOCABULARIUM_TEST_EXTENSION ?? 'artifacts/extension'), testingExtension, { recursive: true });
   await appendFile(join(testingExtension, 'background.js'), '\nglobalThis.feedbackForTest = showFeedback;\n');
   let a = await launch(join(directory, 'a'), testingExtension);
   const b = await launch(join(directory, 'b'), testingExtension);
@@ -474,8 +477,8 @@ test('appearance: all open views, drafts, dialogs, feedback lifetime, logout and
   await a.page.getByRole('dialog').screenshot({ path: 'artifacts/v0.2.0-dialog-dark.png' });
   await a.page.getByRole('dialog').getByRole('button', { name: 'Continue editing', exact: true }).click();
   assert.equal(await editor.inputValue(), 'Keep this unsaved draft');
-  const reading = await a.context.newPage(); await reading.goto('http://127.0.0.1:4318/health');
-  const tabId = await a.worker.evaluate(async () => (await chrome.tabs.query({ url: 'http://127.0.0.1:4318/health' }))[0].id);
+  const reading = await a.context.newPage(); await reading.goto(apiOrigin + '/health');
+  const tabId = await a.worker.evaluate(async origin => (await chrome.tabs.query({ url: origin + '/health' }))[0].id, apiOrigin);
   const started = Date.now();
   await a.worker.evaluate(async (tabId) => globalThis.feedbackForTest(tabId, 'Capture received'), tabId);
   await reading.getByRole('status').waitFor();
@@ -784,7 +787,7 @@ async function loseNextAcknowledgment(worker, path) {
 
 test('assembled reliability: lost acknowledgments, worker suspension, abrupt origin exit, other installation, and cancellation', { timeout: 65000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-reliability-browser-'));
-  const extension = join(directory, 'extension'); await cp(resolve('artifacts/extension'), extension, { recursive: true });
+  const extension = join(directory, 'extension'); await cp(resolve(process.env.VOCABULARIUM_TEST_EXTENSION ?? 'artifacts/extension'), extension, { recursive: true });
   await appendFile(join(extension, 'background.js'), '\nglobalThis.captureForTest = handleCapture;\n');
   const held = new Map(), calls = new Map(), canceled = new Set();
   const application = await createTestApplication(t, {
@@ -804,7 +807,7 @@ test('assembled reliability: lost acknowledgments, worker suspension, abrupt ori
   t.after(async () => { for (const context of contexts) await context.close().catch(() => { }); await application.close(); await rm(directory, { recursive: true, force: true }); });
   const profile = join(directory, 'a');
   let a = await launch(profile, extension); contexts.add(a.context); await signIn(a.page);
-  let reading = await a.context.newPage(); await reading.goto('http://127.0.0.1:4318/health');
+  let reading = await a.context.newPage(); await reading.goto(apiOrigin + '/health');
   await loseNextAcknowledgment(a.worker, '/api/capture');
   await captureFrom(a, 'uncertain capture');
   await waitFor(async () => (await application.store.kartes()).some(karte => karte.selected_text === 'uncertain capture'), 'uncertain capture committed');
@@ -874,7 +877,7 @@ test('assembled reliability: lost acknowledgments, worker suspension, abrupt ori
   await internals.close();
 
   const b = await launch(join(directory, 'b'), extension); contexts.add(b.context); await signIn(b.page);
-  const otherReading = await b.context.newPage(); await otherReading.goto('http://127.0.0.1:4318/health');
+  const otherReading = await b.context.newPage(); await otherReading.goto(apiOrigin + '/health');
   await captureFrom(a, 'hold-origin'); await captureFrom(b, 'hold-other');
   const interrupted = (await application.store.kartes()).find(karte => karte.selected_text === 'hold-origin');
   await waitFor(async () => (await application.store.karte(interrupted.id)).seites[0].status === 'completed', 'front persisted before crash');
@@ -895,7 +898,7 @@ test('assembled reliability: lost acknowledgments, worker suspension, abrupt ori
   await captureFrom(b, 'hold-delete'); await waitFor(() => held.has('hold-delete'), 'deletion test generation started');
   const deleted = (await application.store.kartes()).find(karte => karte.selected_text === 'hold-delete');
   const auth = await b.worker.evaluate(async () => (await chrome.storage.local.get('auth')).auth);
-  const response = await fetch('http://127.0.0.1:4318/api/karte/delete', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.token}` }, body: JSON.stringify({ operationId: 'delete-running', payload: { karteId: deleted.id } }) });
+  const response = await fetch(apiOrigin + '/api/karte/delete', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.token}` }, body: JSON.stringify({ operationId: 'delete-running', payload: { karteId: deleted.id } }) });
   assert.equal(response.status, 200); await waitFor(() => canceled.has('hold-delete'), 'deleted karte canceled model work');
   await assert.rejects(async () => (await application.store.karte(deleted.id)), { code: 'deleted' });
   const shared = await application.store.createDeck('Fresh shared default');
@@ -907,7 +910,7 @@ test('assembled reliability: lost acknowledgments, worker suspension, abrupt ori
 test('dashboard capture feedback: shared appearance, original lifetime, originating tab, rerenders and zero windows', { timeout: 45000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-dashboard-feedback-'));
   const testingExtension = join(directory, 'extension');
-  await cp(resolve('artifacts/extension'), testingExtension, { recursive: true });
+  await cp(resolve(process.env.VOCABULARIUM_TEST_EXTENSION ?? 'artifacts/extension'), testingExtension, { recursive: true });
   await appendFile(join(testingExtension, 'background.js'), `
     globalThis.captureForTest = handleCapture;
     globalThis.feedbackWindows = { calls: 0, events: 0 };
@@ -927,7 +930,7 @@ test('dashboard capture feedback: shared appearance, original lifetime, originat
   await signIn(a.page);
   const other = await a.context.newPage(); await other.goto(`chrome-extension://${a.id}/app.html`);
   await other.getByRole('heading', { name: 'Your decks.' }).waitFor();
-  const reading = await a.context.newPage(); await reading.goto('http://127.0.0.1:4318/health');
+  const reading = await a.context.newPage(); await reading.goto(apiOrigin + '/health');
   for (const theme of ['light', 'dark']) {
     await a.page.getByLabel('Appearance', { exact: true }).selectOption(theme);
     assert.equal(await a.page.getByRole('heading', { name: 'Recent captures', exact: true }).evaluate(node => node.nextElementSibling === null), true, 'empty section has no replacement paragraph or gap');
@@ -1002,7 +1005,7 @@ test('dashboard capture feedback: shared appearance, original lifetime, originat
   await other.close();
   await a.worker.evaluate(tab => globalThis.captureForTest({ menuItemId: 'capture', selectionText: 'closed-origin' }, tab), closedTab);
   const navigatedTab = await a.page.evaluate(async () => ({ ...await chrome.tabs.getCurrent(), url: location.href }));
-  await a.page.goto('http://127.0.0.1:4318/health');
+  await a.page.goto(apiOrigin + '/health');
   await a.worker.evaluate(tab => globalThis.captureForTest({ menuItemId: 'capture', selectionText: 'navigated-origin' }, tab), navigatedTab);
   assert.equal(await feedback(a.page).count(), 0);
   assert.equal(await feedback(reading).count(), 0);
@@ -1013,7 +1016,7 @@ test('dashboard capture feedback: shared appearance, original lifetime, originat
 
 test('save feedback: successful publication stays quiet in both lists, failures and retries remain recoverable', { timeout: 45000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-save-feedback-'));
-  const extension = join(directory, 'extension'); await cp(resolve('artifacts/extension'), extension, { recursive: true });
+  const extension = join(directory, 'extension'); await cp(resolve(process.env.VOCABULARIUM_TEST_EXTENSION ?? 'artifacts/extension'), extension, { recursive: true });
   await appendFile(join(extension, 'background.js'), '\nglobalThis.captureForTest = handleCapture;\n');
   const application = await createTestApplication(t, {
     provider: {
