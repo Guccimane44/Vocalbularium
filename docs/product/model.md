@@ -4,6 +4,8 @@
 
 This document defines Vocabularium's core concepts and their fundamental relationships. It is a conceptual model, not a database schema or a workflow specification. [Scope](scope.md) identifies current capability limits; [vision](vision.md) describes possible future uses.
 
+The main-key rules below express the owner-approved target model. Editable main keys and generation for manually created kartes are pending implementation, as recorded in [scope](scope.md#accepted-change-pending-implementation).
+
 ## Account
 
 An **account** owns a collection of decks and kartes and identifies which saved data belongs together. A Chrome installation is a client of that account, not a separate account or repository. The account has exactly one default deck.
@@ -18,13 +20,25 @@ The **deck configuration page** is the interface for editing these settings. **L
 
 The **default deck** is the account's designated destination for capture. Default is a role held by a deck, not a separate kind of deck.
 
-## Karte and captured input
+## Karte and main key
 
 A **karte** is an individually identifiable item in a deck, containing content across the seites defined by that deck's configuration. It can originate from captured input or manual creation. Matching content does not make two kartes the same karte.
 
-**Captured input** is the original text submitted through capture. It is separate from displayed seite content, which may be generated or manually edited. Editing displayed content does not redefine the original generation input.
+A karte is a persistent item for working with text, independent of any particular generated contribution or study interaction. It need not represent a translation pair or participate in memorization. Its identity remains the same when its seite content is edited or generation is retried.
 
-An **input interpretation** identifies the input category and, where needed, its source language. Module applicability uses that interpretation. Current classification and language choices are defined by the [module specification](../history/mvp/MVP-Product-spec-modules.md#shared-input-and-applicability-rules).
+The **main key** is the required, editable text that supplies the karte's generation input. Capture initializes it with the selected text; manual creation requires the user to enter it. It appears on the front seite and can coexist with generated or manually written content. It is not a unique identifier: distinct kartes may have the same main key.
+
+The main key is the only text input for module generation. Module configuration determines what to produce from it. Changing the main key changes the input for subsequent generation, but does not start generation or change existing generated content. Editing other seite content does not change the main key.
+
+**Captured input** describes the text originally supplied through capture. Capture is an input origin, not a prerequisite for generation. The original selection does not override an edited main key on subsequent generation.
+
+An **input interpretation** identifies the input category and, where needed, its source language for the main key used in a generation attempt. Module applicability uses that interpretation. Interpretation must correspond to that attempt's input; it cannot reuse a stale classification or language from an earlier main key. Current classification and language choices are defined by the [module specification](../specs/modules.md#current-input-and-applicability).
+
+### Direction: semantic continuity
+
+The vision's persistent semantic object refers to the karte as the lasting home for captured material and its useful representations. It does not introduce an additional entity between a deck and its kartes, identify every matching text as the same concept, or require a particular storage design.
+
+Preserving a chosen meaning or referent across future module runs is a product direction, not a current guarantee. Current interpretation does not establish a user-correctable, enduring semantic identity. Rules for richer contextual interpretation and semantic corrections remain open. A manually created karte has a main key even if it has no interpretation or generation attempt yet.
 
 ## Seite and front seite
 
@@ -32,15 +46,17 @@ A deck contains kartes. Each karte contains one or more seites. The deck’s lay
 
 A **seite** is an ordered container within a karte. It corresponds to a seite defined in the deck configuration. That seite definition holds generation instructions; the karte seite holds that karte's content and generation outcome, where one exists.
 
-The **front seite** is the first seite. Every karte must have one. It may contain the original input, generated information, manual content, or no content.
+The **front seite** is the first seite. Every karte must have one, and its main key must appear there. It may also contain generated information or manual content. Displaying the main key is required even when no configured module prints input or contributes generated content.
 
 Seites have no inherent subject or language. A user may arrange them around translation, grammar, examples, or another purpose, but those meanings are choices made through the deck configuration.
 
-An empty seite still exists and is part of the karte. Emptiness alone does not indicate a failed generation attempt.
+An empty seite still exists and is part of the karte. Emptiness alone does not indicate a failed generation attempt. Empty generated content does not remove the required main key from the front seite.
 
 ## Module type, instance, and output
 
 A **module type** defines one focused way to contribute content, such as displaying the selected text or generating an explanation. Some types use generative AI; others display input directly.
+
+A module's purpose, applicable inputs, supported options, and output behavior are product-defined. The [module specification](../specs/modules.md) describes the current catalog and the design contract for future additions. A module can serve different subjects or languages within its applicability; it need not apply to every input.
 
 A **module instance** is one placement of a module type on a seite defined in the deck configuration. The same type may have several instances on one seite or across seites. Their configured order determines the order of their contributed content.
 
@@ -50,13 +66,13 @@ A **module instance** is one placement of a module type on a seite defined in th
 
 ## Generation attempt and outcome
 
-A **generation attempt** is one evaluation of the configured modules for a particular seite of a particular karte. It associates the target seite, captured input and interpretation, and the configuration used for that evaluation. Initial capture can involve attempts for several seites. A seite retry starts a new attempt on an existing karte seite.
+A **generation attempt** is one evaluation of the configured modules for a particular seite of a particular karte. It associates the target seite, the main key value and interpretation used for that attempt, and the configuration used for that evaluation. Initial capture can involve attempts for several seites. User-requested generation can start an attempt on a manually created karte; a seite retry starts a new attempt on an existing karte seite. Neither changes the karte's identity.
 
 A **generation outcome** describes the attempt's state or result. Seite content, generation outcome, and persistence are distinct: a saved karte can have failed generation, a successfully evaluated seite can be empty, and manually entered content does not establish generation success.
 
-A seite can have no generation attempt. Manual creation and editing are content operations, not generation attempts. A karte's overall generation outcome is derived from its seite outcomes according to the capability specification.
+A seite can have no generation attempt. Manual creation and editing, including a main key edit, do not themselves start generation. A karte's overall generation outcome is derived from its seite outcomes according to the capability specification. Existing content and outcomes continue to describe their prior attempts until the user explicitly requests generation again.
 
-The [Select and Add specification](../MVP-Product-spec-select-and-add.md) owns attempt states, seite completion, publication, failure, interruption, and retry behavior. This model does not define their transitions or recovery workflow.
+The [karte input and editing specification](../specs/kartes-and-editing.md) owns main key creation and editing. The [Select and Add specification](../MVP-Product-spec-select-and-add.md) owns attempt states, seite completion, publication, failure, interruption, and retry behavior. This model does not define their transitions or recovery workflow.
 
 ## Draft and saved content
 
@@ -71,7 +87,8 @@ Account
 ├── Decks, with exactly one designated default
 │   ├── Configuration: deck settings, ordered seites → ordered module instances
 │   └── Kartes: each belongs to this deck only
-│       ├── Captured input and interpretation, when applicable
+│       ├── Required editable main key, supplied by capture or manual entry
+│       ├── Input interpretation for generation, when applicable
 │       └── Ordered karte seites defined by the deck configuration
 │           ├── Content
 │           └── Generation attempts and outcomes, when applicable

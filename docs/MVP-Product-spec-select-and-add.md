@@ -4,6 +4,14 @@ This specification defines capture and generation for the [MVP scope](history/mv
 
 This document is the authoritative source for detailed seite-completion, failure, interruption, and retry behavior. The scope, module specification, and general product description summarize and link to these rules.
 
+## Accepted main-key generation change
+
+The owner has approved a shared generation input for captured and manually created kartes: a required, editable main key displayed on the front seite. The [karte input specification](specs/kartes-and-editing.md) owns creation and editing rules, and [scope](product/scope.md#accepted-change-pending-implementation) records this change as pending implementation.
+
+For the accepted target behavior, both creation paths can generate from the main key. Manual creation does not automatically generate; the user explicitly requests it. Editing the main key does not change existing content or outcomes. Explicit generation again uses the updated key and interpretation appropriate to it. An earlier selection or its interpretation must not override the key supplied to the new attempt.
+
+The main-key, front-seite display, and manual-generation rules below describe that accepted change. Other completion, locking, confirmation, save, and recovery rules retain the existing baseline. The running implementation still restricts retry to captured kartes and uses their original selection. Historical MVP specifications remain records of that baseline.
+
 ## Availability and default deck
 
 When the Chrome extension is installed, enabled, initialized, and the user is logged in, its browser context-menu action **Create a karte in “{default deck name}”** is available for selected text. Capture is unavailable before login. The label names the last successfully synchronized default deck. It updates after successful initialization, login, default changes, renames, replacement/deletion, and account refreshes. Other installations' changes appear on the next successful synchronization, including background recovery while Chrome is running. Offline use retains the last synchronized name; unsaved drafts do not change the label. Logout, expired access, or missing default/session readiness make capture unavailable. Label updates do not replace the generation session. The MVP uses the built-in `admin` account described in the scope document; it does not implement registration.
@@ -54,6 +62,8 @@ The shared interpretation rules are defined in the [Modules specification](histo
 
 Generation-status labels describe actual generation attempts. A seite that has never had a generation attempt shows no generation-status label. This includes seites of manually created kartes and newly appended seites on existing kartes. They remain normally viewable and editable. A karte with no generation attempts on any seite also shows no overall generation-status label.
 
+Under the accepted main-key change, empty or failed generated content on the front seite does not hide or remove the main key. A manual karte that has not generated content still displays its key without a generation-status label. Editing the key alone does not change the last attempt's outcome.
+
 When generation has been attempted, the user sees the karte's overall generation outcome and the status of the current seite where applicable, not individual module statuses. Each seite attempt has one of these generation states:
 
 - **Loading:** required interpretation or seite generation is in progress.
@@ -82,20 +92,20 @@ Closing only the capture popup or dashboard tab does not count as closing Chrome
 
 ## Retry the current seite
 
-**Retry** is available on the karte content page for the seite currently selected in the horizontal navigation bar. It can be used on a completed, failed, empty, or manually edited seite of a karte created through Select and Add. There is no whole-karte or individual-module retry action in the MVP.
+**Retry** is available on the karte content page for the seite currently selected in the horizontal navigation bar. Under the accepted main-key change, generation availability does not depend on capture origin: a manually created karte also has generation input and can explicitly generate or generate again. Completed, failed, empty, or manually edited seites can be targets. The baseline action remains seite-level; this input change does not define a whole-karte or individual-module retry action.
 
 Before starting, always show this confirmation warning:
 
-> Retry will delete all content on this seite, including manual edits and previous generated content, and generate it again. Other seites will not change.
+> Retry will replace this seite's content, including manual edits and previous generated content. The main key will be kept. Other seites will not change.
 
 - **Cancel** leaves the current seite and its content unchanged.
-- **Confirm** discards all current content on that seite and starts a fresh generation attempt. Previous manual edits, additions, removals, and generated output are not preserved or merged into the replacement. If the new attempt fails, the seite remains empty with a failure indicator; the discarded content is not restored.
+- **Confirm** discards the current content being replaced on that seite and starts a fresh generation attempt. Previous manual edits, additions, removals, and generated output are not preserved or merged into the replacement. The main key is retained and remains visible on the front seite. If the new attempt fails, its generated content remains empty with a failure indicator; the discarded content is not restored.
 
-Retry evaluates every module configured for that seite and generates fresh output for every applicable module, including instances that succeeded previously. It uses the original selected text, the karte's established input classification and single source language, and the seite's current saved deck configuration at confirmation time. If required interpretation has not yet succeeded, establish it first. Changes to configuration after the attempt starts do not change that attempt. Manual edits to displayed karte content do not change the original selected text used for generation.
+Retry evaluates every module configured for that seite and generates fresh output for every applicable module, including instances that succeeded previously. It uses the karte's current saved main key and the seite's current saved deck configuration at confirmation time. Required input classification and source language must correspond to that main key; establish or refresh interpretation when needed. Changes to configuration after the attempt starts do not change that attempt. Editing the main key changes later generation input without automatically regenerating existing content. Editing other displayed content does not change generation input.
 
 Retry updates the same seite of the same karte and saves the new outcome automatically. It does not create another karte, regenerate other seites, or change their content or manual edits. If the retry targets seite 1, the displayed list entry and alphabetical position follow the changed first-seite text; the karte's identity and creation time stay the same. The selected seite stays the target even if the user navigates to another seite while generation runs.
 
-Finish manual edit mode with **Save** or **Cancel** before using **Retry**. While an attempt is running on a seite, another retry and manual editing on that seite are unavailable. A manually created karte has no captured generation input, so it has no **Retry** action in the MVP.
+Finish manual edit mode with **Save** or **Cancel** before using **Retry**, including when editing the main key. While an attempt is running on a seite, another retry and manual editing on that seite are unavailable. Under the accepted input change, manually created kartes supply a main key and are not excluded from generation or generation again.
 
 The generation lock applies across installations. Another installation may already have an unsaved draft when a seite's generation starts. If a manual save arrives while any seite it changes is generating, reject that save immediately rather than queueing it. For a save containing several changed seites, reject the whole save without updating any of them. Preserve all the user's drafts and explain that a seite is still generating. After the attempt finishes, the user can explicitly select **Save** or **Try saving again**; the new save follows the normal server-arrival order. Do not automatically apply the previously rejected save when generation ends.
 

@@ -15,12 +15,24 @@ The current baseline is the Chrome extension with its local account backend. It 
 | Capture | Select a word, phrase, or sentence in Chrome and create a karte in the default deck through the context menu, with brief feedback and accessible capture outcomes. Input consists of the selected text only. | [Select and Add](../MVP-Product-spec-select-and-add.md) |
 | Deck management | Browse, create, rename, configure, and delete decks; choose the account's default deck. | [Dashboard](../history/mvp/MVP-Product-scope.md#4-dashboard), [default deck](../history/mvp/MVP-Product-scope.md#6-default-deck) |
 | Layout configuration | One to four ordered seites with a required front seite; add, remove, and rearrange module instances, including repeated instances; preview layouts using examples. | [Deck configuration](../history/mvp/MVP-Product-scope.md#5-deck-configuration-page) |
-| Modules | Five types: `<The selected>`, `<The selected + original language tag>`, `<German explanation>`, `<German explanation + examples>`, and `<Sentence usage>`. Interpretation chooses one source language where needed. | [Module catalog and applicability](../history/mvp/MVP-Product-spec-modules.md) |
+| Modules | Five types: `<The selected>`, `<The selected + original language tag>`, `<German explanation>`, `<German explanation + examples>`, and `<Sentence usage>`. Interpretation chooses one source language where needed. | [Module catalog and applicability](../specs/modules.md) |
 | Generation | Automatically saved capture and generation outcomes, seite-level completion and failure, and explicitly confirmed retry of a captured karte's current seite. | [Completion and failure](../MVP-Product-spec-select-and-add.md#seite-completion-and-failure), [seite retry](../MVP-Product-spec-select-and-add.md#retry-the-current-seite) |
 | Kartes | Browse and sort deck kartes, open a karte, navigate its seites, create kartes manually, edit seite text, and delete kartes. Duplicate kartes and empty seites are supported. | [Karte lists](../history/mvp/MVP-Product-scope.md#7-card-view-page), [manual editing](../history/mvp/MVP-Product-scope.md#8-card-content-page-and-manual-editing) |
 | Presentation | Plain-text content and previews, Light/Dark appearance, keyboard interactions, and accessible state cues. | [Appearance](../history/mvp/MVP-Product-scope.md#11-appearance-v020), [list states](../history/mvp/MVP-Product-scope.md#71-list-state-presentation) |
 
 The linked scope and module documents currently reside under `history/mvp/` during the taxonomy migration. Their applicable behavior sections supply the detail for this draft; their historical delivery assumptions do not define the current operating environment. Select and Add remains authoritative for completion, failure, interruption, and retry rules.
+
+## Accepted change pending implementation
+
+The owner has specified a shared main-key model for captured and manually created kartes. This is an accepted product requirement, not yet a supported capability in the implementation described above:
+
+- Every karte requires an editable main key, initialized from selected text on capture or supplied by the user on manual creation.
+- The main key must appear on the front seite, regardless of the configured modules.
+- Both creation paths support module generation from the main key. Manual creation does not automatically generate; the user chooses the generation action.
+- Changing the main key changes the input for subsequent generation. It does not automatically regenerate, erase, or replace existing content.
+- Explicit generation again uses the updated main key; prior content remains intact until that action is requested.
+
+The [karte input and editing specification](../specs/kartes-and-editing.md) owns these requirements. The [module input contract](../specs/modules.md#accepted-main-key-input-contract) and [generation specification](../MVP-Product-spec-select-and-add.md#accepted-main-key-generation-change) describe their effect on generation. The implemented baseline still creates blank manual kartes without generation input and restricts retry to captured kartes using the original selection. Implementing the accepted change requires input persistence, UI, generation, compatibility, and verification work; this documentation change does not perform that work.
 
 ## Current delivery boundary
 

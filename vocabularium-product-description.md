@@ -71,14 +71,18 @@ For example, a computer science module could explain a selected term such as `fr
 
 In the future, Vocabularium could also provide APIs that let users create and customize modules. The range of possible modules should grow with the interests and needs of its users.
 
-## Two karte-creation modalities
+## Karte input and creation
 
 Generated karte creation supports two basic input modalities:
 
 1. **Word or phrase input.** The user submits a term, compound word, expression, or other short piece of text. Vocabularium generates the information represented by the modules on the karte’s seites.
 2. **Sentence input.** The user submits a complete sentence. Vocabularium can generate an explanation, translation, summary, analysis, or other content requested by modules on the destination deck’s seites.
 
-These are input modes for generation. Manual creation and editing are separate ways to work with kartes. Users can also:
+These are input categories, not different kinds of karte. Capture and manual creation supply the same required, editable **main key**, which is the karte's text input for module generation and must appear on its front seite. Capture initializes it from the selection; manual creation requires the user to enter it.
+
+Manual creation does not require generation. Users can save and write a karte manually, or explicitly request module generation from its main key. Editing the main key changes the input for subsequent generation without automatically changing existing generated content. Only explicitly generating again produces new content from the updated key. Editing other content does not change the main key.
+
+These are accepted requirements [pending implementation](docs/product/scope.md#accepted-change-pending-implementation), detailed in [Kartes and editing](docs/specs/kartes-and-editing.md). Users can also:
 
 - manually add a new karte;
 - manually edit a karte created by generation;
@@ -89,7 +93,7 @@ Generated content should be treated as useful starting material that remains und
 
 ### Retry generation for one seite
 
-Users can explicitly regenerate one karte seite, replacing its content after confirmation. The [MVP Select and Add specification](docs/MVP-Product-spec-select-and-add.md#retry-the-current-seite) defines the detailed retry behavior; its [seite-completion rules](docs/MVP-Product-spec-select-and-add.md#seite-completion-and-failure) distinguish failed generation from valid empty seites.
+Users can explicitly regenerate one karte seite, replacing its content after confirmation while retaining the main key. Generation uses the current saved main key regardless of whether capture or manual entry supplied it. The [MVP Select and Add specification](docs/MVP-Product-spec-select-and-add.md#retry-the-current-seite) defines detailed behavior and distinguishes the pending main-key change from the implemented baseline; its [seite-completion rules](docs/MVP-Product-spec-select-and-add.md#seite-completion-and-failure) distinguish failed generation from valid empty generated content.
 
 ## Decks are the primary repository concept
 
@@ -124,11 +128,11 @@ Beyond the mandatory front seite, Vocabularium should impose as few structural r
 
 This is a simple composition model, not a complex configuration model. Users define the seites and place independent generator modules on them. There is no need to define elaborate schemas or rules connecting modules together.
 
-The only fundamental invariant is:
+The front-seite invariant is:
 
-> Every karte must have a front seite.
+> Every karte must have a front seite that displays its required main key.
 
-The front seite will usually contain the original input or expression through a print-input module, but users may place any additional generator modules there.
+The main key must appear there regardless of whether a print-input module is configured. Users may place additional generator modules there and add or edit other content.
 
 ### Flagship example: one expression, multiple language seites
 
@@ -202,7 +206,7 @@ The German article module is not triggered, so it produces no output and nothing
 
 ## Modules
 
-Modules are independent building blocks that users choose and arrange on karte seites. Each module has a focused purpose. A generative module uses a prompt to produce one kind of result from the captured text; another module may simply display the original input. A module contributes output only when it applies to that input.
+Modules are independent building blocks that users choose and arrange on karte seites. Each module has a focused purpose. A generative module uses a prompt to produce one kind of result from the main key; another module may simply display that input. Capture and manual entry supply the same kind of module input. A module contributes output only when it applies to that input.
 
 Language-learning modules could include:
 
