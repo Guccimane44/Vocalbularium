@@ -87,6 +87,7 @@ test('hosted candidate: two real installations and synchronized karte editing', 
   await a.locator('pre').filter({ hasText: 'Saved in the first installation.' }).waitFor();
   await b.getByRole('button', { name: title, exact: true }).click();
   await b.getByRole('button', { name: 'Seite 2', exact: true }).click();
+  await b.locator('pre').filter({ hasText: 'Saved in the first installation.' }).waitFor();
   assert.equal(await b.locator('pre').textContent(), 'Saved in the first installation.');
   await b.getByRole('button', { name: 'Edit karte manually', exact: true }).click();
   await b.getByLabel('Seite 2 content', { exact: true }).fill('Edited in the second installation.');
