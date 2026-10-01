@@ -8,6 +8,7 @@ import { createElement } from 'react';
 import { flushSync } from 'react-dom';
 import { createRoot } from 'react-dom/client';
 import { Dashboard } from './dashboard.tsx';
+import { diagnosticSettings } from './diagnostic-settings.js';
 /** @typedef {import('../types/editor-drafts.js').DeckEditorDraft} DeckEditorDraft */
 
 await initializeFeedback();
@@ -111,6 +112,11 @@ async function render() {
   actions.replaceChildren(button('Log out', async () => {
     try { if (!await karteUI.leave()) return; await send({ type: 'logout' }); location.hash = ''; login(); } catch (error) { showError(error); }
   }));
+  actions.append(button('Diagnostic logs', async () => { if (await karteUI.leave()) location.hash = 'diagnostics'; }));
+  if (location.hash === '#diagnostics') {
+    if (viewRoot) { viewRoot.unmount(); viewRoot = undefined; }
+    await diagnosticSettings({ send, root: app, navigate: hash => { location.hash = hash; } }); return;
+  }
   const deckId = location.hash.startsWith('#deck/') ? decodeURIComponent(location.hash.slice(6)) : null;
   const configId = location.hash.startsWith('#configure/') ? location.hash.slice(11) : null;
   if (configId) {
