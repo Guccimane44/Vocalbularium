@@ -8,6 +8,8 @@ This document describes Vocabularium's purpose, guiding principles, and long-ter
 
 Vocabularium helps people collect and work with useful text at the moment they encounter it. Captured material becomes a persistent karte, organized in a deck and developed through the user's chosen modules. A word, expression, sentence, passage, or text referring to a person, place, or concept can be a starting point.
 
+Capture and manual creation supply the same kind of karte input: a required, editable main key displayed on the first seite. Modules generate from that main key. Users can create a karte manually without generating content, and editing its main key leaves existing content intact until they explicitly generate again. The [karte specification](../specs/kartes-and-editing.md) defines these rules; [scope](scope.md#accepted-change-pending-implementation) records their implementation status.
+
 The core is a rich, extensible library of creative and useful modules for text-related work across subjects, languages, projects, and purposes. Each module offers a deliberately designed capability; users can choose and combine these capabilities to shape what a karte provides.
 
 The central promise is:

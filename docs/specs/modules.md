@@ -24,6 +24,18 @@ Modules receive the selected text without surrounding webpage context. Required 
 
 An inapplicable instance contributes no output and is not a generation failure. Failure to establish required interpretation or produce required content must not be disguised as inapplicability. See the [detailed applicability rules](../history/mvp/MVP-Product-spec-modules.md#shared-input-and-applicability-rules).
 
+## Accepted main-key input contract
+
+The owner-approved input change is specified in [Kartes and editing](kartes-and-editing.md) and is [pending implementation](../product/scope.md#accepted-change-pending-implementation). It supersedes capture-only input for the target behavior:
+
+- Modules use the karte's current main key as their only text input, whether capture or manual entry supplied it. Module configuration remains the instructions governing the contribution.
+- Required interpretation and applicability must use that main key. Changing it must not leave later generation using a prior key's category or source language.
+- Editing the main key does not run modules or change saved output. The user explicitly requests generation or generation again.
+- Existing output reflects the main key used in its generation attempt and may differ from the current main key after an edit.
+- A front seite must display the main key even if no input-printing module is configured or no modules contribute output.
+
+The five current types retain their output formats and applicability. Under the accepted input model, references to selected text in those module definitions mean the main key supplied to that attempt. Exact-input modules must print that supplied value, including a manually entered or edited main key.
+
 ## Current composition and editing
 
 Users select, place, reorder, and repeat module instances within the deck's ordered seites. Adding an instance does not remove its type from the library. Repeated generation instances operate independently while sharing the capture's interpretation; direct-input instances repeat the same input. Detailed repetition rules remain in the [existing specification](../history/mvp/MVP-Product-spec-modules.md#multiple-instances-of-a-module).

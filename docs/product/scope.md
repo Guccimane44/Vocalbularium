@@ -22,6 +22,18 @@ The current baseline is the Chrome extension with its local account backend. It 
 
 The linked scope and module documents currently reside under `history/mvp/` during the taxonomy migration. Their applicable behavior sections supply the detail for this draft; their historical delivery assumptions do not define the current operating environment. Select and Add remains authoritative for completion, failure, interruption, and retry rules.
 
+## Accepted change pending implementation
+
+The owner has specified a shared main-key model for captured and manually created kartes. This is an accepted product requirement, not yet a supported capability in the implementation described above:
+
+- Every karte requires an editable main key, initialized from selected text on capture or supplied by the user on manual creation.
+- The main key must appear on the front seite, regardless of the configured modules.
+- Both creation paths support module generation from the main key. Manual creation does not automatically generate; the user chooses the generation action.
+- Changing the main key changes the input for subsequent generation. It does not automatically regenerate, erase, or replace existing content.
+- Explicit generation again uses the updated main key; prior content remains intact until that action is requested.
+
+The [karte input and editing specification](../specs/kartes-and-editing.md) owns these requirements. The [module input contract](../specs/modules.md#accepted-main-key-input-contract) and [generation specification](../MVP-Product-spec-select-and-add.md#accepted-main-key-generation-change) describe their effect on generation. The implemented baseline still creates blank manual kartes without generation input and restricts retry to captured kartes using the original selection. Implementing the accepted change requires input persistence, UI, generation, compatibility, and verification work; this documentation change does not perform that work.
+
 ## Current delivery boundary
 
 The product is an owner-test Chrome extension delivered through manual installation, with a local backend and persistent PostgreSQL storage. Real model generation requires an external provider. The [local development guide](../architecture/local-postgresql.md) describes the current environment and operating constraints.
