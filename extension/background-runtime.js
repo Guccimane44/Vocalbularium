@@ -6,8 +6,23 @@ import { captureRuntime } from './capture.js';
 import { captureMenu } from './context-menu.js';
 import { relayFeedbackTheme } from './feedback.js';
 import { isApiFailure } from './api-failure.js';
+import { extensionDiagnostics } from './diagnostics.js';
 
 export function startBackground() {
+  const diagnostics = extensionDiagnostics({ upload: async events => {
+    const { auth } = await readLocal('auth');
+    if (!auth) throw new Error('Collection requires sign-in.');
+    const response = await fetch(API_URL + '/api/diagnostics/events', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.token}` },
+      body: JSON.stringify({ events }), signal: AbortSignal.timeout(10000)
+    });
+    if (!response.ok) throw new Error('Diagnostic collection is unavailable.');
+    return response.json();
+  } });
+  diagnostics.record({ event: 'worker.started', outcome: 'succeeded' });
+  globalThis.addEventListener?.('unhandledrejection', event => diagnostics.record({ event: 'worker.failed', severity: 'error', outcome: 'failed', errorType: event.reason?.name }));
+  globalThis.addEventListener?.('error', event => diagnostics.record({ event: 'worker.failed', severity: 'error', outcome: 'failed', errorType: event.error?.name }));
+  void chrome.alarms.create('diagnostics', { periodInMinutes: 0.5 });
   let initialization;
   let accessVersion = 0, sessionReady = false;
   let writes = Promise.resolve(), refreshes = Promise.resolve();
@@ -67,6 +82,13 @@ export function startBackground() {
     });
   }
   async function request(path, body, token) {
+    const started = performance.now();
+    const diagnosticRoute = path.startsWith('/api/diagnostics/');
+    const meaningful = !diagnosticRoute && path !== '/api/poll' && !['/api/account/summary', '/api/captures/recent'].includes(path);
+    const metadata = { operationId: body?.operationId, karteId: body?.payload?.karteId,
+      seiteId: body?.payload?.seiteId, attemptId: body?.payload?.attemptId, method: body ? 'POST' : 'GET', route: path.split('?')[0] };
+    diagnostics.addSecret(token);
+    if (meaningful) diagnostics.record({ ...metadata, event: 'request.started', outcome: 'started' });
     let response, result;
     try {
       response = await fetch(API_URL + path, {
@@ -76,9 +98,18 @@ export function startBackground() {
       });
       result = await response.json();
       if (!result || typeof result !== 'object') throw new Error();
-    } catch {
+    } catch (error) {
+      if (!diagnosticRoute) diagnostics.record({ ...metadata, event: 'request.failed', outcome: 'failed', severity: 'error',
+        category: error.name === 'TimeoutError' ? 'timeout' : error instanceof SyntaxError ? 'invalid_response' : 'transport',
+        durationMs: Math.round(performance.now() - started) });
       throw new Error('The account server is unavailable or waking up. Wait a minute and try again.');
     }
+    diagnostics.addSecret(result.token);
+    if (meaningful || (!diagnosticRoute && !response.ok)) diagnostics.record({ ...metadata,
+      event: response.ok ? 'request.completed' : 'request.failed', requestId: response.headers?.get('x-request-id'),
+      karteId: result.karteId ?? result.cardId ?? metadata.karteId, status: response.status,
+      errorCode: result.code, outcome: response.ok ? result.replayed ? 'replayed' : 'succeeded' : 'failed',
+      severity: response.ok ? 'info' : 'warn', durationMs: Math.round(performance.now() - started) });
     if (!response.ok) {
       const failure = isApiFailure(result) ? result : { error: 'The account server rejected the request.', code: 'server_error' };
       throw Object.assign(new Error(failure.error), { code: failure.code, status: response.status, details: failure.details });
@@ -134,6 +165,21 @@ export function startBackground() {
 
   async function run(message) {
     message = currentValue(message);
+    if (message.type === 'diagnostics-status') {
+      const local = await diagnostics.status(), { auth } = await readLocal('auth');
+      try { return { local, backend: auth ? await request('/api/diagnostics/status', null, auth.token) : null }; }
+      catch { return { local, backend: null }; }
+    }
+    if (message.type === 'diagnostics-configure') return diagnostics.configure({ budgetBytes: message.budgetBytes });
+    if (message.type === 'diagnostics-cleanup') {
+      const { auth } = await readLocal('auth');
+      if (!auth) throw new Error('Sign in to manage backend logs.');
+      const backend = await request('/api/diagnostics/cleanup', { ...message.range, preview: message.preview === true }, auth.token);
+      if (message.preview) return { backend };
+      return { backend, local: await diagnostics.cleanup(backend.range) };
+    }
+    if (message.type === 'diagnostics-local-cleanup') return { local: await diagnostics.cleanup(message.range) };
+    if (message.type === 'diagnostics-flush') { await diagnostics.flush(); return { local: await diagnostics.status() }; }
     await saves.recover();
     if (message.type === 'login') {
       const version = ++accessVersion;
@@ -222,13 +268,14 @@ export function startBackground() {
     if (area === 'local' && changes.theme) void relayFeedbackTheme(changes.theme.newValue).catch(() => {});
   });
 
-  const captures = captureRuntime({ request, initialize, saves, refresh: refreshAccount, removeAccess });
+  const captures = captureRuntime({ request, initialize, saves, refresh: refreshAccount, removeAccess, diagnostic: diagnostics.record });
   const handleCapture = captures.handleCapture;
   chrome.contextMenus.onClicked.addListener((info, tab) => {
     if (info.menuItemId === 'capture') void handleCapture(info, tab).catch(captures.recordError);
   });
   chrome.alarms.onAlarm.addListener(alarm => {
     if (alarm.name === 'recover') void captures.poll().catch(captures.recordError);
+    if (alarm.name === 'diagnostics') void diagnostics.flush();
   });
 
   chrome.runtime.onMessage.addListener((message, sender, respond) => {
