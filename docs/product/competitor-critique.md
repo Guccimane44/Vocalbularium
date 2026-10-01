@@ -170,13 +170,17 @@ Output:
 长剑倚秋月，醉眼看人间；一江洗不尽，千古几多罪恶。
 ```
 
-The same module can then receive:
+The same module can also generate:
 
 ```text
+Input:
 jerky
+
+Output:
+Beneath the moon I drank alone, with only a strip of jerky, the cold river, and ten thousand stars for company.
 ```
 
-and generate a semantically appropriate result rather than mechanically inserting the word into a template.
+generating a semantically appropriate result rather than mechanically inserting the word into a template.
 
 The important point is that the module remains reusable while the system interprets each captured object according to its meaning.
 
