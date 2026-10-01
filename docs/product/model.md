@@ -22,9 +22,17 @@ The **default deck** is the account's designated destination for capture. Defaul
 
 A **karte** is an individually identifiable item in a deck, containing content across the seites defined by that deck's configuration. It can originate from captured input or manual creation. Matching content does not make two kartes the same karte.
 
+A karte is a persistent item for working with text, independent of any particular generated contribution or study interaction. It need not represent a translation pair or participate in memorization. Its identity remains the same when its seite content is edited or generation is retried.
+
 **Captured input** is the original text submitted through capture. It is separate from displayed seite content, which may be generated or manually edited. Editing displayed content does not redefine the original generation input.
 
-An **input interpretation** identifies the input category and, where needed, its source language. Module applicability uses that interpretation. Current classification and language choices are defined by the [module specification](../history/mvp/MVP-Product-spec-modules.md#shared-input-and-applicability-rules).
+An **input interpretation** identifies the input category and, where needed, its source language. Module applicability uses that interpretation. Current classification and language choices are defined by the [module specification](../specs/modules.md#current-input-and-applicability).
+
+### Direction: semantic continuity
+
+The vision's persistent semantic object refers to the karte as the lasting home for captured material and its useful representations. It does not introduce an additional entity between a deck and its kartes, identify every matching text as the same concept, or require a particular storage design.
+
+Preserving a chosen meaning or referent across future module runs is a product direction, not a current guarantee. Current interpretation does not establish a user-correctable, enduring semantic identity. Rules for contextual interpretation, corrections, and applying new modules to old captures remain open in the [modular product direction plan](../plans/modular-product-direction.md). Manually created kartes need not have captured input or an interpretation.
 
 ## Seite and front seite
 
@@ -41,6 +49,8 @@ An empty seite still exists and is part of the karte. Emptiness alone does not i
 ## Module type, instance, and output
 
 A **module type** defines one focused way to contribute content, such as displaying the selected text or generating an explanation. Some types use generative AI; others display input directly.
+
+A module's purpose, applicable inputs, supported options, and output behavior are product-defined. The [module specification](../specs/modules.md) describes the current catalog and the design contract for future additions. A module can serve different subjects or languages within its applicability; it need not apply to every input.
 
 A **module instance** is one placement of a module type on a seite defined in the deck configuration. The same type may have several instances on one seite or across seites. Their configured order determines the order of their contributed content.
 
