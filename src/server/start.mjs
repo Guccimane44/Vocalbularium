@@ -1,46 +1,41 @@
-import { mkdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createApplication } from './app.mjs';
 import { loadConfig } from './config.mjs';
+import { Diagnostics } from './diagnostics.mjs';
 
-const config = loadConfig();
-mkdirSync(config.directory, { recursive: true });
-const application = await createApplication({
-  databaseUrl: config.databaseUrl,
-  outbox: resolve(config.directory, 'generation-outbox'),
-  generationOptions: { maxActive: config.generationMaxActive, maxQueued: config.generationMaxQueued },
-  logger: { level: config.logLevel }
-});
-
-let stopping = false;
-for (const signal of ['SIGINT', 'SIGTERM']) {
-  process.once(signal, () => {
-    if (stopping) return;
-    stopping = true;
-    void (async () => {
-      application.log.info({ signal }, 'Shutting down account API');
-      try {
-        await application.close();
-      } catch (error) {
-        application.log.error({
-          signal,
-          errorType: typeof error?.name === 'string' ? error.name : 'Error',
-          errorCode: typeof error?.code === 'string' ? error.code : undefined
-        }, 'Account API shutdown failed');
-        process.exitCode = 1;
-      }
-    })();
+let config, application, diagnostics;
+try {
+  config = loadConfig();
+  diagnostics = new Diagnostics({ directory: resolve(config.directory, 'diagnostics'),
+    budgetBytes: config.diagnosticBudgetBytes, mode: config.diagnosticContent,
+    secrets: [process.env.OPENCODE_API_KEY, process.env.OPENAI_API_KEY,
+      decodeURIComponent(new URL(config.databaseUrl).password)].filter(Boolean) });
+  application = await createApplication({
+    diagnostics, databaseUrl: config.databaseUrl,
+    outbox: resolve(config.directory, 'generation-outbox'),
+    generationOptions: { maxActive: config.generationMaxActive, maxQueued: config.generationMaxQueued },
+    logger: { level: config.logLevel }
   });
+  await application.start({ port: config.port, host: config.host });
+} catch (error) {
+  diagnostics ??= new Diagnostics({ directory: resolve('.data', 'diagnostics') });
+  diagnostics.emit({ event: 'process.failed', severity: 'error', outcome: 'failed',
+    phase: config ? 'startup' : 'configuration', errorType: error.name, errorCode: error.code });
+  if (application) await application.close();
+  else await diagnostics.close();
+  console.error('Vocabularium startup failed. Inspect local diagnostic logs for safe error metadata.');
+  process.exitCode = 1;
 }
 
-try {
-  const address = await application.start({ port: config.port, host: config.host });
-  application.log.info({ address }, 'Vocabularium account API listening');
-} catch (error) {
-  application.log.error({
-    errorType: typeof error?.name === 'string' ? error.name : 'Error',
-    errorCode: typeof error?.code === 'string' ? error.code : undefined
-  }, 'Vocabularium account API failed to start');
-  await application.close();
-  throw error;
+if (application && !process.exitCode) {
+  let stopping = false;
+  for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, () => {
+    if (stopping) return;
+    stopping = true;
+    void application.close().catch(async error => {
+      diagnostics.emit({ event: 'process.failed', severity: 'error', outcome: 'failed',
+        phase: 'shutdown', errorType: error.name, errorCode: error.code });
+      await diagnostics.close(); process.exitCode = 1;
+    });
+  });
 }
