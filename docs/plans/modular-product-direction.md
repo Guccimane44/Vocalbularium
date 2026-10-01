@@ -8,7 +8,7 @@ The [vision](../product/vision.md) owns the purpose and UI/UX direction, the [mo
 
 ## Product rationale
 
-The owner's competitor critique, supplied as `vocabularium_competitor_critique.md`, motivates this direction: translation-centered, fixed-language-pair, flashcard-first workflows can constrain broader uses of captured text. Accumulating unrelated AI features can obscure the central value. Vocabularium instead aims for persistent kartes and constrained primitives that users can compose expressively, with translation and memorization available when useful.
+The [owner's competitor critique](../product/competitor-critique.md) motivates this direction: translation-centered, fixed-language-pair, flashcard-first workflows can constrain broader uses of captured text. Accumulating unrelated AI features can obscure the central value. Vocabularium instead aims for persistent kartes and constrained primitives that users can compose expressively, with translation and memorization available when useful.
 
 Competitor quality, adoption, and market-saturation claims are owner observations or hypotheses, not verified research or acceptance criteria. The resulting requirements should describe Vocabularium's own behavior.
 
