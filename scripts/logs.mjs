@@ -13,6 +13,8 @@ for (let index = 0; index < args.length; index++) {
   options[key] = args[++index];
 }
 const { offline, ...filter } = options;
+const limit = filter.limit === undefined ? 200 : Number(filter.limit);
+if (!Number.isSafeInteger(limit) || limit < 1 || limit > 1000) throw new Error('Choose a limit from 1 to 1000.');
 let result;
 if (offline) {
   if (command !== 'inspect' && command !== 'status') throw new Error('Cleanup uses the running collector; offline access is read-only.');
@@ -20,18 +22,18 @@ if (offline) {
   const control = JSON.parse(await readFile(join(directory, 'control.json'), 'utf8'));
   if (!/^[\da-f-]{36}$/.test(control.generation)) throw new Error('Invalid diagnostic manifest.');
   const files = (await readdir(join(directory, control.generation))).filter(name => /^segment-\d{6}\.ndjson$/.test(name)).sort();
-  const events = []; let bytes = 0, incomplete = 0;
+  const events = [], seen = new Set(); let bytes = 0, incomplete = 0;
   for (const file of files) {
     const text = await readFile(join(directory, control.generation, file), 'utf8'); bytes += Buffer.byteLength(text);
     for (const line of text.split('\n').filter(Boolean)) {
-      try { events.push(JSON.parse(line)); } catch { incomplete++; }
+      try { const event = JSON.parse(line); if (!seen.has(event.eventId)) { seen.add(event.eventId); events.push(event); } } catch { incomplete++; }
     }
   }
   const range = filter.from || filter.to ? timeRange(filter) : undefined;
   const matches = events.filter(event => (!range || withinRange(event.occurredAt, range)) &&
     ['operationId', 'requestId', 'karteId', 'attemptId'].every(key => !filter[key] || event[key] === filter[key]));
   result = command === 'status' ? { offline: true, bytes, incomplete, entries: events.length }
-    : { offline: true, events: matches.sort((a, b) => a.occurredAt.localeCompare(b.occurredAt)).slice(-Math.min(Number(filter.limit) || 200, 1000)) };
+    : { offline: true, events: matches.sort((a, b) => a.occurredAt.localeCompare(b.occurredAt)).slice(-limit) };
 } else {
   const origin = process.env.VOCABULARIUM_API_URL ?? `http://${process.env.HOST ?? '127.0.0.1'}:${process.env.PORT ?? '4318'}`;
   const endpoint = new URL(origin);

@@ -12,7 +12,7 @@
   },
   "scripts": {
     "test": "node --env-file-if-exists=.env.postgres --test tests/diagnostics.test.mjs tests/logging.test.mjs tests/postgres.test.mjs tests/foundation.test.mjs tests/server.test.mjs tests/generation.test.mjs tests/decks.test.mjs tests/kartes.test.mjs tests/extension.test.mjs tests/reads.test.mjs tests/terminology.test.mjs",
-    "test:browser": "node --env-file-if-exists=.env.postgres --test tests/browser.test.mjs tests/app.browser.test.mjs",
+    "test:browser": "node --env-file-if-exists=.env.postgres --test --test-concurrency=1 tests/browser.test.mjs tests/app.browser.test.mjs tests/logging.browser.test.mjs",
     "start": "npm run build:packages && node --env-file-if-exists=.env --env-file-if-exists=.env.postgres src/server/start.mjs",
     "logs": "node --env-file-if-exists=.env scripts/logs.mjs",
     "openapi": "npm run build:packages && node scripts/generate-openapi.mjs",
