@@ -1,94 +1,189 @@
 # 05 — Backend and cloud (Q22–Q28)
 
-This is the section you flagged as missing. The current backend assumes a long-lived process on loopback with local disk. Container vs serverless is not a hosting detail — it decides whether the lock, the journal, and inline generation survive at all.
+Redesigned after Q01–Q22. Q22 is answered and locked; Q23–Q28 are reframed as "how"
+questions under that decision. Locked baseline: strangers (~500, easy to scale, no
+anonymous, Q02), hosted hub (Q18), Vercel serverless with scale-to-zero (Q22),
+managed Postgres, session + installation ID (Q10), long-lived multi-device sessions
+(Q21), version gate + online-required + no legacy fallback from 1.0.0 (Q14). The old
+long-lived loopback + `DATA_DIR` journal + single-process executor assumptions are
+retired and kept only as history ([local-postgresql](local-postgresql.md)).
 
-## Q22. What is the compute model: container, serverless, or VM?
+## Q22. What is the compute model — ANSWERED AND LOCKED
 
-**Decision:** Long-lived containers (Fly/Render/Railway/K8s), serverless functions (Cloud Run/Lambda/Vercel), or plain VMs? Scale-to-zero allowed?
+**Decision (locked):** Serverless on Vercel, scale-to-zero allowed. Many concurrent
+copies may run; no durable local disk; per-user ordering is the long-term target
+(details in Q26); the 60s generation timeout must still be verified against the
+Vercel plan, moving to background jobs if functions are stopped too early
+(see `answers/answers-05-backend-and-cloud.md`).
 
-**Context:** Today: one Fastify process, at most 5 pool connections, one advisory-lock connection enforcing single-process ownership, bounded waits, provider calls outside transactions ([local-postgresql](local-postgresql.md)). The old `render.yaml` describes the historical SQLite deployment and cannot run the current backend (no `DATABASE_URL`, binds `0.0.0.0` which startup rejects). Serverless breaks three assumptions simultaneously: no durable local disk for `DATA_DIR`, no single advisory-lock holder, and 60-second provider calls exceeding typical function timeouts.
+**What this forces below:** Q23 must pick a serverless-compatible managed Postgres;
+Q24 must be stateless (no filesystem journal); Q25 cannot stay inline per-process;
+Q26 cannot stay single-process; Q28 cannot stay loopback-only.
 
-**Options:**
-- Long-lived container — preserves the executor, lock, and journal with minimal redesign; pay for idle. Needs health/readiness, restarts, and deploy ordering.
-- Serverless — scales to zero and removes server care; forces journal into PG/object storage, lock into PG advisory or a queue, and generation into background jobs.
-- Plain VM (user-run) — matches today's dev-mac story extended to a server; cheapest for one owner, weakest operability story for others.
+## Q23. How is managed Postgres configured for Vercel serverless?
 
-**Answer prompt:** Pick the model and state whether scale-to-zero is allowed. Research task: time a cold start on your candidate platform and compare against the 60s generation timeout.
+**Decision:** Which managed Postgres and how it is wired for many short-lived
+functions: host, pooling, roles, backup/PITR, and migration discipline.
 
-## Q23. Where does PostgreSQL live and who operates it?
-
-**Decision:** Managed Postgres (Supabase/Neon/RDS/Render PG), self-hosted on a VM, or per-user embedded (SQLite seen only as history)?
-
-**Context:** PostgreSQL 18 is the only runtime database; schema via Drizzle, reviewed SQL in `migrations/`, separate app/migrator/test roles, startup performs no DDL ([local-postgresql](local-postgresql.md)). Render Free's ephemeral disk is an explicit non-durability constraint. Backup/restore today targets whole-DB custom dumps into separate `vocabularium_restore_*` databases.
-
-**Options:**
-- Managed PG — automated backups, PITR, and failover; cost per project and a network-security story (TLS, IP allowlists, credential rotation).
-- Self-hosted PG — full control, you own backups, upgrades (stay on major 18, deliberate 18.x updates), and disk monitoring.
-- Per-user SQLite — true local-first; abandons the current PG semantics (advisory locks, repeatable-read executor, roles) and needs a new persistence design.
-
-**Answer prompt:** Pick the host and the backup story (frequency, PITR yes/no, tested-restore cadence). Research task: run `db:backup` + `db:restore` into a review database and record wall time for your largest realistic dataset.
-
-## Q24. Can the API run on ephemeral disk (stateless)?
-
-**Decision:** Is durable local disk guaranteed, or must the process survive with nothing but PG + object storage?
-
-**Context:** Completed provider results that cannot reach PG are staged in memory and in `DATA_DIR/generation-outbox`; startup replays staged results without recalling the provider, while unfinished attempts without staged results fail. If journal + DB writes both fail before exit, output is unrecoverable and retry is required ([local-postgresql](local-postgresql.md)). PG does not make the filesystem journal durable by itself.
+**Context:** PostgreSQL 18 stays the only runtime database; schema via Drizzle with
+reviewed SQL in `migrations/`; startup runs no DDL ([local-postgresql](local-postgresql.md)).
+Q22 forces serverless-compatible hosting: pooled connections, TLS, credential
+rotation, and no reliance on local disk. Self-hosted PG and per-user SQLite are out
+— the former reintroduces the server care Q22 removed, the latter abandons PG
+semantics (advisory locks, roles) the rest of this section depends on.
 
 **Options:**
-- Durable disk guaranteed — keep the journal as-is; backups must cover PG + `DATA_DIR` together with a documented pairing.
-- Ephemeral disk — move the journal into PG (table) or object storage (S3/R2) with the same staged-replay semantics; more work, true statelessness.
-- Hybrid (disk as cache, PG as truth) — fastest path to stateless-ish; needs a reconciliation rule for disk/PG divergence after crash.
+- Neon (pooled PG + branching + PITR) — closest fit for Vercel scale-to-zero;
+  uses the pooled connection string from functions, direct string for migrator.
+- Supabase / RDS / Render PG with an external pooler — same shape, more
+  operating surface; pick only with a concrete reason (region, compliance, cost).
+- Rejected: self-hosted PG on a VM; per-user SQLite (history only).
 
-**Answer prompt:** Pick one and write the crash rule: after a kill -9 mid-generation, what is replayed, what fails, and who retries? Research task: kill the API mid-generation in dev and record what the dashboard shows after restart.
+**Answer prompt:** Name the host, pooled vs direct connection strings, app/migrator
+role separation, backup frequency + PITR window + tested-restore cadence, and the
+Postgres 18 upgrade rule. Research task: run `db:backup` + `db:restore` into a
+review database (or the host's branch/restore flow) and record wall time for the
+largest realistic dataset.
 
-## Q25. Inline generation or queue + workers?
+## Q24. How does the stateless API preserve outcomes without disk?
 
-**Decision:** Keep generation inside the API process with `GENERATION_MAX_ACTIVE=4`/`MAX_QUEUED=16`, or move to a durable queue (pg-boss/BullMQ/Temporal) with separate workers?
+**Decision:** Crash rule for a function killed mid-generation, given Q22's
+acceptance: committed PG rows survive; in-flight provider results are lost; the
+user retries explicitly. No filesystem journal.
 
-**Context:** Provider calls run outside the executor and transactions; a save rejected while a seite generates is not queued — the user resubmits explicitly ([local-postgresql](local-postgresql.md), [Select and Add](../MVP-Product-spec-select-and-add.md)). Queue bounds, 60s timeouts, and 4096-token budgets are per-process today.
-
-**Options:**
-- Inline (current) — simplest; backpressure is per-process memory + queue counters. Fails horizontally: two processes double-issue generation without a shared lock.
-- PG-backed queue — durable, multi-process-safe, retryable with visibility timeouts; needs worker deployment, poison-message handling, and cost accounting per attempt.
-- External queue (Redis/SQS) — best tooling; another stateful dependency to operate and back up.
-
-**Answer prompt:** Pick the topology and state where retry, timeout, and per-user rate limits are enforced. Research task: saturate the queue (16 queued + slow provider) and record the user-visible behavior at the bound.
-
-## Q26. How is multi-process safety achieved (if ever more than one process)?
-
-**Decision:** If the backend ever runs 2+ processes, how are per-account ordering, generation locks, and operation idempotency preserved?
-
-**Context:** One pool connection holds the advisory ownership lock; a second API or migration against a live API fails — this enforces the one-process limit, with cross-process arrival ordering explicitly not claimed via DB locks alone ([local-postgresql](local-postgresql.md)). Receipt replay returns the original result and sequence; same-ID-different-payload is rejected.
-
-**Options:**
-- Stay single-process forever — state it as a constraint (simplest, caps throughput and availability).
-- PG-serialized multi-process (advisory locks + `SELECT ... FOR UPDATE` account row + idempotency table) — keeps exactly-once semantics; every mutation path must take the lock correctly.
-- Partition by account (sticky routing, one owner process per account) — scales with user count; needs a router and rebalancing story.
-
-**Answer prompt:** Pick one and name the lock per operation type. Research task: start a second API against the dev DB and confirm it refuses ownership; record the exact failure.
-
-## Q27. What is the public API contract and versioning policy?
-
-**Decision:** Are `/api/kartes/...` + `karteId`/`seiteId`/`seites` the v1 contract, versioned under `/v1/`, and how long do legacy `/api/cards` aliases and old fields survive?
-
-**Context:** Current routes use karte/seite names with legacy card/page aliases, dual-field acceptance with ambiguity rejection, and dialect negotiation via `X-Vocabularium-Terminology`; receipt fingerprints pin original operation kinds and field spellings so old and new requests replay identically ([terminology compatibility](terminology-compatibility.md)). Retirement requires an explicit later decision.
+**Context:** The old `DATA_DIR/generation-outbox` staged-replay path assumed durable
+local disk and a single process that restarts ([local-postgresql](local-postgresql.md)).
+On Vercel neither holds: disk is ephemeral and the next request may land on a
+different copy. PG is the only truth. "Replay without recalling the provider"
+survives only for rows already committed to PG — everything else fails visibly.
 
 **Options:**
-- Unversioned stable + aliases forever — least breakage; compat shims accumulate permanently.
-- Versioned (`/v1/`) with N−1 support — clean evolution; every breaking change ships a migration window and client gate (see Q14).
-- Aggressive deprecation (dated removal) — cleanest code; forces coordinated backend-then-extension upgrades every release.
+- PG as truth, no replay of in-flight work (default from Q22) — attempt row in PG
+  moves to failed on function death/timeout; dashboard keeps the Retry action per
+  Q08; user clicks generate again; no cross-function result adoption.
+- PG journal table for *completed* provider responses only — a worker that finished
+  the provider call but died before commit may have its response claimed once via
+  idempotency key; still no resume of partial provider streams.
+- Rejected: durable-disk journal; hybrid disk-as-cache (divergence rules cost more
+  than the cheap retry they would save).
 
-**Answer prompt:** Pick the policy and write the retirement condition (date, version, or "when no supported client sends legacy fields"). Research task: grep the codebase for every legacy alias and count the compat surface that must be maintained.
+**Answer prompt:** Write the crash rule (what is committed vs failed vs retried by
+whom) and the idempotency-key scope for the PG-journal variant if chosen.
+Research task: kill a function mid-generation in preview and record what the
+dashboard shows (failed seite + Retry, no silent success).
 
-## Q28. What are the backend resource and networking policies?
+## Q25. How are the generation queue and workers built for serverless?
 
-**Decision:** Bind address (loopback-only vs LAN/TLS), port allocation, connection-pool sizing, request timeouts, and log/health surface.
+**Decision:** Queue topology that replaces the per-process `GENERATION_MAX_ACTIVE=4` /
+`MAX_QUEUED=16` bounds, which are meaningless across many Vercel copies.
 
-**Context:** The API binds `127.0.0.1:4318` by default and startup rejects non-loopback binding for this milestone; liveness vs readiness are split (`/health/live` vs `/health/ready` + compatible `/health`), OpenAPI is generated without a DB connection ([README](../../README.md), [local-postgresql](local-postgresql.md)).
+**Context:** Provider calls run outside transactions with 60s timeouts and
+4096-token budgets; a save rejected during generation needs explicit resubmission
+([local-postgresql](local-postgresql.md), [Select and Add](../MVP-Product-spec-select-and-add.md)).
+Inline execution inside the requesting function inherits the Vercel timeout Q22
+flagged for verification. Durable queuing moves long provider work out of the
+request path with visibility timeouts, bounded auto-retry of transient failures,
+poison-message handling, and per-user rate limits.
 
 **Options:**
-- Loopback-only (current) — minimal attack surface; remote clients and hosted frontends impossible without a tunnel.
-- TLS-terminated hosted (reverse proxy + managed certs) — needed for any hosted or multi-device story; adds proxy config, header trust, and cert renewal.
-- Tailscale/private-network — middle ground for owner-only remote access without public exposure.
+- PG-backed queue + background workers (baseline) — durable, multi-copy-safe,
+  no new stateful service; workers run as Vercel background functions or a small
+  always-on worker pool; retry/timeout/quota enforced at dequeue.
+- External queue (Redis/SQS/Temporal/trigger.dev-style) — better tooling and
+  scheduling; adds a dependency to operate, secure, and back up; needs a reason
+  PG cannot meet (throughput, delayed retries, scheduling).
+- Rejected: inline-only generation (fails the Vercel timeout check and
+  double-issues work across copies without a shared claim).
 
-**Answer prompt:** Pick the bind/TLS story and the pool/timeout numbers with reasons. Research task: load the API with 2× pool connections of concurrent saves and record lock-wait and timeout behavior.
+**Answer prompt:** Pick the topology, state where retry, 60s timeout, per-seite
+token budget, and per-user rate limits are enforced, and define the at-limit UX
+(degrade to saved-input-only vs refuse-fast — see Q48/Q56). Research task:
+saturate the queue with a slow provider stub and record user-visible behavior at
+the bound (position, ETA, cancel if promised).
+
+## Q26. How is per-account ordering achieved across many copies?
+
+**Decision:** Locking and idempotency that deliver Q22's "one ordered line per
+user" without a single global writer. Users must not block each other.
+
+**Context:** The old single-process advisory ownership lock (second API refuses to
+start) is retired — it contradicts Q22's many-copies decision
+([local-postgresql](local-postgresql.md)). What survives: receipt idempotency by
+SHA-256 fingerprint with same-ID-different-payload rejected, and the Q19
+serialized-plus-explicit-resubmission semantics, now scoped per account instead of
+per database. Generation claims stay bound to the originating installation ID
+(Q08/Q10) so results publish only where they were requested.
+
+**Options:**
+- Per-account PG serialization (baseline) — short `pg_advisory_xact_lock` per
+  account (or `SELECT ... FOR UPDATE` on the account row) for write paths +
+  idempotency table for receipts; generation claims keyed by
+  (account, installation ID, attempt ID) with single-claim semantics.
+- Partitioned workers by account hash — scales dequeue with user count; needs a
+  router/rebalancing story; still needs the same per-account lock for direct
+  write paths.
+- Rejected: stay-single-process; global one-writer lock (reintroduces the
+  cross-user blocking Q22 explicitly refused).
+
+**Answer prompt:** Name the lock per operation type (karte writes, layout saves,
+generation claims, receipt replay) and the contention rule (wait with bounded
+timeout vs refuse-fast). Research task: run two concurrent saves on one account
+plus one on another account and record that the first serializes while the second
+proceeds.
+
+## Q27. How is the v1 API versioned and retired?
+
+**Decision:** Versioning mechanics given Q14 already locked the policy: karte/seite
+names under `/v1/` (or equivalent), major.minor gate enforced via `GET /api/meta`
+(`version`, `minCompatibleExtension`, `incarnationId`), backend-before-extension
+update order, and legacy `/api/cards` aliases + old fields + dialect switching
+removed at 1.0.0 with no compat guarantee for <1.0.0.
+
+**Context:** Current routes still carry legacy card/page aliases with dual-field
+acceptance and `X-Vocabularium-Terminology` negotiation; receipt fingerprints pin
+original kinds/field spellings ([terminology compatibility](terminology-compatibility.md)).
+Q14 retires all of that at 1.0.0 — this question must not re-litigate whether,
+only how the clean contract is held.
+
+**Options:**
+- Versioned `/v1/` + N−1 client window via `minCompatibleExtension` (baseline) —
+  OpenAPI generated per release, gate message tells the user to update backend
+  first, then reload the extension.
+- Unversioned stable — only if the `/v1/` prefix cost is proven; still keeps the
+  Q14 gate and the 1.0.0 retirement line.
+- Rejected: aliases-forever; dated-removal beyond 1.0.0 for pre-1.0 clients.
+
+**Answer prompt:** State the versioned route prefix, the OpenAPI publishing point,
+and one retirement sentence per legacy item (all "removed in 1.0.0"). Research
+task: grep for every legacy alias/field/header and confirm the removal list is
+complete.
+
+## Q28. How are networking, pooling, and timeouts set for hosted serverless?
+
+**Decision:** Public HTTPS topology, serverless-safe pool sizing, request timeouts,
+and health surface — replacing the loopback-only dev posture.
+
+**Context:** The API binds `127.0.0.1:4318` today with startup rejecting
+non-loopback binding; liveness vs readiness are split (`/health/live` vs
+`/health/ready`) ([local-postgresql](local-postgresql.md)). Hosted hub (Q18) with
+extension + web clients (Q06/Q11) needs public HTTPS, CORS/extension-origin
+policy, trusted proxy headers, and managed certs. Per-function pools must stay
+small against the managed-PG connection ceiling; the 60s generation budget must
+fit inside the Vercel plan limit or move to the Q25 background path.
+
+**Options:**
+- Vercel-managed TLS + small per-function pool against the pooled PG endpoint
+  (baseline) — e.g. max 1–2 connections per function, statement-level pooling,
+  request timeout below the plan's function limit, provider timeout 60s enforced
+  in the worker, `/health/live` + `/health/ready` retained for the worker/deploy
+  checks.
+- Private-network/Tailscale variant — only for pre-public staging; never the 1.0
+  story for strangers (Q02).
+- Rejected: loopback-only; large per-process pools (exhausts managed-PG limits
+  under burst).
+
+**Answer prompt:** Give the bind/TLS story, CORS/allowed-origin rule, pool numbers
+with arithmetic against the PG connection ceiling at burst, and the three timeout
+values (request, function, provider) with reasons. Research task: burst to 2× the
+pooled connection limit with concurrent saves and record lock-wait/timeout
+behavior.
