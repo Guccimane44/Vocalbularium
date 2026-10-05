@@ -19,3 +19,34 @@ Explicit Save/Cancel
 Block JSON
 
 ### Q14
+
+Decision: Version gate on major.minor (patch free) + online-required + no legacy terminology fallback + clear cache on reset. Effective from 1.0.0. No compat guarantee for <1.0.0.
+Policy:
+- Extension X.Y.* only works with backend X.Y.*. Example: 1.0.3 works with 1.0.x, refuses 1.1.0 or 1.0.x <> 1.1.x.
+- Check via GET /api/meta → { version, minCompatibleExtension, incarnationId } on startup, login, and before save. Keep backend-before-extension update order.
+- Online-required: no authoritative offline reads. Dashboard is dead without backend.
+- Legacy /api/cards, /api/card/*, cardId/pageId/pages, card-draft fallback, and X-Vocabularium-Terminology dialect switching are retired at 1.0.0. Current karteId/seiteId/seites, /api/kartes, karte-draft only.
+- Backend reset is detected via stable incarnationId (changes only on restore/re-init). On mismatch the extension discards cached account data and requires fresh sign-in.
+
+Stale / reset UX:
+- Unreachable: Backend unreachable at <origin>. [Retry]
+- Version mismatch: Extension 1.Y.x needs backend 1.Y.x (found A.B.C). Update backend first, then reload extension.
+- Reset detected: Backend was reset. Cached decks and sessions belong to the old database and were cleared. Sign in again. Unsaved karte-drafts are kept for manual copy and are never auto-replayed.
+
+Cached artifacts + invalidation:
+Artifact	Invalidated when
+account, decks/kartes cache	logout, version-block, incarnation mismatch, failed fetch never clears
+receipts, captures (capture-*, save-*)	same as above; never auto-resend after reset
+karte-draft (sessionStorage)	preserved on Save-fail / offline for Try-again; preserved (not replayed) on reset; cleared only on explicit Save / Discard
+
+Why:
+Dev phase, zero users pre-1.0, so no fleet of old clients to protect. Gate is cheapest safe path, online-required matches current behavior, dropping shims removes permanent debt, incarnation ID fixes untested issue #24 / audit “reset identity absent”.
+
+What would change my mind:
+Offline editing becomes a product requirement → revisit online-required. A large auto-updated fleet with mixed versions → add minCompatible window or temporary best-effort shim instead of hard gate.
+
+### Q15
+Managed updator.
+
+### Q16
+Best-effort.
