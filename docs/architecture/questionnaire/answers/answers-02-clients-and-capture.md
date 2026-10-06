@@ -9,7 +9,7 @@ out:
 * audio/youtube capture
 
 ### Q07
-payload: selected text + surrounding block (capped) + URL/title + timestamp. user intent is an interesting approach but we leave it out of the scope of 1.0.0.
+Standard: payload is selected text + Context (the surrounding block, capped at around 500 characters) + URL/title + timestamp. Capture with Context can be turned on or off (default on); when off, only text + timestamp travel. Stored per karte alongside the main key and editable next to it (including per-karte deletion); sent to the LLM only when present; nothing else retained. User intent stays out of 1.0.0 scope. Spec: [kartes-and-editing](../../../specs/kartes-and-editing.md#context), [Select and Add](../../../MVP-Product-spec-select-and-add.md#capture-scenario). Needs a retention/redaction rule per Q11/Q33.
 
 ### Q08
 Decision: Support both modes. Mode 1 (fire-and-forget) is the default; mode 2 (fire-and-popup) is opt-in via a global toggle.
