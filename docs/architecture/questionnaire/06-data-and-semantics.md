@@ -1,4 +1,4 @@
- # 06 — Data and semantics (Q29–Q34)
+    # 06 — Data and semantics (Q29–Q34)
 
 This is the product's long-term memory. The vision's "persistent semantic object" is the differentiator: future modules should work on captures from years ago. Whatever you store (or refuse to store) now decides whether that promise is real or marketing.
 
