@@ -12,3 +12,7 @@ Pinned single model — predictable cost/quality/evals; single point of failure 
 
 ### Q49
 
+Ad-hoc sampling (current)
+
+### Q50
+
