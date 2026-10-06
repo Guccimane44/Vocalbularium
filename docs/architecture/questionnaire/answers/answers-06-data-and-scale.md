@@ -25,3 +25,11 @@ Karte-centered with true move, full-carry copy, and trash + restore + timed purg
 - Layout-mismatch paper check: a 4-seite karte moved into a 2-seite deck keeps all 4 seites unchanged; the target deck gains no empty seites and loses none. New captures in that deck follow its own layout.
 
 Needs: decouple karte-owned `seites` from `layout_seites` conformance (current reads join on `l.deck_id = b.deck_id`, `saveDeck` backfills/deletes `seites`), and change `saveDeck` to template-only.
+
+### Q33
+
+Attempt log only (latest outcome per seite) — minimal; cannot answer "what changed and when".
+
+### Q34
+
+Keep 1–4 seites + bounded modules — preserves current editor, layout, and migration behavior; revisit only with a layout-migration design.
