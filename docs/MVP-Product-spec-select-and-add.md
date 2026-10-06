@@ -8,7 +8,7 @@ This document is the authoritative source for detailed seite-completion, failure
 
 The owner has approved a shared generation input for captured and manually created kartes: a required, editable main key displayed on the front seite. The [karte input specification](specs/kartes-and-editing.md) owns creation and editing rules, and [scope](product/scope.md#accepted-change-pending-implementation) records this change as pending implementation.
 
-For the accepted target behavior, both creation paths can generate from the main key. Manual creation does not automatically generate; the user explicitly requests it. Editing the main key does not change existing content or outcomes. Explicit generation again uses the updated key and interpretation appropriate to it. An earlier selection or its interpretation must not override the key supplied to the new attempt.
+For the accepted target behavior, both creation paths can generate from the main key and the saved Context. Manual creation does not automatically generate; the user explicitly requests it. Editing the main key or Context does not change existing content or outcomes. Explicit generation again uses the updated key and Context and interpretation appropriate to them. An earlier selection or its interpretation must not override the key and Context supplied to the new attempt.
 
 The main-key, front-seite display, and manual-generation rules below describe that accepted change. Other completion, locking, confirmation, save, and recovery rules retain the existing baseline. The running implementation still restricts retry to captured kartes and uses their original selection. Historical MVP specifications remain records of that baseline.
 
@@ -24,9 +24,9 @@ The default deck defines the seites and modules used by Select and Add. Supporte
 
 1. A logged-in user is reading a webpage and selects an unfamiliar word, phrase, or sentence, such as `幸福`.
 2. The user right-clicks the selection and chooses **Create a karte in “{default deck name}”**.
-3. Vocabularium takes the selected text exactly as selected. It does not include surrounding webpage text or other webpage context.
-4. It automatically saves a karte record containing the original selected text and the configured seites to the destination deck. This record remains accessible if generation later fails; its existence does not mean generation succeeded.
-5. Where required by the configured modules, it determines the input type and one source language from the selected text. It evaluates the modules in the default deck's configuration.
+3. Vocabularium takes the selected text exactly as selected. When capture with Context is on, it also takes the surrounding block (capped at around 500 characters) plus the page URL/title and timestamp; when off, no surrounding text or page context is taken. The Context and its on/off toggle are defined in the [karte input specification](specs/kartes-and-editing.md).
+4. It automatically saves a karte record containing the original selected text as its main key, the captured Context when present, and the configured seites to the destination deck. This record remains accessible if generation later fails; its existence does not mean generation succeeded.
+5. Where required by the configured modules, it determines the input type and one source language from the selected text and the saved Context. It evaluates the modules in the default deck's configuration.
 6. For each seite, it publishes content in module order only if every applicable module on that seite completes. Inapplicable modules produce no content; their seites still exist. If any applicable module fails, the seite attempt fails and none of that attempt's output is published.
 7. It automatically saves and synchronizes seite content and generation outcomes with the account. The user does not need to select **Save**. A karte with any failed seite has a failed generation outcome, not partial success.
 
@@ -34,7 +34,7 @@ The destination is the default deck at the time the capture action is invoked. C
 
 Each separate **Create a karte in “{default deck name}”** action creates a new karte, even if the same selected text or resulting content already exists in that deck or another deck. Duplicate kartes are allowed without a warning, automatic merging, or content-based deduplication. They remain independently editable and deletable.
 
-Initial generation starts with the seite and module configuration at capture time. Changes to modules apply to subsequent captures and explicitly requested seite retries, not to an attempt already running. If seites are added while a capture is running, those additional seites remain empty on its resulting karte. If seites are removed, output for those removed seites is discarded; output for retained seites follows those seites into their current order. Deleting a karte or its destination deck cancels its pending generation and retries; they must not recreate deleted kartes, decks, or seites.
+Initial generation starts with the seite and module configuration pinned at capture time. The karte keeps that layout revision: later deck-configuration edits apply to newly captured kartes, not to this karte or its running attempt. Changes to modules apply to subsequent captures and explicitly requested seite retries on kartes pinned to a layout containing that seite, not to an attempt already running. If seites are added while a capture is running, those additional seites remain empty on its resulting karte. If seites are removed, output for those removed seites is discarded; output for retained seites follows those seites into their current order. Deleting a karte or its destination deck cancels its pending generation and retries; they must not recreate deleted kartes, decks, or seites.
 
 The saved karte record appears in the destination deck's karte view page, including while generation is loading or after it fails. Clicking its row opens the **karte content page**, where a horizontal bar navigates its seites and **Retry** applies to the current seite. Seite content is plain text, including literal markup, following the [Modules specification](history/mvp/MVP-Product-spec-modules.md). The MVP does not automatically open the newly generated karte or move the user away from the webpage they are reading.
 
@@ -54,7 +54,7 @@ This transient popup is separate from the dashboard and from confirmation dialog
 
 ## Input interpretation
 
-Only the selected text is used to determine whether the input is a word/phrase or a sentence and which source language applies. For ambiguous text, the MVP chooses one language automatically and uses it consistently across the karte's modules. It does not generate separate interpretations for multiple source languages. Target languages are defined by the modules, not by a fixed language-pair setting for the deck.
+The selected text and the saved Context are used to determine whether the input is a word/phrase or a sentence and which source language applies. For ambiguous text, the MVP chooses one language automatically and uses it consistently across the karte's modules. It does not generate separate interpretations for multiple source languages. Target languages are defined by the modules, not by a fixed language-pair setting for the deck.
 
 The shared interpretation rules are defined in the [Modules specification](history/mvp/MVP-Product-spec-modules.md).
 
@@ -62,7 +62,7 @@ The shared interpretation rules are defined in the [Modules specification](histo
 
 Generation-status labels describe actual generation attempts. A seite that has never had a generation attempt shows no generation-status label. This includes seites of manually created kartes and newly appended seites on existing kartes. They remain normally viewable and editable. A karte with no generation attempts on any seite also shows no overall generation-status label.
 
-Under the accepted main-key change, empty or failed generated content on the front seite does not hide or remove the main key. A manual karte that has not generated content still displays its key without a generation-status label. Editing the key alone does not change the last attempt's outcome.
+Under the accepted main-key change, empty or failed generated content on the front seite does not hide or remove the main key. A manual karte that has not generated content still displays its key without a generation-status label. Editing the key or Context alone does not change the last attempt's outcome.
 
 When generation has been attempted, the user sees the karte's overall generation outcome and the status of the current seite where applicable, not individual module statuses. Each seite attempt has one of these generation states:
 
@@ -96,16 +96,16 @@ Closing only the capture popup or dashboard tab does not count as closing Chrome
 
 Before starting, always show this confirmation warning:
 
-> Retry will replace this seite's content, including manual edits and previous generated content. The main key will be kept. Other seites will not change.
+> Retry will replace this seite's content, including manual edits and previous generated content. The main key and Context will be kept. Other seites will not change.
 
 - **Cancel** leaves the current seite and its content unchanged.
 - **Confirm** discards the current content being replaced on that seite and starts a fresh generation attempt. Previous manual edits, additions, removals, and generated output are not preserved or merged into the replacement. The main key is retained and remains visible on the front seite. If the new attempt fails, its generated content remains empty with a failure indicator; the discarded content is not restored.
 
-Retry evaluates every module configured for that seite and generates fresh output for every applicable module, including instances that succeeded previously. It uses the karte's current saved main key and the seite's current saved deck configuration at confirmation time. Required input classification and source language must correspond to that main key; establish or refresh interpretation when needed. Changes to configuration after the attempt starts do not change that attempt. Editing the main key changes later generation input without automatically regenerating existing content. Editing other displayed content does not change generation input.
+Retry evaluates every module configured for that seite in the karte's pinned layout and generates fresh output for every applicable module, including instances that succeeded previously. It uses the karte's current saved main key and saved Context and the seite's pinned deck configuration at confirmation time. Required input classification and source language must correspond to that main key and Context; establish or refresh interpretation when needed. Changes to configuration after the attempt starts do not change that attempt. Editing the main key or Context changes later generation input without automatically regenerating existing content. Editing other displayed content does not change generation input.
 
 Retry updates the same seite of the same karte and saves the new outcome automatically. It does not create another karte, regenerate other seites, or change their content or manual edits. If the retry targets seite 1, the displayed list entry and alphabetical position follow the changed first-seite text; the karte's identity and creation time stay the same. The selected seite stays the target even if the user navigates to another seite while generation runs.
 
-Finish manual edit mode with **Save** or **Cancel** before using **Retry**, including when editing the main key. While an attempt is running on a seite, another retry and manual editing on that seite are unavailable. Under the accepted input change, manually created kartes supply a main key and are not excluded from generation or generation again.
+Finish manual edit mode with **Save** or **Cancel** before using **Retry**, including when editing the main key or Context. While an attempt is running on a seite, another retry and manual editing on that seite are unavailable. Under the accepted input change, manually created kartes supply a main key and are not excluded from generation or generation again.
 
 The generation lock applies across installations. Another installation may already have an unsaved draft when a seite's generation starts. If a manual save arrives while any seite it changes is generating, reject that save immediately rather than queueing it. For a save containing several changed seites, reject the whole save without updating any of them. Preserve all the user's drafts and explain that a seite is still generating. After the attempt finishes, the user can explicitly select **Save** or **Try saving again**; the new save follows the normal server-arrival order. Do not automatically apply the previously rejected save when generation ends.
 
@@ -138,4 +138,4 @@ For a selected sentence such as `我真的很幸福`, seite 1 renders that sente
 
 ## Editing after capture
 
-Generated content remains editable. The user opens the karte content page and selects **Edit karte manually** to add, change, or remove content, or to delete the karte. Manual edits require an explicit **Save**. Select and Add and confirmed seite retries save their outcomes automatically. A later confirmed **Retry** discards all saved manual edits on its target seite along with the previous generation; manual edits on other seites remain unchanged.
+Generated content remains editable. The user opens the karte content page and selects **Edit karte manually** to add, change, or remove content, to edit the main key or its Context, or to delete the karte. Manual edits require an explicit **Save**. Select and Add and confirmed seite retries save their outcomes automatically. A later confirmed **Retry** discards all saved manual edits on its target seite along with the previous generation; manual edits on other seites remain unchanged.

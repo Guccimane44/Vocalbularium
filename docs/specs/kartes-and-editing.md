@@ -12,6 +12,12 @@ Every karte has a main key: the editable text used as its generation input. A ca
 
 The main key must appear on the first, front seite. It can coexist with manually written or generated content and must remain visible regardless of whether a module prints input. Other seites may have no content. Matching main keys do not merge kartes or make their identities the same.
 
+## Context
+
+Each karte has an optional **Context**: the surrounding block captured with the selection (around 500 characters, capped), stored per karte alongside the main key. Capture with Context can be turned on or off; when off, or for manual creation without supplied context, the karte has no Context. The Context is editable alongside the main key editor, including per-karte deletion (clearing it back to no Context).
+
+Editing the Context follows the main-key rule below: it changes the input for subsequent generation only, never regenerates, replaces content, or changes prior outcomes by itself. Saving a Context edit is distinct from requesting generation.
+
 ## Creation and optional generation
 
 Capture and manual entry are two ways to supply the same karte input. They share module generation capabilities rather than defining different kinds of karte.
@@ -22,7 +28,9 @@ Manual creation requires a main key but does not require generation. The user ma
 
 Editing the main key changes the text input for subsequent generation. It does not automatically run modules, remove existing generated or manually written content, or change prior generation outcomes. Editing other seite content does not redefine the main key.
 
-The user must explicitly request generation again to produce content from the updated key. The action uses the main key supplied to the new attempt and interpretation appropriate to that value. It must not silently use the original captured selection or an earlier key's interpretation. Content that remains from earlier attempts can therefore describe a different input from the current key.
+The user must explicitly request generation again to produce content from the updated key. The action uses the main key and the saved Context supplied to the new attempt and interpretation appropriate to them. It must not silently use the original captured selection or an earlier key's interpretation. Content that remains from earlier attempts can therefore describe a different input from the current key.
+
+Kartes pin the deck layout revision at capture (or at manual creation). Later deck-configuration edits apply to new kartes, not to existing ones; viewing and generating again on an existing karte use its pinned layout. The deck configuration is a template for new kartes, not a central layout rewritten onto every karte in the deck.
 
 Main key edits follow the explicit save and draft-preservation rules for manual editing. Saving a main key edit is distinct from requesting generation. The existing requirement to finish editing with Save or Cancel before a seite retry remains applicable. Save recovery resubmits a save; it does not generate.
 
@@ -35,6 +43,9 @@ Main key edits follow the explicit save and draft-preservation rules for manual 
 5. Explicit generation again after that edit uses `Bismarck` and interpretation appropriate to it, rather than the original key. Replacement and failure behavior follow the generation specification for the targeted seite.
 6. Editing explanatory text without editing the main key leaves subsequent generation input unchanged.
 7. A front seite with no input-printing module, no applicable module output, or a failed generation still displays its main key.
+8. Capturing with Context on initializes that karte's Context alongside its main key; capturing with Context off, or manual creation without supplied context, leaves the karte with no Context.
+9. Editing the Context and saving preserves existing content and prior outcomes exactly like a main-key edit. Explicit generation again after that edit uses the updated key and Context.
+10. Changing the deck configuration never rewrites existing kartes: a karte captured earlier keeps its pinned layout, while newly captured kartes use the updated configuration.
 
 ## Implementation details still to specify
 

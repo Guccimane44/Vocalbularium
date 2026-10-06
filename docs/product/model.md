@@ -14,7 +14,7 @@ An **account** owns a collection of decks and kartes and identifies which saved 
 
 A **deck** is the primary collection of kartes, organized for a subject, language, project, source, or other purpose. Every karte belongs to exactly one deck.
 
-A **deck configuration** defines the deck's settings, including its name, the ordered seites shared by its kartes, and the ordered module instances configured on each seite. Its seite and module settings describe how generation should produce content; they are distinct from the content already saved on an individual karte.
+A **deck configuration** defines the deck's settings, including its name, the ordered seites shared by its kartes, and the ordered module instances configured on each seite. Its seite and module settings describe how generation should produce content; they are distinct from the content already saved on an individual karte. The configuration is a template for newly created kartes: each karte pins the layout revision at capture or manual creation, and later configuration edits do not rewrite existing kartes.
 
 The **deck configuration page** is the interface for editing these settings. **Layout** refers specifically to the arrangement of seites and modules within the configuration.
 
@@ -30,7 +30,7 @@ The **main key** is the required, editable text that supplies the karte's genera
 
 The main key is the only text input for module generation. Module configuration determines what to produce from it. Changing the main key changes the input for subsequent generation, but does not start generation or change existing generated content. Editing other seite content does not change the main key.
 
-**Captured input** describes the text originally supplied through capture. Capture is an input origin, not a prerequisite for generation. The original selection does not override an edited main key on subsequent generation.
+**Captured input** describes the text originally supplied through capture. Capture is an input origin, not a prerequisite for generation. The original selection does not override an edited main key on subsequent generation. Capture may also supply an optional **Context** (the surrounding block, capped): a stored input aid for re-deriving interpretation, not a semantic referent — see the direction note below.
 
 An **input interpretation** identifies the input category and, where needed, its source language for the main key used in a generation attempt. Module applicability uses that interpretation. Interpretation must correspond to that attempt's input; it cannot reuse a stale classification or language from an earlier main key. Current classification and language choices are defined by the [module specification](../specs/modules.md#current-input-and-applicability).
 
@@ -38,7 +38,7 @@ An **input interpretation** identifies the input category and, where needed, its
 
 The vision's persistent semantic object refers to the karte as the lasting home for captured material and its useful representations. It does not introduce an additional entity between a deck and its kartes, identify every matching text as the same concept, or require a particular storage design.
 
-Preserving a chosen meaning or referent across future module runs is a product direction, not a current guarantee. Current interpretation does not establish a user-correctable, enduring semantic identity. Rules for richer contextual interpretation and semantic corrections remain open. A manually created karte has a main key even if it has no interpretation or generation attempt yet.
+Preserving a chosen meaning or referent across future module runs is a product direction, not a current guarantee. Current interpretation does not establish a user-correctable, enduring semantic identity. Rules for richer contextual interpretation and semantic corrections remain open. A saved Context helps re-derive interpretation from the original surroundings but does not itself fix a referent. A manually created karte has a main key even if it has no interpretation or generation attempt yet.
 
 ## Seite and front seite
 
