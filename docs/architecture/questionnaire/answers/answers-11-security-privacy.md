@@ -12,4 +12,9 @@
 
 ### Q60
 
+- Capturing and organizing information does not require sending it to an external AI provider. External processing happens only when the user explicitly requests generation, and only the information necessary for that generation is sent. Stored captures can be deleted by the user according to the application's retention policy.
+
+### Q61
+
+- Store-minimum (privacy policy + disclosures + export/delete) — baseline for Web Store distribution.
 
