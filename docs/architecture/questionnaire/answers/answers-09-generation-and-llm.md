@@ -16,3 +16,8 @@ Ad-hoc sampling (current)
 
 ### Q50
 
+- Explicit-only (current) — predictable cost and no surprise regeneration; users hand-retry every transient blip.
+
+### Q51
+
+- Delimit + validate (fenced input blocks, strict JSON schema, length caps, markup stripping) — baseline hygiene; needs tests per module.
