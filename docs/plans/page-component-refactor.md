@@ -41,7 +41,7 @@ Out of scope, with no design or implementation work until the owner starts it:
 | Q53 study records | reference karte/seite IDs | Reference page IDs and component IDs; references to parts of a card wait for the card view module (decide in Q53) |
 | Q40–Q45 modules (deferred) | waiting for the module brief | Decisions 4–5 are the first part of that brief |
 | Notion "Adopt deck → karte → seite" (Accepted, Implemented) | canonical hierarchy | Mark Superseded when this plan is approved |
-| [model](../product/model.md), [kartes-and-editing](../specs/kartes-and-editing.md), [decks-and-layouts](../specs/decks-and-layouts.md), [modules](../specs/modules.md), [capture-and-generation](../specs/capture-and-generation.md), [Select and Add](../MVP-Product-spec-select-and-add.md), [scope](../product/scope.md), [AGENTS.md](../../AGENTS.md) | seite-based rules | Rewritten in increment 1 |
+| [model](../product/model.md), [kartes-and-editing](../specs/pages-and-editing.md), [decks-and-layouts](../specs/decks-and-configuration.md), [modules](../specs/modules.md), [capture-and-generation](../specs/capture-and-generation.md), [Select and Add](../MVP-Product-spec-select-and-add.md), [scope](../product/scope.md), [AGENTS.md](../../AGENTS.md) | seite-based rules | Rewritten in increment 1 |
 
 ## Owner decisions
 

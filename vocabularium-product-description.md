@@ -1,5 +1,7 @@
 # Vocabularium
 
+> **Note, 10 October 2026:** this original description predates the deck → page → component model ([Q72](docs/architecture/questionnaire/answers/answers-06-data-and-semantics.md#q72)). Read *karte* as page. Its seite layouts describe presentation, which the later card view module will provide; generated content now lives in per-module components. The [product model](docs/product/model.md) and [specifications](docs/specs/) are authoritative.
+
 ## Product description
 
 Vocabularium is a generative knowledge capture program designed to make collecting and working with useful text effortless. It lets users save a word, phrase, sentence, or passage when they encounter it, generate a contextual karte with the modules they choose, and place that karte into a deck without interrupting their activity.
@@ -82,7 +84,7 @@ These are input categories, not different kinds of karte. Capture and manual cre
 
 Manual creation does not require generation. Users can save and write a karte manually, or explicitly request module generation from its main key. Editing the main key changes the input for subsequent generation without automatically changing existing generated content. Only explicitly generating again produces new content from the updated key. Editing other content does not change the main key.
 
-These are accepted requirements [pending implementation](docs/product/scope.md#accepted-change-pending-implementation), detailed in [Kartes and editing](docs/specs/kartes-and-editing.md). Users can also:
+These are accepted requirements [pending implementation](docs/product/scope.md#accepted-change-pending-implementation), detailed in [Kartes and editing](docs/specs/pages-and-editing.md). Users can also:
 
 - manually add a new karte;
 - manually edit a karte created by generation;
@@ -93,7 +95,7 @@ Generated content should be treated as useful starting material that remains und
 
 ### Retry generation for one seite
 
-Users can explicitly regenerate one karte seite, replacing its content after confirmation while retaining the main key. Generation uses the current saved main key regardless of whether capture or manual entry supplied it. The [MVP Select and Add specification](docs/MVP-Product-spec-select-and-add.md#retry-the-current-seite) defines detailed behavior and distinguishes the pending main-key change from the implemented baseline; its [seite-completion rules](docs/MVP-Product-spec-select-and-add.md#seite-completion-and-failure) distinguish failed generation from valid empty generated content.
+Users can explicitly regenerate one karte seite, replacing its content after confirmation while retaining the main key. Generation uses the current saved main key regardless of whether capture or manual entry supplied it. The [MVP Select and Add specification](docs/history/v0.3.0-select-and-add.md#retry-the-current-seite) defines detailed behavior and distinguishes the pending main-key change from the implemented baseline; its [seite-completion rules](docs/history/v0.3.0-select-and-add.md#seite-completion-and-failure) distinguish failed generation from valid empty generated content.
 
 ## Decks are the primary repository concept
 

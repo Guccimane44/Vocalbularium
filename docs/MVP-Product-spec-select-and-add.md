@@ -1,141 +1,145 @@
 # Select and Add
 
-This specification defines capture and generation for the [MVP scope](history/mvp/MVP-Product-scope.md). The supported modules and their applicability are defined in the [Modules specification](history/mvp/MVP-Product-spec-modules.md).
+This specification defines capture and generation. The supported modules and their applicability are defined in the [Modules specification](specs/modules.md) and its [detailed catalog](history/mvp/MVP-Product-spec-modules.md).
 
-This document is the authoritative source for detailed seite-completion, failure, interruption, and retry behavior. The scope, module specification, and general product description summarize and link to these rules.
+This document is the authoritative source for detailed component completion, failure, interruption, and retry behavior. The scope, module specification, and general product description summarize and link to these rules.
 
-## Accepted main-key generation change
+## Status
 
-The owner has approved a shared generation input for captured and manually created kartes: a required, editable main key displayed on the front seite. The [karte input specification](specs/kartes-and-editing.md) owns creation and editing rules, and [scope](product/scope.md#accepted-change-pending-implementation) records this change as pending implementation.
-
-For the accepted target behavior, both creation paths can generate from the main key and the saved Context. Manual creation does not automatically generate; the user explicitly requests it. Editing the main key or Context does not change existing content or outcomes. Explicit generation again uses the updated key and Context and interpretation appropriate to them. An earlier selection or its interpretation must not override the key and Context supplied to the new attempt.
-
-The main-key, front-seite display, and manual-generation rules below describe that accepted change. Other completion, locking, confirmation, save, and recovery rules retain the existing baseline. The running implementation still restricts retry to captured kartes and uses their original selection. Historical MVP specifications remain records of that baseline.
+These rules describe the owner-approved deck → page → component model ([Q72](architecture/questionnaire/answers/answers-06-data-and-semantics.md#q72)) and are [pending implementation](product/scope.md#accepted-change-pending-implementation). The running v0.3.0+ build still follows the [seite-level baseline](history/v0.3.0-select-and-add.md). [Pages and editing](specs/pages-and-editing.md) owns main key, Context, and component editing; [Deck configuration](specs/decks-and-configuration.md) owns content module instances.
 
 ## Availability and default deck
 
-When the Chrome extension is installed, enabled, initialized, and the user is logged in, its browser context-menu action **Create a karte in “{default deck name}”** is available for selected text. Capture is unavailable before login. The label names the last successfully synchronized default deck. It updates after successful initialization, login, default changes, renames, replacement/deletion, and account refreshes. Other installations' changes appear on the next successful synchronization, including background recovery while Chrome is running. Offline use retains the last synchronized name; unsaved drafts do not change the label. Logout, expired access, or missing default/session readiness make capture unavailable. Label updates do not replace the generation session. The MVP uses the built-in `admin` account described in the scope document; it does not implement registration.
+When the Chrome extension is installed, enabled, initialized, and the user is logged in, its browser context-menu action **Create a page in “{default deck name}”** is available for selected text. Capture is unavailable before login. The label names the last successfully synchronized default deck. It updates after successful initialization, login, default changes, renames, replacement/deletion, and account refreshes. Other installations' changes appear on the next successful synchronization, including background recovery while Chrome is running. Offline use retains the last synchronized name; unsaved drafts do not change the label. Logout, expired access, or missing default/session readiness make capture unavailable. Label updates do not replace the generation session. The MVP uses the built-in `admin` account described in the scope document; it does not implement registration.
 
 The account initially has one default deck, **My Deck**. The user can configure this deck or set another deck as the default from the dashboard. There is exactly one default deck per account, and its choice synchronizes with the account.
 
-The default deck defines the seites and modules used by Select and Add. Supported inputs are words, phrases, and sentences.
+The default deck's current configuration defines the content module instances used by Select and Add. Supported inputs are words, phrases, and sentences.
 
 ## Capture scenario
 
 1. A logged-in user is reading a webpage and selects an unfamiliar word, phrase, or sentence, such as `幸福`.
-2. The user right-clicks the selection and chooses **Create a karte in “{default deck name}”**.
-3. Vocabularium takes the selected text exactly as selected. When capture with Context is on, it also takes the surrounding block (capped at around 500 characters) plus the page URL/title and timestamp; when off, no surrounding text or page context is taken. The Context and its on/off toggle are defined in the [karte input specification](specs/kartes-and-editing.md).
-4. It automatically saves a karte record containing the original selected text as its main key, the captured Context when present, and the configured seites to the destination deck. This record remains accessible if generation later fails; its existence does not mean generation succeeded.
-5. Where required by the configured modules, it determines the input type and one source language from the selected text and the saved Context. It evaluates the modules in the default deck's configuration.
-6. For each seite, it publishes content in module order only if every applicable module on that seite completes. Inapplicable modules produce no content; their seites still exist. If any applicable module fails, the seite attempt fails and none of that attempt's output is published.
-7. It automatically saves and synchronizes seite content and generation outcomes with the account. The user does not need to select **Save**. A karte with any failed seite has a failed generation outcome, not partial success.
+2. The user right-clicks the selection and chooses **Create a page in “{default deck name}”**.
+3. Vocabularium takes the selected text exactly as selected. When capture with Context is on, it also takes the surrounding block (capped at around 500 characters) plus the web page URL/title and timestamp; when off, no surrounding text or page context is taken. The Context and its on/off toggle are defined in [Pages and editing](specs/pages-and-editing.md#context).
+4. It automatically saves a page in the destination deck with the selected text as its main key and the captured Context when present. This page remains accessible if generation later fails; its existence does not mean generation succeeded.
+5. It starts one generation run for the page: one attempt per content module instance in the deck's current configuration. Where required by those instances, it determines the input type and one source language from the main key and Context, once for the whole run.
+6. Each attempt publishes its own component when it completes. Inapplicable instances complete with an empty component. A failed attempt leaves its component empty with a failure indicator; it does not affect the other components.
+7. It automatically saves and synchronizes components and generation outcomes with the account. The user does not need to select **Save**.
 
-The destination is the default deck at the time the capture action is invoked. Changing the default deck while generation is running does not redirect that capture. Each karte belongs to exactly one deck.
+The destination is the default deck at the time the capture action is invoked. Changing the default deck while generation is running does not redirect that capture. Each page belongs to exactly one deck.
 
-Each separate **Create a karte in “{default deck name}”** action creates a new karte, even if the same selected text or resulting content already exists in that deck or another deck. Duplicate kartes are allowed without a warning, automatic merging, or content-based deduplication. They remain independently editable and deletable.
+Each separate **Create a page in “{default deck name}”** action creates a new page, even if the same selected text or resulting content already exists in that deck or another deck. Duplicate pages are allowed without a warning, automatic merging, or content-based deduplication. They remain independently editable and deletable.
 
-Initial generation starts with the seite and module configuration pinned at capture time. The karte keeps that layout revision: later deck-configuration edits apply to newly captured kartes, not to this karte or its running attempt. Changes to modules apply to subsequent captures and explicitly requested seite retries on kartes pinned to a layout containing that seite, not to an attempt already running. If seites are added while a capture is running, those additional seites remain empty on its resulting karte. If seites are removed, output for those removed seites is discarded; output for retained seites follows those seites into their current order. Deleting a karte or its destination deck cancels its pending generation and retries; they must not recreate deleted kartes, decks, or seites.
+A generation run uses the configuration current when it starts. Configuration changes while it runs apply to later generation, not to that run. If an instance is removed while its attempt runs, the finished component stays on the page marked as no longer configured. Deleting a page or its destination deck cancels its pending generation; it must not recreate deleted pages, decks, or components.
 
-The saved karte record appears in the destination deck's karte view page, including while generation is loading or after it fails. Clicking its row opens the **karte content page**, where a horizontal bar navigates its seites and **Retry** applies to the current seite. Seite content is plain text, including literal markup, following the [Modules specification](history/mvp/MVP-Product-spec-modules.md). The MVP does not automatically open the newly generated karte or move the user away from the webpage they are reading.
+The saved page appears in the destination deck's page list, including while generation is loading or after it fails. Page lists show each page's main key. Opening a page shows it in the default view, with **Retry** available per component and for the whole page. Component content is shown as plain text, including literal markup, following the [Modules specification](history/mvp/MVP-Product-spec-modules.md). The extension does not automatically open the new page or move the user away from the web page they are reading.
 
-Clicking the extension button opens the dashboard in a Chrome tab. The dashboard provides access to recent capture outcomes and their destination decks, including requests that have not yet produced a saved karte. A new capture remains visible while its local pending receipt hands off to the saved account karte; a delayed account refresh must not briefly remove the row.
+Clicking the extension button opens the dashboard in a Chrome tab. The dashboard provides access to recent capture outcomes and their destination decks, including requests that have not yet produced a saved page. A new capture remains visible while its local pending receipt hands off to the saved account page; a delayed account refresh must not briefly remove the row.
 
 ## Capture-feedback popup
 
 When Select and Add accepts the selected text, immediately show a brief popup confirming receipt, such as **Capture received**. This confirms that the request was received, not that generation or account saving has completed. If the capture cannot be accepted, show a failure message instead.
 
-The same popup appears on ordinary webpages and the originating Vocabularium dashboard, with identical wording, page-relative top-right placement, dimensions, styling, close control, and Light/Dark behavior. Dashboard capture creates no additional Chrome window and does not change focus or route. Other open dashboards do not receive its feedback. Account rerenders preserve the popup; theme changes update its appearance without restarting its timer. If the originating dashboard closes or navigates away, capture continues without redirecting feedback or opening a window. Chrome-restricted external pages retain the separate feedback-window fallback.
+The same popup appears on ordinary web pages and the originating Vocabularium dashboard, with identical wording, top-right placement relative to the web page, dimensions, styling, close control, and Light/Dark behavior. Dashboard capture creates no additional Chrome window and does not change focus or route. Other open dashboards do not receive its feedback. Account rerenders preserve the popup; theme changes update its appearance without restarting its timer. If the originating dashboard closes or navigates away, capture continues without redirecting feedback or opening a window. Chrome-restricted external pages retain the separate feedback-window fallback.
 
-The popup closes automatically three seconds after it appears. This duration is fixed at three seconds for the MVP. It also includes a close control so the user can dismiss it sooner. Each new capture receives its own feedback with the same three-second duration.
+The popup closes automatically three seconds after it appears. This duration is fixed at three seconds. It also includes a close control so the user can dismiss it sooner. Each new capture receives its own feedback with the same three-second duration.
 
-Closing the popup manually or waiting for it to disappear does not cancel the capture, end generation, or open the generated karte. Generation may take longer than the popup's lifetime; progress and final outcomes remain available in the dashboard and karte content page.
+Closing the popup manually or waiting for it to disappear does not cancel the capture, end generation, or open the generated page. Generation may take longer than the popup's lifetime; progress and final outcomes remain available in the dashboard and the page editor.
 
 This transient popup is separate from the dashboard and from confirmation dialogs. Retry warnings, deletion warnings, and unsaved-edit choices do not close automatically after three seconds.
 
 ## Input interpretation
 
-The selected text and the saved Context are used to determine whether the input is a word/phrase or a sentence and which source language applies. For ambiguous text, the MVP chooses one language automatically and uses it consistently across the karte's modules. It does not generate separate interpretations for multiple source languages. Target languages are defined by the modules, not by a fixed language-pair setting for the deck.
+The main key and the saved Context are used to determine whether the input is a word/phrase or a sentence and which source language applies. For ambiguous text, Vocabularium chooses one language automatically and uses it consistently across every attempt in the run. It does not generate separate interpretations for multiple source languages. Target languages are defined by the modules, not by a fixed language-pair setting for the deck.
+
+If required interpretation fails, every attempt in the run that needs it fails. Attempts that do not need interpretation, such as `<The selected>`, still complete.
 
 The shared interpretation rules are defined in the [Modules specification](history/mvp/MVP-Product-spec-modules.md).
 
-## Seite completion and failure
+## Generation actions
 
-Generation-status labels describe actual generation attempts. A seite that has never had a generation attempt shows no generation-status label. This includes seites of manually created kartes and newly appended seites on existing kartes. They remain normally viewable and editable. A karte with no generation attempts on any seite also shows no overall generation-status label.
+All generation actions use the page's current main key and saved Context and the deck's current configuration. Finish manual editing with **Save** or **Cancel** before starting one.
 
-Under the accepted main-key change, empty or failed generated content on the front seite does not hide or remove the main key. A manual karte that has not generated content still displays its key without a generation-status label. Editing the key or Context alone does not change the last attempt's outcome.
+| Action | Targets | Confirmation |
+| --- | --- | --- |
+| Capture | Every configured content module instance | None; runs automatically |
+| **Generate** / **Generate missing** | Configured instances that have no component on the page yet. On a new manual page this is every instance. | None; nothing is replaced |
+| **Retry** (component) | One configured content component | Always |
+| **Retry** (page) | Every configured content component, including missing ones | Always |
 
-When generation has been attempted, the user sees the karte's overall generation outcome and the status of the current seite where applicable, not individual module statuses. Each seite attempt has one of these generation states:
+No action touches the main key, the Context, manual components, or components of instances no longer configured. Manual creation and manual edits never start generation.
 
-- **Loading:** required interpretation or seite generation is in progress.
-- **Completed:** every applicable module on the seite has completed. Publish the seite's complete output together. Modules that do not apply are skipped and do not count as failures.
-- **Failed:** any required interpretation or applicable module on the seite failed, including when some other modules succeeded. Discard all output from this seite attempt and show a failure indicator on the empty seite. Partial generation is failure; there is no partial-success state or partially generated seite to accept.
+## Component completion and failure
 
-For example, if a seite contains two `<Sentence usage>` instances and only one succeeds, discard that successful example as well. The seite has failed, and a subsequent seite retry generates both examples again.
+Generation-status labels describe actual generation attempts. A component that has never had a generation attempt shows no status label. A page with no generation attempts shows no overall status label. Missing components (configured instances with no component on the page yet) are shown as missing, not as failed.
 
-Fully completed seites elsewhere on the karte remain intact. Seites with no generation attempt are excluded from the karte's overall generation outcome. If any seite's current generation state is **Failed**, the karte's overall generation outcome is **Failed**. Otherwise it is **Loading** while an attempt is running, and **Completed** when the requested seite generation has completed. Confirming a retry moves its target seite to **Loading**, then to **Completed** or **Failed** according to that attempt's outcome, including when that seite previously had no status label. Saving a karte record or manually adding content does not turn a failed generation attempt into a successful one; outside an active retry, the seite's failure indicator describes its last generation attempt.
+Each component attempt has one of these states:
 
-When a generation attempt evaluates a seite with no modules or only inapplicable modules, it completes successfully with no content. A seite containing only `<The selected>` completes without generative output. The same module's output does not rescue a seite on which another applicable module failed. A karte still has all its configured seites even when they are empty.
+- **Loading:** required interpretation or the component's generation is in progress.
+- **Completed:** the instance completed. Publish its output as the component's content. An inapplicable instance completes with an empty component and does not count as a failure.
+- **Failed:** required interpretation or the instance failed. Discard any partial output from that attempt and show a failure indicator on the empty component. There is no partial success within a component.
+
+Components fail and complete independently. For example, if a deck has two `<Sentence usage>` instances and only one succeeds, the successful example is published and the other component fails. A later retry of the failed component generates only that example.
+
+A page's overall generation outcome is derived from its components that have had attempts: **Failed** if any such component's current state is **Failed**, otherwise **Loading** while any attempt is running, otherwise **Completed**. Confirming a retry moves each target component to **Loading**, then to **Completed** or **Failed** by its own attempt's outcome. Saving a page or manually adding content does not turn a failed attempt into a successful one; outside an active retry, a component's failure indicator describes its last attempt.
+
+The main key is always shown, regardless of empty or failed components. A manual page that has not generated still shows its main key without a status label. Editing the main key or Context alone does not change any attempt's outcome.
 
 ### Generation capacity
 
-The local API admits only a bounded number of active and waiting seite attempts. When a capture is saved while generation capacity is full, its karte remains saved and accessible. Each seite attempt that cannot be admitted becomes **Failed** without a provider call. The user can explicitly **Retry** a failed seite later. A successful karte save or capture feedback does not imply that generation was admitted or completed.
+The local API admits only a bounded number of active and waiting component attempts. When a capture is saved while generation capacity is full, the page remains saved and accessible. Each attempt that cannot be admitted becomes **Failed** without a provider call. The user can explicitly retry failed components later. A successful page save or capture feedback does not imply that generation was admitted or completed.
 
-If capacity is full when the user confirms **Retry** for a seite, report that generation is busy and leave that seite's existing content and generation state unchanged. The user may confirm a fresh **Retry** later. The rejected confirmation is not kept as an automatic or **Try saving again** generation request. An admitted retry follows the replacement rules below.
+If capacity cannot admit every attempt of a confirmed **Retry**, **Generate**, or **Generate missing**, report that generation is busy and leave the page's components and states unchanged. The user may start the action again later. The rejected request is not kept as an automatic or **Try saving again** generation request. An admitted retry follows the replacement rules below.
 
 ## Chrome closing during generation
 
-If Chrome closes on the installation that started a capture or seite retry, its unfinished generation is considered failed. For an initial capture, mark unfinished seite attempts failed; fully completed and saved seites remain intact. For a seite retry, the affected seite remains empty and failed under the existing replacement rule. Closing Chrome on another installation does not fail work initiated elsewhere.
+If Chrome closes on the installation that started a generation run, its unfinished attempts are considered failed. Completed and saved components remain intact. A retried component whose attempt was interrupted remains empty and failed under the replacement rule. Closing Chrome on another installation does not fail work initiated elsewhere.
 
-On reopening Chrome, reconcile interrupted attempts as **Failed** and make the saved karte accessible for explicit seite-level **Retry**. Do not automatically resume or restart those attempts. Late results from an interrupted attempt must not replace the failed state or its seite content.
+On reopening Chrome, reconcile interrupted attempts as **Failed** and make the page accessible for explicit **Retry**. Do not automatically resume or restart those attempts. Late results from an interrupted attempt must not replace the failed state or the component's content.
 
 Closing only the capture popup or dashboard tab does not count as closing Chrome. The three-second popup duration has no effect on generation lifetime.
 
-## Retry the current seite
+## Retry
 
-**Retry** is available on the karte content page for the seite currently selected in the horizontal navigation bar. Under the accepted main-key change, generation availability does not depend on capture origin: a manually created karte also has generation input and can explicitly generate or generate again. Completed, failed, empty, or manually edited seites can be targets. The baseline action remains seite-level; this input change does not define a whole-karte or individual-module retry action.
+**Retry** is available in the page editor for one content component, or for the whole page. Completed, failed, empty, missing, or manually edited components can be targets. Capture origin does not matter: a manually created page has a main key and can retry like a captured one.
 
-Before starting, always show this confirmation warning:
+Before starting, always show a confirmation warning. For one component:
 
-> Retry will replace this seite's content, including manual edits and previous generated content. The main key and Context will be kept. Other seites will not change.
+> Retry will replace this component's content, including your edits to it. The main key, Context, and other components will not change.
 
-- **Cancel** leaves the current seite and its content unchanged.
-- **Confirm** discards the current content being replaced on that seite and starts a fresh generation attempt. Previous manual edits, additions, removals, and generated output are not preserved or merged into the replacement. The main key is retained and remains visible on the front seite. If the new attempt fails, its generated content remains empty with a failure indicator; the discarded content is not restored.
+For the whole page:
 
-Retry evaluates every module configured for that seite in the karte's pinned layout and generates fresh output for every applicable module, including instances that succeeded previously. It uses the karte's current saved main key and saved Context and the seite's pinned deck configuration at confirmation time. Required input classification and source language must correspond to that main key and Context; establish or refresh interpretation when needed. Changes to configuration after the attempt starts do not change that attempt. Editing the main key or Context changes later generation input without automatically regenerating existing content. Editing other displayed content does not change generation input.
+> Retry will replace the content of every generated component on this page, including your edits to them. The main key, Context, and your own components will not change.
 
-Retry updates the same seite of the same karte and saves the new outcome automatically. It does not create another karte, regenerate other seites, or change their content or manual edits. If the retry targets seite 1, the displayed list entry and alphabetical position follow the changed first-seite text; the karte's identity and creation time stay the same. The selected seite stays the target even if the user navigates to another seite while generation runs.
+- **Cancel** leaves the page unchanged.
+- **Confirm** discards the targeted components' current content and starts a fresh attempt for each. Previous edits and generated output are not preserved or merged into the replacement. If an attempt fails, its component stays empty with a failure indicator; the discarded content is not restored.
 
-Finish manual edit mode with **Save** or **Cancel** before using **Retry**, including when editing the main key or Context. While an attempt is running on a seite, another retry and manual editing on that seite are unavailable. Under the accepted input change, manually created kartes supply a main key and are not excluded from generation or generation again.
+Retry uses the page's current saved main key and Context and the deck's current configuration at confirmation time. Required input classification and source language must correspond to that main key and Context; each retry starts a new run with a fresh interpretation. Changes to configuration after the run starts do not change it.
 
-The generation lock applies across installations. Another installation may already have an unsaved draft when a seite's generation starts. If a manual save arrives while any seite it changes is generating, reject that save immediately rather than queueing it. For a save containing several changed seites, reject the whole save without updating any of them. Preserve all the user's drafts and explain that a seite is still generating. After the attempt finishes, the user can explicitly select **Save** or **Try saving again**; the new save follows the normal server-arrival order. Do not automatically apply the previously rejected save when generation ends.
+Retry updates the same components of the same page and saves the new outcomes automatically. It does not create another page or change any component it did not target. The page's identity and creation time stay the same. The targets stay the same even if the user navigates elsewhere while generation runs.
+
+While an attempt is running on a component, another retry targeting it and manual editing of it are unavailable. Other components remain editable.
+
+The generation lock applies across installations. Another installation may already have an unsaved draft when a component's generation starts. If a manual save arrives that changes any component that is generating, reject that save immediately rather than queueing it. For a save containing several changed components, reject the whole save without updating any of them. Preserve all the user's drafts and explain that a component is still generating. After the attempt finishes, the user can explicitly select **Save** or **Try saving again**; the new save follows the normal server-arrival order. Do not automatically apply the previously rejected save when generation ends.
 
 ## Saving and synchronization failures
 
-Seite generation outcomes and persistence are distinct. Persisting a failed karte record makes it accessible for seite-level retry; it does not label incomplete generation as successful. Never report unsaved content as saved or synchronized.
+Generation outcomes and persistence are distinct. Persisting a page with failed components makes it accessible for retry; it does not label incomplete generation as successful. Never report unsaved content as saved or synchronized.
 
-Ordinary in-flight saves retain their recovery record internally without showing a recovery panel or **Try saving again**. A successful save must not briefly insert such a panel in Recent captures or the deck karte list. If the extension worker stops before a save is acknowledged, make its retained operation available for explicit recovery when the worker starts again; do not silently resubmit it. The existing browser-session interruption rules still apply to generation and publication from an ended session.
+Ordinary in-flight saves retain their recovery record internally without showing a recovery panel or **Try saving again**. A successful save must not briefly insert such a panel in Recent captures or the deck's page list. If the extension worker stops before a save is acknowledged, make its retained operation available for explicit recovery when the worker starts again; do not silently resubmit it. The existing browser-session interruption rules still apply to generation and publication from an ended session.
 
-If saving or synchronization fails, retain the pending change and offer **Try saving again**. This action only resubmits the same pending save for that karte; it does not start another capture, generate content, discard manual edits, or require the destructive seite-retry warning. This is distinct from **Retry** on the current karte seite, which starts fresh generation after confirmation.
+If saving or synchronization fails, retain the pending change and offer **Try saving again**. This action only resubmits the same pending save for that page; it does not start another capture, generate content, discard manual edits, or require the retry warning. This is distinct from **Retry**, which starts fresh generation after confirmation.
 
-Account synchronization follows the [MVP scope](history/mvp/MVP-Product-scope.md). Saved changes from different installations are applied in server-arrival order (FIFO); a later save to the same seite replaces the earlier saved text. The current seite's generation lock still applies while an attempt is active, and late results from a canceled or interrupted attempt must not overwrite a subsequent save or retry.
+Account synchronization follows the [MVP scope](history/mvp/MVP-Product-scope.md). Saved changes from different installations are applied in server-arrival order (FIFO); a later save to the same component replaces the earlier saved content. The generation lock still applies while an attempt is active, and late results from a canceled or interrupted attempt must not overwrite a subsequent save or retry.
 
 ## Initial default-deck example
 
-The initial **My Deck** has two seites:
+The initial **My Deck** has one content module instance: `<German explanation + examples>`. It has no `<The selected>` instance, because every page already shows its main key.
 
-- Seite 1: `<The selected>`
-- Seite 2: `<German explanation + examples>`
+For the selected input `幸福`, interpreted as Chinese in this example, the page shows its main key `幸福`, then a German-language explanation component for the Chinese word, with Chinese examples and their German translations, following the format in the [Modules specification](history/mvp/MVP-Product-spec-modules.md). The exact generated wording may vary.
 
-For the selected input `幸福`, interpreted as Chinese in this example, seite 1 renders:
-
-```text
-幸福
-```
-
-Seite 2 renders German-language explanation content for the Chinese word, with Chinese examples and their German translations, following the format in the [Modules specification](history/mvp/MVP-Product-spec-modules.md). The exact generated wording may vary.
-
-For a selected sentence such as `我真的很幸福`, seite 1 renders that sentence and seite 2 remains empty: `<German explanation + examples>` does not apply to sentences. This is an intentional, successfully completed karte. A user can add `<Sentence usage>` to the deck configuration and retry seite 2, use that configuration for future captures, or manually edit this saved karte.
+For a selected sentence such as `我真的很幸福`, the `<German explanation + examples>` component completes empty because that module does not apply to sentences. This is an intentional, successfully completed page. A user can add `<Sentence usage>` to the deck configuration and use **Generate missing** on this page, rely on it for future captures, or add their own component to this page.
 
 ## Editing after capture
 
-Generated content remains editable. The user opens the karte content page and selects **Edit karte manually** to add, change, or remove content, to edit the main key or its Context, or to delete the karte. Manual edits require an explicit **Save**. Select and Add and confirmed seite retries save their outcomes automatically. A later confirmed **Retry** discards all saved manual edits on its target seite along with the previous generation; manual edits on other seites remain unchanged.
+Generated content remains editable. The user opens the page editor to change any component, edit the main key or its Context, add their own text component, or delete the page. Manual edits require an explicit **Save**. Select and Add and confirmed retries save their outcomes automatically. A later confirmed **Retry** discards the edits on the components it targets along with their previous generation; edits on other components remain unchanged.
