@@ -1,4 +1,4 @@
-    # 06 — Data and semantics (Q29–Q34)
+    # 06 — Data and semantics (Q29–Q34, Q72)
 
 This is the product's long-term memory. The vision's "persistent semantic object" is the differentiator: future modules should work on captures from years ago. Whatever you store (or refuse to store) now decides whether that promise is real or marketing.
 
@@ -79,3 +79,18 @@ This is the product's long-term memory. The vision's "persistent semantic object
 - No product caps, guardrails only — flexible; needs pagination, cost caps, and abuse limits to replace the guardrail function caps served.
 
 **Answer prompt:** Write the numeric limits and where each is enforced (UI, API validation, DB constraint). Research task: create the largest plausible deck/karte and record generation cost and dashboard render time.
+
+## Q72. What is a karte made of, and how is it shown?
+
+Added 10 October 2026, after Q29–Q34 were answered.
+
+**Decision:** Does an item stay a set of seites defined by the deck layout, or become a page of components that content modules generate one by one and views present?
+
+**Context:** In 0.3.0+, each seite's text joins the outputs of several modules, so generation, retry, and editing work on a whole seite. A module's output can't be retried or edited on its own, and layout changes need positional remapping or pinned revisions (Q31). The seite is also both the content and the face the user flips to.
+
+**Options:**
+- Keep seites — no rework; module outputs stay joined, and content and presentation stay coupled.
+- Components with pinned layouts — per-module generation and retry; every page still carries its layout revision.
+- Components on the live configuration, with views — per-module generation and retry, no pinned revisions, and presentation moves to view modules. Needs a new schema, contract, and editor.
+
+**Answer prompt:** Pick the model, the terms, what happens to existing content, and which view modules are in scope.

@@ -16,9 +16,13 @@ Explicit Save/Cancel
 
 ### Q13
 
+**Amended 10 October 2026 by [Q72](answers-06-data-and-semantics.md#q72):** each component's content is a versioned block document, instead of each seite's. Existing seites are discarded on upgrade rather than migrated, so the plain-text migration no longer applies.
+
 Block JSON at 1.0 (ProseMirror/TipTap-style). Seite content is stored and rendered as a versioned block document; modules produce typed blocks. Safety comes from per-block-type render contracts (Q59). Existing plain-text seites migrate to a single paragraph block. Resolves C1 in the [traceability map](../traceability-map.md#conflicts).
 
 ### Q14
+
+**Amended 10 October 2026 by [Q72](answers-06-data-and-semantics.md#q72):** the refactor ships as a breaking contract version that retires both the card/page and the karte/seite dialects. Current names become page, component and `page-draft`. The rest stands.
 
 Decision: Compatibility window (revised to resolve C4; see Q27/Q64) + online-required + no legacy terminology fallback + clear cache on reset. Effective from 1.0.0. No compat guarantee for <1.0.0.
 Policy:

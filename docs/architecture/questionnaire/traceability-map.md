@@ -1,6 +1,6 @@
 # Traceability map: questionnaire answers to specs
 
-This map tracks how each answer (Q01–Q71) changes the specifications. Use it to plan the spec refactor and to check the refactor afterwards. The answers live in [answers/](answers/) and the questions in the numbered files next to this one.
+This map tracks how each answer (Q01–Q72) changes the specifications. Use it to plan the spec refactor and to check the refactor afterwards. The answers live in [answers/](answers/) and the questions in the numbered files next to this one.
 
 **Status values**
 
@@ -11,6 +11,7 @@ This map tracks how each answer (Q01–Q71) changes the specifications. Use it t
 - `open`: the answer leaves a sub-question unanswered (see [Clarifications](#clarifications)).
 - `deferred`: deliberately parked.
 - `no change`: confirms current behavior.
+- `superseded`: replaced by a later answer named in the row.
 
 ---
 
@@ -28,6 +29,7 @@ Checked 9 October 2026 against the [Vocabularium Notion hub](https://app.notion.
 | 04 (Q17–Q21) | [Accounts on a hosted hub with OAuth and passkeys](https://app.notion.com/p/3f4bb135020881ec85beca3cd7941578) |
 | 05 (Q22–Q28) | [Serverless backend on Vercel and Neon](https://app.notion.com/p/3f4bb135020881229bcedba0bd6dce7c) |
 | 06 (Q29–Q34) | [Karte data model](https://app.notion.com/p/3f4bb13502088159bf3fef8135989e73) |
+| 06 (Q72) | [Replace deck → karte → seite with deck → page → component](https://app.notion.com/p/3f4bb1350208812e8085ffd751302842) (Accepted 9 October 2026; revision approved 10 October 2026) |
 | 07 (Q35–Q39) | [Database tenancy, migrations, search, portability and retention](https://app.notion.com/p/3f4bb1350208815ca1bbef7c49b681fe) |
 | 08 (Q40–Q45) | [Module catalog and customization](https://app.notion.com/p/3f4bb1350208813ab814f53fd24d5021) (Deferred) |
 | 09 (Q46–Q51) | [Generation](https://app.notion.com/p/3f4bb135020881acb220c5a11218f727) |
@@ -40,7 +42,7 @@ Checked 9 October 2026 against the [Vocabularium Notion hub](https://app.notion.
 
 - [Organize specifications by stable capabilities and document authority](https://app.notion.com/p/3eabb1350208813d8d43de81415c5ab0) (In Review). It defines the target taxonomy (the empty placeholder files come from it) and its authority rules. R1–R3 below amend this record rather than start fresh.
 - [Retain correlated local diagnostics until explicit cleanup](https://app.notion.com/p/3ecbb1350208818b8156f754e52d4e4a) (Implemented, 2 October 2026). It conflicted with Q39/Q63; C13 narrows it to development diagnostics. Its spec and code from `codex/logging-system` are merged into this branch.
-- [Adopt deck → karte → seite](https://app.notion.com/p/3eabb1350208813da027f7ea00548851) (Implemented) and the 0.3.0+ milestone promise replay and recovery compatibility. Q70 retires that promise.
+- [Adopt deck → karte → seite](https://app.notion.com/p/3eabb1350208813da027f7ea00548851) (Implemented) and the 0.3.0+ milestone promise replay and recovery compatibility. Q70 retires that promise. The record is Superseded by the [Q72 decision](https://app.notion.com/p/3f4bb1350208812e8085ffd751302842).
 - System Q&A [hash vs path routing](https://app.notion.com/p/3eabb1350208818fa8f2f53955da5d71) applies to the Q11 web shell; its note on preserving old links becomes stale under Q70.
 - Milestone [System design questionnaire](https://app.notion.com/p/3efbb135020881e7a6e7d72f4199ab64) tracks this work.
 
@@ -70,7 +72,10 @@ Move it into [capture-and-generation](../../specs/capture-and-generation.md), ke
 
 ## Conflicts
 
-All thirteen conflicts are resolved. Each entry records the original contradiction and the decision; the affected answers were updated to match.
+All fourteen conflicts are resolved. Each entry records the original contradiction and the decision; the affected answers were updated to match.
+
+**C14. Karte/seite model versus per-module generation — RESOLVED (Q72: deck → page → component).** Originally, Q29, Q31, Q32 and Q34 assumed a karte made of seites, each seite joining several module outputs, with a pinned layout revision per karte. Q13 versioned content per seite and Q53 referenced karte/seite IDs. Per-module retry and editing had no place in that model.
+*Resolution:* the owner decided on 10 October 2026 ([plan](../../plans/page-component-refactor.md)). A page is an ordered list of components, one per content module instance; generation and retry use the deck's live configuration; views present pages, with only the default view in scope. Q31 is superseded; Q13, Q14, Q29, Q32, Q34 and Q53 are amended. Existing content is discarded on upgrade, so C1's plain-text migration of existing seites no longer applies. Until [increment 1](../../plans/page-component-refactor.md#1-product-language-and-specifications-docs-only) rewrites the specs, read karte as page and seite as component in the rows below.
 
 **C13. Diagnostic content retention — RESOLVED (full content is development-only).** Originally, the [local diagnostics decision](https://app.notion.com/p/3ecbb1350208818b8156f754e52d4e4a) (Implemented, 2 October 2026) kept selected text, prompts and model outputs by default with no automatic expiry, while Q63 required redacted-by-default logs with per-karte consent and expiry, Q39 time-limited logs, and C12 committed to GDPR deletion.
 *Resolution:* full-content diagnostics remain a development-only mode (local backend, the owner's own data). The hosted product follows Q63 and Q39: redacted by default, user text only with per-karte consent and expiry, time-limited retention. The local diagnostics decision is narrowed to development diagnostics. `codex/logging-system`, including the approved `observability.md` spec, is merged into this branch, so the refactor starts from that spec.
@@ -166,8 +171,8 @@ Link paths are relative to this file. *S&A* is [Select and Add](../../MVP-Produc
 | --- | --- | --- | --- | --- |
 | Q11 | Shared packages + two shells; inline module descriptions | overview, shared-ui, modules | Package/shell boundary; module description surface; web-shell routing (see the Notion routing Q&A) | ready |
 | Q12 | Explicit Save/Cancel | kartes-and-editing | Confirms current behavior | no change |
-| Q13 | Block JSON at 1.0 | shared-ui, kartes-and-editing, modules, model §Seite | Seite becomes a versioned block document; block editor; modules emit typed blocks; plain-text migration | ready |
-| Q14 | N−1 compatibility window, online-required, retire legacy terms, `incarnationId`, UX messages | [terminology-compatibility](../terminology-compatibility.md), shared-ui, overview | Compatibility rule, legacy retirement, reset detection, error messages | ready |
+| Q13 | Block JSON at 1.0, per component (Q72) | shared-ui, kartes-and-editing, modules, model §Seite | Each component becomes a versioned block document; block editor; modules emit typed blocks. No plain-text migration (content discarded, Q72) | ready |
+| Q14 | N−1 compatibility window, online-required, retire legacy terms, `incarnationId`, UX messages; Q72 retires both card/page and karte/seite | [terminology-compatibility](../terminology-compatibility.md), shared-ui, overview | Compatibility rule, legacy retirement, reset detection, error messages | ready |
 | Q15 | Browser-store auto-update (Chrome + Firefox) | [delivery](../../guides/delivery.md) | Replace manual unpacked delivery for users | ready |
 | Q16 | WCAG 2.2 AA (Q68); capture receipt <1 s p95 warm; dashboard <2 s at 5k kartes | shared-ui, overview (budgets), [verification](../../guides/verification.md) | Accessibility floor and latency targets as release checks | ready |
 
@@ -197,12 +202,13 @@ Link paths are relative to this file. *S&A* is [Select and Add](../../MVP-Produc
 
 | Q | Answer (short) | Target docs | Change | Status |
 | --- | --- | --- | --- | --- |
-| Q29 | Store key + Context + current block content + pinned layout + latest outcome; optional interpretation line; no referent | model §Karte/§Generation attempt, kartes-and-editing | Done: Context, pinned layout. Remaining: block content, URL/title, interpretation line | partial |
+| Q29 | Store key + Context + current block content and latest outcome per component (Q72); optional interpretation line; no referent | model §Karte/§Generation attempt, kartes-and-editing | Done: Context. Remaining: block content per component, URL/title, interpretation line; remove pinned layout (Q72) | partial |
 | Q30 | String only by default; opt-in editable interpretation line | model §Direction: semantic continuity, kartes-and-editing, capture-and-generation, shared-ui (setting) | Rewrite the continuity direction; specify the interpretation line and setting | ready (K14) |
-| Q31 | Kartes pin the layout revision; config edits affect new kartes only | kartes-and-editing, S&A → [decks-and-layouts](../../specs/decks-and-layouts.md) | Done in `8767818`; move ownership to decks-and-layouts | applied |
-| Q32 | True move, full-carry copy, trash + restore + 30-day purge | decks-and-layouts, kartes-and-editing, scope, persistence-and-recovery | New capability; drop the move/copy deferral | ready |
+| Q31 | Superseded by Q72: no pinned layouts; generation and retry use the live configuration | kartes-and-editing, S&A → [decks-and-layouts](../../specs/decks-and-layouts.md) | Remove the pinned-layout rules applied in `8767818` | superseded |
+| Q32 | True move, full-carry copy, trash + restore + 30-day purge; carries components, next retry uses the target deck's configuration (Q72) | decks-and-layouts, kartes-and-editing, scope, persistence-and-recovery | New capability; drop the move/copy deferral | ready |
 | Q33 | Current content only; append-only usage ledger per provider call | model §Generation attempt, persistence-and-recovery, capture-and-generation | Remove attempt history; define the usage ledger | ready (K7) |
-| Q34 | 1–4 seites + bounded modules | decks-and-layouts | Confirms current behavior | no change |
+| Q34 | At most 12 content modules per deck (Q72); view limits with view modules | decks-and-layouts | Replace the 1–4 seite limit | ready |
+| Q72 | Deck → page → component; live configuration; default view only; content discarded on upgrade | model, kartes-and-editing → pages-and-editing, decks-and-layouts → decks-and-configuration, modules, capture-and-generation, S&A, scope, [AGENTS.md](../../../AGENTS.md) | Rewrite in [increment 1](../../plans/page-component-refactor.md#1-product-language-and-specifications-docs-only) | ready |
 
 ### 07 Database
 
@@ -236,7 +242,7 @@ Link paths are relative to this file. *S&A* is [Select and Add](../../MVP-Produc
 | Q | Answer (short) | Target docs | Change | Status |
 | --- | --- | --- | --- | --- |
 | Q52 | Leitner boxes | `specs/review.md` (R3), scope, model | New capability | ready (K1) |
-| Q53 | Separate progress tables | review spec, model | — | ready (K1) |
+| Q53 | Separate progress tables; reference page and component IDs (Q72) | review spec, model | — | ready (K1) |
 | Q54 | Decks + tags | decks-and-layouts (or library, R3), model | New capability | ready |
 | Q55 | Low thousands of kartes | overview (budgets), shared-ui | — | ready (K11) |
 | Q56 | Visible queue (position, ETA, cancel); cancel counts only after the provider call started | capture-and-generation, shared-ui | Reverses the silent queue | ready |
@@ -280,16 +286,16 @@ Use this view to refactor one document at a time.
 | Document | Questions | Notes |
 | --- | --- | --- |
 | [product/vision](../../product/vision.md) | Q01, Q03, Q04, Q67 | Out-at-maturity list |
-| [product/scope](../../product/scope.md) | Q01, Q02, Q03, Q04, Q06, Q18, Q32, Q52 | Becomes a status ledger (R1) |
-| [product/model](../../product/model.md) | Q02, Q17, Q29, Q30, Q33, Q53, Q54 | Account, attempt, tags, review |
+| [product/scope](../../product/scope.md) | Q01, Q02, Q03, Q04, Q06, Q18, Q32, Q52, Q72 | Becomes a status ledger (R1) |
+| [product/model](../../product/model.md) | Q02, Q17, Q29, Q30, Q33, Q53, Q54, Q72 | Account, attempt, tags, review; page/component/view model |
 | [specs/accounts-and-sync](../../specs/accounts-and-sync.md) *(empty)* | Q02, Q10, Q17, Q19, Q21, Q38, Q58 | |
-| [specs/capture-and-generation](../../specs/capture-and-generation.md) *(empty)* | Q08, Q09, Q24, Q25, Q30, Q46–Q51, Q56, Q60, Q65 | Takes over from Select and Add (R2) |
-| [specs/decks-and-layouts](../../specs/decks-and-layouts.md) *(empty)* | Q31, Q32, Q34, Q37?, Q54 | |
-| [specs/kartes-and-editing](../../specs/kartes-and-editing.md) | Q07, Q12, Q13, Q29, Q30, Q32 | |
-| [specs/modules](../../specs/modules.md) | Q05, Q11, Q13, Q49, Q40–Q45 (deferred) | |
+| [specs/capture-and-generation](../../specs/capture-and-generation.md) *(empty)* | Q08, Q09, Q24, Q25, Q30, Q46–Q51, Q56, Q60, Q65, Q72 | Takes over from Select and Add (R2) |
+| [specs/decks-and-layouts](../../specs/decks-and-layouts.md) *(empty)* | Q31 (superseded), Q32, Q34, Q37?, Q54, Q72 | Renamed to `decks-and-configuration.md` (Q72) |
+| [specs/kartes-and-editing](../../specs/kartes-and-editing.md) | Q07, Q12, Q13, Q29, Q30, Q32, Q72 | Renamed to `pages-and-editing.md` (Q72) |
+| [specs/modules](../../specs/modules.md) | Q05, Q11, Q13, Q49, Q72, Q40–Q45 (deferred) | Content and view module kinds (Q72) |
 | [specs/shared-ui](../../specs/shared-ui.md) *(empty)* | Q08, Q11, Q13, Q14, Q16, Q30, Q48, Q55, Q56, Q59, Q63, Q67, Q68, Q69 | |
 | `specs/review` *(new, R3)* | Q52, Q53 | |
-| [MVP Select and Add](../../MVP-Product-spec-select-and-add.md) | Q07, Q08, Q24, Q25, Q31, Q50 | Move or retire (R2) |
+| [MVP Select and Add](../../MVP-Product-spec-select-and-add.md) | Q07, Q08, Q24, Q25, Q31 (superseded), Q50, Q72 | Move or retire (R2) |
 | [architecture/overview](../overview.md) *(empty)* | Q06, Q10, Q11, Q14, Q18, Q22, Q23, Q25, Q28, Q35, Q46, Q55 | |
 | [architecture/persistence-and-recovery](../persistence-and-recovery.md) *(empty)* | Q09, Q19, Q22–Q24, Q26, Q32, Q33, Q35, Q36, Q38, Q39, Q66 | |
 | [architecture/observability](../observability.md) | Q39, Q62, Q63 | Approved local diagnostics spec; split into development mode and hosted rules (C13) |
@@ -301,4 +307,5 @@ Use this view to refactor one document at a time.
 | [guides/verification](../../guides/verification.md) | Q49, Q68 | |
 | [guides/project-workflow](../../guides/project-workflow.md) | Q05 | |
 | [plans/v0.4.0](../../plans/v0.4.0.md) *(empty)* | Q71 | |
-| [AGENTS.md](../../../AGENTS.md) | Q70 | |
+| [AGENTS.md](../../../AGENTS.md) | Q70, Q72 | Terminology section |
+| [plans/page-component-refactor](../../plans/page-component-refactor.md) | Q72 | Approved plan and increments |
