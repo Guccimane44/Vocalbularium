@@ -117,6 +117,13 @@ export class Diagnostics {
     if (this.segmentSize + size > segmentBytes) { this.segment++; this.segmentSize = 0; }
     const handle = await open(join(this.generationDirectory(), `segment-${String(this.segment).padStart(6, '0')}.ndjson`), 'a', 0o600);
     try { await handle.writeFile(line); await handle.sync(); }
+    catch (error) {
+      // A partial append must never become the prefix of a later acknowledged event.
+      const written = await handle.stat().catch(() => null);
+      if (written) this.bytes += Math.max(0, written.size - this.segmentSize);
+      this.segment++; this.segmentSize = 0;
+      throw error;
+    }
     finally { await handle.close(); }
     this.ids.add(event.eventId); this.bytes += size; this.segmentSize += size;
     if (this.reason && this.reason !== 'incomplete_segment') {
@@ -139,10 +146,13 @@ export class Diagnostics {
     });
   }
   async entries(filter = {}) {
-    const result = [];
+    if (!this.initialized) throw new Error('Diagnostic storage is unavailable.');
+    const result = [], seen = new Set();
     for (const file of await this.files()) {
       for (const line of (await readFile(file, 'utf8')).split('\n').filter(Boolean)) {
         let event; try { event = JSON.parse(line); } catch { continue; }
+        if (seen.has(event.eventId)) continue;
+        seen.add(event.eventId);
         if (filter.range && !withinRange(event.occurredAt, filter.range)) continue;
         if (['operationId', 'requestId', 'karteId', 'attemptId'].some(key => filter[key] && event[key] !== filter[key])) continue;
         result.push(event);
@@ -152,9 +162,11 @@ export class Diagnostics {
   }
   inspect(filter = {}) {
     return this.ordered(async () => {
+      const limit = filter.limit === undefined ? 200 : Number(filter.limit);
+      if (!Number.isSafeInteger(limit) || limit < 1 || limit > 1000) throw new Error('Choose a limit from 1 to 1000.');
       const range = filter.from || filter.to ? timeRange(filter) : undefined;
       const events = await this.entries({ ...filter, range });
-      return { events: events.slice(-Math.min(Number(filter.limit) || 200, 1000)), status: this.status() };
+      return { events: events.slice(-limit), status: this.status() };
     });
   }
   cleanup(input = {}, preview = false) {

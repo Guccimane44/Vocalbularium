@@ -214,6 +214,6 @@ setInterval(async () => {
   try {
     const next = await send({ type: 'refresh' });
     if (!next.signedIn) { login(); return; }
-    if (JSON.stringify(next.account) !== JSON.stringify(account)) { account = next.account; if (!location.hash.startsWith('#configure/')) await render(); }
+    if (JSON.stringify(next.account) !== JSON.stringify(account)) { account = next.account; if (!location.hash.startsWith('#configure/') && location.hash !== '#diagnostics') await render(); }
   } catch (error) { showError(error); }
 }, 5000);
