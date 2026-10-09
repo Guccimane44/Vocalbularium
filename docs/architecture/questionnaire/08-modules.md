@@ -71,7 +71,7 @@ Modules are the product strategy: a large library of constrained, productized ca
 
 **Decision:** Whole-seite text (today) vs per-module blocks? What happens to manual edits when layouts change or generation re-runs?
 
-**Context:** Configured modules are instructions, not permanent boundaries: saved text need not retain module-output boundaries and edits happen per seite ([model](../product/model.md), [modules](../specs/modules.md)). Main-key edits never auto-regenerate or erase content; only explicit generation does ([kartes-and-editing](../specs/kartes-and-editing.md)).
+**Context:** Configured modules are instructions, not permanent boundaries: saved text need not retain module-output boundaries and edits happen per seite ([model](../product/model.md), [modules](../specs/modules.md)). Main-key edits never auto-regenerate or erase content; only explicit generation does ([kartes-and-editing](../specs/pages-and-editing.md)).
 
 **Options:**
 - Whole-seite text (current) — simplest editor; re-generation overwrites manual refinements unless the user copies them aside.

@@ -1,15 +1,19 @@
-## Terminology migration
+## Page/component refactor
 
-For terminology migration work, follow
-[the 0.3.0+ plan](docs/plans/v0.3.0-plus-terminology-migration.md).
+For work on the deck → page → component model, follow
+[the refactor plan](docs/plans/page-component-refactor.md)
+and its tracker, [#81](https://github.com/Guccimane44/Vocalbularium/issues/81).
 
 Implement the increment or increments requested by the task,
-following the plan's order. Preserve product behavior, existing
-data, and recovery compatibility.
+following the plan's order. The owner approved discarding existing
+decks and kartes on upgrade; keep accounts and sign-in, and keep
+recovery working for data created after the refactor.
 
-The target vocabulary is deck → karte → seite.
-Existing names may remain until their planned migration step.
-Use semantic replacements; unrelated meanings of “page” stay unchanged.
+The vocabulary is deck → page → component, with content modules,
+view modules and the default view. Karte and seite names may remain
+in code until their planned increment.
+Use semantic replacements; other meanings of “page” (web page,
+pagination) stay unchanged. The 0.3.0+ terminology plan is historical.
 
 ## Reusable workflows
 

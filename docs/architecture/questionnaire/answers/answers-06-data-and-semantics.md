@@ -26,7 +26,7 @@ Opt-in interpretation (resolves C5 in the [traceability map](../traceability-map
 ### Q31
 
 **Superseded 10 October 2026 by [Q72](#q72):** pages don't pin a layout. Generation and every retry use the deck's live configuration, and configuration changes never touch existing pages until the user retries. The answer below is kept for history.
-Versioned layouts: each karte pins its deck layout revision at capture (or manual creation). Deck-configuration edits apply to newly created kartes only — never a bulk rewrite of existing kartes. Viewing and generation again on an existing karte use its pinned layout; the live configuration is a template for new kartes. Spec: [kartes-and-editing](../../../specs/kartes-and-editing.md), [Select and Add](../../../MVP-Product-spec-select-and-add.md#capture-scenario).
+Versioned layouts: each karte pins its deck layout revision at capture (or manual creation). Deck-configuration edits apply to newly created kartes only — never a bulk rewrite of existing kartes. Viewing and generation again on an existing karte use its pinned layout; the live configuration is a template for new kartes. Spec: [kartes-and-editing](../../../specs/pages-and-editing.md), [Select and Add](../../../MVP-Product-spec-select-and-add.md#capture-scenario).
 
 ### Q32
 
