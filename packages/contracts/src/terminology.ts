@@ -35,6 +35,9 @@ export function currentHash(hash: string): string {
 function translate(value: any, legacy: boolean): any {
   if (Array.isArray(value)) return value.map(item => translate(item, legacy));
   if (!value || typeof value !== 'object') return value;
+  // Server rows can contain buffers. Preserve their JSON wire representation
+  // before walking fields, rather than exposing numeric buffer properties.
+  if (typeof value.toJSON === 'function') return translate(value.toJSON(), legacy);
   const mapping = legacy ? legacyFields : fields;
   const result: Record<string, any> = {};
   for (const [key, item] of Object.entries(value)) {

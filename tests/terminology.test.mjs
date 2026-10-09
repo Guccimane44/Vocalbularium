@@ -67,6 +67,7 @@ test('populated upgrade preserves content, identity, receipts, staged results an
   };
   const legacy=await request('/api/cards/old-card'); assert.equal(legacy.status,200); assert.equal(legacy.data.pages[0].page_id,'front');
   const modern=await request('/api/kartes/old-card'); assert.equal(modern.data.seites[0].seite_id,'front');
+  assert.deepEqual(currentValue(legacy.data),modern.data);
   const oldReplay=await request('/api/card/save',{operationId:'old-save',payload:oldSave});
   assert.equal(oldReplay.data.cardId,'old-card'); assert.equal(oldReplay.data.replayed,true);
   const newReplay=await request('/api/karte/save',{operationId:'old-save',payload:currentValue(oldSave)});
@@ -129,4 +130,12 @@ test('legacy preparation receipts, removal confirmations and list cursors remain
     const receipt=await store.database.one('SELECT fingerprint FROM receipts WHERE operation_id=$1',['legacy-delete-kind']);
     assert.equal(receipt.fingerprint,oldFingerprint('delete-card',{cardId:first.karteId}));
   });
+});
+
+test('terminology adapters preserve binary sort keys in their JSON wire representation', () => {
+  const row = { karteId: 'synthetic-karte', front_sort_key: Buffer.from([0, 97, 0, 98]) };
+  const wire = JSON.parse(JSON.stringify(row));
+  assert.deepEqual(currentValue(row), wire);
+  assert.deepEqual(legacyValue(row), { cardId: row.karteId, front_sort_key: wire.front_sort_key });
+  assert.deepEqual(currentValue(legacyValue(row)), wire);
 });
