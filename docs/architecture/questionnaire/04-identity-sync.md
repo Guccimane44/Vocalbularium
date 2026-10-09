@@ -6,7 +6,7 @@ If Q02 chose more than one human, this section is load-bearing. Identity mistake
 
 **Decision:** Single built-in owner account forever, or real multi-user accounts? If multi-user: password, passkey, OAuth — and what does signup create?
 
-**Context:** Today there is exactly one account with `admin`/`admin` login, 7-day sessions, and a seeded empty My Deck; multi-user registration and onboarding are deferred ([scope](../product/scope.md#explicit-deferrals), README). The persistence layer hard-codes an owner account ID of 1 — this is not multi-tenant authorization ([local-postgresql](local-postgresql.md)).
+**Context:** Today there is exactly one account with `admin`/`admin` login, 7-day sessions, and a seeded empty My Deck; multi-user registration and onboarding are deferred ([scope](../../product/scope.md#explicit-deferrals), README). The persistence layer hard-codes an owner account ID of 1 — this is not multi-tenant authorization ([local-postgresql](../local-postgresql.md)).
 
 **Options:**
 - Single account forever — no auth work; viable only if Q02 stayed single-owner. Any later multi-user need becomes a full rewrite of authz.
@@ -19,7 +19,7 @@ If Q02 chose more than one human, this section is load-bearing. Identity mistake
 
 **Decision:** (a) local-first single backend, (b) one hosted backend with many clients, (c) local + cloud with conflict resolution, or (d) fully local with no server?
 
-**Context:** Installations sharing a backend see the same account today, with explicit recovery on save/sync failure ([scope](../product/scope.md)). The local guide keeps the old SQLite/Render installation strictly separate with no automatic import ([local-postgresql](local-postgresql.md)).
+**Context:** Installations sharing a backend see the same account today, with explicit recovery on save/sync failure ([scope](../../product/scope.md)). The local guide keeps the old SQLite/Render installation strictly separate with no automatic import ([local-postgresql](../local-postgresql.md)).
 
 **Options:**
 - (a) Local-first — matches today; data lives where the user runs Postgres. Tradeoff: multi-device sync is manual backup/restore.
@@ -33,7 +33,7 @@ If Q02 chose more than one human, this section is load-bearing. Identity mistake
 
 **Decision:** Last-write-wins with explicit recovery (today), version vectors + merge UI, or CRDTs? Cover the three conflict cases: karte-vs-karte edit, layout-change-vs-karte-edit, layout shrink deleting seites with content.
 
-**Context:** All mutations run through one ordered per-account executor with repeatable-read snapshots today, so conflicts are serialized away — at the cost of single-process scale ([local-postgresql](local-postgresql.md)). Operation receipts are idempotent by SHA-256 fingerprint with same-ID-different-payload rejected. Save-during-generation is rejected, not queued, requiring explicit resubmission.
+**Context:** All mutations run through one ordered per-account executor with repeatable-read snapshots today, so conflicts are serialized away — at the cost of single-process scale ([local-postgresql](../local-postgresql.md)). Operation receipts are idempotent by SHA-256 fingerprint with same-ID-different-payload rejected. Save-during-generation is rejected, not queued, requiring explicit resubmission.
 
 **Options:**
 - Keep serialized executor + explicit resubmission — simplest correct behavior; concurrent editors take turns or retry by hand.
@@ -46,7 +46,7 @@ If Q02 chose more than one human, this section is load-bearing. Identity mistake
 
 **Decision:** Private-everything, shared decks with collaborators, or public read-only decks/links?
 
-**Context:** Every karte belongs to exactly one deck and decks are the organizing foundation ([model](../product/model.md)); moving/copying between decks is deferred ([scope](../product/scope.md)). Nothing in the current authz distinguishes reader from owner.
+**Context:** Every karte belongs to exactly one deck and decks are the organizing foundation ([model](../../product/model.md)); moving/copying between decks is deferred ([scope](../../product/scope.md)). Nothing in the current authz distinguishes reader from owner.
 
 **Options:**
 - Private only — no sharing code at all; state it explicitly to close the question.
@@ -59,7 +59,7 @@ If Q02 chose more than one human, this section is load-bearing. Identity mistake
 
 **Decision:** Session lifetime, concurrent-device policy, logout-all, and what happens to pending work on logout or profile switch?
 
-**Context:** Login sessions last 7 days with active-view refresh; logout removes account views and capture; appearance preference is per-installation, not per-account ([MVP scope](../history/mvp/MVP-Product-scope.md), README). Extension reload ends that installation's generation session.
+**Context:** Login sessions last 7 days with active-view refresh; logout removes account views and capture; appearance preference is per-installation, not per-account ([MVP scope](../../history/mvp/MVP-Product-scope.md), README). Extension reload ends that installation's generation session.
 
 **Options:**
 - Long-lived multi-device sessions — convenient; needs device list + remote revoke + per-device pending queues.

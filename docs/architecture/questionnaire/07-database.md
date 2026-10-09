@@ -6,7 +6,7 @@ PostgreSQL 18 is the only runtime database. These questions turn today's single-
 
 **Decision:** One database per user, one schema per user, or shared tables keyed by `account_id`?
 
-**Context:** Today there is one database, one owner account ID, and role separation (app/migrator/test) with no schema-creation rights for the app role ([local-postgresql](local-postgresql.md)). Shared tables scale operationally (one backup, one migration) but make every query an authz query; separate databases isolate noisy neighbors and deletions at the cost of N migrations and connection sprawl.
+**Context:** Today there is one database, one owner account ID, and role separation (app/migrator/test) with no schema-creation rights for the app role ([local-postgresql](../local-postgresql.md)). Shared tables scale operationally (one backup, one migration) but make every query an authz query; separate databases isolate noisy neighbors and deletions at the cost of N migrations and connection sprawl.
 
 **Options:**
 - Shared tables + `account_id` — one migration path, cross-account analytics easy; every read/write must filter by account, and one bad query leaks across users.
@@ -19,7 +19,7 @@ PostgreSQL 18 is the only runtime database. These questions turn today's single-
 
 **Decision:** Migration discipline: who writes SQL, when it runs, and what compatibility the old code keeps while new columns/tables land?
 
-**Context:** Drizzle schema in `src/persistence/schema.ts`, reviewed SQL in `migrations/`, `db:generate` then `db:migrate` with the API stopped; normal startup never runs DDL; applied migrations are immutable ([local-postgresql](local-postgresql.md)). The terminology migration demonstrated the pattern: rename via new migration, preserve IDs/relationships/timestamps, keep legacy contracts at the boundary ([terminology compatibility](terminology-compatibility.md)).
+**Context:** Drizzle schema in `src/persistence/schema.ts`, reviewed SQL in `migrations/`, `db:generate` then `db:migrate` with the API stopped; normal startup never runs DDL; applied migrations are immutable ([local-postgresql](../local-postgresql.md)). The terminology migration demonstrated the pattern: rename via new migration, preserve IDs/relationships/timestamps, keep legacy contracts at the boundary ([terminology compatibility](../terminology-compatibility.md)).
 
 **Options:**
 - Stop-the-world reviewed migrations (current) — safest for correctness; needs downtime windows and the backend-before-extension order enforced.
@@ -32,7 +32,7 @@ PostgreSQL 18 is the only runtime database. These questions turn today's single-
 
 **Decision:** PostgreSQL full-text (`tsvector`, per-language configs), trigram fuzzy search (`pg_trgm`), external engine (Typesense/Meilisearch), or no search at 1.0?
 
-**Context:** Lists are bounded reads with explicit sort orders (Unicode NFKC + lowercase + code-unit + ID tiebreak) and cursor pagination; search does not exist ([reads tests](../../README.md), scope). Multilingual content breaks naive stemming: German compounds, Chinese/Japanese tokenization, and mixed-language kartes need per-language configurations or external analyzers.
+**Context:** Lists are bounded reads with explicit sort orders (Unicode NFKC + lowercase + code-unit + ID tiebreak) and cursor pagination; search does not exist ([reads tests](../../../README.md), scope). Multilingual content breaks naive stemming: German compounds, Chinese/Japanese tokenization, and mixed-language kartes need per-language configurations or external analyzers.
 
 **Options:**
 - PG full-text with per-language configs — no new service; needs language detection per karte and config plumbing.
@@ -46,7 +46,7 @@ PostgreSQL 18 is the only runtime database. These questions turn today's single-
 
 **Decision:** Whole-DB dumps plus what per-account operations: export (JSON/SQLite), import (Anki/CSV), and account deletion?
 
-**Context:** `db:backup`/`restore` produce private custom-format dumps restored only into new `vocabularium_restore_*` databases for review, never overwriting live data ([local-postgresql](local-postgresql.md)). Vocabulary import from old SQLite is an explicit future operation with no format promised; the old installation must be preserved untouched.
+**Context:** `db:backup`/`restore` produce private custom-format dumps restored only into new `vocabularium_restore_*` databases for review, never overwriting live data ([local-postgresql](../local-postgresql.md)). Vocabulary import from old SQLite is an explicit future operation with no format promised; the old installation must be preserved untouched.
 
 **Options:**
 - Whole-DB dumps only — sufficient for single-owner disaster recovery; no user-facing portability.
@@ -59,7 +59,7 @@ PostgreSQL 18 is the only runtime database. These questions turn today's single-
 
 **Decision:** Retention per data class: karte content, edit history, generation attempts/journals, operation receipts, server logs, deleted data, backups.
 
-**Context:** Receipts must replay identically as long as historical receipts are retained (fingerprints pin original kinds/fields); journal files and `{ok,text}` results are kept verbatim; applied migrations stay immutable ([terminology compatibility](terminology-compatibility.md)). Nothing states when any of this may be deleted.
+**Context:** Receipts must replay identically as long as historical receipts are retained (fingerprints pin original kinds/fields); journal files and `{ok,text}` results are kept verbatim; applied migrations stay immutable ([terminology compatibility](../terminology-compatibility.md)). Nothing states when any of this may be deleted.
 
 **Options:**
 - Keep everything forever — simplest code, unbounded growth, conflicts with erasure requests.

@@ -6,7 +6,7 @@ Memorization is optional by design — the vision says collection and reference 
 
 **Decision:** Ship review at 1.0 or keep collection/reference only? If yes: SM-2, FSRS, or simpler Leitner? Opt-in at deck or karte level?
 
-**Context:** Memorization settings, spaced repetition, and study workflows are deferred; the deck defines whether memorization is enabled but nothing consumes that flag yet ([scope](../product/scope.md), [product description](../../vocabularium-product-description.md)). Karte identity is independent of any study interaction ([model](../product/model.md)).
+**Context:** Memorization settings, spaced repetition, and study workflows are deferred; the deck defines whether memorization is enabled but nothing consumes that flag yet ([scope](../../product/scope.md), [product description](../../../vocabularium-product-description.md)). Karte identity is independent of any study interaction ([model](../../product/model.md)).
 
 **Options:**
 - No review at 1.0 — keeps schema and UX focused; state the schema reservation (see Q53) so review does not force a rewrite later.
@@ -19,7 +19,7 @@ Memorization is optional by design — the vision says collection and reference 
 
 **Decision:** If review exists: what is logged per review (grade, latency, lapses, session), does review mutate the karte or separate progress tables, and how are stats aggregated?
 
-**Context:** Generation attempts/outcomes are already separated from content; study interactions need the same separation so reviewing never rewrites what the user saved ([model](../product/model.md)). No review tables exist today.
+**Context:** Generation attempts/outcomes are already separated from content; study interactions need the same separation so reviewing never rewrites what the user saved ([model](../../product/model.md)). No review tables exist today.
 
 **Options:**
 - Separate progress tables (reviews reference karte/seite IDs) — cleanest; karte content and study state evolve independently.
@@ -32,7 +32,7 @@ Memorization is optional by design — the vision says collection and reference 
 
 **Decision:** Decks only, or also tags, folders, filters (by module, language, failed generation, empty seite), and saved searches?
 
-**Context:** Decks are the primary repository concept; every karte belongs to exactly one deck ([product description](../../vocabularium-product-description.md)). Beyond deck browsing, sorting, and opening kartes, no organization primitives exist ([scope](../product/scope.md)).
+**Context:** Decks are the primary repository concept; every karte belongs to exactly one deck ([product description](../../../vocabularium-product-description.md)). Beyond deck browsing, sorting, and opening kartes, no organization primitives exist ([scope](../../product/scope.md)).
 
 **Options:**
 - Decks only — matches today; large libraries become long lists that need search to stay usable (see Q37).
@@ -45,7 +45,7 @@ Memorization is optional by design — the vision says collection and reference 
 
 **Decision:** Design targets: kartes per account (hundreds, 10k, 100k?), decks per account, and latency budgets (dashboard open, capture receipt, generation p50/p95).
 
-**Context:** Bounded reads exist (30 kartes, 40 decks, detail on open) with explicit sort semantics, but no scale target or latency budget is stated (README). Queue bounds and pool sizing assume modest concurrency ([local-postgresql](local-postgresql.md)).
+**Context:** Bounded reads exist (30 kartes, 40 decks, detail on open) with explicit sort semantics, but no scale target or latency budget is stated (README). Queue bounds and pool sizing assume modest concurrency ([local-postgresql](../local-postgresql.md)).
 
 **Options:**
 - Single-owner scale (low thousands) — current pagination suffices; budgets stay tight and cheap to meet.
@@ -58,7 +58,7 @@ Memorization is optional by design — the vision says collection and reference 
 
 **Decision:** When the queue is full or the provider is slow, what does the user see and what can they do (wait, cancel, retry later)?
 
-**Context:** Active/waiting seite attempts are bounded (4/16 defaults); provider calls run outside transactions; rejected saves are not queued ([README](../../README.md), [local-postgresql](local-postgresql.md)). No user-facing queue position or cancellation exists.
+**Context:** Active/waiting seite attempts are bounded (4/16 defaults); provider calls run outside transactions; rejected saves are not queued ([README](../../../README.md), [local-postgresql](../local-postgresql.md)). No user-facing queue position or cancellation exists.
 
 **Options:**
 - Silent queue (current) — attempts start when capacity frees; users cannot tell stuck from slow.

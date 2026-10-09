@@ -6,7 +6,7 @@ anonymous, Q02), hosted hub (Q18), Vercel serverless with scale-to-zero (Q22),
 managed Postgres, session + installation ID (Q10), long-lived multi-device sessions
 (Q21), version gate + online-required + no legacy fallback from 1.0.0 (Q14). The old
 long-lived loopback + `DATA_DIR` journal + single-process executor assumptions are
-retired and kept only as history ([local-postgresql](local-postgresql.md)).
+retired and kept only as history ([local-postgresql](../local-postgresql.md)).
 
 ## Q22. What is the compute model — ANSWERED AND LOCKED
 
@@ -26,7 +26,7 @@ Q26 cannot stay single-process; Q28 cannot stay loopback-only.
 functions: host, pooling, roles, backup/PITR, and migration discipline.
 
 **Context:** PostgreSQL 18 stays the only runtime database; schema via Drizzle with
-reviewed SQL in `migrations/`; startup runs no DDL ([local-postgresql](local-postgresql.md)).
+reviewed SQL in `migrations/`; startup runs no DDL ([local-postgresql](../local-postgresql.md)).
 Q22 forces serverless-compatible hosting: pooled connections, TLS, credential
 rotation, and no reliance on local disk. Self-hosted PG and per-user SQLite are out
 — the former reintroduces the server care Q22 removed, the latter abandons PG
@@ -52,7 +52,7 @@ acceptance: committed PG rows survive; in-flight provider results are lost; the
 user retries explicitly. No filesystem journal.
 
 **Context:** The old `DATA_DIR/generation-outbox` staged-replay path assumed durable
-local disk and a single process that restarts ([local-postgresql](local-postgresql.md)).
+local disk and a single process that restarts ([local-postgresql](../local-postgresql.md)).
 On Vercel neither holds: disk is ephemeral and the next request may land on a
 different copy. PG is the only truth. "Replay without recalling the provider"
 survives only for rows already committed to PG — everything else fails visibly.
@@ -79,7 +79,7 @@ dashboard shows (failed seite + Retry, no silent success).
 
 **Context:** Provider calls run outside transactions with 60s timeouts and
 4096-token budgets; a save rejected during generation needs explicit resubmission
-([local-postgresql](local-postgresql.md), [Select and Add](../MVP-Product-spec-select-and-add.md)).
+([local-postgresql](../local-postgresql.md), [Select and Add](../../MVP-Product-spec-select-and-add.md)).
 Inline execution inside the requesting function inherits the Vercel timeout Q22
 flagged for verification. Durable queuing moves long provider work out of the
 request path with visibility timeouts, bounded auto-retry of transient failures,
@@ -108,7 +108,7 @@ user" without a single global writer. Users must not block each other.
 
 **Context:** The old single-process advisory ownership lock (second API refuses to
 start) is retired — it contradicts Q22's many-copies decision
-([local-postgresql](local-postgresql.md)). What survives: receipt idempotency by
+([local-postgresql](../local-postgresql.md)). What survives: receipt idempotency by
 SHA-256 fingerprint with same-ID-different-payload rejected, and the Q19
 serialized-plus-explicit-resubmission semantics, now scoped per account instead of
 per database. Generation claims stay bound to the originating installation ID
@@ -141,7 +141,7 @@ removed at 1.0.0 with no compat guarantee for <1.0.0.
 
 **Context:** Current routes still carry legacy card/page aliases with dual-field
 acceptance and `X-Vocabularium-Terminology` negotiation; receipt fingerprints pin
-original kinds/field spellings ([terminology compatibility](terminology-compatibility.md)).
+original kinds/field spellings ([terminology compatibility](../terminology-compatibility.md)).
 Q14 retires all of that at 1.0.0 — this question must not re-litigate whether,
 only how the clean contract is held.
 
@@ -165,7 +165,7 @@ and health surface — replacing the loopback-only dev posture.
 
 **Context:** The API binds `127.0.0.1:4318` today with startup rejecting
 non-loopback binding; liveness vs readiness are split (`/health/live` vs
-`/health/ready`) ([local-postgresql](local-postgresql.md)). Hosted hub (Q18) with
+`/health/ready`) ([local-postgresql](../local-postgresql.md)). Hosted hub (Q18) with
 extension + web clients (Q06/Q11) needs public HTTPS, CORS/extension-origin
 policy, trusted proxy headers, and managed certs. Per-function pools must stay
 small against the managed-PG connection ceiling; the 60s generation budget must

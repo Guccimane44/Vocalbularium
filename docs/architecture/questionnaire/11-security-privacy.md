@@ -6,7 +6,7 @@ Security here is not abstract: captured web text is untrusted input, generated c
 
 **Decision:** What is sensitive (captured text, URLs, generated content, API keys, logs), who is the adversary (malicious webpage, malicious user, network observer), and what is explicitly out of scope?
 
-**Context:** Generated content renders as plain text today, which neutralizes stored markup; any move to rich rendering (Q13) reopens stored XSS. Captured text flows into prompts, which reopens instruction override (Q51). The API bound loopback-only with no public auth surface ([local-postgresql](local-postgresql.md)).
+**Context:** Generated content renders as plain text today, which neutralizes stored markup; any move to rich rendering (Q13) reopens stored XSS. Captured text flows into prompts, which reopens instruction override (Q51). The API bound loopback-only with no public auth surface ([local-postgresql](../local-postgresql.md)).
 
 **Options:**
 - Local-adversary model (malicious page content + local network) — matches today; focus on sanitization and loopback binding.
@@ -19,7 +19,7 @@ Security here is not abstract: captured web text is untrusted input, generated c
 
 **Decision:** Password hashing (argon2/scrypt), session storage and rotation, CSRF protection, login rate limiting — and where does each secret live?
 
-**Context:** `admin`/`admin` with 7-day sessions; `OPENCODE_API_KEY` server-only via `.env`, never in the extension package; build-time `VOCABULARIUM_API_URL` sets host permissions; DB credentials in ignored `.env.postgres` with role separation (README, [local-postgresql](local-postgresql.md)).
+**Context:** `admin`/`admin` with 7-day sessions; `OPENCODE_API_KEY` server-only via `.env`, never in the extension package; build-time `VOCABULARIUM_API_URL` sets host permissions; DB credentials in ignored `.env.postgres` with role separation (README, [local-postgresql](../local-postgresql.md)).
 
 **Options:**
 - Keep shared-secret single account — viable only for single-owner local use; document that it must never face the public internet.
@@ -32,7 +32,7 @@ Security here is not abstract: captured web text is untrusted input, generated c
 
 **Decision:** What stops a malicious page from steering generation or smuggling markup/scripts into kartes, decks names, or logs?
 
-**Context:** Deck names, selected text, and generated text are user/attacker-influenced data rendered across dashboard, lists, editors, and feedback popups. The terminology policy already states user-authored strings are data and never rewritten by adapters ([terminology compatibility](terminology-compatibility.md)) — but rendering policy is separate.
+**Context:** Deck names, selected text, and generated text are user/attacker-influenced data rendered across dashboard, lists, editors, and feedback popups. The terminology policy already states user-authored strings are data and never rewritten by adapters ([terminology compatibility](../terminology-compatibility.md)) — but rendering policy is separate.
 
 **Options:**
 - Text-only rendering + escaping everywhere (current) — strongest default; any rich rendering must pass an allowlist review.
@@ -58,7 +58,7 @@ Security here is not abstract: captured web text is untrusted input, generated c
 
 **Decision:** GDPR erasure/export? Provider DPA? Chrome Web Store privacy disclosures? Data jurisdiction? Age rating?
 
-**Context:** Scope defers public onboarding and account management; the Windows guide already requires version/evidence reporting without API keys ([scope](../product/scope.md), [windows-install](../guides/windows-install.md)). None of this matters for single-owner local use; all of it matters the moment strangers sign up or data leaves the machine.
+**Context:** Scope defers public onboarding and account management; the Windows guide already requires version/evidence reporting without API keys ([scope](../../product/scope.md), [windows-install](../../guides/windows-install.md)). None of this matters for single-owner local use; all of it matters the moment strangers sign up or data leaves the machine.
 
 **Options:**
 - None (single-owner local) — state it and the tripwire that reopens the question (first external user or hosted data).

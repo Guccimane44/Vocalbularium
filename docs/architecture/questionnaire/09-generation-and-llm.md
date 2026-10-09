@@ -19,7 +19,7 @@ Generation is where money, latency, quality, and privacy meet. Decide the provid
 
 **Decision:** Prompts in code, in DB, or in a versioned registry? How are they A/B tested and rolled back? What separates inapplicable (valid empty) from failure from invalid output?
 
-**Context:** The adapter requests JSON in instructions and validates completion status, fields, classification, and nonempty text locally without relying on strict structured-output support; one stable conversation ID per karte including retries (README). Seite completion/failure/interruption/publication/retry semantics are owned by Select and Add, including the distinction between failed generation and valid empty content ([Select and Add](../MVP-Product-spec-select-and-add.md)).
+**Context:** The adapter requests JSON in instructions and validates completion status, fields, classification, and nonempty text locally without relying on strict structured-output support; one stable conversation ID per karte including retries (README). Seite completion/failure/interruption/publication/retry semantics are owned by Select and Add, including the distinction between failed generation and valid empty content ([Select and Add](../../MVP-Product-spec-select-and-add.md)).
 
 **Options:**
 - Prompts in code, versioned with releases — simplest review and rollback; prompt tweaks ride the release train.
@@ -32,7 +32,7 @@ Generation is where money, latency, quality, and privacy meet. Decide the provid
 
 **Decision:** Per-user rate limits, daily generation quotas, per-seite token budgets, queue bounds — and what happens at the limit (degrade to saved-input-only vs block)?
 
-**Context:** Each request has a 60s limit and 4096-token output budget, identified as `Vocabularium/0.3.0` with stable conversation IDs; without a key, capture still saves while interpretation-dependent seites fail visibly ([README](../../README.md)). Expanded user-facing limit controls are deferred ([scope](../product/scope.md)).
+**Context:** Each request has a 60s limit and 4096-token output budget, identified as `Vocabularium/0.3.0` with stable conversation IDs; without a key, capture still saves while interpretation-dependent seites fail visibly ([README](../../../README.md)). Expanded user-facing limit controls are deferred ([scope](../../product/scope.md)).
 
 **Options:**
 - Degrade (save input, fail generative seites visibly) — matches today; users keep captures during outages or quota exhaustion.
@@ -45,7 +45,7 @@ Generation is where money, latency, quality, and privacy meet. Decide the provid
 
 **Decision:** What eval suite must pass before a module ships or a prompt changes: golden inputs per language, human rubric, LLM-judge, regression thresholds?
 
-**Context:** Systematic quality evaluation is deferred; today's evidence is small live samples and recorded provider fixtures ([scope](../product/scope.md), README smoke sections). The module design contract already demands observable criteria with representative examples including unsupported inputs and failure cases, distinguishing factual from speculative output ([modules](../specs/modules.md)).
+**Context:** Systematic quality evaluation is deferred; today's evidence is small live samples and recorded provider fixtures ([scope](../../product/scope.md), README smoke sections). The module design contract already demands observable criteria with representative examples including unsupported inputs and failure cases, distinguishing factual from speculative output ([modules](../../specs/modules.md)).
 
 **Options:**
 - Golden set + human review per release — highest signal; slowest, needs reviewer time and language coverage.
@@ -58,7 +58,7 @@ Generation is where money, latency, quality, and privacy meet. Decide the provid
 
 **Decision:** Explicit user retry only (today) vs automatic retry of transient failures? Can generation resume in a new browser session or only the originating one?
 
-**Context:** Results publish only through the originating Chrome session; reopening Chrome fails interrupted attempts; journaled results replay without recalling the provider while unstaged attempts fail; no automatic provider retry or failed-save resubmission exists ([local-postgresql](local-postgresql.md), [Select and Add](../MVP-Product-spec-select-and-add.md)).
+**Context:** Results publish only through the originating Chrome session; reopening Chrome fails interrupted attempts; journaled results replay without recalling the provider while unstaged attempts fail; no automatic provider retry or failed-save resubmission exists ([local-postgresql](../local-postgresql.md), [Select and Add](../../MVP-Product-spec-select-and-add.md)).
 
 **Options:**
 - Explicit-only (current) — predictable cost and no surprise regeneration; users hand-retry every transient blip.
