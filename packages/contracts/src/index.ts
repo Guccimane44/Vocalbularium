@@ -74,7 +74,7 @@ export const DefaultDeckRequestSchema = Type.Object({
 }, OpenRequest);
 export const CapturePreparationPayloadSchema = Type.Object({
   session: BrowserSessionSchema,
-  selectedText: Type.String({ minLength: 1 })
+  mainKey: Type.String({ minLength: 1 })
 }, OpenRequest);
 export const CapturePreparationRequestSchema = Type.Object({
   operationId: OperationIdSchema,

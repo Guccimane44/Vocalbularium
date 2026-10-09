@@ -119,10 +119,11 @@ Tests (`tests/pages-schema.test.mjs`): a populated 0.3.0+ database upgrades thro
 ### 4. Backend (`src/core`, `src/server`)
 - Migration `0004` discards the old content: it drops `kartes`, `seites`, `layout_seites` and `attempts`, empties `receipts`, deletes every deck, and creates one fresh default deck (one `<German explanation + examples>` instance, default view) that the account points to. Account tables (`account`, `credentials`, `installations`, `login_tokens`) keep their rows. Test: a populated 0.3.0+ database → 0004 → only the fresh default deck remains and sign-in is unchanged. Remove the legacy-dialect and receipt-replay fixtures that only covered old content.
 - Executor: one attempt per component, still ordered and guarded by the advisory lock. Page retry enqueues every content component. "Generate missing" enqueues only components without content.
-- Routes: page create/save/delete/move/copy, `generate` (page or component target), `retry` (page or component target, with content-loss confirmation digest per component). Compatibility per D1.
+- Routes: page create/save/delete and one `generate` route whose target is `missing`, `page` or `component`; page and component targets are retries and carry a confirmation digest of the content they replace. The card/page and karte/seite dialects and the terminology compatibility layer are removed (D1). Moving and copying pages stay deferred (scope).
 - Capture: create the page, then generate all content components (same receipt / outbox recovery guarantees as today, in the new shape).
 - Manual create: never enqueues generation.
-- Tests: backend suite extended for per-component attempts, interruption and recovery, retry after a configuration change, moving a page between decks.
+- Tests: backend suite rewritten for per-component attempts, interruption and recovery, retry after a configuration change, and the 0004 upgrade.
+- Because the browser tests drive the extension against this backend, they pass again only with increment 5. Increment 5 is stacked on this branch and both merge together.
 
 ### 5. Extension (`extension/`)
 - Pages are shown through the default view module: the ordered component list, replacing the Seite tabs.

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { generateComponents, renderSeite } from '@vocabularium/domain/modules';
+import { generateComponents } from '@vocabularium/domain/modules';
 import {
   blockText, defaultView, generationTargets, pageStatus, textBlocks, validateConfiguration, validateView, VIEW_MODULES
 } from '@vocabularium/domain/pages';
@@ -55,17 +55,6 @@ test('repeated instances retry for distinct output per component', async () => {
   assert.deepEqual(avoided, [[], [], ['same']]);
 });
 
-test('renderSeite keeps the seite baseline: joined output, whole-seite failure', async () => {
-  assert.equal(await renderSeite({
-    selectedText: 'w', interpretation: word, modules: instances('selected', 'sentence-usage', 'german-explanation'),
-    generate: async () => 'explained'
-  }), 'w\n\nexplained');
-  await assert.rejects(renderSeite({
-    selectedText: 'w', interpretation: word, modules: instances('selected', 'german-explanation'),
-    generate: async () => { throw new Error('controlled'); }
-  }), /controlled/);
-});
-
 test('generation targets follow the live configuration and skip removed and manual components', () => {
   const modules = instances('selected', 'german-explanation', 'sentence-usage');
   const components = [
@@ -117,6 +106,6 @@ test('configurations allow at most 12 unique, supported instances', () => {
 
 test('block content round-trips plain module text exactly', () => {
   for (const text of ['', '幸福', '  spaced\n\n== literal ==\n']) assert.equal(blockText(textBlocks(text)), text);
-  const page = { id: 'p', deckId: 'd', createdAt: 1, status: null, components: [component('key', 'main_key')] };
+  const page = { id: 'p', deckId: 'd', selectedText: null, createdAt: '2026-10-10T00:00:00.000Z', status: null, components: [component('key', 'main_key')] };
   assert.ok(Value.Check(PageSchema, page));
 });

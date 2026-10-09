@@ -2,7 +2,8 @@
 export const DIAGNOSTIC_VERSION = 1;
 export const MAX_EVENT_BYTES = 4 * 1024 * 1024;
 export const EXTENSION_LOG_BUDGET = 16 * 1024 * 1024;
-const textFields = ['operationId', 'requestId', 'karteId', 'seiteId', 'attemptId', 'installationId',
+// karteId and seiteId remain until the extension reports pageId and componentId.
+const textFields = ['operationId', 'requestId', 'pageId', 'componentId', 'karteId', 'seiteId', 'attemptId', 'installationId',
   'sessionId', 'route', 'method', 'category', 'errorType', 'errorCode', 'model', 'phase'];
 const numberFields = ['durationMs', 'queueMs', 'active', 'queued', 'reserved', 'admitted', 'rejected',
   'status', 'sequence', 'maxTokens', 'dropped'];

@@ -5,7 +5,6 @@ import { AccountStore, StoreError } from '../core/store.mjs';
 import { Authentication } from './auth.mjs';
 import { Generation } from './generation.mjs';
 import { apiFailure } from './api-failure.mjs';
-import { registerTerminology } from './terminology.mjs';
 import { registerRoutes } from './routes.mjs';
 import { Diagnostics, diagnosticContext } from './diagnostics.mjs';
 import { registerDiagnosticRoutes } from './diagnostic-routes.mjs';
@@ -80,15 +79,13 @@ export async function createApplication({ databaseUrl, outbox, accountId = 1, au
   fastify.decorateRequest('diagnosticStarted', null);
   fastify.decorateRequest('diagnosticResult', null);
 
-  registerTerminology(fastify);
-
   fastify.register(swagger, {
     openapi: {
       openapi: '3.0.3',
       info: {
         title: 'Vocabularium Account API',
         version: '0.3.0',
-        description: 'Local account, capture, deck, karte, and generation-session API.'
+        description: 'Local account, capture, deck, page, and generation-session API.'
       },
       servers: [{ url: 'http://127.0.0.1:4318' }],
       components: {
@@ -98,7 +95,7 @@ export async function createApplication({ databaseUrl, outbox, accountId = 1, au
       },
       tags: [
         { name: 'health', description: 'Process and readiness probes' },
-        { name: 'account', description: 'Account and karte operations' }
+        { name: 'account', description: 'Account, deck, and page operations' }
       ]
     }
   });
@@ -112,7 +109,7 @@ export async function createApplication({ databaseUrl, outbox, accountId = 1, au
     if (origin) {
       reply.header('Access-Control-Allow-Origin', origin);
       reply.header('Vary', 'Origin');
-      reply.header('Access-Control-Allow-Headers', 'authorization, content-type, x-vocabularium-terminology');
+      reply.header('Access-Control-Allow-Headers', 'authorization, content-type');
       reply.header('Access-Control-Expose-Headers', 'X-Request-Id');
       reply.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     }
@@ -158,7 +155,7 @@ export async function createApplication({ databaseUrl, outbox, accountId = 1, au
     if (!request.routeOptions?.url?.startsWith('/api/diagnostics/') && request.method !== 'OPTIONS') {
       let result; try { result = JSON.parse(payload); } catch { /* Metadata only. */ }
       diagnostics.addSecret(result?.token);
-      request.diagnosticResult = { code: result?.code, karteId: result?.karteId ?? result?.cardId, sequence: result?.sequence, replayed: result?.replayed };
+      request.diagnosticResult = { code: result?.code, pageId: result?.pageId, sequence: result?.sequence, replayed: result?.replayed };
     }
     return payload;
   });
@@ -171,14 +168,14 @@ export async function createApplication({ databaseUrl, outbox, accountId = 1, au
       (status < 400 && (route === '/api/poll' || route.startsWith('/health') ||
         ['/api/account', '/api/account/summary', '/api/captures/recent', '/api/decks'].includes(route)))) return;
     emit({ event: 'api.completed', requestId: request.id, operationId: request.body?.operationId,
-      karteId: result.karteId ?? payload?.karteId ?? request.params?.karteId, seiteId: payload?.seiteId, attemptId: payload?.attemptId,
+      pageId: result.pageId ?? payload?.pageId ?? request.params?.pageId, componentId: payload?.target?.componentId, attemptId: payload?.attemptId,
       method: request.method, route, status, sequence: result.sequence, errorCode: result.code,
       severity: status >= 500 ? 'error' : status >= 400 ? 'warn' : 'info',
       outcome: status >= 400 ? 'failed' : result.replayed ? 'replayed' : 'succeeded',
       durationMs: Math.round(performance.now() - request.diagnosticStarted) });
     if (route === '/api/capture' && status === 200) emit({ event: 'capture.saved', requestId: request.id,
-      operationId: request.body?.operationId, karteId: result.karteId, outcome: result.replayed ? 'replayed' : 'succeeded',
-      content: { selectedText: payload?.selectedText } });
+      operationId: request.body?.operationId, pageId: result.pageId, outcome: result.replayed ? 'replayed' : 'succeeded',
+      content: { selectedText: payload?.mainKey } });
     if (route.startsWith('/health') && status === 503) emit({ event: 'readiness.failed', outcome: 'failed', severity: 'error' });
   });
 

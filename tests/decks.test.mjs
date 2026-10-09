@@ -1,101 +1,87 @@
 import test, { createTestStore } from './helpers/database.mjs';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
-const page = (...types) => ({ id: randomUUID(), modules: types.map(type => ({ id: randomUUID(), type })) });
+import { complete, generated, text } from './helpers/pages.mjs';
+
+const instances = (...types) => types.map(type => ({ id: randomUUID(), type }));
+const view = { module: 'default' };
 const session = { installationId: 'a', sessionId: 'browser', epoch: 1 };
 async function fixture(t) { const store = await createTestStore(t); t.after(async () => (await store.close())); await store.openSession('open', session); return store; }
-async function save(store, deck, extra = {}) { return await store.saveDeck(randomUUID(), { deck, baseSeiteIds: deck.id ? (await store.deck(deck.id)).seites.map(page => page.id) : [], ...extra }); }
-async function capture(store) { return (await store.capture(randomUUID(), { session, selectedText: '幸福', snapshot: (await store.snapshot()) })).karteId; }
-async function fill(store, id) {
-  for (const [index, p] of (await store.karte(id)).seites.entries()) {
-    await store.stage(p.attempt_id, { ok: true, text: `saved seite ${index + 1}` });
-    await store.publish(randomUUID(), { attemptId: p.attempt_id, session });
-  }
-}
+const save = (store, deck) => store.saveDeck(randomUUID(), { deck });
+async function capture(store) { return (await store.capture(randomUUID(), { session, mainKey: '幸福', snapshot: (await store.snapshot()) })).pageId; }
 
-test('deck creation validates layout, preserves default, and resubmits without making duplicates', async (t) => {
+test('deck creation validates its modules and view, preserves the default, and resubmits without duplicates', async (t) => {
   const store = await fixture(t), initial = await store.snapshot();
-  const deck = { name: '  Chinese  ', seites: [page('selected', 'selected-language'), page('german-explanation', 'german-examples'), page('sentence-usage', 'sentence-usage'), page()] };
-  const payload = { deck };
-  const saved = await store.saveDeck('new', payload);
-  assert.equal((await store.saveDeck('new', payload)).deckId, saved.deckId);
-  assert.equal((await store.deck(saved.deckId)).name, 'Chinese'); assert.equal((await store.snapshot()).id, initial.id);
+  const deck = { name: '  Chinese  ', modules: instances('selected', 'selected-language', 'german-examples', 'sentence-usage', 'sentence-usage'), view };
+  const saved = await store.saveDeck('new', { deck });
+  assert.equal((await store.saveDeck('new', { deck })).deckId, saved.deckId);
+  const read = await store.deck(saved.deckId);
+  assert.equal(read.name, 'Chinese'); assert.deepEqual(read.modules, deck.modules); assert.deepEqual(read.view, view);
+  assert.equal((await store.snapshot()).id, initial.id);
   assert.equal((await store.account()).decks.length, 2);
-  for (const invalid of [{ name: '', seites: [page()] }, { name: 'x', seites: [] }, { name: 'x', seites: Array.from({ length: 5 }, () => page()) }, { name: 'x', seites: [page('unsupported')] }]) {
-    await assert.rejects(async () => (await save(store, invalid)), { code: 'invalid' });
+  assert.ok(await save(store, { name: 'Empty', modules: [], view }));
+  assert.ok(await save(store, { name: 'Twelve', modules: instances(...Array(12).fill('selected')), view }));
+  for (const invalid of [{ name: '', modules: [], view }, { name: 'x', modules: instances(...Array(13).fill('selected')), view },
+    { name: 'x', modules: instances('unsupported'), view }, { name: 'x', modules: [{ id: 'same', type: 'selected' }, { id: 'same', type: 'selected' }], view },
+    { name: 'x', modules: [], view: { module: 'card' } }, { name: 'x', modules: [deck.modules[0]], view }]) {
+    await assert.rejects(save(store, invalid), { code: 'invalid' });
   }
 });
 
-test('append empty seites, preserve saved content on module edits, and remove a middle seite with current-content confirmation', async (t) => {
-  const store = await fixture(t), karteId = await capture(store);
-  await fill(store, karteId);
-  const deck = await store.snapshot(); deck.seites.push(page('sentence-usage'), page());
-  deck.seites[0].modules = [];
-  await save(store, deck);
-  assert.deepEqual((await store.karte(karteId)).seites.map(p => [p.text, p.status]), [['saved seite 1', 'completed'], ['saved seite 2', 'completed'], ['', null], ['', null]]);
-  await store.saveSeites('manual', { karteId, changes: [{ seiteId: deck.seites[2].id, text: 'keep the former third seite' }] });
-  const removed = structuredClone(deck); removed.seites.splice(1, 1);
-  let confirmation;
-  await assert.rejects(async () => (await save(store, removed)), error => { confirmation = error.details.confirmation; return error.code === 'content_loss'; });
-  assert.equal((await store.karte(karteId)).seites.length, 4);
-  await store.saveSeites('remote', { karteId, changes: [{ seiteId: deck.seites[1].id, text: 'remote manual edit after warning' }] });
-  await assert.rejects(async () => (await save(store, removed, { confirmation })), error => { assert.notEqual(error.details.confirmation, confirmation); confirmation = error.details.confirmation; return error.code === 'content_loss'; });
-  await save(store, removed, { confirmation });
-  assert.deepEqual((await store.karte(karteId)).seites.map(p => p.text), ['saved seite 1', 'keep the former third seite', '']);
-  assert.equal((await store.karte(karteId)).seites[1].seite_id, deck.seites[2].id);
+test('configuration edits keep existing pages and their content; removed instances stay as unconfigured components', async (t) => {
+  const store = await fixture(t), pageId = await capture(store);
+  await complete(store, await store.page(pageId), session, () => 'saved explanation');
+  const deck = await store.deck((await store.snapshot()).id);
+  const [original] = deck.modules;
+  await save(store, { ...deck, modules: instances('sentence-usage', 'selected') });
+  const page = await store.page(pageId);
+  assert.deepEqual(generated(page).map(item => [item.moduleInstanceId, item.configured, item.status, text(item)]),
+    [[original.id, false, 'completed', 'saved explanation']]);
+  await save(store, { ...deck, modules: [original] });
+  assert.equal(generated(await store.page(pageId))[0].configured, true);
 });
 
-test('front seite stays permanent, retained seites keep order, and stale layout saves cannot recreate a deleted seite', async (t) => {
-  const store = await fixture(t), original = await store.snapshot();
-  const reversed = structuredClone(original); reversed.seites.reverse();
-  await assert.rejects(async () => (await save(store, reversed)), { code: 'front_seite' });
-  const shortened = structuredClone(original); shortened.seites.pop();
-  await save(store, shortened);
-  await assert.rejects(async () => (await store.saveDeck('stale', { deck: original, baseSeiteIds: original.seites.map(p => p.id) })), { code: 'deleted' });
-  assert.equal((await store.snapshot()).seites.length, 1);
+test('configuration changes during generation keep the running instructions; results of removed instances still publish', async (t) => {
+  const store = await fixture(t), pageId = await capture(store), page = await store.page(pageId);
+  const [running] = generated(page);
+  const deck = await store.deck((await store.snapshot()).id);
+  await save(store, { ...deck, modules: instances('selected-language') });
+  assert.equal((await store.attempt(running.attemptId)).module.type, 'german-examples');
+  await store.stage(running.attemptId, { ok: true, text: 'late but owned' });
+  await store.publish('publish', { attemptId: running.attemptId, session });
+  assert.deepEqual(generated(await store.page(pageId)).map(item => [text(item), item.status, item.configured]), [['late but owned', 'completed', false]]);
 });
 
-test('configuration changes during generation preserve captured instructions and ignore removed-seite results', async (t) => {
-  const store = await fixture(t), karteId = await capture(store), karte = await store.karte(karteId);
-  const deck = await store.snapshot(), first = karte.seites[0];
-  deck.seites[0].modules = [{ id: randomUUID(), type: 'selected-language' }];
-  deck.seites.pop(); deck.seites.push(page('german-explanation'));
-  await save(store, deck);
-  assert.deepEqual((await store.attempt(first.attempt_id)).modules.map(m => m.type), ['selected']);
-  await assert.rejects(async () => (await store.stage(karte.seites[1].attempt_id, { ok: true, text: 'late' })), { code: 'deleted' });
-  await store.stage(first.attempt_id, { ok: true, text: '幸福' });
-  await store.publish('publish', { attemptId: first.attempt_id, session });
-  assert.deepEqual((await store.karte(karteId)).seites.map(p => [p.text, p.status]), [['幸福', 'completed'], ['', null]]);
-});
-
-test('deleting default requires replacement, deleting sole deck restores one empty My Deck, and stale operations fail', async (t) => {
-  const store = await fixture(t), initial = await store.snapshot(), karteId = await capture(store);
-  const otherId = (await save(store, { name: 'Other', seites: [page()] })).deckId;
-  await assert.rejects(async () => (await store.deleteDeck('missing-replacement', { deckId: initial.id })), { code: 'replacement' });
+test('deleting default requires replacement, deleting sole deck restores one My Deck, and stale operations fail', async (t) => {
+  const store = await fixture(t), initial = await store.deck((await store.snapshot()).id), pageId = await capture(store);
+  const otherId = (await save(store, { name: 'Other', modules: [], view })).deckId;
+  await assert.rejects(store.deleteDeck('missing-replacement', { deckId: initial.id }), { code: 'replacement' });
   await store.deleteDeck('delete-default', { deckId: initial.id, replacementId: otherId });
   assert.equal((await store.snapshot()).id, otherId);
-  await assert.rejects(async () => (await store.karte(karteId)), { code: 'deleted' });
-  await assert.rejects(async () => (await save(store, initial)), { code: 'deleted' });
+  await assert.rejects(store.page(pageId), { code: 'deleted' });
+  await assert.rejects(save(store, initial), { code: 'deleted' });
   await store.deleteDeck('delete-last', { deckId: otherId });
-  assert.equal((await store.account()).decks.length, 1); assert.equal((await store.snapshot()).name, 'My Deck');
-  assert.equal((await store.snapshot()).seites.length, 2); assert.equal((await store.kartes()).length, 0);
-  const defaultId = (await store.snapshot()).id;
-  await store.deleteDeck('delete-last', { deckId: otherId }); assert.equal((await store.snapshot()).id, defaultId);
+  const restored = await store.deck((await store.snapshot()).id);
+  assert.equal((await store.account()).decks.length, 1); assert.equal(restored.name, 'My Deck');
+  assert.deepEqual(restored.modules.map(module => module.type), ['german-examples']); assert.equal((await store.pages()).length, 0);
+  await store.deleteDeck('delete-last', { deckId: otherId }); assert.equal((await store.snapshot()).id, restored.id);
 });
 
-test('capture preparation resolves the shared default once and replays that configuration after later account changes', async (t) => {
+test('capture preparation resolves the shared default once; capture follows that deck’s configuration when it runs', async (t) => {
   const store = await fixture(t), original = await store.snapshot();
-  const nextId = (await save(store, { name: 'Remote default', seites: [page('selected-language')] })).deckId;
+  const nextId = (await save(store, { name: 'Remote default', modules: instances('selected-language'), view })).deckId;
   await store.setDefault('remote-default', nextId);
-  const payload = { session, selectedText: '幸福' };
+  const payload = { session, mainKey: '幸福' };
   const prepared = await store.prepareCapture('prepare', payload);
   assert.equal(prepared.snapshot.id, nextId);
   await store.setDefault('later-default', original.id);
-  const updated = await store.deck(nextId); updated.seites[0].modules = [];
-  await save(store, updated);
+  const updated = await store.deck(nextId);
+  const current = instances('selected');
+  await save(store, { ...updated, modules: current });
   const replay = await store.prepareCapture('prepare', payload);
   assert.deepEqual(replay.snapshot, prepared.snapshot);
   const captured = await store.capture('capture-prepared', { ...payload, snapshot: replay.snapshot });
-  assert.equal((await store.karte(captured.karteId)).deck_id, nextId);
-  assert.equal((await store.attempt((await store.karte(captured.karteId)).seites[0].attempt_id)).modules[0].type, 'selected-language');
+  const page = await store.page(captured.pageId);
+  assert.equal(page.deckId, nextId);
+  assert.deepEqual(generated(page).map(item => item.moduleInstanceId), current.map(module => module.id));
 });

@@ -2,8 +2,7 @@ import Type from 'typebox';
 import { BrowserSessionSchema, OperationIdSchema } from './base.js';
 
 // Deck → page → component dialect (Q72). It replaces the card/page and
-// karte/seite dialects when the backend and extension switch over; until then
-// nothing routes through these schemas.
+// karte/seite dialects (D1).
 
 export const MAX_CONTENT_MODULES = 12;
 
@@ -56,7 +55,9 @@ export const ComponentSchema = Type.Object({
 export const PageSchema = Type.Object({
   id: Type.String({ minLength: 1 }),
   deckId: Type.String({ minLength: 1 }),
-  createdAt: Type.Integer(),
+  // Capture origin; null for manually created pages.
+  selectedText: Type.Union([Type.String(), Type.Null()]),
+  createdAt: Type.String({ minLength: 1 }),
   components: Type.Array(ComponentSchema),
   status: Type.Union([ComponentStatusSchema, Type.Null()])
 }, { additionalProperties: false });
@@ -94,7 +95,9 @@ export const ComponentChangeSchema = Type.Object({
 export const PageSavePayloadSchema = Type.Object({
   pageId: Type.String({ minLength: 1 }),
   changes: Type.Array(ComponentChangeSchema),
-  added: Type.Optional(Type.Array(BlockDocumentSchema))
+  added: Type.Optional(Type.Array(BlockDocumentSchema)),
+  // Sets the Context on a page that has none; an empty change clears it.
+  context: Type.Optional(BlockDocumentSchema)
 }, OpenRequest);
 export const PageSaveRequestSchema = Type.Object({
   operationId: OperationIdSchema,

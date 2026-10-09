@@ -1,30 +1,33 @@
-export type DeckRow = Readonly<{ id: string; name: string }>;
-export type LayoutSeiteRow = Readonly<{ id: string; deck_id: string; position: number; modules: string }>;
+export type DeckRow = Readonly<{ id: string; name: string; view: 'default' }>;
+export type DeckModuleRow = Readonly<{ id: string; deck_id: string; position: number; type: string }>;
 export type AccountRow = Readonly<{ id: 1; default_deck_id: string }>;
 export type InstallationRow = Readonly<{ id: string; epoch: number; session_id: string }>;
-export type KarteRow = Readonly<{
+export type PageRow = Readonly<{
   id: string;
   deck_id: string;
   selected_text: string | null;
   created_at: string;
-  interpretation: string | null;
 }>;
-export type SeiteStatus = 'loading' | 'completed' | 'failed' | null;
-export type SeiteRow = Readonly<{
-  karte_id: string;
-  seite_id: string;
-  text: string;
-  status: SeiteStatus;
+export type ComponentStatus = 'loading' | 'completed' | 'failed' | null;
+export type ComponentRow = Readonly<{
+  page_id: string;
+  id: string;
+  kind: 'main_key' | 'context' | 'module' | 'manual';
+  module_instance_id: string | null;
+  position: number;
+  content: string;
+  status: ComponentStatus;
   attempt_id: string | null;
 }>;
 export type AttemptRow = Readonly<{
   id: string;
-  karte_id: string;
-  seite_id: string;
+  page_id: string;
+  component_id: string;
+  run_id: string;
   installation_id: string;
   session_id: string;
   epoch: number;
-  modules: string;
+  module: string;
   state: 'loading' | 'completed' | 'failed';
   result: string | null;
 }>;

@@ -12,39 +12,9 @@ export const decks = pgTable('decks', {
 export const account = pgTable('account', {
   id: integer().primaryKey(), default_deck_id: text().notNull().references(() => decks.id)
 }, table => [check('singleton_account', sql`${table.id} = 1`)]);
-export const layoutSeites = pgTable('layout_seites', {
-  id: text().primaryKey(), deck_id: text().notNull().references(() => decks.id, { onDelete: 'cascade' }),
-  position: integer().notNull(), modules: text().notNull()
-}, table => [index('layout_deck_position').on(table.deck_id, table.position), check('seite_position', sql`${table.position} between 0 and 3`)]);
 export const installations = pgTable('installations', {
   id: text().primaryKey(), epoch: bigint({ mode: 'number' }).notNull(), session_id: text().notNull()
 }, table => [check('session_epoch', sql`${table.epoch} > 0`)]);
-export const kartes = pgTable('kartes', {
-  id: text().primaryKey(), deck_id: text().notNull().references(() => decks.id, { onDelete: 'cascade' }),
-  selected_text: text(), created_at: text().notNull(), interpretation: text(),
-  front_sort_key: bytea().notNull().default(sql`'\\x'::bytea`)
-}, table => [
-  index('kartes_deck_created').on(table.deck_id, table.created_at, table.id),
-  index('kartes_deck_created_desc_id').on(table.deck_id, sql`${table.created_at} COLLATE "C" DESC`, sql`${table.id} COLLATE "C" ASC`),
-  index('kartes_deck_created_asc_id').on(table.deck_id, sql`${table.created_at} COLLATE "C" ASC`, sql`${table.id} COLLATE "C" ASC`),
-  index('kartes_deck_front_asc_id').on(table.deck_id, table.front_sort_key, sql`${table.id} COLLATE "C" ASC`),
-  index('kartes_deck_front_desc_id').on(table.deck_id, sql`${table.front_sort_key} DESC`, sql`${table.id} COLLATE "C" ASC`),
-  index('kartes_recent_captures').on(sql`${table.created_at} COLLATE "C" DESC`, sql`${table.id} COLLATE "C" ASC`).where(sql`${table.selected_text} IS NOT NULL`)
-]);
-export const seites = pgTable('seites', {
-  karte_id: text().notNull().references(() => kartes.id, { onDelete: 'cascade' }),
-  seite_id: text().notNull().references(() => layoutSeites.id, { onDelete: 'cascade' }),
-  text: text().notNull().default(''), status: text(), attempt_id: text()
-}, table => [primaryKey({ columns: [table.karte_id, table.seite_id] }), index('seites_layout').on(table.seite_id),
-  index('seites_attempt').on(table.attempt_id), check('seite_status', sql`${table.status} in ('loading', 'completed', 'failed')`)]);
-export const attempts = pgTable('attempts', {
-  id: text().primaryKey(), karte_id: text().notNull().references(() => kartes.id, { onDelete: 'cascade' }),
-  seite_id: text().notNull().references(() => layoutSeites.id, { onDelete: 'cascade' }),
-  installation_id: text().notNull().references(() => installations.id), session_id: text().notNull(),
-  epoch: bigint({ mode: 'number' }).notNull(), modules: text().notNull(), state: text().notNull().default('loading'), result: text()
-}, table => [index('attempts_session_state').on(table.installation_id, table.session_id, table.state),
-  index('attempts_karte_state').on(table.karte_id, table.state), index('attempts_seite').on(table.seite_id),
-  check('attempt_state', sql`${table.state} in ('loading', 'completed', 'failed')`)]);
 export const receipts = pgTable('receipts', {
   sequence: bigserial({ mode: 'number' }).primaryKey(), operation_id: text().notNull(),
   fingerprint: text().notNull(), result: text().notNull()
@@ -58,9 +28,7 @@ export const loginTokens = pgTable('login_tokens', {
   account_id: integer().notNull().references(() => account.id)
 }, table => [index('tokens_expiry').on(table.expires_at)]);
 
-// Deck → page → component (Q72). Added beside the karte/seite tables so the
-// running backend keeps working; the backend switches over and the old content
-// tables are dropped in a later migration.
+// Deck → page → component (Q72).
 export const deckModules = pgTable('deck_modules', {
   id: text().primaryKey(), deck_id: text().notNull().references(() => decks.id, { onDelete: 'cascade' }),
   position: integer().notNull(), type: text().notNull()

@@ -1,11 +1,8 @@
-import { legacyDatabase } from './helpers/legacy-database.mjs';
+import { legacyDatabase, migrateTo, populateKarteSchema } from './helpers/legacy-database.mjs';
 import assert from 'node:assert/strict';
 import pg from 'pg';
 import test, { createTestDatabase } from './helpers/database.mjs';
-import { AccountStore } from '../src/core/store.mjs';
-import { migrateDatabase } from '../scripts/migrate.mjs';
 
-const session = { installationId: 'schema', sessionId: 'first', epoch: 1 };
 const oldTables = ['account', 'decks', 'layout_seites', 'kartes', 'seites', 'attempts', 'receipts', 'installations', 'credentials', 'login_tokens'];
 const newTables = ['deck_modules', 'pages', 'components', 'generation_runs', 'component_attempts'];
 
@@ -27,26 +24,14 @@ async function digest(client) {
 
 test('0003 adds the page/component tables without touching populated 0.3.0+ data', async t => {
   const database = await legacyDatabase(t, 'pages-upgrade', 2);
-  let store = await AccountStore.open(database);
-  await store.openSession('open', session);
-  const snapshot = await store.snapshot();
-  await store.capture('capture', { session, selectedText: '幸福', snapshot });
-  await store.createManual('manual', { deckId: snapshot.id, seites: [{ seiteId: snapshot.seites[0].id, text: 'manual text' }] });
-  const kartes = await store.kartes();
-  await store.close();
-
   const client = await connect(t, database);
+  await populateKarteSchema(client);
+  await client.query("INSERT INTO credentials VALUES ('admin', 'salt', 'hash', 1); INSERT INTO login_tokens VALUES ('token', 1, 1)");
   const before = await digest(client);
-  assert.ok(before.kartes.length === 2 && before.receipts.length > 0);
-  await migrateDatabase(database.databaseUrl);
+  await migrateTo(t, database, 3);
   assert.deepEqual(await digest(client), before);
   for (const table of newTables) assert.equal((await client.query(`SELECT count(*)::int AS n FROM "${table}"`)).rows[0].n, 0, table);
   assert.deepEqual((await client.query('SELECT DISTINCT view FROM decks')).rows, [{ view: 'default' }]);
-
-  // The running karte/seite store keeps working on the upgraded schema.
-  store = await AccountStore.open(database); database.resources.push(store);
-  assert.deepEqual(await store.snapshot(), snapshot);
-  assert.deepEqual(await store.kartes(), kartes);
 });
 
 test('page/component tables enforce ownership, uniqueness, limits and cascades', async t => {

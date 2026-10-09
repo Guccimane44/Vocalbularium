@@ -15,7 +15,7 @@ async function fixture(t, options) {
 async function call(url, path, body, token, headers = {}) {
   const response = await fetch(url + path, {
     method: body === undefined ? 'GET' : 'POST',
-    headers: { 'X-Vocabularium-Terminology': 'karte-seite', ...(body === undefined ? {} : { 'Content-Type': 'application/json' }), ...(token ? { Authorization: `Bearer ${token}` } : {}), ...headers },
+    headers: { ...(body === undefined ? {} : { 'Content-Type': 'application/json' }), ...(token ? { Authorization: `Bearer ${token}` } : {}), ...headers },
     body: body === undefined ? undefined : JSON.stringify(body)
   });
   return { status: response.status, data: await response.json() };
@@ -96,14 +96,21 @@ test('nested malformed commands return validation errors without a partial write
   const token = await login(url);
   const before = await application.store.account();
   const deckId = before.defaultDeckId;
-  const karteId = (await application.store.createManual('malformed-fixture-karte', { deckId, seites: [] })).karteId;
+  const pageId = (await application.store.createPage('malformed-fixture-page', { deckId, mainKey: 'fixture' })).pageId;
   const baseline = await application.store.account();
+  const session = { installationId: 'x', sessionId: 'y', epoch: 1 };
+  const view = { module: 'default' };
   for (const [path, payload] of [
-    ['/api/deck/save', { deck: { id: deckId, name: 'Changed', seites: [null] } }],
-    ['/api/karte/create', { deckId, seites: [null] }],
-    ['/api/karte/create', { deckId, seites: [false] }],
-    ['/api/karte/save', { karteId, changes: [null] }],
-    ['/api/capture', { session: { installationId: 'x', sessionId: 'y', epoch: 1 }, selectedText: 'text', snapshot: { id: deckId, seites: [null] } }]
+    ['/api/deck/save', { deck: { id: deckId, name: 'Changed', modules: [null], view } }],
+    ['/api/deck/save', { deck: { id: deckId, name: 'Changed', modules: Array.from({ length: 13 }, (_, index) => ({ id: `m${index}`, type: 'selected' })), view } }],
+    ['/api/deck/save', { deck: { id: deckId, name: 'Changed', modules: [], view: { module: 'card' } } }],
+    ['/api/page/create', { deckId, mainKey: '' }],
+    ['/api/page/create', { deckId, mainKey: 'key', manual: [null] }],
+    ['/api/page/save', { pageId, changes: [null] }],
+    ['/api/page/save', { pageId, changes: [{ componentId: 'x', content: { version: 2, blocks: [] } }] }],
+    ['/api/page/generate', { pageId, target: { scope: 'everything' }, session }],
+    ['/api/capture', { session, mainKey: 'text', snapshot: { id: deckId, modules: [null] } }],
+    ['/api/capture', { session, selectedText: 'text', snapshot: { id: deckId, modules: [] } }]
   ]) {
     const result = await call(url, path, { operationId: crypto.randomUUID(), payload }, token);
     assert.equal(result.status, 400, `${path}: ${JSON.stringify(result.data)}`);
