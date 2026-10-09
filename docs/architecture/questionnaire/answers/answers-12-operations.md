@@ -10,9 +10,9 @@
 ### 64
 
 Q64. How is the extension distributed and updated?
-Decision: Chrome Web Store distribution with automatic updates, backed by an explicit backend compatibility window. Manual unpacked installation remains a development/debugging path only. Backend changes are deployed before the extension version that depends on them; database migrations follow expand–migrate–contract. Generation jobs are server-owned and continue independently of the extension lifecycle.
+Decision: Browser-store distribution (Chrome Web Store and Firefox Add-ons) with automatic updates, backed by an explicit backend compatibility window. Manual unpacked installation remains a development/debugging path only. Backend changes are deployed before the extension version that depends on them; database migrations follow expand–migrate–contract. Generation jobs are server-owned and continue independently of the extension lifecycle.
 5-step user update procedure:
-1. Chrome automatically downloads the new extension version from the Chrome Web Store.
+1. The browser automatically downloads the new extension version from its store (Chrome Web Store or Firefox Add-ons; rollout timing differs per store).
 2. The extension reloads/restarts when Chrome activates the new version; the user may briefly lose the extension UI.
 3. Any in-flight generation continues on the backend because jobs are not owned by the extension.
 4. After the extension reconnects, it fetches the current generation state and displays the result or failure.
@@ -27,7 +27,7 @@ Compatibility rule: A new backend must support the previous extension version fo
 
 ### 65
 
-2. Option B — Quota included in the product
+2. Option B — Quota included in the product. A monthly per-account allowance of generated seites; unit, counting rules, and rollout are in Q48 (resolves C9). The amount is open (K8).
 
 ### 66
 

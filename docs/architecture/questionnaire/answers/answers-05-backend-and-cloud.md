@@ -16,7 +16,7 @@ option 1, with option 2's idempotency key added when the provider call costs mon
 Topology: PG-backed queue + Vercel background workers. No new stateful service.
 Why: per-process GENERATION_MAX_ACTIVE=4 / MAX_QUEUED=16 (config.mjs:39-40, generation.mjs:89-98) is meaningless across many Vercel copies. Replace with one shared PG queue. External queue (Redis/SQS/Temporal) deferred — no throughput/scheduling need at ~500 users to justify the ops cost.
 Enforcement point — all at dequeue/worker (src/server/worker.mjs, new), not in request memory:
-- Retry: max 3, backoff+jitter on transient (provider_transport/timeout), then poison/failed. No infinite loop.
+- Retry: max 3, backoff+jitter on transient (provider_transport/timeout), then poison/failed. No infinite loop. Transport/timeout only; content-level failures are never auto-retried (Q50, resolves C6).
 - 60s timeout: opencode.mjs:structured() AbortSignal.timeout(60000) in worker.
 - Token budget: max_tokens 4096 per seite in worker.
 - Per-user rate limit: 1 active + 5 queued per account, checked on enqueue via PG count + on claim via SKIP LOCKED + lease (lease_expires_at, visibility timeout). Users never block each other.
@@ -28,7 +28,7 @@ Research to record: saturate with slow provider stub → confirm position/ETA/ca
 Per-account PG serialization (baseline)
 
 ### Q27
-Versioned /v1/ + N−1 client window via minCompatibleExtension (baseline) — OpenAPI generated per release, gate message tells the user to update backend first, then reload the extension.
+Versioned /v1/ + N−1 client window via minCompatibleExtension (baseline) — OpenAPI generated per release, extensions below minCompatibleExtension are told to update from their browser store. The hosted backend always deploys before the extension that depends on it.
 
 ### Q28
 Vercel-managed TLS + small per-function pool against the pooled PG endpoint (baseline) — e.g. max 1–2 connections per function, statement-level pooling, request timeout below the plan's function limit, provider timeout 60s enforced in the worker, /health/live + /health/ready retained for the worker/deploy checks.

@@ -12,8 +12,8 @@
 
 ### 55
 
-- Single-owner scale (low thousands) — current pagination suffices; budgets stay tight and cheap to meet.
+- Single-owner scale (low thousands) — current pagination suffices; budgets stay tight and cheap to meet. Latency targets are in Q16 (resolves C7).
 
 ### 56
 
-- Visible queue (position, ETA, cancel) — transparent; needs attempt state broadcasting and cancellation semantics (Cancel will not refund quota).
+- Visible queue (position, ETA, cancel) — transparent; needs attempt state broadcasting and cancellation semantics (Cancel will not refund quota once the provider call has started; cancelling a still-queued attempt costs nothing — narrowed by C9, see Q48).

@@ -1,12 +1,18 @@
 ### Q06
-must have clients:
+must have clients (1.0):
 * chrome extension
+* firefox extension
 * hosted web app
-* firefox/safari
+
+post-1.0:
+* safari extension (macOS)
+* iOS (share sheet or Safari extension)
 * desktop hotkey
 
 out:
 * audio/youtube capture
+
+Revised to resolve C3: the 1.0 list matches Q01 and Q11 (extension shell + web shell), and Q10 keeps capture tokens deferred until a post-1.0 surface is promoted.
 
 ### Q07
 Standard: payload is selected text + Context (the surrounding block, capped at around 500 characters) + URL/title + timestamp. Capture with Context can be turned on or off (default on); when off, only text + timestamp travel. Stored per karte alongside the main key and editable next to it (including per-karte deletion); sent to the LLM only when present; nothing else retained. User intent stays out of 1.0.0 scope. Spec: [kartes-and-editing](../../../specs/kartes-and-editing.md#context), [Select and Add](../../../MVP-Product-spec-select-and-add.md#capture-scenario). Needs a retention/redaction rule per Q11/Q33.

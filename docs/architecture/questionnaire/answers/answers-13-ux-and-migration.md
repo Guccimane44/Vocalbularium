@@ -21,7 +21,7 @@
 **Build order:**
 
 1. **Foundation: hosting + tenancy** — Must come first because all persistent objects, APIs, jobs, and authorization depend on stable account boundaries.
-2. **Main-key + semantic referent** — Define Karte identity and referent semantics before building substantial modules, because generated content and later review state depend on stable Karte identity.
+2. **Main-key + Context (+ opt-in interpretation)** — Define Karte identity and its generation input (main key, Context, and the optional interpretation line from Q30; no referent, resolves C5) before building substantial modules, because generated content and later review state depend on stable Karte identity.
 3. **First module + evaluation** — Build one complete generation path end-to-end and validate its quality before expanding the module catalog.
 4. **Module expansion + evaluation** — Add further modules once the module contract and evaluation process are proven, avoiding repeated changes to the generation architecture.
 5. **Rendering/editor** — Refine richer rendering after the content and module contracts are stable, so presentation changes do not force data-model migrations.
