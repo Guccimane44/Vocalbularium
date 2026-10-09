@@ -14,19 +14,50 @@ This map tracks how each answer (Q01–Q71) changes the specifications. Use it t
 
 ---
 
+## Notion context
+
+Checked 9 October 2026 against the [Vocabularium Notion hub](https://app.notion.com/p/3e3bb1350208800f9b5ad907c80156d2). Notion holds decision status and approval history; this map and the specs hold the content.
+
+**Decision records for the answers.** Each answer file has one record in [Decision logs](https://app.notion.com/p/3eabb13502088075bd17d8278a9346a7), created 9 October 2026 as `Proposed` (modules as `Deferred`). Moving a record to `Accepted` with a decision date is what lets its answers enter the specs as accepted behavior (see R1).
+
+| Answers | Decision record |
+| --- | --- |
+| 01 (Q01–Q05) | [1.0 maturity gate and scope](https://app.notion.com/p/3f4bb1350208815fafb8f856f1a185d1) |
+| 02 (Q06–Q10) | [Clients and capture contract at 1.0](https://app.notion.com/p/3f4bb13502088120a994cb6ab8fe6d5c) |
+| 03 (Q11–Q16) | [Frontend architecture, block rendering and compatibility](https://app.notion.com/p/3f4bb13502088117b4cbf12e01f915ff) |
+| 04 (Q17–Q21) | [Accounts on a hosted hub with OAuth and passkeys](https://app.notion.com/p/3f4bb135020881ec85beca3cd7941578) |
+| 05 (Q22–Q28) | [Serverless backend on Vercel and Neon](https://app.notion.com/p/3f4bb135020881229bcedba0bd6dce7c) |
+| 06 (Q29–Q34) | [Karte data model](https://app.notion.com/p/3f4bb13502088159bf3fef8135989e73) |
+| 07 (Q35–Q39) | [Database tenancy, migrations, search, portability and retention](https://app.notion.com/p/3f4bb1350208815ca1bbef7c49b681fe) |
+| 08 (Q40–Q45) | [Module catalog and customization](https://app.notion.com/p/3f4bb1350208813ab814f53fd24d5021) (Deferred) |
+| 09 (Q46–Q51) | [Generation](https://app.notion.com/p/3f4bb135020881acb220c5a11218f727) |
+| 10 (Q52–Q56) | [Leitner review, tags, scale targets and visible queue](https://app.notion.com/p/3f4bb1350208815d9354dc184a658a37) |
+| 11 (Q57–Q61) | [Security and privacy baseline](https://app.notion.com/p/3f4bb13502088130b5d8d4e1f1c40cc3) |
+| 12 (Q62–Q66) | [Operations](https://app.notion.com/p/3f4bb13502088125bf60fffb37849daa) |
+| 13 (Q67–Q71) | [UX direction, accessibility, UI language, legacy retirement and build order](https://app.notion.com/p/3f4bb135020881de8fe7ceab72600210) |
+
+**Existing records that affect this map**
+
+- [Organize specifications by stable capabilities and document authority](https://app.notion.com/p/3eabb1350208813d8d43de81415c5ab0) (In Review). It defines the target taxonomy (the empty placeholder files come from it) and its authority rules. R1–R3 below amend this record rather than start fresh.
+- [Retain correlated local diagnostics until explicit cleanup](https://app.notion.com/p/3ecbb1350208818b8156f754e52d4e4a) (Implemented, 2 October 2026). It conflicted with Q39/Q63; C13 narrows it to development diagnostics. Its spec and code from `codex/logging-system` are merged into this branch.
+- [Adopt deck → karte → seite](https://app.notion.com/p/3eabb1350208813da027f7ea00548851) (Implemented) and the 0.3.0+ milestone promise replay and recovery compatibility. Q70 retires that promise.
+- System Q&A [hash vs path routing](https://app.notion.com/p/3eabb1350208818fa8f2f53955da5d71) applies to the Q11 web shell; its note on preserving old links becomes stale under Q70.
+- Milestone [System design questionnaire](https://app.notion.com/p/3efbb135020881e7a6e7d72f4199ab64) tracks this work.
+
+---
+
 ## Refactor decisions
 
-These decisions concern the structure of the docs, not the product. Settle them before editing specs.
+These decisions concern the structure of the docs, not the product. They amend the [taxonomy record](https://app.notion.com/p/3eabb1350208813d8d43de81415c5ab0); settle them, then move that record out of In Review before editing specs.
 
 **R1. How do specs describe the 1.0 target and the current implementation?**
-Today, [scope](../../product/scope.md) separates "supported now", "accepted change pending implementation", and "explicit deferrals". The answers reverse almost every item in *Explicit deferrals* (multi-user accounts, web/Firefox/hotkey clients, deck moves, review, Web Store distribution, public hosting, quality evaluation, usage limits). As a result, the pending list would grow to cover most of the product.
-*Proposal:* specs under `docs/specs/` and `docs/architecture/` describe **1.0 target behavior**. [scope](../../product/scope.md) becomes a status ledger: each capability is marked `implemented`, `accepted for 1.0`, `post-1.0`, or `out at maturity` (Q04).
+The taxonomy record says current specs describe *accepted* behavior, [scope](../../product/scope.md) lists supported and deferred capabilities, and proposals stay in plans or issues. The answers reverse almost every item in scope's *Explicit deferrals* (multi-user accounts, web/Firefox clients, deck moves, review, store distribution, public hosting, quality evaluation, usage limits).
+*Proposal:* once a decision record above is `Accepted`, its answers count as accepted behavior and enter the specs, even before implementation. [scope](../../product/scope.md) becomes a status ledger: each capability is marked `implemented`, `accepted for 1.0`, `post-1.0`, or `out at maturity` (Q04). Records still `Proposed` stay out of the specs.
 
-**R2. What happens to [Select and Add](../../MVP-Product-spec-select-and-add.md)?**
-The empty [capture-and-generation](../../specs/capture-and-generation.md) looks like its intended successor.
-*Proposal:* move its content into `specs/capture-and-generation.md`, rewrite it against Q08/Q09/Q24/Q25/Q46–Q51/Q56, and leave a redirect stub (or move the old file to `docs/history/`).
+**R2. What happens to [Select and Add](../../MVP-Product-spec-select-and-add.md)?** *Settled by the taxonomy record.*
+Move it into [capture-and-generation](../../specs/capture-and-generation.md), keeping its authority over generation, failure, interruption and retry rules; other specs link to those rules instead of repeating them. Then rewrite it against Q08/Q09/Q24/Q25/Q46–Q51/Q56. Remaining choice: leave a redirect stub or move the old file to `docs/history/`.
 
-**R3. Which new docs are needed?** Some answers have no home among the existing or placeholder docs:
+**R3. Which new docs are needed?** The taxonomy record allows a new document only when it has real content. These answers have no home in it:
 
 - `specs/review.md`: Q52, Q53.
 - `architecture/security-and-privacy.md`: Q57–Q61.
@@ -39,7 +70,10 @@ The empty [capture-and-generation](../../specs/capture-and-generation.md) looks 
 
 ## Conflicts
 
-All twelve conflicts are resolved. Each entry records the original contradiction and the decision; the affected answers were updated to match.
+All thirteen conflicts are resolved. Each entry records the original contradiction and the decision; the affected answers were updated to match.
+
+**C13. Diagnostic content retention — RESOLVED (full content is development-only).** Originally, the [local diagnostics decision](https://app.notion.com/p/3ecbb1350208818b8156f754e52d4e4a) (Implemented, 2 October 2026) kept selected text, prompts and model outputs by default with no automatic expiry, while Q63 required redacted-by-default logs with per-karte consent and expiry, Q39 time-limited logs, and C12 committed to GDPR deletion.
+*Resolution:* full-content diagnostics remain a development-only mode (local backend, the owner's own data). The hosted product follows Q63 and Q39: redacted by default, user text only with per-karte consent and expiry, time-limited retention. The local diagnostics decision is narrowed to development diagnostics. `codex/logging-system`, including the approved `observability.md` spec, is merged into this branch, so the refactor starts from that spec.
 
 **C1. Rich rendering — RESOLVED (option B: blocks at 1.0).** Originally, Q13 chose *Block JSON*, while Q59 chose *text-only rendering* and Q29 stored *no per-module blocks*.
 *Resolution:* Q13 stands. Q29 now stores seite content as a versioned block document. Q59 now uses per-module render contracts: allowlisted block types, with all text escaped. Existing plain-text seites migrate to a single paragraph block. Q71 step 5 ("rendering/editor") now means refining the block editor, not introducing blocks.
@@ -130,7 +164,7 @@ Link paths are relative to this file. *S&A* is [Select and Add](../../MVP-Produc
 
 | Q | Answer (short) | Target docs | Change | Status |
 | --- | --- | --- | --- | --- |
-| Q11 | Shared packages + two shells; inline module descriptions | overview, shared-ui, modules | Package/shell boundary; module description surface | ready |
+| Q11 | Shared packages + two shells; inline module descriptions | overview, shared-ui, modules | Package/shell boundary; module description surface; web-shell routing (see the Notion routing Q&A) | ready |
 | Q12 | Explicit Save/Cancel | kartes-and-editing | Confirms current behavior | no change |
 | Q13 | Block JSON at 1.0 | shared-ui, kartes-and-editing, modules, model §Seite | Seite becomes a versioned block document; block editor; modules emit typed blocks; plain-text migration | ready |
 | Q14 | N−1 compatibility window, online-required, retire legacy terms, `incarnationId`, UX messages | [terminology-compatibility](../terminology-compatibility.md), shared-ui, overview | Compatibility rule, legacy retirement, reset detection, error messages | ready |
@@ -178,7 +212,7 @@ Link paths are relative to this file. *S&A* is [Select and Add](../../MVP-Produc
 | Q36 | Expand–migrate–contract | persistence-and-recovery, delivery | Replaces stop-the-world migrations | ready |
 | Q37 | `pg_trgm` fuzzy search | home per R3 | New capability | ready |
 | Q38 | Per-account JSON export + CSV/Anki import | accounts-and-sync or persistence-and-recovery | Interchange schema; on import, carry outcomes or start fresh attempts | ready |
-| Q39 | Tiered retention | persistence-and-recovery, security-and-privacy (R3) | — | ready (K7) |
+| Q39 | Tiered retention | persistence-and-recovery, security-and-privacy (R3) | Hosted log retention per C13; development diagnostics keep manual cleanup | ready (K7) |
 
 ### 08 Modules
 
@@ -221,8 +255,8 @@ Link paths are relative to this file. *S&A* is [Select and Add](../../MVP-Produc
 
 | Q | Answer (short) | Target docs | Change | Status |
 | --- | --- | --- | --- | --- |
-| Q62 | Logs + metrics | [observability](../observability.md) | — | ready (K5) |
-| Q63 | Redacted by default; text only with per-karte consent + expiry | observability, shared-ui | Consent flow | ready |
+| Q62 | Logs + metrics | [observability](../observability.md) | Add metrics to the approved diagnostics spec | ready (K5) |
+| Q63 | Redacted by default; text only with per-karte consent + expiry | observability, shared-ui | Consent flow; hosted rules alongside the development-only full-content mode (C13) | ready |
 | Q64 | Browser-store auto-update (Chrome + Firefox), compatibility window, update and rollback procedures | delivery | Store release and rollback procedures | ready |
 | Q65 | Monthly per-account allowance of generated seites | capture-and-generation or cost doc (R3) | Quota rules (from Q48) | ready (K8) |
 | Q66 | Documented RPO/RTO with tested restores | persistence-and-recovery | — | ready (K9) |
@@ -234,7 +268,7 @@ Link paths are relative to this file. *S&A* is [Select and Add](../../MVP-Produc
 | Q67 | Visual direction decided after the editor/state model locks | shared-ui, vision §UI/UX direction | — | ready |
 | Q68 | WCAG 2.2 AA + keyboard parity, audited per release | shared-ui, verification | Audit step per release | ready |
 | Q69 | English-only UI | shared-ui | — | ready (K10) |
-| Q70 | Retire v0.3.0 compatibility immediately | terminology-compatibility, [AGENTS.md](../../../AGENTS.md) | Remove the "preserve recovery compatibility" instruction | ready |
+| Q70 | Retire v0.3.0 compatibility immediately | terminology-compatibility, [AGENTS.md](../../../AGENTS.md) | Remove the "preserve recovery compatibility" instruction; note the narrowed promise on the Notion terminology decision and routing Q&A | ready |
 | Q71 | Vertical slices on a contract-first foundation; 7-step order | [v0.4.0 plan](../../plans/v0.4.0.md) | Roadmap | ready |
 
 ---
@@ -258,7 +292,7 @@ Use this view to refactor one document at a time.
 | [MVP Select and Add](../../MVP-Product-spec-select-and-add.md) | Q07, Q08, Q24, Q25, Q31, Q50 | Move or retire (R2) |
 | [architecture/overview](../overview.md) *(empty)* | Q06, Q10, Q11, Q14, Q18, Q22, Q23, Q25, Q28, Q35, Q46, Q55 | |
 | [architecture/persistence-and-recovery](../persistence-and-recovery.md) *(empty)* | Q09, Q19, Q22–Q24, Q26, Q32, Q33, Q35, Q36, Q38, Q39, Q66 | |
-| [architecture/observability](../observability.md) *(empty)* | Q62, Q63 | |
+| [architecture/observability](../observability.md) | Q39, Q62, Q63 | Approved local diagnostics spec; split into development mode and hosted rules (C13) |
 | `architecture/security-and-privacy` *(new, R3)* | Q39, Q51, Q57–Q61 | |
 | [architecture/terminology-compatibility](../terminology-compatibility.md) | Q14, Q27, Q70 | Becomes API versioning and compatibility |
 | [architecture/local-postgresql](../local-postgresql.md) | Q18, Q22 | Development-only |
