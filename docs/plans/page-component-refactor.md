@@ -103,20 +103,21 @@ Each increment is runnable and reviewable on its own and follows the [Change](..
 - New contract dialect for routes and messages, added beside the karte/seite dialect (D1 retires both old dialects in increments 4–5). OpenAPI is regenerated when the routes switch in increment 4.
 - Unit tests: generation per instance, applicability skips, distinct-example retry (`claimOutput`) per component.
 
-### 3. Persistence: fresh content schema (`migrations/0003_*`, `src/persistence`)
-`0003` drops the old content tables (`decks`, `kartes`, `seites`, `layout_seites`, `attempts`, `receipts`) and creates the new ones empty. Account tables (`account`, `credentials`, `installations`, `login_tokens`) keep their rows. `account.default_deck_id` references `decks`, so `0003` creates one fresh default deck for the existing account, the same deck a new account gets today, and points the account at it. Don't edit applied migrations 0000–0002.
+### 3. Persistence: page/component schema (`migrations/0003_*`, `src/persistence`)
+`0003` only adds the new schema, beside the karte/seite tables, so the running backend keeps working until increment 4 switches over. Don't edit applied migrations 0000–0002.
 
-New schema (names indicative):
-- `decks` (recreated)
-- `pages` (`selected_text` kept as capture origin; `created_at`, sort keys)
-- `components` (`page_id`, `id`, `kind`, `module_instance_id` nullable, `position`, `content` block JSON, `status`, `attempt_id`)
-- `deck_modules` (ordered content module instances per deck) and the deck's view (default view)
-- `attempts` keyed by `(page_id, component_id)`
-- `receipts` for capture idempotency, in the new shape only
+- `deck_modules`: ordered content module instances per deck, at most 12 (positions 0–11).
+- `decks.view`: the deck's view; only `default` is allowed.
+- `pages`: `selected_text` as capture origin (null for manual pages), `created_at`, and a main-key sort key with the list indexes.
+- `components`: keyed by `(page_id, id)`; `kind`, `module_instance_id` (set exactly for module components, no foreign key so components outlive removed instances, one component per instance per page), `position`, `content` block JSON, `status`, `attempt_id`. At most one main key and one Context per page.
+- `generation_runs`: one per run, holding its shared interpretation.
+- `component_attempts`: keyed to `(page_id, component_id)` and their run.
+- Receipts keep their existing generic table.
 
-Tests: a populated 0.3.0+ database → 0003 → the only content is the fresh default deck, which the account points to; account rows and sign-in are otherwise unchanged (extend `tests/postgres.test.mjs`). Remove the legacy-dialect and receipt-replay fixtures that only covered old content.
+Tests (`tests/pages-schema.test.mjs`): a populated 0.3.0+ database upgrades through 0003 with every old table unchanged and the running store still working; the new tables enforce ownership, uniqueness, limits and cascades.
 
 ### 4. Backend (`src/core`, `src/server`)
+- Migration `0004` discards the old content: it drops `kartes`, `seites`, `layout_seites` and `attempts`, empties `receipts`, deletes every deck, and creates one fresh default deck (one `<German explanation + examples>` instance, default view) that the account points to. Account tables (`account`, `credentials`, `installations`, `login_tokens`) keep their rows. Test: a populated 0.3.0+ database → 0004 → only the fresh default deck remains and sign-in is unchanged. Remove the legacy-dialect and receipt-replay fixtures that only covered old content.
 - Executor: one attempt per component, still ordered and guarded by the advisory lock. Page retry enqueues every content component. "Generate missing" enqueues only components without content.
 - Routes: page create/save/delete/move/copy, `generate` (page or component target), `retry` (page or component target, with content-loss confirmation digest per component). Compatibility per D1.
 - Capture: create the page, then generate all content components (same receipt / outbox recovery guarantees as today, in the new shape).
