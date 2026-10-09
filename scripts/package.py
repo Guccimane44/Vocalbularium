@@ -30,7 +30,7 @@ with zipfile.ZipFile(archive, 'w', compression=zipfile.ZIP_DEFLATED) as output:
             if path.suffix not in ('.js', '.json', '.html', '.css'):
                 raise SystemExit(f'Unexpected extension file: {path.name}')
             output.write(path, Path('extension') / path.relative_to(extension))
-    output.write(root / 'docs' / 'Windows-Install.md', 'INSTALL-WINDOWS.md')
+    output.write(root / 'docs' / 'guides' / 'windows-install.md', 'INSTALL-WINDOWS.md')
     output.writestr('package-info.json', json.dumps(metadata, indent=2) + '\n')
 with zipfile.ZipFile(archive) as package:
     if package.testzip() is not None:

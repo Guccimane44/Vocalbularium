@@ -18,7 +18,7 @@ export function rowState(row, status, description = labels[status]) {
   return cue;
 }
 
-export function openCardRow(row, entryButton, navigate) {
+export function openKarteRow(row, entryButton, navigate) {
   const activate = event => {
     const selection = window.getSelection();
     if (event.detail && !selection.isCollapsed && row.contains(selection.anchorNode) && row.contains(selection.focusNode)) return;

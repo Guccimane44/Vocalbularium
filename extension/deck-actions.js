@@ -24,7 +24,7 @@ export function deckActions({ deck, getAccount, element, button, send, applyStat
     const replacements = deck.id === account.defaultDeckId ? account.decks.filter(item => item.id !== deck.id) : [];
     const decision = await dialog({
       title: 'Delete deck?',
-      message: `“${deck.name}” and all its cards will be deleted.${account.decks.length === 1 ? ' A new empty My Deck will replace it.' : ''}`,
+      message: `“${deck.name}” and all its kartes will be deleted.${account.decks.length === 1 ? ' A new empty My Deck will replace it.' : ''}`,
       choices: ['Cancel', 'Delete deck'],
       select: replacements.length ? { label: 'New default deck', options: replacements.map(item => ({ value: item.id, label: item.name })) } : undefined
     });

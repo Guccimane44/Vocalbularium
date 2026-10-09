@@ -1,7 +1,7 @@
 export function captureMenuTitle(name) {
   // Chromium replaces every literal %s and has no %% escape. A zero-width
   // separator preserves its appearance without interpolating the selection.
-  return `Create a card in “${name.replaceAll('%s', '%\u200bs')}”`;
+  return `Create a karte in “${name.replaceAll('%s', '%\u200bs')}”`;
 }
 
 export function captureMenu(api = chrome) {

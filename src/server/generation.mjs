@@ -1,4 +1,4 @@
-import { renderPage, validateInterpretation } from '../core/modules.mjs';
+import { renderSeite, validateInterpretation } from '../core/modules.mjs';
 import { OpenCodeProvider } from './opencode.mjs';
 import { mkdirSync, readdirSync, readFileSync, writeFileSync, renameSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
@@ -45,15 +45,15 @@ export class Generation {
       if (!this.pendingResults.has(id)) await store.failAttempt(id);
     }
   }
-  async interpretation(card, attempt) {
-    const current = (await this.store.card(card.id)).interpretation;
+  async interpretation(karte, attempt) {
+    const current = (await this.store.karte(karte.id)).interpretation;
     if (current) return current;
-    const key = `${card.id}:${attempt.session_id}`;
+    const key = `${karte.id}:${attempt.session_id}`;
     if (!this.interpretations.has(key)) {
       const controller = new AbortController();
-      const attempts = card.pages.filter(page => page.status === 'loading').map(page => page.attempt_id);
-      const promise = this.provider.interpret(card.selected_text, controller.signal, card.id)
-        .then(value => this.store.establishInterpretation(card.id, validateInterpretation(value), attempts));
+      const attempts = karte.seites.filter(seite => seite.status === 'loading').map(seite => seite.attempt_id);
+      const promise = this.provider.interpret(karte.selected_text, controller.signal, karte.id)
+        .then(value => this.store.establishInterpretation(karte.id, validateInterpretation(value), attempts));
       this.interpretations.set(key, { promise, controller });
       promise.finally(() => this.interpretations.delete(key)).catch(() => {});
     }
@@ -105,37 +105,37 @@ export class Generation {
     const controller = new AbortController();
     const started = performance.now();
     const task = this.store.background(() => this.execute(job, controller));
-    this.tasks.set(job.attemptId, { task, controller, cardId: job.cardId, sessionId: job.sessionId });
+    this.tasks.set(job.attemptId, { task, controller, karteId: job.karteId, sessionId: job.sessionId });
     task.finally(() => {
       this.tasks.delete(job.attemptId);
       this.pump();
-      if (![...this.tasks.values()].some(task => task.cardId === job.cardId) &&
-        !this.queue.some(waiting => waiting.cardId === job.cardId)) {
-        for (const key of this.outputs.keys()) if (key.startsWith(`${job.cardId}:`)) this.outputs.delete(key);
+      if (![...this.tasks.values()].some(task => task.karteId === job.karteId) &&
+        !this.queue.some(waiting => waiting.karteId === job.karteId)) {
+        for (const key of this.outputs.keys()) if (key.startsWith(`${job.karteId}:`)) this.outputs.delete(key);
       }
       this.record('settled', controller.signal.aborted ? 'canceled' : 'finished', job.attemptId,
         Math.round(performance.now() - started));
     }).catch(() => {});
   }
   async execute(job, controller) {
-    const { attemptId, cardId } = job;
+    const { attemptId, karteId } = job;
     let result;
     try {
       // Queued work can become obsolete before it reaches the active pool.
       const attempt = await this.store.attempt(attemptId);
       if (attempt.state !== 'loading' || attempt.result || controller.signal.aborted) return;
       await this.store.requireSession({ installationId: attempt.installation_id, sessionId: attempt.session_id, epoch: attempt.epoch });
-      const card = await this.store.card(cardId);
-      if (!card.pages.some(page => page.attempt_id === attemptId && page.status === 'loading') || controller.signal.aborted) return;
+      const karte = await this.store.karte(karteId);
+      if (!karte.seites.some(seite => seite.attempt_id === attemptId && seite.status === 'loading') || controller.signal.aborted) return;
       const needed = attempt.modules.some(module => module.type !== 'selected');
-      const interpretation = needed ? await this.interpretation(card, attempt) : null;
+      const interpretation = needed ? await this.interpretation(karte, attempt) : null;
       if (controller.signal.aborted) return;
-      const text = await renderPage({
-        selectedText: card.selected_text, modules: attempt.modules, interpretation,
-        generate: input => this.provider.generate({ ...input, sessionId: card.id }, controller.signal),
+      const text = await renderSeite({
+        selectedText: karte.selected_text, modules: attempt.modules, interpretation,
+        generate: input => this.provider.generate({ ...input, sessionId: karte.id }, controller.signal),
         claimOutput: (type, output) => {
           if (!['german-examples', 'sentence-usage'].includes(type)) return true;
-          const key = `${card.id}:${type}`;
+          const key = `${karte.id}:${type}`;
           const seen = this.outputs.get(key) ?? new Set();
           if (seen.has(output)) return false;
           seen.add(output); this.outputs.set(key, seen); return true;
@@ -163,15 +163,15 @@ export class Generation {
       else { this.failedResults.add(attemptId); this.record('failed', 'persistence_failure', attemptId); }
     }
   }
-  async start(cardId, pageId, { reservation } = {}) {
-    const card = await this.store.card(cardId);
-    for (const page of card.pages) {
-      if (pageId && page.page_id !== pageId) continue;
-      if (page.status !== 'loading' || this.tasks.has(page.attempt_id) ||
-        this.queue.some(job => job.attemptId === page.attempt_id)) continue;
-      const attempt = await this.store.attempt(page.attempt_id);
+  async start(karteId, seiteId, { reservation } = {}) {
+    const karte = await this.store.karte(karteId);
+    for (const seite of karte.seites) {
+      if (seiteId && seite.seite_id !== seiteId) continue;
+      if (seite.status !== 'loading' || this.tasks.has(seite.attempt_id) ||
+        this.queue.some(job => job.attemptId === seite.attempt_id)) continue;
+      const attempt = await this.store.attempt(seite.attempt_id);
       if (attempt.result) continue;
-      if (!this.admit({ attemptId: attempt.id, cardId, sessionId: attempt.session_id }, reservation)) {
+      if (!this.admit({ attemptId: attempt.id, karteId, sessionId: attempt.session_id }, reservation)) {
         this.rejected++;
         await this.store.failAttempt(attempt.id);
         this.record('rejected', 'generation_busy', attempt.id);
@@ -197,7 +197,7 @@ export class Generation {
     });
     for (const [id, { controller }] of this.tasks) if (!ids.has(id)) controller.abort();
     for (const [key, { controller }] of this.interpretations) {
-      if (!active.some(attempt => `${attempt.card_id}:${attempt.session_id}` === key)) controller.abort();
+      if (!active.some(attempt => `${attempt.karte_id}:${attempt.session_id}` === key)) controller.abort();
     }
     this.pump();
   }

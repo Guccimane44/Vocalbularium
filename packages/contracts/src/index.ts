@@ -17,18 +17,18 @@ export const ModuleInstanceSchema = Type.Object({
   id: Type.String({ minLength: 1 }),
   type: Type.String({ minLength: 1 })
 });
-export const DeckPageSchema = Type.Object({
+export const DeckSeiteSchema = Type.Object({
   id: Type.String({ minLength: 1 }),
   modules: Type.Array(ModuleInstanceSchema)
 });
 export const DeckSnapshotSchema = Type.Object({
   id: Type.String({ minLength: 1 }),
-  pages: Type.Array(DeckPageSchema, { minItems: 1, maxItems: 4 })
+  seites: Type.Array(DeckSeiteSchema, { minItems: 1, maxItems: 4 })
 });
 export const DeckLayoutSchema = Type.Object({
   id: Type.Optional(Type.String({ minLength: 1 })),
   name: Type.String({ minLength: 1 }),
-  pages: Type.Array(DeckPageSchema, { minItems: 1, maxItems: 4 })
+  seites: Type.Array(DeckSeiteSchema, { minItems: 1, maxItems: 4 })
 });
 export const CapturePayloadSchema = Type.Object({
   session: BrowserSessionSchema,
@@ -90,7 +90,7 @@ export const CaptureRequestSchema = Type.Object({
 }, OpenRequest);
 export const DeckSavePayloadSchema = Type.Object({
   deck: DeckLayoutSchema,
-  basePageIds: Type.Optional(Type.Array(Type.String())),
+  baseSeiteIds: Type.Optional(Type.Array(Type.String())),
   confirmation: Type.Optional(Type.String())
 }, OpenRequest);
 export const DeckSaveRequestSchema = Type.Object({
@@ -105,37 +105,37 @@ export const DeckDeleteRequestSchema = Type.Object({
   operationId: OperationIdSchema,
   payload: DeckDeletePayloadSchema
 }, OpenRequest);
-export const ManualCardPageSchema = Type.Object({ pageId: Type.String(), text: Type.String() }, OpenRequest);
-export const ManualCardCreatePayloadSchema = Type.Object({
+export const ManualKarteSeiteSchema = Type.Object({ seiteId: Type.String(), text: Type.String() }, OpenRequest);
+export const ManualKarteCreatePayloadSchema = Type.Object({
   deckId: Type.String(),
-  pages: Type.Array(ManualCardPageSchema)
+  seites: Type.Array(ManualKarteSeiteSchema)
 }, OpenRequest);
-export const ManualCardCreateRequestSchema = Type.Object({
+export const ManualKarteCreateRequestSchema = Type.Object({
   operationId: OperationIdSchema,
-  payload: ManualCardCreatePayloadSchema
+  payload: ManualKarteCreatePayloadSchema
 }, OpenRequest);
-export const CardSaveChangeSchema = Type.Object({ pageId: Type.String(), text: Type.String() }, OpenRequest);
-export const CardSavePayloadSchema = Type.Object({
-  cardId: Type.String(),
-  changes: Type.Array(CardSaveChangeSchema)
+export const KarteSaveChangeSchema = Type.Object({ seiteId: Type.String(), text: Type.String() }, OpenRequest);
+export const KarteSavePayloadSchema = Type.Object({
+  karteId: Type.String(),
+  changes: Type.Array(KarteSaveChangeSchema)
 }, OpenRequest);
-export const CardSaveRequestSchema = Type.Object({
+export const KarteSaveRequestSchema = Type.Object({
   operationId: OperationIdSchema,
-  payload: CardSavePayloadSchema
+  payload: KarteSavePayloadSchema
 }, OpenRequest);
-export const CardDeletePayloadSchema = Type.Object({ cardId: Type.String() }, OpenRequest);
-export const CardDeleteRequestSchema = Type.Object({
+export const KarteDeletePayloadSchema = Type.Object({ karteId: Type.String() }, OpenRequest);
+export const KarteDeleteRequestSchema = Type.Object({
   operationId: OperationIdSchema,
-  payload: CardDeletePayloadSchema
+  payload: KarteDeletePayloadSchema
 }, OpenRequest);
-export const CardRetryPayloadSchema = Type.Object({
-  cardId: Type.String(),
-  pageId: Type.String(),
+export const KarteRetryPayloadSchema = Type.Object({
+  karteId: Type.String(),
+  seiteId: Type.String(),
   session: BrowserSessionSchema
 }, OpenRequest);
-export const CardRetryRequestSchema = Type.Object({
+export const KarteRetryRequestSchema = Type.Object({
   operationId: OperationIdSchema,
-  payload: CardRetryPayloadSchema
+  payload: KarteRetryPayloadSchema
 }, OpenRequest);
 export const PollRequestSchema = Type.Object({ session: BrowserSessionSchema }, OpenRequest);
 export const PublishPayloadSchema = Type.Object({
@@ -152,7 +152,7 @@ export type InputType = Type.Static<typeof InputTypeSchema>;
 export type InputInterpretation = Type.Static<typeof InputInterpretationSchema>;
 export type BrowserSession = Type.Static<typeof BrowserSessionSchema>;
 export type ModuleInstance = Type.Static<typeof ModuleInstanceSchema>;
-export type DeckPage = Type.Static<typeof DeckPageSchema>;
+export type DeckSeite = Type.Static<typeof DeckSeiteSchema>;
 export type DeckSnapshot = Type.Static<typeof DeckSnapshotSchema>;
 export type DeckLayout = Type.Static<typeof DeckLayoutSchema>;
 export type CapturePayload = Type.Static<typeof CapturePayloadSchema>;
@@ -166,9 +166,11 @@ export type SessionRequest = Type.Static<typeof SessionRequestSchema>;
 export type CaptureRequest = Type.Static<typeof CaptureRequestSchema>;
 export type DeckSaveRequest = Type.Static<typeof DeckSaveRequestSchema>;
 export type DeckDeleteRequest = Type.Static<typeof DeckDeleteRequestSchema>;
-export type ManualCardCreateRequest = Type.Static<typeof ManualCardCreateRequestSchema>;
-export type CardSaveRequest = Type.Static<typeof CardSaveRequestSchema>;
-export type CardDeleteRequest = Type.Static<typeof CardDeleteRequestSchema>;
-export type CardRetryRequest = Type.Static<typeof CardRetryRequestSchema>;
+export type ManualKarteCreateRequest = Type.Static<typeof ManualKarteCreateRequestSchema>;
+export type KarteSaveRequest = Type.Static<typeof KarteSaveRequestSchema>;
+export type KarteDeleteRequest = Type.Static<typeof KarteDeleteRequestSchema>;
+export type KarteRetryRequest = Type.Static<typeof KarteRetryRequestSchema>;
 export type PollRequest = Type.Static<typeof PollRequestSchema>;
 export type PublishRequest = Type.Static<typeof PublishRequestSchema>;
+
+export { currentPath, legacyPath, currentHash, currentValue, legacyValue, legacyOperation, usesCurrentFields } from './terminology.js';

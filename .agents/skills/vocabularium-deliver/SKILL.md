@@ -9,7 +9,7 @@ Prepare an installable candidate with evidence tied to its actual source and bac
 
 ## Establish the candidate
 
-Read `AGENTS.md`, `package.json`, `scripts/build.mjs`, `scripts/package.py`, and the current `docs/M6-Delivery.md` and `docs/Windows-Install.md`. Take the intended origin, version, and backend revision from the request and current deployment evidence; do not hard-code an old service, model, commit, or milestone into a new delivery.
+Read `AGENTS.md`, `package.json`, `scripts/build.mjs`, `scripts/package.py`, and the current `docs/history/mvp/M6-Delivery.md` and `docs/guides/windows-install.md`. Take the intended origin, version, and backend revision from the request and current deployment evidence; do not hard-code an old service, model, commit, or milestone into a new delivery.
 
 Inspect the working tree and existing artifacts. Preserve a previous owner-delivered ZIP/checksum before a same-version build would overwrite it. Use a committed source revision for a final handoff and do not label a dirty build as a clean candidate. A preliminary local package may remain clearly labeled as such. Version changes follow the requested increment and delivery decision; packaging alone does not require inventing a new version.
 
@@ -22,7 +22,7 @@ npm run build
 python3 scripts/package.py
 ```
 
-The default build targets localhost. For a hosted candidate, provide `VOCABULARIUM_API_URL` with the agreed HTTPS origin when building; see `docs/M6-Delivery.md` for shell-specific examples. The build writes the matching extension permission. Service credentials remain on the server.
+The default build targets localhost. For a hosted candidate, provide `VOCABULARIUM_API_URL` with the agreed HTTPS origin when building; see `docs/history/mvp/M6-Delivery.md` for shell-specific examples. The build writes the matching extension permission. Service credentials remain on the server.
 
 Use the bundled read-only helper after packaging:
 

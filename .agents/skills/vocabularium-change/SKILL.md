@@ -9,7 +9,7 @@ Turn the requested increment into a reviewable change against the current workin
 
 ## Establish the change
 
-Read `AGENTS.md` and its required product documents. Treat the current implementation as the baseline. Describe the requested before/after behavior, affected interactions, and observable acceptance criteria. Keep unrelated deferred features out of the increment; an explicit owner request can change earlier scope. Update the relevant specification when behavior intentionally changes. Link to detailed Select and Add rules rather than duplicating them.
+Read `AGENTS.md` and its required product documents. The [product model](../../../docs/product/model.md) defines deck → karte → seite; use those terms in current issues, PRs and specifications. Treat the current implementation as the baseline. Describe the requested before/after behavior, affected interactions, and observable acceptance criteria. Keep unrelated deferred features out of the increment; an explicit owner request can change earlier scope. Update the relevant specification when behavior intentionally changes. Link to detailed Select and Add rules rather than duplicating them.
 
 Inspect the working tree, branch, remote, and relevant issue/PR before deciding where to work. The repository name and product spelling differ: derive the GitHub repository from the remote. The MVP was developed with stacked PRs, so confirm the current base and merge state; neither `main` nor an old branch name is automatically the right starting point. Reuse a branch for the same unfinished change; start a focused `codex/` branch for a new increment. Preserve unrelated local work.
 

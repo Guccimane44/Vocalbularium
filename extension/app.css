@@ -40,9 +40,9 @@ pre { font: inherit; white-space: pre-wrap; overflow-wrap: anywhere; }
 .status-failed { color: var(--failed-cue); background: var(--failed-bg); }
 .status-loading { color: var(--pending-cue); background: var(--pending-bg); }
 .entry { text-align: left; border: 0; max-width: 720px; padding-left: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
-.pages { display: flex; gap: 10px; margin: 24px 0; }
-.pages [aria-current="true"] { background: var(--primary); color: var(--on-primary); }
-.card-page { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 28px; min-height: 260px; }
+.seites { display: flex; gap: 10px; margin: 24px 0; }
+.seites [aria-current="true"] { background: var(--primary); color: var(--on-primary); }
+.karte-seite { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 28px; min-height: 260px; }
 @media (max-width: 600px) { header { padding: 24px; } main { margin-top: 30px; padding: 0 24px; } h1 { font-size: 38px; } .login { margin: 40px auto; } }
 .deck-menu { margin-left: auto; position: relative; }
 .deck-menu summary { cursor: pointer; list-style: none; padding: 0 10px; font-weight: bold; }
@@ -50,7 +50,7 @@ pre { font: inherit; white-space: pre-wrap; overflow-wrap: anywhere; }
 .menu-choices button { border: 0; text-align: left; }
 .configuration { display: grid; grid-template-columns: 1.1fr 1fr; gap: 40px; align-items: start; }
 fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
-.module-page, .preview { background: var(--surface); padding: 22px; border: 1px solid var(--line); border-radius: 12px; margin: 20px 0; }
+.module-seite, .preview { background: var(--surface); padding: 22px; border: 1px solid var(--line); border-radius: 12px; margin: 20px 0; }
 .module-block { display: flex; gap: 6px; align-items: center; background: var(--hover); padding: 12px; border-radius: 8px; margin: 12px 0; }
 .module-block span { flex: 1; font-size: 13px; }
 .module-block button { padding: 5px 8px; font-size: 12px; }
@@ -75,7 +75,7 @@ html:not([data-theme]) body { visibility: hidden; }
 main > .deck-menu { width: max-content; margin: -12px 0 18px auto; }
 .deck-menu summary::-webkit-details-marker { display: none; }
 h1, h2, .deck .open { overflow-wrap: anywhere; }
-.pages, .dialog-actions { flex-wrap: wrap; }
+.seites, .dialog-actions { flex-wrap: wrap; }
 @media (max-width: 600px) { header { gap: 18px; flex-wrap: wrap; } .header-actions { width: 100%; } .module-block { flex-wrap: wrap; } }
 
 .state-row { background: var(--surface); color: var(--text); --state-cue: var(--text); }
@@ -84,12 +84,12 @@ h1, h2, .deck .open { overflow-wrap: anywhere; }
 .state-row[data-state="failed"] { background: var(--failed-bg); --state-cue: var(--failed-cue); }
 .state-icon { display: inline-flex; width: 22px; height: 22px; color: var(--state-cue); vertical-align: middle; flex: 0 0 22px; }
 .state-icon svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.card-row { cursor: pointer; }
-.card-row:hover { box-shadow: inset 0 0 0 1px var(--state-cue); }
-.card-row:focus-within { outline: 2px solid var(--focus); outline-offset: -2px; }
-.card-row .entry { background: transparent; padding: 0 0 0 12px; max-width: calc(100% - 34px); vertical-align: middle; user-select: text; }
-.card-row[data-state="neutral"] .entry { padding-left: 0; }
+.karte-row { cursor: pointer; }
+.karte-row:hover { box-shadow: inset 0 0 0 1px var(--state-cue); }
+.karte-row:focus-within { outline: 2px solid var(--focus); outline-offset: -2px; }
+.karte-row .entry { background: transparent; padding: 0 0 0 12px; max-width: calc(100% - 34px); vertical-align: middle; user-select: text; }
+.karte-row[data-state="neutral"] .entry { padding-left: 0; }
 .list { table-layout: fixed; }
 .list th:first-child { width: 80px; }
 .capture .state-icon { float: right; margin: 0 0 10px 12px; }
-@media (forced-colors: active) { .card-row:hover { outline: 1px solid Highlight; } .state-icon { forced-color-adjust: auto; } }
+@media (forced-colors: active) { .karte-row:hover { outline: 1px solid Highlight; } .state-icon { forced-color-adjust: auto; } }

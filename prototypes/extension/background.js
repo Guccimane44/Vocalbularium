@@ -104,7 +104,7 @@ export async function handleCapture(info, tab) {
 async function submitCapture(receipt) {
   try {
     const result = await api('/capture', { operationId: receipt.operationId, payload: receipt.payload });
-    await chrome.storage.local.set({ [`capture-${receipt.operationId}`]: { ...receipt, state: 'saved', cardId: result.cardId } });
+    await chrome.storage.local.set({ [`capture-${receipt.operationId}`]: { ...receipt, state: 'saved', karteId: result.karteId } });
     void poll().catch(recordConnectionError);
   } catch (error) {
     await chrome.storage.local.set({ [`capture-${receipt.operationId}`]: { ...receipt, state: 'pending', error: error.message } });

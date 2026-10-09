@@ -3,7 +3,7 @@
   "info": {
     "title": "Vocabularium Account API",
     "version": "0.3.0",
-    "description": "Local account, capture, deck, card, and generation-session API."
+    "description": "Local account, capture, deck, karte, and generation-session API."
   },
   "components": {
     "securitySchemes": {
@@ -1172,9 +1172,9 @@
         }
       }
     },
-    "/api/decks/{deckId}/cards": {
+    "/api/decks/{deckId}/kartes": {
       "get": {
-        "summary": "Read one ordered page of card summaries",
+        "summary": "Read one ordered page of karte summaries",
         "tags": [
           "account"
         ],
@@ -1429,9 +1429,9 @@
         }
       }
     },
-    "/api/cards/{cardId}": {
+    "/api/kartes/{karteId}": {
       "get": {
-        "summary": "Read one card and its pages",
+        "summary": "Read one karte and its seites",
         "tags": [
           "account"
         ],
@@ -1442,7 +1442,7 @@
               "minLength": 1
             },
             "in": "path",
-            "name": "cardId",
+            "name": "karteId",
             "required": true
           }
         ],
@@ -2805,14 +2805,14 @@
                         "type": "object",
                         "required": [
                           "id",
-                          "pages"
+                          "seites"
                         ],
                         "properties": {
                           "id": {
                             "type": "string",
                             "minLength": 1
                           },
-                          "pages": {
+                          "seites": {
                             "type": "array",
                             "items": {
                               "type": "object",
@@ -3102,7 +3102,7 @@
                         "type": "object",
                         "required": [
                           "name",
-                          "pages"
+                          "seites"
                         ],
                         "properties": {
                           "id": {
@@ -3113,7 +3113,7 @@
                             "type": "string",
                             "minLength": 1
                           },
-                          "pages": {
+                          "seites": {
                             "type": "array",
                             "items": {
                               "type": "object",
@@ -3153,7 +3153,7 @@
                           }
                         }
                       },
-                      "basePageIds": {
+                      "baseSeiteIds": {
                         "type": "array",
                         "items": {
                           "type": "string"
@@ -3591,9 +3591,9 @@
         }
       }
     },
-    "/api/card/create": {
+    "/api/karte/create": {
       "post": {
-        "summary": "Create a manual card",
+        "summary": "Create a manual karte",
         "tags": [
           "account"
         ],
@@ -3616,22 +3616,22 @@
                     "type": "object",
                     "required": [
                       "deckId",
-                      "pages"
+                      "seites"
                     ],
                     "properties": {
                       "deckId": {
                         "type": "string"
                       },
-                      "pages": {
+                      "seites": {
                         "type": "array",
                         "items": {
                           "type": "object",
                           "required": [
-                            "pageId",
+                            "seiteId",
                             "text"
                           ],
                           "properties": {
-                            "pageId": {
+                            "seiteId": {
                               "type": "string"
                             },
                             "text": {
@@ -3839,9 +3839,9 @@
         }
       }
     },
-    "/api/card/save": {
+    "/api/karte/save": {
       "post": {
-        "summary": "Save card page edits",
+        "summary": "Save karte seite edits",
         "tags": [
           "account"
         ],
@@ -3863,11 +3863,11 @@
                   "payload": {
                     "type": "object",
                     "required": [
-                      "cardId",
+                      "karteId",
                       "changes"
                     ],
                     "properties": {
-                      "cardId": {
+                      "karteId": {
                         "type": "string"
                       },
                       "changes": {
@@ -3875,11 +3875,11 @@
                         "items": {
                           "type": "object",
                           "required": [
-                            "pageId",
+                            "seiteId",
                             "text"
                           ],
                           "properties": {
-                            "pageId": {
+                            "seiteId": {
                               "type": "string"
                             },
                             "text": {
@@ -4087,9 +4087,9 @@
         }
       }
     },
-    "/api/card/delete": {
+    "/api/karte/delete": {
       "post": {
-        "summary": "Delete a card",
+        "summary": "Delete a karte",
         "tags": [
           "account"
         ],
@@ -4111,10 +4111,10 @@
                   "payload": {
                     "type": "object",
                     "required": [
-                      "cardId"
+                      "karteId"
                     ],
                     "properties": {
-                      "cardId": {
+                      "karteId": {
                         "type": "string"
                       }
                     },
@@ -4315,9 +4315,9 @@
         }
       }
     },
-    "/api/card/retry": {
+    "/api/karte/retry": {
       "post": {
-        "summary": "Retry generation for one card page",
+        "summary": "Retry generation for one karte seite",
         "tags": [
           "account"
         ],
@@ -4339,15 +4339,15 @@
                   "payload": {
                     "type": "object",
                     "required": [
-                      "cardId",
-                      "pageId",
+                      "karteId",
+                      "seiteId",
                       "session"
                     ],
                     "properties": {
-                      "cardId": {
+                      "karteId": {
                         "type": "string"
                       },
-                      "pageId": {
+                      "seiteId": {
                         "type": "string"
                       },
                       "session": {
@@ -4833,7 +4833,7 @@
     },
     "/api/publish": {
       "post": {
-        "summary": "Publish a completed page attempt",
+        "summary": "Publish a completed seite attempt",
         "tags": [
           "account"
         ],
@@ -5095,7 +5095,7 @@
     },
     {
       "name": "account",
-      "description": "Account and card operations"
+      "description": "Account and karte operations"
     }
   ]
 }

@@ -1,3 +1,4 @@
+import { currentValue } from '@vocabularium/contracts';
 // @ts-check
 /** @typedef {import('@vocabularium/contracts').PendingMutation} PendingMutation */
 /** @typedef {import('@vocabularium/contracts').OperationId} OperationId */
@@ -21,6 +22,7 @@ export function saveOperations({ request, storage = chrome.storage.local }) {
   /** @param {PendingMutation} receipt */
   async function recordPending(receipt) {
     await recover();
+    receipt = currentValue(receipt);
     if (!active.has(receipt.operationId)) await storage.set({ [`save-${receipt.operationId}`]: { ...receipt, state: 'pending' } });
   }
   /** @param {unknown} error */
@@ -29,6 +31,7 @@ export function saveOperations({ request, storage = chrome.storage.local }) {
   }
   /** @param {PendingMutation} receipt @param {string} token @param {string[]} [discardCodes] */
   function perform(receipt, token, discardCodes = []) {
+    receipt = currentValue(receipt);
     if (active.has(receipt.operationId)) return active.get(receipt.operationId);
     const key = `save-${receipt.operationId}`;
     const task = (async () => {

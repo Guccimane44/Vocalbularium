@@ -5,32 +5,32 @@ import { SORT_ORDERS } from './sorting.ts';
 
 type Status = 'completed' | 'loading' | 'failed' | null;
 
-export type DashboardCard = {
+export type DashboardKarte = {
   id: string;
   deck_id: string;
   selected_text: string | null;
   created_at: string;
   status: Status;
-  pages: Array<{ page_id: string; text: string; status: Status }>;
+  seites: Array<{ seite_id: string; text: string; status: Status }>;
 };
 
 export type DashboardAccount = {
   defaultDeckId: string;
   decks: DashboardDeck[];
   nextCursor?: string | null;
-  recentCards: DashboardCard[];
+  recentKartes: DashboardKarte[];
   sequence: number;
 };
 
-type DashboardDeck = { id: string; name: string; pageCount: number; cardCount: number };
-type CardPage = { cards: DashboardCard[]; nextCursor: string | null };
-type DeckPage = { decks: DashboardDeck[]; nextCursor: string | null };
+type DashboardDeck = { id: string; name: string; seiteCount: number; karteCount: number };
+type KarteBatch = { kartes: DashboardKarte[]; nextCursor: string | null };
+type DeckBatch = { decks: DashboardDeck[]; nextCursor: string | null };
 
 type CaptureReceipt = {
   operationId: string;
   state: 'saving' | 'pending' | 'saved';
   createdAt: string;
-  cardId?: string;
+  karteId?: string;
   error?: string | null;
   payload: { selectedText: string; snapshot: { id: string } };
 };
@@ -45,8 +45,8 @@ export type DashboardProps = {
   focusedMenu?: string;
   showPendingSaves: boolean;
   error?: string;
-  loadCards: (deckId: string, order: string, cursor?: string) => Promise<CardPage>;
-  loadDecks: (cursor: string) => Promise<DeckPage>;
+  loadKartes: (deckId: string, order: string, cursor?: string) => Promise<KarteBatch>;
+  loadDecks: (cursor: string) => Promise<DeckBatch>;
   navigate: (hash: string) => void;
   configure: (id: string) => void;
   mutate: (command: Command) => Promise<void>;
@@ -118,7 +118,7 @@ function DeckMenu({ deck, account, replacementDecks, replacementCursor, loadDeck
     const replacements = deck.id === account.defaultDeckId ? replacementDecks.filter(item => item.id !== deck.id) : [];
     const decision = await dialog({
       title: 'Delete deck?',
-      message: `“${deck.name}” and all its cards will be deleted.${replacementDecks.length === 1 && !replacementCursor ? ' A new empty My Deck will replace it.' : ''}`,
+      message: `“${deck.name}” and all its kartes will be deleted.${replacementDecks.length === 1 && !replacementCursor ? ' A new empty My Deck will replace it.' : ''}`,
       choices: ['Cancel', 'Delete deck'],
       select: replacements.length || replacementCursor ? {
         label: 'New default deck', options: replacements.map(item => ({ value: item.id, label: item.name })),
@@ -146,48 +146,48 @@ function DeckMenu({ deck, account, replacementDecks, replacementCursor, loadDeck
   </details>;
 }
 
-function CardRow({ card, index, navigate }: { card: DashboardCard; index: number; navigate: DashboardProps['navigate'] }) {
+function KarteRow({ karte, index, navigate }: { karte: DashboardKarte; index: number; navigate: DashboardProps['navigate'] }) {
   const row = useRef<HTMLTableRowElement>(null);
   const stateId = useId();
   const activate = (event: ReactMouseEvent<HTMLElement>) => {
     const selection = window.getSelection();
     if (event.detail && selection && !selection.isCollapsed && row.current?.contains(selection.anchorNode) && row.current.contains(selection.focusNode)) return;
-    navigate(`card/${card.id}`);
+    navigate(`karte/${karte.id}`);
   };
-  return <tr className="card-row state-row" data-card-id={card.id} data-state={card.status ?? 'neutral'} ref={row}
+  return <tr className="karte-row state-row" data-karte-id={karte.id} data-state={karte.status ?? 'neutral'} ref={row}
     onClick={event => { if (!(event.target instanceof Element) || !event.target.closest('button')) activate(event); }}>
     <td>{String(index + 1).padStart(3, '0')}</td>
     <td>
-      <StatusIcon status={card.status} id={card.status ? stateId : undefined} />
-      <button className="entry" aria-describedby={card.status ? stateId : undefined} onClick={activate}>{card.pages[0]?.text || 'Empty front page'}</button>
+      <StatusIcon status={karte.status} id={karte.status ? stateId : undefined} />
+      <button className="entry" aria-describedby={karte.status ? stateId : undefined} onClick={activate}>{karte.seites[0]?.text || 'Empty front seite'}</button>
     </td>
   </tr>;
 }
 
-function DeckList({ deck, account, navigate, configure, mutate, reportError, loadCards, loadDecks }: Omit<DashboardProps, 'local' | 'deckId' | 'focusedMenu' | 'showPendingSaves' | 'error'> & { deck: DashboardDeck }) {
+function DeckList({ deck, account, navigate, configure, mutate, reportError, loadKartes, loadDecks }: Omit<DashboardProps, 'local' | 'deckId' | 'focusedMenu' | 'showPendingSaves' | 'error'> & { deck: DashboardDeck }) {
   const [order, setOrder] = useState(() => localStorage.getItem(`sort-${deck.id}`) ?? 'newest');
-  const [cards, setCards] = useState<DashboardCard[]>([]);
+  const [kartes, setKartes] = useState<DashboardKarte[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
     let active = true;
-    setCards([]);
+    setKartes([]);
     setLoading(true);
-    void loadCards(deck.id, order).then(page => {
-      if (active) { setCards(page.cards); setCursor(page.nextCursor); setLoading(false); }
+    void loadKartes(deck.id, order).then(page => {
+      if (active) { setKartes(page.kartes); setCursor(page.nextCursor); setLoading(false); }
     }).catch(error => { if (active) { setLoading(false); reportError(error); } });
     return () => { active = false; };
-  }, [deck.id, order, account.sequence, loadCards, reportError]);
+  }, [deck.id, order, account.sequence, loadKartes, reportError]);
   async function more() {
     if (!cursor || loading) return;
     setLoading(true);
     try {
-      const page = await loadCards(deck.id, order, cursor);
-      setCards(previous => [...previous, ...page.cards]); setCursor(page.nextCursor);
+      const page = await loadKartes(deck.id, order, cursor);
+      setKartes(previous => [...previous, ...page.kartes]); setCursor(page.nextCursor);
     } catch (error) {
       if ((error as { code?: string }).code === 'stale_cursor') {
-        const page = await loadCards(deck.id, order);
-        setCards(page.cards); setCursor(page.nextCursor);
+        const page = await loadKartes(deck.id, order);
+        setKartes(page.kartes); setCursor(page.nextCursor);
       } else reportError(error);
     } finally { setLoading(false); }
   }
@@ -196,44 +196,44 @@ function DeckList({ deck, account, navigate, configure, mutate, reportError, loa
     <p className="eyebrow">YOUR COLLECTION</p>
     <h1>{deck.name}</h1>
     <DeckMenu deck={deck} account={account} replacementDecks={account.decks} replacementCursor={account.nextCursor ?? null} loadDecks={loadDecks} configure={configure} mutate={mutate} reportError={reportError} />
-    <button className="primary" onClick={() => navigate(`new-card/${deck.id}`)}>Add card manually</button>
-    <label htmlFor="card-sort">Sort cards</label>
-    <select id="card-sort" value={order} onChange={event => { localStorage.setItem(`sort-${deck.id}`, event.target.value); setOrder(event.target.value); }}>
+    <button className="primary" onClick={() => navigate(`new-karte/${deck.id}`)}>Add karte manually</button>
+    <label htmlFor="karte-sort">Sort kartes</label>
+    <select id="karte-sort" value={order} onChange={event => { localStorage.setItem(`sort-${deck.id}`, event.target.value); setOrder(event.target.value); }}>
       {SORT_ORDERS.map(([value, label]) => <option value={value} key={value}>{label}</option>)}
     </select>
-    {!cards.length ? <div className="empty">{loading ? 'Loading cards…' : 'No cards in this deck yet.'}</div> :
+    {!kartes.length ? <div className="empty">{loading ? 'Loading kartes…' : 'No kartes in this deck yet.'}</div> :
       <table className="list"><tbody>
         <tr><th>Index</th><th>Entry</th></tr>
-        {cards.map((card, index) => <CardRow card={card} index={index} navigate={navigate} key={card.id} />)}
+        {kartes.map((karte, index) => <KarteRow karte={karte} index={index} navigate={navigate} key={karte.id} />)}
       </tbody></table>}
-    {cursor && <button disabled={loading} onClick={() => void more()}>Load more cards</button>}
+    {cursor && <button disabled={loading} onClick={() => void more()}>Load more kartes</button>}
   </>;
 }
 
-type CaptureEntry = { key: string; text: string; deckId: string; date: string; receipt?: CaptureReceipt; card?: DashboardCard };
+type CaptureEntry = { key: string; text: string; deckId: string; date: string; receipt?: CaptureReceipt; karte?: DashboardKarte };
 
 function RecentCaptures({ account, local, navigate, mutate, reportError }: Pick<DashboardProps, 'account' | 'local' | 'navigate' | 'mutate' | 'reportError'>) {
   const receipts = Object.entries(local)
     .filter(([key, item]) => key.startsWith('capture-') && isCaptureReceipt(item))
     .map(([, item]) => item as CaptureReceipt);
   const entries: CaptureEntry[] = [
-    ...receipts.filter(item => item.state !== 'saved' || !account.recentCards.some(card => card.id === item.cardId))
+    ...receipts.filter(item => item.state !== 'saved' || !account.recentKartes.some(karte => karte.id === item.karteId))
       .map(item => ({ key: `receipt-${item.operationId}`, receipt: item, text: item.payload.selectedText, deckId: item.payload.snapshot.id, date: item.createdAt })),
-    ...account.recentCards.filter(card => card.selected_text !== null).map(card => ({ key: `card-${card.id}`, card, text: card.selected_text!, deckId: card.deck_id, date: card.created_at }))
+    ...account.recentKartes.filter(karte => karte.selected_text !== null).map(karte => ({ key: `karte-${karte.id}`, karte, text: karte.selected_text!, deckId: karte.deck_id, date: karte.created_at }))
   ].sort((a, b) => b.date.localeCompare(a.date));
   return <>
     <h2 className="section-title">Recent captures</h2>
     {entries.map(entry => {
-      const state = entry.card?.status ?? (entry.receipt?.state === 'saving' ? 'loading' : entry.receipt?.state === 'pending' ? 'failed' : null);
+      const state = entry.karte?.status ?? (entry.receipt?.state === 'saving' ? 'loading' : entry.receipt?.state === 'pending' ? 'failed' : null);
       const deck = account.decks.find(item => item.id === entry.deckId);
       return <article className="capture state-row" data-state={state ?? 'neutral'} key={entry.key}>
         <StatusIcon status={state} description={entry.receipt ? entry.receipt.state === 'saving' ? 'Pending' : 'Not saved to your account' : undefined} />
         <p className="capture-text">{entry.text}</p>
         {deck && <button onClick={() => navigate(`deck/${deck.id}`)}>{deck.name}</button>}
-        {entry.card ? <button onClick={() => navigate(`card/${entry.card!.id}`)}>Open card</button> : <>
+        {entry.karte ? <button onClick={() => navigate(`karte/${entry.karte!.id}`)}>Open karte</button> : <>
           {entry.receipt?.state === 'saved' ? <>
             <p className="muted">Saved to your account.</p>
-            {entry.receipt.cardId && <button onClick={() => navigate(`card/${entry.receipt!.cardId}`)}>Open card</button>}
+            {entry.receipt.karteId && <button onClick={() => navigate(`karte/${entry.receipt!.karteId}`)}>Open karte</button>}
           </> : entry.receipt?.state !== 'saving' && <p className="muted">Not saved to your account.</p>}
           {entry.receipt?.error && <p className="error">{entry.receipt.error}</p>}
           {entry.receipt?.state === 'pending' && <RecoveryButton operationId={entry.receipt.operationId} mutate={mutate} reportError={reportError} />}
@@ -264,7 +264,7 @@ function DeckGrid({ account, local, navigate, configure, mutate, reportError, lo
       {decks.map(deck => <article className="deck" key={deck.id}>
         <button className="open" onClick={() => navigate(`deck/${deck.id}`)}>
           <h2>{deck.name}</h2>
-          <p className="muted">{deck.cardCount} cards · {deck.pageCount} pages</p>
+          <p className="muted">{deck.karteCount} {deck.karteCount === 1 ? 'karte' : 'kartes'} · {deck.seiteCount} {deck.seiteCount === 1 ? 'seite' : 'seites'}</p>
         </button>
         <footer>
           {deck.id === account.defaultDeckId && <span className="badge">DEFAULT DECK</span>}
@@ -277,7 +277,7 @@ function DeckGrid({ account, local, navigate, configure, mutate, reportError, lo
   </>;
 }
 
-export function Dashboard({ account, local, deckId, focusedMenu, showPendingSaves, error, navigate, configure, mutate, reportError, loadCards, loadDecks }: DashboardProps) {
+export function Dashboard({ account, local, deckId, focusedMenu, showPendingSaves, error, navigate, configure, mutate, reportError, loadKartes, loadDecks }: DashboardProps) {
   useEffect(() => {
     const closeOutside = (event: PointerEvent) => {
       for (const menu of document.querySelectorAll<HTMLDetailsElement>('.deck-menu[open]')) if (!menu.contains(event.target as Node)) menu.open = false;
@@ -290,7 +290,7 @@ export function Dashboard({ account, local, deckId, focusedMenu, showPendingSave
   }, [account, deckId, focusedMenu]);
   const deck = deckId ? account.decks.find(item => item.id === deckId) : undefined;
   let content: ReactNode;
-  if (deck) content = <DeckList key={deck.id} deck={deck} account={account} navigate={navigate} configure={configure} mutate={mutate} reportError={reportError} loadCards={loadCards} loadDecks={loadDecks} />;
+  if (deck) content = <DeckList key={deck.id} deck={deck} account={account} navigate={navigate} configure={configure} mutate={mutate} reportError={reportError} loadKartes={loadKartes} loadDecks={loadDecks} />;
   else content = <DeckGrid account={account} local={local} navigate={navigate} configure={configure} mutate={mutate} reportError={reportError} loadDecks={loadDecks} />;
   return <>
     {error && <p className="notice error" role="alert">{error}</p>}
