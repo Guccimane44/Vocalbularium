@@ -36,6 +36,10 @@ The [karte input and editing specification](../specs/kartes-and-editing.md) owns
 
 ## Current delivery boundary
 
+### Diagnostic logging increment
+
+The [approved logging specification](../architecture/observability.md) adds correlated local diagnostics, full generation evidence, durable extension collection, explicit cleanup, configurable storage budgets, and degradation reporting. [Issue #70](https://github.com/Guccimane44/Vocalbularium/issues/70) tracks implementation and verification. Availability in the owner's installed backend/extension requires a separately authorized upgrade; the existing main-key implementation deferral remains unchanged.
+
 The product is an owner-test Chrome extension delivered through manual installation, with a local backend and persistent PostgreSQL storage. Real model generation requires an external provider. The [local development guide](../architecture/local-postgresql.md) describes the current environment and operating constraints.
 
 The earlier hosted MVP is a separate historical environment. Current scope does not establish public-release readiness or claim that every platform and recovery scenario has been verified. Acceptance and verification evidence belong in release records.
