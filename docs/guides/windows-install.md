@@ -4,9 +4,7 @@ The package's `package-info.json` identifies its version, server address, and so
 
 ## Before installing
 
-Use current Google Chrome (minimum supported version 120). The v0.3.0 **local** candidate connects to PostgreSQL-backed API on the **same computer** at `127.0.0.1:4318`; the API and database must be running first. Its automated and operational acceptance target is the development Mac. Native Windows PostgreSQL and browser behavior still need owner verification. The older `vocabularium-0.2.2-configured-candidate.zip` targets the separate historical Render test backend.
-
-The Render Free test server can take about a minute to wake up. Open [the backend health check](https://vocabularium.onrender.com/health), wait for the healthy response, then sign in. Its test decks, kartes, login sessions, and pending server results can be erased when it sleeps, restarts, or is redeployed. Use disposable examples; this candidate does not provide durable hosted storage.
+Use current Google Chrome (minimum supported version 120). The v0.3.0 **local** candidate connects to PostgreSQL-backed API on the **same computer** at `127.0.0.1:4318`; the API and database must be running first. Its automated and operational acceptance target is the development Mac. Native Windows PostgreSQL and browser behavior still need owner verification. The older `vocabularium-0.2.2-configured-candidate.zip` targeted the Render test backend, which is retired, so that package no longer works.
 
 ## Install
 
@@ -22,7 +20,7 @@ The initial dashboard contains **My Deck**. Select text on a normal webpage, rig
 
 For an update using the **same backend and Chrome profile**, finish or cancel manual edits and allow active generation to finish. Replace the files in the same permanent extension folder with the new package, then select **Reload** on Vocabularium's entry at `chrome://extensions`. Reload any already-open Vocabularium dashboard tabs as well. Reloading the extension ends its browser session, so unfinished generation is reconciled as failed. Use a separate Chrome profile for the v0.3.0 local backend instead of carrying pending operations or cached access from the older hosted account into it.
 
-Saved decks and kartes belong to the backend account. Back up and retain the local PostgreSQL database and generation journal when updating the API. Render Free deployments reset their old SQLite account data and require a fresh sign-in.
+Saved decks and kartes belong to the backend account. Back up and retain the local PostgreSQL database and generation journal when updating the API.
 
 ## Check the v0.3.0 local candidate
 
@@ -63,9 +61,8 @@ Saved decks and kartes belong to the backend account. Back up and retain the loc
 ## If something does not work
 
 - **No capture menu:** open Vocabularium and sign in; make sure the extension is enabled and some text is selected.
-- **Cannot sign in:** check the server address in `package-info.json`. A local package requires its local backend to be running. For Render Free, open the server's `/health` address and allow it to wake up before trying again.
+- **Cannot sign in:** check the server address in `package-info.json`. A local package requires its local backend to be running.
 - **Capture received, but generation failed:** the request receipt confirms capture only. Check the saved karte's seite outcome. Server generation needs the owner's OpenCode Go API key and access to `deepseek-v4.1-flash`.
-- **Test kartes disappeared or sign-in is requested again:** the Render Free server may have reset. Sign in and create fresh test data; an old pending save cannot restore the erased account.
 - **Try saving again:** this resubmits the pending save. **Retry** on a captured seite starts replacement generation after a warning.
 - **Chrome closed during generation:** reopen it and review the karte's failed seite; use explicit seite Retry when ready.
 - **Feedback on a restricted seite:** Chrome can prevent a seite overlay. A separate brief feedback window is the fallback. Include the affected seite and visible behavior when reporting a feedback problem.

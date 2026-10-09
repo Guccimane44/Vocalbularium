@@ -1,8 +1,8 @@
-name: Verify MVP
+name: Verify
 
 on:
   push:
-    branches: [main, 'codex/**']
+    branches: [main]
   pull_request:
 
 permissions:

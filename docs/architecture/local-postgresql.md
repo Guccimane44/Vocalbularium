@@ -41,7 +41,7 @@ The API binds to `127.0.0.1:4318` by default. Startup rejects non-loopback API b
 
 Use a **new Chrome profile** for this PostgreSQL environment and load the local build from `artifacts/extension`. Keep the existing hosted extension/profile and every SQLite file intact. Do not move old local capture receipts or pending saves into the new profile. There is no automatic SQLite import, old-account export, or in-place cache/session cutover in Stage 4. Existing vocabulary import remains an explicit future operation.
 
-The existing Render deployment is a separate historical MVP environment; do not deploy this local branch through its old SQLite setup. Later hosting needs PostgreSQL, deliberate data cutover, authenticated deployment configuration, and durable journal storage.
+The former Render/SQLite deployment is retired. Later hosting needs PostgreSQL, deliberate data cutover, authenticated deployment configuration, and durable journal storage.
 
 ## Ordering, recovery, and single-process ownership
 
@@ -66,7 +66,7 @@ python3 scripts/package.py
 
 Tests load `.env.postgres` when present. CI supplies `TEST_DATABASE_ADMIN_URL` directly. It must address the loopback `postgres` maintenance database, never `vocabularium_dev`. Each fixture creates a random `vocabularium_test_<24 hex characters>` database, applies migrations, and drops only its own generated name during cleanup. A process killed outside test cleanup can leave disposable databases for manual inspection; there is no broad prefix-based reset command. Tests do not require local Docker and inject controlled generation providers.
 
-Browser tests own ports 4317/4318 and temporary Chrome profiles. Check for listener conflicts before running them. The historical foundation prototype also uses a disposable PostgreSQL fixture during tests; manual use requires an explicitly provisioned `PROTOTYPE_DATABASE_URL` and must never point at the development account.
+Browser tests own ports 4317/4318 and temporary Chrome profiles. Check for listener conflicts before running them.
 
 GitHub Actions runs database/browser suites on Linux with PostgreSQL 18. Ubuntu and Windows retain syntax, strict type checks, extension-worker checks, building, and packaging. Native Windows PostgreSQL/browser coverage is not claimed.
 
