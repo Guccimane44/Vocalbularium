@@ -7,6 +7,8 @@ import { Generation } from './generation.mjs';
 import { apiFailure } from './api-failure.mjs';
 import { registerTerminology } from './terminology.mjs';
 import { registerRoutes } from './routes.mjs';
+import { Diagnostics, diagnosticContext } from './diagnostics.mjs';
+import { registerDiagnosticRoutes } from './diagnostic-routes.mjs';
 
 const maxRequestBytes = 1024 * 1024;
 const publicHealthPaths = new Set(['/health', '/health/live', '/health/ready']);
@@ -43,14 +45,28 @@ function requestFailure(error, request) {
   return { status: 500, value: apiFailure('The save could not be completed. Try again.', 'server_error') };
 }
 
-export async function createApplication({ databaseUrl, outbox, accountId = 1, authOptions, provider, generationOptions, logger = false, documentationOnly = false } = {}) {
-  const store = documentationOnly ? null : await AccountStore.open({ databaseUrl, outbox, accountId });
+export async function createApplication({ databaseUrl, outbox, accountId = 1, authOptions, provider, generationOptions, diagnostics = new Diagnostics(), logger = false, documentationOnly = false } = {}) {
+  const emit = event => diagnostics.emit({ ...diagnosticContext.getStore(), ...event });
+  let store;
+  try { store = documentationOnly ? null : await AccountStore.open({ databaseUrl, outbox, accountId, diagnostic: emit }); }
+  catch (error) {
+    emit({ event: 'process.failed', outcome: 'failed', severity: 'error', phase: 'database_initialize', errorType: error.name, errorCode: error.code });
+    await diagnostics.close(); throw error;
+  }
   const authentication = documentationOnly ? null : new Authentication(store.database, authOptions);
   let generation;
   try {
     await authentication?.initialize();
-    generation = documentationOnly ? null : await Generation.create(store, provider, generationOptions);
-  } catch (error) { await store?.close(); throw error; }
+    generation = documentationOnly ? null : await Generation.create(store, provider, { ...generationOptions, emit,
+      diagnostic: event => { emit({ ...event, event: 'generation.work', phase: event.event,
+        severity: event.event === 'failed' ? 'error' : event.event === 'rejected' ? 'warn' : 'info',
+        outcome: event.event === 'failed' || event.category === 'failed' ? 'failed' : event.event === 'rejected' ? 'rejected' : event.category === 'canceled' ? 'canceled' : ['settled', 'staged'].includes(event.event) ? 'succeeded' : 'started' });
+        generationOptions?.diagnostic?.(event); } });
+    if (generation) { generation.provider.diagnostic = emit; diagnostics.addSecret(generation.provider.apiKey); }
+  } catch (error) {
+    emit({ event: 'process.failed', outcome: 'failed', severity: 'error', phase: 'initialize', errorType: error.name, errorCode: error.code });
+    await store?.close(); await diagnostics.close(); throw error;
+  }
   const fastify = Fastify({
     logger,
     bodyLimit: maxRequestBytes,
@@ -59,9 +75,10 @@ export async function createApplication({ databaseUrl, outbox, accountId = 1, au
     genReqId: () => randomUUID(),
     logController: new LogController({ disableRequestLogging: true })
   });
-  if (generation) generation.diagnostic = event => fastify.log.info(event, 'Generation work');
   fastify.server.requestTimeout = 15_000;
   fastify.decorateRequest('authToken', null);
+  fastify.decorateRequest('diagnosticStarted', null);
+  fastify.decorateRequest('diagnosticResult', null);
 
   registerTerminology(fastify);
 
@@ -87,6 +104,7 @@ export async function createApplication({ databaseUrl, outbox, accountId = 1, au
   });
 
   fastify.addHook('onRequest', async (request, reply) => {
+    request.diagnosticStarted = performance.now();
     const origin = request.headers.origin;
     if (origin && !/^chrome-extension:\/\/[a-p]{32}$/.test(origin)) {
       return reply.code(403).send(apiFailure('This origin is not allowed.', 'forbidden'));
@@ -95,6 +113,7 @@ export async function createApplication({ databaseUrl, outbox, accountId = 1, au
       reply.header('Access-Control-Allow-Origin', origin);
       reply.header('Vary', 'Origin');
       reply.header('Access-Control-Allow-Headers', 'authorization, content-type, x-vocabularium-terminology');
+      reply.header('Access-Control-Expose-Headers', 'X-Request-Id');
       reply.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     }
     if (request.method === 'OPTIONS') return reply.code(204).send();
@@ -109,6 +128,7 @@ export async function createApplication({ databaseUrl, outbox, accountId = 1, au
         return reply.code(401).send(apiFailure('Sign in to continue.', 'unauthorized'));
       }
       request.authToken = token;
+      diagnostics.addSecret(token);
     }
 
     if (request.method === 'POST' && !request.headers['content-type']?.startsWith('application/json')) {
@@ -122,11 +142,12 @@ export async function createApplication({ databaseUrl, outbox, accountId = 1, au
     if (publicHealthPaths.has(options.url) || options.url === '/api/login') return;
     const handler = options.handler;
     options.handler = function (request, reply) {
+      if (options.url.startsWith('/api/diagnostics/')) return handler.call(this, request, reply);
       return store.ordered(async () => {
         if (!await authentication.accepts(request.authToken)) {
           return reply.code(401).send(apiFailure('Sign in to continue.', 'unauthorized'));
         }
-        return handler.call(this, request, reply);
+        return diagnosticContext.run({ requestId: request.id, operationId: request.body?.operationId }, () => handler.call(this, request, reply));
       });
     };
   });
@@ -134,7 +155,31 @@ export async function createApplication({ databaseUrl, outbox, accountId = 1, au
   fastify.addHook('onSend', async (request, reply, payload) => {
     reply.header('X-Request-Id', request.id);
     if (reply.statusCode !== 204) reply.header('Cache-Control', 'no-store');
+    if (!request.routeOptions?.url?.startsWith('/api/diagnostics/') && request.method !== 'OPTIONS') {
+      let result; try { result = JSON.parse(payload); } catch { /* Metadata only. */ }
+      diagnostics.addSecret(result?.token);
+      request.diagnosticResult = { code: result?.code, karteId: result?.karteId ?? result?.cardId, sequence: result?.sequence, replayed: result?.replayed };
+    }
     return payload;
+  });
+
+  fastify.addHook('onResponse', async (request, reply) => {
+    const route = request.routeOptions?.url ?? 'unmatched';
+    const status = reply.statusCode, result = request.diagnosticResult ?? {}, payload = request.body?.payload;
+    // Idle polling and routine health/list refreshes create no successful entries.
+    if (route.startsWith('/api/diagnostics/') || request.method === 'OPTIONS' ||
+      (status < 400 && (route === '/api/poll' || route.startsWith('/health') ||
+        ['/api/account', '/api/account/summary', '/api/captures/recent', '/api/decks'].includes(route)))) return;
+    emit({ event: 'api.completed', requestId: request.id, operationId: request.body?.operationId,
+      karteId: result.karteId ?? payload?.karteId ?? request.params?.karteId, seiteId: payload?.seiteId, attemptId: payload?.attemptId,
+      method: request.method, route, status, sequence: result.sequence, errorCode: result.code,
+      severity: status >= 500 ? 'error' : status >= 400 ? 'warn' : 'info',
+      outcome: status >= 400 ? 'failed' : result.replayed ? 'replayed' : 'succeeded',
+      durationMs: Math.round(performance.now() - request.diagnosticStarted) });
+    if (route === '/api/capture' && status === 200) emit({ event: 'capture.saved', requestId: request.id,
+      operationId: request.body?.operationId, karteId: result.karteId, outcome: result.replayed ? 'replayed' : 'succeeded',
+      content: { selectedText: payload?.selectedText } });
+    if (route.startsWith('/health') && status === 503) emit({ event: 'readiness.failed', outcome: 'failed', severity: 'error' });
   });
 
   fastify.setErrorHandler((error, request, reply) => {
@@ -163,6 +208,7 @@ export async function createApplication({ databaseUrl, outbox, accountId = 1, au
 
   fastify.register(async api => {
     registerRoutes(api, { store, authentication, generation });
+    registerDiagnosticRoutes(api, diagnostics);
 
     // Keep authenticated POSTs to unknown paths on the same JSON parsing and error path.
     api.route({
@@ -183,6 +229,7 @@ export async function createApplication({ databaseUrl, outbox, accountId = 1, au
     store,
     authentication,
     generation,
+    diagnostics,
     server: fastify.server,
     log: fastify.log,
     async openapi() {
@@ -190,12 +237,15 @@ export async function createApplication({ databaseUrl, outbox, accountId = 1, au
       return fastify.swagger();
     },
     async start({ port = 4318, host = '127.0.0.1' } = {}) {
-      return (await fastify.listen({ port, host })).replace(/\/$/, '');
+      const address = (await fastify.listen({ port, host })).replace(/\/$/, '');
+      emit({ event: 'process.started', outcome: 'succeeded' }); return address;
     },
     async close() {
       await fastify.close();
       await generation?.close();
       await store?.close();
+      emit({ event: 'process.stopping', outcome: 'succeeded' });
+      await diagnostics.close();
     }
   };
 }

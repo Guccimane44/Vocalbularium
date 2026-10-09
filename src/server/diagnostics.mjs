@@ -29,12 +29,22 @@ export class Diagnostics {
     this.bytes = 0; this.segment = 0; this.segmentSize = 0; this.pending = 0; this.pendingBytes = 0;
     this.reason = null; this.dropped = 0; this.closed = false;
     this.initialized = false;
-    this.ready = this.initialize().catch(() => { this.reason = 'storage_unavailable'; });
+    this.ready = this.initialize().catch(async () => { this.reason = 'storage_unavailable'; await this.releaseLock(); });
   }
   addSecret(secret) { if (typeof secret === 'string' && secret) this.secrets.add(secret); }
   async initialize() {
     if (!this.directory) { this.initialized = true; return; }
     await mkdir(this.directory, { recursive: true, mode: 0o700 });
+    const lockPath = join(this.directory, 'collector.lock');
+    try { this.lock = await open(lockPath, 'wx', 0o600); }
+    catch (error) {
+      if (error.code !== 'EEXIST') throw error;
+      const owner = JSON.parse(await readFile(lockPath, 'utf8'));
+      try { process.kill(owner.pid, 0); throw new Error('Diagnostic collector already running.'); }
+      catch (probe) { if (probe.code !== 'ESRCH') throw probe; }
+      await rm(lockPath); this.lock = await open(lockPath, 'wx', 0o600);
+    }
+    await this.lock.writeFile(JSON.stringify({ pid: process.pid })); await this.lock.sync();
     try {
       const control = JSON.parse(await readFile(join(this.directory, 'control.json'), 'utf8'));
       if (!/^[\da-f-]{36}$/.test(control.generation) || !Array.isArray(control.cleared)) throw new Error('Invalid diagnostic manifest.');
@@ -44,6 +54,9 @@ export class Diagnostics {
       await this.saveControl(this.control);
     }
     await mkdir(this.generationDirectory(), { recursive: true, mode: 0o700 });
+    for (const entry of await readdir(this.directory)) {
+      if (/^[\da-f-]{36}$/.test(entry) && entry !== this.control.generation) await rm(join(this.directory, entry), { recursive: true, force: true });
+    }
     const files = await this.files();
     for (const file of files) {
       const content = await readFile(file, 'utf8');
@@ -173,5 +186,16 @@ export class Diagnostics {
       return { ...result, status: this.status() };
     });
   }
-  async close() { await this.ready; await this.tail; this.closed = true; }
+  async releaseLock() {
+    if (!this.lock) return;
+    await this.lock.close(); this.lock = null;
+    await rm(join(this.directory, 'collector.lock'), { force: true });
+  }
+  async close() {
+    if (this.closed) return;
+    await this.ready;
+    let pending;
+    do { pending = this.tail; await pending; } while (pending !== this.tail);
+    this.closed = true; await this.releaseLock();
+  }
 }

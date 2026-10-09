@@ -207,7 +207,11 @@ export function registerRoutes(fastify, { store, authentication, generation }) {
     try {
       const result = await store.retry(body.operationId, body.payload, { admit: () => {
         reservation = generation.reserve();
-        if (!reservation) throw new StoreError('generation_busy', 'Generation is busy. Try Retry again later.');
+        if (!reservation) {
+          generation.rejected++;
+          generation.record('rejected', 'generation_busy');
+          throw new StoreError('generation_busy', 'Generation is busy. Try Retry again later.');
+        }
       } });
       if (!result.replayed) await generation.start(body.payload.karteId, body.payload.seiteId, { reservation });
       return result;

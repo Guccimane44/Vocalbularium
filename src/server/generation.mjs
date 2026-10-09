@@ -2,9 +2,10 @@ import { renderSeite, validateInterpretation } from '../core/modules.mjs';
 import { OpenCodeProvider } from './opencode.mjs';
 import { mkdirSync, readdirSync, readFileSync, writeFileSync, renameSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
+import { diagnosticContext } from './diagnostics.mjs';
 
 export class Generation {
-  constructor(store, provider = new OpenCodeProvider(), { maxActive = 4, maxQueued = 16, diagnostic = () => {} } = {}) {
+  constructor(store, provider = new OpenCodeProvider(), { maxActive = 4, maxQueued = 16, diagnostic = () => {}, emit = () => {} } = {}) {
     if (!Number.isSafeInteger(maxActive) || maxActive < 1 || !Number.isSafeInteger(maxQueued) || maxQueued < 0) {
       throw new Error('Generation limits must be non-negative safe integers with at least one active slot.');
     }
@@ -14,6 +15,7 @@ export class Generation {
     this.maxActive = maxActive; this.maxQueued = maxQueued;
     this.admitted = 0; this.rejected = 0; this.closed = false;
     this.diagnostic = diagnostic;
+    this.emit = emit; this.contexts = new Map();
     this.pendingResults = new Map();
     this.failedResults = new Set();
     this.outbox = store.outbox;
@@ -25,6 +27,7 @@ export class Generation {
   }
   async initialize() {
     const store = this.store;
+    this.emit({ event: 'recovery.started', phase: 'generation_journal', outcome: 'started' });
     if (this.outbox) {
       mkdirSync(this.outbox, { recursive: true });
       for (const file of readdirSync(this.outbox).filter(file => file.endsWith('.json'))) {
@@ -34,15 +37,20 @@ export class Generation {
           this.pendingResults.set(id, result);
           await this.store.stage(id, result);
           this.clearResult(id);
+          this.emit({ event: 'recovery.completed', attemptId: id, phase: 'generation_journal', outcome: 'succeeded' });
         } catch (error) {
           if (['deleted', 'stale_session', 'stale_attempt'].includes(error.code)) this.clearResult(id);
           else this.failedResults.add(id);
+          this.emit({ event: 'recovery.failed', attemptId: id, phase: 'generation_journal', severity: 'error', outcome: 'failed', errorType: error.name, errorCode: error.code });
         }
       }
     }
     // A server restart cannot resume model calls that it no longer owns.
     for (const { id } of (await store.loadingAttempts()).filter(attempt => !attempt.result)) {
-      if (!this.pendingResults.has(id)) await store.failAttempt(id);
+      if (!this.pendingResults.has(id)) {
+        await store.failAttempt(id);
+        this.emit({ event: 'recovery.completed', attemptId: id, phase: 'interrupted_attempt', outcome: 'failed' });
+      }
     }
   }
   async interpretation(karte, attempt) {
@@ -74,7 +82,8 @@ export class Generation {
     // Whitelist fields: selected text, generated output, prompts, tokens and provider
     // responses must never enter operational events.
     try {
-      this.diagnostic({ event, category, attemptId, ...(durationMs === undefined ? {} : { durationMs }),
+      this.diagnostic({ ...this.contexts.get(attemptId), event, category, attemptId, ...(durationMs === undefined ? {} : { durationMs }),
+        ...(event === 'started' ? { queueMs: durationMs } : {}),
         active: this.tasks.size, queued: this.queue.length, reserved: this.reservations.size,
         admitted: this.admitted, rejected: this.rejected });
     } catch { /* Diagnostics cannot turn a committed capture or retry into a failed request. */ }
@@ -104,7 +113,8 @@ export class Generation {
   startActive(job) {
     const controller = new AbortController();
     const started = performance.now();
-    const task = this.store.background(() => this.execute(job, controller));
+    this.record('started', 'active', job.attemptId, Math.round(started - job.admittedAt));
+    const task = this.store.background(() => diagnosticContext.run(this.contexts.get(job.attemptId) ?? {}, () => this.execute(job, controller)));
     this.tasks.set(job.attemptId, { task, controller, karteId: job.karteId, sessionId: job.sessionId });
     task.finally(() => {
       this.tasks.delete(job.attemptId);
@@ -113,8 +123,9 @@ export class Generation {
         !this.queue.some(waiting => waiting.karteId === job.karteId)) {
         for (const key of this.outputs.keys()) if (key.startsWith(`${job.karteId}:`)) this.outputs.delete(key);
       }
-      this.record('settled', controller.signal.aborted ? 'canceled' : 'finished', job.attemptId,
+      this.record('settled', controller.signal.aborted ? 'canceled' : job.outcome ?? 'finished', job.attemptId,
         Math.round(performance.now() - started));
+      this.contexts.delete(job.attemptId);
     }).catch(() => {});
   }
   async execute(job, controller) {
@@ -128,6 +139,7 @@ export class Generation {
       const karte = await this.store.karte(karteId);
       if (!karte.seites.some(seite => seite.attempt_id === attemptId && seite.status === 'loading') || controller.signal.aborted) return;
       const needed = attempt.modules.some(module => module.type !== 'selected');
+      this.emit({ event: 'generation.input', attemptId, karteId, outcome: 'started', content: { selectedText: karte.selected_text } });
       const interpretation = needed ? await this.interpretation(karte, attempt) : null;
       if (controller.signal.aborted) return;
       const text = await renderSeite({
@@ -143,7 +155,9 @@ export class Generation {
       });
       if (controller.signal.aborted) return;
       result = { ok: true, text };
+      this.emit({ event: 'generation.output', attemptId, karteId, outcome: 'succeeded', content: { output: text } });
     } catch (error) {
+      job.outcome = 'failed';
       const category = this.category(error, controller);
       this.record('failed', category, attemptId);
       if (category === 'canceled' || ['deleted', 'stale_session', 'stale_attempt'].includes(error?.code)) return;
@@ -157,10 +171,11 @@ export class Generation {
         renameSync(path + '.tmp', path);
       } catch { this.record('failed', 'journal_failure', attemptId); }
     }
-    try { await this.store.stage(attemptId, result); this.clearResult(attemptId); }
+    const staging = performance.now();
+    try { await this.store.stage(attemptId, result); this.clearResult(attemptId); this.record('staged', 'persisted', attemptId, Math.round(performance.now() - staging)); }
     catch (error) {
       if (['deleted', 'stale_session', 'stale_attempt'].includes(error.code)) this.clearResult(attemptId);
-      else { this.failedResults.add(attemptId); this.record('failed', 'persistence_failure', attemptId); }
+      else { job.outcome = 'failed'; this.failedResults.add(attemptId); this.record('failed', 'persistence_failure', attemptId); }
     }
   }
   async start(karteId, seiteId, { reservation } = {}) {
@@ -171,10 +186,12 @@ export class Generation {
         this.queue.some(job => job.attemptId === seite.attempt_id)) continue;
       const attempt = await this.store.attempt(seite.attempt_id);
       if (attempt.result) continue;
-      if (!this.admit({ attemptId: attempt.id, karteId, sessionId: attempt.session_id }, reservation)) {
+      this.contexts.set(attempt.id, { ...diagnosticContext.getStore(), karteId, seiteId: seite.seite_id, attemptId: attempt.id });
+      if (!this.admit({ attemptId: attempt.id, karteId, sessionId: attempt.session_id, admittedAt: performance.now() }, reservation)) {
         this.rejected++;
         await this.store.failAttempt(attempt.id);
         this.record('rejected', 'generation_busy', attempt.id);
+        this.contexts.delete(attempt.id);
       }
     }
   }
@@ -208,6 +225,7 @@ export class Generation {
     if (attempt.installation_id !== session.installationId || attempt.session_id !== session.sessionId) return;
     await this.store.stage(attemptId, this.pendingResults.get(attemptId));
     this.clearResult(attemptId);
+    this.emit({ event: 'recovery.completed', attemptId, phase: 'result_staging', outcome: 'succeeded' });
   }
   clearResult(attemptId) {
     this.pendingResults.delete(attemptId);
