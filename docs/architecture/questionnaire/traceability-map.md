@@ -63,7 +63,7 @@ Move it into [capture-and-generation](../../specs/capture-and-generation.md), ke
 
 - `specs/review.md`: Q52, Q53.
 - `architecture/security-and-privacy.md`: Q57–Q61.
-- Search and organization (Q37, Q54): fold into [decks-and-layouts](../../specs/decks-and-layouts.md), or create `specs/library.md`.
+- Search and organization (Q37, Q54): fold into [decks-and-configuration](../../specs/decks-and-configuration.md), or create `specs/library.md`.
 - Cost and quota (Q48, Q65): fold into capture-and-generation, or create `architecture/cost-and-limits.md`.
 
 **R4. Should locked decisions become ADRs?** [decisions/](../decisions/README.md) is empty. Load-bearing choices could be recorded as ADRs: Q18 hosted hub, Q22 Vercel serverless, Q23 Neon, Q25 PG queue, Q35 shared-table tenancy. The specs would then link to the ADRs instead of restating the reasoning.
@@ -160,7 +160,7 @@ Link paths are relative to this file. *S&A* is [Select and Add](../../MVP-Produc
 | Q | Answer (short) | Target docs | Change | Status |
 | --- | --- | --- | --- | --- |
 | Q06 | 1.0: Chrome, Firefox, hosted web. Post-1.0: Safari, iOS, desktop hotkey. Out: audio/YouTube | scope, [architecture overview](../overview.md) | 1.0 client list; lift the web-client deferral, keep mobile and hotkey deferred | ready |
-| Q07 | Standard payload + editable Context (~500 chars), with a toggle | [kartes-and-editing](../../specs/kartes-and-editing.md) §Context, S&A §Capture scenario | Done in `8767818`. Remaining: storage of URL/title + timestamp, retention rule (K7) | partial |
+| Q07 | Standard payload + editable Context (~500 chars), with a toggle | [pages-and-editing](../../specs/pages-and-editing.md) §Context, S&A §Capture scenario | Done in `8767818`. Remaining: storage of URL/title + timestamp, retention rule (K7) | partial |
 | Q08 | Fire-and-forget default; opt-in popup on terminal state; 3s auto-dismiss; originating installation only; terminal-only progress | S&A §Capture-feedback popup → capture-and-generation, [shared-ui](../../specs/shared-ui.md) | Rewrite the popup rules | ready |
 | Q09 | Best-effort queue: captures + saves survive restart; generation does not | capture-and-generation, [persistence-and-recovery](../persistence-and-recovery.md) | Define the client queue; reverses the "no automatic resubmission" deferral | ready (K2) |
 | Q10 | Session + installation ID; no anonymous use; event-driven refresh; capture tokens deferred | accounts-and-sync, overview | Installation registry, results published to the originating installation, polling demoted to fallback | ready |
@@ -170,8 +170,8 @@ Link paths are relative to this file. *S&A* is [Select and Add](../../MVP-Produc
 | Q | Answer (short) | Target docs | Change | Status |
 | --- | --- | --- | --- | --- |
 | Q11 | Shared packages + two shells; inline module descriptions | overview, shared-ui, modules | Package/shell boundary; module description surface; web-shell routing (see the Notion routing Q&A) | ready |
-| Q12 | Explicit Save/Cancel | kartes-and-editing | Confirms current behavior | no change |
-| Q13 | Block JSON at 1.0, per component (Q72) | shared-ui, kartes-and-editing, modules, model §Seite | Each component becomes a versioned block document; block editor; modules emit typed blocks. No plain-text migration (content discarded, Q72) | ready |
+| Q12 | Explicit Save/Cancel | pages-and-editing | Confirms current behavior | no change |
+| Q13 | Block JSON at 1.0, per component (Q72) | shared-ui, pages-and-editing, modules, model §Seite | Each component becomes a versioned block document; block editor; modules emit typed blocks. No plain-text migration (content discarded, Q72) | ready |
 | Q14 | N−1 compatibility window, online-required, retire legacy terms, `incarnationId`, UX messages; Q72 retires both card/page and karte/seite | [terminology-compatibility](../terminology-compatibility.md), shared-ui, overview | Compatibility rule, legacy retirement, reset detection, error messages | ready |
 | Q15 | Browser-store auto-update (Chrome + Firefox) | [delivery](../../guides/delivery.md) | Replace manual unpacked delivery for users | ready |
 | Q16 | WCAG 2.2 AA (Q68); capture receipt <1 s p95 warm; dashboard <2 s at 5k kartes | shared-ui, overview (budgets), [verification](../../guides/verification.md) | Accessibility floor and latency targets as release checks | ready |
@@ -202,13 +202,13 @@ Link paths are relative to this file. *S&A* is [Select and Add](../../MVP-Produc
 
 | Q | Answer (short) | Target docs | Change | Status |
 | --- | --- | --- | --- | --- |
-| Q29 | Store key + Context + current block content and latest outcome per component (Q72); optional interpretation line; no referent | model §Karte/§Generation attempt, kartes-and-editing | Done: Context. Remaining: block content per component, URL/title, interpretation line; remove pinned layout (Q72) | partial |
-| Q30 | String only by default; opt-in editable interpretation line | model §Direction: semantic continuity, kartes-and-editing, capture-and-generation, shared-ui (setting) | Rewrite the continuity direction; specify the interpretation line and setting | ready (K14) |
-| Q31 | Superseded by Q72: no pinned layouts; generation and retry use the live configuration | kartes-and-editing, S&A → [decks-and-layouts](../../specs/decks-and-layouts.md) | Remove the pinned-layout rules applied in `8767818` | superseded |
-| Q32 | True move, full-carry copy, trash + restore + 30-day purge; carries components, next retry uses the target deck's configuration (Q72) | decks-and-layouts, kartes-and-editing, scope, persistence-and-recovery | New capability; drop the move/copy deferral | ready |
+| Q29 | Store key + Context + current block content and latest outcome per component (Q72); optional interpretation line; no referent | model §Karte/§Generation attempt, pages-and-editing | Done: Context. Remaining: block content per component, URL/title, interpretation line; remove pinned layout (Q72) | partial |
+| Q30 | String only by default; opt-in editable interpretation line | model §Direction: semantic continuity, pages-and-editing, capture-and-generation, shared-ui (setting) | Rewrite the continuity direction; specify the interpretation line and setting | ready (K14) |
+| Q31 | Superseded by Q72: no pinned layouts; generation and retry use the live configuration | pages-and-editing, S&A → [decks-and-configuration](../../specs/decks-and-configuration.md) | Pinned-layout rules removed from the specs (refactor increment 1) | superseded |
+| Q32 | True move, full-carry copy, trash + restore + 30-day purge; carries components, next retry uses the target deck's configuration (Q72) | decks-and-configuration, pages-and-editing, scope, persistence-and-recovery | New capability; drop the move/copy deferral | ready |
 | Q33 | Current content only; append-only usage ledger per provider call | model §Generation attempt, persistence-and-recovery, capture-and-generation | Remove attempt history; define the usage ledger | ready (K7) |
-| Q34 | At most 12 content modules per deck (Q72); view limits with view modules | decks-and-layouts | Replace the 1–4 seite limit | ready |
-| Q72 | Deck → page → component; live configuration; default view only; content discarded on upgrade | model, kartes-and-editing → pages-and-editing, decks-and-layouts → decks-and-configuration, modules, capture-and-generation, S&A, scope, [AGENTS.md](../../../AGENTS.md) | Rewrite in [increment 1](../../plans/page-component-refactor.md#1-product-language-and-specifications-docs-only) | ready |
+| Q34 | At most 12 content modules per deck (Q72); view limits with view modules | decks-and-configuration | Done in refactor increment 1: 12-instance limit in decks-and-configuration | applied |
+| Q72 | Deck → page → component; live configuration; default view only; content discarded on upgrade | model, pages-and-editing, decks-and-configuration, modules, capture-and-generation, S&A, scope, [AGENTS.md](../../../AGENTS.md) | Done in [increment 1](../../plans/page-component-refactor.md#1-product-language-and-specifications-docs-only) | applied (implementation pending) |
 
 ### 07 Database
 
@@ -243,7 +243,7 @@ Link paths are relative to this file. *S&A* is [Select and Add](../../MVP-Produc
 | --- | --- | --- | --- | --- |
 | Q52 | Leitner boxes | `specs/review.md` (R3), scope, model | New capability | ready (K1) |
 | Q53 | Separate progress tables; reference page and component IDs (Q72) | review spec, model | — | ready (K1) |
-| Q54 | Decks + tags | decks-and-layouts (or library, R3), model | New capability | ready |
+| Q54 | Decks + tags | decks-and-configuration (or library, R3), model | New capability | ready |
 | Q55 | Low thousands of kartes | overview (budgets), shared-ui | — | ready (K11) |
 | Q56 | Visible queue (position, ETA, cancel); cancel counts only after the provider call started | capture-and-generation, shared-ui | Reverses the silent queue | ready |
 
@@ -290,8 +290,8 @@ Use this view to refactor one document at a time.
 | [product/model](../../product/model.md) | Q02, Q17, Q29, Q30, Q33, Q53, Q54, Q72 | Account, attempt, tags, review; page/component/view model |
 | [specs/accounts-and-sync](../../specs/accounts-and-sync.md) *(empty)* | Q02, Q10, Q17, Q19, Q21, Q38, Q58 | |
 | [specs/capture-and-generation](../../specs/capture-and-generation.md) *(empty)* | Q08, Q09, Q24, Q25, Q30, Q46–Q51, Q56, Q60, Q65, Q72 | Takes over from Select and Add (R2) |
-| [specs/decks-and-layouts](../../specs/decks-and-layouts.md) *(empty)* | Q31 (superseded), Q32, Q34, Q37?, Q54, Q72 | Renamed to `decks-and-configuration.md` (Q72) |
-| [specs/kartes-and-editing](../../specs/kartes-and-editing.md) | Q07, Q12, Q13, Q29, Q30, Q32, Q72 | Renamed to `pages-and-editing.md` (Q72) |
+| [specs/decks-and-configuration](../../specs/decks-and-configuration.md) | Q31 (superseded), Q32, Q34, Q37?, Q54, Q72 | Renamed from `decks-and-layouts.md` (Q72) |
+| [specs/pages-and-editing](../../specs/pages-and-editing.md) | Q07, Q12, Q13, Q29, Q30, Q32, Q72 | Renamed from `kartes-and-editing.md` (Q72) |
 | [specs/modules](../../specs/modules.md) | Q05, Q11, Q13, Q49, Q72, Q40–Q45 (deferred) | Content and view module kinds (Q72) |
 | [specs/shared-ui](../../specs/shared-ui.md) *(empty)* | Q08, Q11, Q13, Q14, Q16, Q30, Q48, Q55, Q56, Q59, Q63, Q67, Q68, Q69 | |
 | `specs/review` *(new, R3)* | Q52, Q53 | |

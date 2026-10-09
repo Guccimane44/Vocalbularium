@@ -58,7 +58,7 @@ Close with the two decisions that protect everything already built: a UI directi
 
 **Decision:** Sequence the post-migration increments to minimize rework: main-key implementation, hosting/tenancy, semantic referent, module expansion + evals, rich rendering, review/SRS, search/scale.
 
-**Context:** Main-key behavior is accepted but pending, with open implementation details (generation action, button label, replacement policy, whitespace rules, active-generation interplay, compat for input-less manual kartes) ([kartes-and-editing](../../specs/kartes-and-editing.md)). The model warns these rules do not select the UI or policy by themselves. Building SRS tables before the semantic-object decision, or rich rendering before the editor model, guarantees a second migration.
+**Context:** Main-key behavior is accepted but pending, with open implementation details (generation action, button label, replacement policy, whitespace rules, active-generation interplay, compat for input-less manual kartes) ([kartes-and-editing](../../specs/pages-and-editing.md)). The model warns these rules do not select the UI or policy by themselves. Building SRS tables before the semantic-object decision, or rich rendering before the editor model, guarantees a second migration.
 
 **Options:**
 - Contract-first (tenancy + API + statelessness) → data (referent + limits) → main-key → modules + evals → rendering → review → search.

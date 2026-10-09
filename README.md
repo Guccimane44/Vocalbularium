@@ -2,6 +2,8 @@
 
 A vocabulary capture extension for Chrome. The v0.3.0 local candidate uses Fastify, PostgreSQL 18, WXT and React for the dashboard, configuration and karte editor. Account access, capture, deck configuration and karte workflows remain available. The earlier Render/OpenCode MVP is a separate testing environment. The owner accepted that MVP baseline on 13 September 2026; see the [Windows acceptance record](docs/history/evidence/windows-owner-acceptance-2026-09-13.md).
 
+The product documentation now uses deck → page → component ([product model](docs/product/model.md)). That refactor is in progress ([#81](https://github.com/Guccimane44/Vocalbularium/issues/81)); this README describes the running v0.3.0 build, which still uses kartes and seites.
+
 - [MVP delivery tracker and milestone issues](https://github.com/Guccimane44/Vocalbularium/issues/5)
 - [Implementation plan](docs/history/mvp/MVP-Implementation-plan.md)
 - [Foundation decisions and verification](docs/history/mvp/M0-Foundation.md)
