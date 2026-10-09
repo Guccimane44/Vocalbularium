@@ -28,17 +28,17 @@ An inapplicable instance contributes no output and is not a generation failure. 
 
 The owner-approved input change is specified in [Kartes and editing](kartes-and-editing.md) and is [pending implementation](../product/scope.md#accepted-change-pending-implementation). It supersedes capture-only input for the target behavior:
 
-- Modules use the karte's current main key as their only text input, whether capture or manual entry supplied it. Module configuration remains the instructions governing the contribution.
-- Required interpretation and applicability must use that main key. Changing it must not leave later generation using a prior key's category or source language.
-- Editing the main key does not run modules or change saved output. The user explicitly requests generation or generation again.
-- Existing output reflects the main key used in its generation attempt and may differ from the current main key after an edit.
+- Modules use the karte's current main key and its saved Context (when present) as their only text input, whether capture or manual entry supplied them. Module configuration remains the instructions governing the contribution.
+- Required interpretation and applicability must use that main key and Context. Changing either must not leave later generation using a prior key's category or source language.
+- Editing the main key or the Context does not run modules or change saved output. The user explicitly requests generation or generation again.
+- Existing output reflects the main key and Context used in its generation attempt and may differ from the current values after an edit.
 - A front seite must display the main key even if no input-printing module is configured or no modules contribute output.
 
 The five current types retain their output formats and applicability. Under the accepted input model, references to selected text in those module definitions mean the main key supplied to that attempt. Exact-input modules must print that supplied value, including a manually entered or edited main key.
 
 ## Current composition and editing
 
-Users select, place, reorder, and repeat module instances within the deck's ordered seites. Adding an instance does not remove its type from the library. Repeated generation instances operate independently while sharing the capture's interpretation; direct-input instances repeat the same input. Detailed repetition rules remain in the [existing specification](../history/mvp/MVP-Product-spec-modules.md#multiple-instances-of-a-module).
+Users select, place, reorder, and repeat module instances within the deck's ordered seites. Deck-configuration edits apply to newly created kartes; existing kartes keep their pinned layout revision. Adding an instance does not remove its type from the library. Repeated generation instances operate independently while sharing the karte's interpretation; direct-input instances repeat the same input. Detailed repetition rules remain in the [existing specification](../history/mvp/MVP-Product-spec-modules.md#multiple-instances-of-a-module).
 
 Outputs are plain text, combined in configured order with a blank line between nonempty contributions. Inapplicable instances add no separator. Users edit a seite's text as a whole; saved text need not retain separate module-output boundaries. Empty seites remain valid. See [rendering rules](../history/mvp/MVP-Product-spec-modules.md#first-iteration-rendering) and [empty seites](../history/mvp/MVP-Product-spec-modules.md#empty-pages).
 

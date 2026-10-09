@@ -14,7 +14,7 @@ The current baseline is the Chrome extension with its local account backend. It 
 | Synchronization | Installations connected to the same backend access the same account. Saving and synchronization failures support explicit recovery. | [Accounts and synchronization](../history/mvp/MVP-Product-scope.md#2-accounts-login-and-synchronization), [save recovery](../MVP-Product-spec-select-and-add.md#saving-and-synchronization-failures) |
 | Capture | Select a word, phrase, or sentence in Chrome and create a karte in the default deck through the context menu, with brief feedback and accessible capture outcomes. Input consists of the selected text only. | [Select and Add](../MVP-Product-spec-select-and-add.md) |
 | Deck management | Browse, create, rename, configure, and delete decks; choose the account's default deck. | [Dashboard](../history/mvp/MVP-Product-scope.md#4-dashboard), [default deck](../history/mvp/MVP-Product-scope.md#6-default-deck) |
-| Layout configuration | One to four ordered seites with a required front seite; add, remove, and rearrange module instances, including repeated instances; preview layouts using examples. | [Deck configuration](../history/mvp/MVP-Product-scope.md#5-deck-configuration-page) |
+| Layout configuration | One to four ordered seites with a required front seite; add, remove, and rearrange module instances, including repeated instances; preview layouts using examples. Edits currently apply to every karte in the deck (conform-always); per-karte layout pinning is accepted but pending (see below). | [Deck configuration](../history/mvp/MVP-Product-scope.md#5-deck-configuration-page) |
 | Modules | Five types: `<The selected>`, `<The selected + original language tag>`, `<German explanation>`, `<German explanation + examples>`, and `<Sentence usage>`. Interpretation chooses one source language where needed. | [Module catalog and applicability](../specs/modules.md) |
 | Generation | Automatically saved capture and generation outcomes, seite-level completion and failure, and explicitly confirmed retry of a captured karte's current seite. | [Completion and failure](../MVP-Product-spec-select-and-add.md#seite-completion-and-failure), [seite retry](../MVP-Product-spec-select-and-add.md#retry-the-current-seite) |
 | Kartes | Browse and sort deck kartes, open a karte, navigate its seites, create kartes manually, edit seite text, and delete kartes. Duplicate kartes and empty seites are supported. | [Karte lists](../history/mvp/MVP-Product-scope.md#7-card-view-page), [manual editing](../history/mvp/MVP-Product-scope.md#8-card-content-page-and-manual-editing) |
@@ -30,7 +30,9 @@ The owner has specified a shared main-key model for captured and manually create
 - The main key must appear on the front seite, regardless of the configured modules.
 - Both creation paths support module generation from the main key. Manual creation does not automatically generate; the user chooses the generation action.
 - Changing the main key changes the input for subsequent generation. It does not automatically regenerate, erase, or replace existing content.
-- Explicit generation again uses the updated main key; prior content remains intact until that action is requested.
+- Each karte carries an optional editable Context (the surrounding block, capped at around 500 characters). Capture with Context can be turned on or off; Context edits follow the main-key rule above.
+- Each karte pins its deck layout revision at creation. Later deck-configuration edits apply to newly created kartes, not to existing ones.
+- Explicit generation again uses the updated main key and Context; prior content remains intact until that action is requested.
 
 The [karte input and editing specification](../specs/kartes-and-editing.md) owns these requirements. The [module input contract](../specs/modules.md#accepted-main-key-input-contract) and [generation specification](../MVP-Product-spec-select-and-add.md#accepted-main-key-generation-change) describe their effect on generation. The implemented baseline still creates blank manual kartes without generation input and restricts retry to captured kartes using the original selection. Implementing the accepted change requires input persistence, UI, generation, compatibility, and verification work; this documentation change does not perform that work.
 
@@ -48,7 +50,7 @@ The earlier hosted MVP is a separate historical environment. Current scope does 
 
 - Registration, multiple user accounts, public onboarding, and public account-management features.
 - Dedicated web, iOS, or Android clients and capture through mobile sharing or new hotkey workflows.
-- Surrounding webpage context and multiple source-language interpretations for one capture.
+- Multiple source-language interpretations for one capture (surrounding webpage context as capture Context is accepted-pending above, not deferred).
 - Dedicated passage-oriented generation and modules beyond the current five types.
 - User-created modules, module customization APIs, and a general module marketplace.
 - Rich-text rendering, editing separate module-output blocks, audio, images, and other media modules.

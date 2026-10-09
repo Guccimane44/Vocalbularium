@@ -1,4 +1,4 @@
 interface:
   display_name: "Vocabularium Change"
-  short_description: "Track incremental changes with issues and PRs"
-  default_prompt: "Use $vocabularium-change to turn this requested change into scoped work with GitHub progress."
+  short_description: "Connect decisions, scoped changes, and GitHub progress"
+  default_prompt: "Use $vocabularium-change to scope this requested change from relevant project decisions and track its GitHub and Notion progress."
