@@ -134,18 +134,9 @@ Account synchronization follows the [MVP scope](history/mvp/MVP-Product-scope.md
 
 ## Initial default-deck example
 
-The initial **My Deck** has two content module instances, in this order:
+The initial **My Deck** has one content module instance: `<German explanation + examples>`. It has no `<The selected>` instance, because every page already shows its main key.
 
-1. `<The selected>`
-2. `<German explanation + examples>`
-
-For the selected input `幸福`, interpreted as Chinese in this example, the page shows its main key `幸福`, then a `<The selected>` component:
-
-```text
-幸福
-```
-
-then a German-language explanation component for the Chinese word, with Chinese examples and their German translations, following the format in the [Modules specification](history/mvp/MVP-Product-spec-modules.md). The exact generated wording may vary.
+For the selected input `幸福`, interpreted as Chinese in this example, the page shows its main key `幸福`, then a German-language explanation component for the Chinese word, with Chinese examples and their German translations, following the format in the [Modules specification](history/mvp/MVP-Product-spec-modules.md). The exact generated wording may vary.
 
 For a selected sentence such as `我真的很幸福`, the `<German explanation + examples>` component completes empty because that module does not apply to sentences. This is an intentional, successfully completed page. A user can add `<Sentence usage>` to the deck configuration and use **Generate missing** on this page, rely on it for future captures, or add their own component to this page.
 
