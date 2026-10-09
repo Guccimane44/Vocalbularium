@@ -4,6 +4,8 @@
 
 ### 53
 
+**Amended 10 October 2026 by [Q72](answers-06-data-and-semantics.md#q72):** reviews reference page and component IDs, not karte/seite IDs. References to parts of a card wait for the card view module.
+
 - Separate progress tables (reviews reference karte/seite IDs) — cleanest; karte content and study state evolve independently.
 
 ### 54
