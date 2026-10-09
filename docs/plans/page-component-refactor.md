@@ -97,10 +97,10 @@ Each increment is runnable and reviewable on its own and follows the [Change](..
 - The existing [terminology plan](v0.3.0-plus-terminology-migration.md) and [compatibility record](../architecture/terminology-compatibility.md) become historical. Add a pointer at the top; don't rewrite them.
 
 ### 2. Domain and contracts (`packages/domain`, `packages/contracts`)
-- Replace `renderSeite` (which joins module outputs into one text) with per-instance component generation. One interpretation per generation run is shared across the components it produces.
+- Add per-instance component generation (`generateComponent`, `generateComponents`). One interpretation per generation run is shared across the components it produces. `renderSeite` (which joins module outputs into one text) is rebuilt on it so the running backend keeps its behavior, and is removed in increment 4.
 - Types: `Page`, `Component` (`main_key | context | module | manual`), `ContentModuleInstance`, `ComponentAttempt`, `ViewModule`.
 - Register the existing five modules as content modules, and the **default view** as the first view module.
-- New contract dialect for routes and messages (shape depends on D1). Regenerate OpenAPI.
+- New contract dialect for routes and messages, added beside the karte/seite dialect (D1 retires both old dialects in increments 4–5). OpenAPI is regenerated when the routes switch in increment 4.
 - Unit tests: generation per instance, applicability skips, distinct-example retry (`claimOutput`) per component.
 
 ### 3. Persistence: fresh content schema (`migrations/0003_*`, `src/persistence`)

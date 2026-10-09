@@ -7,6 +7,10 @@
     "./modules": {
       "types": "./dist/modules.d.ts",
       "import": "./dist/modules.js"
+    },
+    "./pages": {
+      "types": "./dist/pages.d.ts",
+      "import": "./dist/pages.js"
     }
   },
   "dependencies": {
