@@ -6,6 +6,7 @@ A vocabulary capture extension for Chrome. The v0.3.0 local candidate uses Fasti
 - [Implementation plan](docs/history/mvp/MVP-Implementation-plan.md)
 - [Foundation decisions and verification](docs/history/mvp/M0-Foundation.md)
 - [Windows installation](docs/guides/windows-install.md) and [delivery preparation](docs/history/mvp/M6-Delivery.md)
+- [Diagnostic logs and cleanup commands](docs/guides/diagnostics.md)
 - [MVP scope](docs/history/mvp/MVP-Product-scope.md)
 
 The [terminology migration](docs/plans/v0.3.0-plus-terminology-migration.md) establishes deck → karte → seite. Previous extension builds, saved links and recoverable operations remain supported by the [compatibility policy](docs/architecture/terminology-compatibility.md); install the updated backend and its reviewed migration before the new extension.

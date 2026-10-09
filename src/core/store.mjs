@@ -57,10 +57,10 @@ export class AccountStore {
     this.accountId = database.accountId;
     this.outbox = outbox;
   }
-  static async open({ databaseUrl, accountId = OWNER_ACCOUNT_ID, outbox } = {}) {
+  static async open({ databaseUrl, accountId = OWNER_ACCOUNT_ID, outbox, diagnostic } = {}) {
     if (!databaseUrl)
       throw new Error('DATABASE_URL is required.');
-    const database = new Postgres(databaseUrl, accountId);
+    const database = new Postgres(databaseUrl, accountId, diagnostic);
     try {
       await database.initialize();
       const store = new AccountStore(database, { outbox });

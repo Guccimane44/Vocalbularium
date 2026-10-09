@@ -17,6 +17,18 @@ export class OpenCodeProvider {
     this.apiKey = apiKey; this.model = model; this.fetch = fetchImpl;
   }
   async structured(name, schema, instructions, input, signal, sessionId = randomUUID()) {
+    const started = performance.now();
+    const trace = (event, extra = {}) => {
+      try { this.diagnostic?.({ event, phase: name, karteId: sessionId, model: this.model, maxTokens: 4096, ...extra }); }
+      catch { /* Logging never changes generation results. */ }
+    };
+    const messages = [
+      { role: 'system', content: `${instructions}\nReturn exactly one JSON object for ${name}, with no surrounding text or code fences. Match this JSON schema: ${JSON.stringify(schema)}` },
+      { role: 'user', content: JSON.stringify(input) }
+    ];
+    trace('provider.request', { outcome: 'started', content: { prompts: messages } });
+    let raw, status;
+    try {
     if (!this.apiKey) throw failure('provider_unconfigured', 'Generation is not configured on the server.');
     const response = await this.fetch('https://opencode.ai/zen/go/v1/chat/completions', {
       method: 'POST', headers: {
@@ -25,16 +37,15 @@ export class OpenCodeProvider {
       },
       body: JSON.stringify({
         model: this.model, stream: false, max_tokens: 4096,
-        messages: [
-          { role: 'system', content: `${instructions}\nReturn exactly one JSON object for ${name}, with no surrounding text or code fences. Match this JSON schema: ${JSON.stringify(schema)}` },
-          { role: 'user', content: JSON.stringify(input) }
-        ]
+        messages
       }),
       signal: AbortSignal.any([AbortSignal.timeout(60000), ...(signal ? [signal] : [])])
     });
+    status = response.status;
+    raw = await response.text();
     if (!response.ok) throw failure('provider_response', 'The generation service could not complete this request.');
     let result;
-    try { result = await response.json(); } catch { throw failure('provider_invalid', 'Generation returned an invalid result.'); }
+    try { result = JSON.parse(raw); } catch { throw failure('provider_invalid', 'Generation returned an invalid result.'); }
     const choice = result?.choices?.[0];
     if (result?.error || !Array.isArray(result?.choices) || result.choices.length !== 1 || choice?.finish_reason !== 'stop') {
       throw failure('provider_incomplete', 'Generation returned an incomplete result.');
@@ -54,8 +65,14 @@ export class OpenCodeProvider {
         if (!Object.hasOwn(value, key) || typeof value[key] !== field.type || !value[key].trim()) throw new Error();
         if (field.enum && !field.enum.includes(value[key])) throw new Error();
       }
+      trace('provider.response', { outcome: 'succeeded', status, durationMs: Math.round(performance.now() - started), content: { output: raw } });
       return value;
     } catch { throw failure('provider_invalid', 'Generation returned an invalid result.'); }
+    } catch (error) {
+      trace('provider.response', { outcome: 'failed', severity: 'error', status, errorType: error.name,
+        errorCode: error.code, durationMs: Math.round(performance.now() - started), content: { output: raw } });
+      throw error;
+    }
   }
   async interpret(selectedText, signal, sessionId) {
     const result = await this.structured('vocabulary_interpretation', interpretationSchema,

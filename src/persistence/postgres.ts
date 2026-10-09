@@ -33,10 +33,13 @@ export class Postgres {
   private owner?: pg.PoolClient;
   private unavailable = false;
   private closed = false;
+  private diagnostic: (event: Record<string, unknown>) => void;
 
   readonly accountId: number;
-  constructor(databaseUrl: string, accountId = OWNER_ACCOUNT_ID) {
+  constructor(databaseUrl: string, accountId = OWNER_ACCOUNT_ID,
+    diagnostic: (event: Record<string, unknown>) => void = () => {}) {
     this.accountId = accountId;
+    this.diagnostic = diagnostic;
     if (accountId !== OWNER_ACCOUNT_ID) throw new Error('Only the local owner account is supported.');
     this.pool = new pg.Pool({ connectionString: databaseUrl, max: 5,
       connectionTimeoutMillis: 3000, idleTimeoutMillis: 30_000,
@@ -46,11 +49,15 @@ export class Postgres {
         return number;
       } : pg.types.getTypeParser(oid, format as "text") },
       statement_timeout: 10_000, lock_timeout: 3000, idle_in_transaction_session_timeout: 15_000 });
-    this.pool.on('error', () => { /* Checked requests surface a safe persistence error. */ });
+    this.pool.on('error', error => this.recordError(error));
+  }
+  private recordError(error: Error & { code?: string }) {
+    try { this.diagnostic({ event: 'database.failed', severity: 'error', outcome: 'failed', errorType: error.name, errorCode: error.code }); }
+    catch { /* Diagnostic failure never changes persistence behavior. */ }
   }
   async initialize() {
     this.owner = await this.pool.connect();
-    this.owner.on('error', () => { this.unavailable = true; });
+    this.owner.on('error', error => { this.unavailable = true; this.recordError(error); });
     const version = await this.owner.query('SHOW server_version_num');
     if (Number(version.rows[0].server_version_num) < 180000 || Number(version.rows[0].server_version_num) >= 190000) {
       throw new Error('PostgreSQL 18 is required.');
