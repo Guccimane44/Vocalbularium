@@ -4,7 +4,7 @@ shared tables + `account_id` — one migration path, cross-account analytics eas
 
 ### Q36
 
-Expand–migrate–contract (additive first, backfill, then remove) 
+Expand–migrate–contract (additive first, backfill, then remove)
 
 ### Q37
 
