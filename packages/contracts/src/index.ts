@@ -1,17 +1,14 @@
 import Type from 'typebox';
+import { BrowserSessionSchema, OperationIdSchema } from './base.js';
 
-export const OperationIdSchema = Type.String({ minLength: 1 });
+export { BrowserSessionSchema, OperationIdSchema };
+
 export const InputTypeSchema = Type.Union([Type.Literal('word_phrase'), Type.Literal('sentence')]);
 export const InputInterpretationSchema = Type.Object({
   inputType: InputTypeSchema,
   sourceLanguage: Type.String({ minLength: 1 })
 });
 
-export const BrowserSessionSchema = Type.Object({
-  installationId: Type.String({ minLength: 1 }),
-  sessionId: Type.String({ minLength: 1 }),
-  epoch: Type.Integer({ minimum: 1 })
-});
 
 export const ModuleInstanceSchema = Type.Object({
   id: Type.String({ minLength: 1 }),
@@ -174,3 +171,4 @@ export type PollRequest = Type.Static<typeof PollRequestSchema>;
 export type PublishRequest = Type.Static<typeof PublishRequestSchema>;
 
 export { currentPath, legacyPath, currentHash, currentValue, legacyValue, legacyOperation, usesCurrentFields } from './terminology.js';
+export * from './pages.js';
