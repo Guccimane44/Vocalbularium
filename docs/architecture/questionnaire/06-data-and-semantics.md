@@ -6,7 +6,7 @@ This is the product's long-term memory. The vision's "persistent semantic object
 
 **Decision:** For each karte, what persists: main key + per-seite text + layout + attempt metadata only, or also interpretation (word/phrase/sentence + source language), per-module blocks, and semantic referent?
 
-**Context:** The model defines main key, interpretation per attempt, module instances, attempts, and outcomes as distinct concepts — and explicitly says these are product relationships, not a storage prescription ([model](../product/model.md)). Current seite content is whole-text with outcomes tracked separately; manual content establishes no generation success.
+**Context:** The model defines main key, interpretation per attempt, module instances, attempts, and outcomes as distinct concepts — and explicitly says these are product relationships, not a storage prescription ([model](../../product/model.md)). Current seite content is whole-text with outcomes tracked separately; manual content establishes no generation success.
 
 **Options:**
 - Minimal (key + text + layout + outcome) — smallest schema; future modules re-derive everything from the key. Fails when re-derivation disagrees with what the user originally meant.
@@ -19,7 +19,7 @@ This is the product's long-term memory. The vision's "persistent semantic object
 
 **Decision:** (a) main-key string only, (b) key + frozen interpretation, or (c) key + user-correctable meaning/referent + context snapshot?
 
-**Context:** The model calls richer interpretation and semantic corrections "open" and "direction, not guarantee": current interpretation does not establish an enduring, correctable identity ([model](../product/model.md)). The critique demands the opposite long-term: the system should understand what the object refers to so modules generate appropriate representations ([competitor critique](../product/competitor-critique.md)).
+**Context:** The model calls richer interpretation and semantic corrections "open" and "direction, not guarantee": current interpretation does not establish an enduring, correctable identity ([model](../../product/model.md)). The critique demands the opposite long-term: the system should understand what the object refers to so modules generate appropriate representations ([competitor critique](../../product/competitor-critique.md)).
 
 **Options:**
 - (a) String only — simplest; every generation re-interprets from scratch. Ambiguous keys flip meaning between runs.
@@ -32,7 +32,7 @@ This is the product's long-term memory. The vision's "persistent semantic object
 
 **Decision:** When seites/modules are added, removed, reordered, or reconfigured, what happens to kartes already saved under the old layout?
 
-**Context:** Save applies layout to existing kartes today: new seites arrive empty, retained seites keep text, removing saved content needs confirmation against latest account data (README). Seites without triggered modules still exist but render empty; empty is valid, not failure ([modules](../specs/modules.md)).
+**Context:** Save applies layout to existing kartes today: new seites arrive empty, retained seites keep text, removing saved content needs confirmation against latest account data (README). Seites without triggered modules still exist but render empty; empty is valid, not failure ([modules](../../specs/modules.md)).
 
 **Options:**
 - Conform always (current) — every karte matches the live layout; layout edits are implicitly bulk migrations. Needs the confirmation flow to never lose text silently.
@@ -45,7 +45,7 @@ This is the product's long-term memory. The vision's "persistent semantic object
 
 **Decision:** Copy/move semantics between decks, duplicate policy, delete semantics (hard vs trash + restore), and ID stability.
 
-**Context:** Every karte belongs to exactly one deck; copy/paste or move into another deck exists in the product description but moving/copying is deferred in scope ([vision/product description](../../vocabularium-product-description.md), [scope](../product/scope.md)). Matching main keys never merge identities ([model](../product/model.md)).
+**Context:** Every karte belongs to exactly one deck; copy/paste or move into another deck exists in the product description but moving/copying is deferred in scope ([vision/product description](../../../vocabularium-product-description.md), [scope](../../product/scope.md)). Matching main keys never merge identities ([model](../../product/model.md)).
 
 **Options:**
 - Copy-only (move = copy + delete) — simplest; new ID + fresh attempts, history stays behind unless explicitly carried.
@@ -58,7 +58,7 @@ This is the product's long-term memory. The vision's "persistent semantic object
 
 **Decision:** Per-seite edit history, generation attempt log (prompt version, model, timestamp, cost), source URL — how much, how long, visible to whom?
 
-**Context:** Attempts and outcomes are modeled separately from content, but no history UI or retention rule exists; smoke evidence today is ad-hoc JSON samples ([model](../product/model.md), README smoke sections). Provenance is also the debugging story for "why does this say X?" and the eval story for prompt regressions.
+**Context:** Attempts and outcomes are modeled separately from content, but no history UI or retention rule exists; smoke evidence today is ad-hoc JSON samples ([model](../../product/model.md), README smoke sections). Provenance is also the debugging story for "why does this say X?" and the eval story for prompt regressions.
 
 **Options:**
 - Attempt log only (latest outcome per seite) — minimal; cannot answer "what changed and when".

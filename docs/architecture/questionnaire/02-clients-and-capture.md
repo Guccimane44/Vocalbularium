@@ -6,7 +6,7 @@ Capture is the product's front door: the vision promises saving text without bre
 
 **Decision:** For each candidate — Chrome extension, hosted web app, Firefox/Safari, iOS share-sheet, Android share, desktop hotkey, audio/YouTube capture — mark must-have, nice, or out.
 
-**Context:** Today only Chrome selection → context menu → default deck exists, using selected text only ([scope](../product/scope.md), [Select and Add](../MVP-Product-spec-select-and-add.md)). The vision names hotkeys, sharing, and mobile devices as possibilities, not commitments ([vision](../product/vision.md)). Each client needs its own auth session, capture endpoint, and update channel.
+**Context:** Today only Chrome selection → context menu → default deck exists, using selected text only ([scope](../../product/scope.md), [Select and Add](../../MVP-Product-spec-select-and-add.md)). The vision names hotkeys, sharing, and mobile devices as possibilities, not commitments ([vision](../../product/vision.md)). Each client needs its own auth session, capture endpoint, and update channel.
 
 **Options:**
 - Chrome-only 1.0 — one client, one update path (unpacked or Web Store), all effort into capture reliability and modules. Tradeoff: mobile demand stays unserved.
@@ -19,7 +19,7 @@ Capture is the product's front door: the vision promises saving text without bre
 
 **Decision:** Define the capture payload: selected text plus what else — page URL/title, surrounding paragraph, source-language hint, timestamp, user intent?
 
-**Context:** Modules currently receive only the selected text with no surrounding webpage context, plus one interpreted source language ([modules](../specs/modules.md#current-input-and-applicability)). The vision says relevant available context should shape generation ([vision](../product/vision.md)). More context improves interpretation but enlarges privacy surface, prompt cost, and stored PII.
+**Context:** Modules currently receive only the selected text with no surrounding webpage context, plus one interpreted source language ([modules](../../specs/modules.md#current-input-and-applicability)). The vision says relevant available context should shape generation ([vision](../../product/vision.md)). More context improves interpretation but enlarges privacy surface, prompt cost, and stored PII.
 
 **Options:**
 - Minimal (text + language + timestamp) — cheapest, least PII, matches current pipeline. Tradeoff: ambiguous captures stay ambiguous.
@@ -32,7 +32,7 @@ Capture is the product's front door: the vision promises saving text without bre
 
 **Decision:** Fire-and-forget (toast + background generation, check later) vs blocking (karte opens immediately)? And which retries exist: auto-open, whole-karte retry, per-module retry?
 
-**Context:** Current behavior: brief feedback, recent outcomes on the dashboard, explicitly confirmed retry of one captured seite only; auto-open, whole-karte retry, and per-module retry are deferred ([scope](../product/scope.md#explicit-deferrals)). The model treats saving and generating as distinct operations with distinct recovery ([model](../product/model.md)).
+**Context:** Current behavior: brief feedback, recent outcomes on the dashboard, explicitly confirmed retry of one captured seite only; auto-open, whole-karte retry, and per-module retry are deferred ([scope](../../product/scope.md#explicit-deferrals)). The model treats saving and generating as distinct operations with distinct recovery ([model](../../product/model.md)).
 
 **Options:**
 - Fire-and-forget — least interruption, matches the vision's minimize-interruption principle; needs bulletproof background status and failure surfacing.
@@ -45,7 +45,7 @@ Capture is the product's front door: the vision promises saving text without bre
 
 **Decision:** What must survive backend-down, laptop-offline, and browser-restart: queued captures, pending saves, in-flight generation?
 
-**Context:** Current recovery is explicit and session-bound: receipts stay local until confirmed handoff, failed saves need explicit resubmission, and generation results publish only through the originating Chrome session — reopening Chrome fails interrupted attempts ([Select and Add](../MVP-Product-spec-select-and-add.md)). The local PostgreSQL guide documents the journal but not an offline client protocol ([local-postgresql](local-postgresql.md)).
+**Context:** Current recovery is explicit and session-bound: receipts stay local until confirmed handoff, failed saves need explicit resubmission, and generation results publish only through the originating Chrome session — reopening Chrome fails interrupted attempts ([Select and Add](../../MVP-Product-spec-select-and-add.md)). The local PostgreSQL guide documents the journal but not an offline client protocol ([local-postgresql](../local-postgresql.md)).
 
 **Options:**
 - Best-effort queue (captures + saves survive restart, generation does not) — modest work in `storage.local`, keeps session-bound generation semantics.

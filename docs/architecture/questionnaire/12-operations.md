@@ -6,7 +6,7 @@ Operations is how the system behaves when nobody is watching: what you can see, 
 
 **Decision:** Logs, metrics, traces: per-request and per-generation-attempt IDs, capture/generation success per module, latency histograms, queue depth, token/cost counters — and where do they go?
 
-**Context:** `observability.md` and `overview.md` are empty; the local guide defines `LOG_LEVEL` and liveness/readiness splits but no metrics or tracing ([local-postgresql](local-postgresql.md)). The Verify skill requires reporting what was exercised, what was mocked, and what remains unverified — which presupposes attempt-level identifiers exist.
+**Context:** `observability.md` and `overview.md` are empty; the local guide defines `LOG_LEVEL` and liveness/readiness splits but no metrics or tracing ([local-postgresql](../local-postgresql.md)). The Verify skill requires reporting what was exercised, what was mocked, and what remains unverified — which presupposes attempt-level identifiers exist.
 
 **Options:**
 - Logs + health only (current) — enough for single-owner debugging; blind to trends, cost, and per-module quality drift.
@@ -32,7 +32,7 @@ Operations is how the system behaves when nobody is watching: what you can see, 
 
 **Decision:** Manual unpacked install, Chrome Web Store auto-update, or both — with the backend-before-extension ordering enforced how?
 
-**Context:** Manual flow is documented (extract, Load unpacked, pin, sign in `admin`/`admin`); updates replace files in place and Reload, ending that installation's generation session; backend migrations run with the API stopped before the new extension connects ([windows-install](../guides/windows-install.md), [terminology compatibility](terminology-compatibility.md)). CI produces localhost artifacts that must not be handed to hosted-origin users (Deliver skill).
+**Context:** Manual flow is documented (extract, Load unpacked, pin, sign in `admin`/`admin`); updates replace files in place and Reload, ending that installation's generation session; backend migrations run with the API stopped before the new extension connects ([windows-install](../../guides/windows-install.md), [terminology compatibility](../terminology-compatibility.md)). CI produces localhost artifacts that must not be handed to hosted-origin users (Deliver skill).
 
 **Options:**
 - Manual only — full control per install; every user repeats the ordering dance.
@@ -45,7 +45,7 @@ Operations is how the system behaves when nobody is watching: what you can see, 
 
 **Decision:** Cost model: included in price, usage quota, or bring-your-own-key? And the hosting budget at 100 / 1k / 10k users (Postgres, backups, bandwidth, logs)?
 
-**Context:** Generation rides a subscription key with a console **Use balance** toggle the app must not flip; automated checks spend nothing; live smokes spend real usage (README). No metering, quota UI, or price exists. Scope defers expanded generation-limit controls and public hosting ([scope](../product/scope.md)).
+**Context:** Generation rides a subscription key with a console **Use balance** toggle the app must not flip; automated checks spend nothing; live smokes spend real usage (README). No metering, quota UI, or price exists. Scope defers expanded generation-limit controls and public hosting ([scope](../../product/scope.md)).
 
 **Options:**
 - Owner-absorbs (subscription key pays for all) — simplest; needs abuse caps or one user can spend the budget.
@@ -58,7 +58,7 @@ Operations is how the system behaves when nobody is watching: what you can see, 
 
 **Decision:** RPO (max data loss) and RTO (max downtime) for captures, kartes, and generation outcomes — plus the Render Free caveat if it still applies.
 
-**Context:** Stopping the API never stops Postgres or removes data, but the manual cluster-start does not survive machine reboot; Render Free explicitly may erase test decks, sessions, and pending results on sleep/restart/redeploy ([local-postgresql](local-postgresql.md), [windows-install](../guides/windows-install.md)). No SLA exists.
+**Context:** Stopping the API never stops Postgres or removes data, but the manual cluster-start does not survive machine reboot; Render Free explicitly may erase test decks, sessions, and pending results on sleep/restart/redeploy ([local-postgresql](../local-postgresql.md), [windows-install](../../guides/windows-install.md)). No SLA exists.
 
 **Options:**
 - Best-effort local (backups when remembered) — honest for owner-test; unacceptable the moment anyone else depends on it.

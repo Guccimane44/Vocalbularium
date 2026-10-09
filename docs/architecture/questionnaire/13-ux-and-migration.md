@@ -6,7 +6,7 @@ Close with the two decisions that protect everything already built: a UI directi
 
 **Decision:** Before or after the rendering (Q13), state (Q12), and review (Q52) choices lock? What are the shared UI rules in the meantime?
 
-**Context:** The vision demands a recognizable, deliberately crafted interface while explicitly not prescribing palette, type, or layout — concrete rules belong in a shared UI spec ([vision](../product/vision.md)). Today: plain-text content, Light/Dark, keyboard interactions, accessible state cues ([scope](../product/scope.md)). A junior trap is polishing visuals before the editor model (whole-seite vs blocks) is decided, then restyling twice.
+**Context:** The vision demands a recognizable, deliberately crafted interface while explicitly not prescribing palette, type, or layout — concrete rules belong in a shared UI spec ([vision](../../product/vision.md)). Today: plain-text content, Light/Dark, keyboard interactions, accessible state cues ([scope](../../product/scope.md)). A junior trap is polishing visuals before the editor model (whole-seite vs blocks) is decided, then restyling twice.
 
 **Options:**
 - Direction after editor/state lock — visuals serve the interaction model; slower visual gratification.
@@ -19,7 +19,7 @@ Close with the two decisions that protect everything already built: a UI directi
 
 **Decision:** Target WCAG level, keyboard-only flows (capture → open → edit → retry without a mouse), and screen-reader behavior for seite navigation and generation status.
 
-**Context:** Karte rows, editors, configuration controls, context menus, dialogs, and tooltips already carry accessibility labels through the terminology migration ([migration plan](../plans/v0.3.0-plus-terminology-migration.md)). Sort, pagination, and generation states are user-visible and therefore screen-reader-visible.
+**Context:** Karte rows, editors, configuration controls, context menus, dialogs, and tooltips already carry accessibility labels through the terminology migration ([migration plan](../../plans/v0.3.0-plus-terminology-migration.md)). Sort, pagination, and generation states are user-visible and therefore screen-reader-visible.
 
 **Options:**
 - WCAG 2.2 AA with keyboard parity — the defensible baseline for a public product; needs an audit and a test pass per release.
@@ -32,7 +32,7 @@ Close with the two decisions that protect everything already built: a UI directi
 
 **Decision:** English-only UI vs localized UI (German, Chinese, ...)? Is UI language independent of generated content language?
 
-**Context:** Generated content is multilingual by design with per-language modules and seites; the UI itself is English with sentence-case product copy ([migration plan](../plans/v0.3.0-plus-terminology-migration.md)). Mixing the two (e.g. German UI showing Chinese explanations) is normal for the flagship multilingual user — but only if the separation is deliberate.
+**Context:** Generated content is multilingual by design with per-language modules and seites; the UI itself is English with sentence-case product copy ([migration plan](../../plans/v0.3.0-plus-terminology-migration.md)). Mixing the two (e.g. German UI showing Chinese explanations) is normal for the flagship multilingual user — but only if the separation is deliberate.
 
 **Options:**
 - English UI only — simplest; generated content stays multilingual. State whether this holds at 1.0 or is a temporary position.
@@ -45,7 +45,7 @@ Close with the two decisions that protect everything already built: a UI directi
 
 **Decision:** Retirement condition for: v0.3.0 data and pending saves/receipts, `karte-draft`/`card-draft` fallbacks, old `#card/` links, `/api/cards` aliases and legacy fields, old cursors and content-loss digests.
 
-**Context:** The boundary inventory requires preserving IDs, relationships, content, timestamps, outcomes, and operation IDs across the rename, with fingerprints pinned to original kinds/fields and replay converting on read ([terminology compatibility](terminology-compatibility.md)). Retirement explicitly needs a later decision once old installs, pending ops, and saved links no longer need support — receipt compatibility lasts as long as historical receipts are retained.
+**Context:** The boundary inventory requires preserving IDs, relationships, content, timestamps, outcomes, and operation IDs across the rename, with fingerprints pinned to original kinds/fields and replay converting on read ([terminology compatibility](../terminology-compatibility.md)). Retirement explicitly needs a later decision once old installs, pending ops, and saved links no longer need support — receipt compatibility lasts as long as historical receipts are retained.
 
 **Options:**
 - Keep until a dated release (e.g. "removed in 0.5.0") — predictable; forces client-upgrade pressure by the date.
@@ -58,7 +58,7 @@ Close with the two decisions that protect everything already built: a UI directi
 
 **Decision:** Sequence the post-migration increments to minimize rework: main-key implementation, hosting/tenancy, semantic referent, module expansion + evals, rich rendering, review/SRS, search/scale.
 
-**Context:** Main-key behavior is accepted but pending, with open implementation details (generation action, button label, replacement policy, whitespace rules, active-generation interplay, compat for input-less manual kartes) ([kartes-and-editing](../specs/pages-and-editing.md)). The model warns these rules do not select the UI or policy by themselves. Building SRS tables before the semantic-object decision, or rich rendering before the editor model, guarantees a second migration.
+**Context:** Main-key behavior is accepted but pending, with open implementation details (generation action, button label, replacement policy, whitespace rules, active-generation interplay, compat for input-less manual kartes) ([kartes-and-editing](../../specs/pages-and-editing.md)). The model warns these rules do not select the UI or policy by themselves. Building SRS tables before the semantic-object decision, or rich rendering before the editor model, guarantees a second migration.
 
 **Options:**
 - Contract-first (tenancy + API + statelessness) → data (referent + limits) → main-key → modules + evals → rendering → review → search.
