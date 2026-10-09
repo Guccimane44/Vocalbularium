@@ -33,7 +33,7 @@ npm run build
 
 WXT writes the Chrome Manifest V3 build to `artifacts/extension`. For a hosted backend, set `VOCABULARIUM_API_URL` to its HTTPS origin when building; the build writes the matching extension host permission. No credentials are embedded in the package. The generated manifest is checked against the source identity and permissions during the build.
 
-The previous [Render testing procedure](docs/history/mvp/M6-Delivery.md#render-free-deployment) describes the historical SQLite deployment. v0.3.0 does not deploy this branch or import that account. Preserve existing SQLite files and old extension profiles; see the [PostgreSQL cutover policy](docs/architecture/local-postgresql.md#keep-the-old-installation-separate).
+The earlier Render/SQLite deployment is retired; its [testing procedure](docs/history/mvp/M6-Delivery.md#render-free-deployment) is kept as history.
 
 The local API uses Fastify and validates its startup settings. `npm run db:setup` writes ignored `.env.postgres` with separate application, migration, and test connections. Set provider options, `HOST` (loopback only), `PORT`, `DATA_DIR` (generation journal), and `LOG_LEVEL` in `.env`. `GENERATION_MAX_ACTIVE` and `GENERATION_MAX_QUEUED` bound active and waiting seite attempts (defaults: 4 and 16). Login sessions last seven days; active views refresh every five seconds. `GET /health/live` checks process liveness; `GET /health/ready` and the compatible `GET /health` check database readiness and API ownership. The [OpenAPI JSON reference](docs/api/openapi.json) is generated with `npm run openapi` without a database connection.
 
@@ -60,10 +60,6 @@ The adapter requests JSON in its instructions and validates the completion statu
 Without a key, the original capture is still saved. Seites requiring interpretation or generation fail visibly; exact-selection seites still complete. Automated checks inject controlled provider responses and do not spend API credits. The live word/sentence smoke passed with the configured Go key; see the [recorded provider samples](docs/history/evidence/deepseek-v4.1-flash-smoke-2026-09-12.json) and [hosted word/phrase/sentence results](docs/history/evidence/render-smoke-2026-09-12.json).
 
 Capture receipts remain local through confirmed handoff to server kartes; pending receipts and saves remain available for explicit recovery. **Try saving again** resubmits the existing operation. Generation results are published only through their originating Chrome session; reopening Chrome fails its interrupted attempts. See [capture implementation evidence](docs/history/mvp/M2-Capture.md) and the authoritative [Select and Add rules](docs/MVP-Product-spec-select-and-add.md).
-
-## Local foundation prototype
-
-The historical M0 laboratory remains covered by PostgreSQL-backed browser fixtures. Manual use of `npm run prototype` requires an explicitly provisioned disposable database in `PROTOTYPE_DATABASE_URL`. It listens on `127.0.0.1:4317` and generates illustrative output; do not point it at the development account or deploy it as the product backend.
 
 ## Acceptance status
 
