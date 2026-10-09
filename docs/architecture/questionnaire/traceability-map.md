@@ -29,7 +29,7 @@ Checked 9 October 2026 against the [Vocabularium Notion hub](https://app.notion.
 | 04 (Q17–Q21) | [Accounts on a hosted hub with OAuth and passkeys](https://app.notion.com/p/3f4bb135020881ec85beca3cd7941578) |
 | 05 (Q22–Q28) | [Serverless backend on Vercel and Neon](https://app.notion.com/p/3f4bb135020881229bcedba0bd6dce7c) |
 | 06 (Q29–Q34) | [Karte data model](https://app.notion.com/p/3f4bb13502088159bf3fef8135989e73) |
-| 06 (Q72) | Deck → page → component (pending: to be created as Accepted, decided 10 October 2026) |
+| 06 (Q72) | [Replace deck → karte → seite with deck → page → component](https://app.notion.com/p/3f4bb1350208812e8085ffd751302842) (Accepted 9 October 2026; revision approved 10 October 2026) |
 | 07 (Q35–Q39) | [Database tenancy, migrations, search, portability and retention](https://app.notion.com/p/3f4bb1350208815ca1bbef7c49b681fe) |
 | 08 (Q40–Q45) | [Module catalog and customization](https://app.notion.com/p/3f4bb1350208813ab814f53fd24d5021) (Deferred) |
 | 09 (Q46–Q51) | [Generation](https://app.notion.com/p/3f4bb135020881acb220c5a11218f727) |
@@ -42,7 +42,7 @@ Checked 9 October 2026 against the [Vocabularium Notion hub](https://app.notion.
 
 - [Organize specifications by stable capabilities and document authority](https://app.notion.com/p/3eabb1350208813d8d43de81415c5ab0) (In Review). It defines the target taxonomy (the empty placeholder files come from it) and its authority rules. R1–R3 below amend this record rather than start fresh.
 - [Retain correlated local diagnostics until explicit cleanup](https://app.notion.com/p/3ecbb1350208818b8156f754e52d4e4a) (Implemented, 2 October 2026). It conflicted with Q39/Q63; C13 narrows it to development diagnostics. Its spec and code from `codex/logging-system` are merged into this branch.
-- [Adopt deck → karte → seite](https://app.notion.com/p/3eabb1350208813da027f7ea00548851) (Implemented) and the 0.3.0+ milestone promise replay and recovery compatibility. Q70 retires that promise, and Q72 supersedes the hierarchy (record to be marked Superseded; pending).
+- [Adopt deck → karte → seite](https://app.notion.com/p/3eabb1350208813da027f7ea00548851) (Implemented) and the 0.3.0+ milestone promise replay and recovery compatibility. Q70 retires that promise. The record is Superseded by the [Q72 decision](https://app.notion.com/p/3f4bb1350208812e8085ffd751302842).
 - System Q&A [hash vs path routing](https://app.notion.com/p/3eabb1350208818fa8f2f53955da5d71) applies to the Q11 web shell; its note on preserving old links becomes stale under Q70.
 - Milestone [System design questionnaire](https://app.notion.com/p/3efbb135020881e7a6e7d72f4199ab64) tracks this work.
 

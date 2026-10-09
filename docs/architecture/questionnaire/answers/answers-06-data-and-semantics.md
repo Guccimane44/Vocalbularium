@@ -56,7 +56,7 @@ Keep 1–4 seites + bounded modules — preserves current editor, layout, and mi
 
 ### Q72
 
-Decided by the owner on 10 October 2026: components on the live configuration, with views. Full plan: [deck → page → component refactor](../../../plans/page-component-refactor.md).
+Decided by the owner on 9 October 2026 and revised and approved on 10 October 2026: components on the live configuration, with views. Notion: [decision record](https://app.notion.com/p/3f4bb1350208812e8085ffd751302842). Full plan: [deck → page → component refactor](../../../plans/page-component-refactor.md).
 
 - **Model:** a deck contains pages. A page is an ordered list of components: the main key (required), Context (optional), and one component per content module instance in the deck configuration. Users may add manual text components that generation never touches.
 - **Generation:** each content module produces or replaces only its own component. Retry targets one component or the whole page and uses only the main key, Context and the deck's current configuration. It replaces the targeted content, including the user's edits, after confirmation. Capture generates automatically; manual creation never does.

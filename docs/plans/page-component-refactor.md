@@ -1,6 +1,6 @@
 # Refactor: deck → page → component
 
-Proposed: 9 October 2026 (Europe/Berlin). Revised 10 October 2026: views follow the Notion model, the old karte design becomes a future **card** view module, and view modules other than the **default view** are out of scope. The owner accepted every recommendation (D1–D8) and waived preservation of existing content: decks and kartes are discarded and the product starts empty. Status: **approved by the owner on 10 October 2026**. No Notion record or implementation yet.
+Proposed: 9 October 2026 (Europe/Berlin). Revised 10 October 2026: views follow the Notion model, the old karte design becomes a future **card** view module, and view modules other than the **default view** are out of scope. The owner accepted every recommendation (D1–D8) and waived preservation of existing content: decks and kartes are discarded and the product starts empty. Status: **approved by the owner on 10 October 2026**. Notion: [decision record](https://app.notion.com/p/3f4bb1350208812e8085ffd751302842) (Accepted). No implementation yet.
 
 Supersedes the deck → karte → seite hierarchy in the [0.3.0+ terminology plan](v0.3.0-plus-terminology-migration.md) and the answers that depend on it (see [superseded decisions](#superseded-and-affected-decisions)).
 
