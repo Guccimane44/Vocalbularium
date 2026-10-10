@@ -17,22 +17,21 @@ function component(id, kind, moduleInstanceId = null, status = null) {
 test('each instance produces its own component; one failure leaves the others completed', async () => {
   const outcomes = await generateComponents({
     mainKey: '幸福', interpretation: word,
-    modules: instances('selected', 'german-explanation', 'german-examples', 'sentence-usage'),
+    modules: instances('german-explanation', 'german-examples', 'sentence-usage'),
     generate: async ({ module }) => { if (module.type === 'german-examples') throw new Error('controlled'); return `out-${module.type}`; }
   });
   assert.deepEqual(outcomes, [
-    { moduleInstanceId: 'm0', status: 'completed', text: '幸福' },
-    { moduleInstanceId: 'm1', status: 'completed', text: 'out-german-explanation' },
-    { moduleInstanceId: 'm2', status: 'failed', error: 'controlled' },
-    { moduleInstanceId: 'm3', status: 'completed', text: '' }
+    { moduleInstanceId: 'm0', status: 'completed', text: 'out-german-explanation' },
+    { moduleInstanceId: 'm1', status: 'failed', error: 'controlled' },
+    { moduleInstanceId: 'm2', status: 'completed', text: '' }
   ]);
 });
 
-test('missing interpretation fails only the instances that need it', async () => {
+test('missing interpretation fails every instance without calling the provider', async () => {
   const outcomes = await generateComponents({
-    mainKey: 'word', interpretation: null, modules: instances('selected', 'selected-language'), generate: () => assert.fail()
+    mainKey: 'word', interpretation: null, modules: instances('german-explanation', 'sentence-usage'), generate: () => assert.fail()
   });
-  assert.deepEqual(outcomes.map(o => o.status), ['completed', 'failed']);
+  assert.deepEqual(outcomes.map(o => o.status), ['failed', 'failed']);
 });
 
 test('inapplicable instances complete empty without calling the provider', async () => {
@@ -56,7 +55,7 @@ test('repeated instances retry for distinct output per component', async () => {
 });
 
 test('generation targets follow the live configuration and skip removed and manual components', () => {
-  const modules = instances('selected', 'german-explanation', 'sentence-usage');
+  const modules = instances('german-examples', 'german-explanation', 'sentence-usage');
   const components = [
     component('key', 'main_key'), component('c0', 'module', 'm0', 'completed'),
     component('old', 'module', 'removed', 'completed'), component('mine', 'manual')
@@ -79,7 +78,7 @@ test('page status is derived from components that had an attempt', () => {
 });
 
 test('the default view orders components and shows missing ones as placeholders', () => {
-  const modules = instances('german-explanation', 'selected');
+  const modules = instances('german-explanation', 'sentence-usage');
   const view = defaultView([
     component('mine', 'manual'), component('old', 'module', 'gone'), component('c1', 'module', 'm1'),
     component('ctx', 'context'), component('key', 'main_key')
@@ -95,13 +94,13 @@ test('views validate their declared module dependencies', () => {
 
 test('configurations allow at most 12 unique, supported instances', () => {
   assert.equal(MAX_CONTENT_MODULES, 12);
-  assert.doesNotThrow(() => validateConfiguration(instances(...Array(12).fill('selected'))));
-  assert.throws(() => validateConfiguration(instances(...Array(13).fill('selected'))), /at most 12/);
-  assert.throws(() => validateConfiguration([{ id: 'a', type: 'selected' }, { id: 'a', type: 'selected' }]), /unique/);
-  assert.throws(() => validateConfiguration([{ id: 'a', type: 'unknown' }]), /unsupported module/);
+  assert.doesNotThrow(() => validateConfiguration(instances(...Array(12).fill('german-explanation'))));
+  assert.throws(() => validateConfiguration(instances(...Array(13).fill('german-explanation'))), /at most 12/);
+  assert.throws(() => validateConfiguration([{ id: 'a', type: 'german-explanation' }, { id: 'a', type: 'german-explanation' }]), /unique/);
+  for (const type of ['unknown', 'selected', 'selected-language']) assert.throws(() => validateConfiguration([{ id: 'a', type }]), /unsupported module/);
   const deck = { name: 'My Deck', modules: instances('german-examples'), view: { module: 'default' } };
   assert.ok(Value.Check(DeckConfigurationSchema, deck));
-  assert.ok(!Value.Check(DeckConfigurationSchema, { ...deck, modules: instances(...Array(13).fill('selected')) }));
+  assert.ok(!Value.Check(DeckConfigurationSchema, { ...deck, modules: instances(...Array(13).fill('german-explanation')) }));
 });
 
 test('block content round-trips plain module text exactly', () => {

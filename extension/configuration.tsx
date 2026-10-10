@@ -15,9 +15,6 @@ export const newDeckDraft = (): DeckConfiguration => ({
 });
 
 function sample(type: string, inputType: 'word_phrase' | 'sentence', instance: number): string {
-  const selected = inputType === 'word_phrase' ? '幸福' : '我真的很幸福';
-  if (type === 'selected') return selected;
-  if (type === 'selected-language') return selected + '\nChinese';
   const definition = MODULES[type as ModuleType];
   if (!definition || definition.applies !== inputType) return '';
   if (type === 'sentence-usage') return instance % 2

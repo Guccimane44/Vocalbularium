@@ -1,19 +1,16 @@
 import type { InputInterpretation, InputType } from '@vocabularium/contracts';
 
-export type ModuleType = 'selected' | 'selected-language' | 'german-explanation' | 'german-examples' | 'sentence-usage';
+export type ModuleType = 'german-explanation' | 'german-examples' | 'sentence-usage';
 export type ModuleDefinition = Readonly<{
   label: string;
-  applies: 'any' | InputType;
-  interpretation: boolean;
+  applies: InputType;
 }>;
 export type ModuleInstance = Readonly<{ id: string; type: ModuleType }>;
 
 export const MODULES = Object.freeze({
-  selected: { label: '<The selected>', applies: 'any', interpretation: false },
-  'selected-language': { label: '<The selected + original language tag>', applies: 'any', interpretation: true },
-  'german-explanation': { label: '<German explanation>', applies: 'word_phrase', interpretation: true },
-  'german-examples': { label: '<German explanation + examples>', applies: 'word_phrase', interpretation: true },
-  'sentence-usage': { label: '<Sentence usage>', applies: 'sentence', interpretation: true }
+  'german-explanation': { label: '<German explanation>', applies: 'word_phrase' },
+  'german-examples': { label: '<German explanation + examples>', applies: 'word_phrase' },
+  'sentence-usage': { label: '<Sentence usage>', applies: 'sentence' }
 } satisfies Readonly<Record<ModuleType, ModuleDefinition>>);
 
 export function validateInterpretation(value: unknown): InputInterpretation {
@@ -45,10 +42,8 @@ export async function generateComponent(input: {
   const { module } = input;
   const definition = MODULES[module.type];
   if (!definition) throw new Error('The deck contains an unsupported module.');
-  if (module.type === 'selected') return input.mainKey;
   if (!input.interpretation) throw new Error('Input interpretation is unavailable.');
-  if (definition.applies !== 'any' && definition.applies !== input.interpretation.inputType) return '';
-  if (module.type === 'selected-language') return `${input.mainKey}\n${input.interpretation.sourceLanguage}`;
+  if (definition.applies !== input.interpretation.inputType) return '';
   const previous: string[] = [];
   for (let attempt = 0; attempt < 3; attempt++) {
     const text = await input.generate({ module, selectedText: input.mainKey, interpretation: input.interpretation, avoid: previous });

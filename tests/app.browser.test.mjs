@@ -199,7 +199,7 @@ test('capture extension: receipt lifetime, exact duplicate pages, shared outcome
     async generate() { return '== Chinesisch ==\n=== Bedeutungen ===\n: [1] Glück\n=== Beispiele ===\n: [1] 她很幸福。\n:: Sie ist glücklich.'; }
   };
   let application = await createTestApplication(t, { databaseKey, provider });
-  await useModules(application.store, ['selected', 'german-examples']);
+  await useModules(application.store, ['sentence-usage', 'german-examples']);
   await application.start();
   const contexts = new Set();
   t.after(async () => {
@@ -239,7 +239,8 @@ test('capture extension: receipt lifetime, exact duplicate pages, shared outcome
   await captureFrom(a, '我真的很幸福'); await captureFrom(a, 'fail');
   await waitFor(async () => (await application.store.pages()).find(page => page.selectedText === 'fail')?.status === 'failed', 'failed interpretation persisted');
   const sentencePage = (await application.store.pages()).find(page => page.selectedText === '我真的很幸福');
-  assert.deepEqual(modulesOf(sentencePage).map(item => [text(item), item.status]), [['我真的很幸福', 'completed'], ['', 'completed']]);
+  // The sentence example applies to a sentence; the word explanation completes empty.
+  assert.deepEqual(modulesOf(sentencePage).map(item => [Boolean(text(item)), item.status]), [[true, 'completed'], [false, 'completed']]);
   assert.equal(sentencePage.status, 'completed');
 
   step('dashboard closure during generation');
@@ -252,7 +253,6 @@ test('capture extension: receipt lifetime, exact duplicate pages, shared outcome
   step('browser exit during generation');
   await captureFrom(a, 'held-interrupted');
   const interrupted = (await application.store.pages()).find(page => page.selectedText === 'held-interrupted');
-  await waitFor(async () => modulesOf(await application.store.page(interrupted.id))[0].status === 'completed', 'exact selection completed before exit');
   await waitFor(() => held.has('held-interrupted'), 'interrupted interpretation started');
   await a.context.close(); contexts.delete(a.context);
   held.get('held-interrupted')();
@@ -260,7 +260,8 @@ test('capture extension: receipt lifetime, exact duplicate pages, shared outcome
   step('relaunch after browser exit');
   a = await launch(profile, testingExtension); contexts.add(a.context);
   await a.page.getByRole('heading', { name: 'Your decks.' }).waitFor();
-  assert.deepEqual(modulesOf(await application.store.page(interrupted.id)).map(item => item.status), ['completed', 'failed']);
+  // Both components waited on the held interpretation, so neither was published before exit.
+  assert.deepEqual(modulesOf(await application.store.page(interrupted.id)).map(item => item.status), ['failed', 'failed']);
 
   step('open a reading tab before stopping the server');
   reading = await a.context.newPage(); await reading.goto(apiOrigin + '/health');
@@ -420,13 +421,13 @@ test('deck UI: draft previews, all modules, the module limit, removal without co
   await a.page.getByRole('button', { name: 'Add new deck', exact: true }).click();
   await a.page.getByLabel('Deck name', { exact: true }).fill('Everyday Chinese');
   assert.equal(await a.page.locator('.module-block').count(), 1, 'a new deck starts with the German explanation');
-  await a.page.getByRole('button', { name: 'Add <The selected + original language tag>', exact: true }).click();
+  await a.page.getByRole('button', { name: 'Add <Sentence usage>', exact: true }).click();
   await a.page.getByRole('button', { name: 'Add <German explanation>', exact: true }).click();
   await a.page.getByRole('button', { name: 'Move module 3 up', exact: true }).click();
   await a.page.getByRole('button', { name: 'Add <Sentence usage>', exact: true }).click();
   await a.page.getByRole('button', { name: 'Add <Sentence usage>', exact: true }).click();
   assert.equal(await a.page.locator('.module-block').count(), 5);
-  assert.equal(await a.page.locator('.module-library button').count(), 5);
+  assert.equal(await a.page.locator('.module-library button').count(), 3, 'the library offers the three content modules');
   await a.page.getByLabel('Sample input', { exact: true }).selectOption('sentence');
   assert.equal(await a.page.locator('.preview').count(), 6, 'one main-key preview and one per module');
   assert.match(await a.page.locator('.preview').nth(0).textContent(), /我真的很幸福/);
@@ -437,7 +438,7 @@ test('deck UI: draft previews, all modules, the module limit, removal without co
   await a.page.getByRole('button', { name: 'Save', exact: true }).click();
   await a.page.getByRole('heading', { name: 'Everyday Chinese', exact: true }).waitFor();
   const created = (await application.store.account()).decks.find(deck => deck.name === 'Everyday Chinese');
-  assert.deepEqual(created.modules.map(module => module.type), ['german-examples', 'german-explanation', 'selected-language', 'sentence-usage', 'sentence-usage']);
+  assert.deepEqual(created.modules.map(module => module.type), ['german-examples', 'german-explanation', 'sentence-usage', 'sentence-usage', 'sentence-usage']);
   await a.page.getByLabel('Options for Everyday Chinese').click();
   await a.page.locator('article.deck').filter({ hasText: 'Everyday Chinese' }).getByRole('button', { name: 'Set as default', exact: true }).click();
   await a.page.locator('article.deck').filter({ hasText: 'Everyday Chinese' }).getByText('DEFAULT DECK', { exact: true }).waitFor();
@@ -453,7 +454,7 @@ test('deck UI: draft previews, all modules, the module limit, removal without co
   await a.page.getByLabel('Options for Everyday Chinese').click();
   await a.page.locator('article.deck').filter({ hasText: 'Everyday Chinese' }).getByRole('button', { name: 'Configure deck', exact: true }).click();
   await a.page.getByRole('button', { name: 'Remove module 1', exact: true }).click();
-  for (let count = 4; count < 12; count++) await a.page.getByRole('button', { name: 'Add <The selected>', exact: true }).click();
+  for (let count = 4; count < 12; count++) await a.page.getByRole('button', { name: 'Add <Sentence usage>', exact: true }).click();
   assert.equal(await a.page.locator('.module-block').count(), 12);
   assert.equal(await a.page.locator('.module-library button:enabled').count(), 0, 'the library is closed at twelve modules');
   await a.page.getByText('A deck can have at most 12 modules.').waitFor();
@@ -637,7 +638,7 @@ test('page rows: accessible states, sorting, every pointer target, text selectio
   const a = await launch(join(directory, 'a'));
   t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
   const store = application.store;
-  await useModules(store, ['selected', 'german-examples']);
+  await useModules(store, ['sentence-usage', 'german-examples']);
   const deck = await store.snapshot();
   const session = { installationId: 'fixture', sessionId: 'rows', epoch: 1 };
   await store.openSession('rows-session', session);
@@ -844,7 +845,7 @@ test('retry UI: exact confirmation, generate missing, and a two-installation loc
       generate: (_, signal) => new Promise((resolve, reject) => { release = resolve; signal.addEventListener('abort', () => reject(Error('aborted')), { once: true }); })
     }
   });
-  await useModules(application.store, ['selected', 'german-examples']);
+  await useModules(application.store, ['sentence-usage', 'german-examples']);
   await application.start();
   const session = { installationId: 'fixture', sessionId: 'fixture', epoch: 1 };
   await application.store.openSession('fixture', session);
@@ -859,7 +860,7 @@ test('retry UI: exact confirmation, generate missing, and a two-installation loc
   await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
   await b.page.goto(`chrome-extension://${b.id}/app.html#page/${pageId}`);
   await b.page.getByRole('button', { name: 'Edit page', exact: true }).click();
-  await b.page.getByLabel('Edit <The selected>', { exact: true }).fill('draft front');
+  await b.page.getByLabel('Edit <Sentence usage>', { exact: true }).fill('draft front');
   await b.page.getByLabel('Edit <German explanation + examples>', { exact: true }).fill('draft back');
   const explanation = componentArticle(a.page, '<German explanation + examples>');
   await explanation.getByRole('button', { name: 'Retry', exact: true }).click();
@@ -871,7 +872,7 @@ test('retry UI: exact confirmation, generate missing, and a two-installation loc
   await waitFor(() => release, 'retry provider started');
   await waitFor(() => explanation.getByRole('button', { name: 'Retry', exact: true }).isDisabled(), 'retry disables its control while generating');
   // Every Retry is briefly disabled while the request is in flight; once accepted, only the generating component stays locked.
-  await waitFor(() => componentArticle(a.page, '<The selected>').getByRole('button', { name: 'Retry', exact: true }).isEnabled(), 'other components stay available');
+  await waitFor(() => componentArticle(a.page, '<Sentence usage>').getByRole('button', { name: 'Retry', exact: true }).isEnabled(), 'other components stay available');
   assert.equal(await explanation.getByRole('button', { name: 'Retry', exact: true }).isDisabled(), true);
   await b.page.getByRole('button', { name: 'Save', exact: true }).click();
   await b.page.getByRole('alert').filter({ hasText: 'still generating' }).waitFor();
@@ -888,7 +889,7 @@ test('retry UI: exact confirmation, generate missing, and a two-installation loc
   await a.page.getByRole('button', { name: 'Retry page', exact: true }).click();
   assert.match(await a.page.getByRole('dialog').locator('p').textContent(), /^Retry will replace the content of every generated component on this page/);
   await a.page.getByRole('dialog').getByRole('button', { name: 'Cancel', exact: true }).click();
-  await useModules(application.store, ['selected', 'german-examples', 'selected-language']);
+  await useModules(application.store, ['sentence-usage', 'german-examples', 'german-explanation']);
   await a.page.reload();
   await a.page.getByRole('button', { name: 'Generate missing', exact: true }).click();
   await waitFor(async () => modulesOf(await application.store.page(pageId)).length === 3, 'missing component generated');
@@ -928,7 +929,7 @@ test('assembled reliability: lost acknowledgments, worker suspension, abrupt ori
       }
     }
   });
-  await useModules(application.store, ['selected', 'german-examples']);
+  await useModules(application.store, ['sentence-usage', 'german-examples']);
   await application.start();
   const contexts = new Set();
   t.after(async () => { for (const context of contexts) await context.close().catch(() => { }); await application.close(); await rm(directory, { recursive: true, force: true }); });
@@ -948,7 +949,7 @@ test('assembled reliability: lost acknowledgments, worker suspension, abrupt ori
 
   await a.page.goto(`chrome-extension://${a.id}/app.html#page/${captured.id}`);
   await a.page.getByRole('button', { name: 'Edit page', exact: true }).click();
-  await a.page.getByLabel('Edit <The selected>', { exact: true }).fill('save with lost acknowledgment');
+  await a.page.getByLabel('Edit <Sentence usage>', { exact: true }).fill('save with lost acknowledgment');
   await loseNextAcknowledgment(a.worker, '/api/page/save');
   await a.page.getByRole('button', { name: 'Save', exact: true }).click();
   await a.page.getByRole('button', { name: 'Try saving again', exact: true }).waitFor();
@@ -1008,7 +1009,7 @@ test('assembled reliability: lost acknowledgments, worker suspension, abrupt ori
   const otherReading = await b.context.newPage(); await otherReading.goto(apiOrigin + '/health');
   await captureFrom(a, 'hold-origin'); await captureFrom(b, 'hold-other');
   const interrupted = (await application.store.pages()).find(page => page.selectedText === 'hold-origin');
-  await waitFor(async () => modulesOf(await application.store.page(interrupted.id))[0].status === 'completed', 'exact selection persisted before crash');
+  await waitFor(async () => modulesOf(await application.store.page(interrupted.id))[0].status === 'completed', 'sentence component persisted before crash');
   await waitFor(() => held.has('hold-origin') && held.has('hold-other'), 'both provider calls started before origin exit');
   const browser = a.context.browser(), protocol = await browser.newBrowserCDPSession();
   const { processInfo } = await protocol.send('SystemInfo.getProcessInfo'); const processId = processInfo.find(process => process.type === 'browser')?.id;
@@ -1152,7 +1153,7 @@ test('save feedback: successful publication stays quiet in both lists, failures 
       async generate() { return 'Controlled explanation'; }
     }
   });
-  await useModules(application.store, ['selected', 'german-examples']);
+  await useModules(application.store, ['sentence-usage', 'german-examples']);
   const handler = application.server.listeners('request')[0];
   application.server.removeListener('request', handler);
   let hold = true, fail = false, requests = 0;

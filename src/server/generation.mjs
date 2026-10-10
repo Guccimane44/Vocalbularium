@@ -143,7 +143,7 @@ export class Generation {
       const text = kind => page.components.find(component => component.kind === kind);
       const input = { pageId, mainKey: blockText(text('main_key').content), context: text('context') ? blockText(text('context').content) : undefined };
       this.emit({ event: 'generation.input', attemptId, pageId, componentId: attempt.component_id, outcome: 'started', content: { selectedText: input.mainKey } });
-      const interpretation = attempt.module.type !== 'selected' ? await this.interpretation(input, attempt) : null;
+      const interpretation = await this.interpretation(input, attempt);
       if (controller.signal.aborted) return;
       const output = await generateComponent({
         mainKey: input.mainKey, module: attempt.module, interpretation,

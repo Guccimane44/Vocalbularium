@@ -12,7 +12,7 @@ async function fixture(t, databaseKey) {
   t.after(async () => (await store.close()));
   await store.openSession('open-a', a);
   await store.openSession('open-b', b);
-  await useModules(store, ['selected', 'german-examples']);
+  await useModules(store, ['german-explanation', 'german-examples']);
   return store;
 }
 const capture = (store, id = 'capture', session = a, mainKey) => captureWith(store, id, session, mainKey);

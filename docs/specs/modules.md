@@ -4,22 +4,20 @@
 
 Modules provide focused capabilities that users choose and combine in a deck's configuration. A rich library of creative and useful modules is the central direction in the [product vision](../product/vision.md). The [product model](../product/model.md) defines module types, instances, outputs, pages, components, and views; [scope](../product/scope.md) identifies what is supported now.
 
-The current rules below preserve the existing five-module baseline. Detailed catalog formats and examples remain authoritative in the [MVP module specification](../history/mvp/MVP-Product-spec-modules.md), which uses the earlier terms (read its *page* as component); its first-iteration rendering section, which joined outputs per page, no longer applies. [Capture and generation](capture-and-generation.md) owns generation completion, failure, interruption, publication, and retry behavior.
+The current rules below describe the three current content modules. Detailed catalog formats and examples remain authoritative in the [MVP module specification](../history/mvp/MVP-Product-spec-modules.md), which uses the earlier terms (read its *page* as component); its first-iteration rendering section, which joined outputs per page, no longer applies. [Capture and generation](capture-and-generation.md) owns generation completion, failure, interruption, publication, and retry behavior.
 
 ## Module kinds
 
 Modules have three kinds ([Q72](../architecture/questionnaire/answers/answers-06-data-and-semantics.md#q72), [D02](../architecture/traceability-map.md#entries)):
 
 - **Input modules** hold a page's generation input and are filled by capture or by the user, never by generation. The **main key module** is compulsory, exactly one per deck and page, always first, and cannot be removed. The **Context module** is optional, at most one per deck or page; a deck with it captures the selection's surrounding block. Accepted with D02, not built: 0.4.1 has the main key and Context as fixed page parts and a deck setting for Context.
-- **Content modules** produce components from a page's main key and Context. Each instance owns one component per page. All five current types are content modules.
+- **Content modules** produce components from a page's main key and Context. Each instance owns one component per page. All three current types are content modules.
 - **View modules** show pages. The **default view** is the only view module in the current refactor.
 
 ## Current catalog
 
 | Module type | Contribution | Applicable input |
 | --- | --- | --- |
-| `<The selected>` | Exact captured text, without generation | Word, phrase, or sentence |
-| `<The selected + original language tag>` | Exact text followed by its chosen source-language name | Word, phrase, or sentence |
 | `<German explanation>` | Explanation in German of the input in its chosen source language | Word or phrase |
 | `<German explanation + examples>` | German explanation plus examples in the source language and German translations | Word or phrase |
 | `<Sentence usage>` | A usage example in the chosen source language | Sentence |
@@ -42,7 +40,7 @@ This contract is implemented in release 0.4.0. [Pages and editing](pages-and-edi
 - **Applicability:** an inapplicable instance completes its component empty. Inapplicability is not failure.
 - **Editing:** editing the main key or the Context does not run modules or change saved output. Existing output reflects the main key and Context used in its attempt and may differ from the current values after an edit. The user may edit a generated component; the next retry of that component replaces the edit after confirmation.
 
-The five current types retain their output formats and applicability. References to selected text in their definitions mean the main key supplied to the attempt. Exact-input modules print that value, including a manually entered or edited main key.
+The three current types retain their output formats and applicability. References to selected text in their definitions mean the main key supplied to the attempt. Every current type needs the run's interpretation. `<The selected>` and `<The selected + original language tag>` only repeated the main key, which every page shows, and are retired ([D03](../architecture/traceability-map.md#entries)); their MVP definitions are history.
 
 ## View module contract
 

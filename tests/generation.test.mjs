@@ -13,8 +13,9 @@ const session = { installationId: 'test-installation', sessionId: 'test-browser'
 const word = { inputType: 'word_phrase', sourceLanguage: 'Chinese' };
 const sentence = { inputType: 'sentence', sourceLanguage: 'Chinese' };
 const modules = (...types) => types.map(type => ({ id: randomUUID(), type }));
-// Without explicit types the deck has an exact selection followed by an explanation.
-async function fixture(t, provider, types = ['selected', 'german-examples'], options) {
+// Without explicit types the deck has a sentence example, which completes empty for a word
+// without a model call, followed by an explanation.
+async function fixture(t, provider, types = ['sentence-usage', 'german-examples'], options) {
   const store = await createTestStore(t);
   await useModules(store, types);
   const generation = await Generation.create(store, provider, options);
@@ -225,13 +226,15 @@ test('diagnostic failures cannot turn an admitted saved capture into a failed re
   assert.equal((await store.page(page.id)).status, 'completed');
 });
 
-test('modules preserve exact input and literal markers, and inapplicable instances complete empty', async () => {
+test('modules receive the exact main key, keep literal markers, and inapplicable instances complete empty', async () => {
   const input = '  幸福\n';
+  const received = [];
   const outcomes = await generateComponents({
-    mainKey: input, modules: modules('selected', 'sentence-usage', 'selected-language', 'german-explanation'), interpretation: word,
-    generate: async () => '== Chinesisch ==\n: [1] Glück'
+    mainKey: input, modules: modules('sentence-usage', 'german-explanation'), interpretation: word,
+    generate: async ({ selectedText }) => { received.push(selectedText); return '== Chinesisch ==\n: [1] Glück'; }
   });
-  assert.deepEqual(outcomes.map(item => item.text), [input, '', `${input}\nChinese`, '== Chinesisch ==\n: [1] Glück']);
+  assert.deepEqual(outcomes.map(item => item.text), ['', '== Chinesisch ==\n: [1] Glück']);
+  assert.deepEqual(received, [input]);
 });
 
 test('one shared interpretation per run; components fail independently', async (t) => {
@@ -239,26 +242,26 @@ test('one shared interpretation per run; components fail independently', async (
   const { store, generation, capture } = await fixture(t, {
     interpret: async () => { interpretations++; return word; },
     generate: async ({ module }) => { if (module.type === 'german-examples') throw Error('controlled failure'); return 'explanation'; }
-  }, ['selected', 'german-explanation', 'german-examples', 'selected-language']);
+  }, ['german-explanation', 'german-examples', 'sentence-usage']);
   const page = await capture();
   assert.equal((await store.page(page.id)).status, 'loading');
   await finish(store, generation);
   assert.equal(interpretations, 1);
   assert.equal((await store.page(page.id)).status, 'failed');
-  assert.deepEqual(await outcome(store, page), [['幸福', 'completed'], ['explanation', 'completed'], ['', 'failed'], ['幸福\nChinese', 'completed']]);
-  assert.deepEqual((await store.run((await store.attempt(generated(page)[1].attemptId)).run_id)).interpretation, word);
+  assert.deepEqual(await outcome(store, page), [['explanation', 'completed'], ['', 'failed'], ['', 'completed']]);
+  assert.deepEqual((await store.run((await store.attempt(generated(page)[0].attemptId)).run_id)).interpretation, word);
 });
 
 test('initial sentence completes the explanation component empty without generating it', async (t) => {
-  const { store, generation, capture } = await fixture(t, { interpret: async () => sentence, generate: async () => assert.fail('inapplicable module ran') });
+  const { store, generation, capture } = await fixture(t, { interpret: async () => sentence, generate: async () => assert.fail('inapplicable module ran') }, ['german-examples']);
   const page = await capture('我真的很幸福'); await finish(store, generation);
-  assert.deepEqual(await outcome(store, page), [['我真的很幸福', 'completed'], ['', 'completed']]);
+  assert.deepEqual(await outcome(store, page), [['', 'completed']]);
 });
 
-test('interpretation failure fails dependent components, while exact selection needs no provider', async (t) => {
-  const { store, generation, capture } = await fixture(t, { interpret: async () => { throw Error('unavailable'); } }, ['selected', 'selected-language']);
+test('interpretation failure fails every component without a module call', async (t) => {
+  const { store, generation, capture } = await fixture(t, { interpret: async () => { throw Error('unavailable'); }, generate: async () => assert.fail('module ran') }, ['german-explanation', 'sentence-usage']);
   const page = await capture(); await finish(store, generation);
-  assert.deepEqual((await outcome(store, page)).map(([, status]) => status), ['completed', 'failed']);
+  assert.deepEqual((await outcome(store, page)).map(([, status]) => status), ['failed', 'failed']);
 });
 
 test('repeated example modules request fresh output; a component that cannot get distinct output fails alone', async (t) => {

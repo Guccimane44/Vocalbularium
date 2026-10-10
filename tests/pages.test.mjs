@@ -59,7 +59,7 @@ test('edits preserve creation time and other components; Context can be set and 
 
 test('component retry confirms first, uses the current main key and configuration, and leaves other components alone', async (t) => {
   const store = await fixture(t);
-  const [selected, language] = await useModules(store, ['selected', 'german-examples']);
+  const [kept, reconfigured] = await useModules(store, ['german-explanation', 'german-examples']);
   const { pageId } = await store.capture('capture', { session, mainKey: 'original', snapshot: await store.snapshot() });
   await complete(store, await store.page(pageId), session, () => 'initial');
   let page = await store.page(pageId);
@@ -69,7 +69,7 @@ test('component retry confirms first, uses the current main key and configuratio
     { componentId: first.id, content: textBlocks('manual edit') }, { componentId: second.id, content: textBlocks('manual edit') }] });
   // Reconfigure the second instance's type in place: same instance, new instructions.
   const deck = await store.deck(page.deckId);
-  await store.saveDeck('config', { deck: { ...deck, modules: [selected, { id: language.id, type: 'selected-language' }] } });
+  await store.saveDeck('config', { deck: { ...deck, modules: [kept, { id: reconfigured.id, type: 'sentence-usage' }] } });
 
   const retry = { pageId, target: target('component', second.id), session };
   let confirmation;
@@ -83,7 +83,7 @@ test('component retry confirms first, uses the current main key and configuratio
   const interpretations = [];
   const generation = await Generation.create(store, {
     interpret: async mainKey => { interpretations.push(mainKey); return { inputType: 'word_phrase', sourceLanguage: 'English' }; },
-    generate: async () => assert.fail('the language tag must not generate') });
+    generate: async () => assert.fail('a sentence module must not generate for a word') });
   t.after(() => generation.close());
   const result = await store.generate('retry', { ...retry, confirmation });
   await generation.start(pageId, result.attemptIds);
@@ -94,7 +94,7 @@ test('component retry confirms first, uses the current main key and configuratio
   await Promise.all([...generation.tasks.values()].map(item => item.task));
   await store.publish('finish', { attemptId: result.attemptIds[0], session });
   assert.deepEqual(interpretations, ['edited']);
-  assert.deepEqual(generated(await store.page(pageId)).map(text), ['still editable', 'edited\nEnglish']);
+  assert.deepEqual(generated(await store.page(pageId)).map(item => [text(item), item.status]), [['still editable', 'completed'], ['', 'completed']]);
   // A resubmission replays the confirmed operation, confirmation included.
   assert.deepEqual((await store.generate('retry', { ...retry, confirmation })).attemptIds, result.attemptIds);
   await assert.rejects(store.generate('retry', retry), { code: 'operation_reused' });
@@ -102,12 +102,12 @@ test('component retry confirms first, uses the current main key and configuratio
 
 test('configuration changes never touch existing pages until Generate missing or a retry', async (t) => {
   const store = await fixture(t);
-  const [kept, removed] = await useModules(store, ['selected', 'selected-language']);
+  const [kept, removed] = await useModules(store, ['german-explanation', 'sentence-usage']);
   const { pageId } = await store.capture('capture', { session, mainKey: 'word', snapshot: await store.snapshot() });
   await complete(store, await store.page(pageId), session, item => `out ${item.moduleInstanceId}`);
   await store.savePage('mine', { pageId, changes: [], added: [textBlocks('my own')] });
   const deck = await store.deck((await store.page(pageId)).deckId);
-  const added = { id: 'added-instance', type: 'selected' };
+  const added = { id: 'added-instance', type: 'german-explanation' };
   await store.saveDeck('reconfigure', { deck: { ...deck, modules: [added, kept] } });
 
   let page = await store.page(pageId);
