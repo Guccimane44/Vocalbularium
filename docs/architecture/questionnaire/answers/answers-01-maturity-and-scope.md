@@ -1,5 +1,5 @@
 ### Q01
-platform maturity: mature product on Chrome and Firefox (browser extensions) plus a hosted web app. Safari, iOS, and a desktop hotkey are post-1.0. Resolves C3 in the [traceability map](../traceability-map.md#conflicts).
+platform maturity: mature product on Chrome and Firefox (browser extensions) plus a hosted web app. Safari, iOS, and a desktop hotkey are post-1.0. Resolves C3 in the [traceability map](../../traceability-map.md#conflicts).
 
 ### Q02
 Strangers on the internet. targetting around 500 users. However, easy to scale is important. however, vocabularium has no anonymous use. Every user need to have an authenticated account to access the capture, storage, generation and so on.

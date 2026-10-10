@@ -84,7 +84,7 @@ Each increment is runnable and reviewable on its own and follows the [Change](..
 
 ### 0. Record the decision (docs, Notion)
 - Add the decision and owner answers to the questionnaire (new section in [06-data-and-semantics](../architecture/questionnaire/06-data-and-semantics.md) plus answers). Mark Q31 superseded and amend Q29, Q32, Q34, Q13 and Q53 as in the table above.
-- Update the [traceability map](../architecture/questionnaire/traceability-map.md) so 1.0 items trace to the page/component model.
+- Update the [traceability map](../architecture/traceability-map.md) so 1.0 items trace to the page/component model.
 - Notion, with owner approval: a new decision record, Proposed → Accepted. Mark "Adopt deck → karte → seite" Superseded. Amend the Q29–Q34 and Q11–Q16 records.
 
 ### 1. Product language and specifications (docs only)
