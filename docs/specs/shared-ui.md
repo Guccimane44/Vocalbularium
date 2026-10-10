@@ -2,7 +2,7 @@
 
 ## Purpose and status
 
-This specification defines interface rules shared across the extension's views. Release 0.4.1 implements everything here except the module window, which [D02](../architecture/traceability-map.md#entries) accepted and which is not built. The visual identity is still open: the [vision](../product/vision.md#uiux-direction) calls for a distinctive interface, and the current views are a functional foundation. D02's module window requires a substantial redesign of the page view and deck settings.
+This specification defines interface rules shared across the extension's views. Release 0.5.0 implements it, including the module window of [D02](../architecture/traceability-map.md#entries). The visual identity is still open: the [vision](../product/vision.md#uiux-direction) calls for a distinctive interface, and the current views, the module window included, are a functional foundation.
 
 ## Module window
 
@@ -15,7 +15,7 @@ Every module in the window also has an **Add** control, so adding works from the
 
 Dragging is never the only way: every drag (adding, reordering) has a keyboard equivalent, and a drag is announced to screen readers when it starts, moves, and ends.
 
-Accepted with D02; not built. The 0.5.0 [plan](../plans/page-owned-modules.md) builds it with today's styling; the visual identity is a later milestone.
+Release 0.5.0 builds it with today's styling ([plan](../plans/page-owned-modules.md)); the visual identity is a later milestone.
 
 ## Appearance
 

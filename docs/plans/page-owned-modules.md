@@ -1,6 +1,6 @@
 # Plan: page-owned modules and the module window (0.5.0)
 
-Proposed: 10 October 2026 (Europe/Berlin). Implements [D02](../architecture/traceability-map.md#entries), accepted by the owner on 10 October 2026, with the decisions recorded below. Tracker: [#108](https://github.com/Guccimane44/Vocalbularium/issues/108). Status: **awaiting owner approval**.
+Proposed: 10 October 2026 (Europe/Berlin). Implements [D02](../architecture/traceability-map.md#entries), accepted by the owner on 10 October 2026, with the decisions recorded below. Tracker: [#108](https://github.com/Guccimane44/Vocalbularium/issues/108). Status: approved by the owner on 10 October 2026; implemented in release 0.5.0 (increments 0–5 in #109–#113, increment 6 in the release PR).
 
 ## Outcome
 
