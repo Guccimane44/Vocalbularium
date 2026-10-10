@@ -774,7 +774,9 @@ test('retry UI: exact confirmation, generate missing, and a two-installation loc
   await a.page.getByRole('dialog').getByRole('button', { name: 'Confirm', exact: true }).click();
   await waitFor(() => release, 'retry provider started');
   await waitFor(() => explanation.getByRole('button', { name: 'Retry', exact: true }).isDisabled(), 'retry disables its control while generating');
-  assert.equal(await componentArticle(a.page, '<The selected>').getByRole('button', { name: 'Retry', exact: true }).isDisabled(), false, 'other components stay available');
+  // Every Retry is briefly disabled while the request is in flight; once accepted, only the generating component stays locked.
+  await waitFor(() => componentArticle(a.page, '<The selected>').getByRole('button', { name: 'Retry', exact: true }).isEnabled(), 'other components stay available');
+  assert.equal(await explanation.getByRole('button', { name: 'Retry', exact: true }).isDisabled(), true);
   await b.page.getByRole('button', { name: 'Save', exact: true }).click();
   await b.page.getByRole('alert').filter({ hasText: 'still generating' }).waitFor();
   assert.deepEqual(modulesOf(await application.store.page(pageId)).map(text), ['saved original', '']);
