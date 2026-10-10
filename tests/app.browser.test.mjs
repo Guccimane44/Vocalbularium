@@ -1174,11 +1174,18 @@ test('save feedback: successful publication stays quiet in both lists, failures 
   await waitFor(() => held.length > 0, 'explicit retry is in flight');
   for (const page of pages) assert.equal(await recovery(page).count(), receipts.length - 1, 'only the retried operation is hidden while active');
   hold = false; for (const resume of held.splice(0)) resume();
-  await waitFor(async () => await recovery(a.page).count() === receipts.length - 1, 'retry completed');
-  while (await recovery(a.page).count()) {
+  // A retry has settled only when the worker removed its acknowledged receipt. Panel counts and
+  // the absence of saving receipts also hold before the worker marks a clicked retry as saving.
+  const acknowledged = (remaining, message) => waitFor(async () => {
+    const states = await a.worker.evaluate(async () => Object.entries(await chrome.storage.local.get(null)).filter(([key]) => key.startsWith('save-')).map(([, item]) => item.state));
+    return states.length === remaining && states.every(state => state === 'pending') && await recovery(a.page).count() === remaining;
+  }, message);
+  await acknowledged(receipts.length - 1, 'retry completed');
+  for (let remaining = receipts.length - 1; remaining > 0; remaining--) {
     await recovery(a.page).first().getByRole('button', { name: 'Try saving again' }).click();
-    await waitFor(async () => !(await a.worker.evaluate(async () => Object.values(await chrome.storage.local.get(null)).some(item => item?.state === 'saving'))), 'next retry settled');
+    await acknowledged(remaining - 1, 'next retry acknowledged');
   }
+  await waitFor(async () => await recovery(deck).count() === 0, 'both lists clear recovered saves');
   await waitFor(async () => (await application.store.pages()).every(page => page.status === 'completed'), 'all components recovered');
   assert.equal((await application.store.pages()).length, count, 'retry does not duplicate pages');
   assert.equal(count, 3); assert.ok(requests >= 6);
