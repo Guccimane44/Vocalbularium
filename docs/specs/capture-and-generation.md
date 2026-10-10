@@ -6,7 +6,7 @@ This document is the authoritative source for detailed component completion, fai
 
 ## Status
 
-These rules describe the owner-approved deck → page → component model ([Q72](../architecture/questionnaire/answers/answers-06-data-and-semantics.md#q72)) with page-owned modules ([D02](../architecture/traceability-map.md#entries)). Release 0.4.0 implements the model and 0.4.1 adds capture with Context; D02 is accepted and not built ([current scope](../product/scope.md)). Until it ships, generation on an existing page targets the deck's current configuration instead of the page's own module instances, as described in [pages and editing](pages-and-editing.md#before-d02). Builds up to v0.3.0+ followed the [seite-level baseline](../history/v0.3.0-select-and-add.md). [Pages and editing](pages-and-editing.md) owns main key, Context, and component editing; [decks and configuration](decks-and-configuration.md) owns the template new pages start from.
+These rules describe the owner-approved deck → page → component model ([Q72](../architecture/questionnaire/answers/answers-06-data-and-semantics.md#q72)) with page-owned modules ([D02](../architecture/traceability-map.md#entries)). Release 0.4.0 implements the model, 0.4.1 adds capture with Context, and 0.5.0 implements D02 ([current scope](../product/scope.md)). Builds up to v0.3.0+ followed the [seite-level baseline](../history/v0.3.0-select-and-add.md). [Pages and editing](pages-and-editing.md) owns main key, Context, and component editing; [decks and configuration](decks-and-configuration.md) owns the template new pages start from.
 
 ## Availability and default deck
 
@@ -20,7 +20,7 @@ A captured page receives a copy of the default deck's content module instances (
 
 1. A logged-in user is reading a webpage and selects an unfamiliar word, phrase, or sentence, such as `幸福`.
 2. The user right-clicks the selection and chooses **Create a page in “{default deck name}”**.
-3. Vocabularium takes the selected text exactly as selected. When the destination deck has the Context module, it also takes the surrounding block (capped at around 500 characters); otherwise no surrounding text is taken. The web page URL and title are never taken. The Context is defined in [Pages and editing](pages-and-editing.md#context); until D02 ships, the deck's **Capture with Context** setting plays the Context module's role.
+3. Vocabularium takes the selected text exactly as selected. When the destination deck has the Context module, it also takes the surrounding block (capped at around 500 characters); otherwise no surrounding text is taken. The web page URL and title are never taken. The Context is defined in [Pages and editing](pages-and-editing.md#context).
 4. It automatically saves a page in the destination deck with the selected text as its main key and the captured Context when present. This page remains accessible if generation later fails; its existence does not mean generation succeeded.
 5. It starts one generation run for the page: one attempt per content module instance the page received from the deck. Where required by those instances, it determines the input type and one source language from the main key and Context, once for the whole run.
 6. Each attempt publishes its own component when it completes. Inapplicable instances complete with an empty component. A failed attempt leaves its component empty with a failure indicator; it does not affect the other components.

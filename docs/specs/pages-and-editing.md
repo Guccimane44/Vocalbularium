@@ -2,7 +2,7 @@
 
 ## Purpose and status
 
-This specification defines the page list, page input, and page editing shared by captured and manually created pages. Release 0.4.1 implements everything here except [shaping a page](#shaping-a-page), which [D02](../architecture/traceability-map.md#entries) accepted and which is not built; [current scope](../product/scope.md) records the status. Until D02 ships, pages follow the rules in [Before D02](#before-d02).
+This specification defines the page list, page input, and page editing shared by captured and manually created pages. Release 0.5.0 implements it, including [shaping a page](#shaping-a-page) ([D02](../architecture/traceability-map.md#entries)); [current scope](../product/scope.md) records the status.
 
 The [product model](../product/model.md) defines a page, its components, and the main key. [Modules](modules.md#content-module-contract) owns how content modules consume the main key and Context. [Capture and generation](capture-and-generation.md) owns generation completion, replacement, failure, interruption, and recovery. [Decks and configuration](decks-and-configuration.md) owns the deck configuration that new pages start from. [Accounts and synchronization](accounts-and-sync.md) owns save ordering across installations.
 
@@ -41,7 +41,7 @@ After creation the page owns its module instances. Deck configuration changes ne
 
 ### Shaping a page
 
-Accepted with D02; not built. The user shapes a page directly, outside the editing session. Each shaping step is saved immediately as one operation, with no separate **Save**, and reaches other installations in the order it arrives, like every save ([accounts and synchronization](accounts-and-sync.md#synchronization)). Shaping is unavailable while the page is being edited.
+The user shapes a page directly, outside the editing session. Each shaping step is saved immediately as one operation, with no separate **Save**, and reaches other installations in the order it arrives, like every save ([accounts and synchronization](accounts-and-sync.md#synchronization)). Shaping is unavailable while the page is being edited.
 
 - **Delete a component.** Any component except the main key can be deleted: a content component, the Context, or a Text component. Deleting asks for confirmation, then removes the component immediately. Deleting a module's component also removes the module instance from the page, so generation, **Generate missing**, and page **Retry** never bring it back. A component that is generating cannot be deleted until its attempt finishes.
 - **Rearrange components.** The user can drag any component except the main key, including the Context and Text components, into a new order below the main key, by dragging or with move controls from the keyboard. The order is saved with the page and used by the default view.
@@ -87,15 +87,6 @@ Editing the main key changes the input for subsequent generation. It does not ru
 The user must explicitly request generation again to produce content from the updated key. The action uses the main key and saved Context at the time of the request, with interpretation appropriate to them. It must not use the original captured selection or an earlier key's interpretation. Content that remains from earlier attempts can therefore describe a different input from the current key.
 
 Generation uses the page's own content module instances. Finish editing with **Save** or **Cancel** before starting generation or a retry.
-
-## Before D02
-
-Release 0.4.1 implements the page/component model with deck-driven modules ([Q72](../architecture/questionnaire/answers/answers-06-data-and-semantics.md#q72)):
-
-- There are no input modules: every page has a main key, the Context is a fixed optional component, and the deck's **Capture with Context** setting (on by default) decides whether capture takes it. Clearing the Context's text and saving removes it, and a page without one can gain it while editing.
-- A page's content components follow the deck's current configuration. A module instance added to the deck appears on existing pages as "Not generated yet"; reordering the deck reorders every page.
-- Components of an instance removed from the deck stay on the page, marked "no longer in this deck". They stay editable, have no **Retry**, and generation never touches them.
-- Components cannot be deleted or rearranged. The Context can be cleared. The user's own text is a manual component, added with **Add your own text** while editing; it can be emptied but not removed, and does not count toward the deck limit.
 
 ## Acceptance scenarios
 

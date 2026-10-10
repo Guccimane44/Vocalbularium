@@ -2,7 +2,7 @@
 
 ## Purpose and status
 
-This specification defines decks, the dashboard, the default deck, and deck configuration. Release 0.4.1 implements everything here except the page-owned modules of [D02](../architecture/traceability-map.md#entries) and the module window, which are accepted and not built; [current scope](../product/scope.md) records the status. Until D02 ships, existing pages still follow their deck's current configuration, as described under [Before D02](#before-d02).
+This specification defines decks, the dashboard, the default deck, and deck configuration. Release 0.5.0 implements it, including the page-owned modules of [D02](../architecture/traceability-map.md#entries) and the module window; [current scope](../product/scope.md) records the status.
 
 The [product model](../product/model.md) defines decks, configuration, content module instances, and views. [Modules](modules.md) owns the module catalog and contracts. [Pages and editing](pages-and-editing.md) owns what happens to a page after it is created.
 
@@ -40,7 +40,7 @@ A configuration with only the main key module is valid. Its new pages hold only 
 
 ### Module window
 
-Deck settings show the **module window** on the right ([shared UI](shared-ui.md#module-window)). The user adds an instance by dragging a module from the window into the configuration, or with the window's **Add** control from the keyboard, and reorders instances by dragging or with move controls. The page view shows the same window ([pages and editing](pages-and-editing.md#shaping-a-page)), so shaping a deck and shaping a page use the same gesture. Accepted with D02; not built.
+Deck settings show the **module window** on the right ([shared UI](shared-ui.md#module-window)). The user adds an instance by dragging a module from the window into the configuration, or with the window's **Add** control from the keyboard, and reorders instances by dragging or with move controls. The page view shows the same window ([pages and editing](pages-and-editing.md#shaping-a-page)), so shaping a deck and shaping a page use the same gesture.
 
 ## Configuration and pages
 
@@ -51,10 +51,6 @@ The configuration is the template for page creation. Capture and manual creation
 - A page moved to another deck keeps its modules and components.
 
 A generation run already in progress when the configuration changes is unaffected.
-
-### Before D02
-
-Release 0.4.1 has no input modules: the main key and Context are fixed parts of every page, the limit of 12 counts content module instances only, and **Capture with Context** is an on/off deck setting (on by default) instead of the Context module. It also implements the earlier rule from [Q72](../architecture/questionnaire/answers/answers-06-data-and-semantics.md#q72): pages follow the deck's current configuration. A module instance added to the deck appears on existing pages as "Not generated yet" until **Generate missing** or page **Retry** fills it. Components of an instance removed from the deck stay on their pages, marked as no longer in the deck, and generation no longer touches them. Reordering the deck reorders every page's content components.
 
 ## Views
 
