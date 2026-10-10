@@ -10,8 +10,8 @@ decks and kartes on upgrade; keep accounts and sign-in, and keep
 recovery working for data created after the refactor.
 
 The vocabulary is deck → page → component, with content modules,
-view modules and the default view. Karte and seite names may remain
-in code until their planned increment.
+view modules and the default view. Karte and seite are earlier
+terms; they remain only in history, migrations and upgrade fixtures.
 Use semantic replacements; other meanings of “page” (web page,
 pagination) stay unchanged. The 0.3.0+ terminology plan is historical.
 

@@ -2,7 +2,7 @@
 
 ## Purpose and status
 
-This specification defines the owner-approved deck configuration for the deck → page → component model. It is pending implementation; [current scope](../product/scope.md#accepted-change-pending-implementation) distinguishes it from the supported baseline, which still configures one to four seites. Deck browsing, creation, renaming, deletion, and default-deck selection remain defined by the applicable [MVP dashboard](../history/mvp/MVP-Product-scope.md#4-dashboard) and [default deck](../history/mvp/MVP-Product-scope.md#6-default-deck) rules.
+This specification defines the owner-approved deck configuration for the deck → page → component model. Release 0.4.0 implements it; [current scope](../product/scope.md) lists what is supported. Deck browsing, creation, renaming, deletion, and default-deck selection remain defined by the applicable [MVP dashboard](../history/mvp/MVP-Product-scope.md#4-dashboard) and [default deck](../history/mvp/MVP-Product-scope.md#6-default-deck) rules.
 
 The [product model](../product/model.md) defines decks, configuration, content module instances, and views. [Modules](modules.md) owns the module catalog and contracts. [Pages and editing](pages-and-editing.md) owns how pages hold the components these instances produce.
 

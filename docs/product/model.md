@@ -4,7 +4,7 @@
 
 This document defines Vocabularium's core concepts and their fundamental relationships. It is a conceptual model, not a database schema or a workflow specification. [Scope](scope.md) identifies current capability limits; [vision](vision.md) describes possible future uses.
 
-The model below is the owner-approved deck → page → component model ([Q72](../architecture/questionnaire/answers/answers-06-data-and-semantics.md#q72), [refactor plan](../plans/page-component-refactor.md)). It is [pending implementation](scope.md#accepted-change-pending-implementation): the running v0.3.0+ build still calls pages *kartes* and stores their content in *seites*. [Earlier terms](#earlier-terms) maps the old vocabulary.
+The model below is the owner-approved deck → page → component model ([Q72](../architecture/questionnaire/answers/answers-06-data-and-semantics.md#q72), [refactor plan](../plans/page-component-refactor.md)). Release 0.4.0 implements it; [current scope](scope.md) lists what is supported. Builds up to v0.3.0+ called pages *kartes* and stored their content in *seites*. [Earlier terms](#earlier-terms) maps the old vocabulary.
 
 ## Account
 
