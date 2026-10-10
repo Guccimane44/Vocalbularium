@@ -3139,6 +3139,9 @@
                               }
                             },
                             "additionalProperties": false
+                          },
+                          "captureContext": {
+                            "type": "boolean"
                           }
                         },
                         "additionalProperties": false

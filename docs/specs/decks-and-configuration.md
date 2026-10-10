@@ -12,9 +12,10 @@ A deck's configuration has:
 
 - its **name**;
 - an ordered list of **content module instances**: at most 12 per deck. The same module type may appear more than once;
-- its **view**: the default view, which shows each page as its ordered component list.
+- its **view**: the default view, which shows each page as its ordered component list;
+- **Capture with Context**: on or off, on for a new deck. It decides whether capture into the deck takes the selection's surrounding block ([Pages and editing](pages-and-editing.md#context)).
 
-The user edits the configuration in **deck settings**: add, remove, and reorder content module instances. Deck settings can preview the configured instances using word and sentence examples. Configuration edits follow the explicit save and draft rules for deck configuration.
+The user edits the configuration in **deck settings**: add, remove, and reorder content module instances, and turn Capture with Context on or off. Deck settings can preview the configured instances using word and sentence examples. Configuration edits follow the explicit save and draft rules for deck configuration.
 
 A configuration with no content module instances is valid. Its pages hold only the main key, Context, and manual components.
 

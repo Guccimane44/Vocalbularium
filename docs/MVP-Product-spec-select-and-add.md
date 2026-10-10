@@ -6,7 +6,7 @@ This document is the authoritative source for detailed component completion, fai
 
 ## Status
 
-These rules describe the owner-approved deck → page → component model ([Q72](architecture/questionnaire/answers/answers-06-data-and-semantics.md#q72)) and are implemented in release 0.4.0, except capture with Context, which [current scope](product/scope.md#accepted-change-pending-implementation) lists as pending. Builds up to v0.3.0+ followed the [seite-level baseline](history/v0.3.0-select-and-add.md). [Pages and editing](specs/pages-and-editing.md) owns main key, Context, and component editing; [Deck configuration](specs/decks-and-configuration.md) owns content module instances.
+These rules describe the owner-approved deck → page → component model ([Q72](architecture/questionnaire/answers/answers-06-data-and-semantics.md#q72)) and are implemented in release 0.4.0; capture with Context was added after 0.4.0 ([current scope](product/scope.md)). Builds up to v0.3.0+ followed the [seite-level baseline](history/v0.3.0-select-and-add.md). [Pages and editing](specs/pages-and-editing.md) owns main key, Context, and component editing; [Deck configuration](specs/decks-and-configuration.md) owns content module instances.
 
 ## Availability and default deck
 
@@ -20,7 +20,7 @@ The default deck's current configuration defines the content module instances us
 
 1. A logged-in user is reading a webpage and selects an unfamiliar word, phrase, or sentence, such as `幸福`.
 2. The user right-clicks the selection and chooses **Create a page in “{default deck name}”**.
-3. Vocabularium takes the selected text exactly as selected. When capture with Context is on, it also takes the surrounding block (capped at around 500 characters) plus the web page URL/title and timestamp; when off, no surrounding text or page context is taken. The Context and its on/off toggle are defined in [Pages and editing](specs/pages-and-editing.md#context).
+3. Vocabularium takes the selected text exactly as selected. When the destination deck has capture with Context on, it also takes the surrounding block (capped at around 500 characters); when off, no surrounding text is taken. The web page URL and title are never taken. The Context and its deck-level toggle are defined in [Pages and editing](specs/pages-and-editing.md#context).
 4. It automatically saves a page in the destination deck with the selected text as its main key and the captured Context when present. This page remains accessible if generation later fails; its existence does not mean generation succeeded.
 5. It starts one generation run for the page: one attempt per content module instance in the deck's current configuration. Where required by those instances, it determines the input type and one source language from the main key and Context, once for the whole run.
 6. Each attempt publishes its own component when it completes. Inapplicable instances complete with an empty component. A failed attempt leaves its component empty with a failure indicator; it does not affect the other components.

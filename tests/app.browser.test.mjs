@@ -247,6 +247,66 @@ test('capture extension: receipt lifetime, exact duplicate pages, shared outcome
   assert.equal((await application.store.pages()).filter(page => page.selectedText === 'not saved yet').length, 1);
 });
 
+test('capture with Context: the surrounding block follows the deck toggle, capped, into the page and generation', { timeout: 40000 }, async (t) => {
+  const directory = await mkdtemp(join(tmpdir(), 'vocabularium-capture-context-'));
+  const testingExtension = join(directory, 'extension');
+  await cp(resolve(process.env.VOCABULARIUM_TEST_EXTENSION ?? 'artifacts/extension'), testingExtension, { recursive: true });
+  await appendFile(join(testingExtension, 'background.js'), '\nglobalThis.captureForTest = handleCapture;\n');
+  const interpreted = [];
+  const provider = {
+    async interpret(text, signal, sessionId, context) { interpreted.push({ text, context }); return { inputType: 'word_phrase', sourceLanguage: 'Chinese' }; },
+    async generate() { return 'Glück'; }
+  };
+  const application = await createTestApplication(t, { provider });
+  await useModules(application.store, ['german-examples']);
+  await application.start();
+  const a = await launch(join(directory, 'a'), testingExtension);
+  t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
+  await signIn(a.page);
+  const reading = await a.context.newPage(); await reading.goto(apiOrigin + '/health');
+  const filler = 'Ein langer Satz ohne Bedeutung. '.repeat(20);
+  await reading.setContent(`<main><p>Nicht dieser Absatz.</p><p id="block">${filler}Sie war <b id="word">幸福</b> und  lachte.\n${filler}</p></main>`);
+  const select = selector => reading.locator(selector).evaluate(node => {
+    const range = document.createRange(); range.selectNodeContents(node); getSelection().removeAllRanges(); getSelection().addRange(range); return getSelection().toString();
+  });
+  const contextOf = page => page.components.filter(component => component.kind === 'context').map(text);
+
+  // On by default: the block around the selection, capped near 500 characters, with whitespace collapsed.
+  await captureFrom(a, await select('#word'));
+  await waitFor(async () => (await application.store.pages())[0]?.status === 'completed', 'capture with Context completed');
+  const [context] = contextOf((await application.store.pages())[0]);
+  assert.ok(context, 'the captured page has Context');
+  assert.match(context, /Sie war 幸福 und lachte\. Ein langer/);
+  assert.ok(context.startsWith('…') && context.endsWith('…') && context.length <= 502, `capped Context: ${context.length}`);
+  assert.ok(!context.includes('Nicht dieser Absatz'), 'only the selection’s own block');
+  assert.deepEqual(interpreted.at(-1), { text: '幸福', context });
+  await a.page.goto(`chrome-extension://${a.id}/app.html#page/${(await application.store.pages())[0].id}`);
+  await componentArticle(a.page, 'Context').locator('pre').filter({ hasText: 'Sie war 幸福 und lachte.' }).waitFor();
+
+  // A selection filling its whole block has no surrounding text and so no Context.
+  await captureFrom(a, await select('main > p:first-child'));
+  await waitFor(async () => (await application.store.pages()).length === 2, 'whole-block capture saved');
+  assert.deepEqual(contextOf(await byKey(application.store, 'Nicht dieser Absatz.')), []);
+
+  // Turned off in the deck configuration: nothing beyond the selection is taken.
+  const deckId = (await application.store.account()).defaultDeckId;
+  await a.page.goto(`chrome-extension://${a.id}/app.html#configure/${deckId}`);
+  const toggle = a.page.getByLabel('Capture with Context', { exact: true });
+  assert.equal(await toggle.isChecked(), true);
+  await toggle.uncheck();
+  await a.page.getByRole('button', { name: 'Save', exact: true }).click();
+  await waitFor(async () => (await application.store.deck(deckId)).captureContext === false, 'deck toggle saved');
+  await waitFor(async () => (await a.worker.evaluate(async () => (await chrome.storage.local.get('account')).account))
+    ?.defaultDeckSnapshot?.captureContext === false, 'extension sees the deck toggle');
+  await captureFrom(a, await select('#word'));
+  await waitFor(async () => (await application.store.pages()).length === 3 && interpreted.length === 3, 'capture without Context generated');
+  const plain = (await application.store.pages()).filter(page => keyOf(page) === '幸福').find(page => !contextOf(page).length);
+  assert.ok(plain, 'the page captured with Context off has no Context');
+  assert.deepEqual(interpreted.at(-1), { text: '幸福', context: undefined });
+  const receipts = await a.worker.evaluate(async () => Object.entries(await chrome.storage.local.get(null)).filter(([key]) => key.startsWith('capture-')).map(([, item]) => item.payload));
+  assert.ok(receipts.every(payload => payload.mainKey !== '幸福' || payload.context === undefined || payload.context === context));
+});
+
 test('recent captures: the pending receipt hands off to its account page without an empty or duplicate frame', { timeout: 35000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-capture-handoff-'));
   const testingExtension = join(directory, 'extension');

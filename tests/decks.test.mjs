@@ -85,3 +85,20 @@ test('capture preparation resolves the shared default once; capture follows that
   assert.equal(page.deckId, nextId);
   assert.deepEqual(generated(page).map(item => item.moduleInstanceId), current.map(module => module.id));
 });
+
+test('capture with Context is a deck setting: on by default, kept when omitted, and enforced at capture', async (t) => {
+  const store = await fixture(t), deck = await store.deck((await store.snapshot()).id);
+  assert.equal(deck.captureContext, true);
+  const contextOf = async pageId => (await store.page(pageId)).components.filter(component => component.kind === 'context').map(text);
+  const withContext = async () => (await store.capture(randomUUID(), { session, mainKey: '幸福', context: 'Wir sind 幸福.', snapshot: (await store.snapshot()) })).pageId;
+  assert.deepEqual(await contextOf(await withContext()), ['Wir sind 幸福.']);
+  await save(store, { ...deck, captureContext: false });
+  assert.equal((await store.deck(deck.id)).captureContext, false);
+  // Context sent under a stale "on" is not stored once the deck has turned it off.
+  assert.deepEqual(await contextOf(await withContext()), []);
+  const { captureContext, ...omitted } = deck;
+  await save(store, { ...omitted, name: 'Renamed' });
+  assert.equal((await store.deck(deck.id)).captureContext, false);
+  assert.equal((await store.deck((await save(store, { name: 'Fresh', modules: [], view })).deckId)).captureContext, true);
+  await assert.rejects(save(store, { ...deck, captureContext: 'yes' }), { code: 'invalid' });
+});

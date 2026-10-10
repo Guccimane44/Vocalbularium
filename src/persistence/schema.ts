@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { pgTable, text, integer, bigint, bigserial, primaryKey, check, index, unique, uniqueIndex, foreignKey, customType } from 'drizzle-orm/pg-core';
+import { pgTable, text, integer, boolean, bigint, bigserial, primaryKey, check, index, unique, uniqueIndex, foreignKey, customType } from 'drizzle-orm/pg-core';
 
 const bytea = customType<{ data: Buffer }>({ dataType: () => 'bytea' });
 
@@ -7,7 +7,9 @@ const bytea = customType<{ data: Buffer }>({ dataType: () => 'bytea' });
 // multi-tenant authorization schema. Stable text IDs preserve the wire contract.
 export const decks = pgTable('decks', {
   id: text().primaryKey(), name: text().notNull(), ordinal: bigserial({ mode: 'number' }).notNull(),
-  view: text().notNull().default('default')
+  view: text().notNull().default('default'),
+  // Whether capture into this deck also takes the selection's surrounding block.
+  capture_context: boolean().notNull().default(true)
 }, table => [check('deck_view', sql`${table.view} in ('default')`)]);
 export const account = pgTable('account', {
   id: integer().primaryKey(), default_deck_id: text().notNull().references(() => decks.id)

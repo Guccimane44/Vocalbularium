@@ -1,7 +1,8 @@
 import { readLocal } from './recovery.js';
 import { showFeedback } from './feedback.js';
+import { captureContext } from './context-extraction.js';
 
-export function captureRuntime({ request, initialize, refresh, removeAccess, saves, diagnostic = () => {} }) {
+export function captureRuntime({ request, initialize, refresh, removeAccess, saves, diagnostic = () => {}, extractContext = captureContext }) {
   let polling;
   let pollAgain = false;
   async function context() {
@@ -53,9 +54,12 @@ export function captureRuntime({ request, initialize, refresh, removeAccess, sav
       await showFeedback(tab.id, 'Capture unavailable. Open Vocabularium to sign in.', true, info.pageUrl ?? tab.url); return;
     }
     const operationId = crypto.randomUUID();
+    // The destination deck decides whether capture takes the surrounding block; when off, nothing beyond the selection is read.
+    const context = deck.captureContext === false ? undefined : await extractContext(info, tab);
     try { diagnostic({ event: 'capture.invoked', operationId, installationId: session.installationId, sessionId: session.sessionId,
-      outcome: 'started', content: { selectedText: info.selectionText } }); } catch { /* Capture remains independent of logging. */ }
-    const receipt = { operationId, payload: { session, snapshot, mainKey: info.selectionText }, state: 'saving', createdAt: new Date().toISOString() };
+      outcome: 'started', content: { selectedText: info.selectionText, ...(context ? { context } : {}) } }); } catch { /* Capture remains independent of logging. */ }
+    const payload = { session, snapshot, mainKey: info.selectionText, ...(context ? { context } : {}) };
+    const receipt = { operationId, payload, state: 'saving', createdAt: new Date().toISOString() };
     try { await chrome.storage.local.set({ [`capture-${operationId}`]: receipt }); }
     catch { await showFeedback(tab.id, 'Capture could not be received.', true, info.pageUrl ?? tab.url); return; }
     await showFeedback(tab.id, 'Capture received', false, info.pageUrl ?? tab.url);
