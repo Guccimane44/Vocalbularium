@@ -6,12 +6,16 @@ This specification defines interface rules shared across the extension's views. 
 
 ## Module window
 
-The **module window** is a panel on the right side of both the page view and deck settings. It shows the Context module and the catalog of content modules; the main key module is always present and is not in the window. Dragging a module from it:
+The **module window** is a panel on the right side of both the page view and deck settings. It lists the Context module, the Text module, and the content modules, each with its label and a one-line description of what it contributes. The main key module is always present and is not in the window. Dragging a module from it:
 
 - into deck settings adds an instance to the deck configuration, the template for new pages ([decks and configuration](decks-and-configuration.md#module-window));
 - onto a page adds an instance to that page only ([pages and editing](pages-and-editing.md#shaping-a-page)).
 
-Accepted with D02; not built. Its layout, how modules are described in it, and a keyboard alternative to dragging are part of the redesign and still to be specified.
+Every module in the window also has an **Add** control, so adding works from the keyboard; it appends the module at the end of the configuration or page. A module is disabled when the deck or page already holds 12 modules, and the Context module when one is already present; the window says why. On a narrow window the panel moves below the content.
+
+Dragging is never the only way: every drag (adding, reordering) has a keyboard equivalent, and a drag is announced to screen readers when it starts, moves, and ends.
+
+Accepted with D02; not built. The 0.5.0 [plan](../plans/page-owned-modules.md) builds it with today's styling; the visual identity is a later milestone.
 
 ## Appearance
 

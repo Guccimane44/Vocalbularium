@@ -10,7 +10,7 @@ The current rules below describe the three current content modules. Detailed cat
 
 Modules have three kinds ([Q72](../architecture/questionnaire/answers/answers-06-data-and-semantics.md#q72), [D02](../architecture/traceability-map.md#entries)):
 
-- **Input modules** hold a page's generation input and are filled by capture or by the user, never by generation. The **main key module** is compulsory, exactly one per deck and page, always first, and cannot be removed. The **Context module** is optional, at most one per deck or page; a deck with it captures the selection's surrounding block. Accepted with D02, not built: 0.4.1 has the main key and Context as fixed page parts and a deck setting for Context.
+- **Input modules** are filled by capture or by the user, never by generation. The **main key module** is compulsory, exactly one per deck and page, always first, and cannot be removed. The **Context module** is optional, at most one per deck or page; a deck with it captures the selection's surrounding block. The **Text module** holds the user's own writing and can repeat. The main key and Context are a content module's only inputs; Text never is. Accepted with D02, not built: 0.4.1 has the main key and Context as fixed page parts, a deck setting for Context, and manual components instead of Text.
 - **Content modules** produce components from a page's main key and Context. Each instance owns one component per page. All three current types are content modules.
 - **View modules** show pages. The **default view** is the only view module in the current refactor.
 
@@ -36,7 +36,7 @@ This contract is implemented in release 0.4.0. [Pages and editing](pages-and-edi
 
 - **Input:** the page's current main key, its saved Context when present, and the input interpretation of the generation run. These are a content module's only text inputs, whether capture or manual entry supplied them. Module configuration remains the instructions governing the contribution.
 - **Interpretation:** one interpretation per generation run, shared by every attempt in that run. It must correspond to the run's main key and Context; a changed key must not reuse a prior key's category or source language.
-- **Output:** the block content of the instance's own component on that page. An instance never changes the main key, the Context, another instance's component, or a manual component. The current five types produce plain text, stored as paragraph blocks.
+- **Output:** the block content of the instance's own component on that page. An instance never changes an input module's component or another instance's component. The current five types produce plain text, stored as paragraph blocks.
 - **Applicability:** an inapplicable instance completes its component empty. Inapplicability is not failure.
 - **Editing:** editing the main key or the Context does not run modules or change saved output. Existing output reflects the main key and Context used in its attempt and may differ from the current values after an edit. The user may edit a generated component; the next retry of that component replaces the edit after confirmation.
 
@@ -50,7 +50,7 @@ The **default view** module shows every component in page order: the main key fi
 
 ## Composition
 
-Users add, remove, reorder, and repeat content module instances in deck settings, and add or remove the Context module, up to the [limit of 12 module instances](decks-and-configuration.md#configuration) including the main key and Context, and the deck's instances become the starting modules of each new page. After creation, users add, delete, and rearrange modules on the page itself ([D02](../architecture/traceability-map.md#entries), accepted, not built; [pages and editing](pages-and-editing.md#shaping-a-page)). Both use the module window. Adding an instance does not remove its type from the library. Repeated generative instances operate independently while sharing the run's interpretation; direct-input instances repeat the same input. Detailed repetition rules remain in the [existing specification](../history/mvp/MVP-Product-spec-modules.md#multiple-instances-of-a-module).
+Users add, remove, reorder, and repeat content module instances in deck settings, and add or remove the Context and Text modules, up to the [limit of 12 module instances](decks-and-configuration.md#configuration) counting every module, and the deck's instances become the starting modules of each new page. After creation, users add, delete, and rearrange modules on the page itself ([D02](../architecture/traceability-map.md#entries), accepted, not built; [pages and editing](pages-and-editing.md#shaping-a-page)). Both use the module window. Adding an instance does not remove its type from the library. Repeated generative instances operate independently while sharing the run's interpretation; direct-input instances repeat the same input. Detailed repetition rules remain in the [existing specification](../history/mvp/MVP-Product-spec-modules.md#multiple-instances-of-a-module).
 
 Each instance's output is its own component, and users edit each component separately. Deck configuration edits affect only pages created afterwards ([decks and configuration](decks-and-configuration.md#configuration-and-pages)).
 

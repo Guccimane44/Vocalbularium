@@ -67,7 +67,7 @@ All generation actions use the page's current main key and saved Context and the
 | **Retry** (component) | One content component | Always |
 | **Retry** (page) | Every content component on the page, including ones not generated yet | Always |
 
-No action touches the main key, the Context, or manual components, and none recreates a component the user deleted. Manual creation and manual edits never start generation.
+No action touches an input module's component (main key, Context, Text), and none recreates a component the user deleted. Manual creation and manual edits never start generation.
 
 ## Component completion and failure
 
@@ -109,7 +109,7 @@ Before starting, always show a confirmation warning. For one component:
 
 For the whole page:
 
-> Retry will replace the content of every generated component on this page, including your edits to them. The main key, Context, and your own components will not change.
+> Retry will replace the content of every generated component on this page, including your edits to them. The main key, Context, and your Text components will not change.
 
 - **Cancel** leaves the page unchanged.
 - **Confirm** discards the targeted components' current content and starts a fresh attempt for each. Previous edits and generated output are not preserved or merged into the replacement. If an attempt fails, its component stays empty with a failure indicator; the discarded content is not restored.
@@ -144,4 +144,4 @@ For a selected sentence such as `我真的很幸福`, the `<German explanation +
 
 ## Editing after capture
 
-Generated content remains editable. The user opens the page editor to change any component, edit the main key or its Context, add their own text component, or delete the page. Manual edits require an explicit **Save**. Select and Add and confirmed retries save their outcomes automatically. A later confirmed **Retry** discards the edits on the components it targets along with their previous generation; edits on other components remain unchanged.
+Generated content remains editable. The user opens the page editor to change any component, edit the main key or its Context, write in Text components, or delete the page. Adding, deleting, and moving components is described in [pages and editing](pages-and-editing.md#shaping-a-page). Manual edits require an explicit **Save**. Select and Add and confirmed retries save their outcomes automatically. A later confirmed **Retry** discards the edits on the components it targets along with their previous generation; edits on other components remain unchanged.

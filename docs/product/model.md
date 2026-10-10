@@ -52,7 +52,7 @@ After creation the user shapes the page freely. They can delete any component ex
 
 A component records the page's module instance that owns it. That ownership, not its position, identifies which instance produces or replaces it.
 
-A **manual component** is text the user adds that no module owns. Generation never creates, replaces, or removes it.
+A **Text component** is the user's own writing, owned by a Text module instance. Generation never creates, replaces, or removes it. Text modules replace the earlier manual components, which no module owned.
 
 A component's content is a versioned block document ([Q13](../architecture/questionnaire/answers/answers-03-frontend.md#q13)). The current modules produce plain text, stored as paragraph blocks and shown as plain text. A component can be empty; emptiness alone does not indicate a failed generation attempt. Components have no inherent subject or language; their meaning comes from the module that owns them or from what the user writes.
 
@@ -60,7 +60,7 @@ A component's content is a versioned block document ([Q13](../architecture/quest
 
 Modules have three kinds:
 
-- **Input modules** hold a page's generation input. The **main key module** is compulsory: every deck and page has exactly one, always first, and it cannot be removed. The **Context module** is optional, at most one per deck or page. Input modules are filled by capture or by the user, never by generation.
+- **Input modules** hold what capture or the user supplies; generation never fills them. The **main key module** is compulsory: every deck and page has exactly one, always first, and it cannot be removed. The **Context module** is optional, at most one per deck or page. The main key and Context are the generation input. The **Text module** holds the user's own writing; it can repeat and is never a generation input.
 - **Content modules** produce components from the main key and Context.
 - **View modules** show pages (see [View](#view)).
 
@@ -68,7 +68,7 @@ A **module type** defines one focused way to contribute content, such as display
 
 A module's purpose, applicable inputs, supported options, and output behavior are product-defined. The [module specification](../specs/modules.md) describes the current catalog and the design contract for future additions. A module can serve different subjects or languages within its applicability; it need not apply to every input.
 
-A **module instance** is one placement of an input or content module type, either in a deck configuration, where it is a template for new pages, or on a page, where it owns one component. A deck or page holds at most 12 module instances, including the main key and Context. A content module type may have several instances.
+A **module instance** is one placement of an input or content module type, either in a deck configuration, where it is a template for new pages, or on a page, where it owns one component. A deck or page holds at most 12 module instances, counting every module, including the main key, Context, and Text. Text and content module types may have several instances.
 
 **Applicability** means whether a module instance is relevant to the input interpretation. An inapplicable instance contributes no output; its component completes empty. Instances in one generation run share the input interpretation but evaluate their own applicability.
 
@@ -112,8 +112,8 @@ Account
 │       ├── Module instances, each owning one component:
 │       │   ├── Main key (required, first; from capture or manual entry)
 │       │   ├── Context (optional)
+│       │   ├── Text (any number; never touched by generation)
 │       │   └── Content components
-│       ├── Manual components, never touched by generation
 │       └── Generation attempts and outcomes, per component
 ```
 
@@ -133,5 +133,6 @@ Use this mapping when reading history, releases, issues, and code that predate t
 | deck configuration page | deck settings |
 | card view page, karte view page | opening a page ("Open page") |
 | card content page, karte content page | page editor |
+| manual component (0.4.x) | Text component, owned by a Text module (0.5.0) |
 
 The 0.3.0+ [terminology plan](../history/plans/v0.3.0-plus-terminology-migration.md) and [compatibility record](../history/architecture/terminology-compatibility.md) describe the earlier migration and are historical.
