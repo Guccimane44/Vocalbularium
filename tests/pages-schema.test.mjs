@@ -50,20 +50,21 @@ test('page/component tables enforce ownership, uniqueness, limits and cascades',
   await rejects("UPDATE decks SET view = 'card' WHERE id = $1", [deck], /deck_view/);
 
   await client.query("INSERT INTO pages (id, deck_id, selected_text, created_at) VALUES ('p', $1, '幸福', '1')", [deck]);
-  const component = (id, kind, instance, position) => client.query(
-    "INSERT INTO components (page_id, id, kind, module_instance_id, position, content) VALUES ('p', $1, $2, $3, $4, '{}')",
-    [id, kind, instance, position]);
-  await component('key', 'main_key', null, 0);
-  await component('ctx', 'context', null, 1);
-  await component('c0', 'module', 'm0', 2);
-  await component('old', 'module', 'removed-instance', 3);
-  await component('mine', 'manual', null, 4);
-  await assert.rejects(component('key2', 'main_key', null, 5), /components_single_main_key/);
-  await assert.rejects(component('ctx2', 'context', null, 5), /components_single_context/);
-  await assert.rejects(component('c0-again', 'module', 'm0', 5), /components_module_instance/);
-  await assert.rejects(component('orphan', 'module', null, 5), /component_owner/);
-  await assert.rejects(component('owned-manual', 'manual', 'm1', 5), /component_owner/);
-  await assert.rejects(component('odd', 'image', null, 5), /component_kind/);
+  // Page-owned modules (0008): each component names its page's module instance and type.
+  const component = (id, type, instance, position) => client.query(
+    "INSERT INTO components (page_id, id, module_instance_id, module_type, position, content) VALUES ('p', $1, $2, $3, $4, '{}')",
+    [id, instance, type, position]);
+  await component('key', 'main-key', 'i-key', 0);
+  await component('ctx', 'context', 'i-ctx', 1);
+  await component('c0', 'german-examples', 'i-c0', 2);
+  await component('mine', 'text', 'i-mine', 3);
+  await component('more', 'text', 'i-more', 4);
+  await assert.rejects(component('key2', 'main-key', 'i-key2', 5), /components_single_main_key_module|component_main_key_first/);
+  await assert.rejects(component('ctx2', 'context', 'i-ctx2', 5), /components_single_context_module/);
+  await assert.rejects(component('c0-again', 'german-examples', 'i-c0', 5), /components_module_instance/);
+  await assert.rejects(component('no-instance', 'text', null, 5), /not-null|null value/);
+  await assert.rejects(component('above-key', 'text', 'i-above', 0), /component_main_key_first/);
+  await assert.rejects(component('thirteenth', 'text', 'i-13', 12), /component_limit/);
   await rejects("UPDATE components SET status = 'done' WHERE id = 'c0'", [], /component_status/);
 
   await client.query("INSERT INTO generation_runs VALUES ('r', 'p', NULL)");
@@ -71,7 +72,7 @@ test('page/component tables enforce ownership, uniqueness, limits and cascades',
   await rejects("INSERT INTO component_attempts (id, page_id, component_id, run_id, installation_id, session_id, epoch, module) VALUES ('b', 'p', 'nope', 'r', 'i', 's', 1, '{}')", [], /foreign key/);
   await rejects("UPDATE component_attempts SET state = 'queued'", [], /component_attempt_state/);
 
-  // Removing an instance from the deck leaves its components on the page.
+  // Page instances are the page's own: removing a deck module leaves the page alone.
   await client.query("DELETE FROM deck_modules WHERE id = 'm0'");
   assert.equal((await client.query("SELECT count(*)::int AS n FROM components WHERE id = 'c0'")).rows[0].n, 1);
 
@@ -89,7 +90,7 @@ test('page/component tables enforce ownership, uniqueness, limits and cascades',
 });
 
 test('0007 adds page-owned module columns and input-module uniqueness without touching 0.4.x data', async t => {
-  const database = await createTestDatabase(t);
+  const database = await legacyDatabase(t, 'page-modules-0007', 7);
   const client = await connect(t, database);
   await client.query("INSERT INTO decks (id, name) VALUES ('deck', 'My Deck'), ('other', 'Other'); INSERT INTO account VALUES (1, 'deck')");
   await client.query("INSERT INTO pages (id, deck_id, selected_text, created_at) VALUES ('p', 'deck', '幸福', '1')");

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import pg from 'pg';
 import test, { createTestApplication, createTestDatabase } from './helpers/database.mjs';
-import { legacyDatabase, populateKarteSchema } from './helpers/legacy-database.mjs';
+import { legacyDatabase, migrateTo, populateKarteSchema } from './helpers/legacy-database.mjs';
 import { migrateDatabase } from '../scripts/migrate.mjs';
 import { Postgres } from '../src/persistence/postgres.ts';
 import { Authentication } from '../src/server/auth.mjs';
@@ -27,7 +27,7 @@ test('0004 discards 0.3.0+ content, keeps accounts and sign-in, and starts one f
   const kept = {};
   for (const table of ['credentials', 'login_tokens', 'installations']) kept[table] = await rows(client, table);
 
-  await migrateDatabase(database.databaseUrl);
+  await migrateTo(t, database, 4);
 
   const tables = (await client.query("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'")).rows.map(row => row.table_name);
   for (const retired of ['kartes', 'seites', 'layout_seites', 'attempts']) assert.ok(!tables.includes(retired), retired);
@@ -41,13 +41,15 @@ test('0004 discards 0.3.0+ content, keeps accounts and sign-in, and starts one f
   assert.deepEqual((await client.query('SELECT position, type FROM deck_modules WHERE deck_id = $1', [decks[0].id])).rows,
     [{ position: 0, type: 'german-examples' }]);
 
-  // The owner is still signed in and sees an empty account.
+  // After the remaining migrations, the owner is still signed in and sees an empty account.
+  await migrateDatabase(database.databaseUrl);
+  const [current] = (await client.query('SELECT id FROM decks')).rows;
   const application = await createTestApplication(t, { databaseKey: key, outbox: null });
   const url = await application.start({ port: 0 });
   const account = await fetch(url + '/api/account', { headers: { Authorization: `Bearer ${token}` } });
   assert.equal(account.status, 200);
   const body = await account.json();
-  assert.equal(body.defaultDeckId, decks[0].id);
+  assert.equal(body.defaultDeckId, current.id);
   assert.equal(body.decks.length, 1); assert.deepEqual(body.pages, []);
   await application.close();
 });
@@ -56,43 +58,83 @@ test('a new database gets exactly one default deck, created by the store', async
   const database = await createTestDatabase(t);
   const client = new pg.Client({ connectionString: database.databaseUrl }); await client.connect();
   t.after(() => client.end());
-  assert.equal((await client.query('SELECT count(*)::int AS n FROM decks')).rows[0].n, 0, '0004 creates no deck without an account');
+  assert.equal((await client.query('SELECT count(*)::int AS n FROM decks')).rows[0].n, 0, 'the migrations create no deck without an account');
   const store = await AccountStore.open(database); database.resources.push(store);
   const decks = (await store.account()).decks;
   assert.equal(decks.length, 1);
-  assert.deepEqual(decks[0].modules.map(module => module.type), ['german-examples']);
+  assert.deepEqual(decks[0].modules.map(module => module.type), ['main-key', 'context', 'german-examples']);
   assert.equal((await client.query('SELECT count(*)::int AS n FROM decks')).rows[0].n, 1);
 });
 
+// A small 0.4.x account (schema 0005–0007): one deck with modules, a captured
+// page with components, a generation run, and receipts.
+async function populatePageSchema(client) {
+  await client.query(`
+    INSERT INTO decks (id, name) VALUES ('deck', 'My Deck'), ('other', 'Other');
+    INSERT INTO account VALUES (1, 'deck');
+    INSERT INTO installations VALUES ('upgrade-installation', 1, 'browser');
+    INSERT INTO credentials VALUES ('admin', 'salt', 'hash', 1);
+    INSERT INTO login_tokens VALUES ('token', 99999999999999, 1);
+    INSERT INTO deck_modules VALUES ('examples', 'deck', 0, 'german-examples');
+    INSERT INTO pages (id, deck_id, selected_text, created_at) VALUES ('page', 'deck', '幸福', '1');
+    INSERT INTO components (page_id, id, kind, module_instance_id, position, content, status) VALUES
+      ('page', 'key', 'main_key', NULL, 0, '{"version":1,"blocks":[{"type":"paragraph","text":"幸福"}]}', NULL),
+      ('page', 'explanation', 'module', 'examples', 1, '{"version":1,"blocks":[]}', 'completed');
+    INSERT INTO generation_runs (id, page_id) VALUES ('run', 'page');
+    INSERT INTO component_attempts (id, page_id, component_id, run_id, installation_id, session_id, epoch, module, state)
+      VALUES ('attempt', 'page', 'explanation', 'run', 'upgrade-installation', 'browser', 1, '{"id":"examples","type":"german-examples"}', 'completed');
+    INSERT INTO receipts (operation_id, fingerprint, result) VALUES ('op', 'f', '{}');`);
+}
+
 test('0006 retires <The selected> and its language-tag variant, deleting only their components', async t => {
-  const key = 'retire-selected';
-  const database = await legacyDatabase(t, key, 5);
-  const session = { installationId: 'upgrade-installation', sessionId: 'browser', epoch: 1 };
-  let store = await AccountStore.open(database); database.resources.push({ close: () => store.close() });
-  await store.openSession('open', session);
-  const deckId = (await store.snapshot()).id;
-  const { pageId } = await store.capture('capture', { session, mainKey: '幸福', snapshot: await store.snapshot() });
-  const kept = (await store.page(pageId)).components.map(component => component.id).sort();
+  const database = await legacyDatabase(t, 'retire-selected', 5);
   const client = new pg.Client({ connectionString: database.databaseUrl }); await client.connect();
   t.after(() => client.end());
+  await populatePageSchema(client);
   // Rows the 0.4.1 API could create: a configured <The selected>, and a component whose
   // <The selected + original language tag> instance was already removed from the deck.
   await client.query(`
-    INSERT INTO deck_modules VALUES ('retired-selected', $1, 1, 'selected'), ('retired-language', $1, 2, 'selected-language');
+    INSERT INTO deck_modules VALUES ('retired-selected', 'deck', 1, 'selected'), ('retired-language', 'deck', 2, 'selected-language');
     INSERT INTO components (page_id, id, kind, module_instance_id, position, content, status) VALUES
-      ($2, 'selected-component', 'module', 'retired-selected', 10, '{"version":1,"blocks":[]}', 'completed'),
-      ($2, 'orphan-component', 'module', 'long-removed', 11, '{"version":1,"blocks":[]}', 'completed');
-    INSERT INTO generation_runs (id, page_id) VALUES ('old-run', $2);
+      ('page', 'selected-component', 'module', 'retired-selected', 10, '{"version":1,"blocks":[]}', 'completed'),
+      ('page', 'orphan-component', 'module', 'long-removed', 11, '{"version":1,"blocks":[]}', 'completed');
     INSERT INTO component_attempts (id, page_id, component_id, run_id, installation_id, session_id, epoch, module, state)
-      VALUES ('orphan-attempt', $2, 'orphan-component', 'old-run', 'upgrade-installation', 'browser', 1,
-        '{"id":"long-removed","type":"selected-language"}', 'completed');`.replaceAll('$1', `'${deckId}'`).replaceAll('$2', `'${pageId}'`));
-  await store.close();
+      VALUES ('orphan-attempt', 'page', 'orphan-component', 'run', 'upgrade-installation', 'browser', 1,
+        '{"id":"long-removed","type":"selected-language"}', 'completed');`);
+
+  await migrateTo(t, database, 6);
+
+  assert.deepEqual((await client.query("SELECT type FROM deck_modules WHERE deck_id = 'deck' ORDER BY position")).rows, [{ type: 'german-examples' }]);
+  assert.deepEqual((await client.query("SELECT id FROM components WHERE page_id = 'page' ORDER BY position")).rows.map(row => row.id), ['key', 'explanation']);
+  assert.deepEqual((await client.query('SELECT id FROM component_attempts')).rows, [{ id: 'attempt' }]);
+});
+
+test('0008 discards 0.4.x decks and pages, keeps sign-in, and starts one fresh My Deck with input modules', async t => {
+  const database = await legacyDatabase(t, 'page-owned-upgrade', 7);
+  const client = new pg.Client({ connectionString: database.databaseUrl }); await client.connect();
+  t.after(() => client.end());
+  await populatePageSchema(client);
+  const kept = {};
+  for (const table of ['credentials', 'login_tokens', 'installations']) kept[table] = await rows(client, table);
 
   await migrateDatabase(database.databaseUrl);
 
-  assert.deepEqual((await client.query('SELECT type FROM deck_modules WHERE deck_id = $1 ORDER BY position', [deckId])).rows, [{ type: 'german-examples' }]);
-  assert.equal((await client.query("SELECT count(*)::int AS n FROM component_attempts WHERE id = 'orphan-attempt'")).rows[0].n, 0);
-  store = await AccountStore.open(database);
-  assert.deepEqual((await store.page(pageId)).components.map(component => component.id).sort(), kept);
-  assert.deepEqual((await store.deck(deckId)).modules.map(module => module.type), ['german-examples']);
+  for (const table of Object.keys(kept)) assert.deepEqual(await rows(client, table), kept[table], table);
+  for (const table of ['pages', 'components', 'generation_runs', 'component_attempts', 'receipts']) {
+    assert.equal((await client.query(`SELECT count(*)::int AS n FROM "${table}"`)).rows[0].n, 0, table);
+  }
+  const decks = (await client.query('SELECT id, name FROM decks')).rows;
+  assert.equal(decks.length, 1); assert.equal(decks[0].name, 'My Deck'); assert.ok(!['deck', 'other'].includes(decks[0].id));
+  assert.deepEqual((await client.query('SELECT default_deck_id FROM account')).rows, [{ default_deck_id: decks[0].id }]);
+  assert.deepEqual((await client.query('SELECT position, type FROM deck_modules ORDER BY position')).rows,
+    [{ position: 0, type: 'main-key' }, { position: 1, type: 'context' }, { position: 2, type: 'german-examples' }]);
+  const columns = async table => (await client.query('SELECT column_name FROM information_schema.columns WHERE table_name = $1', [table])).rows.map(row => row.column_name);
+  assert.ok(!(await columns('decks')).includes('capture_context'));
+  assert.ok(!(await columns('components')).includes('kind'));
+
+  // The upgraded account works through the store.
+  const store = await AccountStore.open(database); database.resources.push(store);
+  const session = { installationId: 'upgrade-installation', sessionId: 'browser', epoch: 1 };
+  const { pageId } = await store.capture('capture', { session, mainKey: '幸福', context: 'Wir sind 幸福.', snapshot: await store.snapshot() });
+  assert.deepEqual((await store.page(pageId)).components.map(component => component.moduleType), ['main-key', 'context', 'german-examples']);
 });

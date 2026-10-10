@@ -13,63 +13,61 @@ async function fixture(t) {
 }
 const target = (scope, componentId) => ({ scope, ...(componentId ? { componentId } : {}) });
 
-test('manual pages keep their text, never generate by themselves, and operation receipts prevent duplication', async (t) => {
+test('manual pages copy the deck modules, keep the user’s text, and never generate by themselves', async (t) => {
   const store = await fixture(t), deck = await store.snapshot();
-  const payload = { deckId: deck.id, mainKey: 'john cena', context: 'wrestler', manual: [textBlocks('== literal ==\n: text')] };
+  const [context, notes, explanation] = await useModules(store, ['context', 'text', 'german-examples']);
+  const initial = [{ moduleInstanceId: context.id, content: textBlocks('wrestler') }, { moduleInstanceId: notes.id, content: textBlocks('== literal ==\n: text') }];
+  const payload = { deckId: deck.id, mainKey: 'john cena', initial };
   const first = await store.createPage('create', payload);
   assert.equal((await store.createPage('create', payload)).pageId, first.pageId);
   assert.equal((await store.pages()).length, 1);
   const page = await store.page(first.pageId);
   assert.equal(page.selectedText, null); assert.equal(page.status, null);
-  assert.deepEqual(page.components.map(item => [item.kind, text(item), item.status]),
-    [['main_key', 'john cena', null], ['context', 'wrestler', null], ['manual', '== literal ==\n: text', null]]);
+  assert.deepEqual(page.components.map(item => [item.moduleType, text(item), item.status]),
+    [['main-key', 'john cena', null], ['context', 'wrestler', null], ['text', '== literal ==\n: text', null], ['german-examples', '', null]]);
   await assert.rejects(store.createPage('blank', { deckId: deck.id, mainKey: '  ' }), { code: 'invalid' });
+  await assert.rejects(store.createPage('not-input', { deckId: deck.id, mainKey: 'x', initial: [{ moduleInstanceId: explanation.id, content: textBlocks('no') }] }), { code: 'invalid' });
 
-  // Generate creates the configured components from the main key; it needs no confirmation.
+  // Generate fills the content components that never generated; it needs no confirmation.
   const { attemptIds } = await store.generate('generate', { pageId: page.id, target: target('missing'), session });
   assert.equal(attemptIds.length, 1);
   const generatedPage = await store.page(page.id);
-  assert.deepEqual(generated(generatedPage).map(item => [item.moduleInstanceId, item.status]), [[deck.modules[0].id, 'loading']]);
-  assert.equal(text(component(generatedPage, 'manual')), '== literal ==\n: text');
+  assert.deepEqual(generated(generatedPage).map(item => [item.moduleType, item.status]), [['german-examples', 'loading']]);
+  assert.equal(text(component(generatedPage, 'text')), '== literal ==\n: text');
   assert.deepEqual((await store.generate('generate-again', { pageId: page.id, target: target('missing'), session })).attemptIds, []);
 });
 
-test('edits preserve creation time and other components; Context can be set and cleared; stale saves fail', async (t) => {
+test('edits preserve creation time and other components; an emptied Context stays; stale saves fail', async (t) => {
   const store = await fixture(t), deck = await store.snapshot();
   const { pageId } = await store.createPage('new', { deckId: deck.id, mainKey: 'first' });
   const created = (await store.page(pageId)).createdAt;
-  const key = component(await store.page(pageId), 'main_key');
-  await store.savePage('rename', { pageId, changes: [{ componentId: key.id, content: textBlocks('Bismarck') }] });
-  await store.savePage('context', { pageId, changes: [], context: textBlocks('Otto von Bismarck') });
-  await store.savePage('add', { pageId, changes: [], added: [textBlocks('my note')] });
   let page = await store.page(pageId);
-  assert.deepEqual(page.components.map(item => text(item)), ['Bismarck', 'Otto von Bismarck', 'my note']);
+  const key = component(page, 'main-key'), context = component(page, 'context');
+  await store.savePage('rename', { pageId, changes: [{ componentId: key.id, content: textBlocks('Bismarck') }] });
+  await store.savePage('context', { pageId, changes: [{ componentId: context.id, content: textBlocks('Otto von Bismarck') }] });
+  page = await store.page(pageId);
+  assert.deepEqual(page.components.map(item => text(item)), ['Bismarck', 'Otto von Bismarck', '']);
   assert.equal(page.createdAt, created);
   assert.deepEqual((await store.listPages(deck.id, { order: 'az' })).pages.map(item => item.mainKey), ['Bismarck']);
-  await assert.rejects(store.savePage('second-context', { pageId, changes: [], context: textBlocks('again') }), { code: 'invalid' });
   await assert.rejects(store.savePage('blank-key', { pageId, changes: [{ componentId: key.id, content: textBlocks(' ') }] }), { code: 'invalid' });
-  await store.savePage('clear', { pageId, changes: [{ componentId: component(page, 'context').id, content: textBlocks('') }] });
-  page = await store.page(pageId);
-  assert.equal(component(page, 'context'), undefined);
+  await store.savePage('clear', { pageId, changes: [{ componentId: context.id, content: textBlocks('') }] });
+  assert.equal(text(component(await store.page(pageId), 'context')), '', 'clearing is an edit; deleting is a shaping step');
   await store.deletePage('delete', pageId);
   await assert.rejects(store.savePage('late', { pageId, changes: [{ componentId: key.id, content: textBlocks('late') }] }), { code: 'deleted' });
   await store.deleteDeck('delete-deck', { deckId: deck.id });
   await assert.rejects(store.createPage('late-new', { deckId: deck.id, mainKey: 'late' }), { code: 'deleted' });
 });
 
-test('component retry confirms first, uses the current main key and configuration, and leaves other components alone', async (t) => {
+test('component retry confirms first, uses the current main key, and leaves other components alone', async (t) => {
   const store = await fixture(t);
-  const [kept, reconfigured] = await useModules(store, ['german-explanation', 'german-examples']);
+  await useModules(store, ['german-explanation', 'german-examples']);
   const { pageId } = await store.capture('capture', { session, mainKey: 'original', snapshot: await store.snapshot() });
   await complete(store, await store.page(pageId), session, () => 'initial');
   let page = await store.page(pageId);
   const [first, second] = generated(page);
   await store.savePage('manual', { pageId, changes: [
-    { componentId: component(page, 'main_key').id, content: textBlocks('edited') },
+    { componentId: component(page, 'main-key').id, content: textBlocks('edited') },
     { componentId: first.id, content: textBlocks('manual edit') }, { componentId: second.id, content: textBlocks('manual edit') }] });
-  // Reconfigure the second instance's type in place: same instance, new instructions.
-  const deck = await store.deck(page.deckId);
-  await store.saveDeck('config', { deck: { ...deck, modules: [kept, { id: reconfigured.id, type: 'sentence-usage' }] } });
 
   const retry = { pageId, target: target('component', second.id), session };
   let confirmation;
@@ -79,11 +77,12 @@ test('component retry confirms first, uses the current main key and configuratio
     const stale = confirmation; confirmation = error.details.confirmation;
     return error.code === 'confirmation_required' && confirmation !== stale;
   });
+  await assert.rejects(confirmed(store, 'retry-key', { pageId, target: target('component', component(page, 'main-key').id), session }), { code: 'invalid' });
 
   const interpretations = [];
   const generation = await Generation.create(store, {
     interpret: async mainKey => { interpretations.push(mainKey); return { inputType: 'word_phrase', sourceLanguage: 'English' }; },
-    generate: async () => assert.fail('a sentence module must not generate for a word') });
+    generate: async () => 'regenerated' });
   t.after(() => generation.close());
   const result = await store.generate('retry', { ...retry, confirmation });
   await generation.start(pageId, result.attemptIds);
@@ -94,38 +93,59 @@ test('component retry confirms first, uses the current main key and configuratio
   await Promise.all([...generation.tasks.values()].map(item => item.task));
   await store.publish('finish', { attemptId: result.attemptIds[0], session });
   assert.deepEqual(interpretations, ['edited']);
-  assert.deepEqual(generated(await store.page(pageId)).map(item => [text(item), item.status]), [['still editable', 'completed'], ['', 'completed']]);
+  assert.deepEqual(generated(await store.page(pageId)).map(item => [text(item), item.status]), [['still editable', 'completed'], ['regenerated', 'completed']]);
   // A resubmission replays the confirmed operation, confirmation included.
   assert.deepEqual((await store.generate('retry', { ...retry, confirmation })).attemptIds, result.attemptIds);
   await assert.rejects(store.generate('retry', retry), { code: 'operation_reused' });
 });
 
-test('configuration changes never touch existing pages until Generate missing or a retry', async (t) => {
+test('shaping adds, deletes and moves page modules; generation never brings a deleted one back', async (t) => {
   const store = await fixture(t);
-  const [kept, removed] = await useModules(store, ['german-explanation', 'sentence-usage']);
+  await useModules(store, ['context', 'german-explanation', 'sentence-usage']);
   const { pageId } = await store.capture('capture', { session, mainKey: 'word', snapshot: await store.snapshot() });
-  await complete(store, await store.page(pageId), session, item => `out ${item.moduleInstanceId}`);
-  await store.savePage('mine', { pageId, changes: [], added: [textBlocks('my own')] });
-  const deck = await store.deck((await store.page(pageId)).deckId);
-  const added = { id: 'added-instance', type: 'german-explanation' };
-  await store.saveDeck('reconfigure', { deck: { ...deck, modules: [added, kept] } });
-
+  await complete(store, await store.page(pageId), session, item => `out ${item.moduleType}`);
+  const order = async () => (await store.page(pageId)).components.map(item => item.moduleType);
   let page = await store.page(pageId);
-  assert.deepEqual(generated(page).map(item => [item.moduleInstanceId, item.configured, text(item)]),
-    [[kept.id, true, `out ${kept.id}`], [removed.id, false, `out ${removed.id}`]]);
-  const orphan = generated(page).find(item => item.moduleInstanceId === removed.id);
-  await assert.rejects(confirmed(store, 'retry-orphan', { pageId, target: target('component', orphan.id), session }), { code: 'invalid' });
 
-  const missing = await store.generate('missing', { pageId, target: target('missing'), session });
-  assert.equal(missing.attemptIds.length, 1);
-  assert.equal((await store.attempt(missing.attemptIds[0])).module.id, added.id);
-  await complete(store, await store.page(pageId), session, () => 'new');
-  const whole = await confirmed(store, 'retry-page', { pageId, target: target('page'), session });
-  assert.equal(whole.attemptIds.length, 2);
+  // Add: a page-only Text and a content module that waits as "not generated yet".
+  const added = await store.addModule('add-text', { pageId, type: 'text', position: 1 });
+  assert.equal((await store.addModule('add-text', { pageId, type: 'text', position: 1 })).componentId, added.componentId, 'replay adds nothing');
+  await store.addModule('add-examples', { pageId, type: 'german-examples' });
+  assert.deepEqual(await order(), ['main-key', 'text', 'context', 'german-explanation', 'sentence-usage', 'german-examples']);
+  assert.deepEqual((await store.deck((await store.page(pageId)).deckId)).modules.map(module => module.type),
+    ['main-key', 'context', 'german-explanation', 'sentence-usage'], 'the deck is unchanged');
+  await assert.rejects(store.addModule('second-context', { pageId, type: 'context' }), { code: 'invalid' });
+  await assert.rejects(store.addModule('second-key', { pageId, type: 'main-key' }), { code: 'invalid' });
+  await assert.rejects(store.addModule('above-key', { pageId, type: 'text', position: 0 }), { code: 'invalid' });
+
+  // Delete: never the main key; a deleted content component stays gone.
   page = await store.page(pageId);
-  assert.equal(text(generated(page).find(item => item.moduleInstanceId === removed.id)), `out ${removed.id}`);
-  assert.equal(text(component(page, 'manual')), 'my own');
-  assert.ok(generated(page).filter(item => item.configured).every(item => item.status === 'loading'));
+  const explanation = component(page, 'german-explanation');
+  await assert.rejects(store.deleteComponent('delete-key', { pageId, componentId: component(page, 'main-key').id }), { code: 'invalid' });
+  await store.deleteComponent('delete-explanation', { pageId, componentId: explanation.id });
+  await store.deleteComponent('delete-context', { pageId, componentId: component(page, 'context').id });
+  assert.deepEqual(await order(), ['main-key', 'text', 'sentence-usage', 'german-examples']);
+  await assert.rejects(store.savePage('stale-draft', { pageId, changes: [{ componentId: explanation.id, content: textBlocks('draft') }] }), { code: 'deleted' });
+  await assert.rejects(store.deleteComponent('delete-again', { pageId, componentId: explanation.id }), { code: 'deleted' });
+  const missing = await store.generate('missing', { pageId, target: target('missing'), session });
+  assert.deepEqual((await Promise.all(missing.attemptIds.map(id => store.attempt(id)))).map(attempt => attempt.module.type), ['german-examples']);
+  await assert.rejects(store.deleteComponent('delete-loading', { pageId, componentId: component(await store.page(pageId), 'german-examples').id }), { code: 'invalid' });
+  await complete(store, await store.page(pageId), session, () => 'examples');
+  const whole = await confirmed(store, 'retry-page', { pageId, target: target('page'), session });
+  assert.equal(whole.attemptIds.length, 2, 'page retry runs only the page’s own content modules');
+  await complete(store, await store.page(pageId), session, () => 'again');
+
+  // Move: anything below the main key, never the main key itself.
+  page = await store.page(pageId);
+  await store.moveComponent('move-examples', { pageId, componentId: component(page, 'german-examples').id, position: 1 });
+  assert.deepEqual(await order(), ['main-key', 'german-examples', 'text', 'sentence-usage']);
+  await assert.rejects(store.moveComponent('move-key', { pageId, componentId: component(page, 'main-key').id, position: 2 }), { code: 'invalid' });
+  await assert.rejects(store.moveComponent('move-too-far', { pageId, componentId: component(page, 'text').id, position: 4 }), { code: 'invalid' });
+
+  // The limit counts every module.
+  for (let count = (await order()).length; count < 12; count++) await store.addModule(`fill-${count}`, { pageId, type: 'text' });
+  await assert.rejects(store.addModule('thirteenth', { pageId, type: 'text' }), { code: 'invalid' });
+  assert.equal((await order()).length, 12);
 });
 
 test('four list orders use the current main key, deterministic ties, and creation time', () => {
