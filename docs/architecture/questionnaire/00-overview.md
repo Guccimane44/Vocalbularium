@@ -1,6 +1,6 @@
 # Questionnaire overview — how to decide Vocabularium's mature architecture
 
-This folder is the system-design questionnaire. It replaces the deleted single file `docs/architecture/system-design-questionnaire.md` (Q1–Q52, issue #77). Numbering is restarted as global **Q01–Q71** in reading order; do not map old numbers one-to-one.
+This folder is the system-design questionnaire. It replaces the deleted single file `docs/architecture/system-design-questionnaire.md` (Q1–Q52, issue #77). Numbering is restarted as global **Q01–Q71** in reading order; do not map old numbers one-to-one. Q72 (deck → page → component) was added on 10 October 2026, after Q01–Q71 were answered.
 
 ## Who this is for
 
@@ -8,11 +8,13 @@ You are a developer who already knows basic web development: HTTP APIs, PostgreS
 
 ## Baseline you are deciding from
 
-Chrome MV3 extension (WXT + React) + local Fastify API on `127.0.0.1:4318` + PostgreSQL 18 with a single account (`admin`/`admin`), an ordered single-process executor guarded by an advisory lock, a `DATA_DIR/generation-outbox` filesystem journal, five plain-text modules, and generation through an OpenCode Go subscription (`deepseek-v4.1-flash`). There is no multi-user support, no mobile or web client, no rich media, no spaced repetition, and no public hosting. Product language is deck → karte → seite: a deck holds kartes, each karte has ordered seites defined by the deck layout, and the front seite always shows the editable main key.
+Release 0.4.1 (10 October 2026): Chrome MV3 extension (WXT + React) + local Fastify API on `127.0.0.1:4318` + PostgreSQL 18 with a single account (`admin`/`admin`), an ordered single-process executor guarded by an advisory lock, a `DATA_DIR/generation-outbox` filesystem journal, five plain-text content modules, and generation through an OpenCode Go subscription (`deepseek-v4.1-flash`). There is no multi-user support, no mobile or web client, no rich media, no spaced repetition, and no public hosting. Product language is deck → page → component ([Q72](06-data-and-semantics.md#q72-what-is-a-karte-made-of-and-how-is-it-shown)): a deck holds pages; each page is an ordered list of components (the main key, an optional Context, and one content component per content module instance in the deck configuration, plus the user's own text components). Generation and retry work per component and always use the deck's current configuration. Pages are shown in the default view, as their component list.
+
+The questions were first asked against the 0.3.0+ baseline (deck → karte → seite). Their context below describes 0.4.1; [earlier terms](../../product/model.md#earlier-terms) maps the old vocabulary for answers and history that use it.
 
 ## Vision this is grounded in
 
-The [product vision](../../product/vision.md) says Vocabularium is a generative knowledge-capture system, not a vocabulary app with flashcards attached: capture → persistent semantic object → curated generative modules. Language learning is one application, not the data model. The [competitor critique](../../product/competitor-critique.md) adds three load-bearing ideas: translation is one representation among many (not the foundation), language pairs must not be the central model, and modules must be constrained productized primitives (Notion blocks, not an open prompt box). The [product model](../../product/model.md) defines the deck/karte/seite/main-key relationships; [current scope](../../product/scope.md) separates what works now from the accepted main-key change and the explicit deferrals. Generation rules live in [Select and Add](../../MVP-Product-spec-select-and-add.md); module rules in [modules](../../specs/modules.md); the operating environment in the [local PostgreSQL guide](../local-postgresql.md); upgrade discipline in [terminology compatibility](../terminology-compatibility.md).
+The [product vision](../../product/vision.md) says Vocabularium is a generative knowledge-capture system, not a vocabulary app with flashcards attached: capture → persistent semantic object → curated generative modules. Language learning is one application, not the data model. The [competitor critique](../../product/competitor-critique.md) adds three load-bearing ideas: translation is one representation among many (not the foundation), language pairs must not be the central model, and modules must be constrained productized primitives (Notion blocks, not an open prompt box). The [product model](../../product/model.md) defines the deck/page/component/main-key relationships and views; [current scope](../../product/scope.md) separates what works now from the explicit deferrals. Generation rules live in [Select and Add](../../MVP-Product-spec-select-and-add.md); page rules in [pages and editing](../../specs/pages-and-editing.md); deck configuration in [decks and configuration](../../specs/decks-and-configuration.md); module rules in [modules](../../specs/modules.md); the operating environment in the [local PostgreSQL guide](../local-postgresql.md). The [refactor plan](../../plans/page-component-refactor.md) records how 0.4.0 replaced the 0.3.0+ model.
 
 ## How to answer
 
@@ -27,7 +29,7 @@ For each question write: **Decision or leaning + why + what would change your mi
 | [03-frontend](03-frontend.md) | Q11–Q16 | Extension/web clients, state, rendering, updates |
 | [04-identity-sync](04-identity-sync.md) | Q17–Q21 | Accounts, sync topology, conflicts, sharing |
 | [05-backend-and-cloud](05-backend-and-cloud.md) | Q22–Q28 | Compute model, Postgres hosting, queues, API stability |
-| [06-data-and-semantics](06-data-and-semantics.md) | Q29–Q34 | What is stored, semantic depth, layout evolution |
+| [06-data-and-semantics](06-data-and-semantics.md) | Q29–Q34, Q72 | What is stored, semantic depth, configuration changes, the page/component model |
 | [07-database](07-database.md) | Q35–Q39 | Tenancy, migrations, search, backup, retention |
 | [08-modules](08-modules.md) | Q40–Q45 | Catalog, config, inputs, multilingual, custom modules |
 | [09-generation-and-llm](09-generation-and-llm.md) | Q46–Q51 | Provider, prompts, cost, evals, reliability |

@@ -1,6 +1,6 @@
 ### Q57
 
-- Multi-user model (malicious users attacking each other + the server) — adds IDOR testing (can account A read account B's karte/receipt/journal?), quota abuse, and prompt-abuse controls.
+- Multi-user model (malicious users attacking each other + the server) — adds IDOR testing (can account A read account B's page/receipt/journal?), quota abuse, and prompt-abuse controls.
 
 ### Q58
 

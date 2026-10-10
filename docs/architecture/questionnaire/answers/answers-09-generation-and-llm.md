@@ -10,10 +10,10 @@ Pinned single model — predictable cost/quality/evals; single point of failure 
 
 - Metered with user-visible usage — most transparent; needs metering pipeline and UI before enforcement.
 - Quota details (resolves C9, with Q25, Q56, Q65):
-  - Unit: one generated seite, meaning one provider call, whether it succeeds or fails. Token counts are also stored per attempt for cost tracking (see C11).
+  - Unit: one provider call, whether it succeeds or fails: each component generation and each run's interpretation call count (amended 10 October 2026 by the owner, after Q72; a run makes one interpretation call plus one call per generative component). Token counts are also stored per call for cost tracking (see C11).
   - Counts: user-initiated generation and explicit Retry. The invisible transport/timeout retries (Q50) do not count. A cancel counts only if the provider call had already started (narrows Q56).
-  - Period: a monthly allowance per account. The amount is a placeholder until cost per seite is measured on the production model (K8).
-  - At the limit: the Q25 degrade rule applies. The capture is saved, and generative seites fail with "monthly quota reached" and the reset date.
+  - Period: a monthly allowance per account. The amount is a placeholder until cost per provider call is measured on the production model (K8).
+  - At the limit: the Q25 degrade rule applies. The capture is saved, and generative components fail with "monthly quota reached" and the reset date.
   - Order: metering and the usage display ship at 1.0; enforcement turns on once the amount is set.
 
 ### Q49
@@ -30,7 +30,7 @@ Golden set per module, reviewed by the owner (revised from ad-hoc sampling to re
 - Explicit for users; bounded automatic retry for transient infrastructure errors only (revised to resolve C6 with Q25).
   - The worker silently retries provider transport errors and timeouts, up to 3 times with backoff + jitter (Q25). The Q24 idempotency key prevents paying twice for a completed provider response.
   - Content-level outcomes (invalid output, inapplicable/valid-empty) are never retried automatically.
-  - After retries are exhausted, the user sees one failed seite with an explicit Retry (Q08). Regenerating content is always the user's decision.
+  - After retries are exhausted, the user sees one failed component with an explicit Retry (Q08). Regenerating content is always the user's decision.
 
 ### Q51
 

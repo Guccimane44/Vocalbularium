@@ -4,16 +4,16 @@ This is the product's long-term memory. The vision's "persistent semantic object
 
 ## Q29. What is stored vs generated?
 
-**Decision:** For each karte, what persists: main key + per-seite text + layout + attempt metadata only, or also interpretation (word/phrase/sentence + source language), per-module blocks, and semantic referent?
+**Decision:** For each page, what persists: main key + Context + per-component content + attempt metadata only, or also interpretation (word/phrase/sentence + source language) and semantic referent?
 
-**Context:** The model defines main key, interpretation per attempt, module instances, attempts, and outcomes as distinct concepts — and explicitly says these are product relationships, not a storage prescription ([model](../../product/model.md)). Current seite content is whole-text with outcomes tracked separately; manual content establishes no generation success.
+**Context:** The model defines main key, Context, interpretation per run, content module instances, components, attempts, and outcomes as distinct concepts — and explicitly says these are product relationships, not a storage prescription ([model](../../product/model.md)). Since 0.4.0 each component stores its own content as a block document (plain-text paragraphs today) with its latest outcome; one interpretation per generation run is shared by its attempts; manual content establishes no generation success.
 
 **Options:**
-- Minimal (key + text + layout + outcome) — smallest schema; future modules re-derive everything from the key. Fails when re-derivation disagrees with what the user originally meant.
+- Minimal (key + Context + component content + outcome) — smallest schema; future modules re-derive everything from the key. Fails when re-derivation disagrees with what the user originally meant.
 - Standard (+ frozen interpretation per attempt) — reproducible generation history; still cannot distinguish "which Bismarck" across years.
-- Rich (+ referent + context snapshot) — future-proof for new modules on old kartes; needs a referent model and correction UI (see Q30).
+- Rich (+ referent + context snapshot) — future-proof for new modules on old pages; needs a referent model and correction UI (see Q30).
 
-**Answer prompt:** List the stored fields per karte/seite/attempt. Research task: pick 5 old kartes and ask whether a hypothetical new Timeline module could run correctly from stored data alone.
+**Answer prompt:** List the stored fields per page/component/attempt. Research task: pick 5 old pages and ask whether a hypothetical new Timeline module could run correctly from stored data alone.
 
 ## Q30. How semantic is the object?
 
@@ -30,6 +30,8 @@ This is the product's long-term memory. The vision's "persistent semantic object
 
 ## Q31. How does deck layout evolution affect existing kartes?
 
+*Superseded by [Q72](#q72-what-is-a-karte-made-of-and-how-is-it-shown); kept as asked against the 0.3.0+ baseline. Since 0.4.0, configuration changes never rewrite existing pages and every generation or retry uses the deck's current configuration ([decks and configuration](../../specs/decks-and-configuration.md#effect-on-pages)).*
+
 **Decision:** When seites/modules are added, removed, reordered, or reconfigured, what happens to kartes already saved under the old layout?
 
 **Context:** Save applies layout to existing kartes today: new seites arrive empty, retained seites keep text, removing saved content needs confirmation against latest account data (README). Seites without triggered modules still exist but render empty; empty is valid, not failure ([modules](../../specs/modules.md)).
@@ -41,48 +43,50 @@ This is the product's long-term memory. The vision's "persistent semantic object
 
 **Answer prompt:** Pick the rule and the confirmation matrix (which layout edits need explicit consent). Research task: shrink a deck from 4 seites to 2 with content in the removed seites and record exactly what the user is asked.
 
-## Q32. What is the karte lifecycle across decks?
+## Q32. What is the page lifecycle across decks?
 
 **Decision:** Copy/move semantics between decks, duplicate policy, delete semantics (hard vs trash + restore), and ID stability.
 
-**Context:** Every karte belongs to exactly one deck; copy/paste or move into another deck exists in the product description but moving/copying is deferred in scope ([vision/product description](../../../vocabularium-product-description.md), [scope](../../product/scope.md)). Matching main keys never merge identities ([model](../../product/model.md)).
+**Context:** Every page belongs to exactly one deck; copy/paste or move into another deck exists in the product description but moving/copying is deferred in scope ([vision/product description](../../../vocabularium-product-description.md), [scope](../../product/scope.md)). Matching main keys never merge identities ([model](../../product/model.md)).
 
 **Options:**
 - Copy-only (move = copy + delete) — simplest; new ID + fresh attempts, history stays behind unless explicitly carried.
-- True move (ID + history preserved) — needs cross-deck layout mapping (different seite counts) and receipt continuity.
+- True move (ID + history preserved) — needs a rule for components whose module instances the target deck doesn't configure, and receipt continuity.
 - Trash + timed purge — safest against accidents; needs retention timers and a purge job.
 
-**Answer prompt:** Define copy vs move field-by-field (ID, attempts, timestamps, receipts) and the delete path. Research task: move a karte between decks with different seite counts on paper and decide where each seite's text goes.
+**Answer prompt:** Define copy vs move field-by-field (ID, attempts, timestamps, receipts) and the delete path. Research task: move a page between decks with different content module instances on paper and decide what its next retry does.
 
 ## Q33. What history and provenance is kept?
 
-**Decision:** Per-seite edit history, generation attempt log (prompt version, model, timestamp, cost), source URL — how much, how long, visible to whom?
+**Decision:** Per-component edit history, generation attempt log (prompt version, model, timestamp, cost), source URL — how much, how long, visible to whom?
 
 **Context:** Attempts and outcomes are modeled separately from content, but no history UI or retention rule exists; smoke evidence today is ad-hoc JSON samples ([model](../../product/model.md), README smoke sections). Provenance is also the debugging story for "why does this say X?" and the eval story for prompt regressions.
 
 **Options:**
-- Attempt log only (latest outcome per seite) — minimal; cannot answer "what changed and when".
+- Attempt log only (latest outcome per component) — minimal; cannot answer "what changed and when".
 - Full version history — answers everything; storage growth and a retention/purge policy required.
 - Content-only history (edits versioned, attempts summarized) — middle ground; generation debugging stays coarse.
 
-**Answer prompt:** Set the retention periods and visibility (user-visible history vs operator-only logs). Research task: estimate history-table growth at 100 kartes/week with full versioning.
+**Answer prompt:** Set the retention periods and visibility (user-visible history vs operator-only logs). Research task: estimate history-table growth at 100 pages/week with full versioning.
 
 ## Q34. What are the structural limits?
 
-**Decision:** Max seites per deck, modules per seite, main-key length, karte count per deck — and which limits are product rules vs implementation guardrails?
+*Amended by [Q72](#q72-what-is-a-karte-made-of-and-how-is-it-shown): the seite limit became at most 12 content modules per deck. The options are kept as asked against the 0.3.0+ baseline.*
 
-**Context:** Decks support 1–4 seites today with repeated module instances and word/sentence previews (README). Karte lists page at 30, decks at 40. Limits appear in scope and specs, not in one place.
+**Decision:** Max content modules per deck, main-key length, page count per deck — and which limits are product rules vs implementation guardrails?
+
+**Context:** Since 0.4.0 a deck has at most 12 content module instances, repeats allowed, with word/sentence previews ([decks and configuration](../../specs/decks-and-configuration.md#configuration)). Page lists load 30 at a time, decks 40. Limits appear in scope and specs, not in one place.
 
 **Options:**
 - Keep 1–4 seites + bounded modules — preserves current editor, layout, and migration behavior; revisit only with a layout-migration design.
 - Raise caps (e.g. 8 seites) — more expressiveness; every list, editor, and generation-fan-out path must handle the larger shape.
 - No product caps, guardrails only — flexible; needs pagination, cost caps, and abuse limits to replace the guardrail function caps served.
 
-**Answer prompt:** Write the numeric limits and where each is enforced (UI, API validation, DB constraint). Research task: create the largest plausible deck/karte and record generation cost and dashboard render time.
+**Answer prompt:** Write the numeric limits and where each is enforced (UI, API validation, DB constraint). Research task: create the largest plausible deck/page and record generation cost and dashboard render time.
 
 ## Q72. What is a karte made of, and how is it shown?
 
-Added 10 October 2026, after Q29–Q34 were answered.
+Added 10 October 2026, after Q29–Q34 were answered. Kept as asked against the 0.3.0+ baseline; implemented in release 0.4.0 ([refactor plan](../../plans/page-component-refactor.md)).
 
 **Decision:** Does an item stay a set of seites defined by the deck layout, or become a page of components that content modules generate one by one and views present?
 

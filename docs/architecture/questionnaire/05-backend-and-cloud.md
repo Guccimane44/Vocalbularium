@@ -4,7 +4,7 @@ Redesigned after Q01–Q22. Q22 is answered and locked; Q23–Q28 are reframed a
 questions under that decision. Locked baseline: strangers (~500, easy to scale, no
 anonymous, Q02), hosted hub (Q18), Vercel serverless with scale-to-zero (Q22),
 managed Postgres, session + installation ID (Q10), long-lived multi-device sessions
-(Q21), version gate + online-required + no legacy fallback from 1.0.0 (Q14). The old
+(Q21), version gate + online-required + no legacy fallback (Q14; the legacy dialects were already retired in 0.4.0). The old
 long-lived loopback + `DATA_DIR` journal + single-process executor assumptions are
 retired and kept only as history ([local-postgresql](../local-postgresql.md)).
 
@@ -70,7 +70,7 @@ survives only for rows already committed to PG — everything else fails visibly
 **Answer prompt:** Write the crash rule (what is committed vs failed vs retried by
 whom) and the idempotency-key scope for the PG-journal variant if chosen.
 Research task: kill a function mid-generation in preview and record what the
-dashboard shows (failed seite + Retry, no silent success).
+dashboard shows (failed component + Retry, no silent success).
 
 ## Q25. How are the generation queue and workers built for serverless?
 
@@ -95,7 +95,7 @@ poison-message handling, and per-user rate limits.
 - Rejected: inline-only generation (fails the Vercel timeout check and
   double-issues work across copies without a shared claim).
 
-**Answer prompt:** Pick the topology, state where retry, 60s timeout, per-seite
+**Answer prompt:** Pick the topology, state where retry, 60s timeout, per-attempt
 token budget, and per-user rate limits are enforced, and define the at-limit UX
 (degrade to saved-input-only vs refuse-fast — see Q48/Q56). Research task:
 saturate the queue with a slow provider stub and record user-visible behavior at
@@ -125,7 +125,7 @@ per database. Generation claims stay bound to the originating installation ID
 - Rejected: stay-single-process; global one-writer lock (reintroduces the
   cross-user blocking Q22 explicitly refused).
 
-**Answer prompt:** Name the lock per operation type (karte writes, layout saves,
+**Answer prompt:** Name the lock per operation type (page writes, deck configuration saves,
 generation claims, receipt replay) and the contention rule (wait with bounded
 timeout vs refuse-fast). Research task: run two concurrent saves on one account
 plus one on another account and record that the first serializes while the second
@@ -133,30 +133,29 @@ proceeds.
 
 ## Q27. How is the v1 API versioned and retired?
 
-**Decision:** Versioning mechanics given Q14 already locked the policy: karte/seite
+**Decision:** Versioning mechanics given Q14 already locked the policy: page/component
 names under `/v1/` (or equivalent), major.minor gate enforced via `GET /api/meta`
 (`version`, `minCompatibleExtension`, `incarnationId`), backend-before-extension
-update order, and legacy `/api/cards` aliases + old fields + dialect switching
-removed at 1.0.0 with no compat guarantee for <1.0.0.
+update order, and no compatibility guarantee for clients older than the window.
 
-**Context:** Current routes still carry legacy card/page aliases with dual-field
-acceptance and `X-Vocabularium-Terminology` negotiation; receipt fingerprints pin
-original kinds/field spellings ([terminology compatibility](../terminology-compatibility.md)).
-Q14 retires all of that at 1.0.0 — this question must not re-litigate whether,
-only how the clean contract is held.
+**Context:** Release 0.4.0 already removed the legacy `/api/cards` aliases, the
+karte/seite routes and fields, and `X-Vocabularium-Terminology` negotiation as a
+breaking contract version ([Q72](06-data-and-semantics.md#q72-what-is-a-karte-made-of-and-how-is-it-shown));
+current routes are unversioned (`/api/page/*`, `/api/decks/{deckId}/pages`) and
+there is no `GET /api/meta` yet ([openapi](../../api/openapi.json)). This question
+must not re-litigate whether the window exists, only how the clean contract is held.
 
 **Options:**
 - Versioned `/v1/` + N−1 client window via `minCompatibleExtension` (baseline) —
   OpenAPI generated per release, gate message tells the user to update backend
   first, then reload the extension.
 - Unversioned stable — only if the `/v1/` prefix cost is proven; still keeps the
-  Q14 gate and the 1.0.0 retirement line.
-- Rejected: aliases-forever; dated-removal beyond 1.0.0 for pre-1.0 clients.
+  Q14 gate.
+- Rejected: aliases-forever; compatibility shims for pre-window clients.
 
 **Answer prompt:** State the versioned route prefix, the OpenAPI publishing point,
-and one retirement sentence per legacy item (all "removed in 1.0.0"). Research
-task: grep for every legacy alias/field/header and confirm the removal list is
-complete.
+and how a contract break moves `minCompatibleExtension`. Research task: list the
+0.4.x routes and decide which move under `/v1/` unchanged.
 
 ## Q28. How are networking, pooling, and timeouts set for hosted serverless?
 

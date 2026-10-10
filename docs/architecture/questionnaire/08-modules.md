@@ -6,7 +6,7 @@ Modules are the product strategy: a large library of constrained, productized ca
 
 **Decision:** Which modules ship built-in and curated (translation, explanation, examples, pronunciation/audio, grammar, etymology, summary, timeline, ExplainSimply, HistoricalContext, Compare...), each with its quality bar?
 
-**Context:** Five provisional types exist with fixed output formats and applicability, defined across the current catalog and the linked MVP module spec ([modules](../../specs/modules.md)). The vision's examples span text, audio, images, explanations, examples, facts, and structured views ([vision](../../product/vision.md)). The design contract already lists what a new module spec must cover: purpose, input/semantics, configuration, generation, output/presentation, quality, failure/fallback, composition ([modules](../../specs/modules.md#design-contract-for-future-modules)).
+**Context:** Five provisional content module types exist with fixed output formats and applicability, defined across the current catalog and the linked MVP module spec ([modules](../../specs/modules.md)). The vision's examples span text, audio, images, explanations, examples, facts, and structured views ([vision](../../product/vision.md)). The design contract already lists what a new module spec must cover: purpose, input/semantics, configuration, generation, output/presentation, quality, failure/fallback, composition ([modules](../../specs/modules.md#design-contract-for-future-modules)).
 
 **Options:**
 - Deepen the five (quality + variants, no new types) — smallest scope; proves the eval and versioning pipeline before breadth.
@@ -17,9 +17,9 @@ Modules are the product strategy: a large library of constrained, productized ca
 
 ## Q41. What can a module be configured with?
 
-**Decision:** Per-instance options: target language, tone/length, predefined variants? Can the same type repeat with different configs on one seite?
+**Decision:** Per-instance options: target language, tone/length, predefined variants? Can the same type repeat with different configs in one deck?
 
-**Context:** Users place, reorder, and repeat instances; repeats of generative instances operate independently while sharing the capture's interpretation, and direct-input instances repeat the same input ([modules](../../specs/modules.md)). Outputs concatenate in configured order with blank-line separators; inapplicable instances add nothing. Vision says users enable/disable, reorder, pick collections and predefined variants — but generally do not write prompts ([competitor critique](../../product/competitor-critique.md)).
+**Context:** Users place, reorder, and repeat content module instances (at most 12 per deck); repeats of generative instances operate independently while sharing the run's interpretation, and direct-input instances repeat the same input ([modules](../../specs/modules.md#composition)). Each instance owns its own component; inapplicable instances complete their component empty. Vision says users enable/disable, reorder, pick collections and predefined variants — but generally do not write prompts ([competitor critique](../../product/competitor-critique.md)).
 
 **Options:**
 - Fixed behavior per type (no options) — simplest to spec and eval; forces near-duplicate types for each variant.
@@ -48,7 +48,7 @@ Modules are the product strategy: a large library of constrained, productized ca
 **Context:** Required interpretation picks word/phrase-vs-sentence and one source language; instances share it and judge applicability independently; inapplicable is not failure ([modules](../../specs/modules.md)). Multiple source-language interpretations for one capture are deferred ([scope](../../product/scope.md)). The vision rejects language-pair modeling while requiring translation when it serves the purpose ([vision](../../product/vision.md)).
 
 **Options:**
-- One language per attempt (current) — simple, predictable; multilingual users recapture or pick one lens per karte.
+- One language per attempt (current) — simple, predictable; multilingual users recapture or pick one lens per page.
 - Auto-detect + user correction — better UX; needs a correction UI and a rule that regeneration uses the corrected language, never a stale one (accepted main-key contract).
 - Multi-interpretation attempts — richest; multiplies cost and complicates applicability (which interpretation governs which module?).
 
@@ -69,9 +69,11 @@ Modules are the product strategy: a large library of constrained, productized ca
 
 ## Q45. How do module outputs compose and survive edits?
 
+*Answered by [Q72](06-data-and-semantics.md#q72-what-is-a-karte-made-of-and-how-is-it-shown) and implemented in 0.4.0; kept as asked against the 0.3.0+ baseline. See the [Q45 answer](answers/answers-08-modules.md#q45).*
+
 **Decision:** Whole-seite text (today) vs per-module blocks? What happens to manual edits when layouts change or generation re-runs?
 
-**Context:** Configured modules are instructions, not permanent boundaries: saved text need not retain module-output boundaries and edits happen per seite ([model](../../product/model.md), [modules](../../specs/modules.md)). Main-key edits never auto-regenerate or erase content; only explicit generation does ([kartes-and-editing](../../specs/pages-and-editing.md)).
+**Context:** Configured modules are instructions, not permanent boundaries: saved text need not retain module-output boundaries and edits happen per seite ([model](../../product/model.md), [modules](../../specs/modules.md)). Main-key edits never auto-regenerate or erase content; only explicit generation does ([pages-and-editing](../../specs/pages-and-editing.md)).
 
 **Options:**
 - Whole-seite text (current) — simplest editor; re-generation overwrites manual refinements unless the user copies them aside.

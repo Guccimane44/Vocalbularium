@@ -18,9 +18,9 @@ Why: per-process GENERATION_MAX_ACTIVE=4 / MAX_QUEUED=16 (config.mjs:39-40, gene
 Enforcement point — all at dequeue/worker (src/server/worker.mjs, new), not in request memory:
 - Retry: max 3, backoff+jitter on transient (provider_transport/timeout), then poison/failed. No infinite loop. Transport/timeout only; content-level failures are never auto-retried (Q50, resolves C6).
 - 60s timeout: opencode.mjs:structured() AbortSignal.timeout(60000) in worker.
-- Token budget: max_tokens 4096 per seite in worker.
-- Per-user rate limit: 1 active + 5 queued per account, checked on enqueue via PG count + on claim via SKIP LOCKED + lease (lease_expires_at, visibility timeout). Users never block each other.
-At-limit UX: degrade to saved-input-only (not 429 refuse-fast). Input text preserved, dashboard shows position + Retry, failed attempts show failed seite + Retry per Q08. generation_busy → 429 retained only for local-dev path.
+- Token budget: max_tokens 4096 per provider call (per component attempt or interpretation) in worker.
+- Per-user rate limit: 1 active + 5 queued generation runs per account (a run is one capture, Generate, Generate missing or Retry; its component attempts go through the active slot one by one, so a full page never trips the limit by itself; amended 10 October 2026 after Q72), checked on enqueue via PG count + on claim via SKIP LOCKED + lease (lease_expires_at, visibility timeout). Users never block each other.
+At-limit UX: degrade to saved-input-only (not 429 refuse-fast). Input text preserved, dashboard shows position + Retry, failed attempts show the failed component + Retry per Q08. generation_busy → 429 retained only for local-dev path.
 Crash ties to Q24: worker death before COMMIT → lease expires → re-driven; completed provider response claimable once via (account, installation ID, attempt ID) idempotency key. No partial-stream resume, no DATA_DIR journal on hosted.
 Research to record: saturate with slow provider stub → confirm position/ETA/cancel behavior; kill worker mid-run → confirm failed + Retry, no silent success, no double-charge on reclaim.
 
