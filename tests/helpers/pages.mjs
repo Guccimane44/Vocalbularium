@@ -1,17 +1,21 @@
 import { blockText, textBlocks } from '@vocabularium/domain/pages';
+import { isContentType } from '@vocabularium/domain/page-modules';
 
 export { textBlocks };
 export const text = component => blockText(component.content);
-export const generated = page => page.components.filter(component => component.kind === 'module');
-export const component = (page, kind) => page.components.find(candidate => candidate.kind === kind);
+// Content components: the ones generation produces.
+export const generated = page => page.components.filter(component => isContentType(component.moduleType));
+export const component = (page, moduleType) => page.components.find(candidate => candidate.moduleType === moduleType);
 export const code = expected => error => error.code === expected;
 
-// Replaces the default deck's configuration with instances of these module types.
+// Replaces the default deck's configuration with the main key module followed by
+// instances of these module types, and returns those instances.
 export async function useModules(store, types, deckId) {
   const id = deckId ?? (await store.snapshot()).id;
   const deck = await store.deck(id);
   const modules = types.map((type, index) => ({ id: `${id}-m${index}-${type}`, type }));
-  await store.saveDeck(`configure-${id}-${types.join('-')}`, { deck: { id, name: deck.name, modules, view: { module: 'default' } } });
+  const key = deck.modules.find(module => module.type === 'main-key');
+  await store.saveDeck(`configure-${id}-${types.join('-')}`, { deck: { id, name: deck.name, modules: [key, ...modules], view: { module: 'default' } } });
   return modules;
 }
 export async function capture(store, id = 'capture', session, mainKey = '  幸福\n', context) {

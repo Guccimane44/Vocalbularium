@@ -162,7 +162,7 @@ test('a busy or unconfirmed Retry is answered in place, not a pending save to re
   assert.equal(attempts, 2, 'a recovery action cannot silently start generation');
 });
 
-test('the first start after the page/component upgrade discards old content and keeps sign-in', async t => {
+test('the first start after a model upgrade discards old content and keeps sign-in', async t => {
   const fixture = await background(t);
   const { api, send } = fixture;
   const auth = { token: 'test-token' };
@@ -174,7 +174,7 @@ test('the first start after the page/component upgrade discards old content and 
   assert.equal(state.signedIn, true);
   const data = api.storage.local.data;
   for (const key of ['capture-old', 'save-old', 'connectionError']) assert.equal(data[key], undefined, key);
-  assert.deepEqual([data.auth, data.installationId, data.theme, data.dataVersion], [auth, 'installation', 'dark', 2]);
+  assert.deepEqual([data.auth, data.installationId, data.theme, data.dataVersion], [auth, 'installation', 'dark', 3]);
   assert.equal(data.epoch, 4, 'the installation keeps its identity and starts its next browser session');
   assert.ok(data.account.recentPages, 'the account is refreshed in the new shape');
   await api.storage.local.set({ 'save-new': { operationId: 'new', path: '/api/page/save', payload: {}, state: 'pending' } });

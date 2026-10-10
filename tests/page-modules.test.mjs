@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import Value from 'typebox/value';
 import {
   ComponentMovePayloadSchema, DeckConfigurationSchema, MAX_MODULES, ModuleAddPayloadSchema, PageSchema
-} from '@vocabularium/contracts/page-modules';
+} from '@vocabularium/contracts';
 import {
   addBlocked, CATALOG, copyModules, deleteBlocked, generationTargets, isContentType, moveBlocked, moved,
   validateConfiguration, WINDOW_MODULES

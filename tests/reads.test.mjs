@@ -5,7 +5,7 @@ import { component, text, textBlocks } from './helpers/pages.mjs';
 
 // The extension's list ordering, applied to full pages by their main key.
 const sortPages = (pages, order) => sortSummaries(pages.map(page => ({ id: page.id, createdAt: page.createdAt,
-  mainKey: text(component(page, 'main_key')) })), order);
+  mainKey: text(component(page, 'main-key')) })), order);
 
 test('bounded page lists preserve JavaScript ordering by main key, ties, and cursor validity', async t => {
   const store = await createTestStore(t);
@@ -13,7 +13,8 @@ test('bounded page lists preserve JavaScript ordering by main key, ties, and cur
   const contentMarker = 'page-content-sentinel:abc';
   const samples = ['~', 'A', 'ａ', 'Ä', '😀', '', 'abc', 'Z', 'key'];
   for (let index = 0; index < 64; index++) {
-    await store.createPage(`seed-${index}`, { deckId: deck.id, mainKey: samples[index % samples.length], manual: [textBlocks(contentMarker)] });
+    await store.createPage(`seed-${index}`, { deckId: deck.id, mainKey: samples[index % samples.length],
+      initial: [{ moduleInstanceId: deck.modules.find(module => module.type === 'context').id, content: textBlocks(contentMarker) }] });
   }
   const summary = await store.summary();
   assert.equal(summary.decks[0].pageCount, 64);
@@ -33,7 +34,7 @@ test('bounded page lists preserve JavaScript ordering by main key, ties, and cur
     assert.deepEqual(collected, sortPages(all, order).map(page => page.id), order);
   }
   const first = await store.listPages(deck.id, { order: 'az', limit: 5 });
-  await store.savePage('change-key', { pageId: all[0].id, changes: [{ componentId: component(all[0], 'main_key').id, content: textBlocks('0-new-first') }] });
+  await store.savePage('change-key', { pageId: all[0].id, changes: [{ componentId: component(all[0], 'main-key').id, content: textBlocks('0-new-first') }] });
   await assert.rejects(store.listPages(deck.id, { order: 'az', limit: 5, cursor: first.nextCursor }), error => error.code === 'stale_cursor');
   const listed = await store.listPages(deck.id, { order: 'az', limit: 1 });
   assert.equal(listed.pages[0].id, sortPages(await store.pages(), 'az')[0].id);
@@ -83,12 +84,12 @@ test('bounded read routes require login and reject oversized lists and stale cur
   await application.store.createPage('read-route-page-two', { deckId, mainKey: 'Second' });
   assert.equal((await request(`/api/decks/${deckId}`, token)).data.id, deckId);
   const page = (await request(`/api/pages/${pageId}`, token)).data;
-  assert.equal(text(component(page, 'main_key')), 'Example');
+  assert.equal(text(component(page, 'main-key')), 'Example');
   const listed = await request(`/api/decks/${deckId}/pages?limit=1`, token);
   assert.equal(listed.data.pages.length, 1);
   assert.ok(['Example', 'Second'].includes(listed.data.pages[0].mainKey));
   assert.ok(listed.data.nextCursor);
-  await application.store.savePage('read-route-edit', { pageId, changes: [{ componentId: component(page, 'main_key').id, content: textBlocks('Updated') }] });
+  await application.store.savePage('read-route-edit', { pageId, changes: [{ componentId: component(page, 'main-key').id, content: textBlocks('Updated') }] });
   assert.equal((await request(`/api/decks/${deckId}/pages?limit=1&cursor=${encodeURIComponent(listed.data.nextCursor)}`, token)).status, 409);
   assert.equal((await request('/api/decks?limit=51', token)).status, 400);
   assert.equal((await request(`/api/decks/${deckId}/pages?order=unknown`, token)).status, 400);

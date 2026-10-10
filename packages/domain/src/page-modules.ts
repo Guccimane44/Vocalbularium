@@ -1,10 +1,10 @@
-import type { Component, GenerationTarget, ModuleInstance } from '@vocabularium/contracts/page-modules';
-import { MAX_MODULES } from '@vocabularium/contracts/page-modules';
+import type { Component, GenerationTarget, ModuleInstance } from '@vocabularium/contracts';
+import { MAX_MODULES } from '@vocabularium/contracts';
 import { MODULES } from './modules.js';
 import type { ModuleType as ContentModuleType } from './modules.js';
 
-// Page-owned modules (D02, 0.5.0). Shared by the backend and the extension so
-// both enforce the same shaping rules. Nothing uses it until they switch over.
+// Page-owned modules (D02). Shared by the backend and the extension so both
+// enforce the same rules for configurations and page shaping.
 
 export type InputModuleType = 'main-key' | 'context' | 'text';
 export type ModuleType = InputModuleType | ContentModuleType;

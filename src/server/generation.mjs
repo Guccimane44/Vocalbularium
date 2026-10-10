@@ -1,5 +1,11 @@
 import { generateComponent, validateInterpretation } from '@vocabularium/domain/modules';
-import { blockText } from '@vocabularium/domain/pages';
+import { blockText, mainKeyOf } from '@vocabularium/domain/pages';
+
+// The saved Context, when the page has a non-empty one, is the only other generation input.
+function contextOf(components) {
+  const context = components.find(component => component.moduleType === 'context');
+  return context && blockText(context.content) ? blockText(context.content) : undefined;
+}
 import { OpenCodeProvider } from './opencode.mjs';
 import { mkdirSync, readdirSync, readFileSync, writeFileSync, renameSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
@@ -140,8 +146,7 @@ export class Generation {
       await this.store.requireSession({ installationId: attempt.installation_id, sessionId: attempt.session_id, epoch: attempt.epoch });
       const page = await this.store.page(pageId);
       if (!page.components.some(component => component.attemptId === attemptId && component.status === 'loading') || controller.signal.aborted) return;
-      const text = kind => page.components.find(component => component.kind === kind);
-      const input = { pageId, mainKey: blockText(text('main_key').content), context: text('context') ? blockText(text('context').content) : undefined };
+      const input = { pageId, mainKey: mainKeyOf(page.components), context: contextOf(page.components) };
       this.emit({ event: 'generation.input', attemptId, pageId, componentId: attempt.component_id, outcome: 'started', content: { selectedText: input.mainKey } });
       const interpretation = await this.interpretation(input, attempt);
       if (controller.signal.aborted) return;

@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { pgTable, text, integer, boolean, bigint, bigserial, primaryKey, check, index, unique, uniqueIndex, foreignKey, customType } from 'drizzle-orm/pg-core';
+import { pgTable, text, integer, bigint, bigserial, primaryKey, check, index, unique, uniqueIndex, foreignKey, customType } from 'drizzle-orm/pg-core';
 
 const bytea = customType<{ data: Buffer }>({ dataType: () => 'bytea' });
 
@@ -7,9 +7,7 @@ const bytea = customType<{ data: Buffer }>({ dataType: () => 'bytea' });
 // multi-tenant authorization schema. Stable text IDs preserve the wire contract.
 export const decks = pgTable('decks', {
   id: text().primaryKey(), name: text().notNull(), ordinal: bigserial({ mode: 'number' }).notNull(),
-  view: text().notNull().default('default'),
-  // Whether capture into this deck also takes the selection's surrounding block.
-  capture_context: boolean().notNull().default(true)
+  view: text().notNull().default('default')
 }, table => [check('deck_view', sql`${table.view} in ('default')`)]);
 export const account = pgTable('account', {
   id: integer().primaryKey(), default_deck_id: text().notNull().references(() => decks.id)
@@ -56,22 +54,19 @@ export const generationRuns = pgTable('generation_runs', {
   id: text().primaryKey(), page_id: text().notNull().references(() => pages.id, { onDelete: 'cascade' }),
   interpretation: text()
 }, table => [index('generation_runs_page').on(table.page_id)]);
-// module_instance_id has no foreign key: components outlive removed instances.
+// Page-owned modules (D02): every component belongs to one of its page's module
+// instances. The instance IDs are the page's own; the deck's are only a template.
 export const components = pgTable('components', {
   page_id: text().notNull().references(() => pages.id, { onDelete: 'cascade' }),
-  id: text().notNull(), kind: text().notNull(), module_instance_id: text(),
-  position: integer().notNull(), content: text().notNull(), status: text(), attempt_id: text(),
-  // Page-owned modules (D02): the type of the page's module instance that owns
-  // the component. Unused until the backend switches over and 0008 requires it.
-  module_type: text()
+  id: text().notNull(), module_instance_id: text().notNull(), module_type: text().notNull(),
+  position: integer().notNull(), content: text().notNull(), status: text(), attempt_id: text()
 }, table => [primaryKey({ columns: [table.page_id, table.id] }), index('components_attempt').on(table.attempt_id),
-  uniqueIndex('components_module_instance').on(table.page_id, table.module_instance_id).where(sql`${table.module_instance_id} IS NOT NULL`),
-  uniqueIndex('components_single_main_key').on(table.page_id).where(sql`${table.kind} = 'main_key'`),
-  uniqueIndex('components_single_context').on(table.page_id).where(sql`${table.kind} = 'context'`),
+  uniqueIndex('components_module_instance').on(table.page_id, table.module_instance_id),
   uniqueIndex('components_single_main_key_module').on(table.page_id).where(sql`${table.module_type} = 'main-key'`),
   uniqueIndex('components_single_context_module').on(table.page_id).where(sql`${table.module_type} = 'context'`),
-  check('component_kind', sql`${table.kind} in ('main_key', 'context', 'module', 'manual')`),
-  check('component_owner', sql`(${table.kind} = 'module') = (${table.module_instance_id} IS NOT NULL)`),
+  // At most twelve modules per page, with the main key always first.
+  check('component_limit', sql`${table.position} between 0 and 11`),
+  check('component_main_key_first', sql`(${table.module_type} = 'main-key') = (${table.position} = 0)`),
   check('component_status', sql`${table.status} in ('loading', 'completed', 'failed')`)]);
 export const componentAttempts = pgTable('component_attempts', {
   id: text().primaryKey(), page_id: text().notNull(), component_id: text().notNull(),

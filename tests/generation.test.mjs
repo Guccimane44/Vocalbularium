@@ -7,6 +7,7 @@ import { randomUUID } from 'node:crypto';
 import { Generation } from '../src/server/generation.mjs';
 import { OpenCodeProvider } from '../src/server/opencode.mjs';
 import { generateComponents } from '@vocabularium/domain/modules';
+import { isContentType } from '@vocabularium/domain/page-modules';
 import { confirmed, generated, text, textBlocks, useModules } from './helpers/pages.mjs';
 
 const session = { installationId: 'test-installation', sessionId: 'test-browser', epoch: 1 };
@@ -445,7 +446,7 @@ test('generation passes the saved Context to interpretation and modules', async 
   const { store, generation } = await fixture(t, {
     interpret: async (mainKey, _signal, _session, context) => { seen.push(['interpret', mainKey, context]); return word; },
     generate: async ({ selectedText, context }) => { seen.push(['generate', selectedText, context]); return 'explained'; }
-  }, ['german-explanation']);
+  }, ['context', 'german-explanation']);
   const { pageId } = await store.capture('with-context', { session, mainKey: 'Bismarck', context: 'Otto von Bismarck, chancellor', snapshot: await store.snapshot() });
   await generation.start(pageId); await finish(store, generation);
   assert.deepEqual(seen, [['interpret', 'Bismarck', 'Otto von Bismarck, chancellor'], ['generate', 'Bismarck', 'Otto von Bismarck, chancellor']]);
@@ -469,7 +470,7 @@ test('authenticated capture saves before generation, repeats safely, and publish
   assert.equal((await post('/api/capture', { operationId: 'capture', payload })).body.replayed, true);
   release(word);
   await Promise.all([...application.generation.tasks.values()].map(item => item.task));
-  const polled = await post('/api/poll', { session }); assert.equal(polled.body.ready.length, payload.snapshot.modules.length);
+  const polled = await post('/api/poll', { session }); assert.equal(polled.body.ready.length, payload.snapshot.modules.filter(module => isContentType(module.type)).length);
   for (const attemptId of polled.body.ready) assert.equal((await post('/api/publish', { operationId: `publish-${attemptId}`, payload: { attemptId, session } })).status, 200);
   assert.equal((await application.store.page(captured.body.pageId)).status, 'completed');
   assert.equal((await post('/api/capture', { operationId: 'invalid', payload: {} })).status, 400);

@@ -1,32 +1,12 @@
 import Type from 'typebox';
 import { BrowserSessionSchema, OperationIdSchema } from './base.js';
 
-// Deck → page → component dialect (Q72). It replaces the card/page and
-// karte/seite dialects (D1).
+// Deck → page → component (Q72) with page-owned modules (D02, 0.5.0). Pages own
+// their module instances; the deck configuration is only the template for page creation.
 
-export const MAX_CONTENT_MODULES = 12;
-
-export const ContentModuleInstanceSchema = Type.Object({
-  id: Type.String({ minLength: 1 }),
-  type: Type.String({ minLength: 1 })
-}, { additionalProperties: false });
 export const ViewDefinitionSchema = Type.Object({
   module: Type.Literal('default')
 }, { additionalProperties: false });
-export const DeckConfigurationSchema = Type.Object({
-  id: Type.Optional(Type.String({ minLength: 1 })),
-  name: Type.String({ minLength: 1 }),
-  modules: Type.Array(ContentModuleInstanceSchema, { maxItems: MAX_CONTENT_MODULES }),
-  view: ViewDefinitionSchema,
-  // Capture into the deck also takes the selection's surrounding block. Reads
-  // always include it; a save that omits it keeps the current value.
-  captureContext: Type.Optional(Type.Boolean())
-}, { additionalProperties: false });
-export const DeckConfigurationSnapshotSchema = Type.Object({
-  id: Type.String({ minLength: 1 }),
-  modules: Type.Array(ContentModuleInstanceSchema, { maxItems: MAX_CONTENT_MODULES })
-}, { additionalProperties: false });
-
 // Q13 block document. The current modules emit plain text, stored as one
 // paragraph block so the text round-trips byte for byte.
 export const ParagraphBlockSchema = Type.Object({
@@ -38,22 +18,38 @@ export const BlockDocumentSchema = Type.Object({
   blocks: Type.Array(ParagraphBlockSchema)
 }, { additionalProperties: false });
 
-export const ComponentKindSchema = Type.Union([
-  Type.Literal('main_key'), Type.Literal('context'), Type.Literal('module'), Type.Literal('manual')
-]);
 export const ComponentStatusSchema = Type.Union([
   Type.Literal('loading'), Type.Literal('completed'), Type.Literal('failed')
 ]);
+// Every module counts: main key, Context, Text, and content modules.
+export const MAX_MODULES = 12;
+
+export const ModuleInstanceSchema = Type.Object({
+  id: Type.String({ minLength: 1 }),
+  type: Type.String({ minLength: 1 })
+}, { additionalProperties: false });
+export const DeckConfigurationSchema = Type.Object({
+  id: Type.Optional(Type.String({ minLength: 1 })),
+  name: Type.String({ minLength: 1 }),
+  // The main key module first; Context replaces the earlier captureContext setting.
+  modules: Type.Array(ModuleInstanceSchema, { minItems: 1, maxItems: MAX_MODULES }),
+  view: ViewDefinitionSchema
+}, { additionalProperties: false });
+export const DeckConfigurationSnapshotSchema = Type.Object({
+  id: Type.String({ minLength: 1 }),
+  modules: Type.Array(ModuleInstanceSchema, { minItems: 1, maxItems: MAX_MODULES })
+}, { additionalProperties: false });
+
+// Each component belongs to one of its page's module instances. Instance IDs
+// are the page's own, never the deck's.
 export const ComponentSchema = Type.Object({
   id: Type.String({ minLength: 1 }),
-  kind: ComponentKindSchema,
-  moduleInstanceId: Type.Union([Type.String({ minLength: 1 }), Type.Null()]),
+  moduleInstanceId: Type.String({ minLength: 1 }),
+  moduleType: Type.String({ minLength: 1 }),
   content: BlockDocumentSchema,
   // Null when the component has never had a generation attempt.
   status: Type.Union([ComponentStatusSchema, Type.Null()]),
-  attemptId: Type.Union([Type.String({ minLength: 1 }), Type.Null()]),
-  // False for a module component whose instance was removed from the deck.
-  configured: Type.Boolean()
+  attemptId: Type.Union([Type.String({ minLength: 1 }), Type.Null()])
 }, { additionalProperties: false });
 export const PageSchema = Type.Object({
   id: Type.String({ minLength: 1 }),
@@ -61,7 +57,8 @@ export const PageSchema = Type.Object({
   // Capture origin; null for manually created pages.
   selectedText: Type.Union([Type.String(), Type.Null()]),
   createdAt: Type.String({ minLength: 1 }),
-  components: Type.Array(ComponentSchema),
+  // In page order; the main key is always first.
+  components: Type.Array(ComponentSchema, { minItems: 1, maxItems: MAX_MODULES }),
   status: Type.Union([ComponentStatusSchema, Type.Null()])
 }, { additionalProperties: false });
 
@@ -81,11 +78,16 @@ export const DeckConfigurationSaveRequestSchema = Type.Object({
   operationId: OperationIdSchema,
   payload: Type.Object({ deck: DeckConfigurationSchema }, OpenRequest)
 }, OpenRequest);
+// Manual creation copies the deck's modules; the user's Context and Text values
+// are keyed by the deck instance they fill.
+export const InitialContentSchema = Type.Object({
+  moduleInstanceId: Type.String({ minLength: 1 }),
+  content: BlockDocumentSchema
+}, OpenRequest);
 export const PageCreatePayloadSchema = Type.Object({
   deckId: Type.String({ minLength: 1 }),
   mainKey: Type.String({ minLength: 1 }),
-  context: Type.Optional(Type.String()),
-  manual: Type.Optional(Type.Array(BlockDocumentSchema))
+  initial: Type.Optional(Type.Array(InitialContentSchema, { maxItems: MAX_MODULES }))
 }, OpenRequest);
 export const PageCreateRequestSchema = Type.Object({
   operationId: OperationIdSchema,
@@ -97,15 +99,34 @@ export const ComponentChangeSchema = Type.Object({
 }, OpenRequest);
 export const PageSavePayloadSchema = Type.Object({
   pageId: Type.String({ minLength: 1 }),
-  changes: Type.Array(ComponentChangeSchema),
-  added: Type.Optional(Type.Array(BlockDocumentSchema)),
-  // Sets the Context on a page that has none; an empty change clears it.
-  context: Type.Optional(BlockDocumentSchema)
+  changes: Type.Array(ComponentChangeSchema)
 }, OpenRequest);
 export const PageSaveRequestSchema = Type.Object({
   operationId: OperationIdSchema,
   payload: PageSavePayloadSchema
 }, OpenRequest);
+
+// Shaping: each step is one ordered operation, saved immediately.
+// Positions count from 0, where the main key always stays.
+const Position = Type.Integer({ minimum: 1, maximum: MAX_MODULES - 1 });
+export const ModuleAddPayloadSchema = Type.Object({
+  pageId: Type.String({ minLength: 1 }),
+  type: Type.String({ minLength: 1 }),
+  position: Type.Optional(Position)
+}, OpenRequest);
+export const ComponentDeletePayloadSchema = Type.Object({
+  pageId: Type.String({ minLength: 1 }),
+  componentId: Type.String({ minLength: 1 })
+}, OpenRequest);
+export const ComponentMovePayloadSchema = Type.Object({
+  pageId: Type.String({ minLength: 1 }),
+  componentId: Type.String({ minLength: 1 }),
+  position: Position
+}, OpenRequest);
+export const ModuleAddRequestSchema = Type.Object({ operationId: OperationIdSchema, payload: ModuleAddPayloadSchema }, OpenRequest);
+export const ComponentDeleteRequestSchema = Type.Object({ operationId: OperationIdSchema, payload: ComponentDeletePayloadSchema }, OpenRequest);
+export const ComponentMoveRequestSchema = Type.Object({ operationId: OperationIdSchema, payload: ComponentMovePayloadSchema }, OpenRequest);
+
 export const PageDeleteRequestSchema = Type.Object({
   operationId: OperationIdSchema,
   payload: Type.Object({ pageId: Type.String({ minLength: 1 }) }, OpenRequest)
@@ -127,19 +148,21 @@ export const PageGenerateRequestSchema = Type.Object({
   payload: PageGeneratePayloadSchema
 }, OpenRequest);
 
-export type ContentModuleInstance = Type.Static<typeof ContentModuleInstanceSchema>;
-export type ViewDefinition = Type.Static<typeof ViewDefinitionSchema>;
+export type ModuleInstance = Type.Static<typeof ModuleInstanceSchema>;
 export type DeckConfiguration = Type.Static<typeof DeckConfigurationSchema>;
 export type DeckConfigurationSnapshot = Type.Static<typeof DeckConfigurationSnapshotSchema>;
-export type BlockDocument = Type.Static<typeof BlockDocumentSchema>;
-export type ComponentKind = Type.Static<typeof ComponentKindSchema>;
-export type ComponentStatus = Type.Static<typeof ComponentStatusSchema>;
 export type Component = Type.Static<typeof ComponentSchema>;
 export type Page = Type.Static<typeof PageSchema>;
 export type GenerationTarget = Type.Static<typeof GenerationTargetSchema>;
-export type PageCaptureRequest = Type.Static<typeof PageCaptureRequestSchema>;
-export type DeckConfigurationSaveRequest = Type.Static<typeof DeckConfigurationSaveRequestSchema>;
 export type PageCreateRequest = Type.Static<typeof PageCreateRequestSchema>;
 export type PageSaveRequest = Type.Static<typeof PageSaveRequestSchema>;
+export type ModuleAddRequest = Type.Static<typeof ModuleAddRequestSchema>;
+export type ComponentDeleteRequest = Type.Static<typeof ComponentDeleteRequestSchema>;
+export type ComponentMoveRequest = Type.Static<typeof ComponentMoveRequestSchema>;
+export type BlockDocument = Type.Static<typeof BlockDocumentSchema>;
+export type ComponentStatus = Type.Static<typeof ComponentStatusSchema>;
+export type ViewDefinition = Type.Static<typeof ViewDefinitionSchema>;
 export type PageDeleteRequest = Type.Static<typeof PageDeleteRequestSchema>;
 export type PageGenerateRequest = Type.Static<typeof PageGenerateRequestSchema>;
+export type PageCaptureRequest = Type.Static<typeof PageCaptureRequestSchema>;
+export type DeckConfigurationSaveRequest = Type.Static<typeof DeckConfigurationSaveRequestSchema>;

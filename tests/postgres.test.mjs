@@ -37,8 +37,9 @@ test('concurrent operation replay commits one page and rejects a mismatched payl
 
 test('queued writes keep admission order and independent components; replay cannot overwrite a later save', async t => {
   const store = await createTestStore(t), deck = await store.snapshot();
-  const { pageId } = await store.createPage('create', { deckId: deck.id, mainKey: 'key', manual: [textBlocks(''), textBlocks('')] });
-  const [first, second] = (await store.page(pageId)).components.filter(item => item.kind === 'manual').map(item => item.id);
+  await useModules(store, ['text', 'text']);
+  const { pageId } = await store.createPage('create', { deckId: deck.id, mainKey: 'key' });
+  const [first, second] = (await store.page(pageId)).components.filter(item => item.moduleType === 'text').map(item => item.id);
   const gate = latch(), entered = latch();
   const blocker = store.ordered(async () => { entered.resolve(); await gate.promise; });
   await entered.promise;
@@ -50,7 +51,7 @@ test('queued writes keep admission order and independent components; replay cann
   const results = await Promise.all(writes);
   assert.ok(results[0].sequence < results[1].sequence && results[1].sequence < results[2].sequence);
   assert.equal(results[3].sequence, results[0].sequence);
-  assert.deepEqual((await store.page(pageId)).components.filter(item => item.kind === 'manual').map(text), ['second', 'independent']);
+  assert.deepEqual((await store.page(pageId)).components.filter(item => item.moduleType === 'text').map(text), ['second', 'independent']);
 });
 
 test('a save admitted during generation rejects atomically before later publication and requires explicit resubmission', async t => {
