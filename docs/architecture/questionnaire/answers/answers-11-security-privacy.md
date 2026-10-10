@@ -16,7 +16,7 @@
 
 ### Q61
 
-- Store-minimum + GDPR baseline (revised to resolve C12 in the [traceability map](../traceability-map.md#conflicts)):
+- Store-minimum + GDPR baseline (revised to resolve C12 in the [traceability map](../../traceability-map.md#conflicts)):
   - Store requirements: privacy policy, Chrome Web Store and Firefox Add-ons disclosures, export (Q38) and user deletion (Q60).
   - A data processing agreement with every provider that processes user data: Vercel, Neon, the LLM provider, and the OAuth providers. A transfer basis where a provider stores data outside the EU.
   - The production LLM provider's terms must cover user content (forces K4: OpenCode Go is a development stand-in, not the production path).

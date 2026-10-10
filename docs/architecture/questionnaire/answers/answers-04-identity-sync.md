@@ -1,5 +1,5 @@
 ### Q17
-External identity at 1.0: OAuth sign-in plus passkeys. No passwords are stored. Less password plumbing; adds provider dependency and account-linking edge cases. Resolves C2 in the [traceability map](../traceability-map.md#conflicts). Providers, account linking, and recovery are open (K13).
+External identity at 1.0: OAuth sign-in plus passkeys. No passwords are stored. Less password plumbing; adds provider dependency and account-linking edge cases. Resolves C2 in the [traceability map](../../traceability-map.md#conflicts). Providers, account linking, and recovery are open (K13).
 
 ### Q18
 (b) Hosted hub

@@ -18,7 +18,7 @@ Explicit Save/Cancel
 
 **Amended 10 October 2026 by [Q72](answers-06-data-and-semantics.md#q72):** each component's content is a versioned block document, instead of each seite's. Existing seites are discarded on upgrade rather than migrated, so the plain-text migration no longer applies. Release 0.4.0 stores component content as block documents with plain-text paragraph blocks; the block editor and typed module blocks remain.
 
-Block JSON at 1.0 (ProseMirror/TipTap-style). Each component's content is stored and rendered as a versioned block document; content modules produce typed blocks. Safety comes from per-block-type render contracts (Q59). Resolves C1 in the [traceability map](../traceability-map.md#conflicts).
+Block JSON at 1.0 (ProseMirror/TipTap-style). Each component's content is stored and rendered as a versioned block document; content modules produce typed blocks. Safety comes from per-block-type render contracts (Q59). Resolves C1 in the [traceability map](../../traceability-map.md#conflicts).
 
 ### Q14
 

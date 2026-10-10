@@ -15,7 +15,7 @@ Needs: retention/redaction rule per Q11/Q33 for the stored Context. If capture w
 (a) String only — simplest; every generation re-interprets from scratch. Ambiguous keys flip meaning between runs.
 The saved Context can provide extra surroundings for the plain string, and Context edits follow the main-key rule (save first, no auto-regeneration).
 
-Opt-in interpretation (resolves C5 in the [traceability map](../traceability-map.md#conflicts)):
+Opt-in interpretation (resolves C5 in the [traceability map](../../traceability-map.md#conflicts)):
 - Default mode is (a) string only, as above.
 - A setting turns on a lightweight interpretation, off by default. When on, generation records a short interpretation line for the page (for example "Otto von Bismarck, German chancellor"), shown next to the main key and Context.
 - The user can edit or clear the line. Later generations use main key + Context + interpretation. Clearing it lets the next generation derive a new one.
@@ -43,7 +43,7 @@ Page-centered with true move, full-carry copy, and trash + restore + timed purge
 
 ### Q33
 
-Current content only at 1.0 (resolves C11 in the [traceability map](../traceability-map.md#conflicts)):
+Current content only at 1.0 (resolves C11 in the [traceability map](../../traceability-map.md#conflicts)):
 - Content: each component stores only its current content and latest outcome (completed / failed / inapplicable). No version history of content or edits; a retry or edit replaces what was there.
 - Usage ledger (internal, append-only): one row per provider call (component generation or interpretation) with account, page, component (none for interpretation), model, prompt version (release version, Q47), input/output tokens, cost, outcome, and timestamp. It feeds the quota (Q48), cost tracking (Q65), and debugging. It is never shown as page history; users see only usage totals.
 - Ledger retention follows Q39 (proposed ~13 months; open in K7).
