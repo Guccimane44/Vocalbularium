@@ -1,0 +1,101 @@
+import type { Component, GenerationTarget, ModuleInstance } from '@vocabularium/contracts/page-modules';
+import { MAX_MODULES } from '@vocabularium/contracts/page-modules';
+import { MODULES } from './modules.js';
+import type { ModuleType as ContentModuleType } from './modules.js';
+
+// Page-owned modules (D02, 0.5.0). Shared by the backend and the extension so
+// both enforce the same shaping rules. Nothing uses it until they switch over.
+
+export type InputModuleType = 'main-key' | 'context' | 'text';
+export type ModuleType = InputModuleType | ContentModuleType;
+export type ModuleKind = 'input' | 'content';
+export type CatalogEntry = Readonly<{ kind: ModuleKind; label: string; description: string }>;
+
+const DESCRIPTIONS: Readonly<Record<ContentModuleType, string>> = {
+  'german-explanation': 'Explains a word or phrase in German.',
+  'german-examples': 'Explains a word or phrase in German, with examples and their translations.',
+  'sentence-usage': 'Uses a captured sentence in a natural example.'
+};
+
+// In module-window order: input modules, then the content catalog.
+export const CATALOG: Readonly<Record<ModuleType, CatalogEntry>> = Object.freeze({
+  'main-key': { kind: 'input', label: 'Main key', description: 'The text you captured or typed. Every page has one.' },
+  context: { kind: 'input', label: 'Context', description: 'The text around your selection, used to find the right meaning.' },
+  text: { kind: 'input', label: 'Text', description: 'Your own notes. Generation never changes them.' },
+  ...Object.fromEntries((Object.keys(MODULES) as ContentModuleType[]).map(type =>
+    [type, { kind: 'content', label: MODULES[type].label, description: DESCRIPTIONS[type] }]))
+} as Record<ModuleType, CatalogEntry>);
+
+export const isModuleType = (type: string): type is ModuleType => Object.hasOwn(CATALOG, type);
+export const isContentType = (type: string): type is ContentModuleType => isModuleType(type) && CATALOG[type].kind === 'content';
+// The module window offers everything but the main key, which is always present.
+export const WINDOW_MODULES = (Object.keys(CATALOG) as ModuleType[]).filter(type => type !== 'main-key');
+
+// Why a module of this type cannot be added to these modules, or null.
+export function addBlocked(modules: readonly { type: string }[], type: string): string | null {
+  if (!isModuleType(type) || type === 'main-key') return 'This module cannot be added.';
+  if (modules.length >= MAX_MODULES) return `At most ${MAX_MODULES} modules, including the main key.`;
+  if (type === 'context' && modules.some(module => module.type === 'context')) return 'There is already a Context.';
+  return null;
+}
+
+// A deck configuration: the main key module first and exactly once, at most
+// one Context, at most twelve modules, unique IDs.
+export function validateConfiguration(modules: readonly ModuleInstance[]): void {
+  if (modules[0]?.type !== 'main-key') throw new Error('The main key module must come first.');
+  if (modules.length > MAX_MODULES) throw new Error(`A deck can have at most ${MAX_MODULES} modules.`);
+  const ids = new Set<string>();
+  for (const module of modules) {
+    if (!isModuleType(module.type)) throw new Error('The deck contains an unsupported module.');
+    if (ids.has(module.id)) throw new Error('Module instance IDs must be unique.');
+    ids.add(module.id);
+  }
+  if (modules.filter(module => module.type === 'main-key').length !== 1) throw new Error('A deck has exactly one main key module.');
+  if (modules.filter(module => module.type === 'context').length > 1) throw new Error('A deck has at most one Context module.');
+}
+
+// A new page copies the deck's modules under its own instance IDs.
+export function copyModules(modules: readonly ModuleInstance[], newId: () => string): ModuleInstance[] {
+  return modules.map(module => ({ id: newId(), type: module.type }));
+}
+
+// Shaping rules over a page's components in page order. Each returns why the
+// step is not allowed, or null.
+export function deleteBlocked(components: readonly Component[], componentId: string): string | null {
+  const component = components.find(item => item.id === componentId);
+  if (!component) return 'This component no longer exists.';
+  if (component.moduleType === 'main-key') return 'The main key cannot be deleted.';
+  if (component.status === 'loading') return 'This component is still generating.';
+  return null;
+}
+export function moveBlocked(components: readonly Component[], componentId: string, position: number): string | null {
+  const component = components.find(item => item.id === componentId);
+  if (!component) return 'This component no longer exists.';
+  if (component.moduleType === 'main-key') return 'The main key stays first.';
+  if (!Number.isInteger(position) || position < 1 || position >= components.length) return 'Choose a position below the main key.';
+  return null;
+}
+export function moved<T extends { id: string }>(components: readonly T[], componentId: string, position: number): T[] {
+  const rest = components.filter(item => item.id !== componentId);
+  const component = components.find(item => item.id === componentId);
+  return component ? [...rest.slice(0, position), component, ...rest.slice(position)] : [...components];
+}
+
+// Which content components a generation request runs on this page. A component
+// that never had an attempt is "not generated yet"; input components never run.
+export function generationTargets(target: GenerationTarget | { scope: 'capture' }, components: readonly Component[]): Component[] {
+  const content = components.filter(component => isContentType(component.moduleType));
+  switch (target.scope) {
+    case 'capture':
+    case 'missing':
+      return content.filter(component => component.attemptId === null);
+    case 'page':
+      return content;
+    case 'component': {
+      const component = components.find(item => item.id === target.componentId);
+      if (!component) throw new Error('This component no longer exists.');
+      if (!isContentType(component.moduleType)) throw new Error('Only generated components can be retried.');
+      return [component];
+    }
+  }
+}
