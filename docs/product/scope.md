@@ -1,28 +1,67 @@
 # Current product scope
 
-## Objective: What is supported now?
+## Objective: What is supported now, and what is decided?
 
-This document identifies current capabilities and explicit deferrals. It provides a capability map and links to detailed behavior rather than repeating workflows. [Vision](vision.md) describes the longer-term direction; the [product model](model.md) defines the terminology.
+This document is the status ledger for product capabilities. It marks each capability with its status and links to the detailed behavior instead of repeating workflows. A requirement in a specification is never evidence that the capability exists; this ledger says whether it does. [Vision](vision.md) describes the longer-term direction; the [product model](model.md) defines the terminology. The [project workflow](../guides/project-workflow.md#from-decisions-to-iterations) describes how capabilities move through the statuses.
 
 The current baseline is the Chrome extension with its local account backend. It supports collecting and consulting pages, with an initial set of language-oriented content modules. Broader possibilities in the vision are not automatically part of this scope.
 
-The supported capabilities below describe release 0.4.1. Release 0.4.0 implements the deck → page → component model approved in [Q72](../architecture/questionnaire/answers/answers-06-data-and-semantics.md#q72) through the [refactor plan](../plans/page-component-refactor.md) and [tracker #81](https://github.com/Guccimane44/Vocalbularium/issues/81). 0.4.1 adds capture with Context. Builds up to v0.3.0+ used kartes and seites; [earlier terms](model.md#earlier-terms) maps the two.
+The implemented capabilities below describe release 0.4.1. Release 0.4.0 implements the deck → page → component model approved in [Q72](../architecture/questionnaire/answers/answers-06-data-and-semantics.md#q72) through the [refactor plan](../plans/page-component-refactor.md) and [tracker #81](https://github.com/Guccimane44/Vocalbularium/issues/81). 0.4.1 adds capture with Context. Builds up to v0.3.0+ used kartes and seites; [earlier terms](model.md#earlier-terms) maps the two.
 
-## Supported capabilities
+## Status values
 
-| Area | Current capability | Detailed specification |
-| --- | --- | --- |
-| Account access | Login and logout using one built-in owner-test account; account-owned decks, configurations, default-deck selection, and saved pages. | [Accounts and synchronization](../history/mvp/MVP-Product-scope.md#2-accounts-login-and-synchronization) |
-| Synchronization | Installations connected to the same backend access the same account. Saving and synchronization failures support explicit recovery. | [Accounts and synchronization](../history/mvp/MVP-Product-scope.md#2-accounts-login-and-synchronization), [save recovery](../MVP-Product-spec-select-and-add.md#saving-and-synchronization-failures) |
-| Capture | Select a word, phrase, or sentence in Chrome and create a page in the default deck through the context menu, with brief feedback and accessible capture outcomes. The selection becomes the page's main key; with the deck's **Capture with Context** on (the default), the surrounding block, capped near 500 characters, becomes its Context. The page then generates every content component automatically. | [Select and Add](../MVP-Product-spec-select-and-add.md) |
-| Deck management | Browse, create, rename, configure, and delete decks; choose the account's default deck. | [Deck configuration](../specs/decks-and-configuration.md) |
-| Deck configuration | An ordered list of up to 12 content module instances, including repeated instances, with example previews, and the Capture with Context toggle. Configuration changes never rewrite existing pages; components of removed instances stay on their pages. | [Deck configuration](../specs/decks-and-configuration.md) |
-| Modules | Five content module types: `<The selected>`, `<The selected + original language tag>`, `<German explanation>`, `<German explanation + examples>`, and `<Sentence usage>`. Interpretation chooses one source language where needed. A new account's My Deck has one `<German explanation + examples>` instance. | [Module catalog and applicability](../specs/modules.md) |
-| Generation | Per-component generation from the main key, the Context and the deck's current configuration. Explicitly confirmed **Retry** of one component or the whole page replaces the targeted content, including edits. **Generate missing** fills components without content, such as those of newly added instances. | [Pages and editing](../specs/pages-and-editing.md), [Select and Add](../MVP-Product-spec-select-and-add.md) |
-| Pages | Browse and sort deck pages, open a page, create pages manually from a required main key and optional Context (generation starts only on **Generate**), edit the main key, Context and component text, add text components that generation never touches, and delete pages. | [Pages and editing](../specs/pages-and-editing.md) |
-| Presentation | Pages are shown in the default view: the ordered component list with the main key always visible. Plain-text content and previews, Light/Dark appearance, keyboard interactions, and accessible state cues. | [Pages and editing](../specs/pages-and-editing.md), [Appearance](../history/mvp/MVP-Product-scope.md#11-appearance-v020) |
+- `implemented`: shipped in the release named in *Since / target*, as the linked specification describes.
+- `accepted for 1.0`: the owner accepted the decision record; the capability is specified but not built.
+- `post-1.0`: accepted for a later version than 1.0.
+- `out at maturity`: accepted as never part of the product.
+- `deferred`: not yet classified. The *Decision* column names the record that is still `Proposed` or `Deferred`, or the plan that put the capability out of scope; "—" means no record covers it. The row moves to one of the statuses above when its record is accepted.
+
+No capability is `accepted for 1.0`, `post-1.0`, or `out at maturity` yet: the questionnaire's decision records, including [Q04](../architecture/questionnaire/answers/answers-01-maturity-and-scope.md#q04)'s list of features excluded at maturity, are still `Proposed`. The [traceability map](../architecture/questionnaire/traceability-map.md) tracks how each answer reaches the specifications.
+
+## Capability ledger
+
+| Area | Capability | Status | Since / target | Specification | Decision |
+| --- | --- | --- | --- | --- | --- |
+| Account access | Login and logout using one built-in owner-test account; account-owned decks, configurations, default-deck selection, and saved pages. | implemented | 0.4.0 | [Accounts and synchronization](../history/mvp/MVP-Product-scope.md#2-accounts-login-and-synchronization) | — |
+| Synchronization | Installations connected to the same backend access the same account. Saving and synchronization failures support explicit recovery. | implemented | 0.4.0 | [Accounts and synchronization](../history/mvp/MVP-Product-scope.md#2-accounts-login-and-synchronization), [save recovery](../MVP-Product-spec-select-and-add.md#saving-and-synchronization-failures) | — |
+| Capture | Select a word, phrase, or sentence in Chrome and create a page in the default deck through the context menu, with brief feedback and accessible capture outcomes. The selection becomes the page's main key; with the deck's **Capture with Context** on (the default), the surrounding block, capped near 500 characters, becomes its Context. The page then generates every content component automatically. | implemented | 0.4.1 | [Select and Add](../MVP-Product-spec-select-and-add.md) | [Q72][r-q72]; Context: [Q07](../architecture/questionnaire/answers/answers-02-clients-and-capture.md#q07) ([Proposed][r-02]) |
+| Deck management | Browse, create, rename, configure, and delete decks; choose the account's default deck. | implemented | 0.4.0 | [Deck configuration](../specs/decks-and-configuration.md) | [Q72][r-q72] |
+| Deck configuration | An ordered list of up to 12 content module instances, including repeated instances, with example previews, and the Capture with Context toggle. Configuration changes never rewrite existing pages; components of removed instances stay on their pages. | implemented | 0.4.1 | [Deck configuration](../specs/decks-and-configuration.md) | [Q72][r-q72] |
+| Modules | Five content module types: `<The selected>`, `<The selected + original language tag>`, `<German explanation>`, `<German explanation + examples>`, and `<Sentence usage>`. Interpretation chooses one source language where needed. A new account's My Deck has one `<German explanation + examples>` instance. | implemented | 0.4.0 | [Module catalog and applicability](../specs/modules.md) | [Q72][r-q72] |
+| Generation | Per-component generation from the main key, the Context and the deck's current configuration. Explicitly confirmed **Retry** of one component or the whole page replaces the targeted content, including edits. **Generate missing** fills components without content, such as those of newly added instances. | implemented | 0.4.0 | [Pages and editing](../specs/pages-and-editing.md), [Select and Add](../MVP-Product-spec-select-and-add.md) | [Q72][r-q72] |
+| Pages | Browse and sort deck pages, open a page, create pages manually from a required main key and optional Context (generation starts only on **Generate**), edit the main key, Context and component text, add text components that generation never touches, and delete pages. | implemented | 0.4.0 | [Pages and editing](../specs/pages-and-editing.md) | [Q72][r-q72] |
+| Presentation | Pages are shown in the default view: the ordered component list with the main key always visible. Plain-text content and previews, Light/Dark appearance, keyboard interactions, and accessible state cues. | implemented | 0.4.0 | [Pages and editing](../specs/pages-and-editing.md), [Appearance](../history/mvp/MVP-Product-scope.md#11-appearance-v020) | [Q72][r-q72] |
+| Diagnostics | Correlated local diagnostics, full generation evidence, durable extension collection, explicit cleanup, configurable storage budgets, and degradation reporting. Full-content diagnostics are a development mode; hosted redaction rules ([Q63](../architecture/questionnaire/answers/answers-12-operations.md#63)) are `Proposed`. | implemented | 0.4.0 | [Observability](../architecture/observability.md) | [Local diagnostics][r-logs]; [issue #70](https://github.com/Guccimane44/Vocalbularium/issues/70) |
+| Accounts | Registration, multiple user accounts, public onboarding, and public account-management features. | deferred | — | — | [Q02](../architecture/questionnaire/answers/answers-01-maturity-and-scope.md#q02) ([Proposed][r-01]), [Q17](../architecture/questionnaire/answers/answers-04-identity-sync.md#q17) ([Proposed][r-04]) |
+| Clients | Dedicated web, iOS, or Android clients and capture through mobile sharing or new hotkey workflows. | deferred | — | — | [Q06](../architecture/questionnaire/answers/answers-02-clients-and-capture.md#q06) ([Proposed][r-02]) |
+| Modules | Multiple source-language interpretations for one capture. | deferred | — | — | [Q43](../architecture/questionnaire/answers/answers-08-modules.md#q43) ([Deferred][r-08]) |
+| Modules | Dedicated passage-oriented generation and modules beyond the current five types. | deferred | — | — | [Q40](../architecture/questionnaire/answers/answers-08-modules.md#q40), [Q42](../architecture/questionnaire/answers/answers-08-modules.md#q42) ([Deferred][r-08]) |
+| Modules | User-created modules, module customization APIs, and a general module marketplace. | deferred | — | — | [Q44](../architecture/questionnaire/answers/answers-08-modules.md#q44) ([Deferred][r-08]) |
+| Presentation | Rich-text rendering, audio, images, and other media modules. | deferred | — | — | Rich text: [Q13](../architecture/questionnaire/answers/answers-03-frontend.md#q13) ([Proposed][r-03]); media: [Q40](../architecture/questionnaire/answers/answers-08-modules.md#q40) ([Deferred][r-08]) |
+| Presentation | View modules other than the default view, including the card view module; several views per deck and switching views. | deferred | — | — | [Refactor plan](../plans/page-component-refactor.md), out of scope until the owner starts it |
+| Pages | Hiding or deleting individual components on a page. | deferred | — | — | [Refactor plan](../plans/page-component-refactor.md), out of scope until the owner starts it |
+| Pages | Moving or copying pages between decks. | deferred | — | — | [Q32](../architecture/questionnaire/answers/answers-06-data-and-semantics.md#q32) ([Proposed][r-06]) |
+| Review | Memorization settings, spaced repetition, and study workflows. | deferred | — | — | [Q52](../architecture/questionnaire/answers/answers-10-review-and-scale.md#q52), [Q53](../architecture/questionnaire/answers/answers-10-review-and-scale.md#53) ([Proposed][r-10]) |
+| Capture | Automatically opening generated pages. | deferred | — | — | — |
+| Generation | Automatic restart of interrupted generation or automatic resubmission of failed saves. | deferred | — | — | [Q09](../architecture/questionnaire/answers/answers-02-clients-and-capture.md#q09) ([Proposed][r-02]), [Q50](../architecture/questionnaire/answers/answers-09-generation-and-llm.md#q50) ([Proposed][r-09]) |
+| Generation | Systematic generation-quality evaluation and expanded user-facing generation-limit controls. | deferred | — | — | [Q48](../architecture/questionnaire/answers/answers-09-generation-and-llm.md#q48), [Q49](../architecture/questionnaire/answers/answers-09-generation-and-llm.md#q49) ([Proposed][r-09]), [Q65](../architecture/questionnaire/answers/answers-12-operations.md#65) ([Proposed][r-12]) |
+| Delivery | Public hosting and Chrome Web Store distribution. | deferred | — | — | [Q01](../architecture/questionnaire/answers/answers-01-maturity-and-scope.md#q01) ([Proposed][r-01]), [Q15](../architecture/questionnaire/answers/answers-03-frontend.md#q15) ([Proposed][r-03]), [Q18](../architecture/questionnaire/answers/answers-04-identity-sync.md#q18) ([Proposed][r-04]) |
+
+[r-q72]: https://app.notion.com/p/3f4bb1350208812e8085ffd751302842
+[r-logs]: https://app.notion.com/p/3ecbb1350208818b8156f754e52d4e4a
+[r-01]: https://app.notion.com/p/3f4bb1350208815fafb8f856f1a185d1
+[r-02]: https://app.notion.com/p/3f4bb13502088120a994cb6ab8fe6d5c
+[r-03]: https://app.notion.com/p/3f4bb13502088117b4cbf12e01f915ff
+[r-04]: https://app.notion.com/p/3f4bb135020881ec85beca3cd7941578
+[r-06]: https://app.notion.com/p/3f4bb13502088159bf3fef8135989e73
+[r-08]: https://app.notion.com/p/3f4bb1350208813ab814f53fd24d5021
+[r-09]: https://app.notion.com/p/3f4bb135020881acb220c5a11218f727
+[r-10]: https://app.notion.com/p/3f4bb1350208815d9354dc184a658a37
+[r-12]: https://app.notion.com/p/3f4bb13502088125bf60fffb37849daa
 
 Some linked scope documents still reside under `history/mvp/`. Their applicable behavior sections supply the detail; their historical delivery assumptions do not define the current operating environment.
+
+<a id="explicit-deferrals"></a>`deferred` rows remain outside implementation scope until the owner explicitly changes it. Frontend improvements, stronger logging, behavior fixes, and backend inspection can be planned against this baseline; that direction alone does not specify new capabilities.
 
 ## Upgrade from earlier builds
 
@@ -32,29 +71,6 @@ Upgrading from 0.4.0 to 0.4.1 keeps all decks and pages. Migration `0005` adds t
 
 ## Current delivery boundary
 
-### Diagnostic logging increment
-
-The [approved logging specification](../architecture/observability.md) adds correlated local diagnostics, full generation evidence, durable extension collection, explicit cleanup, configurable storage budgets, and degradation reporting. [Issue #70](https://github.com/Guccimane44/Vocalbularium/issues/70) tracks implementation and verification. Availability in the owner's installed backend/extension requires a separately authorized upgrade; the existing main-key implementation deferral remains unchanged.
-
 The product is an owner-test Chrome extension delivered through manual installation, with a local backend and persistent PostgreSQL storage. Real model generation requires an external provider. The [local development guide](../architecture/local-postgresql.md) describes the current environment and operating constraints.
 
 The earlier hosted MVP is a separate historical environment. Current scope does not establish public-release readiness or claim that every platform and recovery scenario has been verified. Acceptance and verification evidence belong in release records.
-
-## Explicit deferrals
-
-- Registration, multiple user accounts, public onboarding, and public account-management features.
-- Dedicated web, iOS, or Android clients and capture through mobile sharing or new hotkey workflows.
-- Multiple source-language interpretations for one capture.
-- Dedicated passage-oriented generation and modules beyond the current five types.
-- User-created modules, module customization APIs, and a general module marketplace.
-- Rich-text rendering, audio, images, and other media modules.
-- View modules other than the default view, including the card view module; several views per deck and switching views.
-- Hiding or deleting individual components on a page.
-- Moving or copying pages between decks.
-- Memorization settings, spaced repetition, and study workflows.
-- Automatically opening generated pages.
-- Automatic restart of interrupted generation or automatic resubmission of failed saves.
-- Systematic generation-quality evaluation and expanded user-facing generation-limit controls.
-- Public hosting and Chrome Web Store distribution.
-
-Deferrals remain outside implementation scope until the owner explicitly changes it. Frontend improvements, stronger logging, behavior fixes, and backend inspection can be planned against this baseline; that direction alone does not specify new supported capabilities.
