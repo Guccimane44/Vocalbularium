@@ -1,18 +1,19 @@
 import { blockText, textBlocks } from '@vocabularium/domain/pages';
+import { moduleLabel } from './shaping.tsx';
 import { dialog } from './dialog.ts';
 import { PageView } from './page-view.tsx';
 /** @typedef {import('../types/editor-drafts.js').PageEditorDraft} PageEditorDraft */
 
 const RETRY_COMPONENT = 'Retry will replace this component’s content, including your edits to it. The main key, Context, and other components will not change.';
-const RETRY_PAGE = 'Retry will replace the content of every generated component on this page, including your edits to them. The main key, Context, and your own components will not change.';
+const RETRY_PAGE = 'Retry will replace the content of every generated component on this page, including your edits to them. The main key, Context, and your Text components will not change.';
 const CHANGED = 'This content changed since you looked at it, possibly on another installation. ';
-const DRAFT_KEY = 'page-draft';
+const DRAFT_KEY = 'page-draft-modules';
 
 export function pageViews({ getAccount, renderView, refresh, send, applyState, navigate, showError }) {
   /** @type {PageEditorDraft | undefined} */
   let draft;
-  // Drafts from the karte/seite version are not carried over (Q72).
-  sessionStorage.removeItem('karte-draft'); sessionStorage.removeItem('card-draft');
+  // Drafts from earlier page models are not carried over (Q72, D02).
+  for (const retired of ['karte-draft', 'card-draft', 'page-draft']) sessionStorage.removeItem(retired);
   try { draft = JSON.parse(sessionStorage.getItem(DRAFT_KEY)) ?? undefined; } catch { /* No recoverable draft. */ }
   let busy = false;
   const persist = () => {
@@ -22,39 +23,38 @@ export function pageViews({ getAccount, renderView, refresh, send, applyState, n
   const identity = hash => hash.split('/').slice(0, 2).join('/');
   const matches = hash => draft && identity(hash) === draft.route;
   const changed = () => draft ? Object.keys(draft.texts).filter(id => draft.texts[id] !== draft.base[id]) : [];
-  const added = () => draft ? draft.added.filter(text => text.length) : [];
-  const dirty = () => Boolean(draft && (changed().length || added().length || draft.context || (!draft.pageId && draft.mainKey)));
+  const inputs = () => draft ? Object.entries(draft.inputs ?? {}).filter(([, text]) => text.length) : [];
+  const dirty = () => Boolean(draft && (changed().length || inputs().length || (!draft.pageId && draft.mainKey)));
   function begin(page, route) {
-    draft = { route: identity(route), pageId: page.id, deckId: page.deckId, base: {}, texts: {}, added: [] };
+    draft = { route: identity(route), pageId: page.id, deckId: page.deckId, base: {}, texts: {} };
     for (const component of page.components) {
       draft.base[component.id] = draft.texts[component.id] = blockText(component.content);
     }
     persist();
   }
   function beginNew(deckId, route) {
-    draft = { route: identity(route), deckId, base: {}, texts: {}, mainKey: '', context: '', added: [] };
+    draft = { route: identity(route), deckId, base: {}, texts: {}, mainKey: '', inputs: {} };
     persist();
   }
   async function discard() {
     if (draft?.pending) await chrome.storage.local.remove(`save-${draft.pending.operationId}`);
     draft = undefined; persist();
   }
-  function payload(page) {
+  // Context and Text values for a new page are keyed by the deck instance they fill.
+  function payload() {
     if (!draft.pageId) return { deckId: draft.deckId, mainKey: draft.mainKey ?? '',
-      ...(draft.context ? { context: draft.context } : {}), manual: added().map(textBlocks) };
-    const hasContext = page?.components.some(component => component.kind === 'context');
-    return { pageId: draft.pageId, changes: changed().map(componentId => ({ componentId, content: textBlocks(draft.texts[componentId]) })),
-      added: added().map(textBlocks), ...(draft.context && !hasContext ? { context: textBlocks(draft.context) } : {}) };
+      initial: inputs().map(([moduleInstanceId, text]) => ({ moduleInstanceId, content: textBlocks(text) })) };
+    return { pageId: draft.pageId, changes: changed().map(componentId => ({ componentId, content: textBlocks(draft.texts[componentId]) })) };
   }
   async function save(page) {
     if (busy || !draft) return false;
-    const key = page?.components.find(component => component.kind === 'main_key');
+    const key = page?.components.find(component => component.moduleType === 'main-key');
     const mainKey = draft.pageId ? draft.texts[key?.id] : draft.mainKey;
     if (mainKey !== undefined && !mainKey.trim()) {
       draft.error = 'Enter a main key.'; draft.errorCode = 'invalid'; persist(); void refresh(); return false;
     }
-    const next = payload(page);
-    if (draft.pageId && !next.changes.length && !next.added.length && !next.context) { await discard(); void refresh(); return true; }
+    const next = payload();
+    if (draft.pageId && !next.changes.length) { await discard(); void refresh(); return true; }
     if (draft.pending && JSON.stringify(next) !== JSON.stringify(draft.pending.payload)) {
       await chrome.storage.local.remove(`save-${draft.pending.operationId}`); draft.pending = undefined;
     }
@@ -104,6 +104,17 @@ export function pageViews({ getAccount, renderView, refresh, send, applyState, n
       }
     } catch (error) { showError(error); }
   }
+  // Shaping steps are saved at once, each as one ordered operation.
+  async function shape(type, payload) {
+    try { await applyState(await send({ type, payload })); } catch (error) { showError(error); }
+  }
+  async function deleteComponent(page, component) {
+    const label = moduleLabel(component.moduleType);
+    const decision = await dialog({ title: `Delete ${label}?`,
+      message: `${label} and its content will be removed from this page. Generation will not bring it back; you can add the module again from the module window.`,
+      choices: ['Cancel', 'Delete'] });
+    if (decision.choice === 'Delete') await shape('delete-component', { pageId: page.id, componentId: component.id });
+  }
   function render(hash, local, externalError) {
     const [, id] = hash.split('/');
     const isNew = hash.startsWith('#new-page/');
@@ -136,7 +147,10 @@ export function pageViews({ getAccount, renderView, refresh, send, applyState, n
         try { const next = await send({ type: 'delete-page', payload: { pageId: page.id } }); await discard(); await applyState(next); navigate(`deck/${deck.id}`); }
         catch (error) { showError(error); }
       },
-      generate: target => generate(page, target)
+      generate: target => generate(page, target),
+      addModule: (type, position) => shape('add-module', { pageId: page.id, type, ...(position ? { position } : {}) }),
+      moveComponent: (componentId, position) => shape('move-component', { pageId: page.id, componentId, position }),
+      deleteComponent: component => deleteComponent(page, component)
     });
   }
   window.addEventListener('beforeunload', event => { if (dirty()) { event.preventDefault(); event.returnValue = ''; } });

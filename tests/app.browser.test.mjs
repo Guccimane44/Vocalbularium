@@ -6,10 +6,11 @@ import { join, resolve } from 'node:path';
 import { once } from 'node:events';
 import { chromium } from 'playwright';
 import { blockText } from '@vocabularium/domain/pages';
+import { isContentType } from '@vocabularium/domain/page-modules';
 import { textBlocks, useModules } from './helpers/pages.mjs';
 const text = component => blockText(component.content);
-const keyOf = page => text(page.components.find(component => component.kind === 'main_key'));
-const modulesOf = page => page.components.filter(component => component.kind === 'module');
+const keyOf = page => text(page.components.find(component => component.moduleType === 'main-key'));
+const modulesOf = page => page.components.filter(component => isContentType(component.moduleType));
 const byKey = async (store, key) => (await store.pages()).find(page => keyOf(page) === key);
 const componentArticle = (page, heading) => page.locator('article.component').filter({ has: page.getByRole('heading', { name: heading }) });
 const apiOrigin = process.env.VOCABULARIUM_API_URL ?? 'http://127.0.0.1:4318';
@@ -284,7 +285,7 @@ test('capture extension: receipt lifetime, exact duplicate pages, shared outcome
   step.done();
 });
 
-test('capture with Context: the surrounding block follows the deck toggle, capped, into the page and generation', { timeout: 40000 }, async (t) => {
+test('capture with Context: the surrounding block follows the deck’s Context module, capped, into the page and generation', { timeout: 40000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-capture-context-'));
   const testingExtension = join(directory, 'extension');
   await cp(resolve(process.env.VOCABULARIUM_TEST_EXTENSION ?? 'artifacts/extension'), testingExtension, { recursive: true });
@@ -295,7 +296,7 @@ test('capture with Context: the surrounding block follows the deck toggle, cappe
     async generate() { return 'Glück'; }
   };
   const application = await createTestApplication(t, { provider });
-  await useModules(application.store, ['german-examples']);
+  await useModules(application.store, ['context', 'german-examples']);
   await application.start();
   const a = await launch(join(directory, 'a'), testingExtension);
   t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
@@ -306,7 +307,8 @@ test('capture with Context: the surrounding block follows the deck toggle, cappe
   const select = selector => reading.locator(selector).evaluate(node => {
     const range = document.createRange(); range.selectNodeContents(node); getSelection().removeAllRanges(); getSelection().addRange(range); return getSelection().toString();
   });
-  const contextOf = page => page.components.filter(component => component.kind === 'context').map(text);
+  // A Context module with nothing captured leaves an empty Context component.
+  const contextOf = page => page.components.filter(component => component.moduleType === 'context').map(text).filter(Boolean);
 
   // On by default: the block around the selection, capped near 500 characters, with whitespace collapsed.
   await captureFrom(a, await select('#word'));
@@ -325,20 +327,20 @@ test('capture with Context: the surrounding block follows the deck toggle, cappe
   await waitFor(async () => (await application.store.pages()).length === 2, 'whole-block capture saved');
   assert.deepEqual(contextOf(await byKey(application.store, 'Nicht dieser Absatz.')), []);
 
-  // Turned off in the deck configuration: nothing beyond the selection is taken.
+  // The Context module removed from the deck: nothing beyond the selection is taken.
   const deckId = (await application.store.account()).defaultDeckId;
+  const hasContext = deck => deck?.modules.some(module => module.type === 'context');
   await a.page.goto(`chrome-extension://${a.id}/app.html#configure/${deckId}`);
-  const toggle = a.page.getByLabel('Capture with Context', { exact: true });
-  assert.equal(await toggle.isChecked(), true);
-  await toggle.uncheck();
+  await a.page.getByRole('button', { name: 'Remove Context', exact: true }).click();
   await a.page.getByRole('button', { name: 'Save', exact: true }).click();
-  await waitFor(async () => (await application.store.deck(deckId)).captureContext === false, 'deck toggle saved');
-  await waitFor(async () => (await a.worker.evaluate(async () => (await chrome.storage.local.get('account')).account))
-    ?.defaultDeckSnapshot?.captureContext === false, 'extension sees the deck toggle');
+  await waitFor(async () => !hasContext(await application.store.deck(deckId)), 'deck without the Context module saved');
+  await waitFor(async () => !hasContext((await a.worker.evaluate(async () => (await chrome.storage.local.get('account')).account))
+    ?.defaultDeckSnapshot), 'extension sees the deck without the Context module');
   await captureFrom(a, await select('#word'));
   await waitFor(async () => (await application.store.pages()).length === 3 && interpreted.length === 3, 'capture without Context generated');
   const plain = (await application.store.pages()).filter(page => keyOf(page) === '幸福').find(page => !contextOf(page).length);
-  assert.ok(plain, 'the page captured with Context off has no Context');
+  assert.ok(plain, 'the page captured without the Context module has no Context');
+  assert.ok(!plain.components.some(component => component.moduleType === 'context'));
   assert.deepEqual(interpreted.at(-1), { text: '幸福', context: undefined });
   const receipts = await a.worker.evaluate(async () => Object.entries(await chrome.storage.local.get(null)).filter(([key]) => key.startsWith('capture-')).map(([, item]) => item.payload));
   assert.ok(receipts.every(payload => payload.mainKey !== '幸福' || payload.context === undefined || payload.context === context));
@@ -420,25 +422,29 @@ test('deck UI: draft previews, all modules, the module limit, removal without co
 
   await a.page.getByRole('button', { name: 'Add new deck', exact: true }).click();
   await a.page.getByLabel('Deck name', { exact: true }).fill('Everyday Chinese');
-  assert.equal(await a.page.locator('.module-block').count(), 1, 'a new deck starts with the German explanation');
+  assert.equal(await a.page.locator('.module-block').count(), 3, 'a new deck starts with the main key, Context and the German explanation');
+  await a.page.locator('.module-block.pinned').getByText('Main key').waitFor();
   await a.page.getByRole('button', { name: 'Add <Sentence usage>', exact: true }).click();
   await a.page.getByRole('button', { name: 'Add <German explanation>', exact: true }).click();
-  await a.page.getByRole('button', { name: 'Move module 3 up', exact: true }).click();
+  await a.page.getByRole('button', { name: 'Move <German explanation> up', exact: true }).click();
   await a.page.getByRole('button', { name: 'Add <Sentence usage>', exact: true }).click();
   await a.page.getByRole('button', { name: 'Add <Sentence usage>', exact: true }).click();
-  assert.equal(await a.page.locator('.module-block').count(), 5);
-  assert.equal(await a.page.locator('.module-library button').count(), 3, 'the library offers the three content modules');
+  assert.equal(await a.page.locator('.module-block').count(), 7);
+  assert.equal(await a.page.locator('.module-window .window-module').count(), 5, 'the window offers Context, Text and the three content modules');
+  assert.equal(await a.page.getByRole('button', { name: 'Add Context', exact: true }).isDisabled(), true, 'one Context per deck');
+  await a.page.getByText('There is already a Context.').waitFor();
   await a.page.getByLabel('Sample input', { exact: true }).selectOption('sentence');
-  assert.equal(await a.page.locator('.preview').count(), 6, 'one main-key preview and one per module');
+  assert.equal(await a.page.locator('.preview').count(), 7, 'one preview per module, the main key included');
   assert.match(await a.page.locator('.preview').nth(0).textContent(), /我真的很幸福/);
-  assert.match(await a.page.locator('.preview').nth(1).textContent(), /Does not apply to this input/);
+  assert.match(await a.page.locator('.preview').nth(2).textContent(), /Does not apply to this input/);
   assert.match(await a.page.locator('.preview').nth(4).textContent(), /我真的很幸福/);
   assert.equal((await application.store.pages()).length, 0); assert.equal((await application.store.account()).decks.length, 1);
   await a.page.screenshot({ path: 'artifacts/m3-configuration.png', fullPage: true });
   await a.page.getByRole('button', { name: 'Save', exact: true }).click();
   await a.page.getByRole('heading', { name: 'Everyday Chinese', exact: true }).waitFor();
   const created = (await application.store.account()).decks.find(deck => deck.name === 'Everyday Chinese');
-  assert.deepEqual(created.modules.map(module => module.type), ['german-examples', 'german-explanation', 'sentence-usage', 'sentence-usage', 'sentence-usage']);
+  assert.deepEqual(created.modules.map(module => module.type),
+    ['main-key', 'context', 'german-examples', 'german-explanation', 'sentence-usage', 'sentence-usage', 'sentence-usage']);
   await a.page.getByLabel('Options for Everyday Chinese').click();
   await a.page.locator('article.deck').filter({ hasText: 'Everyday Chinese' }).getByRole('button', { name: 'Set as default', exact: true }).click();
   await a.page.locator('article.deck').filter({ hasText: 'Everyday Chinese' }).getByText('DEFAULT DECK', { exact: true }).waitFor();
@@ -448,24 +454,24 @@ test('deck UI: draft previews, all modules, the module limit, removal without co
   await application.store.openSession('fixture-session', session);
   const pageId = (await application.store.capture('fixture-capture', { session, mainKey: '幸福', snapshot: (await application.store.snapshot()) })).pageId;
   for (const item of modulesOf(await application.store.page(pageId))) {
-    await application.store.stage(item.attemptId, { ok: true, text: item.moduleInstanceId === created.modules[0].id ? 'Saved explanation' : '' });
+    await application.store.stage(item.attemptId, { ok: true, text: item.moduleType === 'german-examples' ? 'Saved explanation' : '' });
     await application.store.publish(`fixture-${item.id}`, { attemptId: item.attemptId, session });
   }
+  const before = (await application.store.page(pageId)).components.map(item => [item.moduleType, text(item)]);
   await a.page.getByLabel('Options for Everyday Chinese').click();
   await a.page.locator('article.deck').filter({ hasText: 'Everyday Chinese' }).getByRole('button', { name: 'Configure deck', exact: true }).click();
-  await a.page.getByRole('button', { name: 'Remove module 1', exact: true }).click();
-  for (let count = 4; count < 12; count++) await a.page.getByRole('button', { name: 'Add <Sentence usage>', exact: true }).click();
+  await a.page.getByRole('button', { name: 'Remove <German explanation + examples>', exact: true }).click();
+  for (let count = 6; count < 12; count++) await a.page.getByRole('button', { name: 'Add <Sentence usage>', exact: true }).click();
   assert.equal(await a.page.locator('.module-block').count(), 12);
-  assert.equal(await a.page.locator('.module-library button:enabled').count(), 0, 'the library is closed at twelve modules');
-  await a.page.getByText('A deck can have at most 12 modules.').waitFor();
+  assert.equal(await a.page.locator('.module-window button:enabled').count(), 0, 'the window is closed at twelve modules');
+  await a.page.getByText('At most 12 modules, including the main key.').first().waitFor();
   await a.page.getByRole('button', { name: 'Save', exact: true }).click();
   await a.page.getByRole('heading', { name: 'Everyday Chinese', exact: true }).waitFor();
-  assert.equal(await a.page.getByRole('dialog').count(), 0, 'removing a module needs no content-loss confirmation');
-  const kept = modulesOf(await application.store.page(pageId)).find(item => item.moduleInstanceId === created.modules[0].id);
-  assert.deepEqual([text(kept), kept.configured], ['Saved explanation', false]);
+  assert.equal(await a.page.getByRole('dialog').count(), 0, 'changing the deck needs no content-loss confirmation');
+  assert.deepEqual((await application.store.page(pageId)).components.map(item => [item.moduleType, text(item)]), before, 'deck changes never reach an existing page');
   await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
-  await a.page.getByText('no longer in this deck').waitFor();
-  await a.page.getByRole('button', { name: 'Generate missing', exact: true }).waitFor();
+  await componentArticle(a.page, '<German explanation + examples>').getByText('Saved explanation').waitFor();
+  assert.equal(await a.page.getByRole('button', { name: 'Generate missing', exact: true }).count(), 0);
   await a.page.goto(`chrome-extension://${a.id}/app.html`);
   await a.page.getByLabel('Options for Everyday Chinese').click();
   await a.page.locator('article.deck').filter({ hasText: 'Everyday Chinese' }).getByRole('button', { name: 'Delete deck', exact: true }).click();
@@ -626,7 +632,7 @@ test('appearance: all open views, drafts, dialogs, feedback lifetime, logout and
   for (const appearance of ['dark', 'light']) {
     await theme(a.page, appearance);
     assert.equal(await a.page.getByLabel('Deck name', { exact: true }).inputValue(), 'Unsaved configuration');
-    assert.equal(await a.page.locator('.module-block').count(), 2);
+    assert.equal(await a.page.locator('.module-block').count(), 4);
     await a.page.screenshot({ path: `artifacts/v0.2.0-configuration-${appearance}.png`, fullPage: true });
   }
   await a.page.getByRole('button', { name: 'Cancel', exact: true }).click();
@@ -745,7 +751,7 @@ test('page rows: accessible states, sorting, every pointer target, text selectio
     node.dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 }));
   });
   assert.ok(a.page.url().endsWith(`#deck/${deck.id}`), 'selecting entry text does not navigate');
-  const completedKey = (await store.page(ids.completed)).components.find(item => item.kind === 'main_key');
+  const completedKey = (await store.page(ids.completed)).components.find(item => item.moduleType === 'main-key');
   await store.savePage('row-long-text', { pageId: ids.completed, changes: [{ componentId: completedKey.id, content: textBlocks('LongWord'.repeat(40) + ' 幸福 — Grüße') }] });
   await a.page.reload();
   await row('completed').waitFor();
@@ -771,23 +777,41 @@ test('manual page UI: drafts, leave choices, sorting, failed-save recovery, and 
   await a.page.getByRole('heading', { name: 'My Deck', exact: true }).click();
   await a.page.getByRole('button', { name: 'Add page manually', exact: true }).click();
   await a.page.getByLabel('Main key', { exact: true }).fill('zebra');
-  await a.page.getByRole('button', { name: 'Add your own text', exact: true }).click();
-  await a.page.getByLabel('Your text', { exact: true }).fill('== literal note ==\n: my own text');
+  await a.page.getByLabel('Context (optional)', { exact: true }).fill('zoo animal');
   await a.page.getByRole('button', { name: '← My Deck', exact: true }).click();
   await a.page.getByRole('dialog').getByRole('button', { name: 'Continue editing', exact: true }).click();
   assert.equal(await a.page.getByLabel('Main key', { exact: true }).inputValue(), 'zebra');
   await a.page.getByRole('button', { name: '← My Deck', exact: true }).click();
   await a.page.getByRole('dialog').getByRole('button', { name: 'Save', exact: true }).click();
   await a.page.getByRole('button', { name: 'zebra', exact: true }).click();
-  await a.page.getByRole('button', { name: 'Generate', exact: true }).waitFor();
+  await a.page.getByRole('button', { name: 'Generate missing', exact: true }).waitFor();
   const created = (await application.store.pages())[0];
+  const shape = async () => (await application.store.page(created.id)).components.map(item => [item.moduleType, text(item)]);
   assert.equal(created.status, null, 'manual creation never generates');
-  assert.deepEqual(created.components.map(item => [item.kind, text(item)]), [['main_key', 'zebra'], ['manual', '== literal note ==\n: my own text']]);
+  assert.deepEqual(await shape(), [['main-key', 'zebra'], ['context', 'zoo animal'], ['german-examples', '']]);
   assert.equal(await a.page.getByRole('button', { name: 'Retry', exact: true }).count(), 0);
   assert.equal(await a.page.getByRole('button', { name: 'Retry page', exact: true }).count(), 0);
   await componentArticle(a.page, '<German explanation + examples>').getByText('Not generated yet.').waitFor();
 
+  // Shaping from the module window and the component controls, each saved at once.
+  await a.page.getByRole('button', { name: 'Add Text', exact: true }).click();
+  await componentArticle(a.page, 'Text').waitFor();
+  assert.deepEqual(await shape(), [['main-key', 'zebra'], ['context', 'zoo animal'], ['german-examples', ''], ['text', '']]);
+  await a.page.getByRole('button', { name: 'Move Text up', exact: true }).click();
+  await waitFor(async () => (await shape())[2][0] === 'text', 'Text moved up');
+  await a.page.getByRole('button', { name: 'Delete Context', exact: true }).click();
+  await a.page.getByRole('dialog').getByRole('button', { name: 'Cancel', exact: true }).click();
+  assert.equal((await shape()).length, 4);
+  await a.page.getByRole('button', { name: 'Delete Context', exact: true }).click();
+  await a.page.getByRole('dialog').getByRole('button', { name: 'Delete', exact: true }).click();
+  await waitFor(async () => (await shape()).length === 3, 'Context deleted');
+  assert.deepEqual(await shape(), [['main-key', 'zebra'], ['text', ''], ['german-examples', '']]);
+  assert.equal(await a.page.getByRole('button', { name: 'Move Main key up', exact: true }).count(), 0, 'the main key has no move or delete controls');
+  assert.equal(await a.page.getByRole('button', { name: 'Delete Main key', exact: true }).count(), 0);
+
   await a.page.getByRole('button', { name: 'Edit page', exact: true }).click();
+  await a.page.getByText('Finish editing with Save or Cancel').waitFor();
+  assert.equal(await a.page.getByRole('button', { name: 'Add Text', exact: true }).isDisabled(), true, 'shaping waits until editing ends');
   await a.page.getByLabel('Edit Main key', { exact: true }).fill('discard this');
   await a.page.getByRole('button', { name: '← My Deck', exact: true }).click();
   await a.page.getByRole('dialog').getByRole('button', { name: 'Discard', exact: true }).click();
@@ -795,13 +819,12 @@ test('manual page UI: drafts, leave choices, sorting, failed-save recovery, and 
   await a.page.getByRole('button', { name: 'zebra', exact: true }).click();
   await a.page.getByRole('button', { name: 'Edit page', exact: true }).click();
   await a.page.getByLabel('Edit Main key', { exact: true }).fill('cancel this');
-  await a.page.getByLabel('Edit Your text', { exact: true }).fill('cancel both');
+  await a.page.getByLabel('Edit Text', { exact: true }).fill('cancel both');
   await a.page.getByRole('button', { name: 'Cancel', exact: true }).click();
   assert.equal(keyOf(await application.store.page(created.id)), 'zebra');
   await a.page.getByRole('button', { name: 'Edit page', exact: true }).click();
-  await a.page.getByLabel('Edit Your text', { exact: true }).fill('saved own text');
+  await a.page.getByLabel('Edit Text', { exact: true }).fill('saved own text');
   await a.page.getByLabel('Edit Main key', { exact: true }).fill('alpha');
-  await a.page.getByLabel('Context (optional)', { exact: true }).fill('added context');
   await application.close();
   await a.page.getByRole('button', { name: 'Save', exact: true }).click();
   await a.page.getByRole('button', { name: 'Try saving again', exact: true }).waitFor();
@@ -810,7 +833,7 @@ test('manual page UI: drafts, leave choices, sorting, failed-save recovery, and 
   await a.page.getByRole('button', { name: 'Try saving again', exact: true }).click();
   await a.page.getByRole('button', { name: 'Edit page', exact: true }).waitFor();
   const saved = await application.store.page(created.id);
-  assert.deepEqual(saved.components.map(item => [item.kind, text(item)]), [['main_key', 'alpha'], ['manual', 'saved own text'], ['context', 'added context']]);
+  assert.deepEqual(saved.components.map(item => [item.moduleType, text(item)]), [['main-key', 'alpha'], ['text', 'saved own text'], ['german-examples', '']]);
   assert.equal(saved.createdAt, created.createdAt);
   await a.page.getByRole('button', { name: '← My Deck', exact: true }).click();
   await a.page.getByRole('button', { name: 'Add page manually', exact: true }).click();
@@ -885,15 +908,93 @@ test('retry UI: exact confirmation, generate missing, and a two-installation loc
   await b.page.getByRole('button', { name: 'Edit page', exact: true }).waitFor();
   assert.deepEqual(modulesOf(await application.store.page(pageId)).map(text), ['draft front', 'draft back']);
 
-  // Whole-page retry names its scope; a new module is filled by Generate missing without confirmation.
+  // Whole-page retry names its scope; a module added to the page is filled by Generate missing without confirmation.
   await a.page.getByRole('button', { name: 'Retry page', exact: true }).click();
   assert.match(await a.page.getByRole('dialog').locator('p').textContent(), /^Retry will replace the content of every generated component on this page/);
   await a.page.getByRole('dialog').getByRole('button', { name: 'Cancel', exact: true }).click();
   await useModules(application.store, ['sentence-usage', 'german-examples', 'german-explanation']);
   await a.page.reload();
+  assert.equal(await a.page.getByRole('button', { name: 'Generate missing', exact: true }).count(), 0, 'a deck change never reaches the page');
+  await a.page.getByRole('button', { name: 'Add <German explanation>', exact: true }).click();
   await a.page.getByRole('button', { name: 'Generate missing', exact: true }).click();
   await waitFor(async () => modulesOf(await application.store.page(pageId)).length === 3, 'missing component generated');
   assert.equal(await a.page.getByRole('dialog').count(), 0);
+});
+
+// Pointer drags go through dnd-kit's activation distance, so move in steps.
+async function drag(page, source, target, { below = false } = {}) {
+  // A mouse cannot leave the viewport; the module window is sticky, so it stays in view.
+  // The page may re-render once as its account refresh lands; scroll again if it did.
+  await target.scrollIntoViewIfNeeded().catch(() => target.scrollIntoViewIfNeeded());
+  const from = await source.boundingBox();
+  await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(from.x + from.width / 2 + 10, from.y + from.height / 2 + 10, { steps: 4 });
+  // Read the target once the drag is active, then aim at it in two passes in case the page scrolled.
+  for (let pass = 0; pass < 2; pass++) {
+    const to = await target.boundingBox();
+    await page.mouse.move(to.x + to.width / 2, to.y + (below ? to.height * 0.8 : to.height / 2), { steps: 8 });
+  }
+  await page.mouse.up();
+  // dnd-kit swallows clicks for 50 ms after a drop so the release is not also a click.
+  await new Promise(resolve => setTimeout(resolve, 100));
+}
+
+test('module window: drag modules onto a page and into deck settings, and reorder by drag and keyboard', { timeout: 45000 }, async (t) => {
+  const directory = await mkdtemp(join(tmpdir(), 'vocabularium-shaping-browser-'));
+  const application = await createTestApplication(t); await application.start();
+  const a = await launch(join(directory, 'a'));
+  t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
+  // Tall enough that both the module window and its drop targets are on screen at once.
+  await a.page.setViewportSize({ width: 1280, height: 1200 });
+  const store = application.store;
+  const session = { installationId: 'fixture', sessionId: 'shaping', epoch: 1 };
+  await store.openSession('shaping-session', session);
+  const { pageId } = await store.capture('shaping-capture', { session, mainKey: '幸福', context: 'Wir sind 幸福.', snapshot: await store.snapshot() });
+  const types = async () => (await store.page(pageId)).components.map(item => item.moduleType);
+  const card = name => a.page.locator('article.component').filter({ has: a.page.getByRole('heading', { name, exact: true }) });
+  await signIn(a.page);
+  await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
+  await card('Context').waitFor();
+
+  // Drag Text from the window onto the Context card: it lands in that position.
+  await drag(a.page, a.page.locator('.window-module[data-type="text"] .window-module-body'), card('Context'));
+  await waitFor(async () => (await types()).includes('text'), 'Text dragged onto the page');
+  assert.deepEqual(await types(), ['main-key', 'text', 'context', 'german-examples']);
+  assert.deepEqual((await store.deck((await store.page(pageId)).deckId)).modules.map(module => module.type),
+    ['main-key', 'context', 'german-examples'], 'the deck is unchanged');
+
+  // Reorder by dragging a handle below the last card.
+  await card('Text').waitFor();
+  await drag(a.page, a.page.getByRole('button', { name: 'Drag Text', exact: true }), a.page.locator('.drop-end'));
+  await waitFor(async () => (await types()).at(-1) === 'text', 'Text dragged to the end');
+  assert.deepEqual(await types(), ['main-key', 'context', 'german-examples', 'text']);
+
+  // Keyboard reorder: Space picks the handle up, the arrows move it, Space drops it.
+  await a.page.getByRole('button', { name: 'Drag Text', exact: true }).focus();
+  const announced = text => a.page.locator('[id^="DndLiveRegion"]').filter({ hasText: text }).waitFor({ state: 'attached' });
+  await a.page.keyboard.press('Space');
+  await announced('Text is over position 4.');
+  // The sensor needs a moment after pickup before it moves.
+  await new Promise(resolve => setTimeout(resolve, 300));
+  await a.page.keyboard.press('ArrowUp');
+  await announced('Text is over position 3.');
+  await a.page.keyboard.press('ArrowUp');
+  await announced('Text is over position 2.');
+  await a.page.keyboard.press('Space');
+  await waitFor(async () => (await types())[1] === 'text', 'Text moved up from the keyboard');
+  assert.deepEqual(await types(), ['main-key', 'text', 'context', 'german-examples']);
+  await announced('Text was dropped at position 2.');
+
+  // Deck settings take a dragged module too, and the main key stays first.
+  const deckId = (await store.page(pageId)).deckId;
+  await a.page.goto(`chrome-extension://${a.id}/app.html#configure/${deckId}`);
+  await drag(a.page, a.page.locator('.window-module[data-type="sentence-usage"] .window-module-body'), a.page.locator('.drop-end'));
+  await a.page.locator('.module-block').filter({ hasText: '<Sentence usage>' }).waitFor();
+  await a.page.getByRole('button', { name: 'Save', exact: true }).click();
+  await a.page.getByRole('heading', { name: 'Your decks.' }).waitFor();
+  assert.deepEqual((await store.deck(deckId)).modules.map(module => module.type), ['main-key', 'context', 'german-examples', 'sentence-usage']);
+  assert.deepEqual(await types(), ['main-key', 'text', 'context', 'german-examples'], 'the page keeps its own modules');
 });
 
 async function loseNextAcknowledgment(worker, path) {
@@ -1275,14 +1376,14 @@ test('save feedback: worker loss exposes an interrupted save and replays its ori
   assert.equal((await application.store.account()).decks.length, 2);
 });
 
-test('upgrade: the first start discards 0.3.0+ cached content, unsent captures, saves and drafts, and keeps sign-in', { timeout: 35000 }, async t => {
+test('upgrade: the first start discards earlier cached content, unsent captures, saves and drafts, and keeps sign-in', { timeout: 35000 }, async t => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-upgrade-browser-'));
   const application = await createTestApplication(t); await application.start();
   const a = await launch(join(directory, 'profile'));
   t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
   await signIn(a.page);
   const before = await a.worker.evaluate(async () => (await chrome.storage.local.get(['auth', 'installationId', 'dataVersion'])));
-  assert.equal(before.dataVersion, 2);
+  assert.equal(before.dataVersion, 3);
   // Simulate an extension that last ran the karte/seite version.
   await a.page.evaluate(async () => {
     sessionStorage.setItem('karte-draft', JSON.stringify({ route: '#karte/old', karteId: 'old', texts: { seite: 'old draft' } }));
@@ -1299,7 +1400,7 @@ test('upgrade: the first start discards 0.3.0+ cached content, unsent captures, 
   assert.equal(await a.page.getByText('old capture').count(), 0);
   const after = await a.worker.evaluate(async () => chrome.storage.local.get(null));
   for (const key of ['capture-old', 'save-old']) assert.equal(after[key], undefined, key);
-  assert.deepEqual([after.auth, after.installationId, after.dataVersion], [before.auth, before.installationId, 2]);
+  assert.deepEqual([after.auth, after.installationId, after.dataVersion], [before.auth, before.installationId, 3]);
   assert.ok(Array.isArray(after.account.recentPages));
   assert.equal(await a.page.evaluate(() => sessionStorage.getItem('karte-draft')), null);
   assert.equal(await a.page.evaluate(() => sessionStorage.getItem('page-draft')), null);

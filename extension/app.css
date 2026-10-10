@@ -97,3 +97,28 @@ h1, h2, .deck .open { overflow-wrap: anywhere; }
 .list th:first-child { width: 80px; }
 .capture .state-icon { float: right; margin: 0 0 10px 12px; }
 @media (forced-colors: active) { .page-row:hover { outline: 1px solid Highlight; } .state-icon { forced-color-adjust: auto; } }
+
+/* Page-owned modules (D02): content on the left, the module window on the right. */
+.shaping-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 32px; align-items: start; margin: 24px 0; }
+.shaping-layout > .page-components, .shaping-layout > .module-list { margin: 0; }
+.module-window { position: sticky; top: 24px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; }
+.module-window ul { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 10px; }
+.window-module { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: start; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--background); }
+.window-module-body { display: grid; gap: 2px; cursor: grab; touch-action: none; font-size: 14px; }
+.window-module-body .muted { font-size: 13px; }
+.window-module[aria-disabled="true"] .window-module-body { cursor: default; opacity: .6; }
+.window-module[data-dragging] { opacity: .5; }
+.window-module button { padding: 5px 10px; font-size: 13px; }
+.window-reason { grid-column: 1 / -1; margin: 0; font-size: 12px; }
+.component-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.component-header h2 { margin: 0; flex: 1; }
+.component-tools { display: flex; gap: 6px; }
+.component-tools button, .drag-handle { padding: 4px 9px; font-size: 13px; }
+.drag-handle { cursor: grab; touch-action: none; border-color: transparent; letter-spacing: -2px; }
+.component[data-dragging], .module-block[data-dragging] { position: relative; z-index: 2; box-shadow: 0 8px 24px #0002; }
+.module-block.pinned { background: transparent; border: 1px dashed var(--border); }
+.drop-end { padding: 14px; border: 1px dashed var(--border); border-radius: 10px; text-align: center; font-size: 13px; color: var(--muted); }
+.drop-end[data-over] { border-color: var(--focus); color: var(--text); }
+.showcase { border-left: 0; padding-left: 0; margin-top: 40px; }
+@media (max-width: 900px) { .shaping-layout { grid-template-columns: 1fr; } .module-window { position: static; } }
+@media (forced-colors: active) { .drop-end[data-over], .component[data-dragging] { outline: 2px solid Highlight; } }

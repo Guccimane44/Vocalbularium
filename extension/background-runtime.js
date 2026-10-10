@@ -230,7 +230,8 @@ export function startBackground() {
         await saves.perform(pending, auth.token);
         return refreshAfterMutation();
       }
-      const paths = { 'save-deck': '/api/deck/save', 'delete-deck': '/api/deck/delete', 'create-page': '/api/page/create', 'save-page': '/api/page/save', 'delete-page': '/api/page/delete', 'generate-page': '/api/page/generate' };
+      const paths = { 'save-deck': '/api/deck/save', 'delete-deck': '/api/deck/delete', 'create-page': '/api/page/create', 'save-page': '/api/page/save', 'delete-page': '/api/page/delete', 'generate-page': '/api/page/generate',
+        'add-module': '/api/page/modules/add', 'delete-component': '/api/page/components/delete', 'move-component': '/api/page/components/move' };
       if (paths[message.type]) {
         if (message.type === 'generate-page') {
           const { session } = await chrome.storage.session.get('session');

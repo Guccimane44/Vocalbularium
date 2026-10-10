@@ -54,8 +54,8 @@ export function captureRuntime({ request, initialize, refresh, removeAccess, sav
       await showFeedback(tab.id, 'Capture unavailable. Open Vocabularium to sign in.', true, info.pageUrl ?? tab.url); return;
     }
     const operationId = crypto.randomUUID();
-    // The destination deck decides whether capture takes the surrounding block; when off, nothing beyond the selection is read.
-    const context = deck.captureContext === false ? undefined : await extractContext(info, tab);
+    // A deck with the Context module captures the surrounding block; otherwise nothing beyond the selection is read.
+    const context = deck.modules?.some(module => module.type === 'context') ? await extractContext(info, tab) : undefined;
     try { diagnostic({ event: 'capture.invoked', operationId, installationId: session.installationId, sessionId: session.sessionId,
       outcome: 'started', content: { selectedText: info.selectionText, ...(context ? { context } : {}) } }); } catch { /* Capture remains independent of logging. */ }
     const payload = { session, snapshot, mainKey: info.selectionText, ...(context ? { context } : {}) };

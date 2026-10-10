@@ -7,7 +7,8 @@ export type EditorPendingPageSave = Readonly<{
 }>;
 
 // Text drafts keyed by component ID. A new page has no components yet, so its
-// main key and Context are held separately.
+// main key is held separately and its Context and Text values are keyed by the
+// deck module instance they fill.
 export type PageEditorDraft = {
   route: string;
   pageId?: string;
@@ -15,8 +16,7 @@ export type PageEditorDraft = {
   base: Record<string, string>;
   texts: Record<string, string>;
   mainKey?: string;
-  context?: string;
-  added: string[];
+  inputs?: Record<string, string>;
   pending?: EditorPendingPageSave;
   error?: string;
   errorCode?: string;
