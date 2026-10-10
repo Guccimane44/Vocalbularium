@@ -11,6 +11,10 @@
     "./pages": {
       "types": "./dist/pages.d.ts",
       "import": "./dist/pages.js"
+    },
+    "./page-modules": {
+      "types": "./dist/page-modules.d.ts",
+      "import": "./dist/page-modules.js"
     }
   },
   "dependencies": {
