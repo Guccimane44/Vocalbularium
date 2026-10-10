@@ -75,6 +75,28 @@ export async function createApplication({ databaseUrl, outbox, accountId = 1, au
     logController: new LogController({ disableRequestLogging: true })
   });
   fastify.server.requestTimeout = 15_000;
+  // Closing waits for every open connection. Node's idle reaping skips a
+  // connection that has not sent a request yet (browsers open them ahead of
+  // time), and a response still in flight keeps its keep-alive connection for
+  // keepAliveTimeout (72 s). Once closing, end each connection that has no
+  // active request; in-flight requests still complete.
+  const activeRequests = new Map();
+  let closing = false;
+  const release = socket => { if (closing && !activeRequests.get(socket)) socket.destroy(); };
+  fastify.server.on('connection', socket => {
+    activeRequests.set(socket, 0);
+    socket.on('close', () => activeRequests.delete(socket));
+    release(socket);
+  });
+  fastify.server.on('request', (request, response) => {
+    const socket = request.socket;
+    activeRequests.set(socket, (activeRequests.get(socket) ?? 0) + 1);
+    response.on('close', () => {
+      if (!activeRequests.has(socket)) return;
+      activeRequests.set(socket, activeRequests.get(socket) - 1);
+      setImmediate(() => release(socket));
+    });
+  });
   fastify.decorateRequest('authToken', null);
   fastify.decorateRequest('diagnosticStarted', null);
   fastify.decorateRequest('diagnosticResult', null);
@@ -238,7 +260,10 @@ export async function createApplication({ databaseUrl, outbox, accountId = 1, au
       emit({ event: 'process.started', outcome: 'succeeded' }); return address;
     },
     async close() {
-      await fastify.close();
+      closing = true;
+      const closed = fastify.close();
+      for (const socket of activeRequests.keys()) release(socket);
+      await closed;
       await generation?.close();
       await store?.close();
       emit({ event: 'process.stopping', outcome: 'succeeded' });
