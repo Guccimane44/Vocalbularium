@@ -44,7 +44,7 @@ def verify_package(archive, expected_origin, expected_revision):
         require(package.testzip() is None, 'Archive integrity check failed.')
         names = package.namelist()
         require(len(names) == len(set(names)), 'Archive contains duplicate entries.')
-        required = {'package-info.json', 'INSTALL-WINDOWS.md', 'extension/manifest.json', 'extension/config.js'}
+        required = {'package-info.json', 'INSTALL.md', 'extension/manifest.json', 'extension/config.js'}
         require(required.issubset(names), 'Archive is missing required package files.')
         for member in package.infolist():
             path = PurePosixPath(member.filename)
@@ -52,7 +52,7 @@ def verify_package(archive, expected_origin, expected_revision):
                     and not member.is_dir() and not stat.S_ISLNK(member.external_attr >> 16),
                     'Archive contains an unsafe or unexpected entry.')
             is_extension = len(path.parts) > 1 and path.parts[0] == 'extension'
-            require(member.filename in {'package-info.json', 'INSTALL-WINDOWS.md'}
+            require(member.filename in {'package-info.json', 'INSTALL.md'}
                     or (is_extension and path.suffix in {'.js', '.json', '.html', '.css'}),
                     'Archive contains a file outside the current extension package format.')
             content = package.read(member)

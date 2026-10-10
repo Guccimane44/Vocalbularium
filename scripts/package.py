@@ -23,14 +23,14 @@ archive = root / 'artifacts' / f'vocabularium-{version}-{variant}-candidate.zip'
 revision = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=root, text=True).strip()
 dirty = bool(subprocess.check_output(['git', 'status', '--porcelain'], cwd=root, text=True).strip())
 metadata = {'version': version, 'serverOrigin': origin, 'sourceRevision': revision, 'uncommittedChanges': dirty,
-            'status': 'Candidate — owner Windows acceptance pending; see INSTALL-WINDOWS.md and the iteration delivery issue'}
+            'status': 'Candidate — owner installation pending; see INSTALL.md and the iteration delivery issue'}
 with zipfile.ZipFile(archive, 'w', compression=zipfile.ZIP_DEFLATED) as output:
     for path in sorted(extension.rglob('*')):
         if path.is_file():
             if path.suffix not in ('.js', '.json', '.html', '.css'):
                 raise SystemExit(f'Unexpected extension file: {path.name}')
             output.write(path, Path('extension') / path.relative_to(extension))
-    output.write(root / 'docs' / 'history' / 'guides' / 'windows-install.md', 'INSTALL-WINDOWS.md')
+    output.write(root / 'docs' / 'guides' / 'install.md', 'INSTALL.md')
     output.writestr('package-info.json', json.dumps(metadata, indent=2) + '\n')
 with zipfile.ZipFile(archive) as package:
     if package.testzip() is not None:
