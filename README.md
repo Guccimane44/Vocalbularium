@@ -8,6 +8,7 @@ The product uses deck → page → component. A page holds a main key, optional 
 - [Current scope](docs/product/scope.md): what 0.4.1 supports, with links to each specification
 - [Vision](docs/product/vision.md): where the product is going
 - [Project workflow](docs/guides/project-workflow.md): how decisions become specifications and releases
+- [Install a candidate package](docs/guides/install.md): load and update the extension in Chrome
 - [Local PostgreSQL setup](docs/architecture/local-postgresql.md) and [diagnostic logs](docs/guides/diagnostics.md)
 - [History](docs/history/): the MVP, the Render deployment, Windows delivery, and finished plans
 
