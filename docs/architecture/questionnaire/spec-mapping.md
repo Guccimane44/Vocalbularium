@@ -29,7 +29,7 @@ Checked 9 October 2026 and again on 10 October 2026, after release 0.4.1, agains
 | 03 (Q11–Q16) | [Frontend architecture, block rendering and compatibility](https://app.notion.com/p/3f4bb13502088117b4cbf12e01f915ff) |
 | 04 (Q17–Q21) | [Accounts on a hosted hub with OAuth and passkeys](https://app.notion.com/p/3f4bb135020881ec85beca3cd7941578) |
 | 05 (Q22–Q28) | [Serverless backend on Vercel and Neon](https://app.notion.com/p/3f4bb135020881229bcedba0bd6dce7c) |
-| 06 (Q29–Q34) | [Karte data model](https://app.notion.com/p/3f4bb13502088159bf3fef8135989e73) (title still uses karte terms; see [pending Notion updates](#pending-notion-updates)) |
+| 06 (Q29–Q34) | [Page data model](https://app.notion.com/p/3f4bb13502088159bf3fef8135989e73) |
 | 06 (Q72) | [Replace deck → karte → seite with deck → page → component](https://app.notion.com/p/3f4bb1350208812e8085ffd751302842) (Accepted 9 October 2026; revision approved 10 October 2026; Implemented in 0.4.0, [#81](https://github.com/Guccimane44/Vocalbularium/issues/81)) |
 | 07 (Q35–Q39) | [Database tenancy, migrations, search, portability and retention](https://app.notion.com/p/3f4bb1350208815ca1bbef7c49b681fe) |
 | 08 (Q40–Q45) | [Module catalog and customization](https://app.notion.com/p/3f4bb1350208813ab814f53fd24d5021) (Deferred; Q45 is answered by Q72) |
@@ -47,13 +47,13 @@ Checked 9 October 2026 and again on 10 October 2026, after release 0.4.1, agains
 - System Q&A [hash vs path routing](https://app.notion.com/p/3eabb1350208818fa8f2f53955da5d71) applies to the Q11 web shell; its note on preserving old links becomes stale under Q70.
 - Milestone [System design questionnaire](https://app.notion.com/p/3efbb135020881e7a6e7d72f4199ab64) tracks this work.
 
-### Pending Notion updates
+### Notion updates after 0.4.1
 
-Proposed on 10 October 2026, to apply after the owner approves the pull request that brings this map to 0.4.1:
+Done 10 October 2026, after [#92](https://github.com/Guccimane44/Vocalbularium/pull/92) merged:
 
-- Retitle the Q29–Q34 record to page/component terms and note that Q31 is superseded and Q29, Q32 and Q34 are amended by Q72.
-- Point each answer record's Specification link at `main` instead of commit `79238de`.
-- On the modules record, note that Q45 is answered by Q72 while Q40–Q44 stay deferred.
+- The Q29–Q34 record is retitled [Page data model: string main key, live configuration and page lifecycle](https://app.notion.com/p/3f4bb13502088159bf3fef8135989e73) and notes that Q31 is superseded and Q29, Q32 and Q34 are amended by Q72.
+- Each answer record's Specification link points at `main` instead of commit `79238de`.
+- The modules record notes that Q45 is answered by Q72 while Q40–Q44 stay deferred.
 
 
 ---
