@@ -4,7 +4,7 @@
 
 Modules provide focused capabilities that users choose and combine in a deck's configuration. A rich library of creative and useful modules is the central direction in the [product vision](../product/vision.md). The [product model](../product/model.md) defines module types, instances, outputs, pages, components, and views; [scope](../product/scope.md) identifies what is supported now.
 
-The current rules below preserve the existing five-module baseline. Detailed catalog formats and examples remain authoritative in the [existing module specification](../history/mvp/MVP-Product-spec-modules.md) during the specification taxonomy migration. This document does not move or rewrite those examples. [Select and Add](capture-and-generation.md) owns generation completion, failure, interruption, publication, and retry behavior.
+The current rules below preserve the existing five-module baseline. Detailed catalog formats and examples remain authoritative in the [MVP module specification](../history/mvp/MVP-Product-spec-modules.md), which uses the earlier terms (read its *page* as component); its first-iteration rendering section, which joined outputs per page, no longer applies. [Capture and generation](capture-and-generation.md) owns generation completion, failure, interruption, publication, and retry behavior.
 
 ## Module kinds
 
@@ -27,7 +27,7 @@ Names remain provisional. Required output formats are defined in the linked cata
 
 ## Current input and applicability
 
-In the running baseline, modules receive the selected text without surrounding webpage context; the accepted [content module contract](#content-module-contract) adds the main key and saved Context. Required interpretation determines whether it is a word/phrase or a sentence and chooses one source language. Instances for a capture share that interpretation and evaluate applicability independently. These categories and language choices do not promise persistent meaning or referent resolution.
+Modules receive the page's main key and, when present, its saved Context ([content module contract](#content-module-contract)). The Context only helps decide which meaning the main key has; modules never explain it. Required interpretation determines whether it is a word/phrase or a sentence and chooses one source language. Instances for a capture share that interpretation and evaluate applicability independently. These categories and language choices do not promise persistent meaning or referent resolution.
 
 An inapplicable instance contributes no output and is not a generation failure. Failure to establish required interpretation or produce required content must not be disguised as inapplicability. See the [detailed applicability rules](../history/mvp/MVP-Product-spec-modules.md#shared-input-and-applicability-rules).
 
@@ -47,13 +47,13 @@ The five current types retain their output formats and applicability. References
 
 A view module takes a page's components and decides what the user sees. It may depend on particular content components, and declares those dependencies. Views never change page data.
 
-The **default view** module shows every component in page order: the main key, the Context when present, content components in configured order, components of instances no longer configured (marked as such), then manual components. It needs no configuration and always shows the main key. Other view modules, including the **card** view module that recreates the earlier karte design, are later work and get their own specifications.
+The **default view** module shows every component in page order: the main key, the Context when present, then the content and manual components in the page's order. Before [D02](../architecture/traceability-map.md#entries) ships, content components follow the deck's configured order, then components of instances no longer in the deck, then manual components. It needs no configuration and always shows the main key. Other view modules, including the **card** view module that recreates the earlier karte design, are later work and get their own specifications.
 
 ## Composition
 
-Users add, remove, reorder, and repeat content module instances in deck settings, up to the [deck limit](decks-and-configuration.md#configuration). Adding an instance does not remove its type from the library. Repeated generative instances operate independently while sharing the run's interpretation; direct-input instances repeat the same input. Detailed repetition rules remain in the [existing specification](../history/mvp/MVP-Product-spec-modules.md#multiple-instances-of-a-module).
+Users add, remove, reorder, and repeat content module instances in deck settings, up to the [deck limit](decks-and-configuration.md#configuration), and the deck's instances become the starting modules of each new page. After creation, users add, delete, and rearrange modules on the page itself ([D02](../architecture/traceability-map.md#entries), accepted, not built; [pages and editing](pages-and-editing.md#shaping-a-page)). Both use the module window. Adding an instance does not remove its type from the library. Repeated generative instances operate independently while sharing the run's interpretation; direct-input instances repeat the same input. Detailed repetition rules remain in the [existing specification](../history/mvp/MVP-Product-spec-modules.md#multiple-instances-of-a-module).
 
-Each instance's output is its own component. Outputs are no longer joined into shared text, and users edit each component separately. Configuration edits change only subsequent generation; [Deck configuration](decks-and-configuration.md#effect-on-pages) defines their effect on existing pages. The running baseline still joins outputs per seite, following the [first-iteration rendering rules](../history/mvp/MVP-Product-spec-modules.md#first-iteration-rendering).
+Each instance's output is its own component, and users edit each component separately. Deck configuration edits affect only pages created afterwards ([decks and configuration](decks-and-configuration.md#configuration-and-pages)).
 
 ## Design contract for future modules
 
