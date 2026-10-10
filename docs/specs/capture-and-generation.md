@@ -52,7 +52,7 @@ This transient popup is separate from the dashboard and from confirmation dialog
 
 The main key and the saved Context are used to determine whether the input is a word/phrase or a sentence and which source language applies. For ambiguous text, Vocabularium chooses one language automatically and uses it consistently across every attempt in the run. It does not generate separate interpretations for multiple source languages. Target languages are defined by the modules, not by a fixed language-pair setting for the deck.
 
-If required interpretation fails, every attempt in the run that needs it fails. Attempts that do not need interpretation, such as `<The selected>`, still complete.
+If interpretation fails, every attempt in the run fails, because every current content module needs it.
 
 The shared interpretation rules are defined in the [Modules specification](../history/mvp/MVP-Product-spec-modules.md).
 
@@ -136,7 +136,7 @@ Account synchronization follows [accounts and synchronization](accounts-and-sync
 
 ## Initial default-deck example
 
-The initial **My Deck** has the main key module, the Context module, and one content module instance: `<German explanation + examples>`. A new deck starts with the same configuration. It has no `<The selected>` instance, because every page already shows its main key.
+The initial **My Deck** has the main key module, the Context module, and one content module instance: `<German explanation + examples>`. A new deck starts with the same configuration.
 
 For the selected input `幸福`, interpreted as Chinese in this example, the page shows its main key `幸福`, then a German-language explanation component for the Chinese word, with Chinese examples and their German translations, following the format in the [Modules specification](../history/mvp/MVP-Product-spec-modules.md). The exact generated wording may vary.
 

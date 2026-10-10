@@ -43,6 +43,13 @@
       "when": 1791634294832,
       "tag": "0005_capture_context",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791666781910,
+      "tag": "0006_retire_selected_modules",
+      "breakpoints": true
     }
   ]
 }

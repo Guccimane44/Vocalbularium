@@ -129,7 +129,7 @@ test('nested malformed commands return validation errors without a partial write
   const view = { module: 'default' };
   for (const [path, payload] of [
     ['/api/deck/save', { deck: { id: deckId, name: 'Changed', modules: [null], view } }],
-    ['/api/deck/save', { deck: { id: deckId, name: 'Changed', modules: Array.from({ length: 13 }, (_, index) => ({ id: `m${index}`, type: 'selected' })), view } }],
+    ['/api/deck/save', { deck: { id: deckId, name: 'Changed', modules: Array.from({ length: 13 }, (_, index) => ({ id: `m${index}`, type: 'german-explanation' })), view } }],
     ['/api/deck/save', { deck: { id: deckId, name: 'Changed', modules: [], view: { module: 'card' } } }],
     ['/api/page/create', { deckId, mainKey: '' }],
     ['/api/page/create', { deckId, mainKey: 'key', manual: [null] }],

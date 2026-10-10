@@ -15,7 +15,7 @@ function latch() {
 }
 async function captured(store) {
   await store.openSession('open', session);
-  await useModules(store, ['selected', 'german-examples']);
+  await useModules(store, ['sentence-usage', 'german-examples']);
   const { pageId } = await store.capture('capture', { session, mainKey: 'fixture', snapshot: await store.snapshot() });
   return store.page(pageId);
 }

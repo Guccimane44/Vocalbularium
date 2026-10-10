@@ -23,7 +23,7 @@ The deck's **Add page manually** opens a new page draft ([creation](#creation-an
 
 Every page has a main key component: the editable text used as its generation input. A captured selection supplies the initial value; manual creation requires the user to specify it. A saved page cannot omit the main key, and a main key that is empty or only whitespace is rejected with "Enter a main key." A new manual draft may begin before the user has entered it.
 
-The main key component belongs to the compulsory main key module. It must always be visible when the page is shown: it is always the first component and the page's title. It can coexist with manually written or generated content and must remain visible regardless of whether a module prints input. Matching main keys do not merge pages or make their identities the same. The main key cannot be deleted.
+The main key component belongs to the compulsory main key module. It must always be visible when the page is shown: it is always the first component and the page's title. It can coexist with manually written or generated content. Matching main keys do not merge pages or make their identities the same. The main key cannot be deleted.
 
 ## Context
 
@@ -103,7 +103,7 @@ Release 0.4.1 implements the page/component model with deck-driven modules ([Q72
 4. Changing the main key from `john cena` to `Bismarck` and saving updates the displayed key while preserving existing John Cena content and prior outcomes. No generation request occurs as a side effect.
 5. Retrying after that edit uses `Bismarck` and interpretation appropriate to it, rather than the original key. Replacement and failure behavior follow the generation specification for the targeted components.
 6. Editing a generated explanation without editing the main key leaves subsequent generation input unchanged. The next retry of that explanation asks for confirmation and replaces the edit.
-7. A page with no input-printing module, no applicable module output, or a failed generation still shows its main key.
+7. A page with no applicable module output or a failed generation still shows its main key.
 8. Capturing into a deck with the Context module initializes the page's Context alongside its main key; capturing into a deck without it leaves the page with no Context.
 9. Editing the Context and saving preserves existing content and prior outcomes exactly like a main-key edit. Generation after that edit uses the updated key and Context.
 10. Adding a content module instance to the deck leaves existing pages unchanged; the next captured page has a component for it.

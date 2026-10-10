@@ -63,3 +63,36 @@ test('a new database gets exactly one default deck, created by the store', async
   assert.deepEqual(decks[0].modules.map(module => module.type), ['german-examples']);
   assert.equal((await client.query('SELECT count(*)::int AS n FROM decks')).rows[0].n, 1);
 });
+
+test('0006 retires <The selected> and its language-tag variant, deleting only their components', async t => {
+  const key = 'retire-selected';
+  const database = await legacyDatabase(t, key, 5);
+  const session = { installationId: 'upgrade-installation', sessionId: 'browser', epoch: 1 };
+  let store = await AccountStore.open(database); database.resources.push({ close: () => store.close() });
+  await store.openSession('open', session);
+  const deckId = (await store.snapshot()).id;
+  const { pageId } = await store.capture('capture', { session, mainKey: '幸福', snapshot: await store.snapshot() });
+  const kept = (await store.page(pageId)).components.map(component => component.id).sort();
+  const client = new pg.Client({ connectionString: database.databaseUrl }); await client.connect();
+  t.after(() => client.end());
+  // Rows the 0.4.1 API could create: a configured <The selected>, and a component whose
+  // <The selected + original language tag> instance was already removed from the deck.
+  await client.query(`
+    INSERT INTO deck_modules VALUES ('retired-selected', $1, 1, 'selected'), ('retired-language', $1, 2, 'selected-language');
+    INSERT INTO components (page_id, id, kind, module_instance_id, position, content, status) VALUES
+      ($2, 'selected-component', 'module', 'retired-selected', 10, '{"version":1,"blocks":[]}', 'completed'),
+      ($2, 'orphan-component', 'module', 'long-removed', 11, '{"version":1,"blocks":[]}', 'completed');
+    INSERT INTO generation_runs (id, page_id) VALUES ('old-run', $2);
+    INSERT INTO component_attempts (id, page_id, component_id, run_id, installation_id, session_id, epoch, module, state)
+      VALUES ('orphan-attempt', $2, 'orphan-component', 'old-run', 'upgrade-installation', 'browser', 1,
+        '{"id":"long-removed","type":"selected-language"}', 'completed');`.replaceAll('$1', `'${deckId}'`).replaceAll('$2', `'${pageId}'`));
+  await store.close();
+
+  await migrateDatabase(database.databaseUrl);
+
+  assert.deepEqual((await client.query('SELECT type FROM deck_modules WHERE deck_id = $1 ORDER BY position', [deckId])).rows, [{ type: 'german-examples' }]);
+  assert.equal((await client.query("SELECT count(*)::int AS n FROM component_attempts WHERE id = 'orphan-attempt'")).rows[0].n, 0);
+  store = await AccountStore.open(database);
+  assert.deepEqual((await store.page(pageId)).components.map(component => component.id).sort(), kept);
+  assert.deepEqual((await store.deck(deckId)).modules.map(module => module.type), ['german-examples']);
+});

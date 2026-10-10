@@ -12,7 +12,7 @@ async function capture(store) { return (await store.capture(randomUUID(), { sess
 
 test('deck creation validates its modules and view, preserves the default, and resubmits without duplicates', async (t) => {
   const store = await fixture(t), initial = await store.snapshot();
-  const deck = { name: '  Chinese  ', modules: instances('selected', 'selected-language', 'german-examples', 'sentence-usage', 'sentence-usage'), view };
+  const deck = { name: '  Chinese  ', modules: instances('german-explanation', 'german-examples', 'sentence-usage', 'sentence-usage'), view };
   const saved = await store.saveDeck('new', { deck });
   assert.equal((await store.saveDeck('new', { deck })).deckId, saved.deckId);
   const read = await store.deck(saved.deckId);
@@ -20,9 +20,9 @@ test('deck creation validates its modules and view, preserves the default, and r
   assert.equal((await store.snapshot()).id, initial.id);
   assert.equal((await store.account()).decks.length, 2);
   assert.ok(await save(store, { name: 'Empty', modules: [], view }));
-  assert.ok(await save(store, { name: 'Twelve', modules: instances(...Array(12).fill('selected')), view }));
-  for (const invalid of [{ name: '', modules: [], view }, { name: 'x', modules: instances(...Array(13).fill('selected')), view },
-    { name: 'x', modules: instances('unsupported'), view }, { name: 'x', modules: [{ id: 'same', type: 'selected' }, { id: 'same', type: 'selected' }], view },
+  assert.ok(await save(store, { name: 'Twelve', modules: instances(...Array(12).fill('german-explanation')), view }));
+  for (const invalid of [{ name: '', modules: [], view }, { name: 'x', modules: instances(...Array(13).fill('german-explanation')), view },
+    { name: 'x', modules: instances('unsupported'), view }, { name: 'x', modules: instances('selected'), view }, { name: 'x', modules: instances('selected-language'), view }, { name: 'x', modules: [{ id: 'same', type: 'german-explanation' }, { id: 'same', type: 'german-explanation' }], view },
     { name: 'x', modules: [], view: { module: 'card' } }, { name: 'x', modules: [deck.modules[0]], view }]) {
     await assert.rejects(save(store, invalid), { code: 'invalid' });
   }
@@ -33,7 +33,7 @@ test('configuration edits keep existing pages and their content; removed instanc
   await complete(store, await store.page(pageId), session, () => 'saved explanation');
   const deck = await store.deck((await store.snapshot()).id);
   const [original] = deck.modules;
-  await save(store, { ...deck, modules: instances('sentence-usage', 'selected') });
+  await save(store, { ...deck, modules: instances('sentence-usage', 'german-explanation') });
   const page = await store.page(pageId);
   assert.deepEqual(generated(page).map(item => [item.moduleInstanceId, item.configured, item.status, text(item)]),
     [[original.id, false, 'completed', 'saved explanation']]);
@@ -45,7 +45,7 @@ test('configuration changes during generation keep the running instructions; res
   const store = await fixture(t), pageId = await capture(store), page = await store.page(pageId);
   const [running] = generated(page);
   const deck = await store.deck((await store.snapshot()).id);
-  await save(store, { ...deck, modules: instances('selected-language') });
+  await save(store, { ...deck, modules: instances('sentence-usage') });
   assert.equal((await store.attempt(running.attemptId)).module.type, 'german-examples');
   await store.stage(running.attemptId, { ok: true, text: 'late but owned' });
   await store.publish('publish', { attemptId: running.attemptId, session });
@@ -69,14 +69,14 @@ test('deleting default requires replacement, deleting sole deck restores one My 
 
 test('capture preparation resolves the shared default once; capture follows that deck’s configuration when it runs', async (t) => {
   const store = await fixture(t), original = await store.snapshot();
-  const nextId = (await save(store, { name: 'Remote default', modules: instances('selected-language'), view })).deckId;
+  const nextId = (await save(store, { name: 'Remote default', modules: instances('sentence-usage'), view })).deckId;
   await store.setDefault('remote-default', nextId);
   const payload = { session, mainKey: '幸福' };
   const prepared = await store.prepareCapture('prepare', payload);
   assert.equal(prepared.snapshot.id, nextId);
   await store.setDefault('later-default', original.id);
   const updated = await store.deck(nextId);
-  const current = instances('selected');
+  const current = instances('german-explanation');
   await save(store, { ...updated, modules: current });
   const replay = await store.prepareCapture('prepare', payload);
   assert.deepEqual(replay.snapshot, prepared.snapshot);
