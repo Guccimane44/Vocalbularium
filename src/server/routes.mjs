@@ -1,7 +1,8 @@
 import { StoreError } from '../core/store.mjs';
-import { MODULES } from '@vocabularium/domain/modules';
+import { isModuleType } from '@vocabularium/domain/page-modules';
 import {
-  ApiFailureSchema, CapturePreparationRequestSchema, DeckConfigurationSaveRequestSchema, DeckDeleteRequestSchema,
+  ApiFailureSchema, CapturePreparationRequestSchema, ComponentDeleteRequestSchema, ComponentMoveRequestSchema,
+  DeckConfigurationSaveRequestSchema, DeckDeleteRequestSchema, ModuleAddRequestSchema,
   DefaultDeckRequestSchema, JsonObjectSchema, LoginRequestSchema, HealthResponseSchema, LoginResponseSchema,
   PageCaptureRequestSchema, PageCreateRequestSchema, PageDeleteRequestSchema, PageGenerateRequestSchema,
   PageSaveRequestSchema, PollRequestSchema, PublishRequestSchema, SessionRequestSchema
@@ -176,6 +177,23 @@ export function registerRoutes(fastify, { store, authentication, generation }) {
     schema: routeSchema('Save page component edits', PageSaveRequestSchema)
   }, async request => store.savePage(request.body.operationId, request.body.payload));
 
+  // Shaping: each step is one ordered operation, applied immediately.
+  fastify.post('/api/page/modules/add', {
+    schema: routeSchema('Add a module to one page', ModuleAddRequestSchema)
+  }, async request => store.addModule(request.body.operationId, request.body.payload));
+
+  fastify.post('/api/page/components/delete', {
+    schema: routeSchema('Delete a component and its module from a page', ComponentDeleteRequestSchema)
+  }, async request => {
+    const result = await store.deleteComponent(request.body.operationId, request.body.payload);
+    await generation.cancelObsolete();
+    return result;
+  });
+
+  fastify.post('/api/page/components/move', {
+    schema: routeSchema('Move a component on its page', ComponentMoveRequestSchema)
+  }, async request => store.moveComponent(request.body.operationId, request.body.payload));
+
   fastify.post('/api/page/delete', {
     schema: routeSchema('Delete a page', PageDeleteRequestSchema)
   }, async request => {
@@ -245,7 +263,7 @@ export function captureValue(payload) {
   sessionValue(payload.session);
   if (!isCapturePayload(payload)) throw new StoreError('invalid', 'A saved deck configuration is required.');
   const { modules } = payload.snapshot;
-  if (modules.some(module => !Object.hasOwn(MODULES, module.type)) || new Set(modules.map(module => module.id)).size !== modules.length) {
+  if (modules.some(module => !isModuleType(module.type)) || new Set(modules.map(module => module.id)).size !== modules.length) {
     throw new StoreError('invalid', 'A saved deck configuration is required.');
   }
 }

@@ -57,6 +57,13 @@
       "when": 1791669652724,
       "tag": "0007_page_owned_modules_schema",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1791669840805,
+      "tag": "0008_page_owned_modules",
+      "breakpoints": true
     }
   ]
 }

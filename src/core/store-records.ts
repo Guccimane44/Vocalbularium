@@ -12,8 +12,8 @@ export type ComponentStatus = 'loading' | 'completed' | 'failed' | null;
 export type ComponentRow = Readonly<{
   page_id: string;
   id: string;
-  kind: 'main_key' | 'context' | 'module' | 'manual';
-  module_instance_id: string | null;
+  module_instance_id: string;
+  module_type: string;
   position: number;
   content: string;
   status: ComponentStatus;

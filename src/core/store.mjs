@@ -1,6 +1,9 @@
 import { Postgres, OWNER_ACCOUNT_ID } from '../persistence/postgres.ts';
 import { createHash, randomUUID } from 'node:crypto';
-import { blockText, generationTargets, pageStatus, textBlocks, validateConfiguration } from '@vocabularium/domain/pages';
+import { blockText, pageStatus, textBlocks } from '@vocabularium/domain/pages';
+import {
+  addBlocked, copyModules, deleteBlocked, generationTargets, moveBlocked, moved, validateConfiguration
+} from '@vocabularium/domain/page-modules';
 import { sortKey } from './sort-key.mjs';
 /** @typedef {import('./store-records.js').PageRow} PageRow */
 /** @typedef {import('./store-records.js').ComponentRow} ComponentRow */
@@ -31,7 +34,7 @@ function pageLimit(value, fallback, maximum) {
   return limit;
 }
 const summaryFields = `b.id, b.deck_id, b.selected_text, b.created_at, b.main_key_sort_key,
-  (SELECT k.content FROM components k WHERE k.page_id = b.id AND k.kind = 'main_key') AS main_key,
+  (SELECT k.content FROM components k WHERE k.page_id = b.id AND k.module_type = 'main-key') AS main_key,
   (SELECT CASE WHEN BOOL_OR(q.status = 'failed') THEN 'failed'
     WHEN BOOL_OR(q.status = 'loading') THEN 'loading'
     WHEN COUNT(q.status) > 0 THEN 'completed' ELSE NULL END
@@ -55,7 +58,7 @@ function textValue(value, message) {
   if (typeof value !== 'string') fail('invalid', message);
   return value;
 }
-export const DEFAULT_DECK_MODULES = Object.freeze(['german-examples']);
+export const DEFAULT_DECK_MODULES = Object.freeze(['main-key', 'context', 'german-examples']);
 
 // Account mutations are admitted synchronously and commit before acknowledgment.
 // Provider work never runs inside the ordered executor or database transaction.
@@ -145,11 +148,10 @@ export class AccountStore {
   }
   async deck(id) {
     return this.database.transaction(async () => {
-      const deck = await this.database.one("SELECT id, name, view, capture_context FROM decks WHERE id = $1", [id]);
+      const deck = await this.database.one("SELECT id, name, view FROM decks WHERE id = $1", [id]);
       if (!deck) fail('deleted', 'The deck no longer exists.');
       const modules = await this.database.all("SELECT id, type FROM deck_modules WHERE deck_id = $1 ORDER BY position", [id]);
-      return { id: deck.id, name: deck.name, modules: modules.map(({ id, type }) => ({ id, type })), view: { module: deck.view },
-        captureContext: deck.capture_context };
+      return { id: deck.id, name: deck.name, modules: modules.map(({ id, type }) => ({ id, type })), view: { module: deck.view } };
     });
   }
   async snapshot() {
@@ -252,8 +254,8 @@ export class AccountStore {
       return { defaultDeckId: deckId };
     });
   }
-  // Configuration edits change only subsequent generation; existing pages keep
-  // their components, including those of removed instances.
+  // The configuration is only the template for new pages; saving it never
+  // changes an existing page.
   async saveDeck(operationId, { deck }) {
     return await this.command(operationId, 'save-deck', { deck }, async () => {
       if (!deck || typeof deck.name !== 'string' || !deck.name.trim() || !Array.isArray(deck.modules) ||
@@ -262,17 +264,14 @@ export class AccountStore {
       }
       try { validateConfiguration(deck.modules); } catch (error) { fail('invalid', error.message); }
       if (deck.view !== undefined && deck.view?.module !== 'default') fail('invalid', 'Choose a supported view.');
-      if (deck.captureContext !== undefined && typeof deck.captureContext !== 'boolean') fail('invalid', 'Capture with Context must be on or off.');
       const current = deck.id ? (await this.deck(deck.id)) : null;
       const id = current?.id ?? randomUUID();
       for (const module of deck.modules) {
         const saved = await this.database.one("SELECT deck_id FROM deck_modules WHERE id = $1", [module.id]);
         if (saved && saved.deck_id !== id) fail('invalid', 'This module instance belongs to another deck.');
       }
-      // An omitted setting keeps the current value; a new deck captures with Context.
-      const captureContext = deck.captureContext ?? current?.captureContext ?? true;
-      if (current) await this.database.run("UPDATE decks SET name = $1, capture_context = $2 WHERE id = $3", [deck.name.trim(), captureContext, id]);
-      else await this.database.run("INSERT INTO decks (id, name, capture_context) VALUES ($1, $2, $3)", [id, deck.name.trim(), captureContext]);
+      if (current) await this.database.run("UPDATE decks SET name = $1 WHERE id = $2", [deck.name.trim(), id]);
+      else await this.database.run("INSERT INTO decks (id, name) VALUES ($1, $2)", [id, deck.name.trim()]);
       await this.database.run("DELETE FROM deck_modules WHERE deck_id = $1", [id]);
       for (const [position, module] of deck.modules.entries()) {
         await this.database.run("INSERT INTO deck_modules VALUES ($1, $2, $3, $4)", [module.id, id, position, module.type]);
@@ -302,10 +301,9 @@ export class AccountStore {
     return this.database.transaction(async () => {
       const page = await this.database.one("SELECT * FROM pages WHERE id = $1", [id]);
       if (!page) fail('deleted', 'The page no longer exists.');
-      const configured = new Set((await this.database.all("SELECT id FROM deck_modules WHERE deck_id = $1", [page.deck_id])).map(row => row.id));
       const components = (await this.database.all("SELECT * FROM components WHERE page_id = $1 ORDER BY position", [id]))
-        .map(row => ({ id: row.id, kind: row.kind, moduleInstanceId: row.module_instance_id, content: JSON.parse(row.content),
-          status: row.status, attemptId: row.attempt_id, configured: row.kind !== 'module' || configured.has(row.module_instance_id) }));
+        .map(row => ({ id: row.id, moduleInstanceId: row.module_instance_id, moduleType: row.module_type,
+          content: JSON.parse(row.content), status: row.status, attemptId: row.attempt_id }));
       return { id: page.id, deckId: page.deck_id, selectedText: page.selected_text, createdAt: page.created_at,
         components, status: pageStatus(components) };
     });
@@ -317,21 +315,31 @@ export class AccountStore {
       return pages;
     });
   }
-  async insertComponent(pageId, kind, content, moduleInstanceId = null) {
+  // Each module instance on a page owns one component; positions follow page order.
+  async insertComponent(pageId, { moduleInstanceId, moduleType, content }, position) {
     const id = randomUUID();
-    const { position } = await this.database.one('SELECT COALESCE(MAX(position) + 1, 0) AS position FROM components WHERE page_id = $1', [pageId]);
-    await this.database.run(`INSERT INTO components (page_id, id, kind, module_instance_id, position, content)
-      VALUES ($1, $2, $3, $4, $5, $6)`, [pageId, id, kind, moduleInstanceId, position, JSON.stringify(content)]);
+    await this.database.run(`INSERT INTO components (page_id, id, module_instance_id, module_type, position, content)
+      VALUES ($1, $2, $3, $4, $5, $6)`, [pageId, id, moduleInstanceId, moduleType, position, JSON.stringify(content)]);
     return id;
   }
-  async insertPage(deckId, { selectedText, mainKey, context, manual = [] }) {
+  async renumber(pageId, components) {
+    for (const [position, component] of components.entries()) {
+      await this.database.run("UPDATE components SET position = $1 WHERE page_id = $2 AND id = $3", [position, pageId, component.id]);
+    }
+  }
+  // A new page copies the deck's modules under its own instance IDs. The main
+  // key, and the Context and Text values keyed by deck instance, fill input
+  // components; content components wait until generated.
+  async insertPage(deck, { selectedText, mainKey, values = new Map() }) {
     if (typeof mainKey !== 'string' || !mainKey.trim()) fail('invalid', 'Enter a main key.');
     const id = randomUUID();
     await this.database.run("INSERT INTO pages (id, deck_id, selected_text, created_at, main_key_sort_key) VALUES ($1, $2, $3, $4, $5)",
-      [id, deckId, selectedText, new Date().toISOString(), sortKey(mainKey)]);
-    await this.insertComponent(id, 'main_key', textBlocks(mainKey));
-    if (context) await this.insertComponent(id, 'context', textBlocks(context));
-    for (const content of manual) await this.insertComponent(id, 'manual', content);
+      [id, deck.id, selectedText, new Date().toISOString(), sortKey(mainKey)]);
+    const copies = copyModules(deck.modules, randomUUID);
+    for (const [position, module] of copies.entries()) {
+      const content = module.type === 'main-key' ? textBlocks(mainKey) : values.get(deck.modules[position].id) ?? textBlocks('');
+      await this.insertComponent(id, { moduleInstanceId: module.id, moduleType: module.type, content }, position);
+    }
     return id;
   }
   async capture(operationId, { session, mainKey, context, snapshot }, { recoverySession } = {}) {
@@ -344,10 +352,12 @@ export class AccountStore {
       if (typeof mainKey !== 'string' || mainKey.length === 0) fail('invalid', 'Select some text first.');
       if (context !== undefined) textValue(context, 'Context must be text.');
       const deck = await this.deck(snapshot.id);
-      // The deck's current setting decides: Context taken under a stale "on" is discarded.
-      const id = await this.insertPage(deck.id, { selectedText: mainKey, mainKey, context: deck.captureContext ? context : undefined });
-      // Capture follows the deck's current configuration, not the prepared snapshot.
-      const { attemptIds } = await this.startRun(id, session, generationTargets({ scope: 'capture' }, deck.modules, []));
+      // Capture follows the deck's current configuration, not the prepared snapshot:
+      // Context taken while the deck had the Context module is dropped if it no longer does.
+      const contextModule = deck.modules.find(module => module.type === 'context');
+      const values = new Map(contextModule && context ? [[contextModule.id, textBlocks(context)]] : []);
+      const id = await this.insertPage(deck, { selectedText: mainKey, mainKey, values });
+      const { attemptIds } = await this.startRun(id, session, generationTargets({ scope: 'capture' }, (await this.page(id)).components));
       if (interrupted) for (const attemptId of attemptIds) await this.failAttempt(attemptId);
       return { pageId: id, interrupted: Boolean(interrupted) };
     });
@@ -360,15 +370,14 @@ export class AccountStore {
     });
   }
   // One run per request: its attempts share one interpretation.
-  async startRun(pageId, session, modules) {
-    if (!modules.length) return { runId: null, attemptIds: [] };
+  async startRun(pageId, session, targets) {
+    if (!targets.length) return { runId: null, attemptIds: [] };
     const runId = randomUUID();
     await this.database.run("INSERT INTO generation_runs (id, page_id) VALUES ($1, $2)", [runId, pageId]);
     const attemptIds = [];
-    for (const module of modules) {
+    for (const { id: componentId, moduleInstanceId, moduleType } of targets) {
       const attemptId = randomUUID();
-      const existing = await this.database.one("SELECT id FROM components WHERE page_id = $1 AND module_instance_id = $2", [pageId, module.id]);
-      const componentId = existing?.id ?? await this.insertComponent(pageId, 'module', textBlocks(''), module.id);
+      const module = { id: moduleInstanceId, type: moduleType };
       await this.database.run(`INSERT INTO component_attempts
         (id, page_id, component_id, run_id, installation_id, session_id, epoch, module) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
       [attemptId, pageId, componentId, runId, session.installationId, session.sessionId, session.epoch, JSON.stringify(module)]);
@@ -443,78 +452,96 @@ export class AccountStore {
       return { pageId: attempt.page_id, componentId: attempt.component_id, state };
     });
   }
-  async savePage(operationId, { pageId, changes, added = [], context }) {
-    return await this.command(operationId, 'save-page', { pageId, changes, added, context }, async () => {
+  async savePage(operationId, { pageId, changes }) {
+    return await this.command(operationId, 'save-page', { pageId, changes }, async () => {
       const page = await this.page(pageId);
       if (!Array.isArray(changes) || changes.some(change => !change || typeof change !== 'object') ||
-        new Set(changes.map(change => change.componentId)).size !== changes.length || !Array.isArray(added)) fail('invalid', 'Choose each changed component once.');
+        new Set(changes.map(change => change.componentId)).size !== changes.length) fail('invalid', 'Choose each changed component once.');
       const updates = [];
       for (const change of changes) {
         const component = page.components.find(component => component.id === change.componentId);
         if (!component) fail('deleted', 'A changed component no longer exists.');
         if (component.status === 'loading') fail('generating', 'A component is still generating. Your drafts are preserved.');
         const content = blockValue(change.content, 'Component content must be a text document.');
-        if (component.kind === 'main_key' && !blockText(content).trim()) fail('invalid', 'Enter a main key.');
+        if (component.moduleType === 'main-key' && !blockText(content).trim()) fail('invalid', 'Enter a main key.');
         updates.push({ component, content });
       }
-      const manual = added.map(content => blockValue(content, 'Component content must be a text document.'));
-      let newContext = null;
-      if (context !== undefined) {
-        if (page.components.some(component => component.kind === 'context')) fail('invalid', 'This page already has Context. Edit it instead.');
-        newContext = blockValue(context, 'Context must be a text document.');
-      }
       for (const { component, content } of updates) {
-        if (component.kind === 'context' && !blockText(content)) {
-          await this.database.run("DELETE FROM components WHERE page_id = $1 AND id = $2", [pageId, component.id]);
-          continue;
-        }
         await this.database.run("UPDATE components SET content = $1 WHERE page_id = $2 AND id = $3", [JSON.stringify(content), pageId, component.id]);
-        if (component.kind === 'main_key') await this.database.run("UPDATE pages SET main_key_sort_key = $1 WHERE id = $2", [sortKey(blockText(content)), pageId]);
+        if (component.moduleType === 'main-key') await this.database.run("UPDATE pages SET main_key_sort_key = $1 WHERE id = $2", [sortKey(blockText(content)), pageId]);
       }
-      if (newContext && blockText(newContext)) await this.insertComponent(pageId, 'context', newContext);
-      for (const content of manual) await this.insertComponent(pageId, 'manual', content);
       return { pageId };
     });
   }
-  async createPage(operationId, { deckId, mainKey, context, manual = [] }) {
-    return await this.command(operationId, 'create-page', { deckId, mainKey, context, manual }, async () => {
-      await this.deck(deckId);
-      if (context !== undefined) textValue(context, 'Context must be text.');
-      if (!Array.isArray(manual)) fail('invalid', 'Components must be text documents.');
-      const documents = manual.map(content => blockValue(content, 'Components must be text documents.'));
-      // Manual creation never starts generation.
-      return { pageId: await this.insertPage(deckId, { selectedText: null, mainKey, context, manual: documents }) };
+  // Manual creation copies the deck's modules and never starts generation. The
+  // user's Context and Text values are keyed by the deck instance they fill.
+  async createPage(operationId, { deckId, mainKey, initial = [] }) {
+    return await this.command(operationId, 'create-page', { deckId, mainKey, initial }, async () => {
+      const deck = await this.deck(deckId);
+      if (!Array.isArray(initial)) fail('invalid', 'Initial content must be a list.');
+      const values = new Map();
+      for (const item of initial) {
+        const module = deck.modules.find(candidate => candidate.id === item?.moduleInstanceId);
+        if (!module || !['context', 'text'].includes(module.type) || values.has(module.id)) fail('invalid', 'Only the Context and Text can start with your content.');
+        values.set(module.id, blockValue(item.content, 'Components must be text documents.'));
+      }
+      return { pageId: await this.insertPage(deck, { selectedText: null, mainKey, values }) };
+    });
+  }
+  // Shaping: each step is one ordered operation, applied immediately.
+  async addModule(operationId, { pageId, type, position }) {
+    return await this.command(operationId, 'add-module', { pageId, type, position }, async () => {
+      const page = await this.page(pageId);
+      const blocked = addBlocked(page.components.map(component => ({ type: component.moduleType })), type);
+      if (blocked) fail('invalid', blocked);
+      const at = position ?? page.components.length;
+      if (!Number.isInteger(at) || at < 1 || at > page.components.length) fail('invalid', 'Choose a position below the main key.');
+      const componentId = await this.insertComponent(pageId, { moduleInstanceId: randomUUID(), moduleType: type, content: textBlocks('') }, page.components.length);
+      await this.renumber(pageId, moved([...page.components, { id: componentId }], componentId, at));
+      return { pageId, componentId };
+    });
+  }
+  // Deleting removes the module instance from the page: generation never brings it back.
+  async deleteComponent(operationId, { pageId, componentId }) {
+    return await this.command(operationId, 'delete-component', { pageId, componentId }, async () => {
+      const page = await this.page(pageId);
+      const blocked = deleteBlocked(page.components, componentId);
+      if (blocked) fail(page.components.some(component => component.id === componentId) ? 'invalid' : 'deleted', blocked);
+      await this.database.run("DELETE FROM components WHERE page_id = $1 AND id = $2", [pageId, componentId]);
+      await this.renumber(pageId, page.components.filter(component => component.id !== componentId));
+      return { pageId, componentId };
+    });
+  }
+  async moveComponent(operationId, { pageId, componentId, position }) {
+    return await this.command(operationId, 'move-component', { pageId, componentId, position }, async () => {
+      const page = await this.page(pageId);
+      const blocked = moveBlocked(page.components, componentId, position);
+      if (blocked) fail(page.components.some(component => component.id === componentId) ? 'invalid' : 'deleted', blocked);
+      await this.renumber(pageId, moved(page.components, componentId, position));
+      return { pageId, componentId };
     });
   }
   // The content a confirmed retry replaces. The client shows it, then echoes the digest.
-  confirmationDigest(page, modules) {
-    return digest(modules.map(module => {
-      const component = page.components.find(component => component.moduleInstanceId === module.id);
-      return { moduleInstanceId: module.id, content: component?.content ?? null };
-    }));
+  confirmationDigest(targets) {
+    return digest(targets.map(component => ({ moduleInstanceId: component.moduleInstanceId, content: component.content })));
   }
   async generate(operationId, { pageId, target, session, confirmation }, { admit } = {}) {
     return await this.command(operationId, 'generate', { pageId, target, session, confirmation }, async () => {
       await this.requireSession(session);
       const page = await this.page(pageId);
-      const deck = await this.deck(page.deckId);
       if (!target || !['missing', 'page', 'component'].includes(target.scope)) fail('invalid', 'Choose what to generate.');
-      let modules;
-      try { modules = generationTargets(target, deck.modules, page.components); }
+      let targets;
+      try { targets = generationTargets(target, page.components); }
       catch (error) { fail('invalid', error.message); }
-      for (const module of modules) {
-        if (page.components.some(component => component.moduleInstanceId === module.id && component.status === 'loading')) {
-          fail('generating', 'A component is already generating.');
-        }
-      }
+      if (targets.some(component => component.status === 'loading')) fail('generating', 'A component is already generating.');
       if (target.scope !== 'missing') {
-        const expected = this.confirmationDigest(page, modules);
+        const expected = this.confirmationDigest(targets);
         if (confirmation !== expected) {
           throw new StoreError('confirmation_required', 'Retry replaces this content, including your edits.', { confirmation: expected });
         }
       }
-      admit?.(modules.length);
-      return { pageId, attemptIds: (await this.startRun(pageId, session, modules)).attemptIds };
+      admit?.(targets.length);
+      return { pageId, attemptIds: (await this.startRun(pageId, session, targets)).attemptIds };
     });
   }
   async deletePage(operationId, pageId) {

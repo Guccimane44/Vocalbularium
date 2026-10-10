@@ -7,10 +7,6 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
-    },
-    "./page-modules": {
-      "types": "./dist/page-modules.d.ts",
-      "import": "./dist/page-modules.js"
     }
   },
   "dependencies": {
