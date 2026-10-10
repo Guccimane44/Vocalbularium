@@ -38,7 +38,10 @@ GitHub issues, PRs, CI, and release records hold implementation and delivery evi
 For milestone work, product or architecture decisions, and acceptance or
 delivery updates, consult the relevant Notion records and follow the
 [project workflow](docs/guides/project-workflow.md). Routine fixes can use
-the repository context alone. Link records instead of copying specifications
+the repository context alone. A decision that changes a specification enters
+through the traceability map and follows
+[from decisions to iterations](docs/guides/project-workflow.md#from-decisions-to-iterations).
+Link records instead of copying specifications
 or logs; update Notion at meaningful events within the user's authorized scope.
 
 Check approval, revision, environment, and completion scope before relying

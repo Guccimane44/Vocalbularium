@@ -16,6 +16,20 @@ Use the [product model](../product/model.md) for terms, [current scope](../produ
 
 Link between records. Keep the complete plan, specification, test output, and package evidence in their appropriate sources; Notion summarizes the result and points to them. Derive GitHub links from the actual remote and relevant branch or commit. Use immutable revision links for verified facts and evidence; identify the branch when linking evolving documentation. Do not assume the default branch contains the working specification or released backend.
 
+## From decisions to iterations
+
+Product and architecture decisions reach the product through one path. A routine fix that changes no specification skips it.
+
+1. **Decide.** A decision can come from the [system-design questionnaire](../architecture/questionnaire/00-overview.md), a direct owner decision, an issue or feature request, or a verification or delivery finding. Record its rationale where it is made: a questionnaire answer, or a Notion decision record linked to its source.
+2. **Enter the traceability map.** The [traceability map](../architecture/questionnaire/traceability-map.md) is the entry gate. Every decision that changes a specification gets one row there: questionnaire answers keep their Q-number, and decisions from other sources get a D-number (D01, D02, …). The row names the target documents, the change, and its status. Check the new row against the existing ones: record a contradiction as a conflict and a missing detail as a clarification, and resolve both before acceptance.
+3. **Accept.** The owner moves the Notion decision record to `Accepted` with its decision date. A `Proposed` decision does not enter the specifications.
+4. **Apply to the specifications.** Specifications describe accepted behavior, including behavior accepted for 1.0 and not built yet. [Scope](../product/scope.md) is the status ledger: it marks each capability `implemented`, `accepted for 1.0`, `post-1.0`, or `out at maturity`, so a requirement in a specification is never evidence that the capability exists. Update one document at a time and mark the map row `applied`.
+5. **Plan an iteration.** A plan in `docs/plans/` selects accepted capabilities from the ledger for one milestone, defines increments and acceptance criteria, and links one GitHub tracker issue. It points to the specification sections instead of restating them.
+6. **Build and verify** each increment with the Change and Verify skills.
+7. **Close the loop.** When a release ships a capability, mark it `implemented` in scope, mark its map rows `implemented` with the release, and move the Notion decision record to `Implemented`.
+
+The next iteration starts again at step 5. Go back to step 1 only for a new or reopened decision. The questionnaire is a one-time pass: reopen it when one of its answers is revisited or a parked area, such as the module brief, starts.
+
 ## When to consult and update Notion
 
 Consult relevant records when scoping a milestone, changing product or architecture decisions, resolving an intent conflict, or preparing acceptance and delivery. A routine scoped fix need not read the whole workspace or create a new Notion entry.
