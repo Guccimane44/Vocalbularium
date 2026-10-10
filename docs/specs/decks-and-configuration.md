@@ -2,39 +2,59 @@
 
 ## Purpose and status
 
-This specification defines the owner-approved deck configuration for the deck → page → component model. Release 0.4.0 implements it; [current scope](../product/scope.md) lists what is supported. Deck browsing, creation, renaming, deletion, and default-deck selection remain defined by the applicable [MVP dashboard](../history/mvp/MVP-Product-scope.md#4-dashboard) and [default deck](../history/mvp/MVP-Product-scope.md#6-default-deck) rules.
+This specification defines decks, the dashboard, the default deck, and deck configuration. Release 0.4.1 implements everything here except the page-owned modules of [D02](../architecture/traceability-map.md#entries) and the module window, which are accepted and not built; [current scope](../product/scope.md) records the status. Until D02 ships, existing pages still follow their deck's current configuration, as described under [Before D02](#before-d02).
 
-The [product model](../product/model.md) defines decks, configuration, content module instances, and views. [Modules](modules.md) owns the module catalog and contracts. [Pages and editing](pages-and-editing.md) owns how pages hold the components these instances produce.
+The [product model](../product/model.md) defines decks, configuration, content module instances, and views. [Modules](modules.md) owns the module catalog and contracts. [Pages and editing](pages-and-editing.md) owns what happens to a page after it is created.
+
+## Dashboard
+
+The dashboard is the main view, titled **Your decks.** It shows every deck of the account in batches of 40, with **Load more decks** when more exist. Each deck shows its name, its page and module counts, and a **DEFAULT DECK** badge on the default deck. Below the decks, **Recent captures** lists the twenty most recent captures and any capture receipts not yet saved ([capture and generation](capture-and-generation.md#capture-scenario)).
+
+- **Add new deck** opens deck settings for a new deck, starting with the same configuration as a new account's **My Deck**. **Save** creates the deck; **Cancel** discards the draft. Creating a deck does not change the default deck.
+- Clicking a deck opens its page list ([pages and editing](pages-and-editing.md#page-list)).
+- Each deck's **•••** menu offers **Set as default**, **Configure deck**, and **Delete deck**. The same menu appears on the deck's page list. **Set as default** is disabled on the current default. The menu closes after an action, on navigation or rerender, on Escape, and on a click outside it. It is keyboard operable, and closing it returns focus to its trigger when that still exists.
+
+### Deleting a deck
+
+**Delete deck** asks for confirmation that the deck and all its pages will be deleted. Cancel leaves everything unchanged. Deleting the default deck requires choosing another deck as the new default in the same dialog. Deleting the only deck replaces it with a new, empty **My Deck** with the initial configuration. Deleting the deck currently shown returns to the dashboard. Deleting a deck cancels pending generation on its pages.
+
+## Default deck
+
+Every account has exactly one default deck, the destination for capture. Default is a role a deck holds, not a kind of deck. A new account starts with **My Deck** as its default deck, created once when the account is initialized. Its initial configuration is defined in [capture and generation](capture-and-generation.md#initial-default-deck-example). **Set as default** moves the role to another deck; the choice synchronizes with the account.
 
 ## Configuration
 
 A deck's configuration has:
 
 - its **name**;
-- an ordered list of **content module instances**: at most 12 per deck. The same module type may appear more than once;
-- its **view**: the default view, which shows each page as its ordered component list;
-- **Capture with Context**: on or off, on for a new deck. It decides whether capture into the deck takes the selection's surrounding block ([Pages and editing](pages-and-editing.md#context)).
+- an ordered list of **module instances**, at most 12 in total:
+  - the **main key module**: compulsory and always first; it cannot be removed or moved;
+  - the **Context module**: optional, at most one. When the deck has it, capture into the deck also takes the selection's surrounding block ([pages and editing](pages-and-editing.md#context));
+  - **content module instances**: the same type may appear more than once;
+- its **view**: the default view, which shows each page as its ordered component list.
 
-The user edits the configuration in **deck settings**: add, remove, and reorder content module instances, and turn Capture with Context on or off. Deck settings can preview the configured instances using word and sentence examples. Configuration edits follow the explicit save and draft rules for deck configuration.
+The user edits the configuration in **deck settings**: name the deck, and add, remove, and reorder the Context module and content module instances. Deck settings preview the configured instances with word and sentence examples; previews are labeled as examples and never create or change pages. Configuration edits are a draft until **Save**; **Cancel** discards them. A failed save keeps the draft and offers **Try saving again**.
 
-A configuration with no content module instances is valid. Its pages hold only the main key, Context, and manual components.
+A configuration with only the main key module is valid. Its new pages hold only the main key and whatever the user adds.
 
-## Effect on pages
+### Module window
 
-Generation always uses the deck's current configuration: a new page and every generation or retry. Saving a configuration change never rewrites existing pages:
+Deck settings show the **module window** on the right: the catalog of the Context module and the content modules. The user adds an instance by dragging a module from the window into the configuration. The page view shows the same window ([pages and editing](pages-and-editing.md#shaping-a-page)), so shaping a deck and shaping a page use the same gesture. The window's design is part of the [shared UI](shared-ui.md#module-window) redesign. Accepted with D02; not built.
 
-- **Instance added:** existing pages have no component for it until the user generates. **Generate missing** and page retry fill it.
-- **Instance removed:** components it produced stay on existing pages as saved content, marked as no longer configured. Page retry does not touch them.
-- **Instances reordered:** each page's content components follow the new order.
+## Configuration and pages
 
-A generation attempt that is already running uses the configuration it started with. A page moved to another deck keeps its components, and its next retry uses the target deck's configuration.
+The configuration is the template for page creation. Capture and manual creation give the new page a copy of the deck's content module instances, in configured order ([capture and generation](capture-and-generation.md#capture-scenario)). From then on the page owns its modules:
+
+- Saving a configuration change never changes existing pages. Only pages created afterwards use it.
+- Generation and retry on an existing page use the page's own module instances, not the deck's.
+- A page moved to another deck keeps its modules and components.
+
+A generation run already in progress when the configuration changes is unaffected.
+
+### Before D02
+
+Release 0.4.1 has no input modules: the main key and Context are fixed parts of every page, the limit of 12 counts content module instances only, and **Capture with Context** is an on/off deck setting (on by default) instead of the Context module. It also implements the earlier rule from [Q72](../architecture/questionnaire/answers/answers-06-data-and-semantics.md#q72): pages follow the deck's current configuration. A module instance added to the deck appears on existing pages as "Not generated yet" until **Generate missing** or page **Retry** fills it. Components of an instance removed from the deck stay on their pages, marked as no longer in the deck, and generation no longer touches them. Reordering the deck reorders every page's content components.
 
 ## Views
 
 Every deck shows its pages through the default view. Choosing among several views per deck, switching views, and configuring other view modules (such as the card view module) are later work. When they arrive, they follow the [Notion-style model](../product/model.md#view): views are alternative ways to show a deck's pages, with one default per deck.
-
-## Default deck
-
-Every account has exactly one default deck, the destination for capture. A new account starts with **My Deck** as its default deck. Its initial configuration is defined in [Select and Add](capture-and-generation.md#initial-default-deck-example).
-
-When the refactor is installed, existing decks and their pages are discarded. Each existing account starts again with one fresh default deck configured like a new account's.

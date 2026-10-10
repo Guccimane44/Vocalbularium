@@ -4,7 +4,7 @@
 
 This document defines Vocabularium's core concepts and their fundamental relationships. It is a conceptual model, not a database schema or a workflow specification. [Scope](scope.md) identifies current capability limits; [vision](vision.md) describes possible future uses.
 
-The model below is the owner-approved deck → page → component model ([Q72](../architecture/questionnaire/answers/answers-06-data-and-semantics.md#q72), [refactor plan](../history/plans/page-component-refactor.md)). Release 0.4.0 implements it; [current scope](scope.md) lists what is supported. Builds up to v0.3.0+ called pages *kartes* and stored their content in *seites*. [Earlier terms](#earlier-terms) maps the old vocabulary.
+The model below is the owner-approved deck → page → component model ([Q72](../architecture/questionnaire/answers/answers-06-data-and-semantics.md#q72), [refactor plan](../history/plans/page-component-refactor.md)), with page-owned modules ([D02](../architecture/traceability-map.md#entries)). Release 0.4.0 implements the model; D02 is accepted and not yet built, so 0.4.1 pages still follow their deck's current configuration. [Current scope](scope.md) lists what is supported. Builds up to v0.3.0+ called pages *kartes* and stored their content in *seites*. [Earlier terms](#earlier-terms) maps the old vocabulary.
 
 ## Account
 
@@ -14,7 +14,7 @@ An **account** owns a collection of decks and pages and identifies which saved d
 
 A **deck** is the primary collection of pages, organized for a subject, language, project, source, or other purpose. Every page belongs to exactly one deck.
 
-A **deck configuration** defines the deck's settings: its name, its ordered **content module instances**, and its view. Content module instances describe how generation produces components; they are distinct from the content already saved on an individual page. Generation always uses the deck's current configuration. Changing the configuration never changes existing pages until the user explicitly generates or retries on them. There is no pinned layout revision.
+A **deck configuration** defines the deck's settings: its name, its ordered **module instances** (the compulsory main key module, an optional Context module, and content module instances), and its view. The module instances are the template for new pages: creating a page gives it a copy of them. After that the page owns its modules, and the deck configuration no longer affects it. Changing the configuration changes only pages created afterwards.
 
 **Deck settings** is the interface for editing the configuration. The [deck configuration specification](../specs/decks-and-configuration.md) owns its rules and limits.
 
@@ -42,28 +42,25 @@ Preserving a chosen meaning or referent across future module runs is a product d
 
 ## Component
 
-A **component** is one ordered piece of a page's content. By default a page grows top to bottom:
+A **component** is one ordered piece of a page's content. Every module instance on a page owns one component. A new page starts with a copy of the deck's module instances, in configured order:
 
-1. the **main key component** (required, editable);
-2. the **Context component** (optional, editable);
-3. one **content component** per content module instance in the deck configuration, in configured order.
+1. the **main key component**, owned by the main key module (required, editable, always first);
+2. the **Context component**, owned by the Context module when the deck has one (editable);
+3. one **content component** per content module instance.
 
-A content component records the module instance that owns it. That ownership, not its position, identifies which instance produces or replaces it, so configuration edits never need positional remapping:
+After creation the user shapes the page freely. They can delete any component except the main key, rearrange every component below the main key, and add modules by dragging them from the module window onto the page. A module added this way belongs to that page only; it does not change the deck. A deleted component stays gone: generation never brings it back, and the user adds the module again to restore it.
 
-- **Instance added to the deck:** existing pages have no component for it until the user generates.
-- **Instance removed from the deck:** components it produced stay as saved content, marked as no longer configured. Page retry does not touch them.
-- **Instances reordered:** the page's component order follows the configuration.
+A component records the page's module instance that owns it. That ownership, not its position, identifies which instance produces or replaces it.
 
 A **manual component** is text the user adds that no module owns. Generation never creates, replaces, or removes it.
 
 A component's content is a versioned block document ([Q13](../architecture/questionnaire/answers/answers-03-frontend.md#q13)). The current modules produce plain text, stored as paragraph blocks and shown as plain text. A component can be empty; emptiness alone does not indicate a failed generation attempt. Components have no inherent subject or language; their meaning comes from the module that owns them or from what the user writes.
 
-Hiding or deleting individual components is not part of 1.0.
-
 ## Module type, instance, and output
 
-Modules have two kinds:
+Modules have three kinds:
 
+- **Input modules** hold a page's generation input. The **main key module** is compulsory: every deck and page has exactly one, always first, and it cannot be removed. The **Context module** is optional, at most one per deck or page. Input modules are filled by capture or by the user, never by generation.
 - **Content modules** produce components from the main key and Context.
 - **View modules** show pages (see [View](#view)).
 
@@ -71,7 +68,7 @@ A **module type** defines one focused way to contribute content, such as display
 
 A module's purpose, applicable inputs, supported options, and output behavior are product-defined. The [module specification](../specs/modules.md) describes the current catalog and the design contract for future additions. A module can serve different subjects or languages within its applicability; it need not apply to every input.
 
-A **content module instance** is one placement of a content module type in the deck configuration. The same type may have several instances. Their configured order determines the order of their components.
+A **module instance** is one placement of an input or content module type, either in a deck configuration, where it is a template for new pages, or on a page, where it owns one component. A deck or page holds at most 12 module instances, including the main key and Context. A content module type may have several instances.
 
 **Applicability** means whether a module instance is relevant to the input interpretation. An inapplicable instance contributes no output; its component completes empty. Instances in one generation run share the input interpretation but evaluate their own applicability.
 
@@ -89,7 +86,7 @@ Other view modules, such as a **card** view module that recreates the earlier ka
 
 A **generation attempt** is one evaluation of one content module instance for one page. It produces or replaces that instance's component. It associates the target component, the main key and Context values and interpretation used, and the module configuration used.
 
-A **generation run** is one user or capture request that starts one or more attempts on the same page: all content components on capture or **Generate**, only missing components on **Generate missing**, every configured content component on page **Retry**, or one component on component **Retry**. Attempts in one run share one input interpretation.
+A **generation run** is one user or capture request that starts one or more attempts on the same page: all content components on capture or **Generate**, only missing components on **Generate missing**, every content component on the page on page **Retry**, or one component on component **Retry**. Attempts in one run share one input interpretation.
 
 A **generation outcome** describes an attempt's state or result. Component content, generation outcome, and persistence are distinct: a saved page can have a failed component, a successfully evaluated component can be empty, and manually entered content does not establish generation success.
 
@@ -109,12 +106,13 @@ Saving content and generating content are different operations. The detailed sav
 Account
 ├── Decks, with exactly one designated default
 │   ├── Configuration
-│   │   ├── Ordered content module instances   (what components generation produces)
+│   │   ├── Ordered module instances           (main key, optional Context, content; copied onto each new page)
 │   │   └── View: default view                 (how pages are shown)
 │   └── Pages: each belongs to this deck only
-│       ├── Main key component (required; from capture or manual entry)
-│       ├── Context component (optional)
-│       ├── Content components, one per content module instance, owned by that instance
+│       ├── Module instances, each owning one component:
+│       │   ├── Main key (required, first; from capture or manual entry)
+│       │   ├── Context (optional)
+│       │   └── Content components
 │       ├── Manual components, never touched by generation
 │       └── Generation attempts and outcomes, per component
 ```
@@ -131,7 +129,7 @@ Use this mapping when reading history, releases, issues, and code that predate t
 | card page, page (before 0.3.0+), seite (0.3.0+) | component, for content. Its grouping on a face of the karte is presentation, which belongs to a view; the later card view module covers it. |
 | front page, front seite | main key component |
 | deck layout, layout seites | deck configuration: ordered content module instances |
-| pinned layout revision | none; generation uses the current configuration |
+| pinned layout revision | none; a new page receives a copy of the deck's content module instances |
 | deck configuration page | deck settings |
 | card view page, karte view page | opening a page ("Open page") |
 | card content page, karte content page | page editor |

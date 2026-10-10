@@ -30,7 +30,7 @@ This is the product's long-term memory. The vision's "persistent semantic object
 
 ## Q31. How does deck layout evolution affect existing kartes?
 
-*Superseded by [Q72](#q72-what-is-a-karte-made-of-and-how-is-it-shown); kept as asked against the 0.3.0+ baseline. Since 0.4.0, configuration changes never rewrite existing pages and every generation or retry uses the deck's current configuration ([decks and configuration](../../specs/decks-and-configuration.md#effect-on-pages)).*
+*Superseded by [Q72](#q72-what-is-a-karte-made-of-and-how-is-it-shown); kept as asked against the 0.3.0+ baseline. Since 0.4.0, configuration changes never rewrite existing pages and every generation or retry uses the deck's current configuration ([decks and configuration](../../specs/decks-and-configuration.md#configuration-and-pages)).*
 
 **Decision:** When seites/modules are added, removed, reordered, or reconfigured, what happens to kartes already saved under the old layout?
 
