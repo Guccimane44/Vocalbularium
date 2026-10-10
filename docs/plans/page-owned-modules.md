@@ -51,6 +51,9 @@ Update the product model, [pages and editing](../specs/pages-and-editing.md), [d
 
 ### 2. Domain and contracts (`packages/domain`, `packages/contracts`)
 
+Additive, as in 0.4.0: the new rules and schemas live in new entry points, `@vocabularium/domain/page-modules` and `@vocabularium/contracts/page-modules`, which nothing uses yet. Increments 4 and 5 switch the backend and extension over and remove the old `pages` dialect.
+
+
 - Module catalog with kinds: input (`main-key`, `context`, `text`) and content (the three generative types).
 - Configuration validation: `main-key` first and exactly once, at most one `context`, at most 12 instances.
 - Page model: components carry `moduleType` and a page-scoped `moduleInstanceId`; `kind` and `configured` are retired.
