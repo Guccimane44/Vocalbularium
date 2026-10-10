@@ -64,7 +64,7 @@ npm run build
 python3 scripts/package.py
 ```
 
-Tests load `.env.postgres` when present. CI supplies `TEST_DATABASE_ADMIN_URL` directly. It must address the loopback `postgres` maintenance database, never `vocabularium_dev`. Each fixture creates a random `vocabularium_test_<24 hex characters>` database, applies migrations, and drops only its own generated name during cleanup. A process killed outside test cleanup can leave disposable databases for manual inspection; there is no broad prefix-based reset command. Tests do not require local Docker and inject controlled generation providers.
+Tests load `.env.postgres` when present. CI supplies `TEST_DATABASE_ADMIN_URL` directly. It must address the loopback `postgres` maintenance database, never `vocabularium_dev`. Each fixture creates a random `vocabularium_test_<24 hex characters>` database, applies migrations, and drops only its own generated name during cleanup. Cleanup uses `DROP DATABASE … WITH (FORCE)`, so the test role also needs `GRANT pg_signal_backend TO vocabularium_test`, as in CI; `npm run db:setup` does not grant it, so run it once as the local administrator. Without it, cleanup can intermittently fail with `permission denied to terminate process` (`42501`). A process killed outside test cleanup can leave disposable databases for manual inspection; there is no broad prefix-based reset command. Tests do not require local Docker and inject controlled generation providers.
 
 Browser tests own ports 4317/4318 and temporary Chrome profiles. Check for listener conflicts before running them.
 
