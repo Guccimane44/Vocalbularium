@@ -35,7 +35,10 @@ export const deckModules = pgTable('deck_modules', {
   id: text().primaryKey(), deck_id: text().notNull().references(() => decks.id, { onDelete: 'cascade' }),
   position: integer().notNull(), type: text().notNull()
 }, table => [unique('deck_module_position').on(table.deck_id, table.position),
-  check('deck_module_limit', sql`${table.position} between 0 and 11`)]);
+  check('deck_module_limit', sql`${table.position} between 0 and 11`),
+  // Input modules (D02): one main key and at most one Context per deck.
+  uniqueIndex('deck_modules_single_main_key').on(table.deck_id).where(sql`${table.type} = 'main-key'`),
+  uniqueIndex('deck_modules_single_context').on(table.deck_id).where(sql`${table.type} = 'context'`)]);
 export const pages = pgTable('pages', {
   id: text().primaryKey(), deck_id: text().notNull().references(() => decks.id, { onDelete: 'cascade' }),
   // Capture origin; null for manual pages. The main key itself is a component.
@@ -57,11 +60,16 @@ export const generationRuns = pgTable('generation_runs', {
 export const components = pgTable('components', {
   page_id: text().notNull().references(() => pages.id, { onDelete: 'cascade' }),
   id: text().notNull(), kind: text().notNull(), module_instance_id: text(),
-  position: integer().notNull(), content: text().notNull(), status: text(), attempt_id: text()
+  position: integer().notNull(), content: text().notNull(), status: text(), attempt_id: text(),
+  // Page-owned modules (D02): the type of the page's module instance that owns
+  // the component. Unused until the backend switches over and 0008 requires it.
+  module_type: text()
 }, table => [primaryKey({ columns: [table.page_id, table.id] }), index('components_attempt').on(table.attempt_id),
   uniqueIndex('components_module_instance').on(table.page_id, table.module_instance_id).where(sql`${table.module_instance_id} IS NOT NULL`),
   uniqueIndex('components_single_main_key').on(table.page_id).where(sql`${table.kind} = 'main_key'`),
   uniqueIndex('components_single_context').on(table.page_id).where(sql`${table.kind} = 'context'`),
+  uniqueIndex('components_single_main_key_module').on(table.page_id).where(sql`${table.module_type} = 'main-key'`),
+  uniqueIndex('components_single_context_module').on(table.page_id).where(sql`${table.module_type} = 'context'`),
   check('component_kind', sql`${table.kind} in ('main_key', 'context', 'module', 'manual')`),
   check('component_owner', sql`(${table.kind} = 'module') = (${table.module_instance_id} IS NOT NULL)`),
   check('component_status', sql`${table.status} in ('loading', 'completed', 'failed')`)]);
