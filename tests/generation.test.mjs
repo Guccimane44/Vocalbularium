@@ -13,7 +13,7 @@ const session = { installationId: 'test-installation', sessionId: 'test-browser'
 const word = { inputType: 'word_phrase', sourceLanguage: 'Chinese' };
 const sentence = { inputType: 'sentence', sourceLanguage: 'Chinese' };
 const modules = (...types) => types.map(type => ({ id: randomUUID(), type }));
-// Without explicit types the deck mirrors the old two-seite default: exact selection, then explanation.
+// Without explicit types the deck has an exact selection followed by an explanation.
 async function fixture(t, provider, types = ['selected', 'german-examples'], options) {
   const store = await createTestStore(t);
   await useModules(store, types);
@@ -336,7 +336,7 @@ test('OpenCode uses the Go endpoint, selected DeepSeek model, and only selection
     apiKey: 'test-only', fetchImpl: async (url, options) => {
       assert.equal(url, 'https://opencode.ai/zen/go/v1/chat/completions'); body = JSON.parse(options.body);
       assert.equal(options.headers.Authorization, 'Bearer test-only');
-      assert.equal(options.headers['User-Agent'], 'Vocabularium/0.3.0');
+      assert.equal(options.headers['User-Agent'], 'Vocabularium/0.4.0');
       assert.equal(options.headers['x-opencode-session'], 'capture-conversation');
       assert.equal(options.method, 'POST'); assert.ok(options.signal instanceof AbortSignal);
       return Response.json(completion(JSON.stringify(word)));
