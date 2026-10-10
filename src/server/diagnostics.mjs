@@ -154,7 +154,7 @@ export class Diagnostics {
         if (seen.has(event.eventId)) continue;
         seen.add(event.eventId);
         if (filter.range && !withinRange(event.occurredAt, filter.range)) continue;
-        if (['operationId', 'requestId', 'karteId', 'attemptId'].some(key => filter[key] && event[key] !== filter[key])) continue;
+        if (['operationId', 'requestId', 'pageId', 'attemptId'].some(key => filter[key] && event[key] !== filter[key])) continue;
         result.push(event);
       }
     }

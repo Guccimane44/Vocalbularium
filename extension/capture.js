@@ -22,7 +22,7 @@ export function captureRuntime({ request, initialize, refresh, removeAccess, sav
         try {
           const prepared = await request('/api/capture/prepare', {
             operationId: `prepare-${receipt.operationId}`,
-            payload: { session: receipt.payload.session, selectedText: receipt.payload.selectedText }
+            payload: { session: receipt.payload.session, mainKey: receipt.payload.mainKey }
           }, auth.token);
           receipt = { ...receipt, prepared: true, payload: { ...receipt.payload, snapshot: prepared.snapshot } };
           await chrome.storage.local.set({ [key]: receipt });
@@ -34,7 +34,7 @@ export function captureRuntime({ request, initialize, refresh, removeAccess, sav
       const result = await request('/api/capture', {
         operationId: receipt.operationId, payload: receipt.payload, recoverySession: session
       }, auth.token);
-      await refresh({ ...receipt, state: 'saved', karteId: result.karteId, error: null });
+      await refresh({ ...receipt, state: 'saved', pageId: result.pageId, error: null });
       void poll().catch(recordError);
     } catch (error) {
       await chrome.storage.local.set({ [key]: { ...receipt, state: 'pending', error: error.message } });
@@ -47,14 +47,15 @@ export function captureRuntime({ request, initialize, refresh, removeAccess, sav
     const [{ auth, account }, { session }] = await Promise.all([
       readLocal(['auth', 'account']), chrome.storage.session.get('session')
     ]);
-    const snapshot = account?.defaultDeckSnapshot ?? account?.decks.find(deck => deck.id === account.defaultDeckId);
+    const deck = account?.defaultDeckSnapshot ?? account?.decks.find(deck => deck.id === account.defaultDeckId);
+    const snapshot = deck && { id: deck.id, modules: deck.modules };
     if (!auth || !session || !snapshot || typeof info.selectionText !== 'string' || !info.selectionText.length) {
       await showFeedback(tab.id, 'Capture unavailable. Open Vocabularium to sign in.', true, info.pageUrl ?? tab.url); return;
     }
     const operationId = crypto.randomUUID();
     try { diagnostic({ event: 'capture.invoked', operationId, installationId: session.installationId, sessionId: session.sessionId,
       outcome: 'started', content: { selectedText: info.selectionText } }); } catch { /* Capture remains independent of logging. */ }
-    const receipt = { operationId, payload: { session, snapshot, selectedText: info.selectionText }, state: 'saving', createdAt: new Date().toISOString() };
+    const receipt = { operationId, payload: { session, snapshot, mainKey: info.selectionText }, state: 'saving', createdAt: new Date().toISOString() };
     try { await chrome.storage.local.set({ [`capture-${operationId}`]: receipt }); }
     catch { await showFeedback(tab.id, 'Capture could not be received.', true, info.pageUrl ?? tab.url); return; }
     await showFeedback(tab.id, 'Capture received', false, info.pageUrl ?? tab.url);

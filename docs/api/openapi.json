@@ -3,7 +3,7 @@
   "info": {
     "title": "Vocabularium Account API",
     "version": "0.3.0",
-    "description": "Local account, capture, deck, karte, and generation-session API."
+    "description": "Local account, capture, deck, page, and generation-session API."
   },
   "components": {
     "securitySchemes": {
@@ -1172,9 +1172,9 @@
         }
       }
     },
-    "/api/decks/{deckId}/kartes": {
+    "/api/decks/{deckId}/pages": {
       "get": {
-        "summary": "Read one ordered page of karte summaries",
+        "summary": "Read one ordered batch of page summaries",
         "tags": [
           "account"
         ],
@@ -1429,9 +1429,9 @@
         }
       }
     },
-    "/api/kartes/{karteId}": {
+    "/api/pages/{pageId}": {
       "get": {
-        "summary": "Read one karte and its seites",
+        "summary": "Read one page and its components",
         "tags": [
           "account"
         ],
@@ -1442,7 +1442,7 @@
               "minLength": 1
             },
             "in": "path",
-            "name": "karteId",
+            "name": "pageId",
             "required": true
           }
         ],
@@ -2519,7 +2519,7 @@
                     "type": "object",
                     "required": [
                       "session",
-                      "selectedText"
+                      "mainKey"
                     ],
                     "properties": {
                       "session": {
@@ -2544,7 +2544,7 @@
                           }
                         }
                       },
-                      "selectedText": {
+                      "mainKey": {
                         "type": "string",
                         "minLength": 1
                       }
@@ -2771,7 +2771,7 @@
                     "type": "object",
                     "required": [
                       "session",
-                      "selectedText",
+                      "mainKey",
                       "snapshot"
                     ],
                     "properties": {
@@ -2797,62 +2797,51 @@
                           }
                         }
                       },
-                      "selectedText": {
+                      "mainKey": {
                         "type": "string",
                         "minLength": 1
+                      },
+                      "context": {
+                        "type": "string"
                       },
                       "snapshot": {
                         "type": "object",
                         "required": [
                           "id",
-                          "seites"
+                          "modules"
                         ],
                         "properties": {
                           "id": {
                             "type": "string",
                             "minLength": 1
                           },
-                          "seites": {
+                          "modules": {
                             "type": "array",
                             "items": {
                               "type": "object",
                               "required": [
                                 "id",
-                                "modules"
+                                "type"
                               ],
                               "properties": {
                                 "id": {
                                   "type": "string",
                                   "minLength": 1
                                 },
-                                "modules": {
-                                  "type": "array",
-                                  "items": {
-                                    "type": "object",
-                                    "required": [
-                                      "id",
-                                      "type"
-                                    ],
-                                    "properties": {
-                                      "id": {
-                                        "type": "string",
-                                        "minLength": 1
-                                      },
-                                      "type": {
-                                        "type": "string",
-                                        "minLength": 1
-                                      }
-                                    }
-                                  }
+                                "type": {
+                                  "type": "string",
+                                  "minLength": 1
                                 }
-                              }
+                              },
+                              "additionalProperties": false
                             },
-                            "minItems": 1,
-                            "maxItems": 4
+                            "maxItems": 12
                           }
-                        }
+                        },
+                        "additionalProperties": false
                       }
-                    }
+                    },
+                    "additionalProperties": true
                   },
                   "recoverySession": {
                     "type": "object",
@@ -3073,7 +3062,7 @@
     },
     "/api/deck/save": {
       "post": {
-        "summary": "Create or update a deck",
+        "summary": "Create or update a deck configuration",
         "tags": [
           "account"
         ],
@@ -3102,7 +3091,8 @@
                         "type": "object",
                         "required": [
                           "name",
-                          "seites"
+                          "modules",
+                          "view"
                         ],
                         "properties": {
                           "id": {
@@ -3113,54 +3103,45 @@
                             "type": "string",
                             "minLength": 1
                           },
-                          "seites": {
+                          "modules": {
                             "type": "array",
                             "items": {
                               "type": "object",
                               "required": [
                                 "id",
-                                "modules"
+                                "type"
                               ],
                               "properties": {
                                 "id": {
                                   "type": "string",
                                   "minLength": 1
                                 },
-                                "modules": {
-                                  "type": "array",
-                                  "items": {
-                                    "type": "object",
-                                    "required": [
-                                      "id",
-                                      "type"
-                                    ],
-                                    "properties": {
-                                      "id": {
-                                        "type": "string",
-                                        "minLength": 1
-                                      },
-                                      "type": {
-                                        "type": "string",
-                                        "minLength": 1
-                                      }
-                                    }
-                                  }
+                                "type": {
+                                  "type": "string",
+                                  "minLength": 1
                                 }
+                              },
+                              "additionalProperties": false
+                            },
+                            "maxItems": 12
+                          },
+                          "view": {
+                            "type": "object",
+                            "required": [
+                              "module"
+                            ],
+                            "properties": {
+                              "module": {
+                                "type": "string",
+                                "enum": [
+                                  "default"
+                                ]
                               }
                             },
-                            "minItems": 1,
-                            "maxItems": 4
+                            "additionalProperties": false
                           }
-                        }
-                      },
-                      "baseSeiteIds": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      },
-                      "confirmation": {
-                        "type": "string"
+                        },
+                        "additionalProperties": false
                       }
                     },
                     "additionalProperties": true
@@ -3591,9 +3572,9 @@
         }
       }
     },
-    "/api/karte/create": {
+    "/api/page/create": {
       "post": {
-        "summary": "Create a manual karte",
+        "summary": "Create a page manually, without generation",
         "tags": [
           "account"
         ],
@@ -3616,29 +3597,59 @@
                     "type": "object",
                     "required": [
                       "deckId",
-                      "seites"
+                      "mainKey"
                     ],
                     "properties": {
                       "deckId": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "mainKey": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "context": {
                         "type": "string"
                       },
-                      "seites": {
+                      "manual": {
                         "type": "array",
                         "items": {
                           "type": "object",
                           "required": [
-                            "seiteId",
-                            "text"
+                            "version",
+                            "blocks"
                           ],
                           "properties": {
-                            "seiteId": {
-                              "type": "string"
+                            "version": {
+                              "type": "number",
+                              "enum": [
+                                1
+                              ]
                             },
-                            "text": {
-                              "type": "string"
+                            "blocks": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "required": [
+                                  "type",
+                                  "text"
+                                ],
+                                "properties": {
+                                  "type": {
+                                    "type": "string",
+                                    "enum": [
+                                      "paragraph"
+                                    ]
+                                  },
+                                  "text": {
+                                    "type": "string"
+                                  }
+                                },
+                                "additionalProperties": false
+                              }
                             }
                           },
-                          "additionalProperties": true
+                          "additionalProperties": false
                         }
                       }
                     },
@@ -3839,9 +3850,9 @@
         }
       }
     },
-    "/api/karte/save": {
+    "/api/page/save": {
       "post": {
-        "summary": "Save karte seite edits",
+        "summary": "Save page component edits",
         "tags": [
           "account"
         ],
@@ -3863,31 +3874,147 @@
                   "payload": {
                     "type": "object",
                     "required": [
-                      "karteId",
+                      "pageId",
                       "changes"
                     ],
                     "properties": {
-                      "karteId": {
-                        "type": "string"
+                      "pageId": {
+                        "type": "string",
+                        "minLength": 1
                       },
                       "changes": {
                         "type": "array",
                         "items": {
                           "type": "object",
                           "required": [
-                            "seiteId",
-                            "text"
+                            "componentId",
+                            "content"
                           ],
                           "properties": {
-                            "seiteId": {
-                              "type": "string"
+                            "componentId": {
+                              "type": "string",
+                              "minLength": 1
                             },
-                            "text": {
-                              "type": "string"
+                            "content": {
+                              "type": "object",
+                              "required": [
+                                "version",
+                                "blocks"
+                              ],
+                              "properties": {
+                                "version": {
+                                  "type": "number",
+                                  "enum": [
+                                    1
+                                  ]
+                                },
+                                "blocks": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "required": [
+                                      "type",
+                                      "text"
+                                    ],
+                                    "properties": {
+                                      "type": {
+                                        "type": "string",
+                                        "enum": [
+                                          "paragraph"
+                                        ]
+                                      },
+                                      "text": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "additionalProperties": false
+                                  }
+                                }
+                              },
+                              "additionalProperties": false
                             }
                           },
                           "additionalProperties": true
                         }
+                      },
+                      "added": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "required": [
+                            "version",
+                            "blocks"
+                          ],
+                          "properties": {
+                            "version": {
+                              "type": "number",
+                              "enum": [
+                                1
+                              ]
+                            },
+                            "blocks": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "required": [
+                                  "type",
+                                  "text"
+                                ],
+                                "properties": {
+                                  "type": {
+                                    "type": "string",
+                                    "enum": [
+                                      "paragraph"
+                                    ]
+                                  },
+                                  "text": {
+                                    "type": "string"
+                                  }
+                                },
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      "context": {
+                        "type": "object",
+                        "required": [
+                          "version",
+                          "blocks"
+                        ],
+                        "properties": {
+                          "version": {
+                            "type": "number",
+                            "enum": [
+                              1
+                            ]
+                          },
+                          "blocks": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "required": [
+                                "type",
+                                "text"
+                              ],
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "enum": [
+                                    "paragraph"
+                                  ]
+                                },
+                                "text": {
+                                  "type": "string"
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "additionalProperties": false
                       }
                     },
                     "additionalProperties": true
@@ -4087,9 +4214,9 @@
         }
       }
     },
-    "/api/karte/delete": {
+    "/api/page/delete": {
       "post": {
-        "summary": "Delete a karte",
+        "summary": "Delete a page",
         "tags": [
           "account"
         ],
@@ -4111,11 +4238,12 @@
                   "payload": {
                     "type": "object",
                     "required": [
-                      "karteId"
+                      "pageId"
                     ],
                     "properties": {
-                      "karteId": {
-                        "type": "string"
+                      "pageId": {
+                        "type": "string",
+                        "minLength": 1
                       }
                     },
                     "additionalProperties": true
@@ -4315,9 +4443,9 @@
         }
       }
     },
-    "/api/karte/retry": {
+    "/api/page/generate": {
       "post": {
-        "summary": "Retry generation for one karte seite",
+        "summary": "Generate missing components, or retry one component or the whole page",
         "tags": [
           "account"
         ],
@@ -4339,16 +4467,68 @@
                   "payload": {
                     "type": "object",
                     "required": [
-                      "karteId",
-                      "seiteId",
+                      "pageId",
+                      "target",
                       "session"
                     ],
                     "properties": {
-                      "karteId": {
-                        "type": "string"
+                      "pageId": {
+                        "type": "string",
+                        "minLength": 1
                       },
-                      "seiteId": {
-                        "type": "string"
+                      "target": {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "required": [
+                              "scope"
+                            ],
+                            "properties": {
+                              "scope": {
+                                "type": "string",
+                                "enum": [
+                                  "missing"
+                                ]
+                              }
+                            },
+                            "additionalProperties": true
+                          },
+                          {
+                            "type": "object",
+                            "required": [
+                              "scope"
+                            ],
+                            "properties": {
+                              "scope": {
+                                "type": "string",
+                                "enum": [
+                                  "page"
+                                ]
+                              }
+                            },
+                            "additionalProperties": true
+                          },
+                          {
+                            "type": "object",
+                            "required": [
+                              "scope",
+                              "componentId"
+                            ],
+                            "properties": {
+                              "scope": {
+                                "type": "string",
+                                "enum": [
+                                  "component"
+                                ]
+                              },
+                              "componentId": {
+                                "type": "string",
+                                "minLength": 1
+                              }
+                            },
+                            "additionalProperties": true
+                          }
+                        ]
                       },
                       "session": {
                         "type": "object",
@@ -4371,6 +4551,10 @@
                             "minimum": 1
                           }
                         }
+                      },
+                      "confirmation": {
+                        "type": "string",
+                        "minLength": 1
                       }
                     },
                     "additionalProperties": true
@@ -4833,7 +5017,7 @@
     },
     "/api/publish": {
       "post": {
-        "summary": "Publish a completed seite attempt",
+        "summary": "Publish a completed component attempt",
         "tags": [
           "account"
         ],
@@ -5208,7 +5392,7 @@
     },
     {
       "name": "account",
-      "description": "Account and karte operations"
+      "description": "Account, deck, and page operations"
     }
   ]
 }

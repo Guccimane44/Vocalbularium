@@ -1,11 +1,10 @@
 import { StoreError } from '../core/store.mjs';
-import { MODULES } from '../core/modules.mjs';
+import { MODULES } from '@vocabularium/domain/modules';
 import {
-  ApiFailureSchema, KarteDeleteRequestSchema, KarteRetryRequestSchema, KarteSaveRequestSchema,
-  CapturePreparationRequestSchema, CaptureRequestSchema, DeckDeleteRequestSchema,
-  DeckSaveRequestSchema, DefaultDeckRequestSchema, JsonObjectSchema, LoginRequestSchema,
-  HealthResponseSchema, LoginResponseSchema, ManualKarteCreateRequestSchema, PollRequestSchema,
-  PublishRequestSchema, SessionRequestSchema
+  ApiFailureSchema, CapturePreparationRequestSchema, DeckConfigurationSaveRequestSchema, DeckDeleteRequestSchema,
+  DefaultDeckRequestSchema, JsonObjectSchema, LoginRequestSchema, HealthResponseSchema, LoginResponseSchema,
+  PageCaptureRequestSchema, PageCreateRequestSchema, PageDeleteRequestSchema, PageGenerateRequestSchema,
+  PageSaveRequestSchema, PollRequestSchema, PublishRequestSchema, SessionRequestSchema
 } from '@vocabularium/contracts';
 import { apiFailure } from './api-failure.mjs';
 import { isCapturePayload } from './contract-validation.mjs';
@@ -20,12 +19,12 @@ const errorResponses = {
   500: ApiFailureSchema
 };
 const listQuery = Type.Object({ cursor: Type.Optional(Type.String()), limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 50 })) }, { additionalProperties: false });
-const karteListQuery = Type.Object({
+const pageListQuery = Type.Object({
   cursor: Type.Optional(Type.String()), limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 50 })),
   order: Type.Optional(Type.Union(['newest', 'oldest', 'az', 'za'].map(value => Type.Literal(value))))
 }, { additionalProperties: false });
 const deckParams = Type.Object({ deckId: Type.String({ minLength: 1 }) });
-const karteParams = Type.Object({ karteId: Type.String({ minLength: 1 }) });
+const pageParams = Type.Object({ pageId: Type.String({ minLength: 1 }) });
 
 function routeSchema(summary, body, { publicRoute = false, success = JsonObjectSchema, errors = {} } = {}) {
   return {
@@ -95,13 +94,13 @@ export function registerRoutes(fastify, { store, authentication, generation }) {
     schema: { ...routeSchema('Read one deck configuration'), params: deckParams }
   }, async request => store.deck(request.params.deckId));
 
-  fastify.get('/api/decks/:deckId/kartes', {
-    schema: { ...routeSchema('Read one ordered page of karte summaries'), params: deckParams, querystring: karteListQuery }
-  }, async request => store.listKartes(request.params.deckId, request.query));
+  fastify.get('/api/decks/:deckId/pages', {
+    schema: { ...routeSchema('Read one ordered batch of page summaries'), params: deckParams, querystring: pageListQuery }
+  }, async request => store.listPages(request.params.deckId, request.query));
 
-  fastify.get('/api/kartes/:karteId', {
-    schema: { ...routeSchema('Read one karte and its seites'), params: karteParams }
-  }, async request => store.karte(request.params.karteId));
+  fastify.get('/api/pages/:pageId', {
+    schema: { ...routeSchema('Read one page and its components'), params: pageParams }
+  }, async request => store.page(request.params.pageId));
 
   fastify.get('/api/captures/recent', {
     schema: routeSchema('Read the twenty most recent saved captures')
@@ -141,18 +140,18 @@ export function registerRoutes(fastify, { store, authentication, generation }) {
   });
 
   fastify.post('/api/capture', {
-    schema: routeSchema('Save a captured selection', CaptureRequestSchema)
+    schema: routeSchema('Save a captured selection', PageCaptureRequestSchema)
   }, async request => {
     const body = request.body;
     captureValue(body.payload);
     if (body.recoverySession) sessionValue(body.recoverySession);
     const result = await store.capture(body.operationId, body.payload, { recoverySession: body.recoverySession });
-    if (!result.replayed && !result.interrupted) await generation.start(result.karteId);
+    if (!result.replayed && !result.interrupted) await generation.start(result.pageId);
     return result;
   });
 
   fastify.post('/api/deck/save', {
-    schema: routeSchema('Create or update a deck', DeckSaveRequestSchema)
+    schema: routeSchema('Create or update a deck configuration', DeckConfigurationSaveRequestSchema)
   }, async request => {
     const result = await store.saveDeck(request.body.operationId, request.body.payload ?? {});
     await generation.cancelObsolete();
@@ -169,51 +168,40 @@ export function registerRoutes(fastify, { store, authentication, generation }) {
     return result;
   });
 
-  fastify.post('/api/karte/create', {
-    schema: routeSchema('Create a manual karte', ManualKarteCreateRequestSchema)
-  }, async request => {
-    const body = request.body;
-    if (typeof body.payload?.deckId !== 'string') throw new StoreError('invalid', 'Choose a deck.');
-    return store.createManual(body.operationId, body.payload);
-  });
+  fastify.post('/api/page/create', {
+    schema: routeSchema('Create a page manually, without generation', PageCreateRequestSchema)
+  }, async request => store.createPage(request.body.operationId, request.body.payload));
 
-  fastify.post('/api/karte/save', {
-    schema: routeSchema('Save karte seite edits', KarteSaveRequestSchema)
-  }, async request => {
-    const body = request.body;
-    if (typeof body.payload?.karteId !== 'string') throw new StoreError('invalid', 'Choose a karte.');
-    return store.saveSeites(body.operationId, body.payload);
-  });
+  fastify.post('/api/page/save', {
+    schema: routeSchema('Save page component edits', PageSaveRequestSchema)
+  }, async request => store.savePage(request.body.operationId, request.body.payload));
 
-  fastify.post('/api/karte/delete', {
-    schema: routeSchema('Delete a karte', KarteDeleteRequestSchema)
+  fastify.post('/api/page/delete', {
+    schema: routeSchema('Delete a page', PageDeleteRequestSchema)
   }, async request => {
-    const body = request.body;
-    if (typeof body.payload?.karteId !== 'string') throw new StoreError('invalid', 'Choose a karte.');
-    const result = await store.deleteKarte(body.operationId, body.payload.karteId);
+    const result = await store.deletePage(request.body.operationId, request.body.payload.pageId);
     await generation.cancelObsolete();
     return result;
   });
 
-  fastify.post('/api/karte/retry', {
-    schema: routeSchema('Retry generation for one karte seite', KarteRetryRequestSchema, { errors: { 429: ApiFailureSchema } })
+  fastify.post('/api/page/generate', {
+    schema: routeSchema('Generate missing components, or retry one component or the whole page',
+      PageGenerateRequestSchema, { errors: { 429: ApiFailureSchema } })
   }, async request => {
     const body = request.body;
-    sessionValue(body.payload?.session);
-    if (typeof body.payload?.karteId !== 'string' || typeof body.payload?.seiteId !== 'string') {
-      throw new StoreError('invalid', 'Choose a karte seite.');
-    }
+    sessionValue(body.payload.session);
     let reservation;
     try {
-      const result = await store.retry(body.operationId, body.payload, { admit: () => {
-        reservation = generation.reserve();
+      const result = await store.generate(body.operationId, body.payload, { admit: count => {
+        if (!count) return;
+        reservation = generation.reserve(count);
         if (!reservation) {
           generation.rejected++;
           generation.record('rejected', 'generation_busy');
-          throw new StoreError('generation_busy', 'Generation is busy. Try Retry again later.');
+          throw new StoreError('generation_busy', 'Generation is busy. Try again later.');
         }
       } });
-      if (!result.replayed) await generation.start(body.payload.karteId, body.payload.seiteId, { reservation });
+      if (!result.replayed && result.attemptIds.length) await generation.start(result.pageId, result.attemptIds, { reservation });
       return result;
     } finally {
       generation.release(reservation);
@@ -233,11 +221,11 @@ export function registerRoutes(fastify, { store, authentication, generation }) {
   });
 
   fastify.post('/api/publish', {
-    schema: routeSchema('Publish a completed seite attempt', PublishRequestSchema)
+    schema: routeSchema('Publish a completed component attempt', PublishRequestSchema)
   }, async request => {
     const body = request.body;
     sessionValue(body.payload?.session);
-    if (typeof body.payload?.attemptId !== 'string') throw new StoreError('invalid', 'A seite attempt is required.');
+    if (typeof body.payload?.attemptId !== 'string') throw new StoreError('invalid', 'A component attempt is required.');
     await generation.saveResult(body.payload.attemptId, body.payload.session);
     return store.publish(body.operationId, body.payload);
   });
@@ -251,14 +239,13 @@ export function sessionValue(session) {
 }
 
 export function captureValue(payload) {
-  if (!payload || typeof payload.selectedText !== 'string' || !payload.selectedText.length) {
+  if (!payload || typeof payload.mainKey !== 'string' || !payload.mainKey.length) {
     throw new StoreError('invalid', 'Select some text first.');
   }
   sessionValue(payload.session);
   if (!isCapturePayload(payload)) throw new StoreError('invalid', 'A saved deck configuration is required.');
-  const snapshot = payload.snapshot;
-  if (snapshot.seites.some(seite => seite.modules.some(module => !Object.hasOwn(MODULES, module.type))) ||
-      new Set(snapshot.seites.map(seite => seite.id)).size !== snapshot.seites.length) {
+  const { modules } = payload.snapshot;
+  if (modules.some(module => !Object.hasOwn(MODULES, module.type)) || new Set(modules.map(module => module.id)).size !== modules.length) {
     throw new StoreError('invalid', 'A saved deck configuration is required.');
   }
 }

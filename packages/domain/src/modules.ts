@@ -83,19 +83,3 @@ export async function generateComponents(input: {
   }
   return outcomes;
 }
-
-// Seite-level rendering for the running v0.3.0+ backend: a seite fails as a
-// whole and joins its outputs. Removed when the backend generates per component.
-export async function renderSeite(input: {
-  selectedText: string;
-  modules: readonly ModuleInstance[];
-  interpretation?: InputInterpretation | null;
-  generate: GenerateModule;
-  claimOutput?: (type: ModuleType, text: string) => boolean;
-}): Promise<string> {
-  const output: string[] = [];
-  for (const module of input.modules) {
-    output.push(await generateComponent({ ...input, mainKey: input.selectedText, module }));
-  }
-  return output.filter(text => text.length > 0).join('\n\n');
-}

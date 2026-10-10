@@ -1,4 +1,5 @@
-import { renderSeite, validateInterpretation } from '../core/modules.mjs';
+import { generateComponent, validateInterpretation } from '@vocabularium/domain/modules';
+import { blockText } from '@vocabularium/domain/pages';
 import { OpenCodeProvider } from './opencode.mjs';
 import { mkdirSync, readdirSync, readFileSync, writeFileSync, renameSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
@@ -53,15 +54,15 @@ export class Generation {
       }
     }
   }
-  async interpretation(karte, attempt) {
-    const current = (await this.store.karte(karte.id)).interpretation;
+  // One interpretation per run, shared by every attempt in it.
+  async interpretation(input, attempt) {
+    const current = (await this.store.run(attempt.run_id)).interpretation;
     if (current) return current;
-    const key = `${karte.id}:${attempt.session_id}`;
+    const key = attempt.run_id;
     if (!this.interpretations.has(key)) {
       const controller = new AbortController();
-      const attempts = karte.seites.filter(seite => seite.status === 'loading').map(seite => seite.attempt_id);
-      const promise = this.provider.interpret(karte.selected_text, controller.signal, karte.id)
-        .then(value => this.store.establishInterpretation(karte.id, validateInterpretation(value), attempts));
+      const promise = this.provider.interpret(input.mainKey, controller.signal, input.pageId, input.context)
+        .then(value => this.store.establishInterpretation(key, validateInterpretation(value)));
       this.interpretations.set(key, { promise, controller });
       promise.finally(() => this.interpretations.delete(key)).catch(() => {});
     }
@@ -70,14 +71,15 @@ export class Generation {
 
   // Reservations keep a confirmed retry's destructive transition and its admission
   // together. They are held across the store transaction and consumed by start().
-  reserve() {
-    if (this.closed || this.occupied() >= this.maxActive + this.maxQueued) return null;
-    const reservation = {};
+  // A request is admitted whole or not at all, so it reserves every attempt it starts.
+  reserve(count = 1) {
+    if (this.closed || this.occupied() + count > this.maxActive + this.maxQueued) return null;
+    const reservation = { count };
     this.reservations.add(reservation);
     return reservation;
   }
   release(reservation) { if (reservation) this.reservations.delete(reservation); }
-  occupied() { return this.tasks.size + this.queue.length + this.reservations.size; }
+  occupied() { return this.tasks.size + this.queue.length + [...this.reservations].reduce((sum, { count }) => sum + count, 0); }
   record(event, category, attemptId, durationMs) {
     // Whitelist fields: selected text, generated output, prompts, tokens and provider
     // responses must never enter operational events.
@@ -96,8 +98,8 @@ export class Generation {
     return 'generation_failure';
   }
   admit(job, reservation) {
-    if (reservation && !this.reservations.has(reservation)) throw new Error('Generation reservation is invalid.');
-    if (reservation) this.reservations.delete(reservation);
+    if (reservation && (!this.reservations.has(reservation) || reservation.count < 1)) throw new Error('Generation reservation is invalid.');
+    if (reservation && --reservation.count === 0) this.reservations.delete(reservation);
     if (this.closed || (!reservation && this.occupied() >= this.maxActive + this.maxQueued)) return false;
     this.admitted++;
     if (this.tasks.size < this.maxActive && !this.queue.length) this.startActive(job);
@@ -115,13 +117,13 @@ export class Generation {
     const started = performance.now();
     this.record('started', 'active', job.attemptId, Math.round(started - job.admittedAt));
     const task = this.store.background(() => diagnosticContext.run(this.contexts.get(job.attemptId) ?? {}, () => this.execute(job, controller)));
-    this.tasks.set(job.attemptId, { task, controller, karteId: job.karteId, sessionId: job.sessionId });
+    this.tasks.set(job.attemptId, { task, controller, pageId: job.pageId, sessionId: job.sessionId });
     task.finally(() => {
       this.tasks.delete(job.attemptId);
       this.pump();
-      if (![...this.tasks.values()].some(task => task.karteId === job.karteId) &&
-        !this.queue.some(waiting => waiting.karteId === job.karteId)) {
-        for (const key of this.outputs.keys()) if (key.startsWith(`${job.karteId}:`)) this.outputs.delete(key);
+      if (![...this.tasks.values()].some(task => task.pageId === job.pageId) &&
+        !this.queue.some(waiting => waiting.pageId === job.pageId)) {
+        for (const key of this.outputs.keys()) if (key.startsWith(`${job.pageId}:`)) this.outputs.delete(key);
       }
       this.record('settled', controller.signal.aborted ? 'canceled' : job.outcome ?? 'finished', job.attemptId,
         Math.round(performance.now() - started));
@@ -129,33 +131,34 @@ export class Generation {
     }).catch(() => {});
   }
   async execute(job, controller) {
-    const { attemptId, karteId } = job;
+    const { attemptId, pageId } = job;
     let result;
     try {
       // Queued work can become obsolete before it reaches the active pool.
       const attempt = await this.store.attempt(attemptId);
       if (attempt.state !== 'loading' || attempt.result || controller.signal.aborted) return;
       await this.store.requireSession({ installationId: attempt.installation_id, sessionId: attempt.session_id, epoch: attempt.epoch });
-      const karte = await this.store.karte(karteId);
-      if (!karte.seites.some(seite => seite.attempt_id === attemptId && seite.status === 'loading') || controller.signal.aborted) return;
-      const needed = attempt.modules.some(module => module.type !== 'selected');
-      this.emit({ event: 'generation.input', attemptId, karteId, outcome: 'started', content: { selectedText: karte.selected_text } });
-      const interpretation = needed ? await this.interpretation(karte, attempt) : null;
+      const page = await this.store.page(pageId);
+      if (!page.components.some(component => component.attemptId === attemptId && component.status === 'loading') || controller.signal.aborted) return;
+      const text = kind => page.components.find(component => component.kind === kind);
+      const input = { pageId, mainKey: blockText(text('main_key').content), context: text('context') ? blockText(text('context').content) : undefined };
+      this.emit({ event: 'generation.input', attemptId, pageId, componentId: attempt.component_id, outcome: 'started', content: { selectedText: input.mainKey } });
+      const interpretation = attempt.module.type !== 'selected' ? await this.interpretation(input, attempt) : null;
       if (controller.signal.aborted) return;
-      const text = await renderSeite({
-        selectedText: karte.selected_text, modules: attempt.modules, interpretation,
-        generate: input => this.provider.generate({ ...input, sessionId: karte.id }, controller.signal),
+      const output = await generateComponent({
+        mainKey: input.mainKey, module: attempt.module, interpretation,
+        generate: request => this.provider.generate({ ...request, context: input.context, sessionId: pageId }, controller.signal),
         claimOutput: (type, output) => {
           if (!['german-examples', 'sentence-usage'].includes(type)) return true;
-          const key = `${karte.id}:${type}`;
+          const key = `${pageId}:${type}`;
           const seen = this.outputs.get(key) ?? new Set();
           if (seen.has(output)) return false;
           seen.add(output); this.outputs.set(key, seen); return true;
         }
       });
       if (controller.signal.aborted) return;
-      result = { ok: true, text };
-      this.emit({ event: 'generation.output', attemptId, karteId, outcome: 'succeeded', content: { output: text } });
+      result = { ok: true, text: output };
+      this.emit({ event: 'generation.output', attemptId, pageId, componentId: attempt.component_id, outcome: 'succeeded', content: { output } });
     } catch (error) {
       job.outcome = 'failed';
       const category = this.category(error, controller);
@@ -178,16 +181,17 @@ export class Generation {
       else { job.outcome = 'failed'; this.failedResults.add(attemptId); this.record('failed', 'persistence_failure', attemptId); }
     }
   }
-  async start(karteId, seiteId, { reservation } = {}) {
-    const karte = await this.store.karte(karteId);
-    for (const seite of karte.seites) {
-      if (seiteId && seite.seite_id !== seiteId) continue;
-      if (seite.status !== 'loading' || this.tasks.has(seite.attempt_id) ||
-        this.queue.some(job => job.attemptId === seite.attempt_id)) continue;
-      const attempt = await this.store.attempt(seite.attempt_id);
+  // Admits the page's loading attempts, or only those listed.
+  async start(pageId, attemptIds, { reservation } = {}) {
+    const page = await this.store.page(pageId);
+    for (const component of page.components) {
+      if (attemptIds && !attemptIds.includes(component.attemptId)) continue;
+      if (component.status !== 'loading' || this.tasks.has(component.attemptId) ||
+        this.queue.some(job => job.attemptId === component.attemptId)) continue;
+      const attempt = await this.store.attempt(component.attemptId);
       if (attempt.result) continue;
-      this.contexts.set(attempt.id, { ...diagnosticContext.getStore(), karteId, seiteId: seite.seite_id, attemptId: attempt.id });
-      if (!this.admit({ attemptId: attempt.id, karteId, sessionId: attempt.session_id, admittedAt: performance.now() }, reservation)) {
+      this.contexts.set(attempt.id, { ...diagnosticContext.getStore(), pageId, componentId: component.id, attemptId: attempt.id });
+      if (!this.admit({ attemptId: attempt.id, pageId, sessionId: attempt.session_id, admittedAt: performance.now() }, reservation)) {
         this.rejected++;
         await this.store.failAttempt(attempt.id);
         this.record('rejected', 'generation_busy', attempt.id);
@@ -214,7 +218,7 @@ export class Generation {
     });
     for (const [id, { controller }] of this.tasks) if (!ids.has(id)) controller.abort();
     for (const [key, { controller }] of this.interpretations) {
-      if (!active.some(attempt => `${attempt.karte_id}:${attempt.session_id}` === key)) controller.abort();
+      if (!active.some(attempt => attempt.run_id === key)) controller.abort();
     }
     this.pump();
   }

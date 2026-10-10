@@ -1,8 +1,7 @@
-import { currentHash } from '@vocabularium/contracts';
 import { readLocal } from './recovery.js';
 import { initializeFeedback } from './feedback-dashboard.js';
 import { initializeTheme } from './theme.js';
-import { karteViews } from './kartes.js';
+import { pageViews } from './pages.js';
 import { ConfigurationView, newDeckDraft } from './configuration.tsx';
 import { createElement } from 'react';
 import { flushSync } from 'react-dom';
@@ -20,18 +19,10 @@ let signedIn = false;
 let renderVersion = 0;
 let viewRoot;
 let nextError;
-let currentKarteDetail, currentDeckDetail;
+let currentPageDetail, currentDeckDetail;
 /** @type {DeckEditorDraft | undefined} */
 let configuration;
-function viewAccount(value) {
-  if (Array.isArray(value?.recentKartes)) return value;
-  const kartes = value?.kartes ?? [];
-  return { ...value, recentKartes: kartes.filter(karte => karte.selected_text !== null).slice(0, 20),
-    decks: value.decks.map(deck => ({ ...deck, seiteCount: deck.seites.length,
-      karteCount: kartes.filter(karte => karte.deck_id === deck.id).length })),
-    defaultDeckSnapshot: value.decks.find(deck => deck.id === value.defaultDeckId),
-    nextCursor: null, sequence: value.sequence ?? 0 };
-}
+const viewAccount = value => ({ ...value, pages: value.pages ?? [] });
 
 const element = (tag, text, className) => {
   const node = document.createElement(tag);
@@ -49,7 +40,7 @@ async function send(message) {
   if (result.error) throw Object.assign(new Error(result.error), { code: result.code, details: result.details });
   return result;
 }
-const loadKartes = (deckId, order, cursor) => send({ type: 'deck-kartes', deckId, order, cursor });
+const loadPages = (deckId, order, cursor) => send({ type: 'deck-pages', deckId, order, cursor });
 const loadDecks = cursor => send({ type: 'deck-page', cursor });
 function showError(error) {
   if (viewRoot) {
@@ -63,7 +54,7 @@ function showError(error) {
 }
 function login() {
   signedIn = false; account = undefined; actions.replaceChildren();
-  currentKarteDetail = undefined; currentDeckDetail = undefined;
+  currentPageDetail = undefined; currentDeckDetail = undefined;
   if (viewRoot) { viewRoot.unmount(); viewRoot = undefined; }
   const section = element('section', undefined, 'login');
   section.append(element('p', 'A home for the language you discover', 'eyebrow'), element('h1', 'Welcome back.'), element('p', 'Sign in to open your decks and saved vocabulary.', 'muted'));
@@ -85,7 +76,7 @@ function login() {
   };
   section.append(form); app.replaceChildren(section);
 }
-const karteUI = karteViews({ getAccount: () => account, send, showError,
+const pageUI = pageViews({ getAccount: () => account, send, showError,
   renderView: (Component, props) => {
     if (!viewRoot) viewRoot = createRoot(app);
     flushSync(() => viewRoot.render(createElement(Component, props)));
@@ -94,25 +85,21 @@ const karteUI = karteViews({ getAccount: () => account, send, showError,
   navigate: hash => { location.hash = hash; },
   applyState: async (next, redraw = true) => { account = next.account; signedIn = next.signedIn; if (redraw) await render(); }
 });
-const normalizeNavigation = () => {
-  const current = currentHash(location.hash);
-  if (current !== location.hash) history.replaceState(null, '', location.pathname + current);
-};
-normalizeNavigation();
 let lastHash = location.hash;
 async function render() {
   const focusedMenu = document.activeElement?.dataset.deckOptions;
-  const active = document.activeElement?.id === 'seite-content' ? { start: document.activeElement.selectionStart, end: document.activeElement.selectionEnd } : null;
+  const focused = document.activeElement;
+  const active = focused?.closest?.('.page-components') && 'selectionStart' in focused ? { id: focused.id, start: focused.selectionStart, end: focused.selectionEnd } : null;
   const version = ++renderVersion;
   const local = await readLocal(null);
   if (version !== renderVersion) return;
   if (!signedIn) { login(); return; }
-  // Render account kartes and capture receipts from the same storage snapshot.
+  // Render account pages and capture receipts from the same storage snapshot.
   if (local.account) account = viewAccount(local.account);
   actions.replaceChildren(button('Log out', async () => {
-    try { if (!await karteUI.leave()) return; await send({ type: 'logout' }); location.hash = ''; login(); } catch (error) { showError(error); }
+    try { if (!await pageUI.leave()) return; await send({ type: 'logout' }); location.hash = ''; login(); } catch (error) { showError(error); }
   }));
-  actions.append(button('Diagnostic logs', async () => { if (await karteUI.leave()) location.hash = 'diagnostics'; }));
+  actions.append(button('Diagnostic logs', async () => { if (await pageUI.leave()) location.hash = 'diagnostics'; }));
   if (location.hash === '#diagnostics') {
     if (viewRoot) { viewRoot.unmount(); viewRoot = undefined; }
     await diagnosticSettings({ send, root: app, navigate: hash => { location.hash = hash; } }); return;
@@ -126,7 +113,7 @@ async function render() {
       catch (error) { showError(error); location.hash = ''; return; }
       if (version !== renderVersion) return;
       if (!deck) { location.hash = ''; return; }
-      configuration = { route: configId, deck: structuredClone(deck), baseSeiteIds: deck.id ? deck.seites.map(seite => seite.id) : [], selectedSeite: deck.seites[0].id };
+      configuration = { route: configId, deck: structuredClone({ ...(deck.id ? { id: deck.id } : {}), name: deck.name, modules: deck.modules, view: deck.view }) };
     }
     if (!viewRoot) viewRoot = createRoot(app);
     const error = nextError; nextError = undefined;
@@ -140,19 +127,19 @@ async function render() {
     })));
     return;
   }
-  const karteRoute = location.hash.startsWith('#karte/') || location.hash.startsWith('#new-karte/');
-  if (!karteRoute) {
+  const pageRoute = location.hash.startsWith('#page/') || location.hash.startsWith('#new-page/');
+  if (!pageRoute) {
     if (deckId && !account.decks.some(deck => deck.id === deckId)) {
       try {
         const detail = await send({ type: 'deck-detail', deckId });
         if (version !== renderVersion) return;
-        account = { ...account, decks: [...account.decks, { ...detail, seiteCount: detail.seites.length, karteCount: 0 }] };
+        account = { ...account, decks: [...account.decks, { ...detail, moduleCount: detail.modules.length, pageCount: 0 }] };
       } catch (error) { showError(error); location.hash = ''; return; }
     }
     if (!viewRoot) viewRoot = createRoot(app);
     const error = nextError; nextError = undefined;
     flushSync(() => viewRoot.render(createElement(Dashboard, {
-      account, local, deckId, focusedMenu, showPendingSaves: !karteUI.isEditing(), error, loadKartes, loadDecks,
+      account, local, deckId, focusedMenu, showPendingSaves: !pageUI.isEditing(), error, loadPages, loadDecks,
       navigate: hash => { location.hash = hash; },
       configure: id => { configuration = undefined; location.hash = `configure/${id}`; },
       mutate: async command => {
@@ -164,35 +151,34 @@ async function render() {
     return;
   }
   const [, routeId] = location.hash.split('/');
-  let detail, karte;
+  let detail, page;
   try {
-    if (location.hash.startsWith('#karte/')) {
-      karte = await send({ type: 'karte-detail', karteId: routeId });
-      detail = await send({ type: 'deck-detail', deckId: karte.deck_id });
+    if (location.hash.startsWith('#page/')) {
+      page = await send({ type: 'page-detail', pageId: routeId });
+      detail = await send({ type: 'deck-detail', deckId: page.deckId });
     } else detail = await send({ type: 'deck-detail', deckId: routeId });
-    currentKarteDetail = karte; currentDeckDetail = detail;
+    currentPageDetail = page; currentDeckDetail = detail;
   } catch (error) {
     if (error.code !== 'deleted') nextError = error.message;
-    if (error.code === 'deleted') { currentKarteDetail = undefined; currentDeckDetail = undefined; }
-    karte = currentKarteDetail?.id === routeId ? currentKarteDetail : undefined;
-    detail = currentDeckDetail?.id === (karte?.deck_id ?? routeId) ? currentDeckDetail
+    if (error.code === 'deleted') { currentPageDetail = undefined; currentDeckDetail = undefined; }
+    page = currentPageDetail?.id === routeId ? currentPageDetail : undefined;
+    detail = currentDeckDetail?.id === (page?.deckId ?? routeId) ? currentDeckDetail
       : account.defaultDeckSnapshot?.id === routeId ? account.defaultDeckSnapshot : undefined;
   }
   if (version !== renderVersion) return;
-  account = { ...account, kartes: karte ? [karte] : [], decks: detail
+  account = { ...account, pages: page ? [page] : [], decks: detail
     ? [...account.decks.filter(deck => deck.id !== detail.id), detail] : account.decks };
   const error = nextError; nextError = undefined;
-  karteUI.render(location.hash, local, error);
+  pageUI.render(location.hash, local, error);
   if (focusedMenu) [...app.querySelectorAll('[data-deck-options]')].find(node => node.dataset.deckOptions === focusedMenu)?.focus();
-  if (active) { const input = document.querySelector('#seite-content'); input?.focus(); input?.setSelectionRange(active.start, active.end); }
+  if (active?.id) { const input = document.getElementById(active.id); input?.focus(); input?.setSelectionRange?.(active.start, active.end); }
 }
 
 window.addEventListener('hashchange', async () => {
-  normalizeNavigation();
   const target = location.hash;
-  if (karteUI.isEditing() && !karteUI.matches(target)) {
+  if (pageUI.isEditing() && !pageUI.matches(target)) {
     history.replaceState(null, '', location.pathname + lastHash);
-    if (!await karteUI.leave()) return;
+    if (!await pageUI.leave()) return;
     history.replaceState(null, '', location.pathname + target);
   }
   lastHash = location.hash;

@@ -8,7 +8,7 @@ const options = {};
 for (let index = 0; index < args.length; index++) {
   const name = args[index];
   if (name === '--offline') { options.offline = true; continue; }
-  const key = { '--from': 'from', '--to': 'to', '--operation-id': 'operationId', '--request-id': 'requestId', '--karte-id': 'karteId', '--attempt-id': 'attemptId', '--limit': 'limit' }[name];
+  const key = { '--from': 'from', '--to': 'to', '--operation-id': 'operationId', '--request-id': 'requestId', '--page-id': 'pageId', '--attempt-id': 'attemptId', '--limit': 'limit' }[name];
   if (!key || !args[index + 1]) throw new Error('Unknown or incomplete log filter.');
   options[key] = args[++index];
 }
@@ -31,7 +31,7 @@ if (offline) {
   }
   const range = filter.from || filter.to ? timeRange(filter) : undefined;
   const matches = events.filter(event => (!range || withinRange(event.occurredAt, range)) &&
-    ['operationId', 'requestId', 'karteId', 'attemptId'].every(key => !filter[key] || event[key] === filter[key]));
+    ['operationId', 'requestId', 'pageId', 'attemptId'].every(key => !filter[key] || event[key] === filter[key]));
   result = command === 'status' ? { offline: true, bytes, incomplete, entries: events.length }
     : { offline: true, events: matches.sort((a, b) => a.occurredAt.localeCompare(b.occurredAt)).slice(-limit) };
 } else {

@@ -6,26 +6,23 @@ import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { Generation } from '../src/server/generation.mjs';
 import { OpenCodeProvider } from '../src/server/opencode.mjs';
-import { renderSeite } from '../src/core/modules.mjs';
+import { generateComponents } from '@vocabularium/domain/modules';
+import { confirmed, generated, text, textBlocks, useModules } from './helpers/pages.mjs';
 
 const session = { installationId: 'test-installation', sessionId: 'test-browser', epoch: 1 };
 const word = { inputType: 'word_phrase', sourceLanguage: 'Chinese' };
 const sentence = { inputType: 'sentence', sourceLanguage: 'Chinese' };
 const modules = (...types) => types.map(type => ({ id: randomUUID(), type }));
-async function fixture(t, provider, layout) {
+// Without explicit types the deck mirrors the old two-seite default: exact selection, then explanation.
+async function fixture(t, provider, types = ['selected', 'german-examples'], options) {
   const store = await createTestStore(t);
-  if (layout) {
-    const deck = await store.snapshot();
-    deck.seites = layout.map((types, index) => ({ id: index ? randomUUID() : deck.seites[0].id, modules: modules(...types) }));
-    await store.saveDeck('fixture-layout', { deck });
-  }
-  const generation = await Generation.create(store, provider);
+  await useModules(store, types);
+  const generation = await Generation.create(store, provider, options);
   await store.openSession('open', session);
   t.after(async () => { await generation.close(); await store.close(); });
-  async function capture(text = '幸福') {
-    const payload = { session, selectedText: text, snapshot: (await store.snapshot()) };
-    const result = await store.capture(randomUUID(), payload);
-    await generation.start(result.karteId); return await store.karte(result.karteId);
+  async function capture(mainKey = '幸福') {
+    const result = await store.capture(randomUUID(), { session, mainKey, snapshot: (await store.snapshot()) });
+    await generation.start(result.pageId); return await store.page(result.pageId);
   }
   return { store, generation, capture };
 }
@@ -36,12 +33,13 @@ async function finish(store, generation) {
     await store.publish(randomUUID(), { attemptId: attempt.id, session });
   }
 }
+const outcome = async (store, page) => generated(await store.page(page.id)).map(item => [text(item), item.status]);
+const retryComponent = (store, id, page, index, retrySession = session) =>
+  confirmed(store, id, { pageId: page.id, target: { scope: 'component', componentId: generated(page)[index].id }, session: retrySession });
 
-test('bounded generation queues seite attempts and fails an overloaded saved capture without provider work', async t => {
+test('bounded generation queues component attempts and fails an overloaded saved capture without provider work', async t => {
   const store = await createTestStore(t);
-  const deck = await store.snapshot();
-  deck.seites = [{ id: deck.seites[0].id, modules: modules('german-explanation') }];
-  await store.saveDeck('one-page-layout', { deck });
+  await useModules(store, ['german-explanation']);
   await store.openSession('open', session);
   let releaseFirst, firstStarted;
   const started = new Promise(resolve => { firstStarted = resolve; });
@@ -64,31 +62,31 @@ test('bounded generation queues seite attempts and fails an overloaded saved cap
   } });
   t.after(async () => { await generation.close(); await store.close(); });
   const capture = async id => {
-    const { karteId } = await store.capture(id, { session, selectedText: 'private selection', snapshot: await store.snapshot() });
-    await generation.start(karteId);
-    return store.karte(karteId);
+    const { pageId } = await store.capture(id, { session, mainKey: 'private selection', snapshot: await store.snapshot() });
+    await generation.start(pageId);
+    return store.page(pageId);
   };
   const first = await capture('first');
   await started;
   const second = await capture('second');
-  secondAttemptId = second.seites[0].attempt_id;
+  secondAttemptId = generated(second)[0].attemptId;
   const third = await capture('third');
   assert.equal(generation.tasks.size, 1);
   assert.equal(generation.queue.length, 1);
   assert.equal(calls, 1);
-  assert.equal(third.seites[0].status, 'failed');
-  assert.equal((await store.karte(third.id)).status, 'failed');
+  assert.equal(generated(await store.page(third.id))[0].status, 'failed');
+  assert.equal((await store.page(third.id)).status, 'failed');
   assert.equal(events.some(event => event.category === 'generation_busy' && event.event === 'rejected'), true);
   assert.equal(JSON.stringify(events).includes('private selection'), false);
   releaseFirst(word);
   await settled;
   assert.equal(calls, 2, 'only admitted captures contacted the provider');
-  assert.equal((await store.karte(first.id)).seites[0].status, 'loading', 'publication remains explicit');
+  assert.equal((await store.page(first.id)).status, 'loading', 'publication remains explicit');
   await finish(store, generation);
-  assert.equal((await store.karte(second.id)).status, 'completed');
+  assert.equal((await store.page(second.id)).status, 'completed');
 });
 
-test('a busy confirmed Retry returns 429 and preserves seite text and attempt identity', async t => {
+test('a busy confirmed Retry returns 429 and preserves component content and attempt identity', async t => {
   let release, started;
   let interpretations = 0;
   const providerStarted = new Promise(resolve => { started = resolve; });
@@ -104,50 +102,62 @@ test('a busy confirmed Retry returns 429 and preserves seite text and attempt id
   });
   t.after(() => application.close());
   const { store, generation } = application;
-  const deck = await store.snapshot();
-  deck.seites = [{ id: deck.seites[0].id, modules: modules('german-explanation') }];
-  await store.saveDeck('one-page-layout', { deck });
+  await useModules(store, ['german-explanation']);
   await store.openSession('open', session);
   const snapshot = await store.snapshot();
-  const targetId = (await store.capture('target', { session, selectedText: 'target', snapshot })).karteId;
-  const target = await store.karte(targetId);
-  await store.failAttempt(target.seites[0].attempt_id);
-  await store.saveSeites('manual-edit', { karteId: targetId, changes: [{ seiteId: target.seites[0].seite_id, text: 'preserve me' }] });
-  const busyId = (await store.capture('busy', { session, selectedText: 'busy', snapshot })).karteId;
+  const targetId = (await store.capture('target', { session, mainKey: 'target', snapshot })).pageId;
+  const target = generated(await store.page(targetId))[0];
+  await store.failAttempt(target.attemptId);
+  await store.savePage('manual-edit', { pageId: targetId, changes: [{ componentId: target.id, content: textBlocks('preserve me') }] });
+  const busyId = (await store.capture('busy', { session, mainKey: 'busy', snapshot })).pageId;
   await generation.start(busyId);
   await providerStarted;
   const url = await application.start({ port: 0 });
   const login = await fetch(url + '/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ username: 'admin', password: 'admin' }) }).then(response => response.json());
-  const response = await fetch(url + '/api/karte/retry', { method: 'POST', headers: {
+  const retry = (operationId, confirmation) => fetch(url + '/api/page/generate', { method: 'POST', headers: {
     'Content-Type': 'application/json', Authorization: `Bearer ${login.token}`
-  }, body: JSON.stringify({ operationId: 'busy-retry', payload: { karteId: targetId, seiteId: target.seites[0].seite_id, session } }) });
+  }, body: JSON.stringify({ operationId, payload: { pageId: targetId, target: { scope: 'component', componentId: target.id }, session, confirmation } }) });
+  const unconfirmed = await retry('busy-retry');
+  assert.equal(unconfirmed.status, 409);
+  const { code, details: { confirmation } } = await unconfirmed.json();
+  assert.equal(code, 'confirmation_required');
+  const response = await retry('busy-retry', confirmation);
   assert.equal(response.status, 429);
   assert.equal((await response.json()).code, 'generation_busy');
   assert.equal(await store.database.transaction(() => store.database.one(
     'SELECT operation_id FROM receipts WHERE operation_id = $1', ['busy-retry'])), undefined);
-  const after = await store.karte(targetId);
-  assert.equal(after.seites[0].text, 'preserve me');
-  assert.equal(after.seites[0].attempt_id, target.seites[0].attempt_id);
-  assert.equal(after.seites[0].status, 'failed');
+  const after = generated(await store.page(targetId))[0];
+  assert.equal(text(after), 'preserve me');
+  assert.equal(after.attemptId, target.attemptId);
+  assert.equal(after.status, 'failed');
   release(word);
   await Promise.all([...generation.tasks.values()].map(item => item.task));
   await generation.cancelObsolete();
-  const accepted = await fetch(url + '/api/karte/retry', { method: 'POST', headers: {
-    'Content-Type': 'application/json', Authorization: `Bearer ${login.token}`
-  }, body: JSON.stringify({ operationId: 'fresh-retry', payload: { karteId: targetId, seiteId: target.seites[0].seite_id, session } }) });
+  const accepted = await retry('fresh-retry', confirmation);
   assert.equal(accepted.status, 200);
-  const retried = await store.karte(targetId);
-  assert.equal(retried.seites[0].text, '');
-  assert.equal(retried.seites[0].status, 'loading');
-  assert.notEqual(retried.seites[0].attempt_id, target.seites[0].attempt_id);
+  const retried = generated(await store.page(targetId))[0];
+  assert.equal(text(retried), '');
+  assert.equal(retried.status, 'loading');
+  assert.notEqual(retried.attemptId, target.attemptId);
+});
+
+test('a multi-component request reserves all its slots or none', async t => {
+  const pending = (_text, signal) => new Promise((_, reject) => signal.addEventListener('abort', () => reject(signal.reason), { once: true }));
+  const { generation, capture } = await fixture(t, { interpret: pending, generate: async () => 'x' }, ['german-explanation'], { maxActive: 1, maxQueued: 2 });
+  await capture();
+  assert.equal(generation.occupied(), 1);
+  assert.equal(generation.reserve(3), null);
+  const reservation = generation.reserve(2);
+  assert.ok(reservation);
+  assert.equal(generation.reserve(1), null);
+  generation.release(reservation);
+  assert.ok(generation.reserve(2));
 });
 
 test('session invalidation aborts active interpretation and removes queued work', async t => {
   const store = await createTestStore(t);
-  const deck = await store.snapshot();
-  deck.seites = [{ id: deck.seites[0].id, modules: modules('german-explanation') }];
-  await store.saveDeck('one-page-layout', { deck });
+  await useModules(store, ['german-explanation']);
   await store.openSession('open', session);
   let started, aborted = 0, calls = 0;
   const providerStarted = new Promise(resolve => { started = resolve; });
@@ -162,9 +172,9 @@ test('session invalidation aborts active interpretation and removes queued work'
   }, { maxActive: 1, maxQueued: 1 });
   t.after(async () => { await generation.close(); await store.close(); });
   const capture = async id => {
-    const { karteId } = await store.capture(id, { session, selectedText: 'word', snapshot: await store.snapshot() });
-    await generation.start(karteId);
-    return karteId;
+    const { pageId } = await store.capture(id, { session, mainKey: 'word', snapshot: await store.snapshot() });
+    await generation.start(pageId);
+    return pageId;
   };
   const first = await capture('first');
   await providerStarted;
@@ -176,20 +186,15 @@ test('session invalidation aborts active interpretation and removes queued work'
   assert.equal(aborted, 1);
   assert.equal(calls, 1, 'the queued attempt never contacted the provider');
   assert.equal(generation.queue.length, 0);
-  assert.equal((await store.karte(first)).status, 'failed');
-  assert.equal((await store.karte(second)).status, 'failed');
+  assert.equal((await store.page(first)).status, 'failed');
+  assert.equal((await store.page(second)).status, 'failed');
 });
 
-test('an obsolete interpretation is canceled even when the same karte has a new-session retry', async t => {
-  const store = await createTestStore(t);
-  const deck = await store.snapshot();
-  deck.seites = [{ id: deck.seites[0].id, modules: modules('german-explanation') }];
-  await store.saveDeck('one-page-layout', { deck });
-  await store.openSession('open', session);
+test('an obsolete interpretation is canceled even when the same page has a new-session retry', async t => {
   const signals = [], releases = [], started = [];
   const firstStarted = new Promise(resolve => { started[0] = resolve; });
   const secondStarted = new Promise(resolve => { started[1] = resolve; });
-  const generation = await Generation.create(store, {
+  const { store, generation, capture } = await fixture(t, {
     interpret: (_text, signal) => {
       const index = signals.push(signal) - 1;
       return new Promise((resolve, reject) => {
@@ -197,16 +202,13 @@ test('an obsolete interpretation is canceled even when the same karte has a new-
         signal.addEventListener('abort', () => reject(signal.reason), { once: true });
       });
     }, generate: async () => 'generated text'
-  }, { maxActive: 2, maxQueued: 0 });
-  t.after(async () => { await generation.close(); await store.close(); });
-  const { karteId } = await store.capture('capture', { session, selectedText: 'word', snapshot: await store.snapshot() });
-  await generation.start(karteId);
+  }, ['german-explanation'], { maxActive: 2, maxQueued: 0 });
+  const page = await capture('word');
   await firstStarted;
-  const seiteId = (await store.karte(karteId)).seites[0].seite_id;
   const nextSession = { ...session, sessionId: 'next-browser', epoch: 2 };
   await store.openSession('next', nextSession);
-  await store.retry('retry', { karteId, seiteId, session: nextSession });
-  await generation.start(karteId, seiteId);
+  const { attemptIds } = await retryComponent(store, 'retry', await store.page(page.id), 0, nextSession);
+  await generation.start(page.id, attemptIds);
   await secondStarted;
   await generation.cancelObsolete();
   assert.equal(signals[0].aborted, true);
@@ -216,60 +218,56 @@ test('an obsolete interpretation is canceled even when the same karte has a new-
 });
 
 test('diagnostic failures cannot turn an admitted saved capture into a failed request', async t => {
-  const store = await createTestStore(t);
-  await store.openSession('open', session);
-  const generation = await Generation.create(store, { interpret: async () => word, generate: async () => 'text' },
+  const { store, generation, capture } = await fixture(t, { interpret: async () => word, generate: async () => 'text' }, undefined,
     { diagnostic: () => { throw new Error('logger unavailable'); } });
-  t.after(async () => { await generation.close(); await store.close(); });
-  const { karteId } = await store.capture('capture', { session, selectedText: 'word', snapshot: await store.snapshot() });
-  await generation.start(karteId);
+  const page = await capture('word');
   await finish(store, generation);
-  assert.equal((await store.karte(karteId)).status, 'completed');
+  assert.equal((await store.page(page.id)).status, 'completed');
 });
 
-test('modules preserve exact input, order, literal markers, and skip inapplicable output without separators', async () => {
-  const text = '  幸福\n';
-  const output = await renderSeite({
-    selectedText: text, modules: modules('selected', 'sentence-usage', 'selected-language', 'german-explanation'), interpretation: word,
+test('modules preserve exact input and literal markers, and inapplicable instances complete empty', async () => {
+  const input = '  幸福\n';
+  const outcomes = await generateComponents({
+    mainKey: input, modules: modules('selected', 'sentence-usage', 'selected-language', 'german-explanation'), interpretation: word,
     generate: async () => '== Chinesisch ==\n: [1] Glück'
   });
-  assert.equal(output, `${text}\n\n${text}\nChinese\n\n== Chinesisch ==\n: [1] Glück`);
-  assert.equal(await renderSeite({ selectedText: text, modules: [], generate: () => assert.fail() }), '');
+  assert.deepEqual(outcomes.map(item => item.text), [input, '', `${input}\nChinese`, '== Chinesisch ==\n: [1] Glück']);
 });
 
-test('one shared interpretation, atomic seites, selected-only output survives a failed dependent seite', async (t) => {
+test('one shared interpretation per run; components fail independently', async (t) => {
   let interpretations = 0;
   const { store, generation, capture } = await fixture(t, {
     interpret: async () => { interpretations++; return word; },
     generate: async ({ module }) => { if (module.type === 'german-examples') throw Error('controlled failure'); return 'explanation'; }
-  }, [['selected'], ['selected', 'german-explanation', 'german-examples'], ['selected-language']]);
-  const karte = await capture();
-  assert.equal((await store.karte(karte.id)).status, 'loading');
+  }, ['selected', 'german-explanation', 'german-examples', 'selected-language']);
+  const page = await capture();
+  assert.equal((await store.page(page.id)).status, 'loading');
   await finish(store, generation);
-  const saved = await store.karte(karte.id);
   assert.equal(interpretations, 1);
-  assert.equal(saved.status, 'failed');
-  assert.deepEqual(saved.seites.map(page => [page.text, page.status]), [['幸福', 'completed'], ['', 'failed'], ['幸福\nChinese', 'completed']]);
-  assert.deepEqual(saved.interpretation, word);
+  assert.equal((await store.page(page.id)).status, 'failed');
+  assert.deepEqual(await outcome(store, page), [['幸福', 'completed'], ['explanation', 'completed'], ['', 'failed'], ['幸福\nChinese', 'completed']]);
+  assert.deepEqual((await store.run((await store.attempt(generated(page)[1].attemptId)).run_id)).interpretation, word);
 });
 
-test('initial sentence completes an empty second seite without generating an explanation', async (t) => {
+test('initial sentence completes the explanation component empty without generating it', async (t) => {
   const { store, generation, capture } = await fixture(t, { interpret: async () => sentence, generate: async () => assert.fail('inapplicable module ran') });
-  const karte = await capture('我真的很幸福'); await finish(store, generation);
-  assert.deepEqual((await store.karte(karte.id)).seites.map(page => [page.text, page.status]), [['我真的很幸福', 'completed'], ['', 'completed']]);
+  const page = await capture('我真的很幸福'); await finish(store, generation);
+  assert.deepEqual(await outcome(store, page), [['我真的很幸福', 'completed'], ['', 'completed']]);
 });
 
-test('interpretation failure fails dependent seites, while exact selection and empty seites need no provider', async (t) => {
-  const { store, generation, capture } = await fixture(t, { interpret: async () => { throw Error('unavailable'); } }, [['selected'], [], ['selected-language']]);
-  const karte = await capture(); await finish(store, generation);
-  assert.deepEqual((await store.karte(karte.id)).seites.map(page => page.status), ['completed', 'completed', 'failed']);
+test('interpretation failure fails dependent components, while exact selection needs no provider', async (t) => {
+  const { store, generation, capture } = await fixture(t, { interpret: async () => { throw Error('unavailable'); } }, ['selected', 'selected-language']);
+  const page = await capture(); await finish(store, generation);
+  assert.deepEqual((await outcome(store, page)).map(([, status]) => status), ['completed', 'failed']);
 });
 
-test('repeated example modules request fresh output and fail the whole seite if distinct output cannot be produced', async (t) => {
+test('repeated example modules request fresh output; a component that cannot get distinct output fails alone', async (t) => {
   let calls = 0;
-  const { store, generation, capture } = await fixture(t, { interpret: async () => sentence, generate: async () => { calls++; return 'same example'; } }, [['sentence-usage', 'sentence-usage']]);
-  const karte = await capture(); await finish(store, generation);
-  assert.equal(calls, 4); assert.equal((await store.karte(karte.id)).seites[0].text, ''); assert.equal((await store.karte(karte.id)).status, 'failed');
+  const { store, generation, capture } = await fixture(t, { interpret: async () => sentence, generate: async () => { calls++; return 'same example'; } }, ['sentence-usage', 'sentence-usage']);
+  const page = await capture(); await finish(store, generation);
+  assert.equal(calls, 4);
+  assert.deepEqual(await outcome(store, page), [['same example', 'completed'], ['', 'failed']]);
+  assert.equal((await store.page(page.id)).status, 'failed');
 });
 
 test('a provider resolving after abort cannot stage output from an interrupted browser session', async (t) => {
@@ -278,61 +276,54 @@ test('a provider resolving after abort cannot stage output from an interrupted b
   const { store, generation, capture } = await fixture(t, { interpret: (_text, providerSignal) => new Promise(resolve => {
     signal = providerSignal; release = resolve; started();
   }), generate: async () => 'late' });
-  const karte = await capture();
+  const page = await capture();
   await providerStarted;
-  const oldAttemptId = karte.seites[1].attempt_id;
+  const old = generated(page)[1];
   const nextSession = { ...session, sessionId: 'new-browser', epoch: 2 };
   await store.openSession('reopen', nextSession);
-  await store.retry('retry', { karteId: karte.id, seiteId: karte.seites[1].seite_id, session: nextSession });
+  await retryComponent(store, 'retry', await store.page(page.id), 1, nextSession);
   await generation.cancelObsolete();
   assert.equal(signal.aborted, true);
   release(word);
   await Promise.all([...generation.tasks.values()].map(item => item.task));
-  assert.equal((await store.karte(karte.id)).interpretation, null);
-  assert.equal((await store.karte(karte.id)).seites[1].status, 'loading');
-  assert.equal((await store.attempt(oldAttemptId)).result, null);
-  assert.equal(generation.pendingResults.has(oldAttemptId), false);
+  assert.equal((await store.run((await store.attempt(old.attemptId)).run_id)).interpretation, null);
+  assert.equal(generated(await store.page(page.id))[1].status, 'loading');
+  assert.equal((await store.attempt(old.attemptId)).result, null);
+  assert.equal(generation.pendingResults.has(old.attemptId), false);
 });
 
 test('a late module response after cancellation is discarded before result staging', async t => {
-  const store = await createTestStore(t);
-  const deck = await store.snapshot();
-  deck.seites = [{ id: deck.seites[0].id, modules: modules('german-explanation') }];
-  await store.saveDeck('one-page-layout', { deck });
-  await store.openSession('open', session);
   let release, started, providerSignal;
   const providerStarted = new Promise(resolve => { started = resolve; });
-  const generation = await Generation.create(store, {
+  const { store, generation, capture } = await fixture(t, {
     interpret: async () => word,
     generate: (_input, signal) => new Promise(resolve => {
       providerSignal = signal; release = resolve; started();
     })
-  });
-  t.after(async () => { await generation.close(); await store.close(); });
-  const { karteId } = await store.capture('capture', { session, selectedText: 'word', snapshot: await store.snapshot() });
-  await generation.start(karteId);
+  }, ['german-explanation']);
+  const page = await capture('word');
   await providerStarted;
-  const attemptId = (await store.karte(karteId)).seites[0].attempt_id;
+  const { attemptId } = generated(page)[0];
   await store.openSession('next', { ...session, sessionId: 'next-browser', epoch: 2 });
   await generation.cancelObsolete();
   assert.equal(providerSignal.aborted, true);
   release('late generated output');
   await Promise.all([...generation.tasks.values()].map(item => item.task));
   assert.equal((await store.attempt(attemptId)).result, null);
-  assert.equal((await store.karte(karteId)).seites[0].status, 'failed');
+  assert.equal(generated(await store.page(page.id))[0].status, 'failed');
   assert.equal(generation.pendingResults.has(attemptId), false);
 });
 
 test('an unsaved capture recovered after browser closure saves one failed record without restarting generation', async (t) => {
   const { store } = await fixture(t, {});
-  const payload = { session, selectedText: 'original', snapshot: (await store.snapshot()) };
+  const payload = { session, mainKey: 'original', snapshot: (await store.snapshot()) };
   const next = { ...session, sessionId: 'new-browser', epoch: 2 };
   await store.openSession('reopen', next);
   const saved = await store.capture('old-capture', payload, { recoverySession: next });
   assert.equal(saved.interrupted, true);
-  assert.equal((await store.karte(saved.karteId)).status, 'failed');
-  assert.equal((await store.capture('old-capture', payload, { recoverySession: next })).karteId, saved.karteId);
-  assert.equal((await store.kartes()).length, 1);
+  assert.equal((await store.page(saved.pageId)).status, 'failed');
+  assert.equal((await store.capture('old-capture', payload, { recoverySession: next })).pageId, saved.pageId);
+  assert.equal((await store.pages()).length, 1);
 });
 
 function completion(content, finish_reason = 'stop', extra = {}) {
@@ -392,6 +383,11 @@ test('OpenCode preserves module context and literal multiline output; rejects em
     }
   });
   assert.equal(await provider.generate(input), output);
+  const withContext = new OpenCodeProvider({ apiKey: 'test-only', fetchImpl: async (_, options) => {
+    assert.equal(JSON.parse(JSON.parse(options.body).messages[1].content).context, 'surrounding text');
+    return Response.json(completion(JSON.stringify({ text: output })));
+  } });
+  assert.equal(await withContext.generate({ ...input, context: 'surrounding text' }), output);
   for (const value of [{ text: '' }, { text: ' ' }, { text: 7 }, { text: output, extra: 'ignored?' }, {}]) {
     provider.fetch = async () => Response.json(completion(JSON.stringify(value)));
     await assert.rejects(provider.generate(input), /invalid result/);
@@ -421,7 +417,7 @@ test('OpenCode aborts in-flight requests when their generation is canceled', asy
   await assert.rejects(pending, { name: 'AbortError' });
 });
 
-test('Go requests share a stable conversation per karte across interpretation, modules, and retry', async (t) => {
+test('Go requests share a stable conversation per page; each retry interprets again', async (t) => {
   const sessions = [];
   const provider = new OpenCodeProvider({
     apiKey: 'test-only', fetchImpl: async (_, options) => {
@@ -433,12 +429,23 @@ test('Go requests share a stable conversation per karte across interpretation, m
   const { store, generation, capture } = await fixture(t, provider);
   const first = await capture(); await finish(store, generation);
   assert.deepEqual(sessions, [first.id, first.id]);
-  await store.retry('retry-go-page', { karteId: first.id, seiteId: first.seites[1].seite_id, session });
-  await generation.start(first.id, first.seites[1].seite_id); await finish(store, generation);
-  assert.deepEqual(sessions, [first.id, first.id, first.id]);
+  const { attemptIds } = await retryComponent(store, 'retry-go', await store.page(first.id), 1);
+  await generation.start(first.id, attemptIds); await finish(store, generation);
+  assert.deepEqual(sessions, Array(4).fill(first.id));
   const second = await capture(); await finish(store, generation);
-  assert.deepEqual(sessions.slice(3), [second.id, second.id]);
+  assert.deepEqual(sessions.slice(4), [second.id, second.id]);
   assert.notEqual(first.id, second.id);
+});
+
+test('generation passes the saved Context to interpretation and modules', async (t) => {
+  const seen = [];
+  const { store, generation } = await fixture(t, {
+    interpret: async (mainKey, _signal, _session, context) => { seen.push(['interpret', mainKey, context]); return word; },
+    generate: async ({ selectedText, context }) => { seen.push(['generate', selectedText, context]); return 'explained'; }
+  }, ['german-explanation']);
+  const { pageId } = await store.capture('with-context', { session, mainKey: 'Bismarck', context: 'Otto von Bismarck, chancellor', snapshot: await store.snapshot() });
+  await generation.start(pageId); await finish(store, generation);
+  assert.deepEqual(seen, [['interpret', 'Bismarck', 'Otto von Bismarck, chancellor'], ['generate', 'Bismarck', 'Otto von Bismarck, chancellor']]);
 });
 
 test('authenticated capture saves before generation, repeats safely, and publishes only from its origin', async (t) => {
@@ -452,36 +459,36 @@ test('authenticated capture saves before generation, repeats safely, and publish
     return { status: response.status, body: await response.json() };
   };
   await post('/api/session', { operationId: 'open', session });
-  const payload = { session, selectedText: '幸福', snapshot: (await application.store.snapshot()) };
+  const payload = { session, mainKey: '幸福', snapshot: (await application.store.snapshot()) };
   const captured = await post('/api/capture', { operationId: 'capture', payload });
-  assert.equal(captured.status, 200); assert.equal((await application.store.kartes()).length, 1);
-  assert.equal((await application.store.karte(captured.body.karteId)).status, 'loading');
+  assert.equal(captured.status, 200); assert.equal((await application.store.pages()).length, 1);
+  assert.equal((await application.store.page(captured.body.pageId)).status, 'loading');
   assert.equal((await post('/api/capture', { operationId: 'capture', payload })).body.replayed, true);
   release(word);
   await Promise.all([...application.generation.tasks.values()].map(item => item.task));
-  const polled = await post('/api/poll', { session }); assert.equal(polled.body.ready.length, 2);
+  const polled = await post('/api/poll', { session }); assert.equal(polled.body.ready.length, payload.snapshot.modules.length);
   for (const attemptId of polled.body.ready) assert.equal((await post('/api/publish', { operationId: `publish-${attemptId}`, payload: { attemptId, session } })).status, 200);
-  assert.equal((await application.store.karte(captured.body.karteId)).status, 'completed');
+  assert.equal((await application.store.page(captured.body.pageId)).status, 'completed');
   assert.equal((await post('/api/capture', { operationId: 'invalid', payload: {} })).status, 400);
 });
 
 test('a failed result write retains the complete generated output for explicit save recovery without a new model call', async (t) => {
   let calls = 0;
-  const { store, generation, capture } = await fixture(t, { interpret: async () => word, generate: async () => { calls++; return 'complete generated seite'; } });
+  const { store, generation, capture } = await fixture(t, { interpret: async () => word, generate: async () => { calls++; return 'complete generated text'; } });
   const stage = store.stage.bind(store);
   let failWrite = true;
-  store.stage = (id, result) => { if (failWrite && result.text === 'complete generated seite') throw Error('controlled disk write failure'); return stage(id, result); };
-  const karte = await capture();
+  store.stage = (id, result) => { if (failWrite && result.text === 'complete generated text') throw Error('controlled disk write failure'); return stage(id, result); };
+  const page = await capture();
   await Promise.all([...generation.tasks.values()].map(item => item.task));
-  const back = karte.seites[1];
-  assert.equal((await store.karte(karte.id)).seites[1].status, 'loading');
-  assert.deepEqual(generation.pendingResults.get(back.attempt_id), { ok: true, text: 'complete generated seite' });
-  assert.equal(generation.failedResults.has(back.attempt_id), true);
+  const back = generated(page)[1];
+  assert.equal(generated(await store.page(page.id))[1].status, 'loading');
+  assert.deepEqual(generation.pendingResults.get(back.attemptId), { ok: true, text: 'complete generated text' });
+  assert.equal(generation.failedResults.has(back.attemptId), true);
   failWrite = false;
-  await generation.saveResult(back.attempt_id, session);
-  assert.equal(generation.failedResults.has(back.attempt_id), false);
-  await store.publish('recover-output', { attemptId: back.attempt_id, session });
-  assert.equal((await store.karte(karte.id)).seites[1].text, 'complete generated seite'); assert.equal(calls, 1);
+  await generation.saveResult(back.attemptId, session);
+  assert.equal(generation.failedResults.has(back.attemptId), false);
+  await store.publish('recover-output', { attemptId: back.attemptId, session });
+  assert.equal(text(generated(await store.page(page.id))[1]), 'complete generated text'); assert.equal(calls, 1);
 });
 
 test('an in-progress result write does not advertise save recovery', async t => {
@@ -498,9 +505,9 @@ test('an in-progress result write does not advertise save recovery', async t => 
     }
     return stage(id, result);
   };
-  const karte = await capture();
+  const page = await capture();
   await started;
-  const attemptId = karte.seites[1].attempt_id;
+  const { attemptId } = generated(page)[1];
   assert.equal(generation.pendingResults.has(attemptId), true);
   assert.equal(generation.failedResults.has(attemptId), false);
   releaseStage();
@@ -517,17 +524,17 @@ test('the result recovery journal survives a failed database write and server re
   let generation = await Generation.create(store, { interpret: async () => word, generate: async () => { calls++; return 'journaled result'; } });
   t.after(async () => { await generation.close(); await store.close(); await rm(directory, { recursive: true, force: true }); });
   await store.openSession('open', session);
-  const { karteId } = await store.capture('capture', { session, selectedText: '幸福', snapshot: (await store.snapshot()) });
+  const { pageId } = await store.capture('capture', { session, mainKey: '幸福', snapshot: (await store.snapshot()) });
   const originalStage = store.stage.bind(store);
   store.stage = (id, result) => { if (result.text === 'journaled result') throw Error('database temporarily unavailable'); return originalStage(id, result); };
-  await generation.start(karteId);
+  await generation.start(pageId);
   await Promise.all([...generation.tasks.values()].map(item => item.task));
-  const attemptId = (await store.karte(karteId)).seites[1].attempt_id;
+  const { attemptId } = generated(await store.page(pageId))[0];
   assert.ok(generation.pendingResults.has(attemptId));
   await generation.close();
   await store.close();
   store = (await createTestStore(t, databaseKey)); generation = (await Generation.create(store, { interpret: async () => assert.fail(), generate: async () => assert.fail() }));
   assert.deepEqual((await store.attempt(attemptId)).result, { ok: true, text: 'journaled result' });
   await store.publish('recovered', { attemptId, session });
-  assert.equal((await store.karte(karteId)).seites[1].text, 'journaled result'); assert.equal(calls, 1);
+  assert.equal(text(generated(await store.page(pageId))[0]), 'journaled result'); assert.equal(calls, 1);
 });

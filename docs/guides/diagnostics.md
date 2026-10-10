@@ -9,7 +9,7 @@ Startup creates private `DATA_DIR/diagnostics` files. `DIAGNOSTIC_BUDGET_BYTES` 
 ```sh
 npm run logs -- status
 npm run logs -- inspect --operation-id <operation-id>
-npm run logs -- inspect --karte-id <karte-id> --limit 200
+npm run logs -- inspect --page-id <page-id> --limit 200
 npm run logs -- preview --from 2026-10-02T00:00:00Z --to 2026-10-02T23:59:59Z
 npm run logs -- clear --from 2026-10-02T00:00:00Z --to 2026-10-02T23:59:59Z
 ```
@@ -29,6 +29,6 @@ Offline access is read-only. Cleanup uses the running collector to coordinate wr
 
 Open **Diagnostic logs** in the signed-in header. Check central/local usage, content mode and degradation. The extension buffer budget defaults to 16 MiB and is adjustable from 0 to 1024 MiB on that installation; reducing it preserves existing records. UTC fields select a period; empty dates select all history through now. Preview before clearing. **Clear extension buffer only** is explicitly local and leaves central history intact.
 
-At capacity, existing evidence remains and new evidence may be missing. Clear an appropriate period to resume collection. Cleanup preserves kartes, drafts, pending saves and the generation outbox.
+At capacity, existing evidence remains and new evidence may be missing. Clear an appropriate period to resume collection. Cleanup preserves pages, drafts, pending saves and the generation outbox.
 
-Start an investigation with a time, karte or operation ID. Follow requests and generation attempts; distinguish provider response, staging and publication. Original occurrence and receipt times differ for offline uploads. Use identifiers for causal links and phase durations to explain latency. Diagnostic history does not replace product recovery journals.
+Start an investigation with a time, page or operation ID. Follow requests and generation attempts; distinguish provider response, staging and publication. Original occurrence and receipt times differ for offline uploads. Use identifiers for causal links and phase durations to explain latency. Diagnostic history does not replace product recovery journals.

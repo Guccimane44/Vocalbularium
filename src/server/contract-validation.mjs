@@ -1,10 +1,8 @@
 // @ts-check
 import Value from 'typebox/value';
-import { CapturePayloadSchema } from '@vocabularium/contracts';
+import { PageCapturePayloadSchema } from '@vocabularium/contracts';
 
-/** @typedef {import('@vocabularium/contracts').CapturePayload} CapturePayload */
-
-/** @param {unknown} value @returns {value is CapturePayload} */
+/** @param {unknown} value */
 export function isCapturePayload(value) {
-  return Value.Check(CapturePayloadSchema, value);
+  return Value.Check(PageCapturePayloadSchema, value);
 }
