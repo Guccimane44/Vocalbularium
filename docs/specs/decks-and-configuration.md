@@ -35,6 +35,6 @@ Every deck shows its pages through the default view. Choosing among several view
 
 ## Default deck
 
-Every account has exactly one default deck, the destination for capture. A new account starts with **My Deck** as its default deck. Its initial configuration is defined in [Select and Add](../MVP-Product-spec-select-and-add.md#initial-default-deck-example).
+Every account has exactly one default deck, the destination for capture. A new account starts with **My Deck** as its default deck. Its initial configuration is defined in [Select and Add](capture-and-generation.md#initial-default-deck-example).
 
 When the refactor is installed, existing decks and their pages are discarded. Each existing account starts again with one fresh default deck configured like a new account's.

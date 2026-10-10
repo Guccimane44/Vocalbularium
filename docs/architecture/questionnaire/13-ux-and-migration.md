@@ -19,7 +19,7 @@ Close with the two decisions that protect everything already built: a UI directi
 
 **Decision:** Target WCAG level, keyboard-only flows (capture → open → edit → retry without a mouse), and screen-reader behavior for component navigation and generation status.
 
-**Context:** Page rows, the page editor, deck settings, context menus, dialogs, and tooltips carry accessibility labels, renamed in the page/component refactor ([refactor plan](../../plans/page-component-refactor.md)). Sort, pagination, and generation states are user-visible and therefore screen-reader-visible.
+**Context:** Page rows, the page editor, deck settings, context menus, dialogs, and tooltips carry accessibility labels, renamed in the page/component refactor ([refactor plan](../../history/plans/page-component-refactor.md)). Sort, pagination, and generation states are user-visible and therefore screen-reader-visible.
 
 **Options:**
 - WCAG 2.2 AA with keyboard parity — the defensible baseline for a public product; needs an audit and a test pass per release.
@@ -47,7 +47,7 @@ Close with the two decisions that protect everything already built: a UI directi
 
 **Decision:** Retirement condition for: v0.3.0 data and pending saves/receipts, `karte-draft`/`card-draft` fallbacks, old `#card/` links, `/api/cards` aliases and legacy fields, old cursors and content-loss digests.
 
-**Context:** The boundary inventory requires preserving IDs, relationships, content, timestamps, outcomes, and operation IDs across the rename, with fingerprints pinned to original kinds/fields and replay converting on read ([terminology compatibility](../terminology-compatibility.md)). Retirement explicitly needs a later decision once old installs, pending ops, and saved links no longer need support — receipt compatibility lasts as long as historical receipts are retained.
+**Context:** The boundary inventory requires preserving IDs, relationships, content, timestamps, outcomes, and operation IDs across the rename, with fingerprints pinned to original kinds/fields and replay converting on read ([terminology compatibility](../../history/architecture/terminology-compatibility.md)). Retirement explicitly needs a later decision once old installs, pending ops, and saved links no longer need support — receipt compatibility lasts as long as historical receipts are retained.
 
 **Options:**
 - Keep until a dated release (e.g. "removed in 0.5.0") — predictable; forces client-upgrade pressure by the date.

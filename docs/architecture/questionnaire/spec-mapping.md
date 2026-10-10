@@ -66,7 +66,7 @@ These decisions concern the structure of the docs, not the product. They amend t
 The taxonomy record says current specs describe *accepted* behavior, [scope](../../product/scope.md) lists supported and deferred capabilities, and proposals stay in plans or issues. The answers reverse almost every item in scope's *Explicit deferrals* (multi-user accounts, web/Firefox clients, deck moves, review, store distribution, public hosting, quality evaluation, usage limits).
 *Decision:* once a decision record above is `Accepted`, its answers count as accepted behavior and enter the specs, even before implementation. [scope](../../product/scope.md) becomes a status ledger: each capability is marked `implemented`, `accepted for 1.0`, `post-1.0`, or `out at maturity` (Q04). Records still `Proposed` stay out of the specs.
 
-**R2. What happens to [Select and Add](../../MVP-Product-spec-select-and-add.md)?** *Settled by the taxonomy record.*
+**R2. What happens to [Select and Add](../../specs/capture-and-generation.md)?** *Settled by the taxonomy record.*
 Move it into [capture-and-generation](../../specs/capture-and-generation.md), keeping its authority over generation, failure, interruption and retry rules; other specs link to those rules instead of repeating them. Then rewrite it against Q08/Q09/Q24/Q25/Q46–Q51/Q56. Remaining choice: leave a redirect stub or move the old file to `docs/history/`.
 
 **R3. Which new docs are needed?** The taxonomy record allows a new document only when it has real content. These answers have no home in it:
@@ -76,14 +76,14 @@ Move it into [capture-and-generation](../../specs/capture-and-generation.md), ke
 - Search and organization (Q37, Q54): fold into [decks-and-configuration](../../specs/decks-and-configuration.md), or create `specs/library.md`.
 - Cost and quota (Q48, Q65): fold into capture-and-generation, or create `architecture/cost-and-limits.md`.
 
-**R4. Should locked decisions become ADRs?** [decisions/](../decisions/README.md) is empty. Load-bearing choices could be recorded as ADRs: Q18 hosted hub, Q22 Vercel serverless, Q23 Neon, Q25 PG queue, Q35 shared-table tenancy. The specs would then link to the ADRs instead of restating the reasoning.
+**R4. Should locked decisions become ADRs?** There is no ADR folder yet. Load-bearing choices could be recorded as ADRs: Q18 hosted hub, Q22 Vercel serverless, Q23 Neon, Q25 PG queue, Q35 shared-table tenancy. The specs would then link to the ADRs instead of restating the reasoning.
 
 
 ---
 
 ## Map by question
 
-Link paths are relative to this file. *S&A* is [Select and Add](../../MVP-Product-spec-select-and-add.md).
+Link paths are relative to this file. *S&A* is [Select and Add](../../specs/capture-and-generation.md).
 
 ### 01 Maturity and scope
 
@@ -99,10 +99,10 @@ Link paths are relative to this file. *S&A* is [Select and Add](../../MVP-Produc
 
 | Q | Answer (short) | Target docs | Change | Status |
 | --- | --- | --- | --- | --- |
-| Q06 | 1.0: Chrome, Firefox, hosted web. Post-1.0: Safari, iOS, desktop hotkey. Out: audio/YouTube | scope, [architecture overview](../overview.md) | 1.0 client list; lift the web-client deferral, keep mobile and hotkey deferred | ready |
+| Q06 | 1.0: Chrome, Firefox, hosted web. Post-1.0: Safari, iOS, desktop hotkey. Out: audio/YouTube | scope, architecture overview (`docs/architecture/overview.md`, not yet written) | 1.0 client list; lift the web-client deferral, keep mobile and hotkey deferred | ready |
 | Q07 | Standard payload (selected text + editable Context, ~500 chars, deck toggle); URL/title dropped | [pages-and-editing](../../specs/pages-and-editing.md) §Context, S&A §Capture scenario | Done: capture with Context as a deck setting, implemented in 0.4.1. The owner dropped URL/title (no generation value); the page's `createdAt` is the timestamp (10 October 2026). Remaining: retention rule (K7) | partial (K7) |
 | Q08 | Fire-and-forget default; terminal-only progress. The opt-in result popup is deferred (owner, 10 October 2026) | S&A §Capture-feedback popup → capture-and-generation, [shared-ui](../../specs/shared-ui.md) | Fire-and-forget matches 0.4.1 (Capture received popup, Retry in the page editor). The result popup waits for its own design | partial (popup deferred) |
-| Q09 | Best-effort queue: captures + saves survive restart; generation does not | capture-and-generation, [persistence-and-recovery](../persistence-and-recovery.md) | Define the client queue; reverses the "no automatic resubmission" deferral | ready (K2) |
+| Q09 | Best-effort queue: captures + saves survive restart; generation does not | capture-and-generation, persistence-and-recovery (`docs/architecture/persistence-and-recovery.md`, not yet written) | Define the client queue; reverses the "no automatic resubmission" deferral | ready (K2) |
 | Q10 | Session + installation ID; no anonymous use; event-driven refresh; capture tokens deferred | accounts-and-sync, overview | Installation registry, results published to the originating installation, polling demoted to fallback | ready |
 
 ### 03 Frontend
@@ -112,9 +112,9 @@ Link paths are relative to this file. *S&A* is [Select and Add](../../MVP-Produc
 | Q11 | Shared packages + two shells; inline module descriptions | overview, shared-ui, modules | Package/shell boundary; module description surface; web-shell routing (see the Notion routing Q&A). Per-component generation already lives in `packages/domain` (0.4.0) | ready |
 | Q12 | Explicit Save/Cancel | pages-and-editing | Confirms current behavior | no change |
 | Q13 | Block JSON at 1.0, per component (Q72) | shared-ui, pages-and-editing, modules, model §Component | Done in 0.4.0: each component's content is stored as a versioned block document (plain-text paragraph blocks). Remaining: block editor; modules emit typed blocks | partial |
-| Q14 | N−1 compatibility window, online-required, retire legacy terms, `incarnationId`, UX messages; Q72 retires both card/page and karte/seite | [terminology-compatibility](../terminology-compatibility.md) (historical; becomes API versioning and compatibility), shared-ui, overview | Done in 0.4.0: legacy dialects, `X-Vocabularium-Terminology` and old draft fallbacks retired. Remaining: `GET /api/meta` gate, N−1 window, `incarnationId` reset detection, error messages | partial |
-| Q15 | Browser-store auto-update (Chrome + Firefox) | [delivery](../../guides/delivery.md) | Replace manual unpacked delivery for users | ready |
-| Q16 | WCAG 2.2 AA (Q68); capture receipt <1 s p95 warm; dashboard <2 s at 5k pages | shared-ui, overview (budgets), [verification](../../guides/verification.md) | Accessibility floor and latency targets as release checks | ready |
+| Q14 | N−1 compatibility window, online-required, retire legacy terms, `incarnationId`, UX messages; Q72 retires both card/page and karte/seite | [terminology-compatibility](../../history/architecture/terminology-compatibility.md) (historical; becomes API versioning and compatibility), shared-ui, overview | Done in 0.4.0: legacy dialects, `X-Vocabularium-Terminology` and old draft fallbacks retired. Remaining: `GET /api/meta` gate, N−1 window, `incarnationId` reset detection, error messages | partial |
+| Q15 | Browser-store auto-update (Chrome + Firefox) | delivery (`docs/guides/delivery.md`, not yet written) | Replace manual unpacked delivery for users | ready |
+| Q16 | WCAG 2.2 AA (Q68); capture receipt <1 s p95 warm; dashboard <2 s at 5k pages | shared-ui, overview (budgets), verification (`docs/guides/verification.md`, not yet written) | Accessibility floor and latency targets as release checks | ready |
 
 ### 04 Identity and sync
 
@@ -148,7 +148,7 @@ Link paths are relative to this file. *S&A* is [Select and Add](../../MVP-Produc
 | Q32 | True move, full-carry copy, trash + restore + 30-day purge; carries components, next retry uses the target deck's configuration (Q72) | decks-and-configuration, pages-and-editing, scope, persistence-and-recovery | New capability; drop the move/copy deferral | ready (K15) |
 | Q33 | Current content only; append-only usage ledger per provider call (component generation or interpretation) | model §Generation attempt, persistence-and-recovery, capture-and-generation | Remove attempt history; define the usage ledger | ready (K7) |
 | Q34 | At most 12 content modules per deck (Q72); view limits with view modules | decks-and-configuration | 12-instance limit in decks-and-configuration and the schema | implemented (0.4.0) |
-| Q72 | Deck → page → component; live configuration; default view only; content discarded on upgrade | model, pages-and-editing, decks-and-configuration, modules, capture-and-generation, S&A, scope, [AGENTS.md](../../../AGENTS.md) | Specs in [increment 1](../../plans/page-component-refactor.md#1-product-language-and-specifications-docs-only); code in increments 2–6 ([#81](https://github.com/Guccimane44/Vocalbularium/issues/81)). Later work: card and other view modules | implemented (0.4.0) |
+| Q72 | Deck → page → component; live configuration; default view only; content discarded on upgrade | model, pages-and-editing, decks-and-configuration, modules, capture-and-generation, S&A, scope, [AGENTS.md](../../../AGENTS.md) | Specs in [increment 1](../../history/plans/page-component-refactor.md#1-product-language-and-specifications-docs-only); code in increments 2–6 ([#81](https://github.com/Guccimane44/Vocalbularium/issues/81)). Later work: card and other view modules | implemented (0.4.0) |
 
 ### 07 Database
 
@@ -174,7 +174,7 @@ Link paths are relative to this file. *S&A* is [Select and Add](../../MVP-Produc
 | Q46 | Pinned single model | capture-and-generation, overview | — | ready (K4) |
 | Q47 | Prompts in code, versioned with releases | capture-and-generation | — | ready |
 | Q48 | Metered, with usage visible to the user; unit is one provider call, interpretation included | capture-and-generation, shared-ui | Usage counter and display; counting rules; "quota reached" message | ready |
-| Q49 | Owner-reviewed golden set per module; runs before module ships and before prompt changes | modules §Design contract, [verification](../../guides/verification.md) | Golden-set fixture format, run script, review checklist | ready |
+| Q49 | Owner-reviewed golden set per module; runs before module ships and before prompt changes | modules §Design contract, verification (`docs/guides/verification.md`, not yet written) | Golden-set fixture format, run script, review checklist | ready |
 | Q50 | Explicit user retry of a component or page; invisible bounded retry for transport/timeout only | S&A §Retry → capture-and-generation | Failure classes and which ones auto-retry | ready |
 | Q51 | Delimit + validate | capture-and-generation, security-and-privacy | Fenced input, JSON schema, length caps | ready |
 
@@ -196,7 +196,7 @@ Link paths are relative to this file. *S&A* is [Select and Add](../../MVP-Produc
 | Q58 | Delegated identity at 1.0; server sessions, CSRF, throttling | security-and-privacy, accounts-and-sync | Secrets placement; OAuth state and passkey challenge checks | ready (K13) |
 | Q59 | Per-module render contracts (allowlisted block types, escaped text) | security-and-privacy, shared-ui, modules | Render allowlist and block schemas | ready |
 | Q60 | Generation-only external processing; minimal data; user deletion | security-and-privacy, capture-and-generation | Privacy promise | ready (K3) |
-| Q61 | Store-minimum + GDPR baseline | security-and-privacy, [delivery](../../guides/delivery.md) (pre-launch checklist) | DPAs, provider list, cascading deletion, breach process, legal review | ready (K4, K7) |
+| Q61 | Store-minimum + GDPR baseline | security-and-privacy, delivery (`docs/guides/delivery.md`, not yet written) (pre-launch checklist) | DPAs, provider list, cascading deletion, breach process, legal review | ready (K4, K7) |
 
 ### 12 Operations
 
@@ -216,7 +216,7 @@ Link paths are relative to this file. *S&A* is [Select and Add](../../MVP-Produc
 | Q68 | WCAG 2.2 AA + keyboard parity, audited per release | shared-ui, verification | Audit step per release | ready |
 | Q69 | English-only UI | shared-ui | — | ready (K10) |
 | Q70 | Retire v0.3.0 compatibility immediately | terminology-compatibility (historical), [AGENTS.md](../../../AGENTS.md) | Done in 0.4.0 with Q72: v0.3.0+ content, receipts, dialects and draft fallbacks removed; AGENTS.md keeps recovery for data created after the refactor only. Notion terminology decision Superseded | implemented (0.4.0) |
-| Q71 | Vertical slices on a contract-first foundation; 7-step order (step 2's main key + Context shipped in 0.4.x) | [v0.5.0 plan](../../plans/v0.5.0.md) | Roadmap after 0.4.x | ready |
+| Q71 | Vertical slices on a contract-first foundation; 7-step order (step 2's main key + Context shipped in 0.4.x) | v0.5.0 plan (`docs/plans/v0.5.0.md`, not yet written) | Roadmap after 0.4.x | ready |
 
 
 ---
@@ -237,17 +237,17 @@ Use this view to refactor one document at a time.
 | [specs/modules](../../specs/modules.md) | Q05, Q11, Q13, Q45, Q49, Q72, Q40–Q44 (deferred) | Content and view module kinds and composition (Q45, Q72; done) |
 | [specs/shared-ui](../../specs/shared-ui.md) *(empty)* | Q08, Q11, Q13, Q14, Q16, Q30, Q48, Q55, Q56, Q59, Q63, Q67, Q68, Q69 | |
 | `specs/review` *(new, R3)* | Q52, Q53 | |
-| [MVP Select and Add](../../MVP-Product-spec-select-and-add.md) | Q07, Q08, Q24, Q25, Q31 (superseded), Q50, Q72 | Move or retire (R2) |
-| [architecture/overview](../overview.md) *(empty)* | Q06, Q10, Q11, Q14, Q18, Q22, Q23, Q25, Q28, Q35, Q46, Q55 | |
-| [architecture/persistence-and-recovery](../persistence-and-recovery.md) *(empty)* | Q09, Q19, Q22–Q24, Q26, Q32, Q33, Q35, Q36, Q38, Q39, Q66 | |
+| [MVP Select and Add](../../specs/capture-and-generation.md) | Q07, Q08, Q24, Q25, Q31 (superseded), Q50, Q72 | Move or retire (R2) |
+| architecture/overview (`docs/architecture/overview.md`, not yet written) *(empty)* | Q06, Q10, Q11, Q14, Q18, Q22, Q23, Q25, Q28, Q35, Q46, Q55 | |
+| architecture/persistence-and-recovery (`docs/architecture/persistence-and-recovery.md`, not yet written) *(empty)* | Q09, Q19, Q22–Q24, Q26, Q32, Q33, Q35, Q36, Q38, Q39, Q66 | |
 | [architecture/observability](../observability.md) | Q39, Q62, Q63 | Approved local diagnostics spec; split into development mode and hosted rules (C13) |
 | `architecture/security-and-privacy` *(new, R3)* | Q39, Q51, Q57–Q61 | |
-| [architecture/terminology-compatibility](../terminology-compatibility.md) | Q14, Q27, Q70 | Historical since Q72; its successor documents API versioning and compatibility |
+| [architecture/terminology-compatibility](../../history/architecture/terminology-compatibility.md) | Q14, Q27, Q70 | Historical since Q72; its successor documents API versioning and compatibility |
 | [architecture/local-postgresql](../local-postgresql.md) | Q18, Q22 | Development-only |
 | [api/openapi.json](../../api/openapi.json) | Q27 | `/v1/` |
-| [guides/delivery](../../guides/delivery.md) | Q15, Q36, Q64 | |
-| [guides/verification](../../guides/verification.md) | Q49, Q68 | |
+| guides/delivery (`docs/guides/delivery.md`, not yet written) | Q15, Q36, Q64 | |
+| guides/verification (`docs/guides/verification.md`, not yet written) | Q49, Q68 | |
 | [guides/project-workflow](../../guides/project-workflow.md) | Q05 | |
-| [plans/v0.5.0](../../plans/v0.5.0.md) *(empty)* | Q71 | Renamed from `v0.4.0.md`, since 0.4.0 shipped the page/component refactor |
+| plans/v0.5.0 (`docs/plans/v0.5.0.md`, not yet written) *(empty)* | Q71 | Renamed from `v0.4.0.md`, since 0.4.0 shipped the page/component refactor |
 | [AGENTS.md](../../../AGENTS.md) | Q70, Q72 | Terminology section |
-| [plans/page-component-refactor](../../plans/page-component-refactor.md) | Q72 | Approved plan and increments |
+| [plans/page-component-refactor](../../history/plans/page-component-refactor.md) | Q72 | Approved plan and increments |

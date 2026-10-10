@@ -32,7 +32,7 @@ Operations is how the system behaves when nobody is watching: what you can see, 
 
 **Decision:** Manual unpacked install, Chrome Web Store auto-update, or both — with the backend-before-extension ordering enforced how?
 
-**Context:** Manual flow is documented (extract, Load unpacked, pin, sign in `admin`/`admin`); updates replace files in place and Reload, ending that installation's generation session; backend migrations run with the API stopped before the new extension connects, and 0.4.x backend and extension upgrade together ([windows-install](../../guides/windows-install.md), [scope](../../product/scope.md#upgrade-from-earlier-builds)). CI produces localhost artifacts that must not be handed to hosted-origin users (Deliver skill).
+**Context:** Manual flow is documented (extract, Load unpacked, pin, sign in `admin`/`admin`); updates replace files in place and Reload, ending that installation's generation session; backend migrations run with the API stopped before the new extension connects, and 0.4.x backend and extension upgrade together ([windows-install](../../history/guides/windows-install.md), [scope](../../product/scope.md#upgrade-from-earlier-builds)). CI produces localhost artifacts that must not be handed to hosted-origin users (Deliver skill).
 
 **Options:**
 - Manual only — full control per install; every user repeats the ordering dance.
@@ -58,7 +58,7 @@ Operations is how the system behaves when nobody is watching: what you can see, 
 
 **Decision:** RPO (max data loss) and RTO (max downtime) for captures, pages, and generation outcomes — plus the Render Free caveat if it still applies.
 
-**Context:** Stopping the API never stops Postgres or removes data, but the manual cluster-start does not survive machine reboot; Render Free explicitly may erase test decks, sessions, and pending results on sleep/restart/redeploy ([local-postgresql](../local-postgresql.md), [windows-install](../../guides/windows-install.md)). No SLA exists.
+**Context:** Stopping the API never stops Postgres or removes data, but the manual cluster-start does not survive machine reboot; Render Free explicitly may erase test decks, sessions, and pending results on sleep/restart/redeploy ([local-postgresql](../local-postgresql.md), [windows-install](../../history/guides/windows-install.md)). No SLA exists.
 
 **Options:**
 - Best-effort local (backups when remembered) — honest for owner-test; unacceptable the moment anyone else depends on it.

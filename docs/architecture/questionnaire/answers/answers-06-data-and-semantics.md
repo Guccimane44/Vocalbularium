@@ -27,7 +27,7 @@ Opt-in interpretation (resolves C5 in the [traceability map](../../traceability-
 ### Q31
 
 **Superseded 10 October 2026 by [Q72](#q72):** pages don't pin a layout. Generation and every retry use the deck's live configuration, and configuration changes never touch existing pages until the user retries. The answer below is kept for history.
-Versioned layouts: each karte pins its deck layout revision at capture (or manual creation). Deck-configuration edits apply to newly created kartes only — never a bulk rewrite of existing kartes. Viewing and generation again on an existing karte use its pinned layout; the live configuration is a template for new kartes. Spec: [kartes-and-editing](../../../specs/pages-and-editing.md), [Select and Add](../../../MVP-Product-spec-select-and-add.md#capture-scenario).
+Versioned layouts: each karte pins its deck layout revision at capture (or manual creation). Deck-configuration edits apply to newly created kartes only — never a bulk rewrite of existing kartes. Viewing and generation again on an existing karte use its pinned layout; the live configuration is a template for new kartes. Spec: [kartes-and-editing](../../../specs/pages-and-editing.md), [Select and Add](../../../specs/capture-and-generation.md#capture-scenario).
 
 ### Q32
 
@@ -56,7 +56,7 @@ Keep 1–4 seites + bounded modules — preserves current editor, layout, and mi
 
 ### Q72
 
-Decided by the owner on 9 October 2026 and revised and approved on 10 October 2026: components on the live configuration, with views. Implemented in release 0.4.0 ([#81](https://github.com/Guccimane44/Vocalbularium/issues/81)); Notion status Implemented. Notion: [decision record](https://app.notion.com/p/3f4bb1350208812e8085ffd751302842). Full plan: [deck → page → component refactor](../../../plans/page-component-refactor.md).
+Decided by the owner on 9 October 2026 and revised and approved on 10 October 2026: components on the live configuration, with views. Implemented in release 0.4.0 ([#81](https://github.com/Guccimane44/Vocalbularium/issues/81)); Notion status Implemented. Notion: [decision record](https://app.notion.com/p/3f4bb1350208812e8085ffd751302842). Full plan: [deck → page → component refactor](../../../history/plans/page-component-refactor.md).
 
 - **Model:** a deck contains pages. A page is an ordered list of components: the main key (required), Context (optional), and one component per content module instance in the deck configuration. Users may add manual text components that generation never touches.
 - **Generation:** each content module produces or replaces only its own component. Retry targets one component or the whole page and uses only the main key, Context and the deck's current configuration. It replaces the targeted content, including the user's edits, after confirmation. Capture generates automatically; manual creation never does.

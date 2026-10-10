@@ -45,7 +45,7 @@ The frontend is the extension dashboard, editors, and any future web client. Dec
 
 **Decision:** What does the client do when the backend is older/newer, unreachable, or reset (Render Free wipe)?
 
-**Context:** Stale-client recovery after a backend reset is explicitly untested (issue #24). Release 0.4.0 retired the card/page and karte/seite dialects and the `X-Vocabularium-Terminology` negotiation; extensions older than 0.4.0 stop working against the new backend, and no version gate tells the user why ([scope](../../product/scope.md#upgrade-from-earlier-builds)). The Windows guide warns that Render resets erase sessions and data ([windows-install](../../guides/windows-install.md)).
+**Context:** Stale-client recovery after a backend reset is explicitly untested (issue #24). Release 0.4.0 retired the card/page and karte/seite dialects and the `X-Vocabularium-Terminology` negotiation; extensions older than 0.4.0 stop working against the new backend, and no version gate tells the user why ([scope](../../product/scope.md#upgrade-from-earlier-builds)). The Windows guide warns that Render resets erase sessions and data ([windows-install](../../history/guides/windows-install.md)).
 
 **Options:**
 - Version gate (client refuses mismatched backend with a clear message) — safest data-wise; annoys users during upgrades.
@@ -58,7 +58,7 @@ The frontend is the extension dashboard, editors, and any future web client. Dec
 
 **Decision:** Manual unpacked install forever, Chrome Web Store auto-update, or both? And what is the backend-before-extension ordering guarantee?
 
-**Context:** Current delivery is manual: replace files, press Reload, reopen dashboard tabs; extension reload ends that installation's generation session ([windows-install](../../guides/windows-install.md)). Backend schema changes require API-stopped migration before the new extension connects, and 0.4.x backend and extension must be upgraded together ([local-postgresql](../local-postgresql.md), [scope](../../product/scope.md#upgrade-from-earlier-builds)).
+**Context:** Current delivery is manual: replace files, press Reload, reopen dashboard tabs; extension reload ends that installation's generation session ([windows-install](../../history/guides/windows-install.md)). Backend schema changes require API-stopped migration before the new extension connects, and 0.4.x backend and extension must be upgraded together ([local-postgresql](../local-postgresql.md), [scope](../../product/scope.md#upgrade-from-earlier-builds)).
 
 **Options:**
 - Manual only — full control, zero store review; every user performs the backend-then-extension dance by hand.

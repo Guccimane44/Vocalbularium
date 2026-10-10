@@ -20,7 +20,7 @@ The commands below already exist. Confirm them against the checkout when using t
 | Changed area | Starting point |
 | --- | --- |
 | Documents or skill instructions | `npm run check`, changed links, and any applicable skill validation; no product browser run solely for prose |
-| Account, store, modules, generation, decks, pages (kartes in current code) | Relevant files in `tests/`; `npm test` for shared logic or a complete backend regression pass |
+| Account, store, modules, generation, decks, pages | Relevant files in `tests/`; `npm test` for shared logic or a complete backend regression pass |
 | PostgreSQL, migrations, operation ordering, recovery journal | Relevant scenarios in `tests/postgres.test.mjs` and related store/generation tests; use the local guide for backup/restore rehearsals when those operations are in scope |
 | Bounded lists, sorting, read routes, cursors | `tests/reads.test.mjs` and the affected browser list scenarios |
 | Upgrade compatibility | `tests/upgrade.test.mjs`, `tests/extension.test.mjs`, and the upgrade scenario in `tests/app.browser.test.mjs` |
@@ -30,7 +30,7 @@ The commands below already exist. Confirm them against the checkout when using t
 
 Test the changed behavior first, then broaden when shared invariants, failures, or required CI justify it. For changes spanning UI, storage, or extension/backend boundaries, exercise the affected user journey through the existing browser harness or an appropriate browser smoke check. Unit tests alone do not verify an integrated flow. Local product browser tests use the real extension, API, and disposable PostgreSQL databases with controlled generation providers; identify those substitutes and any uncovered behavior. A browser smoke check is distinct from automated E2E regression coverage.
 
-Use [current scope](../../../docs/product/scope.md) to separate supported behavior from accepted requirements awaiting implementation. Use [Select and Add](../../../docs/MVP-Product-spec-select-and-add.md) for capture, interruption, component completion, retry, and save recovery (its [seite baseline](../../../docs/history/v0.3.0-select-and-add.md) for the running build), and the [refactor plan](../../../docs/plans/page-component-refactor.md) for upgrades. For store changes, check the affected ordering, replay, component identity, and cross-installation behavior. Add a regression scenario for a meaningful bug or new behavior, not a test that merely mirrors changed wording or implementation.
+Use [current scope](../../../docs/product/scope.md) to separate supported behavior from accepted requirements awaiting implementation. Use [capture and generation](../../../docs/specs/capture-and-generation.md) for capture, interruption, component completion, retry, and save recovery, and [scope](../../../docs/product/scope.md#upgrade-from-earlier-builds) for upgrades. For store changes, check the affected ordering, replay, component identity, and cross-installation behavior. Add a regression scenario for a meaningful bug or new behavior, not a test that merely mirrors changed wording or implementation.
 
 Read `.github/workflows/verify.yml` for required CI. Database/browser suites currently run on Linux with PostgreSQL; Windows and Linux foundation jobs cover syntax/type checks, extension-worker checks, building, and packaging. Green Windows packaging does not establish native Windows PostgreSQL/browser behavior.
 

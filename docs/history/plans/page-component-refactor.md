@@ -1,5 +1,7 @@
 # Refactor: deck → page → component
 
+> **Historical, 10 October 2026.** Release 0.4.0 implemented this plan and [#81](https://github.com/Guccimane44/Vocalbularium/issues/81) is closed. The status line below is the plan's state when it was approved.
+
 Proposed: 9 October 2026 (Europe/Berlin). Revised 10 October 2026: views follow the Notion model, the old karte design becomes a future **card** view module, and view modules other than the **default view** are out of scope. The owner accepted every recommendation (D1–D8) and waived preservation of existing content: decks and kartes are discarded and the product starts empty. Status: **approved by the owner on 10 October 2026**. Notion: [decision record](https://app.notion.com/p/3f4bb1350208812e8085ffd751302842) (Accepted). No implementation yet.
 
 Supersedes the deck → karte → seite hierarchy in the [0.3.0+ terminology plan](v0.3.0-plus-terminology-migration.md) and the answers that depend on it (see [superseded decisions](#superseded-and-affected-decisions)).
@@ -26,13 +28,13 @@ Out of scope, with no design or implementation work until the owner starts it:
 - **View modules other than the default view**, including the card view module, several views per deck, switching views, and a views editor. Until they exist, every page is shown in the default view.
 - Hiding or deleting individual components on a page.
 
-**Existing content is not preserved.** The owner decided on 10 October 2026 that the decks and kartes created so far have no value. The upgrade discards all content (decks, kartes, seites, layouts, attempts, receipts) and the product starts empty. Accounts, credentials, installations and sign-in stay, so the owner doesn't sign up again. This overrides the data-preservation rule in [AGENTS.md](../../AGENTS.md) for this refactor only.
+**Existing content is not preserved.** The owner decided on 10 October 2026 that the decks and kartes created so far have no value. The upgrade discards all content (decks, kartes, seites, layouts, attempts, receipts) and the product starts empty. Accounts, credentials, installations and sign-in stay, so the owner doesn't sign up again. This overrides the data-preservation rule in [AGENTS.md](../../../AGENTS.md) for this refactor only.
 
 ## Superseded and affected decisions
 
 | Record | Current text | Change |
 | --- | --- | --- |
-| Q31 pinned layouts ([answers-06](../architecture/questionnaire/answers/answers-06-data-and-semantics.md), Notion "Karte data model", Proposed) | each karte pins its layout revision | Superseded by decision 3 |
+| Q31 pinned layouts ([answers-06](../../architecture/questionnaire/answers/answers-06-data-and-semantics.md), Notion "Karte data model", Proposed) | each karte pins its layout revision | Superseded by decision 3 |
 | Q29 stored data | seite content as a block document; latest outcome per seite; pinned revision | Component content as a block document; latest outcome per component; no pinned revision |
 | Q32 lifecycle | move/copy carry seites; no seite remap | Move/copy carry components. A moved page's next retry uses the target deck's configuration |
 | Q34 limits | 1–4 seites per deck | Replace with a cap on content modules per deck (D6). Layout limits move to the card view module |
@@ -41,7 +43,7 @@ Out of scope, with no design or implementation work until the owner starts it:
 | Q53 study records | reference karte/seite IDs | Reference page IDs and component IDs; references to parts of a card wait for the card view module (decide in Q53) |
 | Q40–Q45 modules (deferred) | waiting for the module brief | Decisions 4–5 are the first part of that brief |
 | Notion "Adopt deck → karte → seite" (Accepted, Implemented) | canonical hierarchy | Mark Superseded when this plan is approved |
-| [model](../product/model.md), [kartes-and-editing](../specs/pages-and-editing.md), [decks-and-layouts](../specs/decks-and-configuration.md), [modules](../specs/modules.md), [capture-and-generation](../specs/capture-and-generation.md), [Select and Add](../MVP-Product-spec-select-and-add.md), [scope](../product/scope.md), [AGENTS.md](../../AGENTS.md) | seite-based rules | Rewritten in increment 1 |
+| [model](../../product/model.md), [kartes-and-editing](../../specs/pages-and-editing.md), [decks-and-layouts](../../specs/decks-and-configuration.md), [modules](../../specs/modules.md), [capture-and-generation](../../specs/capture-and-generation.md), [Select and Add](../../specs/capture-and-generation.md), [scope](../../product/scope.md), [AGENTS.md](../../../AGENTS.md) | seite-based rules | Rewritten in increment 1 |
 
 ## Owner decisions
 
@@ -80,19 +82,19 @@ A component's identity is `(page_id, component_id)`. A content component records
 
 ## Increments
 
-Each increment is runnable and reviewable on its own and follows the [Change](../../.agents/skills/vocabularium-change/SKILL.md) / [Verify](../../.agents/skills/vocabularium-verify/SKILL.md) skills. Track them in one GitHub issue.
+Each increment is runnable and reviewable on its own and follows the [Change](../../../.agents/skills/vocabularium-change/SKILL.md) / [Verify](../../../.agents/skills/vocabularium-verify/SKILL.md) skills. Track them in one GitHub issue.
 
 ### 0. Record the decision (docs, Notion)
-- Add the decision and owner answers to the questionnaire (new section in [06-data-and-semantics](../architecture/questionnaire/06-data-and-semantics.md) plus answers). Mark Q31 superseded and amend Q29, Q32, Q34, Q13 and Q53 as in the table above.
-- Update the [traceability map](../architecture/traceability-map.md) so 1.0 items trace to the page/component model.
+- Add the decision and owner answers to the questionnaire (new section in [06-data-and-semantics](../../architecture/questionnaire/06-data-and-semantics.md) plus answers). Mark Q31 superseded and amend Q29, Q32, Q34, Q13 and Q53 as in the table above.
+- Update the [traceability map](../../architecture/traceability-map.md) so 1.0 items trace to the page/component model.
 - Notion, with owner approval: a new decision record, Proposed → Accepted. Mark "Adopt deck → karte → seite" Superseded. Amend the Q29–Q34 and Q11–Q16 records.
 
 ### 1. Product language and specifications (docs only)
-- Rewrite [model.md](../product/model.md) around deck → page → component and content modules. Define views and view modules, and the default view. Name the card view module as later work.
+- Rewrite [model.md](../../product/model.md) around deck → page → component and content modules. Define views and view modules, and the default view. Name the card view module as later work.
 - Rename `kartes-and-editing.md` → `pages-and-editing.md` and `decks-and-layouts.md` → `decks-and-configuration.md`, updating all incoming links in the same change.
-- [modules.md](../specs/modules.md): module kinds; the content-module contract (input: main key + Context + interpretation; output: one component's block content). The view-module contract at the level the default view needs (input: a page's components; output: what the user sees); other view modules are later work.
-- [capture-and-generation](../specs/capture-and-generation.md) and [Select and Add](../MVP-Product-spec-select-and-add.md): attempts per component, page retry = all content components, "generate missing", confirmation before replacing edited content, failure and recovery per component.
-- [scope.md](../product/scope.md), [AGENTS.md](../../AGENTS.md) terminology section, project skills, README.
+- [modules.md](../../specs/modules.md): module kinds; the content-module contract (input: main key + Context + interpretation; output: one component's block content). The view-module contract at the level the default view needs (input: a page's components; output: what the user sees); other view modules are later work.
+- [capture-and-generation](../../specs/capture-and-generation.md) and [Select and Add](../../specs/capture-and-generation.md): attempts per component, page retry = all content components, "generate missing", confirmation before replacing edited content, failure and recovery per component.
+- [scope.md](../../product/scope.md), [AGENTS.md](../../../AGENTS.md) terminology section, project skills, README.
 - Write a new terminology mapping for history: karte → page; seite → component for content, and part of the future card view's layout for presentation; front seite → main key component.
 - The existing [terminology plan](v0.3.0-plus-terminology-migration.md) and [compatibility record](../architecture/terminology-compatibility.md) become historical. Add a pointer at the top; don't rewrite them.
 
@@ -135,7 +137,7 @@ Tests (`tests/pages-schema.test.mjs`): a populated 0.3.0+ database upgrades thro
 ### 6. Verification and delivery
 - E2E harness: capture → page with generated components → edit → retry one component → change deck configuration → retry the whole page. Manual create without generation → Generate.
 - Upgrade scenario: a populated 0.3.0+ database and extension build with pending captures and drafts → new backend + extension; check that the owner is still signed in, has only the fresh default deck and no pages, and that no old capture or draft is replayed.
-- Browser smoke in the approved local environment, then [Deliver](../../.agents/skills/vocabularium-deliver/SKILL.md): back up the owner database (a safety net only; nothing is restored from it), migrate, check that account rows are kept and only the fresh default deck exists, package, and hand off. Owner acceptance is a separate step.
+- Browser smoke in the approved local environment, then [Deliver](../../../.agents/skills/vocabularium-deliver/SKILL.md): back up the owner database (a safety net only; nothing is restored from it), migrate, check that account rows are kept and only the fresh default deck exists, package, and hand off. Owner acceptance is a separate step.
 
 ## Risks
 

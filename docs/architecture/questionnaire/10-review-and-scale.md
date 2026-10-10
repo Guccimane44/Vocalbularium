@@ -6,7 +6,7 @@ Memorization is optional by design — the vision says collection and reference 
 
 **Decision:** Ship review at 1.0 or keep collection/reference only? If yes: SM-2, FSRS, or simpler Leitner? Opt-in at deck or page level?
 
-**Context:** Memorization settings, spaced repetition, and study workflows are deferred; the deck defines whether memorization is enabled but nothing consumes that flag yet ([scope](../../product/scope.md), [product description](../../../vocabularium-product-description.md)). Page identity is independent of any study interaction ([model](../../product/model.md)).
+**Context:** Memorization settings, spaced repetition, and study workflows are deferred; the deck defines whether memorization is enabled but nothing consumes that flag yet ([scope](../../product/scope.md), [product description](../../history/vocabularium-product-description.md)). Page identity is independent of any study interaction ([model](../../product/model.md)).
 
 **Options:**
 - No review at 1.0 — keeps schema and UX focused; state the schema reservation (see Q53) so review does not force a rewrite later.
@@ -32,7 +32,7 @@ Memorization is optional by design — the vision says collection and reference 
 
 **Decision:** Decks only, or also tags, folders, filters (by module, language, failed generation, empty or missing component), and saved searches?
 
-**Context:** Decks are the primary repository concept; every page belongs to exactly one deck ([product description](../../../vocabularium-product-description.md)). Beyond deck browsing, sorting, and opening pages, no organization primitives exist ([scope](../../product/scope.md)).
+**Context:** Decks are the primary repository concept; every page belongs to exactly one deck ([product description](../../history/vocabularium-product-description.md)). Beyond deck browsing, sorting, and opening pages, no organization primitives exist ([scope](../../product/scope.md)).
 
 **Options:**
 - Decks only — matches today; large libraries become long lists that need search to stay usable (see Q37).

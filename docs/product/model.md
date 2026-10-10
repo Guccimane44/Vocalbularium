@@ -4,7 +4,7 @@
 
 This document defines Vocabularium's core concepts and their fundamental relationships. It is a conceptual model, not a database schema or a workflow specification. [Scope](scope.md) identifies current capability limits; [vision](vision.md) describes possible future uses.
 
-The model below is the owner-approved deck → page → component model ([Q72](../architecture/questionnaire/answers/answers-06-data-and-semantics.md#q72), [refactor plan](../plans/page-component-refactor.md)). Release 0.4.0 implements it; [current scope](scope.md) lists what is supported. Builds up to v0.3.0+ called pages *kartes* and stored their content in *seites*. [Earlier terms](#earlier-terms) maps the old vocabulary.
+The model below is the owner-approved deck → page → component model ([Q72](../architecture/questionnaire/answers/answers-06-data-and-semantics.md#q72), [refactor plan](../history/plans/page-component-refactor.md)). Release 0.4.0 implements it; [current scope](scope.md) lists what is supported. Builds up to v0.3.0+ called pages *kartes* and stored their content in *seites*. [Earlier terms](#earlier-terms) maps the old vocabulary.
 
 ## Account
 
@@ -93,9 +93,9 @@ A **generation run** is one user or capture request that starts one or more atte
 
 A **generation outcome** describes an attempt's state or result. Component content, generation outcome, and persistence are distinct: a saved page can have a failed component, a successfully evaluated component can be empty, and manually entered content does not establish generation success.
 
-A component can have no generation attempt. Manual creation and editing, including a main key edit, do not start generation. A page's overall generation outcome is derived from its component outcomes according to [Select and Add](../MVP-Product-spec-select-and-add.md). Existing content and outcomes continue to describe their prior attempts until the user explicitly requests generation again.
+A component can have no generation attempt. Manual creation and editing, including a main key edit, do not start generation. A page's overall generation outcome is derived from its component outcomes according to [Select and Add](../specs/capture-and-generation.md). Existing content and outcomes continue to describe their prior attempts until the user explicitly requests generation again.
 
-The [page input and editing specification](../specs/pages-and-editing.md) owns main key creation and editing. [Select and Add](../MVP-Product-spec-select-and-add.md) owns attempt states, completion, publication, failure, interruption, and retry behavior. This model does not define their transitions or recovery workflow.
+The [page input and editing specification](../specs/pages-and-editing.md) owns main key creation and editing. [Select and Add](../specs/capture-and-generation.md) owns attempt states, completion, publication, failure, interruption, and retry behavior. This model does not define their transitions or recovery workflow.
 
 ## Draft and saved content
 
@@ -136,4 +136,4 @@ Use this mapping when reading history, releases, issues, and code that predate t
 | card view page, karte view page | opening a page ("Open page") |
 | card content page, karte content page | page editor |
 
-The 0.3.0+ [terminology plan](../plans/v0.3.0-plus-terminology-migration.md) and [compatibility record](../architecture/terminology-compatibility.md) describe the earlier migration and are historical.
+The 0.3.0+ [terminology plan](../history/plans/v0.3.0-plus-terminology-migration.md) and [compatibility record](../history/architecture/terminology-compatibility.md) describe the earlier migration and are historical.

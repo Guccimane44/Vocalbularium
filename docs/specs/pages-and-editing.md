@@ -4,7 +4,7 @@
 
 This specification defines the owner-approved page input and editing behavior shared by captured and manually created pages. Release 0.4.0 implements it; release 0.4.1 adds capture with Context ([current scope](../product/scope.md)). Existing browsing, sorting, save, draft, and deletion behavior remains defined by the applicable [MVP editing rules](../history/mvp/MVP-Product-scope.md#8-card-content-page-and-manual-editing), read with the [earlier terms](../product/model.md#earlier-terms) mapping.
 
-The [product model](../product/model.md) defines a page, its components, and the main key. [Modules](modules.md#content-module-contract) owns how content modules consume the main key and Context. [Select and Add](../MVP-Product-spec-select-and-add.md) owns detailed generation completion, replacement, failure, interruption, and recovery rules. [Deck configuration](decks-and-configuration.md) owns which content module instances a page's deck has.
+The [product model](../product/model.md) defines a page, its components, and the main key. [Modules](modules.md#content-module-contract) owns how content modules consume the main key and Context. [Select and Add](capture-and-generation.md) owns detailed generation completion, replacement, failure, interruption, and recovery rules. [Deck configuration](decks-and-configuration.md) owns which content module instances a page's deck has.
 
 ## Required main key
 
@@ -32,7 +32,7 @@ The user can add a **manual component**: a text component that no module owns. I
 
 ### Editing generated components
 
-Generated components are editable. An edit to a generated component lasts until the next retry that targets that component. That retry asks for confirmation first because it replaces the edit ([Select and Add](../MVP-Product-spec-select-and-add.md#retry)).
+Generated components are editable. An edit to a generated component lasts until the next retry that targets that component. That retry asks for confirmation first because it replaces the edit ([Select and Add](capture-and-generation.md#retry)).
 
 Hiding or deleting individual components is not part of 1.0.
 
