@@ -13,7 +13,7 @@ If Q02 chose more than one human, this section is load-bearing. Identity mistake
 - Local multi-account (username + password, argon2/scrypt) — self-hostable, no external dependency; you own recovery, lockout, and session security.
 - External identity (OAuth/passkey) — less password plumbing; adds provider dependency and account-linking edge cases.
 
-**Answer prompt:** Pick the model and describe the first-run story (seed data? sample kartes? onboarding deck?). Research task: list every query that assumes `account_id = 1` and estimate the migration to parameterized accounts.
+**Answer prompt:** Pick the model and describe the first-run story (seed data? sample pages? onboarding deck?). Research task: list every query that assumes `account_id = 1` and estimate the migration to parameterized accounts.
 
 ## Q18. What is the sync topology?
 
@@ -31,22 +31,22 @@ If Q02 chose more than one human, this section is load-bearing. Identity mistake
 
 ## Q19. What are the sync and conflict semantics?
 
-**Decision:** Last-write-wins with explicit recovery (today), version vectors + merge UI, or CRDTs? Cover the three conflict cases: karte-vs-karte edit, layout-change-vs-karte-edit, layout shrink deleting seites with content.
+**Decision:** Last-write-wins with explicit recovery (today), version vectors + merge UI, or CRDTs? Cover the three conflict cases: page-vs-page edit, configuration-change-vs-page-edit, and removing a content module instance whose components hold content.
 
 **Context:** All mutations run through one ordered per-account executor with repeatable-read snapshots today, so conflicts are serialized away — at the cost of single-process scale ([local-postgresql](../local-postgresql.md)). Operation receipts are idempotent by SHA-256 fingerprint with same-ID-different-payload rejected. Save-during-generation is rejected, not queued, requiring explicit resubmission.
 
 **Options:**
 - Keep serialized executor + explicit resubmission — simplest correct behavior; concurrent editors take turns or retry by hand.
-- Optimistic with merge UI — smoother collaboration; needs per-seite versioning and a layout-vs-content merge policy.
+- Optimistic with merge UI — smoother collaboration; needs per-component versioning and a configuration-vs-content merge policy.
 - CRDT/OT — automatic merges; heavy to build correctly and to eval (order, intention preservation, test-difficulty).
 
-**Answer prompt:** Pick the semantics and write the rule for each of the three conflict cases, especially: when may content be deleted without confirmation? Research task: replay the deck-configuration content-loss confirmation flow and list which cases already require confirmation.
+**Answer prompt:** Pick the semantics and write the rule for each of the three conflict cases, especially: when may content be deleted without confirmation? Research task: list which operations replace content and which already require confirmation (since 0.4.0, configuration changes never rewrite pages; component and page Retry always confirm).
 
 ## Q20. Are there shared or public decks?
 
 **Decision:** Private-everything, shared decks with collaborators, or public read-only decks/links?
 
-**Context:** Every karte belongs to exactly one deck and decks are the organizing foundation ([model](../../product/model.md)); moving/copying between decks is deferred ([scope](../../product/scope.md)). Nothing in the current authz distinguishes reader from owner.
+**Context:** Every page belongs to exactly one deck and decks are the organizing foundation ([model](../../product/model.md)); moving/copying between decks is deferred ([scope](../../product/scope.md)). Nothing in the current authz distinguishes reader from owner.
 
 **Options:**
 - Private only — no sharing code at all; state it explicitly to close the question.

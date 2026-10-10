@@ -15,15 +15,18 @@ out:
 Revised to resolve C3: the 1.0 list matches Q01 and Q11 (extension shell + web shell), and Q10 keeps capture tokens deferred until a post-1.0 surface is promoted.
 
 ### Q07
-Standard: payload is selected text + Context (the surrounding block, capped at around 500 characters) + URL/title + timestamp. Capture with Context can be turned on or off (default on); when off, only text + timestamp travel. Stored per karte alongside the main key and editable next to it (including per-karte deletion); sent to the LLM only when present; nothing else retained. User intent stays out of 1.0.0 scope. Spec: [kartes-and-editing](../../../specs/pages-and-editing.md#context), [Select and Add](../../../MVP-Product-spec-select-and-add.md#capture-scenario). Needs a retention/redaction rule per Q11/Q33.
+**Amended 10 October 2026:** the owner dropped URL/title because they add nothing to generation; the page's creation time is the timestamp. Capture with Context is implemented in release 0.4.1 as a deck setting.
+
+Standard: payload is selected text + Context (the surrounding block, capped at around 500 characters) + timestamp. Capture with Context can be turned on or off per deck (default on); when off, only text + timestamp travel. Stored per page as its Context component, next to the main key and editable (including clearing it); sent to the LLM only when present; nothing else retained. User intent stays out of 1.0.0 scope. Spec: [pages-and-editing](../../../specs/pages-and-editing.md#context), [Select and Add](../../../MVP-Product-spec-select-and-add.md#capture-scenario). Needs a retention/redaction rule per Q11/Q33.
 
 ### Q08
-Decision: Support both modes. Mode 1 (fire-and-forget) is the default; mode 2 (fire-and-popup) is opt-in via a global toggle.
-- Trigger: Mode 2 fires on terminal generation state — both full success and partial failure (any seite failed).
-- Popup scope: Examine + seite Retry only. The popup shows karte seites with previous/next navigation and a Retry entry point per failed seite. No editing in the popup; editing stays in the karte editor.
-- Focus and dismissal: The popup never steals focus. It auto-dismisses after 3 seconds for both success and failure. Dismissal of the popup never clears the underlying state — a failed seite keeps its Retry action on the dashboard karte until explicitly retried.
-- Delivery: Originating installation only (session-bound publication). In-page overlay when the source tab is still open; OS notification with an Open action as fallback when it is not.
+**Amended 10 October 2026 by the owner, after [Q72](answers-06-data-and-semantics.md#q72):** the opt-in result popup (mode 2) is deferred and will be designed later. Fire-and-forget stays the default. The earlier popup design, written for kartes with seites, is kept below for reference and no longer binds the specs.
+
+Decision: Fire-and-forget (mode 1) is the default capture contract: the brief **Capture received** popup, background generation, and results checked later on the dashboard and in the page editor, where a failed component keeps its **Retry** until explicitly retried.
 - Progress: Terminal-only. No mid-generation progress display at 1.0.
+- Deferred: mode 2 (fire-and-popup), an opt-in result popup on terminal generation state.
+
+Earlier mode 2 design (deferred, for reference): trigger on full success or partial failure; examine and retry only, with previous/next navigation and a Retry per failed seite; never steals focus; auto-dismisses after 3 seconds; originating installation only, as an in-page overlay or an OS notification fallback.
 
 ### Q09
 best-effort queue

@@ -7,7 +7,7 @@ Strangers on the internet. targetting around 500 users. However, easy to scale i
 ### Q03
 flagship job-to-be-done is acturally:
 1. smoooth user experience on select-and-capture
-2. provide various modules for diversified karte creation
+2. provide various modules for diversified page creation
 
 ### Q04
 Those features will stay out at maturity:

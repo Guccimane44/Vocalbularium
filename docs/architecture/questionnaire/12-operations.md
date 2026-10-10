@@ -6,7 +6,7 @@ Operations is how the system behaves when nobody is watching: what you can see, 
 
 **Decision:** Logs, metrics, traces: per-request and per-generation-attempt IDs, capture/generation success per module, latency histograms, queue depth, token/cost counters — and where do they go?
 
-**Context:** `observability.md` and `overview.md` are empty; the local guide defines `LOG_LEVEL` and liveness/readiness splits but no metrics or tracing ([local-postgresql](../local-postgresql.md)). The Verify skill requires reporting what was exercised, what was mocked, and what remains unverified — which presupposes attempt-level identifiers exist.
+**Context:** The approved [observability](../observability.md) spec defines correlated local diagnostics with full generation evidence and explicit cleanup; `overview.md` is empty; the local guide defines `LOG_LEVEL` and liveness/readiness splits. There are no metrics or hosted tracing ([local-postgresql](../local-postgresql.md)). The Verify skill requires reporting what was exercised, what was mocked, and what remains unverified — which presupposes attempt-level identifiers exist.
 
 **Options:**
 - Logs + health only (current) — enough for single-owner debugging; blind to trends, cost, and per-module quality drift.
@@ -15,7 +15,7 @@ Operations is how the system behaves when nobody is watching: what you can see, 
 
 **Answer prompt:** List the emitted signals and their retention. Research task: take one failed generation and time how long it takes to find the attempt ID, prompt version, and provider response today.
 
-## Q63. How is a failing karte diagnosed without seeing user text?
+## Q63. How is a failing page diagnosed without seeing user text?
 
 **Decision:** Redacted logs vs full-text debug mode with consent? Is there an operator/admin view, and who may open it?
 
@@ -23,7 +23,7 @@ Operations is how the system behaves when nobody is watching: what you can see, 
 
 **Options:**
 - Owner-only direct access — fine for single-user; state that it does not scale to any support role.
-- Redacted-by-default logs (IDs, timings, outcome codes; text only with explicit per-karte consent + expiry) — supportable; needs a consent flow and redaction tests.
+- Redacted-by-default logs (IDs, timings, outcome codes; text only with explicit per-page consent + expiry) — supportable; needs a consent flow and redaction tests.
 - Full-text operator view — fastest debugging; highest privacy risk and audit burden.
 
 **Answer prompt:** Pick the policy and the consent mechanism. Research task: write the redaction rule for one log line containing a capture and verify no text survives.
@@ -32,7 +32,7 @@ Operations is how the system behaves when nobody is watching: what you can see, 
 
 **Decision:** Manual unpacked install, Chrome Web Store auto-update, or both — with the backend-before-extension ordering enforced how?
 
-**Context:** Manual flow is documented (extract, Load unpacked, pin, sign in `admin`/`admin`); updates replace files in place and Reload, ending that installation's generation session; backend migrations run with the API stopped before the new extension connects ([windows-install](../../guides/windows-install.md), [terminology compatibility](../terminology-compatibility.md)). CI produces localhost artifacts that must not be handed to hosted-origin users (Deliver skill).
+**Context:** Manual flow is documented (extract, Load unpacked, pin, sign in `admin`/`admin`); updates replace files in place and Reload, ending that installation's generation session; backend migrations run with the API stopped before the new extension connects, and 0.4.x backend and extension upgrade together ([windows-install](../../guides/windows-install.md), [scope](../../product/scope.md#upgrade-from-earlier-builds)). CI produces localhost artifacts that must not be handed to hosted-origin users (Deliver skill).
 
 **Options:**
 - Manual only — full control per install; every user repeats the ordering dance.
@@ -52,11 +52,11 @@ Operations is how the system behaves when nobody is watching: what you can see, 
 - Quota-included (X generations/user/month, then degrade/block) — predictable; needs metering before enforcement (Q48).
 - BYOK — users bring keys; server becomes an orchestrator and the keyless UX must still be coherent (Q46).
 
-**Answer prompt:** Pick the model and project monthly cost at the three user tiers using Q48's per-karte numbers. Research task: add up one month of smoke + dev usage from console figures as the first data point.
+**Answer prompt:** Pick the model and project monthly cost at the three user tiers using Q48's per-page numbers. Research task: add up one month of smoke + dev usage from console figures as the first data point.
 
 ## Q66. What durability and availability are promised?
 
-**Decision:** RPO (max data loss) and RTO (max downtime) for captures, kartes, and generation outcomes — plus the Render Free caveat if it still applies.
+**Decision:** RPO (max data loss) and RTO (max downtime) for captures, pages, and generation outcomes — plus the Render Free caveat if it still applies.
 
 **Context:** Stopping the API never stops Postgres or removes data, but the manual cluster-start does not survive machine reboot; Render Free explicitly may erase test decks, sessions, and pending results on sleep/restart/redeploy ([local-postgresql](../local-postgresql.md), [windows-install](../../guides/windows-install.md)). No SLA exists.
 

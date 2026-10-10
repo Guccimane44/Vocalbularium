@@ -19,7 +19,7 @@ These five answers constrain everything downstream. A senior architect forces th
 
 **Decision:** Single owner-learner forever, invited small groups (class, team, family), or strangers on the internet?
 
-**Context:** The model defines an account as the owner of decks and kartes, with exactly one default deck — but only `account 1` exists and there is no registration ([model](../../product/model.md), [scope](../../product/scope.md#explicit-deferrals)). The vision's multilingual, multi-subject user could be one person with many interests or many people with different needs; the architecture cannot serve both identically.
+**Context:** The model defines an account as the owner of decks and pages, with exactly one default deck — but only `account 1` exists and there is no registration ([model](../../product/model.md), [scope](../../product/scope.md#explicit-deferrals)). The vision's multilingual, multi-subject user could be one person with many interests or many people with different needs; the architecture cannot serve both identically.
 
 **Options:**
 - Single owner — no authz matrix, no abuse controls, PostgreSQL roles stay as-is. Rework risk if wrong: entire auth and tenancy layers added later under a live schema.
@@ -32,7 +32,7 @@ These five answers constrain everything downstream. A senior architect forces th
 
 **Decision:** Rank: language capture, general knowledge capture (people, places, concepts, passages), reference library, spaced memorization.
 
-**Context:** The vision insists language learning is one application of a broader capture system, and the competitor critique rejects the word → translation → flashcard → review pipeline as the foundation ([vision](../../product/vision.md), [competitor critique](../../product/competitor-critique.md)). But the implemented catalog is five language-oriented modules and plain-text seites ([modules](../../specs/modules.md)). Whatever you rank first gets the eval budget, the module design attention, and the schema flexibility.
+**Context:** The vision insists language learning is one application of a broader capture system, and the competitor critique rejects the word → translation → flashcard → review pipeline as the foundation ([vision](../../product/vision.md), [competitor critique](../../product/competitor-critique.md)). But the implemented catalog is five language-oriented content modules producing plain-text components ([modules](../../specs/modules.md)). Whatever you rank first gets the eval budget, the module design attention, and the schema flexibility.
 
 **Options:**
 - Language-first — deepens the current five modules, pronunciation/audio, grammar; delays passage and concept modules.

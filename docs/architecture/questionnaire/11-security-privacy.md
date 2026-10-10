@@ -10,10 +10,10 @@ Security here is not abstract: captured web text is untrusted input, generated c
 
 **Options:**
 - Local-adversary model (malicious page content + local network) — matches today; focus on sanitization and loopback binding.
-- Multi-user model (malicious users attacking each other + the server) — adds IDOR testing (can account A read account B's karte/receipt/journal?), quota abuse, and prompt-abuse controls.
+- Multi-user model (malicious users attacking each other + the server) — adds IDOR testing (can account A read account B's page/receipt/journal?), quota abuse, and prompt-abuse controls.
 - Public-service model (+ network attackers, CSRF, session theft, DDoS) — full web hardening: CSRF tokens, secure cookies, rate limits, WAF/CDN policy.
 
-**Answer prompt:** Name the adversaries and the top five attacks you test per release. Research task: attempt one IDOR (fetch another account's karte by ID) and one stored-markup capture in dev; record the outcome.
+**Answer prompt:** Name the adversaries and the top five attacks you test per release. Research task: attempt one IDOR (fetch another account's page by ID) and one stored-markup capture in dev; record the outcome.
 
 ## Q58. How do auth, sessions, and secrets work?
 
@@ -30,9 +30,9 @@ Security here is not abstract: captured web text is untrusted input, generated c
 
 ## Q59. How is captured and generated content isolated?
 
-**Decision:** What stops a malicious page from steering generation or smuggling markup/scripts into kartes, decks names, or logs?
+**Decision:** What stops a malicious page from steering generation or smuggling markup/scripts into pages, deck names, or logs?
 
-**Context:** Deck names, selected text, and generated text are user/attacker-influenced data rendered across dashboard, lists, editors, and feedback popups. The terminology policy already states user-authored strings are data and never rewritten by adapters ([terminology compatibility](../terminology-compatibility.md)) — but rendering policy is separate.
+**Context:** Deck names, selected text, the captured Context, and generated text are user/attacker-influenced data rendered across dashboard, lists, editors, and feedback popups. Components are stored as block documents but render as plain text today ([model](../../product/model.md#component)); rendering richer blocks needs its own policy.
 
 **Options:**
 - Text-only rendering + escaping everywhere (current) — strongest default; any rich rendering must pass an allowlist review.
@@ -45,14 +45,14 @@ Security here is not abstract: captured web text is untrusted input, generated c
 
 **Decision:** What of the capture (text, URL, context) is sent to the LLM, logged, or retained — and what can the user delete?
 
-**Context:** Q07 decides the payload; Q39 decides retention. Provider terms decide what the model side retains. Without a key, capture still saves while generative seites fail visibly — a privacy-relevant degraded mode (no data leaves the machine) worth naming (README).
+**Context:** Q07 decides the payload; Q39 decides retention. Provider terms decide what the model side retains. Without a key, capture still saves while generative components fail visibly — a privacy-relevant degraded mode (no data leaves the machine) worth naming (README).
 
 **Options:**
 - Local-first privacy (no capture leaves the machine without explicit generation) — strongest story; keyless mode becomes a feature, not just a failure.
-- Full-pipeline (captures + context routinely sent) — best quality; needs consent, per-karte opt-out, and provider zero-retention terms.
-- Tiered (user picks per deck/karte whether generation may use external models) — most control; most settings UI and policy plumbing.
+- Full-pipeline (captures + context routinely sent) — best quality; needs consent, per-page opt-out, and provider zero-retention terms.
+- Tiered (user picks per deck/page whether generation may use external models) — most control; most settings UI and policy plumbing.
 
-**Answer prompt:** Write the promise in one paragraph a user could rely on. Research task: trace one capture from selection to stored seite and list every system that saw its text (extension, API log, DB, journal, provider).
+**Answer prompt:** Write the promise in one paragraph a user could rely on. Research task: trace one capture from selection to stored component and list every system that saw its text (extension, API log, DB, journal, provider).
 
 ## Q61. What compliance obligations apply?
 

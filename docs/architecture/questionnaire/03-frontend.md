@@ -1,12 +1,12 @@
 # 03 — Frontend (Q11–Q16)
 
-The frontend is the extension dashboard, editors, and any future web client. Decide state, rendering, and update discipline here; the backend cannot paper over a frontend that loses drafts or shows stale layouts.
+The frontend is the extension dashboard, editors, and any future web client. Decide state, rendering, and update discipline here; the backend cannot paper over a frontend that loses drafts or shows stale configuration.
 
 ## Q11. What are the frontend surfaces and their stack?
 
-**Decision:** Which surfaces ship at 1.0 (popup, dashboard, deck configuration, karte editor, options/login) and do they stay WXT + React or diverge (e.g. separate web app)?
+**Decision:** Which surfaces ship at 1.0 (popup, dashboard, deck settings, page editor, options/login) and do they stay WXT + React or diverge (e.g. separate web app)?
 
-**Context:** Today everything is one WXT MV3 build with React dashboard/configuration/editor, built to `artifacts/extension` with build-time `VOCABULARIUM_API_URL` baked into host permissions (README). The vision reserves a distinctive UI direction for later but assigns concrete shared rules to a shared UI spec ([vision](../../product/vision.md)).
+**Context:** Today everything is one WXT MV3 build with React dashboard, deck settings and page editor, built to `artifacts/extension` with build-time `VOCABULARIUM_API_URL` baked into host permissions (README). The vision reserves a distinctive UI direction for later but assigns concrete shared rules to a shared UI spec ([vision](../../product/vision.md)).
 
 **Options:**
 - One codebase, one build — cheapest; every surface shares components and the API client. Tradeoff: web-client needs later become a fork.
@@ -17,35 +17,35 @@ The frontend is the extension dashboard, editors, and any future web client. Dec
 
 ## Q12. How do drafts, saves, and navigation interact?
 
-**Decision:** Define the editing contract: save unit (seite, karte, deck layout), autosave vs explicit Save/Cancel, dirty indicators, and what leaving mid-edit does.
+**Decision:** Define the editing contract: save unit (component, page, deck configuration), autosave vs explicit Save/Cancel, dirty indicators, and what leaving mid-edit does.
 
-**Context:** Current contract: manual drafts survive seite switches, Save writes all changed seites together, Cancel discards the session, leaving offers Save/Discard/Continue, failed saves keep drafts with Try-again ([MVP scope](../../history/mvp/MVP-Product-scope.md), README). The model separates drafts (unsaved) from saved account data ([model](../../product/model.md)).
+**Context:** Current contract: **Edit page** edits every text component, Save writes all changed components together, Cancel discards the session, leaving offers Save/Discard/Continue, failed saves keep drafts with Try-again ([MVP scope](../../history/mvp/MVP-Product-scope.md), README). The model separates drafts (unsaved) from saved account data ([model](../../product/model.md)).
 
 **Options:**
 - Explicit Save/Cancel (current) — clearest mental model, fewest accidental writes; needs the leave-guard and draft-restore paths maintained.
 - Autosave with version history — smoothest UX; needs debouncing, conflict handling, and a history UI to undo bad autosaves.
-- Optimistic per-seite save — finest granularity; most request churn and partial-failure states.
+- Optimistic per-component save — finest granularity; most request churn and partial-failure states.
 
-**Answer prompt:** Pick the contract and the save unit. Research task: list every current draft key (`karte-draft`, legacy `card-draft`) and state which survive extension reload vs backend restart.
+**Answer prompt:** Pick the contract and the save unit. Research task: list every current draft key (`page-draft`; 0.4.0 clears the old `karte-draft` and `card-draft` once) and state which survive extension reload vs backend restart.
 
 ## Q13. What is rendered — plain text or rich blocks?
 
-**Decision:** Stay plain-text seites or move to structured blocks (headings, lists, ruby/pinyin, IPA, audio players, images, cloze)?
+**Decision:** Stay plain-text components or move to structured blocks (headings, lists, ruby/pinyin, IPA, audio players, images, cloze)?
 
-**Context:** Seites render and edit as whole plain-text blobs; module outputs are concatenated with blank lines and editing need not preserve module boundaries ([modules](../../specs/modules.md)). The vision's module examples (pronunciation + audio, timelines, visualizations) assume richer rendering eventually ([vision](../../product/vision.md)). This is the most expensive frontend decision: it changes the editor, the stored format, and layout-change migration together.
+**Context:** Each content module instance owns its own component, and each component is stored as a versioned block document whose blocks are plain-text paragraphs today; components render and edit as plain text ([model](../../product/model.md#component), [modules](../../specs/modules.md)). The vision's module examples (pronunciation + audio, timelines, visualizations) assume richer rendering eventually ([vision](../../product/vision.md)). This is the most expensive frontend decision: it changes the editor, the stored format, and module output contracts together.
 
 **Options:**
-- Plain text — zero migration, matches current editor and tests. Tradeoff: caps module expressiveness at prose.
+- Plain text — no new block types, matches current editor and tests. Tradeoff: caps module expressiveness at prose.
 - Markdown subset — moderate step; renders richer content while staying diffable and editable as text. Needs a sanitizer and a renderer contract per module.
-- Block JSON (ProseMirror/TipTap-style) — richest editing (per-module blocks, media embeds); heaviest build, hardest migration of existing plain-text kartes.
+- Block JSON (ProseMirror/TipTap-style) — richest editing (per-module blocks, media embeds); heaviest build and editor.
 
-**Answer prompt:** Pick the representation and the editing granularity (whole seite vs per-module blocks). Research task: take the flagship multi-language karte from the product description and mock it in each representation; note what breaks.
+**Answer prompt:** Pick the representation and the block types modules may emit. Research task: take the flagship multi-language page from the product description and mock it in each representation; note what breaks.
 
 ## Q14. How does the frontend handle backend versions and offline?
 
 **Decision:** What does the client do when the backend is older/newer, unreachable, or reset (Render Free wipe)?
 
-**Context:** Stale-client recovery after a backend reset is explicitly untested (issue #24). The terminology layer already negotiates dialects via `X-Vocabularium-Terminology` and accepts legacy fields ([terminology compatibility](../terminology-compatibility.md)). The Windows guide warns that Render resets erase sessions and data ([windows-install](../../guides/windows-install.md)).
+**Context:** Stale-client recovery after a backend reset is explicitly untested (issue #24). Release 0.4.0 retired the card/page and karte/seite dialects and the `X-Vocabularium-Terminology` negotiation; extensions older than 0.4.0 stop working against the new backend, and no version gate tells the user why ([scope](../../product/scope.md#upgrade-from-earlier-builds)). The Windows guide warns that Render resets erase sessions and data ([windows-install](../../guides/windows-install.md)).
 
 **Options:**
 - Version gate (client refuses mismatched backend with a clear message) — safest data-wise; annoys users during upgrades.
@@ -58,7 +58,7 @@ The frontend is the extension dashboard, editors, and any future web client. Dec
 
 **Decision:** Manual unpacked install forever, Chrome Web Store auto-update, or both? And what is the backend-before-extension ordering guarantee?
 
-**Context:** Current delivery is manual: replace files, press Reload, reopen dashboard tabs; extension reload ends that installation's generation session ([windows-install](../../guides/windows-install.md)). Backend schema changes require API-stopped migration before the new extension connects ([local-postgresql](../local-postgresql.md), [terminology compatibility](../terminology-compatibility.md)).
+**Context:** Current delivery is manual: replace files, press Reload, reopen dashboard tabs; extension reload ends that installation's generation session ([windows-install](../../guides/windows-install.md)). Backend schema changes require API-stopped migration before the new extension connects, and 0.4.x backend and extension must be upgraded together ([local-postgresql](../local-postgresql.md), [scope](../../product/scope.md#upgrade-from-earlier-builds)).
 
 **Options:**
 - Manual only — full control, zero store review; every user performs the backend-then-extension dance by hand.
@@ -69,12 +69,12 @@ The frontend is the extension dashboard, editors, and any future web client. Dec
 
 ## Q16. What is the frontend performance and accessibility budget?
 
-**Decision:** Set numbers: dashboard open time, capture-to-receipt latency, list pagination behavior, plus the accessibility floor (keyboard flows, screen-reader seite navigation, target WCAG level).
+**Decision:** Set numbers: dashboard open time, capture-to-receipt latency, list pagination behavior, plus the accessibility floor (keyboard flows, screen-reader component navigation, target WCAG level).
 
-**Context:** Current lists load 30 kartes and 40 decks at a time with four sort orders and NFKC normalization; detail is fetched on open (README). Appearance is Light/Dark with keyboard interactions and accessible state cues ([scope](../../product/scope.md)). The vision demands a distinctive, non-generic interface without prescribing it ([vision](../../product/vision.md)).
+**Context:** Current lists load 30 pages and 40 decks at a time with four sort orders and NFKC normalization; detail is fetched on open (README). Appearance is Light/Dark with keyboard interactions and accessible state cues ([scope](../../product/scope.md)). The vision demands a distinctive, non-generic interface without prescribing it ([vision](../../product/vision.md)).
 
 **Options:**
-- Budget-first (e.g. dashboard interactive <1s on 10k-karte deck, capture receipt <500ms local) — forces virtualization and bounded reads early.
+- Budget-first (e.g. dashboard interactive <1s on a 10k-page deck, capture receipt <500ms local) — forces virtualization and bounded reads early.
 - Best-effort — ships faster; performance and a11y become retrofit projects with real users already suffering.
 - A11y-first — screen-reader and keyboard flows designed before visual polish; slight delay to visual distinctiveness.
 

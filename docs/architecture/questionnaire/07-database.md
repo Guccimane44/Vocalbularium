@@ -19,7 +19,7 @@ PostgreSQL 18 is the only runtime database. These questions turn today's single-
 
 **Decision:** Migration discipline: who writes SQL, when it runs, and what compatibility the old code keeps while new columns/tables land?
 
-**Context:** Drizzle schema in `src/persistence/schema.ts`, reviewed SQL in `migrations/`, `db:generate` then `db:migrate` with the API stopped; normal startup never runs DDL; applied migrations are immutable ([local-postgresql](../local-postgresql.md)). The terminology migration demonstrated the pattern: rename via new migration, preserve IDs/relationships/timestamps, keep legacy contracts at the boundary ([terminology compatibility](../terminology-compatibility.md)).
+**Context:** Drizzle schema in `src/persistence/schema.ts`, reviewed SQL in `migrations/`, `db:generate` then `db:migrate` with the API stopped; normal startup never runs DDL; applied migrations are immutable ([local-postgresql](../local-postgresql.md)). The page/component refactor used an additive step (`0003` adds the new tables beside the old ones) followed by a discarding step (`0004` drops the karte/seite tables and their content, keeping accounts) ([refactor plan](../../plans/page-component-refactor.md)).
 
 **Options:**
 - Stop-the-world reviewed migrations (current) — safest for correctness; needs downtime windows and the backend-before-extension order enforced.
@@ -32,15 +32,15 @@ PostgreSQL 18 is the only runtime database. These questions turn today's single-
 
 **Decision:** PostgreSQL full-text (`tsvector`, per-language configs), trigram fuzzy search (`pg_trgm`), external engine (Typesense/Meilisearch), or no search at 1.0?
 
-**Context:** Lists are bounded reads with explicit sort orders (Unicode NFKC + lowercase + code-unit + ID tiebreak) and cursor pagination; search does not exist ([reads tests](../../../README.md), scope). Multilingual content breaks naive stemming: German compounds, Chinese/Japanese tokenization, and mixed-language kartes need per-language configurations or external analyzers.
+**Context:** Lists are bounded reads with explicit sort orders (Unicode NFKC + lowercase + code-unit + ID tiebreak) and cursor pagination; search does not exist ([reads tests](../../../README.md), scope). Multilingual content breaks naive stemming: German compounds, Chinese/Japanese tokenization, and mixed-language pages need per-language configurations or external analyzers.
 
 **Options:**
-- PG full-text with per-language configs — no new service; needs language detection per karte and config plumbing.
+- PG full-text with per-language configs — no new service; needs language detection per page and config plumbing.
 - `pg_trgm` fuzzy — good for typo-tolerant title search; poor for semantic or cross-language queries.
 - External engine — best relevance and CJK support; another service to sync, secure, and back up.
-- No search (browse + sort only) — viable only for small libraries; state the karte-count ceiling where this breaks.
+- No search (browse + sort only) — viable only for small libraries; state the page-count ceiling where this breaks.
 
-**Answer prompt:** Pick the engine and the indexed fields (main key only? all seites? deck names?). Research task: build a 5k-karte fixture with German/Chinese/English content and compare query relevance and latency across two options.
+**Answer prompt:** Pick the engine and the indexed fields (main key only? Context? all components? deck names?). Research task: build a 5k-page fixture with German/Chinese/English content and compare query relevance and latency across two options.
 
 ## Q38. What is the backup, export, and import story?
 
@@ -57,9 +57,9 @@ PostgreSQL 18 is the only runtime database. These questions turn today's single-
 
 ## Q39. What is retained and for how long?
 
-**Decision:** Retention per data class: karte content, edit history, generation attempts/journals, operation receipts, server logs, deleted data, backups.
+**Decision:** Retention per data class: page content, edit history, generation attempts/journals, operation receipts, server logs, deleted data, backups.
 
-**Context:** Receipts must replay identically as long as historical receipts are retained (fingerprints pin original kinds/fields); journal files and `{ok,text}` results are kept verbatim; applied migrations stay immutable ([terminology compatibility](../terminology-compatibility.md)). Nothing states when any of this may be deleted.
+**Context:** Receipts created since 0.4.0 replay identically while they are retained (0.4.0 emptied the older receipts with their content); journal files and provider results are kept verbatim; applied migrations stay immutable ([refactor plan](../../plans/page-component-refactor.md)). Development diagnostics are kept until explicit cleanup ([observability](../observability.md)). Nothing states when hosted data may be deleted.
 
 **Options:**
 - Keep everything forever — simplest code, unbounded growth, conflicts with erasure requests.

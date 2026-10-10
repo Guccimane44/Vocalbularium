@@ -5,7 +5,7 @@
 
 ### 63
 
-- Redacted-by-default logs (IDs, timings, outcome codes; text only with explicit per-karte consent + expiry) — supportable; needs a consent flow and redaction tests.
+- Redacted-by-default logs (IDs, timings, outcome codes; text only with explicit per-page consent + expiry) — supportable; needs a consent flow and redaction tests.
 
 ### 64
 
@@ -27,7 +27,7 @@ Compatibility rule: A new backend must support the previous extension version fo
 
 ### 65
 
-2. Option B — Quota included in the product. A monthly per-account allowance of generated seites; unit, counting rules, and rollout are in Q48 (resolves C9). The amount is open (K8).
+2. Option B — Quota included in the product. A monthly per-account allowance of provider calls; unit, counting rules, and rollout are in Q48 (resolves C9). The amount is open (K8).
 
 ### 66
 

@@ -19,7 +19,7 @@ Capture is the product's front door: the vision promises saving text without bre
 
 **Decision:** Define the capture payload: selected text plus what else — page URL/title, surrounding paragraph, source-language hint, timestamp, user intent?
 
-**Context:** Modules currently receive only the selected text with no surrounding webpage context, plus one interpreted source language ([modules](../../specs/modules.md#current-input-and-applicability)). The vision says relevant available context should shape generation ([vision](../../product/vision.md)). More context improves interpretation but enlarges privacy surface, prompt cost, and stored PII.
+**Context:** Since 0.4.1, capture can take the surrounding block as the page's Context (around 500 characters, a deck setting that is on by default); content modules receive the main key, the Context and one interpreted source language. The web page URL and title are not taken ([pages and editing](../../specs/pages-and-editing.md#context), [modules](../../specs/modules.md#content-module-contract)). The vision says relevant available context should shape generation ([vision](../../product/vision.md)). More context improves interpretation but enlarges privacy surface, prompt cost, and stored PII.
 
 **Options:**
 - Minimal (text + language + timestamp) — cheapest, least PII, matches current pipeline. Tradeoff: ambiguous captures stay ambiguous.
@@ -30,9 +30,9 @@ Capture is the product's front door: the vision promises saving text without bre
 
 ## Q08. What is the capture UX contract?
 
-**Decision:** Fire-and-forget (toast + background generation, check later) vs blocking (karte opens immediately)? And which retries exist: auto-open, whole-karte retry, per-module retry?
+**Decision:** Fire-and-forget (toast + background generation, check later) vs blocking (page opens immediately)? And which follow-ups exist: auto-open, a result popup, page retry, component retry?
 
-**Context:** Current behavior: brief feedback, recent outcomes on the dashboard, explicitly confirmed retry of one captured seite only; auto-open, whole-karte retry, and per-module retry are deferred ([scope](../../product/scope.md#explicit-deferrals)). The model treats saving and generating as distinct operations with distinct recovery ([model](../../product/model.md)).
+**Context:** Current behavior: a brief **Capture received** popup, recent outcomes on the dashboard, and explicitly confirmed **Retry** of one component or the whole page in the page editor; auto-open is deferred ([scope](../../product/scope.md#explicit-deferrals), [Select and Add](../../MVP-Product-spec-select-and-add.md#retry)). The model treats saving and generating as distinct operations with distinct recovery ([model](../../product/model.md)).
 
 **Options:**
 - Fire-and-forget — least interruption, matches the vision's minimize-interruption principle; needs bulletproof background status and failure surfacing.
@@ -45,7 +45,7 @@ Capture is the product's front door: the vision promises saving text without bre
 
 **Decision:** What must survive backend-down, laptop-offline, and browser-restart: queued captures, pending saves, in-flight generation?
 
-**Context:** Current recovery is explicit and session-bound: receipts stay local until confirmed handoff, failed saves need explicit resubmission, and generation results publish only through the originating Chrome session — reopening Chrome fails interrupted attempts ([Select and Add](../../MVP-Product-spec-select-and-add.md)). The local PostgreSQL guide documents the journal but not an offline client protocol ([local-postgresql](../local-postgresql.md)).
+**Context:** Current recovery is explicit and session-bound: receipts stay local until confirmed handoff, failed saves need explicit resubmission, and component results publish only through the originating Chrome session — reopening Chrome fails interrupted component attempts ([Select and Add](../../MVP-Product-spec-select-and-add.md)). The local PostgreSQL guide documents the journal but not an offline client protocol ([local-postgresql](../local-postgresql.md)).
 
 **Options:**
 - Best-effort queue (captures + saves survive restart, generation does not) — modest work in `storage.local`, keeps session-bound generation semantics.

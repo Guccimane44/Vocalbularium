@@ -19,27 +19,27 @@ Generation is where money, latency, quality, and privacy meet. Decide the provid
 
 **Decision:** Prompts in code, in DB, or in a versioned registry? How are they A/B tested and rolled back? What separates inapplicable (valid empty) from failure from invalid output?
 
-**Context:** The adapter requests JSON in instructions and validates completion status, fields, classification, and nonempty text locally without relying on strict structured-output support; one stable conversation ID per karte including retries (README). Seite completion/failure/interruption/publication/retry semantics are owned by Select and Add, including the distinction between failed generation and valid empty content ([Select and Add](../../MVP-Product-spec-select-and-add.md)).
+**Context:** The adapter requests JSON in instructions and validates completion status, fields, classification, and nonempty text locally without relying on strict structured-output support; one stable conversation ID per page including retries (README). Component completion/failure/interruption/publication/retry semantics are owned by Select and Add, including the distinction between failed generation and valid empty content ([Select and Add](../../MVP-Product-spec-select-and-add.md)).
 
 **Options:**
 - Prompts in code, versioned with releases — simplest review and rollback; prompt tweaks ride the release train.
 - Prompt registry with versions + traffic splitting — fastest iteration and A/B; needs registry UI, audit log, and per-attempt prompt-version recording (see Q33).
 - Prompts in DB editable at runtime — most flexible; risks unreviewed production changes and untraceable quality shifts.
 
-**Answer prompt:** Pick the home and write the user-visible contract for the three states (empty-valid vs failed vs invalid). Research task: force each state in dev and screenshot what the user sees per seite.
+**Answer prompt:** Pick the home and write the user-visible contract for the three states (empty-valid vs failed vs invalid). Research task: force each state in dev and screenshot what the user sees per component.
 
 ## Q48. What are the cost, limit, and abuse policies?
 
-**Decision:** Per-user rate limits, daily generation quotas, per-seite token budgets, queue bounds — and what happens at the limit (degrade to saved-input-only vs block)?
+**Decision:** Per-user rate limits, daily generation quotas, per-attempt token budgets, queue bounds — and what happens at the limit (degrade to saved-input-only vs block)?
 
-**Context:** Each request has a 60s limit and 4096-token output budget, identified as `Vocabularium/0.3.0` with stable conversation IDs; without a key, capture still saves while interpretation-dependent seites fail visibly ([README](../../../README.md)). Expanded user-facing limit controls are deferred ([scope](../../product/scope.md)).
+**Context:** Each provider call has a 60s limit and 4096-token output budget, identified as `Vocabularium/0.4.1` with stable conversation IDs. One generation run makes one interpretation call plus one call per generative component; without a key, capture still saves while interpretation-dependent components fail visibly ([README](../../../README.md)). Expanded user-facing limit controls are deferred ([scope](../../product/scope.md)).
 
 **Options:**
-- Degrade (save input, fail generative seites visibly) — matches today; users keep captures during outages or quota exhaustion.
+- Degrade (save input, fail generative components visibly) — matches today; users keep captures during outages or quota exhaustion.
 - Block at quota — clearer cost control; failed captures frustrate during legitimate bursts.
 - Metered with user-visible usage — most transparent; needs metering pipeline and UI before enforcement.
 
-**Answer prompt:** Set the numeric limits and the at-limit UX. Research task: compute per-karte cost from smoke samples for word/phrase/sentence and project monthly cost at 100/1k/10k users.
+**Answer prompt:** Set the numeric limits and the at-limit UX. Research task: compute per-page cost from smoke samples for word/phrase/sentence and project monthly cost at 100/1k/10k users.
 
 ## Q49. How is generation quality evaluated?
 
@@ -58,7 +58,7 @@ Generation is where money, latency, quality, and privacy meet. Decide the provid
 
 **Decision:** Explicit user retry only (today) vs automatic retry of transient failures? Can generation resume in a new browser session or only the originating one?
 
-**Context:** Results publish only through the originating Chrome session; reopening Chrome fails interrupted attempts; journaled results replay without recalling the provider while unstaged attempts fail; no automatic provider retry or failed-save resubmission exists ([local-postgresql](../local-postgresql.md), [Select and Add](../../MVP-Product-spec-select-and-add.md)).
+**Context:** Component results publish only through the originating Chrome session; reopening Chrome fails interrupted attempts; journaled results replay without recalling the provider while unstaged attempts fail; no automatic provider retry or failed-save resubmission exists ([local-postgresql](../local-postgresql.md), [Select and Add](../../MVP-Product-spec-select-and-add.md)).
 
 **Options:**
 - Explicit-only (current) — predictable cost and no surprise regeneration; users hand-retry every transient blip.
@@ -67,9 +67,9 @@ Generation is where money, latency, quality, and privacy meet. Decide the provid
 
 **Answer prompt:** Write the retry matrix (failure class → auto vs manual → max attempts → user message). Research task: inject a transient 500 + a timeout in dev and record whether the current code distinguishes them.
 
-## Q51. How arecaptured page text and prompts sanitized?
+## Q51. How are captured text and prompts sanitized?
 
-**Decision:** How is untrusted captured text (and page context, if Q07 adds it) isolated from instructions before reaching the model, and how are model outputs validated before storage/render?
+**Decision:** How is untrusted captured text (and the captured Context, added in 0.4.1) isolated from instructions before reaching the model, and how are model outputs validated before storage/render?
 
 **Context:** The adapter validates completion status, object fields, classification, and nonempty text locally (README). Captured text is attacker-controlled web content; without isolation it can steer prompts (instruction override) or return markup that becomes stored XSS if rendering ever goes rich (see Q13).
 
