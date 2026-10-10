@@ -1,8 +1,8 @@
 # Vocabularium
 
-A vocabulary capture extension for Chrome. The v0.3.0 local candidate uses Fastify, PostgreSQL 18, WXT and React for the dashboard, configuration and karte editor. Account access, capture, deck configuration and karte workflows remain available. The earlier Render/OpenCode MVP is a separate testing environment. The owner accepted that MVP baseline on 13 September 2026; see the [Windows acceptance record](docs/history/evidence/windows-owner-acceptance-2026-09-13.md).
+A vocabulary capture extension for Chrome. The v0.3.0 local candidate uses Fastify, PostgreSQL 18, WXT and React for the dashboard, deck settings and page editor. Account access, capture, deck settings and page workflows remain available. The earlier Render/OpenCode MVP is a separate testing environment. The owner accepted that MVP baseline on 13 September 2026; see the [Windows acceptance record](docs/history/evidence/windows-owner-acceptance-2026-09-13.md).
 
-The product documentation now uses deck → page → component ([product model](docs/product/model.md)). That refactor is in progress ([#81](https://github.com/Guccimane44/Vocalbularium/issues/81)); this README describes the running v0.3.0 build, which still uses kartes and seites.
+The product uses deck → page → component ([product model](docs/product/model.md), [refactor tracker #81](https://github.com/Guccimane44/Vocalbularium/issues/81)). A page holds a main key, optional Context, one component per configured module, and your own text.
 
 - [MVP delivery tracker and milestone issues](https://github.com/Guccimane44/Vocalbularium/issues/5)
 - [Implementation plan](docs/history/mvp/MVP-Implementation-plan.md)
@@ -11,7 +11,7 @@ The product documentation now uses deck → page → component ([product model](
 - [Diagnostic logs and cleanup commands](docs/guides/diagnostics.md)
 - [MVP scope](docs/history/mvp/MVP-Product-scope.md)
 
-The [terminology migration](docs/plans/v0.3.0-plus-terminology-migration.md) establishes deck → karte → seite. Previous extension builds, saved links and recoverable operations remain supported by the [compatibility policy](docs/architecture/terminology-compatibility.md); install the updated backend and its reviewed migration before the new extension.
+Upgrading from the karte/seite build discards its decks and kartes, as the owner decided ([Q72](docs/architecture/questionnaire/answers/answers-06-data-and-semantics.md#q72)); accounts and sign-in stay. Back up the database, install the updated backend and run its reviewed migrations, then update the extension. Older extension builds cannot use the new API.
 
 ## Account and dashboard
 
@@ -25,7 +25,7 @@ npm start
 
 Build the extension with `npm run build`, then load `artifacts/extension` through `chrome://extensions` → Developer mode → **Load unpacked**. Click the extension button and sign in with username `admin` and password `admin`.
 
-The account server listens on `127.0.0.1:4318` and persists data in the local `vocabularium_dev` PostgreSQL database. Both extension installations use the same account when pointed at this server. Use a separate Chrome profile for this fresh account. Select text on a webpage and choose **Create a karte in “My Deck”** (or the current default deck name). Recent outcomes appear on the dashboard; open a karte to navigate its plain-text seites. Use **Add new deck** or a deck’s **••• → Configure deck** menu to edit its seites and modules. Open a karte to edit its seites or retry a captured seite; use **Add karte manually** in a deck for a blank karte.
+The account server listens on `127.0.0.1:4318` and persists data in the local `vocabularium_dev` PostgreSQL database. Both extension installations use the same account when pointed at this server. Use a separate Chrome profile for this fresh account. Select text on a webpage and choose **Create a page in “My Deck”** (or the current default deck name). Recent outcomes appear on the dashboard; open a page to see its components. Use **Add new deck** or a deck’s **••• → Configure deck** menu to edit its modules. Open a page to edit it, generate missing components, or retry one component or the whole page; use **Add page manually** in a deck to enter a main key yourself.
 
 Build an installable extension folder with:
 
@@ -37,31 +37,31 @@ WXT writes the Chrome Manifest V3 build to `artifacts/extension`. For a hosted b
 
 The earlier Render/SQLite deployment is retired; its [testing procedure](docs/history/mvp/M6-Delivery.md#render-free-deployment) is kept as history.
 
-The local API uses Fastify and validates its startup settings. `npm run db:setup` writes ignored `.env.postgres` with separate application, migration, and test connections. Set provider options, `HOST` (loopback only), `PORT`, `DATA_DIR` (generation journal), and `LOG_LEVEL` in `.env`. `GENERATION_MAX_ACTIVE` and `GENERATION_MAX_QUEUED` bound active and waiting seite attempts (defaults: 4 and 16). Login sessions last seven days; active views refresh every five seconds. `GET /health/live` checks process liveness; `GET /health/ready` and the compatible `GET /health` check database readiness and API ownership. The [OpenAPI JSON reference](docs/api/openapi.json) is generated with `npm run openapi` without a database connection.
+The local API uses Fastify and validates its startup settings. `npm run db:setup` writes ignored `.env.postgres` with separate application, migration, and test connections. Set provider options, `HOST` (loopback only), `PORT`, `DATA_DIR` (generation journal), and `LOG_LEVEL` in `.env`. `GENERATION_MAX_ACTIVE` and `GENERATION_MAX_QUEUED` bound active and waiting component attempts (defaults: 4 and 16). Login sessions last seven days; active views refresh every five seconds. `GET /health/live` checks process liveness; `GET /health/ready` and the compatible `GET /health` check database readiness and API ownership. The [OpenAPI JSON reference](docs/api/openapi.json) is generated with `npm run openapi` without a database connection.
 
 Use `npm run db:generate` to prepare reviewed schema changes and `npm run db:migrate` with the API stopped to apply them. Normal API requests use the restricted application role. [Backup/restore commands and ordering/recovery details](docs/architecture/local-postgresql.md) explain the one-process limit and durable journal requirement.
 
-## Deck configuration
+## Deck settings
 
-Deck drafts support all five modules, repeated instances, one to four seites, and word/sentence sample previews. Save applies the layout to existing kartes: new seites are empty, retained seites keep their text, and removing saved content requires confirmation against the latest account data. Deleting the default deck requires a replacement; deleting the sole deck creates a fresh empty My Deck.
+A deck has an ordered list of up to 12 content modules, with repeated instances and word/sentence sample previews. Configuration changes apply to later generation only: existing pages keep their components, including those of removed modules, until you generate or retry. Deleting the default deck requires a replacement; deleting the sole deck creates a fresh My Deck.
 
 See [deck verification evidence](docs/history/mvp/M3-Decks.md).
 
-## Karte workflows
+## Page workflows
 
-The karte list loads up to 30 kartes at a time in any of four sort orders. Alphabetical sorting uses Unicode NFKC normalization and lowercase text, followed by JavaScript code-unit order; ties use the stable karte ID. Empty front seites sort using empty text, and displayed indices are calculated from the loaded list. Decks load in pages of 40; karte and deck detail is fetched when opened.
+The page list shows each page's main key and loads up to 30 pages at a time in any of four sort orders. Alphabetical sorting uses Unicode NFKC normalization and lowercase text, followed by JavaScript code-unit order; ties use the stable page ID. Decks load in batches of 40; page and deck detail is fetched when opened.
 
-Manual drafts remain intact when switching seites. **Save** writes all changed seites together; **Cancel** discards the editing session. Leaving the editor offers Save, Discard, or Continue editing. Failed saves retain their drafts and offer **Try saving again**. Only captured kartes offer current-seite **Retry**, with the required replacement warning. See [karte workflow verification](docs/history/mvp/M4-Cards.md).
+A page shows its main key, Context, one component per configured module (or a "Not generated yet" placeholder), and your own text. **Edit page** edits every text component; **Save** writes them together and **Cancel** discards the session. Manually created pages generate only when you click **Generate**. **Generate missing** fills components for newly added modules; **Retry** on one component, or **Retry page**, replaces generated content after a confirmation warning. Failed saves retain their drafts and offer **Try saving again**.
 
 ## Generation
 
 Copy `.env.example` to the ignored `.env` file (or add its generation settings to your existing file), configure `OPENCODE_API_KEY` with your OpenCode Go key, then restart the account server. Keep the key on the server. The extension never receives it. The default is `deepseek-v4.1-flash` through `https://opencode.ai/zen/go/v1/chat/completions`; `OPENCODE_MODEL` can override the model. Requests never fall back to another model automatically.
 
-The adapter requests JSON in its instructions and validates the completion status, object fields, input classification, and nonempty text locally before publishing. It does not depend on undocumented provider support for strict structured outputs. Each request has a 60-second limit and a 4,096-token output budget. Requests identify this app as `Vocabularium/0.3.0` and use one stable conversation ID per karte, including seite retries. [OpenCode Go](https://opencode.ai/docs/go/) is a subscription service intended for coding-agent traffic; the app's live requests succeeded with the owner's key on 12 September 2026. Keep its console **Use balance** option off to stop at the subscription limit instead of drawing from Zen credits. The app does not change that account setting.
+The adapter requests JSON in its instructions and validates the completion status, object fields, input classification, and nonempty text locally before publishing. It does not depend on undocumented provider support for strict structured outputs. Each request has a 60-second limit and a 4,096-token output budget. Requests identify this app as `Vocabularium/0.3.0` and use one stable conversation ID per page, including retries. [OpenCode Go](https://opencode.ai/docs/go/) is a subscription service intended for coding-agent traffic; the app's live requests succeeded with the owner's key on 12 September 2026. Keep its console **Use balance** option off to stop at the subscription limit instead of drawing from Zen credits. The app does not change that account setting.
 
-Without a key, the original capture is still saved. Seites requiring interpretation or generation fail visibly; exact-selection seites still complete. Automated checks inject controlled provider responses and do not spend API credits. The live word/sentence smoke passed with the configured Go key; see the [recorded provider samples](docs/history/evidence/deepseek-v4.1-flash-smoke-2026-09-12.json) and [hosted word/phrase/sentence results](docs/history/evidence/render-smoke-2026-09-12.json).
+Without a key, the original capture is still saved. Components requiring interpretation or generation fail visibly; exact-selection components still complete. Automated checks inject controlled provider responses and do not spend API credits. The live word/sentence smoke passed with the configured Go key; see the [recorded provider samples](docs/history/evidence/deepseek-v4.1-flash-smoke-2026-09-12.json) and [hosted word/phrase/sentence results](docs/history/evidence/render-smoke-2026-09-12.json).
 
-Capture receipts remain local through confirmed handoff to server kartes; pending receipts and saves remain available for explicit recovery. **Try saving again** resubmits the existing operation. Generation results are published only through their originating Chrome session; reopening Chrome fails its interrupted attempts. See [capture implementation evidence](docs/history/mvp/M2-Capture.md) and the authoritative [Select and Add rules](docs/MVP-Product-spec-select-and-add.md).
+Capture receipts remain local through confirmed handoff to server pages; pending receipts and saves remain available for explicit recovery. **Try saving again** resubmits the existing operation. Generation results are published only through their originating Chrome session; reopening Chrome fails its interrupted attempts. See [capture implementation evidence](docs/history/mvp/M2-Capture.md) and the authoritative [Select and Add rules](docs/MVP-Product-spec-select-and-add.md).
 
 ## Acceptance status
 
@@ -80,4 +80,4 @@ npm run test:browser
 
 Browser checks use temporary isolated profiles and their own servers on ports 4317 and 4318; stop manual servers first. The tests create and remove uniquely named PostgreSQL databases using `.env.postgres` or `TEST_DATABASE_ADMIN_URL`; they reject the development database as a reset target. Linux machines may need `npx playwright install --with-deps chromium`.
 
-For updates, pull the working branch, run `npm ci`, apply reviewed migrations with the API stopped, restart the API, then reload the unpacked extension and open dashboard tabs. Extension reload ends that installation's generation session; review interrupted seites using the [Select and Add rules](docs/MVP-Product-spec-select-and-add.md). Follow the linked installation/update instructions for the product extension.
+For updates, pull the working branch, run `npm ci`, apply reviewed migrations with the API stopped, restart the API, then reload the unpacked extension and open dashboard tabs. Extension reload ends that installation's generation session; review interrupted components using the [Select and Add rules](docs/MVP-Product-spec-select-and-add.md). Follow the linked installation/update instructions for the product extension.

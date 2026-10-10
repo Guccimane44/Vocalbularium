@@ -1,41 +1,37 @@
-import type { DeckLayout, InputType, ModuleInstance, OperationId } from '@vocabularium/contracts';
+import type { DeckConfiguration, InputType, OperationId } from '@vocabularium/contracts';
 
-export type EditorPendingKarteSave = Readonly<{
+export type EditorPendingPageSave = Readonly<{
   operationId: OperationId;
-  type: 'save-karte' | 'create-karte';
+  type: 'save-page' | 'create-page';
   payload: Readonly<Record<string, unknown>>;
 }>;
 
-export type KarteEditorDraft = {
+// Text drafts keyed by component ID. A new page has no components yet, so its
+// main key and Context are held separately.
+export type PageEditorDraft = {
   route: string;
-  karteId?: string;
+  pageId?: string;
   deckId: string;
   base: Record<string, string>;
   texts: Record<string, string>;
-  seiteIds: string[];
-  pending?: EditorPendingKarteSave;
+  mainKey?: string;
+  context?: string;
+  added: string[];
+  pending?: EditorPendingPageSave;
   error?: string;
   errorCode?: string;
 };
 
 export type EditorPendingDeckSave = Readonly<{
   operationId: OperationId;
-  payload: Readonly<{
-    deck: DeckLayout;
-    baseSeiteIds: string[];
-    confirmation?: string;
-  }>;
+  payload: Readonly<{ deck: DeckConfiguration }>;
 }>;
 
 export type DeckEditorDraft = {
   route: string;
-  deck: DeckLayout;
-  baseSeiteIds: string[];
-  selectedSeite: string;
+  deck: DeckConfiguration;
   sampleType?: InputType;
   saving?: boolean;
   pending?: EditorPendingDeckSave;
   error?: string;
 };
-
-export type ModuleDraft = ModuleInstance;

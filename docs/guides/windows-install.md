@@ -14,27 +14,27 @@ Use current Google Chrome (minimum supported version 120). The v0.3.0 **local** 
 4. Open Chrome's Extensions menu and select **Vocabularium**. Pin it if you want the button visible.
 5. Sign in with username **admin** and password **admin**.
 
-The initial dashboard contains **My Deck**. Select text on a normal webpage, right-click, and choose **Create a karte in “{your default deck name}”**. “Capture received” disappears after three seconds. Open the dashboard to check the save and generation outcome, then open the saved karte.
+The initial dashboard contains **My Deck**. Select text on a normal webpage, right-click, and choose **Create a page in “{your default deck name}”**. “Capture received” disappears after three seconds. Open the dashboard to check the save and generation outcome, then open the saved page.
 
 ## Update an installed copy
 
 For an update using the **same backend and Chrome profile**, finish or cancel manual edits and allow active generation to finish. Replace the files in the same permanent extension folder with the new package, then select **Reload** on Vocabularium's entry at `chrome://extensions`. Reload any already-open Vocabularium dashboard tabs as well. Reloading the extension ends its browser session, so unfinished generation is reconciled as failed. Use a separate Chrome profile for the v0.3.0 local backend instead of carrying pending operations or cached access from the older hosted account into it.
 
-Saved decks and kartes belong to the backend account. Back up and retain the local PostgreSQL database and generation journal when updating the API.
+Saved decks and pages belong to the backend account. Back up and retain the local PostgreSQL database and generation journal when updating the API.
 
 ## Check the v0.3.0 local candidate
 
 - Confirm version **0.3.0**, the `127.0.0.1:4318` server address in `package-info.json`, and a healthy local API before signing in.
-- Create a disposable manual karte and capture a word. Check that Recent captures hands the pending row to the saved karte without an empty or duplicate row. Open the karte, edit a seite, and check the same content after restarting the API and Chrome.
-- In a deck with more than 30 kartes, load another seite and try all four sort orders. In an account with more than 40 decks, load another deck seite and choose a replacement for the default deck from that later seite.
-- Check that a failed save retains **Try saving again** and the original draft. A seite rejected while generation is busy remains failed on an already-saved karte, ready for an explicit **Retry** later.
+- Create a disposable manual page and capture a word. Check that Recent captures hands the pending row to the saved page without an empty or duplicate row. Open the page, edit a component, and check the same content after restarting the API and Chrome.
+- In a deck with more than 30 pages, load more pages and try all four sort orders. In an account with more than 40 decks, load more decks and choose a replacement for the default deck from that later batch.
+- Check that a failed save retains **Try saving again** and the original draft. A component rejected while generation is busy remains failed on an already-saved page, ready for an explicit **Retry** later.
 - Record the Windows and Chrome versions, package source revision and SHA-256, and results in [v0.3.0 delivery issue #54](https://github.com/Guccimane44/Vocalbularium/issues/54). Automated Chromium checks on macOS do not establish native Windows acceptance.
 
 ## Check the v0.2.2 update
 
 - Confirm version **0.2.2**, then reload any open Vocabularium tabs after updating the files in the same installation folder.
-- In both Light and Dark, keep Recent captures or the deck karte list open while capturing several disposable words. No extra “A change is waiting…” / “Try saving again” panel should flash during normal creation, saving or completion.
-- On a deliberately failed save, confirm recovery remains visible and **Try saving again** finishes the same operation without duplicate kartes or regeneration. Restore the connection before retrying.
+- In both Light and Dark, keep Recent captures or the deck's page list open while capturing several disposable words. No extra “A change is waiting…” / “Try saving again” panel should flash during normal creation, saving or completion.
+- On a deliberately failed save, confirm recovery remains visible and **Try saving again** finishes the same operation without duplicate pages or regeneration. Restore the connection before retrying.
 - Confirm dashboard capture still shows its usual three-second popup without a separate blank Chrome window.
 - Report Windows/Chrome versions and the package source/checksum in [issue #40](https://github.com/Guccimane44/Vocalbularium/issues/40). Automated checks do not establish native Windows acceptance.
 
@@ -51,20 +51,20 @@ Saved decks and kartes belong to the backend account. Back up and retain the loc
 ## Retained v0.2.0 interface checks
 
 - The dashboard heading is **Your decks.**
-- Choose Light or Dark using **Appearance** in the header. Check login, decks, configuration, kartes, dialogs and capture feedback. Keep the extension installed in the same folder when updating so the preference is retained.
-- Use the three-dot menu from a deck's karte list. Try canceling deletion, changing the default and configuring a deck. Menus close when you choose an action or press Escape.
-- Rename the default deck and check **Create a karte in “{deck name}”** on a selected word. Repeat after switching the default and after a change from your other installation has synchronized. Chrome may shorten a long title; a literal `%s` in a deck name must not turn into the selected text.
-- Check completed/check, pending/clock, failed/warning and neutral rows in both themes. Click the index and empty row space, and use Tab plus Enter/Space to open kartes. Karte detail still shows generation status; unsaved captures retain their recovery action.
-- With **Recent captures** visible, capture a new word. Its pending row should stay visible as the saved karte becomes available, including on a slow connection.
+- Choose Light or Dark using **Appearance** in the header. Check login, decks, deck settings, pages, dialogs and capture feedback. Keep the extension installed in the same folder when updating so the preference is retained.
+- Use the three-dot menu from a deck's page list. Try canceling deletion, changing the default and configuring a deck. Menus close when you choose an action or press Escape.
+- Rename the default deck and check **Create a page in “{deck name}”** on a selected word. Repeat after switching the default and after a change from your other installation has synchronized. Chrome may shorten a long title; a literal `%s` in a deck name must not turn into the selected text.
+- Check completed/check, pending/clock, failed/warning and neutral rows in both themes. Click the index and empty row space, and use Tab plus Enter/Space to open pages. The page still shows generation status; unsaved captures retain their recovery action.
+- With **Recent captures** visible, capture a new word. Its pending row should stay visible as the saved page becomes available, including on a slow connection.
 - Capture, edit, retry, save and synchronize a disposable example. Reopen Chrome and check that Appearance persists. Report the Windows/Chrome versions and any differences from 0.1.0 in [issue #33](https://github.com/Guccimane44/Vocalbularium/issues/33).
 
 ## If something does not work
 
 - **No capture menu:** open Vocabularium and sign in; make sure the extension is enabled and some text is selected.
 - **Cannot sign in:** check the server address in `package-info.json`. A local package requires its local backend to be running.
-- **Capture received, but generation failed:** the request receipt confirms capture only. Check the saved karte's seite outcome. Server generation needs the owner's OpenCode Go API key and access to `deepseek-v4.1-flash`.
-- **Try saving again:** this resubmits the pending save. **Retry** on a captured seite starts replacement generation after a warning.
-- **Chrome closed during generation:** reopen it and review the karte's failed seite; use explicit seite Retry when ready.
-- **Feedback on a restricted seite:** Chrome can prevent a seite overlay. A separate brief feedback window is the fallback. Include the affected seite and visible behavior when reporting a feedback problem.
+- **Capture received, but generation failed:** the request receipt confirms capture only. Check each component's outcome on the saved page. Server generation needs the owner's OpenCode Go API key and access to `deepseek-v4.1-flash`.
+- **Try saving again:** this resubmits the pending save. **Retry** on a component or the whole page starts replacement generation after a warning.
+- **Chrome closed during generation:** reopen it and review the page's failed components; use an explicit Retry when ready.
+- **Feedback on a restricted web page:** Chrome can prevent a page overlay. A separate brief feedback window is the fallback. Include the affected web page and visible behavior when reporting a feedback problem.
 
 Report the package version, Chrome version, Windows version, steps, and visible message in the relevant delivery issue. Do not include API keys.

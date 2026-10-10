@@ -20,7 +20,7 @@
     "extension/sorting.ts",
     "extension/dashboard.tsx",
     "extension/configuration.tsx",
-    "extension/karte-view.tsx",
+    "extension/page-view.tsx",
     "src/persistence/**/*.ts",
     "drizzle.config.ts"
   ]

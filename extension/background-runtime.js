@@ -1,5 +1,4 @@
-import { currentValue } from '@vocabularium/contracts';
-import { readLocal } from './recovery.js';
+import { discardRetiredData, readLocal } from './recovery.js';
 import { saveOperations } from './save-operations.js';
 import { API_URL } from './config.js';
 import { captureRuntime } from './capture.js';
@@ -41,7 +40,7 @@ export function startBackground() {
       try {
         const summary = await request('/api/account/summary', null, auth.token);
         const recent = await request('/api/captures/recent', null, auth.token);
-        account = { ...summary, recentKartes: recent.kartes, kartes: [] };
+        account = { ...summary, recentPages: recent.pages };
       }
       catch (error) {
         if (version !== accessVersion) return { signedIn: false };
@@ -62,22 +61,22 @@ export function startBackground() {
   }
   async function clearHandedOffCaptures(account, token, version) {
     const local = await readLocal(null);
-    const recentIds = new Set(account.recentKartes.map(karte => karte.id));
+    const recentIds = new Set(account.recentPages.map(page => page.id));
     const confirmed = [];
     let detailChecks = 0;
     for (const [key, receipt] of Object.entries(local)) {
-      if (!key.startsWith('capture-') || receipt?.state !== 'saved' || !receipt.karteId) continue;
-      if (recentIds.has(receipt.karteId)) { confirmed.push([key, receipt.karteId]); continue; }
+      if (!key.startsWith('capture-') || receipt?.state !== 'saved' || !receipt.pageId) continue;
+      if (recentIds.has(receipt.pageId)) { confirmed.push([key, receipt.pageId]); continue; }
       if (detailChecks++ >= 10) continue;
       try {
-        const karte = await request(`/api/kartes/${encodeURIComponent(receipt.karteId)}`, null, token);
-        if (karte.id === receipt.karteId) confirmed.push([key, receipt.karteId]);
+        const page = await request(`/api/pages/${encodeURIComponent(receipt.pageId)}`, null, token);
+        if (page.id === receipt.pageId) confirmed.push([key, receipt.pageId]);
       } catch { /* Keep the receipt until handoff can be confirmed. */ }
     }
     if (confirmed.length) await writeState(async () => {
       if (version !== accessVersion) return;
       const current = await readLocal(confirmed.map(([key]) => key));
-      const removable = confirmed.filter(([key, karteId]) => current[key]?.state === 'saved' && current[key].karteId === karteId).map(([key]) => key);
+      const removable = confirmed.filter(([key, pageId]) => current[key]?.state === 'saved' && current[key].pageId === pageId).map(([key]) => key);
       if (removable.length) await chrome.storage.local.remove(removable);
     });
   }
@@ -85,15 +84,15 @@ export function startBackground() {
     const started = performance.now();
     const diagnosticRoute = path.startsWith('/api/diagnostics/');
     const meaningful = !diagnosticRoute && path !== '/api/poll' && !['/api/account/summary', '/api/captures/recent'].includes(path);
-    const metadata = { operationId: body?.operationId, karteId: body?.payload?.karteId,
-      seiteId: body?.payload?.seiteId, attemptId: body?.payload?.attemptId, method: body ? 'POST' : 'GET', route: path.split('?')[0] };
+    const metadata = { operationId: body?.operationId, pageId: body?.payload?.pageId,
+      componentId: body?.payload?.target?.componentId, attemptId: body?.payload?.attemptId, method: body ? 'POST' : 'GET', route: path.split('?')[0] };
     diagnostics.addSecret(token);
     if (meaningful) diagnostics.record({ ...metadata, event: 'request.started', outcome: 'started' });
     let response, result;
     try {
       response = await fetch(API_URL + path, {
         method: body ? 'POST' : 'GET',
-        headers: { 'X-Vocabularium-Terminology': 'karte-seite', ...(body ? { 'Content-Type': 'application/json' } : {}), ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        headers: { ...(body ? { 'Content-Type': 'application/json' } : {}), ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: body && JSON.stringify(body), signal: AbortSignal.timeout(10000)
       });
       result = await response.json();
@@ -107,14 +106,14 @@ export function startBackground() {
     diagnostics.addSecret(result.token);
     if (meaningful || (!diagnosticRoute && !response.ok)) diagnostics.record({ ...metadata,
       event: response.ok ? 'request.completed' : 'request.failed', requestId: response.headers?.get('x-request-id'),
-      karteId: result.karteId ?? result.cardId ?? metadata.karteId, status: response.status,
+      pageId: result.pageId ?? metadata.pageId, status: response.status,
       errorCode: result.code, outcome: response.ok ? result.replayed ? 'replayed' : 'succeeded' : 'failed',
       severity: response.ok ? 'info' : 'warn', durationMs: Math.round(performance.now() - started) });
     if (!response.ok) {
       const failure = isApiFailure(result) ? result : { error: 'The account server rejected the request.', code: 'server_error' };
       throw Object.assign(new Error(failure.error), { code: failure.code, status: response.status, details: failure.details });
     }
-    return currentValue(result);
+    return result;
   }
 
   async function removeAccess() {
@@ -128,6 +127,7 @@ export function startBackground() {
   }
 
   async function initialize() {
+    await discardRetiredData();
     await saves.recover();
     if (initialization) return initialization;
     const version = accessVersion;
@@ -164,7 +164,6 @@ export function startBackground() {
   }
 
   async function run(message) {
-    message = currentValue(message);
     if (message.type === 'diagnostics-status') {
       const local = await diagnostics.status(), { auth } = await readLocal('auth');
       try { return { local, backend: auth ? await request('/api/diagnostics/status', null, auth.token) : null }; }
@@ -180,6 +179,7 @@ export function startBackground() {
     }
     if (message.type === 'diagnostics-local-cleanup') return { local: await diagnostics.cleanup(message.range) };
     if (message.type === 'diagnostics-flush') { await diagnostics.flush(); return { local: await diagnostics.status() }; }
+    await discardRetiredData();
     await saves.recover();
     if (message.type === 'login') {
       const version = ++accessVersion;
@@ -217,12 +217,12 @@ export function startBackground() {
     try {
       if (message.type === 'refresh') return sessionReady ? refreshAccount() : initialize();
       if (message.type === 'deck-detail') return request(`/api/decks/${encodeURIComponent(message.deckId)}`, null, auth.token);
-      if (message.type === 'karte-detail') return request(`/api/kartes/${encodeURIComponent(message.karteId)}`, null, auth.token);
+      if (message.type === 'page-detail') return request(`/api/pages/${encodeURIComponent(message.pageId)}`, null, auth.token);
       if (message.type === 'deck-page') return request(`/api/decks?cursor=${encodeURIComponent(message.cursor)}`, null, auth.token);
-      if (message.type === 'deck-kartes') {
+      if (message.type === 'deck-pages') {
         const query = new URLSearchParams({ order: message.order ?? 'newest', limit: String(message.limit ?? 30) });
         if (message.cursor) query.set('cursor', message.cursor);
-        return request(`/api/decks/${encodeURIComponent(message.deckId)}/kartes?${query}`, null, auth.token);
+        return request(`/api/decks/${encodeURIComponent(message.deckId)}/pages?${query}`, null, auth.token);
       }
       if (message.type === 'set-default') {
         const operationId = message.operationId ?? crypto.randomUUID();
@@ -230,16 +230,18 @@ export function startBackground() {
         await saves.perform(pending, auth.token);
         return refreshAfterMutation();
       }
-      const paths = { 'save-deck': '/api/deck/save', 'delete-deck': '/api/deck/delete', 'create-karte': '/api/karte/create', 'save-karte': '/api/karte/save', 'delete-karte': '/api/karte/delete', 'retry-seite': '/api/karte/retry' };
+      const paths = { 'save-deck': '/api/deck/save', 'delete-deck': '/api/deck/delete', 'create-page': '/api/page/create', 'save-page': '/api/page/save', 'delete-page': '/api/page/delete', 'generate-page': '/api/page/generate' };
       if (paths[message.type]) {
-        if (message.type === 'retry-seite') {
+        if (message.type === 'generate-page') {
           const { session } = await chrome.storage.session.get('session');
           message.payload = { ...message.payload, session };
         }
         const operationId = message.operationId ?? crypto.randomUUID();
         const pending = { operationId, path: paths[message.type], payload: { operationId, payload: message.payload } };
-        const saved = await saves.perform(pending, auth.token, ['content_loss', 'invalid', 'front_seite', 'deleted', 'replacement', 'generation_busy']);
-        if (message.type === 'retry-seite') void captures.poll().catch(captures.recordError);
+        // Rejections the user resolves in place are not saves waiting for recovery.
+        const saved = await saves.perform(pending, auth.token, ['confirmation_required', 'invalid', 'deleted', 'replacement', 'generation_busy',
+          ...(message.type === 'generate-page' ? ['generating'] : [])]);
+        if (message.type === 'generate-page') void captures.poll().catch(captures.recordError);
         return refreshAfterMutation(saved);
       }
       if (message.type === 'try-saving-again') {

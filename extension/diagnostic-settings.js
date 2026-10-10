@@ -46,7 +46,7 @@ export async function diagnosticSettings({ send, root, navigate }) {
   });
   make('Clear selected logs', async () => {
     const { dialog } = await import('./dialog.ts');
-    const choice = await dialog({ title: 'Clear diagnostic logs?', message: 'Clear diagnostic history in the selected UTC range? Empty dates select all history up to now. Your kartes, drafts, and pending saves are preserved.', choices: ['Cancel', 'Clear logs'] });
+    const choice = await dialog({ title: 'Clear diagnostic logs?', message: 'Clear diagnostic history in the selected UTC range? Empty dates select all history up to now. Your pages, drafts, and pending saves are preserved.', choices: ['Cancel', 'Clear logs'] });
     if (choice.choice !== 'Clear logs') return;
     const value = await send({ type: 'diagnostics-cleanup', range: range() });
     await refresh(); notice.textContent = `Cleared ${value.backend.count} backend entries and ${value.local.count} buffered entries.`;

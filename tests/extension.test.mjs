@@ -13,7 +13,7 @@ function menuAPI() {
     removeAll(callback) { items.clear(); callback(); }
   } };
 }
-const accountNamed = name => ({ defaultDeckId: 'one', decks: [{ id: 'one', name }], kartes: [] });
+const accountNamed = name => ({ defaultDeckId: 'one', decks: [{ id: 'one', name, modules: [] }] });
 
 test('capture menu: safe names, missing default, and an existing item after worker restart', async () => {
   const api = menuAPI();
@@ -22,7 +22,7 @@ test('capture menu: safe names, missing default, and an existing item after work
     await sync(accountNamed(name));
     assert.equal(api.items.size, 1);
     const title = api.items.get('capture').title;
-    assert.equal(title.replaceAll('\u200b', ''), `Create a karte in “${name}”`);
+    assert.equal(title.replaceAll('\u200b', ''), `Create a page in “${name}”`);
     assert.equal(title.includes('%s'), false, 'selection cannot be substituted into a deck name');
   }
   await captureMenu(api)(accountNamed('After restart'));
@@ -59,7 +59,7 @@ async function background(t) {
     if (path === '/api/session') sessionCalls++;
     const value = path === '/api/login' ? { token: 'test-token' }
       : path === '/api/account/summary' ? await (accountFetch ? accountFetch() : structuredClone(account))
-        : path === '/api/captures/recent' ? { kartes: [] } : {};
+        : path === '/api/captures/recent' ? { pages: [] } : {};
     return { ok: true, async json() { return value; } };
   };
   t.after(() => { globalThis.chrome = oldChrome; globalThis.fetch = oldFetch; });
@@ -75,15 +75,15 @@ test('account refresh clears only confirmed, unchanged saved capture receipts', 
   const { api, send } = fixture;
   await send({ type: 'login', username: 'admin', password: 'admin' });
   await api.storage.local.set({
-    'capture-recent': { state: 'saved', karteId: 'recent-karte' },
-    'capture-race': { state: 'saved', karteId: 'race-karte' },
-    'capture-pending': { state: 'pending', karteId: 'pending-karte' }
+    'capture-recent': { state: 'saved', pageId: 'recent-page' },
+    'capture-race': { state: 'saved', pageId: 'race-page' },
+    'capture-pending': { state: 'pending', pageId: 'pending-page' }
   });
   fixture.intercept(async path => {
-    if (path === '/api/captures/recent') return reply(200, { kartes: [{ id: 'recent-karte' }] });
-    if (path === '/api/kartes/race-karte') {
-      await api.storage.local.set({ 'capture-race': { state: 'pending', karteId: 'race-karte' } });
-      return reply(200, { id: 'race-karte' });
+    if (path === '/api/captures/recent') return reply(200, { pages: [{ id: 'recent-page' }] });
+    if (path === '/api/pages/race-page') {
+      await api.storage.local.set({ 'capture-race': { state: 'pending', pageId: 'race-page' } });
+      return reply(200, { id: 'race-page' });
     }
   });
   await send({ type: 'refresh' });
@@ -125,35 +125,63 @@ test('mutations report missing or expired access without clearing the original s
   const fixture = await background(t);
   const { api, send } = fixture;
   await send({ type: 'login', username: 'admin', password: 'admin' });
-  const save = { type: 'save-karte', operationId: 'auth-save', payload: { karteId: 'one', changes: [] } };
+  const save = { type: 'save-page', operationId: 'auth-save', payload: { pageId: 'one', changes: [] } };
   await api.storage.local.remove('auth');
   assert.equal((await send(save)).code, 'unauthorized');
   assert.equal(api.storage.local.data['save-auth-save'], undefined);
   await send({ type: 'login', username: 'admin', password: 'admin' });
-  fixture.intercept(path => path === '/api/karte/save' ? reply(401, { error: 'Sign in to continue.', code: 'unauthorized' }) : null);
+  fixture.intercept(path => path === '/api/page/save' ? reply(401, { error: 'Sign in to continue.', code: 'unauthorized' }) : null);
   assert.equal((await send(save)).code, 'unauthorized');
   assert.equal(api.storage.local.data['save-auth-save'].state, 'pending');
   assert.deepEqual(api.storage.local.data['save-auth-save'].payload.payload, save.payload);
   assert.equal(api.storage.local.data.auth, undefined);
 });
 
-test('a busy seite Retry is a rejected confirmation, not a pending save to resubmit', async t => {
+test('a busy or unconfirmed Retry is answered in place, not a pending save to resubmit', async t => {
   const fixture = await background(t);
   const { api, send } = fixture;
   await send({ type: 'login', username: 'admin', password: 'admin' });
-  let attempts = 0;
-  fixture.intercept(path => {
-    if (path === '/api/karte/retry') {
-      attempts++;
-      return reply(429, { error: 'Generation is busy. Try Retry again later.', code: 'generation_busy' });
-    }
-    return null;
+  let attempts = 0, body;
+  fixture.intercept((path, options) => {
+    if (path !== '/api/page/generate') return null;
+    attempts++; body = JSON.parse(options.body);
+    return body.payload.confirmation
+      ? reply(429, { error: 'Generation is busy. Try again later.', code: 'generation_busy' })
+      : reply(409, { error: 'Retry replaces this content.', code: 'confirmation_required', details: { confirmation: 'digest' } });
   });
-  const result = await send({ type: 'retry-seite', operationId: 'busy-retry', payload: { karteId: 'karte', seiteId: 'page' } });
-  assert.equal(result.code, 'generation_busy');
+  const target = { scope: 'component', componentId: 'component' };
+  const unconfirmed = await send({ type: 'generate-page', operationId: 'ask', payload: { pageId: 'page', target } });
+  assert.equal(unconfirmed.code, 'confirmation_required');
+  assert.deepEqual(unconfirmed.details, { confirmation: 'digest' });
+  assert.deepEqual(body.payload.session, api.storage.session.data.session, 'generation runs in this browser session');
+  const busy = await send({ type: 'generate-page', operationId: 'busy-retry', payload: { pageId: 'page', target, confirmation: 'digest' } });
+  assert.equal(busy.code, 'generation_busy');
+  assert.equal(api.storage.local.data['save-ask'], undefined);
   assert.equal(api.storage.local.data['save-busy-retry'], undefined);
   await send({ type: 'try-saving-again', operationId: 'busy-retry' });
-  assert.equal(attempts, 1, 'a recovery action cannot silently start generation');
+  assert.equal(attempts, 2, 'a recovery action cannot silently start generation');
+});
+
+test('the first start after the page/component upgrade discards old content and keeps sign-in', async t => {
+  const fixture = await background(t);
+  const { api, send } = fixture;
+  const auth = { token: 'test-token' };
+  await api.storage.local.set({ auth, installationId: 'installation', epoch: 3, theme: 'dark',
+    account: { kartes: [] }, 'capture-old': { state: 'pending', payload: { selectedText: 'old' } },
+    'save-old': { operationId: 'old', path: '/api/karte/save', payload: {} }, connectionError: 'old error' });
+  fixture.intercept(path => path === '/api/poll' ? reply(200, { loading: false, ready: [] }) : null);
+  const state = await send({ type: 'initialize' });
+  assert.equal(state.signedIn, true);
+  const data = api.storage.local.data;
+  for (const key of ['capture-old', 'save-old', 'connectionError']) assert.equal(data[key], undefined, key);
+  assert.deepEqual([data.auth, data.installationId, data.theme, data.dataVersion], [auth, 'installation', 'dark', 2]);
+  assert.equal(data.epoch, 4, 'the installation keeps its identity and starts its next browser session');
+  assert.ok(data.account.recentPages, 'the account is refreshed in the new shape');
+  await api.storage.local.set({ 'save-new': { operationId: 'new', path: '/api/page/save', payload: {}, state: 'pending' } });
+  await send({ type: 'initialize' });
+  assert.ok(api.storage.local.data['save-new'], 'later data is kept');
+  // Initialization also starts a result poll; let it finish before the fixture is torn down.
+  await new Promise(resolve => setTimeout(resolve, 50));
 });
 
 test('authentication loss during refresh does not turn an acknowledged mutation into editor success', async t => {
@@ -163,18 +191,18 @@ test('authentication loss during refresh does not turn an acknowledged mutation 
   const operationId = 'committed-save';
   let committed = false;
   fixture.intercept(path => {
-    if (path === '/api/karte/save') { committed = true; return reply(200, { karteId: 'one' }); }
+    if (path === '/api/page/save') { committed = true; return reply(200, { pageId: 'one' }); }
     if (path === '/api/account/summary' && committed) return reply(401, { error: 'Sign in to continue.', code: 'unauthorized' });
     return null;
   });
-  const result = await send({ type: 'save-karte', operationId, payload: { karteId: 'one', changes: [] } });
+  const result = await send({ type: 'save-page', operationId, payload: { pageId: 'one', changes: [] } });
   assert.equal(committed, true);
   assert.equal(result.code, 'unauthorized');
   assert.equal(api.storage.local.data[`save-${operationId}`], undefined, 'acknowledged operation is not duplicated');
   assert.equal(api.storage.local.data.auth, undefined);
   fixture.intercept(null);
   await send({ type: 'login', username: 'admin', password: 'admin' });
-  const replay = await send({ type: 'save-karte', operationId, payload: { karteId: 'one', changes: [] } });
+  const replay = await send({ type: 'save-page', operationId, payload: { pageId: 'one', changes: [] } });
   assert.equal(replay.signedIn, true);
   assert.equal(api.storage.local.data[`save-${operationId}`], undefined);
 });
@@ -243,10 +271,10 @@ test('save receipts: active work stays distinct from failure, and retry preserve
   assert.equal(calls, 2);
 });
 
-test('save receipts: a new worker recovers interrupted saves and preserves legacy records', async () => {
+test('save receipts: a new worker recovers interrupted saves and preserves other records', async () => {
   const { saveOperations } = await import('../extension/save-operations.js');
   const local = storage();
-  const receipt = { operationId: 'interrupted', path: '/api/karte/save', payload: { operationId: 'interrupted', payload: { text: 'draft' } }, state: 'saving' };
+  const receipt = { operationId: 'interrupted', path: '/api/page/save', payload: { operationId: 'interrupted', payload: { text: 'draft' } }, state: 'saving' };
   const legacy = { operationId: 'legacy', path: '/api/default-deck', payload: { operationId: 'legacy', deckId: 'deck' } };
   await local.set({ 'save-interrupted': receipt, 'save-legacy': legacy, 'capture-one': { state: 'saving' } });
   let calls = 0;
@@ -266,7 +294,7 @@ test('save receipts: a new worker recovers interrupted saves and preserves legac
 test('save receipts: rejected edits discard only the existing non-retryable validation errors', async () => {
   const { saveOperations } = await import('../extension/save-operations.js');
   const local = storage();
-  const saves = saveOperations({ storage: local, request: async () => { throw Object.assign(Error('Confirm content loss'), { code: 'content_loss' }); } });
-  await assert.rejects(saves.perform({ operationId: 'edit', path: '/api/deck/save', payload: {} }, 'token', ['content_loss']), /Confirm content loss/);
+  const saves = saveOperations({ storage: local, request: async () => { throw Object.assign(Error('Choose supported modules'), { code: 'invalid' }); } });
+  await assert.rejects(saves.perform({ operationId: 'edit', path: '/api/deck/save', payload: {} }, 'token', ['invalid']), /Choose supported modules/);
   assert.equal(local.data['save-edit'], undefined);
 });

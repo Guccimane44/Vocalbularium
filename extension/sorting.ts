@@ -3,13 +3,13 @@ export const SORT_ORDERS = [
   ['az', 'Alphabetical, A to Z'], ['za', 'Alphabetical, Z to A']
 ];
 const compare = (a: string, b: string) => a < b ? -1 : a > b ? 1 : 0;
-export function sortKartes<T extends { id: string; created_at: string; seites: Array<{ text: string }> }>(kartes: T[], order = 'newest'): T[] {
+export function sortPages<T extends { id: string; createdAt: string; mainKey: string }>(pages: T[], order = 'newest'): T[] {
   // Unicode normalization plus case folding, then code-unit order is identical on every installation.
   const key = (text: string) => text.normalize('NFKC').toLowerCase();
-  return [...kartes].sort((a, b) => {
+  return [...pages].sort((a, b) => {
     const primary = ['az', 'za'].includes(order)
-      ? compare(key(a.seites[0]?.text ?? ''), key(b.seites[0]?.text ?? ''))
-      : compare(a.created_at, b.created_at);
+      ? compare(key(a.mainKey), key(b.mainKey))
+      : compare(a.createdAt, b.createdAt);
     return primary * (['newest', 'za'].includes(order) ? -1 : 1) || compare(a.id, b.id);
   });
 }
