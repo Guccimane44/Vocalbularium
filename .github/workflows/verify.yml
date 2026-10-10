@@ -22,6 +22,9 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check
+      - name: Check that the committed OpenAPI reference is current
+        if: runner.os == 'Linux'
+        run: npm run openapi && git diff --exit-code docs/api/openapi.json
       - run: node --test tests/extension.test.mjs tests/diagnostics.test.mjs
       - run: npm run build
       - run: python scripts/package.py
