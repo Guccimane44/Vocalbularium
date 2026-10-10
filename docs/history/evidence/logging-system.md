@@ -1,6 +1,6 @@
 # Logging implementation verification
 
-Checked 2 October 2026 (Europe/Berlin). [Issue #70](https://github.com/Guccimane44/Vocalbularium/issues/70) records the exact PR heads, CI runs and package checksums. The [specification](../../architecture/observability.md) and [execution plan](../../plans/logging-system.md) define this increment's scope.
+Checked 2 October 2026 (Europe/Berlin). [Issue #70](https://github.com/Guccimane44/Vocalbularium/issues/70) records the exact PR heads, CI runs and package checksums. The [specification](../../architecture/observability.md) and [execution plan](../plans/logging-system.md) define this increment's scope.
 
 ## Local verification
 

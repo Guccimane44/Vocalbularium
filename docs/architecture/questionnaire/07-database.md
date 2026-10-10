@@ -19,7 +19,7 @@ PostgreSQL 18 is the only runtime database. These questions turn today's single-
 
 **Decision:** Migration discipline: who writes SQL, when it runs, and what compatibility the old code keeps while new columns/tables land?
 
-**Context:** Drizzle schema in `src/persistence/schema.ts`, reviewed SQL in `migrations/`, `db:generate` then `db:migrate` with the API stopped; normal startup never runs DDL; applied migrations are immutable ([local-postgresql](../local-postgresql.md)). The page/component refactor used an additive step (`0003` adds the new tables beside the old ones) followed by a discarding step (`0004` drops the karte/seite tables and their content, keeping accounts) ([refactor plan](../../plans/page-component-refactor.md)).
+**Context:** Drizzle schema in `src/persistence/schema.ts`, reviewed SQL in `migrations/`, `db:generate` then `db:migrate` with the API stopped; normal startup never runs DDL; applied migrations are immutable ([local-postgresql](../local-postgresql.md)). The page/component refactor used an additive step (`0003` adds the new tables beside the old ones) followed by a discarding step (`0004` drops the karte/seite tables and their content, keeping accounts) ([refactor plan](../../history/plans/page-component-refactor.md)).
 
 **Options:**
 - Stop-the-world reviewed migrations (current) — safest for correctness; needs downtime windows and the backend-before-extension order enforced.
@@ -59,7 +59,7 @@ PostgreSQL 18 is the only runtime database. These questions turn today's single-
 
 **Decision:** Retention per data class: page content, edit history, generation attempts/journals, operation receipts, server logs, deleted data, backups.
 
-**Context:** Receipts created since 0.4.0 replay identically while they are retained (0.4.0 emptied the older receipts with their content); journal files and provider results are kept verbatim; applied migrations stay immutable ([refactor plan](../../plans/page-component-refactor.md)). Development diagnostics are kept until explicit cleanup ([observability](../observability.md)). Nothing states when hosted data may be deleted.
+**Context:** Receipts created since 0.4.0 replay identically while they are retained (0.4.0 emptied the older receipts with their content); journal files and provider results are kept verbatim; applied migrations stay immutable ([refactor plan](../../history/plans/page-component-refactor.md)). Development diagnostics are kept until explicit cleanup ([observability](../observability.md)). Nothing states when hosted data may be deleted.
 
 **Options:**
 - Keep everything forever — simplest code, unbounded growth, conflicts with erasure requests.

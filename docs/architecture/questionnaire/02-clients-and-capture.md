@@ -6,7 +6,7 @@ Capture is the product's front door: the vision promises saving text without bre
 
 **Decision:** For each candidate — Chrome extension, hosted web app, Firefox/Safari, iOS share-sheet, Android share, desktop hotkey, audio/YouTube capture — mark must-have, nice, or out.
 
-**Context:** Today only Chrome selection → context menu → default deck exists, using selected text only ([scope](../../product/scope.md), [Select and Add](../../MVP-Product-spec-select-and-add.md)). The vision names hotkeys, sharing, and mobile devices as possibilities, not commitments ([vision](../../product/vision.md)). Each client needs its own auth session, capture endpoint, and update channel.
+**Context:** Today only Chrome selection → context menu → default deck exists, using selected text only ([scope](../../product/scope.md), [Select and Add](../../specs/capture-and-generation.md)). The vision names hotkeys, sharing, and mobile devices as possibilities, not commitments ([vision](../../product/vision.md)). Each client needs its own auth session, capture endpoint, and update channel.
 
 **Options:**
 - Chrome-only 1.0 — one client, one update path (unpacked or Web Store), all effort into capture reliability and modules. Tradeoff: mobile demand stays unserved.
@@ -32,7 +32,7 @@ Capture is the product's front door: the vision promises saving text without bre
 
 **Decision:** Fire-and-forget (toast + background generation, check later) vs blocking (page opens immediately)? And which follow-ups exist: auto-open, a result popup, page retry, component retry?
 
-**Context:** Current behavior: a brief **Capture received** popup, recent outcomes on the dashboard, and explicitly confirmed **Retry** of one component or the whole page in the page editor; auto-open is deferred ([scope](../../product/scope.md#explicit-deferrals), [Select and Add](../../MVP-Product-spec-select-and-add.md#retry)). The model treats saving and generating as distinct operations with distinct recovery ([model](../../product/model.md)).
+**Context:** Current behavior: a brief **Capture received** popup, recent outcomes on the dashboard, and explicitly confirmed **Retry** of one component or the whole page in the page editor; auto-open is deferred ([scope](../../product/scope.md#explicit-deferrals), [Select and Add](../../specs/capture-and-generation.md#retry)). The model treats saving and generating as distinct operations with distinct recovery ([model](../../product/model.md)).
 
 **Options:**
 - Fire-and-forget — least interruption, matches the vision's minimize-interruption principle; needs bulletproof background status and failure surfacing.
@@ -45,7 +45,7 @@ Capture is the product's front door: the vision promises saving text without bre
 
 **Decision:** What must survive backend-down, laptop-offline, and browser-restart: queued captures, pending saves, in-flight generation?
 
-**Context:** Current recovery is explicit and session-bound: receipts stay local until confirmed handoff, failed saves need explicit resubmission, and component results publish only through the originating Chrome session — reopening Chrome fails interrupted component attempts ([Select and Add](../../MVP-Product-spec-select-and-add.md)). The local PostgreSQL guide documents the journal but not an offline client protocol ([local-postgresql](../local-postgresql.md)).
+**Context:** Current recovery is explicit and session-bound: receipts stay local until confirmed handoff, failed saves need explicit resubmission, and component results publish only through the originating Chrome session — reopening Chrome fails interrupted component attempts ([Select and Add](../../specs/capture-and-generation.md)). The local PostgreSQL guide documents the journal but not an offline client protocol ([local-postgresql](../local-postgresql.md)).
 
 **Options:**
 - Best-effort queue (captures + saves survive restart, generation does not) — modest work in `storage.local`, keeps session-bound generation semantics.

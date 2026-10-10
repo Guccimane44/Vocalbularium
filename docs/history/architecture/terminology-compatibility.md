@@ -1,8 +1,8 @@
 # Terminology migration boundaries
 
-> **Historical, 10 October 2026.** The deck → page → component model ([Q72](../architecture/questionnaire/answers/answers-06-data-and-semantics.md#q72)) replaces this hierarchy. Follow the [refactor plan](../plans/page-component-refactor.md); [earlier terms](../product/model.md#earlier-terms) maps the vocabulary.
+> **Historical, 10 October 2026.** The deck → page → component model ([Q72](../../architecture/questionnaire/answers/answers-06-data-and-semantics.md#q72)) replaces this hierarchy. Follow the [refactor plan](../plans/page-component-refactor.md); [earlier terms](../../product/model.md#earlier-terms) maps the vocabulary.
 
-The product hierarchy is **deck → karte → seite**. See the [model](../product/model.md) and [approved plan](../plans/v0.3.0-plus-terminology-migration.md).
+The product hierarchy is **deck → karte → seite**. See the [model](../../product/model.md) and [approved plan](../plans/v0.3.0-plus-terminology-migration.md).
 
 ## Inventory and upgrade requirements
 

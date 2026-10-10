@@ -1,6 +1,6 @@
-# Local PostgreSQL development (v0.3.0)
+# Local PostgreSQL development
 
-The API now requires Node 24 and PostgreSQL 18. PostgreSQL is its only runtime database. The Drizzle schema is in `src/persistence/schema.ts`; reviewed SQL and migration metadata are in `migrations/`. Current product behavior remains governed by the [MVP scope](../history/mvp/MVP-Product-scope.md) and [Select and Add](../MVP-Product-spec-select-and-add.md).
+The API now requires Node 24 and PostgreSQL 18. PostgreSQL is its only runtime database. The Drizzle schema is in `src/persistence/schema.ts`; reviewed SQL and migration metadata are in `migrations/`. [Current scope](../product/scope.md) and the specifications it links define product behavior.
 
 ## Start locally
 
@@ -47,7 +47,7 @@ The former Render/SQLite deployment is retired. Later hosting needs PostgreSQL, 
 
 The persistence boundary has an explicit owner account ID. Only account `1` is supported; this is not multi-tenant authorization. Complete validated commands are admitted to the per-account executor before asynchronous handler authentication. Initial authentication also runs in that executor. Each mutation commits with its operation receipt before acknowledgment. Replaying an operation returns the original result and sequence; a different payload with the same operation ID is rejected.
 
-All account mutations, authentication writes, generation transitions, and assembled reads use the same ordered executor. Transactions acquire the account row lock and use repeatable-read isolation, so a snapshot cannot combine different layout/karte revisions. Query, lock, connection, and idle-transaction waits are bounded. Provider calls run outside the executor and transactions. A save rejected while a seite is generating is not queued for eventual application; the user must resubmit explicitly under the existing [recovery rules](../MVP-Product-spec-select-and-add.md#saving-and-synchronization-failures).
+All account mutations, authentication writes, generation transitions, and assembled reads use the same ordered executor. Transactions acquire the account row lock and use repeatable-read isolation, so a snapshot cannot combine different deck configuration or page revisions. Query, lock, connection, and idle-transaction waits are bounded. Provider calls run outside the executor and transactions. A save rejected while a component is generating is not queued for eventual application; the user must resubmit explicitly under the existing [recovery rules](../specs/capture-and-generation.md#saving-and-synchronization-failures).
 
 One dedicated pool connection holds an advisory ownership lock. A second API or a migration attempt against an active API fails. This enforces the one-process deployment limit; database locks alone are not used to claim cross-process arrival ordering. The pool holds at most five connections including ownership. If ownership is lost, readiness fails and account operations stop until the API restarts; liveness still responds.
 
@@ -79,7 +79,7 @@ npm run db:backup -- .data/development-backup.dump
 npm run db:restore -- .data/development-backup.dump vocabularium_restore_review
 ```
 
-Backup refuses an existing output path and creates a private custom-format dump. Restore creates a **new** database owned by the test role; it accepts only `vocabularium_restore_*` names and never drops or overwrites a database. The archive excludes ownership/grants. Inspect a restored database with the test role, using its generated password locally without sharing the connection URL. A failed restore leaves its new database available for diagnosis. Confirm application login, default-deck/seite relationships, representative karte text, and operation replay before using restored data. Do not overwrite the live development database as a restore test.
+Backup refuses an existing output path and creates a private custom-format dump. Restore creates a **new** database owned by the test role; it accepts only `vocabularium_restore_*` names and never drops or overwrites a database. The archive excludes ownership/grants. Inspect a restored database with the test role, using its generated password locally without sharing the connection URL. A failed restore leaves its new database available for diagnosis. Confirm application login, default-deck/page/component relationships, representative page text, and operation replay before using restored data. Do not overwrite the live development database as a restore test.
 
 The [Stage 4 rehearsal](../history/evidence/v0.3.0-stage4-postgresql.md) restored the fresh development seed. The [Stage 7 rehearsal](../history/evidence/v0.3.0-stage7-local-candidate.md) additionally restored the current development backup and a separate populated synthetic account, then verified login, relationships, representative text and operation replay. The agent rehearsal did not include a physical machine reboot or native Windows PostgreSQL/browser run. The owner accepted Stage 7 without supplying itemized results of those checks; native Windows behavior remains unverified in this record.
 

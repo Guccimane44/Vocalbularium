@@ -1,15 +1,15 @@
 # Vocabularium
 
-A vocabulary capture extension for Chrome. The v0.3.0 local candidate uses Fastify, PostgreSQL 18, WXT and React for the dashboard, deck settings and page editor. Account access, capture, deck settings and page workflows remain available. The earlier Render/OpenCode MVP is a separate testing environment. The owner accepted that MVP baseline on 13 September 2026; see the [Windows acceptance record](docs/history/evidence/windows-owner-acceptance-2026-09-13.md).
+A vocabulary capture extension for Chrome, at release 0.4.1. A local Fastify API with PostgreSQL 18 serves one owner-test account; the extension's dashboard, deck settings and page editor use WXT and React.
 
-The product uses deck → page → component ([product model](docs/product/model.md), [refactor tracker #81](https://github.com/Guccimane44/Vocalbularium/issues/81)). A page holds a main key, optional Context, one component per configured module, and your own text.
+The product uses deck → page → component. A page holds a main key, optional Context, one component per configured content module, and your own text.
 
-- [MVP delivery tracker and milestone issues](https://github.com/Guccimane44/Vocalbularium/issues/5)
-- [Implementation plan](docs/history/mvp/MVP-Implementation-plan.md)
-- [Foundation decisions and verification](docs/history/mvp/M0-Foundation.md)
-- [Windows installation](docs/guides/windows-install.md) and [delivery preparation](docs/history/mvp/M6-Delivery.md)
-- [Diagnostic logs and cleanup commands](docs/guides/diagnostics.md)
-- [MVP scope](docs/history/mvp/MVP-Product-scope.md)
+- [Product model](docs/product/model.md): the terms
+- [Current scope](docs/product/scope.md): what 0.4.1 supports, with links to each specification
+- [Vision](docs/product/vision.md): where the product is going
+- [Project workflow](docs/guides/project-workflow.md): how decisions become specifications and releases
+- [Local PostgreSQL setup](docs/architecture/local-postgresql.md) and [diagnostic logs](docs/guides/diagnostics.md)
+- [History](docs/history/): the MVP, the Render deployment, Windows delivery, and finished plans
 
 Upgrading from the karte/seite build discards its decks and kartes, as the owner decided ([Q72](docs/architecture/questionnaire/answers/answers-06-data-and-semantics.md#q72)); accounts and sign-in stay. Back up the database, install the updated backend and run its reviewed migrations, then update the extension. Older extension builds cannot use the new API.
 
@@ -45,8 +45,6 @@ Use `npm run db:generate` to prepare reviewed schema changes and `npm run db:mig
 
 A deck has an ordered list of up to 12 content modules, with repeated instances and word/sentence sample previews. Configuration changes apply to later generation only: existing pages keep their components, including those of removed modules, until you generate or retry. Deleting the default deck requires a replacement; deleting the sole deck creates a fresh My Deck. **Capture with Context** (on by default) makes capture into the deck also take the text around the selection, up to about 500 characters, as the page's Context; the page URL and title are never taken.
 
-See [deck verification evidence](docs/history/mvp/M3-Decks.md).
-
 ## Page workflows
 
 The page list shows each page's main key and loads up to 30 pages at a time in any of four sort orders. Alphabetical sorting uses Unicode NFKC normalization and lowercase text, followed by JavaScript code-unit order; ties use the stable page ID. Decks load in batches of 40; page and deck detail is fetched when opened.
@@ -57,17 +55,15 @@ A page shows its main key, Context, one component per configured module (or a "N
 
 Copy `.env.example` to the ignored `.env` file (or add its generation settings to your existing file), configure `OPENCODE_API_KEY` with your OpenCode Go key, then restart the account server. Keep the key on the server. The extension never receives it. The default is `deepseek-v4.1-flash` through `https://opencode.ai/zen/go/v1/chat/completions`; `OPENCODE_MODEL` can override the model. Requests never fall back to another model automatically.
 
-The adapter requests JSON in its instructions and validates the completion status, object fields, input classification, and nonempty text locally before publishing. It does not depend on undocumented provider support for strict structured outputs. Each request has a 60-second limit and a 4,096-token output budget. Requests identify this app as `Vocabularium/0.3.0` and use one stable conversation ID per page, including retries. [OpenCode Go](https://opencode.ai/docs/go/) is a subscription service intended for coding-agent traffic; the app's live requests succeeded with the owner's key on 12 September 2026. Keep its console **Use balance** option off to stop at the subscription limit instead of drawing from Zen credits. The app does not change that account setting.
+The adapter requests JSON in its instructions and validates the completion status, object fields, input classification, and nonempty text locally before publishing. It does not depend on undocumented provider support for strict structured outputs. Each request has a 60-second limit and a 4,096-token output budget. Requests identify this app as `Vocabularium/0.4.1` and use one stable conversation ID per page, including retries. [OpenCode Go](https://opencode.ai/docs/go/) is a subscription service intended for coding-agent traffic; the app's live requests succeeded with the owner's key on 12 September 2026. Keep its console **Use balance** option off to stop at the subscription limit instead of drawing from Zen credits. The app does not change that account setting.
 
 Without a key, the original capture is still saved. Components requiring interpretation or generation fail visibly; exact-selection components still complete. Automated checks inject controlled provider responses and do not spend API credits. The live word/sentence smoke passed with the configured Go key; see the [recorded provider samples](docs/history/evidence/deepseek-v4.1-flash-smoke-2026-09-12.json) and [hosted word/phrase/sentence results](docs/history/evidence/render-smoke-2026-09-12.json).
 
-Capture receipts remain local through confirmed handoff to server pages; pending receipts and saves remain available for explicit recovery. **Try saving again** resubmits the existing operation. Generation results are published only through their originating Chrome session; reopening Chrome fails its interrupted attempts. See [capture implementation evidence](docs/history/mvp/M2-Capture.md) and the authoritative [Select and Add rules](docs/MVP-Product-spec-select-and-add.md).
+Capture receipts remain local through confirmed handoff to server pages; pending receipts and saves remain available for explicit recovery. **Try saving again** resubmits the existing operation. Generation results are published only through their originating Chrome session; reopening Chrome fails its interrupted attempts. The [capture and generation specification](docs/specs/capture-and-generation.md) holds the authoritative rules.
 
-## Acceptance status
+## Release status
 
-The [v0.3.0 migration plan](docs/history/v0.3.0-migration-plan.md) tracks the local candidate and owner acceptance separately from the historical hosted MVP. Stage 6 [bounded-read evidence](docs/history/evidence/v0.3.0-stage6-bounded-reads.md) and [local PostgreSQL instructions](docs/architecture/local-postgresql.md) cover current automated checks and setup. Earlier Windows acceptance applies to the earlier delivered packages, not this local candidate.
-
-The [acceptance record](docs/history/mvp/M5-Acceptance.md) maps all eleven criteria to automated, hosted, and owner-reported evidence. The owner confirmed Windows and the remaining M5 checks passed, explicitly deferring stale-client recovery after a Render reset to [issue #24](https://github.com/Guccimane44/Vocalbularium/issues/24). That scenario is untested. Render Free does not satisfy durable hosted persistence. `npm run smoke:generation` records a small live integration sample; the [hosted smoke commands](docs/history/mvp/M6-Delivery.md#hosted-verification) exercise the deployed backend explicitly.
+Release evidence lives in the tracker issues and PRs, such as [#81](https://github.com/Guccimane44/Vocalbularium/issues/81) for 0.4.0. The owner accepted the earlier hosted MVP on 13 September 2026; its [acceptance record](docs/history/mvp/M5-Acceptance.md) and the retired Render and Windows procedures are kept in [history](docs/history/). `npm run smoke:generation` records a small live provider sample.
 
 ## Verification
 
@@ -80,4 +76,4 @@ npm run test:browser
 
 Browser checks use temporary isolated profiles and their own servers on ports 4317 and 4318; stop manual servers first. The tests create and remove uniquely named PostgreSQL databases using `.env.postgres` or `TEST_DATABASE_ADMIN_URL`; they reject the development database as a reset target. Linux machines may need `npx playwright install --with-deps chromium`.
 
-For updates, pull the working branch, run `npm ci`, apply reviewed migrations with the API stopped, restart the API, then reload the unpacked extension and open dashboard tabs. Extension reload ends that installation's generation session; review interrupted components using the [Select and Add rules](docs/MVP-Product-spec-select-and-add.md). Follow the linked installation/update instructions for the product extension.
+For updates, pull the working branch, run `npm ci`, apply reviewed migrations with the API stopped, restart the API, then reload the unpacked extension and open dashboard tabs. Extension reload ends that installation's generation session; review interrupted components using the [capture and generation rules](docs/specs/capture-and-generation.md).

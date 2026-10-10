@@ -1,6 +1,6 @@
 # Diagnostic logging
 
-Owner approval: 2 October 2026, logging interview, specification and storage-policy approval. [Issue #70](https://github.com/Guccimane44/Vocalbularium/issues/70) holds implementation and acceptance evidence. See the [execution plan](../plans/logging-system.md) and [operating guide](../guides/diagnostics.md).
+Owner approval: 2 October 2026, logging interview, specification and storage-policy approval. [Issue #70](https://github.com/Guccimane44/Vocalbularium/issues/70) holds implementation and acceptance evidence. See the [execution plan](../history/plans/logging-system.md) and [operating guide](../guides/diagnostics.md).
 
 ## Purpose and event coverage
 

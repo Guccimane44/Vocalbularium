@@ -58,7 +58,7 @@ Security here is not abstract: captured web text is untrusted input, generated c
 
 **Decision:** GDPR erasure/export? Provider DPA? Chrome Web Store privacy disclosures? Data jurisdiction? Age rating?
 
-**Context:** Scope defers public onboarding and account management; the Windows guide already requires version/evidence reporting without API keys ([scope](../../product/scope.md), [windows-install](../../guides/windows-install.md)). None of this matters for single-owner local use; all of it matters the moment strangers sign up or data leaves the machine.
+**Context:** Scope defers public onboarding and account management; the Windows guide already requires version/evidence reporting without API keys ([scope](../../product/scope.md), [windows-install](../../history/guides/windows-install.md)). None of this matters for single-owner local use; all of it matters the moment strangers sign up or data leaves the machine.
 
 **Options:**
 - None (single-owner local) — state it and the tripwire that reopens the question (first external user or hosted data).

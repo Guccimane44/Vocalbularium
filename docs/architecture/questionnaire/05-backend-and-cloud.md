@@ -79,7 +79,7 @@ dashboard shows (failed component + Retry, no silent success).
 
 **Context:** Provider calls run outside transactions with 60s timeouts and
 4096-token budgets; a save rejected during generation needs explicit resubmission
-([local-postgresql](../local-postgresql.md), [Select and Add](../../MVP-Product-spec-select-and-add.md)).
+([local-postgresql](../local-postgresql.md), [Select and Add](../../specs/capture-and-generation.md)).
 Inline execution inside the requesting function inherits the Vercel timeout Q22
 flagged for verification. Durable queuing moves long provider work out of the
 request path with visibility timeouts, bounded auto-retry of transient failures,

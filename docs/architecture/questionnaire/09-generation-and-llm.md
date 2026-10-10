@@ -19,7 +19,7 @@ Generation is where money, latency, quality, and privacy meet. Decide the provid
 
 **Decision:** Prompts in code, in DB, or in a versioned registry? How are they A/B tested and rolled back? What separates inapplicable (valid empty) from failure from invalid output?
 
-**Context:** The adapter requests JSON in instructions and validates completion status, fields, classification, and nonempty text locally without relying on strict structured-output support; one stable conversation ID per page including retries (README). Component completion/failure/interruption/publication/retry semantics are owned by Select and Add, including the distinction between failed generation and valid empty content ([Select and Add](../../MVP-Product-spec-select-and-add.md)).
+**Context:** The adapter requests JSON in instructions and validates completion status, fields, classification, and nonempty text locally without relying on strict structured-output support; one stable conversation ID per page including retries (README). Component completion/failure/interruption/publication/retry semantics are owned by Select and Add, including the distinction between failed generation and valid empty content ([Select and Add](../../specs/capture-and-generation.md)).
 
 **Options:**
 - Prompts in code, versioned with releases — simplest review and rollback; prompt tweaks ride the release train.
@@ -58,7 +58,7 @@ Generation is where money, latency, quality, and privacy meet. Decide the provid
 
 **Decision:** Explicit user retry only (today) vs automatic retry of transient failures? Can generation resume in a new browser session or only the originating one?
 
-**Context:** Component results publish only through the originating Chrome session; reopening Chrome fails interrupted attempts; journaled results replay without recalling the provider while unstaged attempts fail; no automatic provider retry or failed-save resubmission exists ([local-postgresql](../local-postgresql.md), [Select and Add](../../MVP-Product-spec-select-and-add.md)).
+**Context:** Component results publish only through the originating Chrome session; reopening Chrome fails interrupted attempts; journaled results replay without recalling the provider while unstaged attempts fail; no automatic provider retry or failed-save resubmission exists ([local-postgresql](../local-postgresql.md), [Select and Add](../../specs/capture-and-generation.md)).
 
 **Options:**
 - Explicit-only (current) — predictable cost and no surprise regeneration; users hand-retry every transient blip.

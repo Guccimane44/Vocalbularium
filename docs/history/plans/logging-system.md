@@ -1,6 +1,6 @@
 # Logging execution plan
 
-Approved specification and storage policy: 2 October 2026; implementation authorized in the same chat. [Observability](../architecture/observability.md) owns behavior. [Issue #70](https://github.com/Guccimane44/Vocalbularium/issues/70) tracks evidence.
+Approved specification and storage policy: 2 October 2026; implementation authorized in the same chat. [Observability](../../architecture/observability.md) owns behavior. [Issue #70](https://github.com/Guccimane44/Vocalbularium/issues/70) tracks evidence.
 
 Base: `codex/modular-product-direction` at `84f15d9`, following PR #69. Main-key implementation remains separate. Use an isolated checkout and preserve the main chat's working tree and running API.
 

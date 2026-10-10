@@ -4,7 +4,7 @@
 
 Modules provide focused capabilities that users choose and combine in a deck's configuration. A rich library of creative and useful modules is the central direction in the [product vision](../product/vision.md). The [product model](../product/model.md) defines module types, instances, outputs, pages, components, and views; [scope](../product/scope.md) identifies what is supported now.
 
-The current rules below preserve the existing five-module baseline. Detailed catalog formats and examples remain authoritative in the [existing module specification](../history/mvp/MVP-Product-spec-modules.md) during the specification taxonomy migration. This document does not move or rewrite those examples. [Select and Add](../MVP-Product-spec-select-and-add.md) owns generation completion, failure, interruption, publication, and retry behavior.
+The current rules below preserve the existing five-module baseline. Detailed catalog formats and examples remain authoritative in the [existing module specification](../history/mvp/MVP-Product-spec-modules.md) during the specification taxonomy migration. This document does not move or rewrite those examples. [Select and Add](capture-and-generation.md) owns generation completion, failure, interruption, publication, and retry behavior.
 
 ## Module kinds
 
@@ -33,7 +33,7 @@ An inapplicable instance contributes no output and is not a generation failure. 
 
 ## Content module contract
 
-This contract is implemented in release 0.4.0. [Pages and editing](pages-and-editing.md) owns the main key and Context; [Select and Add](../MVP-Product-spec-select-and-add.md) owns attempt states, failure, and retry.
+This contract is implemented in release 0.4.0. [Pages and editing](pages-and-editing.md) owns the main key and Context; [Select and Add](capture-and-generation.md) owns attempt states, failure, and retry.
 
 - **Input:** the page's current main key, its saved Context when present, and the input interpretation of the generation run. These are a content module's only text inputs, whether capture or manual entry supplied them. Module configuration remains the instructions governing the contribution.
 - **Interpretation:** one interpretation per generation run, shared by every attempt in that run. It must correspond to the run's main key and Context; a changed key must not reuse a prior key's category or source language.

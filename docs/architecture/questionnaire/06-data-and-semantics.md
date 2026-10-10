@@ -47,7 +47,7 @@ This is the product's long-term memory. The vision's "persistent semantic object
 
 **Decision:** Copy/move semantics between decks, duplicate policy, delete semantics (hard vs trash + restore), and ID stability.
 
-**Context:** Every page belongs to exactly one deck; copy/paste or move into another deck exists in the product description but moving/copying is deferred in scope ([vision/product description](../../../vocabularium-product-description.md), [scope](../../product/scope.md)). Matching main keys never merge identities ([model](../../product/model.md)).
+**Context:** Every page belongs to exactly one deck; copy/paste or move into another deck exists in the product description but moving/copying is deferred in scope ([vision/product description](../../history/vocabularium-product-description.md), [scope](../../product/scope.md)). Matching main keys never merge identities ([model](../../product/model.md)).
 
 **Options:**
 - Copy-only (move = copy + delete) — simplest; new ID + fresh attempts, history stays behind unless explicitly carried.
@@ -86,7 +86,7 @@ This is the product's long-term memory. The vision's "persistent semantic object
 
 ## Q72. What is a karte made of, and how is it shown?
 
-Added 10 October 2026, after Q29–Q34 were answered. Kept as asked against the 0.3.0+ baseline; implemented in release 0.4.0 ([refactor plan](../../plans/page-component-refactor.md)).
+Added 10 October 2026, after Q29–Q34 were answered. Kept as asked against the 0.3.0+ baseline; implemented in release 0.4.0 ([refactor plan](../../history/plans/page-component-refactor.md)).
 
 **Decision:** Does an item stay a set of seites defined by the deck layout, or become a page of components that content modules generate one by one and views present?
 
