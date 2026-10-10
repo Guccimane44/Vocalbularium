@@ -87,3 +87,28 @@ test('page/component tables enforce ownership, uniqueness, limits and cascades',
     assert.equal((await client.query(`SELECT count(*)::int AS n FROM "${table}"`)).rows[0].n, 0, table);
   }
 });
+
+test('0007 adds page-owned module columns and input-module uniqueness without touching 0.4.x data', async t => {
+  const database = await createTestDatabase(t);
+  const client = await connect(t, database);
+  await client.query("INSERT INTO decks (id, name) VALUES ('deck', 'My Deck'), ('other', 'Other'); INSERT INTO account VALUES (1, 'deck')");
+  await client.query("INSERT INTO pages (id, deck_id, selected_text, created_at) VALUES ('p', 'deck', '幸福', '1')");
+  // Existing 0.4.x rows keep working with no module type.
+  await client.query("INSERT INTO components (page_id, id, kind, module_instance_id, position, content) VALUES ('p', 'key', 'main_key', NULL, 0, '{}')");
+  assert.deepEqual((await client.query("SELECT module_type FROM components WHERE id = 'key'")).rows, [{ module_type: null }]);
+
+  const module = (id, deck, position, type) => client.query('INSERT INTO deck_modules VALUES ($1, $2, $3, $4)', [id, deck, position, type]);
+  await module('k', 'deck', 0, 'main-key'); await module('c', 'deck', 1, 'context');
+  await module('t1', 'deck', 2, 'text'); await module('t2', 'deck', 3, 'text');
+  await assert.rejects(module('k2', 'deck', 4, 'main-key'), /deck_modules_single_main_key/);
+  await assert.rejects(module('c2', 'deck', 4, 'context'), /deck_modules_single_context/);
+  await module('k-other', 'other', 0, 'main-key');
+
+  const component = (id, type, position) => client.query(
+    "INSERT INTO components (page_id, id, kind, module_instance_id, position, content, module_type) VALUES ('p', $1, 'module', $2, $3, '{}', $4)",
+    [id, `i-${id}`, position, type]);
+  await component('k-module', 'main-key', 1); await component('c-module', 'context', 2);
+  await component('t1', 'text', 3); await component('t2', 'text', 4);
+  await assert.rejects(component('k-again', 'main-key', 5), /components_single_main_key_module/);
+  await assert.rejects(component('c-again', 'context', 5), /components_single_context_module/);
+});

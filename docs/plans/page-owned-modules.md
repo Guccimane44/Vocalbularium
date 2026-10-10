@@ -62,11 +62,18 @@ Additive, as in 0.4.0: the new rules and schemas live in new entry points, `@voc
 
 ### 3. Persistence (`migrations/0007_*`, `src/persistence`)
 
-- Discard decks, pages, components, attempts, runs, and receipts; keep account, credentials, login tokens, and installations; create one fresh My Deck with `main-key`, `context`, and `<German explanation + examples>`, as 0004 did.
-- Schema: drop `decks.capture_context`; components gain `module_type`, drop `kind`; a check keeps one `main-key` per page at position 0 and at most one `context`; the per-deck and per-page limit of 12.
-- Upgrade test from a populated 0006 database, like the 0004 test.
+Additive, as in 0.4.0 ([#86](https://github.com/Guccimane44/Vocalbularium/pull/86)): the running store reads `kind` and `capture_context`, so removing them now would break `main`. Migration `0007` only adds `components.module_type` and unique indexes for one main key and at most one Context per deck and per page.
+
+Increment 4's migration `0008` does the rest, landing with the backend and extension switch:
+
+- discard decks, pages, components, attempts, runs, and receipts; keep account, credentials, login tokens, and installations; create one fresh My Deck with `main-key`, `context`, and `<German explanation + examples>`, as 0004 did;
+- drop `decks.capture_context` and `components.kind`; require `module_type` and `module_instance_id`; keep the main key at position 0; limit components to 12 per page;
+- an upgrade test from a populated 0007 database, like the 0004 test.
 
 ### 4. Backend (`src/core`, `src/server`)
+
+Includes migration `0008` (above). The extension (increment 5) is merged into this branch so backend and extension land together, as 0.4.0's [#87](https://github.com/Guccimane44/Vocalbularium/pull/87) did.
+
 
 - Capture and manual creation copy the deck's instances onto the page; capture fills the Context only when the deck has the Context module.
 - Generation targets the page's content instances.
