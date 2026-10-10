@@ -1,7 +1,7 @@
 import test, { createTestStore } from './helpers/database.mjs';
 import assert from 'node:assert/strict';
 import { Generation } from '../src/server/generation.mjs';
-import { sortKartes } from '../extension/sorting.ts';
+import { sortPages } from '../extension/sorting.ts';
 import { complete, component, confirmed, generated, text, textBlocks, useModules } from './helpers/pages.mjs';
 
 const session = { installationId: 'a', sessionId: 'browser', epoch: 1 };
@@ -128,12 +128,11 @@ test('configuration changes never touch existing pages until Generate missing or
   assert.ok(generated(page).filter(item => item.configured).every(item => item.status === 'loading'));
 });
 
-test('four list orders use current front text, deterministic ties, and empty text rather than the display placeholder', () => {
-  const make = (id, text, date) => ({ id, created_at: date, seites: [{ text }] });
-  const kartes = [make('b', 'apple', '2'), make('a', 'Apple', '2'), make('c', '', '1'), make('d', 'Zebra', '3')];
-  const ids = order => sortKartes(kartes, order).map(karte => karte.id);
-  assert.deepEqual(ids('az'), ['c', 'a', 'b', 'd']); assert.deepEqual(ids('za'), ['d', 'a', 'b', 'c']);
+test('four list orders use the current main key, deterministic ties, and creation time', () => {
+  const make = (id, mainKey, createdAt) => ({ id, createdAt, mainKey });
+  const pages = [make('b', 'apple', '2'), make('a', 'Apple', '2'), make('c', 'ａpple', '1'), make('d', 'Zebra', '3')];
+  const ids = order => sortPages(pages, order).map(page => page.id);
+  assert.deepEqual(ids('az'), ['a', 'b', 'c', 'd']); assert.deepEqual(ids('za'), ['d', 'a', 'b', 'c']);
   assert.deepEqual(ids('newest'), ['d', 'a', 'b', 'c']); assert.deepEqual(ids('oldest'), ['c', 'a', 'b', 'd']);
-  kartes[3].seites[0].text = 'aardvark'; assert.deepEqual(ids('az'), ['c', 'd', 'a', 'b']);
-  assert.equal(kartes.some(karte => Object.hasOwn(karte, 'index')), false);
+  pages[3].mainKey = 'aardvark'; assert.deepEqual(ids('az'), ['d', 'a', 'b', 'c']);
 });

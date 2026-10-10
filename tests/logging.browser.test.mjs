@@ -49,7 +49,7 @@ test('logging journey: capture correlation, offline worker restart, budgets and 
     const [tab] = await chrome.tabs.query({ url: origin + '/health' });
     return globalThis.captureForTest({ menuItemId: 'capture', selectionText: '幸福' }, tab);
   }, { origin });
-  await waitFor(async () => (await application.store.kartes())[0]?.status === 'completed', 'capture completes and publishes');
+  await waitFor(async () => (await application.store.pages())[0]?.status === 'completed', 'capture completes and publishes');
   await waitFor(async () => {
     const events = (await application.diagnostics.inspect({ operationId })).events;
     return events.some(event => event.event === 'capture.invoked') &&
@@ -58,12 +58,12 @@ test('logging journey: capture correlation, offline worker restart, budgets and 
   const events = (await application.diagnostics.inspect({ operationId })).events;
   assert.ok(events.some(event => event.source === 'extension' && event.event === 'request.completed' && event.requestId));
   assert.ok(events.some(event => event.source === 'backend' && event.event === 'provider.request' && event.content.prompts));
-  const captured = (await application.store.kartes())[0];
+  const captured = (await application.store.pages())[0];
 
   await application.close();
   const deck = await worker.evaluate(async () => (await chrome.storage.local.get('account')).account.defaultDeckSnapshot);
-  const failed = await page.evaluate(async deck => chrome.runtime.sendMessage({ type: 'create-karte', operationId: 'offline-logging-save',
-    payload: { deckId: deck.id, seites: deck.seites.map(seite => ({ seiteId: seite.id, text: '' })) } }), deck);
+  const failed = await page.evaluate(async deck => chrome.runtime.sendMessage({ type: 'create-page', operationId: 'offline-logging-save',
+    payload: { deckId: deck.id, mainKey: 'offline' } }), deck);
   assert.ok(failed.error);
   const buffered = await worker.evaluate(async () => {
     const db = await new Promise((resolve, reject) => { const r = indexedDB.open('vocabularium-diagnostics-v1'); r.onsuccess = () => resolve(r.result); r.onerror = reject; });
@@ -88,7 +88,7 @@ test('logging journey: capture correlation, offline worker restart, budgets and 
   const originals = (await application.diagnostics.inspect({ operationId: 'offline-logging-save' })).events;
   assert.equal(originals.filter(event => event.eventId === offlineEvent.eventId).length, 1);
   assert.equal(originals.find(event => event.eventId === offlineEvent.eventId).occurredAt, offlineEvent.occurredAt);
-  assert.equal((await application.store.kartes()).length, 1, 'logging recovery never replays the failed product save');
+  assert.equal((await application.store.pages()).length, 1, 'logging recovery never replays the failed product save');
   assert.equal((await worker.evaluate(async () => (await chrome.storage.local.get('save-offline-logging-save'))['save-offline-logging-save'])).state, 'pending');
 
   await page.getByRole('button', { name: 'Diagnostic logs', exact: true }).click();
@@ -96,10 +96,10 @@ test('logging journey: capture correlation, offline worker restart, budgets and 
   await page.getByLabel('Extension buffer budget (MiB)', { exact: true }).fill('0');
   await page.getByRole('button', { name: 'Apply buffer budget', exact: true }).click();
   await page.getByRole('alert').filter({ hasText: 'Logging is degraded' }).waitFor();
-  const manual = await page.evaluate(async deck => chrome.runtime.sendMessage({ type: 'create-karte', operationId: 'full-log-buffer-manual',
-    payload: { deckId: deck.id, seites: deck.seites.map(seite => ({ seiteId: seite.id, text: 'manual content stays out of logs' })) } }), deck);
+  const manual = await page.evaluate(async deck => chrome.runtime.sendMessage({ type: 'create-page', operationId: 'full-log-buffer-manual',
+    payload: { deckId: deck.id, mainKey: 'manual key', manual: [{ version: 1, blocks: [{ type: 'paragraph', text: 'manual content stays out of logs' }] }] } }), deck);
   assert.equal(manual.error, undefined);
-  assert.equal((await application.store.kartes()).length, 2);
+  assert.equal((await application.store.pages()).length, 2);
   await page.getByRole('button', { name: 'Refresh log status', exact: true }).click();
   await page.getByRole('alert').filter({ hasText: 'Logging is degraded' }).waitFor();
   await page.getByRole('button', { name: 'Preview cleanup', exact: true }).click();
@@ -107,8 +107,8 @@ test('logging journey: capture correlation, offline worker restart, budgets and 
   await page.getByRole('button', { name: 'Clear selected logs', exact: true }).click();
   await page.getByRole('button', { name: 'Clear logs', exact: true }).click();
   await page.getByRole('alert').filter({ hasText: 'Cleared' }).waitFor();
-  assert.equal((await application.store.karte(captured.id)).selected_text, '幸福');
-  assert.equal((await application.store.kartes()).length, 2);
+  assert.equal((await application.store.page(captured.id)).selectedText, '幸福');
+  assert.equal((await application.store.pages()).length, 2);
   assert.ok(await worker.evaluate(async () => (await chrome.storage.local.get('save-offline-logging-save'))['save-offline-logging-save']));
   await application.diagnostics.ingest([offlineEvent]);
   assert.equal((await application.diagnostics.inspect({ operationId: 'offline-logging-save' })).events.some(event => event.eventId === offlineEvent.eventId), false);

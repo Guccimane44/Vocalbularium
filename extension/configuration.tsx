@@ -1,18 +1,16 @@
 import { useReducer } from 'react';
 import type { DeckEditorDraft } from '../types/editor-drafts.js';
-import type { DeckLayout } from '@vocabularium/contracts';
+import type { DeckConfiguration } from '@vocabularium/contracts';
+import { MAX_CONTENT_MODULES } from '@vocabularium/contracts';
 import { MODULES } from '@vocabularium/domain/modules';
 import type { ModuleType } from '@vocabularium/domain/modules';
-import { dialog } from './dialog.ts';
 
-const seite = (type?: ModuleType) => ({
-  id: crypto.randomUUID(),
-  modules: type ? [{ id: crypto.randomUUID(), type }] : []
-});
+const instance = (type: ModuleType) => ({ id: crypto.randomUUID(), type });
 
-export const newDeckDraft = (): DeckLayout => ({
+export const newDeckDraft = (): DeckConfiguration => ({
   name: '',
-  seites: [seite('selected'), seite('german-examples')]
+  modules: [instance('german-examples')],
+  view: { module: 'default' }
 });
 
 function sample(type: string, inputType: 'word_phrase' | 'sentence', instance: number): string {
@@ -41,19 +39,13 @@ type Props = {
 export function ConfigurationView({ draft, send, onSaved, onCancel, externalError }: Props) {
   const [, redraw] = useReducer((value: number) => value + 1, 0);
   const refresh = () => redraw();
-  if (!draft.deck.seites.some(item => item.id === draft.selectedSeite)) {
-    draft.selectedSeite = draft.deck.seites[0].id;
-  }
-  const current = draft.deck.seites.find(item => item.id === draft.selectedSeite)!;
-  const currentIndex = draft.deck.seites.indexOf(current);
+  const modules = draft.deck.modules;
   const busy = Boolean(draft.saving || draft.pending);
+  const full = modules.length >= MAX_CONTENT_MODULES;
   const sampleType = draft.sampleType ?? 'word_phrase';
 
   async function saveDraft(): Promise<void> {
-    const pending = draft.pending ?? {
-      operationId: crypto.randomUUID(),
-      payload: { deck: structuredClone(draft.deck), baseSeiteIds: [...draft.baseSeiteIds] }
-    };
+    const pending = draft.pending ?? { operationId: crypto.randomUUID(), payload: { deck: structuredClone(draft.deck) } };
     draft.pending = pending;
     draft.saving = true;
     draft.error = undefined;
@@ -63,26 +55,9 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
       draft.pending = undefined;
       await onSaved(next);
     } catch (error) {
-      const failure = error as Error & { code?: string; details?: { confirmation?: string } };
-      if (failure.code === 'content_loss') {
-        const decision = await dialog({
-          title: 'Delete seite content?',
-          message: failure.message + ' This includes content saved from other installations.',
-          choices: ['Cancel', 'Confirm'],
-          select: undefined
-        });
-        draft.pending = undefined;
-        if (decision.choice === 'Confirm' && failure.details?.confirmation) {
-          draft.pending = { ...pending, payload: { ...pending.payload, confirmation: failure.details.confirmation } };
-          draft.saving = false;
-          await saveDraft();
-          return;
-        }
-      } else {
-        draft.pending = ['invalid', 'front_seite', 'deleted', 'replacement'].includes(failure.code ?? '')
-          ? undefined : pending;
-        draft.error = failure.message;
-      }
+      const failure = error as Error & { code?: string };
+      draft.pending = ['invalid', 'deleted'].includes(failure.code ?? '') ? undefined : pending;
+      draft.error = failure.message;
     } finally {
       draft.saving = false;
       refresh();
@@ -90,7 +65,7 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
   }
 
   return <>
-    <p className="eyebrow">DECK CONFIGURATION</p>
+    <p className="eyebrow">DECK SETTINGS</p>
     <h1>{draft.deck.id ? 'Shape your deck.' : 'A new collection.'}</h1>
     <div className="configuration">
       <section className="config-controls">
@@ -100,45 +75,29 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
             draft.deck.name = event.target.value;
             refresh();
           }} />
-          <label htmlFor="seite-count">Number of seites</label>
-          <select id="seite-count" value={String(draft.deck.seites.length)} onChange={event => {
-            const target = Number(event.target.value);
-            while (draft.deck.seites.length < target) draft.deck.seites.push(seite());
-            draft.deck.seites.splice(target);
-            refresh();
-          }}>
-            {[1, 2, 3, 4].map(count => <option value={count} key={count}>{count}</option>)}
-          </select>
-          <nav className="seites" aria-label="Configure seites">
-            {draft.deck.seites.map((item, index) => <button key={item.id}
-              aria-current={item.id === draft.selectedSeite}
-              onClick={() => { draft.selectedSeite = item.id; refresh(); }}>Seite {index + 1}</button>)}
-          </nav>
-          <section className="module-seite">
-            <h2>{currentIndex === 0 ? 'Front seite' : 'Seite ' + (currentIndex + 1)}</h2>
-            {!current.modules.length && <p className="muted">No modules. This seite will be empty.</p>}
-            {current.modules.map((module, index) => {
+          <section className="module-list" aria-label="Content modules">
+            <h2>Content modules</h2>
+            <p className="muted">Each module generates its own component on every new page, in this order. Changes apply to future generation; existing pages keep their content.</p>
+            {!modules.length && <p className="muted">No modules. New pages hold only their main key and your own text.</p>}
+            {modules.map((module, index) => {
               const definition = MODULES[module.type as ModuleType];
               return <div className="module-block" key={module.id}>
                 <span>{definition?.label ?? module.type}</span>
                 <button aria-label={'Move module ' + (index + 1) + ' up'} disabled={index === 0}
-                  onClick={() => { [current.modules[index - 1], current.modules[index]] = [current.modules[index], current.modules[index - 1]]; refresh(); }}>↑</button>
-                <button aria-label={'Move module ' + (index + 1) + ' down'} disabled={index === current.modules.length - 1}
-                  onClick={() => { [current.modules[index], current.modules[index + 1]] = [current.modules[index + 1], current.modules[index]]; refresh(); }}>↓</button>
+                  onClick={() => { [modules[index - 1], modules[index]] = [modules[index], modules[index - 1]]; refresh(); }}>↑</button>
+                <button aria-label={'Move module ' + (index + 1) + ' down'} disabled={index === modules.length - 1}
+                  onClick={() => { [modules[index], modules[index + 1]] = [modules[index + 1], modules[index]]; refresh(); }}>↓</button>
                 <button aria-label={'Remove module ' + (index + 1)}
-                  onClick={() => { current.modules.splice(index, 1); refresh(); }}>Remove</button>
+                  onClick={() => { modules.splice(index, 1); refresh(); }}>Remove</button>
               </div>;
             })}
-            {currentIndex !== 0 && <button onClick={() => {
-              draft.deck.seites = draft.deck.seites.filter(item => item !== current);
-              refresh();
-            }}>Remove this seite</button>}
           </section>
           <h2 className="section-title">Module library</h2>
+          {full && <p className="muted">A deck can have at most {MAX_CONTENT_MODULES} modules.</p>}
           <div className="module-library">
             {(Object.entries(MODULES) as Array<[ModuleType, (typeof MODULES)[ModuleType]]>)
-              .map(([type, definition]) => <button key={type} onClick={() => {
-                current.modules.push({ id: crypto.randomUUID(), type });
+              .map(([type, definition]) => <button key={type} disabled={full} onClick={() => {
+                modules.push(instance(type));
                 refresh();
               }}>Add {definition.label}</button>)}
           </div>
@@ -157,7 +116,7 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
       </section>
       <section className="showcase">
         <h2>Example previews</h2>
-        <p className="muted">Illustrative samples only. Previews do not create or change kartes.</p>
+        <p className="muted">Illustrative samples only. Previews do not create or change pages.</p>
         <label htmlFor="sample-input">Sample input</label>
         <select id="sample-input" value={sampleType} onChange={event => {
           draft.sampleType = event.target.value as 'word_phrase' | 'sentence';
@@ -166,12 +125,15 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
           <option value="word_phrase">Word / phrase: 幸福</option>
           <option value="sentence">Sentence: 我真的很幸福</option>
         </select>
-        {draft.deck.seites.map((item, index) => {
-          const text = item.modules.map((module, instance) => sample(module.type, sampleType, instance))
-            .filter(Boolean).join('\n\n');
-          return <article className="preview" key={item.id}>
-            <h3>{'Seite ' + (index + 1) + ' · Example'}</h3>
-            {text ? <pre>{text}</pre> : <p className="muted">Empty seite</p>}
+        <article className="preview">
+          <h3>Main key</h3>
+          <pre>{sampleType === 'word_phrase' ? '幸福' : '我真的很幸福'}</pre>
+        </article>
+        {modules.map((module, index) => {
+          const text = sample(module.type, sampleType, modules.slice(0, index).filter(other => other.type === module.type).length);
+          return <article className="preview" key={module.id}>
+            <h3>{(MODULES[module.type as ModuleType]?.label ?? module.type) + ' · Example'}</h3>
+            {text ? <pre>{text}</pre> : <p className="muted">Does not apply to this input</p>}
           </article>;
         })}
       </section>

@@ -1,11 +1,11 @@
 import test, { createTestStore, createTestApplication } from './helpers/database.mjs';
 import assert from 'node:assert/strict';
-import { sortKartes } from '../extension/sorting.ts';
+import { sortPages as sortSummaries } from '../extension/sorting.ts';
 import { component, text, textBlocks } from './helpers/pages.mjs';
 
-// The extension's list ordering, applied to pages by their main key.
-const sortPages = (pages, order) => sortKartes(pages.map(page => ({ id: page.id, created_at: page.createdAt,
-  seites: [{ text: text(component(page, 'main_key')) }] })), order);
+// The extension's list ordering, applied to full pages by their main key.
+const sortPages = (pages, order) => sortSummaries(pages.map(page => ({ id: page.id, createdAt: page.createdAt,
+  mainKey: text(component(page, 'main_key')) })), order);
 
 test('bounded page lists preserve JavaScript ordering by main key, ties, and cursor validity', async t => {
   const store = await createTestStore(t);
