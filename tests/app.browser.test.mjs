@@ -262,11 +262,15 @@ test('capture extension: receipt lifetime, exact duplicate pages, shared outcome
   await a.page.getByRole('heading', { name: 'Your decks.' }).waitFor();
   assert.deepEqual(modulesOf(await application.store.page(interrupted.id)).map(item => item.status), ['completed', 'failed']);
 
-  step('capture while the server is stopped');
+  step('open a reading tab before stopping the server');
   reading = await a.context.newPage(); await reading.goto(apiOrigin + '/health');
+  step('stop the server');
   await application.close();
+  step('capture while the server is stopped');
   const pendingId = await captureFrom(a, 'not saved yet');
+  step('reload the dashboard while the server is stopped');
   await a.page.reload();
+  step('read the pending capture receipt');
   // Cached account views remain accessible when the refresh fails.
   const receipt = await a.worker.evaluate(async (id) => (await chrome.storage.local.get(`capture-${id}`))[`capture-${id}`], pendingId);
   assert.equal(receipt.state, 'pending');

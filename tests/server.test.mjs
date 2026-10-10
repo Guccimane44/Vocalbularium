@@ -4,6 +4,8 @@ import assert from 'node:assert/strict';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { connect } from 'node:net';
+import { once } from 'node:events';
 import { loadConfig } from '../src/server/config.mjs';
 
 async function fixture(t, options) {
@@ -79,6 +81,31 @@ test('database and valid logins survive an account-server restart', async (t) =>
   application = (await createTestApplication(t, { databaseKey: join(directory, 'account-fixture') }));
   url = await application.start({ port: 0 });
   assert.deepEqual((await call(url, '/api/account', undefined, token)).data, before);
+});
+
+test('closing the server releases unused and in-flight keep-alive connections', { timeout: 10000 }, async (t) => {
+  const application = await createTestApplication(t);
+  const handler = application.server.listeners('request')[0];
+  application.server.removeListener('request', handler);
+  let arrived;
+  const received = new Promise(resolve => { arrived = resolve; });
+  // Hold the finished response so that it is still in flight when closing starts.
+  application.server.on('request', (request, response) => {
+    const end = response.end.bind(response);
+    response.end = (...args) => { arrived(); setTimeout(() => end(...args), 300); return response; };
+    handler(request, response);
+  });
+  const url = await application.start({ port: 0 });
+  // A browser can also hold a connection that has not sent a request yet.
+  const unused = connect(Number(new URL(url).port), '127.0.0.1');
+  unused.on('error', () => {});
+  await once(unused, 'connect');
+  const pending = fetch(url + '/health/live');
+  await received;
+  const started = Date.now();
+  await application.close();
+  assert.ok(Date.now() - started < 5000, `close took ${Date.now() - started} ms`);
+  assert.deepEqual(await (await pending).json(), { ok: true });
 });
 
 test('invalid commands and untrusted webpage origins cannot alter account data', async (t) => {
