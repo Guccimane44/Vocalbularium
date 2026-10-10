@@ -27,17 +27,19 @@ Every account has exactly one default deck, the destination for capture. Default
 A deck's configuration has:
 
 - its **name**;
-- an ordered list of **content module instances**: at most 12 per deck. The same module type may appear more than once;
-- its **view**: the default view, which shows each page as its ordered component list;
-- **Capture with Context**: on or off, on for a new deck. It decides whether capture into the deck takes the selection's surrounding block ([pages and editing](pages-and-editing.md#context)).
+- an ordered list of **module instances**, at most 12 in total:
+  - the **main key module**: compulsory and always first; it cannot be removed or moved;
+  - the **Context module**: optional, at most one. When the deck has it, capture into the deck also takes the selection's surrounding block ([pages and editing](pages-and-editing.md#context));
+  - **content module instances**: the same type may appear more than once;
+- its **view**: the default view, which shows each page as its ordered component list.
 
-The user edits the configuration in **deck settings**: name the deck, add, remove, and reorder content module instances, and turn Capture with Context on or off. Deck settings preview the configured instances with word and sentence examples; previews are labeled as examples and never create or change pages. Configuration edits are a draft until **Save**; **Cancel** discards them. A failed save keeps the draft and offers **Try saving again**.
+The user edits the configuration in **deck settings**: name the deck, and add, remove, and reorder the Context module and content module instances. Deck settings preview the configured instances with word and sentence examples; previews are labeled as examples and never create or change pages. Configuration edits are a draft until **Save**; **Cancel** discards them. A failed save keeps the draft and offers **Try saving again**.
 
-A configuration with no content module instances is valid. Its new pages hold only the main key, Context, and manual components.
+A configuration with only the main key module is valid. Its new pages hold only the main key and whatever the user adds.
 
 ### Module window
 
-Deck settings show the **module window** on the right: the catalog of content modules. The user adds an instance by dragging a module from the window into the configuration. The page view shows the same window ([pages and editing](pages-and-editing.md#shaping-a-page)), so shaping a deck and shaping a page use the same gesture. The window's design is part of the [shared UI](shared-ui.md#module-window) redesign. Accepted with D02; not built.
+Deck settings show the **module window** on the right: the catalog of the Context module and the content modules. The user adds an instance by dragging a module from the window into the configuration. The page view shows the same window ([pages and editing](pages-and-editing.md#shaping-a-page)), so shaping a deck and shaping a page use the same gesture. The window's design is part of the [shared UI](shared-ui.md#module-window) redesign. Accepted with D02; not built.
 
 ## Configuration and pages
 
@@ -51,7 +53,7 @@ A generation run already in progress when the configuration changes is unaffecte
 
 ### Before D02
 
-Release 0.4.1 implements the earlier rule from [Q72](../architecture/questionnaire/answers/answers-06-data-and-semantics.md#q72): pages follow the deck's current configuration. A module instance added to the deck appears on existing pages as "Not generated yet" until **Generate missing** or page **Retry** fills it. Components of an instance removed from the deck stay on their pages, marked as no longer in the deck, and generation no longer touches them. Reordering the deck reorders every page's content components.
+Release 0.4.1 has no input modules: the main key and Context are fixed parts of every page, the limit of 12 counts content module instances only, and **Capture with Context** is an on/off deck setting (on by default) instead of the Context module. It also implements the earlier rule from [Q72](../architecture/questionnaire/answers/answers-06-data-and-semantics.md#q72): pages follow the deck's current configuration. A module instance added to the deck appears on existing pages as "Not generated yet" until **Generate missing** or page **Retry** fills it. Components of an instance removed from the deck stay on their pages, marked as no longer in the deck, and generation no longer touches them. Reordering the deck reorders every page's content components.
 
 ## Views
 

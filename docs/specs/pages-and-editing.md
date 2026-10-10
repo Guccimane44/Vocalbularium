@@ -23,19 +23,19 @@ The deck's **Add page manually** opens a new page draft ([creation](#creation-an
 
 Every page has a main key component: the editable text used as its generation input. A captured selection supplies the initial value; manual creation requires the user to specify it. A saved page cannot omit the main key, and a main key that is empty or only whitespace is rejected with "Enter a main key." A new manual draft may begin before the user has entered it.
 
-The main key must always be visible when the page is shown. In the default view it is the first component and the page's title. It can coexist with manually written or generated content and must remain visible regardless of whether a module prints input. Matching main keys do not merge pages or make their identities the same. The main key cannot be deleted.
+The main key component belongs to the compulsory main key module. It must always be visible when the page is shown: it is always the first component and the page's title. It can coexist with manually written or generated content and must remain visible regardless of whether a module prints input. Matching main keys do not merge pages or make their identities the same. The main key cannot be deleted.
 
 ## Context
 
-Each page has an optional **Context** component: the surrounding block captured with the selection (around 500 characters, capped). Capture with Context is a [deck setting](decks-and-configuration.md#configuration), on by default; the destination deck's setting applies, and Context taken while it was on is dropped if the setting is off by the time the capture is saved. When it is off, or for manual creation without supplied context, the page has no Context.
+A page can have one **Context** component, owned by the Context module: the surrounding block captured with the selection (around 500 characters, capped). Capture takes it only when the destination deck's configuration has the [Context module](decks-and-configuration.md#configuration); Context taken while the deck had the module is dropped if the module was removed by the time the capture is saved. A manually created page in such a deck starts with an empty Context for the user to fill. A page without the Context module has no Context.
 
 The surrounding block is the nearest block-level element containing the selection, or the whole text field for a selection in one. When it exceeds the cap, capture keeps the text nearest the selection on both sides and marks each cut with an ellipsis. Whitespace is collapsed. A selection that fills its block, or one that cannot be read from the page (restricted pages, PDF viewers), yields no Context; capture itself proceeds unchanged. The web page URL, title, and other page details are not taken: they add nothing to generation.
 
-The Context is editable alongside the main key. Clearing its text and saving removes the Context component; a page without Context can gain one while editing. Editing the Context follows the main-key rule below: it changes the input for subsequent generation only. It never regenerates, replaces content, or changes prior outcomes by itself.
+The Context is editable alongside the main key. Removing it from a page, or adding it to a page that has none, follows [shaping a page](#shaping-a-page). Editing the Context follows the main-key rule below: it changes the input for subsequent generation only. It never regenerates, replaces content, or changes prior outcomes by itself.
 
 ## Components on a page
 
-A new page starts with its main key, its Context when present, and one content component per content module instance copied from the deck configuration, in configured order ([decks and configuration](decks-and-configuration.md#configuration-and-pages)). A content module instance that has not generated on this page yet shows as "Not generated yet" so the user can generate it.
+A new page starts with one component per module instance copied from the deck configuration, in configured order: the main key, the Context when the deck has the Context module, then the content components ([decks and configuration](decks-and-configuration.md#configuration-and-pages)). A content module instance that has not generated on this page yet shows as "Not generated yet" so the user can generate it.
 
 After creation the page owns its module instances. Deck configuration changes never add, remove, or reorder a page's components.
 
@@ -43,11 +43,9 @@ After creation the page owns its module instances. Deck configuration changes ne
 
 Accepted with D02; not built. The user shapes a page directly, outside the editing session:
 
-- **Delete a component.** Any component except the main key can be deleted: a content component, the Context, or a manual component. Deleting asks for confirmation, then removes the component immediately. Deleting a content component also removes its module instance from the page, so generation, **Generate missing**, and page **Retry** never bring it back. A component that is generating cannot be deleted until its attempt finishes.
-- **Rearrange components.** The user can drag components into a new order. The order is saved with the page and used by the default view.
-- **Add a module.** The user drags a content module from the [module window](shared-ui.md#module-window) onto the page. This adds a module instance to this page only; the deck configuration is unchanged. The new component shows as "Not generated yet" until generated. Adding the same module again restores content the user deleted earlier.
-
-Open details are tracked as clarifications in the [traceability map](../architecture/traceability-map.md#clarifications).
+- **Delete a component.** Any component except the main key can be deleted: a content component, the Context, or a manual component. Deleting asks for confirmation, then removes the component immediately. Deleting a module's component also removes the module instance from the page, so generation, **Generate missing**, and page **Retry** never bring it back. A component that is generating cannot be deleted until its attempt finishes.
+- **Rearrange components.** The user can drag any component except the main key, including the Context and manual components, into a new order below the main key. The order is saved with the page and used by the default view.
+- **Add a module.** The user drags the Context module or a content module from the [module window](shared-ui.md#module-window) onto the page. This adds a module instance to this page only; the deck configuration is unchanged. A page holds at most 12 module instances, including the main key and Context, and at most one Context. An added content module shows as "Not generated yet" and generates only when the user asks (**Generate missing**, page **Retry**, or the component's **Retry**); an added Context starts empty for the user to fill. Adding the same module again restores what the user deleted earlier, as new, ungenerated content.
 
 ### Manual components
 
@@ -92,6 +90,7 @@ Generation uses the page's own content module instances. Finish editing with **S
 
 Release 0.4.1 implements the page/component model with deck-driven modules ([Q72](../architecture/questionnaire/answers/answers-06-data-and-semantics.md#q72)):
 
+- There are no input modules: every page has a main key, the Context is a fixed optional component, and the deck's **Capture with Context** setting (on by default) decides whether capture takes it. Clearing the Context's text and saving removes it, and a page without one can gain it while editing.
 - A page's content components follow the deck's current configuration. A module instance added to the deck appears on existing pages as "Not generated yet"; reordering the deck reorders every page.
 - Components of an instance removed from the deck stay on the page, marked "no longer in this deck". They stay editable, have no **Retry**, and generation never touches them.
 - Components cannot be deleted or rearranged. The Context can be cleared, and manual components can be emptied but not removed.
@@ -105,12 +104,13 @@ Release 0.4.1 implements the page/component model with deck-driven modules ([Q72
 5. Retrying after that edit uses `Bismarck` and interpretation appropriate to it, rather than the original key. Replacement and failure behavior follow the generation specification for the targeted components.
 6. Editing a generated explanation without editing the main key leaves subsequent generation input unchanged. The next retry of that explanation asks for confirmation and replaces the edit.
 7. A page with no input-printing module, no applicable module output, or a failed generation still shows its main key.
-8. Capturing with Context on initializes the page's Context alongside its main key; capturing with Context off, or manual creation without supplied context, leaves the page with no Context.
+8. Capturing into a deck with the Context module initializes the page's Context alongside its main key; capturing into a deck without it leaves the page with no Context.
 9. Editing the Context and saving preserves existing content and prior outcomes exactly like a main-key edit. Generation after that edit uses the updated key and Context.
 10. Adding a content module instance to the deck leaves existing pages unchanged; the next captured page has a component for it.
 11. Deleting a generated component asks for confirmation, removes it, and page **Retry** and **Generate missing** do not recreate it. Dragging the same module from the module window onto the page adds it back as "Not generated yet".
-12. Dragging a module onto one page leaves the deck configuration and every other page unchanged.
-13. A manual component survives **Generate missing** and page retry unchanged.
+12. Dragging a module onto one page leaves the deck configuration and every other page unchanged, and does not start generation.
+13. Dragging the Context below a content component keeps that order after reloading the page; the main key stays first.
+14. A manual component survives **Generate missing** and page retry unchanged.
 
 ## Implementation details still to specify
 

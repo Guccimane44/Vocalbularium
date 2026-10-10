@@ -20,7 +20,7 @@ A captured page receives a copy of the default deck's content module instances (
 
 1. A logged-in user is reading a webpage and selects an unfamiliar word, phrase, or sentence, such as `幸福`.
 2. The user right-clicks the selection and chooses **Create a page in “{default deck name}”**.
-3. Vocabularium takes the selected text exactly as selected. When the destination deck has capture with Context on, it also takes the surrounding block (capped at around 500 characters); when off, no surrounding text is taken. The web page URL and title are never taken. The Context and its deck-level toggle are defined in [Pages and editing](pages-and-editing.md#context).
+3. Vocabularium takes the selected text exactly as selected. When the destination deck has the Context module, it also takes the surrounding block (capped at around 500 characters); otherwise no surrounding text is taken. The web page URL and title are never taken. The Context is defined in [Pages and editing](pages-and-editing.md#context); until D02 ships, the deck's **Capture with Context** setting plays the Context module's role.
 4. It automatically saves a page in the destination deck with the selected text as its main key and the captured Context when present. This page remains accessible if generation later fails; its existence does not mean generation succeeded.
 5. It starts one generation run for the page: one attempt per content module instance the page received from the deck. Where required by those instances, it determines the input type and one source language from the main key and Context, once for the whole run.
 6. Each attempt publishes its own component when it completes. Inapplicable instances complete with an empty component. A failed attempt leaves its component empty with a failure indicator; it does not affect the other components.
@@ -136,7 +136,7 @@ Account synchronization follows [accounts and synchronization](accounts-and-sync
 
 ## Initial default-deck example
 
-The initial **My Deck** has one content module instance: `<German explanation + examples>`. It has no `<The selected>` instance, because every page already shows its main key.
+The initial **My Deck** has the main key module, the Context module, and one content module instance: `<German explanation + examples>`. A new deck starts with the same configuration. It has no `<The selected>` instance, because every page already shows its main key.
 
 For the selected input `幸福`, interpreted as Chinese in this example, the page shows its main key `幸福`, then a German-language explanation component for the Chinese word, with Chinese examples and their German translations, following the format in the [Modules specification](../history/mvp/MVP-Product-spec-modules.md). The exact generated wording may vary.
 

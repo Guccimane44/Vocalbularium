@@ -6,7 +6,7 @@ This specification defines interface rules shared across the extension's views. 
 
 ## Module window
 
-The **module window** is a panel on the right side of both the page view and deck settings. It shows the catalog of content modules. Dragging a module from it:
+The **module window** is a panel on the right side of both the page view and deck settings. It shows the Context module and the catalog of content modules; the main key module is always present and is not in the window. Dragging a module from it:
 
 - into deck settings adds an instance to the deck configuration, the template for new pages ([decks and configuration](decks-and-configuration.md#module-window));
 - onto a page adds an instance to that page only ([pages and editing](pages-and-editing.md#shaping-a-page)).

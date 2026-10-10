@@ -14,7 +14,7 @@ An **account** owns a collection of decks and pages and identifies which saved d
 
 A **deck** is the primary collection of pages, organized for a subject, language, project, source, or other purpose. Every page belongs to exactly one deck.
 
-A **deck configuration** defines the deck's settings: its name, its ordered **content module instances**, and its view. The content module instances are the template for new pages: creating a page gives it a copy of them. After that the page owns its modules, and the deck configuration no longer affects it. Changing the configuration changes only pages created afterwards.
+A **deck configuration** defines the deck's settings: its name, its ordered **module instances** (the compulsory main key module, an optional Context module, and content module instances), and its view. The module instances are the template for new pages: creating a page gives it a copy of them. After that the page owns its modules, and the deck configuration no longer affects it. Changing the configuration changes only pages created afterwards.
 
 **Deck settings** is the interface for editing the configuration. The [deck configuration specification](../specs/decks-and-configuration.md) owns its rules and limits.
 
@@ -42,15 +42,15 @@ Preserving a chosen meaning or referent across future module runs is a product d
 
 ## Component
 
-A **component** is one ordered piece of a page's content. A new page starts top to bottom with:
+A **component** is one ordered piece of a page's content. Every module instance on a page owns one component. A new page starts with a copy of the deck's module instances, in configured order:
 
-1. the **main key component** (required, editable);
-2. the **Context component** (optional, editable);
-3. one **content component** per content module instance copied from the deck configuration, in configured order.
+1. the **main key component**, owned by the main key module (required, editable, always first);
+2. the **Context component**, owned by the Context module when the deck has one (editable);
+3. one **content component** per content module instance.
 
-After creation the user shapes the page freely. They can delete any component except the main key, rearrange components, and add content modules by dragging them from the module window onto the page. A module added this way belongs to that page only; it does not change the deck. A deleted content component stays gone: generation never brings it back, and the user adds the module again to restore it.
+After creation the user shapes the page freely. They can delete any component except the main key, rearrange every component below the main key, and add modules by dragging them from the module window onto the page. A module added this way belongs to that page only; it does not change the deck. A deleted component stays gone: generation never brings it back, and the user adds the module again to restore it.
 
-A content component records the page's module instance that owns it. That ownership, not its position, identifies which instance produces or replaces it.
+A component records the page's module instance that owns it. That ownership, not its position, identifies which instance produces or replaces it.
 
 A **manual component** is text the user adds that no module owns. Generation never creates, replaces, or removes it.
 
@@ -58,8 +58,9 @@ A component's content is a versioned block document ([Q13](../architecture/quest
 
 ## Module type, instance, and output
 
-Modules have two kinds:
+Modules have three kinds:
 
+- **Input modules** hold a page's generation input. The **main key module** is compulsory: every deck and page has exactly one, always first, and it cannot be removed. The **Context module** is optional, at most one per deck or page. Input modules are filled by capture or by the user, never by generation.
 - **Content modules** produce components from the main key and Context.
 - **View modules** show pages (see [View](#view)).
 
@@ -67,7 +68,7 @@ A **module type** defines one focused way to contribute content, such as display
 
 A module's purpose, applicable inputs, supported options, and output behavior are product-defined. The [module specification](../specs/modules.md) describes the current catalog and the design contract for future additions. A module can serve different subjects or languages within its applicability; it need not apply to every input.
 
-A **content module instance** is one placement of a content module type, either in a deck configuration, where it is a template for new pages, or on a page, where it owns one component. The same type may have several instances.
+A **module instance** is one placement of an input or content module type, either in a deck configuration, where it is a template for new pages, or on a page, where it owns one component. A deck or page holds at most 12 module instances, including the main key and Context. A content module type may have several instances.
 
 **Applicability** means whether a module instance is relevant to the input interpretation. An inapplicable instance contributes no output; its component completes empty. Instances in one generation run share the input interpretation but evaluate their own applicability.
 
@@ -105,12 +106,13 @@ Saving content and generating content are different operations. The detailed sav
 Account
 ├── Decks, with exactly one designated default
 │   ├── Configuration
-│   │   ├── Ordered content module instances   (template copied onto each new page)
+│   │   ├── Ordered module instances           (main key, optional Context, content; copied onto each new page)
 │   │   └── View: default view                 (how pages are shown)
 │   └── Pages: each belongs to this deck only
-│       ├── Main key component (required; from capture or manual entry)
-│       ├── Context component (optional)
-│       ├── Content module instances, each owning one content component
+│       ├── Module instances, each owning one component:
+│       │   ├── Main key (required, first; from capture or manual entry)
+│       │   ├── Context (optional)
+│       │   └── Content components
 │       ├── Manual components, never touched by generation
 │       └── Generation attempts and outcomes, per component
 ```
