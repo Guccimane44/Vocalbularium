@@ -10,7 +10,8 @@ const instance = (type: ModuleType) => ({ id: crypto.randomUUID(), type });
 export const newDeckDraft = (): DeckConfiguration => ({
   name: '',
   modules: [instance('german-examples')],
-  view: { module: 'default' }
+  view: { module: 'default' },
+  captureContext: true
 });
 
 function sample(type: string, inputType: 'word_phrase' | 'sentence', instance: number): string {
@@ -75,6 +76,14 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
             draft.deck.name = event.target.value;
             refresh();
           }} />
+          <label className="toggle">
+            <input type="checkbox" checked={draft.deck.captureContext !== false} onChange={event => {
+              draft.deck.captureContext = event.target.checked;
+              refresh();
+            }} />
+            Capture with Context
+          </label>
+          <p className="muted">When on, capturing into this deck also takes the text around your selection (about 500 characters) as the page's Context. When off, only the selection is taken.</p>
           <section className="module-list" aria-label="Content modules">
             <h2>Content modules</h2>
             <p className="muted">Each module generates its own component on every new page, in this order. Changes apply to future generation; existing pages keep their content.</p>

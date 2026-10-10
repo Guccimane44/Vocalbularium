@@ -71,6 +71,8 @@ html:not([data-theme]) body { visibility: hidden; }
 .header-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
 .theme-control { display: flex; align-items: center; gap: 8px; margin: 0; }
 .theme-control label { margin: 0; }
+label.toggle { display: flex; align-items: center; gap: 10px; }
+label.toggle input { width: auto; margin: 0; }
 .theme-control select { width: auto; padding: 8px; }
 #theme-error:empty { display: none; }
 #theme-error { max-width: 230px; margin: 0; font-size: 13px; }

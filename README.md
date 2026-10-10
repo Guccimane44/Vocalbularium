@@ -43,7 +43,7 @@ Use `npm run db:generate` to prepare reviewed schema changes and `npm run db:mig
 
 ## Deck settings
 
-A deck has an ordered list of up to 12 content modules, with repeated instances and word/sentence sample previews. Configuration changes apply to later generation only: existing pages keep their components, including those of removed modules, until you generate or retry. Deleting the default deck requires a replacement; deleting the sole deck creates a fresh My Deck.
+A deck has an ordered list of up to 12 content modules, with repeated instances and word/sentence sample previews. Configuration changes apply to later generation only: existing pages keep their components, including those of removed modules, until you generate or retry. Deleting the default deck requires a replacement; deleting the sole deck creates a fresh My Deck. **Capture with Context** (on by default) makes capture into the deck also take the text around the selection, up to about 500 characters, as the page's Context; the page URL and title are never taken.
 
 See [deck verification evidence](docs/history/mvp/M3-Decks.md).
 

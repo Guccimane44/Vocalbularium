@@ -2,7 +2,7 @@
 
 ## Purpose and status
 
-This specification defines the owner-approved page input and editing behavior shared by captured and manually created pages. Release 0.4.0 implements it, except capture with Context, which [current scope](../product/scope.md#accepted-change-pending-implementation) lists as pending. Existing browsing, sorting, save, draft, and deletion behavior remains defined by the applicable [MVP editing rules](../history/mvp/MVP-Product-scope.md#8-card-content-page-and-manual-editing), read with the [earlier terms](../product/model.md#earlier-terms) mapping.
+This specification defines the owner-approved page input and editing behavior shared by captured and manually created pages. Release 0.4.0 implements it; release 0.4.1 adds capture with Context ([current scope](../product/scope.md)). Existing browsing, sorting, save, draft, and deletion behavior remains defined by the applicable [MVP editing rules](../history/mvp/MVP-Product-scope.md#8-card-content-page-and-manual-editing), read with the [earlier terms](../product/model.md#earlier-terms) mapping.
 
 The [product model](../product/model.md) defines a page, its components, and the main key. [Modules](modules.md#content-module-contract) owns how content modules consume the main key and Context. [Select and Add](../MVP-Product-spec-select-and-add.md) owns detailed generation completion, replacement, failure, interruption, and recovery rules. [Deck configuration](decks-and-configuration.md) owns which content module instances a page's deck has.
 
@@ -14,7 +14,9 @@ The main key must always be visible when the page is shown. In the default view 
 
 ## Context
 
-Each page has an optional **Context** component: the surrounding block captured with the selection (around 500 characters, capped). Capture with Context can be turned on or off; when off, or for manual creation without supplied context, the page has no Context. The Context is editable alongside the main key, including clearing it back to no Context.
+Each page has an optional **Context** component: the surrounding block captured with the selection (around 500 characters, capped). Capture with Context is a [deck setting](decks-and-configuration.md#configuration), on by default; the destination deck's setting at capture time applies. When it is off, or for manual creation without supplied context, the page has no Context.
+
+The surrounding block is the nearest block-level element containing the selection, or the whole text field for a selection in one. When it exceeds the cap, capture keeps the text nearest the selection on both sides and marks each cut with an ellipsis. Whitespace is collapsed. A selection that fills its block, or one that cannot be read from the page (restricted pages, PDF viewers), yields no Context; capture itself proceeds unchanged. The web page URL, title, and other page details are not taken: they add nothing to generation. The Context is editable alongside the main key, including clearing it back to no Context.
 
 Editing the Context follows the main-key rule below: it changes the input for subsequent generation only. It never regenerates, replaces content, or changes prior outcomes by itself. Saving a Context edit is distinct from requesting generation.
 

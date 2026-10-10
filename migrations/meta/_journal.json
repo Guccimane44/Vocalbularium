@@ -36,6 +36,13 @@
       "when": 1791589119613,
       "tag": "0004_discard_karte_content",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791634294832,
+      "tag": "0005_capture_context",
+      "breakpoints": true
     }
   ]
 }

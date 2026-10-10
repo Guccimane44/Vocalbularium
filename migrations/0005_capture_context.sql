@@ -1,0 +1,1 @@
+ALTER TABLE "decks" ADD COLUMN "capture_context" boolean DEFAULT true NOT NULL;

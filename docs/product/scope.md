@@ -6,7 +6,7 @@ This document identifies current capabilities and explicit deferrals. It provide
 
 The current baseline is the Chrome extension with its local account backend. It supports collecting and consulting pages, with an initial set of language-oriented content modules. Broader possibilities in the vision are not automatically part of this scope.
 
-The supported capabilities below describe release 0.4.0, which implements the deck → page → component model approved in [Q72](../architecture/questionnaire/answers/answers-06-data-and-semantics.md#q72) through the [refactor plan](../plans/page-component-refactor.md) and [tracker #81](https://github.com/Guccimane44/Vocalbularium/issues/81). Builds up to v0.3.0+ used kartes and seites; [earlier terms](model.md#earlier-terms) maps the two.
+The supported capabilities below describe release 0.4.1. Release 0.4.0 implements the deck → page → component model approved in [Q72](../architecture/questionnaire/answers/answers-06-data-and-semantics.md#q72) through the [refactor plan](../plans/page-component-refactor.md) and [tracker #81](https://github.com/Guccimane44/Vocalbularium/issues/81). 0.4.1 adds capture with Context. Builds up to v0.3.0+ used kartes and seites; [earlier terms](model.md#earlier-terms) maps the two.
 
 ## Supported capabilities
 
@@ -14,9 +14,9 @@ The supported capabilities below describe release 0.4.0, which implements the de
 | --- | --- | --- |
 | Account access | Login and logout using one built-in owner-test account; account-owned decks, configurations, default-deck selection, and saved pages. | [Accounts and synchronization](../history/mvp/MVP-Product-scope.md#2-accounts-login-and-synchronization) |
 | Synchronization | Installations connected to the same backend access the same account. Saving and synchronization failures support explicit recovery. | [Accounts and synchronization](../history/mvp/MVP-Product-scope.md#2-accounts-login-and-synchronization), [save recovery](../MVP-Product-spec-select-and-add.md#saving-and-synchronization-failures) |
-| Capture | Select a word, phrase, or sentence in Chrome and create a page in the default deck through the context menu, with brief feedback and accessible capture outcomes. The selection becomes the page's main key; the page then generates every content component automatically. | [Select and Add](../MVP-Product-spec-select-and-add.md) |
+| Capture | Select a word, phrase, or sentence in Chrome and create a page in the default deck through the context menu, with brief feedback and accessible capture outcomes. The selection becomes the page's main key; with the deck's **Capture with Context** on (the default), the surrounding block, capped near 500 characters, becomes its Context. The page then generates every content component automatically. | [Select and Add](../MVP-Product-spec-select-and-add.md) |
 | Deck management | Browse, create, rename, configure, and delete decks; choose the account's default deck. | [Deck configuration](../specs/decks-and-configuration.md) |
-| Deck configuration | An ordered list of up to 12 content module instances, including repeated instances, with example previews. Configuration changes never rewrite existing pages; components of removed instances stay on their pages. | [Deck configuration](../specs/decks-and-configuration.md) |
+| Deck configuration | An ordered list of up to 12 content module instances, including repeated instances, with example previews, and the Capture with Context toggle. Configuration changes never rewrite existing pages; components of removed instances stay on their pages. | [Deck configuration](../specs/decks-and-configuration.md) |
 | Modules | Five content module types: `<The selected>`, `<The selected + original language tag>`, `<German explanation>`, `<German explanation + examples>`, and `<Sentence usage>`. Interpretation chooses one source language where needed. A new account's My Deck has one `<German explanation + examples>` instance. | [Module catalog and applicability](../specs/modules.md) |
 | Generation | Per-component generation from the main key, the Context and the deck's current configuration. Explicitly confirmed **Retry** of one component or the whole page replaces the targeted content, including edits. **Generate missing** fills components without content, such as those of newly added instances. | [Pages and editing](../specs/pages-and-editing.md), [Select and Add](../MVP-Product-spec-select-and-add.md) |
 | Pages | Browse and sort deck pages, open a page, create pages manually from a required main key and optional Context (generation starts only on **Generate**), edit the main key, Context and component text, add text components that generation never touches, and delete pages. | [Pages and editing](../specs/pages-and-editing.md) |
@@ -24,13 +24,11 @@ The supported capabilities below describe release 0.4.0, which implements the de
 
 Some linked scope documents still reside under `history/mvp/`. Their applicable behavior sections supply the detail; their historical delivery assumptions do not define the current operating environment.
 
-## Accepted change pending implementation
-
-- **Capture with Context.** Capture does not yet take the surrounding block of the selection, and there is no on/off toggle. A page's Context is entered or edited by the user in the page editor and is then used as generation input. [Pages and editing](../specs/pages-and-editing.md#context) and [Select and Add](../MVP-Product-spec-select-and-add.md#capture-scenario) own the requirement.
-
 ## Upgrade from earlier builds
 
 Upgrading to 0.4.0 discards every deck and karte created by earlier builds. Accounts and sign-in stay, and the account starts again with one fresh My Deck. Extensions older than 0.4.0 do not work with the 0.4.0 backend.
+
+Upgrading from 0.4.0 to 0.4.1 keeps all decks and pages. Migration `0005` adds the deck setting **Capture with Context**, on for every existing deck. Upgrade the backend and the extension together: a 0.4.1 extension saving deck settings needs the 0.4.1 backend.
 
 ## Current delivery boundary
 

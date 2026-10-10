@@ -160,7 +160,7 @@ Link paths are relative to this file. *S&A* is [Select and Add](../../MVP-Produc
 | Q | Answer (short) | Target docs | Change | Status |
 | --- | --- | --- | --- | --- |
 | Q06 | 1.0: Chrome, Firefox, hosted web. Post-1.0: Safari, iOS, desktop hotkey. Out: audio/YouTube | scope, [architecture overview](../overview.md) | 1.0 client list; lift the web-client deferral, keep mobile and hotkey deferred | ready |
-| Q07 | Standard payload + editable Context (~500 chars), with a toggle | [pages-and-editing](../../specs/pages-and-editing.md) §Context, S&A §Capture scenario | Done in `8767818`. Remaining: storage of URL/title + timestamp, retention rule (K7) | partial |
+| Q07 | Standard payload + editable Context (~500 chars), with a toggle | [pages-and-editing](../../specs/pages-and-editing.md) §Context, S&A §Capture scenario | Done in `8767818`; capture with Context implemented as a deck setting. The owner dropped URL/title (no generation value); the page's `createdAt` is the timestamp (10 October 2026). Remaining: retention rule (K7) | partial |
 | Q08 | Fire-and-forget default; opt-in popup on terminal state; 3s auto-dismiss; originating installation only; terminal-only progress | S&A §Capture-feedback popup → capture-and-generation, [shared-ui](../../specs/shared-ui.md) | Rewrite the popup rules | ready |
 | Q09 | Best-effort queue: captures + saves survive restart; generation does not | capture-and-generation, [persistence-and-recovery](../persistence-and-recovery.md) | Define the client queue; reverses the "no automatic resubmission" deferral | ready (K2) |
 | Q10 | Session + installation ID; no anonymous use; event-driven refresh; capture tokens deferred | accounts-and-sync, overview | Installation registry, results published to the originating installation, polling demoted to fallback | ready |
@@ -202,7 +202,7 @@ Link paths are relative to this file. *S&A* is [Select and Add](../../MVP-Produc
 
 | Q | Answer (short) | Target docs | Change | Status |
 | --- | --- | --- | --- | --- |
-| Q29 | Store key + Context + current block content and latest outcome per component (Q72); optional interpretation line; no referent | model §Karte/§Generation attempt, pages-and-editing | Done: Context. Remaining: block content per component, URL/title, interpretation line; remove pinned layout (Q72) | partial |
+| Q29 | Store key + Context + current block content and latest outcome per component (Q72); optional interpretation line; no referent | model §Karte/§Generation attempt, pages-and-editing | Done: Context. Remaining: block content per component, interpretation line; remove pinned layout (Q72) | partial |
 | Q30 | String only by default; opt-in editable interpretation line | model §Direction: semantic continuity, pages-and-editing, capture-and-generation, shared-ui (setting) | Rewrite the continuity direction; specify the interpretation line and setting | ready (K14) |
 | Q31 | Superseded by Q72: no pinned layouts; generation and retry use the live configuration | pages-and-editing, S&A → [decks-and-configuration](../../specs/decks-and-configuration.md) | Pinned-layout rules removed from the specs (refactor increment 1) | superseded |
 | Q32 | True move, full-carry copy, trash + restore + 30-day purge; carries components, next retry uses the target deck's configuration (Q72) | decks-and-configuration, pages-and-editing, scope, persistence-and-recovery | New capability; drop the move/copy deferral | ready |

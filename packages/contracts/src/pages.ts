@@ -17,7 +17,10 @@ export const DeckConfigurationSchema = Type.Object({
   id: Type.Optional(Type.String({ minLength: 1 })),
   name: Type.String({ minLength: 1 }),
   modules: Type.Array(ContentModuleInstanceSchema, { maxItems: MAX_CONTENT_MODULES }),
-  view: ViewDefinitionSchema
+  view: ViewDefinitionSchema,
+  // Capture into the deck also takes the selection's surrounding block. Reads
+  // always include it; a save that omits it keeps the current value.
+  captureContext: Type.Optional(Type.Boolean())
 }, { additionalProperties: false });
 export const DeckConfigurationSnapshotSchema = Type.Object({
   id: Type.String({ minLength: 1 }),

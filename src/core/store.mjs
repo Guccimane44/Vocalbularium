@@ -145,10 +145,11 @@ export class AccountStore {
   }
   async deck(id) {
     return this.database.transaction(async () => {
-      const deck = await this.database.one("SELECT id, name, view FROM decks WHERE id = $1", [id]);
+      const deck = await this.database.one("SELECT id, name, view, capture_context FROM decks WHERE id = $1", [id]);
       if (!deck) fail('deleted', 'The deck no longer exists.');
       const modules = await this.database.all("SELECT id, type FROM deck_modules WHERE deck_id = $1 ORDER BY position", [id]);
-      return { id: deck.id, name: deck.name, modules: modules.map(({ id, type }) => ({ id, type })), view: { module: deck.view } };
+      return { id: deck.id, name: deck.name, modules: modules.map(({ id, type }) => ({ id, type })), view: { module: deck.view },
+        captureContext: deck.capture_context };
     });
   }
   async snapshot() {
@@ -261,14 +262,17 @@ export class AccountStore {
       }
       try { validateConfiguration(deck.modules); } catch (error) { fail('invalid', error.message); }
       if (deck.view !== undefined && deck.view?.module !== 'default') fail('invalid', 'Choose a supported view.');
+      if (deck.captureContext !== undefined && typeof deck.captureContext !== 'boolean') fail('invalid', 'Capture with Context must be on or off.');
       const current = deck.id ? (await this.deck(deck.id)) : null;
       const id = current?.id ?? randomUUID();
       for (const module of deck.modules) {
         const saved = await this.database.one("SELECT deck_id FROM deck_modules WHERE id = $1", [module.id]);
         if (saved && saved.deck_id !== id) fail('invalid', 'This module instance belongs to another deck.');
       }
-      if (current) await this.database.run("UPDATE decks SET name = $1 WHERE id = $2", [deck.name.trim(), id]);
-      else await this.database.run("INSERT INTO decks (id, name) VALUES ($1, $2)", [id, deck.name.trim()]);
+      // An omitted setting keeps the current value; a new deck captures with Context.
+      const captureContext = deck.captureContext ?? current?.captureContext ?? true;
+      if (current) await this.database.run("UPDATE decks SET name = $1, capture_context = $2 WHERE id = $3", [deck.name.trim(), captureContext, id]);
+      else await this.database.run("INSERT INTO decks (id, name, capture_context) VALUES ($1, $2, $3)", [id, deck.name.trim(), captureContext]);
       await this.database.run("DELETE FROM deck_modules WHERE deck_id = $1", [id]);
       for (const [position, module] of deck.modules.entries()) {
         await this.database.run("INSERT INTO deck_modules VALUES ($1, $2, $3, $4)", [module.id, id, position, module.type]);
@@ -340,7 +344,8 @@ export class AccountStore {
       if (typeof mainKey !== 'string' || mainKey.length === 0) fail('invalid', 'Select some text first.');
       if (context !== undefined) textValue(context, 'Context must be text.');
       const deck = await this.deck(snapshot.id);
-      const id = await this.insertPage(deck.id, { selectedText: mainKey, mainKey, context });
+      // The deck's current setting decides: Context taken under a stale "on" is discarded.
+      const id = await this.insertPage(deck.id, { selectedText: mainKey, mainKey, context: deck.captureContext ? context : undefined });
       // Capture follows the deck's current configuration, not the prepared snapshot.
       const { attemptIds } = await this.startRun(id, session, generationTargets({ scope: 'capture' }, deck.modules, []));
       if (interrupted) for (const attemptId of attemptIds) await this.failAttempt(attemptId);
