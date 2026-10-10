@@ -30,16 +30,17 @@ A deck's configuration has:
 - an ordered list of **module instances**, at most 12 in total:
   - the **main key module**: compulsory and always first; it cannot be removed or moved;
   - the **Context module**: optional, at most one. When the deck has it, capture into the deck also takes the selection's surrounding block ([pages and editing](pages-and-editing.md#context));
+  - **Text module instances**: optional and repeatable; each gives new pages an empty Text component for the user's own writing;
   - **content module instances**: the same type may appear more than once;
 - its **view**: the default view, which shows each page as its ordered component list.
 
-The user edits the configuration in **deck settings**: name the deck, and add, remove, and reorder the Context module and content module instances. Deck settings preview the configured instances with word and sentence examples; previews are labeled as examples and never create or change pages. Configuration edits are a draft until **Save**; **Cancel** discards them. A failed save keeps the draft and offers **Try saving again**.
+The user edits the configuration in **deck settings**: name the deck, and add, remove, and reorder the Context, Text, and content module instances; the main key stays first. Deck settings preview the configured instances with word and sentence examples; previews are labeled as examples and never create or change pages. Configuration edits are a draft until **Save**; **Cancel** discards them. A failed save keeps the draft and offers **Try saving again**.
 
 A configuration with only the main key module is valid. Its new pages hold only the main key and whatever the user adds.
 
 ### Module window
 
-Deck settings show the **module window** on the right: the catalog of the Context module and the content modules. The user adds an instance by dragging a module from the window into the configuration. The page view shows the same window ([pages and editing](pages-and-editing.md#shaping-a-page)), so shaping a deck and shaping a page use the same gesture. The window's design is part of the [shared UI](shared-ui.md#module-window) redesign. Accepted with D02; not built.
+Deck settings show the **module window** on the right ([shared UI](shared-ui.md#module-window)). The user adds an instance by dragging a module from the window into the configuration, or with the window's **Add** control from the keyboard, and reorders instances by dragging or with move controls. The page view shows the same window ([pages and editing](pages-and-editing.md#shaping-a-page)), so shaping a deck and shaping a page use the same gesture. Accepted with D02; not built.
 
 ## Configuration and pages
 
