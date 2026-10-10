@@ -155,6 +155,24 @@ async function waitFor(predicate, message, timeout = 12000) {
   }
   throw new Error(`Timed out: ${message}`);
 }
+// Reports the step in progress, and the slowest finished ones, when a long
+// browser journey fails or times out without naming where it stopped.
+function steps(t) {
+  const finished = [];
+  let current = { name: 'setup', started: Date.now() }, done = false;
+  t.after(() => {
+    if (done) return;
+    const slowest = finished.toSorted((a, b) => b[1] - a[1]).slice(0, 3).map(([name, ms]) => `${name} ${ms} ms`).join(', ');
+    t.diagnostic(`stopped during "${current.name}" after ${Date.now() - current.started} ms; slowest earlier steps: ${slowest || 'none'}`);
+  });
+  const step = name => {
+    const now = Date.now();
+    finished.push([current.name, now - current.started]);
+    current = { name, started: now };
+  };
+  step.done = () => { done = true; };
+  return step;
+}
 async function captureFrom(browser, text) {
   return browser.worker.evaluate(async ({ text, origin }) => {
     const tabs = await chrome.tabs.query({ url: origin + '/health' });
@@ -163,6 +181,7 @@ async function captureFrom(browser, text) {
 }
 
 test('capture extension: receipt lifetime, exact duplicate pages, shared outcomes, interruption, and unsaved capture recovery', { timeout: 65000 }, async (t) => {
+  const step = steps(t);
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-capture-browser-'));
   const databaseKey = join(directory, 'account-fixture');
   const testingExtension = join(directory, 'extension');
@@ -188,6 +207,7 @@ test('capture extension: receipt lifetime, exact duplicate pages, shared outcome
     await application.close(); await rm(directory, { recursive: true, force: true });
   });
   const profile = join(directory, 'a');
+  step('launch and sign in two installations');
   let a = await launch(profile, testingExtension); contexts.add(a.context); await signIn(a.page);
   const b = await launch(join(directory, 'b'), testingExtension); contexts.add(b.context); await signIn(b.page);
   let reading = await a.context.newPage(); await reading.goto(apiOrigin + '/health');
@@ -195,11 +215,16 @@ test('capture extension: receipt lifetime, exact duplicate pages, shared outcome
   const selected = await reading.locator('#selection').evaluate(node => {
     const range = document.createRange(); range.selectNodeContents(node); getSelection().removeAllRanges(); getSelection().addRange(range); return getSelection().toString();
   });
-  await captureFrom(a, selected); await captureFrom(a, selected);
-  assert.equal(await reading.getByRole('status').count(), 2);
+  step('duplicate captures and their feedback');
+  // Each capture shows feedback on receipt and then saves, so wait for both
+  // popups rather than for two complete captures.
+  const duplicates = [captureFrom(a, selected), captureFrom(a, selected)];
+  await waitFor(async () => await reading.getByRole('status').count() === 2, 'each capture shows its own feedback', 3000);
   await reading.getByRole('button', { name: 'Close capture feedback' }).first().click();
   assert.equal(await reading.getByRole('status').count(), 1);
   await reading.getByRole('status').waitFor({ state: 'detached', timeout: 4500 });
+  await Promise.all(duplicates);
+  step('duplicate pages complete and synchronize');
   await waitFor(async () => (await application.store.pages()).filter(page => page.status === 'completed').length === 2, 'duplicate word pages completed');
   assert.equal((await application.store.pages())[0].selectedText, selected);
   assert.equal(keyOf((await application.store.pages())[0]), selected);
@@ -210,18 +235,21 @@ test('capture extension: receipt lifetime, exact duplicate pages, shared outcome
   // Generated content is plain text in its own component.
   await componentArticle(b.page, '<German explanation + examples>').locator('pre').filter({ hasText: '=== Bedeutungen ===' }).waitFor();
 
+  step('sentence and failed interpretation');
   await captureFrom(a, '我真的很幸福'); await captureFrom(a, 'fail');
   await waitFor(async () => (await application.store.pages()).find(page => page.selectedText === 'fail')?.status === 'failed', 'failed interpretation persisted');
   const sentencePage = (await application.store.pages()).find(page => page.selectedText === '我真的很幸福');
   assert.deepEqual(modulesOf(sentencePage).map(item => [text(item), item.status]), [['我真的很幸福', 'completed'], ['', 'completed']]);
   assert.equal(sentencePage.status, 'completed');
 
+  step('dashboard closure during generation');
   await captureFrom(a, 'held-after-close');
   await waitFor(() => held.has('held-after-close'), 'dashboard-close interpretation started');
   await a.page.close();
   held.get('held-after-close')();
   await waitFor(async () => (await application.store.pages()).find(page => page.selectedText === 'held-after-close')?.status === 'completed', 'dashboard closure leaves generation running');
 
+  step('browser exit during generation');
   await captureFrom(a, 'held-interrupted');
   const interrupted = (await application.store.pages()).find(page => page.selectedText === 'held-interrupted');
   await waitFor(async () => modulesOf(await application.store.page(interrupted.id))[0].status === 'completed', 'exact selection completed before exit');
@@ -229,10 +257,12 @@ test('capture extension: receipt lifetime, exact duplicate pages, shared outcome
   await a.context.close(); contexts.delete(a.context);
   held.get('held-interrupted')();
   await waitFor(async () => (await application.store.attempt(modulesOf(interrupted)[1].attemptId)).result, 'late provider result staged');
+  step('relaunch after browser exit');
   a = await launch(profile, testingExtension); contexts.add(a.context);
   await a.page.getByRole('heading', { name: 'Your decks.' }).waitFor();
   assert.deepEqual(modulesOf(await application.store.page(interrupted.id)).map(item => item.status), ['completed', 'failed']);
 
+  step('capture while the server is stopped');
   reading = await a.context.newPage(); await reading.goto(apiOrigin + '/health');
   await application.close();
   const pendingId = await captureFrom(a, 'not saved yet');
@@ -240,11 +270,13 @@ test('capture extension: receipt lifetime, exact duplicate pages, shared outcome
   // Cached account views remain accessible when the refresh fails.
   const receipt = await a.worker.evaluate(async (id) => (await chrome.storage.local.get(`capture-${id}`))[`capture-${id}`], pendingId);
   assert.equal(receipt.state, 'pending');
+  step('explicit unsaved capture recovery');
   application = (await createTestApplication(t, { databaseKey, provider })); await application.start();
   await a.page.reload();
   await a.page.getByRole('button', { name: 'Try saving again', exact: true }).click();
   await waitFor(async () => (await application.store.pages()).find(page => page.selectedText === 'not saved yet')?.status === 'completed', 'explicit unsaved capture recovery');
   assert.equal((await application.store.pages()).filter(page => page.selectedText === 'not saved yet').length, 1);
+  step.done();
 });
 
 test('capture with Context: the surrounding block follows the deck toggle, capped, into the page and generation', { timeout: 40000 }, async (t) => {
