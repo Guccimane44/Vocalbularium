@@ -6,7 +6,7 @@ This document is the authoritative source for detailed component completion, fai
 
 ## Status
 
-These rules describe the owner-approved deck → page → component model ([Q72](architecture/questionnaire/answers/answers-06-data-and-semantics.md#q72)) and are implemented in release 0.4.0; capture with Context was added after 0.4.0 ([current scope](product/scope.md)). Builds up to v0.3.0+ followed the [seite-level baseline](history/v0.3.0-select-and-add.md). [Pages and editing](specs/pages-and-editing.md) owns main key, Context, and component editing; [Deck configuration](specs/decks-and-configuration.md) owns content module instances.
+These rules describe the owner-approved deck → page → component model ([Q72](architecture/questionnaire/answers/answers-06-data-and-semantics.md#q72)) and are implemented in release 0.4.0; release 0.4.1 adds capture with Context ([current scope](product/scope.md)). Builds up to v0.3.0+ followed the [seite-level baseline](history/v0.3.0-select-and-add.md). [Pages and editing](specs/pages-and-editing.md) owns main key, Context, and component editing; [Deck configuration](specs/decks-and-configuration.md) owns content module instances.
 
 ## Availability and default deck
 

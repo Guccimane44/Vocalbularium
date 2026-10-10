@@ -6,7 +6,7 @@ This document identifies current capabilities and explicit deferrals. It provide
 
 The current baseline is the Chrome extension with its local account backend. It supports collecting and consulting pages, with an initial set of language-oriented content modules. Broader possibilities in the vision are not automatically part of this scope.
 
-The supported capabilities below describe release 0.4.0, which implements the deck → page → component model approved in [Q72](../architecture/questionnaire/answers/answers-06-data-and-semantics.md#q72) through the [refactor plan](../plans/page-component-refactor.md) and [tracker #81](https://github.com/Guccimane44/Vocalbularium/issues/81). Builds up to v0.3.0+ used kartes and seites; [earlier terms](model.md#earlier-terms) maps the two.
+The supported capabilities below describe release 0.4.1. Release 0.4.0 implements the deck → page → component model approved in [Q72](../architecture/questionnaire/answers/answers-06-data-and-semantics.md#q72) through the [refactor plan](../plans/page-component-refactor.md) and [tracker #81](https://github.com/Guccimane44/Vocalbularium/issues/81). 0.4.1 adds capture with Context. Builds up to v0.3.0+ used kartes and seites; [earlier terms](model.md#earlier-terms) maps the two.
 
 ## Supported capabilities
 
@@ -27,6 +27,8 @@ Some linked scope documents still reside under `history/mvp/`. Their applicable 
 ## Upgrade from earlier builds
 
 Upgrading to 0.4.0 discards every deck and karte created by earlier builds. Accounts and sign-in stay, and the account starts again with one fresh My Deck. Extensions older than 0.4.0 do not work with the 0.4.0 backend.
+
+Upgrading from 0.4.0 to 0.4.1 keeps all decks and pages. Migration `0005` adds the deck setting **Capture with Context**, on for every existing deck. Upgrade the backend and the extension together: a 0.4.1 extension saving deck settings needs the 0.4.1 backend.
 
 ## Current delivery boundary
 

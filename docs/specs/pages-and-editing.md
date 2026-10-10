@@ -2,7 +2,7 @@
 
 ## Purpose and status
 
-This specification defines the owner-approved page input and editing behavior shared by captured and manually created pages. Release 0.4.0 implements it; capture with Context was added after 0.4.0 ([current scope](../product/scope.md)). Existing browsing, sorting, save, draft, and deletion behavior remains defined by the applicable [MVP editing rules](../history/mvp/MVP-Product-scope.md#8-card-content-page-and-manual-editing), read with the [earlier terms](../product/model.md#earlier-terms) mapping.
+This specification defines the owner-approved page input and editing behavior shared by captured and manually created pages. Release 0.4.0 implements it; release 0.4.1 adds capture with Context ([current scope](../product/scope.md)). Existing browsing, sorting, save, draft, and deletion behavior remains defined by the applicable [MVP editing rules](../history/mvp/MVP-Product-scope.md#8-card-content-page-and-manual-editing), read with the [earlier terms](../product/model.md#earlier-terms) mapping.
 
 The [product model](../product/model.md) defines a page, its components, and the main key. [Modules](modules.md#content-module-contract) owns how content modules consume the main key and Context. [Select and Add](../MVP-Product-spec-select-and-add.md) owns detailed generation completion, replacement, failure, interruption, and recovery rules. [Deck configuration](decks-and-configuration.md) owns which content module instances a page's deck has.
 
