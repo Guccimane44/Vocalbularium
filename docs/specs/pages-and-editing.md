@@ -2,7 +2,7 @@
 
 ## Purpose and status
 
-This specification defines the page list, page input, and page editing shared by captured and manually created pages. Release 0.5.1 implements it, including [shaping a page](#shaping-a-page) ([D02](../architecture/traceability-map.md#entries)) and per-card actions ([D04](../architecture/traceability-map.md#entries)); [current scope](../product/scope.md) records the status.
+This specification defines the page list, page input, and page editing shared by captured and manually created pages. Release 0.5.2 implements it, including [shaping a page](#shaping-a-page) ([D02](../architecture/traceability-map.md#entries)) and per-card actions ([D04](../architecture/traceability-map.md#entries)); [current scope](../product/scope.md) records the status.
 
 The [product model](../product/model.md) defines a page, its components, and the main key. [Modules](modules.md#content-module-contract) owns how content modules consume the main key and Context. [Capture and generation](capture-and-generation.md) owns generation completion, replacement, failure, interruption, and recovery. [Decks and configuration](decks-and-configuration.md) owns the deck configuration that new pages start from. [Accounts and synchronization](accounts-and-sync.md) owns save ordering across installations.
 
@@ -47,7 +47,7 @@ Each component is a card with its own actions ([D04](../architecture/traceabilit
 - **Generate** on a content component that never generated and is still empty starts its first generation, without a warning, because there is nothing to replace. After that the same control is **Retry**, which warns before replacing the content ([capture and generation](capture-and-generation.md#retry)).
 - **Delete** removes the component ([shaping](#shaping-a-page)).
 
-The main key card has only **Edit**. There are no page-level edit, generate, or retry controls; **Delete page** sits in the page header.
+The main key card has only **Edit**, and a lock mark where other cards have their drag handle (since 0.5.2). There are no page-level edit, generate, or retry controls; **Delete page** sits in the page header.
 
 ### Shaping a page
 
@@ -69,7 +69,7 @@ Generated components are editable. An edit to a generated component lasts until 
 
 ## Editing a component
 
-Editing is one card at a time ([D04](../architecture/traceability-map.md#entries)). **Edit** on a card makes that component editable; while it is open, the other cards' **Edit**, **Generate**, **Retry**, and **Delete** wait, and shaping is unavailable. Adding, deleting, and moving components is [shaping](#shaping-a-page).
+Editing is one card at a time ([D04](../architecture/traceability-map.md#entries)). **Edit** on a card makes that component editable; while it is open, the other cards' **Edit**, **Generate**, **Retry**, and **Delete** wait, and shaping is unavailable, without a separate notice: the open card's **Save** and **Cancel** end editing. Adding, deleting, and moving components is [shaping](#shaping-a-page).
 
 - **Save** in the card writes that component and closes it. Only that component is sent, so it never overwrites another installation's edit of a different component.
 - **Cancel** in the card discards the draft. Cancelling a new page returns to the deck's page list.
@@ -121,4 +121,4 @@ Generation uses the page's own content module instances. Finish editing with **S
 
 ## Implementation details still to specify
 
-Releases 0.5.0 and 0.5.1 build shaping with today's styling ([plan](../plans/page-owned-modules.md), [D04](../architecture/traceability-map.md#entries)). The visual identity of the page view and module window is a later milestone.
+Releases 0.5.0 to 0.5.2 build shaping with today's styling ([plan](../plans/page-owned-modules.md), [D04](../architecture/traceability-map.md#entries)). The visual identity of the page view and module window is a later milestone.

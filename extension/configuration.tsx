@@ -4,7 +4,7 @@ import type { DeckConfiguration } from '@vocabularium/contracts';
 import { MODULES } from '@vocabularium/domain/modules';
 import type { ModuleType as ContentModuleType } from '@vocabularium/domain/modules';
 import { addBlocked } from '@vocabularium/domain/page-modules';
-import { moduleLabel, ShapingArea } from './shaping.tsx';
+import { moduleLabel, PinMark, ShapingArea } from './shaping.tsx';
 
 const instance = (type: string) => ({ id: crypto.randomUUID(), type });
 
@@ -45,7 +45,7 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
   const modules = draft.deck.modules;
   const busy = Boolean(draft.saving || draft.pending);
   const sampleType = draft.sampleType ?? 'word_phrase';
-  // The main key is always first and stays; everything after it can move.
+  // The main key stays first and cannot move or be removed; everything after it can.
   const [key, ...rest] = modules;
   const items = rest.map(module => ({ id: module.id, label: moduleLabel(module.type), type: module.type }));
   const add = (type: string, index: number) => {
@@ -92,7 +92,10 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
     <p className="muted">Every new page in this deck starts with these modules, in this order. Changes apply to pages created afterwards; existing pages keep their own modules.</p>
     <ShapingArea items={items} types={modules.map(module => module.type)} disabled={busy} unavailable={busy ? 'Saving…' : undefined}
       label="Deck modules" where="the list" onAdd={add} onMove={(id, index) => { move(id, index); return true; }}
-      pinned={<div className="module-block pinned" data-type={key.type}><span>Main key <span className="muted">· always first</span></span></div>}
+      pinned={<div className="module-block" data-type={key.type}>
+        <PinMark />
+        <span>{moduleLabel(key.type)}</span>
+      </div>}
       renderItem={(item, handle) => <div className="module-block" data-type={item.type}>
         {handle}
         <span>{item.label}</span>
