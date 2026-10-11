@@ -8,10 +8,12 @@ import { flushSync } from 'react-dom';
 import { createRoot } from 'react-dom/client';
 import { Dashboard } from './dashboard.tsx';
 import { diagnosticSettings } from './diagnostic-settings.js';
+import { initializeShell, renderAccountMenu, renderSidebar, showSignedOutShell } from './shell.js';
 /** @typedef {import('../types/editor-drafts.js').DeckEditorDraft} DeckEditorDraft */
 
 await initializeFeedback();
 await initializeTheme();
+initializeShell();
 const app = document.querySelector('#app');
 const actions = document.querySelector('#session-actions');
 let account;
@@ -30,11 +32,6 @@ const element = (tag, text, className) => {
   if (className) node.className = className;
   return node;
 };
-function button(text, onclick, className) {
-  const node = element('button', text, className);
-  node.onclick = onclick;
-  return node;
-}
 async function send(message) {
   const result = await chrome.runtime.sendMessage(message);
   if (result.error) throw Object.assign(new Error(result.error), { code: result.code, details: result.details });
@@ -53,7 +50,7 @@ function showError(error) {
   notice.textContent = error.message;
 }
 function login() {
-  signedIn = false; account = undefined; actions.replaceChildren();
+  signedIn = false; account = undefined; actions.replaceChildren(); showSignedOutShell();
   currentPageDetail = undefined; currentDeckDetail = undefined;
   if (viewRoot) { viewRoot.unmount(); viewRoot = undefined; }
   const section = element('section', undefined, 'login');
@@ -96,10 +93,20 @@ async function render() {
   if (!signedIn) { login(); return; }
   // Render account pages and capture receipts from the same storage snapshot.
   if (local.account) account = viewAccount(local.account);
-  actions.replaceChildren(button('Log out', async () => {
-    try { if (!await pageUI.leave()) return; await send({ type: 'logout' }); location.hash = ''; login(); } catch (error) { showError(error); }
-  }));
-  actions.append(button('Diagnostic logs', async () => { if (await pageUI.leave()) location.hash = 'diagnostics'; }));
+  renderAccountMenu(actions, {
+    logOut: async () => {
+      try { if (!await pageUI.leave()) return; await send({ type: 'logout' }); location.hash = ''; login(); } catch (error) { showError(error); }
+    },
+    diagnostics: async () => { if (await pageUI.leave()) location.hash = 'diagnostics'; }
+  });
+  const routeDeck = location.hash.startsWith('#deck/') ? decodeURIComponent(location.hash.slice(6))
+    : location.hash.startsWith('#configure/') && location.hash !== '#configure/new' ? location.hash.slice(11)
+    : location.hash.startsWith('#new-page/') ? location.hash.slice(10) : null;
+  const sidebar = currentDeckId => renderSidebar({
+    decks: account.decks, currentDeckId,
+    newDeck: () => { configuration = undefined; location.hash = 'configure/new'; }
+  });
+  sidebar(routeDeck);
   if (location.hash === '#diagnostics') {
     if (viewRoot) { viewRoot.unmount(); viewRoot = undefined; }
     await diagnosticSettings({ send, root: app, navigate: hash => { location.hash = hash; } }); return;
@@ -166,6 +173,7 @@ async function render() {
       : account.defaultDeckSnapshot?.id === routeId ? account.defaultDeckSnapshot : undefined;
   }
   if (version !== renderVersion) return;
+  if (page) sidebar(page.deckId);
   account = { ...account, pages: page ? [page] : [], decks: detail
     ? [...account.decks.filter(deck => deck.id !== detail.id), detail] : account.decks };
   const error = nextError; nextError = undefined;

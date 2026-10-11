@@ -43,7 +43,7 @@ test('logging journey: capture correlation, offline worker restart, budgets and 
   await page.getByLabel('Username', { exact: true }).fill('admin');
   await page.getByLabel('Password', { exact: true }).fill('admin');
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
-  await page.getByRole('heading', { name: 'Your decks.' }).waitFor();
+  await page.getByRole('heading', { name: 'Your decks', exact: true }).waitFor();
   const reading = await context.newPage(); await reading.goto(origin + '/health');
   const operationId = await worker.evaluate(async ({ origin }) => {
     const [tab] = await chrome.tabs.query({ url: origin + '/health' });
@@ -81,7 +81,7 @@ test('logging journey: capture correlation, offline worker restart, budgets and 
   application = await createTestApplication(t, { databaseKey, provider, diagnostics: new Diagnostics({ directory: logDirectory }) });
   await application.start({ port: Number(new URL(origin).port) });
   page = await context.newPage(); await page.goto(`chrome-extension://${id}/app.html`);
-  await page.getByRole('heading', { name: 'Your decks.' }).waitFor();
+  await page.getByRole('heading', { name: 'Your decks', exact: true }).waitFor();
   worker = context.serviceWorkers().find(item => item.url().includes(id));
   assert.equal(await worker.evaluate(() => globalThis.oldLoggingWorker), undefined);
   await waitFor(async () => (await application.diagnostics.inspect({ operationId: 'offline-logging-save' })).events.some(event => event.eventId === offlineEvent.eventId), 'original offline evidence after restart');
@@ -91,6 +91,7 @@ test('logging journey: capture correlation, offline worker restart, budgets and 
   assert.equal((await application.store.pages()).length, 1, 'logging recovery never replays the failed product save');
   assert.equal((await worker.evaluate(async () => (await chrome.storage.local.get('save-offline-logging-save'))['save-offline-logging-save'])).state, 'pending');
 
+  await page.getByRole('button', { name: 'Account', exact: true }).click();
   await page.getByRole('button', { name: 'Diagnostic logs', exact: true }).click();
   await page.getByRole('heading', { name: 'Diagnostic logs', exact: true }).waitFor();
   await page.getByLabel('Extension buffer budget (MiB)', { exact: true }).fill('0');
