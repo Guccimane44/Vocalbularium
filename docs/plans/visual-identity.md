@@ -132,7 +132,7 @@ The module list on the left, the live preview of a sample page in the middle (wo
 - **Renderer accuracy:** the provider may vary its format. The renderer falls back to plain text, and the recorded samples become its test fixtures.
 - **CJK on different systems:** system serif fonts differ between macOS, Windows and Linux. The screenshots in increment 8 cover macOS; others are checked by the owner when available.
 - **Milestone size:** three layouts and motion make this the largest UI milestone so far. If it runs long, Table and Gallery can ship in a 0.6.x release after List; that split is the owner's call.
-- **Dark theme and motion:** the owner accepted D05 without separate comments on Moss night or the motion prototype; their values can still be tuned in increment 2.
+- **Dark theme and motion:** the owner accepted the Moss night theme and the motion prototype on 12 October 2026; increment 2 takes their values as given.
 
 ## Not in this milestone
 
