@@ -2,11 +2,23 @@
 
 ## Purpose and status
 
-This specification defines interface rules shared across the extension's views. Release 0.5.2 implements it, including the module window of [D02](../architecture/traceability-map.md#entries) as revised by [D04](../architecture/traceability-map.md#entries). The visual identity is still open: the [vision](../product/vision.md#uiux-direction) calls for a distinctive interface, and the current views, the module window included, are a functional foundation.
+This specification defines interface rules shared across the extension's views. Release 0.5.2 implements the module window of [D02](../architecture/traceability-map.md#entries) as revised by [D04](../architecture/traceability-map.md#entries). [D05](../architecture/traceability-map.md#entries), accepted on 12 October 2026, gives the extension its visual identity, **Vocabularium Sage**; it is accepted for 0.6.0 and not built yet ([plan](../plans/visual-identity.md), [scope](../product/scope.md)). Where 0.5.2 still behaves differently, a short *Until 0.6.0* note says so.
+
+## Visual identity
+
+The [Vocabularium Sage design system](https://claude.ai/artifact/6gmEs5nUHAzKCC4do39u9E) holds the identity's values and references: colour tokens for both themes, type, spacing, radius, motion durations and easings, the brand book, and CSS references for the main components. The extension keeps a copy of its tokens in the repository, so the build never depends on the design system. Where the design system and a specification disagree, the specification wins and the difference is reported.
+
+These rules hold everywhere:
+
+- **Content first.** Main keys and generated content are the largest, darkest things on screen; buttons, status, and settings recede.
+- **Colour means module family.** Each module belongs to one family ([modules](modules.md#current-catalog)), which sets the colour of its index tab and its icon. Apart from status, nothing else uses saturated colour. A family colour always appears with the module's name, or with a text alternative where only the small family mark is shown.
+- **Success is quiet.** Completed work shows no status. Only saving, generating, and failed states appear ([list state presentation](#list-state-presentation)).
+- **Type.** Main keys, titles, and generated reading text use Fraunces; the interface, translations, and captions use Instrument Sans. Both are bundled with the extension. Chinese and Japanese text uses the system's serif or sans-serif fonts; no font is loaded from the network. Reading text is never smaller than 16 px.
+- **Long text.** Every layout handles text of any length without overflow: main keys from one word to a passage ([pages and editing](pages-and-editing.md#required-main-key)), long module names, and right-to-left text, which sets its direction on the component content, never on the card.
 
 ## Module window
 
-The **module window** is a panel on the right side of both the page view and deck settings. It lists the Context module, the Text module, and the content modules, each with its label (German explanation, German explanation + examples, Sentence usage, without angle brackets since 0.5.1) and a one-line description of what it contributes. The main key module is always present and is not in the window. Dragging a module from it:
+The **module window** is a panel on the right side of both the page view and deck settings. It lists the Context module, the Text module, and the content modules, grouped by module family. Each family group shows the family mark, its name, and how many modules it holds; it can be collapsed, and the families of modules already on the page start open. A search field above the groups filters every module by name and description as the user types. Each module shows its label (German explanation, German explanation + examples, Sentence usage, without angle brackets since 0.5.1) and a one-line description of what it contributes; a module already on the page says so. The main key module is always present and is not in the window. Dragging a module from it:
 
 - into deck settings adds an instance to the deck configuration, the template for new pages ([decks and configuration](decks-and-configuration.md#module-window));
 - onto a page adds an instance to that page only ([pages and editing](pages-and-editing.md#shaping-a-page)).
@@ -15,21 +27,40 @@ While a module is dragged over the list, a floating preview follows the pointer 
 
 Every drag also works from the keyboard: a window module or a card's drag handle is focusable; Space picks it up, the arrow keys move it through the landing places, Space drops it, and Escape cancels, putting a window module back. A drag is announced to screen readers when it starts, moves, and ends. There are no separate move buttons ([D04](../architecture/traceability-map.md#entries)).
 
-Releases 0.5.0 to 0.5.2 build it with today's styling ([plan](../plans/page-owned-modules.md)); the visual identity is a later milestone.
+*Until 0.6.0:* the window is a flat list without families or search, in the 0.5.2 styling.
 
 ## Appearance
 
-A labeled Light/Dark control in the shared header is available on the sign-in view and every product view. Light is the initial choice. The choice is stored per Chrome installation, separately from account data, and survives logout, closing views, restarting the browser, and updating the extension in place. Other installations can choose differently.
+The extension has two themes, **Sage** (light) and **Moss night** (dark). By default it follows the operating system's light or dark setting and changes with it. The account menu in the shared header offers **System**, **Sage**, and **Moss night**; the sign-in view offers the same choice. The choice is stored per Chrome installation, separately from account data, and survives logout, closing views, restarting the browser, and updating the extension in place. Other installations can choose differently.
 
-Changing the theme updates every open extension view, dialog, and active capture feedback immediately, without losing drafts, selection, navigation, or dialog state, and without restarting the feedback popup's timer. Browser-owned menus and frames follow Chrome's own appearance.
+Changing the theme, or the system setting while **System** is chosen, updates every open extension view, dialog, and active capture feedback immediately, without losing drafts, selection, navigation, or dialog state, and without restarting the feedback popup's timer. Browser-owned menus and frames follow Chrome's own appearance.
 
-Both themes keep readable hover and focus states, non-color status cues, and usability in forced-colors mode. Normal text targets 4.5:1 contrast; large text and necessary control, status, and focus cues target 3:1 against adjacent colors.
+Both themes keep readable hover and focus states, non-color status cues, and usability in forced-colors mode. Normal text targets 4.5:1 contrast; large text and necessary control, status, and focus cues target 3:1 against adjacent colors. Focus is always a visible 2 px ring.
+
+*Until 0.6.0:* a labeled Light/Dark control, with Light as the initial choice and no system option.
 
 ## List state presentation
 
-Page rows in a deck and entries in Recent captures show their generation outcome with a whole-row tint and an icon with an accessible description: completed is blue-green with a check, loading is amber with a clock, and failed is vermilion with a warning. Rows without a generation outcome stay neutral. These lists show no text badges for generation; the page view shows detailed status. The outcome rules are in [capture and generation](capture-and-generation.md#component-completion-and-failure).
+Lists show status only when something is in progress or needs attention. A completed page or capture shows no status. The status takes the place of the page's meaning line ([page list](pages-and-editing.md#page-list)), so the row keeps its shape:
 
-A capture receipt that is still saving shows the loading treatment, labeled **Pending**. A receipt waiting to be saved again shows the failure treatment with "Not saved to your account", the error, and **Try saving again**. That is a save problem, not a generation failure, and color never implies that something was saved.
+- **Saving:** a capture receipt still being saved to the account shows a clock and "Saving to your account".
+- **Generating:** a page with a component attempt in progress shows three moving dots and "Generating", with the count of finished components when there are several ("Generating 1 of 2").
+- **Generation failed:** a page whose current outcome is failed ([capture and generation](capture-and-generation.md#component-completion-and-failure)) shows "Generation failed" on a tinted row, with a visible **Retry…** button. It opens the page at its first failed component, whose card offers **Retry** under the usual rules ([capture and generation](capture-and-generation.md#generation-actions)); the list itself starts no generation.
+- **Not saved:** a receipt waiting to be saved again shows "Not saved" and the error on a tinted row, with **Try saving again** as a visible button. That is a save problem, not a generation failure, and nothing implies that the capture was saved.
+
+A row that holds a button is not itself one link: its text links to the page, and the button sits beside it, so each works from the pointer and the keyboard. Status is always a word, never colour alone.
+
+*Until 0.6.0:* rows show their outcome with a whole-row tint and an icon (blue-green check for completed, amber clock for loading, vermilion warning for failed), and a pending receipt is labeled **Pending**.
+
+## Motion
+
+Motion is quick and physical: what the user touches responds with a small spring and settles. Nothing moves on its own except work in progress. Durations and easings come from the design system: colour changes 120 ms, revealing hover actions 150 ms, moving things 350 ms with a slight overshoot, larger objects 450 ms, and one cycle of the generating dots 1 s. Elements move by transform and opacity only, a few pixels at a time.
+
+The named moments are: the capture flight ([capture and generation](capture-and-generation.md#capture-feedback-popup)); a new page sliding into a list and its family marks appearing as components finish; status changes cross-fading; generated content rising into its card line by line while the card grows to fit; a module card's tab lifting on hover; and a dragged module tilting slightly while the landing line and the other cards make room.
+
+When the system asks for reduced motion, nothing moves: every state change still happens, without transitions, and the generating dots stand still beside their word.
+
+*Until 0.6.0:* the extension has no motion beyond the 0.5.2 drag feedback.
 
 ## Dialogs, menus, and feedback
 
@@ -37,4 +68,8 @@ Confirmation dialogs for retry, deletion, and unsaved changes stay open until th
 
 ## Text content
 
-Component content is shown as plain text, preserving line breaks and showing any markup literally. Rich rendering follows [Q13](../architecture/questionnaire/answers/answers-03-frontend.md#q13) and [Q59](../architecture/questionnaire/answers/answers-11-security-privacy.md#q59), which are still `Proposed`.
+Component content is stored as text and rendered for reading. Each content module type has a render contract ([modules](modules.md#render-contracts)): the extension recognizes the module's text format and shows its structure, such as headings, numbered meanings, and examples beside their translations. Text it does not recognize, the user's own text, and edited content that no longer matches the format are shown as plain text with line breaks preserved. Rendering never interprets text as HTML; markup that is not part of a render contract is shown literally. Editing a component shows and saves its stored text, never the rendered form.
+
+Rich block content follows [Q13](../architecture/questionnaire/answers/answers-03-frontend.md#q13) and [Q59](../architecture/questionnaire/answers/answers-11-security-privacy.md#q59), which are still `Proposed`; D05 does not change storage ([C17](../architecture/traceability-map.md#conflicts)).
+
+*Until 0.6.0:* content is shown as plain text, including literal markup.

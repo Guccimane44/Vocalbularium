@@ -82,6 +82,10 @@ The **default view** module shows a page as its ordered component list. It needs
 
 Other view modules, such as a **card** view module that recreates the earlier karte design with a configurable layout, are later work. No term is defined for parts of a view; each view module's specification names its own settings.
 
+A **layout** is how a deck's page list shows its pages: List, Table, or Gallery ([pages and editing](../specs/pages-and-editing.md#page-list)). A layout lists many pages; a view shows one. Layouts are presentation choices remembered on each installation, not modules and not part of the deck configuration ([D05](../architecture/traceability-map.md#entries)).
+
+A **module family** groups module types by what they contribute (Meaning, Usage, Roots, Connections, Sound, Notes) and gives them their colour and icon ([modules](../specs/modules.md#module-families)). It is a property of the module type; it does not change what a module does.
+
 ## Generation attempt and outcome
 
 A **generation attempt** is one evaluation of one content module instance for one page. It produces or replaces that instance's component. It associates the target component, the main key and Context values and interpretation used, and the module configuration used.

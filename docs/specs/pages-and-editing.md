@@ -2,28 +2,44 @@
 
 ## Purpose and status
 
-This specification defines the page list, page input, and page editing shared by captured and manually created pages. Release 0.5.2 implements it, including [shaping a page](#shaping-a-page) ([D02](../architecture/traceability-map.md#entries)) and per-card actions ([D04](../architecture/traceability-map.md#entries)); [current scope](../product/scope.md) records the status.
+This specification defines the page list, page input, and page editing shared by captured and manually created pages. Release 0.5.2 implements it, including [shaping a page](#shaping-a-page) ([D02](../architecture/traceability-map.md#entries)) and per-card actions ([D04](../architecture/traceability-map.md#entries)). The page list layouts, main key tiers, and card presentation of [D05](../architecture/traceability-map.md#entries) are accepted for 0.6.0 and not built yet; *Until 0.6.0* notes describe 0.5.2. [Current scope](../product/scope.md) records the status.
 
 The [product model](../product/model.md) defines a page, its components, and the main key. [Modules](modules.md#content-module-contract) owns how content modules consume the main key and Context. [Capture and generation](capture-and-generation.md) owns generation completion, replacement, failure, interruption, and recovery. [Decks and configuration](decks-and-configuration.md) owns the deck configuration that new pages start from. [Accounts and synchronization](accounts-and-sync.md) owns save ordering across installations.
 
 ## Page list
 
-Opening a deck shows its pages as a list with two columns:
+Opening a deck shows its pages in one of three **layouts** of the page list ([K19](../architecture/traceability-map.md#clarifications); a layout lists pages, a [view](../product/model.md#view) shows one page). **List** is the default for every deck; a switch beside the sort order offers **List**, **Table**, and **Gallery**, and the chosen layout is remembered per deck on that installation.
 
-1. **Index**: a three-digit position (`001`, `002`, …) in the current order. It is calculated for display, never stored, and changes when the order or the list changes.
-2. **Entry**: the page's main key.
+- **List** shows each page as its main key above one line of meaning, so words, phrases, sentences, and passages share one shape. The main key wraps to at most two lines and is cut with an ellipsis after that. The meaning line shows the first meaning of the page's first Meaning-family component; for a sentence it starts with "Sentence ·", and for a passage it reads "Passage · *n* words" until a summary module exists. On the right, one small family mark per filled component, in page order, with a text alternative such as "3 modules filled". In the two creation-time orders, pages are grouped under their capture date (Today, Yesterday, then month and day); the alphabetical orders are not grouped ([K20](../architecture/traceability-map.md#clarifications)).
+- **Table** shows one row per page with the columns main key (up to two lines), meaning, modules (the family marks), and capture date.
+- **Gallery** shows one card per page: its family marks along the top edge, the main key (larger for a word, up to four lines for longer text), the meaning, and the capture date.
 
-The list loads 30 pages at a time, with **Load more pages** when more exist. A deck without pages shows "No pages in this deck yet." Clicking anywhere on a row opens the page, except when the user is selecting text in it. Each row has one keyboard target named by its entry. Rows show their generation outcome as described in [shared UI](shared-ui.md#list-state-presentation).
+In every layout, the main key is the whole text when it is searched or read aloud; only its display is cut. A page that is saving, generating, or failed shows its status in place of the meaning ([shared UI](shared-ui.md#list-state-presentation)); a completed page shows none. The page list keeps the rest of its behavior.
+
+The list loads 30 pages at a time, with **Load more pages** when more exist. A deck without pages shows "No pages in this deck yet." Clicking anywhere on a row or card opens the page, except when the user is selecting text in it or presses its own button. Each row or card has one keyboard target named by its main key.
 
 **Sort pages** offers four orders: creation time newest first (the default), creation time oldest first, alphabetical A to Z, and alphabetical Z to A. Alphabetical order compares main keys after Unicode NFKC normalization and lowercasing, in code-unit order. Pages with equal sort values are ordered by page ID, so the list is stable. The chosen order is remembered per deck on that installation.
 
 The deck's **Add page manually** opens a new page draft ([creation](#creation-and-optional-generation)). The deck's **•••** menu is described in [decks and configuration](decks-and-configuration.md#dashboard).
+
+*Until 0.6.0:* one list with two columns, a three-digit **Index** calculated for display and the main key as **Entry**, with whole-row status tints.
 
 ## Required main key
 
 Every page has a main key component: the editable text used as its generation input. A captured selection supplies the initial value; manual creation requires the user to specify it. A saved page cannot omit the main key, and a main key that is empty or only whitespace is rejected with "Enter a main key." A new manual draft may begin before the user has entered it.
 
 The main key component belongs to the compulsory main key module. It must always be visible when the page is shown: it is always the first component and the page's title. It can coexist with manually written or generated content. Matching main keys do not merge pages or make their identities the same. The main key cannot be deleted.
+
+A main key can be anything from one character to a passage, and the page title's size follows its length after trimming whitespace ([shared UI](shared-ui.md#visual-identity)):
+
+| Tier | Length (Latin / CJK characters) | Shown as |
+| --- | --- | --- |
+| Word | up to 24 / 8 | very large display type |
+| Phrase | up to 60 / 20 | large display type |
+| Sentence | up to 200 / 70 | display type that wraps freely |
+| Passage | longer | a reading block cut after six lines, with **Show all** and **Show less** |
+
+The tier changes only the presentation: generation, search, duplicates, and editing always use the full text. Where generation classified the input as a sentence, a shorter key may move up one tier, never down. Editing a passage uses a multi-line field. The main key is shown once, as the title; there is no separate main key card.
 
 ## Context
 
@@ -41,13 +57,17 @@ After creation the page owns its module instances. Deck configuration changes ne
 
 ### Components as cards
 
-Each component is a card with its own actions ([D04](../architecture/traceability-map.md#entries)):
+Each component below the main key is a card. Its index tab, on the card's top edge, shows the module's label, the family icon, and the family colour; the card repeats the colour as a thin top edge ([shared UI](shared-ui.md#visual-identity)). Generated content is rendered as its module's render contract describes ([shared UI](shared-ui.md#text-content)). A completed card shows no status; a generating card shows the moving dots, and a failed card says what failed beside its **Retry**. An empty Text component is shown as one line, "+ Text — add your own notes", that opens it for editing.
+
+Each card has its own actions ([D04](../architecture/traceability-map.md#entries)), gathered in one control on the card's top edge that appears on hover and when the card holds keyboard focus:
 
 - **Edit** turns that card into a text field with **Save** and **Cancel** in the card ([editing](#editing-a-component)).
 - **Generate** on a content component that never generated and is still empty starts its first generation, without a warning, because there is nothing to replace. After that the same control is **Retry**, which warns before replacing the content ([capture and generation](capture-and-generation.md#retry)).
 - **Delete** removes the component ([shaping](#shaping-a-page)).
 
-The main key card has only **Edit**, and a lock mark where other cards have their drag handle (since 0.5.2). There are no page-level edit, generate, or retry controls; **Delete page** sits in the page header.
+The main key, shown as the page title, has only **Edit**, which appears beside it on hover and focus, and a lock mark instead of a drag handle (since 0.5.2). There are no page-level edit, generate, or retry controls; **Delete page** sits in the page header.
+
+*Until 0.6.0:* the main key also has its own card, every card is identical with its actions as a permanent row of buttons, completed cards show "Completed", and content is plain text.
 
 ### Shaping a page
 
@@ -117,8 +137,11 @@ Generation uses the page's own content module instances. Finish editing with **S
 14. A Text component survives every generation and retry unchanged.
 15. Every shaping step works from the keyboard: dragging a window module or a card's handle with Space and the arrow keys, and **Delete** with confirmation.
 16. Dropping a reordered card shows the new order immediately, with no snap back to the old order.
-17. The page offers no page-level edit, generate missing, or retry page; each card has its own actions, and the main key card has only **Edit**.
+17. The page offers no page-level edit, generate missing, or retry page; each card has its own actions, and the main key has only **Edit**.
+18. A word, a phrase, a sentence, and a passage each display as their tier on the page and without overflow in every page list layout; a passage shows six lines and **Show all**.
+19. List is the default layout of a new deck; choosing Table or Gallery is remembered for that deck on the installation, and the other decks keep theirs.
+20. A completed page shows no status in the list or on the page; a generating or failed page shows it in place of its meaning line.
 
 ## Implementation details still to specify
 
-Releases 0.5.0 to 0.5.2 build shaping with today's styling ([plan](../plans/page-owned-modules.md), [D04](../architecture/traceability-map.md#entries)). The visual identity of the page view and module window is a later milestone.
+Releases 0.5.0 to 0.5.2 build shaping with the functional styling ([plan](../plans/page-owned-modules.md), [D04](../architecture/traceability-map.md#entries)). Release 0.6.0 builds the page list layouts and the page view in the Vocabularium Sage identity ([D05](../architecture/traceability-map.md#entries), [plan](../plans/visual-identity.md)).

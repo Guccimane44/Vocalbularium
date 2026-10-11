@@ -1,6 +1,6 @@
 # Plan: the Vocabularium Sage visual identity (0.6.0)
 
-Proposed: 12 October 2026 (Europe/Berlin). Implements [D05](../architecture/traceability-map.md#entries), accepted by the owner on 12 October 2026. Tracker: [#120](https://github.com/Guccimane44/Vocalbularium/issues/120). Status: approved by the owner on 12 October 2026; increment 0 in progress.
+Proposed: 12 October 2026 (Europe/Berlin). Implements [D05](../architecture/traceability-map.md#entries), accepted by the owner on 12 October 2026. Tracker: [#120](https://github.com/Guccimane44/Vocalbularium/issues/120). Status: approved by the owner on 12 October 2026; increment 0 merged in [#121](https://github.com/Guccimane44/Vocalbularium/pull/121); increment 1 applies D05 to the specifications.
 
 ## Outcome
 
