@@ -1,6 +1,6 @@
 # Plan: the Vocabularium Sage visual identity (0.6.0)
 
-Proposed: 12 October 2026 (Europe/Berlin). Implements [D05](../architecture/traceability-map.md#entries), which is `Proposed` until the owner accepts it. Tracker: [#120](https://github.com/Guccimane44/Vocalbularium/issues/120). Status: proposed, awaiting the owner's review and acceptance of D05.
+Proposed: 12 October 2026 (Europe/Berlin). Implements [D05](../architecture/traceability-map.md#entries), accepted by the owner on 12 October 2026. Tracker: [#120](https://github.com/Guccimane44/Vocalbularium/issues/120). Status: approved by the owner on 12 October 2026; increment 0 in progress.
 
 ## Outcome
 
@@ -20,17 +20,17 @@ The three are private artifacts owned by the owner. The implementation copies th
 
 ## Owner decisions
 
-Recorded in D05, from the design interview on 11 October and the review rounds on 11 and 12 October 2026:
+Recorded in D05, from the design interview on 11 October and the review rounds on 11 and 12 October 2026, and accepted with the answers to K19–K21 on 12 October 2026:
 
 1. **Direction:** B, *Index Tabs*: Notion-inspired, professional and clean, with clean motion. Personality is playful but grown-up; references are Arc and Notion.
 2. **Tone:** the greener sage ground in light mode; a dark counterpart (*Moss night*). Appearance follows the system setting, with a manual override.
 3. **Module families:** each module belongs to one of six families (Meaning, Usage, Roots, Connections, Sound, Notes), which sets its tab colour and icon. Colours stay paired with the module's name.
 4. **Typography:** Fraunces (with a CJK serif fallback) for main keys, titles and reading text; Instrument Sans for the interface. Both are bundled with the extension. Chinese and Japanese use the system's serif fonts; nothing is loaded from Google at runtime.
 5. **Long inputs:** the main key's size follows its length (word, phrase, sentence, passage). In the page list every row has the same shape: the key (up to two lines) over one line of meaning.
-6. **Page list:** List is the default layout for every deck, grouped by capture date. **Table** and **Gallery** are also built in this milestone, with a switch remembered per deck.
+6. **Page list:** List, Table and Gallery are **layouts** of a deck's page list, not views (K19). List is the default for every deck, grouped by capture date for the creation-time sort orders only (K20). Table and Gallery are also built in this milestone, with a switch remembered per deck.
 7. **Quiet status:** completed work shows no badge; only waiting, generating and failed states appear. A failed row offers its action (Retry, Try saving again) as a visible button.
 8. **Rendering:** generated content is rendered from its current text format by the extension. Stored content, prompts and the API do not change; text that the renderer does not recognise is shown as plain text, as today.
-9. **Capture:** stays in the context menu. After the user chooses it, the selection lifts off the page and flies into the capture feedback popup in about half a second. No new extension permission; the floating selection button from the prototype is not part of this milestone.
+9. **Capture:** stays in the context menu. After the user chooses it, the selection lifts off the page and flies into the capture feedback popup in about half a second, and the toolbar badge counts captures until the dashboard is opened (K21). No new extension permission; the floating selection button from the prototype is not part of this milestone.
 10. **Motion:** the durations and easings in the design system; every animation stops under reduced motion.
 
 ## Before and after
@@ -99,7 +99,7 @@ The module list on the left, the live preview of a sample page in the middle (wo
 
 ### 7. Motion
 
-- Capture flight: the content script lifts the selection and flies it into the feedback popup (about 560 ms), then shows the popup as today; the toolbar badge counts the capture.
+- Capture flight: the content script lifts the selection and flies it into the feedback popup (about 560 ms), then shows the popup as today; the toolbar badge counts captures until the dashboard is opened.
 - A new page sliding into the list; family marks popping in as components finish; status changes cross-fading.
 - Generation reveal on the page; tab lift on hover; drag pick-up tilt, landing line and cards making room, on top of the existing `@dnd-kit` behaviour.
 - Reduced motion keeps every state change without movement.
@@ -132,7 +132,7 @@ The module list on the left, the live preview of a sample page in the middle (wo
 - **Renderer accuracy:** the provider may vary its format. The renderer falls back to plain text, and the recorded samples become its test fixtures.
 - **CJK on different systems:** system serif fonts differ between macOS, Windows and Linux. The screenshots in increment 8 cover macOS; others are checked by the owner when available.
 - **Milestone size:** three layouts and motion make this the largest UI milestone so far. If it runs long, Table and Gallery can ship in a 0.6.x release after List; that split is the owner's call.
-- **Dark theme and motion not yet reviewed:** Moss night and the motion prototype need the owner's review before increment 2 fixes their values.
+- **Dark theme and motion:** the owner accepted D05 without separate comments on Moss night or the motion prototype; their values can still be tuned in increment 2.
 
 ## Not in this milestone
 
