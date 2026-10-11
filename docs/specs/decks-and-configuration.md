@@ -2,17 +2,29 @@
 
 ## Purpose and status
 
-This specification defines decks, the dashboard, the default deck, and deck configuration. Release 0.5.0 implements it, including the page-owned modules of [D02](../architecture/traceability-map.md#entries) and the module window; [current scope](../product/scope.md) records the status.
+This specification defines decks, the dashboard, the default deck, and deck configuration. Release 0.5.0 implements it, including the page-owned modules of [D02](../architecture/traceability-map.md#entries) and the module window. The sidebar, account menu, dashboard presentation, and live preview of [D05](../architecture/traceability-map.md#entries) are accepted for 0.6.0 and not built yet; *Until 0.6.0* notes describe 0.5.2. [Current scope](../product/scope.md) records the status.
 
 The [product model](../product/model.md) defines decks, configuration, content module instances, and views. [Modules](modules.md) owns the module catalog and contracts. [Pages and editing](pages-and-editing.md) owns what happens to a page after it is created.
 
+## Navigation
+
+Every signed-in view shows a **deck sidebar** on the left: the wordmark, **Home** (the dashboard), the account's decks, each with its deck colour, name, and page count, and **+ New deck**. The deck being shown is marked as current. On a narrow window the sidebar becomes a menu button in the header.
+
+An **account menu** in the header holds appearance ([shared UI](shared-ui.md#appearance)), **Diagnostic logs**, and **Log out**.
+
+A deck's colour is one of the six family colours ([modules](modules.md#current-catalog)), derived from the deck's identity, so it is the same in every view and installation and needs no setting. It identifies the deck only and says nothing about its modules.
+
+*Until 0.6.0:* there is no sidebar or deck colour; the header shows the appearance control, **Log out**, and **Diagnostic logs** as separate controls.
+
 ## Dashboard
 
-The dashboard is the main view, titled **Your decks.** It shows every deck of the account in batches of 40, with **Load more decks** when more exist. Each deck shows its name, its page and module counts, and a **DEFAULT DECK** badge on the default deck. Below the decks, **Recent captures** lists the twenty most recent captures and any capture receipts not yet saved ([capture and generation](capture-and-generation.md#capture-scenario)).
+The dashboard is the main view, titled **Your decks**. It shows every deck of the account as a card in batches of 40, with **Load more decks** when more exist. Each deck card shows its colour, its name, its page and module counts, and a **Default** label on the default deck. Above the decks, **Recent captures** lists the twenty most recent captures and any capture receipts not yet saved ([capture and generation](capture-and-generation.md#capture-scenario)) as compact entries: the main key, its deck, and the time. Each entry is one link to its page; an entry that is saving or not saved shows its state and button as in a page list ([shared UI](shared-ui.md#list-state-presentation)).
 
-- **Add new deck** opens deck settings for a new deck, starting with the same configuration as a new account's **My Deck**. **Save** creates the deck; **Cancel** discards the draft. Creating a deck does not change the default deck.
+- **Add new deck** (and **+ New deck** in the sidebar) opens deck settings for a new deck, starting with the same configuration as a new account's **My Deck**. **Save** creates the deck; **Cancel** discards the draft. Creating a deck does not change the default deck.
 - Clicking a deck opens its page list ([pages and editing](pages-and-editing.md#page-list)).
 - Each deck's **•••** menu offers **Set as default**, **Configure deck**, and **Delete deck**. The same menu appears on the deck's page list. **Set as default** is disabled on the current default. The menu closes after an action, on navigation or rerender, on Escape, and on a click outside it. It is keyboard operable, and closing it returns focus to its trigger when that still exists.
+
+*Until 0.6.0:* the decks come first, with a **DEFAULT DECK** badge, and Recent captures follow as tall rows with separate deck and **Open page** buttons.
 
 ### Deleting a deck
 
@@ -34,13 +46,15 @@ A deck's configuration has:
   - **content module instances**: the same type may appear more than once;
 - its **view**: the default view, which shows each page as its ordered component list.
 
-The user edits the configuration in **deck settings**: name the deck, and add, remove, and reorder the Context, Text, and content module instances; the main key stays first. Deck settings show the main key in the list like the other modules, with a lock mark in place of the drag handle and no **Remove**; the page view's main key card carries the same mark (since 0.5.2). Deck settings preview the configured instances with word and sentence examples; previews are labeled as examples and never create or change pages. Configuration edits are a draft until **Save**; **Cancel** discards them. A failed save keeps the draft and offers **Try saving again**.
+The user edits the configuration in **deck settings**: name the deck, and add, remove, and reorder the Context, Text, and content module instances; the main key stays first. Deck settings show the main key in the list like the other modules, with a lock mark in place of the drag handle and no **Remove**; the page view's main key card carries the same mark (since 0.5.2). Deck settings show a **live preview** beside the module list: a sample page built from the configured instances, with a switch between a word and a sentence sample. It follows every change to the list at once, including while a module is being dragged. The preview is labeled as a sample and never creates or changes pages. Configuration edits are a draft until **Save**; **Cancel** discards them. A failed save keeps the draft and offers **Try saving again**.
 
 A configuration with only the main key module is valid. Its new pages hold only the main key and whatever the user adds.
 
+*Until 0.6.0:* deck settings preview the configured instances with word and sentence examples in a full-width section below **Save**.
+
 ### Module window
 
-Deck settings show the **module window** on the right ([shared UI](shared-ui.md#module-window)). The user adds an instance by dragging a module from the window into the configuration and reorders instances by dragging their handles, with the pointer or from the keyboard (Space, the arrow keys, Space). **Remove** stays on each instance. The page view shows the same window ([pages and editing](pages-and-editing.md#shaping-a-page)), so shaping a deck and shaping a page use the same gesture.
+Deck settings show the module list on the left, the live preview in the middle, and the **module window** on the right ([shared UI](shared-ui.md#module-window)). The user adds an instance by dragging a module from the window into the configuration and reorders instances by dragging their handles, with the pointer or from the keyboard (Space, the arrow keys, Space). **Remove** stays on each instance. The page view shows the same window ([pages and editing](pages-and-editing.md#shaping-a-page)), so shaping a deck and shaping a page use the same gesture.
 
 ## Configuration and pages
 
@@ -52,6 +66,8 @@ The configuration is the template for page creation. Capture and manual creation
 
 A generation run already in progress when the configuration changes is unaffected.
 
-## Views
+## Views and layouts
 
-Every deck shows its pages through the default view. Choosing among several views per deck, switching views, and configuring other view modules (such as the card view module) are later work. When they arrive, they follow the [Notion-style model](../product/model.md#view): views are alternative ways to show a deck's pages, with one default per deck.
+Every page is shown through the default view. Choosing among several views per deck, switching views, and configuring other view modules (such as the card view module) are later work. When they arrive, they follow the [Notion-style model](../product/model.md#view): a view shows one page, with one default per deck.
+
+How a deck **lists** its pages is a separate choice, its page list **layout**: List (the default), Table, or Gallery ([pages and editing](pages-and-editing.md#page-list)). The layout is remembered per deck on each installation and is not part of the deck configuration.

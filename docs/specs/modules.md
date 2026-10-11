@@ -14,15 +14,30 @@ Modules have three kinds ([Q72](../architecture/questionnaire/answers/answers-06
 - **Content modules** produce components from a page's main key and Context. Each instance owns one component per page. All three current types are content modules.
 - **View modules** show pages. The **default view** is the only view module in the current refactor.
 
+## Module families
+
+Every input and content module belongs to one **module family**, which gives it its colour and icon in the interface ([D05](../architecture/traceability-map.md#entries); [shared UI](shared-ui.md#visual-identity)). The family is part of the module type's definition, shared by every client. A new module joins an existing family; a seventh family is added only when a group of modules fits none of these.
+
+| Family | Icon | What belongs here |
+| --- | --- | --- |
+| Meaning | open book | explanations, definitions, translations of the meaning |
+| Usage | quotation marks | example sentences, usage notes, collocations |
+| Roots | sprouting stem | etymology, character parts, word history |
+| Connections | linked nodes | related words, synonyms, comparisons, concepts |
+| Sound | sound bars | pronunciation, audio, tones, stress |
+| Notes | pencil | the user's own input: Context and Text |
+
+The main key module belongs to no family; it is shown as the page title. Families with no module yet (Roots, Connections, Sound) are defined so that future modules have a place; they add no module to the catalog.
+
 ## Current catalog
 
-| Module type | Contribution | Applicable input |
-| --- | --- | --- |
-| `German explanation` | Explanation in German of the input in its chosen source language | Word or phrase |
-| `German explanation + examples` | German explanation plus examples in the source language and German translations | Word or phrase |
-| `Sentence usage` | A usage example in the chosen source language | Sentence |
+| Module type | Family | Contribution | Applicable input |
+| --- | --- | --- | --- |
+| `German explanation` | Meaning | Explanation in German of the input in its chosen source language | Word or phrase |
+| `German explanation + examples` | Usage | German explanation plus examples in the source language and German translations | Word or phrase |
+| `Sentence usage` | Usage | A usage example in the chosen source language | Sentence |
 
-Names remain provisional. Required output formats are defined in the linked catalog.
+The input modules belong to these families: Context and Text to Notes; the main key to none. Names remain provisional. Required output formats are defined in the linked catalog.
 
 ## Current input and applicability
 
@@ -36,11 +51,21 @@ This contract is implemented in release 0.4.0. [Pages and editing](pages-and-edi
 
 - **Input:** the page's current main key, its saved Context when present, and the input interpretation of the generation run. These are a content module's only text inputs, whether capture or manual entry supplied them. Module configuration remains the instructions governing the contribution.
 - **Interpretation:** one interpretation per generation run, shared by every attempt in that run. It must correspond to the run's main key and Context; a changed key must not reuse a prior key's category or source language.
-- **Output:** the block content of the instance's own component on that page. An instance never changes an input module's component or another instance's component. The current five types produce plain text, stored as paragraph blocks.
+- **Output:** the block content of the instance's own component on that page. An instance never changes an input module's component or another instance's component. The current three types produce plain text, stored as paragraph blocks.
 - **Applicability:** an inapplicable instance completes its component empty. Inapplicability is not failure.
 - **Editing:** editing the main key or the Context does not run modules or change saved output. Existing output reflects the main key and Context used in its attempt and may differ from the current values after an edit. The user may edit a generated component; the next retry of that component replaces the edit after confirmation.
 
 The three current types retain their output formats and applicability. References to selected text in their definitions mean the main key supplied to the attempt. Every current type needs the run's interpretation. `<The selected>` and `<The selected + original language tag>` only repeated the main key, which every page shows, and are retired ([D03](../architecture/traceability-map.md#entries)); their MVP definitions are history.
+
+## Render contracts
+
+Content stays stored as the module's text ([C17](../architecture/traceability-map.md#conflicts)). Each content module type declares how that text is rendered for reading ([shared UI](shared-ui.md#text-content)), following its [output format](../history/mvp/MVP-Product-spec-modules.md):
+
+- **`German explanation`:** a line `== Language (key, pronunciation) ==` becomes a heading with the source language and, where present, the key and its pronunciation; `=== Bedeutungen ===` starts the meanings; each line `: [n] text` becomes meaning *n* of a numbered list.
+- **`German explanation + examples`:** as `German explanation`, then `=== Beispiele ===` starts the examples; each line `: [n] sentence` followed by `:: translation` becomes one example pair, the source sentence beside its German translation, with the main key emphasised where it occurs. A sentence without a translation line stands alone.
+- **`Sentence usage`:** the text is one example sentence, shown as reading text.
+
+A renderer recognizes the whole component or none of it: if any line does not fit its contract, the component is shown as plain text, as is empty or edited content that no longer fits. Rendering is a pure function of the stored text, shared by every client; it never produces HTML. Each future module's specification states its render contract under *Output and presentation*.
 
 ## View module contract
 
