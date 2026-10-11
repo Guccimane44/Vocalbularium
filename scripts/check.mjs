@@ -24,3 +24,7 @@ for (const file of await files('.')) {
   checked++;
 }
 console.log(`Checked syntax, JSON, and whitespace in ${checked} files.`);
+// The generated theme must match the design tokens it is built from (D05).
+const theme = spawnSync(process.execPath, ['scripts/build-theme.mjs', '--check'], { encoding: 'utf8' });
+if (theme.status !== 0) throw new Error(theme.stderr || 'extension/theme.css is out of date');
+console.log(theme.stdout.trim());

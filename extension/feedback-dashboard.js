@@ -10,7 +10,8 @@ export async function initializeFeedback() {
   };
   const changed = (changes, area) => {
     if (area === 'local' && changes.theme && globalThis.vocabulariumFeedback) {
-      globalThis.vocabulariumFeedback.host.dataset.theme = changes.theme.newValue === 'dark' ? 'dark' : 'light';
+      const { host } = globalThis.vocabulariumFeedback, theme = changes.theme.newValue;
+      if (theme === 'dark' || theme === 'light') host.dataset.theme = theme; else delete host.dataset.theme;
     }
   };
   chrome.runtime.onMessage.addListener(listener);

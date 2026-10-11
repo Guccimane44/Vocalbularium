@@ -9,14 +9,17 @@ export function renderFeedback(message, failed, theme, css) {
     host.attachShadow({ mode: 'open' });
     const style = document.createElement('style'); style.textContent = css; host.shadowRoot.append(style);
     const listener = (message, sender) => {
-      if (sender.id === chrome.runtime.id && message.type === 'feedback-theme') host.dataset.theme = message.theme === 'dark' ? 'dark' : 'light';
+      if (sender.id === chrome.runtime.id && message.type === 'feedback-theme') {
+        if (message.theme === 'dark' || message.theme === 'light') host.dataset.theme = message.theme; else delete host.dataset.theme;
+      }
     };
     chrome.runtime.onMessage.addListener(listener);
     active = { host, listener }; globalThis.vocabulariumFeedback = active;
     document.documentElement.append(host);
   }
   const { host, listener } = active;
-  host.dataset.theme = theme === 'dark' ? 'dark' : 'light';
+  // No data-theme follows the system setting (D05), as in the extension's views.
+  if (theme === 'dark' || theme === 'light') host.dataset.theme = theme; else delete host.dataset.theme;
   const item = document.createElement('div'); item.className = `feedback-item${failed ? ' failed' : ''}`;
   item.setAttribute('role', 'status');
   const text = document.createElement('span'); text.textContent = message;

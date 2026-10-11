@@ -573,12 +573,18 @@ test('appearance: all open views, drafts, dialogs, feedback lifetime, logout and
   const b = await launch(join(directory, 'b'), testingExtension);
   t.after(async () => { await a.context.close(); await b.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
   const theme = (page, value) => page.getByLabel('Appearance', { exact: true }).selectOption(value);
-  const hasTheme = (page, value) => page.waitForFunction(value => document.documentElement.dataset.theme === value, value);
-  await hasTheme(a.page, 'light');
+  // data-appearance is the applied choice: 'system' (the default, D05), 'light' (Sage) or 'dark' (Moss night).
+  const hasTheme = (page, value) => page.waitForFunction(value => document.documentElement.dataset.appearance === value &&
+    (value === 'system' ? !('theme' in document.documentElement.dataset) : document.documentElement.dataset.theme === value), value);
+  const ground = page => page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--ground').trim());
+  await hasTheme(a.page, 'system'); await hasTheme(b.page, 'system');
+  // System follows the operating system's setting until the user chooses a theme.
+  await b.page.emulateMedia({ colorScheme: 'dark' }); assert.equal(await ground(b.page), '#161a15');
+  await b.page.emulateMedia({ colorScheme: 'light' }); assert.equal(await ground(b.page), '#eef3ea');
   await theme(a.page, 'dark');
   await a.page.screenshot({ path: 'artifacts/v0.2.0-login-dark.png', fullPage: true });
   await signIn(a.page);
-  await hasTheme(a.page, 'dark'); await hasTheme(b.page, 'light');
+  await hasTheme(a.page, 'dark'); await hasTheme(b.page, 'system');
   const other = await a.context.newPage(); await other.goto(`chrome-extension://${a.id}/app.html`);
   await hasTheme(other, 'dark');
   await a.page.getByRole('heading', { name: 'My Deck', exact: true }).click();

@@ -1,6 +1,6 @@
 # Plan: the Vocabularium Sage visual identity (0.6.0)
 
-Proposed: 12 October 2026 (Europe/Berlin). Implements [D05](../architecture/traceability-map.md#entries), accepted by the owner on 12 October 2026. Tracker: [#120](https://github.com/Guccimane44/Vocalbularium/issues/120). Status: approved by the owner on 12 October 2026; increment 0 merged in [#121](https://github.com/Guccimane44/Vocalbularium/pull/121); increment 1 applies D05 to the specifications.
+Proposed: 12 October 2026 (Europe/Berlin). Implements [D05](../architecture/traceability-map.md#entries), accepted by the owner on 12 October 2026. Tracker: [#120](https://github.com/Guccimane44/Vocalbularium/issues/120). Status: approved by the owner on 12 October 2026; increment 0 merged in [#121](https://github.com/Guccimane44/Vocalbularium/pull/121), increment 1 (specifications) in [#122](https://github.com/Guccimane44/Vocalbularium/pull/122); increment 2 (foundation) in progress.
 
 ## Outcome
 
@@ -128,7 +128,7 @@ The module list on the left, the live preview of a sample page in the middle (wo
 
 ## Risks
 
-- **E2E churn:** most browser tests select today's markup. Increment 2 adds stable test ids before the restyle, so later increments change looks without rewriting tests.
+- **E2E churn:** most browser tests select today's markup by role, label and a few classes. Increments 3–5 add stable test ids where they change that markup, so restyling does not mean rewriting tests.
 - **Renderer accuracy:** the provider may vary its format. The renderer falls back to plain text, and the recorded samples become its test fixtures.
 - **CJK on different systems:** system serif fonts differ between macOS, Windows and Linux. The screenshots in increment 8 cover macOS; others are checked by the owner when available.
 - **Milestone size:** three layouts and motion make this the largest UI milestone so far. If it runs long, Table and Gallery can ship in a 0.6.x release after List; that split is the owner's call.

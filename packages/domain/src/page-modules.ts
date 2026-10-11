@@ -9,7 +9,19 @@ import type { ModuleType as ContentModuleType } from './modules.js';
 export type InputModuleType = 'main-key' | 'context' | 'text';
 export type ModuleType = InputModuleType | ContentModuleType;
 export type ModuleKind = 'input' | 'content';
-export type CatalogEntry = Readonly<{ kind: ModuleKind; label: string; description: string }>;
+// Module families (D05) give each module its colour and icon; the main key has none.
+export const FAMILIES = Object.freeze(['meaning', 'usage', 'roots', 'connections', 'sound', 'notes'] as const);
+export type ModuleFamily = typeof FAMILIES[number];
+export const FAMILY_LABELS: Readonly<Record<ModuleFamily, string>> = Object.freeze({
+  meaning: 'Meaning', usage: 'Usage', roots: 'Roots', connections: 'Connections', sound: 'Sound', notes: 'Notes'
+});
+export type CatalogEntry = Readonly<{ kind: ModuleKind; label: string; description: string; family: ModuleFamily | null }>;
+
+const CONTENT_FAMILIES: Readonly<Record<ContentModuleType, ModuleFamily>> = {
+  'german-explanation': 'meaning',
+  'german-examples': 'usage',
+  'sentence-usage': 'usage'
+};
 
 const DESCRIPTIONS: Readonly<Record<ContentModuleType, string>> = {
   'german-explanation': 'Explains a word or phrase in German.',
@@ -19,11 +31,11 @@ const DESCRIPTIONS: Readonly<Record<ContentModuleType, string>> = {
 
 // In module-window order: input modules, then the content catalog.
 export const CATALOG: Readonly<Record<ModuleType, CatalogEntry>> = Object.freeze({
-  'main-key': { kind: 'input', label: 'Main key', description: 'The text you captured or typed. Every page has one.' },
-  context: { kind: 'input', label: 'Context', description: 'The text around your selection, used to find the right meaning.' },
-  text: { kind: 'input', label: 'Text', description: 'Your own notes. Generation never changes them.' },
+  'main-key': { kind: 'input', label: 'Main key', description: 'The text you captured or typed. Every page has one.', family: null },
+  context: { kind: 'input', label: 'Context', description: 'The text around your selection, used to find the right meaning.', family: 'notes' },
+  text: { kind: 'input', label: 'Text', description: 'Your own notes. Generation never changes them.', family: 'notes' },
   ...Object.fromEntries((Object.keys(MODULES) as ContentModuleType[]).map(type =>
-    [type, { kind: 'content', label: MODULES[type].label, description: DESCRIPTIONS[type] }]))
+    [type, { kind: 'content', label: MODULES[type].label, description: DESCRIPTIONS[type], family: CONTENT_FAMILIES[type] }]))
 } as Record<ModuleType, CatalogEntry>);
 
 export const isModuleType = (type: string): type is ModuleType => Object.hasOwn(CATALOG, type);

@@ -1,9 +1,16 @@
+// Appearance (D05): 'system' follows the operating system and is the default;
+// 'light' (Sage) and 'dark' (Moss night) override it. theme.css reads data-theme.
+export const appearance = value => value === 'dark' || value === 'light' ? value : 'system';
+
 export async function initializeTheme() {
   const control = document.querySelector('#theme');
   let revision = 0;
   const apply = value => {
-    const theme = value === 'dark' ? 'dark' : 'light';
-    document.documentElement.dataset.theme = theme;
+    const theme = appearance(value);
+    // data-appearance marks the choice as applied, so app.css can show the page.
+    document.documentElement.dataset.appearance = theme;
+    if (theme === 'system') delete document.documentElement.dataset.theme;
+    else document.documentElement.dataset.theme = theme;
     if (control) control.value = theme;
   };
   const changed = (changes, area) => {
@@ -13,9 +20,9 @@ export async function initializeTheme() {
   window.addEventListener('pagehide', () => chrome.storage.onChanged.removeListener(changed), { once: true });
   const initialRevision = revision;
   try { const { theme } = await chrome.storage.local.get('theme'); if (revision === initialRevision) apply(theme); }
-  catch { if (revision === initialRevision) apply('light'); }
+  catch { if (revision === initialRevision) apply('system'); }
   if (control) control.onchange = async () => {
-    const previous = document.documentElement.dataset.theme;
+    const previous = document.documentElement.dataset.theme ?? 'system';
     const theme = control.value;
     revision++; apply(theme);
     try {
