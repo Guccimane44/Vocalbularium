@@ -423,7 +423,11 @@ test('deck UI: draft previews, all modules, the module limit, removal without co
   await a.page.getByRole('button', { name: 'Add new deck', exact: true }).click();
   await a.page.getByLabel('Deck name', { exact: true }).fill('Everyday Chinese');
   assert.equal(await a.page.locator('.module-block').count(), 3, 'a new deck starts with the main key, Context and the German explanation');
-  await a.page.locator('.module-block.pinned').getByText('Main key').waitFor();
+  // The main key looks like the other modules, with a lock mark instead of a handle and no Remove (0.5.2).
+  const mainKeyBlock = a.page.locator('.module-block[data-type="main-key"]');
+  assert.equal(await mainKeyBlock.innerText(), 'Main key');
+  await mainKeyBlock.getByRole('img', { name: 'Fixed in first place' }).waitFor();
+  assert.equal(await mainKeyBlock.locator('.drag-handle, button').count(), 0, 'no handle or Remove on the main key');
   await addFromWindow(a.page, 'sentence-usage');
   const usage = a.page.locator('.sortable-row').filter({ has: a.page.locator('.module-block[data-type="sentence-usage"]') });
   await usage.waitFor();
@@ -818,8 +822,9 @@ test('manual page UI: per-card actions, drafts, leave choices, sorting, failed-s
   // Editing is one card at a time, with Save and Cancel in the card.
   const mainKeyField = a.page.getByRole('textbox', { name: 'Edit Main key', exact: true });
   await a.page.getByRole('button', { name: 'Edit Main key', exact: true }).click();
-  await a.page.getByText('Finish editing with Save or Cancel').waitFor();
+  await a.page.getByRole('button', { name: 'Save', exact: true }).waitFor();
   assert.equal(await a.page.locator('.window-module[data-type="text"]').getAttribute('aria-disabled'), 'true', 'shaping waits until editing ends');
+  assert.equal(await a.page.locator('.module-window .notice').count(), 0, 'no notice while editing (0.5.2)');
   assert.equal(await a.page.getByRole('button', { name: 'Edit Text', exact: true }).isDisabled(), true, 'one card at a time');
   await mainKeyField.fill('discard this');
   await a.page.getByRole('button', { name: '← My Deck', exact: true }).click();
@@ -974,6 +979,21 @@ test('module window: drag modules onto a page and into deck settings, and reorde
   await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
   await card('Context').waitFor();
 
+  // Dragged over the page and back onto the window, a module is put back, not added.
+  const textModule = await windowModule(a.page, 'text').boundingBox();
+  const contextCard = await card('Context').boundingBox();
+  await a.page.mouse.move(textModule.x + textModule.width / 2, textModule.y + textModule.height / 2);
+  await a.page.mouse.down();
+  await a.page.mouse.move(contextCard.x + contextCard.width / 2, contextCard.y + contextCard.height / 2, { steps: 10 });
+  await a.page.locator('.sortable-row[data-insert-before]').waitFor();
+  await a.page.mouse.move(textModule.x + textModule.width / 2, textModule.y + textModule.height / 2, { steps: 10 });
+  await a.page.locator('.module-window[data-over]').waitFor();
+  assert.equal(await a.page.locator('.sortable-row[data-insert-before]').count(), 0, 'no drop line over the window');
+  await a.page.mouse.up();
+  await new Promise(resolve => setTimeout(resolve, 300));
+  assert.deepEqual(await types(), ['main-key', 'context', 'german-examples'], 'a module dropped back on the window is not added');
+  assert.equal(await a.page.locator('.component.adding').count(), 0);
+
   // Drag Text from the window onto the upper half of the Context card: it lands before it.
   await drag(a.page, windowModule(a.page, 'text'), card('Context'), { above: true });
   await waitFor(async () => (await types()).includes('text'), 'Text dragged onto the page');
@@ -991,7 +1011,7 @@ test('module window: drag modules onto a page and into deck settings, and reorde
     if (holdMoves && request.url === '/api/page/components/move') { heldMoves.push(() => handler(request, response)); return; }
     handler(request, response);
   });
-  const headings = async () => (await a.page.locator('.shaping-list article.component h2').allTextContents()).map(value => value.replace(' · always first', ''));
+  const headings = async () => (await a.page.locator('.shaping-list article.component h2').allTextContents());
   await drag(a.page, a.page.getByRole('button', { name: 'Drag Text', exact: true }), a.page.locator('.drop-end'));
   await waitFor(() => heldMoves.length === 1, 'move request reached the server');
   for (let sample = 0; sample < 5; sample++) {

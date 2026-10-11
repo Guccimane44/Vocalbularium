@@ -112,8 +112,8 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
   const [key, ...rest] = page.components;
   const locked = busy || Boolean(draft?.pending && !draft.errorCode);
   const editingId = editing ? draft?.componentId : undefined;
-  const shapingBlocked = editingId ? 'Finish editing with Save or Cancel to add, move, or delete components.' : undefined;
-  const disabled = Boolean(shapingBlocked) || busy;
+  // Shaping waits while a card is being edited; its Save and Cancel are right there.
+  const disabled = Boolean(editingId) || busy;
   const known = new Set(page.components.map(item => item.id));
   const lost = editing && draft ? Object.keys(draft.texts).filter(id => !known.has(id)) : [];
   const items = rest.map(item => ({ id: item.id, label: moduleLabel(item.moduleType), component: item }));
@@ -127,7 +127,7 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
     return <article className={`component${generated && item.attemptId === null ? ' missing' : ''}`} data-component-id={item.id} data-type={item.moduleType}>
       <div className="component-header">
         {handle}
-        <h2>{title}{item.moduleType === 'main-key' && <span className="muted"> · always first</span>}</h2>
+        <h2>{title}</h2>
         <Status status={item.status} prefix="" />
       </div>
       <ComponentBody item={item} title={title} editable={editingThis} draft={draft} locked={locked} persist={persist} />
@@ -154,7 +154,7 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
       <button disabled={busy || Boolean(editingId)} onClick={() => void deletePage()}>Delete page</button>
     </div>
     <Status status={page.status} prefix="Page: " />
-    <ShapingArea items={items} types={page.components.map(item => item.moduleType)} disabled={disabled} unavailable={shapingBlocked}
+    <ShapingArea items={items} types={page.components.map(item => item.moduleType)} disabled={disabled}
       label="Components" where="the page"
       pinned={card(key, 'Main key', null)}
       onAdd={(type, index) => addModule(type, index + 1)}

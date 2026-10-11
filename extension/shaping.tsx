@@ -19,18 +19,24 @@ import type { ModuleType } from '@vocabularium/domain/page-modules';
 
 const WINDOW = 'window:';
 const LIST_END = 'list-end';
+// The module window itself: dropping a module back onto it cancels the drag.
+const BACK = 'module-window';
 export const moduleLabel = (type: string) => CATALOG[type as ModuleType]?.label ?? type;
 const fromWindow = (active: Active | null) => Boolean(active && String(active.id).startsWith(WINDOW));
 const windowType = (active: Active) => String(active.id).slice(WINDOW.length);
 
-// A module from the window lands on the entry under the pointer. Reordering
-// uses the nearest entry: the list shifts as a card moves, so the entry under
-// the pointer is often the card's own slot. A keyboard drag has no pointer and
-// always uses the nearest entry.
+// A module from the window lands on the entry under the pointer, or goes back
+// when the pointer is over the window again. Reordering uses the nearest entry:
+// the list shifts as a card moves, so the entry under the pointer is often the
+// card's own slot. A keyboard drag has no pointer and always uses the nearest
+// entry; Escape puts it back.
 const collision: CollisionDetection = args => {
-  if (!fromWindow(args.active)) return closestCenter(args);
+  const list = { ...args, droppableContainers: args.droppableContainers.filter(entry => entry.id !== BACK) };
+  if (!fromWindow(args.active)) return closestCenter(list);
   const hits = pointerWithin(args);
-  return hits.length ? hits : closestCenter(args);
+  const back = hits.find(hit => hit.id === BACK);
+  if (back) return [back];
+  return hits.length ? hits : closestCenter(list);
 };
 
 // List entries move with dnd-kit's sortable keyboard steps. A window module is
@@ -40,7 +46,7 @@ const keyboard: KeyboardCoordinateGetter = (event, args) => {
   if (!fromWindow(active)) return sortableKeyboardCoordinates(event, args);
   if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.code) || !collisionRect) return undefined;
   event.preventDefault();
-  const targets = droppableContainers.getEnabled().filter(entry => droppableRects.get(entry.id))
+  const targets = droppableContainers.getEnabled().filter(entry => entry.id !== BACK && droppableRects.get(entry.id))
     .sort((a, b) => droppableRects.get(a.id)!.top - droppableRects.get(b.id)!.top);
   if (!targets.length) return undefined;
   const back = event.code === 'ArrowUp' || event.code === 'ArrowLeft';
@@ -93,7 +99,7 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
   // Where a window module would land: before the entry it is over, or after it
   // when a pointer is in its lower half; at the end over the end zone.
   function landing(active: Active, over: Over | null, keyboardDrag: boolean): number | null {
-    if (!over) return null;
+    if (!over || String(over.id) === BACK) return null;
     if (String(over.id) === LIST_END) return shown.length;
     const index = shown.findIndex(item => item.id === String(over.id));
     if (index < 0) return null;
@@ -105,11 +111,12 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
     onDragStart: ({ active }) => `Picked up ${name(active.id)}.`,
     onDragOver: ({ active, over }) => {
       if (!over) return `${name(active.id)} is not over the list.`;
+      if (String(over.id) === BACK) return `${name(active.id)} is back in the module window.`;
       if (String(over.id) === LIST_END) return `${name(active.id)} is over the end.`;
       const at = fromWindow(active) ? landing(active, over, true) : shown.findIndex(item => item.id === String(over.id));
       return at === null || at < 0 ? `${name(active.id)} is over the end.` : `${name(active.id)} is over position ${at + 2}.`;
     },
-    onDragEnd: ({ active, over }) => over ? `${name(active.id)} was dropped.` : `${name(active.id)} was not moved.`,
+    onDragEnd: ({ active, over }) => over && String(over.id) !== BACK ? `${name(active.id)} was dropped.` : `${name(active.id)} was not moved.`,
     onDragCancel: ({ active }) => `Moving ${name(active.id)} was cancelled.`
   };
   const keyboardDrag = (event: { activatorEvent: Event }) => event.activatorEvent instanceof KeyboardEvent;
@@ -151,7 +158,7 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
         </SortableContext>
         <DropEnd disabled={disabled} active={slot === shown.length} />
       </section>
-      <ModuleWindow types={types} unavailable={unavailable} where={where} />
+      <ModuleWindow types={types} disabled={disabled} unavailable={unavailable} where={where} />
     </div>
     <DragOverlay dropAnimation={null}>
       {dragged?.startsWith(WINDOW) && <div className="drag-preview">{moduleLabel(dragged.slice(WINDOW.length))}</div>}
@@ -192,17 +199,19 @@ function WindowModule({ type, blocked, explain }: { type: string; blocked: strin
   </li>;
 }
 
-// The catalog beside the list. `unavailable` disables it as a whole (for
-// example while a component is being edited); otherwise each module says why
-// it is unavailable, such as the limit or an existing Context.
-function ModuleWindow({ types, unavailable, where }: { types: readonly string[]; unavailable?: string; where: string }) {
-  return <aside className="module-window" aria-labelledby="module-window-title">
+// The catalog beside the list, and the place a dragged module goes back to.
+// `disabled` turns it off as a whole (for example while a component is being
+// edited), with `unavailable` as an optional notice; otherwise each module
+// says why it is unavailable, such as the limit or an existing Context.
+function ModuleWindow({ types, disabled, unavailable, where }: { types: readonly string[]; disabled: boolean; unavailable?: string; where: string }) {
+  const { setNodeRef, isOver, active } = useDroppable({ id: BACK });
+  return <aside ref={setNodeRef} className="module-window" aria-labelledby="module-window-title" data-over={(isOver && fromWindow(active)) || undefined}>
     <h2 id="module-window-title">Modules</h2>
-    <p className="muted">Drag a module into {where}. From the keyboard: Space picks it up, the arrow keys move it, Space drops it.</p>
+    <p className="muted">Drag a module into {where}, or back here to put it back. From the keyboard: Space picks it up, the arrow keys move it, Space drops it, Escape puts it back.</p>
     {unavailable && <p className="notice">{unavailable}</p>}
     <ul>
-      {WINDOW_MODULES.map(type => <WindowModule key={type} type={type} explain={!unavailable}
-        blocked={unavailable ? unavailable : addBlocked(types.map(value => ({ type: value })), type)} />)}
+      {WINDOW_MODULES.map(type => <WindowModule key={type} type={type} explain={!disabled}
+        blocked={disabled ? unavailable ?? 'Unavailable' : addBlocked(types.map(value => ({ type: value })), type)} />)}
     </ul>
   </aside>;
 }

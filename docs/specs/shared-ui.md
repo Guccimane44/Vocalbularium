@@ -2,7 +2,7 @@
 
 ## Purpose and status
 
-This specification defines interface rules shared across the extension's views. Release 0.5.1 implements it, including the module window of [D02](../architecture/traceability-map.md#entries) as revised by [D04](../architecture/traceability-map.md#entries). The visual identity is still open: the [vision](../product/vision.md#uiux-direction) calls for a distinctive interface, and the current views, the module window included, are a functional foundation.
+This specification defines interface rules shared across the extension's views. Release 0.5.2 implements it, including the module window of [D02](../architecture/traceability-map.md#entries) as revised by [D04](../architecture/traceability-map.md#entries). The visual identity is still open: the [vision](../product/vision.md#uiux-direction) calls for a distinctive interface, and the current views, the module window included, are a functional foundation.
 
 ## Module window
 
@@ -11,11 +11,11 @@ The **module window** is a panel on the right side of both the page view and dec
 - into deck settings adds an instance to the deck configuration, the template for new pages ([decks and configuration](decks-and-configuration.md#module-window));
 - onto a page adds an instance to that page only ([pages and editing](pages-and-editing.md#shaping-a-page)).
 
-While a module is dragged over the list, a floating preview follows the pointer and a line shows where it will land; after the drop, a placeholder holds its place until the module is saved. There is no **Add** button ([D04](../architecture/traceability-map.md#entries)). A module is disabled when the deck or page already holds 12 modules, and the Context module when one is already present; the window says why. On a narrow window the panel moves below the content.
+While a module is dragged over the list, a floating preview follows the pointer and a line shows where it will land; after the drop, a placeholder holds its place until the module is saved. Dragged back onto the window, the module is put back and nothing is added; the window is highlighted while it would take the module back (since 0.5.2). There is no **Add** button ([D04](../architecture/traceability-map.md#entries)). A module is disabled when the deck or page already holds 12 modules, and the Context module when one is already present; the window says why. On a narrow window the panel moves below the content.
 
-Every drag also works from the keyboard: a window module or a card's drag handle is focusable; Space picks it up, the arrow keys move it through the landing places, Space drops it, and Escape cancels. A drag is announced to screen readers when it starts, moves, and ends. There are no separate move buttons ([D04](../architecture/traceability-map.md#entries)).
+Every drag also works from the keyboard: a window module or a card's drag handle is focusable; Space picks it up, the arrow keys move it through the landing places, Space drops it, and Escape cancels, putting a window module back. A drag is announced to screen readers when it starts, moves, and ends. There are no separate move buttons ([D04](../architecture/traceability-map.md#entries)).
 
-Releases 0.5.0 and 0.5.1 build it with today's styling ([plan](../plans/page-owned-modules.md)); the visual identity is a later milestone.
+Releases 0.5.0 to 0.5.2 build it with today's styling ([plan](../plans/page-owned-modules.md)); the visual identity is a later milestone.
 
 ## Appearance
 

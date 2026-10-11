@@ -128,7 +128,9 @@ h1, h2, .deck .open { overflow-wrap: anywhere; }
 .page-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .page-header h1 { margin-bottom: 10px; }
 .component-tools { margin-top: 12px; }
-.module-block.pinned { background: transparent; border: 1px dashed var(--border); }
+/* The main key's mark in deck settings, where the other modules have a drag handle. */
+.module-block .pin-mark { flex: none; display: inline-flex; align-items: center; justify-content: center; padding: 4px 9px; color: var(--muted); border: 1px solid transparent; }
+.module-window[data-over] { border-color: var(--focus); }
 .drop-end { padding: 14px; border: 1px dashed var(--border); border-radius: 10px; text-align: center; font-size: 13px; color: var(--muted); }
 .drop-end[data-over] { border-color: var(--focus); border-style: solid; color: var(--text); }
 .showcase { border-left: 0; padding-left: 0; margin-top: 40px; }

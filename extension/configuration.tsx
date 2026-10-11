@@ -31,6 +31,11 @@ function sample(type: string, inputType: 'word_phrase' | 'sentence', instance: n
     : '');
 }
 
+// Marks the main key: it stays first and cannot be moved or removed.
+const LockIcon = () => <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.5">
+  <rect x="3" y="7" width="10" height="7" rx="1.5" /><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" />
+</svg>;
+
 type Props = {
   draft: DeckEditorDraft;
   send: (message: Record<string, unknown>) => Promise<unknown>;
@@ -45,7 +50,7 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
   const modules = draft.deck.modules;
   const busy = Boolean(draft.saving || draft.pending);
   const sampleType = draft.sampleType ?? 'word_phrase';
-  // The main key is always first and stays; everything after it can move.
+  // The main key stays first and cannot move or be removed; everything after it can.
   const [key, ...rest] = modules;
   const items = rest.map(module => ({ id: module.id, label: moduleLabel(module.type), type: module.type }));
   const add = (type: string, index: number) => {
@@ -92,7 +97,10 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
     <p className="muted">Every new page in this deck starts with these modules, in this order. Changes apply to pages created afterwards; existing pages keep their own modules.</p>
     <ShapingArea items={items} types={modules.map(module => module.type)} disabled={busy} unavailable={busy ? 'Saving…' : undefined}
       label="Deck modules" where="the list" onAdd={add} onMove={(id, index) => { move(id, index); return true; }}
-      pinned={<div className="module-block pinned" data-type={key.type}><span>Main key <span className="muted">· always first</span></span></div>}
+      pinned={<div className="module-block" data-type={key.type}>
+        <span className="pin-mark" role="img" aria-label="Fixed in first place" title="Fixed in first place"><LockIcon /></span>
+        <span>{moduleLabel(key.type)}</span>
+      </div>}
       renderItem={(item, handle) => <div className="module-block" data-type={item.type}>
         {handle}
         <span>{item.label}</span>
