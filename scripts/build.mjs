@@ -15,6 +15,10 @@ const output = resolve('artifacts/extension');
 for (const file of ['theme.css', 'feedback.css']) {
   await cp(resolve('extension', file), resolve(output, file));
 }
+// The bundled fonts' SIL Open Font License travels with them (D05).
+for (const file of ['LICENSE-Fraunces.txt', 'LICENSE-InstrumentSans.txt']) {
+  await cp(resolve('extension/fonts', file), resolve(output, 'fonts', file));
+}
 await writeFile(resolve(output, 'config.js'), `export const API_URL = ${JSON.stringify(serverOrigin)};\n`);
 
 const sourceManifest = JSON.parse(await readFile(resolve('extension/manifest.json'), 'utf8'));

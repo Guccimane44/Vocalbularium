@@ -27,7 +27,7 @@ metadata = {'version': version, 'serverOrigin': origin, 'sourceRevision': revisi
 with zipfile.ZipFile(archive, 'w', compression=zipfile.ZIP_DEFLATED) as output:
     for path in sorted(extension.rglob('*')):
         if path.is_file():
-            if path.suffix not in ('.js', '.json', '.html', '.css'):
+            if path.suffix not in ('.js', '.json', '.html', '.css', '.woff2', '.txt'):
                 raise SystemExit(f'Unexpected extension file: {path.name}')
             output.write(path, Path('extension') / path.relative_to(extension))
     output.write(root / 'docs' / 'guides' / 'install.md', 'INSTALL.md')

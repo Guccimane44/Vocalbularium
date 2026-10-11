@@ -15,7 +15,7 @@ export async function relayFeedbackTheme(theme) {
     if (item.expiresAt > now) tabs.add(item.tabId); else expired.push(key);
   }
   if (expired.length) await chrome.storage.session.remove(expired);
-  await Promise.all([...tabs].map(tabId => chrome.tabs.sendMessage(tabId, { type: 'feedback-theme', theme: theme === 'dark' ? 'dark' : 'light' }).catch(() => {})));
+  await Promise.all([...tabs].map(tabId => chrome.tabs.sendMessage(tabId, { type: 'feedback-theme', theme: theme === 'dark' || theme === 'light' ? theme : 'system' }).catch(() => {})));
 }
 export async function showFeedback(tabId, message, failed = false, sourceUrl) {
   // The capture-time URL keeps closed/navigated product tabs out of the window fallback.
@@ -27,14 +27,14 @@ export async function showFeedback(tabId, message, failed = false, sourceUrl) {
   }
   if (sourceUrl?.startsWith(chrome.runtime.getURL(''))) {
     try {
-      const [{ theme = 'light' }, css] = await Promise.all([chrome.storage.local.get('theme'), styles()]);
+      const [{ theme = 'system' }, css] = await Promise.all([chrome.storage.local.get('theme'), styles()]);
       await chrome.runtime.sendMessage({ type: 'dashboard-feedback', tabId, message, failed, theme, css });
     } catch { /* Closing the originating page never interrupts capture or creates a window. */ }
     return;
   }
   let injected = false;
   try {
-    const [{ theme = 'light' }, css] = await Promise.all([chrome.storage.local.get('theme'), styles()]);
+    const [{ theme = 'system' }, css] = await Promise.all([chrome.storage.local.get('theme'), styles()]);
     const result = await chrome.scripting.executeScript({
       target: { tabId },
       func: renderFeedback,

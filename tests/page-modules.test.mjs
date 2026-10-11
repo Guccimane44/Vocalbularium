@@ -5,7 +5,7 @@ import {
   ComponentMovePayloadSchema, DeckConfigurationSchema, MAX_MODULES, ModuleAddPayloadSchema, PageSchema
 } from '@vocabularium/contracts';
 import {
-  addBlocked, CATALOG, copyModules, deleteBlocked, generationTargets, isContentType, moveBlocked, moved,
+  addBlocked, CATALOG, copyModules, deleteBlocked, FAMILIES, FAMILY_LABELS, generationTargets, isContentType, moveBlocked, moved,
   validateConfiguration, WINDOW_MODULES
 } from '@vocabularium/domain/page-modules';
 import { textBlocks } from '@vocabularium/domain/pages';
@@ -24,6 +24,15 @@ test('the catalog lists input modules first and the window offers everything but
   for (const entry of Object.values(CATALOG)) assert.ok(entry.label && entry.description);
   assert.equal(isContentType('text'), false); assert.equal(isContentType('german-examples'), true);
   assert.equal(isContentType('selected'), false);
+});
+
+test('every module but the main key belongs to one module family (D05)', () => {
+  assert.deepEqual([...FAMILIES], ['meaning', 'usage', 'roots', 'connections', 'sound', 'notes']);
+  for (const family of FAMILIES) assert.ok(FAMILY_LABELS[family]);
+  assert.equal(CATALOG['main-key'].family, null);
+  assert.deepEqual(WINDOW_MODULES.map(type => [type, CATALOG[type].family]), [
+    ['context', 'notes'], ['text', 'notes'], ['german-explanation', 'meaning'], ['german-examples', 'usage'], ['sentence-usage', 'usage']
+  ]);
 });
 
 test('a configuration starts with one main key, has at most one Context, and counts every module toward twelve', () => {
