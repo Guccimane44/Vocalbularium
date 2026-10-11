@@ -8,9 +8,9 @@ export type ModuleDefinition = Readonly<{
 export type ModuleInstance = Readonly<{ id: string; type: ModuleType }>;
 
 export const MODULES = Object.freeze({
-  'german-explanation': { label: '<German explanation>', applies: 'word_phrase' },
-  'german-examples': { label: '<German explanation + examples>', applies: 'word_phrase' },
-  'sentence-usage': { label: '<Sentence usage>', applies: 'sentence' }
+  'german-explanation': { label: 'German explanation', applies: 'word_phrase' },
+  'german-examples': { label: 'German explanation + examples', applies: 'word_phrase' },
+  'sentence-usage': { label: 'Sentence usage', applies: 'sentence' }
 } satisfies Readonly<Record<ModuleType, ModuleDefinition>>);
 
 export function validateInterpretation(value: unknown): InputInterpretation {

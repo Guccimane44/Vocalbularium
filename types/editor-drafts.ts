@@ -13,6 +13,8 @@ export type PageEditorDraft = {
   route: string;
   pageId?: string;
   deckId: string;
+  // The one component being edited on an existing page.
+  componentId?: string;
   base: Record<string, string>;
   texts: Record<string, string>;
   mainKey?: string;

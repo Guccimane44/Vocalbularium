@@ -1,6 +1,6 @@
 # Install Vocabularium in Chrome
 
-A candidate ZIP contains this guide, the `extension` folder, and `package-info.json`, which identifies the package version, server address, and source revision. Release 0.5.0 is a local build: it connects to the Vocabularium API on the **same computer** at `127.0.0.1:4318`.
+A candidate ZIP contains this guide, the `extension` folder, and `package-info.json`, which identifies the package version, server address, and source revision. Release 0.5.1 is a local build: it connects to the Vocabularium API on the **same computer** at `127.0.0.1:4318`.
 
 ## Before installing
 
@@ -16,7 +16,7 @@ Use a separate Chrome profile for this local account rather than one that held a
 4. Open Chrome's Extensions menu and select **Vocabularium**. Pin it if you want the button visible.
 5. Sign in with username **admin** and password **admin**.
 
-The dashboard starts with **My Deck**. Select text on a webpage, right-click, and choose **Create a page in “My Deck”** (or the current default deck name). Recent outcomes appear on the dashboard; open a page to see its components. On a page and in deck settings, the module window on the right adds modules: drag one into place, or press **Add**.
+The dashboard starts with **My Deck**. Select text on a webpage, right-click, and choose **Create a page in “My Deck”** (or the current default deck name). Recent outcomes appear on the dashboard; open a page to see its components. On a page and in deck settings, the module window on the right adds modules: drag one into place. Each component card has its own Edit, Generate or Retry, and Delete.
 
 ## Update an installed copy
 

@@ -1,115 +1,207 @@
+import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import {
-  closestCenter, DndContext, KeyboardSensor, MeasuringStrategy, pointerWithin, PointerSensor, useDraggable, useDroppable, useSensor, useSensors
+  closestCenter, DndContext, DragOverlay, KeyboardSensor, MeasuringStrategy, pointerWithin, PointerSensor,
+  useDraggable, useDroppable, useSensor, useSensors
 } from '@dnd-kit/core';
-import type { Announcements, CollisionDetection, DragEndEvent } from '@dnd-kit/core';
-import { SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import type {
+  Active, Announcements, CollisionDetection, DragEndEvent, DragMoveEvent, DragStartEvent, KeyboardCoordinateGetter, Over
+} from '@dnd-kit/core';
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { addBlocked, CATALOG, WINDOW_MODULES } from '@vocabularium/domain/page-modules';
 import type { ModuleType } from '@vocabularium/domain/page-modules';
 
-// Shared by the page view and deck settings (D02): the module window, and a
-// list whose items reorder by drag or keyboard and accept modules dragged in.
+// Shared by the page view and deck settings (D02, D04): a list whose entries
+// reorder by drag, and the module window whose modules drag into the list.
+// Every drag also works from the keyboard: Space picks up, the arrow keys
+// move, Space drops, Escape cancels.
 
 const WINDOW = 'window:';
 const LIST_END = 'list-end';
 export const moduleLabel = (type: string) => CATALOG[type as ModuleType]?.label ?? type;
+const fromWindow = (active: Active | null) => Boolean(active && String(active.id).startsWith(WINDOW));
+const windowType = (active: Active) => String(active.id).slice(WINDOW.length);
 
-type Labelled = { id: string; label: string };
-
-// A pointer drop lands on the entry under the pointer; a keyboard drag has no
-// pointer, so it uses the nearest entry instead.
+// A module from the window lands on the entry under the pointer. Reordering
+// uses the nearest entry: the list shifts as a card moves, so the entry under
+// the pointer is often the card's own slot. A keyboard drag has no pointer and
+// always uses the nearest entry.
 const collision: CollisionDetection = args => {
+  if (!fromWindow(args.active)) return closestCenter(args);
   const hits = pointerWithin(args);
   return hits.length ? hits : closestCenter(args);
 };
 
-// Items are the movable entries below the main key. Indexes passed to the
-// handlers count among those items, so the main key is never a target.
-export function ShapingArea({ items, disabled, onAdd, onMove, children }: {
-  items: Labelled[];
+// List entries move with dnd-kit's sortable keyboard steps. A window module is
+// not in the list, so its arrow keys step through the list's drop targets.
+const keyboard: KeyboardCoordinateGetter = (event, args) => {
+  const { active, droppableRects, droppableContainers, over, collisionRect } = args.context;
+  if (!fromWindow(active)) return sortableKeyboardCoordinates(event, args);
+  if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.code) || !collisionRect) return undefined;
+  event.preventDefault();
+  const targets = droppableContainers.getEnabled().filter(entry => droppableRects.get(entry.id))
+    .sort((a, b) => droppableRects.get(a.id)!.top - droppableRects.get(b.id)!.top);
+  if (!targets.length) return undefined;
+  const back = event.code === 'ArrowUp' || event.code === 'ArrowLeft';
+  const current = targets.findIndex(entry => entry.id === over?.id);
+  const next = current < 0 ? (back ? targets.length - 1 : 0) : Math.min(targets.length - 1, Math.max(0, current + (back ? -1 : 1)));
+  const rect = droppableRects.get(targets[next].id)!;
+  return { x: rect.left + rect.width / 2 - collisionRect.width / 2, y: rect.top + rect.height / 2 - collisionRect.height / 2 };
+};
+
+export type ShapeItem = { id: string; label: string };
+type Result = boolean | void | Promise<boolean | void>;
+
+// The list below a pinned first entry (the main key), and the module window
+// beside it. Indexes passed to the handlers count among the movable entries,
+// so nothing is ever placed above the pinned one. A handler returning false
+// reports a failed save, which restores the saved order.
+export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unavailable, pinned, label, where, onAdd, onMove, renderItem }: {
+  items: T[];
+  // Every module type present, the pinned main key included, for the window's limits.
+  types: readonly string[];
   disabled: boolean;
-  onAdd: (type: string, index: number) => void;
-  onMove: (id: string, index: number) => void;
-  children: ReactNode;
+  unavailable?: string;
+  pinned: ReactNode;
+  label: string;
+  where: string;
+  onAdd: (type: string, index: number) => Result;
+  onMove: (id: string, index: number) => Result;
+  renderItem: (item: T, handle: ReactNode) => ReactNode;
 }) {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }));
+    useSensor(KeyboardSensor, { coordinateGetter: keyboard }));
+  const ids = items.map(item => item.id);
+  const key = ids.join('|');
+  // The order shown: changed at once on a drop, so a card never snaps back
+  // while its move is being saved, and reset whenever the saved order changes.
+  const [order, setOrder] = useState(ids);
+  const [adding, setAdding] = useState<{ type: string; index: number } | null>(null);
+  const [slot, setSlot] = useState<number | null>(null);
+  const [dragged, setDragged] = useState<string | null>(null);
+  const saved = useRef(ids);
+  saved.current = ids;
+  useEffect(() => { setOrder(ids); setAdding(null); }, [key]);
+  const byId = new Map(items.map(item => [item.id, item]));
+  const shown = [...order.filter(id => byId.has(id)), ...ids.filter(id => !order.includes(id))].map(id => byId.get(id)!);
+
   const name = (id: string | number) => {
     const value = String(id);
-    return value.startsWith(WINDOW) ? moduleLabel(value.slice(WINDOW.length)) : items.find(item => item.id === value)?.label ?? 'the end';
+    return value.startsWith(WINDOW) ? moduleLabel(value.slice(WINDOW.length)) : byId.get(value)?.label ?? 'the end';
   };
-  const position = (id: string | number | undefined) => {
-    const index = items.findIndex(item => item.id === String(id));
-    return index < 0 ? items.length + 1 : index + 2;
-  };
+  // Where a window module would land: before the entry it is over, or after it
+  // when a pointer is in its lower half; at the end over the end zone.
+  function landing(active: Active, over: Over | null, keyboardDrag: boolean): number | null {
+    if (!over) return null;
+    if (String(over.id) === LIST_END) return shown.length;
+    const index = shown.findIndex(item => item.id === String(over.id));
+    if (index < 0) return null;
+    const rect = active.rect.current.translated;
+    if (keyboardDrag || !rect) return index;
+    return rect.top + rect.height / 2 > over.rect.top + over.rect.height / 2 ? index + 1 : index;
+  }
   const announcements: Announcements = {
     onDragStart: ({ active }) => `Picked up ${name(active.id)}.`,
-    onDragOver: ({ active, over }) => over ? `${name(active.id)} is over position ${position(over.id)}.` : `${name(active.id)} is not over the list.`,
-    onDragEnd: ({ active, over }) => over ? `${name(active.id)} was dropped at position ${position(over.id)}.` : `${name(active.id)} was not moved.`,
+    onDragOver: ({ active, over }) => {
+      if (!over) return `${name(active.id)} is not over the list.`;
+      if (String(over.id) === LIST_END) return `${name(active.id)} is over the end.`;
+      const at = fromWindow(active) ? landing(active, over, true) : shown.findIndex(item => item.id === String(over.id));
+      return at === null || at < 0 ? `${name(active.id)} is over the end.` : `${name(active.id)} is over position ${at + 2}.`;
+    },
+    onDragEnd: ({ active, over }) => over ? `${name(active.id)} was dropped.` : `${name(active.id)} was not moved.`,
     onDragCancel: ({ active }) => `Moving ${name(active.id)} was cancelled.`
   };
-  function end({ active, over }: DragEndEvent) {
-    if (!over || disabled) return;
-    const target = String(over.id) === LIST_END ? items.length : items.findIndex(item => item.id === String(over.id));
-    if (target < 0) return;
-    const id = String(active.id);
-    if (id.startsWith(WINDOW)) onAdd(id.slice(WINDOW.length), target);
-    else if (items.findIndex(item => item.id === id) !== target) onMove(id, Math.min(target, items.length - 1));
+  const keyboardDrag = (event: { activatorEvent: Event }) => event.activatorEvent instanceof KeyboardEvent;
+  function start({ active }: DragStartEvent) { setDragged(String(active.id)); setSlot(null); }
+  function move(event: DragMoveEvent) {
+    if (fromWindow(event.active)) setSlot(landing(event.active, event.over, keyboardDrag(event)));
   }
-  return <DndContext sensors={sensors} collisionDetection={collision} onDragEnd={end} accessibility={{ announcements }}
-    measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}>
-    <SortableContext items={items.map(item => item.id)} strategy={verticalListSortingStrategy} disabled={disabled}>
-      {children}
-    </SortableContext>
+  function finish() { setDragged(null); setSlot(null); }
+  async function end(event: DragEndEvent) {
+    const { active, over } = event;
+    const target = fromWindow(active) ? landing(active, over, keyboardDrag(event)) : null;
+    finish();
+    if (!over || disabled) return;
+    if (fromWindow(active)) {
+      if (target === null) return;
+      setAdding({ type: windowType(active), index: target });
+      if (await onAdd(windowType(active), target) === false) setAdding(null);
+      return;
+    }
+    const from = order.indexOf(String(active.id));
+    const to = String(over.id) === LIST_END ? order.length - 1 : order.indexOf(String(over.id));
+    if (from < 0 || to < 0 || from === to) return;
+    setOrder(arrayMove(order, from, to));
+    if (await onMove(String(active.id), to) === false) setOrder(saved.current);
+  }
+
+  const rows: ReactNode[] = shown.map(item => <SortableRow key={item.id} item={item} disabled={disabled} renderItem={renderItem}
+    insertBefore={slot !== null && shown[slot]?.id === item.id} />);
+  if (adding) rows.splice(Math.min(adding.index, rows.length), 0,
+    <div key="adding" className="component adding" role="status">Adding {moduleLabel(adding.type)}…</div>);
+  return <DndContext sensors={sensors} collisionDetection={collision} accessibility={{ announcements }}
+    measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}
+    onDragStart={start} onDragMove={move} onDragOver={move} onDragEnd={end} onDragCancel={finish}>
+    <div className="shaping-layout">
+      <section className="shaping-list" aria-label={label}>
+        {pinned}
+        <SortableContext items={shown.map(item => item.id)} strategy={verticalListSortingStrategy} disabled={disabled}>
+          {rows}
+        </SortableContext>
+        <DropEnd disabled={disabled} active={slot === shown.length} />
+      </section>
+      <ModuleWindow types={types} unavailable={unavailable} where={where} />
+    </div>
+    <DragOverlay dropAnimation={null}>
+      {dragged?.startsWith(WINDOW) && <div className="drag-preview">{moduleLabel(dragged.slice(WINDOW.length))}</div>}
+    </DragOverlay>
   </DndContext>;
 }
 
-// A list entry that reorders by drag. The handle also starts a keyboard drag
-// (Space, then the arrow keys); the row's own move buttons are the other path.
-export function SortableRow({ id, label, disabled, className, children }: {
-  id: string; label: string; disabled: boolean; className: string;
-  children: (handle: ReactNode) => ReactNode;
+// A list entry that reorders by dragging its handle, with the pointer or with
+// Space and the arrow keys.
+function SortableRow<T extends ShapeItem>({ item, disabled, insertBefore, renderItem }: {
+  item: T; disabled: boolean; insertBefore: boolean; renderItem: (item: T, handle: ReactNode) => ReactNode;
 }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id, disabled });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id, disabled });
   // Translate only: cards of different heights keep their shape while moving.
   const style: CSSProperties = { transform: CSS.Translate.toString(transform), transition };
-  const handle = <button type="button" className="drag-handle" aria-label={`Drag ${label}`} disabled={disabled} {...attributes} {...listeners}>⠿</button>;
-  return <article ref={setNodeRef} style={style} className={className} data-dragging={isDragging || undefined}>{children(handle)}</article>;
+  const handle = <button type="button" className="drag-handle" aria-label={`Drag ${item.label}`} disabled={disabled} {...attributes} {...listeners}>⠿</button>;
+  return <div ref={setNodeRef} style={style} className="sortable-row" data-dragging={isDragging || undefined} data-insert-before={insertBefore || undefined}>
+    {renderItem(item, handle)}
+  </div>;
 }
 
-// Where a module dragged from the window lands after the last item.
-export function DropEnd({ disabled }: { disabled: boolean }) {
-  const { setNodeRef, isOver } = useDroppable({ id: LIST_END, disabled });
-  return disabled ? null : <div ref={setNodeRef} className="drop-end" data-over={isOver || undefined}>Drop a module here to add it at the end</div>;
+// Where a module dragged from the window lands after the last entry.
+function DropEnd({ disabled, active }: { disabled: boolean; active: boolean }) {
+  const { setNodeRef } = useDroppable({ id: LIST_END, disabled });
+  return disabled ? null : <div ref={setNodeRef} className="drop-end" data-over={active || undefined}>Drop a module here to add it at the end</div>;
 }
 
-function WindowModule({ type, blocked, explain, onAdd }: { type: string; blocked: string | null; explain: boolean; onAdd: (type: string) => void }) {
-  // Pointer drag only: from the keyboard, Add places the module at the end.
-  const { listeners, setNodeRef, transform, isDragging } = useDraggable({ id: WINDOW + type, disabled: Boolean(blocked) });
+function WindowModule({ type, blocked, explain }: { type: string; blocked: string | null; explain: boolean }) {
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: WINDOW + type, disabled: Boolean(blocked) });
   const entry = CATALOG[type as ModuleType];
   return <li className="window-module" data-type={type} data-dragging={isDragging || undefined} aria-disabled={Boolean(blocked)}>
-    <div ref={setNodeRef} className="window-module-body" style={{ transform: CSS.Translate.toString(transform) }} {...listeners}>
+    <div ref={setNodeRef} className="window-module-body" {...attributes} {...listeners}
+      aria-label={`${entry.label}: ${entry.description}`} aria-roledescription="draggable module">
       <strong>{entry.label}</strong>
       <span className="muted">{entry.description}</span>
     </div>
-    <button type="button" aria-label={`Add ${entry.label}`} disabled={Boolean(blocked)} onClick={() => onAdd(type)}>Add</button>
     {blocked && explain && <p className="window-reason muted">{blocked}</p>}
   </li>;
 }
 
-// The catalog beside the page or configuration. `unavailable` disables it as a
-// whole (for example while editing); otherwise each module explains why it is
-// unavailable, such as the limit or an existing Context.
-export function ModuleWindow({ types, unavailable, onAdd, where }: {
-  types: readonly string[]; unavailable?: string; onAdd: (type: string) => void; where: string;
-}) {
+// The catalog beside the list. `unavailable` disables it as a whole (for
+// example while a component is being edited); otherwise each module says why
+// it is unavailable, such as the limit or an existing Context.
+function ModuleWindow({ types, unavailable, where }: { types: readonly string[]; unavailable?: string; where: string }) {
   return <aside className="module-window" aria-labelledby="module-window-title">
     <h2 id="module-window-title">Modules</h2>
-    <p className="muted">Drag a module into {where}, or use Add to put it at the end.</p>
+    <p className="muted">Drag a module into {where}. From the keyboard: Space picks it up, the arrow keys move it, Space drops it.</p>
     {unavailable && <p className="notice">{unavailable}</p>}
     <ul>
-      {WINDOW_MODULES.map(type => <WindowModule key={type} type={type} onAdd={onAdd} explain={!unavailable}
+      {WINDOW_MODULES.map(type => <WindowModule key={type} type={type} explain={!unavailable}
         blocked={unavailable ? unavailable : addBlocked(types.map(value => ({ type: value })), type)} />)}
     </ul>
   </aside>;

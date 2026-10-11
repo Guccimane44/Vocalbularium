@@ -63,9 +63,10 @@ All generation actions use the page's current main key and saved Context and the
 | Action | Targets | Confirmation |
 | --- | --- | --- |
 | Capture | Every content module instance on the new page | None; runs automatically |
-| **Generate** / **Generate missing** | The page's content module instances that have not generated yet. On a new manual page this is every instance. | None; nothing is replaced |
-| **Retry** (component) | One content component | Always |
-| **Retry** (page) | Every content component on the page, including ones not generated yet | Always |
+| **Generate** (in a card) | One content component that never generated and is still empty | None; nothing is replaced |
+| **Retry** (in a card) | One content component that has generated, or that the user wrote into | Always |
+
+Since 0.5.1 ([D04](../architecture/traceability-map.md#entries)) the extension offers generation per card only. The API still accepts generating every not-yet-generated component of a page and retrying a whole page, with the same confirmation rule.
 
 No action touches an input module's component (main key, Context, Text), and none recreates a component the user deleted. Manual creation and manual edits never start generation.
 
@@ -79,7 +80,7 @@ Each component attempt has one of these states:
 - **Completed:** the instance completed. Publish its output as the component's content. An inapplicable instance completes with an empty component and does not count as a failure.
 - **Failed:** required interpretation or the instance failed. Discard any partial output from that attempt and show a failure indicator on the empty component. There is no partial success within a component.
 
-Components fail and complete independently. For example, if a deck has two `<Sentence usage>` instances and only one succeeds, the successful example is published and the other component fails. A later retry of the failed component generates only that example.
+Components fail and complete independently. For example, if a deck has two `Sentence usage` instances and only one succeeds, the successful example is published and the other component fails. A later retry of the failed component generates only that example.
 
 A page's overall generation outcome is derived from its components that have had attempts: **Failed** if any such component's current state is **Failed**, otherwise **Loading** while any attempt is running, otherwise **Completed**. Confirming a retry moves each target component to **Loading**, then to **Completed** or **Failed** by its own attempt's outcome. Saving a page or manually adding content does not turn a failed attempt into a successful one; outside an active retry, a component's failure indicator describes its last attempt.
 
@@ -89,7 +90,7 @@ The main key is always shown, regardless of empty or failed components. A manual
 
 The local API admits only a bounded number of active and waiting component attempts. When a capture is saved while generation capacity is full, the page remains saved and accessible. Each attempt that cannot be admitted becomes **Failed** without a provider call. The user can explicitly retry failed components later. A successful page save or capture feedback does not imply that generation was admitted or completed.
 
-If capacity cannot admit every attempt of a confirmed **Retry**, **Generate**, or **Generate missing**, report that generation is busy and leave the page's components and states unchanged. The user may start the action again later. The rejected request is not kept as an automatic or **Try saving again** generation request. An admitted retry follows the replacement rules below.
+If capacity cannot admit every attempt of a confirmed **Retry** or a **Generate**, report that generation is busy and leave the page's components and states unchanged. The user may start the action again later. The rejected request is not kept as an automatic or **Try saving again** generation request. An admitted retry follows the replacement rules below.
 
 ## Chrome closing during generation
 
@@ -136,11 +137,11 @@ Account synchronization follows [accounts and synchronization](accounts-and-sync
 
 ## Initial default-deck example
 
-The initial **My Deck** has the main key module, the Context module, and one content module instance: `<German explanation + examples>`. A new deck starts with the same configuration.
+The initial **My Deck** has the main key module, the Context module, and one content module instance: `German explanation + examples`. A new deck starts with the same configuration.
 
 For the selected input `幸福`, interpreted as Chinese in this example, the page shows its main key `幸福`, then a German-language explanation component for the Chinese word, with Chinese examples and their German translations, following the format in the [Modules specification](../history/mvp/MVP-Product-spec-modules.md). The exact generated wording may vary.
 
-For a selected sentence such as `我真的很幸福`, the `<German explanation + examples>` component completes empty because that module does not apply to sentences. This is an intentional, successfully completed page. A user can drag `<Sentence usage>` onto this page and generate it, add it to the deck configuration for future captures, or add their own component to this page.
+For a selected sentence such as `我真的很幸福`, the `German explanation + examples` component completes empty because that module does not apply to sentences. This is an intentional, successfully completed page. A user can drag `Sentence usage` onto this page and generate it, add it to the deck configuration for future captures, or add their own component to this page.
 
 ## Editing after capture
 

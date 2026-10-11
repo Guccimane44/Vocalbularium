@@ -1,9 +1,10 @@
 import { useState } from 'react';
+import type { ReactNode } from 'react';
 import type { Component, GenerationTarget, ModuleInstance, Page } from '@vocabularium/contracts';
 import { isContentType } from '@vocabularium/domain/page-modules';
 import { blockText, mainKeyOf } from '@vocabularium/domain/pages';
 import type { PageEditorDraft } from '../types/editor-drafts.js';
-import { DropEnd, ModuleWindow, moduleLabel, ShapingArea, SortableRow } from './shaping.tsx';
+import { moduleLabel, ShapingArea } from './shaping.tsx';
 
 type Deck = { id: string; name: string; modules: ModuleInstance[] };
 type Props = {
@@ -17,7 +18,7 @@ type Props = {
   pendingSaves: Array<{ operationId: string }>;
   retryPendingSave: (operationId: string) => Promise<void>;
   navigate: (hash: string) => void;
-  begin: () => void;
+  begin: (componentId: string) => void;
   persist: () => void;
   redraw: () => void;
   save: () => Promise<boolean>;
@@ -25,9 +26,9 @@ type Props = {
   discardUnavailable: () => Promise<void>;
   deletePage: () => Promise<void>;
   generate: (target: GenerationTarget) => Promise<void>;
-  addModule: (type: string, position?: number) => Promise<void>;
-  moveComponent: (componentId: string, position: number) => Promise<void>;
-  deleteComponent: (component: Component) => Promise<void>;
+  addModule: (type: string, position?: number) => Promise<boolean>;
+  moveComponent: (componentId: string, position: number) => Promise<boolean>;
+  deleteComponent: (component: Component) => Promise<boolean | void>;
 };
 
 const capitalized = (status: string) => status[0].toUpperCase() + status.slice(1);
@@ -109,76 +110,62 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
   </>;
 
   const [key, ...rest] = page.components;
-  const content = page.components.filter(item => isContentType(item.moduleType));
-  const loading = content.some(item => item.status === 'loading');
-  const missing = content.some(item => item.attemptId === null);
   const locked = busy || Boolean(draft?.pending && !draft.errorCode);
-  const shapingBlocked = editing ? 'Finish editing with Save or Cancel to add, move, or delete components.' : undefined;
-  const disabled = Boolean(shapingBlocked) || working || busy;
+  const editingId = editing ? draft?.componentId : undefined;
+  const shapingBlocked = editingId ? 'Finish editing with Save or Cancel to add, move, or delete components.' : undefined;
+  const disabled = Boolean(shapingBlocked) || busy;
   const known = new Set(page.components.map(item => item.id));
   const lost = editing && draft ? Object.keys(draft.texts).filter(id => !known.has(id)) : [];
-  const items = rest.map(item => ({ id: item.id, label: moduleLabel(item.moduleType) }));
-  // Positions on the page count the main key as 0.
-  const shape = (action: () => Promise<void>) => void run(action);
+  const items = rest.map(item => ({ id: item.id, label: moduleLabel(item.moduleType), component: item }));
+
+  // One card: its header (drag handle, label, status) and its own actions.
+  // Editing is one card at a time; Save and Cancel live in that card.
+  const card = (item: Component, title: string, handle: ReactNode) => {
+    const generated = isContentType(item.moduleType);
+    const editingThis = editingId === item.id;
+    const firstRun = generated && item.attemptId === null && !blockText(item.content);
+    return <article className={`component${generated && item.attemptId === null ? ' missing' : ''}`} data-component-id={item.id} data-type={item.moduleType}>
+      <div className="component-header">
+        {handle}
+        <h2>{title}{item.moduleType === 'main-key' && <span className="muted"> · always first</span>}</h2>
+        <Status status={item.status} prefix="" />
+      </div>
+      <ComponentBody item={item} title={title} editable={editingThis} draft={draft} locked={locked} persist={persist} />
+      {editingThis && draft ? <>
+        <div className="component-tools">
+          <button disabled={busy} onClick={() => void cancel()}>Cancel</button>
+          <button className="primary" disabled={busy} onClick={() => void save()}>{draft.pending ? 'Try saving again' : 'Save'}</button>
+        </div>
+        {draft.error && <p className="notice error" role="alert">{draft.error}</p>}
+      </> : <div className="component-tools">
+        <button aria-label={`Edit ${title}`} disabled={Boolean(editingId) || item.status === 'loading'} onClick={() => begin(item.id)}>Edit</button>
+        {generated && <button aria-label={`${firstRun ? 'Generate' : 'Retry'} ${title}`} disabled={working || Boolean(editingId) || item.status === 'loading'}
+          onClick={() => void run(() => generate({ scope: 'component', componentId: item.id }))}>{firstRun ? 'Generate' : 'Retry'}</button>}
+        {item.moduleType !== 'main-key' && <button aria-label={`Delete ${title}`} disabled={disabled || working || item.status === 'loading'}
+          onClick={() => void run(async () => { await deleteComponent(item); })}>Delete</button>}
+      </div>}
+    </article>;
+  };
 
   return <>
     {notice}{back}
-    <h1>{mainKeyOf(page.components)}</h1>
+    <div className="page-header">
+      <h1>{mainKeyOf(page.components)}</h1>
+      <button disabled={busy || Boolean(editingId)} onClick={() => void deletePage()}>Delete page</button>
+    </div>
     <Status status={page.status} prefix="Page: " />
-    <ShapingArea items={items} disabled={disabled}
-      onAdd={(type, index) => shape(() => addModule(type, index + 1))}
-      onMove={(id, index) => shape(() => moveComponent(id, index + 1))}>
-      <div className="shaping-layout">
-        <section className="page-components" aria-label="Components">
-          <article className="component" data-component-id={key.id} data-type={key.moduleType}>
-            <h2>Main key <span className="muted">· always first</span></h2>
-            <ComponentBody item={key} title="Main key" editable={Boolean(editing && draft && Object.hasOwn(draft.texts, key.id))} draft={draft} locked={locked} persist={persist} />
-          </article>
-          {rest.map((item, index) => {
-            const title = moduleLabel(item.moduleType);
-            const generated = isContentType(item.moduleType);
-            return <SortableRow key={item.id} id={item.id} label={title} disabled={disabled}
-              className={`component${generated && item.attemptId === null ? ' missing' : ''}`}>
-              {handle => <div data-component-id={item.id} data-type={item.moduleType}>
-                <div className="component-header">
-                  {handle}
-                  <h2>{title}</h2>
-                  <Status status={item.status} prefix="" />
-                  <div className="component-tools">
-                    <button aria-label={`Move ${title} up`} disabled={disabled || index === 0} onClick={() => shape(() => moveComponent(item.id, index))}>↑</button>
-                    <button aria-label={`Move ${title} down`} disabled={disabled || index === rest.length - 1} onClick={() => shape(() => moveComponent(item.id, index + 2))}>↓</button>
-                    <button aria-label={`Delete ${title}`} disabled={disabled || item.status === 'loading'} onClick={() => shape(() => deleteComponent(item))}>Delete</button>
-                  </div>
-                </div>
-                <ComponentBody item={item} title={title} editable={Boolean(editing && draft && Object.hasOwn(draft.texts, item.id))} draft={draft} locked={locked} persist={persist} />
-                {!editing && generated && item.attemptId !== null && <button disabled={working || item.status === 'loading'}
-                  onClick={() => void run(() => generate({ scope: 'component', componentId: item.id }))}>Retry</button>}
-              </div>}
-            </SortableRow>;
-          })}
-          <DropEnd disabled={disabled} />
-          {lost.map(id => <div key={id}>
-            <p className="notice">A component in this draft no longer exists. Its unsaved text is preserved below.</p>
-            <pre>{draft!.texts[id]}</pre>
-          </div>)}
-        </section>
-        <ModuleWindow types={page.components.map(item => item.moduleType)} unavailable={shapingBlocked} where="the page"
-          onAdd={type => shape(() => addModule(type))} />
-      </div>
-    </ShapingArea>
-    {editing && draft ? <>
-      <div className="dialog-actions">
-        <button disabled={busy} onClick={() => void deletePage()}>Delete page</button>
-        <button disabled={busy} onClick={() => void cancel()}>Cancel</button>
-        <button className="primary" disabled={busy} onClick={() => void save()}>{draft.pending ? 'Try saving again' : 'Save'}</button>
-      </div>
-      {draft.error && <p className="notice error" role="alert">{draft.error}</p>}
-    </> : <div className="dialog-actions">
-      <button onClick={begin}>Edit page</button>
-      {missing && <button disabled={working} onClick={() => void run(() => generate({ scope: 'missing' }))}>Generate missing</button>}
-      {content.some(item => item.attemptId !== null) && <button disabled={working || loading} onClick={() => void run(() => generate({ scope: 'page' }))}>Retry page</button>}
-    </div>}
-    {!editing && pendingSaves.map(item => <div className="notice" key={item.operationId}>
+    <ShapingArea items={items} types={page.components.map(item => item.moduleType)} disabled={disabled} unavailable={shapingBlocked}
+      label="Components" where="the page"
+      pinned={card(key, 'Main key', null)}
+      onAdd={(type, index) => addModule(type, index + 1)}
+      onMove={(id, index) => moveComponent(id, index + 1)}
+      renderItem={(item, handle) => card(item.component, item.label, handle)} />
+    {lost.map(id => <div key={id}>
+      <p className="notice">The component you were editing no longer exists. Its unsaved text is preserved below.</p>
+      <pre>{draft!.texts[id]}</pre>
+      <button onClick={() => void cancel()}>Discard draft</button>
+    </div>)}
+    {!editingId && pendingSaves.map(item => <div className="notice" key={item.operationId}>
       <p>A change is waiting to be saved to your account.</p>
       <button onClick={() => void retryPendingSave(item.operationId)}>Try saving again</button>
     </div>)}

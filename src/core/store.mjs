@@ -534,7 +534,10 @@ export class AccountStore {
       try { targets = generationTargets(target, page.components); }
       catch (error) { fail('invalid', error.message); }
       if (targets.some(component => component.status === 'loading')) fail('generating', 'A component is already generating.');
-      if (target.scope !== 'missing') {
+      // Replacing content needs confirmation; a component that never generated
+      // and is still empty has nothing to replace.
+      const replaces = targets.some(component => component.attemptId !== null || blockText(component.content));
+      if (target.scope !== 'missing' && replaces) {
         const expected = this.confirmationDigest(targets);
         if (confirmation !== expected) {
           throw new StoreError('confirmation_required', 'Retry replaces this content, including your edits.', { confirmation: expected });
