@@ -75,7 +75,8 @@ if (import.meta.url === `file://${process.argv[1]}` || process.argv[1]?.endsWith
   const css = await buildTheme();
   if (process.argv.includes('--check')) {
     const current = await readFile(TARGET, 'utf8').catch(() => '');
-    if (current !== css) throw new Error('extension/theme.css is out of date: run node scripts/build-theme.mjs');
+    // A Windows checkout may convert line endings; compare the content only.
+    if (current.replaceAll('\r\n', '\n') !== css) throw new Error('extension/theme.css is out of date: run node scripts/build-theme.mjs');
     console.log('extension/theme.css matches the design tokens.');
   } else {
     await writeFile(TARGET, css);
