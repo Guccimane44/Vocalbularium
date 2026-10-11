@@ -4,7 +4,7 @@ import type { DeckConfiguration } from '@vocabularium/contracts';
 import { MODULES } from '@vocabularium/domain/modules';
 import type { ModuleType as ContentModuleType } from '@vocabularium/domain/modules';
 import { addBlocked } from '@vocabularium/domain/page-modules';
-import { DropEnd, ModuleWindow, moduleLabel, ShapingArea, SortableRow } from './shaping.tsx';
+import { moduleLabel, ShapingArea } from './shaping.tsx';
 
 const instance = (type: string) => ({ id: crypto.randomUUID(), type });
 
@@ -47,10 +47,10 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
   const sampleType = draft.sampleType ?? 'word_phrase';
   // The main key is always first and stays; everything after it can move.
   const [key, ...rest] = modules;
-  const items = rest.map(module => ({ id: module.id, label: moduleLabel(module.type) }));
-  const add = (type: string, index = rest.length) => {
-    if (addBlocked(modules, type)) return;
-    modules.splice(index + 1, 0, instance(type)); refresh();
+  const items = rest.map(module => ({ id: module.id, label: moduleLabel(module.type), type: module.type }));
+  const add = (type: string, index: number) => {
+    if (addBlocked(modules, type)) return false;
+    modules.splice(index + 1, 0, instance(type)); refresh(); return true;
   };
   const move = (id: string, index: number) => {
     const from = modules.findIndex(module => module.id === id);
@@ -88,35 +88,17 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
         refresh();
       }} />
     </fieldset>
-    <ShapingArea items={items} disabled={busy} onAdd={add} onMove={move}>
-      <div className="shaping-layout">
-        <section className="module-list" aria-label="Deck modules">
-          <h2>Modules for new pages</h2>
-          <p className="muted">Every new page in this deck starts with these modules, in this order. Changes apply to pages created afterwards; existing pages keep their own modules.</p>
-          <div className="module-block pinned" data-type={key.type}>
-            <span>Main key <span className="muted">· always first</span></span>
-          </div>
-          {rest.map((module, index) => {
-            const label = moduleLabel(module.type);
-            return <SortableRow key={module.id} id={module.id} label={label} disabled={busy} className="module-block">
-              {handle => <>
-                {handle}
-                <span data-type={module.type}>{label}</span>
-                <button aria-label={`Move ${label} up`} disabled={busy || index === 0}
-                  onClick={() => move(module.id, index - 1)}>↑</button>
-                <button aria-label={`Move ${label} down`} disabled={busy || index === rest.length - 1}
-                  onClick={() => move(module.id, index + 1)}>↓</button>
-                <button aria-label={`Remove ${label}`} disabled={busy}
-                  onClick={() => { modules.splice(index + 1, 1); refresh(); }}>Remove</button>
-              </>}
-            </SortableRow>;
-          })}
-          {!rest.length && <p className="muted">Only the main key. New pages start with it and grow from the module window.</p>}
-          <DropEnd disabled={busy} />
-        </section>
-        <ModuleWindow types={modules.map(module => module.type)} unavailable={busy ? 'Saving…' : undefined} where="the list" onAdd={type => add(type)} />
-      </div>
-    </ShapingArea>
+    <h2>Modules for new pages</h2>
+    <p className="muted">Every new page in this deck starts with these modules, in this order. Changes apply to pages created afterwards; existing pages keep their own modules.</p>
+    <ShapingArea items={items} types={modules.map(module => module.type)} disabled={busy} unavailable={busy ? 'Saving…' : undefined}
+      label="Deck modules" where="the list" onAdd={add} onMove={(id, index) => { move(id, index); return true; }}
+      pinned={<div className="module-block pinned" data-type={key.type}><span>Main key <span className="muted">· always first</span></span></div>}
+      renderItem={(item, handle) => <div className="module-block" data-type={item.type}>
+        {handle}
+        <span>{item.label}</span>
+        <button aria-label={`Remove ${item.label}`} disabled={busy}
+          onClick={() => { modules.splice(modules.findIndex(module => module.id === item.id), 1); refresh(); }}>Remove</button>
+      </div>} />
     <div className="dialog-actions">
       <button onClick={async () => {
         if (draft.pending) await chrome.storage.local.remove('save-' + draft.pending.operationId);

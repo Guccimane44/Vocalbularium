@@ -156,3 +156,18 @@ test('four list orders use the current main key, deterministic ties, and creatio
   assert.deepEqual(ids('newest'), ['d', 'a', 'b', 'c']); assert.deepEqual(ids('oldest'), ['c', 'a', 'b', 'd']);
   pages[3].mainKey = 'aardvark'; assert.deepEqual(ids('az'), ['d', 'a', 'b', 'c']);
 });
+
+test('a component that never generated and is empty starts without confirmation; anything with content asks first', async (t) => {
+  const store = await fixture(t);
+  await useModules(store, ['german-explanation', 'sentence-usage']);
+  const { pageId } = await store.createPage('manual', { deckId: (await store.snapshot()).id, mainKey: 'word' });
+  let page = await store.page(pageId);
+  const [first, second] = generated(page);
+  const started = await store.generate('first-run', { pageId, target: target('component', first.id), session });
+  assert.equal(started.attemptIds.length, 1, 'nothing to replace, so no confirmation');
+  await complete(store, await store.page(pageId), session, () => 'explained');
+  await assert.rejects(store.generate('retry-first', { pageId, target: target('component', first.id), session }), { code: 'confirmation_required' });
+  await store.savePage('typed', { pageId, changes: [{ componentId: second.id, content: textBlocks('my own example') }] });
+  await assert.rejects(store.generate('replace-typed', { pageId, target: target('component', second.id), session }), { code: 'confirmation_required' },
+    'text the user wrote is replaced only after confirmation');
+});

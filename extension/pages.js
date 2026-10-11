@@ -5,7 +5,6 @@ import { PageView } from './page-view.tsx';
 /** @typedef {import('../types/editor-drafts.js').PageEditorDraft} PageEditorDraft */
 
 const RETRY_COMPONENT = 'Retry will replace this component’s content, including your edits to it. The main key, Context, and other components will not change.';
-const RETRY_PAGE = 'Retry will replace the content of every generated component on this page, including your edits to them. The main key, Context, and your Text components will not change.';
 const CHANGED = 'This content changed since you looked at it, possibly on another installation. ';
 const DRAFT_KEY = 'page-draft-modules';
 
@@ -25,11 +24,12 @@ export function pageViews({ getAccount, renderView, refresh, send, applyState, n
   const changed = () => draft ? Object.keys(draft.texts).filter(id => draft.texts[id] !== draft.base[id]) : [];
   const inputs = () => draft ? Object.entries(draft.inputs ?? {}).filter(([, text]) => text.length) : [];
   const dirty = () => Boolean(draft && (changed().length || inputs().length || (!draft.pageId && draft.mainKey)));
-  function begin(page, route) {
-    draft = { route: identity(route), pageId: page.id, deckId: page.deckId, base: {}, texts: {} };
-    for (const component of page.components) {
-      draft.base[component.id] = draft.texts[component.id] = blockText(component.content);
-    }
+  // Editing is one card at a time (D04): the draft holds that component's text.
+  function begin(page, route, componentId) {
+    const component = page.components.find(item => item.id === componentId);
+    if (!component) return;
+    draft = { route: identity(route), pageId: page.id, deckId: page.deckId, componentId, base: {}, texts: {} };
+    draft.base[componentId] = draft.texts[componentId] = blockText(component.content);
     persist();
   }
   function beginNew(deckId, route) {
@@ -81,12 +81,13 @@ export function pageViews({ getAccount, renderView, refresh, send, applyState, n
     return save(getAccount().pages?.[0]);
   }
   // Retries replace content. The server reports a digest of the content they
-  // replace; the user confirms, and the retry carries that digest back.
+  // replace; the user confirms, and the retry carries that digest back. A
+  // component that never generated and is empty has nothing to replace, so
+  // the server starts it without asking.
   async function generate(page, target) {
     const request = confirmation => send({ type: 'generate-page', payload: { pageId: page.id, target, ...(confirmation ? { confirmation } : {}) } });
     try {
-      if (target.scope === 'missing') { await applyState(await request()); return; }
-      let warning = target.scope === 'page' ? RETRY_PAGE : RETRY_COMPONENT;
+      let warning = RETRY_COMPONENT;
       for (let round = 0; round < 3; round++) {
         let confirmation;
         try { await applyState(await request(confirmation)); return; }
@@ -94,19 +95,20 @@ export function pageViews({ getAccount, renderView, refresh, send, applyState, n
           if (error.code !== 'confirmation_required') throw error;
           confirmation = error.details?.confirmation;
         }
-        const choice = await dialog({ title: target.scope === 'page' ? 'Retry this page?' : 'Retry this component?', message: warning, choices: ['Cancel', 'Confirm'] });
+        const choice = await dialog({ title: 'Retry this component?', message: warning, choices: ['Cancel', 'Confirm'] });
         if (choice.choice !== 'Confirm') return;
         try { await applyState(await request(confirmation)); return; }
         catch (error) {
           if (error.code !== 'confirmation_required') throw error;
-          warning = CHANGED + (target.scope === 'page' ? RETRY_PAGE : RETRY_COMPONENT);
+          warning = CHANGED + RETRY_COMPONENT;
         }
       }
     } catch (error) { showError(error); }
   }
-  // Shaping steps are saved at once, each as one ordered operation.
+  // Shaping steps are saved at once, each as one ordered operation. The result
+  // says whether the step was saved, so a failed move can restore the order.
   async function shape(type, payload) {
-    try { await applyState(await send({ type, payload })); } catch (error) { showError(error); }
+    try { await applyState(await send({ type, payload })); return true; } catch (error) { showError(error); return false; }
   }
   async function deleteComponent(page, component) {
     const label = moduleLabel(component.moduleType);
@@ -123,12 +125,6 @@ export function pageViews({ getAccount, renderView, refresh, send, applyState, n
     const deck = account.decks.find(deck => deck.id === (isNew ? id : page?.deckId ?? draft?.deckId));
     if (isNew && deck && !matches(hash)) beginNew(deck.id, hash);
     const editing = Boolean(matches(hash));
-    if (editing && page) {
-      for (const component of page.components) {
-        if (!Object.hasOwn(draft.texts, component.id)) draft.base[component.id] = draft.texts[component.id] = blockText(component.content);
-      }
-      persist();
-    }
     const pendingSaves = Object.entries(local).filter(([key, item]) => key.startsWith('save-') && item?.state !== 'saving').map(([, item]) => item);
     renderView(PageView, {
       page, deck, draft, isNew, editing, busy, error: externalError, navigate, persist, pendingSaves,
@@ -137,7 +133,7 @@ export function pageViews({ getAccount, renderView, refresh, send, applyState, n
         try { const next = await send({ type: 'try-saving-again', operationId }); await applyState(next); }
         catch (error) { showError(error); }
       },
-      begin: () => { begin(page, hash); void refresh(); },
+      begin: componentId => { begin(page, hash, componentId); void refresh(); },
       save: () => save(page),
       cancel: async () => { await discard(); if (isNew) navigate(`deck/${deck.id}`); else void refresh(); },
       discardUnavailable: async () => { await discard(); navigate(''); },

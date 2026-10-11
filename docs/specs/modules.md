@@ -18,9 +18,9 @@ Modules have three kinds ([Q72](../architecture/questionnaire/answers/answers-06
 
 | Module type | Contribution | Applicable input |
 | --- | --- | --- |
-| `<German explanation>` | Explanation in German of the input in its chosen source language | Word or phrase |
-| `<German explanation + examples>` | German explanation plus examples in the source language and German translations | Word or phrase |
-| `<Sentence usage>` | A usage example in the chosen source language | Sentence |
+| `German explanation` | Explanation in German of the input in its chosen source language | Word or phrase |
+| `German explanation + examples` | German explanation plus examples in the source language and German translations | Word or phrase |
+| `Sentence usage` | A usage example in the chosen source language | Sentence |
 
 Names remain provisional. Required output formats are defined in the linked catalog.
 

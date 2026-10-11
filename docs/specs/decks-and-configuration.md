@@ -40,7 +40,7 @@ A configuration with only the main key module is valid. Its new pages hold only 
 
 ### Module window
 
-Deck settings show the **module window** on the right ([shared UI](shared-ui.md#module-window)). The user adds an instance by dragging a module from the window into the configuration, or with the window's **Add** control from the keyboard, and reorders instances by dragging or with move controls. The page view shows the same window ([pages and editing](pages-and-editing.md#shaping-a-page)), so shaping a deck and shaping a page use the same gesture.
+Deck settings show the **module window** on the right ([shared UI](shared-ui.md#module-window)). The user adds an instance by dragging a module from the window into the configuration and reorders instances by dragging their handles, with the pointer or from the keyboard (Space, the arrow keys, Space). **Remove** stays on each instance. The page view shows the same window ([pages and editing](pages-and-editing.md#shaping-a-page)), so shaping a deck and shaping a page use the same gesture.
 
 ## Configuration and pages
 

@@ -86,7 +86,7 @@ Other view modules, such as a **card** view module that recreates the earlier ka
 
 A **generation attempt** is one evaluation of one content module instance for one page. It produces or replaces that instance's component. It associates the target component, the main key and Context values and interpretation used, and the module configuration used.
 
-A **generation run** is one user or capture request that starts one or more attempts on the same page: all content components on capture or **Generate**, only missing components on **Generate missing**, every content component on the page on page **Retry**, or one component on component **Retry**. Attempts in one run share one input interpretation.
+A **generation run** is one user or capture request that starts one or more attempts on the same page: all content components on capture, or one component on its card's **Generate** or **Retry**. The API also accepts every not-yet-generated component or every content component of a page in one run. Attempts in one run share one input interpretation.
 
 A **generation outcome** describes an attempt's state or result. Component content, generation outcome, and persistence are distinct: a saved page can have a failed component, a successfully evaluated component can be empty, and manually entered content does not establish generation success.
 
