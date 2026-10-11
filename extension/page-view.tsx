@@ -4,7 +4,7 @@ import type { Component, GenerationTarget, ModuleInstance, Page } from '@vocabul
 import { isContentType } from '@vocabularium/domain/page-modules';
 import { blockText, mainKeyOf } from '@vocabularium/domain/pages';
 import type { PageEditorDraft } from '../types/editor-drafts.js';
-import { moduleLabel, ShapingArea } from './shaping.tsx';
+import { moduleLabel, PinMark, ShapingArea } from './shaping.tsx';
 
 type Deck = { id: string; name: string; modules: ModuleInstance[] };
 type Props = {
@@ -156,7 +156,7 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
     <Status status={page.status} prefix="Page: " />
     <ShapingArea items={items} types={page.components.map(item => item.moduleType)} disabled={disabled}
       label="Components" where="the page"
-      pinned={card(key, 'Main key', null)}
+      pinned={card(key, 'Main key', <PinMark />)}
       onAdd={(type, index) => addModule(type, index + 1)}
       onMove={(id, index) => moveComponent(id, index + 1)}
       renderItem={(item, handle) => card(item.component, item.label, handle)} />

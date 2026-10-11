@@ -34,7 +34,7 @@ A deck's configuration has:
   - **content module instances**: the same type may appear more than once;
 - its **view**: the default view, which shows each page as its ordered component list.
 
-The user edits the configuration in **deck settings**: name the deck, and add, remove, and reorder the Context, Text, and content module instances; the main key stays first. Deck settings show the main key in the list like the other modules, with a lock mark in place of the drag handle and no **Remove** (since 0.5.2). Deck settings preview the configured instances with word and sentence examples; previews are labeled as examples and never create or change pages. Configuration edits are a draft until **Save**; **Cancel** discards them. A failed save keeps the draft and offers **Try saving again**.
+The user edits the configuration in **deck settings**: name the deck, and add, remove, and reorder the Context, Text, and content module instances; the main key stays first. Deck settings show the main key in the list like the other modules, with a lock mark in place of the drag handle and no **Remove**; the page view's main key card carries the same mark (since 0.5.2). Deck settings preview the configured instances with word and sentence examples; previews are labeled as examples and never create or change pages. Configuration edits are a draft until **Save**; **Cancel** discards them. A failed save keeps the draft and offers **Try saving again**.
 
 A configuration with only the main key module is valid. Its new pages hold only the main key and whatever the user adds.
 

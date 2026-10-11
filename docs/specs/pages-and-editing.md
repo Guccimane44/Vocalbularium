@@ -47,7 +47,7 @@ Each component is a card with its own actions ([D04](../architecture/traceabilit
 - **Generate** on a content component that never generated and is still empty starts its first generation, without a warning, because there is nothing to replace. After that the same control is **Retry**, which warns before replacing the content ([capture and generation](capture-and-generation.md#retry)).
 - **Delete** removes the component ([shaping](#shaping-a-page)).
 
-The main key card has only **Edit**. There are no page-level edit, generate, or retry controls; **Delete page** sits in the page header.
+The main key card has only **Edit**, and a lock mark where other cards have their drag handle (since 0.5.2). There are no page-level edit, generate, or retry controls; **Delete page** sits in the page header.
 
 ### Shaping a page
 

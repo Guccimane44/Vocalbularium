@@ -815,6 +815,7 @@ test('manual page UI: per-card actions, drafts, leave choices, sorting, failed-s
   await a.page.getByRole('dialog').getByRole('button', { name: 'Delete', exact: true }).click();
   await waitFor(async () => (await shape()).length === 3, 'Context deleted');
   assert.deepEqual(await shape(), [['main-key', 'zebra'], ['text', ''], ['german-examples', '']]);
+  await a.page.locator('article.component[data-type="main-key"]').getByRole('img', { name: 'Fixed in first place' }).waitFor();
   for (const missing of ['Drag Main key', 'Delete Main key', 'Retry Main key', 'Generate Main key']) {
     assert.equal(await a.page.getByRole('button', { name: missing, exact: true }).count(), 0, `the main key card has only Edit (${missing})`);
   }

@@ -4,7 +4,7 @@ import type { DeckConfiguration } from '@vocabularium/contracts';
 import { MODULES } from '@vocabularium/domain/modules';
 import type { ModuleType as ContentModuleType } from '@vocabularium/domain/modules';
 import { addBlocked } from '@vocabularium/domain/page-modules';
-import { moduleLabel, ShapingArea } from './shaping.tsx';
+import { moduleLabel, PinMark, ShapingArea } from './shaping.tsx';
 
 const instance = (type: string) => ({ id: crypto.randomUUID(), type });
 
@@ -30,11 +30,6 @@ function sample(type: string, inputType: 'word_phrase' | 'sentence', instance: n
     ? '\n=== Beispiele ===\n: [1] 她希望孩子们拥有幸福。\n:: Sie hofft, dass die Kinder Glück haben.'
     : '');
 }
-
-// Marks the main key: it stays first and cannot be moved or removed.
-const LockIcon = () => <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.5">
-  <rect x="3" y="7" width="10" height="7" rx="1.5" /><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" />
-</svg>;
 
 type Props = {
   draft: DeckEditorDraft;
@@ -98,7 +93,7 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
     <ShapingArea items={items} types={modules.map(module => module.type)} disabled={busy} unavailable={busy ? 'Saving…' : undefined}
       label="Deck modules" where="the list" onAdd={add} onMove={(id, index) => { move(id, index); return true; }}
       pinned={<div className="module-block" data-type={key.type}>
-        <span className="pin-mark" role="img" aria-label="Fixed in first place" title="Fixed in first place"><LockIcon /></span>
+        <PinMark />
         <span>{moduleLabel(key.type)}</span>
       </div>}
       renderItem={(item, handle) => <div className="module-block" data-type={item.type}>
