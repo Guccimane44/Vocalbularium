@@ -2,6 +2,7 @@ import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import type { MouseEvent as ReactMouseEvent, ReactNode } from 'react';
 import { dialog } from './dialog.ts';
 import { SORT_ORDERS } from './sorting.ts';
+import { deckColour } from './deck-colour.ts';
 
 type Status = 'completed' | 'loading' | 'failed' | null;
 
@@ -213,7 +214,19 @@ function DeckList({ deck, account, navigate, configure, mutate, reportError, loa
 
 type CaptureEntry = { key: string; text: string; deckId: string; date: string; receipt?: CaptureReceipt; page?: DashboardPage };
 
-function RecentCaptures({ account, local, navigate, mutate, reportError }: Pick<DashboardProps, 'account' | 'local' | 'navigate' | 'mutate' | 'reportError'>) {
+// Compact capture times: "now", minutes, today's time, "Yesterday", or the date.
+function captureTime(iso: string, now = new Date()) {
+  const date = new Date(iso), minutes = Math.round((now.getTime() - date.getTime()) / 60000);
+  if (minutes < 1) return 'now';
+  if (minutes < 60) return `${minutes} min`;
+  const day = (value: Date) => new Date(value.getFullYear(), value.getMonth(), value.getDate()).getTime();
+  const days = Math.round((day(now) - day(date)) / 86400000);
+  if (days === 0) return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  if (days === 1) return 'Yesterday';
+  return date.toLocaleDateString([], { day: 'numeric', month: 'short' });
+}
+
+function RecentCaptures({ account, local, mutate, reportError }: Pick<DashboardProps, 'account' | 'local' | 'mutate' | 'reportError'>) {
   const receipts = Object.entries(local)
     .filter(([key, item]) => key.startsWith('capture-') && isCaptureReceipt(item))
     .map(([, item]) => item as CaptureReceipt);
@@ -222,26 +235,28 @@ function RecentCaptures({ account, local, navigate, mutate, reportError }: Pick<
       .map(item => ({ key: `receipt-${item.operationId}`, receipt: item, text: item.payload.mainKey, deckId: item.payload.snapshot.id, date: item.createdAt })),
     ...account.recentPages.filter(page => page.selectedText !== null).map(page => ({ key: `page-${page.id}`, page, text: page.selectedText!, deckId: page.deckId, date: page.createdAt }))
   ].sort((a, b) => b.date.localeCompare(a.date));
-  return <>
-    <h2 className="section-title">Recent captures</h2>
-    {entries.map(entry => {
+  return <section className="recent" aria-labelledby="recent-captures">
+    <h2 className="section-title" id="recent-captures">Recent captures</h2>
+    {entries.length > 0 && <ul className="captures">{entries.map(entry => {
       const state = entry.page?.status ?? (entry.receipt?.state === 'saving' ? 'loading' : entry.receipt?.state === 'pending' ? 'failed' : null);
       const deck = account.decks.find(item => item.id === entry.deckId);
-      return <article className="capture state-row" data-state={state ?? 'neutral'} key={entry.key}>
-        <StatusIcon status={state} description={entry.receipt ? entry.receipt.state === 'saving' ? 'Pending' : 'Not saved to your account' : undefined} />
-        <p className="capture-text">{entry.text}</p>
-        {deck && <button onClick={() => navigate(`deck/${deck.id}`)}>{deck.name}</button>}
-        {entry.page ? <button onClick={() => navigate(`page/${entry.page!.id}`)}>Open page</button> : <>
-          {entry.receipt?.state === 'saved' ? <>
-            <p className="muted">Saved to your account.</p>
-            {entry.receipt.pageId && <button onClick={() => navigate(`page/${entry.receipt!.pageId}`)}>Open page</button>}
-          </> : entry.receipt?.state !== 'saving' && <p className="muted">Not saved to your account.</p>}
-          {entry.receipt?.error && <p className="error">{entry.receipt.error}</p>}
-          {entry.receipt?.state === 'pending' && <RecoveryButton operationId={entry.receipt.operationId} mutate={mutate} reportError={reportError} />}
-        </>}
-      </article>;
-    })}
-  </>;
+      const pageId = entry.page?.id ?? (entry.receipt?.state === 'saved' ? entry.receipt.pageId : undefined);
+      const text = <span className="capture-text">{entry.text}</span>;
+      return <li className="capture state-row" data-state={state ?? 'neutral'} key={entry.key}>
+        <StatusIcon status={state} description={entry.receipt ? entry.receipt.state === 'saving' ? 'Pending' : entry.receipt.state === 'pending' ? 'Not saved to your account' : undefined : undefined} />
+        {pageId ? <a className="capture-link" href={`#page/${pageId}`}>{text}</a> : text}
+        <span className="capture-meta">
+          {deck && <span className={`capture-deck fam-${deckColour(deck.id)}`}><span className="fam-mark" aria-hidden="true" />{deck.name}</span>}
+          <time dateTime={entry.date}>{captureTime(entry.date)}</time>
+        </span>
+        {entry.receipt?.state === 'pending' && <div className="capture-recovery">
+          <p className="muted">Not saved to your account.</p>
+          {entry.receipt.error && <p className="error">{entry.receipt.error}</p>}
+          <RecoveryButton operationId={entry.receipt.operationId} mutate={mutate} reportError={reportError} />
+        </div>}
+      </li>;
+    })}</ul>}
+  </section>;
 }
 
 function DeckGrid({ account, local, navigate, configure, mutate, reportError, loadDecks }: Pick<DashboardProps, 'account' | 'local' | 'navigate' | 'configure' | 'mutate' | 'reportError' | 'loadDecks'>) {
@@ -258,23 +273,28 @@ function DeckGrid({ account, local, navigate, configure, mutate, reportError, lo
     finally { setLoading(false); }
   }
   return <>
-    <h1>Your decks.</h1>
-    <p className="muted">Keep the words and expressions you want to come back to.</p>
-    <button className="primary" onClick={() => configure('new')}>Add new deck</button>
+    <div className="page-head">
+      <div>
+        <h1>Your decks</h1>
+        <p className="muted">Keep the words and expressions you want to come back to.</p>
+      </div>
+      <button className="primary" onClick={() => configure('new')}>Add new deck</button>
+    </div>
+    <RecentCaptures account={account} local={local} mutate={mutate} reportError={reportError} />
     <div className="grid">
-      {decks.map(deck => <article className="deck" key={deck.id}>
+      {decks.map(deck => <article className={`deck fam-${deckColour(deck.id)}`} key={deck.id}>
+        <span className="deck-tab" aria-hidden="true" />
         <button className="open" onClick={() => navigate(`deck/${deck.id}`)}>
           <h2>{deck.name}</h2>
           <p className="muted">{deck.pageCount} {deck.pageCount === 1 ? 'page' : 'pages'} · {deck.moduleCount} {deck.moduleCount === 1 ? 'module' : 'modules'}</p>
         </button>
         <footer>
-          {deck.id === account.defaultDeckId && <span className="badge">DEFAULT DECK</span>}
+          {deck.id === account.defaultDeckId && <span className="default-label">Default</span>}
           <DeckMenu deck={deck} account={account} replacementDecks={decks} replacementCursor={cursor} loadDecks={loadDecks} configure={configure} mutate={mutate} reportError={reportError} />
         </footer>
       </article>)}
     </div>
     {cursor && <button disabled={loading} onClick={() => void more()}>Load more decks</button>}
-    <RecentCaptures account={account} local={local} navigate={navigate} mutate={mutate} reportError={reportError} />
   </>;
 }
 

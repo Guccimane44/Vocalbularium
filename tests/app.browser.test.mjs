@@ -28,11 +28,21 @@ async function launch(profile, extension = resolve(process.env.VOCABULARIUM_TEST
   await page.goto(`chrome-extension://${id}/app.html`);
   return { context, page, id, worker };
 }
+// The account menu holds appearance, diagnostic logs and log out once signed in (D05).
+async function accountMenu(page) {
+  const trigger = page.getByRole('button', { name: 'Account', exact: true });
+  // From the keyboard: the capture popup can sit over the trigger in the top-right corner.
+  if (await trigger.count() && await trigger.getAttribute('aria-expanded') !== 'true') await trigger.press('Enter');
+}
+async function chooseAppearance(page, value) {
+  await accountMenu(page);
+  await page.getByLabel('Appearance', { exact: true }).selectOption(value);
+}
 async function signIn(page) {
   await page.getByLabel('Username', { exact: true }).fill('admin');
   await page.getByLabel('Password', { exact: true }).fill('admin');
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
-  await page.getByRole('heading', { name: 'Your decks.' }).waitFor();
+  await page.getByRole('heading', { name: 'Your decks', exact: true }).waitFor();
 }
 
 test('account extension: login, two installations, reopening, server failure, and logout', { timeout: 45000 }, async (t) => {
@@ -68,21 +78,21 @@ test('account extension: login, two installations, reopening, server failure, an
   await a.page.getByRole('button', { name: 'Try saving again', exact: true }).waitFor();
   application = (await createTestApplication(t, { databaseKey })); await application.start();
   await a.page.getByRole('button', { name: 'Try saving again', exact: true }).click();
-  await a.page.locator('article').filter({ hasText: 'Second deck' }).getByText('DEFAULT DECK', { exact: true }).waitFor();
+  await a.page.locator('article').filter({ hasText: 'Second deck' }).getByText('Default', { exact: true }).waitFor();
   assert.equal((await application.store.account()).defaultDeckId, second.id);
   await b.page.reload();
-  await b.page.locator('article').filter({ hasText: 'Second deck' }).getByText('DEFAULT DECK', { exact: true }).waitFor();
+  await b.page.locator('article').filter({ hasText: 'Second deck' }).getByText('Default', { exact: true }).waitFor();
 
   await a.context.close(); contexts.delete(a.context);
   a = await launch(aProfile); contexts.add(a.context);
-  await a.page.getByRole('heading', { name: 'Your decks.' }).waitFor();
+  await a.page.getByRole('heading', { name: 'Your decks', exact: true }).waitFor();
   assert.equal((await application.store.account()).decks.length, 2);
-  await a.page.getByRole('button', { name: 'Log out', exact: true }).click();
+  await accountMenu(a.page); await a.page.getByRole('button', { name: 'Log out', exact: true }).click();
   await a.page.getByRole('heading', { name: 'Welcome back.' }).waitFor();
   await a.page.reload();
   await a.page.getByRole('heading', { name: 'Welcome back.' }).waitFor();
   await b.page.reload();
-  await b.page.getByRole('heading', { name: 'Your decks.' }).waitFor();
+  await b.page.getByRole('heading', { name: 'Your decks', exact: true }).waitFor();
 });
 
 test('expired access keeps a page draft and pending operation for explicit replay', { timeout: 30000 }, async (t) => {
@@ -230,9 +240,9 @@ test('capture extension: receipt lifetime, exact duplicate pages, shared outcome
   assert.equal((await application.store.pages())[0].selectedText, selected);
   assert.equal(keyOf((await application.store.pages())[0]), selected);
   await b.page.reload();
-  await waitFor(async () => await b.page.getByRole('button', { name: 'Open page', exact: true }).count() === 2, 'second installation synchronized duplicate captures');
-  assert.equal(await b.page.getByRole('button', { name: 'Open page', exact: true }).count(), 2);
-  await b.page.getByRole('button', { name: 'Open page', exact: true }).first().click();
+  await waitFor(async () => await b.page.locator('.capture-link').count() === 2, 'second installation synchronized duplicate captures');
+  assert.equal(await b.page.locator('.capture-link').count(), 2);
+  await b.page.locator('.capture-link').first().click();
   // Generated content is plain text in its own component.
   await componentArticle(b.page, 'German explanation + examples').locator('pre').filter({ hasText: '=== Bedeutungen ===' }).waitFor();
 
@@ -260,7 +270,7 @@ test('capture extension: receipt lifetime, exact duplicate pages, shared outcome
   await waitFor(async () => (await application.store.attempt(modulesOf(interrupted)[1].attemptId)).result, 'late provider result staged');
   step('relaunch after browser exit');
   a = await launch(profile, testingExtension); contexts.add(a.context);
-  await a.page.getByRole('heading', { name: 'Your decks.' }).waitFor();
+  await a.page.getByRole('heading', { name: 'Your decks', exact: true }).waitFor();
   // Both components waited on the held interpretation, so neither was published before exit.
   assert.deepEqual(modulesOf(await application.store.page(interrupted.id)).map(item => item.status), ['failed', 'failed']);
 
@@ -400,7 +410,7 @@ test('recent captures: the pending receipt hands off to its account page without
   assert.equal(await row.getAttribute('data-state'), 'loading');
   holdAccounts = false; for (const resume of heldAccounts.splice(0)) resume();
   await capture;
-  await row.getByRole('button', { name: 'Open page', exact: true }).waitFor();
+  await row.getByRole('link').waitFor();
   assert.equal(await row.getAttribute('data-state'), 'loading', 'saved page still shows generation pending');
   assert.deepEqual(await a.page.evaluate(() => window.handoffObservation.invalidCounts), [], 'no disappearance or duplicate row during handoff');
   await a.page.evaluate(() => window.stopHandoffObservation());
@@ -454,7 +464,7 @@ test('deck UI: draft previews, all modules, the module limit, removal without co
     ['main-key', 'context', 'german-examples', 'german-explanation', 'sentence-usage', 'sentence-usage', 'sentence-usage']);
   await a.page.getByLabel('Options for Everyday Chinese').click();
   await a.page.locator('article.deck').filter({ hasText: 'Everyday Chinese' }).getByRole('button', { name: 'Set as default', exact: true }).click();
-  await a.page.locator('article.deck').filter({ hasText: 'Everyday Chinese' }).getByText('DEFAULT DECK', { exact: true }).waitFor();
+  await a.page.locator('article.deck').filter({ hasText: 'Everyday Chinese' }).getByText('Default', { exact: true }).waitFor();
   assert.equal((await application.store.snapshot()).id, created.id);
 
   const session = { installationId: 'fixture', sessionId: 'fixture-browser', epoch: 1 };
@@ -531,7 +541,7 @@ test('deck menus: page-list actions, Escape, cancellation, replacement and sole-
   await a.page.getByRole('button', { name: 'Delete deck', exact: true }).click();
   assert.equal(await a.page.getByRole('dialog').getByLabel('New default deck').inputValue(), (await application.store.account()).decks.find(deck => deck.id !== second.id).id);
   await a.page.getByRole('dialog').getByRole('button', { name: 'Delete deck', exact: true }).click();
-  await a.page.getByRole('heading', { name: 'Your decks.' }).waitFor();
+  await a.page.getByRole('heading', { name: 'Your decks', exact: true }).waitFor();
   assert.equal((await application.store.account()).decks.length, 1);
   await a.page.getByRole('heading', { name: 'My Deck', exact: true }).click();
   await a.page.getByRole('button', { name: 'Add page manually', exact: true }).waitFor();
@@ -540,7 +550,7 @@ test('deck menus: page-list actions, Escape, cancellation, replacement and sole-
   await a.page.getByRole('button', { name: 'Delete deck', exact: true }).click();
   await a.page.getByRole('dialog').getByText(/A new empty My Deck will replace it/).waitFor();
   await a.page.getByRole('dialog').getByRole('button', { name: 'Delete deck', exact: true }).click();
-  await a.page.getByRole('heading', { name: 'Your decks.' }).waitFor();
+  await a.page.getByRole('heading', { name: 'Your decks', exact: true }).waitFor();
   assert.notEqual((await application.store.snapshot()).id, original);
   assert.equal((await application.store.account()).decks.length, 1);
 });
@@ -572,7 +582,7 @@ test('appearance: all open views, drafts, dialogs, feedback lifetime, logout and
   let a = await launch(join(directory, 'a'), testingExtension);
   const b = await launch(join(directory, 'b'), testingExtension);
   t.after(async () => { await a.context.close(); await b.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
-  const theme = (page, value) => page.getByLabel('Appearance', { exact: true }).selectOption(value);
+  const theme = chooseAppearance;
   // data-appearance is the applied choice: 'system' (the default, D05), 'light' (Sage) or 'dark' (Moss night).
   const hasTheme = (page, value) => page.waitForFunction(value => document.documentElement.dataset.appearance === value &&
     (value === 'system' ? !('theme' in document.documentElement.dataset) : document.documentElement.dataset.theme === value), value);
@@ -633,7 +643,7 @@ test('appearance: all open views, drafts, dialogs, feedback lifetime, logout and
   await popup.screenshot({ path: 'artifacts/v0.2.0-feedback-popup-dark.png' });
   await closePromise;
   await a.page.getByRole('button', { name: 'Cancel', exact: true }).click();
-  await a.page.getByRole('button', { name: 'Log out', exact: true }).click();
+  await accountMenu(a.page); await a.page.getByRole('button', { name: 'Log out', exact: true }).click();
   await a.page.getByRole('heading', { name: 'Welcome back.' }).waitFor(); await hasTheme(a.page, 'dark');
   await a.context.close();
   a = await launch(join(directory, 'a'), testingExtension);
@@ -690,10 +700,11 @@ test('page rows: accessible states, sorting, every pointer target, text selectio
   const saving = a.page.locator('.capture').filter({ hasText: 'Saving example' });
   assert.equal(await saving.getAttribute('data-state'), 'loading');
   for (const theme of ['light', 'dark']) {
-    await a.page.getByLabel('Appearance', { exact: true }).selectOption(theme);
+    await chooseAppearance(a.page, theme);
     assert.equal(await saving.getByRole('img').getAttribute('aria-label'), 'Pending');
     assert.equal(await saving.getByRole('img').getAttribute('title'), 'Pending');
-    assert.equal(await saving.locator('p').count(), 1, 'only captured text remains, without helper or empty paragraph');
+    assert.equal(await saving.locator('p').count(), 0, 'only captured text remains, without helper or empty paragraph');
+    assert.equal(await saving.locator('.capture-text').count(), 1);
     assert.equal(await unsaved.getByText('Not saved to your account.', { exact: true }).count(), 1);
     await a.page.screenshot({ path: `artifacts/v0.2.0-dashboard-${theme}.png`, fullPage: true });
   }
@@ -708,7 +719,7 @@ test('page rows: accessible states, sorting, every pointer target, text selectio
   assert.equal(await row('neutral').getByRole('img').count(), 0);
   assert.equal(await row('loading').getByRole('img').getAttribute('aria-label'), 'Pending: generating');
   for (const theme of ['light', 'dark']) {
-    await a.page.getByLabel('Appearance', { exact: true }).selectOption(theme);
+    await chooseAppearance(a.page, theme);
     await row('completed').getByRole('button').focus();
     await a.page.screenshot({ path: `artifacts/v0.2.0-rows-${theme}.png`, fullPage: true });
     const cdp = await a.context.newCDPSession(a.page);
@@ -1066,7 +1077,7 @@ test('module window: drag modules onto a page and into deck settings, and reorde
   await drag(a.page, windowModule(a.page, 'sentence-usage'), a.page.locator('.drop-end'));
   await a.page.locator('.module-block').filter({ hasText: 'Sentence usage' }).waitFor();
   await a.page.getByRole('button', { name: 'Save', exact: true }).click();
-  await a.page.getByRole('heading', { name: 'Your decks.' }).waitFor();
+  await a.page.getByRole('heading', { name: 'Your decks', exact: true }).waitFor();
   assert.deepEqual((await store.deck(deckId)).modules.map(module => module.type), ['main-key', 'context', 'german-examples', 'sentence-usage']);
   assert.deepEqual(await types(), ['main-key', 'text', 'context', 'german-examples', 'text'], 'the page keeps its own modules');
 });
@@ -1195,7 +1206,7 @@ test('assembled reliability: lost acknowledgments, worker suspension, abrupt ori
   await waitFor(async () => (await application.store.attempt(modulesOf(interrupted)[1].attemptId)).result, 'origin result staged after crash');
   await waitFor(async () => (await application.store.pages()).find(page => page.selectedText === 'hold-other')?.status === 'completed', 'other installation completed');
   a = await launch(profile, extension); contexts.add(a.context);
-  await a.page.getByRole('heading', { name: 'Your decks.' }).waitFor();
+  await a.page.getByRole('heading', { name: 'Your decks', exact: true }).waitFor();
   assert.deepEqual(modulesOf(await application.store.page(interrupted.id)).map(item => item.status), ['completed', 'failed']);
   await assert.rejects(async () => (await application.store.publish('stale-origin', { attemptId: modulesOf(interrupted)[1].attemptId, session: oldSession })), { code: 'stale_session' });
 
@@ -1233,10 +1244,10 @@ test('dashboard capture feedback: shared appearance, original lifetime, originat
   t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
   await signIn(a.page);
   const other = await a.context.newPage(); await other.goto(`chrome-extension://${a.id}/app.html`);
-  await other.getByRole('heading', { name: 'Your decks.' }).waitFor();
+  await other.getByRole('heading', { name: 'Your decks', exact: true }).waitFor();
   const reading = await a.context.newPage(); await reading.goto(apiOrigin + '/health');
   for (const theme of ['light', 'dark']) {
-    await a.page.getByLabel('Appearance', { exact: true }).selectOption(theme);
+    await chooseAppearance(a.page, theme);
     assert.equal(await a.page.getByRole('heading', { name: 'Recent captures', exact: true }).evaluate(node => node.nextElementSibling === null), true, 'empty section has no replacement paragraph or gap');
     await a.page.screenshot({ path: `artifacts/v0.2.1-empty-dashboard-${theme}.png`, fullPage: true });
   }
@@ -1253,7 +1264,7 @@ test('dashboard capture feedback: shared appearance, original lifetime, originat
     return { text: node.textContent, item: inspect(node), close: inspect(node.querySelector('button')), label: node.querySelector('button').getAttribute('aria-label') };
   });
   for (const theme of ['light', 'dark']) {
-    await a.page.getByLabel('Appearance', { exact: true }).selectOption(theme);
+    await chooseAppearance(a.page, theme);
     assert.equal(await a.page.locator('#app p').filter({ hasText: /Select text on a webpage/ }).count(), 0);
     await a.page.bringToFront();
     const originalURL = a.page.url();
@@ -1289,7 +1300,7 @@ test('dashboard capture feedback: shared appearance, original lifetime, originat
   await a.page.waitForTimeout(1200); // A restarted timer would now exceed the original deadline below.
   // Force an account-content rerender by changing local receipt storage.
   await a.worker.evaluate(() => chrome.storage.local.set({ 'capture-rerender-test': { state: 'saved' } }));
-  await a.page.getByLabel('Appearance', { exact: true }).selectOption('light');
+  await chooseAppearance(a.page, 'light');
   await a.page.waitForFunction(() => document.querySelector('vocabularium-feedback')?.dataset.theme === 'light');
   assert.equal(await original.evaluate(node => node.isConnected), true);
   await feedback(a.page).waitFor({ state: 'detached', timeout: 4000 });
@@ -1361,7 +1372,7 @@ test('save feedback: successful publication stays quiet in both lists, failures 
   }, text);
   for (const theme of ['light', 'dark']) {
     hold = true;
-    await a.page.getByLabel('Appearance', { exact: true }).selectOption(theme);
+    await chooseAppearance(a.page, theme);
     await capture(`successful-${theme}`);
     await waitFor(() => held.length > 0, 'publication is deliberately held');
     for (const [index, page] of pages.entries()) {
@@ -1468,7 +1479,7 @@ test('upgrade: the first start discards earlier cached content, unsent captures,
   });
   await a.page.goto(`chrome-extension://${a.id}/app.html#karte/old`);
   await a.page.reload();
-  await a.page.getByRole('heading', { name: 'Your decks.' }).waitFor();
+  await a.page.getByRole('heading', { name: 'Your decks', exact: true }).waitFor();
   await a.page.getByRole('heading', { name: 'My Deck', exact: true }).waitFor();
   assert.equal(await a.page.getByRole('button', { name: 'Try saving again', exact: true }).count(), 0);
   assert.equal(await a.page.getByText('old capture').count(), 0);

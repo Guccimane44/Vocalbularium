@@ -1,9 +1,9 @@
 @import "theme.css";
 @import "fonts.css";
+@import "shell.css";
 :root { font: 16px/1.6 var(--font-text); color: var(--text); background: var(--background); }
 * { box-sizing: border-box; }
 body { margin: 0; }
-header { max-width: 1160px; margin: auto; padding: 32px 36px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); }
 .brand { font: 700 24px var(--font-display); color: inherit; text-decoration: none; }
 main { max-width: 1160px; margin: 48px auto; padding: 0 36px; }
 h1 { font: 600 48px/1.1 var(--font-display); letter-spacing: -0.5px; margin: 10px 0 18px; text-wrap: balance; }
@@ -23,7 +23,6 @@ button:disabled { opacity: .5; cursor: default; }
 .primary:hover { background: var(--primary-hover); }
 .login .primary { width: 100%; margin-top: 26px; }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 22px; margin-top: 36px; }
-.deck { background: var(--surface); padding: 28px; border: 1px solid var(--line); border-radius: 14px; min-height: 195px; }
 .deck .open { width: 100%; text-align: left; border: 0; padding: 0; background: none; }
 .badge { display: inline-block; font-size: 11px; padding: 4px 9px; border-radius: 20px; background: var(--completed-bg); color: var(--completed-cue); }
 .deck footer { margin-top: 25px; display: flex; justify-content: space-between; align-items: center; }
@@ -35,9 +34,6 @@ button:disabled { opacity: .5; cursor: default; }
 .list td, .list th { text-align: left; border-bottom: 1px solid var(--line); padding: 14px 12px; }
 pre { font: inherit; white-space: pre-wrap; overflow-wrap: anywhere; }
 .section-title { margin-top: 50px; }
-.capture { padding: 18px; border-bottom: 1px solid var(--line); }
-.capture > button { margin-right: 10px; }
-.capture-text { white-space: pre-wrap; overflow-wrap: anywhere; }
 .status-failed { color: var(--failed-cue); background: var(--failed-bg); }
 .status-loading { color: var(--pending-cue); background: var(--pending-bg); }
 .entry { text-align: left; border: 0; max-width: 720px; padding-left: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
@@ -96,7 +92,7 @@ h1, h2, .deck .open { overflow-wrap: anywhere; }
 .page-row[data-state="neutral"] .entry { padding-left: 0; }
 .list { table-layout: fixed; }
 .list th:first-child { width: 80px; }
-.capture .state-icon { float: right; margin: 0 0 10px 12px; }
+.capture .state-icon { margin: 0; }
 @media (forced-colors: active) { .page-row:hover { outline: 1px solid Highlight; } .state-icon { forced-color-adjust: auto; } }
 
 /* Page-owned modules (D02): content on the left, the module window on the right. */
