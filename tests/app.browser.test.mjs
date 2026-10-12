@@ -1404,7 +1404,21 @@ test('generation reveal: finished content rises into its card and is announced; 
   await card('German explanation').and(a.page.locator('[data-generating]')).waitFor();
   assert.equal(await card('German explanation').locator('.card-fold').isVisible(), false, 'no body while generating');
   assert.equal(await card('German explanation').locator('.list-status').count(), 0, 'no Generating line');
-  assert.equal(await card('German explanation').locator('.card-tab').evaluate(node => getComputedStyle(node, '::after').animationName), 'spark');
+  assert.equal(await card('German explanation').locator('.spark i').first().evaluate(node => getComputedStyle(node).animationName), 'travel');
+  // The comet runs round the tab's outline at a steady pace, corners and long edges alike.
+  const steps = await card('German explanation').locator('.spark i').first().evaluate(async head => {
+    const points = [];
+    for (let frame = 0; frame < 90; frame++) {
+      const box = head.getBoundingClientRect();
+      points.push([box.x + box.width / 2, box.y + box.height / 2, performance.now()]);
+      await new Promise(resolve => requestAnimationFrame(resolve));
+    }
+    return points.slice(1).map(([x, y, t], index) => Math.hypot(x - points[index][0], y - points[index][1]) / (t - points[index][2]))
+      .filter(speed => speed > 0 && speed < 5);
+  });
+  const sorted = [...steps].sort((a, b) => a - b), median = sorted[Math.floor(sorted.length / 2)];
+  assert.ok(sorted[Math.floor(sorted.length * .1)] > median * .6 && sorted[Math.floor(sorted.length * .9)] < median * 1.4,
+    `steady speed (10th–90th percentile ${sorted[Math.floor(sorted.length * .1)].toFixed(3)}–${sorted[Math.floor(sorted.length * .9)].toFixed(3)} px/ms, median ${median.toFixed(3)})`);
   assert.equal(await card('German explanation').getByRole('status').first().textContent(), 'German explanation: generating');
   await a.page.locator('.shaping-list').screenshot({ path: 'artifacts/v0.6.3-generating.png' });
 

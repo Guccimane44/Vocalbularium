@@ -21,6 +21,9 @@ const ACTION_ICONS = {
 const ActionIcon = ({ name }: { name: keyof typeof ACTION_ICONS }) => <svg className="action-icon" viewBox="0 0 24 24" aria-hidden="true"
   fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">{ACTION_ICONS[name]}</svg>;
 
+// The comet that runs round a generating card's tab: its head, then a fading trail.
+const SPARK_TRAIL = Array.from({ length: 16 }, (_, index) => index);
+
 // A deleted card pops where it stands, like a bubble, before it goes (0.6.3).
 const POOF_MS = 240;
 
@@ -369,6 +372,7 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
             <FamilyIcon family={family} />
             <span className="tab-label">{title}</span>
           </button></h2>
+          {generating && <span className="spark" aria-hidden="true">{SPARK_TRAIL.map(index => <i key={index} style={{ '--n': index } as CSSProperties} />)}</span>}
           {generating && <span className="visually-hidden" role="status">{title}: generating</span>}
         </div>
         {editingId !== item.id && actions(item, title)}

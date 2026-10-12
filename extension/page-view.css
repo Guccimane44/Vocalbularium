@@ -117,22 +117,29 @@
 }
 @media (prefers-reduced-motion: reduce) { .card-tab, .confirm-text { animation: none !important; } }
 @media (prefers-reduced-motion: reduce) { .card-actions[data-open] button, .row-menu-list { animation: none; } }
-/* Generating (0.6.3): the card is only its tab, and a spark runs round the
-   tab's edge, a short bright arc in the tab's label colour with a fading tail,
-   for as long as the work goes on. The content waits, closed, and rises in
-   once there is some. Under reduced motion the edge glows, still. */
+/* Generating (0.6.3): the card is only its tab, and a comet runs round the
+   tab's edge for as long as the work goes on: a bright head in the tab's
+   label colour with a glow, then a trail of smaller, fainter sparks. It
+   follows the tab's own rounded outline at a steady pace (offset-path along
+   the tab's box), while a soft halo in the family colour breathes around the
+   tab. The content waits, closed, and rises in once there is some. Under
+   reduced motion the edge glows, still. */
 .component[data-generating] .card-fold { display: none; }
-@property --spark { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
-.component[data-generating] .card-tab::after { content: ""; position: absolute; inset: 0; padding: 1.5px; pointer-events: none;
-  border-radius: var(--radius-control) var(--radius-control) var(--radius-control) 2px;
-  background: conic-gradient(from var(--spark), transparent 0 60%, color-mix(in srgb, var(--on-fam, var(--on-ink)) 30%, transparent) 80%,
-    var(--on-fam, var(--on-ink)) 93%, transparent 96%);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude;
-  filter: drop-shadow(0 0 2px var(--on-fam, var(--on-ink)));
-  animation: spark 1.6s linear infinite; }
-@keyframes spark { to { --spark: 360deg; } }
+.component[data-generating] .card-tab { animation: halo 2.4s ease-in-out infinite; }
+@keyframes halo {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--fam, var(--fam-notes)) 0%, transparent); }
+  50% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--fam, var(--fam-notes)) 22%, transparent), 0 0 14px 2px color-mix(in srgb, var(--fam, var(--fam-notes)) 35%, transparent); }
+}
+.spark { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; }
+.spark i { position: absolute; left: 0; top: 0; width: calc(5px - var(--n) * .2px); height: calc(5px - var(--n) * .2px); border-radius: 50%;
+  background: var(--on-fam, var(--on-ink)); opacity: calc(.9 - var(--n) * .055); filter: blur(calc(var(--n) * .06px));
+  offset-path: border-box; offset-rotate: 0deg; offset-anchor: center;
+  animation: travel 2.4s linear infinite; animation-delay: calc(var(--n) * 12ms - 2.4s); }
+.spark i:first-child { box-shadow: 0 0 6px 2px var(--on-fam, var(--on-ink)), 0 0 12px 3px color-mix(in srgb, var(--on-fam, var(--on-ink)) 45%, transparent); }
+@keyframes travel { from { offset-distance: 0%; } to { offset-distance: 100%; } }
 @media (prefers-reduced-motion: reduce) {
-  .component[data-generating] .card-tab::after { animation: none; background: color-mix(in srgb, var(--on-fam, var(--on-ink)) 55%, transparent); filter: none; }
+  .component[data-generating] .card-tab { animation: none; box-shadow: 0 0 0 2px color-mix(in srgb, var(--on-fam, var(--on-ink)) 55%, transparent) inset; }
+  .spark { display: none; }
 }
 
 /* Deleting (0.6.3): the card pops where it stands, like a bubble: it swells
