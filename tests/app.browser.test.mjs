@@ -1205,7 +1205,16 @@ test('page view: main key tiers, Show all, rendered and plain content, quiet car
   assert.deepEqual(await menu.getByRole('menuitem').evaluateAll(items => items.map(item => [item.firstChild.textContent, item.getAttribute('aria-disabled')])),
     [['Duplicate', 'true'], ['Copy text', 'true'], ['Move to page…', 'true']]);
   await a.page.keyboard.press('Escape');
-  assert.equal(await menu.count(), 0);
+  // A menu lies above the cards below it, their tabs included: Context is empty, so the next tab is right under it.
+  await a.page.getByRole('button', { name: 'More for Context', exact: true }).click();
+  const contextMenu = a.page.getByRole('menu', { name: 'More for Context' });
+  const covered = await contextMenu.getByRole('menuitem').evaluateAll(items => items.filter(item => {
+    const box = item.getBoundingClientRect();
+    return !document.elementFromPoint(box.left + 8, box.top + box.height / 2)?.closest('[role="menu"]');
+  }).map(item => item.firstChild.textContent));
+  assert.deepEqual(covered, [], 'no menu entry is hidden under the next card');
+  await a.page.keyboard.press('Escape');
+  assert.equal(await contextMenu.count(), 0);
   for (const theme of ['light', 'dark']) {
     await chooseAppearance(a.page, theme);
     await a.page.screenshot({ path: `artifacts/v0.6.0-page-${theme}.png`, fullPage: true });

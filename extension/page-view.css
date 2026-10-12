@@ -52,6 +52,9 @@
 .menu-button { flex: none; padding: 2px 4px; border: 0; border-radius: 4px; font-size: 13px; line-height: 1; letter-spacing: -2px; color: inherit; background: transparent; cursor: pointer; }
 .menu-button:hover, .menu-button[aria-expanded="true"] { background: color-mix(in srgb, currentColor 18%, transparent); }
 .row-menu { position: relative; display: inline-flex; flex: none; }
+/* Each tab is its own layer (it stays above the actions it ejects), so an open
+   menu lifts its tab, and its row, above the cards and tabs that follow. */
+.card-tab:has(.row-menu-list), .sortable-row:has(.row-menu-list) { z-index: 6; }
 .row-menu-list { position: absolute; top: calc(100% + 6px); left: -4px; z-index: 5; min-width: 210px; margin: 0; padding: 4px; list-style: none;
   border-radius: var(--radius-md); background: var(--surface); color: var(--ink); box-shadow: 0 0 0 1px var(--line), var(--shadow-lift);
   font: 500 13px/1.2 var(--font-text); letter-spacing: normal; animation: menu-open var(--dur-quick) var(--ease-out) both; transform-origin: top left; }
