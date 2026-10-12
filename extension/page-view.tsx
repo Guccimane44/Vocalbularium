@@ -199,13 +199,15 @@ function ConfirmDelete({ title, offset, onDelete, onCancel }: { title: string; o
   </div>;
 }
 
-// A module from the window, shown where it would land on the page: the empty
-// card it will become, lifted as a dragged card is.
+// A module from the window, shown where it would land on the page: built
+// like the empty card it will become, so the card that arrives takes its
+// place unchanged. It is only a picture; the row says what is happening.
 function LandingCard({ type }: { type: string }) {
   const family = isModuleType(type) ? CATALOG[type].family ?? 'notes' : 'notes';
-  return <article className={`component fam-${family}`} data-empty data-landing data-type={type}>
+  return <article className={`component fam-${family}`} data-empty data-landing data-type={type} aria-hidden="true">
     <div className="card-head"><div className="card-tab">
-      <span className="tab-button"><FamilyIcon family={family} /><span className="tab-label">{moduleLabel(type)}</span></span>
+      <span className="row-menu"><span className="menu-button">⠿</span></span>
+      <h2><span className="tab-button"><FamilyIcon family={family} /><span className="tab-label">{moduleLabel(type)}</span></span></h2>
     </div></div>
   </article>;
 }

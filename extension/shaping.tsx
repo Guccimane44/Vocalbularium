@@ -113,7 +113,13 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
   saved.current = ids;
   useEffect(() => { setOrder(ids); setAdding(null); }, [key]);
   const byId = new Map(items.map(item => [item.id, item]));
-  const shown = [...order.filter(id => byId.has(id)), ...ids.filter(id => !order.includes(id))].map(id => byId.get(id)!);
+  // The local order only stands for a move still being saved. Once an entry
+  // is added or removed, the saved order is shown at once, so a new entry
+  // appears in its place rather than first at the end (0.6.3).
+  const reordering = order.length === ids.length && ids.every(id => order.includes(id));
+  const shown = (reordering ? order : ids).map(id => byId.get(id)!);
+  // A module being added holds its place until its entry arrives.
+  const waiting = adding && reordering ? adding : null;
   // dnd-kit compares the sortable IDs by identity and turns the other entries'
   // sliding off when they change, so keep one array while the order is the
   // same: the area re-renders on every pointer move of a drag.
@@ -177,9 +183,11 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
   // A window module over the list stands where it would land, like the entry
   // it will become, and the entries make room around it (0.6.3).
   const incoming = dragged?.startsWith(WINDOW) && slot !== null ? dragged.slice(WINDOW.length) : null;
-  if (incoming !== null) rows.splice(Math.min(slot!, rows.length), 0, <LandingRow key="landing" type={incoming} render={renderLanding} />);
-  else if (adding) rows.splice(Math.min(adding.index, rows.length), 0, <div key="adding" className="sortable-row landing-row" data-saving role="status">
-    {renderLanding(adding.type)}<span className="visually-hidden">Adding {moduleLabel(adding.type)}…</span></div>);
+  // One row from the first moment over the list until the entry arrives: the
+  // same element while dragged, dropped and saved, then the entry itself in
+  // the same place, so the module never changes look or jumps.
+  if (incoming !== null) rows.splice(Math.min(slot!, rows.length), 0, <LandingRow key="incoming" type={incoming} render={renderLanding} />);
+  else if (waiting) rows.splice(Math.min(waiting.index, rows.length), 0, <LandingRow key="incoming" type={waiting.type} render={renderLanding} saving />);
   const list = useRef<HTMLElement>(null);
   // The entries also slide into place when one is added or deleted.
   useMakeRoom(list, `${incoming ?? ''}:${incoming !== null ? slot : ''}:${shownKey}`);
@@ -249,9 +257,12 @@ export function RowMenu({ label, items }: { label: string; items: readonly strin
 
 // The landing card: a drop target of its own, so the pointer resting on it
 // keeps the module where it is.
-function LandingRow({ type, render }: { type: string; render: (type: string) => ReactNode }) {
-  const { setNodeRef } = useDroppable({ id: LANDING });
-  return <div ref={setNodeRef} className="sortable-row landing-row" data-row-id={LANDING}>{render(type)}</div>;
+function LandingRow({ type, render, saving = false }: { type: string; render: (type: string) => ReactNode; saving?: boolean }) {
+  const { setNodeRef } = useDroppable({ id: LANDING, disabled: saving });
+  return <div ref={setNodeRef} className="sortable-row landing-row" data-row-id={LANDING} data-saving={saving || undefined} role={saving ? 'status' : undefined}>
+    {render(type)}
+    {saving && <span className="visually-hidden">Adding {moduleLabel(type)}…</span>}
+  </div>;
 }
 
 // When the landing card moves, the entries around it slide into their new

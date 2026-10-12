@@ -1440,9 +1440,35 @@ test('module window: drag modules onto a page and into deck settings, and reorde
   assert.deepEqual(await types(), ['main-key', 'context', 'german-examples'], 'a module dropped back on the window is not added');
   assert.equal(await a.page.locator('.landing-row').count(), 0);
 
-  // Drag Text from the window onto the upper half of the Context card: it lands before it.
-  await drag(a.page, windowModule(a.page, 'text'), card('Context'), { above: true });
+  // Drag Text from the window onto the upper half of the Context card: it lands before it. From the
+  // drop until the card arrives, it stays one element in one place, built like the card (0.6.3).
+  await openFamily(windowModule(a.page, 'text'));
+  const source = await windowModule(a.page, 'text').boundingBox();
+  await a.page.mouse.move(source.x + source.width / 2, source.y + source.height / 2);
+  await a.page.mouse.down();
+  await a.page.mouse.move(source.x + source.width / 2 + 10, source.y + source.height / 2 + 10, { steps: 4 });
+  const target = await card('Context').boundingBox();
+  await a.page.mouse.move(target.x + target.width / 2, target.y + target.height / 4, { steps: 10 });
+  await landingCard.waitFor();
+  await a.page.locator('.shaping-list').evaluate(list => Promise.all(list.getAnimations({ subtree: true })
+    .filter(animation => animation.effect?.getTiming().iterations !== Infinity).map(animation => animation.finished)));
+  await a.page.evaluate(() => {
+    window.incoming = document.querySelector('.landing-row');
+    window.track = [];
+    const sample = () => {
+      const node = document.querySelector('.shaping-list article.component[data-type="text"] .card-tab');
+      if (node) window.track.push(Math.round(node.getBoundingClientRect().y));
+      if (window.track.length < 240) requestAnimationFrame(sample);
+    };
+    sample();
+  });
+  await a.page.mouse.up();
+  assert.equal(await a.page.evaluate(() => document.querySelector('.landing-row[data-saving]') === window.incoming), true, 'the dropped module is the same element');
   await waitFor(async () => (await types()).includes('text'), 'Text dragged onto the page');
+  await card('Text').waitFor();
+  await waitFor(() => a.page.evaluate(() => window.track.length >= 240), 'arrival tracked', 8000);
+  const track = await a.page.evaluate(() => window.track);
+  assert.ok(Math.max(...track) - Math.min(...track) <= 3, `the module stays in place from drop to arrival (${Math.min(...track)}–${Math.max(...track)})`);
   assert.deepEqual(await types(), ['main-key', 'text', 'context', 'german-examples']);
   assert.deepEqual((await store.deck((await store.page(pageId)).deckId)).modules.map(module => module.type),
     ['main-key', 'context', 'german-examples'], 'the deck is unchanged');

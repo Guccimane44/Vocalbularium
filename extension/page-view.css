@@ -146,15 +146,15 @@
    failed colour, until the user types. */
 .component-field .field-error::placeholder { color: var(--status-failed); opacity: 1; font-weight: 500; }
 .component-field .field-error:placeholder-shown { border-color: var(--status-failed); box-shadow: 0 0 0 1px var(--status-failed); }
-/* A module from the window where it would land: the card it will become,
-   lifted and tilted like a dragged card; once dropped it waits, quieter,
-   until it is saved. */
+/* A module from the window where it would land: built like the entry it will
+   become, lifted while it is dragged; dropped, it settles (the lift fades on
+   the same element) and the entry that arrives takes its place unchanged. */
 .landing-row [data-landing] { pointer-events: none; }
-.landing-row .component[data-landing] .card-tab { box-shadow: var(--shadow-drag); transform: rotate(-1deg); }
-.landing-row .component[data-landing] .card-head .card-tab .tab-button { cursor: grabbing; }
-.landing-row .module-block[data-landing] { box-shadow: inset 3px 0 0 var(--fam), 0 0 0 1px var(--line), var(--shadow-drag); transform: rotate(-1deg); }
-.landing-row[data-saving] [data-landing] { opacity: .6; }
-.landing-row[data-saving] .component[data-landing] .card-tab, .landing-row[data-saving] .module-block[data-landing] { transform: none; box-shadow: none; }
+.landing-row .component[data-landing] .card-tab { box-shadow: var(--shadow-drag); transition: box-shadow var(--dur-spring) var(--ease-out); }
+.landing-row .module-block[data-landing] { box-shadow: inset 3px 0 0 var(--fam), 0 0 0 1px var(--line), var(--shadow-drag);
+  transition: box-shadow var(--dur-spring) var(--ease-out); }
+.landing-row[data-saving] .component[data-landing] .card-tab { box-shadow: none; }
+.landing-row[data-saving] .module-block[data-landing] { box-shadow: inset 3px 0 0 var(--fam), 0 0 0 1px var(--line); }
 .drag-preview .component { margin: 0; }
 .sortable-row[data-dragging] > .component { box-shadow: inset 0 3px 0 var(--fam, var(--fam-notes)), 0 0 0 1px var(--line), var(--shadow-drag); }
 
