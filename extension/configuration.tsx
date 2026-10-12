@@ -197,6 +197,9 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
         </div>
       </>}
       menuItems={DECK_MODULE_MENU}
+      renderLanding={type => <div className={`module-block fam-${familyOf(type)}`} data-landing data-type={type}>
+        <span className="block-label"><FamilyIcon family={familyOf(type)} /><span>{moduleLabel(type)}</span></span>
+      </div>}
       renderItem={(item, { drag, menu }) => <div className={`module-block fam-${familyOf(item.type)}`} data-type={item.type}>
         {menu}
         <span className="block-label" {...drag} aria-disabled={undefined}>

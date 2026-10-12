@@ -983,12 +983,35 @@ test('manual page UI: per-card actions, drafts, leave choices, sorting, failed-s
   await drag(a.page, cardTab(a.page, 'Text'), componentArticle(a.page, 'German explanation + examples'));
   await waitFor(async () => (await shape())[2][0] === 'text', 'Text moved up');
   assert.equal(await a.page.getByRole('button', { name: /^Move / }).count(), 0, 'no move buttons (D04)');
-  await (await cardButton(a.page, 'Delete Context')).click();
-  await a.page.getByRole('dialog').getByRole('button', { name: 'Cancel', exact: true }).click();
+  // Deleting a component with content asks beside its tab, not in a dialog (0.6.3): Cancel lands
+  // under the pointer, where Delete was, and the final Delete stands to its left.
+  const askDelete = await cardButton(a.page, 'Delete Context');
+  await a.page.locator('.card-actions[data-open]').evaluate(node => Promise.all(node.getAnimations({ subtree: true }).map(animation => animation.finished)));
+  const was = await askDelete.boundingBox();
+  await askDelete.click();
+  const keep = a.page.getByRole('button', { name: 'Keep Context', exact: true });
+  const confirmDelete = a.page.getByRole('button', { name: 'Yes, delete Context', exact: true });
+  await keep.waitFor();
+  assert.equal(await a.page.getByRole('dialog').count(), 0, 'no dialog');
+  assert.equal(await a.page.locator('.confirm-text').textContent(), 'Are you sure you want to delete Context? This can’t be undone.');
+  await a.page.locator('[data-confirm]').evaluate(node => Promise.all(node.getAnimations({ subtree: true }).map(animation => animation.finished)));
+  assert.equal(await a.page.evaluate(([x, y]) => document.elementFromPoint(x, y)?.closest('button')?.getAttribute('aria-label'),
+    [was.x + was.width / 2, was.y + was.height / 2]), 'Keep Context', 'Cancel is under the pointer');
+  assert.ok((await confirmDelete.boundingBox()).x < (await keep.boundingBox()).x, 'the final Delete is to the left of Cancel');
+  assert.equal(await a.page.evaluate(() => document.activeElement.getAttribute('aria-label')), 'Keep Context', 'focus is on Cancel');
+  await a.page.locator('.shaping-list').screenshot({ path: 'artifacts/v0.6.3-confirm-delete.png' });
+  await keep.click();
+  assert.equal(await confirmDelete.count(), 0);
   assert.equal((await shape()).length, 4);
   await (await cardButton(a.page, 'Delete Context')).click();
-  await a.page.getByRole('dialog').getByRole('button', { name: 'Delete', exact: true }).click();
+  await confirmDelete.click();
   await waitFor(async () => (await shape()).length === 3, 'Context deleted');
+  // An empty component goes at once, without asking.
+  await addFromWindow(a.page, 'sentence-usage');
+  await waitFor(async () => (await shape()).length === 4, 'Sentence usage added');
+  await (await cardButton(a.page, 'Delete Sentence usage')).click();
+  await waitFor(async () => (await shape()).length === 3, 'empty Sentence usage deleted at once');
+  assert.equal(await a.page.locator('[data-confirm]').count(), 0, 'no question for an empty component');
   assert.deepEqual(await shape(), [['main-key', 'zebra'], ['text', ''], ['german-examples', '']]);
   // The main key is the page title, shown once: no card, no lock mark (0.6.3), and only Edit, always visible like Delete page.
   const header = a.page.locator('.page-header[data-type="main-key"]');
@@ -1397,15 +1420,25 @@ test('module window: drag modules onto a page and into deck settings, and reorde
   const contextCard = await card('Context').boundingBox();
   await a.page.mouse.move(textModule.x + textModule.width / 2, textModule.y + textModule.height / 2);
   await a.page.mouse.down();
-  await a.page.mouse.move(contextCard.x + contextCard.width / 2, contextCard.y + contextCard.height / 2, { steps: 10 });
-  await a.page.locator('.sortable-row[data-insert-before]').waitFor();
+  await a.page.mouse.move(contextCard.x + contextCard.width / 2, contextCard.y + contextCard.height / 4, { steps: 10 });
+  // Over the page it stands in the card column as the card it will become, and the cards make room (0.6.3).
+  const landingCard = a.page.locator('.landing-row .component[data-landing][data-type="text"]');
+  await landingCard.waitFor();
+  assert.equal(await a.page.locator('.drag-preview').count(), 0, 'no floating label over the page');
+  assert.deepEqual(await a.page.locator('.shaping-list [data-row-id]').evaluateAll(rows => rows.map(row => row.dataset.rowId === 'landing' ? 'landing' : 'card')),
+    ['landing', 'card', 'card'], 'it stands before Context');
+  const columnLeft = async locator => Math.round((await locator.locator('.card-tab').boundingBox()).x);
+  assert.equal(await columnLeft(landingCard), await columnLeft(card('Context')), 'aligned with the cards');
+  await waitFor(async () => (await card('Context').boundingBox()).y > contextCard.y + 20, 'Context makes room');
+  await a.page.locator('.shaping-list').screenshot({ path: 'artifacts/v0.6.3-drag-in.png' });
   await a.page.mouse.move(textModule.x + textModule.width / 2, textModule.y + textModule.height / 2, { steps: 10 });
   await a.page.locator('.module-window[data-over]').waitFor();
-  assert.equal(await a.page.locator('.sortable-row[data-insert-before]').count(), 0, 'no drop line over the window');
+  assert.equal(await landingCard.count(), 0, 'nothing stands in the list over the window');
+  await a.page.locator('.drag-preview').waitFor();
   await a.page.mouse.up();
   await new Promise(resolve => setTimeout(resolve, 300));
   assert.deepEqual(await types(), ['main-key', 'context', 'german-examples'], 'a module dropped back on the window is not added');
-  assert.equal(await a.page.locator('.component.adding').count(), 0);
+  assert.equal(await a.page.locator('.landing-row').count(), 0);
 
   // Drag Text from the window onto the upper half of the Context card: it lands before it.
   await drag(a.page, windowModule(a.page, 'text'), card('Context'), { above: true });

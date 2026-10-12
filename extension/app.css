@@ -79,15 +79,14 @@ h1, h2, .deck .open { overflow-wrap: anywhere; }
 .sortable-row[data-dragging] { z-index: 2; }
 .sortable-row[data-dragging] > * { box-shadow: 0 8px 24px #0002; }
 /* Where a module dragged from the window will land (D04). */
-.sortable-row[data-insert-before]::before { content: ""; position: absolute; left: 0; right: 0; top: -10px; height: 4px; border-radius: 2px; background: var(--focus); }
-.drag-preview { padding: 12px 16px; border: 1px solid var(--focus); border-radius: 10px; background: var(--surface); box-shadow: 0 10px 28px #0003; font-size: 14px; font-weight: 600; cursor: grabbing; width: max-content; }
+.drag-preview { width: max-content; cursor: grabbing; }
 .window-module-body:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; border-radius: 6px; }
 .component-tools { margin-top: 12px; }
 /* The main key's mark, where the other modules and cards have a drag handle. */
 .drop-end { padding: 14px; border: 1px dashed var(--border); border-radius: 10px; text-align: center; font-size: 13px; color: var(--muted); }
 .drop-end[data-over] { border-color: var(--focus); border-style: solid; color: var(--text); }
 @media (max-width: 900px) { .shaping-layout { grid-template-columns: 1fr; } .module-window { position: static; } }
-@media (forced-colors: active) { .drop-end[data-over], .sortable-row[data-dragging] { outline: 2px solid Highlight; } .sortable-row[data-insert-before]::before { background: Highlight; } }
+@media (forced-colors: active) { .drop-end[data-over], .sortable-row[data-dragging] { outline: 2px solid Highlight; } }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }

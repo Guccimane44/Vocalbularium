@@ -172,6 +172,39 @@ export function MainKeyTitle({ text }: { text: string }) {
   </>;
 }
 
+// Deleting a component that has content asks first, ejected from the tab like
+// its actions (0.6.3): the final Delete and Cancel, then the question. Cancel
+// lands where the Delete just clicked was, under the pointer, so a second
+// click does not delete; the final Delete stands to its left.
+function ConfirmDelete({ title, offset, onDelete, onCancel }: { title: string; offset: number; onDelete: () => void; onCancel: () => void }) {
+  const confirm = useRef<HTMLButtonElement>(null);
+  const cancel = useRef<HTMLButtonElement>(null);
+  const [inset, setInset] = useState(0);
+  useLayoutEffect(() => {
+    setInset(Math.max(0, offset - (confirm.current?.offsetWidth ?? 0) - 4));
+    cancel.current?.focus();
+  }, [offset]);
+  const questionId = `confirm-${title.replace(/\W+/g, '-')}`;
+  return <div className="card-actions" role="group" aria-label={`Delete ${title}?`} aria-describedby={questionId} data-open data-confirm
+    style={{ paddingLeft: inset }}>
+    <button ref={confirm} style={{ '--i': 0 } as CSSProperties} className="action-confirm" aria-label={`Yes, delete ${title}`} onClick={onDelete}>
+      <ActionIcon name="delete" />Delete</button>
+    <button ref={cancel} style={{ '--i': 1 } as CSSProperties} aria-label={`Keep ${title}`} onClick={onCancel}>Cancel</button>
+    <span id={questionId} className="confirm-text" style={{ '--i': 2 } as CSSProperties}>Are you sure you want to delete {title}? This can’t be undone.</span>
+  </div>;
+}
+
+// A module from the window, shown where it would land on the page: the empty
+// card it will become, lifted as a dragged card is.
+function LandingCard({ type }: { type: string }) {
+  const family = isModuleType(type) ? CATALOG[type].family ?? 'notes' : 'notes';
+  return <article className={`component fam-${family}`} data-empty data-landing data-type={type}>
+    <div className="card-head"><div className="card-tab">
+      <span className="tab-button"><FamilyIcon family={family} /><span className="tab-label">{moduleLabel(type)}</span></span>
+    </div></div>
+  </article>;
+}
+
 function readFolded(key: string | null): ReadonlySet<string> {
   try {
     const saved: unknown = key ? JSON.parse(localStorage.getItem(key) ?? '[]') : [];
@@ -184,6 +217,9 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
   const [working, setWorking] = useState(false);
   // The card whose tab has ejected its actions; one at a time.
   const [opened, setOpened] = useState<string | null>(null);
+  // The card asking whether to delete, and where its Delete stood in the row.
+  const [confirming, setConfirming] = useState<{ id: string; offset: number } | null>(null);
+  useEffect(() => { if (opened !== confirming?.id) setConfirming(null); }, [opened]);
   // Folded cards show only their tab on a slim band; remembered per page in
   // this browser, a convenience that never reaches the account (0.6.3).
   const foldKey = page ? `folded-${page.id}` : null;
@@ -242,6 +278,9 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
     const firstRun = generated && item.attemptId === null && !blockText(item.content);
     const open = opened === item.id;
     if (!open && !(item.status === 'failed' && generated)) return null;
+    if (open && confirming?.id === item.id) return <ConfirmDelete title={title} offset={confirming.offset}
+      onCancel={() => setConfirming(null)}
+      onDelete={() => { setConfirming(null); setOpened(null); void run(async () => { await deleteComponent(item); }); }} />;
     // An empty component is already only its tab: there is nothing to fold.
     const foldable = Boolean(blockText(item.content)) || item.status === 'loading' || item.status === 'failed';
     const isFolded = folded.has(item.id);
@@ -259,7 +298,13 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
       {open && foldable && <button style={order()} aria-label={`${isFolded ? 'Unfold' : 'Fold'} ${title}`} onClick={choose(() => fold(item.id, !isFolded))}>
         <ActionIcon name={isFolded ? 'unfold' : 'fold'} />{isFolded ? 'Unfold' : 'Fold'}</button>}
       {open && <button style={order()} className="action-delete" aria-label={`Delete ${title}`} disabled={disabled || working || item.status === 'loading'}
-        onClick={choose(() => void run(async () => { await deleteComponent(item); }))}>
+        onClick={event => {
+          // An empty component has nothing to lose: it goes at once.
+          if (!blockText(item.content)) { choose(() => void run(async () => { await deleteComponent(item); }))(); return; }
+          // Where Delete stands within the row, transforms aside: offsetLeft counts from the card's head.
+          const button = event.currentTarget;
+          setConfirming({ id: item.id, offset: button.offsetLeft - (button.parentElement?.offsetLeft ?? 0) });
+        }}>
         <ActionIcon name="delete" />Delete</button>}
     </div>;
   };
@@ -322,6 +367,7 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
       onAdd={(type, index) => addModule(type, index + 1)}
       onMove={(id, index) => moveComponent(id, index + 1)}
       menuItems={COMPONENT_MENU}
+      renderLanding={type => <LandingCard type={type} />}
       renderItem={(item, parts) => card(item.component, item.label, parts)} />
     {lost.map(id => <div key={id}>
       <p className="notice">The component you were editing no longer exists. Its unsaved text is preserved below.</p>

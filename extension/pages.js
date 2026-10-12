@@ -1,5 +1,4 @@
 import { blockText, textBlocks } from '@vocabularium/domain/pages';
-import { moduleLabel } from './shaping.tsx';
 import { dialog } from './dialog.ts';
 import { PageView } from './page-view.tsx';
 /** @typedef {import('../types/editor-drafts.js').PageEditorDraft} PageEditorDraft */
@@ -111,12 +110,9 @@ export function pageViews({ getAccount, renderView, refresh, send, applyState, n
   async function shape(type, payload) {
     try { await applyState(await send({ type, payload })); return true; } catch (error) { showError(error); return false; }
   }
+  // The page view asks first, beside the card's tab, unless the component is empty (0.6.3).
   async function deleteComponent(page, component) {
-    const label = moduleLabel(component.moduleType);
-    const decision = await dialog({ title: `Delete ${label}?`,
-      message: `${label} and its content will be removed from this page. Generation will not bring it back; you can add the module again from the module window.`,
-      choices: ['Cancel', 'Delete'] });
-    if (decision.choice === 'Delete') await shape('delete-component', { pageId: page.id, componentId: component.id });
+    await shape('delete-component', { pageId: page.id, componentId: component.id });
   }
   function render(hash, local, externalError) {
     const [, id] = hash.split('/');

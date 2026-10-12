@@ -90,12 +90,21 @@
 .card-actions .action-failed:not(:disabled):hover { background: var(--status-failed); color: var(--status-failed-bg); }
 .card-actions button:disabled { opacity: .5; cursor: default; background: var(--fam-tint, var(--fam-notes-tint)); }
 .card-actions .action-failed:disabled { background: var(--status-failed); }
+.card-actions .action-confirm, .card-actions .action-confirm:not(:disabled):hover { background: var(--status-failed); color: var(--status-failed-bg); box-shadow: none; }
+/* The question after the final Delete and Cancel wraps within the card's width. */
+.card-head:has(> [data-confirm]) { align-items: flex-start; }
+.card-actions[data-confirm] { flex: 1 1 auto; min-width: 0; align-items: flex-start; }
+.card-actions[data-confirm] button { flex: none; }
+.card-head:has(> [data-confirm]) .card-tab { flex: none; }
+.confirm-text { flex: 0 1 auto; min-width: 0; margin-left: 2px; padding: 5px 10px; border-radius: var(--radius-control); font: 500 13px/1.35 var(--font-text);
+  color: var(--ink-soft); background: var(--surface); box-shadow: 0 0 0 1px var(--line); }
+.card-actions[data-open] .confirm-text { animation: eject var(--dur-spring) var(--ease-spring) both; animation-delay: calc(var(--i, 0) * 40ms); transform-origin: left center; }
 .card-actions[data-open] button { animation: eject var(--dur-spring) var(--ease-spring) both; animation-delay: calc(var(--i, 0) * 40ms); transform-origin: left center; }
 @keyframes eject {
   from { opacity: 0; transform: translateX(calc(-36px - var(--i, 0) * 28px)) scale(.7); }
   50% { opacity: 1; }
 }
-@media (prefers-reduced-motion: reduce) { .card-tab { animation: none !important; } }
+@media (prefers-reduced-motion: reduce) { .card-tab, .confirm-text { animation: none !important; } }
 @media (prefers-reduced-motion: reduce) { .card-actions[data-open] button, .row-menu-list { animation: none; } }
 /* Folding (0.6.3): the content slides shut and fades while the card narrows
    to a slim band under its tab, and opens the same way. The height moves by
@@ -114,7 +123,16 @@
    failed colour, until the user types. */
 .component-field .field-error::placeholder { color: var(--status-failed); opacity: 1; font-weight: 500; }
 .component-field .field-error:placeholder-shown { border-color: var(--status-failed); box-shadow: 0 0 0 1px var(--status-failed); }
-.component.adding { padding: 18px 26px; border-radius: var(--radius-card); box-shadow: 0 0 0 1px var(--line-control); color: var(--ink-muted); background: transparent; }
+/* A module from the window where it would land: the card it will become,
+   lifted and tilted like a dragged card; once dropped it waits, quieter,
+   until it is saved. */
+.landing-row [data-landing] { pointer-events: none; }
+.landing-row .component[data-landing] .card-tab { box-shadow: var(--shadow-drag); transform: rotate(-1deg); }
+.landing-row .component[data-landing] .card-head .card-tab .tab-button { cursor: grabbing; }
+.landing-row .module-block[data-landing] { box-shadow: inset 3px 0 0 var(--fam), 0 0 0 1px var(--line), var(--shadow-drag); transform: rotate(-1deg); }
+.landing-row[data-saving] [data-landing] { opacity: .6; }
+.landing-row[data-saving] .component[data-landing] .card-tab, .landing-row[data-saving] .module-block[data-landing] { transform: none; box-shadow: none; }
+.drag-preview .component { margin: 0; }
 .sortable-row[data-dragging] > .component { box-shadow: inset 0 3px 0 var(--fam, var(--fam-notes)), 0 0 0 1px var(--line), var(--shadow-drag); }
 
 /* Rendered content */
@@ -169,7 +187,11 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
   box-shadow: inset 3px 0 0 var(--fam), 0 0 0 1px var(--line); transition: box-shadow var(--dur-instant) ease, transform var(--dur-spring) var(--ease-spring); }
 .window-module:not([aria-disabled="true"]):hover { transform: translateY(-1px); box-shadow: inset 3px 0 0 var(--fam), 0 0 0 1px var(--line-control), var(--shadow-lift); }
 .window-present { font-size: 12px; font-weight: 600; color: var(--ink-soft); }
-.drag-preview { border: 0; box-shadow: 0 0 0 1px var(--line), var(--shadow-drag); transform: rotate(-1.5deg); }
+/* Outside the list, the module follows the pointer as the card it will become. */
+.drag-preview { transform: rotate(-1.5deg); }
+.drag-preview .component[data-empty] { margin-top: 0; }
+.drag-preview .card-tab { box-shadow: var(--shadow-drag); }
+.drag-preview .module-block { box-shadow: inset 3px 0 0 var(--fam), 0 0 0 1px var(--line), var(--shadow-drag); }
 
 @media (max-width: 900px) {
   .main-key[data-tier="word"] { font-size: 48px; }
