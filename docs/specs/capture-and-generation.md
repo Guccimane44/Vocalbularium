@@ -67,7 +67,7 @@ All generation actions use the page's current main key and saved Context and the
 | Action | Targets | Confirmation |
 | --- | --- | --- |
 | Capture | Every content module instance on the new page | None; runs automatically |
-| **Retry** (in a card), empty component | One content component with nothing in it, such as one that never generated | None; nothing is replaced |
+| **Retry** (in a card), empty component | One content component with nothing in it: one that never generated, failed, or generated nothing | None; nothing is replaced |
 | **Retry** (in a card), with content | One content component that has generated, or that the user wrote into | Always |
 
 Since 0.5.1 ([D04](../architecture/traceability-map.md#entries)) the extension offers generation per card only. The API still accepts generating every not-yet-generated component of a page and retrying a whole page, with the same confirmation rule.

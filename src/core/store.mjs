@@ -548,9 +548,10 @@ export class AccountStore {
       try { targets = generationTargets(target, page.components); }
       catch (error) { fail('invalid', error.message); }
       if (targets.some(component => component.status === 'loading')) fail('generating', 'A component is already generating.');
-      // Replacing content needs confirmation; a component that never generated
-      // and is still empty has nothing to replace.
-      const replaces = targets.some(component => component.attemptId !== null || blockText(component.content));
+      // Replacing content needs confirmation. A component with nothing in it has
+      // nothing to replace, whether it never generated, failed, or generated
+      // nothing (0.6.3; until then any earlier attempt needed confirmation).
+      const replaces = targets.some(component => blockText(component.content));
       if (target.scope !== 'missing' && replaces) {
         const expected = this.confirmationDigest(targets);
         if (confirmation !== expected) {

@@ -90,7 +90,7 @@ Upgrading from 0.6.0 to 0.6.1 keeps all decks and pages; there is no migration a
 
 Upgrading from 0.6.1 to 0.6.2 keeps all decks and pages. Stop the API, run `npm run db:migrate` (migration 0009 adds an empty deck colour, so every deck keeps the colour it showed), start the API with 0.6.2, then reload the extension. Deck reads and deck summaries gain a `colour` field, and a deck save accepts one. A 0.6.1 extension ignores the field and keeps working with the 0.6.2 API; a 0.6.2 extension cannot save a deck through a 0.6.1 API, which rejects the field.
 
-Upgrading from 0.6.2 to 0.6.3 keeps all decks and pages; there is no migration and no API change. Reload the extension; restarting the API only updates its reported version.
+Upgrading from 0.6.2 to 0.6.3 keeps all decks and pages; there is no migration. Restart the API with 0.6.3, then reload the extension: the 0.6.3 API retries a component with nothing in it (one that failed or generated nothing) without asking for confirmation, as the 0.6.3 extension expects. With a 0.6.2 API such a retry falls back to the confirmation dialog.
 
 ## Current delivery boundary
 

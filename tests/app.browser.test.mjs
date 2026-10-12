@@ -1345,6 +1345,12 @@ test('page view: main key tiers, Show all, rendered and plain content, quiet car
   assert.deepEqual(covered, [], 'no menu entry is hidden under the next card');
   await a.page.keyboard.press('Escape');
   assert.equal(await contextMenu.count(), 0);
+  // Retrying a card with nothing in it, such as a failed one, starts at once: no question, no dialog (0.6.3).
+  const usageBefore = (await store.page(pages.word)).components.find(item => item.moduleType === 'sentence-usage').attemptId;
+  await failed.getByRole('button', { name: 'Retry Sentence usage', exact: true }).click();
+  await waitFor(async () => (await store.page(pages.word)).components.find(item => item.moduleType === 'sentence-usage').attemptId !== usageBefore, 'the failed card retried');
+  assert.equal(await a.page.getByRole('dialog').count(), 0, 'no dialog');
+  assert.equal(await a.page.locator('[data-confirm]').count(), 0, 'no question');
   for (const theme of ['light', 'dark']) {
     await chooseAppearance(a.page, theme);
     await a.page.screenshot({ path: `artifacts/v0.6.0-page-${theme}.png`, fullPage: true });
