@@ -76,7 +76,7 @@ No action touches an input module's component (main key, Context, Text), and non
 
 ## Component completion and failure
 
-Generation-status labels describe actual generation attempts. A component that has never had a generation attempt shows no status label. A page with no generation attempts shows no overall status label. Components not generated yet are shown as "Not generated yet", not as failed.
+Generation-status labels describe actual generation attempts. A component that has never had a generation attempt shows no status label. A page with no generation attempts shows no overall status label. Components not generated yet are shown as empty, with only their index tab ([pages and editing](pages-and-editing.md#components-as-cards)), not as failed.
 
 Each component attempt has one of these states:
 

@@ -2,7 +2,7 @@ import { Postgres, OWNER_ACCOUNT_ID } from '../persistence/postgres.ts';
 import { createHash, randomUUID } from 'node:crypto';
 import { blockText, pageStatus, textBlocks } from '@vocabularium/domain/pages';
 import {
-  addBlocked, copyModules, deleteBlocked, generationTargets, moveBlocked, moved, pageMeaning, validateConfiguration
+  addBlocked, copyModules, deleteBlocked, FAMILIES as DECK_COLOURS, generationTargets, moveBlocked, moved, pageMeaning, validateConfiguration
 } from '@vocabularium/domain/page-modules';
 import { sortKey } from './sort-key.mjs';
 /** @typedef {import('./store-records.js').PageRow} PageRow */
@@ -159,10 +159,10 @@ export class AccountStore {
   }
   async deck(id) {
     return this.database.transaction(async () => {
-      const deck = await this.database.one("SELECT id, name, view FROM decks WHERE id = $1", [id]);
+      const deck = await this.database.one("SELECT id, name, view, colour FROM decks WHERE id = $1", [id]);
       if (!deck) fail('deleted', 'The deck no longer exists.');
       const modules = await this.database.all("SELECT id, type FROM deck_modules WHERE deck_id = $1 ORDER BY position", [id]);
-      return { id: deck.id, name: deck.name, modules: modules.map(({ id, type }) => ({ id, type })), view: { module: deck.view } };
+      return { id: deck.id, name: deck.name, colour: deck.colour, modules: modules.map(({ id, type }) => ({ id, type })), view: { module: deck.view } };
     });
   }
   async snapshot() {
@@ -191,14 +191,14 @@ export class AccountStore {
       const after = decodeCursor(cursor, 'decks', sequence);
       if (after && (!Number.isSafeInteger(after.key) || after.key < 0)) fail('invalid', 'The list cursor is invalid.');
       const rows = await this.database.all(`WITH bounded AS MATERIALIZED (
-        SELECT id, name, ordinal FROM decks WHERE ordinal > $1 ORDER BY ordinal LIMIT $2
-      ) SELECT b.id, b.name, b.ordinal,
+        SELECT id, name, colour, ordinal FROM decks WHERE ordinal > $1 ORDER BY ordinal LIMIT $2
+      ) SELECT b.id, b.name, b.colour, b.ordinal,
         (SELECT COUNT(*) FROM deck_modules WHERE deck_id = b.id) AS module_count,
         (SELECT COUNT(*) FROM pages WHERE deck_id = b.id) AS page_count
         FROM bounded b ORDER BY b.ordinal`, [after?.key ?? 0, size + 1]);
       const visible = rows.slice(0, size);
       return {
-        decks: visible.map(row => ({ id: row.id, name: row.name, moduleCount: Number(row.module_count), pageCount: Number(row.page_count) })),
+        decks: visible.map(row => ({ id: row.id, name: row.name, colour: row.colour, moduleCount: Number(row.module_count), pageCount: Number(row.page_count) })),
         nextCursor: rows.length > size ? encodeCursor({ v: 1, kind: 'decks', sequence, key: visible.at(-1).ordinal, id: visible.at(-1).id }) : null,
         sequence
       };
@@ -275,14 +275,17 @@ export class AccountStore {
       }
       try { validateConfiguration(deck.modules); } catch (error) { fail('invalid', error.message); }
       if (deck.view !== undefined && deck.view?.module !== 'default') fail('invalid', 'Choose a supported view.');
+      if (deck.colour != null && !DECK_COLOURS.includes(deck.colour)) fail('invalid', 'Choose one of the deck colours.');
       const current = deck.id ? (await this.deck(deck.id)) : null;
       const id = current?.id ?? randomUUID();
       for (const module of deck.modules) {
         const saved = await this.database.one("SELECT deck_id FROM deck_modules WHERE id = $1", [module.id]);
         if (saved && saved.deck_id !== id) fail('invalid', 'This module instance belongs to another deck.');
       }
-      if (current) await this.database.run("UPDATE decks SET name = $1 WHERE id = $2", [deck.name.trim(), id]);
-      else await this.database.run("INSERT INTO decks (id, name) VALUES ($1, $2)", [id, deck.name.trim()]);
+      // A save without a colour keeps the deck's current one.
+      const colour = deck.colour === undefined ? (current?.colour ?? null) : deck.colour;
+      if (current) await this.database.run("UPDATE decks SET name = $1, colour = $2 WHERE id = $3", [deck.name.trim(), colour, id]);
+      else await this.database.run("INSERT INTO decks (id, name, colour) VALUES ($1, $2, $3)", [id, deck.name.trim(), colour]);
       await this.database.run("DELETE FROM deck_modules WHERE deck_id = $1", [id]);
       for (const [position, module] of deck.modules.entries()) {
         await this.database.run("INSERT INTO deck_modules VALUES ($1, $2, $3, $4)", [module.id, id, position, module.type]);

@@ -22,7 +22,7 @@ export type DashboardAccount = {
   sequence: number;
 };
 
-type DashboardDeck = { id: string; name: string; moduleCount: number; pageCount: number };
+type DashboardDeck = { id: string; name: string; colour?: string | null; moduleCount: number; pageCount: number };
 type PageBatch = { pages: DashboardPage[]; nextCursor: string | null };
 type DeckBatch = { decks: DashboardDeck[]; nextCursor: string | null };
 
@@ -166,7 +166,7 @@ function DeckList({ deck, account, navigate, configure, mutate, reportError, loa
     try { localStorage.setItem(`layout-${deck.id}`, value); } catch { /* Remembering is a convenience. */ }
     setLayout(value);
   };
-  return <div className={`deck-view fam-${deckColour(deck.id)}`}>
+  return <div className={`deck-view fam-${deckColour(deck)}`}>
     <div className="page-head">
       <div>
         <h1><span className="fam-mark deck-mark" aria-hidden="true" />{deck.name}</h1>
@@ -233,7 +233,7 @@ function RecentCaptures({ account, local, navigate, mutate, reportError }: Pick<
           {line}
         </span>
         <span className="capture-meta">
-          {deck && <span className={`capture-deck fam-${deckColour(deck.id)}`}><span className="fam-mark" aria-hidden="true" />{deck.name}</span>}
+          {deck && <span className={`capture-deck fam-${deckColour(deck)}`}><span className="fam-mark" aria-hidden="true" />{deck.name}</span>}
           <time dateTime={entry.date}>{captureTime(entry.date)}</time>
         </span>
         {entry.receipt?.state === 'pending' && <div className="capture-recovery">
@@ -269,7 +269,7 @@ function DeckGrid({ account, local, navigate, configure, mutate, reportError, lo
     </div>
     <RecentCaptures account={account} local={local} navigate={navigate} mutate={mutate} reportError={reportError} />
     <div className="grid">
-      {decks.map(deck => <article className={`deck fam-${deckColour(deck.id)}`} key={deck.id}>
+      {decks.map(deck => <article className={`deck fam-${deckColour(deck)}`} key={deck.id}>
         <span className="deck-tab" aria-hidden="true" />
         <button className="open" onClick={() => navigate(`deck/${deck.id}`)}>
           <h2>{deck.name}</h2>

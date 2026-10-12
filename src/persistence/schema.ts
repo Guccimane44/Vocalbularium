@@ -7,8 +7,11 @@ const bytea = customType<{ data: Buffer }>({ dataType: () => 'bytea' });
 // multi-tenant authorization schema. Stable text IDs preserve the wire contract.
 export const decks = pgTable('decks', {
   id: text().primaryKey(), name: text().notNull(), ordinal: bigserial({ mode: 'number' }).notNull(),
-  view: text().notNull().default('default')
-}, table => [check('deck_view', sql`${table.view} in ('default')`)]);
+  view: text().notNull().default('default'),
+  // Null keeps the colour derived from the deck's ID (D06).
+  colour: text()
+}, table => [check('deck_view', sql`${table.view} in ('default')`),
+  check('deck_colour', sql`${table.colour} in ('meaning', 'usage', 'roots', 'connections', 'sound', 'notes')`)]);
 export const account = pgTable('account', {
   id: integer().primaryKey(), default_deck_id: text().notNull().references(() => decks.id)
 }, table => [check('singleton_account', sql`${table.id} = 1`)]);

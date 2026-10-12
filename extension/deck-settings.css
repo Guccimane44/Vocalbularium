@@ -6,6 +6,16 @@
 .deck-settings .eyebrow { margin: 0; }
 .deck-name { max-width: 420px; margin-top: 4px; }
 .deck-name label { margin-top: 0; }
+.deck-colour { margin: 12px 0 0; padding: 0; border: 0; }
+.deck-colour legend { padding: 0; margin-bottom: 6px; font-size: 13px; color: var(--ink-muted); }
+.colour-swatches { display: flex; flex-wrap: wrap; gap: 8px; }
+.colour-swatch { position: relative; display: block; width: 28px; height: 28px; margin: 0; border-radius: 50%; background: var(--fam); cursor: pointer;
+  transition: transform var(--dur-instant); }
+.colour-swatch:hover { transform: scale(1.08); }
+.colour-swatch input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: inherit; }
+.colour-swatch:has(input:checked) { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--fam); }
+.colour-swatch:has(input:focus-visible) { outline: 2px solid var(--focus); outline-offset: 4px; }
+.deck-colour:disabled .colour-swatch { opacity: .55; cursor: default; }
 
 .shaping-layout.with-preview { grid-template-columns: minmax(240px, 290px) minmax(0, 1fr) 270px; grid-template-areas: "list preview window"; gap: 24px; }
 .with-preview .shaping-list { grid-area: list; gap: 8px; padding-top: 0; }
@@ -38,7 +48,9 @@
 .sample-page .card-tab { left: 14px; height: 24px; top: -12px; }
 .sample-page .card-tab h3 { margin: 0; font: 600 12px/1 var(--font-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: inherit; }
 .sample-page .component[data-adding] { opacity: .7; box-shadow: inset 0 3px 0 var(--fam), 0 0 0 2px var(--focus); }
-.sample-page .component > .muted { margin: 0; font-size: 14px; }
+.sample-page .component[data-empty] { margin-top: -12px; padding: 0 0 12px; }
+.sample-page .component[data-empty] .card-tab { left: 14px; }
+.sample-page .component[data-empty][data-adding] { box-shadow: none; }
 .sample-page .reading, .sample-page .example-sentence { font-size: 16px; }
 .sample-page .meanings li, .sample-page .component pre { font-size: 14px; }
 
@@ -49,4 +61,9 @@
 @media (max-width: 900px) {
   .shaping-layout.with-preview { grid-template-columns: minmax(0, 1fr); grid-template-areas: "list" "preview" "window"; }
   .deck-settings .page-head .head-actions { margin-top: 0; }
+}
+
+@media (forced-colors: active) {
+  .colour-swatch { forced-color-adjust: none; border: 1px solid CanvasText; }
+  .colour-swatch:has(input:checked) { box-shadow: 0 0 0 2px Canvas, 0 0 0 4px Highlight; }
 }

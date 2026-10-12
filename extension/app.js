@@ -3,6 +3,7 @@ import { initializeFeedback } from './feedback-dashboard.js';
 import { initializeTheme } from './theme.js';
 import { pageViews } from './pages.js';
 import { ConfigurationView, newDeckDraft } from './configuration.tsx';
+import { deckColour } from './deck-colour.ts';
 import { createElement } from 'react';
 import { flushSync } from 'react-dom';
 import { createRoot } from 'react-dom/client';
@@ -127,7 +128,7 @@ async function render() {
       catch (error) { showError(error); location.hash = ''; return; }
       if (version !== renderVersion) return;
       if (!deck) { location.hash = ''; return; }
-      configuration = { route: configId, deck: structuredClone({ ...(deck.id ? { id: deck.id } : {}), name: deck.name, modules: deck.modules, view: deck.view }) };
+      configuration = { route: configId, deck: structuredClone({ ...(deck.id ? { id: deck.id } : {}), name: deck.name, colour: deckColour(deck), modules: deck.modules, view: deck.view }) };
     }
     if (!viewRoot) viewRoot = createRoot(app);
     const error = nextError; nextError = undefined;

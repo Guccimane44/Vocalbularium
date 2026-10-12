@@ -27,7 +27,12 @@
 .shaping-list { gap: 30px; padding-top: 14px; }
 .component { position: relative; padding: 26px 26px 20px; border: 0; border-radius: var(--radius-card); background: var(--surface);
   box-shadow: inset 0 3px 0 var(--fam, var(--fam-notes)), 0 0 0 1px var(--line); min-width: 0; }
-.component.missing { box-shadow: inset 0 3px 0 var(--fam, var(--fam-notes)), 0 0 0 1px var(--line-control); background: transparent; }
+/* An empty component is only its tab; its actions still appear on hover. The
+   tab sits in the flow where a card's tab would, and the space below it keeps
+   the card a full-size drop target. */
+.component[data-empty] { display: flex; margin-top: -14px; padding: 0 0 14px; background: transparent; box-shadow: none; }
+.component[data-empty] .card-tab { position: relative; top: 0; left: 18px; }
+.component[data-empty] .card-actions { top: 0; }
 .card-tab { position: absolute; top: -14px; left: 18px; max-width: calc(100% - 36px); height: 28px; display: inline-flex; align-items: center; gap: 6px;
   padding: 0 12px 0 6px; border-radius: var(--radius-control) var(--radius-control) var(--radius-control) 2px;
   background: var(--fam, var(--fam-notes)); color: var(--on-fam, var(--on-ink)); transition: transform var(--dur-spring) var(--ease-spring); }
@@ -47,7 +52,6 @@
 .component[data-status="failed"] { background: var(--status-failed-bg); }
 .component-tools { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
 .component-field label { font-size: 13px; color: var(--ink-muted); margin-top: 0; }
-.add-text { display: block; width: 100%; text-align: left; border: 1px dashed var(--line-control); color: var(--ink-soft); background: transparent; }
 .component.adding { padding: 18px 26px; border-radius: var(--radius-card); box-shadow: 0 0 0 1px var(--line-control); color: var(--ink-muted); background: transparent; }
 .sortable-row[data-dragging] > .component { box-shadow: inset 0 3px 0 var(--fam, var(--fam-notes)), 0 0 0 1px var(--line), var(--shadow-drag); }
 

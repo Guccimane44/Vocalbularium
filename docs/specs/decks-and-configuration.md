@@ -12,7 +12,7 @@ Every signed-in view shows a **deck sidebar** on the left: the wordmark, **Home*
 
 An **account menu** in the header holds appearance ([shared UI](shared-ui.md#appearance)), **Diagnostic logs**, and **Log out**.
 
-A deck's colour is one of the six family colours ([modules](modules.md#current-catalog)), derived from the deck's identity, so it is the same in every view and installation and needs no setting. It identifies the deck only and says nothing about its modules.
+A deck's colour is one of the six family colours ([modules](modules.md#current-catalog)), chosen in [deck settings](#configuration) and the same in every view and installation. A new deck starts with one of them at random; a deck whose colour has never been chosen, such as one from before 0.6.2, shows a colour derived from its identity (since 0.6.2, [D06](../architecture/traceability-map.md#entries)). It identifies the deck only and says nothing about its modules, so deck settings name the colours by hue (Blue, Green, Amber, Violet, Rose, Sage), not by family.
 
 ## Dashboard
 
@@ -35,6 +35,7 @@ Every account has exactly one default deck, the destination for capture. Default
 A deck's configuration has:
 
 - its **name**;
+- its **colour** ([navigation](#navigation));
 - an ordered list of **module instances**, at most 12 in total:
   - the **main key module**: compulsory and always first; it cannot be removed or moved;
   - the **Context module**: optional, at most one. When the deck has it, capture into the deck also takes the selection's surrounding block ([pages and editing](pages-and-editing.md#context));
@@ -42,7 +43,7 @@ A deck's configuration has:
   - **content module instances**: the same type may appear more than once;
 - its **view**: the default view, which shows each page as its ordered component list.
 
-The user edits the configuration in **deck settings**: name the deck, and add, remove, and reorder the Context, Text, and content module instances; the main key stays first. Deck settings show the main key in the list like the other modules, with a lock mark in place of the drag handle and no **Remove**; the page view's main key card carries the same mark (since 0.5.2). Deck settings show a **live preview** beside the module list: a sample page built from the configured instances, with a switch between a word and a sentence sample. It follows every change to the list at once, including while a module is being dragged. The preview is labeled as a sample and never creates or changes pages. Configuration edits are a draft until **Save**; **Cancel** discards them. A failed save keeps the draft and offers **Try saving again**.
+The user edits the configuration in **deck settings**: name the deck, choose its colour from six swatches, and add, remove, and reorder the Context, Text, and content module instances; the main key stays first. Deck settings show the main key in the list like the other modules, with a lock mark in place of the drag handle and no **Remove**; the page view's main key card carries the same mark (since 0.5.2). Deck settings show a **live preview** beside the module list: a sample page built from the configured instances, with a switch between a word and a sentence sample. It follows every change to the list at once, including while a module is being dragged. The preview is labeled as a sample and never creates or changes pages. Like a page, it shows an empty component, such as Text or a module that does not apply to the sample input, as only its index tab. Configuration edits are a draft until **Save**; **Cancel** discards them. A failed save keeps the draft and offers **Try saving again**.
 
 A configuration with only the main key module is valid. Its new pages hold only the main key and whatever the user adds.
 

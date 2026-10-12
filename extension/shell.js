@@ -65,7 +65,7 @@ export function renderSidebar({ decks, currentDeckId, newDeck }) {
   const list = element('ul', undefined, 'nav-decks');
   for (const deck of stable(decks)) {
     const item = element('li');
-    const link = element('a', undefined, `nav-item fam-${deckColour(deck.id)}`);
+    const link = element('a', undefined, `nav-item fam-${deckColour(deck)}`);
     link.href = `#deck/${encodeURIComponent(deck.id)}`;
     if (deck.id === currentDeckId) link.setAttribute('aria-current', 'page');
     const mark = element('span', undefined, 'fam-mark'); mark.setAttribute('aria-hidden', 'true');

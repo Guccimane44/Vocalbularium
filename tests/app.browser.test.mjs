@@ -493,6 +493,10 @@ test('deck UI: draft previews, all modules, the module limit, removal without co
 
   await a.page.getByRole('button', { name: 'Add new deck', exact: true }).click();
   await a.page.getByLabel('Deck name', { exact: true }).fill('Everyday Chinese');
+  // A new deck has a colour, one of the six, which the user can change (D06).
+  assert.equal(await a.page.getByRole('group', { name: 'Deck colour' }).getByRole('radio').count(), 6);
+  assert.equal(await a.page.getByRole('group', { name: 'Deck colour' }).getByRole('radio', { checked: true }).count(), 1);
+  await a.page.getByRole('radio', { name: 'Rose', exact: true }).check();
   assert.equal(await a.page.locator('.module-block').count(), 3, 'a new deck starts with the main key, Context and the German explanation');
   // The main key looks like the other modules, with a lock mark instead of a handle and no Remove (0.5.2).
   const mainKeyBlock = a.page.locator('.module-block[data-type="main-key"]');
@@ -514,7 +518,9 @@ test('deck UI: draft previews, all modules, the module limit, removal without co
   await a.page.getByLabel('Sample input', { exact: true }).selectOption('sentence');
   assert.equal(await a.page.locator('.preview').count(), 7, 'one preview per module, the main key included');
   assert.match(await a.page.locator('.preview').nth(0).textContent(), /我真的很幸福/);
-  assert.match(await a.page.locator('.preview').nth(2).textContent(), /Does not apply to this input/);
+  // A module that does not apply to the sample input is only its tab, as an empty component on a page (0.6.2).
+  assert.equal(await a.page.locator('.preview').nth(2).textContent(), 'German explanation + examples');
+  assert.equal(await a.page.locator('.preview').nth(2).getAttribute('data-empty'), 'true');
   assert.match(await a.page.locator('.preview').nth(4).textContent(), /我真的很幸福/);
   // The live preview follows the list, also while a module is being dragged (D05).
   const previewTypes = () => a.page.locator('.sample-page .component').evaluateAll(nodes => nodes.map(node => node.dataset.type));
@@ -538,6 +544,9 @@ test('deck UI: draft previews, all modules, the module limit, removal without co
   const created = (await application.store.account()).decks.find(deck => deck.name === 'Everyday Chinese');
   assert.deepEqual(created.modules.map(module => module.type),
     ['main-key', 'context', 'german-examples', 'german-explanation', 'sentence-usage', 'sentence-usage', 'sentence-usage']);
+  assert.equal(created.colour, 'sound');
+  await a.page.locator('.nav-item.fam-sound').filter({ hasText: 'Everyday Chinese' }).waitFor();
+  await a.page.locator('article.deck.fam-sound').filter({ hasText: 'Everyday Chinese' }).waitFor();
   await a.page.getByLabel('Options for Everyday Chinese').click();
   await a.page.locator('article.deck').filter({ hasText: 'Everyday Chinese' }).getByRole('button', { name: 'Set as default', exact: true }).click();
   await a.page.locator('article.deck').filter({ hasText: 'Everyday Chinese' }).getByText('Default', { exact: true }).waitFor();
@@ -930,7 +939,11 @@ test('manual page UI: per-card actions, drafts, leave choices, sorting, failed-s
   for (const removed of ['Edit page', 'Generate missing', 'Retry page']) {
     assert.equal(await a.page.getByRole('button', { name: removed, exact: true }).count(), 0, `no page-level ${removed} (D04)`);
   }
-  await componentArticle(a.page, 'German explanation + examples').getByText('Not generated yet.').waitFor();
+  // An empty component is only its tab, with its actions (0.6.2).
+  const ungenerated = componentArticle(a.page, 'German explanation + examples');
+  assert.equal(await ungenerated.getAttribute('data-empty'), 'true');
+  assert.equal(await ungenerated.locator('.card-body').count(), 0);
+  await ungenerated.getByRole('button', { name: 'Generate German explanation + examples', exact: true }).waitFor({ state: 'attached' });
 
   // Shaping by dragging, each step saved at once.
   await addFromWindow(a.page, 'text');
@@ -953,7 +966,8 @@ test('manual page UI: per-card actions, drafts, leave choices, sorting, failed-s
   for (const missing of ['Drag Main key', 'Delete Main key', 'Retry Main key', 'Generate Main key']) {
     assert.equal(await a.page.getByRole('button', { name: missing, exact: true }).count(), 0, `the main key has only Edit (${missing})`);
   }
-  await componentArticle(a.page, 'Text').getByRole('button', { name: '+ Text — add your own notes', exact: true }).waitFor();
+  assert.equal(await componentArticle(a.page, 'Text').getAttribute('data-empty'), 'true');
+  assert.equal(await componentArticle(a.page, 'Text').locator('.card-body, .add-text').count(), 0, 'no placeholder for an empty Text');
 
   // Editing is one card at a time, with Save and Cancel in the card.
   const mainKeyField = a.page.getByRole('textbox', { name: 'Edit Main key', exact: true });
@@ -1097,9 +1111,13 @@ async function drag(page, source, target, { below = false, above = false } = {})
   await page.mouse.down();
   await page.mouse.move(from.x + from.width / 2 + 10, from.y + from.height / 2 + 10, { steps: 4 });
   // Read the target once the drag is active, then aim at it in two passes in case the page scrolled.
+  // The second pass corrects only for scrolling: a sortable target slides aside as the drag
+  // reaches it, and following it would lead the pointer back to the dragged card's own slot.
+  const to = await target.boundingBox();
+  const scrolled = await page.evaluate(() => scrollY);
   for (let pass = 0; pass < 2; pass++) {
-    const to = await target.boundingBox();
-    await page.mouse.move(to.x + to.width / 2, to.y + to.height * (below ? 0.8 : above ? 0.25 : 0.5), { steps: 8 });
+    const shift = scrolled - await page.evaluate(() => scrollY);
+    await page.mouse.move(to.x + to.width / 2, to.y + shift + to.height * (below ? 0.8 : above ? 0.25 : 0.5), { steps: 8 });
   }
   await page.mouse.up();
   // dnd-kit swallows clicks for 50 ms after a drop so the release is not also a click.

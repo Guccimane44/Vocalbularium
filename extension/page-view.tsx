@@ -102,10 +102,7 @@ function ComponentBody({ item, title, editable, draft, locked, persist, mainKey 
       onChange={value => { draft.texts[item.id] = value; persist(); }} />
     {item.status === 'loading' && <p className="notice">This component is generating. Your draft is preserved; save explicitly after generation finishes.</p>}
   </>;
-  if (text) return <Content type={item.moduleType} text={text} mainKey={mainKey} />;
-  if (item.status === 'loading' || item.status === 'failed') return null;
-  if (isContentType(item.moduleType) && item.attemptId === null) return <p className="muted">Not generated yet.</p>;
-  return <p className="muted">Empty.</p>;
+  return text ? <Content type={item.moduleType} text={text} mainKey={mainKey} /> : null;
 }
 
 // Motion (D05): when a component finishes generating while the page is open,
@@ -209,13 +206,13 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
   </>;
 
   // One card: its index tab (drag handle, family, label), its actions on the
-  // top edge, its status only while unfinished, and its content. Editing is
-  // one card at a time; Save and Cancel live in that card.
+  // top edge, its status only while unfinished, and its content. An empty
+  // component is only its tab. Editing is one card at a time; Save and Cancel
+  // live in that card.
   const card = (item: Component, title: string, handle: ReactNode) => {
-    const generated = isContentType(item.moduleType);
     const family = isModuleType(item.moduleType) ? CATALOG[item.moduleType].family ?? 'notes' : 'notes';
-    const emptyText = item.moduleType === 'text' && !blockText(item.content) && editingId !== item.id;
-    return <article className={`component fam-${family}${generated && item.attemptId === null ? ' missing' : ''}`}
+    const empty = !blockText(item.content) && item.status !== 'loading' && item.status !== 'failed' && editingId !== item.id;
+    return <article className={`component fam-${family}`} data-empty={empty || undefined}
       data-component-id={item.id} data-type={item.moduleType} data-status={item.status ?? undefined} data-editing={editingId === item.id || undefined}>
       <div className="card-tab">
         {handle}
@@ -225,9 +222,8 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
       {editingId !== item.id && actions(item, title)}
       {item.status === 'loading' && editingId !== item.id && <p className="card-status"><GeneratingStatus /></p>}
       {item.status === 'failed' && <p className="card-status"><span className="list-status" data-status="failed">Generation failed</span></p>}
-      {editor(item, title) || (emptyText
-        ? <button className="add-text" disabled={Boolean(editingId)} onClick={() => begin(item.id)}>+ Text — add your own notes</button>
-        : <Reveal status={item.status} title={title}><ComponentBody item={item} title={title} editable={false} draft={draft} locked={locked} persist={persist} mainKey={mainKey} /></Reveal>)}
+      {editor(item, title) || (!empty
+        && <Reveal status={item.status} title={title}><ComponentBody item={item} title={title} editable={false} draft={draft} locked={locked} persist={persist} mainKey={mainKey} /></Reveal>)}
     </article>;
   };
 
