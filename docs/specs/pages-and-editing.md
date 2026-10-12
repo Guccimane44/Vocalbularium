@@ -2,7 +2,7 @@
 
 ## Purpose and status
 
-This specification defines the page list, page input, and page editing shared by captured and manually created pages. Release 0.5.2 implements it, including [shaping a page](#shaping-a-page) ([D02](../architecture/traceability-map.md#entries)) and per-card actions ([D04](../architecture/traceability-map.md#entries)). The page list layouts, main key tiers, and card presentation of [D05](../architecture/traceability-map.md#entries) are accepted for 0.6.0 and not built yet; *Until 0.6.0* notes describe 0.5.2. [Current scope](../product/scope.md) records the status.
+This specification defines the page list, page input, and page editing shared by captured and manually created pages. Release 0.5.2 implements it, including [shaping a page](#shaping-a-page) ([D02](../architecture/traceability-map.md#entries)) and per-card actions ([D04](../architecture/traceability-map.md#entries)). Release 0.6.0 adds the page list layouts, main key tiers, and card presentation of [D05](../architecture/traceability-map.md#entries). [Current scope](../product/scope.md) records the status.
 
 The [product model](../product/model.md) defines a page, its components, and the main key. [Modules](modules.md#content-module-contract) owns how content modules consume the main key and Context. [Capture and generation](capture-and-generation.md) owns generation completion, replacement, failure, interruption, and recovery. [Decks and configuration](decks-and-configuration.md) owns the deck configuration that new pages start from. [Accounts and synchronization](accounts-and-sync.md) owns save ordering across installations.
 
@@ -21,8 +21,6 @@ The list loads 30 pages at a time, with **Load more pages** when more exist. A d
 **Sort pages** offers four orders: creation time newest first (the default), creation time oldest first, alphabetical A to Z, and alphabetical Z to A. Alphabetical order compares main keys after Unicode NFKC normalization and lowercasing, in code-unit order. Pages with equal sort values are ordered by page ID, so the list is stable. The chosen order is remembered per deck on that installation.
 
 The deck's **Add page manually** opens a new page draft ([creation](#creation-and-optional-generation)). The deck's **•••** menu is described in [decks and configuration](decks-and-configuration.md#dashboard).
-
-*Until 0.6.0:* one list with two columns, a three-digit **Index** calculated for display and the main key as **Entry**, with whole-row status tints.
 
 ## Required main key
 
@@ -66,8 +64,6 @@ Each card has its own actions ([D04](../architecture/traceability-map.md#entries
 - **Delete** removes the component ([shaping](#shaping-a-page)).
 
 The main key, shown as the page title, has only **Edit**, which appears beside it on hover and focus, and a lock mark instead of a drag handle (since 0.5.2). There are no page-level edit, generate, or retry controls; **Delete page** sits in the page header.
-
-*Until 0.6.0:* the main key also has its own card, every card is identical with its actions as a permanent row of buttons, completed cards show "Completed", and content is plain text.
 
 ### Shaping a page
 

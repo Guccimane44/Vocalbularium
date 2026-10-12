@@ -52,8 +52,12 @@ def verify_package(archive, expected_origin, expected_revision):
                     and not member.is_dir() and not stat.S_ISLNK(member.external_attr >> 16),
                     'Archive contains an unsafe or unexpected entry.')
             is_extension = len(path.parts) > 1 and path.parts[0] == 'extension'
+            # Bundled fonts (0.6.0): the build places them in extension/assets/,
+            # and their licences in extension/fonts/.
+            is_font = (path.suffix == '.woff2' and path.parent == PurePosixPath('extension/assets')) or (
+                path.suffix == '.txt' and path.parent == PurePosixPath('extension/fonts') and path.name.startswith('LICENSE-'))
             require(member.filename in {'package-info.json', 'INSTALL.md'}
-                    or (is_extension and path.suffix in {'.js', '.json', '.html', '.css'}),
+                    or (is_extension and path.suffix in {'.js', '.json', '.html', '.css'}) or is_font,
                     'Archive contains a file outside the current extension package format.')
             content = package.read(member)
             require(not any(secret in content for secret in supplied_secrets), 'Archive contains a supplied API secret.')

@@ -1173,6 +1173,39 @@ test('page view: main key tiers, Show all, rendered and plain content, quiet car
   assert.equal(await a.page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
 });
 
+test('generation reveal: finished content rises into its card and is announced; reduced motion keeps the state without movement', { timeout: 45000 }, async (t) => {
+  const directory = await mkdtemp(join(tmpdir(), 'vocabularium-reveal-browser-'));
+  const application = await createTestApplication(t); await application.start();
+  const a = await launch(join(directory, 'a'));
+  t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
+  const store = application.store;
+  await useModules(store, ['german-explanation', 'german-examples']);
+  const session = { installationId: 'fixture', sessionId: 'reveal', epoch: 1 };
+  await store.openSession('reveal-session', session);
+  const { pageId } = await store.capture('reveal-capture', { session, mainKey: '幸福', snapshot: await store.snapshot() });
+  const [explanation, examples] = modulesOf(await store.page(pageId));
+  await signIn(a.page);
+  await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
+  const card = name => componentArticle(a.page, name);
+  await card('German explanation').locator('.list-status').filter({ hasText: 'Generating' }).waitFor();
+
+  await store.stage(explanation.attemptId, { ok: true, text: '== Chinesisch ==\n=== Bedeutungen ===\n: [1] Glück' });
+  await store.publish('reveal-publish-1', { attemptId: explanation.attemptId, session });
+  await card('German explanation').locator('.card-body[data-reveal] .meanings li').waitFor({ timeout: 15000 });
+  assert.equal(await card('German explanation').getByRole('status').textContent(), 'German explanation generated.');
+  assert.notEqual(await card('German explanation').locator('.meanings li').evaluate(node => getComputedStyle(node).animationName), 'none', 'the content rises');
+
+  // Reduced motion: the same state, shown at once.
+  await a.page.emulateMedia({ reducedMotion: 'reduce' });
+  await store.failAttempt(examples.attemptId);
+  await card('German explanation + examples').locator('.list-status').filter({ hasText: 'Generation failed' }).waitFor({ timeout: 15000 });
+  assert.equal(await card('German explanation + examples').getByRole('status').textContent(), 'German explanation + examples: generation failed.');
+  const durations = await a.page.evaluate(() => [...document.querySelectorAll('.component, .component *, .card-actions')]
+    .map(node => getComputedStyle(node)).flatMap(style => [style.animationDuration, style.transitionDuration].flatMap(value => value.split(', ')))
+    .map(value => parseFloat(value) * (value.endsWith('ms') ? 1 : 1000)));
+  assert.ok(Math.max(...durations) <= 0.01, `nothing moves under reduced motion (longest ${Math.max(...durations)} ms)`);
+});
+
 test('module window: drag modules onto a page and into deck settings, and reorder by drag and keyboard', { timeout: 45000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-shaping-browser-'));
   const application = await createTestApplication(t); await application.start();

@@ -2,7 +2,7 @@
 
 ## Purpose and status
 
-This specification defines interface rules shared across the extension's views. Release 0.5.2 implements the module window of [D02](../architecture/traceability-map.md#entries) as revised by [D04](../architecture/traceability-map.md#entries). [D05](../architecture/traceability-map.md#entries), accepted on 12 October 2026, gives the extension its visual identity, **Vocabularium Sage**; it is accepted for 0.6.0 and not built yet ([plan](../plans/visual-identity.md), [scope](../product/scope.md)). Where 0.5.2 still behaves differently, a short *Until 0.6.0* note says so.
+This specification defines interface rules shared across the extension's views. Release 0.5.2 implements the module window of [D02](../architecture/traceability-map.md#entries) as revised by [D04](../architecture/traceability-map.md#entries). [D05](../architecture/traceability-map.md#entries), accepted on 12 October 2026, gives the extension its visual identity, **Vocabularium Sage**; release 0.6.0 implements it ([plan](../plans/visual-identity.md), [scope](../product/scope.md)).
 
 ## Visual identity
 
@@ -27,8 +27,6 @@ While a module is dragged over the list, a floating preview follows the pointer 
 
 Every drag also works from the keyboard: a window module or a card's drag handle is focusable; Space picks it up, the arrow keys move it through the landing places, Space drops it, and Escape cancels, putting a window module back. A drag is announced to screen readers when it starts, moves, and ends. There are no separate move buttons ([D04](../architecture/traceability-map.md#entries)).
 
-*Until 0.6.0:* the window is a flat list without families or search, in the 0.5.2 styling.
-
 ## Appearance
 
 The extension has two themes, **Sage** (light) and **Moss night** (dark). By default it follows the operating system's light or dark setting and changes with it. The account menu in the shared header offers **System**, **Sage**, and **Moss night**; the sign-in view offers the same choice. The choice is stored per Chrome installation, separately from account data, and survives logout, closing views, restarting the browser, and updating the extension in place. Other installations can choose differently.
@@ -36,8 +34,6 @@ The extension has two themes, **Sage** (light) and **Moss night** (dark). By def
 Changing the theme, or the system setting while **System** is chosen, updates every open extension view, dialog, and active capture feedback immediately, without losing drafts, selection, navigation, or dialog state, and without restarting the feedback popup's timer. Browser-owned menus and frames follow Chrome's own appearance.
 
 Both themes keep readable hover and focus states, non-color status cues, and usability in forced-colors mode. Normal text targets 4.5:1 contrast; large text and necessary control, status, and focus cues target 3:1 against adjacent colors. Focus is always a visible 2 px ring.
-
-*Until 0.6.0:* a labeled Light/Dark control, with Light as the initial choice and no system option.
 
 ## List state presentation
 
@@ -50,8 +46,6 @@ Lists show status only when something is in progress or needs attention. A compl
 
 A row that holds a button is not itself one link: its text links to the page, and the button sits beside it, so each works from the pointer and the keyboard. Status is always a word, never colour alone.
 
-*Until 0.6.0:* rows show their outcome with a whole-row tint and an icon (blue-green check for completed, amber clock for loading, vermilion warning for failed), and a pending receipt is labeled **Pending**.
-
 ## Motion
 
 Motion is quick and physical: what the user touches responds with a small spring and settles. Nothing moves on its own except work in progress. Durations and easings come from the design system: colour changes 120 ms, revealing hover actions 150 ms, moving things 350 ms with a slight overshoot, larger objects 450 ms, and one cycle of the generating dots 1 s. Elements move by transform and opacity only, a few pixels at a time.
@@ -59,8 +53,6 @@ Motion is quick and physical: what the user touches responds with a small spring
 The named moments are: the capture flight ([capture and generation](capture-and-generation.md#capture-feedback-popup)); a new page sliding into a list and its family marks appearing as components finish; status changes cross-fading; generated content rising into its card line by line while the card grows to fit; a module card's tab lifting on hover; and a dragged module tilting slightly while the landing line and the other cards make room.
 
 When the system asks for reduced motion, nothing moves: every state change still happens, without transitions, and the generating dots stand still beside their word.
-
-*Until 0.6.0:* the extension has no motion beyond the 0.5.2 drag feedback.
 
 ## Dialogs, menus, and feedback
 
@@ -71,5 +63,3 @@ Confirmation dialogs for retry, deletion, and unsaved changes stay open until th
 Component content is stored as text and rendered for reading. Each content module type has a render contract ([modules](modules.md#render-contracts)): the extension recognizes the module's text format and shows its structure, such as headings, numbered meanings, and examples beside their translations. Text it does not recognize, the user's own text, and edited content that no longer matches the format are shown as plain text with line breaks preserved. Rendering never interprets text as HTML; markup that is not part of a render contract is shown literally. Editing a component shows and saves its stored text, never the rendered form.
 
 Rich block content follows [Q13](../architecture/questionnaire/answers/answers-03-frontend.md#q13) and [Q59](../architecture/questionnaire/answers/answers-11-security-privacy.md#q59), which are still `Proposed`; D05 does not change storage ([C17](../architecture/traceability-map.md#conflicts)).
-
-*Until 0.6.0:* content is shown as plain text, including literal markup.
