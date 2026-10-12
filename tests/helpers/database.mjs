@@ -24,8 +24,16 @@ export async function createTestDatabase(t, key, { migrate = true } = {}) {
     if (removed) return;
     const connection = new pg.Client({ connectionString: adminUrl.href });
     await connection.connect();
-    try { await connection.query(`DROP DATABASE "${name}" WITH (FORCE)`); removed = true; }
-    finally { await connection.end(); }
+    // Plain DROP stops autovacuum workers itself and waits for closing sessions. FORCE needs
+    // pg_signal_backend to terminate an autovacuum worker, so it only handles leaked sessions.
+    try {
+      try { await connection.query(`DROP DATABASE "${name}"`); }
+      catch (error) {
+        if (error.code !== '55006') throw error;
+        await connection.query(`DROP DATABASE "${name}" WITH (FORCE)`);
+      }
+      removed = true;
+    } finally { await connection.end(); }
   };
   // The databaseTest wrapper registers final cleanup after user cleanup hooks.
   const database = { databaseUrl: url.href, cleanup, resources: [] };

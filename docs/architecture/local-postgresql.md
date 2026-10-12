@@ -29,7 +29,7 @@ Setup uses the current macOS user's local PostgreSQL administrator connection to
 | `vocabularium_dev` | Persistent development account, owned by the migration role |
 | `vocabularium_migrator` | Login with schema ownership; no superuser, database-creation, or role-creation privilege |
 | `vocabularium_app` | API login with table/sequence access; no schema-creation, database-creation, or role-creation privilege |
-| `vocabularium_test` | Non-superuser login that can create its disposable test/restore databases; member of `pg_signal_backend` so cleanup can force-drop them |
+| `vocabularium_test` | Non-superuser login that can create and drop its disposable test/restore databases |
 
 Generated connection settings go into ignored `.env.postgres`, created with mode `0600`. Setup preserves this file on subsequent runs. `npm start` reads `.env` for provider settings and `.env.postgres` for database connections. Keep both server-side. Neither is included in the extension package.
 
@@ -64,7 +64,7 @@ npm run build
 python3 scripts/package.py
 ```
 
-Tests load `.env.postgres` when present. CI supplies `TEST_DATABASE_ADMIN_URL` directly. It must address the loopback `postgres` maintenance database, never `vocabularium_dev`. Each fixture creates a random `vocabularium_test_<24 hex characters>` database, applies migrations, and drops only its own generated name during cleanup. Cleanup uses `DROP DATABASE … WITH (FORCE)`, which needs `pg_signal_backend`; `npm run db:setup` grants it to `vocabularium_test`, as CI does, including on re-runs against an existing role. Without it, cleanup can intermittently fail with `permission denied to terminate process` (`42501`). A process killed outside test cleanup can leave disposable databases for manual inspection; there is no broad prefix-based reset command. Tests do not require local Docker and inject controlled generation providers.
+Tests load `.env.postgres` when present. CI supplies `TEST_DATABASE_ADMIN_URL` directly. It must address the loopback `postgres` maintenance database, never `vocabularium_dev`. Each fixture creates a random `vocabularium_test_<24 hex characters>` database, applies migrations, and drops only its own generated name during cleanup. Cleanup closes the fixture's connections, then uses plain `DROP DATABASE`, which stops autovacuum workers itself and waits briefly for closing sessions. It retries with `WITH (FORCE)` only when a session still holds the database (`55006`). FORCE is not the first attempt because it needs `pg_signal_backend` to terminate an autovacuum worker; without that role it fails with `permission denied to terminate process` (`42501`) whenever autovacuum is analyzing the freshly migrated database. The test role needs no `pg_signal_backend` membership, and CI runs without it. A process killed outside test cleanup can leave disposable databases for manual inspection; there is no broad prefix-based reset command. Tests do not require local Docker and inject controlled generation providers.
 
 Browser tests own ports 4317/4318 and temporary Chrome profiles. Check for listener conflicts before running them.
 
