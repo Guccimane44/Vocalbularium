@@ -1223,6 +1223,12 @@ test('page view: main key tiers, Show all, rendered and plain content, quiet car
   await failed.getByRole('button', { name: 'Retry Sentence usage', exact: true }).waitFor();
   assert.equal(await failed.getByRole('button', { name: 'Edit Sentence usage', exact: true }).count(), 0, 'only Retry waits beside a failed tab');
   assert.equal(await examples.locator('.card-actions').count(), 0, 'no actions until the tab is clicked');
+  // The tag is two buttons edge to edge: the six dots at its left end, the label to its right end.
+  await examples.locator('.card-tab').scrollIntoViewIfNeeded();
+  assert.deepEqual(await examples.locator('.card-tab').evaluate(node => {
+    const box = node.getBoundingClientRect();
+    return [2, box.width / 2, box.width - 2].map(x => document.elementFromPoint(box.left + x, box.top + box.height / 2)?.closest('button')?.className);
+  }), ['menu-button', 'tab-button', 'tab-button']);
   await examples.hover();
   assert.equal(await examples.locator('.card-actions').count(), 0, 'hovering no longer shows actions');
   await cardTab(a.page, 'German explanation + examples').click();

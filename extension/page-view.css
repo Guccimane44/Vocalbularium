@@ -55,6 +55,15 @@
 /* Each tab is its own layer (it stays above the actions it ejects), so an open
    menu lifts its tab, and its row, above the cards and tabs that follow. */
 .card-tab:has(.row-menu-list), .sortable-row:has(.row-menu-list) { z-index: 6; }
+/* The tag is exactly two buttons, edge to edge: the six dots fill its left end
+   and the family icon and label fill the rest, to its right end. Each takes
+   the tag's corners on its side, so a hover or press fills its whole part. */
+.card-head .card-tab { padding: 0; gap: 0; align-items: stretch; }
+.card-head .card-tab .row-menu { align-self: stretch; }
+.card-head .card-tab .menu-button { height: 100%; padding: 0 6px 0 9px; border-radius: var(--radius-control) 0 0 2px;
+  box-shadow: inset -1px 0 0 color-mix(in srgb, currentColor 22%, transparent); }
+.card-head .card-tab h2 { display: flex; flex: 1 1 auto; }
+.card-head .card-tab .tab-button { width: 100%; height: 100%; padding: 0 12px 0 7px; border-radius: 0 var(--radius-control) var(--radius-control) 0; }
 .row-menu-list { position: absolute; top: calc(100% + 6px); left: -4px; z-index: 5; min-width: 210px; margin: 0; padding: 4px; list-style: none;
   border-radius: var(--radius-md); background: var(--surface); color: var(--ink); box-shadow: 0 0 0 1px var(--line), var(--shadow-lift);
   font: 500 13px/1.2 var(--font-text); letter-spacing: normal; animation: menu-open var(--dur-quick) var(--ease-out) both; transform-origin: top left; }
