@@ -19,7 +19,7 @@ const cardTab = (page, heading) => componentArticle(page, heading).locator('.tab
 async function cardButton(page, name) {
   const button = page.getByRole('button', { name, exact: true });
   if (await button.count()) return button;
-  await cardTab(page, name.replace(/^(Edit|Retry|Generate|Delete) /, '')).click();
+  await cardTab(page, name.replace(/^(Edit|Retry|Generate|Fold|Unfold|Delete) /, '')).click();
   return button;
 }
 const apiOrigin = process.env.VOCABULARIUM_API_URL ?? 'http://127.0.0.1:4318';
@@ -1267,11 +1267,23 @@ test('page view: main key tiers, Show all, rendered and plain content, quiet car
   await examples.hover();
   assert.equal(await examples.locator('.card-actions').count(), 0, 'hovering no longer shows actions');
   await cardTab(a.page, 'German explanation + examples').click();
-  assert.deepEqual(await examples.locator('.card-actions button').allTextContents(), ['Edit', 'Retry', 'Delete']);
+  assert.deepEqual(await examples.locator('.card-actions button').allTextContents(), ['Edit', 'Retry', 'Fold', 'Delete']);
   assert.equal(await cardTab(a.page, 'German explanation + examples').getAttribute('aria-expanded'), 'true');
   assert.equal(await examples.locator('.card-actions button').first().evaluate(node => getComputedStyle(node).animationName), 'eject', 'the actions eject from the tab');
   await a.page.mouse.click(5, 5);
   assert.equal(await examples.locator('.card-actions').count(), 0, 'a click elsewhere puts them back');
+  // Fold: the card slides shut to its tab and stays folded in this browser; Unfold opens it again.
+  await (await cardButton(a.page, 'Fold German explanation + examples')).click();
+  assert.equal(await examples.getAttribute('data-folded'), 'true');
+  assert.match(await examples.locator('.card-fold').evaluate(node => getComputedStyle(node).transitionProperty), /grid-template-rows/, 'folding moves smoothly');
+  await waitFor(async () => (await examples.locator('.card-fold').evaluate(node => node.getBoundingClientRect().height)) < 1, 'the content folds away');
+  assert.equal(await examples.locator('.card-fold-inner').evaluate(node => node.inert), true, 'folded content is out of reach');
+  await a.page.reload();
+  await examples.locator('.card-tab').waitFor();
+  assert.equal(await examples.getAttribute('data-folded'), 'true', 'the fold is remembered');
+  await (await cardButton(a.page, 'Unfold German explanation + examples')).click();
+  await waitFor(async () => (await examples.locator('.card-fold').evaluate(node => node.getBoundingClientRect().height)) > 20, 'the content unfolds');
+  assert.equal(await examples.getAttribute('data-folded'), null);
   // From the keyboard: Enter ejects them, Escape puts them back and returns to the tab.
   await cardTab(a.page, 'German explanation + examples').focus();
   await a.page.keyboard.press('Enter');

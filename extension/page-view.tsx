@@ -16,7 +16,9 @@ const ACTION_ICONS = {
   edit: <><path d="M12 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6" /><path d="M17.5 3.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4z" /></>,
   generate: <path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z" />,
   retry: <><path d="M3 12a9 9 0 1 0 3-6.7L3 8" /><path d="M3 3v5h5" /></>,
-  delete: <><path d="M4 7h16" /><path d="M9 7V4h6v3" /><path d="M18 7l-1 13H7L6 7" /></>
+  delete: <><path d="M4 7h16" /><path d="M9 7V4h6v3" /><path d="M18 7l-1 13H7L6 7" /></>,
+  fold: <><path d="M7 20l5-5 5 5" /><path d="M7 4l5 5 5-5" /></>,
+  unfold: <><path d="M7 15l5 5 5-5" /><path d="M7 9l5-5 5 5" /></>
 } as const;
 const ActionIcon = ({ name }: { name: keyof typeof ACTION_ICONS }) => <svg className="action-icon" viewBox="0 0 24 24" aria-hidden="true"
   fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">{ACTION_ICONS[name]}</svg>;
@@ -170,11 +172,29 @@ export function MainKeyTitle({ text }: { text: string }) {
   </>;
 }
 
+function readFolded(key: string | null): ReadonlySet<string> {
+  try {
+    const saved: unknown = key ? JSON.parse(localStorage.getItem(key) ?? '[]') : [];
+    return new Set(Array.isArray(saved) ? saved.filter((id): id is string => typeof id === 'string') : []);
+  } catch { return new Set(); }
+}
+
 export function PageView({ page, deck, draft, isNew, editing, busy, error, pendingSaves, retryPendingSave,
   navigate, begin, persist, save, cancel, discardUnavailable, deletePage, generate, addModule, moveComponent, deleteComponent }: Props) {
   const [working, setWorking] = useState(false);
   // The card whose tab has ejected its actions; one at a time.
   const [opened, setOpened] = useState<string | null>(null);
+  // Folded cards show only their tab on a slim band; remembered per page in
+  // this browser, a convenience that never reaches the account (0.6.3).
+  const foldKey = page ? `folded-${page.id}` : null;
+  const [folded, setFolded] = useState<ReadonlySet<string>>(() => readFolded(foldKey));
+  useEffect(() => { setFolded(readFolded(foldKey)); }, [foldKey]);
+  const fold = (id: string, value: boolean) => {
+    const next = new Set(folded);
+    if (value) next.add(id); else next.delete(id);
+    setFolded(next);
+    try { if (foldKey) localStorage.setItem(foldKey, JSON.stringify([...next])); } catch { /* Remembering is a convenience. */ }
+  };
   useEffect(() => {
     if (!opened) return;
     const outside = (event: PointerEvent) => {
@@ -222,16 +242,22 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
     const firstRun = generated && item.attemptId === null && !blockText(item.content);
     const open = opened === item.id;
     if (!open && !(item.status === 'failed' && generated)) return null;
+    // An empty component is already only its tab: there is nothing to fold.
+    const foldable = Boolean(blockText(item.content)) || item.status === 'loading' || item.status === 'failed';
+    const isFolded = folded.has(item.id);
     const choose = (action: () => void) => () => { setOpened(null); action(); };
     let index = 0;
     const order = () => ({ '--i': index++ }) as CSSProperties;
     return <div id={`actions-${item.id}`} className="card-actions" role="group" aria-label={`${title} actions`} data-open={open || undefined}>
-      {open && <button style={order()} aria-label={`Edit ${title}`} disabled={Boolean(editingId) || item.status === 'loading'} onClick={choose(() => begin(item.id))}>
+      {open && <button style={order()} aria-label={`Edit ${title}`} disabled={Boolean(editingId) || item.status === 'loading'}
+        onClick={choose(() => { if (isFolded) fold(item.id, false); begin(item.id); })}>
         <ActionIcon name="edit" />Edit</button>}
       {generated && <button style={order()} className={item.status === 'failed' ? 'action-failed' : undefined} aria-label={`${firstRun ? 'Generate' : 'Retry'} ${title}`}
         disabled={working || Boolean(editingId) || item.status === 'loading'}
         onClick={choose(() => void run(() => generate({ scope: 'component', componentId: item.id })))}>
         <ActionIcon name={firstRun ? 'generate' : 'retry'} />{firstRun ? 'Generate' : 'Retry'}</button>}
+      {open && foldable && <button style={order()} aria-label={`${isFolded ? 'Unfold' : 'Fold'} ${title}`} onClick={choose(() => fold(item.id, !isFolded))}>
+        <ActionIcon name={isFolded ? 'unfold' : 'fold'} />{isFolded ? 'Unfold' : 'Fold'}</button>}
       {open && <button style={order()} className="action-delete" aria-label={`Delete ${title}`} disabled={disabled || working || item.status === 'loading'}
         onClick={choose(() => void run(async () => { await deleteComponent(item); }))}>
         <ActionIcon name="delete" />Delete</button>}
@@ -253,7 +279,8 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
   const card = (item: Component, title: string, { drag, menu }: RowParts) => {
     const family = isModuleType(item.moduleType) ? CATALOG[item.moduleType].family ?? 'notes' : 'notes';
     const empty = !blockText(item.content) && item.status !== 'loading' && item.status !== 'failed' && editingId !== item.id;
-    return <article className={`component fam-${family}`} data-empty={empty || undefined}
+    const isFolded = !empty && folded.has(item.id) && editingId !== item.id;
+    return <article className={`component fam-${family}`} data-empty={empty || undefined} data-folded={isFolded || undefined}
       data-component-id={item.id} data-type={item.moduleType} data-status={item.status ?? undefined} data-editing={editingId === item.id || undefined}>
       <div className="card-head" onKeyDown={event => {
         if (event.key !== 'Escape' || opened !== item.id) return;
@@ -271,10 +298,11 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
         </div>
         {editingId !== item.id && actions(item, title)}
       </div>
-      {item.status === 'loading' && editingId !== item.id && <p className="card-status"><GeneratingStatus /></p>}
-      {item.status === 'failed' && <p className="card-status"><span className="list-status" data-status="failed">Generation failed</span></p>}
-      {editor(item, title) || (!empty
-        && <Reveal status={item.status} title={title}><ComponentBody item={item} title={title} editable={false} draft={draft} locked={locked} persist={persist} mainKey={mainKey} /></Reveal>)}
+      {!empty && <div className="card-fold"><div className="card-fold-inner" inert={isFolded || undefined}>
+        {item.status === 'loading' && editingId !== item.id && <p className="card-status"><GeneratingStatus /></p>}
+        {item.status === 'failed' && <p className="card-status"><span className="list-status" data-status="failed">Generation failed</span></p>}
+        {editor(item, title) || <Reveal status={item.status} title={title}><ComponentBody item={item} title={title} editable={false} draft={draft} locked={locked} persist={persist} mainKey={mainKey} /></Reveal>}
+      </div></div>}
     </article>;
   };
 

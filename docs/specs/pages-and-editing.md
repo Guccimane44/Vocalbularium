@@ -61,6 +61,7 @@ Each card has its own actions ([D04](../architecture/traceability-map.md#entries
 
 - **Edit** turns that card into a text field with **Save** and **Cancel** in the card ([editing](#editing-a-component)).
 - **Generate** on a content component that never generated and is still empty starts its first generation, without a warning, because there is nothing to replace. After that the same control is **Retry**, which warns before replacing the content ([capture and generation](capture-and-generation.md#retry)).
+- **Fold** folds the card: its content slides shut and fades while the card narrows to a slim band under its tab, so the user can set components aside and see the rest of the page better. A folded card offers **Unfold**, which opens it the same way, and **Edit** unfolds it before editing. Folding changes only how the page is shown in this browser, where it is remembered per page; it never changes the page, and other browsers show the card unfolded. An empty component has nothing to fold and offers no **Fold** (since 0.6.3).
 - **Delete** removes the component ([shaping](#shaping-a-page)).
 
 The six dots before the family icon open the card's **menu**. Its entries, **Duplicate**, **Copy text**, and **Move to page…**, are placeholders marked *Coming soon* and do nothing yet (since 0.6.3).

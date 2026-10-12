@@ -97,6 +97,15 @@
 }
 @media (prefers-reduced-motion: reduce) { .card-tab { animation: none !important; } }
 @media (prefers-reduced-motion: reduce) { .card-actions[data-open] button, .row-menu-list { animation: none; } }
+/* Folding (0.6.3): the content slides shut and fades while the card narrows
+   to a slim band under its tab, and opens the same way. The height moves by
+   the grid row, the one place a layout property animates. */
+.component { transition: padding var(--dur-settle) var(--ease-out); }
+.card-fold { display: grid; grid-template-rows: 1fr; transition: grid-template-rows var(--dur-settle) var(--ease-out); }
+.card-fold-inner { min-height: 0; overflow: clip; overflow-clip-margin: 6px; transition: opacity var(--dur-settle) var(--ease-out), transform var(--dur-settle) var(--ease-out); }
+.component[data-folded] { padding-top: 20px; padding-bottom: 0; }
+.component[data-folded] .card-fold { grid-template-rows: 0fr; }
+.component[data-folded] .card-fold-inner { opacity: 0; transform: translateY(-6px); }
 .card-status { margin: 0 0 8px; }
 .component[data-status="failed"] { background: var(--status-failed-bg); }
 .component-tools { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
