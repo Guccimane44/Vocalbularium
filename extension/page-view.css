@@ -28,8 +28,8 @@
 /* An empty component is only its tab; clicking the tab ejects its actions as
    on any card. The tab sits in the flow where a card's tab would, and the
    space below it keeps the card a full-size drop target. */
-.component[data-empty] { display: flex; margin-top: -14px; padding: 0 0 14px; background: transparent; box-shadow: none; }
-.component[data-empty] .card-head { position: relative; top: 0; left: 18px; right: auto; width: calc(100% - 36px); }
+.component:is([data-empty], [data-generating]) { display: flex; margin-top: -14px; padding: 0 0 14px; background: transparent; box-shadow: none; }
+.component:is([data-empty], [data-generating]) .card-head { position: relative; top: 0; left: 18px; right: auto; width: calc(100% - 36px); }
 
 /* The head on a card's top edge: the index tab, then the actions it ejects (D07). */
 .card-head { position: absolute; top: -14px; left: 18px; right: 18px; display: flex; align-items: center; gap: 8px; min-width: 0; }
@@ -117,6 +117,24 @@
 }
 @media (prefers-reduced-motion: reduce) { .card-tab, .confirm-text { animation: none !important; } }
 @media (prefers-reduced-motion: reduce) { .card-actions[data-open] button, .row-menu-list { animation: none; } }
+/* Generating (0.6.3): the card is only its tab, and a spark runs round the
+   tab's edge, a short bright arc in the tab's label colour with a fading tail,
+   for as long as the work goes on. The content waits, closed, and rises in
+   once there is some. Under reduced motion the edge glows, still. */
+.component[data-generating] .card-fold { display: none; }
+@property --spark { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+.component[data-generating] .card-tab::after { content: ""; position: absolute; inset: 0; padding: 1.5px; pointer-events: none;
+  border-radius: var(--radius-control) var(--radius-control) var(--radius-control) 2px;
+  background: conic-gradient(from var(--spark), transparent 0 60%, color-mix(in srgb, var(--on-fam, var(--on-ink)) 30%, transparent) 80%,
+    var(--on-fam, var(--on-ink)) 93%, transparent 96%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude;
+  filter: drop-shadow(0 0 2px var(--on-fam, var(--on-ink)));
+  animation: spark 1.6s linear infinite; }
+@keyframes spark { to { --spark: 360deg; } }
+@media (prefers-reduced-motion: reduce) {
+  .component[data-generating] .card-tab::after { animation: none; background: color-mix(in srgb, var(--on-fam, var(--on-ink)) 55%, transparent); filter: none; }
+}
+
 /* Deleting (0.6.3): the card pops where it stands, like a bubble: it swells
    a touch, then grows a little more as it vanishes, around its own middle,
    so nothing travels. The cards below then slide up. Under reduced motion it
@@ -154,8 +172,8 @@
 .landing-row [data-landing] { pointer-events: none; }
 .sortable-row[data-dragging] > .component { box-shadow: inset 0 3px 0 var(--fam, var(--fam-notes)), 0 0 0 1px var(--line), var(--shadow-drag); }
 /* An empty component is only its tab, dragged or not: the tab itself lifts. */
-.sortable-row[data-dragging] > .component[data-empty] { box-shadow: none; }
-.sortable-row[data-dragging] > .component[data-empty] .card-tab { box-shadow: var(--shadow-drag); }
+.sortable-row[data-dragging] > .component:is([data-empty], [data-generating]) { box-shadow: none; }
+.sortable-row[data-dragging] > .component:is([data-empty], [data-generating]) .card-tab { box-shadow: var(--shadow-drag); }
 
 /* Rendered content */
 .component pre { margin: 0; font: 16px/1.6 var(--font-text); }

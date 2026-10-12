@@ -1400,7 +1400,13 @@ test('generation reveal: finished content rises into its card and is announced; 
   await signIn(a.page);
   await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
   const card = name => componentArticle(a.page, name);
-  await card('German explanation').locator('.list-status').filter({ hasText: 'Generating' }).waitFor();
+  // While it generates, the card is only its tab, with a spark running round the tab's edge (0.6.3).
+  await card('German explanation').and(a.page.locator('[data-generating]')).waitFor();
+  assert.equal(await card('German explanation').locator('.card-fold').isVisible(), false, 'no body while generating');
+  assert.equal(await card('German explanation').locator('.list-status').count(), 0, 'no Generating line');
+  assert.equal(await card('German explanation').locator('.card-tab').evaluate(node => getComputedStyle(node, '::after').animationName), 'spark');
+  assert.equal(await card('German explanation').getByRole('status').first().textContent(), 'German explanation: generating');
+  await a.page.locator('.shaping-list').screenshot({ path: 'artifacts/v0.6.3-generating.png' });
 
   await store.stage(explanation.attemptId, { ok: true, text: '== Chinesisch ==\n=== Bedeutungen ===\n: [1] Glück' });
   await store.publish('reveal-publish-1', { attemptId: explanation.attemptId, session });

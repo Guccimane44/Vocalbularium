@@ -7,7 +7,6 @@ import { emphasise, renderContent } from '@vocabularium/domain/render';
 import type { PageEditorDraft } from '../types/editor-drafts.js';
 import { FamilyIcon } from './families.tsx';
 import { mainKeyTier } from './main-key.ts';
-import { GeneratingStatus } from './page-list.tsx';
 import { moduleLabel, ShapingArea, SixDots } from './shaping.tsx';
 import type { RowParts } from './shaping.tsx';
 
@@ -313,7 +312,7 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
     // A component with nothing in it has nothing to lose: Delete and Retry act at once.
     const hasContent = Boolean(blockText(item.content));
     // An empty component is already only its tab: there is nothing to fold.
-    const foldable = Boolean(blockText(item.content)) || item.status === 'loading' || item.status === 'failed';
+    const foldable = Boolean(blockText(item.content)) || item.status === 'failed';
     const isFolded = folded.has(item.id);
     const choose = (action: () => void) => () => { setOpened(null); action(); };
     let index = 0;
@@ -349,9 +348,13 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
   const card = (item: Component, title: string, { drag, menu }: RowParts) => {
     const family = isModuleType(item.moduleType) ? CATALOG[item.moduleType].family ?? 'notes' : 'notes';
     const empty = !blockText(item.content) && item.status !== 'loading' && item.status !== 'failed' && editingId !== item.id;
-    const isFolded = !empty && folded.has(item.id) && editingId !== item.id;
+    // While it generates, a card is only its tab, with a spark running round
+    // its edge; its content opens once there is some (0.6.3).
+    const generating = item.status === 'loading' && editingId !== item.id;
+    const isFolded = !empty && !generating && folded.has(item.id) && editingId !== item.id;
     const gone = vanishing.has(item.id);
-    return <article className={`component fam-${family}`} data-empty={empty || undefined} data-folded={isFolded || undefined} data-vanishing={gone || undefined}
+    return <article className={`component fam-${family}`} data-empty={empty || undefined} data-generating={generating || undefined}
+      data-folded={isFolded || undefined} data-vanishing={gone || undefined}
       data-component-id={item.id} data-type={item.moduleType} data-status={item.status ?? undefined} data-editing={editingId === item.id || undefined}>
       <div className="card-head" onKeyDown={event => {
         if (event.key !== 'Escape' || opened !== item.id) return;
@@ -366,11 +369,11 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
             <FamilyIcon family={family} />
             <span className="tab-label">{title}</span>
           </button></h2>
+          {generating && <span className="visually-hidden" role="status">{title}: generating</span>}
         </div>
         {editingId !== item.id && actions(item, title)}
       </div>
       {!empty && <div className="card-fold"><div className="card-fold-inner" inert={isFolded || undefined}>
-        {item.status === 'loading' && editingId !== item.id && <p className="card-status"><GeneratingStatus /></p>}
         {item.status === 'failed' && <p className="card-status"><span className="list-status" data-status="failed">Generation failed</span></p>}
         {editor(item, title) || <Reveal status={item.status} title={title}><ComponentBody item={item} title={title} editable={false} draft={draft} locked={locked} persist={persist} mainKey={mainKey} /></Reveal>}
       </div></div>}
