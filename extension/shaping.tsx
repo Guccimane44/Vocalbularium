@@ -270,7 +270,11 @@ function HelpTip({ label, children }: { label: string; children: ReactNode }) {
   return <span ref={root} className="help-tip" onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
     onKeyDown={event => { if (event.key === 'Escape' && open) { event.stopPropagation(); setPinned(false); setHovered(false); } }}>
     <button type="button" className="help-button" aria-label={label} aria-expanded={open} aria-controls={tipId}
-      onClick={() => setPinned(!pinned)}>?</button>
+      onClick={() => setPinned(!pinned)}>
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="9.5" /><path d="M9.3 9.2a2.8 2.8 0 0 1 5.4 1c0 1.9-2.7 2.5-2.7 3.6" /><path d="M12 17.2h.01" />
+      </svg>
+    </button>
     <span id={tipId} className="help-text" role="note" hidden={!open}>{children}</span>
   </span>;
 }
