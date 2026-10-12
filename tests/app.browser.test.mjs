@@ -1508,7 +1508,23 @@ test('module window: drag modules onto a page and into deck settings, and reorde
   const shiftOf = heading => rowOf(heading).evaluate(node => new DOMMatrix(getComputedStyle(node).transform).m42);
   await waitFor(async () => await shiftOf('German explanation + examples') < -20 && await shiftOf('Context') < -20, 'every card after it makes room');
   assert.equal(await rowOf('Text').evaluate(node => new DOMMatrix(getComputedStyle(node).transform).m41), 0, 'the card stays in its column');
+  // Every frame after the drop, each card only moves on toward its place, never back (no flicker).
+  await a.page.evaluate(() => {
+    window.settling = [];
+    const sample = () => {
+      window.settling.push(Object.fromEntries([...document.querySelectorAll('.shaping-list .sortable-row')]
+        .map(row => [row.querySelector('h2')?.textContent, row.firstElementChild.getBoundingClientRect().y])));
+      if (window.settling.length < 45) requestAnimationFrame(sample);
+    };
+    sample();
+  });
   await a.page.mouse.up();
+  await waitFor(() => a.page.evaluate(() => window.settling.length >= 45), 'drop settled');
+  const settling = await a.page.evaluate(() => window.settling);
+  for (const heading of ['Context', 'German explanation + examples', 'Text']) {
+    const steps = settling.map(frame => frame[heading]).filter(y => y !== undefined).map((y, index, all) => index ? y - all[index - 1] : 0);
+    assert.ok(!(steps.some(step => step > 2) && steps.some(step => step < -2)), `${heading} settles without jumping back (${steps.map(Math.round)})`);
+  }
   await waitFor(() => heldMoves.length === 1, 'move request reached the server');
   for (let sample = 0; sample < 5; sample++) {
     assert.deepEqual(await headings(), ['Main key', 'Context', 'German explanation + examples', 'Text'], 'the new order shows before the save finishes');

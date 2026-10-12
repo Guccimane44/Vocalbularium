@@ -201,8 +201,12 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
   // arrives there.
   if (incoming !== null) rows.splice(Math.min(slot!, rows.length), 0, <LandingRow key="incoming" type={incoming} render={renderLanding} />);
   else if (waiting) rows.splice(Math.min(waiting.index, rows.length), 0, <LandingRow key="incoming" type={waiting.type} render={renderLanding} saving />);
-  // The entries also slide into place when one is added or deleted.
-  useMakeRoom(list, `${incoming ?? ''}:${incoming !== null ? slot : ''}:${shownKey}`);
+  // The entries also slide into place when one is added or deleted, but not
+  // when one is reordered: dnd-kit already settles a dropped entry, and the
+  // positions remembered from before the drag would replay the cards from
+  // where they stood before it, a visible jump back on every drop.
+  const members = [...ids].sort().join('|');
+  useMakeRoom(list, `${incoming ?? ''}:${incoming !== null ? slot : ''}:${members}`);
   // Dropped, the module glides from where it was let go into its gap, as a
   // dropped entry settles into its place.
   useLayoutEffect(() => {
