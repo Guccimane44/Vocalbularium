@@ -1,19 +1,17 @@
-import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
-import type { MouseEvent as ReactMouseEvent, ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 import { dialog } from './dialog.ts';
 import { SORT_ORDERS } from './sorting.ts';
 import { deckColour } from './deck-colour.ts';
+import { mainKeyTier } from './main-key.ts';
+import { GeneratingStatus, isLayout, LayoutSwitch, MeaningLine, PageList, SavingStatus } from './page-list.tsx';
+import type { Layout, ListPage } from './page-list.tsx';
 
-type Status = 'completed' | 'loading' | 'failed' | null;
-
-// A page summary: list rows show the main key, never the page's content.
-export type DashboardPage = {
-  id: string;
+// A page summary: list rows show the main key, the first meaning and the
+// filled modules, never the page's content.
+export type DashboardPage = ListPage & {
   deckId: string;
   selectedText: string | null;
-  createdAt: string;
-  mainKey: string;
-  status: Status;
 };
 
 export type DashboardAccount = {
@@ -54,23 +52,6 @@ export type DashboardProps = {
   mutate: (command: Command) => Promise<void>;
   reportError: (error: unknown) => void;
 };
-
-const descriptions = { completed: 'Completed', loading: 'Pending: generating', failed: 'Failed' };
-const paths = {
-  completed: ['M5 12l4 4L19 6'],
-  loading: ['M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18', 'M12 7v5l3 2'],
-  failed: ['M12 3L2 21h20L12 3Z', 'M12 9v5', 'M12 17v1']
-};
-
-function StatusIcon({ status, description, id }: { status: Status; description?: string; id?: string }) {
-  if (!status) return null;
-  const label = description ?? descriptions[status];
-  return <span className="state-icon" id={id} role="img" aria-label={label} title={label}>
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      {paths[status].map((data, index) => <path d={data} key={index} />)}
-    </svg>
-  </span>;
-}
 
 function isCaptureReceipt(value: unknown): value is CaptureReceipt {
   if (typeof value !== 'object' || value === null) return false;
@@ -148,26 +129,14 @@ function DeckMenu({ deck, account, replacementDecks, replacementCursor, loadDeck
   </details>;
 }
 
-function PageRow({ page, index, navigate }: { page: DashboardPage; index: number; navigate: DashboardProps['navigate'] }) {
-  const row = useRef<HTMLTableRowElement>(null);
-  const stateId = useId();
-  const activate = (event: ReactMouseEvent<HTMLElement>) => {
-    const selection = window.getSelection();
-    if (event.detail && selection && !selection.isCollapsed && row.current?.contains(selection.anchorNode) && row.current.contains(selection.focusNode)) return;
-    navigate(`page/${page.id}`);
-  };
-  return <tr className="page-row state-row" data-page-id={page.id} data-state={page.status ?? 'neutral'} ref={row}
-    onClick={event => { if (!(event.target instanceof Element) || !event.target.closest('button')) activate(event); }}>
-    <td>{String(index + 1).padStart(3, '0')}</td>
-    <td>
-      <StatusIcon status={page.status} id={page.status ? stateId : undefined} />
-      <button className="entry" aria-describedby={page.status ? stateId : undefined} onClick={activate}>{page.mainKey}</button>
-    </td>
-  </tr>;
+function storedLayout(deckId: string): Layout {
+  try { const value = localStorage.getItem(`layout-${deckId}`); return isLayout(value) ? value : 'list'; }
+  catch { return 'list'; }
 }
 
 function DeckList({ deck, account, navigate, configure, mutate, reportError, loadPages, loadDecks }: Omit<DashboardProps, 'local' | 'deckId' | 'focusedMenu' | 'showPendingSaves' | 'error'> & { deck: DashboardDeck }) {
   const [order, setOrder] = useState(() => localStorage.getItem(`sort-${deck.id}`) ?? 'newest');
+  const [layout, setLayout] = useState(() => storedLayout(deck.id));
   const [pages, setPages] = useState<DashboardPage[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -193,23 +162,32 @@ function DeckList({ deck, account, navigate, configure, mutate, reportError, loa
       } else reportError(error);
     } finally { setLoading(false); }
   }
-  return <>
-    <button className="back" onClick={() => navigate('')}>← All decks</button>
-    <p className="eyebrow">YOUR COLLECTION</p>
-    <h1>{deck.name}</h1>
-    <DeckMenu deck={deck} account={account} replacementDecks={account.decks} replacementCursor={account.nextCursor ?? null} loadDecks={loadDecks} configure={configure} mutate={mutate} reportError={reportError} />
-    <button className="primary" onClick={() => navigate(`new-page/${deck.id}`)}>Add page manually</button>
-    <label htmlFor="page-sort">Sort pages</label>
-    <select id="page-sort" value={order} onChange={event => { localStorage.setItem(`sort-${deck.id}`, event.target.value); setOrder(event.target.value); }}>
-      {SORT_ORDERS.map(([value, label]) => <option value={value} key={value}>{label}</option>)}
-    </select>
+  const choose = (value: Layout) => {
+    try { localStorage.setItem(`layout-${deck.id}`, value); } catch { /* Remembering is a convenience. */ }
+    setLayout(value);
+  };
+  return <div className={`deck-view fam-${deckColour(deck.id)}`}>
+    <div className="page-head">
+      <div>
+        <h1><span className="fam-mark deck-mark" aria-hidden="true" />{deck.name}</h1>
+        <p className="muted">{deck.pageCount} {deck.pageCount === 1 ? 'page' : 'pages'}</p>
+      </div>
+      <div className="head-actions">
+        <DeckMenu deck={deck} account={account} replacementDecks={account.decks} replacementCursor={account.nextCursor ?? null} loadDecks={loadDecks} configure={configure} mutate={mutate} reportError={reportError} />
+        <button className="primary" onClick={() => navigate(`new-page/${deck.id}`)}>Add page manually</button>
+      </div>
+    </div>
+    <div className="list-toolbar">
+      <label htmlFor="page-sort">Sort pages</label>
+      <select id="page-sort" value={order} onChange={event => { localStorage.setItem(`sort-${deck.id}`, event.target.value); setOrder(event.target.value); }}>
+        {SORT_ORDERS.map(([value, label]) => <option value={value} key={value}>{label}</option>)}
+      </select>
+      <LayoutSwitch layout={layout} choose={choose} />
+    </div>
     {!pages.length ? <div className="empty">{loading ? 'Loading pages…' : 'No pages in this deck yet.'}</div> :
-      <table className="list"><tbody>
-        <tr><th>Index</th><th>Entry</th></tr>
-        {pages.map((page, index) => <PageRow page={page} index={index} navigate={navigate} key={page.id} />)}
-      </tbody></table>}
-    {cursor && <button disabled={loading} onClick={() => void more()}>Load more pages</button>}
-  </>;
+      <PageList pages={pages} layout={layout} order={order} navigate={navigate} />}
+    {cursor && <button className="load-more" disabled={loading} onClick={() => void more()}>Load more pages</button>}
+  </div>;
 }
 
 type CaptureEntry = { key: string; text: string; deckId: string; date: string; receipt?: CaptureReceipt; page?: DashboardPage };
@@ -226,7 +204,7 @@ function captureTime(iso: string, now = new Date()) {
   return date.toLocaleDateString([], { day: 'numeric', month: 'short' });
 }
 
-function RecentCaptures({ account, local, mutate, reportError }: Pick<DashboardProps, 'account' | 'local' | 'mutate' | 'reportError'>) {
+function RecentCaptures({ account, local, navigate, mutate, reportError }: Pick<DashboardProps, 'account' | 'local' | 'navigate' | 'mutate' | 'reportError'>) {
   const receipts = Object.entries(local)
     .filter(([key, item]) => key.startsWith('capture-') && isCaptureReceipt(item))
     .map(([, item]) => item as CaptureReceipt);
@@ -238,20 +216,27 @@ function RecentCaptures({ account, local, mutate, reportError }: Pick<DashboardP
   return <section className="recent" aria-labelledby="recent-captures">
     <h2 className="section-title" id="recent-captures">Recent captures</h2>
     {entries.length > 0 && <ul className="captures">{entries.map(entry => {
-      const state = entry.page?.status ?? (entry.receipt?.state === 'saving' ? 'loading' : entry.receipt?.state === 'pending' ? 'failed' : null);
+      const state = entry.page ? entry.page.status ?? 'neutral'
+        : entry.receipt?.state === 'saving' ? 'saving' : entry.receipt?.state === 'pending' ? 'unsaved' : 'loading';
       const deck = account.decks.find(item => item.id === entry.deckId);
       const pageId = entry.page?.id ?? (entry.receipt?.state === 'saved' ? entry.receipt.pageId : undefined);
-      const text = <span className="capture-text">{entry.text}</span>;
-      return <li className="capture state-row" data-state={state ?? 'neutral'} key={entry.key}>
-        <StatusIcon status={state} description={entry.receipt ? entry.receipt.state === 'saving' ? 'Pending' : entry.receipt.state === 'pending' ? 'Not saved to your account' : undefined : undefined} />
-        {pageId ? <a className="capture-link" href={`#page/${pageId}`}>{text}</a> : text}
+      const text = <span className="capture-text" data-tier={mainKeyTier(entry.text)}>{entry.text}</span>;
+      let line: ReactNode = null;
+      if (entry.page) line = <MeaningLine page={{ ...entry.page, mainKey: entry.text }} navigate={navigate} />;
+      else if (entry.receipt?.state === 'saving') line = <span className="meaning-line"><SavingStatus /></span>;
+      else if (entry.receipt?.state === 'saved') line = <span className="meaning-line"><GeneratingStatus /></span>;
+      return <li className="capture" data-state={state} key={entry.key}>
+        <span className="capture-body">
+          {pageId ? <a className="capture-link" href={`#page/${pageId}`}>{text}</a> : text}
+          {line}
+        </span>
         <span className="capture-meta">
           {deck && <span className={`capture-deck fam-${deckColour(deck.id)}`}><span className="fam-mark" aria-hidden="true" />{deck.name}</span>}
           <time dateTime={entry.date}>{captureTime(entry.date)}</time>
         </span>
         {entry.receipt?.state === 'pending' && <div className="capture-recovery">
-          <p className="muted">Not saved to your account.</p>
-          {entry.receipt.error && <p className="error">{entry.receipt.error}</p>}
+          <span className="list-status" data-status="failed">Not saved</span>
+          {entry.receipt.error && <span className="error">{entry.receipt.error}</span>}
           <RecoveryButton operationId={entry.receipt.operationId} mutate={mutate} reportError={reportError} />
         </div>}
       </li>;
@@ -280,7 +265,7 @@ function DeckGrid({ account, local, navigate, configure, mutate, reportError, lo
       </div>
       <button className="primary" onClick={() => configure('new')}>Add new deck</button>
     </div>
-    <RecentCaptures account={account} local={local} mutate={mutate} reportError={reportError} />
+    <RecentCaptures account={account} local={local} navigate={navigate} mutate={mutate} reportError={reportError} />
     <div className="grid">
       {decks.map(deck => <article className={`deck fam-${deckColour(deck.id)}`} key={deck.id}>
         <span className="deck-tab" aria-hidden="true" />

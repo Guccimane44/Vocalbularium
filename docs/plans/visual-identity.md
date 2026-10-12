@@ -1,6 +1,6 @@
 # Plan: the Vocabularium Sage visual identity (0.6.0)
 
-Proposed: 12 October 2026 (Europe/Berlin). Implements [D05](../architecture/traceability-map.md#entries), accepted by the owner on 12 October 2026. Tracker: [#120](https://github.com/Guccimane44/Vocalbularium/issues/120). Status: approved by the owner on 12 October 2026; increment 0 merged in [#121](https://github.com/Guccimane44/Vocalbularium/pull/121), increment 1 (specifications) in [#122](https://github.com/Guccimane44/Vocalbularium/pull/122), increment 2 (foundation) in [#123](https://github.com/Guccimane44/Vocalbularium/pull/123); increment 3 (shell and dashboard) in progress.
+Proposed: 12 October 2026 (Europe/Berlin). Implements [D05](../architecture/traceability-map.md#entries), accepted by the owner on 12 October 2026. Tracker: [#120](https://github.com/Guccimane44/Vocalbularium/issues/120). Status: approved by the owner on 12 October 2026; increment 0 merged in [#121](https://github.com/Guccimane44/Vocalbularium/pull/121), increment 1 (specifications) in [#122](https://github.com/Guccimane44/Vocalbularium/pull/122), increment 2 (foundation) in [#123](https://github.com/Guccimane44/Vocalbularium/pull/123), increment 3 (shell and dashboard) in [#124](https://github.com/Guccimane44/Vocalbularium/pull/124); increment 4 (page list layouts) in progress.
 
 ## Outcome
 
@@ -30,6 +30,7 @@ Recorded in D05, from the design interview on 11 October and the review rounds o
 6. **Page list:** List, Table and Gallery are **layouts** of a deck's page list, not views (K19). List is the default for every deck, grouped by capture date for the creation-time sort orders only (K20). Table and Gallery are also built in this milestone, with a switch remembered per deck.
 7. **Quiet status:** completed work shows no badge; only waiting, generating and failed states appear. A failed row offers its action (Retry, Try saving again) as a visible button.
 8. **Rendering:** generated content is rendered from its current text format by the extension. Stored content, prompts and the API do not change; text that the renderer does not recognise is shown as plain text, as today.
+11. **Page summaries** (12 October 2026, during increment 4): the backend adds each page's meaning line and per-component family data to the page summaries it already sends, so the page list needs no request per page. The change is additive: no migration, no change to stored content, and earlier extensions ignore the new fields ([decks and configuration](../specs/decks-and-configuration.md#views-and-layouts)).
 9. **Capture:** stays in the context menu. After the user chooses it, the selection lifts off the page and flies into the capture feedback popup in about half a second, and the toolbar badge counts captures until the dashboard is opened (K21). No new extension permission; the floating selection button from the prototype is not part of this milestone.
 10. **Motion:** the durations and easings in the design system; every animation stops under reduced motion.
 
@@ -49,7 +50,7 @@ Recorded in D05, from the design interview on 11 October and the review rounds o
 
 ## Increments
 
-Each increment is one PR against `main`, reviewed and green in CI before the next starts. Increments 2–8 change the extension only; the backend and the database stay as in 0.5.2.
+Each increment is one PR against `main`, reviewed and green in CI before the next starts. Increments 2–8 change the extension; the backend changes only by the additive page-summary fields of increment 4 (owner decision 11), and the database schema stays as in 0.5.2.
 
 ### 0. Record the plan (this PR)
 
@@ -85,6 +86,7 @@ This plan, the D05 row with its conflict and clarifications in the [traceability
 - **List** (default): rows grouped by capture date for the two creation-time orders and ungrouped for the alphabetical ones; key over meaning, family marks, Open on hover, and the waiting, generating, failed and not-saved states with their actions.
 - **Table** and **Gallery**, with a layout switch remembered per deck on the installation, next to the existing sort order.
 - Loading 30 pages at a time, the four sort orders and keyboard access stay as specified.
+- Page summaries carry the meaning line and each component's module type, status and whether it is filled (owner decision 11).
 
 ### 5. Page view and module window
 
@@ -124,7 +126,7 @@ The module list on the left, the live preview of a sample page in the middle (wo
 8. Capturing from the context menu shows the selection flying into the feedback popup, and the popup behaves as before.
 9. With reduced motion, no element moves, and every state is still shown.
 10. Text and controls meet the contrast targets in both themes, and every action works from the keyboard.
-11. Upgrading from 0.5.2 keeps all decks and pages, needs no migration, and changes no API.
+11. Upgrading from 0.5.2 keeps all decks and pages, needs no migration, and changes the API only by additive page-summary fields.
 
 ## Risks
 

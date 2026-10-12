@@ -1,7 +1,7 @@
 import test, { createTestStore, createTestApplication } from './helpers/database.mjs';
 import assert from 'node:assert/strict';
 import { sortPages as sortSummaries } from '../extension/sorting.ts';
-import { component, text, textBlocks } from './helpers/pages.mjs';
+import { capture, complete, component, text, textBlocks, useModules } from './helpers/pages.mjs';
 
 // The extension's list ordering, applied to full pages by their main key.
 const sortPages = (pages, order) => sortSummaries(pages.map(page => ({ id: page.id, createdAt: page.createdAt,
@@ -98,4 +98,25 @@ test('bounded read routes require login and reject oversized lists and stale cur
     assert.equal((await request(retired, token)).status, 404, retired);
   }
   await application.close();
+});
+
+test('page summaries carry the meaning line and one entry per module, not the content', async t => {
+  const store = await createTestStore(t);
+  await useModules(store, ['context', 'german-examples', 'text']);
+  const session = { installationId: 'summary-installation', sessionId: 'summary-session', epoch: 1 };
+  await store.openSession('summary-session-open', session);
+  const { page } = await capture(store, 'summary-capture', session, '幸福', 'Sie lächelte: 幸福.');
+  const deckId = page.deckId;
+  const [loading] = (await store.listPages(deckId, { order: 'newest' })).pages;
+  assert.equal(loading.meaning, null);
+  assert.deepEqual(loading.modules, [
+    { type: 'context', status: null, filled: true }, { type: 'german-examples', status: 'loading', filled: false }, { type: 'text', status: null, filled: false }
+  ]);
+  await complete(store, page, session, () => '== Chinesisch ==\n=== Bedeutungen ===\n: [1] Glück\n=== Beispiele ===\n: [1] 她很幸福。\n:: Sie ist glücklich.');
+  const [done] = (await store.listPages(deckId, { order: 'newest' })).pages;
+  assert.equal(done.meaning, 'Glück');
+  assert.deepEqual(done.modules.map(module => [module.type, module.status, module.filled]),
+    [['context', null, true], ['german-examples', 'completed', true], ['text', null, false]]);
+  assert.ok(!JSON.stringify(done).includes('Sie lächelte') && !JSON.stringify(done).includes('Beispiele'), 'no content in the summary');
+  assert.equal((await store.recentCaptures()).pages[0].meaning, 'Glück');
 });

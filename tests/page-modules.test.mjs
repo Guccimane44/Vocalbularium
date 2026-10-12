@@ -5,8 +5,8 @@ import {
   ComponentMovePayloadSchema, DeckConfigurationSchema, MAX_MODULES, ModuleAddPayloadSchema, PageSchema
 } from '@vocabularium/contracts';
 import {
-  addBlocked, CATALOG, copyModules, deleteBlocked, FAMILIES, FAMILY_LABELS, generationTargets, isContentType, moveBlocked, moved,
-  validateConfiguration, WINDOW_MODULES
+  addBlocked, CATALOG, copyModules, deleteBlocked, FAMILIES, FAMILY_LABELS, firstMeaning, generationTargets, isContentType, moveBlocked, moved,
+  pageMeaning, validateConfiguration, WINDOW_MODULES
 } from '@vocabularium/domain/page-modules';
 import { textBlocks } from '@vocabularium/domain/pages';
 
@@ -106,4 +106,16 @@ test('a page is its components in order, between one and twelve', () => {
   assert.ok(Value.Check(PageSchema, valid));
   assert.ok(!Value.Check(PageSchema, { ...valid, components: [] }));
   assert.ok(!Value.Check(PageSchema, { ...valid, components: [{ ...page()[0], kind: 'main_key' }] }), 'kind is retired');
+});
+
+test('the meaning line is the first numbered meaning, preferring the Meaning family', () => {
+  const examples = '== Chinesisch (幸福, xìngfú) ==\n=== Bedeutungen ===\n: [1] Glück\n: [2] Wohlstand\n=== Beispiele ===\n: [1] 幸福就在身边。\n:: Das Glück ist ganz nah.';
+  const explanation = '== Chinesisch ==\n=== Bedeutungen ===\n: [1] Glück; Wohlergehen im Leben';
+  assert.equal(firstMeaning(examples), 'Glück');
+  assert.equal(firstMeaning(': [1] ohne Überschrift'), 'ohne Überschrift');
+  assert.equal(firstMeaning('=== Beispiele ===\n: [1] 她很幸福。'), null, 'examples are not meanings');
+  assert.equal(firstMeaning('Sie sagte leise: „我真的很幸福“.'), null);
+  assert.equal(pageMeaning([{ type: 'german-examples', text: examples }, { type: 'german-explanation', text: explanation }]), 'Glück; Wohlergehen im Leben');
+  assert.equal(pageMeaning([{ type: 'german-examples', text: examples }, { type: 'german-explanation', text: null }]), 'Glück');
+  assert.equal(pageMeaning([{ type: 'text', text: ': [1] my note' }, { type: 'sentence-usage', text: 'plain' }]), null, 'input modules never supply it');
 });
