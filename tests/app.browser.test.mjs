@@ -1602,13 +1602,12 @@ test('module window: drag modules onto a page and into deck settings, and reorde
   await new Promise(resolve => setTimeout(resolve, 300));
   for (let step = 0; step < 6; step++) await a.page.keyboard.press('ArrowDown');
   await announced('Text is over the end.');
-  await a.page.keyboard.press('Space');
-  await waitFor(async () => (await types()).length === 5, 'Text added from the keyboard');
-  assert.deepEqual(await types(), ['main-key', 'text', 'context', 'german-examples', 'text']);
-  // The window's + adds a module as the last component, without dragging (0.6.3).
   await openFamily(windowModule(a.page, 'sentence-usage'));
+  await a.page.keyboard.press('Space');
+  // The window's + adds a module as the last component, without dragging (0.6.3), even when
+  // pressed right after another add: the server appends it after whatever the page holds.
   await a.page.locator('.window-module[data-type="sentence-usage"]').getByRole('button', { name: 'Add Sentence usage at the end', exact: true }).click();
-  await waitFor(async () => (await types()).length === 6, 'Sentence usage added with its +');
+  await waitFor(async () => (await types()).length === 6, 'Text and Sentence usage added');
   assert.deepEqual(await types(), ['main-key', 'text', 'context', 'german-examples', 'text', 'sentence-usage']);
   await card('Sentence usage').waitFor();
 

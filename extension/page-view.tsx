@@ -7,7 +7,7 @@ import { emphasise, renderContent } from '@vocabularium/domain/render';
 import type { PageEditorDraft } from '../types/editor-drafts.js';
 import { FamilyIcon } from './families.tsx';
 import { mainKeyTier } from './main-key.ts';
-import { moduleLabel, ShapingArea, SixDots } from './shaping.tsx';
+import { AT_THE_END, moduleLabel, ShapingArea, SixDots } from './shaping.tsx';
 import type { RowParts } from './shaping.tsx';
 
 // Icons for a card's actions, drawn like the family icons: 24px grid, 2.2 stroke.
@@ -411,7 +411,8 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
     </div>
     <ShapingArea items={items} types={page.components.map(item => item.moduleType)} disabled={disabled}
       label="Components" where="the page"
-      onAdd={(type, index) => addModule(type, index + 1)}
+      // The server appends a module sent without a position, after anything added meanwhile.
+      onAdd={(type, index) => addModule(type, index === AT_THE_END ? undefined : index + 1)}
       onMove={(id, index) => moveComponent(id, index + 1)}
       menuItems={COMPONENT_MENU}
       renderLanding={type => <LandingCard type={type} />}

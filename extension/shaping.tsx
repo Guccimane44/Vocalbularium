@@ -74,6 +74,8 @@ export type ShapeItem = { id: string; label: string };
 // starts a drag with the pointer or Space, and show `menu` before it.
 export type RowParts = { drag: Record<string, unknown>; menu: ReactNode };
 const KEYBOARD_CODES = { start: ['Space'], cancel: ['Escape'], end: ['Space'] };
+// The index onAdd receives from the window's +: after the last entry, whatever the list holds by then.
+export const AT_THE_END = Number.POSITIVE_INFINITY;
 type Result = boolean | void | Promise<boolean | void>;
 
 // The list below a pinned first entry (the main key), and the module window
@@ -170,7 +172,8 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
     if (disabled) return;
     setAdding({ type, index: shown.length });
     requestAnimationFrame(() => list.current?.querySelector('.landing-row')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }));
-    if (await onAdd(type, shown.length) === false) setAdding(null);
+    // "At the end" is left to the list's owner: a page may hold more by then.
+    if (await onAdd(type, AT_THE_END) === false) setAdding(null);
   }
   async function end(event: DragEndEvent) {
     const { active, over } = event;
