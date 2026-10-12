@@ -23,6 +23,11 @@ const ACTION_ICONS = {
 const ActionIcon = ({ name }: { name: keyof typeof ACTION_ICONS }) => <svg className="action-icon" viewBox="0 0 24 24" aria-hidden="true"
   fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">{ACTION_ICONS[name]}</svg>;
 
+// A deleted card pops away like a puff of smoke before it goes (0.6.3).
+const POOF_MS = 420;
+// Where each little puff flies, from the card's middle.
+const PUFFS = [[-70, -22], [-34, -38], [6, -44], [44, -34], [78, -18], [-52, 20], [60, 22]] as const;
+
 // The six-dot menu on each card; its entries are placeholders (0.6.3).
 const COMPONENT_MENU = ['Duplicate', 'Copy text', 'Move to page…'] as const;
 
@@ -190,7 +195,7 @@ function ConfirmDelete({ title, offset, onDelete, onCancel }: { title: string; o
     <button ref={confirm} style={{ '--i': 0 } as CSSProperties} className="action-confirm" aria-label={`Yes, delete ${title}`} onClick={onDelete}>
       <ActionIcon name="delete" />Delete</button>
     <button ref={cancel} style={{ '--i': 1 } as CSSProperties} aria-label={`Keep ${title}`} onClick={onCancel}>Cancel</button>
-    <span id={questionId} className="confirm-text" style={{ '--i': 2 } as CSSProperties}>Are you sure you want to delete {title}? This can’t be undone.</span>
+    <span id={questionId} className="confirm-text" style={{ '--i': 2 } as CSSProperties}>Are you sure?</span>
   </div>;
 }
 
@@ -217,6 +222,19 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
   const [working, setWorking] = useState(false);
   // The card whose tab has ejected its actions; one at a time.
   const [opened, setOpened] = useState<string | null>(null);
+  // Cards popping away: a deleted card plays a short poof first, then goes;
+  // under reduced motion it goes at once, and a failed delete brings it back.
+  const [vanishing, setVanishing] = useState<ReadonlySet<string>>(new Set());
+  const vanish = (item: Component) => {
+    const remove = () => void run(async () => { await deleteComponent(item); });
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) { remove(); return; }
+    setVanishing(current => new Set(current).add(item.id));
+    setTimeout(() => {
+      void run(async () => { try { await deleteComponent(item); } finally {
+        setVanishing(current => { const next = new Set(current); next.delete(item.id); return next; });
+      } });
+    }, POOF_MS);
+  };
   // The card asking whether to delete, and where its Delete stood in the row.
   const [confirming, setConfirming] = useState<{ id: string; offset: number } | null>(null);
   useEffect(() => { if (opened !== confirming?.id) setConfirming(null); }, [opened]);
@@ -280,7 +298,7 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
     if (!open && !(item.status === 'failed' && generated)) return null;
     if (open && confirming?.id === item.id) return <ConfirmDelete title={title} offset={confirming.offset}
       onCancel={() => setConfirming(null)}
-      onDelete={() => { setConfirming(null); setOpened(null); void run(async () => { await deleteComponent(item); }); }} />;
+      onDelete={() => { setConfirming(null); setOpened(null); vanish(item); }} />;
     // An empty component is already only its tab: there is nothing to fold.
     const foldable = Boolean(blockText(item.content)) || item.status === 'loading' || item.status === 'failed';
     const isFolded = folded.has(item.id);
@@ -300,7 +318,7 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
       {open && <button style={order()} className="action-delete" aria-label={`Delete ${title}`} disabled={disabled || working || item.status === 'loading'}
         onClick={event => {
           // An empty component has nothing to lose: it goes at once.
-          if (!blockText(item.content)) { choose(() => void run(async () => { await deleteComponent(item); }))(); return; }
+          if (!blockText(item.content)) { choose(() => vanish(item))(); return; }
           // Where Delete stands within the row, transforms aside: offsetLeft counts from the card's head.
           const button = event.currentTarget;
           setConfirming({ id: item.id, offset: button.offsetLeft - (button.parentElement?.offsetLeft ?? 0) });
@@ -325,7 +343,8 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
     const family = isModuleType(item.moduleType) ? CATALOG[item.moduleType].family ?? 'notes' : 'notes';
     const empty = !blockText(item.content) && item.status !== 'loading' && item.status !== 'failed' && editingId !== item.id;
     const isFolded = !empty && folded.has(item.id) && editingId !== item.id;
-    return <article className={`component fam-${family}`} data-empty={empty || undefined} data-folded={isFolded || undefined}
+    const gone = vanishing.has(item.id);
+    return <><article className={`component fam-${family}`} data-empty={empty || undefined} data-folded={isFolded || undefined} data-vanishing={gone || undefined}
       data-component-id={item.id} data-type={item.moduleType} data-status={item.status ?? undefined} data-editing={editingId === item.id || undefined}>
       <div className="card-head" onKeyDown={event => {
         if (event.key !== 'Escape' || opened !== item.id) return;
@@ -348,7 +367,10 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
         {item.status === 'failed' && <p className="card-status"><span className="list-status" data-status="failed">Generation failed</span></p>}
         {editor(item, title) || <Reveal status={item.status} title={title}><ComponentBody item={item} title={title} editable={false} draft={draft} locked={locked} persist={persist} mainKey={mainKey} /></Reveal>}
       </div></div>}
-    </article>;
+    </article>
+    {gone && <span className={`poof fam-${family}`} aria-hidden="true">{PUFFS.map(([x, y], index) =>
+      <span key={index} style={{ '--x': `${x}px`, '--y': `${y}px`, '--d': `${index * 20}ms` } as CSSProperties} />)}</span>}
+    </>;
   };
 
   return <>

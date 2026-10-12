@@ -5,7 +5,7 @@ import {
   useDraggable, useDroppable, useSensor, useSensors
 } from '@dnd-kit/core';
 import type {
-  Active, Announcements, CollisionDetection, DragEndEvent, DragMoveEvent, DragStartEvent, KeyboardCoordinateGetter, Over
+  Active, Announcements, CollisionDetection, DragEndEvent, DragMoveEvent, DragStartEvent, KeyboardCoordinateGetter, Modifier, Over
 } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -23,6 +23,10 @@ const WINDOW = 'window:';
 const LIST_END = 'list-end';
 // The landing card a window module shows in the list where it would land.
 const LANDING = 'landing';
+// An entry being reordered moves only up and down its list, in its column;
+// a module from the window follows the pointer until it is over the list.
+const alongTheList: Modifier = ({ active, transform }) => fromWindow(active) ? transform : { ...transform, x: 0 };
+
 // The module window itself: dropping a module back onto it cancels the drag.
 const BACK = 'module-window';
 export const moduleLabel = (type: string) => CATALOG[type as ModuleType]?.label ?? type;
@@ -36,7 +40,9 @@ const windowType = (active: Active) => String(active.id).slice(WINDOW.length);
 // entry; Escape puts it back.
 const collision: CollisionDetection = args => {
   const list = { ...args, droppableContainers: args.droppableContainers.filter(entry => entry.id !== BACK) };
-  if (!fromWindow(args.active)) return closestCenter(list);
+  // An entry being reordered only lands among the entries: over the end zone
+  // it is nearest the last one, so the others make room as for any place.
+  if (!fromWindow(args.active)) return closestCenter({ ...list, droppableContainers: list.droppableContainers.filter(entry => entry.id !== LIST_END) });
   const hits = pointerWithin(args);
   const back = hits.find(hit => hit.id === BACK);
   if (back) return [back];
@@ -175,8 +181,9 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
   else if (adding) rows.splice(Math.min(adding.index, rows.length), 0, <div key="adding" className="sortable-row landing-row" data-saving role="status">
     {renderLanding(adding.type)}<span className="visually-hidden">Adding {moduleLabel(adding.type)}…</span></div>);
   const list = useRef<HTMLElement>(null);
-  useMakeRoom(list, `${incoming ?? ''}:${incoming !== null ? slot : ''}`);
-  return <DndContext sensors={sensors} collisionDetection={collision} accessibility={{ announcements }}
+  // The entries also slide into place when one is added or deleted.
+  useMakeRoom(list, `${incoming ?? ''}:${incoming !== null ? slot : ''}:${shownKey}`);
+  return <DndContext sensors={sensors} collisionDetection={collision} accessibility={{ announcements }} modifiers={[alongTheList]}
     measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}
     onDragStart={start} onDragMove={move} onDragOver={move} onDragEnd={end} onDragCancel={finish}>
     <div className="shaping-layout">

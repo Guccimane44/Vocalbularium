@@ -993,7 +993,7 @@ test('manual page UI: per-card actions, drafts, leave choices, sorting, failed-s
   const confirmDelete = a.page.getByRole('button', { name: 'Yes, delete Context', exact: true });
   await keep.waitFor();
   assert.equal(await a.page.getByRole('dialog').count(), 0, 'no dialog');
-  assert.equal(await a.page.locator('.confirm-text').textContent(), 'Are you sure you want to delete Context? This can’t be undone.');
+  assert.equal(await a.page.locator('.confirm-text').textContent(), 'Are you sure?');
   await a.page.locator('[data-confirm]').evaluate(node => Promise.all(node.getAnimations({ subtree: true }).map(animation => animation.finished)));
   assert.equal(await a.page.evaluate(([x, y]) => document.elementFromPoint(x, y)?.closest('button')?.getAttribute('aria-label'),
     [was.x + was.width / 2, was.y + was.height / 2]), 'Keep Context', 'Cancel is under the pointer');
@@ -1458,7 +1458,20 @@ test('module window: drag modules onto a page and into deck settings, and reorde
     handler(request, response);
   });
   const headings = async () => ['Main key', ...await a.page.locator('.shaping-list article.component h2').allTextContents()];
-  await drag(a.page, cardTab(a.page, 'Text'), a.page.locator('.drop-end'));
+  // Over the end zone the card moves only up and down, and the others make room as for the last place (0.6.3).
+  const rowOf = heading => a.page.locator('.sortable-row').filter({ has: a.page.getByRole('heading', { name: heading, exact: true }) });
+  // Wait for the cards to finish sliding into place after the add before aiming at one.
+  await a.page.locator('.shaping-list').evaluate(list => Promise.all(list.getAnimations({ subtree: true })
+    .filter(animation => animation.effect?.getTiming().iterations !== Infinity).map(animation => animation.finished)));
+  const from = await cardTab(a.page, 'Text').boundingBox(), end = await a.page.locator('.drop-end').boundingBox();
+  await a.page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+  await a.page.mouse.down();
+  await a.page.mouse.move(from.x + from.width / 2 + 10, from.y + from.height / 2 + 10, { steps: 4 });
+  await a.page.mouse.move(end.x + end.width / 2 + 120, end.y + end.height / 2, { steps: 12 });
+  const shiftOf = heading => rowOf(heading).evaluate(node => new DOMMatrix(getComputedStyle(node).transform).m42);
+  await waitFor(async () => await shiftOf('German explanation + examples') < -20 && await shiftOf('Context') < -20, 'every card after it makes room');
+  assert.equal(await rowOf('Text').evaluate(node => new DOMMatrix(getComputedStyle(node).transform).m41), 0, 'the card stays in its column');
+  await a.page.mouse.up();
   await waitFor(() => heldMoves.length === 1, 'move request reached the server');
   for (let sample = 0; sample < 5; sample++) {
     assert.deepEqual(await headings(), ['Main key', 'Context', 'German explanation + examples', 'Text'], 'the new order shows before the save finishes');

@@ -91,14 +91,18 @@
 .card-actions button:disabled { opacity: .5; cursor: default; background: var(--fam-tint, var(--fam-notes-tint)); }
 .card-actions .action-failed:disabled { background: var(--status-failed); }
 .card-actions .action-confirm, .card-actions .action-confirm:not(:disabled):hover { background: var(--status-failed); color: var(--status-failed-bg); box-shadow: none; }
-/* The question after the final Delete and Cancel wraps within the card's width. */
-.card-head:has(> [data-confirm]) { align-items: flex-start; }
-.card-actions[data-confirm] { flex: 1 1 auto; min-width: 0; align-items: flex-start; }
-.card-actions[data-confirm] button { flex: none; }
+/* The question follows the final Delete and Cancel. */
+.card-actions[data-confirm] { align-items: center; }
 .card-head:has(> [data-confirm]) .card-tab { flex: none; }
-.confirm-text { flex: 0 1 auto; min-width: 0; margin-left: 2px; padding: 5px 10px; border-radius: var(--radius-control); font: 500 13px/1.35 var(--font-text);
-  color: var(--ink-soft); background: var(--surface); box-shadow: 0 0 0 1px var(--line); }
-.card-actions[data-open] .confirm-text { animation: eject var(--dur-spring) var(--ease-spring) both; animation-delay: calc(var(--i, 0) * 40ms); transform-origin: left center; }
+.confirm-text { position: relative; flex: none; align-self: center; margin-left: 10px; padding: 4px 11px 5px; border-radius: 999px;
+  font: 600 13px/1.2 var(--font-text); color: var(--status-failed); background: var(--status-failed-bg);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--status-failed) 35%, transparent); }
+/* A speech bubble: its tail points back at Delete and Cancel. */
+.confirm-text::before { content: ""; position: absolute; left: -5px; top: 50%; width: 9px; height: 9px; margin-top: -4.5px; transform: rotate(45deg);
+  background: var(--status-failed-bg); box-shadow: inset 1px -1px 0 color-mix(in srgb, var(--status-failed) 35%, transparent); }
+.card-actions[data-open] .confirm-text { animation: eject var(--dur-spring) var(--ease-spring) both, wobble 600ms var(--ease-out) 380ms; animation-delay: calc(var(--i, 0) * 40ms), 380ms; transform-origin: left center; }
+/* Once out, the question gives one small wobble, a nudge to look twice. */
+@keyframes wobble { 20% { transform: rotate(-4deg); } 45% { transform: rotate(3deg); } 70% { transform: rotate(-1.5deg); } }
 .card-actions[data-open] button { animation: eject var(--dur-spring) var(--ease-spring) both; animation-delay: calc(var(--i, 0) * 40ms); transform-origin: left center; }
 @keyframes eject {
   from { opacity: 0; transform: translateX(calc(-36px - var(--i, 0) * 28px)) scale(.7); }
@@ -106,6 +110,25 @@
 }
 @media (prefers-reduced-motion: reduce) { .card-tab, .confirm-text { animation: none !important; } }
 @media (prefers-reduced-motion: reduce) { .card-actions[data-open] button, .row-menu-list { animation: none; } }
+/* Deleting (0.6.3): the card swells a touch, then shrinks and fades as a few
+   puffs burst from its middle, like a cartoon poof; the cards below then
+   slide up. Nothing moves under reduced motion: it simply goes. */
+.component[data-vanishing] { pointer-events: none; animation: poof var(--dur-poof, 420ms) var(--ease-out) forwards; }
+@keyframes poof {
+  25% { transform: scale(1.03); opacity: 1; }
+  100% { transform: scale(.6); opacity: 0; filter: blur(2px); }
+}
+.poof { position: absolute; left: 50%; top: 50%; width: 0; height: 0; pointer-events: none; }
+.poof span { position: absolute; left: -9px; top: -9px; width: 18px; height: 18px; border-radius: 50%; background: var(--fam-tint, var(--fam-notes-tint));
+  box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--fam, var(--fam-notes)) 65%, transparent); opacity: 0;
+  animation: puff 460ms var(--ease-out) forwards; animation-delay: calc(90ms + var(--d, 0ms)); }
+.poof span:nth-child(odd) { width: 12px; height: 12px; left: -6px; top: -6px; }
+@keyframes puff {
+  0% { opacity: .95; transform: translate(0, 0) scale(.3); }
+  100% { opacity: 0; transform: translate(var(--x), var(--y)) scale(1.15); }
+}
+@media (prefers-reduced-motion: reduce) { .component[data-vanishing], .poof span { animation: none; } }
+
 /* Folding (0.6.3): the content slides shut and fades while the card narrows
    to a slim band under its tab, and opens the same way. The height moves by
    the grid row, the one place a layout property animates. */
