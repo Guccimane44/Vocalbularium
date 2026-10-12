@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import {
   closestCenter, DndContext, DragOverlay, KeyboardSensor, MeasuringStrategy, pointerWithin, PointerSensor,
@@ -107,6 +107,11 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
   useEffect(() => { setOrder(ids); setAdding(null); }, [key]);
   const byId = new Map(items.map(item => [item.id, item]));
   const shown = [...order.filter(id => byId.has(id)), ...ids.filter(id => !order.includes(id))].map(id => byId.get(id)!);
+  // dnd-kit compares the sortable IDs by identity and turns the other entries'
+  // sliding off when they change, so keep one array while the order is the
+  // same: a live preview re-renders this area on every pointer move.
+  const shownKey = shown.map(item => item.id).join('|');
+  const sortableIds = useMemo(() => shownKey ? shownKey.split('|') : [], [shownKey]);
 
   const name = (id: string | number) => {
     const value = String(id);
@@ -174,7 +179,7 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
     <div className={`shaping-layout${preview ? ' with-preview' : ''}`}>
       <section className="shaping-list" aria-label={label}>
         {pinned}
-        <SortableContext items={shown.map(item => item.id)} strategy={verticalListSortingStrategy} disabled={disabled}>
+        <SortableContext items={sortableIds} strategy={verticalListSortingStrategy} disabled={disabled}>
           {rows}
         </SortableContext>
         <DropEnd disabled={disabled} active={slot === shown.length} />
@@ -191,12 +196,15 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
   </DndContext>;
 }
 
+// The other entries make room with the design system's ease-out (D05).
+const MAKING_ROOM = { duration: 250, easing: 'cubic-bezier(.2,.8,.2,1)' };
+
 // A list entry that reorders by dragging its handle, with the pointer or with
 // Space and the arrow keys.
 function SortableRow<T extends ShapeItem>({ item, disabled, insertBefore, renderItem }: {
   item: T; disabled: boolean; insertBefore: boolean; renderItem: (item: T, handle: ReactNode) => ReactNode;
 }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id, disabled });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id, disabled, transition: MAKING_ROOM });
   // Translate only: cards of different heights keep their shape while moving.
   const style: CSSProperties = { transform: CSS.Translate.toString(transform), transition };
   const handle = <button type="button" className="drag-handle" aria-label={`Drag ${item.label}`} disabled={disabled} {...attributes} {...listeners}>⠿</button>;
