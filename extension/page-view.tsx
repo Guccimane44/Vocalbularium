@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { Component, GenerationTarget, ModuleInstance, Page } from '@vocabularium/contracts';
 import { CATALOG, isContentType, isModuleType } from '@vocabularium/domain/page-modules';
@@ -108,6 +108,22 @@ function ComponentBody({ item, title, editable, draft, locked, persist, mainKey 
   return <p className="muted">Empty.</p>;
 }
 
+// Motion (D05): when a component finishes generating while the page is open,
+// its content rises into the card line by line.
+function Reveal({ status, children }: { status: string | null; children: ReactNode }) {
+  const previous = useRef(status);
+  const [revealing, setRevealing] = useState(false);
+  useEffect(() => {
+    const finished = previous.current === 'loading' && status === 'completed';
+    previous.current = status;
+    if (!finished) return;
+    setRevealing(true);
+    const timer = setTimeout(() => setRevealing(false), 1200);
+    return () => clearTimeout(timer);
+  }, [status]);
+  return <div className="card-body" data-reveal={revealing || undefined}>{children}</div>;
+}
+
 // The page title: the main key in its tier; a passage is cut after six lines.
 export function MainKeyTitle({ text }: { text: string }) {
   const tier = mainKeyTier(text);
@@ -203,7 +219,7 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
       {item.status === 'failed' && <p className="card-status"><span className="list-status" data-status="failed">Generation failed</span></p>}
       {editor(item, title) || (emptyText
         ? <button className="add-text" disabled={Boolean(editingId)} onClick={() => begin(item.id)}>+ Text — add your own notes</button>
-        : <ComponentBody item={item} title={title} editable={false} draft={draft} locked={locked} persist={persist} mainKey={mainKey} />)}
+        : <Reveal status={item.status}><ComponentBody item={item} title={title} editable={false} draft={draft} locked={locked} persist={persist} mainKey={mainKey} /></Reveal>)}
     </article>;
   };
 

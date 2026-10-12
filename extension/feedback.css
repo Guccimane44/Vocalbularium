@@ -1,13 +1,30 @@
+/* The capture feedback popup and the capture flight (D05). It runs inside web
+   pages, where the bundled fonts are not loaded, so it uses system fonts and
+   looks the same on a web page and on the dashboard. */
 .feedback-item {
-  font: 15px/1.5 system-ui, sans-serif; color: var(--text); background: var(--surface);
-  padding: 14px 18px; margin: 0 0 8px; border: 1px solid var(--border);
-  border-radius: 12px; box-shadow: 0 4px 20px #0002; max-width: min(380px, calc(100vw - 36px));
+  display: flex; align-items: center; gap: 10px;
+  font: 500 15px/1.45 system-ui, sans-serif; color: var(--ink); background: var(--surface);
+  padding: 10px 10px 10px 14px; margin: 0 0 8px; border: 0; border-radius: var(--radius-card);
+  box-shadow: 0 0 0 1px var(--line), var(--shadow-lift); max-width: min(380px, calc(100vw - 36px));
   overflow-wrap: anywhere;
+  animation: feedback-in var(--dur-spring) var(--ease-spring) both;
 }
-.feedback-item.failed { border-color: var(--failed-cue); }
+.feedback-mark { flex: none; width: 10px; height: 14px; border-radius: 2px 2px 0 0; background: var(--fam-usage); }
+.feedback-item.failed { background: var(--status-failed-bg); }
+.feedback-item.failed .feedback-mark { background: var(--status-failed); }
+.feedback-text { flex: 1 1 auto; min-width: 0; }
 .feedback-item button {
-  font: inherit; color: inherit; background: transparent; border: 1px solid var(--border);
-  border-radius: 6px; cursor: pointer; padding: 2px 8px; margin-left: 16px;
+  flex: none; font: inherit; line-height: 1; color: var(--ink-soft); background: transparent; border: 0;
+  border-radius: var(--radius-sm); cursor: pointer; padding: 6px 9px; margin-left: 6px;
 }
-.feedback-item button:hover { background: var(--hover); }
+.feedback-item button:hover { background: var(--surface-hover); color: var(--ink); }
 .feedback-item button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+@keyframes feedback-in { from { opacity: 0; transform: translateY(-4px) scale(.96); } to { opacity: 1; transform: none; } }
+
+.flight-label {
+  position: fixed; left: 0; top: 0; z-index: 1; pointer-events: none; white-space: nowrap;
+  font: 600 15px/1.2 Georgia, serif; color: var(--on-ink); background: var(--ink);
+  padding: 7px 14px; border-radius: 999px; box-shadow: var(--shadow-drag); will-change: transform, opacity;
+}
+@media (prefers-reduced-motion: reduce) { .feedback-item { animation: none; } .flight-label { display: none; } }
+@media (forced-colors: active) { .feedback-item { border: 1px solid CanvasText; } .feedback-mark { forced-color-adjust: none; background: CanvasText; } }

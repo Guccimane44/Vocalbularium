@@ -2,7 +2,7 @@ import { readLocal } from './recovery.js';
 import { showFeedback } from './feedback.js';
 import { captureContext } from './context-extraction.js';
 
-export function captureRuntime({ request, initialize, refresh, removeAccess, saves, diagnostic = () => {}, extractContext = captureContext }) {
+export function captureRuntime({ request, initialize, refresh, removeAccess, saves, diagnostic = () => {}, extractContext = captureContext, accepted = async () => {} }) {
   let polling;
   let pollAgain = false;
   async function context() {
@@ -35,6 +35,7 @@ export function captureRuntime({ request, initialize, refresh, removeAccess, sav
       const result = await request('/api/capture', {
         operationId: receipt.operationId, payload: receipt.payload, recoverySession: session
       }, auth.token);
+      try { await accepted(); } catch { /* The toolbar badge never fails a capture. */ }
       await refresh({ ...receipt, state: 'saved', pageId: result.pageId, error: null });
       void poll().catch(recordError);
     } catch (error) {
@@ -62,7 +63,7 @@ export function captureRuntime({ request, initialize, refresh, removeAccess, sav
     const receipt = { operationId, payload, state: 'saving', createdAt: new Date().toISOString() };
     try { await chrome.storage.local.set({ [`capture-${operationId}`]: receipt }); }
     catch { await showFeedback(tab.id, 'Capture could not be received.', true, info.pageUrl ?? tab.url); return; }
-    await showFeedback(tab.id, 'Capture received', false, info.pageUrl ?? tab.url);
+    await showFeedback(tab.id, 'Capture received', false, info.pageUrl ?? tab.url, info.selectionText);
     await submit(receipt).catch(recordError);
     return operationId;
   }

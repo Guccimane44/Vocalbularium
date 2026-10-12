@@ -1,0 +1,34 @@
+/* Motion (D05, 0.6.0 increment 7): quick and physical, by transform and
+   opacity only. theme.css sets every duration to 0 under reduced motion, and
+   app.css stops animations there, so each state still shows without movement. */
+
+/* A new page or capture slides into its list. */
+[data-arrived] { animation: arrive var(--dur-settle) var(--ease-spring) both; }
+@keyframes arrive { from { opacity: 0; transform: translateY(-10px) scale(.98); } to { opacity: 1; transform: none; } }
+
+/* Family marks pop in as their components finish. */
+.fam-mark[data-new] { animation: mark-pop var(--dur-spring) var(--ease-spring) both; transform-origin: 50% 100%; }
+@keyframes mark-pop { from { opacity: 0; transform: scale(.2); } to { opacity: 1; transform: none; } }
+
+/* Status changes cross-fade: the meaning line is replaced, not edited. */
+.meaning-line { animation: fade-in var(--dur-quick) ease both; }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* Generated content rises into its card, one line after another. */
+.card-body[data-reveal] :is(.entry-heading, .meanings li, .examples-title, .examples li, .reading, pre) {
+  animation: rise var(--dur-settle) var(--ease-out) both;
+}
+.card-body[data-reveal] .meanings li:nth-child(2), .card-body[data-reveal] .examples li:nth-child(2) { animation-delay: 60ms; }
+.card-body[data-reveal] .meanings li:nth-child(3), .card-body[data-reveal] .examples li:nth-child(3) { animation-delay: 120ms; }
+.card-body[data-reveal] .meanings li:nth-child(n+4), .card-body[data-reveal] .examples li:nth-child(n+4) { animation-delay: 180ms; }
+.card-body[data-reveal] .examples-title, .card-body[data-reveal] .examples li { animation-delay: 160ms; }
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* A dragged card tilts slightly; the landing line opens out; the others make room
+   with dnd-kit's own transition. */
+.sortable-row > .component, .sortable-row > .module-block { transition: transform var(--dur-spring) var(--ease-spring), box-shadow var(--dur-spring) ease; }
+.sortable-row[data-dragging] > .component { transform: rotate(-1deg) scale(1.01); }
+.sortable-row[data-insert-before]::before { animation: line-open var(--dur-quick) var(--ease-out) both; transform-origin: left center; }
+@keyframes line-open { from { transform: scaleX(.3); opacity: 0; } to { transform: none; opacity: 1; } }
+.drag-preview { animation: pick-up var(--dur-quick) var(--ease-spring) both; }
+@keyframes pick-up { from { transform: scale(.96) rotate(0deg); } to { transform: scale(1) rotate(-1.5deg); } }
