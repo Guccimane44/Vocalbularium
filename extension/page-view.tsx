@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import type { Component, GenerationTarget, ModuleInstance, Page } from '@vocabularium/contracts';
 import { CATALOG, isContentType, isModuleType } from '@vocabularium/domain/page-modules';
 import { blockText, mainKeyOf } from '@vocabularium/domain/pages';
@@ -9,6 +9,10 @@ import { FamilyIcon } from './families.tsx';
 import { mainKeyTier } from './main-key.ts';
 import { GeneratingStatus } from './page-list.tsx';
 import { moduleLabel, PinMark, ShapingArea } from './shaping.tsx';
+import type { RowParts } from './shaping.tsx';
+
+// The six-dot menu on each card; its entries are placeholders (0.6.3).
+const COMPONENT_MENU = ['Duplicate', 'Copy text', 'Move to page…'] as const;
 
 type Deck = { id: string; name: string; modules: ModuleInstance[] };
 type Props = {
@@ -153,6 +157,16 @@ export function MainKeyTitle({ text }: { text: string }) {
 export function PageView({ page, deck, draft, isNew, editing, busy, error, pendingSaves, retryPendingSave,
   navigate, begin, persist, save, cancel, discardUnavailable, deletePage, generate, addModule, moveComponent, deleteComponent }: Props) {
   const [working, setWorking] = useState(false);
+  // The card whose tab has ejected its actions; one at a time.
+  const [opened, setOpened] = useState<string | null>(null);
+  useEffect(() => {
+    if (!opened) return;
+    const outside = (event: PointerEvent) => {
+      if (!(event.target as Element).closest?.(`[data-component-id="${CSS.escape(opened)}"] .card-head`)) setOpened(null);
+    };
+    document.addEventListener('pointerdown', outside);
+    return () => document.removeEventListener('pointerdown', outside);
+  }, [opened]);
   const run = async (action: () => Promise<void>) => {
     setWorking(true);
     try { await action(); } finally { setWorking(false); }
@@ -185,15 +199,22 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
   const items = rest.map(item => ({ id: item.id, label: moduleLabel(item.moduleType), component: item }));
 
   const mainKey = mainKeyOf(page.components);
+  // A card's actions are ejected from its tab when the tab is clicked (D07);
+  // a failed card keeps its Retry beside the tab. Choosing one closes them.
   const actions = (item: Component, title: string) => {
     const generated = isContentType(item.moduleType);
     const firstRun = generated && item.attemptId === null && !blockText(item.content);
-    return <div className="card-actions" role="group" aria-label={`${title} actions`}>
-      <button aria-label={`Edit ${title}`} disabled={Boolean(editingId) || item.status === 'loading'} onClick={() => begin(item.id)}>Edit</button>
-      {generated && <button aria-label={`${firstRun ? 'Generate' : 'Retry'} ${title}`} disabled={working || Boolean(editingId) || item.status === 'loading'}
-        onClick={() => void run(() => generate({ scope: 'component', componentId: item.id }))}>{firstRun ? 'Generate' : 'Retry'}</button>}
-      {item.moduleType !== 'main-key' && <button aria-label={`Delete ${title}`} disabled={disabled || working || item.status === 'loading'}
-        onClick={() => void run(async () => { await deleteComponent(item); })}>Delete</button>}
+    const open = opened === item.id;
+    if (!open && !(item.status === 'failed' && generated)) return null;
+    const choose = (action: () => void) => () => { setOpened(null); action(); };
+    let index = 0;
+    const order = () => ({ '--i': index++ }) as CSSProperties;
+    return <div id={`actions-${item.id}`} className="card-actions" role="group" aria-label={`${title} actions`} data-open={open || undefined}>
+      {open && <button style={order()} aria-label={`Edit ${title}`} disabled={Boolean(editingId) || item.status === 'loading'} onClick={choose(() => begin(item.id))}>Edit</button>}
+      {generated && <button style={order()} aria-label={`${firstRun ? 'Generate' : 'Retry'} ${title}`} disabled={working || Boolean(editingId) || item.status === 'loading'}
+        onClick={choose(() => void run(() => generate({ scope: 'component', componentId: item.id })))}>{firstRun ? 'Generate' : 'Retry'}</button>}
+      {open && <button style={order()} aria-label={`Delete ${title}`} disabled={disabled || working || item.status === 'loading'}
+        onClick={choose(() => void run(async () => { await deleteComponent(item); }))}>Delete</button>}
     </div>;
   };
   const editor = (item: Component, title: string) => editingId === item.id && draft && <>
@@ -205,21 +226,31 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
     {draft.error && <p className="notice error" role="alert">{draft.error}</p>}
   </>;
 
-  // One card: its index tab (drag handle, family, label), its actions on the
-  // top edge, its status only while unfinished, and its content. An empty
-  // component is only its tab. Editing is one card at a time; Save and Cancel
-  // live in that card.
-  const card = (item: Component, title: string, handle: ReactNode) => {
+  // One card: its index tab (menu, then the family and label, which drags the
+  // card and, clicked, ejects its actions beside it), its status only while
+  // unfinished, and its content. An empty component is only its tab. Editing
+  // is one card at a time; Save and Cancel live in that card.
+  const card = (item: Component, title: string, { drag, menu }: RowParts) => {
     const family = isModuleType(item.moduleType) ? CATALOG[item.moduleType].family ?? 'notes' : 'notes';
     const empty = !blockText(item.content) && item.status !== 'loading' && item.status !== 'failed' && editingId !== item.id;
     return <article className={`component fam-${family}`} data-empty={empty || undefined}
       data-component-id={item.id} data-type={item.moduleType} data-status={item.status ?? undefined} data-editing={editingId === item.id || undefined}>
-      <div className="card-tab">
-        {handle}
-        <FamilyIcon family={family} />
-        <h2>{title}</h2>
+      <div className="card-head" onKeyDown={event => {
+        if (event.key !== 'Escape' || opened !== item.id) return;
+        setOpened(null);
+        (event.currentTarget.querySelector('.tab-button') as HTMLElement | null)?.focus();
+      }}>
+        <div className="card-tab">
+          {menu}
+          <h2><button type="button" className="tab-button" {...drag} aria-disabled={undefined}
+            aria-expanded={opened === item.id} aria-controls={opened === item.id ? `actions-${item.id}` : undefined}
+            onClick={() => setOpened(opened === item.id ? null : item.id)}>
+            <FamilyIcon family={family} />
+            <span className="tab-label">{title}</span>
+          </button></h2>
+        </div>
+        {editingId !== item.id && actions(item, title)}
       </div>
-      {editingId !== item.id && actions(item, title)}
       {item.status === 'loading' && editingId !== item.id && <p className="card-status"><GeneratingStatus /></p>}
       {item.status === 'failed' && <p className="card-status"><span className="list-status" data-status="failed">Generation failed</span></p>}
       {editor(item, title) || (!empty
@@ -243,7 +274,8 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
       label="Components" where="the page"
       onAdd={(type, index) => addModule(type, index + 1)}
       onMove={(id, index) => moveComponent(id, index + 1)}
-      renderItem={(item, handle) => card(item.component, item.label, handle)} />
+      menuItems={COMPONENT_MENU}
+      renderItem={(item, parts) => card(item.component, item.label, parts)} />
     {lost.map(id => <div key={id}>
       <p className="notice">The component you were editing no longer exists. Its unsaved text is preserved below.</p>
       <pre>{draft!.texts[id]}</pre>

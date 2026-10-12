@@ -44,6 +44,9 @@ const COLOUR_NAMES: Readonly<Record<ModuleFamily, string>> = {
   meaning: 'Blue', usage: 'Green', roots: 'Amber', connections: 'Violet', sound: 'Rose', notes: 'Sage'
 };
 
+// The six-dot menu on each module in the list; its entries are placeholders (0.6.3).
+const DECK_MODULE_MENU = ['Duplicate', 'Copy to another deck…'] as const;
+
 const familyOf = (type: string): ModuleFamily => (isModuleType(type) && CATALOG[type].family) || 'notes';
 
 // A sample page built from the configured modules in the order they would have
@@ -182,10 +185,13 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
           <span>{moduleLabel(key.type)}</span>
         </div>
       </>}
-      renderItem={(item, handle) => <div className={`module-block fam-${familyOf(item.type)}`} data-type={item.type}>
-        {handle}
-        <FamilyIcon family={familyOf(item.type)} />
-        <span>{item.label}</span>
+      menuItems={DECK_MODULE_MENU}
+      renderItem={(item, { drag, menu }) => <div className={`module-block fam-${familyOf(item.type)}`} data-type={item.type}>
+        {menu}
+        <span className="block-label" {...drag} aria-disabled={undefined}>
+          <FamilyIcon family={familyOf(item.type)} />
+          <span>{item.label}</span>
+        </span>
         <button aria-label={`Remove ${item.label}`} disabled={busy}
           onClick={() => { modules.splice(modules.findIndex(module => module.id === item.id), 1); refresh(); }}>Remove</button>
       </div>}

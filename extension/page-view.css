@@ -27,27 +27,48 @@
 .shaping-list { gap: 30px; padding-top: 14px; }
 .component { position: relative; padding: 26px 26px 20px; border: 0; border-radius: var(--radius-card); background: var(--surface);
   box-shadow: inset 0 3px 0 var(--fam, var(--fam-notes)), 0 0 0 1px var(--line); min-width: 0; }
-/* An empty component is only its tab; its actions still appear on hover. The
-   tab sits in the flow where a card's tab would, and the space below it keeps
-   the card a full-size drop target. */
+/* An empty component is only its tab; clicking the tab ejects its actions as
+   on any card. The tab sits in the flow where a card's tab would, and the
+   space below it keeps the card a full-size drop target. */
 .component[data-empty] { display: flex; margin-top: -14px; padding: 0 0 14px; background: transparent; box-shadow: none; }
-.component[data-empty] .card-tab { position: relative; top: 0; left: 18px; }
-.component[data-empty] .card-actions { top: 0; }
+.component[data-empty] .card-head { position: relative; top: 0; left: 18px; right: auto; width: calc(100% - 36px); }
+
+/* The head on a card's top edge: the index tab, then the actions it ejects (D07). */
+.card-head { position: absolute; top: -14px; left: 18px; right: 18px; display: flex; align-items: center; gap: 8px; min-width: 0; }
 .card-tab { position: absolute; top: -14px; left: 18px; max-width: calc(100% - 36px); height: 28px; display: inline-flex; align-items: center; gap: 6px;
   padding: 0 12px 0 6px; border-radius: var(--radius-control) var(--radius-control) var(--radius-control) 2px;
   background: var(--fam, var(--fam-notes)); color: var(--on-fam, var(--on-ink)); transition: transform var(--dur-spring) var(--ease-spring); }
+.card-head .card-tab { position: static; flex: 0 1 auto; min-width: 0; max-width: 100%; }
 .component:hover .card-tab { transform: translateY(-2px); }
-.card-tab h2 { margin: 0; font: 600 13px/1 var(--font-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: inherit; }
+.card-tab h2 { min-width: 0; margin: 0; font: 600 13px/1 var(--font-text); color: inherit; }
 .card-tab .fam-icon { flex: none; }
-.card-tab .drag-handle { padding: 2px 4px; border: 0; color: inherit; background: transparent; line-height: 1; }
-.card-tab .drag-handle:hover { background: color-mix(in srgb, currentColor 18%, transparent); }
-.card-tab .drag-handle:disabled { opacity: .55; }
-.card-actions { position: absolute; top: -15px; right: 14px; display: flex; gap: 2px; padding: 2px; border-radius: var(--radius-control);
-  background: var(--surface); box-shadow: 0 0 0 1px var(--line), var(--shadow-lift); opacity: 0; transform: translateY(2px);
-  transition: opacity var(--dur-quick) ease, transform var(--dur-quick) var(--ease-out); }
-.card-actions button { border: 0; padding: 4px 10px; font-size: 13px; font-weight: 500; border-radius: calc(var(--radius-control) - 2px); }
-.component:hover .card-actions, .component:focus-within .card-actions, .component[data-status="failed"] .card-actions { opacity: 1; transform: none; }
-@media (hover: none) { .card-actions, .title-edit { opacity: 1; transform: none; } }
+/* The family and label: drags the card, and a click ejects its actions. */
+.tab-button { display: flex; align-items: center; gap: 6px; min-width: 0; max-width: 100%; height: 28px; padding: 0 2px; border: 0; border-radius: 4px;
+  font: inherit; color: inherit; background: transparent; cursor: grab; touch-action: none; }
+.tab-button:active { cursor: grabbing; }
+.tab-label { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tab-button[aria-expanded="true"] { background: color-mix(in srgb, currentColor 18%, transparent); }
+/* The six dots open the card's menu. */
+.menu-button { flex: none; padding: 2px 4px; border: 0; border-radius: 4px; font-size: 13px; line-height: 1; letter-spacing: -2px; color: inherit; background: transparent; cursor: pointer; }
+.menu-button:hover, .menu-button[aria-expanded="true"] { background: color-mix(in srgb, currentColor 18%, transparent); }
+.row-menu { position: relative; display: inline-flex; flex: none; }
+.row-menu-list { position: absolute; top: calc(100% + 6px); left: -4px; z-index: 5; min-width: 210px; margin: 0; padding: 4px; list-style: none;
+  border-radius: var(--radius-md); background: var(--surface); color: var(--ink); box-shadow: 0 0 0 1px var(--line), var(--shadow-lift);
+  font: 500 13px/1.2 var(--font-text); letter-spacing: normal; animation: menu-open var(--dur-quick) var(--ease-out) both; transform-origin: top left; }
+.row-menu-list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 10px; border-radius: 6px; color: var(--ink-muted); cursor: default; }
+.row-menu-list .soon { font-size: 11px; color: var(--ink-muted); opacity: .8; }
+@keyframes menu-open { from { opacity: 0; transform: translateY(-4px) scale(.97); } }
+
+/* Actions eject from the tab: each springs out from behind it, one after the other. */
+.card-actions { display: flex; flex: none; gap: 6px; }
+.card-actions button { height: 28px; padding: 0 12px; border: 0; border-radius: var(--radius-control); font-size: 13px; font-weight: 500;
+  background: var(--surface); box-shadow: 0 0 0 1px var(--line), var(--shadow-lift); }
+.card-actions[data-open] button { animation: eject var(--dur-spring) var(--ease-spring) both; animation-delay: calc(var(--i, 0) * 45ms); transform-origin: left center; }
+@keyframes eject {
+  from { opacity: 0; transform: translateX(calc(-28px - var(--i, 0) * 22px)) scale(.55); }
+  60% { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) { .card-actions[data-open] button, .row-menu-list { animation: none; } }
 .card-status { margin: 0 0 8px; }
 .component[data-status="failed"] { background: var(--status-failed-bg); }
 .component-tools { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
@@ -109,6 +130,6 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
 @media (forced-colors: active) {
   .card-tab, .fam-chip { forced-color-adjust: none; background: CanvasText; color: Canvas; }
   .component { border: 1px solid CanvasText; }
-  .card-actions { border: 1px solid CanvasText; }
+  .card-actions button, .row-menu-list { border: 1px solid CanvasText; }
   mark { forced-color-adjust: none; background: Highlight; color: HighlightText; }
 }

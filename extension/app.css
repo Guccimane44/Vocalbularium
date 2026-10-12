@@ -74,8 +74,7 @@ h1, h2, .deck .open { overflow-wrap: anywhere; }
 .window-module button { padding: 5px 10px; font-size: 13px; }
 .window-reason { grid-column: 1 / -1; margin: 0; font-size: 12px; }
 .component-tools { display: flex; gap: 6px; }
-.component-tools button, .drag-handle { padding: 4px 9px; font-size: 13px; }
-.drag-handle { cursor: grab; touch-action: none; border-color: transparent; letter-spacing: -2px; }
+.component-tools button { padding: 4px 9px; font-size: 13px; }
 .sortable-row { position: relative; }
 .sortable-row[data-dragging] { z-index: 2; }
 .sortable-row[data-dragging] > * { box-shadow: 0 8px 24px #0002; }

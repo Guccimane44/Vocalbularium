@@ -25,7 +25,7 @@ The **module window** is a panel on the right side of both the page view and dec
 
 While a module is dragged over the list, a floating preview follows the pointer and a line shows where it will land; after the drop, a placeholder holds its place until the module is saved. Dragged back onto the window, the module is put back and nothing is added; the window is highlighted while it would take the module back (since 0.5.2). There is no **Add** button ([D04](../architecture/traceability-map.md#entries)). A module is disabled when the deck or page already holds 12 modules, and the Context module when one is already present; the window says why. On a narrow window the panel moves below the content.
 
-Every drag also works from the keyboard: a window module or a card's drag handle is focusable; Space picks it up, the arrow keys move it through the landing places, Space drops it, and Escape cancels, putting a window module back. A drag is announced to screen readers when it starts, moves, and ends. There are no separate move buttons ([D04](../architecture/traceability-map.md#entries)).
+A list entry drags by its label: a card by its tab's family icon and label, a deck-settings module by its icon and name. The six dots before the label open the entry's menu instead ([D07](../architecture/traceability-map.md#entries)). Every drag also works from the keyboard: a window module or an entry's label is focusable; Space picks it up, the arrow keys move it through the landing places, Space drops it, and Escape cancels, putting a window module back. A drag is announced to screen readers when it starts, moves, and ends. There are no separate move buttons ([D04](../architecture/traceability-map.md#entries)).
 
 ## Appearance
 
@@ -50,7 +50,7 @@ A row that holds a button is not itself one link: its text links to the page, an
 
 Motion is quick and physical: what the user touches responds with a small spring and settles. Nothing moves on its own except work in progress. Durations and easings come from the design system: colour changes 120 ms, revealing hover actions 150 ms, moving things 350 ms with a slight overshoot, larger objects 450 ms, and one cycle of the generating dots 1 s. Elements move by transform and opacity only, a few pixels at a time.
 
-The named moments are: the capture flight ([capture and generation](capture-and-generation.md#capture-feedback-popup)); a new page sliding into a list and its family marks appearing as components finish; status changes cross-fading; generated content rising into its card line by line while the card grows to fit; a module card's tab lifting on hover; and a dragged module tilting slightly while the landing line and the other cards make room.
+The named moments are: the capture flight ([capture and generation](capture-and-generation.md#capture-feedback-popup)); a new page sliding into a list and its family marks appearing as components finish; status changes cross-fading; generated content rising into its card line by line while the card grows to fit; a module card's tab lifting on hover; a card's actions ejecting from its tab with a spring, one after the other; and a dragged module tilting slightly while the landing line and the other cards make room.
 
 When the system asks for reduced motion, nothing moves: every state change still happens, without transitions, and the generating dots stand still beside their word.
 

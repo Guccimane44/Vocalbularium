@@ -13,6 +13,15 @@ const keyOf = page => text(page.components.find(component => component.moduleTyp
 const modulesOf = page => page.components.filter(component => isContentType(component.moduleType));
 const byKey = async (store, key) => (await store.pages()).find(page => keyOf(page) === key);
 const componentArticle = (page, heading) => page.locator('article.component').filter({ has: page.getByRole('heading', { name: heading, exact: true }) });
+// A card's label in its tab drags the card; clicked, it ejects the card's actions (D07).
+const cardTab = (page, heading) => componentArticle(page, heading).locator('.tab-button');
+// An action ejected from its card's tab, opening the tab first when the actions are not out.
+async function cardButton(page, name) {
+  const button = page.getByRole('button', { name, exact: true });
+  if (await button.count()) return button;
+  await cardTab(page, name.replace(/^(Edit|Retry|Generate|Delete) /, '')).click();
+  return button;
+}
 const apiOrigin = process.env.VOCABULARIUM_API_URL ?? 'http://127.0.0.1:4318';
 
 async function launch(profile, extension = resolve(process.env.VOCABULARIUM_TEST_EXTENSION ?? 'artifacts/extension')) {
@@ -502,7 +511,7 @@ test('deck UI: draft previews, all modules, the module limit, removal without co
   const mainKeyBlock = a.page.locator('.module-block[data-type="main-key"]');
   assert.equal(await mainKeyBlock.innerText(), 'Main key');
   await mainKeyBlock.getByRole('img', { name: 'Fixed in first place' }).waitFor();
-  assert.equal(await mainKeyBlock.locator('.drag-handle, button').count(), 0, 'no handle or Remove on the main key');
+  assert.equal(await mainKeyBlock.locator('.block-label, button').count(), 0, 'no drag label, menu or Remove on the main key');
   await addFromWindow(a.page, 'sentence-usage');
   const usage = a.page.locator('.sortable-row').filter({ has: a.page.locator('.module-block[data-type="sentence-usage"]') });
   await usage.waitFor();
@@ -525,7 +534,8 @@ test('deck UI: draft previews, all modules, the module limit, removal without co
   // The live preview follows the list, also while a module is being dragged (D05).
   const previewTypes = () => a.page.locator('.sample-page .component').evaluateAll(nodes => nodes.map(node => node.dataset.type));
   assert.deepEqual(await previewTypes(), ['context', 'german-examples', 'german-explanation', 'sentence-usage', 'sentence-usage', 'sentence-usage']);
-  await a.page.getByRole('button', { name: 'Drag German explanation', exact: true }).focus();
+  // A module drags by its label (D07).
+  await a.page.locator('.module-block[data-type="german-explanation"] .block-label').focus();
   await a.page.keyboard.press('Space');
   await new Promise(resolve => setTimeout(resolve, 300));
   await a.page.keyboard.press('ArrowUp');
@@ -930,7 +940,7 @@ test('manual page UI: per-card actions, drafts, leave choices, sorting, failed-s
   await a.page.getByRole('button', { name: '← My Deck', exact: true }).click();
   await a.page.getByRole('dialog').getByRole('button', { name: 'Save', exact: true }).click();
   await a.page.getByRole('link', { name: 'zebra', exact: true }).click();
-  await a.page.getByRole('button', { name: 'Generate German explanation + examples', exact: true }).waitFor();
+  await (await cardButton(a.page, 'Generate German explanation + examples')).waitFor();
   const created = (await application.store.pages())[0];
   const shape = async () => (await application.store.page(created.id)).components.map(item => [item.moduleType, text(item)]);
   assert.equal(created.status, null, 'manual creation never generates');
@@ -943,19 +953,19 @@ test('manual page UI: per-card actions, drafts, leave choices, sorting, failed-s
   const ungenerated = componentArticle(a.page, 'German explanation + examples');
   assert.equal(await ungenerated.getAttribute('data-empty'), 'true');
   assert.equal(await ungenerated.locator('.card-body').count(), 0);
-  await ungenerated.getByRole('button', { name: 'Generate German explanation + examples', exact: true }).waitFor({ state: 'attached' });
+  await ungenerated.getByRole('button', { name: 'Generate German explanation + examples', exact: true }).waitFor();
 
   // Shaping by dragging, each step saved at once.
   await addFromWindow(a.page, 'text');
   await componentArticle(a.page, 'Text').waitFor();
   assert.deepEqual(await shape(), [['main-key', 'zebra'], ['context', 'zoo animal'], ['german-examples', ''], ['text', '']]);
-  await drag(a.page, a.page.getByRole('button', { name: 'Drag Text', exact: true }), componentArticle(a.page, 'German explanation + examples'));
+  await drag(a.page, cardTab(a.page, 'Text'), componentArticle(a.page, 'German explanation + examples'));
   await waitFor(async () => (await shape())[2][0] === 'text', 'Text moved up');
   assert.equal(await a.page.getByRole('button', { name: /^Move / }).count(), 0, 'no move buttons (D04)');
-  await a.page.getByRole('button', { name: 'Delete Context', exact: true }).click();
+  await (await cardButton(a.page, 'Delete Context')).click();
   await a.page.getByRole('dialog').getByRole('button', { name: 'Cancel', exact: true }).click();
   assert.equal((await shape()).length, 4);
-  await a.page.getByRole('button', { name: 'Delete Context', exact: true }).click();
+  await (await cardButton(a.page, 'Delete Context')).click();
   await a.page.getByRole('dialog').getByRole('button', { name: 'Delete', exact: true }).click();
   await waitFor(async () => (await shape()).length === 3, 'Context deleted');
   assert.deepEqual(await shape(), [['main-key', 'zebra'], ['text', ''], ['german-examples', '']]);
@@ -975,7 +985,7 @@ test('manual page UI: per-card actions, drafts, leave choices, sorting, failed-s
   await a.page.getByRole('button', { name: 'Save', exact: true }).waitFor();
   assert.equal(await a.page.locator('.window-module[data-type="text"]').getAttribute('aria-disabled'), 'true', 'shaping waits until editing ends');
   assert.equal(await a.page.locator('.module-window .notice').count(), 0, 'no notice while editing (0.5.2)');
-  assert.equal(await a.page.getByRole('button', { name: 'Edit Text', exact: true }).isDisabled(), true, 'one card at a time');
+  assert.equal(await (await cardButton(a.page, 'Edit Text')).isDisabled(), true, 'one card at a time');
   await mainKeyField.fill('discard this');
   await a.page.getByRole('button', { name: '← My Deck', exact: true }).click();
   await a.page.getByRole('dialog').getByRole('button', { name: 'Discard', exact: true }).click();
@@ -985,7 +995,7 @@ test('manual page UI: per-card actions, drafts, leave choices, sorting, failed-s
   await mainKeyField.fill('cancel this');
   await a.page.getByRole('button', { name: 'Cancel', exact: true }).click();
   assert.equal(keyOf(await application.store.page(created.id)), 'zebra');
-  await a.page.getByRole('button', { name: 'Edit Text', exact: true }).click();
+  await (await cardButton(a.page, 'Edit Text')).click();
   await a.page.getByRole('textbox', { name: 'Edit Text', exact: true }).fill('saved own text');
   await a.page.getByRole('button', { name: 'Save', exact: true }).click();
   await waitFor(async () => (await shape())[1][1] === 'saved own text', 'Text saved from its card');
@@ -1047,20 +1057,20 @@ test('retry UI: exact confirmation, a first Generate without warning, and a two-
   await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
   await b.page.goto(`chrome-extension://${b.id}/app.html#page/${pageId}`);
   // Installation b edits the explanation card while a retries it.
-  await b.page.getByRole('button', { name: 'Edit German explanation + examples', exact: true }).click();
+  await (await cardButton(b.page, 'Edit German explanation + examples')).click();
   await b.page.getByRole('textbox', { name: 'Edit German explanation + examples', exact: true }).fill('draft back');
-  const retryExplanation = a.page.getByRole('button', { name: 'Retry German explanation + examples', exact: true });
-  await retryExplanation.click();
+  const retryExplanation = () => cardButton(a.page, 'Retry German explanation + examples');
+  await (await retryExplanation()).click();
   assert.equal(await a.page.getByRole('dialog').locator('p').textContent(), 'Retry will replace this component’s content, including your edits to it. The main key, Context, and other components will not change.');
   await a.page.getByRole('dialog').getByRole('button', { name: 'Cancel', exact: true }).click();
   assert.equal(text(modulesOf(await application.store.page(pageId))[1]), 'saved original');
-  await retryExplanation.click();
+  await (await retryExplanation()).click();
   await a.page.getByRole('dialog').getByRole('button', { name: 'Confirm', exact: true }).click();
   await waitFor(() => release, 'retry provider started');
-  await waitFor(() => retryExplanation.isDisabled(), 'retry disables its control while generating');
+  await waitFor(async () => (await retryExplanation()).isDisabled(), 'retry disables its control while generating');
   // Every Retry is briefly disabled while the request is in flight; once accepted, only the generating component stays locked.
-  await waitFor(() => a.page.getByRole('button', { name: 'Retry Sentence usage', exact: true }).isEnabled(), 'other components stay available');
-  assert.equal(await retryExplanation.isDisabled(), true);
+  await waitFor(async () => (await cardButton(a.page, 'Retry Sentence usage')).isEnabled(), 'other components stay available');
+  assert.equal(await (await retryExplanation()).isDisabled(), true);
   await b.page.getByRole('button', { name: 'Save', exact: true }).click();
   await b.page.getByRole('alert').filter({ hasText: 'still generating' }).waitFor();
   assert.deepEqual(modulesOf(await application.store.page(pageId)).map(text), ['saved original', '']);
@@ -1069,7 +1079,7 @@ test('retry UI: exact confirmation, a first Generate without warning, and a two-
   await waitFor(async () => modulesOf(await application.store.page(pageId))[1].status === 'completed', 'retry saved');
   assert.deepEqual(modulesOf(await application.store.page(pageId)).map(text), ['saved original', 'regenerated component']);
   await b.page.getByRole('button', { name: 'Try saving again', exact: true }).click();
-  await b.page.getByRole('button', { name: 'Edit German explanation + examples', exact: true }).waitFor();
+  await b.page.locator('.component-tools').waitFor({ state: 'detached' });
   assert.deepEqual(modulesOf(await application.store.page(pageId)).map(text), ['saved original', 'draft back']);
 
   // A deck change never reaches the page; a module dragged onto it generates from its card without a warning.
@@ -1078,7 +1088,7 @@ test('retry UI: exact confirmation, a first Generate without warning, and a two-
   await a.page.locator('h1.main-key').waitFor();
   assert.equal(await a.page.getByRole('button', { name: 'Generate German explanation', exact: true }).count(), 0, 'a deck change never reaches the page');
   await addFromWindow(a.page, 'german-explanation');
-  await a.page.getByRole('button', { name: 'Generate German explanation', exact: true }).click();
+  await (await cardButton(a.page, 'Generate German explanation')).click();
   await waitFor(async () => modulesOf(await application.store.page(pageId)).filter(item => item.attemptId).length === 3, 'the added module generated');
   assert.equal(await a.page.getByRole('dialog').count(), 0);
 });
@@ -1170,10 +1180,32 @@ test('page view: main key tiers, Show all, rendered and plain content, quiet car
   assert.equal(await examples.locator('.list-status').count(), 0, 'a completed card shows no status');
   const failed = componentArticle(a.page, 'Sentence usage');
   assert.equal(await failed.locator('.list-status').textContent(), 'Generation failed');
-  assert.equal(await failed.locator('.card-actions').evaluate(node => getComputedStyle(node).opacity), '1', 'Retry is visible on a failed card');
-  assert.equal(await examples.locator('.card-actions').evaluate(node => getComputedStyle(node).opacity), '0', 'actions wait for hover or focus');
-  await examples.getByRole('button', { name: 'Edit German explanation + examples', exact: true }).focus();
-  await waitFor(async () => await examples.locator('.card-actions').evaluate(node => getComputedStyle(node).opacity) === '1', 'actions appear on keyboard focus');
+  // Actions wait inside the tab until it is clicked (D07); a failed card keeps its Retry out.
+  await failed.getByRole('button', { name: 'Retry Sentence usage', exact: true }).waitFor();
+  assert.equal(await failed.getByRole('button', { name: 'Edit Sentence usage', exact: true }).count(), 0, 'only Retry waits beside a failed tab');
+  assert.equal(await examples.locator('.card-actions').count(), 0, 'no actions until the tab is clicked');
+  await examples.hover();
+  assert.equal(await examples.locator('.card-actions').count(), 0, 'hovering no longer shows actions');
+  await cardTab(a.page, 'German explanation + examples').click();
+  assert.deepEqual(await examples.locator('.card-actions button').allTextContents(), ['Edit', 'Retry', 'Delete']);
+  assert.equal(await cardTab(a.page, 'German explanation + examples').getAttribute('aria-expanded'), 'true');
+  assert.equal(await examples.locator('.card-actions button').first().evaluate(node => getComputedStyle(node).animationName), 'eject', 'the actions eject from the tab');
+  await a.page.mouse.click(5, 5);
+  assert.equal(await examples.locator('.card-actions').count(), 0, 'a click elsewhere puts them back');
+  // From the keyboard: Enter ejects them, Escape puts them back and returns to the tab.
+  await cardTab(a.page, 'German explanation + examples').focus();
+  await a.page.keyboard.press('Enter');
+  await examples.getByRole('button', { name: 'Edit German explanation + examples', exact: true }).waitFor();
+  await a.page.keyboard.press('Escape');
+  assert.equal(await examples.locator('.card-actions').count(), 0);
+  assert.equal(await a.page.evaluate(() => document.activeElement.className), 'tab-button');
+  // The six dots open the card's menu; its entries are placeholders.
+  await a.page.getByRole('button', { name: 'More for German explanation + examples', exact: true }).click();
+  const menu = a.page.getByRole('menu', { name: 'More for German explanation + examples' });
+  assert.deepEqual(await menu.getByRole('menuitem').evaluateAll(items => items.map(item => [item.firstChild.textContent, item.getAttribute('aria-disabled')])),
+    [['Duplicate', 'true'], ['Copy text', 'true'], ['Move to page…', 'true']]);
+  await a.page.keyboard.press('Escape');
+  assert.equal(await menu.count(), 0);
   for (const theme of ['light', 'dark']) {
     await chooseAppearance(a.page, theme);
     await a.page.screenshot({ path: `artifacts/v0.6.0-page-${theme}.png`, fullPage: true });
@@ -1278,7 +1310,7 @@ test('module window: drag modules onto a page and into deck settings, and reorde
     handler(request, response);
   });
   const headings = async () => ['Main key', ...await a.page.locator('.shaping-list article.component h2').allTextContents()];
-  await drag(a.page, a.page.getByRole('button', { name: 'Drag Text', exact: true }), a.page.locator('.drop-end'));
+  await drag(a.page, cardTab(a.page, 'Text'), a.page.locator('.drop-end'));
   await waitFor(() => heldMoves.length === 1, 'move request reached the server');
   for (let sample = 0; sample < 5; sample++) {
     assert.deepEqual(await headings(), ['Main key', 'Context', 'German explanation + examples', 'Text'], 'the new order shows before the save finishes');
@@ -1290,8 +1322,8 @@ test('module window: drag modules onto a page and into deck settings, and reorde
   assert.deepEqual(await types(), ['main-key', 'context', 'german-examples', 'text']);
   assert.deepEqual(await headings(), ['Main key', 'Context', 'German explanation + examples', 'Text']);
 
-  // Keyboard reorder: Space picks the handle up, the arrows move it, Space drops it.
-  await a.page.getByRole('button', { name: 'Drag Text', exact: true }).focus();
+  // Keyboard reorder: Space picks the card up by its tab, the arrows move it, Space drops it.
+  await cardTab(a.page, 'Text').focus();
   const announced = text => a.page.locator('[id^="DndLiveRegion"]').filter({ hasText: text }).waitFor({ state: 'attached' });
   await a.page.keyboard.press('Space');
   await announced('Text is over position 4.');
@@ -1305,6 +1337,7 @@ test('module window: drag modules onto a page and into deck settings, and reorde
   await waitFor(async () => (await types())[1] === 'text', 'Text moved up from the keyboard');
   assert.deepEqual(await types(), ['main-key', 'text', 'context', 'german-examples']);
   await announced('Text was dropped.');
+  assert.equal(await a.page.locator('.card-actions').count(), 0, 'Space drags; it never ejects the actions');
 
   // Keyboard add from the window: Space picks a module up, the arrows step through
   // the landing places (the end zone is last), Space drops it.
@@ -1385,7 +1418,7 @@ test('assembled reliability: lost acknowledgments, worker suspension, abrupt ori
   assert.deepEqual(modulesOf(await application.store.page(captured.id)).map(item => item.attemptId), attempts);
 
   await a.page.goto(`chrome-extension://${a.id}/app.html#page/${captured.id}`);
-  await a.page.getByRole('button', { name: 'Edit Sentence usage', exact: true }).click();
+  await (await cardButton(a.page, 'Edit Sentence usage')).click();
   await a.page.getByRole('textbox', { name: 'Edit Sentence usage', exact: true }).fill('save with lost acknowledgment');
   await loseNextAcknowledgment(a.worker, '/api/page/save');
   await a.page.getByRole('button', { name: 'Save', exact: true }).click();
@@ -1394,7 +1427,7 @@ test('assembled reliability: lost acknowledgments, worker suspension, abrupt ori
   await waitFor(async () => text(modulesOf(await application.store.page(captured.id))[0]) === 'save with lost acknowledgment', 'original component save committed');
   await application.store.savePage('later-remote-edit', { pageId: captured.id, changes: [{ componentId: front.id, content: textBlocks('later remote edit') }] });
   await a.page.getByRole('button', { name: 'Try saving again', exact: true }).click();
-  await a.page.getByRole('button', { name: 'Edit Sentence usage', exact: true }).waitFor();
+  await a.page.locator('.component-tools').waitFor({ state: 'detached' });
   assert.equal(text(modulesOf(await application.store.page(captured.id))[0]), 'later remote edit');
   assert.equal(calls.get('uncertain capture'), 1);
 

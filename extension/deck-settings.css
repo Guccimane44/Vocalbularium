@@ -28,9 +28,12 @@
   box-shadow: inset 3px 0 0 var(--fam, var(--line-control)), 0 0 0 1px var(--line); font-size: 14px; font-weight: 500; }
 .module-block span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .module-block .fam-icon { flex: none; color: var(--fam); }
-.module-block .drag-handle { padding: 2px 4px; border: 0; color: var(--ink-muted); }
-.module-block button:not(.drag-handle) { padding: 4px 8px; font-size: 12px; border-color: transparent; color: var(--ink-soft); }
-.module-block button:not(.drag-handle):hover { color: var(--ink); }
+/* The label drags the module (D07); the six dots before it open its menu. */
+.module-block .block-label { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; border-radius: 4px; cursor: grab; touch-action: none; }
+.module-block .block-label:active { cursor: grabbing; }
+.module-block .menu-button { color: var(--ink-muted); }
+.module-block button:not(.menu-button) { padding: 4px 8px; font-size: 12px; border-color: transparent; color: var(--ink-soft); }
+.module-block button:not(.menu-button):hover { color: var(--ink); }
 .module-block[data-type="main-key"] { background: transparent; box-shadow: 0 0 0 1px var(--line); }
 .module-block .pin-mark { padding: 2px 4px; }
 .sortable-row[data-dragging] > .module-block { box-shadow: inset 3px 0 0 var(--fam, var(--line-control)), 0 0 0 1px var(--line), var(--shadow-drag); transform: rotate(-1deg); }
