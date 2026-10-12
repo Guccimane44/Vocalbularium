@@ -6,7 +6,7 @@ This document is the status ledger for product capabilities. It marks each capab
 
 The current baseline is the Chrome extension with its local account backend. It supports collecting and consulting pages, with an initial set of language-oriented content modules. Broader possibilities in the vision are not automatically part of this scope.
 
-The implemented capabilities below describe release 0.6.0. Release 0.4.0 implements the deck → page → component model approved in [Q72](../architecture/questionnaire/answers/answers-06-data-and-semantics.md#q72) through the [refactor plan](../history/plans/page-component-refactor.md) and [tracker #81](https://github.com/Guccimane44/Vocalbularium/issues/81). 0.4.1 adds capture with Context, and 0.5.0 adds page-owned modules and the module window ([D02](../architecture/traceability-map.md#entries)) and retires two modules ([D03](../architecture/traceability-map.md#entries)). 0.6.0 adds the Vocabularium Sage visual identity ([D05](../architecture/traceability-map.md#entries)). Builds up to v0.3.0+ used kartes and seites; [earlier terms](model.md#earlier-terms) maps the two.
+The implemented capabilities below describe release 0.6.1. Release 0.4.0 implements the deck → page → component model approved in [Q72](../architecture/questionnaire/answers/answers-06-data-and-semantics.md#q72) through the [refactor plan](../history/plans/page-component-refactor.md) and [tracker #81](https://github.com/Guccimane44/Vocalbularium/issues/81). 0.4.1 adds capture with Context, and 0.5.0 adds page-owned modules and the module window ([D02](../architecture/traceability-map.md#entries)) and retires two modules ([D03](../architecture/traceability-map.md#entries)). 0.6.0 adds the Vocabularium Sage visual identity ([D05](../architecture/traceability-map.md#entries)). 0.6.1 fixes how modules make room while one is dragged in deck settings. Builds up to v0.3.0+ used kartes and seites; [earlier terms](model.md#earlier-terms) maps the two.
 
 ## Status values
 
@@ -82,6 +82,8 @@ Upgrading from 0.5.0 to 0.5.1 keeps all decks and pages; there is no migration. 
 Upgrading from 0.5.1 to 0.5.2 keeps all decks and pages; there is no migration and no API change. Reload the extension; restarting the API only updates its reported version.
 
 Upgrading from 0.5.2 to 0.6.0 keeps all decks and pages; there is no migration. Restart the API with 0.6.0, then reload the extension: the page list's meaning line and family marks come from fields the 0.6.0 API adds to page summaries. A 0.5.2 extension ignores those fields and keeps working with the 0.6.0 API; a 0.6.0 extension with a 0.5.2 API shows its page lists without meanings or marks. Appearance now follows the system setting until it is chosen in the account menu, so a 0.5.2 Light or Dark choice is kept as that choice.
+
+Upgrading from 0.6.0 to 0.6.1 keeps all decks and pages; there is no migration and no API change. Reload the extension; restarting the API only updates its reported version.
 
 ## Current delivery boundary
 
