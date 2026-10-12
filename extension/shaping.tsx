@@ -230,6 +230,11 @@ function SortableRow<T extends ShapeItem>({ item, disabled, renderItem, menuItem
   </div>;
 }
 
+// Six dots drawn as circles: a text glyph turns uneven when a dragged entry tilts.
+export const SixDots = () => <svg className="six-dots" viewBox="0 0 10 16" aria-hidden="true" fill="currentColor">
+  {[3, 8, 13].flatMap(y => [2.5, 7.5].map(x => <circle key={`${x}-${y}`} cx={x} cy={y} r="1.5" />))}
+</svg>;
+
 // The six dots before an entry's label: a menu of what else can be done with
 // it. Its entries are placeholders for now (0.6.3).
 export function RowMenu({ label, items }: { label: string; items: readonly string[] }) {
@@ -248,7 +253,7 @@ export function RowMenu({ label, items }: { label: string; items: readonly strin
     event.stopPropagation(); setOpen(false); button.current?.focus();
   }}>
     <button ref={button} type="button" className="menu-button" aria-label={`More for ${label}`} aria-haspopup="menu" aria-expanded={open}
-      aria-controls={open ? menuId : undefined} onClick={() => setOpen(!open)}>⠿</button>
+      aria-controls={open ? menuId : undefined} onClick={() => setOpen(!open)}><SixDots /></button>
     {open && <ul id={menuId} className="row-menu-list" role="menu" aria-label={`More for ${label}`}>
       {items.map(entry => <li key={entry} role="menuitem" aria-disabled="true">{entry}<span className="soon">Coming soon</span></li>)}
     </ul>}

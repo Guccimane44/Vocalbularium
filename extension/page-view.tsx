@@ -8,7 +8,7 @@ import type { PageEditorDraft } from '../types/editor-drafts.js';
 import { FamilyIcon } from './families.tsx';
 import { mainKeyTier } from './main-key.ts';
 import { GeneratingStatus } from './page-list.tsx';
-import { moduleLabel, ShapingArea } from './shaping.tsx';
+import { moduleLabel, ShapingArea, SixDots } from './shaping.tsx';
 import type { RowParts } from './shaping.tsx';
 
 // Icons for a card's actions, drawn like the family icons: 24px grid, 2.2 stroke.
@@ -206,7 +206,7 @@ function LandingCard({ type }: { type: string }) {
   const family = isModuleType(type) ? CATALOG[type].family ?? 'notes' : 'notes';
   return <article className={`component fam-${family}`} data-empty data-landing data-type={type} aria-hidden="true">
     <div className="card-head"><div className="card-tab">
-      <span className="row-menu"><span className="menu-button">⠿</span></span>
+      <span className="row-menu"><span className="menu-button"><SixDots /></span></span>
       <h2><span className="tab-button"><FamilyIcon family={family} /><span className="tab-label">{moduleLabel(type)}</span></span></h2>
     </div></div>
   </article>;

@@ -47,7 +47,8 @@
 .tab-button:hover { background: color-mix(in srgb, currentColor 14%, transparent); }
 .tab-label { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* The six dots open the card's menu. */
-.menu-button { flex: none; padding: 2px 4px; border: 0; border-radius: 4px; font-size: 13px; line-height: 1; letter-spacing: -2px; color: inherit; background: transparent; cursor: pointer; }
+.menu-button { flex: none; display: inline-flex; align-items: center; justify-content: center; padding: 2px 4px; border: 0; border-radius: 4px; line-height: 1; color: inherit; background: transparent; cursor: pointer; }
+.six-dots { width: 7px; height: 11px; flex: none; }
 .menu-button:hover, .menu-button[aria-expanded="true"] { background: color-mix(in srgb, currentColor 18%, transparent); }
 .row-menu { position: relative; display: inline-flex; flex: none; }
 /* Each tab is its own layer (it stays above the actions it ejects), so an open

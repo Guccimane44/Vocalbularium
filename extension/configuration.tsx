@@ -9,7 +9,7 @@ import { deckColour } from './deck-colour.ts';
 import { FamilyIcon } from './families.tsx';
 import { mainKeyTier } from './main-key.ts';
 import { Content } from './page-view.tsx';
-import { moduleLabel, ShapingArea } from './shaping.tsx';
+import { moduleLabel, ShapingArea, SixDots } from './shaping.tsx';
 
 const instance = (type: string) => ({ id: crypto.randomUUID(), type });
 
@@ -198,7 +198,7 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
       </>}
       menuItems={DECK_MODULE_MENU}
       renderLanding={type => <div className={`module-block fam-${familyOf(type)}`} data-landing data-type={type} aria-hidden="true">
-        <span className="row-menu"><span className="menu-button">⠿</span></span>
+        <span className="row-menu"><span className="menu-button"><SixDots /></span></span>
         <span className="block-label"><FamilyIcon family={familyOf(type)} /><span>{moduleLabel(type)}</span></span>
         <button type="button" tabIndex={-1}>Remove</button>
       </div>}
