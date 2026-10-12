@@ -157,7 +157,7 @@ test('four list orders use the current main key, deterministic ties, and creatio
   pages[3].mainKey = 'aardvark'; assert.deepEqual(ids('az'), ['d', 'a', 'b', 'c']);
 });
 
-test('a component that never generated and is empty starts without confirmation; anything with content asks first', async (t) => {
+test('a component with nothing in it starts without confirmation, however it got there; anything with content asks first', async (t) => {
   const store = await fixture(t);
   await useModules(store, ['german-explanation', 'sentence-usage']);
   const { pageId } = await store.createPage('manual', { deckId: (await store.snapshot()).id, mainKey: 'word' });
@@ -170,4 +170,19 @@ test('a component that never generated and is empty starts without confirmation;
   await store.savePage('typed', { pageId, changes: [{ componentId: second.id, content: textBlocks('my own example') }] });
   await assert.rejects(store.generate('replace-typed', { pageId, target: target('component', second.id), session }), { code: 'confirmation_required' },
     'text the user wrote is replaced only after confirmation');
+
+  // Generated, but nothing came back (a module that does not apply to the main key): nothing to replace (0.6.3).
+  await store.savePage('cleared', { pageId, changes: [{ componentId: second.id, content: textBlocks('') }] });
+  const empty = await store.generate('empty-run', { pageId, target: target('component', second.id), session });
+  assert.equal(empty.attemptIds.length, 1);
+  await complete(store, await store.page(pageId), session, () => '');
+  page = await store.page(pageId);
+  assert.equal(text(page.components.find(item => item.id === second.id)), '');
+  assert.notEqual(page.components.find(item => item.id === second.id).attemptId, null, 'it has generated before');
+  const again = await store.generate('empty-again', { pageId, target: target('component', second.id), session });
+  assert.equal(again.attemptIds.length, 1, 'an empty result is retried without confirmation');
+  // Failed: nothing to replace either.
+  await store.failAttempt(again.attemptIds[0]);
+  const afterFailure = await store.generate('after-failure', { pageId, target: target('component', second.id), session });
+  assert.equal(afterFailure.attemptIds.length, 1, 'a failed component is retried without confirmation');
 });

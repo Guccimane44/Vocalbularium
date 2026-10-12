@@ -21,6 +21,8 @@ export type PageEditorDraft = {
   inputs?: Record<string, string>;
   pending?: EditorPendingPageSave;
   error?: string;
+  // A message shown inside the field it is about: an empty main key.
+  fieldError?: string;
   errorCode?: string;
 };
 
@@ -33,6 +35,8 @@ export type DeckEditorDraft = {
   route: string;
   deck: DeckConfiguration;
   sampleType?: InputType;
+  // The preview dialog is open.
+  previewing?: boolean;
   saving?: boolean;
   pending?: EditorPendingDeckSave;
   error?: string;

@@ -2,7 +2,7 @@
   "openapi": "3.0.3",
   "info": {
     "title": "Vocabularium Account API",
-    "version": "0.6.2",
+    "version": "0.6.3",
     "description": "Local account, capture, deck, page, and generation-session API."
   },
   "components": {

@@ -23,6 +23,11 @@ let renderVersion = 0;
 let viewRoot;
 let nextError;
 let currentPageDetail, currentDeckDetail;
+// The deck marked in the sidebar, kept while a page's deck is still loading.
+let markedDeck = null;
+// The account as the last refresh returned it. Views merge the open page and
+// deck into `account`, so comparing a refresh with it would always differ.
+let refreshed;
 /** @type {DeckEditorDraft | undefined} */
 let configuration;
 const viewAccount = value => ({ ...value, pages: value.pages ?? [] });
@@ -107,13 +112,17 @@ async function render() {
     },
     diagnostics: async () => { if (await pageUI.leave()) location.hash = 'diagnostics'; }
   });
+  // A page's deck is known only once the page loads; until then the sidebar
+  // keeps the deck of the page shown before, so the mark never blinks off.
+  const openPage = location.hash.startsWith('#page/') ? location.hash.slice(6) : null;
   const routeDeck = location.hash.startsWith('#deck/') ? decodeURIComponent(location.hash.slice(6))
     : location.hash.startsWith('#configure/') && location.hash !== '#configure/new' ? location.hash.slice(11)
-    : location.hash.startsWith('#new-page/') ? location.hash.slice(10) : null;
-  const sidebar = currentDeckId => renderSidebar({
-    decks: account.decks, currentDeckId,
-    newDeck: () => { configuration = undefined; location.hash = 'configure/new'; }
-  });
+    : location.hash.startsWith('#new-page/') ? location.hash.slice(10)
+    : openPage ? (currentPageDetail?.id === openPage ? currentPageDetail.deckId : markedDeck) : null;
+  const sidebar = currentDeckId => {
+    markedDeck = currentDeckId;
+    renderSidebar({ decks: account.decks, currentDeckId, newDeck: () => { configuration = undefined; location.hash = 'configure/new'; } });
+  };
   sidebar(routeDeck);
   if (location.hash === '#diagnostics') {
     if (viewRoot) { viewRoot.unmount(); viewRoot = undefined; }
@@ -181,7 +190,7 @@ async function render() {
       : account.defaultDeckSnapshot?.id === routeId ? account.defaultDeckSnapshot : undefined;
   }
   if (version !== renderVersion) return;
-  if (page) sidebar(page.deckId);
+  if (page && page.deckId !== markedDeck) sidebar(page.deckId);
   account = { ...account, pages: page ? [page] : [], decks: detail
     ? [...account.decks.filter(deck => deck.id !== detail.id), detail] : account.decks };
   const error = nextError; nextError = undefined;
@@ -204,7 +213,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
   if (area === 'local' && signedIn && Object.keys(changes).some(key => key.startsWith('capture-') || key.startsWith('save-'))) void render();
 });
 try {
-  const state = await send({ type: 'initialize' }); signedIn = state.signedIn; account = state.account; await render();
+  const state = await send({ type: 'initialize' }); signedIn = state.signedIn; account = state.account; refreshed = JSON.stringify(state.account); await render();
 } catch (error) {
   const cached = await readLocal(['auth', 'account']);
   if (cached.auth && cached.account) { signedIn = true; account = cached.account; await render(); }
@@ -216,6 +225,7 @@ setInterval(async () => {
   try {
     const next = await send({ type: 'refresh' });
     if (!next.signedIn) { login(); return; }
-    if (JSON.stringify(next.account) !== JSON.stringify(account)) { account = next.account; if (!location.hash.startsWith('#configure/') && location.hash !== '#diagnostics') await render(); }
+    const json = JSON.stringify(next.account);
+    if (json !== refreshed) { refreshed = json; account = next.account; if (!location.hash.startsWith('#configure/') && location.hash !== '#diagnostics') await render(); }
   } catch (error) { showError(error); }
 }, 5000);

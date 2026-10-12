@@ -31,7 +31,10 @@ const TEXT = [
   ['ink', 'highlight'],
   ...FAMILIES.map(family => [`on-fam-${family}`, `fam-${family}`]),
   // Meaning and example numbers in the family colour on a card.
-  ...FAMILIES.map(family => [`fam-${family}`, 'surface'])
+  ...FAMILIES.map(family => [`fam-${family}`, 'surface']),
+  // A card's actions ejected from its tab: family colour on its tint, and Retry on a failed card.
+  ...FAMILIES.map(family => [`fam-${family}`, `fam-${family}-tint`]),
+  ['status-failed-bg', 'status-failed']
 ];
 const SHAPES = [
   ...[...BACKGROUNDS, 'status-failed-bg'].map(bg => ['focus', bg]),

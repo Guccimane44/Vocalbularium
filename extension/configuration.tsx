@@ -1,4 +1,4 @@
-import { useReducer } from 'react';
+import { useEffect, useReducer, useRef } from 'react';
 import type { DeckEditorDraft } from '../types/editor-drafts.js';
 import type { DeckConfiguration } from '@vocabularium/contracts';
 import { MODULES } from '@vocabularium/domain/modules';
@@ -9,8 +9,7 @@ import { deckColour } from './deck-colour.ts';
 import { FamilyIcon } from './families.tsx';
 import { mainKeyTier } from './main-key.ts';
 import { Content } from './page-view.tsx';
-import { moduleLabel, PinMark, ShapingArea } from './shaping.tsx';
-import type { Projection } from './shaping.tsx';
+import { moduleLabel, ShapingArea, SixDots } from './shaping.tsx';
 
 const instance = (type: string) => ({ id: crypto.randomUUID(), type });
 
@@ -44,20 +43,32 @@ const COLOUR_NAMES: Readonly<Record<ModuleFamily, string>> = {
   meaning: 'Blue', usage: 'Green', roots: 'Amber', connections: 'Violet', sound: 'Rose', notes: 'Sage'
 };
 
+// The six-dot menu on each module in the list; its entries are placeholders (0.6.3).
+const DECK_MODULE_MENU = ['Duplicate', 'Copy to another deck…'] as const;
+
 const familyOf = (type: string): ModuleFamily => (isModuleType(type) && CATALOG[type].family) || 'notes';
 
-// A sample page built from the configured modules in the order they would have
-// if the current drag ended now, so it follows the list as the user drags.
-function SamplePreview({ modules, projection, sampleType, choose }: {
-  modules: DeckConfiguration['modules']; projection: Projection; sampleType: 'word_phrase' | 'sentence'; choose: (value: 'word_phrase' | 'sentence') => void;
+// A sample new page built from the configured modules, in a dialog opened from
+// the Preview button above the list (0.6.3): the deck settings keep the
+// same list-and-window layout as a page.
+function PreviewDialog({ modules, sampleType, choose, close }: {
+  modules: DeckConfiguration['modules']; sampleType: 'word_phrase' | 'sentence';
+  choose: (value: 'word_phrase' | 'sentence') => void; close: () => void;
 }) {
+  const ref = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    const dialog = ref.current;
+    if (dialog && !dialog.open) dialog.showModal();
+    return () => dialog?.close();
+  }, []);
+  // Closing the dialog first returns focus to the Preview button that opened it.
+  const done = () => { ref.current?.close(); close(); };
   const [key, ...rest] = modules;
-  const byId = new Map(rest.map(module => [module.id, module]));
-  const ordered: { id: string; type: string; adding?: boolean }[] = projection.ids.map(id => byId.get(id)).filter(module => module !== undefined);
-  if (projection.adding) ordered.splice(Math.min(projection.adding.index, ordered.length), 0, { id: 'adding', type: projection.adding.type, adding: true });
   const mainKey = SAMPLE[sampleType];
   const seen = new Map<string, number>();
-  return <section className="shaping-preview" aria-labelledby="preview-title">
+  return <dialog ref={ref} className="preview-dialog" aria-labelledby="preview-title"
+    onCancel={event => { event.preventDefault(); done(); }}
+    onClick={event => { if (event.target === event.currentTarget) done(); }}>
     <div className="preview-head">
       <h2 id="preview-title">Preview</h2>
       <label className="visually-hidden" htmlFor="sample-input">Sample input</label>
@@ -65,23 +76,24 @@ function SamplePreview({ modules, projection, sampleType, choose }: {
         <option value="word_phrase">Word: 幸福</option>
         <option value="sentence">Sentence: 我真的很幸福</option>
       </select>
+      <button type="button" className="preview-close" aria-label="Close preview" onClick={done}>×</button>
     </div>
     <p className="muted preview-note">A sample new page in this deck. Previews never create or change pages.</p>
-    <div className="sample-page" aria-live="polite">
+    <div className="sample-page">
       <p className="main-key preview" data-type={key.type} data-tier={mainKeyTier(mainKey)}>{sample(key.type, sampleType, 0)}</p>
-      {ordered.map(module => {
+      {rest.map(module => {
         const count = seen.get(module.type) ?? 0;
         seen.set(module.type, count + 1);
         const text = sample(module.type, sampleType, count);
         const family = familyOf(module.type);
         // Like a page, an empty component (Text, or a module that does not apply to this input) is only its tab.
-        return <article className={`component preview fam-${family}`} data-empty={!text || undefined} key={module.id} data-type={module.type} data-adding={module.adding || undefined}>
+        return <article className={`component preview fam-${family}`} data-empty={!text || undefined} key={module.id} data-type={module.type}>
           <div className="card-tab"><FamilyIcon family={family} /><h3>{moduleLabel(module.type)}</h3></div>
           {text && <Content type={module.type} text={text} mainKey={mainKey} />}
         </article>;
       })}
     </div>
-  </section>;
+  </dialog>;
 }
 
 type Props = {
@@ -174,22 +186,33 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
       label="Modules for new pages" where="the list" onAdd={add} onMove={(id, index) => { move(id, index); return true; }}
       pinned={<>
         <div className="list-intro">
-          <h2>Modules for new pages</h2>
+          <div className="list-intro-head">
+            <h2>Modules for new pages</h2>
+            <button type="button" className="preview-open" aria-haspopup="dialog" onClick={() => { draft.previewing = true; refresh(); }}>Preview</button>
+          </div>
           <p className="muted">New pages start with these modules, in this order. Existing pages keep their own.</p>
         </div>
         <div className="module-block" data-type={key.type}>
-          <PinMark />
           <span>{moduleLabel(key.type)}</span>
         </div>
       </>}
-      renderItem={(item, handle) => <div className={`module-block fam-${familyOf(item.type)}`} data-type={item.type}>
-        {handle}
-        <FamilyIcon family={familyOf(item.type)} />
-        <span>{item.label}</span>
+      menuItems={DECK_MODULE_MENU}
+      renderLanding={type => <div className={`module-block fam-${familyOf(type)}`} data-landing data-type={type} aria-hidden="true">
+        <span className="row-menu"><span className="menu-button"><SixDots /></span></span>
+        <span className="block-label"><FamilyIcon family={familyOf(type)} /><span>{moduleLabel(type)}</span></span>
+        <button type="button" tabIndex={-1}>Remove</button>
+      </div>}
+      renderItem={(item, { drag, menu }) => <div className={`module-block fam-${familyOf(item.type)}`} data-type={item.type}>
+        {menu}
+        <span className="block-label" {...drag} aria-disabled={undefined}>
+          <FamilyIcon family={familyOf(item.type)} />
+          <span>{item.label}</span>
+        </span>
         <button aria-label={`Remove ${item.label}`} disabled={busy}
           onClick={() => { modules.splice(modules.findIndex(module => module.id === item.id), 1); refresh(); }}>Remove</button>
-      </div>}
-      preview={projection => <SamplePreview modules={modules} projection={projection} sampleType={sampleType}
-        choose={value => { draft.sampleType = value; refresh(); }} />} />
+      </div>} />
+    {draft.previewing && <PreviewDialog modules={modules} sampleType={sampleType}
+      choose={value => { draft.sampleType = value; refresh(); }}
+      close={() => { draft.previewing = false; refresh(); }} />}
   </div>;
 }

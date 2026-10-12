@@ -13,6 +13,15 @@ const keyOf = page => text(page.components.find(component => component.moduleTyp
 const modulesOf = page => page.components.filter(component => isContentType(component.moduleType));
 const byKey = async (store, key) => (await store.pages()).find(page => keyOf(page) === key);
 const componentArticle = (page, heading) => page.locator('article.component').filter({ has: page.getByRole('heading', { name: heading, exact: true }) });
+// A card's label in its tab drags the card; clicked, it ejects the card's actions (D07).
+const cardTab = (page, heading) => componentArticle(page, heading).locator('.tab-button');
+// An action ejected from its card's tab, opening the tab first when the actions are not out.
+async function cardButton(page, name) {
+  const button = page.getByRole('button', { name, exact: true });
+  if (await button.count()) return button;
+  await cardTab(page, name.replace(/^(Edit|Retry|Generate|Fold|Unfold|Delete) /, '')).click();
+  return button;
+}
 const apiOrigin = process.env.VOCABULARIUM_API_URL ?? 'http://127.0.0.1:4318';
 
 async function launch(profile, extension = resolve(process.env.VOCABULARIUM_TEST_EXTENSION ?? 'artifacts/extension')) {
@@ -498,13 +507,13 @@ test('deck UI: draft previews, all modules, the module limit, removal without co
   assert.equal(await a.page.getByRole('group', { name: 'Deck colour' }).getByRole('radio', { checked: true }).count(), 1);
   await a.page.getByRole('radio', { name: 'Rose', exact: true }).check();
   assert.equal(await a.page.locator('.module-block').count(), 3, 'a new deck starts with the main key, Context and the German explanation');
-  // The main key looks like the other modules, with a lock mark instead of a handle and no Remove (0.5.2).
+  // The main key looks like the other modules, with no lock mark (0.6.3), drag label, menu or Remove.
   const mainKeyBlock = a.page.locator('.module-block[data-type="main-key"]');
   assert.equal(await mainKeyBlock.innerText(), 'Main key');
-  await mainKeyBlock.getByRole('img', { name: 'Fixed in first place' }).waitFor();
-  assert.equal(await mainKeyBlock.locator('.drag-handle, button').count(), 0, 'no handle or Remove on the main key');
+  assert.equal(await mainKeyBlock.getByRole('img').count(), 0, 'no lock mark');
+  assert.equal(await mainKeyBlock.locator('.block-label, button').count(), 0, 'no drag label, menu or Remove on the main key');
   await addFromWindow(a.page, 'sentence-usage');
-  const usage = a.page.locator('.sortable-row').filter({ has: a.page.locator('.module-block[data-type="sentence-usage"]') });
+  const usage = a.page.locator('.sortable-row:not(.landing-row)').filter({ has: a.page.locator('.module-block[data-type="sentence-usage"]') });
   await usage.waitFor();
   // Dropped on the upper half of Sentence usage, German explanation lands before it.
   await addFromWindow(a.page, 'german-explanation', usage, { above: true });
@@ -512,31 +521,55 @@ test('deck UI: draft previews, all modules, the module limit, removal without co
   await addFromWindow(a.page, 'sentence-usage');
   assert.equal(await a.page.locator('.module-block').count(), 7);
   assert.equal(await a.page.locator('.module-window .window-module').count(), 5, 'the window offers Context, Text and the three content modules');
-  assert.equal(await a.page.locator('.module-window button').count(), 0, 'no Add buttons (D04)');
+  // Every module has its + to add it at the end (0.6.3; D04 had none).
+  assert.equal(await a.page.locator('.module-window .window-add').count(), 5, 'every module has its +');
   assert.equal(await a.page.locator('.window-module[data-type="context"]').getAttribute('aria-disabled'), 'true', 'one Context per deck');
+  assert.equal(await a.page.locator('.window-module[data-type="context"] .window-add').isDisabled(), true, 'a blocked module cannot be added');
   await a.page.getByText('There is already a Context.').waitFor();
-  await a.page.getByLabel('Sample input', { exact: true }).selectOption('sentence');
-  assert.equal(await a.page.locator('.preview').count(), 7, 'one preview per module, the main key included');
-  assert.match(await a.page.locator('.preview').nth(0).textContent(), /我真的很幸福/);
+  // The preview opens in a dialog from the button above the list, so deck settings keep the list-and-window layout (0.6.3).
+  assert.equal(await a.page.locator('.sample-page').count(), 0, 'no preview beside the list');
+  await a.page.getByRole('button', { name: 'Preview', exact: true }).click();
+  const preview = a.page.getByRole('dialog', { name: 'Preview' });
+  await preview.waitFor();
+  await preview.getByLabel('Sample input', { exact: true }).selectOption('sentence');
+  assert.equal(await preview.locator('.preview').count(), 7, 'one preview per module, the main key included');
+  assert.match(await preview.locator('.preview').nth(0).textContent(), /我真的很幸福/);
   // A module that does not apply to the sample input is only its tab, as an empty component on a page (0.6.2).
-  assert.equal(await a.page.locator('.preview').nth(2).textContent(), 'German explanation + examples');
-  assert.equal(await a.page.locator('.preview').nth(2).getAttribute('data-empty'), 'true');
-  assert.match(await a.page.locator('.preview').nth(4).textContent(), /我真的很幸福/);
-  // The live preview follows the list, also while a module is being dragged (D05).
-  const previewTypes = () => a.page.locator('.sample-page .component').evaluateAll(nodes => nodes.map(node => node.dataset.type));
-  assert.deepEqual(await previewTypes(), ['context', 'german-examples', 'german-explanation', 'sentence-usage', 'sentence-usage', 'sentence-usage']);
-  await a.page.getByRole('button', { name: 'Drag German explanation', exact: true }).focus();
+  assert.equal(await preview.locator('.preview').nth(2).textContent(), 'German explanation + examples');
+  assert.equal(await preview.locator('.preview').nth(2).getAttribute('data-empty'), 'true');
+  assert.match(await preview.locator('.preview').nth(4).textContent(), /我真的很幸福/);
+  const previewTypes = () => preview.locator('.sample-page .component').evaluateAll(nodes => nodes.map(node => node.dataset.type));
+  const listTypes = () => a.page.locator('.shaping-list .module-block').evaluateAll(nodes => nodes.slice(1).map(node => node.dataset.type));
+  assert.deepEqual(await previewTypes(), await listTypes(), 'the preview follows the list');
+  await preview.evaluate(node => Promise.all(node.getAnimations().map(animation => animation.finished)));
+  await a.page.screenshot({ path: 'artifacts/m3-configuration-preview.png' });
+  await a.page.keyboard.press('Escape');
+  await preview.waitFor({ state: 'detached' });
+  assert.equal(await a.page.evaluate(() => document.activeElement.textContent), 'Preview', 'closing returns to the Preview button');
+  await a.page.getByRole('button', { name: 'Preview', exact: true }).click();
+  await preview.locator('.preview-dialog, .sample-page').first().waitFor();
+  await a.page.mouse.click(5, 5);
+  await preview.waitFor({ state: 'detached' });
+  // A module is two parts edge to edge: the six dots at its left end, then its icon and name.
+  const block = a.page.locator('.module-block[data-type="german-explanation"]');
+  await block.scrollIntoViewIfNeeded();
+  assert.deepEqual(await block.evaluate(node => {
+    const box = node.getBoundingClientRect();
+    return [5, box.width / 3].map(x => document.elementFromPoint(box.left + x, box.top + box.height / 2)?.closest('.menu-button, .block-label')?.className);
+  }), ['menu-button', 'block-label']);
+  // A module drags by its label (D07).
+  await block.locator('.block-label').focus();
   await a.page.keyboard.press('Space');
   await new Promise(resolve => setTimeout(resolve, 300));
   await a.page.keyboard.press('ArrowUp');
-  await waitFor(async () => (await previewTypes())[1] === 'german-explanation', 'the preview follows the drag before the drop');
+  await new Promise(resolve => setTimeout(resolve, 300));
   assert.equal(await a.page.locator('.module-block').nth(2).getAttribute('data-type'), 'german-examples', 'nothing dropped yet');
-  // The others slide to make room, even though the preview re-renders on every move.
+  // The others slide to make room.
   const slides = await a.page.locator('.shaping-list .sortable-row').evaluateAll(rows => rows.filter(row => !row.hasAttribute('data-dragging'))
     .map(row => getComputedStyle(row).transitionDuration));
   assert.ok(slides.length && slides.every(duration => parseFloat(duration) >= 0.2), `rows make room with a transition (${slides})`);
   await a.page.keyboard.press('Escape');
-  await waitFor(async () => (await previewTypes())[1] === 'german-examples', 'a cancelled drag restores the preview');
+  assert.deepEqual(await listTypes(), ['context', 'german-examples', 'german-explanation', 'sentence-usage', 'sentence-usage', 'sentence-usage'], 'a cancelled drag keeps the order');
   assert.equal((await application.store.pages()).length, 0); assert.equal((await application.store.account()).decks.length, 1);
   await a.page.screenshot({ path: 'artifacts/m3-configuration.png', fullPage: true });
   await a.page.getByRole('button', { name: 'Save', exact: true }).click();
@@ -930,12 +963,14 @@ test('manual page UI: per-card actions, drafts, leave choices, sorting, failed-s
   await a.page.getByRole('button', { name: '← My Deck', exact: true }).click();
   await a.page.getByRole('dialog').getByRole('button', { name: 'Save', exact: true }).click();
   await a.page.getByRole('link', { name: 'zebra', exact: true }).click();
-  await a.page.getByRole('button', { name: 'Generate German explanation + examples', exact: true }).waitFor();
+  // A never-generated component offers Retry too, which starts it at once (0.6.3; earlier Generate).
+  await (await cardButton(a.page, 'Retry German explanation + examples')).waitFor();
+  assert.equal(await a.page.getByRole('button', { name: /^Generate / }).count(), 0, 'no Generate');
   const created = (await application.store.pages())[0];
   const shape = async () => (await application.store.page(created.id)).components.map(item => [item.moduleType, text(item)]);
   assert.equal(created.status, null, 'manual creation never generates');
   assert.deepEqual(await shape(), [['main-key', 'zebra'], ['context', 'zoo animal'], ['german-examples', '']]);
-  assert.equal(await a.page.getByRole('button', { name: /^Retry/ }).count(), 0, 'nothing has generated, so nothing to retry');
+  assert.equal(await a.page.getByRole('button', { name: /^Retry / }).count(), 1, 'only the never-generated component offers Retry');
   for (const removed of ['Edit page', 'Generate missing', 'Retry page']) {
     assert.equal(await a.page.getByRole('button', { name: removed, exact: true }).count(), 0, `no page-level ${removed} (D04)`);
   }
@@ -943,24 +978,50 @@ test('manual page UI: per-card actions, drafts, leave choices, sorting, failed-s
   const ungenerated = componentArticle(a.page, 'German explanation + examples');
   assert.equal(await ungenerated.getAttribute('data-empty'), 'true');
   assert.equal(await ungenerated.locator('.card-body').count(), 0);
-  await ungenerated.getByRole('button', { name: 'Generate German explanation + examples', exact: true }).waitFor({ state: 'attached' });
+  await ungenerated.getByRole('button', { name: 'Retry German explanation + examples', exact: true }).waitFor();
 
   // Shaping by dragging, each step saved at once.
   await addFromWindow(a.page, 'text');
   await componentArticle(a.page, 'Text').waitFor();
   assert.deepEqual(await shape(), [['main-key', 'zebra'], ['context', 'zoo animal'], ['german-examples', ''], ['text', '']]);
-  await drag(a.page, a.page.getByRole('button', { name: 'Drag Text', exact: true }), componentArticle(a.page, 'German explanation + examples'));
+  await drag(a.page, cardTab(a.page, 'Text'), componentArticle(a.page, 'German explanation + examples'));
   await waitFor(async () => (await shape())[2][0] === 'text', 'Text moved up');
   assert.equal(await a.page.getByRole('button', { name: /^Move / }).count(), 0, 'no move buttons (D04)');
-  await a.page.getByRole('button', { name: 'Delete Context', exact: true }).click();
-  await a.page.getByRole('dialog').getByRole('button', { name: 'Cancel', exact: true }).click();
+  // Deleting a component with content asks beside its tab, not in a dialog (0.6.3): Cancel lands
+  // under the pointer, where Delete was, and the final Delete stands to its left.
+  const askDelete = await cardButton(a.page, 'Delete Context');
+  await a.page.locator('.card-actions[data-open]').evaluate(node => Promise.all(node.getAnimations({ subtree: true }).map(animation => animation.finished)));
+  const was = await askDelete.boundingBox();
+  await askDelete.click();
+  const keep = a.page.getByRole('button', { name: 'Keep Context', exact: true });
+  const confirmDelete = a.page.getByRole('button', { name: 'Yes, delete Context', exact: true });
+  await keep.waitFor();
+  assert.equal(await a.page.getByRole('dialog').count(), 0, 'no dialog');
+  assert.equal(await a.page.locator('.confirm-text').textContent(), 'Are you sure?');
+  await a.page.locator('[data-confirm]').evaluate(node => Promise.all(node.getAnimations({ subtree: true }).map(animation => animation.finished)));
+  assert.equal(await a.page.evaluate(([x, y]) => document.elementFromPoint(x, y)?.closest('button')?.getAttribute('aria-label'),
+    [was.x + was.width / 2, was.y + was.height / 2]), 'Keep Context', 'Cancel is under the pointer');
+  assert.ok((await confirmDelete.boundingBox()).x < (await keep.boundingBox()).x, 'the final Delete is to the left of Cancel');
+  assert.equal(await a.page.evaluate(() => document.activeElement.getAttribute('aria-label')), 'Keep Context', 'focus is on Cancel');
+  await a.page.locator('.shaping-list').screenshot({ path: 'artifacts/v0.6.3-confirm-delete.png' });
+  await keep.click();
+  assert.equal(await confirmDelete.count(), 0);
   assert.equal((await shape()).length, 4);
-  await a.page.getByRole('button', { name: 'Delete Context', exact: true }).click();
-  await a.page.getByRole('dialog').getByRole('button', { name: 'Delete', exact: true }).click();
+  await (await cardButton(a.page, 'Delete Context')).click();
+  await confirmDelete.click();
   await waitFor(async () => (await shape()).length === 3, 'Context deleted');
+  // An empty component goes at once, without asking.
+  await addFromWindow(a.page, 'sentence-usage');
+  await waitFor(async () => (await shape()).length === 4, 'Sentence usage added');
+  await (await cardButton(a.page, 'Delete Sentence usage')).click();
+  await waitFor(async () => (await shape()).length === 3, 'empty Sentence usage deleted at once');
+  assert.equal(await a.page.locator('[data-confirm]').count(), 0, 'no question for an empty component');
   assert.deepEqual(await shape(), [['main-key', 'zebra'], ['text', ''], ['german-examples', '']]);
-  // The main key is the page title, shown once: no card, a lock mark and only Edit.
-  await a.page.locator('.page-header[data-type="main-key"]').getByRole('img', { name: 'Fixed in first place' }).waitFor();
+  // The main key is the page title, shown once: no card, no lock mark (0.6.3), and only Edit, always visible like Delete page.
+  const header = a.page.locator('.page-header[data-type="main-key"]');
+  assert.equal(await header.getByRole('img').count(), 0, 'no lock mark');
+  await a.page.mouse.move(5, 5);
+  assert.equal(await header.getByRole('button', { name: 'Edit Main key', exact: true }).evaluate(node => getComputedStyle(node).opacity), '1', 'Edit is visible without hovering');
   assert.equal(await a.page.getByRole('heading', { level: 1 }).textContent(), 'zebra');
   assert.equal(await a.page.locator('article.component[data-type="main-key"]').count(), 0, 'no separate main key card');
   for (const missing of ['Drag Main key', 'Delete Main key', 'Retry Main key', 'Generate Main key']) {
@@ -975,17 +1036,22 @@ test('manual page UI: per-card actions, drafts, leave choices, sorting, failed-s
   await a.page.getByRole('button', { name: 'Save', exact: true }).waitFor();
   assert.equal(await a.page.locator('.window-module[data-type="text"]').getAttribute('aria-disabled'), 'true', 'shaping waits until editing ends');
   assert.equal(await a.page.locator('.module-window .notice').count(), 0, 'no notice while editing (0.5.2)');
-  assert.equal(await a.page.getByRole('button', { name: 'Edit Text', exact: true }).isDisabled(), true, 'one card at a time');
+  assert.equal(await (await cardButton(a.page, 'Edit Text')).isDisabled(), true, 'one card at a time');
   await mainKeyField.fill('discard this');
   await a.page.getByRole('button', { name: '← My Deck', exact: true }).click();
   await a.page.getByRole('dialog').getByRole('button', { name: 'Discard', exact: true }).click();
   assert.equal(keyOf(await application.store.page(created.id)), 'zebra');
   await a.page.getByRole('link', { name: 'zebra', exact: true }).click();
   await a.page.getByRole('button', { name: 'Edit Main key', exact: true }).click();
+  // Saving an empty main key keeps the editor open and says so inside the field.
+  await mainKeyField.fill('');
+  await a.page.getByRole('button', { name: 'Save', exact: true }).click();
+  await waitFor(async () => await mainKeyField.getAttribute('placeholder') === 'Main key can not be empty.', 'the message stands inside the empty main key');
+  assert.equal(await a.page.locator('.notice.error').count(), 0, 'no notice below the field');
   await mainKeyField.fill('cancel this');
   await a.page.getByRole('button', { name: 'Cancel', exact: true }).click();
   assert.equal(keyOf(await application.store.page(created.id)), 'zebra');
-  await a.page.getByRole('button', { name: 'Edit Text', exact: true }).click();
+  await (await cardButton(a.page, 'Edit Text')).click();
   await a.page.getByRole('textbox', { name: 'Edit Text', exact: true }).fill('saved own text');
   await a.page.getByRole('button', { name: 'Save', exact: true }).click();
   await waitFor(async () => (await shape())[1][1] === 'saved own text', 'Text saved from its card');
@@ -1004,8 +1070,14 @@ test('manual page UI: per-card actions, drafts, leave choices, sorting, failed-s
   await a.page.getByRole('button', { name: '← My Deck', exact: true }).click();
   await a.page.getByRole('button', { name: 'Add page manually', exact: true }).click();
   await a.page.getByRole('button', { name: 'Save', exact: true }).click();
-  await a.page.getByRole('alert').filter({ hasText: 'Enter a main key.' }).waitFor();
-  await a.page.getByLabel('Main key', { exact: true }).fill('aardvark');
+  // An empty main key says so inside its field, not in a notice below it (0.6.3).
+  const newKey = a.page.getByLabel('Main key', { exact: true });
+  await waitFor(async () => await newKey.getAttribute('placeholder') === 'Main key can not be empty.', 'the message stands inside the empty field');
+  assert.equal(await newKey.getAttribute('aria-invalid'), 'true');
+  assert.equal(await a.page.locator('.notice.error').count(), 0, 'no notice below the field');
+  assert.equal(await a.page.evaluate(() => document.activeElement.id), 'main-key', 'the field takes focus');
+  await a.page.screenshot({ path: 'artifacts/v0.6.3-empty-main-key.png' });
+  await newKey.fill('aardvark');
   await a.page.getByRole('button', { name: /^(Save|Try saving again)$/ }).click();
   await pageReady(a.page);
   await a.page.getByRole('button', { name: '← My Deck', exact: true }).click();
@@ -1023,7 +1095,7 @@ test('manual page UI: per-card actions, drafts, leave choices, sorting, failed-s
   assert.equal((await application.store.pages()).length, 1);
 });
 
-test('retry UI: exact confirmation, a first Generate without warning, and a two-installation lock preserve drafts until explicit resubmission', { timeout: 35000 }, async (t) => {
+test('retry UI: exact confirmation asked beside the tab, a first Retry without warning, and a two-installation lock preserve drafts until explicit resubmission', { timeout: 35000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-retry-browser-'));
   let release;
   const application = await createTestApplication(t, {
@@ -1047,20 +1119,29 @@ test('retry UI: exact confirmation, a first Generate without warning, and a two-
   await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
   await b.page.goto(`chrome-extension://${b.id}/app.html#page/${pageId}`);
   // Installation b edits the explanation card while a retries it.
-  await b.page.getByRole('button', { name: 'Edit German explanation + examples', exact: true }).click();
+  await (await cardButton(b.page, 'Edit German explanation + examples')).click();
   await b.page.getByRole('textbox', { name: 'Edit German explanation + examples', exact: true }).fill('draft back');
-  const retryExplanation = a.page.getByRole('button', { name: 'Retry German explanation + examples', exact: true });
-  await retryExplanation.click();
-  assert.equal(await a.page.getByRole('dialog').locator('p').textContent(), 'Retry will replace this component’s content, including your edits to it. The main key, Context, and other components will not change.');
-  await a.page.getByRole('dialog').getByRole('button', { name: 'Cancel', exact: true }).click();
+  // Retrying content asks beside the tab, as Delete does, in the card's colour; no dialog (0.6.3).
+  const retryExplanation = () => cardButton(a.page, 'Retry German explanation + examples');
+  await (await retryExplanation()).click();
+  const keepExplanation = a.page.getByRole('button', { name: 'Keep German explanation + examples', exact: true });
+  await keepExplanation.waitFor();
+  assert.equal(await a.page.getByRole('dialog').count(), 0, 'no dialog');
+  assert.equal(await a.page.locator('[data-confirm="retry"] .confirm-text').textContent(), 'Are you sure?');
+  await a.page.locator('[data-confirm="retry"]').evaluate(node => Promise.all(node.getAnimations({ subtree: true }).map(animation => animation.finished.catch(() => {}))));
+  await a.page.locator('.shaping-list').screenshot({ path: 'artifacts/v0.6.3-confirm-retry.png' });
+  assert.notEqual(await a.page.locator('[data-confirm="retry"] .action-confirm').evaluate(node => getComputedStyle(node).backgroundColor),
+    await a.page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--status-failed').trim()), 'not red');
+  await keepExplanation.click();
   assert.equal(text(modulesOf(await application.store.page(pageId))[1]), 'saved original');
-  await retryExplanation.click();
-  await a.page.getByRole('dialog').getByRole('button', { name: 'Confirm', exact: true }).click();
+  await (await retryExplanation()).click();
+  await a.page.getByRole('button', { name: 'Yes, retry German explanation + examples', exact: true }).click();
+  assert.equal(await a.page.getByRole('dialog').count(), 0, 'the answer beside the tab is the confirmation');
   await waitFor(() => release, 'retry provider started');
-  await waitFor(() => retryExplanation.isDisabled(), 'retry disables its control while generating');
+  await waitFor(async () => (await retryExplanation()).isDisabled(), 'retry disables its control while generating');
   // Every Retry is briefly disabled while the request is in flight; once accepted, only the generating component stays locked.
-  await waitFor(() => a.page.getByRole('button', { name: 'Retry Sentence usage', exact: true }).isEnabled(), 'other components stay available');
-  assert.equal(await retryExplanation.isDisabled(), true);
+  await waitFor(async () => (await cardButton(a.page, 'Retry Sentence usage')).isEnabled(), 'other components stay available');
+  assert.equal(await (await retryExplanation()).isDisabled(), true);
   await b.page.getByRole('button', { name: 'Save', exact: true }).click();
   await b.page.getByRole('alert').filter({ hasText: 'still generating' }).waitFor();
   assert.deepEqual(modulesOf(await application.store.page(pageId)).map(text), ['saved original', '']);
@@ -1069,16 +1150,16 @@ test('retry UI: exact confirmation, a first Generate without warning, and a two-
   await waitFor(async () => modulesOf(await application.store.page(pageId))[1].status === 'completed', 'retry saved');
   assert.deepEqual(modulesOf(await application.store.page(pageId)).map(text), ['saved original', 'regenerated component']);
   await b.page.getByRole('button', { name: 'Try saving again', exact: true }).click();
-  await b.page.getByRole('button', { name: 'Edit German explanation + examples', exact: true }).waitFor();
+  await b.page.locator('.component-tools').waitFor({ state: 'detached' });
   assert.deepEqual(modulesOf(await application.store.page(pageId)).map(text), ['saved original', 'draft back']);
 
   // A deck change never reaches the page; a module dragged onto it generates from its card without a warning.
   await useModules(application.store, ['sentence-usage', 'german-examples', 'german-explanation']);
   await a.page.reload();
   await a.page.locator('h1.main-key').waitFor();
-  assert.equal(await a.page.getByRole('button', { name: 'Generate German explanation', exact: true }).count(), 0, 'a deck change never reaches the page');
+  assert.equal(await a.page.getByRole('button', { name: 'Retry German explanation', exact: true }).count(), 0, 'a deck change never reaches the page');
   await addFromWindow(a.page, 'german-explanation');
-  await a.page.getByRole('button', { name: 'Generate German explanation', exact: true }).click();
+  await (await cardButton(a.page, 'Retry German explanation')).click();
   await waitFor(async () => modulesOf(await application.store.page(pageId)).filter(item => item.attemptId).length === 3, 'the added module generated');
   assert.equal(await a.page.getByRole('dialog').count(), 0);
 });
@@ -1097,11 +1178,11 @@ async function openFamily(source) {
 async function addFromWindow(page, type, target = page.locator('.drop-end'), options = {}) {
   const viewport = page.viewportSize();
   if (viewport.height < 1400) await page.setViewportSize({ width: viewport.width, height: 1400 });
-  await drag(page, windowModule(page, type), target, options);
+  await drag(page, windowModule(page, type), target, { ...options, follow: true });
 }
 
 // Pointer drags go through dnd-kit's activation distance, so move in steps.
-async function drag(page, source, target, { below = false, above = false } = {}) {
+async function drag(page, source, target, { below = false, above = false, follow = false } = {}) {
   await openFamily(source);
   // A mouse cannot leave the viewport; the module window is sticky, so it stays in view.
   // The page may re-render once as its account refresh lands; scroll again if it did.
@@ -1111,18 +1192,59 @@ async function drag(page, source, target, { below = false, above = false } = {})
   await page.mouse.down();
   await page.mouse.move(from.x + from.width / 2 + 10, from.y + from.height / 2 + 10, { steps: 4 });
   // Read the target once the drag is active, then aim at it in two passes in case the page scrolled.
-  // The second pass corrects only for scrolling: a sortable target slides aside as the drag
-  // reaches it, and following it would lead the pointer back to the dragged card's own slot.
-  const to = await target.boundingBox();
+  // Reordering corrects only for scrolling: a sortable target slides aside as the drag reaches
+  // it, and following it would lead the pointer back to the dragged card's own slot. A module
+  // from the window follows its target (`follow`), as the eye does when the entries make room.
+  let to = await target.boundingBox();
   const scrolled = await page.evaluate(() => scrollY);
   for (let pass = 0; pass < 2; pass++) {
-    const shift = scrolled - await page.evaluate(() => scrollY);
+    if (follow && pass) { await new Promise(resolve => setTimeout(resolve, 300)); to = await target.boundingBox(); }
+    const shift = follow ? 0 : scrolled - await page.evaluate(() => scrollY);
     await page.mouse.move(to.x + to.width / 2, to.y + shift + to.height * (below ? 0.8 : above ? 0.25 : 0.5), { steps: 8 });
   }
   await page.mouse.up();
   // dnd-kit swallows clicks for 50 ms after a drop so the release is not also a click.
   await new Promise(resolve => setTimeout(resolve, 100));
 }
+
+test('sidebar: the current deck stays marked on a page while the account refreshes', { timeout: 60000 }, async (t) => {
+  const directory = await mkdtemp(join(tmpdir(), 'vocabularium-sidebar-browser-'));
+  const application = await createTestApplication(t); await application.start();
+  const a = await launch(join(directory, 'a'));
+  t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
+  const store = application.store;
+  await useModules(store, ['german-examples']);
+  const session = { installationId: 'fixture', sessionId: 'sidebar', epoch: 1 };
+  await store.openSession('sidebar-session', session);
+  const { pageId } = await store.capture('sidebar-page', { session, mainKey: '幸福', snapshot: await store.snapshot() });
+  const [examples] = modulesOf(await store.page(pageId));
+  await store.stage(examples.attemptId, { ok: true, text: 'Glück' });
+  await store.publish('sidebar-publish', { attemptId: examples.attemptId, session });
+  await signIn(a.page);
+  await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
+  await a.page.locator('h1.main-key').waitFor();
+  await a.page.locator('#sidebar .nav-item[aria-current="page"]').filter({ hasText: 'My Deck' }).waitFor();
+  // Record every sidebar rebuild and whether My Deck was still marked after it.
+  const watch = () => a.page.evaluate(() => {
+    window.sidebarLog = [];
+    new MutationObserver(() => window.sidebarLog.push(Boolean(document.querySelector('#sidebar .nav-decks [aria-current="page"]'))))
+      .observe(document.querySelector('#sidebar'), { childList: true });
+  });
+  const log = () => a.page.evaluate(() => window.sidebarLog);
+  // The first refresh after loading may still bring what the background synced meanwhile.
+  await new Promise(resolve => setTimeout(resolve, 5500));
+  await watch();
+  // Two more refresh cycles with nothing changed: nothing is redrawn.
+  await new Promise(resolve => setTimeout(resolve, 11000));
+  assert.deepEqual(await log(), [], 'an unchanged account does not redraw the sidebar');
+  // A real change redraws it, and My Deck stays marked throughout.
+  await store.capture('sidebar-second', { session, mainKey: '快乐', snapshot: await store.snapshot() });
+  await a.page.locator('#sidebar .nav-count').filter({ hasText: '2' }).waitFor({ timeout: 12000 });
+  await new Promise(resolve => setTimeout(resolve, 500));
+  const redraws = await log();
+  assert.ok(redraws.length > 0, 'the change redrew the sidebar');
+  assert.ok(redraws.every(Boolean), `My Deck stays marked through every redraw (${JSON.stringify(redraws)})`);
+});
 
 test('page view: main key tiers, Show all, rendered and plain content, quiet card status, and module window search and families', { timeout: 45000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-page-view-browser-'));
@@ -1170,10 +1292,65 @@ test('page view: main key tiers, Show all, rendered and plain content, quiet car
   assert.equal(await examples.locator('.list-status').count(), 0, 'a completed card shows no status');
   const failed = componentArticle(a.page, 'Sentence usage');
   assert.equal(await failed.locator('.list-status').textContent(), 'Generation failed');
-  assert.equal(await failed.locator('.card-actions').evaluate(node => getComputedStyle(node).opacity), '1', 'Retry is visible on a failed card');
-  assert.equal(await examples.locator('.card-actions').evaluate(node => getComputedStyle(node).opacity), '0', 'actions wait for hover or focus');
-  await examples.getByRole('button', { name: 'Edit German explanation + examples', exact: true }).focus();
-  await waitFor(async () => await examples.locator('.card-actions').evaluate(node => getComputedStyle(node).opacity) === '1', 'actions appear on keyboard focus');
+  // Actions wait inside the tab until it is clicked (D07); a failed card keeps its Retry out.
+  await failed.getByRole('button', { name: 'Retry Sentence usage', exact: true }).waitFor();
+  assert.equal(await failed.getByRole('button', { name: 'Edit Sentence usage', exact: true }).count(), 0, 'only Retry waits beside a failed tab');
+  assert.equal(await examples.locator('.card-actions').count(), 0, 'no actions until the tab is clicked');
+  // The tag is two buttons edge to edge: the six dots at its left end, the label to its right end.
+  await examples.locator('.card-tab').scrollIntoViewIfNeeded();
+  assert.deepEqual(await examples.locator('.card-tab').evaluate(node => {
+    const box = node.getBoundingClientRect();
+    return [2, box.width / 2, box.width - 2].map(x => document.elementFromPoint(box.left + x, box.top + box.height / 2)?.closest('button')?.className);
+  }), ['menu-button', 'tab-button', 'tab-button']);
+  await examples.hover();
+  assert.equal(await examples.locator('.card-actions').count(), 0, 'hovering no longer shows actions');
+  await cardTab(a.page, 'German explanation + examples').click();
+  assert.deepEqual(await examples.locator('.card-actions button').allTextContents(), ['Edit', 'Retry', 'Fold', 'Delete']);
+  assert.equal(await cardTab(a.page, 'German explanation + examples').getAttribute('aria-expanded'), 'true');
+  assert.equal(await examples.locator('.card-actions button').first().evaluate(node => getComputedStyle(node).animationName), 'eject', 'the actions eject from the tab');
+  await a.page.mouse.click(5, 5);
+  assert.equal(await examples.locator('.card-actions').count(), 0, 'a click elsewhere puts them back');
+  // Fold: the card slides shut to its tab and stays folded in this browser; Unfold opens it again.
+  await (await cardButton(a.page, 'Fold German explanation + examples')).click();
+  assert.equal(await examples.getAttribute('data-folded'), 'true');
+  assert.match(await examples.locator('.card-fold').evaluate(node => getComputedStyle(node).transitionProperty), /grid-template-rows/, 'folding moves smoothly');
+  await waitFor(async () => (await examples.locator('.card-fold').evaluate(node => node.getBoundingClientRect().height)) < 1, 'the content folds away');
+  assert.equal(await examples.locator('.card-fold-inner').evaluate(node => node.inert), true, 'folded content is out of reach');
+  await a.page.reload();
+  await examples.locator('.card-tab').waitFor();
+  assert.equal(await examples.getAttribute('data-folded'), 'true', 'the fold is remembered');
+  await (await cardButton(a.page, 'Unfold German explanation + examples')).click();
+  await waitFor(async () => (await examples.locator('.card-fold').evaluate(node => node.getBoundingClientRect().height)) > 20, 'the content unfolds');
+  assert.equal(await examples.getAttribute('data-folded'), null);
+  // From the keyboard: Enter ejects them, Escape puts them back and returns to the tab.
+  await cardTab(a.page, 'German explanation + examples').focus();
+  await a.page.keyboard.press('Enter');
+  await examples.getByRole('button', { name: 'Edit German explanation + examples', exact: true }).waitFor();
+  await a.page.keyboard.press('Escape');
+  assert.equal(await examples.locator('.card-actions').count(), 0);
+  assert.equal(await a.page.evaluate(() => document.activeElement.className), 'tab-button');
+  // The six dots open the card's menu; its entries are placeholders.
+  await a.page.getByRole('button', { name: 'More for German explanation + examples', exact: true }).click();
+  const menu = a.page.getByRole('menu', { name: 'More for German explanation + examples' });
+  assert.deepEqual(await menu.getByRole('menuitem').evaluateAll(items => items.map(item => [item.firstChild.textContent, item.getAttribute('aria-disabled')])),
+    [['Duplicate', 'true'], ['Copy text', 'true'], ['Move to page…', 'true']]);
+  await a.page.keyboard.press('Escape');
+  // A menu lies above the cards below it, their tabs included: Context is empty, so the next tab is right under it.
+  await a.page.getByRole('button', { name: 'More for Context', exact: true }).click();
+  const contextMenu = a.page.getByRole('menu', { name: 'More for Context' });
+  const covered = await contextMenu.getByRole('menuitem').evaluateAll(items => items.filter(item => {
+    const box = item.getBoundingClientRect();
+    return !document.elementFromPoint(box.left + 8, box.top + box.height / 2)?.closest('[role="menu"]');
+  }).map(item => item.firstChild.textContent));
+  assert.deepEqual(covered, [], 'no menu entry is hidden under the next card');
+  await a.page.keyboard.press('Escape');
+  assert.equal(await contextMenu.count(), 0);
+  // Retrying a card with nothing in it, such as a failed one, starts at once: no question, no dialog (0.6.3).
+  const usageBefore = (await store.page(pages.word)).components.find(item => item.moduleType === 'sentence-usage').attemptId;
+  await failed.getByRole('button', { name: 'Retry Sentence usage', exact: true }).click();
+  await waitFor(async () => (await store.page(pages.word)).components.find(item => item.moduleType === 'sentence-usage').attemptId !== usageBefore, 'the failed card retried');
+  assert.equal(await a.page.getByRole('dialog').count(), 0, 'no dialog');
+  assert.equal(await a.page.locator('[data-confirm]').count(), 0, 'no question');
   for (const theme of ['light', 'dark']) {
     await chooseAppearance(a.page, theme);
     await a.page.screenshot({ path: `artifacts/v0.6.0-page-${theme}.png`, fullPage: true });
@@ -1181,6 +1358,20 @@ test('page view: main key tiers, Show all, rendered and plain content, quiet car
 
   // The module window groups by family, opens the families already here, and searches.
   const window = a.page.locator('.module-window');
+  // How to drag waits behind the "?" beside the window's heading: hover shows it, a click keeps it, Escape closes it.
+  const help = window.getByRole('button', { name: 'How to add modules', exact: true });
+  const helpText = window.getByRole('note');
+  assert.equal(await helpText.isVisible(), false, 'the explanation is hidden at first');
+  await help.hover();
+  await helpText.waitFor();
+  assert.equal(await helpText.textContent(), 'Drag a module into the page, or back here to put it back. From the keyboard: Space picks it up, the arrow keys move it, Space drops it, Escape puts it back.');
+  await a.page.mouse.move(5, 5);
+  await helpText.waitFor({ state: 'hidden' });
+  await help.click(); await a.page.mouse.move(5, 5);
+  assert.equal(await helpText.isVisible(), true, 'a click keeps it open');
+  await window.screenshot({ path: 'artifacts/v0.6.3-module-help.png' });
+  await a.page.keyboard.press('Escape');
+  await helpText.waitFor({ state: 'hidden' });
   const families = await window.locator('details').evaluateAll(nodes => nodes.map(node => [node.querySelector('summary').textContent, node.open]));
   assert.deepEqual(families, [['Meaning1', false], ['Usage2', true], ['Notes2', true]]);
   assert.equal(await window.locator('.window-module[data-type="sentence-usage"]').getByText('Already here').count(), 1);
@@ -1209,10 +1400,33 @@ test('generation reveal: finished content rises into its card and is announced; 
   await signIn(a.page);
   await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
   const card = name => componentArticle(a.page, name);
-  await card('German explanation').locator('.list-status').filter({ hasText: 'Generating' }).waitFor();
+  // While it generates, the card is only its tab, with a spark running round the tab's edge (0.6.3).
+  await card('German explanation').and(a.page.locator('[data-generating]')).waitFor();
+  assert.equal(await card('German explanation').locator('.card-fold').isVisible(), false, 'no body while generating');
+  assert.equal(await card('German explanation').locator('.list-status').count(), 0, 'no Generating line');
+  assert.equal(await card('German explanation').locator('.spark i').first().evaluate(node => getComputedStyle(node).animationName), 'travel');
+  // The comet runs round the tab's outline at a steady pace, corners and long edges alike.
+  const steps = await card('German explanation').locator('.spark i').first().evaluate(async head => {
+    const points = [];
+    for (let frame = 0; frame < 90; frame++) {
+      const box = head.getBoundingClientRect();
+      points.push([box.x + box.width / 2, box.y + box.height / 2, performance.now()]);
+      await new Promise(resolve => requestAnimationFrame(resolve));
+    }
+    return points.slice(1).map(([x, y, t], index) => Math.hypot(x - points[index][0], y - points[index][1]) / (t - points[index][2]))
+      .filter(speed => speed > 0 && speed < 5);
+  });
+  const sorted = [...steps].sort((a, b) => a - b), median = sorted[Math.floor(sorted.length / 2)];
+  assert.ok(sorted[Math.floor(sorted.length * .1)] > median * .6 && sorted[Math.floor(sorted.length * .9)] < median * 1.4,
+    `steady speed (10th–90th percentile ${sorted[Math.floor(sorted.length * .1)].toFixed(3)}–${sorted[Math.floor(sorted.length * .9)].toFixed(3)} px/ms, median ${median.toFixed(3)})`);
+  assert.equal(await card('German explanation').getByRole('status').first().textContent(), 'German explanation: generating');
+  await a.page.locator('.shaping-list').screenshot({ path: 'artifacts/v0.6.3-generating.png' });
 
   await store.stage(explanation.attemptId, { ok: true, text: '== Chinesisch ==\n=== Bedeutungen ===\n: [1] Glück' });
   await store.publish('reveal-publish-1', { attemptId: explanation.attemptId, session });
+  // The spark does not vanish: it fades away as the content rises in.
+  await card('German explanation').locator('.spark[data-ending]').waitFor({ state: 'attached', timeout: 15000 });
+  await card('German explanation').locator('.spark').waitFor({ state: 'detached', timeout: 3000 });
   await card('German explanation').locator('.card-body[data-reveal] .meanings li').waitFor({ timeout: 15000 });
   assert.equal(await card('German explanation').getByRole('status').textContent(), 'German explanation generated.');
   assert.notEqual(await card('German explanation').locator('.meanings li').evaluate(node => getComputedStyle(node).animationName), 'none', 'the content rises');
@@ -1250,19 +1464,62 @@ test('module window: drag modules onto a page and into deck settings, and reorde
   const contextCard = await card('Context').boundingBox();
   await a.page.mouse.move(textModule.x + textModule.width / 2, textModule.y + textModule.height / 2);
   await a.page.mouse.down();
-  await a.page.mouse.move(contextCard.x + contextCard.width / 2, contextCard.y + contextCard.height / 2, { steps: 10 });
-  await a.page.locator('.sortable-row[data-insert-before]').waitFor();
+  await a.page.mouse.move(contextCard.x + contextCard.width / 2, contextCard.y + contextCard.height / 4, { steps: 10 });
+  // Over the page it drags as a card does (0.6.3): the module itself, as the card it will become,
+  // keeps to the card column while a gap opens where it would land and the cards make room.
+  const landingCard = a.page.locator('.landing-row .component[data-landing][data-type="text"]');
+  const moving = a.page.locator('.drag-preview .component[data-landing][data-type="text"]');
+  await landingCard.waitFor({ state: 'attached' });
+  await moving.waitFor();
+  assert.equal(await landingCard.isVisible(), false, 'the gap is empty');
+  assert.deepEqual(await a.page.locator('.shaping-list [data-row-id]').evaluateAll(rows => rows.map(row => row.dataset.rowId === 'landing' ? 'landing' : 'card')),
+    ['landing', 'card', 'card'], 'the gap opens before Context');
+  const columnLeft = async locator => Math.round((await locator.locator('.card-tab').boundingBox()).x);
+  assert.ok(Math.abs(await columnLeft(moving) - await columnLeft(card('Context'))) <= 6, 'the module keeps to the card column (tilted as a dragged card)');
+  await waitFor(async () => (await card('Context').boundingBox()).y > contextCard.y + 20, 'Context makes room');
+  await a.page.locator('.shaping-list').screenshot({ path: 'artifacts/v0.6.3-drag-in.png' });
   await a.page.mouse.move(textModule.x + textModule.width / 2, textModule.y + textModule.height / 2, { steps: 10 });
   await a.page.locator('.module-window[data-over]').waitFor();
-  assert.equal(await a.page.locator('.sortable-row[data-insert-before]').count(), 0, 'no drop line over the window');
+  assert.equal(await landingCard.count(), 0, 'no gap over the window');
+  await moving.waitFor();
   await a.page.mouse.up();
   await new Promise(resolve => setTimeout(resolve, 300));
   assert.deepEqual(await types(), ['main-key', 'context', 'german-examples'], 'a module dropped back on the window is not added');
-  assert.equal(await a.page.locator('.component.adding').count(), 0);
+  assert.equal(await a.page.locator('.landing-row').count(), 0);
 
-  // Drag Text from the window onto the upper half of the Context card: it lands before it.
-  await drag(a.page, windowModule(a.page, 'text'), card('Context'), { above: true });
+  // Drag Text from the window onto the upper half of the Context card: it lands before it. From the
+  // drop until the card arrives, it stays one element in one place, built like the card (0.6.3).
+  await openFamily(windowModule(a.page, 'text'));
+  const source = await windowModule(a.page, 'text').boundingBox();
+  await a.page.mouse.move(source.x + source.width / 2, source.y + source.height / 2);
+  await a.page.mouse.down();
+  await a.page.mouse.move(source.x + source.width / 2 + 10, source.y + source.height / 2 + 10, { steps: 4 });
+  const target = await card('Context').boundingBox();
+  await a.page.mouse.move(target.x + target.width / 2, target.y + target.height / 4, { steps: 10 });
+  await landingCard.waitFor({ state: 'attached' });
+  // While dragged, the module is marked in the window and the dragged card carries a focus ring (0.6.3).
+  assert.equal(await a.page.locator('.window-module[data-type="text"]').getAttribute('data-dragging'), 'true');
+  assert.equal(await moving.locator('.card-tab').evaluate(node => getComputedStyle(node).outlineStyle), 'solid', 'the dragged card is marked');
+  await a.page.locator('.shaping-list').evaluate(list => Promise.all(list.getAnimations({ subtree: true })
+    .filter(animation => animation.effect?.getTiming().iterations !== Infinity).map(animation => animation.finished.catch(() => {}))));
+  await a.page.evaluate(() => { window.incoming = document.querySelector('.landing-row'); });
+  await a.page.mouse.up();
+  assert.equal(await a.page.evaluate(() => document.querySelector('.landing-row[data-saving]') === window.incoming), true, 'the dropped module fills its gap');
+  // It glides into the gap, then stays there until the card arrives in the same place.
+  await a.page.evaluate(() => new Promise(resolve => setTimeout(resolve, 320))).then(() => a.page.evaluate(() => {
+    window.track = [];
+    const sample = () => {
+      const node = document.querySelector('.shaping-list article.component[data-type="text"] .card-tab');
+      if (node) window.track.push(Math.round(node.getBoundingClientRect().y));
+      if (window.track.length < 200) requestAnimationFrame(sample);
+    };
+    sample();
+  }));
   await waitFor(async () => (await types()).includes('text'), 'Text dragged onto the page');
+  await card('Text').waitFor();
+  await waitFor(() => a.page.evaluate(() => window.track.length >= 200), 'arrival tracked', 8000);
+  const track = await a.page.evaluate(() => window.track);
+  assert.ok(Math.max(...track) - Math.min(...track) <= 3, `the module stays in place from drop to arrival (${Math.min(...track)}–${Math.max(...track)})`);
   assert.deepEqual(await types(), ['main-key', 'text', 'context', 'german-examples']);
   assert.deepEqual((await store.deck((await store.page(pageId)).deckId)).modules.map(module => module.type),
     ['main-key', 'context', 'german-examples'], 'the deck is unchanged');
@@ -1278,7 +1535,36 @@ test('module window: drag modules onto a page and into deck settings, and reorde
     handler(request, response);
   });
   const headings = async () => ['Main key', ...await a.page.locator('.shaping-list article.component h2').allTextContents()];
-  await drag(a.page, a.page.getByRole('button', { name: 'Drag Text', exact: true }), a.page.locator('.drop-end'));
+  // Over the end zone the card moves only up and down, and the others make room as for the last place (0.6.3).
+  const rowOf = heading => a.page.locator('.sortable-row').filter({ has: a.page.getByRole('heading', { name: heading, exact: true }) });
+  // Wait for the cards to finish sliding into place after the add before aiming at one.
+  await a.page.locator('.shaping-list').evaluate(list => Promise.all(list.getAnimations({ subtree: true })
+    .filter(animation => animation.effect?.getTiming().iterations !== Infinity).map(animation => animation.finished.catch(() => {}))));
+  const from = await cardTab(a.page, 'Text').boundingBox(), end = await a.page.locator('.drop-end').boundingBox();
+  await a.page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+  await a.page.mouse.down();
+  await a.page.mouse.move(from.x + from.width / 2 + 10, from.y + from.height / 2 + 10, { steps: 4 });
+  await a.page.mouse.move(end.x + end.width / 2 + 120, end.y + end.height / 2, { steps: 12 });
+  const shiftOf = heading => rowOf(heading).evaluate(node => new DOMMatrix(getComputedStyle(node).transform).m42);
+  await waitFor(async () => await shiftOf('German explanation + examples') < -20 && await shiftOf('Context') < -20, 'every card after it makes room');
+  assert.equal(await rowOf('Text').evaluate(node => new DOMMatrix(getComputedStyle(node).transform).m41), 0, 'the card stays in its column');
+  // Every frame after the drop, each card only moves on toward its place, never back (no flicker).
+  await a.page.evaluate(() => {
+    window.settling = [];
+    const sample = () => {
+      window.settling.push(Object.fromEntries([...document.querySelectorAll('.shaping-list .sortable-row')]
+        .map(row => [row.querySelector('h2')?.textContent, row.firstElementChild.getBoundingClientRect().y])));
+      if (window.settling.length < 45) requestAnimationFrame(sample);
+    };
+    sample();
+  });
+  await a.page.mouse.up();
+  await waitFor(() => a.page.evaluate(() => window.settling.length >= 45), 'drop settled');
+  const settling = await a.page.evaluate(() => window.settling);
+  for (const heading of ['Context', 'German explanation + examples', 'Text']) {
+    const steps = settling.map(frame => frame[heading]).filter(y => y !== undefined).map((y, index, all) => index ? y - all[index - 1] : 0);
+    assert.ok(!(steps.some(step => step > 2) && steps.some(step => step < -2)), `${heading} settles without jumping back (${steps.map(Math.round)})`);
+  }
   await waitFor(() => heldMoves.length === 1, 'move request reached the server');
   for (let sample = 0; sample < 5; sample++) {
     assert.deepEqual(await headings(), ['Main key', 'Context', 'German explanation + examples', 'Text'], 'the new order shows before the save finishes');
@@ -1290,8 +1576,8 @@ test('module window: drag modules onto a page and into deck settings, and reorde
   assert.deepEqual(await types(), ['main-key', 'context', 'german-examples', 'text']);
   assert.deepEqual(await headings(), ['Main key', 'Context', 'German explanation + examples', 'Text']);
 
-  // Keyboard reorder: Space picks the handle up, the arrows move it, Space drops it.
-  await a.page.getByRole('button', { name: 'Drag Text', exact: true }).focus();
+  // Keyboard reorder: Space picks the card up by its tab, the arrows move it, Space drops it.
+  await cardTab(a.page, 'Text').focus();
   const announced = text => a.page.locator('[id^="DndLiveRegion"]').filter({ hasText: text }).waitFor({ state: 'attached' });
   await a.page.keyboard.press('Space');
   await announced('Text is over position 4.');
@@ -1305,6 +1591,7 @@ test('module window: drag modules onto a page and into deck settings, and reorde
   await waitFor(async () => (await types())[1] === 'text', 'Text moved up from the keyboard');
   assert.deepEqual(await types(), ['main-key', 'text', 'context', 'german-examples']);
   await announced('Text was dropped.');
+  assert.equal(await a.page.locator('.card-actions').count(), 0, 'Space drags; it never ejects the actions');
 
   // Keyboard add from the window: Space picks a module up, the arrows step through
   // the landing places (the end zone is last), Space drops it.
@@ -1315,10 +1602,14 @@ test('module window: drag modules onto a page and into deck settings, and reorde
   await new Promise(resolve => setTimeout(resolve, 300));
   for (let step = 0; step < 6; step++) await a.page.keyboard.press('ArrowDown');
   await announced('Text is over the end.');
+  await openFamily(windowModule(a.page, 'sentence-usage'));
   await a.page.keyboard.press('Space');
-  await waitFor(async () => (await types()).length === 5, 'Text added from the keyboard');
-  assert.deepEqual(await types(), ['main-key', 'text', 'context', 'german-examples', 'text']);
-  assert.equal(await a.page.locator('.module-window button').count(), 0, 'no Add buttons (D04)');
+  // The window's + adds a module as the last component, without dragging (0.6.3), even when
+  // pressed right after another add: the server appends it after whatever the page holds.
+  await a.page.locator('.window-module[data-type="sentence-usage"]').getByRole('button', { name: 'Add Sentence usage at the end', exact: true }).click();
+  await waitFor(async () => (await types()).length === 6, 'Text and Sentence usage added');
+  assert.deepEqual(await types(), ['main-key', 'text', 'context', 'german-examples', 'text', 'sentence-usage']);
+  await card('Sentence usage').waitFor();
 
   // Deck settings take a dragged module too, and the main key stays first.
   const deckId = (await store.page(pageId)).deckId;
@@ -1327,10 +1618,14 @@ test('module window: drag modules onto a page and into deck settings, and reorde
   await a.page.locator('.module-block[data-type="german-examples"]').waitFor();
   await drag(a.page, windowModule(a.page, 'sentence-usage'), a.page.locator('.drop-end'));
   await a.page.locator('.module-block').filter({ hasText: 'Sentence usage' }).waitFor();
+  // The + works in deck settings too: the module goes last in the list.
+  await openFamily(windowModule(a.page, 'german-explanation'));
+  await a.page.locator('.window-module[data-type="german-explanation"]').getByRole('button', { name: 'Add German explanation at the end', exact: true }).click();
+  await waitFor(async () => await a.page.locator('.shaping-list .module-block').last().getAttribute('data-type') === 'german-explanation', 'German explanation added last');
   await a.page.getByRole('button', { name: 'Save', exact: true }).click();
   await a.page.getByRole('heading', { name: 'Your decks', exact: true }).waitFor();
-  assert.deepEqual((await store.deck(deckId)).modules.map(module => module.type), ['main-key', 'context', 'german-examples', 'sentence-usage']);
-  assert.deepEqual(await types(), ['main-key', 'text', 'context', 'german-examples', 'text'], 'the page keeps its own modules');
+  assert.deepEqual((await store.deck(deckId)).modules.map(module => module.type), ['main-key', 'context', 'german-examples', 'sentence-usage', 'german-explanation']);
+  assert.deepEqual(await types(), ['main-key', 'text', 'context', 'german-examples', 'text', 'sentence-usage'], 'the page keeps its own modules');
 });
 
 async function loseNextAcknowledgment(worker, path) {
@@ -1385,7 +1680,7 @@ test('assembled reliability: lost acknowledgments, worker suspension, abrupt ori
   assert.deepEqual(modulesOf(await application.store.page(captured.id)).map(item => item.attemptId), attempts);
 
   await a.page.goto(`chrome-extension://${a.id}/app.html#page/${captured.id}`);
-  await a.page.getByRole('button', { name: 'Edit Sentence usage', exact: true }).click();
+  await (await cardButton(a.page, 'Edit Sentence usage')).click();
   await a.page.getByRole('textbox', { name: 'Edit Sentence usage', exact: true }).fill('save with lost acknowledgment');
   await loseNextAcknowledgment(a.worker, '/api/page/save');
   await a.page.getByRole('button', { name: 'Save', exact: true }).click();
@@ -1394,7 +1689,7 @@ test('assembled reliability: lost acknowledgments, worker suspension, abrupt ori
   await waitFor(async () => text(modulesOf(await application.store.page(captured.id))[0]) === 'save with lost acknowledgment', 'original component save committed');
   await application.store.savePage('later-remote-edit', { pageId: captured.id, changes: [{ componentId: front.id, content: textBlocks('later remote edit') }] });
   await a.page.getByRole('button', { name: 'Try saving again', exact: true }).click();
-  await a.page.getByRole('button', { name: 'Edit Sentence usage', exact: true }).waitFor();
+  await a.page.locator('.component-tools').waitFor({ state: 'detached' });
   assert.equal(text(modulesOf(await application.store.page(captured.id))[0]), 'later remote edit');
   assert.equal(calls.get('uncertain capture'), 1);
 

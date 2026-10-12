@@ -28,7 +28,6 @@
    with dnd-kit's own transition. */
 .sortable-row > .component, .sortable-row > .module-block { transition: transform var(--dur-spring) var(--ease-spring), box-shadow var(--dur-spring) ease; }
 .sortable-row[data-dragging] > .component { transform: rotate(-1deg) scale(1.01); }
-.sortable-row[data-insert-before]::before { animation: line-open var(--dur-quick) var(--ease-out) both; transform-origin: left center; }
 @keyframes line-open { from { transform: scaleX(.3); opacity: 0; } to { transform: none; opacity: 1; } }
 .drag-preview { animation: pick-up var(--dur-quick) var(--ease-spring) both; }
 @keyframes pick-up { from { transform: scale(.96) rotate(0deg); } to { transform: scale(1) rotate(-1.5deg); } }

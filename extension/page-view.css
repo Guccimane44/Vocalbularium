@@ -18,8 +18,6 @@
 .show-all { border: 0; padding: 4px 0; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; background: none; }
 .show-all:hover { background: none; color: var(--ink-soft); }
 .title-actions { display: flex; align-items: center; gap: 6px; flex: none; margin-top: 14px; }
-.title-edit { opacity: 0; transition: opacity var(--dur-quick) ease; }
-.page-header:hover .title-edit, .page-header:focus-within .title-edit { opacity: 1; }
 .page-header[data-editing] .page-title { padding-top: 6px; }
 
 /* Cards: an index tab on the top edge in the family colour, with its name. */
@@ -27,33 +25,165 @@
 .shaping-list { gap: 30px; padding-top: 14px; }
 .component { position: relative; padding: 26px 26px 20px; border: 0; border-radius: var(--radius-card); background: var(--surface);
   box-shadow: inset 0 3px 0 var(--fam, var(--fam-notes)), 0 0 0 1px var(--line); min-width: 0; }
-/* An empty component is only its tab; its actions still appear on hover. The
-   tab sits in the flow where a card's tab would, and the space below it keeps
-   the card a full-size drop target. */
-.component[data-empty] { display: flex; margin-top: -14px; padding: 0 0 14px; background: transparent; box-shadow: none; }
-.component[data-empty] .card-tab { position: relative; top: 0; left: 18px; }
-.component[data-empty] .card-actions { top: 0; }
+/* An empty component is only its tab; clicking the tab ejects its actions as
+   on any card. The tab sits in the flow where a card's tab would, and the
+   space below it keeps the card a full-size drop target. */
+.component:is([data-empty], [data-generating]) { display: flex; margin-top: -14px; padding: 0 0 14px; background: transparent; box-shadow: none; }
+.component:is([data-empty], [data-generating]) .card-head { position: relative; top: 0; left: 18px; right: auto; width: calc(100% - 36px); }
+
+/* The head on a card's top edge: the index tab, then the actions it ejects (D07). */
+.card-head { position: absolute; top: -14px; left: 18px; right: 18px; display: flex; align-items: center; gap: 8px; min-width: 0; }
 .card-tab { position: absolute; top: -14px; left: 18px; max-width: calc(100% - 36px); height: 28px; display: inline-flex; align-items: center; gap: 6px;
   padding: 0 12px 0 6px; border-radius: var(--radius-control) var(--radius-control) var(--radius-control) 2px;
   background: var(--fam, var(--fam-notes)); color: var(--on-fam, var(--on-ink)); transition: transform var(--dur-spring) var(--ease-spring); }
+.card-head .card-tab { position: static; flex: 0 1 auto; min-width: 0; max-width: 100%; }
 .component:hover .card-tab { transform: translateY(-2px); }
-.card-tab h2 { margin: 0; font: 600 13px/1 var(--font-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: inherit; }
+.card-tab h2 { min-width: 0; margin: 0; font: 600 13px/1 var(--font-text); color: inherit; }
 .card-tab .fam-icon { flex: none; }
-.card-tab .drag-handle { padding: 2px 4px; border: 0; color: inherit; background: transparent; line-height: 1; }
-.card-tab .drag-handle:hover { background: color-mix(in srgb, currentColor 18%, transparent); }
-.card-tab .drag-handle:disabled { opacity: .55; }
-.card-actions { position: absolute; top: -15px; right: 14px; display: flex; gap: 2px; padding: 2px; border-radius: var(--radius-control);
-  background: var(--surface); box-shadow: 0 0 0 1px var(--line), var(--shadow-lift); opacity: 0; transform: translateY(2px);
-  transition: opacity var(--dur-quick) ease, transform var(--dur-quick) var(--ease-out); }
-.card-actions button { border: 0; padding: 4px 10px; font-size: 13px; font-weight: 500; border-radius: calc(var(--radius-control) - 2px); }
-.component:hover .card-actions, .component:focus-within .card-actions, .component[data-status="failed"] .card-actions { opacity: 1; transform: none; }
-@media (hover: none) { .card-actions, .title-edit { opacity: 1; transform: none; } }
+/* The family and label: drags the card, and a click ejects its actions. */
+.tab-button { display: flex; align-items: center; gap: 6px; min-width: 0; max-width: 100%; height: 28px; padding: 0 2px; border: 0; border-radius: 4px;
+  font: inherit; color: inherit; background: transparent; cursor: grab; touch-action: none; }
+.tab-button:active { cursor: grabbing; }
+.tab-button:hover { background: color-mix(in srgb, currentColor 14%, transparent); }
+.tab-label { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* The six dots open the card's menu. */
+.menu-button { flex: none; display: inline-flex; align-items: center; justify-content: center; padding: 2px 4px; border: 0; border-radius: 4px; line-height: 1; color: inherit; background: transparent; cursor: pointer; }
+.six-dots { width: 7px; height: 11px; flex: none; }
+.menu-button:hover, .menu-button[aria-expanded="true"] { background: color-mix(in srgb, currentColor 18%, transparent); }
+.row-menu { position: relative; display: inline-flex; flex: none; }
+/* Each tab is its own layer (it stays above the actions it ejects), so an open
+   menu lifts its tab, and its row, above the cards and tabs that follow. */
+.card-tab:has(.row-menu-list), .sortable-row:has(.row-menu-list) { z-index: 6; }
+/* The tag is exactly two buttons, edge to edge: the six dots fill its left end
+   and the family icon and label fill the rest, to its right end. Each takes
+   the tag's corners on its side, so a hover or press fills its whole part. */
+.card-head .card-tab { padding: 0; gap: 0; align-items: stretch; }
+.card-head .card-tab .row-menu { align-self: stretch; }
+.card-head .card-tab .menu-button { height: 100%; padding: 0 6px 0 9px; border-radius: var(--radius-control) 0 0 2px;
+  box-shadow: inset -1px 0 0 color-mix(in srgb, currentColor 22%, transparent); }
+.card-head .card-tab h2 { display: flex; flex: 1 1 auto; }
+.card-head .card-tab .tab-button { width: 100%; height: 100%; padding: 0 12px 0 7px; border-radius: 0 var(--radius-control) var(--radius-control) 0; }
+.row-menu-list { position: absolute; top: calc(100% + 6px); left: -4px; z-index: 5; min-width: 210px; margin: 0; padding: 4px; list-style: none;
+  border-radius: var(--radius-md); background: var(--surface); color: var(--ink); box-shadow: 0 0 0 1px var(--line), var(--shadow-lift);
+  font: 500 13px/1.2 var(--font-text); letter-spacing: normal; animation: menu-open var(--dur-quick) var(--ease-out) both; transform-origin: top left; }
+.row-menu-list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 10px; border-radius: 6px; color: var(--ink-muted); cursor: default; }
+.row-menu-list .soon { font-size: 11px; color: var(--ink-muted); opacity: .8; }
+@keyframes menu-open { from { opacity: 0; transform: translateY(-4px) scale(.97); } }
+
+/* Actions eject from the tab as smaller sibling tabs in the family's tint (D07):
+   each springs out from behind the tab, one after the other, and the tab
+   kicks back a few pixels as it lets them go. Hovering one fills it with the
+   family colour and lifts it like a tab; Delete fills with the failed colour. */
+.card-head .card-tab { position: relative; top: 0; left: 0; z-index: 1; }
+.card-tab:has(> h2 > .tab-button[aria-expanded="true"]) { animation: tab-kick var(--dur-spring) var(--ease-spring); }
+@keyframes tab-kick { 30% { transform: translateX(-4px) scale(.98); } }
+.card-actions { display: flex; flex: none; gap: 4px; }
+.card-actions button { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 11px 0 9px; border: 0;
+  border-radius: var(--radius-control) var(--radius-control) var(--radius-control) 2px;
+  font: 600 13px/1 var(--font-text); color: var(--fam, var(--fam-notes)); background: var(--fam-tint, var(--fam-notes-tint));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fam, var(--fam-notes)) 30%, transparent);
+  transition: background var(--dur-instant) var(--ease-fade), color var(--dur-instant) var(--ease-fade), transform var(--dur-spring) var(--ease-spring); }
+.card-actions .action-icon { width: 14px; height: 14px; flex: none; }
+.card-actions button:not(:disabled):hover { background: var(--fam, var(--fam-notes)); color: var(--on-fam, var(--on-ink)); transform: translateY(-2px); }
+.card-actions button:not(:disabled):active { transform: translateY(1px); }
+.card-actions .action-delete:not(:disabled):hover { background: var(--status-failed); color: var(--status-failed-bg); }
+.card-actions .action-failed { color: var(--status-failed-bg); background: var(--status-failed); box-shadow: none; }
+.card-actions .action-failed:not(:disabled):hover { background: var(--status-failed); color: var(--status-failed-bg); }
+.card-actions button:disabled { opacity: .5; cursor: default; background: var(--fam-tint, var(--fam-notes-tint)); }
+.card-actions .action-failed:disabled { background: var(--status-failed); }
+.card-actions .action-confirm, .card-actions .action-confirm:not(:disabled):hover { background: var(--status-failed); color: var(--status-failed-bg); box-shadow: none; }
+/* Retry asks the same way, in the card's family colour rather than the failed one. */
+.card-actions[data-confirm="retry"] .action-confirm, .card-actions[data-confirm="retry"] .action-confirm:not(:disabled):hover { background: var(--fam, var(--fam-notes)); color: var(--on-fam, var(--on-ink)); }
+.card-actions[data-confirm="retry"] .confirm-text { color: var(--fam, var(--fam-notes)); background: var(--fam-tint, var(--fam-notes-tint));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fam, var(--fam-notes)) 35%, transparent); }
+.card-actions[data-confirm="retry"] .confirm-text::before { background: var(--fam-tint, var(--fam-notes-tint));
+  box-shadow: inset 1px -1px 0 color-mix(in srgb, var(--fam, var(--fam-notes)) 35%, transparent); }
+/* The question follows the final Delete and Cancel. */
+.card-actions[data-confirm] { align-items: center; }
+.card-head:has(> [data-confirm]) .card-tab { flex: none; }
+.confirm-text { position: relative; flex: none; align-self: center; margin-left: 10px; padding: 4px 11px 5px; border-radius: 999px;
+  font: 600 13px/1.2 var(--font-text); color: var(--status-failed); background: var(--status-failed-bg);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--status-failed) 35%, transparent); }
+/* A speech bubble: its tail points back at Delete and Cancel. */
+.confirm-text::before { content: ""; position: absolute; left: -5px; top: 50%; width: 9px; height: 9px; margin-top: -4.5px; transform: rotate(45deg);
+  background: var(--status-failed-bg); box-shadow: inset 1px -1px 0 color-mix(in srgb, var(--status-failed) 35%, transparent); }
+.card-actions[data-open] .confirm-text { animation: eject var(--dur-spring) var(--ease-spring) both, wobble 600ms var(--ease-out) 380ms; animation-delay: calc(var(--i, 0) * 40ms), 380ms; transform-origin: left center; }
+/* Once out, the question gives one small wobble, a nudge to look twice. */
+@keyframes wobble { 20% { transform: rotate(-4deg); } 45% { transform: rotate(3deg); } 70% { transform: rotate(-1.5deg); } }
+.card-actions[data-open] button { animation: eject var(--dur-spring) var(--ease-spring) both; animation-delay: calc(var(--i, 0) * 40ms); transform-origin: left center; }
+@keyframes eject {
+  from { opacity: 0; transform: translateX(calc(-36px - var(--i, 0) * 28px)) scale(.7); }
+  50% { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) { .card-tab, .confirm-text { animation: none !important; } }
+@media (prefers-reduced-motion: reduce) { .card-actions[data-open] button, .row-menu-list { animation: none; } }
+/* Generating (0.6.3): the card is only its tab, and a comet runs round the
+   tab's edge for as long as the work goes on: a bright light head with a
+   glow in the family colour, then a trail of smaller, fainter sparks. It
+   follows the tab's own rounded outline at a steady pace (offset-path along
+   the tab's box), while a soft halo in the family colour breathes around the
+   tab. When the work ends, comet and halo fade away as the content rises in.
+   Under reduced motion the edge glows, still. */
+.component[data-generating] .card-fold { display: none; }
+.spark { animation: halo 2.4s ease-in-out infinite; transition: opacity 600ms var(--ease-out); }
+.spark[data-ending] { opacity: 0; }
+@keyframes halo {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--fam, var(--fam-notes)) 0%, transparent); }
+  50% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--fam, var(--fam-notes)) 22%, transparent), 0 0 14px 2px color-mix(in srgb, var(--fam, var(--fam-notes)) 35%, transparent); }
+}
+.spark { position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  /* Light in both themes: a bright spark on the Sage tabs and on Moss night's lighter ones. */
+  --spark-light: #ffffff; --spark-glow: color-mix(in srgb, var(--fam, var(--fam-notes)) 55%, white); }
+.spark i { position: absolute; left: 0; top: 0; width: calc(5px - var(--n) * .2px); height: calc(5px - var(--n) * .2px); border-radius: 50%;
+  background: var(--spark-light); opacity: calc(.9 - var(--n) * .055); filter: blur(calc(var(--n) * .06px));
+  offset-path: border-box; offset-rotate: 0deg; offset-anchor: center;
+  animation: travel 2.4s linear infinite; animation-delay: calc(var(--n) * 12ms - 2.4s); }
+.spark i:first-child { box-shadow: 0 0 6px 2px var(--spark-light), 0 0 12px 4px var(--spark-glow); }
+@keyframes travel { from { offset-distance: 0%; } to { offset-distance: 100%; } }
+@media (prefers-reduced-motion: reduce) {
+  .component[data-generating] .card-tab { box-shadow: 0 0 0 2px color-mix(in srgb, var(--spark-light, #fff) 60%, transparent) inset; }
+  .spark { display: none; }
+}
+
+/* Deleting (0.6.3): the card pops where it stands, like a bubble: it swells
+   a touch, then grows a little more as it vanishes, around its own middle,
+   so nothing travels. The cards below then slide up. Under reduced motion it
+   simply goes. */
+.component[data-vanishing] { pointer-events: none; animation: bop 240ms cubic-bezier(.3, 0, .2, 1) forwards; }
+@keyframes bop {
+  40% { transform: scale(1.025); opacity: 1; }
+  100% { transform: scale(1.07); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .component[data-vanishing] { animation: none; } }
+
+/* Folding (0.6.3): the content slides shut and fades while the card narrows
+   to a slim band under its tab, and opens the same way. The height moves by
+   the grid row, the one place a layout property animates. */
+.component { transition: padding var(--dur-settle) var(--ease-out); }
+.card-fold { display: grid; grid-template-rows: 1fr; transition: grid-template-rows var(--dur-settle) var(--ease-out); }
+.card-fold-inner { min-height: 0; overflow: clip; overflow-clip-margin: 6px; transition: opacity var(--dur-settle) var(--ease-out), transform var(--dur-settle) var(--ease-out); }
+.component[data-folded] { padding-top: 20px; padding-bottom: 0; }
+.component[data-folded] .card-fold { grid-template-rows: 0fr; }
+.component[data-folded] .card-fold-inner { opacity: 0; transform: translateY(-6px); }
 .card-status { margin: 0 0 8px; }
 .component[data-status="failed"] { background: var(--status-failed-bg); }
 .component-tools { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
 .component-field label { font-size: 13px; color: var(--ink-muted); margin-top: 0; }
-.component.adding { padding: 18px 26px; border-radius: var(--radius-card); box-shadow: 0 0 0 1px var(--line-control); color: var(--ink-muted); background: transparent; }
+/* An empty main key on Save: the message stands inside the field, in the
+   failed colour, until the user types. */
+.component-field .field-error::placeholder { color: var(--status-failed); opacity: 1; font-weight: 500; }
+.component-field .field-error:placeholder-shown { border-color: var(--status-failed); box-shadow: 0 0 0 1px var(--status-failed); }
+/* A module from the window drags as an entry does: while it is over the list
+   its row is an empty gap, the size of the entry it will become, that the
+   entries open and close around; once dropped the row shows the entry, which
+   glides there from where it was let go, until the saved entry takes its
+   place unchanged. */
+.landing-row:not([data-saving]) { visibility: hidden; }
+.landing-row [data-landing] { pointer-events: none; }
 .sortable-row[data-dragging] > .component { box-shadow: inset 0 3px 0 var(--fam, var(--fam-notes)), 0 0 0 1px var(--line), var(--shadow-drag); }
+/* An empty component is only its tab, dragged or not: the tab itself lifts. */
+.sortable-row[data-dragging] > .component:is([data-empty], [data-generating]) { box-shadow: none; }
+.sortable-row[data-dragging] > .component:is([data-empty], [data-generating]) .card-tab { box-shadow: var(--shadow-drag); }
 
 /* Rendered content */
 .component pre { margin: 0; font: 16px/1.6 var(--font-text); }
@@ -80,9 +210,20 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
 .module-window { position: sticky; top: 24px; padding: 18px; border-radius: var(--radius-card); background: var(--surface); box-shadow: 0 0 0 1px var(--line);
   transition: box-shadow var(--dur-instant) ease; }
 .module-window[data-over] { box-shadow: 0 0 0 2px var(--focus); }
-.module-window h2 { margin: 0 0 10px; font: 600 20px/1.2 var(--font-display); }
+.module-window h2 { margin: 0; font: 600 20px/1.2 var(--font-display); }
+/* The heading, with the "?" that explains how to drag modules. */
+.window-head { position: relative; display: flex; align-items: center; gap: 8px; margin: 0 0 10px; }
+.help-tip { display: inline-flex; }
+.help-button { display: grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 50%; color: var(--ink-muted);
+  background: transparent; transition: background var(--dur-instant) ease, color var(--dur-instant) ease; }
+.help-button svg { width: 18px; height: 18px; }
+.help-button:hover, .help-button[aria-expanded="true"] { color: var(--ink); background: var(--surface-hover); }
+.help-text { position: absolute; top: calc(100% + 8px); left: -4px; right: -4px; z-index: 5; padding: 10px 12px; border-radius: var(--radius-md);
+  background: var(--surface); color: var(--ink-soft); box-shadow: 0 0 0 1px var(--line), var(--shadow-lift); font: 400 13px/1.45 var(--font-text);
+  animation: menu-open var(--dur-quick) var(--ease-out) both; transform-origin: top left; }
+.help-text[hidden] { display: none; }
+@media (prefers-reduced-motion: reduce) { .help-text { animation: none; } }
 .window-search { padding: 8px 12px; }
-.window-help { font-size: 13px; line-height: 1.45; margin: 10px 0; }
 .window-family { border-top: 1px solid var(--line); }
 .window-family summary { display: flex; align-items: center; gap: 8px; padding: 10px 2px; cursor: pointer; list-style: none; font-weight: 600; font-size: 14px; }
 .window-family summary::-webkit-details-marker { display: none; }
@@ -96,7 +237,23 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
   box-shadow: inset 3px 0 0 var(--fam), 0 0 0 1px var(--line); transition: box-shadow var(--dur-instant) ease, transform var(--dur-spring) var(--ease-spring); }
 .window-module:not([aria-disabled="true"]):hover { transform: translateY(-1px); box-shadow: inset 3px 0 0 var(--fam), 0 0 0 1px var(--line-control), var(--shadow-lift); }
 .window-present { font-size: 12px; font-weight: 600; color: var(--ink-soft); }
-.drag-preview { border: 0; box-shadow: 0 0 0 1px var(--line), var(--shadow-drag); transform: rotate(-1.5deg); }
+/* The + adds the module as the last entry: a small round tab-coloured button
+   in the module's bottom-right corner, filled with the family colour on hover. */
+.window-module { position: relative; }
+.window-module .window-add { position: absolute; right: 8px; bottom: 8px; display: grid; place-items: center; width: 26px; height: 26px; padding: 0; border: 0;
+  border-radius: 50%; color: var(--fam); background: var(--fam-tint); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fam) 30%, transparent);
+  transition: background var(--dur-instant) ease, color var(--dur-instant) ease, transform var(--dur-spring) var(--ease-spring); }
+.window-module .window-add svg { width: 14px; height: 14px; }
+.window-module .window-add:not(:disabled):hover { color: var(--on-fam); background: var(--fam); transform: scale(1.08); }
+.window-module .window-add:not(:disabled):active { transform: scale(.94); }
+.window-module .window-add:disabled { opacity: .45; cursor: default; }
+.window-module-body { padding-right: 30px; }
+/* While a module is dragged, it stays marked in the window. */
+.window-module[data-dragging] { opacity: 1; background: var(--fam-tint); box-shadow: inset 3px 0 0 var(--fam), 0 0 0 2px var(--fam); }
+/* The dragged module itself: shown as the entry it will become, lifted and
+   tilted like a dragged entry (its row is marked as dragging), and marked with
+   a focus ring so it is never confused with the entries like it. */
+.drag-preview .card-tab, .drag-preview .module-block { outline: 2px solid var(--focus); outline-offset: 2px; }
 
 @media (max-width: 900px) {
   .main-key[data-tier="word"] { font-size: 48px; }
@@ -109,6 +266,6 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
 @media (forced-colors: active) {
   .card-tab, .fam-chip { forced-color-adjust: none; background: CanvasText; color: Canvas; }
   .component { border: 1px solid CanvasText; }
-  .card-actions { border: 1px solid CanvasText; }
+  .card-actions button, .row-menu-list { border: 1px solid CanvasText; }
   mark { forced-color-adjust: none; background: Highlight; color: HighlightText; }
 }

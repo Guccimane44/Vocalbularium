@@ -1,11 +1,11 @@
-import { useEffect, useId, useMemo, useRef, useState } from 'react';
-import type { CSSProperties, ReactNode } from 'react';
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import type { CSSProperties, KeyboardEvent, ReactNode } from 'react';
 import {
   closestCenter, DndContext, DragOverlay, KeyboardSensor, MeasuringStrategy, pointerWithin, PointerSensor,
   useDraggable, useDroppable, useSensor, useSensors
 } from '@dnd-kit/core';
 import type {
-  Active, Announcements, CollisionDetection, DragEndEvent, DragMoveEvent, DragStartEvent, KeyboardCoordinateGetter, Over
+  Active, Announcements, CollisionDetection, DragEndEvent, DragMoveEvent, DragStartEvent, KeyboardCoordinateGetter, Modifier, Over
 } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -15,11 +15,18 @@ import { FamilyIcon } from './families.tsx';
 
 // Shared by the page view and deck settings (D02, D04): a list whose entries
 // reorder by drag, and the module window whose modules drag into the list.
+// An entry drags by its label (D07); the six dots beside it open its menu.
 // Every drag also works from the keyboard: Space picks up, the arrow keys
-// move, Space drops, Escape cancels.
+// move, Space drops, Escape cancels. Enter is left to the label's own click.
 
 const WINDOW = 'window:';
 const LIST_END = 'list-end';
+// The landing card a window module shows in the list where it would land.
+const LANDING = 'landing';
+// An entry being reordered moves only up and down its list, in its column;
+// a module from the window follows the pointer until it is over the list.
+const alongTheList: Modifier = ({ active, transform }) => fromWindow(active) ? transform : { ...transform, x: 0 };
+
 // The module window itself: dropping a module back onto it cancels the drag.
 const BACK = 'module-window';
 export const moduleLabel = (type: string) => CATALOG[type as ModuleType]?.label ?? type;
@@ -33,7 +40,9 @@ const windowType = (active: Active) => String(active.id).slice(WINDOW.length);
 // entry; Escape puts it back.
 const collision: CollisionDetection = args => {
   const list = { ...args, droppableContainers: args.droppableContainers.filter(entry => entry.id !== BACK) };
-  if (!fromWindow(args.active)) return closestCenter(list);
+  // An entry being reordered only lands among the entries: over the end zone
+  // it is nearest the last one, so the others make room as for any place.
+  if (!fromWindow(args.active)) return closestCenter({ ...list, droppableContainers: list.droppableContainers.filter(entry => entry.id !== LIST_END) });
   const hits = pointerWithin(args);
   const back = hits.find(hit => hit.id === BACK);
   if (back) return [back];
@@ -47,35 +56,33 @@ const keyboard: KeyboardCoordinateGetter = (event, args) => {
   if (!fromWindow(active)) return sortableKeyboardCoordinates(event, args);
   if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.code) || !collisionRect) return undefined;
   event.preventDefault();
-  const targets = droppableContainers.getEnabled().filter(entry => entry.id !== BACK && droppableRects.get(entry.id))
+  const targets = droppableContainers.getEnabled().filter(entry => entry.id !== BACK && entry.id !== LANDING && droppableRects.get(entry.id))
     .sort((a, b) => droppableRects.get(a.id)!.top - droppableRects.get(b.id)!.top);
   if (!targets.length) return undefined;
   const back = event.code === 'ArrowUp' || event.code === 'ArrowLeft';
-  const current = targets.findIndex(entry => entry.id === over?.id);
+  // Over the landing card, the module stands before the entry that follows it.
+  const landingRect = over?.id === LANDING ? droppableRects.get(LANDING) : undefined;
+  const current = landingRect ? targets.findIndex(entry => droppableRects.get(entry.id)!.top >= landingRect.bottom - 1)
+    : targets.findIndex(entry => entry.id === over?.id);
   const next = current < 0 ? (back ? targets.length - 1 : 0) : Math.min(targets.length - 1, Math.max(0, current + (back ? -1 : 1)));
   const rect = droppableRects.get(targets[next].id)!;
   return { x: rect.left + rect.width / 2 - collisionRect.width / 2, y: rect.top + rect.height / 2 - collisionRect.height / 2 };
 };
 
-// Stands where the drag handle would be on the main key, which stays first
-// and cannot be moved or removed.
-export const PinMark = () => <span className="pin-mark" role="img" aria-label="Fixed in first place" title="Fixed in first place">
-  <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.5">
-    <rect x="3" y="7" width="10" height="7" rx="1.5" /><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" />
-  </svg>
-</span>;
-
 export type ShapeItem = { id: string; label: string };
+// What an entry needs to be dragged: spread `drag` on its label, which then
+// starts a drag with the pointer or Space, and show `menu` before it.
+export type RowParts = { drag: Record<string, unknown>; menu: ReactNode };
+const KEYBOARD_CODES = { start: ['Space'], cancel: ['Escape'], end: ['Space'] };
+// The index onAdd receives from the window's +: after the last entry, whatever the list holds by then.
+export const AT_THE_END = Number.POSITIVE_INFINITY;
 type Result = boolean | void | Promise<boolean | void>;
-// The list as it would be if the current drag ended now: entry IDs in order,
-// and a module from the window with the index it would land at.
-export type Projection = { ids: string[]; adding: { type: string; index: number } | null };
 
 // The list below a pinned first entry (the main key), and the module window
 // beside it. Indexes passed to the handlers count among the movable entries,
 // so nothing is ever placed above the pinned one. A handler returning false
 // reports a failed save, which restores the saved order.
-export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unavailable, pinned, label, where, onAdd, onMove, renderItem, preview }: {
+export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unavailable, pinned, label, where, onAdd, onMove, renderItem, menuItems = [], renderLanding = type => <span>{moduleLabel(type)}</span> }: {
   items: T[];
   // Every module type present, the pinned main key included, for the window's limits.
   types: readonly string[];
@@ -87,12 +94,15 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
   where: string;
   onAdd: (type: string, index: number) => Result;
   onMove: (id: string, index: number) => Result;
-  renderItem: (item: T, handle: ReactNode) => ReactNode;
-  // Shown between the list and the module window, following every drag as it happens.
-  preview?: (projection: Projection) => ReactNode;
+  renderItem: (item: T, parts: RowParts) => ReactNode;
+  // Placeholder entries for each row's menu.
+  menuItems?: readonly string[];
+  // How a module from the window looks in the list while it is dragged over
+  // it and while it is being added, so it looks like the entries around it.
+  renderLanding?: (type: string) => ReactNode;
 }) {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: keyboard }));
+    useSensor(KeyboardSensor, { coordinateGetter: keyboard, keyboardCodes: KEYBOARD_CODES }));
   const ids = items.map(item => item.id);
   const key = ids.join('|');
   // The order shown: changed at once on a drop, so a card never snaps back
@@ -101,15 +111,23 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
   const [adding, setAdding] = useState<{ type: string; index: number } | null>(null);
   const [slot, setSlot] = useState<number | null>(null);
   const [dragged, setDragged] = useState<string | null>(null);
-  const [projected, setProjected] = useState<string[] | null>(null);
   const saved = useRef(ids);
+  const list = useRef<HTMLElement>(null);
+  // Where a dropped module was last seen, so it can glide into its place.
+  const settleFrom = useRef<DOMRect | null>(null);
   saved.current = ids;
   useEffect(() => { setOrder(ids); setAdding(null); }, [key]);
   const byId = new Map(items.map(item => [item.id, item]));
-  const shown = [...order.filter(id => byId.has(id)), ...ids.filter(id => !order.includes(id))].map(id => byId.get(id)!);
+  // The local order only stands for a move still being saved. Once an entry
+  // is added or removed, the saved order is shown at once, so a new entry
+  // appears in its place rather than first at the end (0.6.3).
+  const reordering = order.length === ids.length && ids.every(id => order.includes(id));
+  const shown = (reordering ? order : ids).map(id => byId.get(id)!);
+  // A module being added holds its place until its entry arrives.
+  const waiting = adding && reordering ? adding : null;
   // dnd-kit compares the sortable IDs by identity and turns the other entries'
   // sliding off when they change, so keep one array while the order is the
-  // same: a live preview re-renders this area on every pointer move.
+  // same: the area re-renders on every pointer move of a drag.
   const shownKey = shown.map(item => item.id).join('|');
   const sortableIds = useMemo(() => shownKey ? shownKey.split('|') : [], [shownKey]);
 
@@ -121,6 +139,7 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
   // when a pointer is in its lower half; at the end over the end zone.
   function landing(active: Active, over: Over | null, keyboardDrag: boolean): number | null {
     if (!over || String(over.id) === BACK) return null;
+    if (String(over.id) === LANDING) return slot;
     if (String(over.id) === LIST_END) return shown.length;
     const index = shown.findIndex(item => item.id === String(over.id));
     if (index < 0) return null;
@@ -134,6 +153,7 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
       if (!over) return `${name(active.id)} is not over the list.`;
       if (String(over.id) === BACK) return `${name(active.id)} is back in the module window.`;
       if (String(over.id) === LIST_END) return `${name(active.id)} is over the end.`;
+      if (String(over.id) === LANDING) return `${name(active.id)} is over position ${(slot ?? shown.length) + 2}.`;
       const at = fromWindow(active) ? landing(active, over, true) : shown.findIndex(item => item.id === String(over.id));
       return at === null || at < 0 ? `${name(active.id)} is over the end.` : `${name(active.id)} is over position ${at + 2}.`;
     },
@@ -141,19 +161,24 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
     onDragCancel: ({ active }) => `Moving ${name(active.id)} was cancelled.`
   };
   const keyboardDrag = (event: { activatorEvent: Event }) => event.activatorEvent instanceof KeyboardEvent;
-  function start({ active }: DragStartEvent) { setDragged(String(active.id)); setSlot(null); setProjected(null); }
+  function start({ active }: DragStartEvent) { setDragged(String(active.id)); setSlot(null); }
   function move(event: DragMoveEvent) {
-    if (fromWindow(event.active)) { setSlot(landing(event.active, event.over, keyboardDrag(event))); return; }
-    if (!preview || !event.over) return;
-    const from = order.indexOf(String(event.active.id));
-    const to = String(event.over.id) === LIST_END ? order.length - 1 : order.indexOf(String(event.over.id));
-    const next = from < 0 || to < 0 ? null : arrayMove(order, from, to);
-    setProjected(current => current?.join('|') === next?.join('|') ? current : next);
+    if (fromWindow(event.active)) setSlot(landing(event.active, event.over, keyboardDrag(event)));
   }
-  function finish() { setDragged(null); setSlot(null); setProjected(null); }
+  function finish() { setDragged(null); setSlot(null); }
+  // The window's + adds a module as the last entry: it waits at the end as a
+  // dropped module does, scrolled into view.
+  async function addAtEnd(type: string) {
+    if (disabled) return;
+    setAdding({ type, index: shown.length });
+    requestAnimationFrame(() => list.current?.querySelector('.landing-row')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }));
+    // "At the end" is left to the list's owner: a page may hold more by then.
+    if (await onAdd(type, AT_THE_END) === false) setAdding(null);
+  }
   async function end(event: DragEndEvent) {
     const { active, over } = event;
     const target = fromWindow(active) ? landing(active, over, keyboardDrag(event)) : null;
+    if (target !== null) settleFrom.current = document.querySelector('.drag-preview [data-landing]')?.getBoundingClientRect() ?? null;
     finish();
     if (!over || disabled) return;
     if (fromWindow(active)) {
@@ -169,29 +194,57 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
     if (await onMove(String(active.id), to) === false) setOrder(saved.current);
   }
 
-  const rows: ReactNode[] = shown.map(item => <SortableRow key={item.id} item={item} disabled={disabled} renderItem={renderItem}
-    insertBefore={slot !== null && shown[slot]?.id === item.id} />);
-  if (adding) rows.splice(Math.min(adding.index, rows.length), 0,
-    <div key="adding" className="component adding" role="status">Adding {moduleLabel(adding.type)}…</div>);
-  return <DndContext sensors={sensors} collisionDetection={collision} accessibility={{ announcements }}
+  const rows: ReactNode[] = shown.map(item => <SortableRow key={item.id} item={item} disabled={disabled} renderItem={renderItem} menuItems={menuItems} />);
+  // A window module over the list stands where it would land, like the entry
+  // it will become, and the entries make room around it (0.6.3).
+  const incoming = dragged?.startsWith(WINDOW) && slot !== null ? dragged.slice(WINDOW.length) : null;
+  // A module from the window drags as an entry does (0.6.3): the module itself
+  // follows the pointer in the list's column while a gap opens where it would
+  // land, the same row that holds its place once dropped until the entry
+  // arrives there.
+  if (incoming !== null) rows.splice(Math.min(slot!, rows.length), 0, <LandingRow key="incoming" type={incoming} render={renderLanding} />);
+  else if (waiting) rows.splice(Math.min(waiting.index, rows.length), 0, <LandingRow key="incoming" type={waiting.type} render={renderLanding} saving />);
+  // The entries also slide into place when one is added or deleted, but not
+  // when one is reordered: dnd-kit already settles a dropped entry, and the
+  // positions remembered from before the drag would replay the cards from
+  // where they stood before it, a visible jump back on every drop.
+  const members = [...ids].sort().join('|');
+  useMakeRoom(list, `${incoming ?? ''}:${incoming !== null ? slot : ''}:${members}`);
+  // Dropped, the module glides from where it was let go into its gap, as a
+  // dropped entry settles into its place.
+  useLayoutEffect(() => {
+    const from = settleFrom.current;
+    const node = list.current?.querySelector<HTMLElement>('.landing-row[data-saving] [data-landing]');
+    if (!from || !node) return;
+    settleFrom.current = null;
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+    const to = node.getBoundingClientRect();
+    node.animate([{ transform: `translate(${from.left - to.left}px, ${from.top - to.top}px) rotate(-1deg) scale(1.01)` }, { transform: 'none' }], MAKING_ROOM);
+  });
+  // Over the list, the dragged module keeps to the list's column, as an entry does.
+  const slotNow = useRef(slot);
+  slotNow.current = slot;
+  const intoColumn: Modifier = ({ transform, activeNodeRect }) => {
+    const box = list.current?.getBoundingClientRect();
+    return slotNow.current === null || !box || !activeNodeRect ? transform : { ...transform, x: box.left - activeNodeRect.left };
+  };
+  return <DndContext sensors={sensors} collisionDetection={collision} accessibility={{ announcements }} modifiers={[alongTheList]}
     measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}
     onDragStart={start} onDragMove={move} onDragOver={move} onDragEnd={end} onDragCancel={finish}>
-    <div className={`shaping-layout${preview ? ' with-preview' : ''}`}>
-      <section className="shaping-list" aria-label={label}>
+    <div className="shaping-layout">
+      <section ref={list} className="shaping-list" aria-label={label}>
         {pinned}
         <SortableContext items={sortableIds} strategy={verticalListSortingStrategy} disabled={disabled}>
           {rows}
         </SortableContext>
         <DropEnd disabled={disabled} active={slot === shown.length} />
       </section>
-      {preview?.({
-        ids: projected ?? shown.map(item => item.id),
-        adding: dragged?.startsWith(WINDOW) && slot !== null ? { type: dragged.slice(WINDOW.length), index: slot } : adding
-      })}
-      <ModuleWindow types={types} disabled={disabled} unavailable={unavailable} where={where} />
+      <ModuleWindow types={types} disabled={disabled} unavailable={unavailable} where={where} addAtEnd={type => void addAtEnd(type)} />
     </div>
-    <DragOverlay dropAnimation={null}>
-      {dragged?.startsWith(WINDOW) && <div className="drag-preview">{moduleLabel(dragged.slice(WINDOW.length))}</div>}
+    <DragOverlay dropAnimation={null} modifiers={[intoColumn]}>
+      {dragged?.startsWith(WINDOW) && <div className="drag-preview" style={incoming !== null ? { width: list.current?.clientWidth } : undefined}>
+        <div className="sortable-row" data-dragging>{renderLanding(dragged.slice(WINDOW.length))}</div>
+      </div>}
     </DragOverlay>
   </DndContext>;
 }
@@ -199,18 +252,82 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
 // The other entries make room with the design system's ease-out (D05).
 const MAKING_ROOM = { duration: 250, easing: 'cubic-bezier(.2,.8,.2,1)' };
 
-// A list entry that reorders by dragging its handle, with the pointer or with
-// Space and the arrow keys.
-function SortableRow<T extends ShapeItem>({ item, disabled, insertBefore, renderItem }: {
-  item: T; disabled: boolean; insertBefore: boolean; renderItem: (item: T, handle: ReactNode) => ReactNode;
+// A list entry that reorders by dragging its label, with the pointer or with
+// Space and the arrow keys. A pointer that moves less than the activation
+// distance is a click on the label instead.
+function SortableRow<T extends ShapeItem>({ item, disabled, renderItem, menuItems }: {
+  item: T; disabled: boolean; renderItem: (item: T, parts: RowParts) => ReactNode; menuItems: readonly string[];
 }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id, disabled, transition: MAKING_ROOM });
+  const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id: item.id, disabled, transition: MAKING_ROOM });
   // Translate only: cards of different heights keep their shape while moving.
   const style: CSSProperties = { transform: CSS.Translate.toString(transform), transition };
-  const handle = <button type="button" className="drag-handle" aria-label={`Drag ${item.label}`} disabled={disabled} {...attributes} {...listeners}>⠿</button>;
-  return <div ref={setNodeRef} style={style} className="sortable-row" data-dragging={isDragging || undefined} data-insert-before={insertBefore || undefined}>
-    {renderItem(item, handle)}
+  // Space picks up and drops on keydown; its keyup would also click the label.
+  const drag = { ref: setActivatorNodeRef, ...attributes, ...listeners,
+    onKeyUp: (event: KeyboardEvent) => { if (event.code === 'Space') event.preventDefault(); } };
+  return <div ref={setNodeRef} style={style} className="sortable-row" data-row-id={item.id} data-dragging={isDragging || undefined}>
+    {renderItem(item, { drag, menu: <RowMenu label={item.label} items={menuItems} /> })}
   </div>;
+}
+
+// Six dots drawn as circles: a text glyph turns uneven when a dragged entry tilts.
+export const SixDots = () => <svg className="six-dots" viewBox="0 0 10 16" aria-hidden="true" fill="currentColor">
+  {[3, 8, 13].flatMap(y => [2.5, 7.5].map(x => <circle key={`${x}-${y}`} cx={x} cy={y} r="1.5" />))}
+</svg>;
+
+// The six dots before an entry's label: a menu of what else can be done with
+// it. Its entries are placeholders for now (0.6.3).
+export function RowMenu({ label, items }: { label: string; items: readonly string[] }) {
+  const [open, setOpen] = useState(false);
+  const root = useRef<HTMLSpanElement>(null);
+  const button = useRef<HTMLButtonElement>(null);
+  const menuId = useId();
+  useEffect(() => {
+    if (!open) return;
+    const outside = (event: PointerEvent) => { if (!root.current?.contains(event.target as Node)) setOpen(false); };
+    document.addEventListener('pointerdown', outside);
+    return () => document.removeEventListener('pointerdown', outside);
+  }, [open]);
+  return <span ref={root} className="row-menu" onKeyDown={event => {
+    if (event.key !== 'Escape' || !open) return;
+    event.stopPropagation(); setOpen(false); button.current?.focus();
+  }}>
+    <button ref={button} type="button" className="menu-button" aria-label={`More for ${label}`} aria-haspopup="menu" aria-expanded={open}
+      aria-controls={open ? menuId : undefined} onClick={() => setOpen(!open)}><SixDots /></button>
+    {open && <ul id={menuId} className="row-menu-list" role="menu" aria-label={`More for ${label}`}>
+      {items.map(entry => <li key={entry} role="menuitem" aria-disabled="true">{entry}<span className="soon">Coming soon</span></li>)}
+    </ul>}
+  </span>;
+}
+
+// The landing card: a drop target of its own, so the pointer resting on it
+// keeps the module where it is.
+function LandingRow({ type, render, saving = false }: { type: string; render: (type: string) => ReactNode; saving?: boolean }) {
+  const { setNodeRef } = useDroppable({ id: LANDING, disabled: saving });
+  return <div ref={setNodeRef} className="sortable-row landing-row" data-row-id={LANDING} data-saving={saving || undefined} role={saving ? 'status' : undefined}>
+    {render(type)}
+    {saving && <span className="visually-hidden">Adding {moduleLabel(type)}…</span>}
+  </div>;
+}
+
+// When the landing card moves, the entries around it slide into their new
+// places, as they do when an entry is reordered (dur-spring-like ease-out).
+function useMakeRoom(list: { current: HTMLElement | null }, key: string) {
+  const tops = useRef(new Map<string, number>());
+  const last = useRef(key);
+  useLayoutEffect(() => {
+    const rows = [...(list.current?.querySelectorAll<HTMLElement>('[data-row-id]') ?? [])];
+    const next = new Map(rows.map(row => [row.dataset.rowId!, row.getBoundingClientRect().top]));
+    const changed = last.current !== key;
+    last.current = key;
+    const still = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    if (changed && !still) for (const row of rows) {
+      const before = tops.current.get(row.dataset.rowId!);
+      const shift = before === undefined ? 0 : before - next.get(row.dataset.rowId!)!;
+      const target = row.firstElementChild as HTMLElement | null;
+      if (shift && target) target.animate([{ transform: `translateY(${shift}px)` }, { transform: 'none' }], MAKING_ROOM);
+    }
+    tops.current = next;
+  });
 }
 
 // Where a module dragged from the window lands after the last entry.
@@ -219,7 +336,9 @@ function DropEnd({ disabled, active }: { disabled: boolean; active: boolean }) {
   return disabled ? null : <div ref={setNodeRef} className="drop-end" data-over={active || undefined}>Drop a module here to add it at the end</div>;
 }
 
-function WindowModule({ type, blocked, explain, present }: { type: string; blocked: string | null; explain: boolean; present: boolean }) {
+function WindowModule({ type, blocked, explain, present, addAtEnd }: {
+  type: string; blocked: string | null; explain: boolean; present: boolean; addAtEnd: (type: string) => void;
+}) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: WINDOW + type, disabled: Boolean(blocked) });
   const entry = CATALOG[type as ModuleType];
   return <li className={`window-module fam-${entry.family}`} data-type={type} data-dragging={isDragging || undefined} aria-disabled={Boolean(blocked)}>
@@ -229,8 +348,38 @@ function WindowModule({ type, blocked, explain, present }: { type: string; block
       <span className="muted">{entry.description}</span>
       {present && <span className="window-present">Already here</span>}
     </div>
+    {/* Adds the module as the last entry, without dragging (0.6.3). */}
+    <button type="button" className="window-add" aria-label={`Add ${entry.label} at the end`} disabled={Boolean(blocked)} onClick={() => addAtEnd(type)}>
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
+    </button>
     {blocked && explain && <p className="window-reason muted">{blocked}</p>}
   </li>;
+}
+
+// A "?" beside a heading whose explanation shows on hover, or on a click or
+// Enter that keeps it open until Escape, another click or a click elsewhere.
+function HelpTip({ label, children }: { label: string; children: ReactNode }) {
+  const [pinned, setPinned] = useState(false);
+  const [hovered, setHovered] = useState(false);
+  const root = useRef<HTMLSpanElement>(null);
+  const tipId = useId();
+  useEffect(() => {
+    if (!pinned) return;
+    const outside = (event: PointerEvent) => { if (!root.current?.contains(event.target as Node)) setPinned(false); };
+    document.addEventListener('pointerdown', outside);
+    return () => document.removeEventListener('pointerdown', outside);
+  }, [pinned]);
+  const open = pinned || hovered;
+  return <span ref={root} className="help-tip" onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
+    onKeyDown={event => { if (event.key === 'Escape' && open) { event.stopPropagation(); setPinned(false); setHovered(false); } }}>
+    <button type="button" className="help-button" aria-label={label} aria-expanded={open} aria-controls={tipId}
+      onClick={() => setPinned(!pinned)}>
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="9.5" /><path d="M9.3 9.2a2.8 2.8 0 0 1 5.4 1c0 1.9-2.7 2.5-2.7 3.6" /><path d="M12 17.2h.01" />
+      </svg>
+    </button>
+    <span id={tipId} className="help-text" role="note" hidden={!open}>{children}</span>
+  </span>;
 }
 
 const searchText = (type: ModuleType) => `${CATALOG[type].label} ${CATALOG[type].description}`.toLocaleLowerCase();
@@ -241,7 +390,9 @@ const searchText = (type: ModuleType) => `${CATALOG[type].label} ${CATALOG[type]
 // `disabled` turns it off as a whole (for example while a component is being
 // edited), with `unavailable` as an optional notice; otherwise each module
 // says why it is unavailable, such as the limit or an existing Context.
-function ModuleWindow({ types, disabled, unavailable, where }: { types: readonly string[]; disabled: boolean; unavailable?: string; where: string }) {
+function ModuleWindow({ types, disabled, unavailable, where, addAtEnd }: {
+  types: readonly string[]; disabled: boolean; unavailable?: string; where: string; addAtEnd: (type: string) => void;
+}) {
   const { setNodeRef, isOver, active } = useDroppable({ id: BACK });
   const searchId = useId();
   const [query, setQuery] = useState('');
@@ -252,10 +403,14 @@ function ModuleWindow({ types, disabled, unavailable, where }: { types: readonly
   const groups = FAMILIES.map(family => ({ family, modules: matching.filter(type => familyOf(type) === family),
     total: WINDOW_MODULES.filter(type => familyOf(type) === family).length })).filter(group => group.modules.length);
   return <aside ref={setNodeRef} className="module-window" aria-labelledby="module-window-title" data-over={(isOver && fromWindow(active)) || undefined}>
-    <h2 id="module-window-title">Modules</h2>
+    <div className="window-head">
+      <h2 id="module-window-title">Modules</h2>
+      <HelpTip label="How to add modules">
+        Drag a module into {where}, or back here to put it back. From the keyboard: Space picks it up, the arrow keys move it, Space drops it, Escape puts it back.
+      </HelpTip>
+    </div>
     <label className="visually-hidden" htmlFor={searchId}>Search modules</label>
     <input id={searchId} className="window-search" type="search" placeholder="Search modules" value={query} onChange={event => setQuery(event.target.value)} />
-    <p className="muted window-help">Drag a module into {where}, or back here to put it back. From the keyboard: Space picks it up, the arrow keys move it, Space drops it, Escape puts it back.</p>
     {unavailable && <p className="notice">{unavailable}</p>}
     {!groups.length && <p className="muted">No module matches “{query.trim()}”.</p>}
     {groups.map(({ family, modules, total }) => <details key={family} className={`window-family fam-${family}`} open={terms.length > 0 || open.has(family)}
@@ -267,7 +422,7 @@ function ModuleWindow({ types, disabled, unavailable, where }: { types: readonly
       }}>
       <summary><span className="fam-chip"><FamilyIcon family={family} /></span>{FAMILY_LABELS[family]}<span className="family-count">{total}</span></summary>
       <ul>
-        {modules.map(type => <WindowModule key={type} type={type} explain={!disabled} present={types.includes(type)}
+        {modules.map(type => <WindowModule key={type} type={type} explain={!disabled} present={types.includes(type)} addAtEnd={addAtEnd}
           blocked={disabled ? unavailable ?? 'Unavailable' : addBlocked(types.map(value => ({ type: value })), type)} />)}
       </ul>
     </details>)}

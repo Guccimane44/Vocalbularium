@@ -67,8 +67,8 @@ All generation actions use the page's current main key and saved Context and the
 | Action | Targets | Confirmation |
 | --- | --- | --- |
 | Capture | Every content module instance on the new page | None; runs automatically |
-| **Generate** (in a card) | One content component that never generated and is still empty | None; nothing is replaced |
-| **Retry** (in a card) | One content component that has generated, or that the user wrote into | Always |
+| **Retry** (in a card), empty component | One content component with nothing in it: one that never generated, failed, or generated nothing | None; nothing is replaced |
+| **Retry** (in a card), with content | One content component that has generated, or that the user wrote into | Always |
 
 Since 0.5.1 ([D04](../architecture/traceability-map.md#entries)) the extension offers generation per card only. The API still accepts generating every not-yet-generated component of a page and retrying a whole page, with the same confirmation rule.
 
@@ -94,7 +94,7 @@ The main key is always shown, regardless of empty or failed components. A manual
 
 The local API admits only a bounded number of active and waiting component attempts. When a capture is saved while generation capacity is full, the page remains saved and accessible. Each attempt that cannot be admitted becomes **Failed** without a provider call. The user can explicitly retry failed components later. A successful page save or capture feedback does not imply that generation was admitted or completed.
 
-If capacity cannot admit every attempt of a confirmed **Retry** or a **Generate**, report that generation is busy and leave the page's components and states unchanged. The user may start the action again later. The rejected request is not kept as an automatic or **Try saving again** generation request. An admitted retry follows the replacement rules below.
+If capacity cannot admit every attempt of a **Retry**, report that generation is busy and leave the page's components and states unchanged. The user may start the action again later. The rejected request is not kept as an automatic or **Try saving again** generation request. An admitted retry follows the replacement rules below.
 
 ## Chrome closing during generation
 
@@ -108,7 +108,7 @@ Closing only the capture popup or dashboard tab does not count as closing Chrome
 
 **Retry** is available in the page editor for one content component, or for the whole page. Completed, failed, empty, missing, or manually edited components can be targets. Capture origin does not matter: a manually created page has a main key and can retry like a captured one.
 
-Before starting, always show a confirmation warning. For one component:
+Before replacing content, always ask. For one component the question is asked beside the card's tab, as for **Delete** ([pages and editing](pages-and-editing.md#components-as-cards)): "Are you sure?" with a final **Retry** and **Cancel** (since 0.6.3). If the content changed after the user answered, for example in another browser, the warning below is shown before anything is replaced:
 
 > Retry will replace this component's content, including your edits to it. The main key, Context, and other components will not change.
 

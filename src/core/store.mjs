@@ -345,7 +345,7 @@ export class AccountStore {
   // key, and the Context and Text values keyed by deck instance, fill input
   // components; content components wait until generated.
   async insertPage(deck, { selectedText, mainKey, values = new Map() }) {
-    if (typeof mainKey !== 'string' || !mainKey.trim()) fail('invalid', 'Enter a main key.');
+    if (typeof mainKey !== 'string' || !mainKey.trim()) fail('invalid', 'Main key can not be empty.');
     const id = randomUUID();
     await this.database.run("INSERT INTO pages (id, deck_id, selected_text, created_at, main_key_sort_key) VALUES ($1, $2, $3, $4, $5)",
       [id, deck.id, selectedText, new Date().toISOString(), sortKey(mainKey)]);
@@ -477,7 +477,7 @@ export class AccountStore {
         if (!component) fail('deleted', 'A changed component no longer exists.');
         if (component.status === 'loading') fail('generating', 'A component is still generating. Your drafts are preserved.');
         const content = blockValue(change.content, 'Component content must be a text document.');
-        if (component.moduleType === 'main-key' && !blockText(content).trim()) fail('invalid', 'Enter a main key.');
+        if (component.moduleType === 'main-key' && !blockText(content).trim()) fail('invalid', 'Main key can not be empty.');
         updates.push({ component, content });
       }
       for (const { component, content } of updates) {
@@ -548,9 +548,10 @@ export class AccountStore {
       try { targets = generationTargets(target, page.components); }
       catch (error) { fail('invalid', error.message); }
       if (targets.some(component => component.status === 'loading')) fail('generating', 'A component is already generating.');
-      // Replacing content needs confirmation; a component that never generated
-      // and is still empty has nothing to replace.
-      const replaces = targets.some(component => component.attemptId !== null || blockText(component.content));
+      // Replacing content needs confirmation. A component with nothing in it has
+      // nothing to replace, whether it never generated, failed, or generated
+      // nothing (0.6.3; until then any earlier attempt needed confirmation).
+      const replaces = targets.some(component => blockText(component.content));
       if (target.scope !== 'missing' && replaces) {
         const expected = this.confirmationDigest(targets);
         if (confirmation !== expected) {

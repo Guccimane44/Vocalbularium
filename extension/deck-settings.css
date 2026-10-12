@@ -17,27 +17,48 @@
 .colour-swatch:has(input:focus-visible) { outline: 2px solid var(--focus); outline-offset: 4px; }
 .deck-colour:disabled .colour-swatch { opacity: .55; cursor: default; }
 
-.shaping-layout.with-preview { grid-template-columns: minmax(240px, 290px) minmax(0, 1fr) 270px; grid-template-areas: "list preview window"; gap: 24px; }
-.with-preview .shaping-list { grid-area: list; gap: 8px; padding-top: 0; }
-.with-preview .shaping-preview { grid-area: preview; }
-.with-preview .module-window { grid-area: window; }
-.list-intro h2, .preview-head h2 { margin: 0 0 4px; font: 600 20px/1.2 var(--font-display); }
+/* The module list and the module window, laid out like a page (0.6.3). */
+.deck-settings .shaping-list { gap: 8px; padding-top: 0; }
+.list-intro-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
+.list-intro h2, .preview-head h2 { margin: 0; font: 600 20px/1.2 var(--font-display); }
+.preview-open { flex: none; height: 32px; padding: 0 12px; border: 0; border-radius: var(--radius-md); font-size: 14px; font-weight: 600; color: var(--ink);
+  background: transparent; box-shadow: inset 0 0 0 1px var(--line-control); transition: background var(--dur-instant) ease; }
+.preview-open:hover { background: var(--surface-hover); }
 .list-intro p { margin: 0 0 10px; font-size: 13px; line-height: 1.45; }
 
 .module-block { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 8px 8px 8px 10px; border-radius: var(--radius-md); background: var(--surface);
   box-shadow: inset 3px 0 0 var(--fam, var(--line-control)), 0 0 0 1px var(--line); font-size: 14px; font-weight: 500; }
+/* A module is two parts edge to edge, like a card's tag: the six dots fill its
+   left end after the family edge, and the icon and name fill the rest up to
+   Remove. Each part lights up as a whole. */
+.module-block:has(> .block-label) { align-items: stretch; gap: 0; min-height: 40px; padding: 0 6px 0 3px; }
+.module-block .row-menu { flex: none; align-self: stretch; }
+.module-block .menu-button { height: 100%; padding: 0 7px 0 8px; border-radius: 0; box-shadow: inset -1px 0 0 var(--line); transition: background var(--dur-instant) ease; }
+.module-block .menu-button:hover, .module-block .menu-button[aria-expanded="true"] { background: var(--surface-hover); }
+.module-block .block-label { padding: 8px 10px; transition: background var(--dur-instant) ease; }
+.module-block .block-label:hover { background: var(--surface-hover); }
+.module-block > button { align-self: center; margin-left: 4px; }
 .module-block span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .module-block .fam-icon { flex: none; color: var(--fam); }
-.module-block .drag-handle { padding: 2px 4px; border: 0; color: var(--ink-muted); }
-.module-block button:not(.drag-handle) { padding: 4px 8px; font-size: 12px; border-color: transparent; color: var(--ink-soft); }
-.module-block button:not(.drag-handle):hover { color: var(--ink); }
+/* The label drags the module (D07); the six dots before it open its menu. */
+.module-block .block-label { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; border-radius: 0; cursor: grab; touch-action: none; }
+.module-block .block-label:active { cursor: grabbing; }
+.module-block .menu-button { color: var(--ink-muted); }
+.module-block button:not(.menu-button) { padding: 4px 8px; font-size: 12px; border-color: transparent; color: var(--ink-soft); }
+.module-block button:not(.menu-button):hover { color: var(--ink); }
 .module-block[data-type="main-key"] { background: transparent; box-shadow: 0 0 0 1px var(--line); }
-.module-block .pin-mark { padding: 2px 4px; }
 .sortable-row[data-dragging] > .module-block { box-shadow: inset 3px 0 0 var(--fam, var(--line-control)), 0 0 0 1px var(--line), var(--shadow-drag); transform: rotate(-1deg); }
 
-/* The sample page: the page view's own title and cards, smaller. */
-.shaping-preview { min-width: 0; padding: 18px 20px 22px; border-radius: var(--radius-card); background: var(--sidebar); box-shadow: 0 0 0 1px var(--line); }
-.preview-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+/* The preview dialog: a sample page, the page view's own title and cards, smaller. */
+.preview-dialog { width: min(640px, calc(100vw - 32px)); max-width: none; max-height: calc(100vh - 64px); overflow: auto; padding: 20px 24px 28px;
+  border: 0; border-radius: var(--radius-card); background: var(--sidebar); box-shadow: 0 0 0 1px var(--line), var(--shadow-lift);
+  animation: preview-open var(--dur-settle) var(--ease-out); }
+@keyframes preview-open { from { opacity: 0; transform: translateY(8px) scale(.98); } }
+.preview-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.preview-head h2 { flex: 1; }
+.preview-close { width: 32px; height: 32px; padding: 0; border: 0; border-radius: var(--radius-md); font-size: 20px; line-height: 1; color: var(--ink-muted); background: transparent; }
+.preview-close:hover { color: var(--ink); background: var(--surface-hover); }
+@media (prefers-reduced-motion: reduce) { .preview-dialog { animation: none; } }
 .preview-head select { width: auto; padding: 6px 10px; font-size: 14px; }
 .preview-note { margin: 4px 0 14px; font-size: 13px; }
 .sample-page { display: grid; gap: 26px; }
@@ -47,19 +68,12 @@
 .sample-page .component { padding: 22px 18px 16px; }
 .sample-page .card-tab { left: 14px; height: 24px; top: -12px; }
 .sample-page .card-tab h3 { margin: 0; font: 600 12px/1 var(--font-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: inherit; }
-.sample-page .component[data-adding] { opacity: .7; box-shadow: inset 0 3px 0 var(--fam), 0 0 0 2px var(--focus); }
 .sample-page .component[data-empty] { margin-top: -12px; padding: 0 0 12px; }
 .sample-page .component[data-empty] .card-tab { left: 14px; }
-.sample-page .component[data-empty][data-adding] { box-shadow: none; }
 .sample-page .reading, .sample-page .example-sentence { font-size: 16px; }
 .sample-page .meanings li, .sample-page .component pre { font-size: 14px; }
 
-@media (max-width: 1180px) {
-  .shaping-layout.with-preview { grid-template-columns: minmax(220px, 280px) minmax(0, 1fr); grid-template-areas: "list preview" "window window"; }
-}
-@media (max-width: 1180px) { .with-preview .module-window { position: static; } }
 @media (max-width: 900px) {
-  .shaping-layout.with-preview { grid-template-columns: minmax(0, 1fr); grid-template-areas: "list" "preview" "window"; }
   .deck-settings .page-head .head-actions { margin-top: 0; }
 }
 
