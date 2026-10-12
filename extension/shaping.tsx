@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import {
   closestCenter, DndContext, DragOverlay, KeyboardSensor, MeasuringStrategy, pointerWithin, PointerSensor,
@@ -9,8 +9,9 @@ import type {
 } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { addBlocked, CATALOG, WINDOW_MODULES } from '@vocabularium/domain/page-modules';
-import type { ModuleType } from '@vocabularium/domain/page-modules';
+import { addBlocked, CATALOG, FAMILIES, FAMILY_LABELS, WINDOW_MODULES } from '@vocabularium/domain/page-modules';
+import type { ModuleFamily, ModuleType } from '@vocabularium/domain/page-modules';
+import { FamilyIcon } from './families.tsx';
 
 // Shared by the page view and deck settings (D02, D04): a list whose entries
 // reorder by drag, and the module window whose modules drag into the list.
@@ -77,7 +78,8 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
   types: readonly string[];
   disabled: boolean;
   unavailable?: string;
-  pinned: ReactNode;
+  // Shown above the list and never moved; the page view shows its main key as the title instead.
+  pinned?: ReactNode;
   label: string;
   where: string;
   onAdd: (type: string, index: number) => Result;
@@ -194,32 +196,57 @@ function DropEnd({ disabled, active }: { disabled: boolean; active: boolean }) {
   return disabled ? null : <div ref={setNodeRef} className="drop-end" data-over={active || undefined}>Drop a module here to add it at the end</div>;
 }
 
-function WindowModule({ type, blocked, explain }: { type: string; blocked: string | null; explain: boolean }) {
+function WindowModule({ type, blocked, explain, present }: { type: string; blocked: string | null; explain: boolean; present: boolean }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: WINDOW + type, disabled: Boolean(blocked) });
   const entry = CATALOG[type as ModuleType];
-  return <li className="window-module" data-type={type} data-dragging={isDragging || undefined} aria-disabled={Boolean(blocked)}>
+  return <li className={`window-module fam-${entry.family}`} data-type={type} data-dragging={isDragging || undefined} aria-disabled={Boolean(blocked)}>
     <div ref={setNodeRef} className="window-module-body" {...attributes} {...listeners}
-      aria-label={`${entry.label}: ${entry.description}`} aria-roledescription="draggable module">
+      aria-label={`${entry.label}: ${entry.description}${present ? ' Already here.' : ''}`} aria-roledescription="draggable module">
       <strong>{entry.label}</strong>
       <span className="muted">{entry.description}</span>
+      {present && <span className="window-present">Already here</span>}
     </div>
     {blocked && explain && <p className="window-reason muted">{blocked}</p>}
   </li>;
 }
 
+const searchText = (type: ModuleType) => `${CATALOG[type].label} ${CATALOG[type].description}`.toLocaleLowerCase();
+
 // The catalog beside the list, and the place a dragged module goes back to.
+// Modules are grouped by family; the families of modules already present
+// start open, and the search filters every module by name and description.
 // `disabled` turns it off as a whole (for example while a component is being
 // edited), with `unavailable` as an optional notice; otherwise each module
 // says why it is unavailable, such as the limit or an existing Context.
 function ModuleWindow({ types, disabled, unavailable, where }: { types: readonly string[]; disabled: boolean; unavailable?: string; where: string }) {
   const { setNodeRef, isOver, active } = useDroppable({ id: BACK });
+  const searchId = useId();
+  const [query, setQuery] = useState('');
+  const familyOf = (type: ModuleType) => CATALOG[type].family as ModuleFamily;
+  const [open, setOpen] = useState(() => new Set(types.filter(type => CATALOG[type as ModuleType]?.family).map(type => familyOf(type as ModuleType))));
+  const terms = query.trim().toLocaleLowerCase().split(/\s+/).filter(Boolean);
+  const matching = WINDOW_MODULES.filter(type => terms.every(term => searchText(type).includes(term)));
+  const groups = FAMILIES.map(family => ({ family, modules: matching.filter(type => familyOf(type) === family),
+    total: WINDOW_MODULES.filter(type => familyOf(type) === family).length })).filter(group => group.modules.length);
   return <aside ref={setNodeRef} className="module-window" aria-labelledby="module-window-title" data-over={(isOver && fromWindow(active)) || undefined}>
     <h2 id="module-window-title">Modules</h2>
-    <p className="muted">Drag a module into {where}, or back here to put it back. From the keyboard: Space picks it up, the arrow keys move it, Space drops it, Escape puts it back.</p>
+    <label className="visually-hidden" htmlFor={searchId}>Search modules</label>
+    <input id={searchId} className="window-search" type="search" placeholder="Search modules" value={query} onChange={event => setQuery(event.target.value)} />
+    <p className="muted window-help">Drag a module into {where}, or back here to put it back. From the keyboard: Space picks it up, the arrow keys move it, Space drops it, Escape puts it back.</p>
     {unavailable && <p className="notice">{unavailable}</p>}
-    <ul>
-      {WINDOW_MODULES.map(type => <WindowModule key={type} type={type} explain={!disabled}
-        blocked={disabled ? unavailable ?? 'Unavailable' : addBlocked(types.map(value => ({ type: value })), type)} />)}
-    </ul>
+    {!groups.length && <p className="muted">No module matches “{query.trim()}”.</p>}
+    {groups.map(({ family, modules, total }) => <details key={family} className={`window-family fam-${family}`} open={terms.length > 0 || open.has(family)}
+      onToggle={event => {
+        if (terms.length) return;
+        const next = new Set(open);
+        if ((event.target as HTMLDetailsElement).open) next.add(family); else next.delete(family);
+        if (next.size !== open.size) setOpen(next);
+      }}>
+      <summary><span className="fam-chip"><FamilyIcon family={family} /></span>{FAMILY_LABELS[family]}<span className="family-count">{total}</span></summary>
+      <ul>
+        {modules.map(type => <WindowModule key={type} type={type} explain={!disabled} present={types.includes(type)}
+          blocked={disabled ? unavailable ?? 'Unavailable' : addBlocked(types.map(value => ({ type: value })), type)} />)}
+      </ul>
+    </details>)}
   </aside>;
 }

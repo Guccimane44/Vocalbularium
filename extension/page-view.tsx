@@ -1,9 +1,13 @@
-import { useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { Component, GenerationTarget, ModuleInstance, Page } from '@vocabularium/contracts';
-import { isContentType } from '@vocabularium/domain/page-modules';
+import { CATALOG, isContentType, isModuleType } from '@vocabularium/domain/page-modules';
 import { blockText, mainKeyOf } from '@vocabularium/domain/pages';
+import { emphasise, renderContent } from '@vocabularium/domain/render';
 import type { PageEditorDraft } from '../types/editor-drafts.js';
+import { FamilyIcon } from './families.tsx';
+import { mainKeyTier } from './main-key.ts';
+import { GeneratingStatus } from './page-list.tsx';
 import { moduleLabel, PinMark, ShapingArea } from './shaping.tsx';
 
 type Deck = { id: string; name: string; modules: ModuleInstance[] };
@@ -30,11 +34,6 @@ type Props = {
   moveComponent: (componentId: string, position: number) => Promise<boolean>;
   deleteComponent: (component: Component) => Promise<boolean | void>;
 };
-
-const capitalized = (status: string) => status[0].toUpperCase() + status.slice(1);
-function Status({ status, prefix }: { status: string | null; prefix: string }) {
-  return status && <span className={`badge status-${status}`}>{prefix + capitalized(status)}</span>;
-}
 
 function TextField({ id, labelText, value, readOnly, multiline = true, onChange }:
   { id: string; labelText: string; value: string; readOnly: boolean; multiline?: boolean; onChange: (value: string) => void }) {
@@ -67,21 +66,67 @@ function NewPageEditor({ draft, deck, busy, persist, save, cancel }: Pick<Props,
   </section>;
 }
 
-function ComponentBody({ item, title, editable, draft, locked, persist }: {
-  item: Component; title: string; editable: boolean; draft?: PageEditorDraft; locked: boolean; persist: () => void;
+// Generated content as its module's render contract describes; anything else,
+// and the user's own text, as plain text with its line breaks.
+function Content({ item, mainKey }: { item: Component; mainKey: string }) {
+  const rendered = renderContent(item.moduleType, blockText(item.content));
+  if (rendered.kind === 'plain') return <pre>{rendered.text}</pre>;
+  if (rendered.kind === 'sentence') return <p className="reading">{rendered.text}</p>;
+  const { heading, meanings, examples } = rendered;
+  const marked = (text: string) => emphasise(text, mainKey).map((part, index) => part.key ? <mark key={index}>{part.text}</mark> : part.text);
+  return <div className="entry-content">
+    {heading && <p className="entry-heading">
+      <span className="entry-language">{heading.language}</span>
+      {heading.key && <span className="entry-key">{heading.key}</span>}
+      {heading.pronunciation && <span className="entry-pronunciation">{heading.pronunciation}</span>}
+    </p>}
+    <ol className="meanings">{meanings.map(meaning => <li key={meaning.number} data-number={meaning.number}>{meaning.text}</li>)}</ol>
+    {examples.length > 0 && <>
+      <h3 className="examples-title">Examples</h3>
+      <ul className="examples">{examples.map((example, index) => <li key={index}>
+        <span className="example-number">{example.number}</span>
+        <span className="example-sentence">{marked(example.sentence)}</span>
+        {example.translation && <span className="example-translation">{example.translation}</span>}
+      </li>)}</ul>
+    </>}
+  </div>;
+}
+
+function ComponentBody({ item, title, editable, draft, locked, persist, mainKey }: {
+  item: Component; title: string; editable: boolean; draft?: PageEditorDraft; locked: boolean; persist: () => void; mainKey: string;
 }) {
   const text = blockText(item.content);
   if (editable && draft) return <>
     <TextField id={`component-${item.id}`} labelText={`Edit ${title}`} value={draft.texts[item.id]}
-      readOnly={locked || item.status === 'loading'} multiline={item.moduleType !== 'main-key'}
+      readOnly={locked || item.status === 'loading'} multiline={item.moduleType !== 'main-key' || mainKeyTier(draft.texts[item.id]) === 'passage'}
       onChange={value => { draft.texts[item.id] = value; persist(); }} />
     {item.status === 'loading' && <p className="notice">This component is generating. Your draft is preserved; save explicitly after generation finishes.</p>}
   </>;
-  if (text) return <pre>{text}</pre>;
-  if (item.status === 'loading') return <p className="muted">Generating…</p>;
-  if (item.status === 'failed') return <p className="muted">Generation failed.</p>;
+  if (text) return <Content item={item} mainKey={mainKey} />;
+  if (item.status === 'loading' || item.status === 'failed') return null;
   if (isContentType(item.moduleType) && item.attemptId === null) return <p className="muted">Not generated yet.</p>;
   return <p className="muted">Empty.</p>;
+}
+
+// The page title: the main key in its tier; a passage is cut after six lines.
+function MainKeyTitle({ text }: { text: string }) {
+  const tier = mainKeyTier(text);
+  const title = useRef<HTMLHeadingElement>(null);
+  const [expanded, setExpanded] = useState(false);
+  const [overflows, setOverflows] = useState(false);
+  useLayoutEffect(() => {
+    const node = title.current;
+    if (!node || tier !== 'passage') { setOverflows(false); return; }
+    const measure = () => setOverflows(expanded || node.scrollHeight > node.clientHeight + 1);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [text, tier, expanded]);
+  return <>
+    <h1 ref={title} className="main-key" data-tier={tier} data-expanded={expanded || undefined}>{text}</h1>
+    {overflows && <button className="show-all" aria-expanded={expanded} onClick={() => setExpanded(!expanded)}>{expanded ? 'Show less' : 'Show all'}</button>}
+  </>;
 }
 
 export function PageView({ page, deck, draft, isNew, editing, busy, error, pendingSaves, retryPendingSave,
@@ -118,45 +163,64 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
   const lost = editing && draft ? Object.keys(draft.texts).filter(id => !known.has(id)) : [];
   const items = rest.map(item => ({ id: item.id, label: moduleLabel(item.moduleType), component: item }));
 
-  // One card: its header (drag handle, label, status) and its own actions.
-  // Editing is one card at a time; Save and Cancel live in that card.
+  const mainKey = mainKeyOf(page.components);
+  const actions = (item: Component, title: string) => {
+    const generated = isContentType(item.moduleType);
+    const firstRun = generated && item.attemptId === null && !blockText(item.content);
+    return <div className="card-actions" role="group" aria-label={`${title} actions`}>
+      <button aria-label={`Edit ${title}`} disabled={Boolean(editingId) || item.status === 'loading'} onClick={() => begin(item.id)}>Edit</button>
+      {generated && <button aria-label={`${firstRun ? 'Generate' : 'Retry'} ${title}`} disabled={working || Boolean(editingId) || item.status === 'loading'}
+        onClick={() => void run(() => generate({ scope: 'component', componentId: item.id }))}>{firstRun ? 'Generate' : 'Retry'}</button>}
+      {item.moduleType !== 'main-key' && <button aria-label={`Delete ${title}`} disabled={disabled || working || item.status === 'loading'}
+        onClick={() => void run(async () => { await deleteComponent(item); })}>Delete</button>}
+    </div>;
+  };
+  const editor = (item: Component, title: string) => editingId === item.id && draft && <>
+    <ComponentBody item={item} title={title} editable draft={draft} locked={locked} persist={persist} mainKey={mainKey} />
+    <div className="component-tools">
+      <button disabled={busy} onClick={() => void cancel()}>Cancel</button>
+      <button className="primary" disabled={busy} onClick={() => void save()}>{draft.pending ? 'Try saving again' : 'Save'}</button>
+    </div>
+    {draft.error && <p className="notice error" role="alert">{draft.error}</p>}
+  </>;
+
+  // One card: its index tab (drag handle, family, label), its actions on the
+  // top edge, its status only while unfinished, and its content. Editing is
+  // one card at a time; Save and Cancel live in that card.
   const card = (item: Component, title: string, handle: ReactNode) => {
     const generated = isContentType(item.moduleType);
-    const editingThis = editingId === item.id;
-    const firstRun = generated && item.attemptId === null && !blockText(item.content);
-    return <article className={`component${generated && item.attemptId === null ? ' missing' : ''}`} data-component-id={item.id} data-type={item.moduleType}>
-      <div className="component-header">
+    const family = isModuleType(item.moduleType) ? CATALOG[item.moduleType].family ?? 'notes' : 'notes';
+    const emptyText = item.moduleType === 'text' && !blockText(item.content) && editingId !== item.id;
+    return <article className={`component fam-${family}${generated && item.attemptId === null ? ' missing' : ''}`}
+      data-component-id={item.id} data-type={item.moduleType} data-status={item.status ?? undefined} data-editing={editingId === item.id || undefined}>
+      <div className="card-tab">
         {handle}
+        <FamilyIcon family={family} />
         <h2>{title}</h2>
-        <Status status={item.status} prefix="" />
       </div>
-      <ComponentBody item={item} title={title} editable={editingThis} draft={draft} locked={locked} persist={persist} />
-      {editingThis && draft ? <>
-        <div className="component-tools">
-          <button disabled={busy} onClick={() => void cancel()}>Cancel</button>
-          <button className="primary" disabled={busy} onClick={() => void save()}>{draft.pending ? 'Try saving again' : 'Save'}</button>
-        </div>
-        {draft.error && <p className="notice error" role="alert">{draft.error}</p>}
-      </> : <div className="component-tools">
-        <button aria-label={`Edit ${title}`} disabled={Boolean(editingId) || item.status === 'loading'} onClick={() => begin(item.id)}>Edit</button>
-        {generated && <button aria-label={`${firstRun ? 'Generate' : 'Retry'} ${title}`} disabled={working || Boolean(editingId) || item.status === 'loading'}
-          onClick={() => void run(() => generate({ scope: 'component', componentId: item.id }))}>{firstRun ? 'Generate' : 'Retry'}</button>}
-        {item.moduleType !== 'main-key' && <button aria-label={`Delete ${title}`} disabled={disabled || working || item.status === 'loading'}
-          onClick={() => void run(async () => { await deleteComponent(item); })}>Delete</button>}
-      </div>}
+      {editingId !== item.id && actions(item, title)}
+      {item.status === 'loading' && editingId !== item.id && <p className="card-status"><GeneratingStatus /></p>}
+      {item.status === 'failed' && <p className="card-status"><span className="list-status" data-status="failed">Generation failed</span></p>}
+      {editor(item, title) || (emptyText
+        ? <button className="add-text" disabled={Boolean(editingId)} onClick={() => begin(item.id)}>+ Text — add your own notes</button>
+        : <ComponentBody item={item} title={title} editable={false} draft={draft} locked={locked} persist={persist} mainKey={mainKey} />)}
     </article>;
   };
 
   return <>
     {notice}{back}
-    <div className="page-header">
-      <h1>{mainKeyOf(page.components)}</h1>
-      <button disabled={busy || Boolean(editingId)} onClick={() => void deletePage()}>Delete page</button>
+    <div className="page-header" data-component-id={key.id} data-type="main-key" data-editing={editingId === key.id || undefined}>
+      <div className="page-title">
+        {editingId === key.id ? editor(key, 'Main key') : <MainKeyTitle text={mainKey} />}
+      </div>
+      <div className="title-actions">
+        <PinMark />
+        {editingId !== key.id && <button className="title-edit" aria-label="Edit Main key" disabled={Boolean(editingId)} onClick={() => begin(key.id)}>Edit</button>}
+        <button disabled={busy || Boolean(editingId)} onClick={() => void deletePage()}>Delete page</button>
+      </div>
     </div>
-    <Status status={page.status} prefix="Page: " />
     <ShapingArea items={items} types={page.components.map(item => item.moduleType)} disabled={disabled}
       label="Components" where="the page"
-      pinned={card(key, 'Main key', <PinMark />)}
       onAdd={(type, index) => addModule(type, index + 1)}
       onMove={(id, index) => moveComponent(id, index + 1)}
       renderItem={(item, handle) => card(item.component, item.label, handle)} />

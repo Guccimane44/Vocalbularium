@@ -15,6 +15,10 @@
     "./page-modules": {
       "types": "./dist/page-modules.d.ts",
       "import": "./dist/page-modules.js"
+    },
+    "./render": {
+      "types": "./dist/render.d.ts",
+      "import": "./dist/render.js"
     }
   },
   "dependencies": {
