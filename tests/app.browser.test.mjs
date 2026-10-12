@@ -524,29 +524,50 @@ test('deck UI: draft previews, all modules, the module limit, removal without co
   assert.equal(await a.page.locator('.module-window button').count(), 0, 'no Add buttons (D04)');
   assert.equal(await a.page.locator('.window-module[data-type="context"]').getAttribute('aria-disabled'), 'true', 'one Context per deck');
   await a.page.getByText('There is already a Context.').waitFor();
-  await a.page.getByLabel('Sample input', { exact: true }).selectOption('sentence');
-  assert.equal(await a.page.locator('.preview').count(), 7, 'one preview per module, the main key included');
-  assert.match(await a.page.locator('.preview').nth(0).textContent(), /我真的很幸福/);
+  // The preview opens in a dialog from the button above the list, so deck settings keep the list-and-window layout (0.6.3).
+  assert.equal(await a.page.locator('.sample-page').count(), 0, 'no preview beside the list');
+  await a.page.getByRole('button', { name: 'Preview', exact: true }).click();
+  const preview = a.page.getByRole('dialog', { name: 'Preview' });
+  await preview.waitFor();
+  await preview.getByLabel('Sample input', { exact: true }).selectOption('sentence');
+  assert.equal(await preview.locator('.preview').count(), 7, 'one preview per module, the main key included');
+  assert.match(await preview.locator('.preview').nth(0).textContent(), /我真的很幸福/);
   // A module that does not apply to the sample input is only its tab, as an empty component on a page (0.6.2).
-  assert.equal(await a.page.locator('.preview').nth(2).textContent(), 'German explanation + examples');
-  assert.equal(await a.page.locator('.preview').nth(2).getAttribute('data-empty'), 'true');
-  assert.match(await a.page.locator('.preview').nth(4).textContent(), /我真的很幸福/);
-  // The live preview follows the list, also while a module is being dragged (D05).
-  const previewTypes = () => a.page.locator('.sample-page .component').evaluateAll(nodes => nodes.map(node => node.dataset.type));
-  assert.deepEqual(await previewTypes(), ['context', 'german-examples', 'german-explanation', 'sentence-usage', 'sentence-usage', 'sentence-usage']);
+  assert.equal(await preview.locator('.preview').nth(2).textContent(), 'German explanation + examples');
+  assert.equal(await preview.locator('.preview').nth(2).getAttribute('data-empty'), 'true');
+  assert.match(await preview.locator('.preview').nth(4).textContent(), /我真的很幸福/);
+  const previewTypes = () => preview.locator('.sample-page .component').evaluateAll(nodes => nodes.map(node => node.dataset.type));
+  const listTypes = () => a.page.locator('.shaping-list .module-block').evaluateAll(nodes => nodes.slice(1).map(node => node.dataset.type));
+  assert.deepEqual(await previewTypes(), await listTypes(), 'the preview follows the list');
+  await preview.evaluate(node => Promise.all(node.getAnimations().map(animation => animation.finished)));
+  await a.page.screenshot({ path: 'artifacts/m3-configuration-preview.png' });
+  await a.page.keyboard.press('Escape');
+  await preview.waitFor({ state: 'detached' });
+  assert.equal(await a.page.evaluate(() => document.activeElement.textContent), 'Preview', 'closing returns to the Preview button');
+  await a.page.getByRole('button', { name: 'Preview', exact: true }).click();
+  await preview.locator('.preview-dialog, .sample-page').first().waitFor();
+  await a.page.mouse.click(5, 5);
+  await preview.waitFor({ state: 'detached' });
+  // A module is two parts edge to edge: the six dots at its left end, then its icon and name.
+  const block = a.page.locator('.module-block[data-type="german-explanation"]');
+  await block.scrollIntoViewIfNeeded();
+  assert.deepEqual(await block.evaluate(node => {
+    const box = node.getBoundingClientRect();
+    return [5, box.width / 3].map(x => document.elementFromPoint(box.left + x, box.top + box.height / 2)?.closest('.menu-button, .block-label')?.className);
+  }), ['menu-button', 'block-label']);
   // A module drags by its label (D07).
-  await a.page.locator('.module-block[data-type="german-explanation"] .block-label').focus();
+  await block.locator('.block-label').focus();
   await a.page.keyboard.press('Space');
   await new Promise(resolve => setTimeout(resolve, 300));
   await a.page.keyboard.press('ArrowUp');
-  await waitFor(async () => (await previewTypes())[1] === 'german-explanation', 'the preview follows the drag before the drop');
+  await new Promise(resolve => setTimeout(resolve, 300));
   assert.equal(await a.page.locator('.module-block').nth(2).getAttribute('data-type'), 'german-examples', 'nothing dropped yet');
-  // The others slide to make room, even though the preview re-renders on every move.
+  // The others slide to make room.
   const slides = await a.page.locator('.shaping-list .sortable-row').evaluateAll(rows => rows.filter(row => !row.hasAttribute('data-dragging'))
     .map(row => getComputedStyle(row).transitionDuration));
   assert.ok(slides.length && slides.every(duration => parseFloat(duration) >= 0.2), `rows make room with a transition (${slides})`);
   await a.page.keyboard.press('Escape');
-  await waitFor(async () => (await previewTypes())[1] === 'german-examples', 'a cancelled drag restores the preview');
+  assert.deepEqual(await listTypes(), ['context', 'german-examples', 'german-explanation', 'sentence-usage', 'sentence-usage', 'sentence-usage'], 'a cancelled drag keeps the order');
   assert.equal((await application.store.pages()).length, 0); assert.equal((await application.store.account()).decks.length, 1);
   await a.page.screenshot({ path: 'artifacts/m3-configuration.png', fullPage: true });
   await a.page.getByRole('button', { name: 'Save', exact: true }).click();

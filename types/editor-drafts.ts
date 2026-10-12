@@ -33,6 +33,8 @@ export type DeckEditorDraft = {
   route: string;
   deck: DeckConfiguration;
   sampleType?: InputType;
+  // The preview dialog is open.
+  previewing?: boolean;
   saving?: boolean;
   pending?: EditorPendingDeckSave;
   error?: string;
