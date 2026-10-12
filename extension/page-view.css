@@ -18,8 +18,6 @@
 .show-all { border: 0; padding: 4px 0; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; background: none; }
 .show-all:hover { background: none; color: var(--ink-soft); }
 .title-actions { display: flex; align-items: center; gap: 6px; flex: none; margin-top: 14px; }
-.title-edit { opacity: 0; transition: opacity var(--dur-quick) ease; }
-.page-header:hover .title-edit, .page-header:focus-within .title-edit { opacity: 1; }
 .page-header[data-editing] .page-title { padding-top: 6px; }
 
 /* Cards: an index tab on the top edge in the family colour, with its name. */
@@ -103,6 +101,10 @@
 .component[data-status="failed"] { background: var(--status-failed-bg); }
 .component-tools { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
 .component-field label { font-size: 13px; color: var(--ink-muted); margin-top: 0; }
+/* An empty main key on Save: the message stands inside the field, in the
+   failed colour, until the user types. */
+.component-field .field-error::placeholder { color: var(--status-failed); opacity: 1; font-weight: 500; }
+.component-field .field-error:placeholder-shown { border-color: var(--status-failed); box-shadow: 0 0 0 1px var(--status-failed); }
 .component.adding { padding: 18px 26px; border-radius: var(--radius-card); box-shadow: 0 0 0 1px var(--line-control); color: var(--ink-muted); background: transparent; }
 .sortable-row[data-dragging] > .component { box-shadow: inset 0 3px 0 var(--fam, var(--fam-notes)), 0 0 0 1px var(--line), var(--shadow-drag); }
 

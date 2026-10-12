@@ -8,7 +8,7 @@ import type { PageEditorDraft } from '../types/editor-drafts.js';
 import { FamilyIcon } from './families.tsx';
 import { mainKeyTier } from './main-key.ts';
 import { GeneratingStatus } from './page-list.tsx';
-import { moduleLabel, PinMark, ShapingArea } from './shaping.tsx';
+import { moduleLabel, ShapingArea } from './shaping.tsx';
 import type { RowParts } from './shaping.tsx';
 
 // Icons for a card's actions, drawn like the family icons: 24px grid, 2.2 stroke.
@@ -49,13 +49,18 @@ type Props = {
   deleteComponent: (component: Component) => Promise<boolean | void>;
 };
 
-function TextField({ id, labelText, value, readOnly, multiline = true, onChange }:
-  { id: string; labelText: string; value: string; readOnly: boolean; multiline?: boolean; onChange: (value: string) => void }) {
+// `error` is shown inside the empty field, in place of its text, until the
+// user types; screen readers hear it once.
+function TextField({ id, labelText, value, readOnly, multiline = true, error, onChange }:
+  { id: string; labelText: string; value: string; readOnly: boolean; multiline?: boolean; error?: string; onChange: (value: string) => void }) {
+  const field = useRef<HTMLInputElement & HTMLTextAreaElement>(null);
+  useEffect(() => { if (error) field.current?.focus(); }, [error]);
+  const props = { id, ref: field, defaultValue: value, readOnly, placeholder: error, 'aria-invalid': error ? true : undefined,
+    className: error ? 'field-error' : undefined, onChange: (event: { target: { value: string } }) => onChange(event.target.value) };
   return <div className="component-field">
     <label htmlFor={id}>{labelText}</label>
-    {multiline
-      ? <textarea id={id} rows={6} defaultValue={value} readOnly={readOnly} onChange={event => onChange(event.target.value)} />
-      : <input id={id} defaultValue={value} readOnly={readOnly} onChange={event => onChange(event.target.value)} />}
+    {multiline ? <textarea rows={6} {...props} /> : <input {...props} />}
+    {error && <span className="visually-hidden" role="alert">{error}</span>}
   </div>;
 }
 
@@ -66,7 +71,7 @@ function NewPageEditor({ draft, deck, busy, persist, save, cancel }: Pick<Props,
   const inputs = deck.modules.filter(module => module.type === 'context' || module.type === 'text');
   const content = deck.modules.filter(module => isContentType(module.type));
   return <section className="page-components">
-    <TextField id="main-key" labelText="Main key" value={draft.mainKey ?? ''} readOnly={locked} multiline={false}
+    <TextField id="main-key" labelText="Main key" value={draft.mainKey ?? ''} readOnly={locked} multiline={false} error={draft.fieldError}
       onChange={value => { draft.mainKey = value; persist(); }} />
     {inputs.map(module => <TextField key={module.id} id={`input-${module.id}`} value={draft.inputs?.[module.id] ?? ''} readOnly={locked}
       labelText={module.type === 'context' ? 'Context (optional)' : moduleLabel(module.type)}
@@ -112,6 +117,7 @@ function ComponentBody({ item, title, editable, draft, locked, persist, mainKey 
   const text = blockText(item.content);
   if (editable && draft) return <>
     <TextField id={`component-${item.id}`} labelText={`Edit ${title}`} value={draft.texts[item.id]}
+      error={item.moduleType === 'main-key' ? draft.fieldError : undefined}
       readOnly={locked || item.status === 'loading'} multiline={item.moduleType !== 'main-key' || mainKeyTier(draft.texts[item.id]) === 'passage'}
       onChange={value => { draft.texts[item.id] = value; persist(); }} />
     {item.status === 'loading' && <p className="notice">This component is generating. Your draft is preserved; save explicitly after generation finishes.</p>}
@@ -279,7 +285,6 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
         {editingId === key.id ? editor(key, 'Main key') : <MainKeyTitle text={mainKey} />}
       </div>
       <div className="title-actions">
-        <PinMark />
         {editingId !== key.id && <button className="title-edit" aria-label="Edit Main key" disabled={Boolean(editingId)} onClick={() => begin(key.id)}>Edit</button>}
         <button disabled={busy || Boolean(editingId)} onClick={() => void deletePage()}>Delete page</button>
       </div>

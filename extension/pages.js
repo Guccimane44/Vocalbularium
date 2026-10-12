@@ -51,7 +51,8 @@ export function pageViews({ getAccount, renderView, refresh, send, applyState, n
     const key = page?.components.find(component => component.moduleType === 'main-key');
     const mainKey = draft.pageId ? draft.texts[key?.id] : draft.mainKey;
     if (mainKey !== undefined && !mainKey.trim()) {
-      draft.error = 'Enter a main key.'; draft.errorCode = 'invalid'; persist(); void refresh(); return false;
+      // Shown inside the empty main key field rather than as a notice below it.
+      draft.error = undefined; draft.fieldError = 'Enter a main key.'; draft.errorCode = 'invalid'; persist(); void refresh(); return false;
     }
     const next = payload();
     if (draft.pageId && !next.changes.length) { await discard(); void refresh(); return true; }
@@ -59,7 +60,7 @@ export function pageViews({ getAccount, renderView, refresh, send, applyState, n
       await chrome.storage.local.remove(`save-${draft.pending.operationId}`); draft.pending = undefined;
     }
     draft.pending ??= { operationId: crypto.randomUUID(), type: draft.pageId ? 'save-page' : 'create-page', payload: next };
-    busy = true; draft.error = undefined; persist(); void refresh();
+    busy = true; draft.error = undefined; draft.fieldError = undefined; persist(); void refresh();
     try {
       const state = await send(draft.pending);
       const wasNew = !draft.pageId;

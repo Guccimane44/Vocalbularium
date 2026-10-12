@@ -58,14 +58,6 @@ const keyboard: KeyboardCoordinateGetter = (event, args) => {
   return { x: rect.left + rect.width / 2 - collisionRect.width / 2, y: rect.top + rect.height / 2 - collisionRect.height / 2 };
 };
 
-// Stands where the drag handle would be on the main key, which stays first
-// and cannot be moved or removed.
-export const PinMark = () => <span className="pin-mark" role="img" aria-label="Fixed in first place" title="Fixed in first place">
-  <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.5">
-    <rect x="3" y="7" width="10" height="7" rx="1.5" /><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" />
-  </svg>
-</span>;
-
 export type ShapeItem = { id: string; label: string };
 // What an entry needs to be dragged: spread `drag` on its label, which then
 // starts a drag with the pointer or Space, and show `menu` before it.

@@ -47,7 +47,6 @@
 .module-block button:not(.menu-button) { padding: 4px 8px; font-size: 12px; border-color: transparent; color: var(--ink-soft); }
 .module-block button:not(.menu-button):hover { color: var(--ink); }
 .module-block[data-type="main-key"] { background: transparent; box-shadow: 0 0 0 1px var(--line); }
-.module-block .pin-mark { padding: 2px 4px; }
 .sortable-row[data-dragging] > .module-block { box-shadow: inset 3px 0 0 var(--fam, var(--line-control)), 0 0 0 1px var(--line), var(--shadow-drag); transform: rotate(-1deg); }
 
 /* The preview dialog: a sample page, the page view's own title and cards, smaller. */

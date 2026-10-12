@@ -24,7 +24,7 @@ The deck's **Add page manually** opens a new page draft ([creation](#creation-an
 
 ## Required main key
 
-Every page has a main key component: the editable text used as its generation input. A captured selection supplies the initial value; manual creation requires the user to specify it. A saved page cannot omit the main key, and a main key that is empty or only whitespace is rejected with "Enter a main key." A new manual draft may begin before the user has entered it.
+Every page has a main key component: the editable text used as its generation input. A captured selection supplies the initial value; manual creation requires the user to specify it. A saved page cannot omit the main key, and a main key that is empty or only whitespace is rejected with "Enter a main key.", shown inside the empty field in the failed colour with a failed-colour outline until the user types, and the field takes focus (since 0.6.3; earlier it was a notice below the field). A new manual draft may begin before the user has entered it.
 
 The main key component belongs to the compulsory main key module. It must always be visible when the page is shown: it is always the first component and the page's title. It can coexist with manually written or generated content. Matching main keys do not merge pages or make their identities the same. The main key cannot be deleted.
 
@@ -65,7 +65,7 @@ Each card has its own actions ([D04](../architecture/traceability-map.md#entries
 
 The six dots before the family icon open the card's **menu**. Its entries, **Duplicate**, **Copy text**, and **Move to page…**, are placeholders marked *Coming soon* and do nothing yet (since 0.6.3).
 
-The main key, shown as the page title, has only **Edit**, which appears beside it on hover and focus, and a lock mark in place of a tab (since 0.5.2). There are no page-level edit, generate, or retry controls; **Delete page** sits in the page header.
+The main key, shown as the page title, has only **Edit**, always shown beside it like **Delete page**, and no lock mark (since 0.6.3; from 0.5.2 Edit appeared on hover and focus, beside a lock mark). There are no page-level edit, generate, or retry controls; **Delete page** sits in the page header.
 
 ### Shaping a page
 

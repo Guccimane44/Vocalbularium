@@ -9,7 +9,7 @@ import { deckColour } from './deck-colour.ts';
 import { FamilyIcon } from './families.tsx';
 import { mainKeyTier } from './main-key.ts';
 import { Content } from './page-view.tsx';
-import { moduleLabel, PinMark, ShapingArea } from './shaping.tsx';
+import { moduleLabel, ShapingArea } from './shaping.tsx';
 
 const instance = (type: string) => ({ id: crypto.randomUUID(), type });
 
@@ -193,7 +193,6 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
           <p className="muted">New pages start with these modules, in this order. Existing pages keep their own.</p>
         </div>
         <div className="module-block" data-type={key.type}>
-          <PinMark />
           <span>{moduleLabel(key.type)}</span>
         </div>
       </>}

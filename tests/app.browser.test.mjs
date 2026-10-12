@@ -507,10 +507,10 @@ test('deck UI: draft previews, all modules, the module limit, removal without co
   assert.equal(await a.page.getByRole('group', { name: 'Deck colour' }).getByRole('radio', { checked: true }).count(), 1);
   await a.page.getByRole('radio', { name: 'Rose', exact: true }).check();
   assert.equal(await a.page.locator('.module-block').count(), 3, 'a new deck starts with the main key, Context and the German explanation');
-  // The main key looks like the other modules, with a lock mark instead of a handle and no Remove (0.5.2).
+  // The main key looks like the other modules, with no lock mark (0.6.3), drag label, menu or Remove.
   const mainKeyBlock = a.page.locator('.module-block[data-type="main-key"]');
   assert.equal(await mainKeyBlock.innerText(), 'Main key');
-  await mainKeyBlock.getByRole('img', { name: 'Fixed in first place' }).waitFor();
+  assert.equal(await mainKeyBlock.getByRole('img').count(), 0, 'no lock mark');
   assert.equal(await mainKeyBlock.locator('.block-label, button').count(), 0, 'no drag label, menu or Remove on the main key');
   await addFromWindow(a.page, 'sentence-usage');
   const usage = a.page.locator('.sortable-row').filter({ has: a.page.locator('.module-block[data-type="sentence-usage"]') });
@@ -990,8 +990,11 @@ test('manual page UI: per-card actions, drafts, leave choices, sorting, failed-s
   await a.page.getByRole('dialog').getByRole('button', { name: 'Delete', exact: true }).click();
   await waitFor(async () => (await shape()).length === 3, 'Context deleted');
   assert.deepEqual(await shape(), [['main-key', 'zebra'], ['text', ''], ['german-examples', '']]);
-  // The main key is the page title, shown once: no card, a lock mark and only Edit.
-  await a.page.locator('.page-header[data-type="main-key"]').getByRole('img', { name: 'Fixed in first place' }).waitFor();
+  // The main key is the page title, shown once: no card, no lock mark (0.6.3), and only Edit, always visible like Delete page.
+  const header = a.page.locator('.page-header[data-type="main-key"]');
+  assert.equal(await header.getByRole('img').count(), 0, 'no lock mark');
+  await a.page.mouse.move(5, 5);
+  assert.equal(await header.getByRole('button', { name: 'Edit Main key', exact: true }).evaluate(node => getComputedStyle(node).opacity), '1', 'Edit is visible without hovering');
   assert.equal(await a.page.getByRole('heading', { level: 1 }).textContent(), 'zebra');
   assert.equal(await a.page.locator('article.component[data-type="main-key"]').count(), 0, 'no separate main key card');
   for (const missing of ['Drag Main key', 'Delete Main key', 'Retry Main key', 'Generate Main key']) {
@@ -1013,6 +1016,11 @@ test('manual page UI: per-card actions, drafts, leave choices, sorting, failed-s
   assert.equal(keyOf(await application.store.page(created.id)), 'zebra');
   await a.page.getByRole('link', { name: 'zebra', exact: true }).click();
   await a.page.getByRole('button', { name: 'Edit Main key', exact: true }).click();
+  // Saving an empty main key keeps the editor open and says so inside the field.
+  await mainKeyField.fill('');
+  await a.page.getByRole('button', { name: 'Save', exact: true }).click();
+  await waitFor(async () => await mainKeyField.getAttribute('placeholder') === 'Enter a main key.', 'the message stands inside the empty main key');
+  assert.equal(await a.page.locator('.notice.error').count(), 0, 'no notice below the field');
   await mainKeyField.fill('cancel this');
   await a.page.getByRole('button', { name: 'Cancel', exact: true }).click();
   assert.equal(keyOf(await application.store.page(created.id)), 'zebra');
@@ -1035,8 +1043,14 @@ test('manual page UI: per-card actions, drafts, leave choices, sorting, failed-s
   await a.page.getByRole('button', { name: '← My Deck', exact: true }).click();
   await a.page.getByRole('button', { name: 'Add page manually', exact: true }).click();
   await a.page.getByRole('button', { name: 'Save', exact: true }).click();
-  await a.page.getByRole('alert').filter({ hasText: 'Enter a main key.' }).waitFor();
-  await a.page.getByLabel('Main key', { exact: true }).fill('aardvark');
+  // An empty main key says so inside its field, not in a notice below it (0.6.3).
+  const newKey = a.page.getByLabel('Main key', { exact: true });
+  await waitFor(async () => await newKey.getAttribute('placeholder') === 'Enter a main key.', 'the message stands inside the empty field');
+  assert.equal(await newKey.getAttribute('aria-invalid'), 'true');
+  assert.equal(await a.page.locator('.notice.error').count(), 0, 'no notice below the field');
+  assert.equal(await a.page.evaluate(() => document.activeElement.id), 'main-key', 'the field takes focus');
+  await a.page.screenshot({ path: 'artifacts/v0.6.3-empty-main-key.png' });
+  await newKey.fill('aardvark');
   await a.page.getByRole('button', { name: /^(Save|Try saving again)$/ }).click();
   await pageReady(a.page);
   await a.page.getByRole('button', { name: '← My Deck', exact: true }).click();
