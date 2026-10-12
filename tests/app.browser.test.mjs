@@ -525,6 +525,10 @@ test('deck UI: draft previews, all modules, the module limit, removal without co
   await a.page.keyboard.press('ArrowUp');
   await waitFor(async () => (await previewTypes())[1] === 'german-explanation', 'the preview follows the drag before the drop');
   assert.equal(await a.page.locator('.module-block').nth(2).getAttribute('data-type'), 'german-examples', 'nothing dropped yet');
+  // The others slide to make room, even though the preview re-renders on every move.
+  const slides = await a.page.locator('.shaping-list .sortable-row').evaluateAll(rows => rows.filter(row => !row.hasAttribute('data-dragging'))
+    .map(row => getComputedStyle(row).transitionDuration));
+  assert.ok(slides.length && slides.every(duration => parseFloat(duration) >= 0.2), `rows make room with a transition (${slides})`);
   await a.page.keyboard.press('Escape');
   await waitFor(async () => (await previewTypes())[1] === 'german-examples', 'a cancelled drag restores the preview');
   assert.equal((await application.store.pages()).length, 0); assert.equal((await application.store.account()).decks.length, 1);
