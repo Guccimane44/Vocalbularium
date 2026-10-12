@@ -1,0 +1,52 @@
+/* Deck settings (D05, 0.6.0 increment 6): the module list, a live sample
+   page following every drag, and the module window. */
+
+.deck-settings .page-head { align-items: flex-start; }
+.deck-settings .page-head .head-actions { margin-top: 10px; }
+.deck-settings .eyebrow { margin: 0; }
+.deck-name { max-width: 420px; margin-top: 4px; }
+.deck-name label { margin-top: 0; }
+
+.shaping-layout.with-preview { grid-template-columns: minmax(240px, 290px) minmax(0, 1fr) 270px; grid-template-areas: "list preview window"; gap: 24px; }
+.with-preview .shaping-list { grid-area: list; gap: 8px; padding-top: 0; }
+.with-preview .shaping-preview { grid-area: preview; }
+.with-preview .module-window { grid-area: window; }
+.list-intro h2, .preview-head h2 { margin: 0 0 4px; font: 600 20px/1.2 var(--font-display); }
+.list-intro p { margin: 0 0 10px; font-size: 13px; line-height: 1.45; }
+
+.module-block { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 8px 8px 8px 10px; border-radius: var(--radius-md); background: var(--surface);
+  box-shadow: inset 3px 0 0 var(--fam, var(--line-control)), 0 0 0 1px var(--line); font-size: 14px; font-weight: 500; }
+.module-block span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.module-block .fam-icon { flex: none; color: var(--fam); }
+.module-block .drag-handle { padding: 2px 4px; border: 0; color: var(--ink-muted); }
+.module-block button:not(.drag-handle) { padding: 4px 8px; font-size: 12px; border-color: transparent; color: var(--ink-soft); }
+.module-block button:not(.drag-handle):hover { color: var(--ink); }
+.module-block[data-type="main-key"] { background: transparent; box-shadow: 0 0 0 1px var(--line); }
+.module-block .pin-mark { padding: 2px 4px; }
+.sortable-row[data-dragging] > .module-block { box-shadow: inset 3px 0 0 var(--fam, var(--line-control)), 0 0 0 1px var(--line), var(--shadow-drag); transform: rotate(-1deg); }
+
+/* The sample page: the page view's own title and cards, smaller. */
+.shaping-preview { min-width: 0; padding: 18px 20px 22px; border-radius: var(--radius-card); background: var(--sidebar); box-shadow: 0 0 0 1px var(--line); }
+.preview-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.preview-head select { width: auto; padding: 6px 10px; font-size: 14px; }
+.preview-note { margin: 4px 0 14px; font-size: 13px; }
+.sample-page { display: grid; gap: 26px; }
+.sample-page .main-key { margin: 0 0 4px; }
+.sample-page .main-key[data-tier="word"] { font-size: 44px; }
+.sample-page .main-key[data-tier="phrase"], .sample-page .main-key[data-tier="sentence"] { font-size: 28px; }
+.sample-page .component { padding: 22px 18px 16px; }
+.sample-page .card-tab { left: 14px; height: 24px; top: -12px; }
+.sample-page .card-tab h3 { margin: 0; font: 600 12px/1 var(--font-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: inherit; }
+.sample-page .component[data-adding] { opacity: .7; box-shadow: inset 0 3px 0 var(--fam), 0 0 0 2px var(--focus); }
+.sample-page .component > .muted { margin: 0; font-size: 14px; }
+.sample-page .reading, .sample-page .example-sentence { font-size: 16px; }
+.sample-page .meanings li, .sample-page .component pre { font-size: 14px; }
+
+@media (max-width: 1180px) {
+  .shaping-layout.with-preview { grid-template-columns: minmax(220px, 280px) minmax(0, 1fr); grid-template-areas: "list preview" "window window"; }
+}
+@media (max-width: 1180px) { .with-preview .module-window { position: static; } }
+@media (max-width: 900px) {
+  .shaping-layout.with-preview { grid-template-columns: minmax(0, 1fr); grid-template-areas: "list" "preview" "window"; }
+  .deck-settings .page-head .head-actions { margin-top: 0; }
+}

@@ -2,7 +2,7 @@
 
 .deck-view h1 { display: flex; align-items: baseline; gap: 14px; }
 .deck-mark { width: 14px; height: 22px; align-self: center; }
-.head-actions { display: flex; align-items: center; gap: 8px; }
+.page-head > .head-actions { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; margin-left: auto; }
 .head-actions .deck-menu summary { padding: 10px 12px; border-radius: var(--radius-control); }
 .head-actions .deck-menu summary:hover { background: var(--surface-hover); }
 

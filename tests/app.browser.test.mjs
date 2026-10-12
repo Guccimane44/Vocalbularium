@@ -461,6 +461,17 @@ test('deck UI: draft previews, all modules, the module limit, removal without co
   assert.match(await a.page.locator('.preview').nth(0).textContent(), /我真的很幸福/);
   assert.match(await a.page.locator('.preview').nth(2).textContent(), /Does not apply to this input/);
   assert.match(await a.page.locator('.preview').nth(4).textContent(), /我真的很幸福/);
+  // The live preview follows the list, also while a module is being dragged (D05).
+  const previewTypes = () => a.page.locator('.sample-page .component').evaluateAll(nodes => nodes.map(node => node.dataset.type));
+  assert.deepEqual(await previewTypes(), ['context', 'german-examples', 'german-explanation', 'sentence-usage', 'sentence-usage', 'sentence-usage']);
+  await a.page.getByRole('button', { name: 'Drag German explanation', exact: true }).focus();
+  await a.page.keyboard.press('Space');
+  await new Promise(resolve => setTimeout(resolve, 300));
+  await a.page.keyboard.press('ArrowUp');
+  await waitFor(async () => (await previewTypes())[1] === 'german-explanation', 'the preview follows the drag before the drop');
+  assert.equal(await a.page.locator('.module-block').nth(2).getAttribute('data-type'), 'german-examples', 'nothing dropped yet');
+  await a.page.keyboard.press('Escape');
+  await waitFor(async () => (await previewTypes())[1] === 'german-examples', 'a cancelled drag restores the preview');
   assert.equal((await application.store.pages()).length, 0); assert.equal((await application.store.account()).decks.length, 1);
   await a.page.screenshot({ path: 'artifacts/m3-configuration.png', fullPage: true });
   await a.page.getByRole('button', { name: 'Save', exact: true }).click();

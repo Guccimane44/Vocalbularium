@@ -68,8 +68,8 @@ function NewPageEditor({ draft, deck, busy, persist, save, cancel }: Pick<Props,
 
 // Generated content as its module's render contract describes; anything else,
 // and the user's own text, as plain text with its line breaks.
-function Content({ item, mainKey }: { item: Component; mainKey: string }) {
-  const rendered = renderContent(item.moduleType, blockText(item.content));
+export function Content({ type, text, mainKey }: { type: string; text: string; mainKey: string }) {
+  const rendered = renderContent(type, text);
   if (rendered.kind === 'plain') return <pre>{rendered.text}</pre>;
   if (rendered.kind === 'sentence') return <p className="reading">{rendered.text}</p>;
   const { heading, meanings, examples } = rendered;
@@ -102,14 +102,14 @@ function ComponentBody({ item, title, editable, draft, locked, persist, mainKey 
       onChange={value => { draft.texts[item.id] = value; persist(); }} />
     {item.status === 'loading' && <p className="notice">This component is generating. Your draft is preserved; save explicitly after generation finishes.</p>}
   </>;
-  if (text) return <Content item={item} mainKey={mainKey} />;
+  if (text) return <Content type={item.moduleType} text={text} mainKey={mainKey} />;
   if (item.status === 'loading' || item.status === 'failed') return null;
   if (isContentType(item.moduleType) && item.attemptId === null) return <p className="muted">Not generated yet.</p>;
   return <p className="muted">Empty.</p>;
 }
 
 // The page title: the main key in its tier; a passage is cut after six lines.
-function MainKeyTitle({ text }: { text: string }) {
+export function MainKeyTitle({ text }: { text: string }) {
   const tier = mainKeyTier(text);
   const title = useRef<HTMLHeadingElement>(null);
   const [expanded, setExpanded] = useState(false);

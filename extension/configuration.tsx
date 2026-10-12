@@ -3,8 +3,13 @@ import type { DeckEditorDraft } from '../types/editor-drafts.js';
 import type { DeckConfiguration } from '@vocabularium/contracts';
 import { MODULES } from '@vocabularium/domain/modules';
 import type { ModuleType as ContentModuleType } from '@vocabularium/domain/modules';
-import { addBlocked } from '@vocabularium/domain/page-modules';
+import { addBlocked, CATALOG, isModuleType } from '@vocabularium/domain/page-modules';
+import type { ModuleFamily } from '@vocabularium/domain/page-modules';
+import { FamilyIcon } from './families.tsx';
+import { mainKeyTier } from './main-key.ts';
+import { Content } from './page-view.tsx';
 import { moduleLabel, PinMark, ShapingArea } from './shaping.tsx';
+import type { Projection } from './shaping.tsx';
 
 const instance = (type: string) => ({ id: crypto.randomUUID(), type });
 
@@ -29,6 +34,45 @@ function sample(type: string, inputType: 'word_phrase' | 'sentence', instance: n
   return explanation + (type === 'german-examples'
     ? '\n=== Beispiele ===\n: [1] 她希望孩子们拥有幸福。\n:: Sie hofft, dass die Kinder Glück haben.'
     : '');
+}
+
+const familyOf = (type: string): ModuleFamily => (isModuleType(type) && CATALOG[type].family) || 'notes';
+
+// A sample page built from the configured modules in the order they would have
+// if the current drag ended now, so it follows the list as the user drags.
+function SamplePreview({ modules, projection, sampleType, choose }: {
+  modules: DeckConfiguration['modules']; projection: Projection; sampleType: 'word_phrase' | 'sentence'; choose: (value: 'word_phrase' | 'sentence') => void;
+}) {
+  const [key, ...rest] = modules;
+  const byId = new Map(rest.map(module => [module.id, module]));
+  const ordered: { id: string; type: string; adding?: boolean }[] = projection.ids.map(id => byId.get(id)).filter(module => module !== undefined);
+  if (projection.adding) ordered.splice(Math.min(projection.adding.index, ordered.length), 0, { id: 'adding', type: projection.adding.type, adding: true });
+  const mainKey = SAMPLE[sampleType];
+  const seen = new Map<string, number>();
+  return <section className="shaping-preview" aria-labelledby="preview-title">
+    <div className="preview-head">
+      <h2 id="preview-title">Preview</h2>
+      <label className="visually-hidden" htmlFor="sample-input">Sample input</label>
+      <select id="sample-input" value={sampleType} onChange={event => choose(event.target.value as 'word_phrase' | 'sentence')}>
+        <option value="word_phrase">Word: 幸福</option>
+        <option value="sentence">Sentence: 我真的很幸福</option>
+      </select>
+    </div>
+    <p className="muted preview-note">A sample new page in this deck. Previews never create or change pages.</p>
+    <div className="sample-page" aria-live="polite">
+      <p className="main-key preview" data-type={key.type} data-tier={mainKeyTier(mainKey)}>{sample(key.type, sampleType, 0)}</p>
+      {ordered.map(module => {
+        const count = seen.get(module.type) ?? 0;
+        seen.set(module.type, count + 1);
+        const text = sample(module.type, sampleType, count);
+        const family = familyOf(module.type);
+        return <article className={`component preview fam-${family}`} key={module.id} data-type={module.type} data-adding={module.adding || undefined}>
+          <div className="card-tab"><FamilyIcon family={family} /><h3>{moduleLabel(module.type)}</h3></div>
+          {text === null ? <p className="muted">Your own notes</p> : text ? <Content type={module.type} text={text} mainKey={mainKey} /> : <p className="muted">Does not apply to this input</p>}
+        </article>;
+      })}
+    </div>
+  </section>;
 }
 
 type Props = {
@@ -78,59 +122,52 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
     }
   }
 
-  return <>
-    <p className="eyebrow">DECK SETTINGS</p>
-    <h1>{draft.deck.id ? 'Shape your deck.' : 'A new collection.'}</h1>
-    <fieldset disabled={busy}>
+  const actions = <div className="head-actions">
+    <button onClick={async () => {
+      if (draft.pending) await chrome.storage.local.remove('save-' + draft.pending.operationId);
+      onCancel();
+    }}>Cancel</button>
+    <button className="primary" disabled={Boolean(draft.saving)} onClick={() => void saveDraft()}>
+      {draft.pending ? 'Try saving again' : 'Save'}
+    </button>
+  </div>;
+  return <div className="deck-settings">
+    <div className="page-head">
+      <div>
+        <p className="eyebrow">Deck settings</p>
+        <h1>{draft.deck.id ? 'Shape your deck.' : 'A new collection.'}</h1>
+      </div>
+      {actions}
+    </div>
+    {draft.error && <p className="notice error">{draft.error}</p>}
+    {externalError && <p className="notice error" role="alert">{externalError}</p>}
+    <fieldset className="deck-name" disabled={busy}>
       <label htmlFor="deck-name">Deck name</label>
       <input id="deck-name" value={draft.deck.name} onChange={event => {
         draft.deck.name = event.target.value;
         refresh();
       }} />
     </fieldset>
-    <h2>Modules for new pages</h2>
-    <p className="muted">Every new page in this deck starts with these modules, in this order. Changes apply to pages created afterwards; existing pages keep their own modules.</p>
     <ShapingArea items={items} types={modules.map(module => module.type)} disabled={busy} unavailable={busy ? 'Saving…' : undefined}
-      label="Deck modules" where="the list" onAdd={add} onMove={(id, index) => { move(id, index); return true; }}
-      pinned={<div className="module-block" data-type={key.type}>
-        <PinMark />
-        <span>{moduleLabel(key.type)}</span>
-      </div>}
-      renderItem={(item, handle) => <div className="module-block" data-type={item.type}>
+      label="Modules for new pages" where="the list" onAdd={add} onMove={(id, index) => { move(id, index); return true; }}
+      pinned={<>
+        <div className="list-intro">
+          <h2>Modules for new pages</h2>
+          <p className="muted">New pages start with these modules, in this order. Existing pages keep their own.</p>
+        </div>
+        <div className="module-block" data-type={key.type}>
+          <PinMark />
+          <span>{moduleLabel(key.type)}</span>
+        </div>
+      </>}
+      renderItem={(item, handle) => <div className={`module-block fam-${familyOf(item.type)}`} data-type={item.type}>
         {handle}
+        <FamilyIcon family={familyOf(item.type)} />
         <span>{item.label}</span>
         <button aria-label={`Remove ${item.label}`} disabled={busy}
           onClick={() => { modules.splice(modules.findIndex(module => module.id === item.id), 1); refresh(); }}>Remove</button>
-      </div>} />
-    <div className="dialog-actions">
-      <button onClick={async () => {
-        if (draft.pending) await chrome.storage.local.remove('save-' + draft.pending.operationId);
-        onCancel();
-      }}>Cancel</button>
-      <button className="primary" disabled={Boolean(draft.saving)} onClick={() => void saveDraft()}>
-        {draft.pending ? 'Try saving again' : 'Save'}
-      </button>
-    </div>
-    {draft.error && <p className="notice error">{draft.error}</p>}
-    {externalError && <p className="notice error" role="alert">{externalError}</p>}
-    <section className="showcase">
-      <h2>Example previews</h2>
-      <p className="muted">Illustrative samples only. Previews do not create or change pages.</p>
-      <label htmlFor="sample-input">Sample input</label>
-      <select id="sample-input" value={sampleType} onChange={event => {
-        draft.sampleType = event.target.value as 'word_phrase' | 'sentence';
-        refresh();
-      }}>
-        <option value="word_phrase">Word / phrase: 幸福</option>
-        <option value="sentence">Sentence: 我真的很幸福</option>
-      </select>
-      {modules.map((module, index) => {
-        const text = sample(module.type, sampleType, modules.slice(0, index).filter(other => other.type === module.type).length);
-        return <article className="preview" key={module.id}>
-          <h3>{moduleLabel(module.type) + ' · Example'}</h3>
-          {text === null ? <p className="muted">Your own notes</p> : text ? <pre>{text}</pre> : <p className="muted">Does not apply to this input</p>}
-        </article>;
-      })}
-    </section>
-  </>;
+      </div>}
+      preview={projection => <SamplePreview modules={modules} projection={projection} sampleType={sampleType}
+        choose={value => { draft.sampleType = value; refresh(); }} />} />
+  </div>;
 }

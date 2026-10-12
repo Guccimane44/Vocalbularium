@@ -67,12 +67,15 @@ export const PinMark = () => <span className="pin-mark" role="img" aria-label="F
 
 export type ShapeItem = { id: string; label: string };
 type Result = boolean | void | Promise<boolean | void>;
+// The list as it would be if the current drag ended now: entry IDs in order,
+// and a module from the window with the index it would land at.
+export type Projection = { ids: string[]; adding: { type: string; index: number } | null };
 
 // The list below a pinned first entry (the main key), and the module window
 // beside it. Indexes passed to the handlers count among the movable entries,
 // so nothing is ever placed above the pinned one. A handler returning false
 // reports a failed save, which restores the saved order.
-export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unavailable, pinned, label, where, onAdd, onMove, renderItem }: {
+export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unavailable, pinned, label, where, onAdd, onMove, renderItem, preview }: {
   items: T[];
   // Every module type present, the pinned main key included, for the window's limits.
   types: readonly string[];
@@ -85,6 +88,8 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
   onAdd: (type: string, index: number) => Result;
   onMove: (id: string, index: number) => Result;
   renderItem: (item: T, handle: ReactNode) => ReactNode;
+  // Shown between the list and the module window, following every drag as it happens.
+  preview?: (projection: Projection) => ReactNode;
 }) {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(KeyboardSensor, { coordinateGetter: keyboard }));
@@ -96,6 +101,7 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
   const [adding, setAdding] = useState<{ type: string; index: number } | null>(null);
   const [slot, setSlot] = useState<number | null>(null);
   const [dragged, setDragged] = useState<string | null>(null);
+  const [projected, setProjected] = useState<string[] | null>(null);
   const saved = useRef(ids);
   saved.current = ids;
   useEffect(() => { setOrder(ids); setAdding(null); }, [key]);
@@ -130,11 +136,16 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
     onDragCancel: ({ active }) => `Moving ${name(active.id)} was cancelled.`
   };
   const keyboardDrag = (event: { activatorEvent: Event }) => event.activatorEvent instanceof KeyboardEvent;
-  function start({ active }: DragStartEvent) { setDragged(String(active.id)); setSlot(null); }
+  function start({ active }: DragStartEvent) { setDragged(String(active.id)); setSlot(null); setProjected(null); }
   function move(event: DragMoveEvent) {
-    if (fromWindow(event.active)) setSlot(landing(event.active, event.over, keyboardDrag(event)));
+    if (fromWindow(event.active)) { setSlot(landing(event.active, event.over, keyboardDrag(event))); return; }
+    if (!preview || !event.over) return;
+    const from = order.indexOf(String(event.active.id));
+    const to = String(event.over.id) === LIST_END ? order.length - 1 : order.indexOf(String(event.over.id));
+    const next = from < 0 || to < 0 ? null : arrayMove(order, from, to);
+    setProjected(current => current?.join('|') === next?.join('|') ? current : next);
   }
-  function finish() { setDragged(null); setSlot(null); }
+  function finish() { setDragged(null); setSlot(null); setProjected(null); }
   async function end(event: DragEndEvent) {
     const { active, over } = event;
     const target = fromWindow(active) ? landing(active, over, keyboardDrag(event)) : null;
@@ -160,7 +171,7 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
   return <DndContext sensors={sensors} collisionDetection={collision} accessibility={{ announcements }}
     measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}
     onDragStart={start} onDragMove={move} onDragOver={move} onDragEnd={end} onDragCancel={finish}>
-    <div className="shaping-layout">
+    <div className={`shaping-layout${preview ? ' with-preview' : ''}`}>
       <section className="shaping-list" aria-label={label}>
         {pinned}
         <SortableContext items={shown.map(item => item.id)} strategy={verticalListSortingStrategy} disabled={disabled}>
@@ -168,6 +179,10 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
         </SortableContext>
         <DropEnd disabled={disabled} active={slot === shown.length} />
       </section>
+      {preview?.({
+        ids: projected ?? shown.map(item => item.id),
+        adding: dragged?.startsWith(WINDOW) && slot !== null ? { type: dragged.slice(WINDOW.length), index: slot } : adding
+      })}
       <ModuleWindow types={types} disabled={disabled} unavailable={unavailable} where={where} />
     </div>
     <DragOverlay dropAnimation={null}>
