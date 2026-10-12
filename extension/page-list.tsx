@@ -1,4 +1,4 @@
-import { useId, useRef } from 'react';
+import { useEffect, useId, useRef } from 'react';
 import type { MouseEvent as ReactMouseEvent, ReactNode } from 'react';
 import { CATALOG, isModuleType } from '@vocabularium/domain/page-modules';
 import { mainKeyTier, wordCount } from './main-key.ts';
@@ -23,13 +23,34 @@ type Navigate = (hash: string) => void;
 
 const familyOf = (type: string) => isModuleType(type) ? CATALOG[type].family : null;
 
+// Motion (D05): which entries just arrived in a list, so they can slide in.
+// Only entries inserted among the previous ones count, never a first render or
+// (unless `appended`) a loaded batch at the end. An arrival stays marked while it moves.
+export function useArrivals(ids: string[], { appended = false } = {}) {
+  const previous = useRef<string[] | null>(null);
+  const marked = useRef(new Map<string, number>());
+  const now = Date.now();
+  if (previous.current) {
+    const before = new Set(previous.current);
+    ids.forEach((id, index) => { if (!before.has(id) && (appended || index < previous.current!.length) && !marked.current.has(id)) marked.current.set(id, now); });
+  }
+  for (const [id, at] of marked.current) if (now - at > 700) marked.current.delete(id);
+  useEffect(() => { previous.current = ids; });
+  return (id: string) => marked.current.has(id) || undefined;
+}
+
 // One small mark per filled component, in page order, with one text alternative.
 export function FamilyMarks({ modules }: { modules?: SummaryModule[] }) {
   const filled = (modules ?? []).filter(module => module.filled && familyOf(module.type));
+  // Marks pop in as components finish, not when the list first appears.
+  const shown = useRef<number | null>(null);
+  const before = shown.current;
+  useEffect(() => { shown.current = filled.length; });
   if (!filled.length) return null;
   const label = `${filled.length} ${filled.length === 1 ? 'module' : 'modules'} filled`;
   return <span className="fam-marks" role="img" aria-label={label} title={label}>
-    {filled.map((module, index) => <span className={`fam-mark fam-${familyOf(module.type)}`} key={index} />)}
+    {filled.map((module, index) => <span className={`fam-mark fam-${familyOf(module.type)}`} key={index}
+      data-new={before !== null && index >= before ? true : undefined} />)}
   </span>;
 }
 
@@ -99,35 +120,35 @@ function KeyLink({ page, link, describedBy }: { page: ListPage; link: (event: Re
     data-tier={mainKeyTier(page.mainKey)}>{page.mainKey}</a>;
 }
 
-function ListRow({ page, navigate }: { page: ListPage; navigate: Navigate }) {
+function ListRow({ page, navigate, arrived }: { page: ListPage; navigate: Navigate; arrived?: boolean }) {
   const open = useOpen<HTMLLIElement>(page, navigate);
   const meaning = useId();
-  return <li className="page-row" data-page-id={page.id} data-state={page.status ?? 'neutral'} ref={open.ref} onClick={open.onClick}>
+  return <li className="page-row" data-page-id={page.id} data-state={page.status ?? 'neutral'} data-arrived={arrived} ref={open.ref} onClick={open.onClick}>
     <span className="page-row-text">
       <KeyLink page={page} link={open.link} describedBy={meaning} />
-      <span id={meaning}><MeaningLine page={page} navigate={navigate} /></span>
+      <span id={meaning}><MeaningLine page={page} navigate={navigate} key={page.status ?? 'none'} /></span>
     </span>
     <FamilyMarks modules={page.modules} />
     <span className="row-open" aria-hidden="true">Open →</span>
   </li>;
 }
 
-function TableRow({ page, navigate }: { page: ListPage; navigate: Navigate }) {
+function TableRow({ page, navigate, arrived }: { page: ListPage; navigate: Navigate; arrived?: boolean }) {
   const open = useOpen<HTMLTableRowElement>(page, navigate);
-  return <tr className="page-row" data-page-id={page.id} data-state={page.status ?? 'neutral'} ref={open.ref} onClick={open.onClick}>
+  return <tr className="page-row" data-page-id={page.id} data-state={page.status ?? 'neutral'} data-arrived={arrived} ref={open.ref} onClick={open.onClick}>
     <td className="key-cell"><KeyLink page={page} link={open.link} /></td>
-    <td><MeaningLine page={page} navigate={navigate} /></td>
+    <td><MeaningLine page={page} navigate={navigate} key={page.status ?? 'none'} /></td>
     <td><FamilyMarks modules={page.modules} /></td>
     <td className="date-cell"><time dateTime={page.createdAt}>{shortDate(page.createdAt)}</time></td>
   </tr>;
 }
 
-function GalleryCard({ page, navigate }: { page: ListPage; navigate: Navigate }) {
+function GalleryCard({ page, navigate, arrived }: { page: ListPage; navigate: Navigate; arrived?: boolean }) {
   const open = useOpen<HTMLLIElement>(page, navigate);
-  return <li className="page-card" data-page-id={page.id} data-state={page.status ?? 'neutral'} ref={open.ref} onClick={open.onClick}>
+  return <li className="page-card" data-page-id={page.id} data-state={page.status ?? 'neutral'} data-arrived={arrived} ref={open.ref} onClick={open.onClick}>
     <FamilyMarks modules={page.modules} />
     <KeyLink page={page} link={open.link} />
-    <MeaningLine page={page} navigate={navigate} />
+    <MeaningLine page={page} navigate={navigate} key={page.status ?? 'none'} />
     <time className="card-date" dateTime={page.createdAt}>{shortDate(page.createdAt)}</time>
   </li>;
 }
@@ -144,14 +165,15 @@ function groups(pages: ListPage[], grouped: boolean) {
 }
 
 export function PageList({ pages, layout, order, navigate }: { pages: ListPage[]; layout: Layout; order: string; navigate: Navigate }) {
+  const arrived = useArrivals(pages.map(page => page.id));
   if (layout === 'table') return <table className="page-table">
     <thead><tr><th scope="col">Main key</th><th scope="col">Meaning</th><th scope="col">Modules</th><th scope="col">Date</th></tr></thead>
-    <tbody>{pages.map(page => <TableRow page={page} navigate={navigate} key={page.id} />)}</tbody>
+    <tbody>{pages.map(page => <TableRow page={page} navigate={navigate} key={page.id} arrived={arrived(page.id)} />)}</tbody>
   </table>;
   const sections = groups(pages, order === 'newest' || order === 'oldest');
   const body = (items: ListPage[]): ReactNode => layout === 'gallery'
-    ? <ul className="page-gallery">{items.map(page => <GalleryCard page={page} navigate={navigate} key={page.id} />)}</ul>
-    : <ul className="page-rows">{items.map(page => <ListRow page={page} navigate={navigate} key={page.id} />)}</ul>;
+    ? <ul className="page-gallery">{items.map(page => <GalleryCard page={page} navigate={navigate} key={page.id} arrived={arrived(page.id)} />)}</ul>
+    : <ul className="page-rows">{items.map(page => <ListRow page={page} navigate={navigate} key={page.id} arrived={arrived(page.id)} />)}</ul>;
   return <div className={`page-list layout-${layout}`}>
     {sections.map(section => section.label === null ? <div key="all">{body(section.pages)}</div>
       : <section className="date-group" key={section.label} aria-label={section.label}>

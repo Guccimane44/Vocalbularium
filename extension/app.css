@@ -4,6 +4,7 @@
 @import "page-list.css";
 @import "page-view.css";
 @import "deck-settings.css";
+@import "motion.css";
 :root { font: 16px/1.6 var(--font-text); color: var(--text); background: var(--background); }
 * { box-sizing: border-box; }
 body { margin: 0; }

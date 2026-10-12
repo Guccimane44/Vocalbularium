@@ -4,7 +4,7 @@ import { dialog } from './dialog.ts';
 import { SORT_ORDERS } from './sorting.ts';
 import { deckColour } from './deck-colour.ts';
 import { mainKeyTier } from './main-key.ts';
-import { GeneratingStatus, isLayout, LayoutSwitch, MeaningLine, PageList, SavingStatus } from './page-list.tsx';
+import { GeneratingStatus, isLayout, LayoutSwitch, MeaningLine, PageList, SavingStatus, useArrivals } from './page-list.tsx';
 import type { Layout, ListPage } from './page-list.tsx';
 
 // A page summary: list rows show the main key, the first meaning and the
@@ -213,6 +213,8 @@ function RecentCaptures({ account, local, navigate, mutate, reportError }: Pick<
       .map(item => ({ key: `receipt-${item.operationId}`, receipt: item, text: item.payload.mainKey, deckId: item.payload.snapshot.id, date: item.createdAt })),
     ...account.recentPages.filter(page => page.selectedText !== null).map(page => ({ key: `page-${page.id}`, page, text: page.selectedText!, deckId: page.deckId, date: page.createdAt }))
   ].sort((a, b) => b.date.localeCompare(a.date));
+  // A new capture arrives as its receipt; the page that replaces it is not a second arrival.
+  const arrived = useArrivals(entries.filter(entry => entry.receipt).map(entry => entry.key), { appended: true });
   return <section className="recent" aria-labelledby="recent-captures">
     <h2 className="section-title" id="recent-captures">Recent captures</h2>
     {entries.length > 0 && <ul className="captures">{entries.map(entry => {
@@ -222,10 +224,10 @@ function RecentCaptures({ account, local, navigate, mutate, reportError }: Pick<
       const pageId = entry.page?.id ?? (entry.receipt?.state === 'saved' ? entry.receipt.pageId : undefined);
       const text = <span className="capture-text" data-tier={mainKeyTier(entry.text)}>{entry.text}</span>;
       let line: ReactNode = null;
-      if (entry.page) line = <MeaningLine page={{ ...entry.page, mainKey: entry.text }} navigate={navigate} />;
+      if (entry.page) line = <MeaningLine page={{ ...entry.page, mainKey: entry.text }} navigate={navigate} key={entry.page.status ?? 'none'} />;
       else if (entry.receipt?.state === 'saving') line = <span className="meaning-line"><SavingStatus /></span>;
       else if (entry.receipt?.state === 'saved') line = <span className="meaning-line"><GeneratingStatus /></span>;
-      return <li className="capture" data-state={state} key={entry.key}>
+      return <li className="capture" data-state={state} key={entry.key} data-arrived={arrived(entry.key)}>
         <span className="capture-body">
           {pageId ? <a className="capture-link" href={`#page/${pageId}`}>{text}</a> : text}
           {line}

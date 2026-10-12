@@ -3,6 +3,7 @@ import { saveOperations } from './save-operations.js';
 import { API_URL } from './config.js';
 import { captureRuntime } from './capture.js';
 import { captureMenu } from './context-menu.js';
+import { captureBadge } from './badge.js';
 import { relayFeedbackTheme } from './feedback.js';
 import { isApiFailure } from './api-failure.js';
 import { extensionDiagnostics } from './diagnostics.js';
@@ -27,6 +28,8 @@ export function startBackground() {
   let writes = Promise.resolve(), refreshes = Promise.resolve();
   const updateCaptureMenu = captureMenu();
   const saves = saveOperations({ request });
+  const badge = captureBadge();
+  void badge.restore().catch(() => {});
   function writeState(action) {
     const next = writes.then(action); writes = next.catch(() => {}); return next;
   }
@@ -198,6 +201,7 @@ export function startBackground() {
       await removeAccess();
       return { signedIn: false };
     }
+    if (message.type === 'dashboard-seen') { await badge.seen(); return {}; }
     if (message.type === 'initialize') {
       const initialized = await initialize();
       if (initialized.signedIn) void captures.poll().catch(captures.recordError);
@@ -271,7 +275,7 @@ export function startBackground() {
     if (area === 'local' && changes.theme) void relayFeedbackTheme(changes.theme.newValue).catch(() => {});
   });
 
-  const captures = captureRuntime({ request, initialize, saves, refresh: refreshAccount, removeAccess, diagnostic: diagnostics.record });
+  const captures = captureRuntime({ request, initialize, saves, refresh: refreshAccount, removeAccess, diagnostic: diagnostics.record, accepted: badge.added });
   const handleCapture = captures.handleCapture;
   chrome.contextMenus.onClicked.addListener((info, tab) => {
     if (info.menuItemId === 'capture') void handleCapture(info, tab).catch(captures.recordError);

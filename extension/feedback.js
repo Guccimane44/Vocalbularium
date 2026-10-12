@@ -17,7 +17,8 @@ export async function relayFeedbackTheme(theme) {
   if (expired.length) await chrome.storage.session.remove(expired);
   await Promise.all([...tabs].map(tabId => chrome.tabs.sendMessage(tabId, { type: 'feedback-theme', theme: theme === 'dark' || theme === 'light' ? theme : 'system' }).catch(() => {})));
 }
-export async function showFeedback(tabId, message, failed = false, sourceUrl) {
+// `flight` is the selected text that flies into the popup on an ordinary web page (D05).
+export async function showFeedback(tabId, message, failed = false, sourceUrl, flight) {
   // The capture-time URL keeps closed/navigated product tabs out of the window fallback.
   if (sourceUrl === undefined) {
     try {
@@ -38,7 +39,7 @@ export async function showFeedback(tabId, message, failed = false, sourceUrl) {
     const result = await chrome.scripting.executeScript({
       target: { tabId },
       func: renderFeedback,
-      args: [message, failed, theme, css]
+      args: [message, failed, theme, css, flight ?? null]
     });
     injected = true;
     // Session metadata lets a newly woken worker find only still-active feedback.

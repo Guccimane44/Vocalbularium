@@ -83,6 +83,12 @@ const pageUI = pageViews({ getAccount: () => account, send, showError,
   applyState: async (next, redraw = true) => { account = next.account; signedIn = next.signedIn; if (redraw) await render(); }
 });
 let lastHash = location.hash;
+// Opening the dashboard clears the toolbar badge of new captures (D05, K21).
+const clearBadge = () => {
+  if (signedIn && !document.hidden && (location.hash === '' || location.hash === '#')) void send({ type: 'dashboard-seen' }).catch(() => {});
+};
+document.addEventListener('visibilitychange', clearBadge);
+
 async function render() {
   const focusedMenu = document.activeElement?.dataset.deckOptions;
   const focused = document.activeElement;
@@ -91,6 +97,7 @@ async function render() {
   const local = await readLocal(null);
   if (version !== renderVersion) return;
   if (!signedIn) { login(); return; }
+  clearBadge();
   // Render account pages and capture receipts from the same storage snapshot.
   if (local.account) account = viewAccount(local.account);
   renderAccountMenu(actions, {

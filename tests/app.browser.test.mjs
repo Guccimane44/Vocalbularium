@@ -362,6 +362,61 @@ test('capture with Context: the surrounding block follows the deck’s Context m
   assert.ok(receipts.every(payload => payload.mainKey !== '幸福' || payload.context === undefined || payload.context === context));
 });
 
+test('capture motion: the selection flies into the popup, reduced motion skips it, and the toolbar badge counts until the dashboard opens', { timeout: 40000 }, async (t) => {
+  const directory = await mkdtemp(join(tmpdir(), 'vocabularium-capture-motion-'));
+  const testingExtension = join(directory, 'extension');
+  await cp(resolve(process.env.VOCABULARIUM_TEST_EXTENSION ?? 'artifacts/extension'), testingExtension, { recursive: true });
+  await appendFile(join(testingExtension, 'background.js'), '\nglobalThis.captureForTest = handleCapture;\n');
+  const application = await createTestApplication(t, { provider: {
+    async interpret() { return { inputType: 'word_phrase', sourceLanguage: 'German' }; },
+    async generate() { return 'Glück'; }
+  } });
+  await application.start();
+  const a = await launch(join(directory, 'a'), testingExtension);
+  t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
+  await signIn(a.page);
+  const deckId = (await application.store.snapshot()).id;
+  // Away from the dashboard, captures accumulate on the toolbar badge.
+  await a.page.goto(`chrome-extension://${a.id}/app.html#deck/${deckId}`);
+  const badge = () => a.worker.evaluate(() => chrome.action.getBadgeText({}));
+  assert.equal(await badge(), '');
+  const reading = await a.context.newPage(); await reading.goto(apiOrigin + '/health');
+  const long = 'Fernweh ist die Sehnsucht nach fernen Orten und unbekannten Ländern';
+  await reading.setContent(`<p style="margin-top:300px">Ein Wort: <b id="word">${long}</b>.</p>`);
+  const select = () => reading.locator('#word').evaluate(node => {
+    const range = document.createRange(); range.selectNodeContents(node); getSelection().removeAllRanges(); getSelection().addRange(range); return getSelection().toString();
+  });
+  const label = reading.locator('vocabularium-feedback .flight-label');
+  const status = reading.getByRole('status');
+
+  const flying = captureFrom(a, await select());
+  await label.waitFor({ state: 'attached', timeout: 3000 });
+  assert.equal(await label.textContent(), long.slice(0, 43) + '…', 'a long label is shortened; the capture keeps the full text');
+  await status.waitFor();
+  await label.waitFor({ state: 'detached' });
+  await flying;
+  assert.equal(keyOf((await application.store.pages())[0]), long);
+  await waitFor(async () => await badge() === '1', 'the badge counts the accepted capture');
+  await status.waitFor({ state: 'detached', timeout: 5000 });
+
+  // Reduced motion: no flight, the popup at once, and the capture unchanged.
+  await reading.emulateMedia({ reducedMotion: 'reduce' });
+  const started = Date.now();
+  const still = captureFrom(a, await select());
+  await status.waitFor();
+  assert.equal(await label.count(), 0, 'nothing flies under reduced motion');
+  assert.ok(Date.now() - started < 2000);
+  await still;
+  await waitFor(async () => await badge() === '2', 'the badge counts every capture');
+
+  // Opening the dashboard clears the badge.
+  await a.page.bringToFront();
+  await a.page.goto(`chrome-extension://${a.id}/app.html#`);
+  await a.page.getByRole('heading', { name: 'Your decks', exact: true }).waitFor();
+  await waitFor(async () => await badge() === '', 'the dashboard clears the badge');
+  assert.equal((await a.worker.evaluate(() => chrome.storage.local.get('captureBadge'))).captureBadge, 0);
+});
+
 test('recent captures: the pending receipt hands off to its account page without an empty or duplicate frame', { timeout: 35000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-capture-handoff-'));
   const testingExtension = join(directory, 'extension');
@@ -1396,7 +1451,9 @@ test('dashboard capture feedback: shared appearance, original lifetime, originat
   const capture = text => a.worker.evaluate(async ({ tabId, text }) => globalThis.captureForTest(
     { menuItemId: 'capture', selectionText: text }, await chrome.tabs.get(tabId)), { tabId, text });
   const feedback = page => page.locator('vocabularium-feedback .feedback-item');
-  const appearance = page => feedback(page).evaluate(node => {
+  const appearance = page => feedback(page).evaluate(async node => {
+    // The popup springs in (D05); compare where it settles.
+    await Promise.all(node.getAnimations().map(animation => animation.finished));
     const properties = ['fontFamily', 'fontSize', 'lineHeight', 'color', 'backgroundColor', 'padding', 'margin', 'border', 'borderRadius', 'boxShadow', 'maxWidth'];
     const inspect = element => {
       const style = getComputedStyle(element), rect = element.getBoundingClientRect();
