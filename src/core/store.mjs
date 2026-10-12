@@ -2,7 +2,7 @@ import { Postgres, OWNER_ACCOUNT_ID } from '../persistence/postgres.ts';
 import { createHash, randomUUID } from 'node:crypto';
 import { blockText, pageStatus, textBlocks } from '@vocabularium/domain/pages';
 import {
-  addBlocked, copyModules, deleteBlocked, generationTargets, moveBlocked, moved, validateConfiguration
+  addBlocked, copyModules, deleteBlocked, generationTargets, moveBlocked, moved, pageMeaning, validateConfiguration
 } from '@vocabularium/domain/page-modules';
 import { sortKey } from './sort-key.mjs';
 /** @typedef {import('./store-records.js').PageRow} PageRow */
@@ -38,9 +38,20 @@ const summaryFields = `b.id, b.deck_id, b.selected_text, b.created_at, b.main_ke
   (SELECT CASE WHEN BOOL_OR(q.status = 'failed') THEN 'failed'
     WHEN BOOL_OR(q.status = 'loading') THEN 'loading'
     WHEN COUNT(q.status) > 0 THEN 'completed' ELSE NULL END
-    FROM components q WHERE q.page_id = b.id) AS status`;
-const pageSummary = row => ({ id: row.id, deckId: row.deck_id, selectedText: row.selected_text, createdAt: row.created_at,
-  mainKey: row.main_key ? blockText(JSON.parse(row.main_key)) : '', status: row.status });
+    FROM components q WHERE q.page_id = b.id) AS status,
+  (SELECT json_agg(json_build_object('type', m.module_type, 'status', m.status,
+      'filled', EXISTS (SELECT 1 FROM jsonb_array_elements(m.content::jsonb -> 'blocks') e WHERE btrim(e ->> 'text') <> ''),
+      'content', CASE WHEN m.module_type IN ('main-key', 'context', 'text') THEN NULL ELSE m.content END) ORDER BY m.position)
+    FROM components m WHERE m.page_id = b.id) AS modules`;
+// A page summary (D05): the list shows the main key, the first meaning, and one
+// family mark per module, never the page's full content.
+function pageSummary(row) {
+  const components = (row.modules ?? []).map(module => ({ ...module, text: module.content ? blockText(JSON.parse(module.content)) : null }));
+  return { id: row.id, deckId: row.deck_id, selectedText: row.selected_text, createdAt: row.created_at,
+    mainKey: row.main_key ? blockText(JSON.parse(row.main_key)) : '', status: row.status,
+    meaning: pageMeaning(components),
+    modules: components.filter(module => module.type !== 'main-key').map(({ type, status, filled }) => ({ type, status, filled })) };
+}
 function canonical(value) {
   if (Array.isArray(value)) return value.map(canonical);
   if (value && typeof value === 'object') {

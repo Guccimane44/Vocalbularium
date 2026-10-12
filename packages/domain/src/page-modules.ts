@@ -111,3 +111,30 @@ export function generationTargets(target: GenerationTarget | { scope: 'capture' 
     }
   }
 }
+
+// The first numbered meaning in a module's generated text (": [1] …"), outside
+// any subsection or under "Bedeutungen", never under examples; or null.
+export function firstMeaning(text: string): string | null {
+  let section: string | null = null;
+  for (const raw of text.split('\n')) {
+    const line = raw.trim();
+    const heading = /^(=+)\s*(.*?)\s*=+$/.exec(line);
+    if (heading) { section = heading[1].length > 2 ? heading[2] : null; continue; }
+    const match = /^:\s*\[\d+[a-z]?\]\s*(.+)$/.exec(line);
+    if (match && (section === null || /bedeutung/i.test(section))) return match[1].trim();
+  }
+  return null;
+}
+
+// The meaning line of a page summary (D05): the first meaning of its first
+// Meaning-family component, else of any other content component that has one.
+export function pageMeaning(components: readonly { type: string; text: string | null }[]): string | null {
+  const content = components.filter(component => isContentType(component.type) && component.text);
+  const ordered = [...content.filter(component => CATALOG[component.type as ModuleType].family === 'meaning'),
+    ...content.filter(component => CATALOG[component.type as ModuleType].family !== 'meaning')];
+  for (const component of ordered) {
+    const meaning = firstMeaning(component.text!);
+    if (meaning) return meaning;
+  }
+  return null;
+}
