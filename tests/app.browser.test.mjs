@@ -1424,6 +1424,9 @@ test('generation reveal: finished content rises into its card and is announced; 
 
   await store.stage(explanation.attemptId, { ok: true, text: '== Chinesisch ==\n=== Bedeutungen ===\n: [1] Glück' });
   await store.publish('reveal-publish-1', { attemptId: explanation.attemptId, session });
+  // The spark does not vanish: it fades away as the content rises in.
+  await card('German explanation').locator('.spark[data-ending]').waitFor({ state: 'attached', timeout: 15000 });
+  await card('German explanation').locator('.spark').waitFor({ state: 'detached', timeout: 3000 });
   await card('German explanation').locator('.card-body[data-reveal] .meanings li').waitFor({ timeout: 15000 });
   assert.equal(await card('German explanation').getByRole('status').textContent(), 'German explanation generated.');
   assert.notEqual(await card('German explanation').locator('.meanings li').evaluate(node => getComputedStyle(node).animationName), 'none', 'the content rises');

@@ -118,27 +118,30 @@
 @media (prefers-reduced-motion: reduce) { .card-tab, .confirm-text { animation: none !important; } }
 @media (prefers-reduced-motion: reduce) { .card-actions[data-open] button, .row-menu-list { animation: none; } }
 /* Generating (0.6.3): the card is only its tab, and a comet runs round the
-   tab's edge for as long as the work goes on: a bright head in the tab's
-   label colour with a glow, then a trail of smaller, fainter sparks. It
+   tab's edge for as long as the work goes on: a bright light head with a
+   glow in the family colour, then a trail of smaller, fainter sparks. It
    follows the tab's own rounded outline at a steady pace (offset-path along
    the tab's box), while a soft halo in the family colour breathes around the
-   tab. The content waits, closed, and rises in once there is some. Under
-   reduced motion the edge glows, still. */
+   tab. When the work ends, comet and halo fade away as the content rises in.
+   Under reduced motion the edge glows, still. */
 .component[data-generating] .card-fold { display: none; }
-.component[data-generating] .card-tab { animation: halo 2.4s ease-in-out infinite; }
+.spark { animation: halo 2.4s ease-in-out infinite; transition: opacity 600ms var(--ease-out); }
+.spark[data-ending] { opacity: 0; }
 @keyframes halo {
   0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--fam, var(--fam-notes)) 0%, transparent); }
   50% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--fam, var(--fam-notes)) 22%, transparent), 0 0 14px 2px color-mix(in srgb, var(--fam, var(--fam-notes)) 35%, transparent); }
 }
-.spark { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; }
+.spark { position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  /* Light in both themes: a bright spark on the Sage tabs and on Moss night's lighter ones. */
+  --spark-light: #ffffff; --spark-glow: color-mix(in srgb, var(--fam, var(--fam-notes)) 55%, white); }
 .spark i { position: absolute; left: 0; top: 0; width: calc(5px - var(--n) * .2px); height: calc(5px - var(--n) * .2px); border-radius: 50%;
-  background: var(--on-fam, var(--on-ink)); opacity: calc(.9 - var(--n) * .055); filter: blur(calc(var(--n) * .06px));
+  background: var(--spark-light); opacity: calc(.9 - var(--n) * .055); filter: blur(calc(var(--n) * .06px));
   offset-path: border-box; offset-rotate: 0deg; offset-anchor: center;
   animation: travel 2.4s linear infinite; animation-delay: calc(var(--n) * 12ms - 2.4s); }
-.spark i:first-child { box-shadow: 0 0 6px 2px var(--on-fam, var(--on-ink)), 0 0 12px 3px color-mix(in srgb, var(--on-fam, var(--on-ink)) 45%, transparent); }
+.spark i:first-child { box-shadow: 0 0 6px 2px var(--spark-light), 0 0 12px 4px var(--spark-glow); }
 @keyframes travel { from { offset-distance: 0%; } to { offset-distance: 100%; } }
 @media (prefers-reduced-motion: reduce) {
-  .component[data-generating] .card-tab { animation: none; box-shadow: 0 0 0 2px color-mix(in srgb, var(--on-fam, var(--on-ink)) 55%, transparent) inset; }
+  .component[data-generating] .card-tab { box-shadow: 0 0 0 2px color-mix(in srgb, var(--spark-light, #fff) 60%, transparent) inset; }
   .spark { display: none; }
 }
 
