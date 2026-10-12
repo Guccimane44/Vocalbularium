@@ -513,7 +513,7 @@ test('deck UI: draft previews, all modules, the module limit, removal without co
   assert.equal(await mainKeyBlock.getByRole('img').count(), 0, 'no lock mark');
   assert.equal(await mainKeyBlock.locator('.block-label, button').count(), 0, 'no drag label, menu or Remove on the main key');
   await addFromWindow(a.page, 'sentence-usage');
-  const usage = a.page.locator('.sortable-row').filter({ has: a.page.locator('.module-block[data-type="sentence-usage"]') });
+  const usage = a.page.locator('.sortable-row:not(.landing-row)').filter({ has: a.page.locator('.module-block[data-type="sentence-usage"]') });
   await usage.waitFor();
   // Dropped on the upper half of Sentence usage, German explanation lands before it.
   await addFromWindow(a.page, 'german-explanation', usage, { above: true });
@@ -521,8 +521,10 @@ test('deck UI: draft previews, all modules, the module limit, removal without co
   await addFromWindow(a.page, 'sentence-usage');
   assert.equal(await a.page.locator('.module-block').count(), 7);
   assert.equal(await a.page.locator('.module-window .window-module').count(), 5, 'the window offers Context, Text and the three content modules');
-  assert.equal(await a.page.locator('.module-window button:not(.help-button)').count(), 0, 'no Add buttons (D04)');
+  // Every module has its + to add it at the end (0.6.3; D04 had none).
+  assert.equal(await a.page.locator('.module-window .window-add').count(), 5, 'every module has its +');
   assert.equal(await a.page.locator('.window-module[data-type="context"]').getAttribute('aria-disabled'), 'true', 'one Context per deck');
+  assert.equal(await a.page.locator('.window-module[data-type="context"] .window-add').isDisabled(), true, 'a blocked module cannot be added');
   await a.page.getByText('There is already a Context.').waitFor();
   // The preview opens in a dialog from the button above the list, so deck settings keep the list-and-window layout (0.6.3).
   assert.equal(await a.page.locator('.sample-page').count(), 0, 'no preview beside the list');
@@ -1165,11 +1167,11 @@ async function openFamily(source) {
 async function addFromWindow(page, type, target = page.locator('.drop-end'), options = {}) {
   const viewport = page.viewportSize();
   if (viewport.height < 1400) await page.setViewportSize({ width: viewport.width, height: 1400 });
-  await drag(page, windowModule(page, type), target, options);
+  await drag(page, windowModule(page, type), target, { ...options, follow: true });
 }
 
 // Pointer drags go through dnd-kit's activation distance, so move in steps.
-async function drag(page, source, target, { below = false, above = false } = {}) {
+async function drag(page, source, target, { below = false, above = false, follow = false } = {}) {
   await openFamily(source);
   // A mouse cannot leave the viewport; the module window is sticky, so it stays in view.
   // The page may re-render once as its account refresh lands; scroll again if it did.
@@ -1179,12 +1181,14 @@ async function drag(page, source, target, { below = false, above = false } = {})
   await page.mouse.down();
   await page.mouse.move(from.x + from.width / 2 + 10, from.y + from.height / 2 + 10, { steps: 4 });
   // Read the target once the drag is active, then aim at it in two passes in case the page scrolled.
-  // The second pass corrects only for scrolling: a sortable target slides aside as the drag
-  // reaches it, and following it would lead the pointer back to the dragged card's own slot.
-  const to = await target.boundingBox();
+  // Reordering corrects only for scrolling: a sortable target slides aside as the drag reaches
+  // it, and following it would lead the pointer back to the dragged card's own slot. A module
+  // from the window follows its target (`follow`), as the eye does when the entries make room.
+  let to = await target.boundingBox();
   const scrolled = await page.evaluate(() => scrollY);
   for (let pass = 0; pass < 2; pass++) {
-    const shift = scrolled - await page.evaluate(() => scrollY);
+    if (follow && pass) { await new Promise(resolve => setTimeout(resolve, 300)); to = await target.boundingBox(); }
+    const shift = follow ? 0 : scrolled - await page.evaluate(() => scrollY);
     await page.mouse.move(to.x + to.width / 2, to.y + shift + to.height * (below ? 0.8 : above ? 0.25 : 0.5), { steps: 8 });
   }
   await page.mouse.up();
@@ -1450,6 +1454,9 @@ test('module window: drag modules onto a page and into deck settings, and reorde
   const target = await card('Context').boundingBox();
   await a.page.mouse.move(target.x + target.width / 2, target.y + target.height / 4, { steps: 10 });
   await landingCard.waitFor();
+  // While dragged, the module is marked in the window and its card carries a focus ring (0.6.3).
+  assert.equal(await a.page.locator('.window-module[data-type="text"]').getAttribute('data-dragging'), 'true');
+  assert.equal(await landingCard.locator('.card-tab').evaluate(node => getComputedStyle(node).outlineStyle), 'solid', 'the dragged card is marked');
   await a.page.locator('.shaping-list').evaluate(list => Promise.all(list.getAnimations({ subtree: true })
     .filter(animation => animation.effect?.getTiming().iterations !== Infinity).map(animation => animation.finished)));
   await a.page.evaluate(() => {
@@ -1538,7 +1545,12 @@ test('module window: drag modules onto a page and into deck settings, and reorde
   await a.page.keyboard.press('Space');
   await waitFor(async () => (await types()).length === 5, 'Text added from the keyboard');
   assert.deepEqual(await types(), ['main-key', 'text', 'context', 'german-examples', 'text']);
-  assert.equal(await a.page.locator('.module-window button:not(.help-button)').count(), 0, 'no Add buttons (D04)');
+  // The window's + adds a module as the last component, without dragging (0.6.3).
+  await openFamily(windowModule(a.page, 'sentence-usage'));
+  await a.page.locator('.window-module[data-type="sentence-usage"]').getByRole('button', { name: 'Add Sentence usage at the end', exact: true }).click();
+  await waitFor(async () => (await types()).length === 6, 'Sentence usage added with its +');
+  assert.deepEqual(await types(), ['main-key', 'text', 'context', 'german-examples', 'text', 'sentence-usage']);
+  await card('Sentence usage').waitFor();
 
   // Deck settings take a dragged module too, and the main key stays first.
   const deckId = (await store.page(pageId)).deckId;
@@ -1547,10 +1559,14 @@ test('module window: drag modules onto a page and into deck settings, and reorde
   await a.page.locator('.module-block[data-type="german-examples"]').waitFor();
   await drag(a.page, windowModule(a.page, 'sentence-usage'), a.page.locator('.drop-end'));
   await a.page.locator('.module-block').filter({ hasText: 'Sentence usage' }).waitFor();
+  // The + works in deck settings too: the module goes last in the list.
+  await openFamily(windowModule(a.page, 'german-explanation'));
+  await a.page.locator('.window-module[data-type="german-explanation"]').getByRole('button', { name: 'Add German explanation at the end', exact: true }).click();
+  await waitFor(async () => await a.page.locator('.shaping-list .module-block').last().getAttribute('data-type') === 'german-explanation', 'German explanation added last');
   await a.page.getByRole('button', { name: 'Save', exact: true }).click();
   await a.page.getByRole('heading', { name: 'Your decks', exact: true }).waitFor();
-  assert.deepEqual((await store.deck(deckId)).modules.map(module => module.type), ['main-key', 'context', 'german-examples', 'sentence-usage']);
-  assert.deepEqual(await types(), ['main-key', 'text', 'context', 'german-examples', 'text'], 'the page keeps its own modules');
+  assert.deepEqual((await store.deck(deckId)).modules.map(module => module.type), ['main-key', 'context', 'german-examples', 'sentence-usage', 'german-explanation']);
+  assert.deepEqual(await types(), ['main-key', 'text', 'context', 'german-examples', 'text', 'sentence-usage'], 'the page keeps its own modules');
 });
 
 async function loseNextAcknowledgment(worker, path) {

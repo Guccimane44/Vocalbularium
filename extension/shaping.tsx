@@ -161,6 +161,14 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
     if (fromWindow(event.active)) setSlot(landing(event.active, event.over, keyboardDrag(event)));
   }
   function finish() { setDragged(null); setSlot(null); }
+  // The window's + adds a module as the last entry: it waits at the end as a
+  // dropped module does, scrolled into view.
+  async function addAtEnd(type: string) {
+    if (disabled) return;
+    setAdding({ type, index: shown.length });
+    requestAnimationFrame(() => list.current?.querySelector('.landing-row')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }));
+    if (await onAdd(type, shown.length) === false) setAdding(null);
+  }
   async function end(event: DragEndEvent) {
     const { active, over } = event;
     const target = fromWindow(active) ? landing(active, over, keyboardDrag(event)) : null;
@@ -202,7 +210,7 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
         </SortableContext>
         <DropEnd disabled={disabled} active={slot === shown.length} />
       </section>
-      <ModuleWindow types={types} disabled={disabled} unavailable={unavailable} where={where} />
+      <ModuleWindow types={types} disabled={disabled} unavailable={unavailable} where={where} addAtEnd={type => void addAtEnd(type)} />
     </div>
     <DragOverlay dropAnimation={null}>
       {dragged?.startsWith(WINDOW) && incoming === null && <div className="drag-preview">{renderLanding(dragged.slice(WINDOW.length))}</div>}
@@ -297,7 +305,9 @@ function DropEnd({ disabled, active }: { disabled: boolean; active: boolean }) {
   return disabled ? null : <div ref={setNodeRef} className="drop-end" data-over={active || undefined}>Drop a module here to add it at the end</div>;
 }
 
-function WindowModule({ type, blocked, explain, present }: { type: string; blocked: string | null; explain: boolean; present: boolean }) {
+function WindowModule({ type, blocked, explain, present, addAtEnd }: {
+  type: string; blocked: string | null; explain: boolean; present: boolean; addAtEnd: (type: string) => void;
+}) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: WINDOW + type, disabled: Boolean(blocked) });
   const entry = CATALOG[type as ModuleType];
   return <li className={`window-module fam-${entry.family}`} data-type={type} data-dragging={isDragging || undefined} aria-disabled={Boolean(blocked)}>
@@ -307,6 +317,10 @@ function WindowModule({ type, blocked, explain, present }: { type: string; block
       <span className="muted">{entry.description}</span>
       {present && <span className="window-present">Already here</span>}
     </div>
+    {/* Adds the module as the last entry, without dragging (0.6.3). */}
+    <button type="button" className="window-add" aria-label={`Add ${entry.label} at the end`} disabled={Boolean(blocked)} onClick={() => addAtEnd(type)}>
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
+    </button>
     {blocked && explain && <p className="window-reason muted">{blocked}</p>}
   </li>;
 }
@@ -345,7 +359,9 @@ const searchText = (type: ModuleType) => `${CATALOG[type].label} ${CATALOG[type]
 // `disabled` turns it off as a whole (for example while a component is being
 // edited), with `unavailable` as an optional notice; otherwise each module
 // says why it is unavailable, such as the limit or an existing Context.
-function ModuleWindow({ types, disabled, unavailable, where }: { types: readonly string[]; disabled: boolean; unavailable?: string; where: string }) {
+function ModuleWindow({ types, disabled, unavailable, where, addAtEnd }: {
+  types: readonly string[]; disabled: boolean; unavailable?: string; where: string; addAtEnd: (type: string) => void;
+}) {
   const { setNodeRef, isOver, active } = useDroppable({ id: BACK });
   const searchId = useId();
   const [query, setQuery] = useState('');
@@ -375,7 +391,7 @@ function ModuleWindow({ types, disabled, unavailable, where }: { types: readonly
       }}>
       <summary><span className="fam-chip"><FamilyIcon family={family} /></span>{FAMILY_LABELS[family]}<span className="family-count">{total}</span></summary>
       <ul>
-        {modules.map(type => <WindowModule key={type} type={type} explain={!disabled} present={types.includes(type)}
+        {modules.map(type => <WindowModule key={type} type={type} explain={!disabled} present={types.includes(type)} addAtEnd={addAtEnd}
           blocked={disabled ? unavailable ?? 'Unavailable' : addBlocked(types.map(value => ({ type: value })), type)} />)}
       </ul>
     </details>)}
