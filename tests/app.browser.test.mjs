@@ -521,7 +521,7 @@ test('deck UI: draft previews, all modules, the module limit, removal without co
   await addFromWindow(a.page, 'sentence-usage');
   assert.equal(await a.page.locator('.module-block').count(), 7);
   assert.equal(await a.page.locator('.module-window .window-module').count(), 5, 'the window offers Context, Text and the three content modules');
-  assert.equal(await a.page.locator('.module-window button').count(), 0, 'no Add buttons (D04)');
+  assert.equal(await a.page.locator('.module-window button:not(.help-button)').count(), 0, 'no Add buttons (D04)');
   assert.equal(await a.page.locator('.window-module[data-type="context"]').getAttribute('aria-disabled'), 'true', 'one Context per deck');
   await a.page.getByText('There is already a Context.').waitFor();
   // The preview opens in a dialog from the button above the list, so deck settings keep the list-and-window layout (0.6.3).
@@ -1288,6 +1288,20 @@ test('page view: main key tiers, Show all, rendered and plain content, quiet car
 
   // The module window groups by family, opens the families already here, and searches.
   const window = a.page.locator('.module-window');
+  // How to drag waits behind the "?" beside the window's heading: hover shows it, a click keeps it, Escape closes it.
+  const help = window.getByRole('button', { name: 'How to add modules', exact: true });
+  const helpText = window.getByRole('note');
+  assert.equal(await helpText.isVisible(), false, 'the explanation is hidden at first');
+  await help.hover();
+  await helpText.waitFor();
+  assert.equal(await helpText.textContent(), 'Drag a module into the page, or back here to put it back. From the keyboard: Space picks it up, the arrow keys move it, Space drops it, Escape puts it back.');
+  await a.page.mouse.move(5, 5);
+  await helpText.waitFor({ state: 'hidden' });
+  await help.click(); await a.page.mouse.move(5, 5);
+  assert.equal(await helpText.isVisible(), true, 'a click keeps it open');
+  await window.screenshot({ path: 'artifacts/v0.6.3-module-help.png' });
+  await a.page.keyboard.press('Escape');
+  await helpText.waitFor({ state: 'hidden' });
   const families = await window.locator('details').evaluateAll(nodes => nodes.map(node => [node.querySelector('summary').textContent, node.open]));
   assert.deepEqual(families, [['Meaning1', false], ['Usage2', true], ['Notes2', true]]);
   assert.equal(await window.locator('.window-module[data-type="sentence-usage"]').getByText('Already here').count(), 1);
@@ -1426,7 +1440,7 @@ test('module window: drag modules onto a page and into deck settings, and reorde
   await a.page.keyboard.press('Space');
   await waitFor(async () => (await types()).length === 5, 'Text added from the keyboard');
   assert.deepEqual(await types(), ['main-key', 'text', 'context', 'german-examples', 'text']);
-  assert.equal(await a.page.locator('.module-window button').count(), 0, 'no Add buttons (D04)');
+  assert.equal(await a.page.locator('.module-window button:not(.help-button)').count(), 0, 'no Add buttons (D04)');
 
   // Deck settings take a dragged module too, and the main key stays first.
   const deckId = (await store.page(pageId)).deckId;

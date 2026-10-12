@@ -253,6 +253,28 @@ function WindowModule({ type, blocked, explain, present }: { type: string; block
   </li>;
 }
 
+// A "?" beside a heading whose explanation shows on hover, or on a click or
+// Enter that keeps it open until Escape, another click or a click elsewhere.
+function HelpTip({ label, children }: { label: string; children: ReactNode }) {
+  const [pinned, setPinned] = useState(false);
+  const [hovered, setHovered] = useState(false);
+  const root = useRef<HTMLSpanElement>(null);
+  const tipId = useId();
+  useEffect(() => {
+    if (!pinned) return;
+    const outside = (event: PointerEvent) => { if (!root.current?.contains(event.target as Node)) setPinned(false); };
+    document.addEventListener('pointerdown', outside);
+    return () => document.removeEventListener('pointerdown', outside);
+  }, [pinned]);
+  const open = pinned || hovered;
+  return <span ref={root} className="help-tip" onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
+    onKeyDown={event => { if (event.key === 'Escape' && open) { event.stopPropagation(); setPinned(false); setHovered(false); } }}>
+    <button type="button" className="help-button" aria-label={label} aria-expanded={open} aria-controls={tipId}
+      onClick={() => setPinned(!pinned)}>?</button>
+    <span id={tipId} className="help-text" role="note" hidden={!open}>{children}</span>
+  </span>;
+}
+
 const searchText = (type: ModuleType) => `${CATALOG[type].label} ${CATALOG[type].description}`.toLocaleLowerCase();
 
 // The catalog beside the list, and the place a dragged module goes back to.
@@ -272,10 +294,14 @@ function ModuleWindow({ types, disabled, unavailable, where }: { types: readonly
   const groups = FAMILIES.map(family => ({ family, modules: matching.filter(type => familyOf(type) === family),
     total: WINDOW_MODULES.filter(type => familyOf(type) === family).length })).filter(group => group.modules.length);
   return <aside ref={setNodeRef} className="module-window" aria-labelledby="module-window-title" data-over={(isOver && fromWindow(active)) || undefined}>
-    <h2 id="module-window-title">Modules</h2>
+    <div className="window-head">
+      <h2 id="module-window-title">Modules</h2>
+      <HelpTip label="How to add modules">
+        Drag a module into {where}, or back here to put it back. From the keyboard: Space picks it up, the arrow keys move it, Space drops it, Escape puts it back.
+      </HelpTip>
+    </div>
     <label className="visually-hidden" htmlFor={searchId}>Search modules</label>
     <input id={searchId} className="window-search" type="search" placeholder="Search modules" value={query} onChange={event => setQuery(event.target.value)} />
-    <p className="muted window-help">Drag a module into {where}, or back here to put it back. From the keyboard: Space picks it up, the arrow keys move it, Space drops it, Escape puts it back.</p>
     {unavailable && <p className="notice">{unavailable}</p>}
     {!groups.length && <p className="muted">No module matches “{query.trim()}”.</p>}
     {groups.map(({ family, modules, total }) => <details key={family} className={`window-family fam-${family}`} open={terms.length > 0 || open.has(family)}
