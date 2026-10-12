@@ -60,7 +60,7 @@ Each component below the main key is a card. Its index tab, on the card's top ed
 Each card has its own actions ([D04](../architecture/traceability-map.md#entries)). They stay inside the card's tab until the user clicks the family icon and label, or presses Enter on them; the tab then ejects them to its right as smaller tabs in the family's tint, each with its icon, springing out from behind the tab one after the other while the tab kicks back slightly. Hovering one fills it with the family colour; **Delete** fills with the failed colour ([D07](../architecture/traceability-map.md#entries), since 0.6.3). Clicking the tab again, clicking elsewhere, pressing Escape, or choosing an action puts them back; one card's actions are out at a time. Hovering shows nothing. A failed card keeps its **Retry** beside the tab, filled with the failed colour. The actions are:
 
 - **Edit** turns that card into a text field with **Save** and **Cancel** in the card ([editing](#editing-a-component)).
-- **Generate** on a content component that never generated and is still empty starts its first generation, without a warning, because there is nothing to replace. After that the same control is **Retry**, which warns before replacing the content ([capture and generation](capture-and-generation.md#retry)).
+- **Retry** on a content component generates it. A component with nothing in it, such as one that never generated, starts at once, because there is nothing to replace. A component with content asks first, the same way **Delete** does, in the card's family colour rather than the failed one: a final **Retry**, **Cancel** under the pointer, and "Are you sure?" ([capture and generation](capture-and-generation.md#retry)). Since 0.6.3 there is no separate **Generate**.
 - **Fold** folds the card: its content slides shut and fades while the card narrows to a slim band under its tab, so the user can set components aside and see the rest of the page better. A folded card offers **Unfold**, which opens it the same way, and **Edit** unfolds it before editing. Folding changes only how the page is shown in this browser, where it is remembered per page; it never changes the page, and other browsers show the card unfolded. An empty component has nothing to fold and offers no **Fold** (since 0.6.3).
 - **Delete** removes the component ([shaping](#shaping-a-page)). An empty component is deleted at once. A component with content asks first, in the same row and without a dialog: the actions give way to a final **Delete**, filled with the failed colour, **Cancel**, and "Are you sure?" in a small speech bubble in the failed colours, which gives one small wobble as it appears. Cancel lands exactly where the clicked **Delete** was, so a second click under the pointer cancels; the final **Delete** stands to its left, and focus moves to **Cancel**. Cancel returns to the actions; Escape or a click elsewhere puts everything back (since 0.6.3; earlier a dialog). A deleted card pops where it stands, like a bubble: it swells a touch, then grows a little more as it vanishes, around its own middle, in about a quarter of a second; the cards below then slide up. Under reduced motion it simply goes.
 
@@ -88,7 +88,7 @@ Generated components are editable. An edit to a generated component lasts until 
 
 ## Editing a component
 
-Editing is one card at a time ([D04](../architecture/traceability-map.md#entries)). **Edit** on a card makes that component editable; while it is open, the other cards' **Edit**, **Generate**, **Retry**, and **Delete** wait, and shaping is unavailable, without a separate notice: the open card's **Save** and **Cancel** end editing. Adding, deleting, and moving components is [shaping](#shaping-a-page).
+Editing is one card at a time ([D04](../architecture/traceability-map.md#entries)). **Edit** on a card makes that component editable; while it is open, the other cards' **Edit**, **Retry**, and **Delete** wait, and shaping is unavailable, without a separate notice: the open card's **Save** and **Cancel** end editing. Adding, deleting, and moving components is [shaping](#shaping-a-page).
 
 - **Save** in the card writes that component and closes it. Only that component is sent, so it never overwrites another installation's edit of a different component.
 - **Cancel** in the card discards the draft. Cancelling a new page returns to the deck's page list.
@@ -106,7 +106,7 @@ Saving a main-key edit updates the page's entry and its position in alphabetical
 Capture and manual entry are two ways to supply the same page input. They share generation capabilities rather than defining different kinds of page.
 
 - **Capture** creates the page from the selected text and Context, then generates all its content components automatically.
-- **Manual creation** starts a new page with the deck's modules: the user enters the main key, and fills the Context and Text components when the deck has them. It never generates by itself; content components wait, empty, until generated. Each content card's **Generate** then evaluates that module from the main key and Context.
+- **Manual creation** starts a new page with the deck's modules: the user enters the main key, and fills the Context and Text components when the deck has them. It never generates by itself; content components wait, empty, until generated. Each content card's **Retry** then evaluates that module from the main key and Context.
 
 After creation, captured and manually created pages behave the same.
 
@@ -122,7 +122,7 @@ Generation uses the page's own content module instances. Finish editing with **S
 
 1. Capturing `john cena` initializes the page's main key to `john cena`, shows it first, and generates one component per content module instance copied from the deck.
 2. Manually creating a page with `john cena` supplies the same generation input. Saving creates no generation attempt and keeps what the user wrote.
-3. **Generate** on a content card of that manual page evaluates that module using `john cena`, without a warning; manual origin does not disable generation.
+3. **Retry** on an empty content card of that manual page evaluates that module using `john cena`, without a warning; manual origin does not disable generation.
 4. Changing the main key from `john cena` to `Bismarck` and saving updates the displayed key while preserving existing John Cena content and prior outcomes. No generation request occurs as a side effect.
 5. Retrying after that edit uses `Bismarck` and interpretation appropriate to it, rather than the original key. Replacement and failure behavior follow the generation specification for the targeted components.
 6. Editing a generated explanation without editing the main key leaves subsequent generation input unchanged. The next retry of that explanation asks for confirmation and replaces the edit.

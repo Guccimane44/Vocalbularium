@@ -14,7 +14,6 @@ import type { RowParts } from './shaping.tsx';
 // Icons for a card's actions, drawn like the family icons: 24px grid, 2.2 stroke.
 const ACTION_ICONS = {
   edit: <><path d="M12 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6" /><path d="M17.5 3.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4z" /></>,
-  generate: <path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z" />,
   retry: <><path d="M3 12a9 9 0 1 0 3-6.7L3 8" /><path d="M3 3v5h5" /></>,
   delete: <><path d="M4 7h16" /><path d="M9 7V4h6v3" /><path d="M18 7l-1 13H7L6 7" /></>,
   fold: <><path d="M7 20l5-5 5 5" /><path d="M7 4l5 5 5-5" /></>,
@@ -48,7 +47,7 @@ type Props = {
   cancel: () => Promise<void>;
   discardUnavailable: () => Promise<void>;
   deletePage: () => Promise<void>;
-  generate: (target: GenerationTarget) => Promise<void>;
+  generate: (target: GenerationTarget, confirmed?: boolean) => Promise<void>;
   addModule: (type: string, position?: number) => Promise<boolean>;
   moveComponent: (componentId: string, position: number) => Promise<boolean>;
   deleteComponent: (component: Component) => Promise<boolean | void>;
@@ -175,11 +174,13 @@ export function MainKeyTitle({ text }: { text: string }) {
   </>;
 }
 
-// Deleting a component that has content asks first, ejected from the tab like
-// its actions (0.6.3): the final Delete and Cancel, then the question. Cancel
-// lands where the Delete just clicked was, under the pointer, so a second
-// click does not delete; the final Delete stands to its left.
-function ConfirmDelete({ title, offset, onDelete, onCancel }: { title: string; offset: number; onDelete: () => void; onCancel: () => void }) {
+// Deleting or retrying a component that has content asks first, ejected from
+// the tab like its actions (0.6.3): the final Delete or Retry and Cancel, then
+// the question. Cancel lands where the button just clicked was, under the
+// pointer, so a second click does not act; the final button stands to its left.
+function ConfirmAction({ kind, title, offset, onConfirm, onCancel }: {
+  kind: 'delete' | 'retry'; title: string; offset: number; onConfirm: () => void; onCancel: () => void;
+}) {
   const confirm = useRef<HTMLButtonElement>(null);
   const cancel = useRef<HTMLButtonElement>(null);
   const [inset, setInset] = useState(0);
@@ -188,10 +189,11 @@ function ConfirmDelete({ title, offset, onDelete, onCancel }: { title: string; o
     cancel.current?.focus();
   }, [offset]);
   const questionId = `confirm-${title.replace(/\W+/g, '-')}`;
-  return <div className="card-actions" role="group" aria-label={`Delete ${title}?`} aria-describedby={questionId} data-open data-confirm
+  const verb = kind === 'delete' ? 'Delete' : 'Retry';
+  return <div className="card-actions" role="group" aria-label={`${verb} ${title}?`} aria-describedby={questionId} data-open data-confirm={kind}
     style={{ paddingLeft: inset }}>
-    <button ref={confirm} style={{ '--i': 0 } as CSSProperties} className="action-confirm" aria-label={`Yes, delete ${title}`} onClick={onDelete}>
-      <ActionIcon name="delete" />Delete</button>
+    <button ref={confirm} style={{ '--i': 0 } as CSSProperties} className="action-confirm" aria-label={`Yes, ${verb.toLowerCase()} ${title}`} onClick={onConfirm}>
+      <ActionIcon name={kind} />{verb}</button>
     <button ref={cancel} style={{ '--i': 1 } as CSSProperties} aria-label={`Keep ${title}`} onClick={onCancel}>Cancel</button>
     <span id={questionId} className="confirm-text" style={{ '--i': 2 } as CSSProperties}>Are you sure?</span>
   </div>;
@@ -236,7 +238,7 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
     }, POOF_MS);
   };
   // The card asking whether to delete, and where its Delete stood in the row.
-  const [confirming, setConfirming] = useState<{ id: string; offset: number } | null>(null);
+  const [confirming, setConfirming] = useState<{ id: string; offset: number; kind: 'delete' | 'retry' } | null>(null);
   useEffect(() => { if (opened !== confirming?.id) setConfirming(null); }, [opened]);
   // Folded cards show only their tab on a slim band; remembered per page in
   // this browser, a convenience that never reaches the account (0.6.3).
@@ -293,12 +295,23 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
   // a failed card keeps its Retry beside the tab. Choosing one closes them.
   const actions = (item: Component, title: string) => {
     const generated = isContentType(item.moduleType);
-    const firstRun = generated && item.attemptId === null && !blockText(item.content);
     const open = opened === item.id;
     if (!open && !(item.status === 'failed' && generated)) return null;
-    if (open && confirming?.id === item.id) return <ConfirmDelete title={title} offset={confirming.offset}
+    if (open && confirming?.id === item.id) return <ConfirmAction kind={confirming.kind} title={title} offset={confirming.offset}
       onCancel={() => setConfirming(null)}
-      onDelete={() => { setConfirming(null); setOpened(null); vanish(item); }} />;
+      onConfirm={() => {
+        const kind = confirming.kind;
+        setConfirming(null); setOpened(null);
+        if (kind === 'delete') vanish(item);
+        else void run(() => generate({ scope: 'component', componentId: item.id }, true));
+      }} />;
+    // Where a clicked button stands within the row, transforms aside: offsetLeft counts from the card's head.
+    const ask = (kind: 'delete' | 'retry') => (event: { currentTarget: HTMLButtonElement }) => {
+      const button = event.currentTarget;
+      setConfirming({ id: item.id, kind, offset: button.offsetLeft - (button.parentElement?.offsetLeft ?? 0) });
+    };
+    // A component with nothing in it has nothing to lose: Delete and Retry act at once.
+    const hasContent = Boolean(blockText(item.content));
     // An empty component is already only its tab: there is nothing to fold.
     const foldable = Boolean(blockText(item.content)) || item.status === 'loading' || item.status === 'failed';
     const isFolded = folded.has(item.id);
@@ -309,20 +322,14 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
       {open && <button style={order()} aria-label={`Edit ${title}`} disabled={Boolean(editingId) || item.status === 'loading'}
         onClick={choose(() => { if (isFolded) fold(item.id, false); begin(item.id); })}>
         <ActionIcon name="edit" />Edit</button>}
-      {generated && <button style={order()} className={item.status === 'failed' ? 'action-failed' : undefined} aria-label={`${firstRun ? 'Generate' : 'Retry'} ${title}`}
+      {generated && <button style={order()} className={item.status === 'failed' ? 'action-failed' : undefined} aria-label={`Retry ${title}`}
         disabled={working || Boolean(editingId) || item.status === 'loading'}
-        onClick={choose(() => void run(() => generate({ scope: 'component', componentId: item.id })))}>
-        <ActionIcon name={firstRun ? 'generate' : 'retry'} />{firstRun ? 'Generate' : 'Retry'}</button>}
+        onClick={hasContent && open ? ask('retry') : choose(() => void run(() => generate({ scope: 'component', componentId: item.id })))}>
+        <ActionIcon name="retry" />Retry</button>}
       {open && foldable && <button style={order()} aria-label={`${isFolded ? 'Unfold' : 'Fold'} ${title}`} onClick={choose(() => fold(item.id, !isFolded))}>
         <ActionIcon name={isFolded ? 'unfold' : 'fold'} />{isFolded ? 'Unfold' : 'Fold'}</button>}
       {open && <button style={order()} className="action-delete" aria-label={`Delete ${title}`} disabled={disabled || working || item.status === 'loading'}
-        onClick={event => {
-          // An empty component has nothing to lose: it goes at once.
-          if (!blockText(item.content)) { choose(() => vanish(item))(); return; }
-          // Where Delete stands within the row, transforms aside: offsetLeft counts from the card's head.
-          const button = event.currentTarget;
-          setConfirming({ id: item.id, offset: button.offsetLeft - (button.parentElement?.offsetLeft ?? 0) });
-        }}>
+        onClick={hasContent ? ask('delete') : choose(() => vanish(item))}>
         <ActionIcon name="delete" />Delete</button>}
     </div>;
   };

@@ -963,12 +963,14 @@ test('manual page UI: per-card actions, drafts, leave choices, sorting, failed-s
   await a.page.getByRole('button', { name: '← My Deck', exact: true }).click();
   await a.page.getByRole('dialog').getByRole('button', { name: 'Save', exact: true }).click();
   await a.page.getByRole('link', { name: 'zebra', exact: true }).click();
-  await (await cardButton(a.page, 'Generate German explanation + examples')).waitFor();
+  // A never-generated component offers Retry too, which starts it at once (0.6.3; earlier Generate).
+  await (await cardButton(a.page, 'Retry German explanation + examples')).waitFor();
+  assert.equal(await a.page.getByRole('button', { name: /^Generate / }).count(), 0, 'no Generate');
   const created = (await application.store.pages())[0];
   const shape = async () => (await application.store.page(created.id)).components.map(item => [item.moduleType, text(item)]);
   assert.equal(created.status, null, 'manual creation never generates');
   assert.deepEqual(await shape(), [['main-key', 'zebra'], ['context', 'zoo animal'], ['german-examples', '']]);
-  assert.equal(await a.page.getByRole('button', { name: /^Retry/ }).count(), 0, 'nothing has generated, so nothing to retry');
+  assert.equal(await a.page.getByRole('button', { name: /^Retry / }).count(), 1, 'only the never-generated component offers Retry');
   for (const removed of ['Edit page', 'Generate missing', 'Retry page']) {
     assert.equal(await a.page.getByRole('button', { name: removed, exact: true }).count(), 0, `no page-level ${removed} (D04)`);
   }
@@ -976,7 +978,7 @@ test('manual page UI: per-card actions, drafts, leave choices, sorting, failed-s
   const ungenerated = componentArticle(a.page, 'German explanation + examples');
   assert.equal(await ungenerated.getAttribute('data-empty'), 'true');
   assert.equal(await ungenerated.locator('.card-body').count(), 0);
-  await ungenerated.getByRole('button', { name: 'Generate German explanation + examples', exact: true }).waitFor();
+  await ungenerated.getByRole('button', { name: 'Retry German explanation + examples', exact: true }).waitFor();
 
   // Shaping by dragging, each step saved at once.
   await addFromWindow(a.page, 'text');
@@ -1093,7 +1095,7 @@ test('manual page UI: per-card actions, drafts, leave choices, sorting, failed-s
   assert.equal((await application.store.pages()).length, 1);
 });
 
-test('retry UI: exact confirmation, a first Generate without warning, and a two-installation lock preserve drafts until explicit resubmission', { timeout: 35000 }, async (t) => {
+test('retry UI: exact confirmation asked beside the tab, a first Retry without warning, and a two-installation lock preserve drafts until explicit resubmission', { timeout: 35000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-retry-browser-'));
   let release;
   const application = await createTestApplication(t, {
@@ -1119,13 +1121,22 @@ test('retry UI: exact confirmation, a first Generate without warning, and a two-
   // Installation b edits the explanation card while a retries it.
   await (await cardButton(b.page, 'Edit German explanation + examples')).click();
   await b.page.getByRole('textbox', { name: 'Edit German explanation + examples', exact: true }).fill('draft back');
+  // Retrying content asks beside the tab, as Delete does, in the card's colour; no dialog (0.6.3).
   const retryExplanation = () => cardButton(a.page, 'Retry German explanation + examples');
   await (await retryExplanation()).click();
-  assert.equal(await a.page.getByRole('dialog').locator('p').textContent(), 'Retry will replace this component’s content, including your edits to it. The main key, Context, and other components will not change.');
-  await a.page.getByRole('dialog').getByRole('button', { name: 'Cancel', exact: true }).click();
+  const keepExplanation = a.page.getByRole('button', { name: 'Keep German explanation + examples', exact: true });
+  await keepExplanation.waitFor();
+  assert.equal(await a.page.getByRole('dialog').count(), 0, 'no dialog');
+  assert.equal(await a.page.locator('[data-confirm="retry"] .confirm-text').textContent(), 'Are you sure?');
+  await a.page.locator('[data-confirm="retry"]').evaluate(node => Promise.all(node.getAnimations({ subtree: true }).map(animation => animation.finished.catch(() => {}))));
+  await a.page.locator('.shaping-list').screenshot({ path: 'artifacts/v0.6.3-confirm-retry.png' });
+  assert.notEqual(await a.page.locator('[data-confirm="retry"] .action-confirm').evaluate(node => getComputedStyle(node).backgroundColor),
+    await a.page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--status-failed').trim()), 'not red');
+  await keepExplanation.click();
   assert.equal(text(modulesOf(await application.store.page(pageId))[1]), 'saved original');
   await (await retryExplanation()).click();
-  await a.page.getByRole('dialog').getByRole('button', { name: 'Confirm', exact: true }).click();
+  await a.page.getByRole('button', { name: 'Yes, retry German explanation + examples', exact: true }).click();
+  assert.equal(await a.page.getByRole('dialog').count(), 0, 'the answer beside the tab is the confirmation');
   await waitFor(() => release, 'retry provider started');
   await waitFor(async () => (await retryExplanation()).isDisabled(), 'retry disables its control while generating');
   // Every Retry is briefly disabled while the request is in flight; once accepted, only the generating component stays locked.
@@ -1146,9 +1157,9 @@ test('retry UI: exact confirmation, a first Generate without warning, and a two-
   await useModules(application.store, ['sentence-usage', 'german-examples', 'german-explanation']);
   await a.page.reload();
   await a.page.locator('h1.main-key').waitFor();
-  assert.equal(await a.page.getByRole('button', { name: 'Generate German explanation', exact: true }).count(), 0, 'a deck change never reaches the page');
+  assert.equal(await a.page.getByRole('button', { name: 'Retry German explanation', exact: true }).count(), 0, 'a deck change never reaches the page');
   await addFromWindow(a.page, 'german-explanation');
-  await (await cardButton(a.page, 'Generate German explanation')).click();
+  await (await cardButton(a.page, 'Retry German explanation')).click();
   await waitFor(async () => modulesOf(await application.store.page(pageId)).filter(item => item.attemptId).length === 3, 'the added module generated');
   assert.equal(await a.page.getByRole('dialog').count(), 0);
 });

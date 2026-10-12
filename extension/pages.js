@@ -83,8 +83,10 @@ export function pageViews({ getAccount, renderView, refresh, send, applyState, n
   // Retries replace content. The server reports a digest of the content they
   // replace; the user confirms, and the retry carries that digest back. A
   // component that never generated and is empty has nothing to replace, so
-  // the server starts it without asking.
-  async function generate(page, target) {
+  // the server starts it without asking. The page view asks beside the card's
+  // tab before a retry that replaces content (`confirmed`, 0.6.3); the dialog
+  // remains for content that changed meanwhile, such as in another browser.
+  async function generate(page, target, confirmed = false) {
     const request = confirmation => send({ type: 'generate-page', payload: { pageId: page.id, target, ...(confirmation ? { confirmation } : {}) } });
     try {
       let warning = RETRY_COMPONENT;
@@ -95,8 +97,10 @@ export function pageViews({ getAccount, renderView, refresh, send, applyState, n
           if (error.code !== 'confirmation_required') throw error;
           confirmation = error.details?.confirmation;
         }
-        const choice = await dialog({ title: 'Retry this component?', message: warning, choices: ['Cancel', 'Confirm'] });
-        if (choice.choice !== 'Confirm') return;
+        if (!(confirmed && round === 0)) {
+          const choice = await dialog({ title: 'Retry this component?', message: warning, choices: ['Cancel', 'Confirm'] });
+          if (choice.choice !== 'Confirm') return;
+        }
         try { await applyState(await request(confirmation)); return; }
         catch (error) {
           if (error.code !== 'confirmation_required') throw error;
@@ -140,7 +144,7 @@ export function pageViews({ getAccount, renderView, refresh, send, applyState, n
         try { const next = await send({ type: 'delete-page', payload: { pageId: page.id } }); await discard(); await applyState(next); navigate(`deck/${deck.id}`); }
         catch (error) { showError(error); }
       },
-      generate: target => generate(page, target),
+      generate: (target, confirmed) => generate(page, target, confirmed),
       addModule: (type, position) => shape('add-module', { pageId: page.id, type, ...(position ? { position } : {}) }),
       moveComponent: (componentId, position) => shape('move-component', { pageId: page.id, componentId, position }),
       deleteComponent: component => deleteComponent(page, component)

@@ -92,6 +92,12 @@
 .card-actions button:disabled { opacity: .5; cursor: default; background: var(--fam-tint, var(--fam-notes-tint)); }
 .card-actions .action-failed:disabled { background: var(--status-failed); }
 .card-actions .action-confirm, .card-actions .action-confirm:not(:disabled):hover { background: var(--status-failed); color: var(--status-failed-bg); box-shadow: none; }
+/* Retry asks the same way, in the card's family colour rather than the failed one. */
+.card-actions[data-confirm="retry"] .action-confirm, .card-actions[data-confirm="retry"] .action-confirm:not(:disabled):hover { background: var(--fam, var(--fam-notes)); color: var(--on-fam, var(--on-ink)); }
+.card-actions[data-confirm="retry"] .confirm-text { color: var(--fam, var(--fam-notes)); background: var(--fam-tint, var(--fam-notes-tint));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fam, var(--fam-notes)) 35%, transparent); }
+.card-actions[data-confirm="retry"] .confirm-text::before { background: var(--fam-tint, var(--fam-notes-tint));
+  box-shadow: inset 1px -1px 0 color-mix(in srgb, var(--fam, var(--fam-notes)) 35%, transparent); }
 /* The question follows the final Delete and Cancel. */
 .card-actions[data-confirm] { align-items: center; }
 .card-head:has(> [data-confirm]) .card-tab { flex: none; }
