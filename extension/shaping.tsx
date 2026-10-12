@@ -110,6 +110,9 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
   const [slot, setSlot] = useState<number | null>(null);
   const [dragged, setDragged] = useState<string | null>(null);
   const saved = useRef(ids);
+  const list = useRef<HTMLElement>(null);
+  // Where a dropped module was last seen, so it can glide into its place.
+  const settleFrom = useRef<DOMRect | null>(null);
   saved.current = ids;
   useEffect(() => { setOrder(ids); setAdding(null); }, [key]);
   const byId = new Map(items.map(item => [item.id, item]));
@@ -172,6 +175,7 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
   async function end(event: DragEndEvent) {
     const { active, over } = event;
     const target = fromWindow(active) ? landing(active, over, keyboardDrag(event)) : null;
+    if (target !== null) settleFrom.current = document.querySelector('.drag-preview [data-landing]')?.getBoundingClientRect() ?? null;
     finish();
     if (!over || disabled) return;
     if (fromWindow(active)) {
@@ -191,14 +195,32 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
   // A window module over the list stands where it would land, like the entry
   // it will become, and the entries make room around it (0.6.3).
   const incoming = dragged?.startsWith(WINDOW) && slot !== null ? dragged.slice(WINDOW.length) : null;
-  // One row from the first moment over the list until the entry arrives: the
-  // same element while dragged, dropped and saved, then the entry itself in
-  // the same place, so the module never changes look or jumps.
+  // A module from the window drags as an entry does (0.6.3): the module itself
+  // follows the pointer in the list's column while a gap opens where it would
+  // land, the same row that holds its place once dropped until the entry
+  // arrives there.
   if (incoming !== null) rows.splice(Math.min(slot!, rows.length), 0, <LandingRow key="incoming" type={incoming} render={renderLanding} />);
   else if (waiting) rows.splice(Math.min(waiting.index, rows.length), 0, <LandingRow key="incoming" type={waiting.type} render={renderLanding} saving />);
-  const list = useRef<HTMLElement>(null);
   // The entries also slide into place when one is added or deleted.
   useMakeRoom(list, `${incoming ?? ''}:${incoming !== null ? slot : ''}:${shownKey}`);
+  // Dropped, the module glides from where it was let go into its gap, as a
+  // dropped entry settles into its place.
+  useLayoutEffect(() => {
+    const from = settleFrom.current;
+    const node = list.current?.querySelector<HTMLElement>('.landing-row[data-saving] [data-landing]');
+    if (!from || !node) return;
+    settleFrom.current = null;
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+    const to = node.getBoundingClientRect();
+    node.animate([{ transform: `translate(${from.left - to.left}px, ${from.top - to.top}px) rotate(-1deg) scale(1.01)` }, { transform: 'none' }], MAKING_ROOM);
+  });
+  // Over the list, the dragged module keeps to the list's column, as an entry does.
+  const slotNow = useRef(slot);
+  slotNow.current = slot;
+  const intoColumn: Modifier = ({ transform, activeNodeRect }) => {
+    const box = list.current?.getBoundingClientRect();
+    return slotNow.current === null || !box || !activeNodeRect ? transform : { ...transform, x: box.left - activeNodeRect.left };
+  };
   return <DndContext sensors={sensors} collisionDetection={collision} accessibility={{ announcements }} modifiers={[alongTheList]}
     measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}
     onDragStart={start} onDragMove={move} onDragOver={move} onDragEnd={end} onDragCancel={finish}>
@@ -212,8 +234,10 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
       </section>
       <ModuleWindow types={types} disabled={disabled} unavailable={unavailable} where={where} addAtEnd={type => void addAtEnd(type)} />
     </div>
-    <DragOverlay dropAnimation={null}>
-      {dragged?.startsWith(WINDOW) && incoming === null && <div className="drag-preview">{renderLanding(dragged.slice(WINDOW.length))}</div>}
+    <DragOverlay dropAnimation={null} modifiers={[intoColumn]}>
+      {dragged?.startsWith(WINDOW) && <div className="drag-preview" style={incoming !== null ? { width: list.current?.clientWidth } : undefined}>
+        <div className="sortable-row" data-dragging>{renderLanding(dragged.slice(WINDOW.length))}</div>
+      </div>}
     </DragOverlay>
   </DndContext>;
 }
