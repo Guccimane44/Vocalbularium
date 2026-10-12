@@ -1134,6 +1134,45 @@ async function drag(page, source, target, { below = false, above = false } = {})
   await new Promise(resolve => setTimeout(resolve, 100));
 }
 
+test('sidebar: the current deck stays marked on a page while the account refreshes', { timeout: 60000 }, async (t) => {
+  const directory = await mkdtemp(join(tmpdir(), 'vocabularium-sidebar-browser-'));
+  const application = await createTestApplication(t); await application.start();
+  const a = await launch(join(directory, 'a'));
+  t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
+  const store = application.store;
+  await useModules(store, ['german-examples']);
+  const session = { installationId: 'fixture', sessionId: 'sidebar', epoch: 1 };
+  await store.openSession('sidebar-session', session);
+  const { pageId } = await store.capture('sidebar-page', { session, mainKey: '幸福', snapshot: await store.snapshot() });
+  const [examples] = modulesOf(await store.page(pageId));
+  await store.stage(examples.attemptId, { ok: true, text: 'Glück' });
+  await store.publish('sidebar-publish', { attemptId: examples.attemptId, session });
+  await signIn(a.page);
+  await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
+  await a.page.locator('h1.main-key').waitFor();
+  await a.page.locator('#sidebar .nav-item[aria-current="page"]').filter({ hasText: 'My Deck' }).waitFor();
+  // Record every sidebar rebuild and whether My Deck was still marked after it.
+  const watch = () => a.page.evaluate(() => {
+    window.sidebarLog = [];
+    new MutationObserver(() => window.sidebarLog.push(Boolean(document.querySelector('#sidebar .nav-decks [aria-current="page"]'))))
+      .observe(document.querySelector('#sidebar'), { childList: true });
+  });
+  const log = () => a.page.evaluate(() => window.sidebarLog);
+  // The first refresh after loading may still bring what the background synced meanwhile.
+  await new Promise(resolve => setTimeout(resolve, 5500));
+  await watch();
+  // Two more refresh cycles with nothing changed: nothing is redrawn.
+  await new Promise(resolve => setTimeout(resolve, 11000));
+  assert.deepEqual(await log(), [], 'an unchanged account does not redraw the sidebar');
+  // A real change redraws it, and My Deck stays marked throughout.
+  await store.capture('sidebar-second', { session, mainKey: '快乐', snapshot: await store.snapshot() });
+  await a.page.locator('#sidebar .nav-count').filter({ hasText: '2' }).waitFor({ timeout: 12000 });
+  await new Promise(resolve => setTimeout(resolve, 500));
+  const redraws = await log();
+  assert.ok(redraws.length > 0, 'the change redrew the sidebar');
+  assert.ok(redraws.every(Boolean), `My Deck stays marked through every redraw (${JSON.stringify(redraws)})`);
+});
+
 test('page view: main key tiers, Show all, rendered and plain content, quiet card status, and module window search and families', { timeout: 45000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-page-view-browser-'));
   const application = await createTestApplication(t); await application.start();
