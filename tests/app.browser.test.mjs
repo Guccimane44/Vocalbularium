@@ -1019,7 +1019,7 @@ test('manual page UI: per-card actions, drafts, leave choices, sorting, failed-s
   // Saving an empty main key keeps the editor open and says so inside the field.
   await mainKeyField.fill('');
   await a.page.getByRole('button', { name: 'Save', exact: true }).click();
-  await waitFor(async () => await mainKeyField.getAttribute('placeholder') === 'Enter a main key.', 'the message stands inside the empty main key');
+  await waitFor(async () => await mainKeyField.getAttribute('placeholder') === 'Main key can not be empty.', 'the message stands inside the empty main key');
   assert.equal(await a.page.locator('.notice.error').count(), 0, 'no notice below the field');
   await mainKeyField.fill('cancel this');
   await a.page.getByRole('button', { name: 'Cancel', exact: true }).click();
@@ -1045,7 +1045,7 @@ test('manual page UI: per-card actions, drafts, leave choices, sorting, failed-s
   await a.page.getByRole('button', { name: 'Save', exact: true }).click();
   // An empty main key says so inside its field, not in a notice below it (0.6.3).
   const newKey = a.page.getByLabel('Main key', { exact: true });
-  await waitFor(async () => await newKey.getAttribute('placeholder') === 'Enter a main key.', 'the message stands inside the empty field');
+  await waitFor(async () => await newKey.getAttribute('placeholder') === 'Main key can not be empty.', 'the message stands inside the empty field');
   assert.equal(await newKey.getAttribute('aria-invalid'), 'true');
   assert.equal(await a.page.locator('.notice.error').count(), 0, 'no notice below the field');
   assert.equal(await a.page.evaluate(() => document.activeElement.id), 'main-key', 'the field takes focus');

@@ -52,7 +52,7 @@ export function pageViews({ getAccount, renderView, refresh, send, applyState, n
     const mainKey = draft.pageId ? draft.texts[key?.id] : draft.mainKey;
     if (mainKey !== undefined && !mainKey.trim()) {
       // Shown inside the empty main key field rather than as a notice below it.
-      draft.error = undefined; draft.fieldError = 'Enter a main key.'; draft.errorCode = 'invalid'; persist(); void refresh(); return false;
+      draft.error = undefined; draft.fieldError = 'Main key can not be empty.'; draft.errorCode = 'invalid'; persist(); void refresh(); return false;
     }
     const next = payload();
     if (draft.pageId && !next.changes.length) { await discard(); void refresh(); return true; }
