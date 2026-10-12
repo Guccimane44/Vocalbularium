@@ -3,8 +3,9 @@ import type { DeckEditorDraft } from '../types/editor-drafts.js';
 import type { DeckConfiguration } from '@vocabularium/contracts';
 import { MODULES } from '@vocabularium/domain/modules';
 import type { ModuleType as ContentModuleType } from '@vocabularium/domain/modules';
-import { addBlocked, CATALOG, isModuleType } from '@vocabularium/domain/page-modules';
+import { addBlocked, CATALOG, FAMILIES, isModuleType } from '@vocabularium/domain/page-modules';
 import type { ModuleFamily } from '@vocabularium/domain/page-modules';
+import { deckColour } from './deck-colour.ts';
 import { FamilyIcon } from './families.tsx';
 import { mainKeyTier } from './main-key.ts';
 import { Content } from './page-view.tsx';
@@ -13,18 +14,19 @@ import type { Projection } from './shaping.tsx';
 
 const instance = (type: string) => ({ id: crypto.randomUUID(), type });
 
-// A new deck starts like a new account's My Deck.
+// A new deck starts like a new account's My Deck, in a colour the user can change.
 export const newDeckDraft = (): DeckConfiguration => ({
   name: '',
+  colour: FAMILIES[Math.floor(Math.random() * FAMILIES.length)]!,
   modules: [instance('main-key'), instance('context'), instance('german-examples')],
   view: { module: 'default' }
 });
 
 const SAMPLE = { word_phrase: '幸福', sentence: '我真的很幸福' } as const;
-function sample(type: string, inputType: 'word_phrase' | 'sentence', instance: number): string | null {
+function sample(type: string, inputType: 'word_phrase' | 'sentence', instance: number): string {
   if (type === 'main-key') return SAMPLE[inputType];
   if (type === 'context') return inputType === 'word_phrase' ? 'Wir wünschen euch viel 幸福 und Gesundheit.' : '她笑着说：“我真的很幸福。”';
-  if (type === 'text') return null;
+  if (type === 'text') return '';
   const definition = MODULES[type as ContentModuleType];
   if (!definition || definition.applies !== inputType) return '';
   if (type === 'sentence-usage') return instance % 2
@@ -35,6 +37,12 @@ function sample(type: string, inputType: 'word_phrase' | 'sentence', instance: n
     ? '\n=== Beispiele ===\n: [1] 她希望孩子们拥有幸福。\n:: Sie hofft, dass die Kinder Glück haben.'
     : '');
 }
+
+// Deck colours (D06) are the family colours, named by hue: a deck's colour
+// identifies the deck and says nothing about its modules.
+const COLOUR_NAMES: Readonly<Record<ModuleFamily, string>> = {
+  meaning: 'Blue', usage: 'Green', roots: 'Amber', connections: 'Violet', sound: 'Rose', notes: 'Sage'
+};
 
 const familyOf = (type: string): ModuleFamily => (isModuleType(type) && CATALOG[type].family) || 'notes';
 
@@ -66,9 +74,10 @@ function SamplePreview({ modules, projection, sampleType, choose }: {
         seen.set(module.type, count + 1);
         const text = sample(module.type, sampleType, count);
         const family = familyOf(module.type);
-        return <article className={`component preview fam-${family}`} key={module.id} data-type={module.type} data-adding={module.adding || undefined}>
+        // Like a page, an empty component (Text, or a module that does not apply to this input) is only its tab.
+        return <article className={`component preview fam-${family}`} data-empty={!text || undefined} key={module.id} data-type={module.type} data-adding={module.adding || undefined}>
           <div className="card-tab"><FamilyIcon family={family} /><h3>{moduleLabel(module.type)}</h3></div>
-          {text === null ? <p className="muted">Your own notes</p> : text ? <Content type={module.type} text={text} mainKey={mainKey} /> : <p className="muted">Does not apply to this input</p>}
+          {text && <Content type={module.type} text={text} mainKey={mainKey} />}
         </article>;
       })}
     </div>
@@ -147,6 +156,19 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
         draft.deck.name = event.target.value;
         refresh();
       }} />
+    </fieldset>
+    <fieldset className="deck-colour" disabled={busy}>
+      <legend>Deck colour</legend>
+      <div className="colour-swatches">
+        {FAMILIES.map(colour => {
+          const checked = deckColour(draft.deck) === colour;
+          return <label key={colour} className={`colour-swatch fam-${colour}`} title={COLOUR_NAMES[colour]}>
+            <input type="radio" name="deck-colour" value={colour} checked={checked}
+              onChange={() => { draft.deck.colour = colour; refresh(); }} />
+            <span className="visually-hidden">{COLOUR_NAMES[colour]}</span>
+          </label>;
+        })}
+      </div>
     </fieldset>
     <ShapingArea items={items} types={modules.map(module => module.type)} disabled={busy} unavailable={busy ? 'Saving…' : undefined}
       label="Modules for new pages" where="the list" onAdd={add} onMove={(id, index) => { move(id, index); return true; }}

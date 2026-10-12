@@ -36,6 +36,22 @@ test('deck creation validates its modules and view, preserves the default, and r
   }
 });
 
+test('a deck keeps the colour chosen in its settings; a save without one keeps the current colour', async (t) => {
+  const store = await fixture(t);
+  const { deckId } = await save(store, { name: 'Blue', colour: 'meaning', modules: withKey(), view });
+  assert.equal((await store.deck(deckId)).colour, 'meaning');
+  assert.equal((await store.listDecks()).decks.find(deck => deck.id === deckId).colour, 'meaning');
+  await save(store, { ...(await store.deck(deckId)), colour: 'sound' });
+  const { colour, ...withoutColour } = await store.deck(deckId);
+  assert.equal(colour, 'sound');
+  await save(store, { ...withoutColour, name: 'Renamed' });
+  assert.equal((await store.deck(deckId)).colour, 'sound');
+  await save(store, { ...withoutColour, colour: null });
+  assert.equal((await store.deck(deckId)).colour, null, 'null returns the deck to its derived colour');
+  assert.equal((await store.deck((await store.snapshot()).id)).colour, null, 'My Deck starts without a stored colour');
+  await assert.rejects(save(store, { ...withoutColour, colour: 'teal' }), { code: 'invalid' });
+});
+
 test('a new page copies the deck modules; later deck changes never reach it', async (t) => {
   const store = await fixture(t), pageId = await capture(store, 'Wir sind 幸福.');
   let page = await store.page(pageId);

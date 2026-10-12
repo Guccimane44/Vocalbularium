@@ -2,7 +2,7 @@
   "openapi": "3.0.3",
   "info": {
     "title": "Vocabularium Account API",
-    "version": "0.6.1",
+    "version": "0.6.2",
     "description": "Local account, capture, deck, page, and generation-session API."
   },
   "components": {
@@ -3103,6 +3103,53 @@
                           "name": {
                             "type": "string",
                             "minLength": 1
+                          },
+                          "colour": {
+                            "anyOf": [
+                              {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "enum": [
+                                      "meaning"
+                                    ]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": [
+                                      "usage"
+                                    ]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": [
+                                      "roots"
+                                    ]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": [
+                                      "connections"
+                                    ]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": [
+                                      "sound"
+                                    ]
+                                  },
+                                  {
+                                    "type": "string",
+                                    "enum": [
+                                      "notes"
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
                           },
                           "modules": {
                             "type": "array",

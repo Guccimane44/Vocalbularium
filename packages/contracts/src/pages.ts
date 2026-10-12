@@ -28,9 +28,16 @@ export const ModuleInstanceSchema = Type.Object({
   id: Type.String({ minLength: 1 }),
   type: Type.String({ minLength: 1 })
 }, { additionalProperties: false });
+// A deck's colour is one of the six module family colours (D06). A deck the
+// user has not coloured has none and shows the colour derived from its ID.
+export const DeckColourSchema = Type.Union([
+  Type.Literal('meaning'), Type.Literal('usage'), Type.Literal('roots'),
+  Type.Literal('connections'), Type.Literal('sound'), Type.Literal('notes')
+]);
 export const DeckConfigurationSchema = Type.Object({
   id: Type.Optional(Type.String({ minLength: 1 })),
   name: Type.String({ minLength: 1 }),
+  colour: Type.Optional(Type.Union([DeckColourSchema, Type.Null()])),
   // The main key module first; Context replaces the earlier captureContext setting.
   modules: Type.Array(ModuleInstanceSchema, { minItems: 1, maxItems: MAX_MODULES }),
   view: ViewDefinitionSchema
@@ -149,6 +156,7 @@ export const PageGenerateRequestSchema = Type.Object({
 }, OpenRequest);
 
 export type ModuleInstance = Type.Static<typeof ModuleInstanceSchema>;
+export type DeckColour = Type.Static<typeof DeckColourSchema>;
 export type DeckConfiguration = Type.Static<typeof DeckConfigurationSchema>;
 export type DeckConfigurationSnapshot = Type.Static<typeof DeckConfigurationSnapshotSchema>;
 export type Component = Type.Static<typeof ComponentSchema>;

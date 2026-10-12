@@ -49,13 +49,13 @@ The Context is editable alongside the main key. Removing it from a page, or addi
 
 ## Components on a page
 
-A new page starts with one component per module instance copied from the deck configuration, in configured order: the main key, the Context when the deck has the Context module, then the content components ([decks and configuration](decks-and-configuration.md#configuration-and-pages)). A content module instance that has not generated on this page yet shows as "Not generated yet", with **Generate** in its card.
+A new page starts with one component per module instance copied from the deck configuration, in configured order: the main key, the Context when the deck has the Context module, then the content components ([decks and configuration](decks-and-configuration.md#configuration-and-pages)). A content module instance that has not generated on this page yet is empty and shows only its index tab, with **Generate** among its actions.
 
 After creation the page owns its module instances. Deck configuration changes never add, remove, or reorder a page's components.
 
 ### Components as cards
 
-Each component below the main key is a card. Its index tab, on the card's top edge, shows the module's label, the family icon, and the family colour; the card repeats the colour as a thin top edge ([shared UI](shared-ui.md#visual-identity)). Generated content is rendered as its module's render contract describes ([shared UI](shared-ui.md#text-content)). A completed card shows no status; a generating card shows the moving dots, and a failed card says what failed beside its **Retry**. An empty Text component is shown as one line, "+ Text — add your own notes", that opens it for editing.
+Each component below the main key is a card. Its index tab, on the card's top edge, shows the module's label, the family icon, and the family colour; the card repeats the colour as a thin top edge ([shared UI](shared-ui.md#visual-identity)). Generated content is rendered as its module's render contract describes ([shared UI](shared-ui.md#text-content)). A completed card shows no status; a generating card shows the moving dots, and a failed card says what failed beside its **Retry**. An empty component, such as a Text the user has not filled or a content module not generated yet, shows only its index tab, without a card body or placeholder text; its actions appear on hover and focus as on any card (since 0.6.2).
 
 Each card has its own actions ([D04](../architecture/traceability-map.md#entries)), gathered in one control on the card's top edge that appears on hover and when the card holds keyboard focus:
 
@@ -71,7 +71,7 @@ The user shapes a page directly, outside editing. Each shaping step is saved imm
 
 - **Delete a component.** Any component except the main key can be deleted: a content component, the Context, or a Text component. Deleting asks for confirmation, then removes the component immediately. Deleting a module's component also removes the module instance from the page, so generation never brings it back. A component that is generating cannot be deleted until its attempt finishes.
 - **Rearrange components.** The user can drag any component except the main key, including the Context and Text components, into a new order below the main key by dragging its handle: with the pointer, or from the keyboard with Space to pick it up, the arrow keys to move it, and Space to drop it. The new order shows at once, and the page reverts to the saved order only if saving fails. The order is saved with the page and used by the default view.
-- **Add a module.** The user drags the Context module, the Text module, or a content module from the [module window](shared-ui.md#module-window) onto the page; while it is over the page, a line shows where it will land. From the keyboard, the user picks the module up with Space, moves through the landing places with the arrow keys, and drops it with Space. This adds a module instance to this page only; the deck configuration is unchanged. A page holds at most 12 module instances, counting every module, and at most one Context. An added content module shows as "Not generated yet" and generates only when the user presses its **Generate**; an added Context or Text starts empty for the user to fill. Adding the same module again restores what the user deleted earlier, as new, ungenerated content.
+- **Add a module.** The user drags the Context module, the Text module, or a content module from the [module window](shared-ui.md#module-window) onto the page; while it is over the page, a line shows where it will land. From the keyboard, the user picks the module up with Space, moves through the landing places with the arrow keys, and drops it with Space. This adds a module instance to this page only; the deck configuration is unchanged. A page holds at most 12 module instances, counting every module, and at most one Context. An added content module starts empty, showing only its index tab, and generates only when the user presses its **Generate**; an added Context or Text starts empty for the user to fill. Adding the same module again restores what the user deleted earlier, as new, ungenerated content.
 
 When another installation deletes a component the user is editing, the user's save fails as deleted and keeps their draft, as for any deleted component ([editing](#editing-a-component)).
 
@@ -103,7 +103,7 @@ Saving a main-key edit updates the page's entry and its position in alphabetical
 Capture and manual entry are two ways to supply the same page input. They share generation capabilities rather than defining different kinds of page.
 
 - **Capture** creates the page from the selected text and Context, then generates all its content components automatically.
-- **Manual creation** starts a new page with the deck's modules: the user enters the main key, and fills the Context and Text components when the deck has them. It never generates by itself; content components wait as "Not generated yet". Each content card's **Generate** then evaluates that module from the main key and Context.
+- **Manual creation** starts a new page with the deck's modules: the user enters the main key, and fills the Context and Text components when the deck has them. It never generates by itself; content components wait, empty, until generated. Each content card's **Generate** then evaluates that module from the main key and Context.
 
 After creation, captured and manually created pages behave the same.
 
@@ -127,7 +127,7 @@ Generation uses the page's own content module instances. Finish editing with **S
 8. Capturing into a deck with the Context module initializes the page's Context alongside its main key; capturing into a deck without it leaves the page with no Context.
 9. Editing the Context and saving preserves existing content and prior outcomes exactly like a main-key edit. Generation after that edit uses the updated key and Context.
 10. Adding a content module instance to the deck leaves existing pages unchanged; the next captured page has a component for it.
-11. Deleting a generated component asks for confirmation, removes it, and no generation recreates it. Dragging the same module from the module window onto the page adds it back as "Not generated yet".
+11. Deleting a generated component asks for confirmation, removes it, and no generation recreates it. Dragging the same module from the module window onto the page adds it back, empty and not generated.
 12. Dragging a module onto one page leaves the deck configuration and every other page unchanged, and does not start generation. Dragging Text adds an empty Text component; a second Context cannot be added; nothing can be added to a page with 12 modules.
 13. Dragging the Context below a content component keeps that order after reloading the page; the main key stays first.
 14. A Text component survives every generation and retry unchanged.

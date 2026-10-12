@@ -138,3 +138,25 @@ test('0008 discards 0.4.x decks and pages, keeps sign-in, and starts one fresh M
   const { pageId } = await store.capture('capture', { session, mainKey: '幸福', context: 'Wir sind 幸福.', snapshot: await store.snapshot() });
   assert.deepEqual((await store.page(pageId)).components.map(component => component.moduleType), ['main-key', 'context', 'german-examples']);
 });
+
+test('0009 adds an empty deck colour and keeps every deck, page and sign-in', async t => {
+  const database = await legacyDatabase(t, 'deck-colour-upgrade', 8);
+  const client = new pg.Client({ connectionString: database.databaseUrl }); await client.connect();
+  t.after(() => client.end());
+  await client.query(`INSERT INTO decks (id, name) VALUES ('deck', 'Chinese');
+    INSERT INTO account VALUES (1, 'deck');
+    INSERT INTO deck_modules VALUES ('key', 'deck', 0, 'main-key'), ('notes', 'deck', 1, 'text');`);
+  const kept = {};
+  for (const table of ['account', 'deck_modules', 'credentials', 'login_tokens', 'installations', 'pages', 'components']) kept[table] = await rows(client, table);
+
+  await migrateDatabase(database.databaseUrl);
+
+  for (const table of Object.keys(kept)) assert.deepEqual(await rows(client, table), kept[table], table);
+  assert.deepEqual((await client.query('SELECT id, name, colour FROM decks')).rows, [{ id: 'deck', name: 'Chinese', colour: null }]);
+  await assert.rejects(client.query("UPDATE decks SET colour = 'teal'"), /deck_colour/);
+
+  const store = await AccountStore.open(database); database.resources.push(store);
+  assert.equal((await store.deck('deck')).colour, null, 'an upgraded deck keeps its derived colour');
+  await store.saveDeck('colour', { deck: { ...(await store.deck('deck')), colour: 'roots' } });
+  assert.equal((await store.deck('deck')).colour, 'roots');
+});
