@@ -47,8 +47,6 @@ try {
       await admin.query(`CREATE ROLE ${role} LOGIN NOSUPERUSER NOCREATEROLE ${index === 2 ? 'CREATEDB' : 'NOCREATEDB'} PASSWORD '${password}'`);
     }
   }
-  // Fixture cleanup uses DROP DATABASE ... WITH (FORCE); idempotent, so earlier setups gain it on re-run.
-  await admin.query('GRANT pg_signal_backend TO vocabularium_test');
   const database = (await admin.query("SELECT pg_get_userbyid(datdba) AS owner FROM pg_database WHERE datname = 'vocabularium_dev'")).rows[0];
   if (database && database.owner !== 'vocabularium_migrator') throw new Error('Existing development database has a different owner; refusing changes.');
   if (!database) await admin.query('CREATE DATABASE vocabularium_dev OWNER vocabularium_migrator');
