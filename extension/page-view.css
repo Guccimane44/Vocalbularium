@@ -46,8 +46,8 @@
 .tab-button { display: flex; align-items: center; gap: 6px; min-width: 0; max-width: 100%; height: 28px; padding: 0 2px; border: 0; border-radius: 4px;
   font: inherit; color: inherit; background: transparent; cursor: grab; touch-action: none; }
 .tab-button:active { cursor: grabbing; }
+.tab-button:hover { background: color-mix(in srgb, currentColor 14%, transparent); }
 .tab-label { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.tab-button[aria-expanded="true"] { background: color-mix(in srgb, currentColor 18%, transparent); }
 /* The six dots open the card's menu. */
 .menu-button { flex: none; padding: 2px 4px; border: 0; border-radius: 4px; font-size: 13px; line-height: 1; letter-spacing: -2px; color: inherit; background: transparent; cursor: pointer; }
 .menu-button:hover, .menu-button[aria-expanded="true"] { background: color-mix(in srgb, currentColor 18%, transparent); }
@@ -59,15 +59,33 @@
 .row-menu-list .soon { font-size: 11px; color: var(--ink-muted); opacity: .8; }
 @keyframes menu-open { from { opacity: 0; transform: translateY(-4px) scale(.97); } }
 
-/* Actions eject from the tab: each springs out from behind it, one after the other. */
-.card-actions { display: flex; flex: none; gap: 6px; }
-.card-actions button { height: 28px; padding: 0 12px; border: 0; border-radius: var(--radius-control); font-size: 13px; font-weight: 500;
-  background: var(--surface); box-shadow: 0 0 0 1px var(--line), var(--shadow-lift); }
-.card-actions[data-open] button { animation: eject var(--dur-spring) var(--ease-spring) both; animation-delay: calc(var(--i, 0) * 45ms); transform-origin: left center; }
+/* Actions eject from the tab as smaller sibling tabs in the family's tint (D07):
+   each springs out from behind the tab, one after the other, and the tab
+   kicks back a few pixels as it lets them go. Hovering one fills it with the
+   family colour and lifts it like a tab; Delete fills with the failed colour. */
+.card-head .card-tab { position: relative; top: 0; left: 0; z-index: 1; }
+.card-tab:has(> h2 > .tab-button[aria-expanded="true"]) { animation: tab-kick var(--dur-spring) var(--ease-spring); }
+@keyframes tab-kick { 30% { transform: translateX(-4px) scale(.98); } }
+.card-actions { display: flex; flex: none; gap: 4px; }
+.card-actions button { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 11px 0 9px; border: 0;
+  border-radius: var(--radius-control) var(--radius-control) var(--radius-control) 2px;
+  font: 600 13px/1 var(--font-text); color: var(--fam, var(--fam-notes)); background: var(--fam-tint, var(--fam-notes-tint));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fam, var(--fam-notes)) 30%, transparent);
+  transition: background var(--dur-instant) var(--ease-fade), color var(--dur-instant) var(--ease-fade), transform var(--dur-spring) var(--ease-spring); }
+.card-actions .action-icon { width: 14px; height: 14px; flex: none; }
+.card-actions button:not(:disabled):hover { background: var(--fam, var(--fam-notes)); color: var(--on-fam, var(--on-ink)); transform: translateY(-2px); }
+.card-actions button:not(:disabled):active { transform: translateY(1px); }
+.card-actions .action-delete:not(:disabled):hover { background: var(--status-failed); color: var(--status-failed-bg); }
+.card-actions .action-failed { color: var(--status-failed-bg); background: var(--status-failed); box-shadow: none; }
+.card-actions .action-failed:not(:disabled):hover { background: var(--status-failed); color: var(--status-failed-bg); }
+.card-actions button:disabled { opacity: .5; cursor: default; background: var(--fam-tint, var(--fam-notes-tint)); }
+.card-actions .action-failed:disabled { background: var(--status-failed); }
+.card-actions[data-open] button { animation: eject var(--dur-spring) var(--ease-spring) both; animation-delay: calc(var(--i, 0) * 40ms); transform-origin: left center; }
 @keyframes eject {
-  from { opacity: 0; transform: translateX(calc(-28px - var(--i, 0) * 22px)) scale(.55); }
-  60% { opacity: 1; }
+  from { opacity: 0; transform: translateX(calc(-36px - var(--i, 0) * 28px)) scale(.7); }
+  50% { opacity: 1; }
 }
+@media (prefers-reduced-motion: reduce) { .card-tab { animation: none !important; } }
 @media (prefers-reduced-motion: reduce) { .card-actions[data-open] button, .row-menu-list { animation: none; } }
 .card-status { margin: 0 0 8px; }
 .component[data-status="failed"] { background: var(--status-failed-bg); }

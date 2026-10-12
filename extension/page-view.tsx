@@ -11,6 +11,16 @@ import { GeneratingStatus } from './page-list.tsx';
 import { moduleLabel, PinMark, ShapingArea } from './shaping.tsx';
 import type { RowParts } from './shaping.tsx';
 
+// Icons for a card's actions, drawn like the family icons: 24px grid, 2.2 stroke.
+const ACTION_ICONS = {
+  edit: <><path d="M12 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6" /><path d="M17.5 3.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4z" /></>,
+  generate: <path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z" />,
+  retry: <><path d="M3 12a9 9 0 1 0 3-6.7L3 8" /><path d="M3 3v5h5" /></>,
+  delete: <><path d="M4 7h16" /><path d="M9 7V4h6v3" /><path d="M18 7l-1 13H7L6 7" /></>
+} as const;
+const ActionIcon = ({ name }: { name: keyof typeof ACTION_ICONS }) => <svg className="action-icon" viewBox="0 0 24 24" aria-hidden="true"
+  fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">{ACTION_ICONS[name]}</svg>;
+
 // The six-dot menu on each card; its entries are placeholders (0.6.3).
 const COMPONENT_MENU = ['Duplicate', 'Copy text', 'Move to page…'] as const;
 
@@ -210,11 +220,15 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
     let index = 0;
     const order = () => ({ '--i': index++ }) as CSSProperties;
     return <div id={`actions-${item.id}`} className="card-actions" role="group" aria-label={`${title} actions`} data-open={open || undefined}>
-      {open && <button style={order()} aria-label={`Edit ${title}`} disabled={Boolean(editingId) || item.status === 'loading'} onClick={choose(() => begin(item.id))}>Edit</button>}
-      {generated && <button style={order()} aria-label={`${firstRun ? 'Generate' : 'Retry'} ${title}`} disabled={working || Boolean(editingId) || item.status === 'loading'}
-        onClick={choose(() => void run(() => generate({ scope: 'component', componentId: item.id })))}>{firstRun ? 'Generate' : 'Retry'}</button>}
-      {open && <button style={order()} aria-label={`Delete ${title}`} disabled={disabled || working || item.status === 'loading'}
-        onClick={choose(() => void run(async () => { await deleteComponent(item); }))}>Delete</button>}
+      {open && <button style={order()} aria-label={`Edit ${title}`} disabled={Boolean(editingId) || item.status === 'loading'} onClick={choose(() => begin(item.id))}>
+        <ActionIcon name="edit" />Edit</button>}
+      {generated && <button style={order()} className={item.status === 'failed' ? 'action-failed' : undefined} aria-label={`${firstRun ? 'Generate' : 'Retry'} ${title}`}
+        disabled={working || Boolean(editingId) || item.status === 'loading'}
+        onClick={choose(() => void run(() => generate({ scope: 'component', componentId: item.id })))}>
+        <ActionIcon name={firstRun ? 'generate' : 'retry'} />{firstRun ? 'Generate' : 'Retry'}</button>}
+      {open && <button style={order()} className="action-delete" aria-label={`Delete ${title}`} disabled={disabled || working || item.status === 'loading'}
+        onClick={choose(() => void run(async () => { await deleteComponent(item); }))}>
+        <ActionIcon name="delete" />Delete</button>}
     </div>;
   };
   const editor = (item: Component, title: string) => editingId === item.id && draft && <>
