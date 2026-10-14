@@ -3,6 +3,7 @@ import type { ModuleFamily } from '@vocabularium/domain/page-modules';
 // One small glyph per module family (D05). Decorative: the family colour and
 // glyph always appear beside the module's or family's name.
 const GLYPHS: Record<ModuleFamily, string[]> = {
+  translation: ['M3.5 4.5h10v7.5H8l-3 2.5V12H3.5z', 'M16.5 9h4v7.5H19V19l-3-2.5h-5.5V14'],
   meaning: ['M4 4.5h5.5a2.5 2.5 0 0 1 2.5 2.5v9a2 2 0 0 0-2-2H4z', 'M20 4.5h-5.5A2.5 2.5 0 0 0 12 7v9a2 2 0 0 1 2-2h6z'],
   usage: ['M5 7h5v5H7.5L6 15H5z', 'M14 7h5v5h-2.5L15 15h-1z'],
   roots: ['M12 3v9', 'M12 12l-5 7', 'M12 12l5 7', 'M12 12v8'],

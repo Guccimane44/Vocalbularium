@@ -2,8 +2,10 @@ import { Postgres, OWNER_ACCOUNT_ID } from '../persistence/postgres.ts';
 import { createHash, randomUUID } from 'node:crypto';
 import { blockText, pageStatus, textBlocks } from '@vocabularium/domain/pages';
 import {
-  addBlocked, copyModules, deleteBlocked, FAMILIES as DECK_COLOURS, generationTargets, moveBlocked, moved, pageMeaning, validateConfiguration
+  addBlocked, copyModules, deleteBlocked, DECK_COLOURS, generationTargets, moveBlocked, moved, pageMeaning, validateConfiguration
 } from '@vocabularium/domain/page-modules';
+import { facetAddBlocked, facetDeleteBlocked, isParentType, withFacet } from '@vocabularium/domain/parents';
+import { withoutFacet } from '@vocabularium/domain/render';
 import { sortKey } from './sort-key.mjs';
 /** @typedef {import('./store-records.js').PageRow} PageRow */
 /** @typedef {import('./store-records.js').ComponentRow} ComponentRow */
@@ -70,6 +72,8 @@ function textValue(value, message) {
   return value;
 }
 export const DEFAULT_DECK_MODULES = Object.freeze(['main-key', 'context', 'german-examples']);
+// A parent module carries its facets (D08); other modules keep their earlier shape.
+const withFacets = (type, facets) => isParentType(type) || facets?.length ? { facets: [...(facets ?? [])] } : {};
 
 // Account mutations are admitted synchronously and commit before acknowledgment.
 // Provider work never runs inside the ordered executor or database transaction.
@@ -109,7 +113,7 @@ export class AccountStore {
       const id = randomUUID();
       await this.database.run("INSERT INTO decks (id, name) VALUES ($1, $2)", [id, name]);
       for (const [position, type] of types.entries()) {
-        await this.database.run("INSERT INTO deck_modules VALUES ($1, $2, $3, $4)", [randomUUID(), id, position, type]);
+        await this.database.run("INSERT INTO deck_modules (id, deck_id, position, type) VALUES ($1, $2, $3, $4)", [randomUUID(), id, position, type]);
       }
       return await this.deck(id);
     });
@@ -161,8 +165,9 @@ export class AccountStore {
     return this.database.transaction(async () => {
       const deck = await this.database.one("SELECT id, name, view, colour FROM decks WHERE id = $1", [id]);
       if (!deck) fail('deleted', 'The deck no longer exists.');
-      const modules = await this.database.all("SELECT id, type FROM deck_modules WHERE deck_id = $1 ORDER BY position", [id]);
-      return { id: deck.id, name: deck.name, colour: deck.colour, modules: modules.map(({ id, type }) => ({ id, type })), view: { module: deck.view } };
+      const modules = await this.database.all("SELECT id, type, facets FROM deck_modules WHERE deck_id = $1 ORDER BY position", [id]);
+      return { id: deck.id, name: deck.name, colour: deck.colour,
+        modules: modules.map(({ id, type, facets }) => ({ id, type, ...withFacets(type, facets) })), view: { module: deck.view } };
     });
   }
   async snapshot() {
@@ -288,7 +293,8 @@ export class AccountStore {
       else await this.database.run("INSERT INTO decks (id, name, colour) VALUES ($1, $2, $3)", [id, deck.name.trim(), colour]);
       await this.database.run("DELETE FROM deck_modules WHERE deck_id = $1", [id]);
       for (const [position, module] of deck.modules.entries()) {
-        await this.database.run("INSERT INTO deck_modules VALUES ($1, $2, $3, $4)", [module.id, id, position, module.type]);
+        await this.database.run("INSERT INTO deck_modules (id, deck_id, position, type, facets) VALUES ($1, $2, $3, $4, $5)",
+          [module.id, id, position, module.type, module.facets ?? []]);
       }
       return { deckId: id };
     });
@@ -317,9 +323,12 @@ export class AccountStore {
       if (!page) fail('deleted', 'The page no longer exists.');
       const components = (await this.database.all("SELECT * FROM components WHERE page_id = $1 ORDER BY position", [id]))
         .map(row => ({ id: row.id, moduleInstanceId: row.module_instance_id, moduleType: row.module_type,
-          content: JSON.parse(row.content), status: row.status, attemptId: row.attempt_id }));
+          ...withFacets(row.module_type, row.facets), content: JSON.parse(row.content), status: row.status, attemptId: row.attempt_id }));
+      // The latest run's reading of the main key (D08), shown under the page title.
+      const latest = await this.database.one(`SELECT interpretation FROM generation_runs
+        WHERE page_id = $1 AND interpretation IS NOT NULL ORDER BY ordinal DESC LIMIT 1`, [id]);
       return { id: page.id, deckId: page.deck_id, selectedText: page.selected_text, createdAt: page.created_at,
-        components, status: pageStatus(components) };
+        components, status: pageStatus(components), interpretation: latest ? JSON.parse(latest.interpretation).inputType : null };
     });
   }
   async pages() {
@@ -330,10 +339,10 @@ export class AccountStore {
     });
   }
   // Each module instance on a page owns one component; positions follow page order.
-  async insertComponent(pageId, { moduleInstanceId, moduleType, content }, position) {
+  async insertComponent(pageId, { moduleInstanceId, moduleType, facets = [], content }, position) {
     const id = randomUUID();
-    await this.database.run(`INSERT INTO components (page_id, id, module_instance_id, module_type, position, content)
-      VALUES ($1, $2, $3, $4, $5, $6)`, [pageId, id, moduleInstanceId, moduleType, position, JSON.stringify(content)]);
+    await this.database.run(`INSERT INTO components (page_id, id, module_instance_id, module_type, position, content, facets)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)`, [pageId, id, moduleInstanceId, moduleType, position, JSON.stringify(content), facets]);
     return id;
   }
   async renumber(pageId, components) {
@@ -352,7 +361,7 @@ export class AccountStore {
     const copies = copyModules(deck.modules, randomUUID);
     for (const [position, module] of copies.entries()) {
       const content = module.type === 'main-key' ? textBlocks(mainKey) : values.get(deck.modules[position].id) ?? textBlocks('');
-      await this.insertComponent(id, { moduleInstanceId: module.id, moduleType: module.type, content }, position);
+      await this.insertComponent(id, { moduleInstanceId: module.id, moduleType: module.type, facets: module.facets, content }, position);
     }
     return id;
   }
@@ -389,9 +398,10 @@ export class AccountStore {
     const runId = randomUUID();
     await this.database.run("INSERT INTO generation_runs (id, page_id) VALUES ($1, $2)", [runId, pageId]);
     const attemptIds = [];
-    for (const { id: componentId, moduleInstanceId, moduleType } of targets) {
+    for (const { id: componentId, moduleInstanceId, moduleType, facets } of targets) {
       const attemptId = randomUUID();
-      const module = { id: moduleInstanceId, type: moduleType };
+      // An attempt generates the facets its parent has when it starts (D08).
+      const module = { id: moduleInstanceId, type: moduleType, ...withFacets(moduleType, facets) };
       await this.database.run(`INSERT INTO component_attempts
         (id, page_id, component_id, run_id, installation_id, session_id, epoch, module) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
       [attemptId, pageId, componentId, runId, session.installationId, session.sessionId, session.epoch, JSON.stringify(module)]);
@@ -512,6 +522,34 @@ export class AccountStore {
       if (!Number.isInteger(at) || at < 1 || at > page.components.length) fail('invalid', 'Choose a position below the main key.');
       const componentId = await this.insertComponent(pageId, { moduleInstanceId: randomUUID(), moduleType: type, content: textBlocks('') }, page.components.length);
       await this.renumber(pageId, moved([...page.components, { id: componentId }], componentId, at));
+      return { pageId, componentId };
+    });
+  }
+  // Facets (D08) join or leave one parent component, immediately. A facet lands
+  // only on a parent of its own type; an added one waits for the next Retry.
+  async addFacet(operationId, { pageId, componentId, parent, facet }) {
+    return await this.command(operationId, 'add-facet', { pageId, componentId, parent, facet }, async () => {
+      const page = await this.page(pageId);
+      const component = page.components.find(item => item.id === componentId);
+      const blocked = facetAddBlocked(component && { id: component.id, type: component.moduleType, facets: component.facets, status: component.status }, parent, facet);
+      if (blocked) fail(component ? 'invalid' : 'deleted', blocked);
+      await this.database.run("UPDATE components SET facets = $1 WHERE page_id = $2 AND id = $3",
+        [withFacet(parent, component.facets ?? [], facet), pageId, componentId]);
+      return { pageId, componentId };
+    });
+  }
+  // Deleting a facet removes its section from the content and the facet from the
+  // instance, so a later Retry does not bring it back.
+  async deleteFacet(operationId, { pageId, componentId, parent, facet }) {
+    return await this.command(operationId, 'delete-facet', { pageId, componentId, parent, facet }, async () => {
+      const page = await this.page(pageId);
+      const component = page.components.find(item => item.id === componentId);
+      const holder = component && { id: component.id, type: component.moduleType, facets: component.facets, status: component.status };
+      const blocked = component && component.moduleType !== parent ? 'This facet is no longer there.' : facetDeleteBlocked(holder, facet);
+      if (blocked) fail(component ? 'invalid' : 'deleted', blocked);
+      const content = textBlocks(withoutFacet(parent, blockText(component.content), facet));
+      await this.database.run("UPDATE components SET facets = $1, content = $2 WHERE page_id = $3 AND id = $4",
+        [component.facets.filter(item => item !== facet), JSON.stringify(content), pageId, componentId]);
       return { pageId, componentId };
     });
   }

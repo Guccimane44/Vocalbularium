@@ -34,7 +34,9 @@ export const loginTokens = pgTable('login_tokens', {
 // Deck → page → component (Q72).
 export const deckModules = pgTable('deck_modules', {
   id: text().primaryKey(), deck_id: text().notNull().references(() => decks.id, { onDelete: 'cascade' }),
-  position: integer().notNull(), type: text().notNull()
+  position: integer().notNull(), type: text().notNull(),
+  // A parent module's facets in the parent's order (D08); empty for every other module.
+  facets: text().array().notNull().default(sql`'{}'::text[]`)
 }, table => [unique('deck_module_position').on(table.deck_id, table.position),
   check('deck_module_limit', sql`${table.position} between 0 and 11`),
   // Input modules (D02): one main key and at most one Context per deck.
@@ -55,14 +57,17 @@ export const pages = pgTable('pages', {
 // One generation run shares one interpretation across its attempts.
 export const generationRuns = pgTable('generation_runs', {
   id: text().primaryKey(), page_id: text().notNull().references(() => pages.id, { onDelete: 'cascade' }),
-  interpretation: text()
+  interpretation: text(),
+  // Run order, so a page can report its latest interpretation (D08).
+  ordinal: bigserial({ mode: 'number' }).notNull()
 }, table => [index('generation_runs_page').on(table.page_id)]);
 // Page-owned modules (D02): every component belongs to one of its page's module
 // instances. The instance IDs are the page's own; the deck's are only a template.
 export const components = pgTable('components', {
   page_id: text().notNull().references(() => pages.id, { onDelete: 'cascade' }),
   id: text().notNull(), module_instance_id: text().notNull(), module_type: text().notNull(),
-  position: integer().notNull(), content: text().notNull(), status: text(), attempt_id: text()
+  position: integer().notNull(), content: text().notNull(), status: text(), attempt_id: text(),
+  facets: text().array().notNull().default(sql`'{}'::text[]`)
 }, table => [primaryKey({ columns: [table.page_id, table.id] }), index('components_attempt').on(table.attempt_id),
   uniqueIndex('components_module_instance').on(table.page_id, table.module_instance_id),
   uniqueIndex('components_single_main_key_module').on(table.page_id).where(sql`${table.module_type} = 'main-key'`),

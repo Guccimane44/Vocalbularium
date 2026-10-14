@@ -52,9 +52,12 @@ This plan, the tracker issue, and the 0.7.0 milestone in Actual Stages (`Not sta
 
 ### 2. Storage and API
 
-- Migration `0010`: an ordered facet list on deck modules and on components; the upgrade discards decks and pages as `0008` did and creates My Deck with Context and `German` with all four facets. Back up first with `npm run db:backup`.
-- API: adding and deleting a facet on a page component and in a deck configuration, with the same rejections as the domain rules; configuration saves carry facets; page reads carry each component's facets and the page's latest interpretation. OpenAPI regenerated.
-- Postgres, store, and upgrade tests, including an upgrade from a 0.6.3 database.
+- Migration `0010` (additive): an ordered facet list on deck modules and on components, and run order so a page can report its latest interpretation.
+- Parents join the module catalog and the stored modules, but stay out of the module window until increment 4; deck colours become their own list of the six earlier family colours, and Translation joins the families.
+- API: adding and deleting a facet on a page component (`/api/page/facets/add`, `/api/page/facets/delete`), with the same rejections as the domain rules; deleting a facet removes its section from the content; configuration saves carry facets; page reads carry each component's facets and the page's latest interpretation; attempts record the facets they generate. OpenAPI regenerated.
+- Store and upgrade tests, including an upgrade from a 0.6.3 database.
+
+*Changed during increment 2 (14 October 2026):* the reset that discards decks and pages and creates the new My Deck moves to increment 4, where the three earlier modules are retired, so the extension and its browser tests keep working with them until then.
 
 ### 3. Generation
 
@@ -65,7 +68,8 @@ This plan, the tracker issue, and the 0.7.0 milestone in Actual Stages (`Not sta
 
 ### 4. Extension
 
-- Theme: `fam-translation` tokens and the speech-bubble icon; the contrast test covers the seventh family.
+- Migration `0011`: the upgrade discards decks and pages as `0008` did, keeps sign-in, and creates My Deck with Context and `German` with all four facets; the three earlier content modules are retired. Back up first with `npm run db:backup`.
+- Theme: `fam-translation` tokens; the speech-bubble icon (drawn in increment 2); the contrast test covers the seventh family.
 - Module window: parents with their facets beneath them, drawn as parts of their parent; dragging a facet marks the parents that take it and lands only on them; a facet's **+** adds it to the only eligible parent or offers the eligible ones; disabled facets say why. Keyboard and screen-reader paths as for modules.
 - Page: a parent card shows the core, then each applicable facet under its label; a waiting facet shows only its label; **Delete** on a facet label asks "Are you sure?" when it has content. The word or sentence label under the main key.
 - Deck settings: facets on parent rows, added and deleted the same way; the preview's word and sentence samples show which facets apply.

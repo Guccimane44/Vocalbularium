@@ -149,14 +149,44 @@ test('0009 adds an empty deck colour and keeps every deck, page and sign-in', as
   const kept = {};
   for (const table of ['account', 'deck_modules', 'credentials', 'login_tokens', 'installations', 'pages', 'components']) kept[table] = await rows(client, table);
 
-  await migrateDatabase(database.databaseUrl);
+  await migrateTo(t, database, 9);
 
   for (const table of Object.keys(kept)) assert.deepEqual(await rows(client, table), kept[table], table);
   assert.deepEqual((await client.query('SELECT id, name, colour FROM decks')).rows, [{ id: 'deck', name: 'Chinese', colour: null }]);
   await assert.rejects(client.query("UPDATE decks SET colour = 'teal'"), /deck_colour/);
+  await migrateDatabase(database.databaseUrl);
 
   const store = await AccountStore.open(database); database.resources.push(store);
   assert.equal((await store.deck('deck')).colour, null, 'an upgraded deck keeps its derived colour');
   await store.saveDeck('colour', { deck: { ...(await store.deck('deck')), colour: 'roots' } });
   assert.equal((await store.deck('deck')).colour, 'roots');
+});
+
+test('0010 adds empty facet lists and run order, and keeps every deck, page, run and sign-in', async t => {
+  const database = await legacyDatabase(t, 'parent-facets-upgrade', 9);
+  const client = new pg.Client({ connectionString: database.databaseUrl }); await client.connect();
+  t.after(() => client.end());
+  await client.query(`INSERT INTO decks (id, name) VALUES ('deck', 'Chinese');
+    INSERT INTO account VALUES (1, 'deck');
+    INSERT INTO deck_modules VALUES ('key', 'deck', 0, 'main-key'), ('examples', 'deck', 1, 'german-examples');
+    INSERT INTO pages (id, deck_id, selected_text, created_at) VALUES ('page', 'deck', '幸福', '2026-10-13T10:00:00.000Z');
+    INSERT INTO components (page_id, id, module_instance_id, module_type, position, content, status)
+      VALUES ('page', 'key', 'k', 'main-key', 0, '{"version":1,"blocks":[{"type":"paragraph","text":"幸福"}]}', NULL),
+        ('page', 'explanation', 'e', 'german-examples', 1, '{"version":1,"blocks":[{"type":"paragraph","text":"Glück"}]}', 'completed');
+    INSERT INTO generation_runs (id, page_id, interpretation) VALUES ('run', 'page', '{"inputType":"word_phrase","sourceLanguage":"Chinesisch"}');`);
+  const before = {};
+  for (const table of ['account', 'decks', 'deck_modules', 'pages', 'components', 'generation_runs']) before[table] = await rows(client, table);
+
+  await migrateDatabase(database.databaseUrl);
+
+  const withoutAdded = list => list.map(row => { const { facets, ordinal, ...rest } = JSON.parse(row); return JSON.stringify(rest); }).sort();
+  for (const table of Object.keys(before)) assert.deepEqual(withoutAdded(await rows(client, table)), withoutAdded(before[table]), table);
+  assert.deepEqual((await client.query('SELECT facets FROM deck_modules')).rows.map(row => row.facets), [[], []]);
+  assert.deepEqual((await client.query('SELECT facets FROM components')).rows.map(row => row.facets), [[], []]);
+  assert.equal((await client.query('SELECT ordinal FROM generation_runs')).rows.length, 1);
+
+  const store = await AccountStore.open(database); database.resources.push(store);
+  assert.deepEqual((await store.deck('deck')).modules, [{ id: 'key', type: 'main-key' }, { id: 'examples', type: 'german-examples' }],
+    'earlier modules keep their shape');
+  assert.equal((await store.page('page')).interpretation, 'word_phrase', 'the page reports its latest interpretation');
 });

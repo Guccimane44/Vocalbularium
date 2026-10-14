@@ -1,9 +1,9 @@
 import { useEffect, useReducer, useRef } from 'react';
 import type { DeckEditorDraft } from '../types/editor-drafts.js';
-import type { DeckConfiguration } from '@vocabularium/contracts';
+import type { DeckColour, DeckConfiguration } from '@vocabularium/contracts';
 import { MODULES } from '@vocabularium/domain/modules';
 import type { ModuleType as ContentModuleType } from '@vocabularium/domain/modules';
-import { addBlocked, CATALOG, FAMILIES, isModuleType } from '@vocabularium/domain/page-modules';
+import { addBlocked, CATALOG, DECK_COLOURS, isModuleType } from '@vocabularium/domain/page-modules';
 import type { ModuleFamily } from '@vocabularium/domain/page-modules';
 import { deckColour } from './deck-colour.ts';
 import { FamilyIcon } from './families.tsx';
@@ -16,7 +16,7 @@ const instance = (type: string) => ({ id: crypto.randomUUID(), type });
 // A new deck starts like a new account's My Deck, in a colour the user can change.
 export const newDeckDraft = (): DeckConfiguration => ({
   name: '',
-  colour: FAMILIES[Math.floor(Math.random() * FAMILIES.length)]!,
+  colour: DECK_COLOURS[Math.floor(Math.random() * DECK_COLOURS.length)]!,
   modules: [instance('main-key'), instance('context'), instance('german-examples')],
   view: { module: 'default' }
 });
@@ -39,7 +39,7 @@ function sample(type: string, inputType: 'word_phrase' | 'sentence', instance: n
 
 // Deck colours (D06) are the family colours, named by hue: a deck's colour
 // identifies the deck and says nothing about its modules.
-const COLOUR_NAMES: Readonly<Record<ModuleFamily, string>> = {
+const COLOUR_NAMES: Readonly<Record<DeckColour, string>> = {
   meaning: 'Blue', usage: 'Green', roots: 'Amber', connections: 'Violet', sound: 'Rose', notes: 'Sage'
 };
 
@@ -172,7 +172,7 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
     <fieldset className="deck-colour" disabled={busy}>
       <legend>Deck colour</legend>
       <div className="colour-swatches">
-        {FAMILIES.map(colour => {
+        {DECK_COLOURS.map(colour => {
           const checked = deckColour(draft.deck) === colour;
           return <label key={colour} className={`colour-swatch fam-${colour}`} title={COLOUR_NAMES[colour]}>
             <input type="radio" name="deck-colour" value={colour} checked={checked}
