@@ -20,14 +20,16 @@ for (const input of inputs) {
   catch (error) { evidence.results.push({ ...input, error: `interpretation: ${error.message}` }); continue; }
   for (const type of Object.keys(PARENTS).filter(type => !only || type === only)) {
     const module = { id: `golden-${type}`, type, facets: facetsOf(type) };
+    // Kept so a failed output can be read in the review, not only its error.
+    let raw = null;
     try {
       const text = await generateComponent({ mainKey: input.key, interpretation, module,
-        generate: request => provider.generate({ ...request, context: input.context, sessionId }) });
+        generate: async request => (raw = await provider.generate({ ...request, context: input.context, sessionId })) });
       const rendered = renderContent(type, text);
       evidence.results.push({ ...input, parent: type, inputType: interpretation.inputType, text,
         facets: rendered.kind === 'parent' ? rendered.facets.map(facet => facet.facet) : null });
     } catch (error) {
-      evidence.results.push({ ...input, parent: type, inputType: interpretation.inputType, error: error.message });
+      evidence.results.push({ ...input, parent: type, inputType: interpretation.inputType, error: error.message, ...(raw ? { text: raw } : {}) });
     }
   }
 }
@@ -37,7 +39,7 @@ await writeFile(`.data/golden/${stamp}.json`, JSON.stringify(evidence, null, 2) 
 const review = [`# Golden set ${evidence.date}`, '', `Model: ${evidence.model}`, '',
   ...evidence.results.flatMap(result => [`## ${result.parent ? `${PARENTS[result.parent].label}: ` : ''}${result.key}`, '',
     `${result.why}${result.context ? ` · Context: ${result.context}` : ''}${result.inputType ? ` · read as ${result.inputType}` : ''}`, '',
-    result.error ? `**Failed:** ${result.error}` : `Facets shown: ${result.facets.join(', ') || 'none'}\n\n\`\`\`text\n${result.text}\n\`\`\``, ''])].join('\n');
+    result.error ? `**Failed:** ${result.error}${result.text ? `\n\n\`\`\`text\n${result.text}\n\`\`\`` : ''}` : `Facets shown: ${result.facets.join(', ') || 'none'}\n\n\`\`\`text\n${result.text}\n\`\`\``, ''])].join('\n');
 await writeFile(`.data/golden/${stamp}.md`, review);
 const failed = evidence.results.filter(result => result.error).length;
 console.log(`Golden set finished: ${evidence.results.length - failed} outputs, ${failed} failures. Review .data/golden/${stamp}.md.`);
