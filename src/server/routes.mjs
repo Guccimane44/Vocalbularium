@@ -2,7 +2,7 @@ import { StoreError } from '../core/store.mjs';
 import { isModuleType } from '@vocabularium/domain/page-modules';
 import {
   ApiFailureSchema, CapturePreparationRequestSchema, ComponentDeleteRequestSchema, ComponentMoveRequestSchema,
-  DeckConfigurationSaveRequestSchema, DeckDeleteRequestSchema, ModuleAddRequestSchema,
+  DeckConfigurationSaveRequestSchema, DeckDeleteRequestSchema, FacetAddRequestSchema, FacetDeleteRequestSchema, ModuleAddRequestSchema,
   DefaultDeckRequestSchema, JsonObjectSchema, LoginRequestSchema, HealthResponseSchema, LoginResponseSchema,
   PageCaptureRequestSchema, PageCreateRequestSchema, PageDeleteRequestSchema, PageGenerateRequestSchema,
   PageSaveRequestSchema, PollRequestSchema, PublishRequestSchema, SessionRequestSchema
@@ -189,6 +189,15 @@ export function registerRoutes(fastify, { store, authentication, generation }) {
     await generation.cancelObsolete();
     return result;
   });
+
+  // Facets (D08): a facet joins or leaves one parent component.
+  fastify.post('/api/page/facets/add', {
+    schema: routeSchema('Add a facet to a parent module on one page', FacetAddRequestSchema)
+  }, async request => store.addFacet(request.body.operationId, request.body.payload));
+
+  fastify.post('/api/page/facets/delete', {
+    schema: routeSchema('Delete a facet from a parent module on one page', FacetDeleteRequestSchema)
+  }, async request => store.deleteFacet(request.body.operationId, request.body.payload));
 
   fastify.post('/api/page/components/move', {
     schema: routeSchema('Move a component on its page', ComponentMoveRequestSchema)

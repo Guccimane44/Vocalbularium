@@ -1,4 +1,4 @@
-import { facetsOf, isParentType, PARENTS } from './parents.js';
+import { facetsOf, isFacetOf, isParentType, PARENTS } from './parents.js';
 import type { FacetType, ParentType } from './parents.js';
 
 // Render contracts (D05, C17): content stays stored as each module's text; this
@@ -127,6 +127,19 @@ export function renderContent(moduleType: string, text: string): Rendered {
   if (moduleType === 'german-examples') return entry(text, true) ?? plain;
   if (moduleType === 'sentence-usage') return { kind: 'sentence', text: text.trim() };
   return plain;
+}
+
+// The text without one facet's section (D08), when it follows the parent's
+// contract; text that does not, such as an edited component, stays unchanged.
+export function withoutFacet(moduleType: string, text: string, facet: string): string {
+  if (!isParentType(moduleType) || !isFacetOf(moduleType, facet) || renderContent(moduleType, text).kind !== 'parent') return text;
+  const label = PARENTS[moduleType].facets[facet]!.label;
+  let skipping = false;
+  return text.split('\n').filter(line => {
+    const section = SECTION.exec(line.trim());
+    if (section) skipping = section[1] === label;
+    return !skipping;
+  }).join('\n');
 }
 
 // Splits text around each occurrence of the main key, so a client can emphasise it.

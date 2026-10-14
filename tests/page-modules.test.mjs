@@ -5,7 +5,7 @@ import {
   ComponentMovePayloadSchema, DeckConfigurationSchema, MAX_MODULES, ModuleAddPayloadSchema, PageSchema
 } from '@vocabularium/contracts';
 import {
-  addBlocked, CATALOG, copyModules, deleteBlocked, FAMILIES, FAMILY_LABELS, firstMeaning, generationTargets, isContentType, moveBlocked, moved,
+  addBlocked, CATALOG, copyModules, DECK_COLOURS, deleteBlocked, FAMILIES, FAMILY_LABELS, firstMeaning, generationTargets, isContentType, moveBlocked, moved,
   pageMeaning, validateConfiguration, WINDOW_MODULES
 } from '@vocabularium/domain/page-modules';
 import { textBlocks } from '@vocabularium/domain/pages';
@@ -27,7 +27,10 @@ test('the catalog lists input modules first and the window offers everything but
 });
 
 test('every module but the main key belongs to one module family (D05)', () => {
-  assert.deepEqual([...FAMILIES], ['meaning', 'usage', 'roots', 'connections', 'sound', 'notes']);
+  assert.deepEqual([...FAMILIES], ['translation', 'meaning', 'usage', 'roots', 'connections', 'sound', 'notes'], 'Translation joins for the parents (D08)');
+  assert.deepEqual([...DECK_COLOURS], ['meaning', 'usage', 'roots', 'connections', 'sound', 'notes'], 'deck colours stay the six earlier ones');
+  assert.equal(CATALOG.german.family, 'translation');
+  assert.equal(CATALOG.chinese.kind, 'content');
   for (const family of FAMILIES) assert.ok(FAMILY_LABELS[family]);
   assert.equal(CATALOG['main-key'].family, null);
   assert.deepEqual(WINDOW_MODULES.map(type => [type, CATALOG[type].family]), [
