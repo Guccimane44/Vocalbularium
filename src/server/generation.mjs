@@ -17,7 +17,7 @@ export class Generation {
       throw new Error('Generation limits must be non-negative safe integers with at least one active slot.');
     }
     this.store = store; this.provider = provider;
-    this.tasks = new Map(); this.interpretations = new Map(); this.outputs = new Map();
+    this.tasks = new Map(); this.interpretations = new Map();
     this.queue = []; this.reservations = new Set();
     this.maxActive = maxActive; this.maxQueued = maxQueued;
     this.admitted = 0; this.rejected = 0; this.closed = false;
@@ -127,10 +127,6 @@ export class Generation {
     task.finally(() => {
       this.tasks.delete(job.attemptId);
       this.pump();
-      if (![...this.tasks.values()].some(task => task.pageId === job.pageId) &&
-        !this.queue.some(waiting => waiting.pageId === job.pageId)) {
-        for (const key of this.outputs.keys()) if (key.startsWith(`${job.pageId}:`)) this.outputs.delete(key);
-      }
       this.record('settled', controller.signal.aborted ? 'canceled' : job.outcome ?? 'finished', job.attemptId,
         Math.round(performance.now() - started));
       this.contexts.delete(job.attemptId);
@@ -152,14 +148,7 @@ export class Generation {
       if (controller.signal.aborted) return;
       const output = await generateComponent({
         mainKey: input.mainKey, module: attempt.module, interpretation,
-        generate: request => this.provider.generate({ ...request, context: input.context, sessionId: pageId }, controller.signal),
-        claimOutput: (type, output) => {
-          if (!['german-examples', 'sentence-usage'].includes(type)) return true;
-          const key = `${pageId}:${type}`;
-          const seen = this.outputs.get(key) ?? new Set();
-          if (seen.has(output)) return false;
-          seen.add(output); this.outputs.set(key, seen); return true;
-        }
+        generate: request => this.provider.generate({ ...request, context: input.context, sessionId: pageId }, controller.signal)
       });
       if (controller.signal.aborted) return;
       result = { ok: true, text: output };

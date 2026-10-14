@@ -1,0 +1,29 @@
+{
+  "note": "Golden set for the German and Chinese parent modules (D08, C8). Every input runs through both parents with all their facets; the owner reviews the outputs before a prompt change merges.",
+  "inputs": [
+    { "key": "bank", "context": "We sat on the bank and watched the river go by.", "why": "English noun; Context picks the river sense" },
+    { "key": "bank", "context": "I need to go to the bank before it closes.", "why": "English noun; Context picks the money sense" },
+    { "key": "run", "why": "English verb: no Article" },
+    { "key": "serendipity", "why": "English noun without a close German or Chinese word" },
+    { "key": "break the ice", "why": "English idiom as a phrase" },
+    { "key": "beautiful", "why": "English adjective: synonyms and antonyms" },
+    { "key": "幸福", "why": "Chinese or Japanese spelling: one language must be chosen" },
+    { "key": "打算", "why": "Chinese verb" },
+    { "key": "一举两得", "why": "Chinese idiom (chengyu)" },
+    { "key": "Ufer", "why": "German noun in the German parent: explained in German, its own article" },
+    { "key": "laufen", "why": "German verb in the German parent" },
+    { "key": "Fernweh", "why": "German noun without an antonym" },
+    { "key": "schön", "why": "German adjective" },
+    { "key": "sobremesa", "why": "Spanish noun" },
+    { "key": "dépaysement", "why": "French noun" },
+    { "key": "木漏れ日", "why": "Japanese noun in the Chinese parent" },
+    { "key": "John Cena", "why": "A name" },
+    { "key": "COVID-19", "why": "A technical term" },
+    { "key": "We sat on the bank and watched the river.", "why": "English sentence" },
+    { "key": "It's raining cats and dogs.", "why": "English idiomatic sentence" },
+    { "key": "我真的很幸福", "why": "Chinese sentence in the Chinese parent: explained in Chinese" },
+    { "key": "Ich habe Fernweh.", "why": "German sentence in the German parent" },
+    { "key": "Der Zug ist schon abgefahren.", "why": "German idiomatic sentence" },
+    { "key": "El que madruga, Dios le ayuda.", "why": "Spanish proverb" }
+  ]
+}

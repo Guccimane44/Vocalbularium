@@ -5,8 +5,8 @@ import { blockText, mainKeyOf, pageStatus, textBlocks, validateView, VIEW_MODULE
 import { PageSchema } from '@vocabularium/contracts';
 import Value from 'typebox/value';
 
-const word = { inputType: 'word_phrase', sourceLanguage: 'Chinese' };
-const sentence = { inputType: 'sentence', sourceLanguage: 'Chinese' };
+const word = { inputType: 'word_phrase' };
+const sentence = { inputType: 'sentence' };
 const instances = (...types) => types.map((type, index) => ({ id: `m${index}`, type }));
 function component(id, moduleType, moduleInstanceId = `i-${id}`, status = null) {
   return { id, moduleInstanceId, moduleType, content: textBlocks(id), status, attemptId: null };
@@ -39,17 +39,20 @@ test('inapplicable instances complete empty without calling the provider', async
   assert.deepEqual(outcomes, [{ moduleInstanceId: 'm0', status: 'completed', text: '' }]);
 });
 
-test('repeated instances retry for distinct output per component', async () => {
-  const seen = new Set();
-  const replies = ['same', 'same', 'other'];
-  const avoided = [];
+test('a parent always applies; it asks for the facets that apply and checks the result', async () => {
+  const requests = [];
+  const parent = { id: 'p', type: 'chinese', facets: ['examples', 'pinyin'] };
   const outcomes = await generateComponents({
-    mainKey: 'word', interpretation: word, modules: instances('german-examples', 'german-examples'),
-    generate: async ({ avoid }) => { avoided.push([...avoid]); return replies.shift(); },
-    claimOutput: (_, text) => { if (seen.has(text)) return false; seen.add(text); return true; }
+    mainKey: '我真的很幸福', interpretation: sentence, modules: [parent, { id: 'q', type: 'chinese', facets: [] }],
+    generate: async request => { requests.push(request.facets); return '我真的很幸福。\n=== Pinyin ===\n: wǒ zhēn de hěn xìngfú'; }
   });
-  assert.deepEqual(outcomes.map(o => o.text), ['same', 'other']);
-  assert.deepEqual(avoided, [[], [], ['same']]);
+  assert.deepEqual(requests, [['examples', 'pinyin'], []]);
+  assert.deepEqual(outcomes, [
+    { moduleInstanceId: 'p', status: 'completed', text: '我真的很幸福。\n=== Pinyin ===\n: wǒ zhēn de hěn xìngfú' },
+    { moduleInstanceId: 'q', status: 'completed', text: '我真的很幸福。' }
+  ], 'a section the parent does not have is dropped');
+  const [blank] = await generateComponents({ mainKey: 'x', interpretation: word, modules: [parent], generate: async () => '   ' });
+  assert.equal(blank.status, 'failed');
 });
 
 test('page status is derived from components that had an attempt', () => {
