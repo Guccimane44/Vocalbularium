@@ -29,8 +29,8 @@ A parent and its facets are one component, produced by one generation attempt, a
 
 ### Choosing and changing facets
 
-- **When adding a parent.** Clicking a parent in the module window lets the user pick its facets before adding it, on a page or in deck settings ([shared UI](shared-ui.md#module-window)). A parent added by dragging it or with its **+**, without picking, comes with all its facets.
-- **Adding a facet later.** A facet can be dragged from the module window onto a page, but only onto a parent of its own type; anywhere else it is refused, like a module dropped outside the list. The added facet waits, shown as its label only, until the user's next **Retry** regenerates the whole parent ([capture and generation](capture-and-generation.md#retry)).
+- **Adding a parent.** A parent is added like any module, by dragging it or with its **+**, with its core only.
+- **Adding a facet.** Facets are listed in the module window beneath their parent type, drawn differently from modules, and are added the way modules are: by dragging or with their **+** ([shared UI](shared-ui.md#module-window)). Unlike a module, a facet cannot be placed freely: it can only be added to a parent it applies to, a parent of its own type, on a page or in deck settings. An added facet waits, shown as its label only, until the user's next **Retry** regenerates the whole parent ([capture and generation](capture-and-generation.md#retry)); a parent already generating takes no facet until its attempt finishes.
 - **Deleting a facet.** A facet is deleted from its parent the way a component is deleted from a page ([pages and editing](pages-and-editing.md#components-as-cards)). A deleted facet stays gone: Retry never brings it back, and the user drags it in again to restore it.
 
 A deck configuration stores each parent instance with its facets, and a new page copies them ([decks and configuration](decks-and-configuration.md#configuration-and-pages)). Facets are not module instances and do not count toward the limit of 12.
@@ -41,7 +41,7 @@ Every input and content module belongs to one **module family**, which gives it 
 
 | Family | Icon | What belongs here |
 | --- | --- | --- |
-| Translation | *to be chosen ([K26](../architecture/traceability-map.md#clarifications))* | a translation into one language, with facets about it ([D08](../architecture/traceability-map.md#entries)) |
+| Translation | two speech bubbles | a translation into one language, with facets about it ([D08](../architecture/traceability-map.md#entries)) |
 | Meaning | open book | explanations, definitions |
 | Usage | quotation marks | example sentences, usage notes, collocations |
 | Roots | sprouting stem | etymology, character parts, word history |
@@ -49,7 +49,7 @@ Every input and content module belongs to one **module family**, which gives it 
 | Sound | sound bars | pronunciation, audio, tones, stress |
 | Notes | pencil | the user's own input: Context and Text |
 
-The main key module belongs to no family; it is shown as the page title. Translation is a family of its own because a translation's facets span Meaning, Usage, Connections, and Sound. Families with no module yet (Meaning, Usage, Roots, Connections, Sound) stay defined so that future modules have a place; they add no module to the catalog. A Creative family, for parents that write something new from the key such as a poem, is added with its first parent. The Translation colour is [K26](../architecture/traceability-map.md#clarifications); deck colours stay the six existing family colours ([decks and configuration](decks-and-configuration.md#navigation)).
+The main key module belongs to no family; it is shown as the page title. Translation is a family of its own because a translation's facets span Meaning, Usage, Connections, and Sound. Families with no module yet (Meaning, Usage, Roots, Connections, Sound) stay defined so that future modules have a place; they add no module to the catalog. A Creative family, for parents that write something new from the key such as a poem, is added with its first parent. Translation is coloured petrol ([K26](../architecture/traceability-map.md#clarifications)); deck colours stay the six earlier family colours ([decks and configuration](decks-and-configuration.md#navigation)).
 
 ## Catalog
 
