@@ -2,7 +2,7 @@
 
 ## Purpose and status
 
-This specification defines decks, the dashboard, the default deck, and deck configuration. Release 0.5.0 implements it, including the page-owned modules of [D02](../architecture/traceability-map.md#entries) and the module window. Release 0.6.0 adds the sidebar, account menu, dashboard presentation, and live preview of [D05](../architecture/traceability-map.md#entries). Parent modules with facets ([D08](../architecture/traceability-map.md#entries), accepted 14 October 2026) are not built yet. [Current scope](../product/scope.md) records the status.
+This specification defines decks, the dashboard, the default deck, and deck configuration. Release 0.5.0 implements it, including the page-owned modules of [D02](../architecture/traceability-map.md#entries) and the module window. Release 0.6.0 adds the sidebar, account menu, dashboard presentation, and live preview of [D05](../architecture/traceability-map.md#entries). Release 0.7.0 adds parent modules with facets ([D08](../architecture/traceability-map.md#entries)). [Current scope](../product/scope.md) records the status.
 
 The [product model](../product/model.md) defines decks, configuration, content module instances, and views. [Modules](modules.md) owns the module catalog and contracts. [Pages and editing](pages-and-editing.md) owns what happens to a page after it is created.
 
