@@ -585,6 +585,13 @@ test('OpenCode asks a parent for its core and each facet section in order, with 
   assert.match(sentence, /simplified characters/);
   assert.match(sentence, /"=== Pinyin ==="/);
   assert.match(parentInstructions('german', 'sentence', []), /Write nothing after the core/);
+  // Golden set, 14 October 2026: "[n]" and "[名]" broke the contract, and Pinyin had no fixed target.
+  const chinese = parentInstructions('chinese', 'word_phrase', ['examples', 'pinyin']);
+  assert.match(chinese, /": \[1\] 河岸；堤岸" then ": \[2\] 银行"/);
+  assert.match(chinese, /never put a part of speech, a letter or a word inside the brackets/);
+  assert.match(chinese, /one line per meaning, in the same order.*": 河岸 hé'àn"/);
+  assert.doesNotMatch(chinese, /\[n\]/);
+  assert.match(sentence, /pinyin with tone marks of the whole Chinese translation/);
 
   const provider = new OpenCodeProvider({ apiKey: 'test-only', fetchImpl: async (_, options) => {
     const [system, user] = JSON.parse(options.body).messages;

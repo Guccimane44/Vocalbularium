@@ -14,6 +14,8 @@ const textSchema = {
   properties: { text: { type: 'string' } }, required: ['text']
 };
 const failure = (code, message) => Object.assign(new Error(message), { code });
+// Room for a parent's core and every facet (0.7.0 golden set: 4096 cut some off).
+const MAX_TOKENS = 8192;
 
 export class OpenCodeProvider {
   constructor({ apiKey = process.env.OPENCODE_API_KEY, model = process.env.OPENCODE_MODEL ?? 'deepseek-v4.1-flash', fetchImpl = fetch } = {}) {
@@ -22,7 +24,7 @@ export class OpenCodeProvider {
   async structured(name, schema, instructions, input, signal, sessionId = randomUUID()) {
     const started = performance.now();
     const trace = (event, extra = {}) => {
-      try { this.diagnostic?.({ event, phase: name, pageId: sessionId, model: this.model, maxTokens: 4096, ...extra }); }
+      try { this.diagnostic?.({ event, phase: name, pageId: sessionId, model: this.model, maxTokens: MAX_TOKENS, ...extra }); }
       catch { /* Logging never changes generation results. */ }
     };
     const messages = [
@@ -39,7 +41,7 @@ export class OpenCodeProvider {
         'User-Agent': 'Vocabularium/0.6.3', 'x-opencode-session': sessionId
       },
       body: JSON.stringify({
-        model: this.model, stream: false, max_tokens: 4096,
+        model: this.model, stream: false, max_tokens: MAX_TOKENS,
         messages
       }),
       signal: AbortSignal.any([AbortSignal.timeout(60000), ...(signal ? [signal] : [])])
@@ -112,22 +114,27 @@ export class OpenCodeProvider {
 // What each parent writes (D08). The facet headings are literal: the renderer
 // recognises them by these English names.
 const LANGUAGES = {
-  german: { name: 'German', heading: 'German', meanings: 'Bedeutungen', example: '== Chinesisch (幸福, xìngfú) ==', extra: '' },
-  chinese: { name: 'Chinese', heading: 'Chinese', meanings: '释义', example: '== 英语 (happiness) ==',
-    extra: ' Write Chinese in simplified characters only.' }
+  german: { name: 'German', meanings: 'Bedeutungen', example: '== Chinesisch (幸福, xìngfú) ==',
+    numbered: '": [1] Ufer eines Flusses" then ": [2] Geldinstitut"', extra: '' },
+  chinese: { name: 'Chinese', meanings: '释义', example: '== 英语 (bank) ==',
+    numbered: '": [1] 河岸；堤岸" then ": [2] 银行"', extra: ' Write Chinese in simplified characters only.' }
 };
+// The render contract reads only numbers in brackets (golden set, 14 October
+// 2026: "[n]" and "[名]" made whole components fall back to plain text).
+const NUMBERING = 'Number meanings and examples 1, 2, 3 in order; never put a part of speech, a letter or a word inside the brackets.';
 const FACET_INSTRUCTIONS = {
   german: {
     article: 'Article: one line ": <article> <noun> · die <plural>" for the German translation of the main meaning (for a German selection, for the selection itself), for example ": das Ufer · die Ufer". Omit the whole section when that word is not a noun.',
-    examples: { word_phrase: 'Examples: for each meaning, a line ": [n] <sentence in the selection\'s language using the selection>" followed by ":: <its German translation>". When the selection is German, write German sentences and omit the "::" lines.',
+    examples: { word_phrase: 'Examples: for each meaning in order, a line ": [1] <sentence in the selection\'s language using the selection>" (then [2], [3] …) followed by ":: <its German translation>". When the selection is German, write German sentences and omit the "::" lines.',
       sentence: 'Examples: exactly one line ": [1] <a new sentence in the selection\'s language with the same structure or meaning>" followed by ":: <its German translation>". When the selection is German, omit the "::" line.' },
     synonyms: 'Synonyms: one line ": <word>" per German synonym of the translation, at most five. Omit the whole section when there is none.',
     antonyms: 'Antonyms: one line ": <word>" per German antonym of the translation, at most five. Omit the whole section when there is none.'
   },
   chinese: {
-    examples: { word_phrase: 'Examples: for each meaning, a line ": [n] <sentence in the selection\'s language using the selection>" followed by ":: <its Chinese translation>". When the selection is Chinese, write Chinese sentences and omit the "::" lines.',
+    examples: { word_phrase: 'Examples: for each meaning in order, a line ": [1] <sentence in the selection\'s language using the selection>" (then [2], [3] …) followed by ":: <its Chinese translation>". When the selection is Chinese, write Chinese sentences and omit the "::" lines.',
       sentence: 'Examples: exactly one line ": [1] <a new sentence in the selection\'s language with the same structure or meaning>" followed by ":: <its Chinese translation>". When the selection is Chinese, omit the "::" line.' },
-    pinyin: 'Pinyin: one line ": <pinyin with tone marks>" of the Chinese translation (for a Chinese selection, of the selection itself).'
+    pinyin: { word_phrase: 'Pinyin: one line per meaning, in the same order, ": <the Chinese word or words of that meaning> <their pinyin with tone marks>", for example ": 河岸 hé\'àn". Do not number these lines. When the selection is Chinese, write one line ": <the selection> <its pinyin>" instead.',
+      sentence: 'Pinyin: one line ": <the pinyin with tone marks of the whole Chinese translation>". When the selection is Chinese, give the pinyin of the selection itself. Do not number this line.' }
   }
 };
 export function parentInstructions(type, inputType, facets) {
@@ -135,7 +142,7 @@ export function parentInstructions(type, inputType, facets) {
   if (!language) throw new Error('Unsupported generation module.');
   const core = inputType === 'sentence'
     ? `The selection is a sentence. Start with its ${language.name} translation as plain text lines, with no heading. When the selection is already in ${language.name}, explain its meaning in ${language.name} in one or two plain sentences instead.`
-    : `The selection is a word or phrase. Start with a plain-text Wiktionary-style entry in ${language.name}: a first line "== <${language.name} name of the selection's language> (<selection>, <romanization when useful>) ==" such as "${language.example}", then "=== ${language.meanings} ===", then one line ": [n] <meaning in ${language.name}>" per meaning. Choose the one language the selection is in; when the selection is already in ${language.name}, explain it in ${language.name}.`;
+    : `The selection is a word or phrase. Start with a plain-text Wiktionary-style entry in ${language.name}: a first line "== <${language.name} name of the selection's language> (<selection>, <romanization when useful>) ==" such as "${language.example}", then "=== ${language.meanings} ===", then one numbered line per meaning in ${language.name}, such as ${language.numbered}. ${NUMBERING} Choose the one language the selection is in; when the selection is already in ${language.name}, explain it in ${language.name}.`;
   const sections = facets.map(facet => {
     const rule = FACET_INSTRUCTIONS[type][facet];
     const text = typeof rule === 'string' ? rule : rule[inputType];
