@@ -5,14 +5,14 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { Generation } from '../src/server/generation.mjs';
-import { OpenCodeProvider } from '../src/server/opencode.mjs';
+import { OpenCodeProvider, parentInstructions } from '../src/server/opencode.mjs';
 import { generateComponents } from '@vocabularium/domain/modules';
 import { isContentType } from '@vocabularium/domain/page-modules';
 import { confirmed, generated, text, textBlocks, useModules } from './helpers/pages.mjs';
 
 const session = { installationId: 'test-installation', sessionId: 'test-browser', epoch: 1 };
-const word = { inputType: 'word_phrase', sourceLanguage: 'Chinese' };
-const sentence = { inputType: 'sentence', sourceLanguage: 'Chinese' };
+const word = { inputType: 'word_phrase' };
+const sentence = { inputType: 'sentence' };
 const modules = (...types) => types.map(type => ({ id: randomUUID(), type }));
 // Without explicit types the deck has a sentence example, which completes empty for a word
 // without a model call, followed by an explanation.
@@ -265,13 +265,45 @@ test('interpretation failure fails every component without a module call', async
   assert.deepEqual((await outcome(store, page)).map(([, status]) => status), ['failed', 'failed']);
 });
 
-test('repeated example modules request fresh output; a component that cannot get distinct output fails alone', async (t) => {
+test('repeated modules generate independently, even when they produce the same text', async (t) => {
   let calls = 0;
   const { store, generation, capture } = await fixture(t, { interpret: async () => sentence, generate: async () => { calls++; return 'same example'; } }, ['sentence-usage', 'sentence-usage']);
   const page = await capture(); await finish(store, generation);
-  assert.equal(calls, 4);
-  assert.deepEqual(await outcome(store, page), [['same example', 'completed'], ['', 'failed']]);
-  assert.equal((await store.page(page.id)).status, 'failed');
+  assert.equal(calls, 2);
+  assert.deepEqual(await outcome(store, page), [['same example', 'completed'], ['same example', 'completed']]);
+});
+
+// Parent modules (D08): one call for the core and the facets that apply.
+async function parentFixture(t, provider, facets = ['article', 'examples', 'synonyms', 'antonyms']) {
+  const result = await fixture(t, provider, []);
+  const deck = await result.store.deck((await result.store.snapshot()).id);
+  await result.store.saveDeck('german', { deck: { ...deck, modules: [deck.modules[0], { id: 'g', type: 'german', facets }] } });
+  return result;
+}
+const GERMAN_WORD = '== Englisch (bank) ==\n=== Bedeutungen ===\n: [1] Ufer\n=== Article ===\n: das Ufer · die Ufer\n=== Examples ===\n: [1] We sat on the bank.\n:: Wir saßen am Ufer.';
+
+test('a parent generates its core and the facets that apply to the input, in one call', async (t) => {
+  const requests = [];
+  const { store, generation, capture } = await parentFixture(t, {
+    interpret: async text => text.includes(' ') ? sentence : word,
+    generate: async request => { requests.push(request); return request.interpretation.inputType === 'sentence' ? 'Wir saßen am Ufer.\n=== Examples ===\n: [1] Wir standen am Fluss.' : GERMAN_WORD; }
+  });
+  const wordPage = await capture('bank'); await finish(store, generation);
+  const sentencePage = await capture('We sat on the bank.'); await finish(store, generation);
+  assert.deepEqual(requests.map(request => [request.module.type, request.facets]),
+    [['german', ['article', 'examples', 'synonyms', 'antonyms']], ['german', ['examples']]]);
+  assert.deepEqual(await outcome(store, wordPage), [[GERMAN_WORD, 'completed']], 'a facet the provider leaves out, like Synonyms, is not shown');
+  assert.equal((await outcome(store, sentencePage))[0][1], 'completed', 'a parent never completes empty for a sentence');
+  assert.equal((await store.page(sentencePage.id)).interpretation, 'sentence');
+});
+
+test('a parent drops sections of facets it does not have, and fails on text outside its contract', async (t) => {
+  const replies = [`${GERMAN_WORD}\n=== Antonyms ===\n: Strom`, 'Just some prose without the entry format\n=== Pinyin ===\n: àn'];
+  const { store, generation, capture } = await parentFixture(t, { interpret: async () => word, generate: async () => replies.shift() }, ['article', 'examples']);
+  const kept = await capture('bank'); await finish(store, generation);
+  assert.deepEqual(await outcome(store, kept), [[GERMAN_WORD, 'completed']]);
+  const wrong = await capture('bank'); await finish(store, generation);
+  assert.deepEqual(await outcome(store, wrong), [['', 'failed']]);
 });
 
 test('a provider resolving after abort cannot stage output from an interrupted browser session', async (t) => {
@@ -364,8 +396,8 @@ test('OpenCode rejects incomplete, refused, malformed, and wrong-schema response
     completion(JSON.stringify(word), 'stop', { tool_calls: [{ id: 'call' }] }),
     completion(JSON.stringify(word), 'stop', { function_call: { name: 'tool' } }),
     completion(null), completion('not JSON'), completion('```json\n{}\n```'),
-    ...[null, [], {}, { ...word, inputType: 'paragraph' }, { ...word, sourceLanguage: '' },
-      { ...word, sourceLanguage: ['Chinese'] }, { ...word, sourceLanguage: ' ' }, { ...word, unexpected: true }]
+    ...[null, [], {}, { ...word, inputType: 'paragraph' }, { inputType: '' },
+      { ...word, sourceLanguage: 'Chinese' }, { ...word, unexpected: true }]
       .map(value => completion(JSON.stringify(value)))
   ]) {
     provider.fetch = async () => Response.json(result);
@@ -376,13 +408,13 @@ test('OpenCode rejects incomplete, refused, malformed, and wrong-schema response
 });
 
 test('OpenCode preserves module context and literal multiline output; rejects empty or extra fields', async () => {
-  const input = { module: { id: 'example-2', type: 'german-examples' }, selectedText: '幸福', interpretation: word, avoid: ['previous example'] };
+  const input = { module: { id: 'example-2', type: 'german-examples' }, selectedText: '幸福', interpretation: word };
   const output = '== Chinesisch (幸福, xìngfú) ==\n=== Bedeutungen ===\n: [1] Glück\n=== Beispiele ===\n: [1] 幸福就在身边。\n:: Das Glück ist ganz nah.';
   const provider = new OpenCodeProvider({
     apiKey: 'test-only', model: 'configured-model', fetchImpl: async (url, options) => {
       const body = JSON.parse(options.body);
       assert.equal(body.model, 'configured-model');
-      assert.deepEqual(JSON.parse(body.messages[1].content), { selectedText: input.selectedText, interpretation: word, instanceId: 'example-2', avoid: input.avoid });
+      assert.deepEqual(JSON.parse(body.messages[1].content), { selectedText: input.selectedText, interpretation: word, instanceId: 'example-2' });
       return Response.json(completion(JSON.stringify({ text: output })));
     }
   });
@@ -541,4 +573,32 @@ test('the result recovery journal survives a failed database write and server re
   assert.deepEqual((await store.attempt(attemptId)).result, { ok: true, text: 'journaled result' });
   await store.publish('recovered', { attemptId, session });
   assert.equal(text(generated(await store.page(pageId))[0]), 'journaled result'); assert.equal(calls, 1);
+});
+
+test('OpenCode asks a parent for its core and each facet section in order, with literal headings', async () => {
+  const word = parentInstructions('german', 'word_phrase', ['article', 'synonyms']);
+  assert.match(word, /=== Bedeutungen ===/);
+  assert.ok(word.indexOf('"=== Article ==="') < word.indexOf('"=== Synonyms ==="'));
+  assert.doesNotMatch(word, /=== Examples ===|=== Antonyms ===/);
+  const sentence = parentInstructions('chinese', 'sentence', ['examples', 'pinyin']);
+  assert.match(sentence, /Chinese translation as plain text lines/);
+  assert.match(sentence, /simplified characters/);
+  assert.match(sentence, /"=== Pinyin ==="/);
+  assert.match(parentInstructions('german', 'sentence', []), /Write nothing after the core/);
+  // Golden set, 14 October 2026: "[n]" and "[名]" broke the contract, and Pinyin had no fixed target.
+  const chinese = parentInstructions('chinese', 'word_phrase', ['examples', 'pinyin']);
+  assert.match(chinese, /": \[1\] 河岸；堤岸" then ": \[2\] 银行"/);
+  assert.match(chinese, /never put a part of speech, a letter or a word inside the brackets/);
+  assert.match(chinese, /one line per meaning, in the same order.*": 河岸 hé'àn"/);
+  assert.doesNotMatch(chinese, /\[n\]/);
+  assert.match(sentence, /pinyin with tone marks of the whole Chinese translation/);
+
+  const provider = new OpenCodeProvider({ apiKey: 'test-only', fetchImpl: async (_, options) => {
+    const [system, user] = JSON.parse(options.body).messages;
+    assert.match(system.content, /=== Examples ===/);
+    assert.deepEqual(JSON.parse(user.content), { selectedText: 'bank', inputType: 'word_phrase', instanceId: 'g' });
+    return Response.json(completion(JSON.stringify({ text: 'Ufer' })));
+  } });
+  assert.equal(await provider.generate({ module: { id: 'g', type: 'german', facets: ['examples'] }, selectedText: 'bank',
+    interpretation: { inputType: 'word_phrase' }, facets: ['examples'] }), 'Ufer');
 });

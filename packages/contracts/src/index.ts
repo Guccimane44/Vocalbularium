@@ -4,9 +4,9 @@ import { BrowserSessionSchema, OperationIdSchema } from './base.js';
 export { BrowserSessionSchema, OperationIdSchema };
 
 export const InputTypeSchema = Type.Union([Type.Literal('word_phrase'), Type.Literal('sentence')]);
+// The run's reading of the main key (D08); no source language is chosen.
 export const InputInterpretationSchema = Type.Object({
-  inputType: InputTypeSchema,
-  sourceLanguage: Type.String({ minLength: 1 })
+  inputType: InputTypeSchema
 });
 
 

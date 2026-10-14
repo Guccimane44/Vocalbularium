@@ -28,7 +28,7 @@ test('logging journey: capture correlation, offline worker restart, budgets and 
   const provider = new OpenCodeProvider({ apiKey: 'synthetic-browser-key', fetchImpl: async (_url, request) => {
     const body = JSON.parse(request.body), interpretation = body.messages[0].content.includes('vocabulary_interpretation');
     return Response.json({ choices: [{ finish_reason: 'stop', message: { role: 'assistant',
-      content: JSON.stringify(interpretation ? { inputType: 'word_phrase', sourceLanguage: 'Chinese' } : { text: 'synthetic generation output' }) } }] });
+      content: JSON.stringify(interpretation ? { inputType: 'word_phrase' } : { text: 'synthetic generation output' }) } }] });
   } });
   let application = await createTestApplication(t, { databaseKey, provider,
     diagnostics: new Diagnostics({ directory: logDirectory }) });

@@ -44,7 +44,7 @@ If a transient infrastructure/timing failure is supported by evidence, retry the
 
 Inspect the smoke scripts and the target's current source/API revision first. The hosted procedures in `docs/history/mvp/M6-Delivery.md` describe the retired Render deployment and are historical context only. Confirm compatibility, the agreed target, and the task/session's existing authorization: live generation spends provider usage. Do not infer that a generic request to run regressions includes live writes.
 
-- `npm run smoke:generation` loads `.env` and calls `OpenCodeProvider` directly, without exercising the API, database, or extension. Inspect synthetic outputs for the changed behavior; a small sample is not systematic quality evaluation.
+- `npm run smoke:generation` loads `.env` and runs the parent modules' golden set (`tests/golden/parents.json`) through `OpenCodeProvider` directly, without exercising the API, database, or extension; `npm run smoke:generation -- chinese` runs one parent. It writes `.data/golden/<time>.md` for the owner's review. It is the per-module sample of C8, not an automated quality gate.
 
 Keep secrets out of command output and evidence. Use the ignored environment file/backend secret settings; never print the file. Honor existing authorization without repeatedly asking for the same connection. On a live failure, retain the evidence and diagnose before resubmitting operations or making more model calls.
 
