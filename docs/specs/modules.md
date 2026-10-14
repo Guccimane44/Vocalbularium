@@ -4,7 +4,7 @@
 
 Modules provide focused capabilities that users choose and combine in a deck's configuration. A rich library of creative and useful modules is the central direction in the [product vision](../product/vision.md). The [product model](../product/model.md) defines module types, instances, outputs, pages, components, and views; [scope](../product/scope.md) identifies what is supported now.
 
-The rules below describe content modules as **parent modules** with a core and facets ([D08](../architecture/traceability-map.md#entries), accepted 14 October 2026). They are not built yet: until the release that implements D08, the extension offers the three retired types, `German explanation`, `German explanation + examples`, and `Sentence usage`, as the [0.6.3 version of this specification](https://github.com/Guccimane44/Vocalbularium/blob/97ff10f/docs/specs/modules.md) describes, with formats in the [MVP module specification](../history/mvp/MVP-Product-spec-modules.md). [Capture and generation](capture-and-generation.md) owns generation completion, failure, interruption, publication, and retry behavior.
+The rules below describe content modules as **parent modules** with a core and facets ([D08](../architecture/traceability-map.md#entries)). Release 0.7.0 implements them. Until 0.6.3, the extension offered the three retired types, `German explanation`, `German explanation + examples`, and `Sentence usage`, as the [0.6.3 version of this specification](https://github.com/Guccimane44/Vocalbularium/blob/97ff10f/docs/specs/modules.md) describes, with formats in the [MVP module specification](../history/mvp/MVP-Product-spec-modules.md). [Capture and generation](capture-and-generation.md) owns generation completion, failure, interruption, publication, and retry behavior.
 
 ## Module kinds
 
@@ -68,7 +68,7 @@ The main key module belongs to no family; it is shown as the page title. Transla
 
 When the main key is already in the parent's language, examples have no translation line. The input modules belong to these families: Context and Text to Notes; the main key to none. Names remain provisional.
 
-`German explanation`, `German explanation + examples`, and `Sentence usage` are retired ([D08](../architecture/traceability-map.md#entries)), as `<The selected>` and `<The selected + original language tag>` were before them ([D03](../architecture/traceability-map.md#entries)). The release that implements D08 deletes their deck instances and the components they produced along with every deck and page ([scope](../product/scope.md)).
+`German explanation`, `German explanation + examples`, and `Sentence usage` are retired ([D08](../architecture/traceability-map.md#entries)), as `<The selected>` and `<The selected + original language tag>` were before them ([D03](../architecture/traceability-map.md#entries)). Release 0.7.0 deletes their deck instances and the components they produced along with every deck and page (migration `0011`, [scope](../product/scope.md#upgrade-from-earlier-builds)).
 
 ## Input and applicability
 

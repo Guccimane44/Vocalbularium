@@ -4,7 +4,7 @@
 
 This document defines Vocabularium's core concepts and their fundamental relationships. It is a conceptual model, not a database schema or a workflow specification. [Scope](scope.md) identifies current capability limits; [vision](vision.md) describes possible future uses.
 
-The model below is the owner-approved deck → page → component model ([Q72](../architecture/questionnaire/answers/answers-06-data-and-semantics.md#q72), [refactor plan](../history/plans/page-component-refactor.md)), with page-owned modules ([D02](../architecture/traceability-map.md#entries)) and content modules as parent modules with facets ([D08](../architecture/traceability-map.md#entries), accepted 14 October 2026, not yet built). Release 0.4.0 implements the model and 0.5.0 implements D02. [Current scope](scope.md) lists what is supported. Builds up to v0.3.0+ called pages *kartes* and stored their content in *seites*. [Earlier terms](#earlier-terms) maps the old vocabulary.
+The model below is the owner-approved deck → page → component model ([Q72](../architecture/questionnaire/answers/answers-06-data-and-semantics.md#q72), [refactor plan](../history/plans/page-component-refactor.md)), with page-owned modules ([D02](../architecture/traceability-map.md#entries)) and content modules as parent modules with facets ([D08](../architecture/traceability-map.md#entries), release 0.7.0). Release 0.4.0 implements the model and 0.5.0 implements D02. [Current scope](scope.md) lists what is supported. Builds up to v0.3.0+ called pages *kartes* and stored their content in *seites*. [Earlier terms](#earlier-terms) maps the old vocabulary.
 
 ## Account
 
