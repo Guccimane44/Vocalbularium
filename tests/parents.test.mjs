@@ -94,7 +94,8 @@ test('contracts carry facets on instances and components, a page’s interpretat
   assert.ok(Value.Check(PageSchema, page));
   assert.ok(Value.Check(PageSchema, { ...page, interpretation: null }));
   assert.ok(!Value.Check(PageSchema, { ...page, interpretation: 'passage' }));
-  assert.ok(Value.Check(FacetAddRequestSchema, { operationId: 'op-1', payload: { pageId: 'p', componentId: 'g', facet: 'article' } }));
+  assert.ok(Value.Check(FacetAddRequestSchema, { operationId: 'op-1', payload: { pageId: 'p', componentId: 'g', parent: 'german', facet: 'article' } }));
+  assert.ok(!Value.Check(FacetAddRequestSchema, { operationId: 'op-1', payload: { pageId: 'p', componentId: 'g', facet: 'article' } }), 'the parent type is required');
 });
 
 const germanWord = [

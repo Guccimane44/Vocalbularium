@@ -141,6 +141,8 @@ export const ComponentMovePayloadSchema = Type.Object({
 export const FacetChangePayloadSchema = Type.Object({
   pageId: Type.String({ minLength: 1 }),
   componentId: Type.String({ minLength: 1 }),
+  // The facet's parent type: German Examples and Chinese Examples are different facets.
+  parent: Type.String({ minLength: 1 }),
   facet: Type.String({ minLength: 1 })
 }, OpenRequest);
 export const FacetAddRequestSchema = Type.Object({ operationId: OperationIdSchema, payload: FacetChangePayloadSchema }, OpenRequest);
