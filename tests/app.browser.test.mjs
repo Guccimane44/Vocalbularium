@@ -2144,3 +2144,131 @@ test('parents and facets: core only on add, facets only on their own parent, the
   await waitFor(async () => (await store.deck(deckId)).modules.find(module => module.type === 'german').facets.length === 3, 'deck facets saved');
   assert.deepEqual((await store.deck(deckId)).modules.find(module => module.type === 'german').facets, ['article', 'examples', 'synonyms']);
 });
+
+test('facets from the keyboard: Space picks a facet up, the arrows step only through its own parents, Escape cancels, and the + chooser', { timeout: 60000 }, async (t) => {
+  const directory = await mkdtemp(join(tmpdir(), 'vocabularium-facet-keys-browser-'));
+  const application = await createTestApplication(t); await application.start();
+  const a = await launch(join(directory, 'a'));
+  t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
+  await a.page.setViewportSize({ width: 1280, height: 1400 });
+  const store = application.store;
+  const session = { installationId: 'fixture', sessionId: 'facet-keys', epoch: 1 };
+  await store.openSession('facet-keys-session', session);
+  const { pageId } = await store.capture('facet-keys-capture', { session, mainKey: 'bank', snapshot: await store.snapshot() });
+  const german = () => store.page(pageId).then(page => page.components.filter(item => item.moduleType === 'german'));
+  const chinese = async () => (await store.page(pageId)).components.find(item => item.moduleType === 'chinese');
+  const [first] = await german();
+  const attempt = await store.attempt(first.attemptId);
+  await store.establishInterpretation(attempt.run_id, { inputType: 'word_phrase' });
+  await store.stage(first.attemptId, { ok: true, text: ['== Englisch (bank) ==', '=== Bedeutungen ===', ': [1] Ufer', '=== Article ===', ': das Ufer · die Ufer',
+    '=== Examples ===', ': [1] We sat on the bank.', ':: Wir saßen am Ufer.', '=== Synonyms ===', ': Böschung', '=== Antonyms ===', ': Strom'].join('\n') });
+  await store.publish('facet-keys-publish', { attemptId: first.attemptId, session });
+  const card = name => componentArticle(a.page, name);
+  const facet = (parent, name) => a.page.locator(`.window-facet[data-parent="${parent}"][data-facet="${name}"]`);
+  // dnd-kit's live region holds only its latest announcement; keep every one.
+  // The place a keyboard drag starts over is announced with the pickup.
+  const heard = () => a.page.evaluate(() => window.announcements);
+  // Presses a key and waits for what it announces; with `said`, a later announcement holding it.
+  async function press(key, said) {
+    const before = (await heard()).length;
+    await a.page.keyboard.press(key);
+    if (!said) return;
+    await waitFor(async () => (await heard()).slice(before).some(each => each.includes(said)), `${key} announced “${said}”`)
+      .catch(async error => { throw new Error(`${error.message}; heard ${JSON.stringify(await heard())}`); });
+  }
+  await signIn(a.page);
+  await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
+  await card('German').locator('.facet').first().waitFor();
+  await a.page.evaluate(() => {
+    window.announcements = [];
+    new MutationObserver(() => {
+      const region = document.querySelector('[id^="DndLiveRegion"]');
+      const said = region?.textContent.trim();
+      if (said && said !== window.announcements.at(-1)) window.announcements.push(said);
+    }).observe(document.body, { subtree: true, childList: true, characterData: true });
+  });
+
+  // German, Chinese, German: the first German lacks Examples and Synonyms, the second has its core only.
+  for (const name of ['Examples', 'Synonyms']) {
+    await card('German').locator(`.facet[data-facet="${name.toLowerCase()}"]`).hover();
+    await a.page.getByRole('button', { name: `Delete ${name} from German`, exact: true }).click();
+    await a.page.getByRole('button', { name: `Yes, delete ${name} from German`, exact: true }).click();
+    await waitFor(async () => !(await german())[0].facets.includes(name.toLowerCase()), `${name} deleted`);
+  }
+  await openFamily(windowModule(a.page, 'chinese'));
+  await a.page.getByRole('button', { name: 'Add Chinese at the end', exact: true }).click();
+  await waitFor(async () => Boolean(await chinese()), 'Chinese added');
+  await openFamily(windowModule(a.page, 'german'));
+  await a.page.getByRole('button', { name: 'Add German at the end', exact: true }).click();
+  await waitFor(async () => (await german()).length === 2, 'second German added');
+  await a.page.locator('article.component[data-type="german"]').nth(1).waitFor();
+  const [firstId, secondId] = (await german()).map(item => item.id);
+  const target = id => a.page.locator(`.sortable-row[data-row-id="${id}"]`);
+  const chineseRow = async () => a.page.locator(`.sortable-row[data-row-id="${(await chinese()).id}"]`);
+
+  // Space picks a facet up where it would land first; only the German cards are marked
+  // as places it would go. Escape cancels the drag and adds nothing.
+  const examples = facet('german', 'examples').locator('.window-facet-body');
+  await openFamily(examples);
+  await waitFor(async () => await facet('german', 'examples').getAttribute('aria-disabled') === 'false', 'Examples available');
+  await examples.focus();
+  await press('Space', 'Picked up German Examples. German Examples is over German');
+  await waitFor(async () => await target(firstId).getAttribute('data-facet-target') && await target(secondId).getAttribute('data-facet-target'), 'German cards marked');
+  assert.equal(await (await chineseRow()).getAttribute('data-facet-target'), null, 'the Chinese card would not take a German facet');
+  // The sensor needs a moment after pickup before it moves.
+  await new Promise(resolve => setTimeout(resolve, 300));
+  await press('ArrowUp');
+  await press('ArrowUp');
+  await waitFor(async () => await target(firstId).getAttribute('data-facet-target') === 'over', 'over the first German');
+  await press('Escape', 'Moving German Examples was cancelled.');
+  await new Promise(resolve => setTimeout(resolve, 300));
+  assert.deepEqual((await german()).map(item => item.facets.includes('examples')), [false, false], 'a cancelled facet drag adds nothing');
+  assert.equal(await a.page.locator('[data-facet-target]').count(), 0, 'the marks go with the drag');
+
+  // Picked up again: the arrows step from the first German over the Chinese card to the
+  // second and stop there; Space drops the facet onto the second German.
+  await examples.focus();
+  await press('Space', 'Picked up German Examples.');
+  await new Promise(resolve => setTimeout(resolve, 300));
+  await press('ArrowUp');
+  await press('ArrowUp');
+  await waitFor(async () => await target(firstId).getAttribute('data-facet-target') === 'over', 'over the first German');
+  await press('ArrowDown', 'German Examples is over German 2.');
+  assert.equal(await target(secondId).getAttribute('data-facet-target'), 'over', 'ArrowDown steps over the Chinese card');
+  assert.equal(await target(firstId).getAttribute('data-facet-target'), 'target');
+  assert.equal(await (await chineseRow()).getAttribute('data-facet-target'), null);
+  await press('ArrowDown');
+  await new Promise(resolve => setTimeout(resolve, 200));
+  assert.equal(await target(secondId).getAttribute('data-facet-target'), 'over', 'the last German is as far as it goes');
+  await press('Space', 'German Examples was added to German 2.');
+  const said = await heard();
+  assert.ok(said.some(each => each.includes('German Examples is over German 1.')), `the first German was announced (${said})`);
+  assert.ok(!said.some(each => /Chinese|not over/.test(each)), `only German cards were announced (${said})`);
+  await waitFor(async () => (await german())[1].facets.includes('examples'), 'Examples added to the second German');
+  assert.equal((await german())[0].facets.includes('examples'), false, 'only the chosen German takes it');
+  assert.deepEqual((await chinese()).facets, []);
+
+  // The facet's + chooser from the keyboard: Enter opens it on its first choice, the arrows
+  // move between the Germans, Enter adds to the chosen one; Escape closes it and returns to +.
+  const plus = a.page.getByRole('button', { name: 'Add German Synonyms', exact: true });
+  const menu = a.page.getByRole('menu', { name: 'Add German Synonyms to' });
+  await plus.focus();
+  await a.page.keyboard.press('Enter');
+  await menu.waitFor();
+  assert.equal(await plus.getAttribute('aria-expanded'), 'true');
+  assert.deepEqual(await menu.getByRole('menuitem').allTextContents(), ['German 1', 'German 2']);
+  await waitFor(() => menu.getByRole('menuitem', { name: 'German 1', exact: true }).evaluate(node => node === document.activeElement), 'focus on the first choice');
+  await a.page.keyboard.press('Escape');
+  await menu.waitFor({ state: 'detached' });
+  assert.equal(await plus.evaluate(node => node === document.activeElement), true, 'Escape returns focus to the +');
+  assert.equal(await plus.getAttribute('aria-expanded'), 'false');
+  assert.deepEqual((await german()).map(item => item.facets.includes('synonyms')), [false, false], 'closing the chooser adds nothing');
+  await a.page.keyboard.press('Enter');
+  await menu.waitFor();
+  await a.page.keyboard.press('ArrowDown');
+  assert.equal(await menu.getByRole('menuitem', { name: 'German 2', exact: true }).evaluate(node => node === document.activeElement), true);
+  await a.page.keyboard.press('Enter');
+  await menu.waitFor({ state: 'detached' });
+  await waitFor(async () => (await german())[1].facets.includes('synonyms'), 'Synonyms added to the second German');
+  assert.equal((await german())[0].facets.includes('synonyms'), false);
+});
