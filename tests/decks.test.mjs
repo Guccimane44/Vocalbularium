@@ -16,11 +16,13 @@ const types = page => page.components.map(component => component.moduleType);
 
 test('deck creation validates its modules and view, preserves the default, and resubmits without duplicates', async (t) => {
   const store = await fixture(t), initial = await store.snapshot();
-  const deck = { name: '  Chinese  ', modules: withKey('context', 'text', 'german-examples', 'sentence-usage', 'sentence-usage'), view };
+  const deck = { name: '  Chinese  ', modules: withKey('context', 'text', 'german', 'chinese', 'chinese'), view };
   const saved = await store.saveDeck('new', { deck });
   assert.equal((await store.saveDeck('new', { deck })).deckId, saved.deckId);
   const read = await store.deck(saved.deckId);
-  assert.equal(read.name, 'Chinese'); assert.deepEqual(read.modules, deck.modules); assert.deepEqual(read.view, view);
+  assert.equal(read.name, 'Chinese'); assert.deepEqual(read.view, view);
+  assert.deepEqual(read.modules, deck.modules.map(module => ['german', 'chinese'].includes(module.type) ? { ...module, facets: [] } : module),
+    'a parent saved without facets has its core only');
   assert.equal((await store.snapshot()).id, initial.id);
   assert.equal((await store.account()).decks.length, 2);
   assert.ok(await save(store, { name: 'Only the key', modules: withKey(), view }));
@@ -28,7 +30,7 @@ test('deck creation validates its modules and view, preserves the default, and r
   const key = withKey()[0];
   for (const invalid of [
     { name: '', modules: withKey(), view }, { name: 'x', modules: [], view },
-    { name: 'x', modules: instances('german-examples'), view }, { name: 'x', modules: withKey(...Array(12).fill('text')), view },
+    { name: 'x', modules: instances('german'), view }, { name: 'x', modules: withKey(...Array(12).fill('text')), view },
     { name: 'x', modules: withKey('context', 'context'), view }, { name: 'x', modules: [key, key], view },
     { name: 'x', modules: withKey('unsupported'), view }, { name: 'x', modules: withKey('selected'), view },
     { name: 'x', modules: withKey(), view: { module: 'card' } }, { name: 'x', modules: [deck.modules[0]], view }]) {
@@ -55,23 +57,23 @@ test('a deck keeps the colour chosen in its settings; a save without one keeps t
 test('a new page copies the deck modules; later deck changes never reach it', async (t) => {
   const store = await fixture(t), pageId = await capture(store, 'Wir sind 幸福.');
   let page = await store.page(pageId);
-  assert.deepEqual(types(page), ['main-key', 'context', 'german-examples']);
+  assert.deepEqual(types(page), ['main-key', 'context', 'german']);
   const deck = await store.deck(page.deckId);
   assert.ok(page.components.every(component => !deck.modules.some(module => module.id === component.moduleInstanceId)), 'page instance IDs are its own');
   await complete(store, page, session, () => 'saved explanation');
-  await save(store, { ...deck, modules: withKey('sentence-usage', 'text') });
+  await save(store, { ...deck, modules: withKey('chinese', 'text') });
   page = await store.page(pageId);
   assert.deepEqual(page.components.map(component => [component.moduleType, text(component)]),
-    [['main-key', '幸福'], ['context', 'Wir sind 幸福.'], ['german-examples', 'saved explanation']]);
-  assert.deepEqual(types(await store.page(await capture(store))), ['main-key', 'sentence-usage', 'text'], 'the next page uses the new template');
+    [['main-key', '幸福'], ['context', 'Wir sind 幸福.'], ['german', 'saved explanation']]);
+  assert.deepEqual(types(await store.page(await capture(store))), ['main-key', 'chinese', 'text'], 'the next page uses the new template');
 });
 
 test('deck changes during generation leave the running attempt and its page alone', async (t) => {
   const store = await fixture(t), pageId = await capture(store), page = await store.page(pageId);
   const [running] = generated(page);
   const deck = await store.deck((await store.snapshot()).id);
-  await save(store, { ...deck, modules: withKey('sentence-usage') });
-  assert.equal((await store.attempt(running.attemptId)).module.type, 'german-examples');
+  await save(store, { ...deck, modules: withKey('chinese') });
+  assert.equal((await store.attempt(running.attemptId)).module.type, 'german');
   await store.stage(running.attemptId, { ok: true, text: 'late but owned' });
   await store.publish('publish', { attemptId: running.attemptId, session });
   assert.deepEqual(generated(await store.page(pageId)).map(item => [text(item), item.status]), [['late but owned', 'completed']]);
@@ -88,26 +90,26 @@ test('deleting default requires replacement, deleting sole deck restores one My 
   await store.deleteDeck('delete-last', { deckId: otherId });
   const restored = await store.deck((await store.snapshot()).id);
   assert.equal((await store.account()).decks.length, 1); assert.equal(restored.name, 'My Deck');
-  assert.deepEqual(restored.modules.map(module => module.type), ['main-key', 'context', 'german-examples']); assert.equal((await store.pages()).length, 0);
+  assert.deepEqual(restored.modules.map(module => module.type), ['main-key', 'context', 'german']); assert.equal((await store.pages()).length, 0);
   await store.deleteDeck('delete-last', { deckId: otherId }); assert.equal((await store.snapshot()).id, restored.id);
 });
 
 test('capture preparation resolves the shared default once; capture follows that deck’s configuration when it runs', async (t) => {
   const store = await fixture(t), original = await store.snapshot();
-  const nextId = (await save(store, { name: 'Remote default', modules: withKey('german-explanation'), view })).deckId;
+  const nextId = (await save(store, { name: 'Remote default', modules: withKey('chinese'), view })).deckId;
   await store.setDefault('remote-default', nextId);
   const payload = { session, mainKey: '幸福' };
   const prepared = await store.prepareCapture('prepare', payload);
   assert.equal(prepared.snapshot.id, nextId);
   await store.setDefault('later-default', original.id);
   const updated = await store.deck(nextId);
-  await save(store, { ...updated, modules: [updated.modules[0], ...instances('sentence-usage', 'text')] });
+  await save(store, { ...updated, modules: [updated.modules[0], ...instances('chinese', 'text')] });
   const replay = await store.prepareCapture('prepare', payload);
   assert.deepEqual(replay.snapshot, prepared.snapshot);
   const captured = await store.capture('capture-prepared', { ...payload, snapshot: replay.snapshot });
   const page = await store.page(captured.pageId);
   assert.equal(page.deckId, nextId);
-  assert.deepEqual(types(page), ['main-key', 'sentence-usage', 'text']);
+  assert.deepEqual(types(page), ['main-key', 'chinese', 'text']);
 });
 
 test('the Context module decides whether capture keeps the surrounding block', async (t) => {

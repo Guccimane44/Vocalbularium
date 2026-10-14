@@ -99,6 +99,26 @@ test('deleting a facet removes its section and keeps it gone from the next attem
   assert.deepEqual((await store.attempt(attemptIds[0])).module.facets, ['synonyms', 'antonyms']);
 });
 
+test('a facet added after the last attempt, or deleted and added again, waits for the next Retry', async t => {
+  const store = await fixture(t);
+  await germanDeck(store, ['article', 'examples']);
+  const { pageId } = await store.capture('capture', { session, mainKey: 'bank', snapshot: await store.snapshot() });
+  const german = async () => component(await store.page(pageId), 'german');
+  const first = await german();
+  await store.stage(first.attemptId, { ok: true, text: '== Englisch ==\n=== Bedeutungen ===\n: [1] Ufer\n=== Examples ===\n: [1] Bank.\n:: Ufer.' });
+  await store.publish('publish', { attemptId: first.attemptId, session });
+  assert.deepEqual((await german()).waitingFacets, []);
+  await store.addFacet('synonyms', { pageId, componentId: first.id, parent: 'german', facet: 'synonyms' });
+  assert.deepEqual((await german()).waitingFacets, ['synonyms']);
+  await store.deleteFacet('drop-examples', { pageId, componentId: first.id, parent: 'german', facet: 'examples' });
+  await store.addFacet('examples-again', { pageId, componentId: first.id, parent: 'german', facet: 'examples' });
+  assert.deepEqual((await german()).waitingFacets, ['examples', 'synonyms']);
+  const { attemptIds } = await store.generate('retry', { pageId, target: { scope: 'component', componentId: first.id }, session,
+    confirmation: store.confirmationDigest([await german()]) });
+  assert.deepEqual((await store.attempt(attemptIds[0])).module.facets, ['article', 'examples', 'synonyms']);
+  assert.deepEqual((await german()).waitingFacets, [], 'a running attempt generates them');
+});
+
 test('a page reports the latest run’s word-or-sentence reading, and none before a run', async t => {
   const store = await fixture(t);
   await germanDeck(store);

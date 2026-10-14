@@ -147,7 +147,10 @@ export function pageViews({ getAccount, renderView, refresh, send, applyState, n
       generate: (target, confirmed) => generate(page, target, confirmed),
       addModule: (type, position) => shape('add-module', { pageId: page.id, type, ...(position ? { position } : {}) }),
       moveComponent: (componentId, position) => shape('move-component', { pageId: page.id, componentId, position }),
-      deleteComponent: component => deleteComponent(page, component)
+      deleteComponent: component => deleteComponent(page, component),
+      // Facets (D08) join or leave one parent component; an added facet waits for Retry.
+      addFacet: (componentId, parent, facet) => shape('add-facet', { pageId: page.id, componentId, parent, facet }),
+      deleteFacet: (componentId, parent, facet) => shape('delete-facet', { pageId: page.id, componentId, parent, facet })
     });
   }
   window.addEventListener('beforeunload', event => { if (dirty()) { event.preventDefault(); event.returnValue = ''; } });

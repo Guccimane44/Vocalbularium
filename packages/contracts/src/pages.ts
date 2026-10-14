@@ -57,6 +57,8 @@ export const ComponentSchema = Type.Object({
   moduleInstanceId: Type.String({ minLength: 1 }),
   moduleType: Type.String({ minLength: 1 }),
   facets: Type.Optional(FacetListSchema),
+  // Facets added since the parent's last attempt; they wait for the next Retry.
+  waitingFacets: Type.Optional(FacetListSchema),
   content: BlockDocumentSchema,
   // Null when the component has never had a generation attempt.
   status: Type.Union([ComponentStatusSchema, Type.Null()]),

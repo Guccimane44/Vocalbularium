@@ -71,7 +71,9 @@ function textValue(value, message) {
   if (typeof value !== 'string') fail('invalid', message);
   return value;
 }
-export const DEFAULT_DECK_MODULES = Object.freeze(['main-key', 'context', 'german-examples']);
+// A new account's My Deck (D08): the main key, Context, and German with all its facets.
+export const DEFAULT_DECK_MODULES = Object.freeze([{ type: 'main-key' }, { type: 'context' },
+  { type: 'german', facets: ['article', 'examples', 'synonyms', 'antonyms'] }]);
 // A parent module carries its facets (D08); other modules keep their earlier shape.
 const withFacets = (type, facets) => isParentType(type) || facets?.length ? { facets: [...(facets ?? [])] } : {};
 
@@ -112,8 +114,9 @@ export class AccountStore {
     return this.database.transaction(async () => {
       const id = randomUUID();
       await this.database.run("INSERT INTO decks (id, name) VALUES ($1, $2)", [id, name]);
-      for (const [position, type] of types.entries()) {
-        await this.database.run("INSERT INTO deck_modules (id, deck_id, position, type) VALUES ($1, $2, $3, $4)", [randomUUID(), id, position, type]);
+      for (const [position, module] of types.entries()) {
+        const { type, facets = [] } = typeof module === 'string' ? { type: module } : module;
+        await this.database.run("INSERT INTO deck_modules (id, deck_id, position, type, facets) VALUES ($1, $2, $3, $4, $5)", [randomUUID(), id, position, type, facets]);
       }
       return await this.deck(id);
     });
@@ -321,9 +324,16 @@ export class AccountStore {
     return this.database.transaction(async () => {
       const page = await this.database.one("SELECT * FROM pages WHERE id = $1", [id]);
       if (!page) fail('deleted', 'The page no longer exists.');
-      const components = (await this.database.all("SELECT * FROM components WHERE page_id = $1 ORDER BY position", [id]))
-        .map(row => ({ id: row.id, moduleInstanceId: row.module_instance_id, moduleType: row.module_type,
-          ...withFacets(row.module_type, row.facets), content: JSON.parse(row.content), status: row.status, attemptId: row.attempt_id }));
+      // A facet added since the parent's last attempt waits for the next Retry (D08).
+      const components = (await this.database.all(`SELECT c.*, a.module AS attempt_module FROM components c
+        LEFT JOIN component_attempts a ON a.id = c.attempt_id WHERE c.page_id = $1 ORDER BY c.position`, [id]))
+        .map(row => {
+          const generated = row.attempt_module ? JSON.parse(row.attempt_module).facets ?? [] : null;
+          const waiting = generated && isParentType(row.module_type) ? row.facets.filter(facet => !generated.includes(facet)) : [];
+          return { id: row.id, moduleInstanceId: row.module_instance_id, moduleType: row.module_type,
+            ...withFacets(row.module_type, row.facets), ...(isParentType(row.module_type) ? { waitingFacets: waiting } : {}),
+            content: JSON.parse(row.content), status: row.status, attemptId: row.attempt_id };
+        });
       // The latest run's reading of the main key (D08), shown under the page title.
       const latest = await this.database.one(`SELECT interpretation FROM generation_runs
         WHERE page_id = $1 AND interpretation IS NOT NULL ORDER BY ordinal DESC LIMIT 1`, [id]);
@@ -550,6 +560,13 @@ export class AccountStore {
       const content = textBlocks(withoutFacet(parent, blockText(component.content), facet));
       await this.database.run("UPDATE components SET facets = $1, content = $2 WHERE page_id = $3 AND id = $4",
         [component.facets.filter(item => item !== facet), JSON.stringify(content), pageId, componentId]);
+      // Its section is gone from the content, so the last attempt no longer counts
+      // as having generated it: added again, it waits for the next Retry.
+      if (component.attemptId) {
+        const attempt = await this.attempt(component.attemptId);
+        const module = { ...attempt.module, facets: (attempt.module.facets ?? []).filter(item => item !== facet) };
+        await this.database.run("UPDATE component_attempts SET module = $1 WHERE id = $2", [JSON.stringify(module), component.attemptId]);
+      }
       return { pageId, componentId };
     });
   }

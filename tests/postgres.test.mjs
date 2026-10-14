@@ -13,9 +13,9 @@ function latch() {
   const promise = new Promise(done => { resolve = done; });
   return { promise, resolve };
 }
-async function captured(store) {
+async function captured(store, types = ['chinese', 'german']) {
   await store.openSession('open', session);
-  await useModules(store, ['sentence-usage', 'german-examples']);
+  await useModules(store, types);
   const { pageId } = await store.capture('capture', { session, mainKey: 'fixture', snapshot: await store.snapshot() });
   return store.page(pageId);
 }
@@ -165,7 +165,8 @@ test('a lost database connection preserves generated output in the journal for r
   } });
   t.after(async () => { release.resolve(); await application.close(); await rm(directory, { recursive: true, force: true }); });
   const database = await createTestDatabase(t, key);
-  const page = await captured(application.store);
+  // One parent, so one model call: every parent applies to every input (D08).
+  const page = await captured(application.store, ['german']);
   await application.generation.start(page.id);
   await started.promise;
   // A model call waiting on the provider must not hold the account executor.
@@ -178,14 +179,14 @@ test('a lost database connection preserves generated output in the journal for r
   } finally { await killer.end(); }
   release.resolve();
   await Promise.all([...application.generation.tasks.values()].map(value => value.task));
-  const { attemptId } = generated(page)[1];
+  const { attemptId } = generated(page)[0];
   assert.ok(application.generation.pendingResults.has(attemptId));
   await application.close();
   application = await createTestApplication(t, { databaseKey: key, provider: {
     interpret: () => assert.fail('restart must not generate'), generate: () => assert.fail('restart must not generate')
   } });
   await application.store.publish('recover-outage', { attemptId, session });
-  assert.equal(text(generated(await application.store.page(page.id))[1]), 'survives a real database outage');
+  assert.equal(text(generated(await application.store.page(page.id))[0]), 'survives a real database outage');
   assert.equal(calls, 1);
 });
 

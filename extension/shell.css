@@ -1,6 +1,7 @@
 /* Vocabularium Sage shell (D05, 0.6.0 increment 3): deck sidebar, header and
    account menu, dashboard, and recent captures. Built from theme.css tokens. */
 
+.fam-translation { --fam: var(--fam-translation); --on-fam: var(--on-fam-translation); --fam-tint: var(--fam-translation-tint); }
 .fam-meaning { --fam: var(--fam-meaning); --on-fam: var(--on-fam-meaning); --fam-tint: var(--fam-meaning-tint); }
 .fam-usage { --fam: var(--fam-usage); --on-fam: var(--on-fam-usage); --fam-tint: var(--fam-usage-tint); }
 .fam-roots { --fam: var(--fam-roots); --on-fam: var(--on-fam-roots); --fam-tint: var(--fam-roots-tint); }

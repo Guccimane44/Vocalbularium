@@ -269,3 +269,23 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
   .card-actions button, .row-menu-list { border: 1px solid CanvasText; }
   mark { forced-color-adjust: none; background: Highlight; color: HighlightText; }
 }
+
+/* Parent modules (D08): the core, then each facet under its label. */
+.facet { display: grid; gap: 6px; margin-top: 4px; padding-top: 10px; border-top: 1px solid var(--line); }
+.facet-title { display: flex; align-items: center; gap: 8px; min-height: 26px; margin: 0;
+  font: 600 12px/16px var(--font-text); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-muted); }
+.facet-note { font-weight: 400; letter-spacing: 0; text-transform: none; }
+.facet[data-waiting] { padding-bottom: 2px; }
+.facet-lines { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 16px; line-height: 1.5; }
+.facet-delete { margin-left: auto; display: inline-grid; place-items: center; width: 26px; height: 26px; padding: 0; border: 0; border-radius: var(--radius-control);
+  background: transparent; color: var(--ink-muted); opacity: 0; transition: opacity var(--dur-instant) ease, background var(--dur-instant) ease; }
+.facet:hover .facet-delete, .facet-delete:focus-visible { opacity: 1; }
+.facet-delete:not(:disabled):hover { background: var(--status-failed-bg); color: var(--status-failed); }
+.facet-delete .action-icon { width: 14px; height: 14px; }
+.facet-confirm { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; letter-spacing: 0; text-transform: none; }
+.facet-confirm button { height: 24px; padding: 0 9px; font-size: 12px; }
+.facet-confirm .action-confirm { background: var(--status-failed); color: var(--status-failed-bg); border-color: transparent; }
+.facet-confirm .confirm-text { font-weight: 400; color: var(--status-failed); }
+/* Under the title: how the latest run read the main key. */
+.interpretation { margin: 6px 0 0; font-size: 13px; color: var(--ink-muted); }
+@media (hover: none) { .facet-delete { opacity: 1; } }

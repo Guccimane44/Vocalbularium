@@ -1,5 +1,6 @@
 import { blockText, textBlocks } from '@vocabularium/domain/pages';
 import { isContentType } from '@vocabularium/domain/page-modules';
+import { facetsOf, isParentType } from '@vocabularium/domain/parents';
 
 export { textBlocks };
 export const text = component => blockText(component.content);
@@ -13,7 +14,8 @@ export const code = expected => error => error.code === expected;
 export async function useModules(store, types, deckId) {
   const id = deckId ?? (await store.snapshot()).id;
   const deck = await store.deck(id);
-  const modules = types.map((type, index) => ({ id: `${id}-m${index}-${type}`, type }));
+  // A parent comes with all its facets (D08).
+  const modules = types.map((type, index) => ({ id: `${id}-m${index}-${type}`, type, ...(isParentType(type) ? { facets: facetsOf(type) } : {}) }));
   const key = deck.modules.find(module => module.type === 'main-key');
   await store.saveDeck(`configure-${id}-${types.join('-')}`, { deck: { id, name: deck.name, modules: [key, ...modules], view: { module: 'default' } } });
   return modules;
