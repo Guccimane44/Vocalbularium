@@ -81,3 +81,7 @@
   .colour-swatch { forced-color-adjust: none; border: 1px solid CanvasText; }
   .colour-swatch:has(input:checked) { box-shadow: 0 0 0 2px Canvas, 0 0 0 4px Highlight; }
 }
+/* A parent's facets on its row in deck settings (D08). */
+.block-facets { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 0 4px; padding: 0; list-style: none; }
+.block-facets .facet-chip { padding-right: 4px; }
+.block-facets .facet-chip button { padding: 0 5px; border: 0; background: transparent; color: inherit; font-size: 14px; line-height: 1; }

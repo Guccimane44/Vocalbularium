@@ -14,15 +14,15 @@ const instances = (...types) => types.map((type, index) => ({ id: `m${index}`, t
 const component = (id, moduleType, attemptId = null, status = null) =>
   ({ id, moduleInstanceId: `i-${id}`, moduleType, content: textBlocks(''), status, attemptId });
 const page = () => [
-  component('key', 'main-key'), component('ctx', 'context'), component('done', 'german-examples', 'a1', 'completed'),
-  component('new', 'sentence-usage'), component('notes', 'text')
+  component('key', 'main-key'), component('ctx', 'context'), component('done', 'german', 'a1', 'completed'),
+  component('new', 'chinese'), component('notes', 'text')
 ];
 
 test('the catalog lists input modules first and the window offers everything but the main key', () => {
   assert.deepEqual(Object.keys(CATALOG).slice(0, 3), ['main-key', 'context', 'text']);
-  assert.deepEqual(WINDOW_MODULES, ['context', 'text', 'german-explanation', 'german-examples', 'sentence-usage']);
+  assert.deepEqual(WINDOW_MODULES, ['context', 'text', 'german', 'chinese'], 'the earlier content modules are retired (D08)');
   for (const entry of Object.values(CATALOG)) assert.ok(entry.label && entry.description);
-  assert.equal(isContentType('text'), false); assert.equal(isContentType('german-examples'), true);
+  assert.equal(isContentType('text'), false); assert.equal(isContentType('german'), true);
   assert.equal(isContentType('selected'), false);
 });
 
@@ -34,14 +34,14 @@ test('every module but the main key belongs to one module family (D05)', () => {
   for (const family of FAMILIES) assert.ok(FAMILY_LABELS[family]);
   assert.equal(CATALOG['main-key'].family, null);
   assert.deepEqual(WINDOW_MODULES.map(type => [type, CATALOG[type].family]), [
-    ['context', 'notes'], ['text', 'notes'], ['german-explanation', 'meaning'], ['german-examples', 'usage'], ['sentence-usage', 'usage']
+    ['context', 'notes'], ['text', 'notes'], ['german', 'translation'], ['chinese', 'translation']
   ]);
 });
 
 test('a configuration starts with one main key, has at most one Context, and counts every module toward twelve', () => {
   assert.equal(MAX_MODULES, 12);
   assert.doesNotThrow(() => validateConfiguration(instances('main-key')));
-  assert.doesNotThrow(() => validateConfiguration(instances('main-key', 'context', 'text', 'text', 'german-examples')));
+  assert.doesNotThrow(() => validateConfiguration(instances('main-key', 'context', 'text', 'text', 'german')));
   assert.doesNotThrow(() => validateConfiguration(instances('main-key', ...Array(11).fill('text'))));
   assert.throws(() => validateConfiguration(instances('main-key', ...Array(12).fill('text'))), /at most 12/);
   assert.throws(() => validateConfiguration([]), /must come first/);
@@ -58,8 +58,8 @@ test('a configuration starts with one main key, has at most one Context, and cou
 
 test('a new page copies the deck modules under its own instance IDs', () => {
   let next = 0;
-  const copied = copyModules(instances('main-key', 'context', 'german-examples'), () => `page-${next++}`);
-  assert.deepEqual(copied, [{ id: 'page-0', type: 'main-key' }, { id: 'page-1', type: 'context' }, { id: 'page-2', type: 'german-examples' }]);
+  const copied = copyModules(instances('main-key', 'context', 'german'), () => `page-${next++}`);
+  assert.deepEqual(copied, [{ id: 'page-0', type: 'main-key' }, { id: 'page-1', type: 'context' }, { id: 'page-2', type: 'german' }]);
 });
 
 test('adding respects the limit, a single Context, and never adds a main key', () => {
@@ -74,7 +74,7 @@ test('adding respects the limit, a single Context, and never adds a main key', (
 });
 
 test('deleting keeps the main key and waits for generation to finish', () => {
-  const components = [...page(), component('busy', 'german-explanation', 'a2', 'loading')];
+  const components = [...page(), component('busy', 'chinese', 'a2', 'loading')];
   for (const id of ['ctx', 'done', 'new', 'notes']) assert.equal(deleteBlocked(components, id), null, id);
   assert.match(deleteBlocked(components, 'key'), /main key cannot be deleted/);
   assert.match(deleteBlocked(components, 'busy'), /still generating/);
@@ -111,14 +111,15 @@ test('a page is its components in order, between one and twelve', () => {
   assert.ok(!Value.Check(PageSchema, { ...valid, components: [{ ...page()[0], kind: 'main_key' }] }), 'kind is retired');
 });
 
-test('the meaning line is the first numbered meaning, preferring the Meaning family', () => {
-  const examples = '== Chinesisch (幸福, xìngfú) ==\n=== Bedeutungen ===\n: [1] Glück\n: [2] Wohlstand\n=== Beispiele ===\n: [1] 幸福就在身边。\n:: Das Glück ist ganz nah.';
-  const explanation = '== Chinesisch ==\n=== Bedeutungen ===\n: [1] Glück; Wohlergehen im Leben';
+test('the meaning line is the first numbered meaning of the first content module, or a sentence’s translation', () => {
+  const examples = '== Chinesisch (幸福, xìngfú) ==\n=== Bedeutungen ===\n: [1] Glück\n: [2] Wohlstand\n=== Examples ===\n: [1] 幸福就在身边。\n:: Das Glück ist ganz nah.';
+  const explanation = '== 汉语 ==\n=== 释义 ===\n: [1] 生活称心如意';
   assert.equal(firstMeaning(examples), 'Glück');
   assert.equal(firstMeaning(': [1] ohne Überschrift'), 'ohne Überschrift');
-  assert.equal(firstMeaning('=== Beispiele ===\n: [1] 她很幸福。'), null, 'examples are not meanings');
+  assert.equal(firstMeaning('=== Examples ===\n: [1] 她很幸福。'), null, 'examples are not meanings');
   assert.equal(firstMeaning('Sie sagte leise: „我真的很幸福“.'), null);
-  assert.equal(pageMeaning([{ type: 'german-examples', text: examples }, { type: 'german-explanation', text: explanation }]), 'Glück; Wohlergehen im Leben');
-  assert.equal(pageMeaning([{ type: 'german-examples', text: examples }, { type: 'german-explanation', text: null }]), 'Glück');
-  assert.equal(pageMeaning([{ type: 'text', text: ': [1] my note' }, { type: 'sentence-usage', text: 'plain' }]), null, 'input modules never supply it');
+  assert.equal(pageMeaning([{ type: 'chinese', text: explanation }, { type: 'german', text: examples }]), '生活称心如意');
+  assert.equal(pageMeaning([{ type: 'german', text: 'Ich bin wirklich glücklich.\nZweite Zeile\n=== Examples ===\n: [1] Satz.' }]), 'Ich bin wirklich glücklich.', 'a sentence gives its translation');
+  assert.equal(pageMeaning([{ type: 'german', text: examples }, { type: 'chinese', text: null }]), 'Glück');
+  assert.equal(pageMeaning([{ type: 'text', text: ': [1] my note' }, { type: 'chinese', text: 'edited\n=== Nonsense ===' }]), null, 'input modules and text outside the contract never supply it');
 });

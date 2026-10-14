@@ -2,31 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { emphasise, renderContent } from '@vocabularium/domain/render';
 
-// The recorded formats from the module specifications and provider tests.
+// Formats of the content modules retired in 0.7.0 (D08): they and every other
+// text outside a parent's contract render as plain text.
 const explanation = '== Chinesisch (幸福, xìngfú) ==\n=== Bedeutungen ===\n: [1] Glück; Glückseligkeit; Wohlbefinden\n: [2] glücklich; gesegnet';
 const examples = `${explanation}\n=== Beispiele ===\n: [1] 她希望孩子们拥有幸福。\n:: Sie hofft, dass die Kinder Glück haben.\n: [2] 他们过着幸福的生活。\n:: Sie führen ein glückliches Leben.`;
-
-test('German explanation renders its heading and numbered meanings', () => {
-  assert.deepEqual(renderContent('german-explanation', explanation), {
-    kind: 'entry', heading: { language: 'Chinesisch', key: '幸福', pronunciation: 'xìngfú' },
-    meanings: [{ number: '1', text: 'Glück; Glückseligkeit; Wohlbefinden' }, { number: '2', text: 'glücklich; gesegnet' }], examples: []
-  });
-  assert.deepEqual(renderContent('german-explanation', '== Englisch ==\n\n=== Bedeutungen ===\n: [1] Zufall').heading,
-    { language: 'Englisch', key: null, pronunciation: null }, 'blank lines and a heading without key are accepted');
-});
-
-test('German explanation + examples pairs each sentence with its translation', () => {
-  const rendered = renderContent('german-examples', examples);
-  assert.equal(rendered.kind, 'entry');
-  assert.equal(rendered.meanings.length, 2);
-  assert.deepEqual(rendered.examples, [
-    { number: '1', sentence: '她希望孩子们拥有幸福。', translation: 'Sie hofft, dass die Kinder Glück haben.' },
-    { number: '2', sentence: '他们过着幸福的生活。', translation: 'Sie führen ein glückliches Leben.' }
-  ]);
-  const alone = renderContent('german-examples', `${explanation}\n=== Beispiele ===\n: [1] Ohne Übersetzung.`);
-  assert.deepEqual(alone.examples, [{ number: '1', sentence: 'Ohne Übersetzung.', translation: null }], 'a sentence without a translation stands alone');
-  assert.equal(renderContent('german-examples', explanation).kind, 'entry', 'meanings alone still render');
-});
 
 test('anything outside the contract falls back to the plain text, unchanged', () => {
   const cases = [
@@ -43,10 +22,6 @@ test('anything outside the contract falls back to the plain text, unchanged', ()
   ];
   for (const [type, text, why] of cases) assert.deepEqual(renderContent(type, text), { kind: 'plain', text }, why);
   assert.deepEqual(renderContent('german-examples', ''), { kind: 'plain', text: '' });
-});
-
-test('Sentence usage is one reading sentence', () => {
-  assert.deepEqual(renderContent('sentence-usage', '  想到我的家人和朋友，我觉得我真的很幸福。\n'), { kind: 'sentence', text: '想到我的家人和朋友，我觉得我真的很幸福。' });
 });
 
 test('the main key is emphasised wherever it occurs, case-insensitively', () => {

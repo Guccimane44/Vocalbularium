@@ -12,12 +12,12 @@ async function fixture(t, databaseKey) {
   t.after(async () => (await store.close()));
   await store.openSession('open-a', a);
   await store.openSession('open-b', b);
-  await useModules(store, ['context', 'german-explanation', 'german-examples']);
+  await useModules(store, ['context', 'chinese', 'german']);
   return store;
 }
 const capture = (store, id = 'capture', session = a, mainKey) => captureWith(store, id, session, mainKey);
 
-test('account initialization is persistent, occurs once, and starts with the main key, Context and a German explanation module', async (t) => {
+test('account initialization is persistent, occurs once, and starts with the main key, Context and a Chinese module', async (t) => {
   const directory = mkdtempSync(join(tmpdir(), 'vocabularium-db-'));
   let reopened;
   t.after(async () => {
@@ -28,7 +28,7 @@ test('account initialization is persistent, occurs once, and starts with the mai
   const first = await createTestStore(t, databaseKey);
   await first.openSession('open-a', a);
   const initial = await first.snapshot();
-  assert.deepEqual(initial.modules.map(module => module.type), ['main-key', 'context', 'german-examples']);
+  assert.deepEqual(initial.modules.map(module => module.type), ['main-key', 'context', 'german']);
   const { pageId } = await capture(first);
   await first.close();
   reopened = (await createTestStore(t, databaseKey));
@@ -55,7 +55,7 @@ test('uncertain capture resubmission preserves identity; separate identical capt
 test('capture saves the main key and Context and starts one attempt per content module', async (t) => {
   const store = await fixture(t);
   const { page } = await captureWith(store, 'with-context', a, 'Bismarck', 'Otto von Bismarck was chancellor.');
-  assert.deepEqual(page.components.map(item => item.moduleType), ['main-key', 'context', 'german-explanation', 'german-examples']);
+  assert.deepEqual(page.components.map(item => item.moduleType), ['main-key', 'context', 'chinese', 'german']);
   assert.equal(text(component(page, 'context')), 'Otto von Bismarck was chancellor.');
   assert.ok(generated(page).every(item => item.status === 'loading' && item.attemptId));
   assert.equal(new Set(await Promise.all(generated(page).map(async item => (await store.attempt(item.attemptId)).run_id))).size, 1);
@@ -168,12 +168,12 @@ test('capture uses its destination deck and that deck’s current configuration'
   const snapshot = await store.snapshot();
   const next = await store.createDeck('Another deck');
   await store.setDefault('change-default', next.id);
-  const modules = await useModules(store, ['sentence-usage'], snapshot.id);
+  const modules = await useModules(store, ['chinese'], snapshot.id);
   const { pageId } = await store.capture('old-snapshot', { session: a, mainKey: 'word', snapshot });
   const page = await store.page(pageId);
   assert.equal(page.deckId, snapshot.id);
   assert.deepEqual(generated(page).map(item => item.moduleType), modules.map(module => module.type));
-  assert.deepEqual((await store.attempt(generated(page)[0].attemptId)).module, { id: generated(page)[0].moduleInstanceId, type: 'sentence-usage' });
+  assert.deepEqual((await store.attempt(generated(page)[0].attemptId)).module, { id: generated(page)[0].moduleInstanceId, type: 'chinese', facets: ['examples', 'pinyin'] });
 });
 
 test('deletion prevents stale saves, retries, and generated results from recreating a page', async (t) => {

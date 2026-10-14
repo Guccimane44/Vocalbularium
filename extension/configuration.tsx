@@ -1,8 +1,8 @@
 import { useEffect, useReducer, useRef } from 'react';
 import type { DeckEditorDraft } from '../types/editor-drafts.js';
 import type { DeckColour, DeckConfiguration } from '@vocabularium/contracts';
-import { MODULES } from '@vocabularium/domain/modules';
-import type { ModuleType as ContentModuleType } from '@vocabularium/domain/modules';
+import { applicableFacets, facetLabel, isParentType, withFacet } from '@vocabularium/domain/parents';
+import type { FacetType, ParentType } from '@vocabularium/domain/parents';
 import { addBlocked, CATALOG, DECK_COLOURS, isModuleType } from '@vocabularium/domain/page-modules';
 import type { ModuleFamily } from '@vocabularium/domain/page-modules';
 import { deckColour } from './deck-colour.ts';
@@ -11,30 +11,40 @@ import { mainKeyTier } from './main-key.ts';
 import { Content } from './page-view.tsx';
 import { moduleLabel, ShapingArea, SixDots } from './shaping.tsx';
 
-const instance = (type: string) => ({ id: crypto.randomUUID(), type });
+// A parent added to the deck starts with its core only (D08).
+const instance = (type: string, facets?: string[]) => ({ id: crypto.randomUUID(), type, ...(facets || isParentType(type) ? { facets: facets ?? [] } : {}) });
 
 // A new deck starts like a new account's My Deck, in a colour the user can change.
 export const newDeckDraft = (): DeckConfiguration => ({
   name: '',
   colour: DECK_COLOURS[Math.floor(Math.random() * DECK_COLOURS.length)]!,
-  modules: [instance('main-key'), instance('context'), instance('german-examples')],
+  modules: [instance('main-key'), instance('context'), instance('german', ['article', 'examples', 'synonyms', 'antonyms'])],
   view: { module: 'default' }
 });
 
 const SAMPLE = { word_phrase: '幸福', sentence: '我真的很幸福' } as const;
-function sample(type: string, inputType: 'word_phrase' | 'sentence', instance: number): string {
-  if (type === 'main-key') return SAMPLE[inputType];
-  if (type === 'context') return inputType === 'word_phrase' ? 'Wir wünschen euch viel 幸福 und Gesundheit.' : '她笑着说：“我真的很幸福。”';
-  if (type === 'text') return '';
-  const definition = MODULES[type as ContentModuleType];
-  if (!definition || definition.applies !== inputType) return '';
-  if (type === 'sentence-usage') return instance % 2
-    ? '想到我的家人和朋友，我觉得我真的很幸福。'
-    : '在这个温暖的家里，我真的很幸福。';
-  const explanation = '== Chinesisch (幸福, xìngfú) ==\n=== Bedeutungen ===\n: [1] Glück; Glückseligkeit; Wohlbefinden';
-  return explanation + (type === 'german-examples'
-    ? '\n=== Beispiele ===\n: [1] 她希望孩子们拥有幸福。\n:: Sie hofft, dass die Kinder Glück haben.'
-    : '');
+// What each parent would write for the samples (D08): its core, then the
+// sections of the facets it has that apply to the sample.
+const SAMPLE_TEXT: Record<ParentType, Record<'word_phrase' | 'sentence', { core: string; facets: Partial<Record<FacetType, string>> }>> = {
+  german: {
+    word_phrase: { core: '== Chinesisch (幸福, xìngfú) ==\n=== Bedeutungen ===\n: [1] Glück; Glückseligkeit; Wohlbefinden',
+      facets: { article: ': das Glück', examples: ': [1] 她希望孩子们拥有幸福。\n:: Sie hofft, dass die Kinder Glück haben.', synonyms: ': Freude\n: Seligkeit', antonyms: ': Unglück' } },
+    sentence: { core: 'Ich bin wirklich glücklich.',
+      facets: { examples: ': [1] 想到我的家人和朋友，我觉得很幸福。\n:: Wenn ich an meine Familie und Freunde denke, bin ich glücklich.' } }
+  },
+  chinese: {
+    word_phrase: { core: '== 汉语 (幸福, xìngfú) ==\n=== 释义 ===\n: [1] 生活、境遇称心如意',
+      facets: { examples: ': [1] 她希望孩子们拥有幸福。', pinyin: ': 幸福 xìngfú' } },
+    sentence: { core: '说话人表示自己非常满足、快乐。', facets: { examples: ': [1] 我现在真的很快乐。', pinyin: ': wǒ zhēn de hěn xìngfú' } }
+  }
+};
+function sample(module: { type: string; facets?: readonly string[] }, inputType: 'word_phrase' | 'sentence'): string {
+  if (module.type === 'main-key') return SAMPLE[inputType];
+  if (module.type === 'context') return inputType === 'word_phrase' ? 'Wir wünschen euch viel 幸福 und Gesundheit.' : '她笑着说：“我真的很幸福。”';
+  if (!isParentType(module.type)) return '';
+  const text = SAMPLE_TEXT[module.type][inputType];
+  return [text.core, ...applicableFacets(module.type, module.facets ?? [], inputType)
+    .flatMap(facet => text.facets[facet] ? [`=== ${facetLabel(module.type as ParentType, facet)} ===\n${text.facets[facet]}`] : [])].join('\n');
 }
 
 // Deck colours (D06) are the family colours, named by hue: a deck's colour
@@ -65,7 +75,6 @@ function PreviewDialog({ modules, sampleType, choose, close }: {
   const done = () => { ref.current?.close(); close(); };
   const [key, ...rest] = modules;
   const mainKey = SAMPLE[sampleType];
-  const seen = new Map<string, number>();
   return <dialog ref={ref} className="preview-dialog" aria-labelledby="preview-title"
     onCancel={event => { event.preventDefault(); done(); }}
     onClick={event => { if (event.target === event.currentTarget) done(); }}>
@@ -80,13 +89,11 @@ function PreviewDialog({ modules, sampleType, choose, close }: {
     </div>
     <p className="muted preview-note">A sample new page in this deck. Previews never create or change pages.</p>
     <div className="sample-page">
-      <p className="main-key preview" data-type={key.type} data-tier={mainKeyTier(mainKey)}>{sample(key.type, sampleType, 0)}</p>
+      <p className="main-key preview" data-type={key.type} data-tier={mainKeyTier(mainKey)}>{sample(key, sampleType)}</p>
       {rest.map(module => {
-        const count = seen.get(module.type) ?? 0;
-        seen.set(module.type, count + 1);
-        const text = sample(module.type, sampleType, count);
+        const text = sample(module, sampleType);
         const family = familyOf(module.type);
-        // Like a page, an empty component (Text, or a module that does not apply to this input) is only its tab.
+        // Like a page, an empty component (Text) is only its tab.
         return <article className={`component preview fam-${family}`} data-empty={!text || undefined} key={module.id} data-type={module.type}>
           <div className="card-tab"><FamilyIcon family={family} /><h3>{moduleLabel(module.type)}</h3></div>
           {text && <Content type={module.type} text={text} mainKey={mainKey} />}
@@ -112,7 +119,18 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
   const sampleType = draft.sampleType ?? 'word_phrase';
   // The main key stays first and cannot move or be removed; everything after it can.
   const [key, ...rest] = modules;
-  const items = rest.map(module => ({ id: module.id, label: moduleLabel(module.type), type: module.type }));
+  const items = rest.map(module => ({ id: module.id, label: moduleLabel(module.type), type: module.type, facets: module.facets,
+    holder: { id: module.id, type: module.type, facets: module.facets } }));
+  // Facets join or leave a parent in the draft, in the parent's order (D08).
+  const addFacet = (id: string, parent: ParentType, facet: FacetType) => {
+    const module = modules.find(item => item.id === id);
+    if (!module || module.type !== parent || module.facets?.includes(facet)) return false;
+    module.facets = withFacet(parent, module.facets ?? [], facet); refresh(); return true;
+  };
+  const removeFacet = (id: string, facet: string) => {
+    const module = modules.find(item => item.id === id);
+    if (module) { module.facets = (module.facets ?? []).filter(item => item !== facet); refresh(); }
+  };
   const add = (type: string, index: number) => {
     if (addBlocked(modules, type)) return false;
     modules.splice(index + 1, 0, instance(type)); refresh(); return true;
@@ -183,7 +201,7 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
       </div>
     </fieldset>
     <ShapingArea items={items} types={modules.map(module => module.type)} disabled={busy} unavailable={busy ? 'Saving…' : undefined}
-      label="Modules for new pages" where="the list" onAdd={add} onMove={(id, index) => { move(id, index); return true; }}
+      label="Modules for new pages" where="the list" onAdd={add} onMove={(id, index) => { move(id, index); return true; }} onAddFacet={addFacet}
       pinned={<>
         <div className="list-intro">
           <div className="list-intro-head">
@@ -208,6 +226,13 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
           <FamilyIcon family={familyOf(item.type)} />
           <span>{item.label}</span>
         </span>
+        {isParentType(item.type) && <ul className="block-facets" aria-label={`${item.label} facets`}>
+          {(item.facets ?? []).map(facet => <li key={facet} className="facet-chip">
+            {facetLabel(item.type as ParentType, facet as FacetType)}
+            <button type="button" aria-label={`Remove ${facetLabel(item.type as ParentType, facet as FacetType)} from ${item.label}`} disabled={busy}
+              onClick={() => removeFacet(item.id, facet)}>×</button>
+          </li>)}
+        </ul>}
         <button aria-label={`Remove ${item.label}`} disabled={busy}
           onClick={() => { modules.splice(modules.findIndex(module => module.id === item.id), 1); refresh(); }}>Remove</button>
       </div>} />

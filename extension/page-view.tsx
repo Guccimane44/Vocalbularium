@@ -4,6 +4,9 @@ import type { Component, GenerationTarget, ModuleInstance, Page } from '@vocabul
 import { CATALOG, isContentType, isModuleType } from '@vocabularium/domain/page-modules';
 import { blockText, mainKeyOf } from '@vocabularium/domain/pages';
 import { emphasise, renderContent } from '@vocabularium/domain/render';
+import type { RenderedFacet } from '@vocabularium/domain/render';
+import { facetLabel, isFacetOf, isParentType } from '@vocabularium/domain/parents';
+import type { FacetType, ParentType } from '@vocabularium/domain/parents';
 import type { PageEditorDraft } from '../types/editor-drafts.js';
 import { FamilyIcon } from './families.tsx';
 import { mainKeyTier } from './main-key.ts';
@@ -67,6 +70,8 @@ type Props = {
   addModule: (type: string, position?: number) => Promise<boolean>;
   moveComponent: (componentId: string, position: number) => Promise<boolean>;
   deleteComponent: (component: Component) => Promise<boolean | void>;
+  addFacet: (componentId: string, parent: ParentType, facet: FacetType) => Promise<boolean>;
+  deleteFacet: (componentId: string, parent: ParentType, facet: FacetType) => Promise<boolean>;
 };
 
 // `error` is shown inside the empty field, in place of its text, until the
@@ -105,36 +110,73 @@ function NewPageEditor({ draft, deck, busy, persist, save, cancel }: Pick<Props,
   </section>;
 }
 
-// Generated content as its module's render contract describes; anything else,
-// and the user's own text, as plain text with its line breaks.
-export function Content({ type, text, mainKey }: { type: string; text: string; mainKey: string }) {
-  const rendered = renderContent(type, text);
-  if (rendered.kind === 'plain') return <pre>{rendered.text}</pre>;
-  if (rendered.kind === 'sentence') return <p className="reading">{rendered.text}</p>;
-  // Parent modules (D08) are shown as their text until the page renders facets (0.7.0 increment 4).
-  if (rendered.kind === 'parent') return <pre>{text}</pre>;
-  const { heading, meanings, examples } = rendered;
+// One facet's content (D08): examples beside their translations, or its lines.
+function FacetBody({ facet, mainKey }: { facet: RenderedFacet; mainKey: string }) {
   const marked = (text: string) => emphasise(text, mainKey).map((part, index) => part.key ? <mark key={index}>{part.text}</mark> : part.text);
+  if (facet.facet === 'examples') return <ul className="examples">{facet.examples.map((example, index) => <li key={index}>
+    <span className="example-number">{example.number}</span>
+    <span className="example-sentence">{marked(example.sentence)}</span>
+    {example.translation && <span className="example-translation">{example.translation}</span>}
+  </li>)}</ul>;
+  return <ul className="facet-lines">{facet.lines.map((line, index) => <li key={index}>{line}</li>)}</ul>;
+}
+
+// A facet's Delete beside its label: at once when the facet has nothing in it,
+// otherwise after "Are you sure?" in the same row, like a card's Delete.
+function FacetDelete({ name, hasContent, disabled, onDelete }: { name: string; hasContent: boolean; disabled: boolean; onDelete: () => void }) {
+  const [asking, setAsking] = useState(false);
+  const cancel = useRef<HTMLButtonElement>(null);
+  useEffect(() => { if (asking) cancel.current?.focus(); }, [asking]);
+  if (!asking) return <button type="button" className="facet-delete" aria-label={`Delete ${name}`} disabled={disabled}
+    onClick={() => hasContent ? setAsking(true) : onDelete()}><ActionIcon name="delete" /></button>;
+  return <span className="facet-confirm" role="group" aria-label={`Delete ${name}?`}
+    onKeyDown={event => { if (event.key === 'Escape') { event.stopPropagation(); setAsking(false); } }}>
+    <button type="button" className="action-confirm" aria-label={`Yes, delete ${name}`} onClick={() => { setAsking(false); onDelete(); }}>Delete</button>
+    <button type="button" ref={cancel} aria-label={`Keep ${name}`} onClick={() => setAsking(false)}>Cancel</button>
+    <span className="confirm-text">Are you sure?</span>
+  </span>;
+}
+
+// What a parent card's facets need to be deleted.
+type FacetControls = { title: string; disabled: boolean; onDelete: (facet: FacetType) => void };
+
+// Generated content as its parent's render contract describes (D08): the core,
+// then each facet under its label, and the facets waiting for the next Retry.
+// Anything else, and the user's own text, is plain text with its line breaks.
+export function Content({ type, text, mainKey, waiting = [], controls }: {
+  type: string; text: string; mainKey: string; waiting?: readonly string[]; controls?: FacetControls;
+}) {
+  const rendered = renderContent(type, text);
+  const parent = isParentType(type) ? type : null;
+  const facetHead = (facet: FacetType, hasContent: boolean, note?: string) => parent && <h3 className="facet-title">
+    <span>{facetLabel(parent, facet)}</span>
+    {note && <span className="facet-note muted">{note}</span>}
+    {controls && <FacetDelete name={`${facetLabel(parent, facet)} from ${controls.title}`} hasContent={hasContent}
+      disabled={controls.disabled} onDelete={() => controls.onDelete(facet)} />}
+  </h3>;
+  const waitingSections = parent ? waiting.filter(facet => isFacetOf(parent, facet)).map(facet =>
+    <section key={facet} className="facet" data-facet={facet} data-waiting>{facetHead(facet as FacetType, false, 'Waiting for Retry')}</section>) : [];
+  if (rendered.kind === 'plain') return <>{rendered.text && <pre>{rendered.text}</pre>}{waitingSections}</>;
+  const { core, facets } = rendered;
   return <div className="entry-content">
-    {heading && <p className="entry-heading">
-      <span className="entry-language">{heading.language}</span>
-      {heading.key && <span className="entry-key">{heading.key}</span>}
-      {heading.pronunciation && <span className="entry-pronunciation">{heading.pronunciation}</span>}
-    </p>}
-    <ol className="meanings">{meanings.map(meaning => <li key={meaning.number} data-number={meaning.number}>{meaning.text}</li>)}</ol>
-    {examples.length > 0 && <>
-      <h3 className="examples-title">Examples</h3>
-      <ul className="examples">{examples.map((example, index) => <li key={index}>
-        <span className="example-number">{example.number}</span>
-        <span className="example-sentence">{marked(example.sentence)}</span>
-        {example.translation && <span className="example-translation">{example.translation}</span>}
-      </li>)}</ul>
-    </>}
+    {core.kind === 'word' ? <>
+      {core.heading && <p className="entry-heading">
+        <span className="entry-language">{core.heading.language}</span>
+        {core.heading.key && <span className="entry-key">{core.heading.key}</span>}
+        {core.heading.pronunciation && <span className="entry-pronunciation">{core.heading.pronunciation}</span>}
+      </p>}
+      <ol className="meanings">{core.meanings.map(meaning => <li key={meaning.number} data-number={meaning.number}>{meaning.text}</li>)}</ol>
+    </> : <p className="reading">{core.text}</p>}
+    {facets.map(facet => <section key={facet.facet} className="facet" data-facet={facet.facet}>
+      {facetHead(facet.facet, true)}
+      <FacetBody facet={facet} mainKey={mainKey} />
+    </section>)}
+    {waitingSections}
   </div>;
 }
 
-function ComponentBody({ item, title, editable, draft, locked, persist, mainKey }: {
-  item: Component; title: string; editable: boolean; draft?: PageEditorDraft; locked: boolean; persist: () => void; mainKey: string;
+function ComponentBody({ item, title, editable, draft, locked, persist, mainKey, controls }: {
+  item: Component; title: string; editable: boolean; draft?: PageEditorDraft; locked: boolean; persist: () => void; mainKey: string; controls?: FacetControls;
 }) {
   const text = blockText(item.content);
   if (editable && draft) return <>
@@ -144,7 +186,8 @@ function ComponentBody({ item, title, editable, draft, locked, persist, mainKey 
       onChange={value => { draft.texts[item.id] = value; persist(); }} />
     {item.status === 'loading' && <p className="notice">This component is generating. Your draft is preserved; save explicitly after generation finishes.</p>}
   </>;
-  return text ? <Content type={item.moduleType} text={text} mainKey={mainKey} /> : null;
+  return text || item.waitingFacets?.length
+    ? <Content type={item.moduleType} text={text} mainKey={mainKey} waiting={item.waitingFacets} controls={controls} /> : null;
 }
 
 // Motion (D05): when a component finishes generating while the page is open,
@@ -169,6 +212,13 @@ function Reveal({ status, title, children }: { status: string | null; title: str
     {children}
     <span className="visually-hidden" role="status">{announcement}</span>
   </div>;
+}
+
+// Under the title, how the latest run read the main key (D08): as a word or
+// as a sentence. It names no language and cannot be changed directly.
+function Interpretation({ value }: { value: Page['interpretation'] }) {
+  if (!value) return null;
+  return <p className="interpretation" data-interpretation={value}>Read as a {value === 'sentence' ? 'sentence' : 'word'}</p>;
 }
 
 // The page title: the main key in its tier; a passage is cut after six lines.
@@ -238,7 +288,7 @@ function readFolded(key: string | null): ReadonlySet<string> {
 }
 
 export function PageView({ page, deck, draft, isNew, editing, busy, error, pendingSaves, retryPendingSave,
-  navigate, begin, persist, save, cancel, discardUnavailable, deletePage, generate, addModule, moveComponent, deleteComponent }: Props) {
+  navigate, begin, persist, save, cancel, discardUnavailable, deletePage, generate, addModule, moveComponent, deleteComponent, addFacet, deleteFacet }: Props) {
   const [working, setWorking] = useState(false);
   // The card whose tab has ejected its actions; one at a time.
   const [opened, setOpened] = useState<string | null>(null);
@@ -306,7 +356,8 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
   const disabled = Boolean(editingId) || busy;
   const known = new Set(page.components.map(item => item.id));
   const lost = editing && draft ? Object.keys(draft.texts).filter(id => !known.has(id)) : [];
-  const items = rest.map(item => ({ id: item.id, label: moduleLabel(item.moduleType), component: item }));
+  const items = rest.map(item => ({ id: item.id, label: moduleLabel(item.moduleType), component: item,
+    holder: { id: item.id, type: item.moduleType, facets: item.facets, status: item.status } }));
 
   const mainKey = mainKeyOf(page.components);
   // A card's actions are ejected from its tab when the tab is clicked (D07);
@@ -366,7 +417,9 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
   // is one card at a time; Save and Cancel live in that card.
   const card = (item: Component, title: string, { drag, menu }: RowParts) => {
     const family = isModuleType(item.moduleType) ? CATALOG[item.moduleType].family ?? 'notes' : 'notes';
-    const empty = !blockText(item.content) && item.status !== 'loading' && item.status !== 'failed' && editingId !== item.id;
+    const empty = !blockText(item.content) && !item.waitingFacets?.length && item.status !== 'loading' && item.status !== 'failed' && editingId !== item.id;
+    const controls: FacetControls | undefined = isParentType(item.moduleType) ? { title, disabled: disabled || working || item.status === 'loading',
+      onDelete: facet => void run(async () => { await deleteFacet(item.id, item.moduleType as ParentType, facet); }) } : undefined;
     // While it generates, a card is only its tab, with a spark running round
     // its edge; its content opens once there is some (0.6.3).
     const generating = item.status === 'loading' && editingId !== item.id;
@@ -395,7 +448,7 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
       </div>
       {!empty && <div className="card-fold"><div className="card-fold-inner" inert={isFolded || undefined}>
         {item.status === 'failed' && <p className="card-status"><span className="list-status" data-status="failed">Generation failed</span></p>}
-        {editor(item, title) || <Reveal status={item.status} title={title}><ComponentBody item={item} title={title} editable={false} draft={draft} locked={locked} persist={persist} mainKey={mainKey} /></Reveal>}
+        {editor(item, title) || <Reveal status={item.status} title={title}><ComponentBody item={item} title={title} editable={false} draft={draft} locked={locked} persist={persist} mainKey={mainKey} controls={controls} /></Reveal>}
       </div></div>}
     </article>;
   };
@@ -404,7 +457,7 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
     {notice}{back}
     <div className="page-header" data-component-id={key.id} data-type="main-key" data-editing={editingId === key.id || undefined}>
       <div className="page-title">
-        {editingId === key.id ? editor(key, 'Main key') : <MainKeyTitle text={mainKey} />}
+        {editingId === key.id ? editor(key, 'Main key') : <><MainKeyTitle text={mainKey} /><Interpretation value={page.interpretation} /></>}
       </div>
       <div className="title-actions">
         {editingId !== key.id && <button className="title-edit" aria-label="Edit Main key" disabled={Boolean(editingId)} onClick={() => begin(key.id)}>Edit</button>}
@@ -416,6 +469,7 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
       // The server appends a module sent without a position, after anything added meanwhile.
       onAdd={(type, index) => addModule(type, index === AT_THE_END ? undefined : index + 1)}
       onMove={(id, index) => moveComponent(id, index + 1)}
+      onAddFacet={(id, parent, facet) => addFacet(id, parent, facet)}
       menuItems={COMPONENT_MENU}
       renderLanding={type => <LandingCard type={type} />}
       renderItem={(item, parts) => card(item.component, item.label, parts)} />

@@ -1,6 +1,6 @@
 import type { BlockDocument, Component, ModuleInstance, ViewDefinition } from '@vocabularium/contracts';
-import { MODULES } from './modules.js';
-import type { ModuleType } from './modules.js';
+import { PARENTS } from './parents.js';
+import type { ParentType as ModuleType } from './parents.js';
 
 export function textBlocks(text: string): BlockDocument {
   return { version: 1, blocks: text ? [{ type: 'paragraph', text }] : [] };
@@ -33,5 +33,5 @@ export function validateView(view: ViewDefinition, modules: readonly ModuleInsta
   const definition = VIEW_MODULES[view.module];
   if (!definition) throw new Error('The deck uses an unsupported view.');
   const missing = definition.dependsOn.filter(type => !modules.some(module => module.type === type));
-  if (missing.length) throw new Error(`The view needs these modules: ${missing.map(type => MODULES[type].label).join(', ')}.`);
+  if (missing.length) throw new Error(`The view needs these modules: ${missing.map(type => PARENTS[type].label).join(', ')}.`);
 }

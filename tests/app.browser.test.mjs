@@ -216,10 +216,14 @@ test('capture extension: receipt lifetime, exact duplicate pages, shared outcome
       if (text === 'fail') throw Error('controlled interpretation failure');
       return { inputType: text === '我真的很幸福' ? 'sentence' : 'word_phrase', sourceLanguage: 'Chinese' };
     },
-    async generate() { return '== Chinesisch ==\n=== Bedeutungen ===\n: [1] Glück\n=== Beispiele ===\n: [1] 她很幸福。\n:: Sie ist glücklich.'; }
+    // Each parent writes its own format (D08).
+    async generate({ module }) {
+      return module.type === 'chinese' ? '== 汉语 (幸福, xìngfú) ==\n=== 释义 ===\n: [1] 生活称心如意'
+        : '== Chinesisch ==\n=== Bedeutungen ===\n: [1] Glück\n=== Examples ===\n: [1] 她很幸福。\n:: Sie ist glücklich.';
+    }
   };
   let application = await createTestApplication(t, { databaseKey, provider });
-  await useModules(application.store, ['sentence-usage', 'german-examples']);
+  await useModules(application.store, ['chinese', 'german']);
   await application.start();
   const contexts = new Set();
   t.after(async () => {
@@ -254,7 +258,7 @@ test('capture extension: receipt lifetime, exact duplicate pages, shared outcome
   await b.page.locator('.capture-link').first().click();
   // Generated content is rendered by its module's render contract (D05): numbered
   // meanings and an example beside its translation, the main key emphasised.
-  const generatedCard = componentArticle(b.page, 'German explanation + examples');
+  const generatedCard = componentArticle(b.page, 'German');
   await generatedCard.locator('.meanings li').filter({ hasText: 'Glück' }).waitFor();
   assert.equal(await generatedCard.locator('.example-translation').textContent(), 'Sie ist glücklich.');
   assert.equal(await generatedCard.locator('.example-sentence mark').textContent(), '幸福');
@@ -265,8 +269,8 @@ test('capture extension: receipt lifetime, exact duplicate pages, shared outcome
   await captureFrom(a, '我真的很幸福'); await captureFrom(a, 'fail');
   await waitFor(async () => (await application.store.pages()).find(page => page.selectedText === 'fail')?.status === 'failed', 'failed interpretation persisted');
   const sentencePage = (await application.store.pages()).find(page => page.selectedText === '我真的很幸福');
-  // The sentence example applies to a sentence; the word explanation completes empty.
-  assert.deepEqual(modulesOf(sentencePage).map(item => [Boolean(text(item)), item.status]), [[true, 'completed'], [false, 'completed']]);
+  // Every parent applies to a sentence as well as a word (D08).
+  assert.deepEqual(modulesOf(sentencePage).map(item => [Boolean(text(item)), item.status]), [[true, 'completed'], [true, 'completed']]);
   assert.equal(sentencePage.status, 'completed');
 
   step('dashboard closure during generation');
@@ -321,7 +325,7 @@ test('capture with Context: the surrounding block follows the deck’s Context m
     async generate() { return 'Glück'; }
   };
   const application = await createTestApplication(t, { provider });
-  await useModules(application.store, ['context', 'german-examples']);
+  await useModules(application.store, ['context', 'german']);
   await application.start();
   const a = await launch(join(directory, 'a'), testingExtension);
   t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
@@ -506,23 +510,24 @@ test('deck UI: draft previews, all modules, the module limit, removal without co
   assert.equal(await a.page.getByRole('group', { name: 'Deck colour' }).getByRole('radio').count(), 6);
   assert.equal(await a.page.getByRole('group', { name: 'Deck colour' }).getByRole('radio', { checked: true }).count(), 1);
   await a.page.getByRole('radio', { name: 'Rose', exact: true }).check();
-  assert.equal(await a.page.locator('.module-block').count(), 3, 'a new deck starts with the main key, Context and the German explanation');
+  assert.equal(await a.page.locator('.module-block').count(), 3, 'a new deck starts with the main key, Context and the Chinese');
   // The main key looks like the other modules, with no lock mark (0.6.3), drag label, menu or Remove.
   const mainKeyBlock = a.page.locator('.module-block[data-type="main-key"]');
   assert.equal(await mainKeyBlock.innerText(), 'Main key');
   assert.equal(await mainKeyBlock.getByRole('img').count(), 0, 'no lock mark');
   assert.equal(await mainKeyBlock.locator('.block-label, button').count(), 0, 'no drag label, menu or Remove on the main key');
-  await addFromWindow(a.page, 'sentence-usage');
-  const usage = a.page.locator('.sortable-row:not(.landing-row)').filter({ has: a.page.locator('.module-block[data-type="sentence-usage"]') });
+  await addFromWindow(a.page, 'chinese');
+  const usage = a.page.locator('.sortable-row:not(.landing-row):not([data-dragging])').filter({ has: a.page.locator('.module-block[data-type="chinese"]') });
   await usage.waitFor();
-  // Dropped on the upper half of Sentence usage, German explanation lands before it.
-  await addFromWindow(a.page, 'german-explanation', usage, { above: true });
-  await addFromWindow(a.page, 'sentence-usage');
-  await addFromWindow(a.page, 'sentence-usage');
+  // Dropped on the upper half of Chinese, German lands before it.
+  await addFromWindow(a.page, 'german', usage, { above: true });
+  await addFromWindow(a.page, 'chinese');
+  await addFromWindow(a.page, 'chinese');
   assert.equal(await a.page.locator('.module-block').count(), 7);
-  assert.equal(await a.page.locator('.module-window .window-module').count(), 5, 'the window offers Context, Text and the three content modules');
-  // Every module has its + to add it at the end (0.6.3; D04 had none).
-  assert.equal(await a.page.locator('.module-window .window-add').count(), 5, 'every module has its +');
+  assert.equal(await a.page.locator('.module-window .window-module').count(), 4, 'the window offers Context, Text and the two parents (D08)');
+  // Every module and facet has its + (0.6.3; D04 had none).
+  assert.equal(await a.page.locator('.window-module > .window-add').count(), 4, 'every module has its +');
+  assert.equal(await a.page.locator('.window-facet .window-add').count(), 6, 'and every facet');
   assert.equal(await a.page.locator('.window-module[data-type="context"]').getAttribute('aria-disabled'), 'true', 'one Context per deck');
   assert.equal(await a.page.locator('.window-module[data-type="context"] .window-add').isDisabled(), true, 'a blocked module cannot be added');
   await a.page.getByText('There is already a Context.').waitFor();
@@ -534,10 +539,11 @@ test('deck UI: draft previews, all modules, the module limit, removal without co
   await preview.getByLabel('Sample input', { exact: true }).selectOption('sentence');
   assert.equal(await preview.locator('.preview').count(), 7, 'one preview per module, the main key included');
   assert.match(await preview.locator('.preview').nth(0).textContent(), /我真的很幸福/);
-  // A module that does not apply to the sample input is only its tab, as an empty component on a page (0.6.2).
-  assert.equal(await preview.locator('.preview').nth(2).textContent(), 'German explanation + examples');
-  assert.equal(await preview.locator('.preview').nth(2).getAttribute('data-empty'), 'true');
-  assert.match(await preview.locator('.preview').nth(4).textContent(), /我真的很幸福/);
+  // Every parent applies to a sentence: its translation, and the facets that apply (D08).
+  assert.match(await preview.locator('.preview').nth(2).textContent(), /Ich bin wirklich glücklich/);
+  assert.deepEqual(await preview.locator('.preview').nth(2).locator('.facet-title > span:first-child').allTextContents(), ['Examples'], 'Article, Synonyms and Antonyms are for words');
+  assert.equal(await preview.locator('.preview').nth(3).locator('.facet').count(), 0, 'a parent added from the window has its core only');
+  assert.match(await preview.locator('.preview').nth(4).textContent(), /说话人表示自己非常满足/);
   const previewTypes = () => preview.locator('.sample-page .component').evaluateAll(nodes => nodes.map(node => node.dataset.type));
   const listTypes = () => a.page.locator('.shaping-list .module-block').evaluateAll(nodes => nodes.slice(1).map(node => node.dataset.type));
   assert.deepEqual(await previewTypes(), await listTypes(), 'the preview follows the list');
@@ -551,7 +557,7 @@ test('deck UI: draft previews, all modules, the module limit, removal without co
   await a.page.mouse.click(5, 5);
   await preview.waitFor({ state: 'detached' });
   // A module is two parts edge to edge: the six dots at its left end, then its icon and name.
-  const block = a.page.locator('.module-block[data-type="german-explanation"]');
+  const block = a.page.locator('.module-block[data-type="chinese"]').first();
   await block.scrollIntoViewIfNeeded();
   assert.deepEqual(await block.evaluate(node => {
     const box = node.getBoundingClientRect();
@@ -563,20 +569,20 @@ test('deck UI: draft previews, all modules, the module limit, removal without co
   await new Promise(resolve => setTimeout(resolve, 300));
   await a.page.keyboard.press('ArrowUp');
   await new Promise(resolve => setTimeout(resolve, 300));
-  assert.equal(await a.page.locator('.module-block').nth(2).getAttribute('data-type'), 'german-examples', 'nothing dropped yet');
+  assert.equal(await a.page.locator('.module-block').nth(2).getAttribute('data-type'), 'german', 'nothing dropped yet');
   // The others slide to make room.
   const slides = await a.page.locator('.shaping-list .sortable-row').evaluateAll(rows => rows.filter(row => !row.hasAttribute('data-dragging'))
     .map(row => getComputedStyle(row).transitionDuration));
   assert.ok(slides.length && slides.every(duration => parseFloat(duration) >= 0.2), `rows make room with a transition (${slides})`);
   await a.page.keyboard.press('Escape');
-  assert.deepEqual(await listTypes(), ['context', 'german-examples', 'german-explanation', 'sentence-usage', 'sentence-usage', 'sentence-usage'], 'a cancelled drag keeps the order');
+  assert.deepEqual(await listTypes(), ['context', 'german', 'german', 'chinese', 'chinese', 'chinese'], 'a cancelled drag keeps the order');
   assert.equal((await application.store.pages()).length, 0); assert.equal((await application.store.account()).decks.length, 1);
   await a.page.screenshot({ path: 'artifacts/m3-configuration.png', fullPage: true });
   await a.page.getByRole('button', { name: 'Save', exact: true }).click();
   await a.page.getByRole('heading', { name: 'Everyday Chinese', exact: true }).waitFor();
   const created = (await application.store.account()).decks.find(deck => deck.name === 'Everyday Chinese');
   assert.deepEqual(created.modules.map(module => module.type),
-    ['main-key', 'context', 'german-examples', 'german-explanation', 'sentence-usage', 'sentence-usage', 'sentence-usage']);
+    ['main-key', 'context', 'german', 'german', 'chinese', 'chinese', 'chinese']);
   assert.equal(created.colour, 'sound');
   await a.page.locator('.nav-item.fam-sound').filter({ hasText: 'Everyday Chinese' }).waitFor();
   await a.page.locator('article.deck.fam-sound').filter({ hasText: 'Everyday Chinese' }).waitFor();
@@ -589,14 +595,14 @@ test('deck UI: draft previews, all modules, the module limit, removal without co
   await application.store.openSession('fixture-session', session);
   const pageId = (await application.store.capture('fixture-capture', { session, mainKey: '幸福', snapshot: (await application.store.snapshot()) })).pageId;
   for (const item of modulesOf(await application.store.page(pageId))) {
-    await application.store.stage(item.attemptId, { ok: true, text: item.moduleType === 'german-examples' ? 'Saved explanation' : '' });
+    await application.store.stage(item.attemptId, { ok: true, text: item.moduleType === 'german' ? 'Saved explanation' : '' });
     await application.store.publish(`fixture-${item.id}`, { attemptId: item.attemptId, session });
   }
   const before = (await application.store.page(pageId)).components.map(item => [item.moduleType, text(item)]);
   await a.page.getByLabel('Options for Everyday Chinese').click();
   await a.page.locator('article.deck').filter({ hasText: 'Everyday Chinese' }).getByRole('button', { name: 'Configure deck', exact: true }).click();
-  await a.page.getByRole('button', { name: 'Remove German explanation + examples', exact: true }).click();
-  for (let count = 6; count < 12; count++) await addFromWindow(a.page, 'sentence-usage');
+  await a.page.getByRole('button', { name: 'Remove German', exact: true }).first().click();
+  for (let count = 6; count < 12; count++) await addFromWindow(a.page, 'chinese');
   assert.equal(await a.page.locator('.module-block').count(), 12);
   assert.equal(await a.page.locator('.window-module[aria-disabled="false"]').count(), 0, 'the window is closed at twelve modules');
   await a.page.getByText('At most 12 modules, including the main key.').first().waitFor();
@@ -605,7 +611,7 @@ test('deck UI: draft previews, all modules, the module limit, removal without co
   assert.equal(await a.page.getByRole('dialog').count(), 0, 'changing the deck needs no content-loss confirmation');
   assert.deepEqual((await application.store.page(pageId)).components.map(item => [item.moduleType, text(item)]), before, 'deck changes never reach an existing page');
   await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
-  await componentArticle(a.page, 'German explanation + examples').getByText('Saved explanation').waitFor();
+  await componentArticle(a.page, 'German').first().getByText('Saved explanation').waitFor();
   await a.page.goto(`chrome-extension://${a.id}/app.html`);
   await a.page.getByLabel('Options for Everyday Chinese').click();
   await a.page.locator('article.deck').filter({ hasText: 'Everyday Chinese' }).getByRole('button', { name: 'Delete deck', exact: true }).click();
@@ -768,7 +774,7 @@ test('appearance: all open views, drafts, dialogs, feedback lifetime, logout and
   await hasTheme(a.page, 'dark'); await signIn(a.page); await hasTheme(a.page, 'dark');
   await a.page.getByRole('button', { name: 'Add new deck', exact: true }).click();
   await a.page.getByLabel('Deck name', { exact: true }).fill('Unsaved configuration');
-  await addFromWindow(a.page, 'sentence-usage');
+  await addFromWindow(a.page, 'chinese');
   for (const appearance of ['dark', 'light']) {
     await theme(a.page, appearance);
     assert.equal(await a.page.getByLabel('Deck name', { exact: true }).inputValue(), 'Unsaved configuration');
@@ -784,7 +790,7 @@ test('page list: quiet states, layouts remembered per deck, sorting, grouping, e
   const a = await launch(join(directory, 'a'));
   t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
   const store = application.store;
-  await useModules(store, ['sentence-usage', 'german-examples']);
+  await useModules(store, ['chinese', 'german']);
   const deck = await store.snapshot();
   const other = await store.createDeck('Other deck');
   const session = { installationId: 'fixture', sessionId: 'rows', epoch: 1 };
@@ -796,7 +802,7 @@ test('page list: quiet states, layouts remembered per deck, sorting, grouping, e
     await store.stage(front.attemptId, { ok: true, text: `${state} entry` });
     await store.publish(`row-front-${state}`, { attemptId: front.attemptId, session });
     if (state === 'completed') {
-      await store.stage(back.attemptId, { ok: true, text: '== Englisch ==\n=== Bedeutungen ===\n: [1] erledigter Eintrag\n=== Beispiele ===\n: [1] Done.\n:: Erledigt.' });
+      await store.stage(back.attemptId, { ok: true, text: '== Englisch ==\n=== Bedeutungen ===\n: [1] erledigter Eintrag\n=== Examples ===\n: [1] Done.\n:: Erledigt.' });
       await store.publish('row-completed-back', { attemptId: back.attemptId, session });
     } else if (state === 'failed')
       await store.failAttempt(back.attemptId);
@@ -964,27 +970,27 @@ test('manual page UI: per-card actions, drafts, leave choices, sorting, failed-s
   await a.page.getByRole('dialog').getByRole('button', { name: 'Save', exact: true }).click();
   await a.page.getByRole('link', { name: 'zebra', exact: true }).click();
   // A never-generated component offers Retry too, which starts it at once (0.6.3; earlier Generate).
-  await (await cardButton(a.page, 'Retry German explanation + examples')).waitFor();
+  await (await cardButton(a.page, 'Retry German')).waitFor();
   assert.equal(await a.page.getByRole('button', { name: /^Generate / }).count(), 0, 'no Generate');
   const created = (await application.store.pages())[0];
   const shape = async () => (await application.store.page(created.id)).components.map(item => [item.moduleType, text(item)]);
   assert.equal(created.status, null, 'manual creation never generates');
-  assert.deepEqual(await shape(), [['main-key', 'zebra'], ['context', 'zoo animal'], ['german-examples', '']]);
+  assert.deepEqual(await shape(), [['main-key', 'zebra'], ['context', 'zoo animal'], ['german', '']]);
   assert.equal(await a.page.getByRole('button', { name: /^Retry / }).count(), 1, 'only the never-generated component offers Retry');
   for (const removed of ['Edit page', 'Generate missing', 'Retry page']) {
     assert.equal(await a.page.getByRole('button', { name: removed, exact: true }).count(), 0, `no page-level ${removed} (D04)`);
   }
   // An empty component is only its tab, with its actions (0.6.2).
-  const ungenerated = componentArticle(a.page, 'German explanation + examples');
+  const ungenerated = componentArticle(a.page, 'German');
   assert.equal(await ungenerated.getAttribute('data-empty'), 'true');
   assert.equal(await ungenerated.locator('.card-body').count(), 0);
-  await ungenerated.getByRole('button', { name: 'Retry German explanation + examples', exact: true }).waitFor();
+  await ungenerated.getByRole('button', { name: 'Retry German', exact: true }).waitFor();
 
   // Shaping by dragging, each step saved at once.
   await addFromWindow(a.page, 'text');
   await componentArticle(a.page, 'Text').waitFor();
-  assert.deepEqual(await shape(), [['main-key', 'zebra'], ['context', 'zoo animal'], ['german-examples', ''], ['text', '']]);
-  await drag(a.page, cardTab(a.page, 'Text'), componentArticle(a.page, 'German explanation + examples'));
+  assert.deepEqual(await shape(), [['main-key', 'zebra'], ['context', 'zoo animal'], ['german', ''], ['text', '']]);
+  await drag(a.page, cardTab(a.page, 'Text'), componentArticle(a.page, 'German'));
   await waitFor(async () => (await shape())[2][0] === 'text', 'Text moved up');
   assert.equal(await a.page.getByRole('button', { name: /^Move / }).count(), 0, 'no move buttons (D04)');
   // Deleting a component with content asks beside its tab, not in a dialog (0.6.3): Cancel lands
@@ -1011,12 +1017,12 @@ test('manual page UI: per-card actions, drafts, leave choices, sorting, failed-s
   await confirmDelete.click();
   await waitFor(async () => (await shape()).length === 3, 'Context deleted');
   // An empty component goes at once, without asking.
-  await addFromWindow(a.page, 'sentence-usage');
-  await waitFor(async () => (await shape()).length === 4, 'Sentence usage added');
-  await (await cardButton(a.page, 'Delete Sentence usage')).click();
-  await waitFor(async () => (await shape()).length === 3, 'empty Sentence usage deleted at once');
+  await addFromWindow(a.page, 'chinese');
+  await waitFor(async () => (await shape()).length === 4, 'Chinese added');
+  await (await cardButton(a.page, 'Delete Chinese')).click();
+  await waitFor(async () => (await shape()).length === 3, 'empty Chinese deleted at once');
   assert.equal(await a.page.locator('[data-confirm]').count(), 0, 'no question for an empty component');
-  assert.deepEqual(await shape(), [['main-key', 'zebra'], ['text', ''], ['german-examples', '']]);
+  assert.deepEqual(await shape(), [['main-key', 'zebra'], ['text', ''], ['german', '']]);
   // The main key is the page title, shown once: no card, no lock mark (0.6.3), and only Edit, always visible like Delete page.
   const header = a.page.locator('.page-header[data-type="main-key"]');
   assert.equal(await header.getByRole('img').count(), 0, 'no lock mark');
@@ -1065,7 +1071,7 @@ test('manual page UI: per-card actions, drafts, leave choices, sorting, failed-s
   await a.page.getByRole('button', { name: 'Try saving again', exact: true }).click();
   await a.page.getByRole('button', { name: 'Edit Main key', exact: true }).waitFor();
   const saved = await application.store.page(created.id);
-  assert.deepEqual(saved.components.map(item => [item.moduleType, text(item)]), [['main-key', 'alpha'], ['text', 'saved own text'], ['german-examples', '']]);
+  assert.deepEqual(saved.components.map(item => [item.moduleType, text(item)]), [['main-key', 'alpha'], ['text', 'saved own text'], ['german', '']]);
   assert.equal(saved.createdAt, created.createdAt);
   await a.page.getByRole('button', { name: '← My Deck', exact: true }).click();
   await a.page.getByRole('button', { name: 'Add page manually', exact: true }).click();
@@ -1104,7 +1110,7 @@ test('retry UI: exact confirmation asked beside the tab, a first Retry without w
       generate: (_, signal) => new Promise((resolve, reject) => { release = resolve; signal.addEventListener('abort', () => reject(Error('aborted')), { once: true }); })
     }
   });
-  await useModules(application.store, ['sentence-usage', 'german-examples']);
+  await useModules(application.store, ['chinese', 'german']);
   await application.start();
   const session = { installationId: 'fixture', sessionId: 'fixture', epoch: 1 };
   await application.store.openSession('fixture', session);
@@ -1119,12 +1125,12 @@ test('retry UI: exact confirmation asked beside the tab, a first Retry without w
   await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
   await b.page.goto(`chrome-extension://${b.id}/app.html#page/${pageId}`);
   // Installation b edits the explanation card while a retries it.
-  await (await cardButton(b.page, 'Edit German explanation + examples')).click();
-  await b.page.getByRole('textbox', { name: 'Edit German explanation + examples', exact: true }).fill('draft back');
+  await (await cardButton(b.page, 'Edit German')).click();
+  await b.page.getByRole('textbox', { name: 'Edit German', exact: true }).fill('draft back');
   // Retrying content asks beside the tab, as Delete does, in the card's colour; no dialog (0.6.3).
-  const retryExplanation = () => cardButton(a.page, 'Retry German explanation + examples');
+  const retryExplanation = () => cardButton(a.page, 'Retry German');
   await (await retryExplanation()).click();
-  const keepExplanation = a.page.getByRole('button', { name: 'Keep German explanation + examples', exact: true });
+  const keepExplanation = a.page.getByRole('button', { name: 'Keep German', exact: true });
   await keepExplanation.waitFor();
   assert.equal(await a.page.getByRole('dialog').count(), 0, 'no dialog');
   assert.equal(await a.page.locator('[data-confirm="retry"] .confirm-text').textContent(), 'Are you sure?');
@@ -1135,17 +1141,17 @@ test('retry UI: exact confirmation asked beside the tab, a first Retry without w
   await keepExplanation.click();
   assert.equal(text(modulesOf(await application.store.page(pageId))[1]), 'saved original');
   await (await retryExplanation()).click();
-  await a.page.getByRole('button', { name: 'Yes, retry German explanation + examples', exact: true }).click();
+  await a.page.getByRole('button', { name: 'Yes, retry German', exact: true }).click();
   assert.equal(await a.page.getByRole('dialog').count(), 0, 'the answer beside the tab is the confirmation');
   await waitFor(() => release, 'retry provider started');
   await waitFor(async () => (await retryExplanation()).isDisabled(), 'retry disables its control while generating');
   // Every Retry is briefly disabled while the request is in flight; once accepted, only the generating component stays locked.
-  await waitFor(async () => (await cardButton(a.page, 'Retry Sentence usage')).isEnabled(), 'other components stay available');
+  await waitFor(async () => (await cardButton(a.page, 'Retry Chinese')).isEnabled(), 'other components stay available');
   assert.equal(await (await retryExplanation()).isDisabled(), true);
   await b.page.getByRole('button', { name: 'Save', exact: true }).click();
   await b.page.getByRole('alert').filter({ hasText: 'still generating' }).waitFor();
   assert.deepEqual(modulesOf(await application.store.page(pageId)).map(text), ['saved original', '']);
-  assert.equal(await b.page.getByRole('textbox', { name: 'Edit German explanation + examples', exact: true }).inputValue(), 'draft back');
+  assert.equal(await b.page.getByRole('textbox', { name: 'Edit German', exact: true }).inputValue(), 'draft back');
   release('regenerated component');
   await waitFor(async () => modulesOf(await application.store.page(pageId))[1].status === 'completed', 'retry saved');
   assert.deepEqual(modulesOf(await application.store.page(pageId)).map(text), ['saved original', 'regenerated component']);
@@ -1154,12 +1160,13 @@ test('retry UI: exact confirmation asked beside the tab, a first Retry without w
   assert.deepEqual(modulesOf(await application.store.page(pageId)).map(text), ['saved original', 'draft back']);
 
   // A deck change never reaches the page; a module dragged onto it generates from its card without a warning.
-  await useModules(application.store, ['sentence-usage', 'german-examples', 'german-explanation']);
+  await useModules(application.store, ['chinese', 'german', 'german']);
   await a.page.reload();
   await a.page.locator('h1.main-key').waitFor();
-  assert.equal(await a.page.getByRole('button', { name: 'Retry German explanation', exact: true }).count(), 0, 'a deck change never reaches the page');
-  await addFromWindow(a.page, 'german-explanation');
-  await (await cardButton(a.page, 'Retry German explanation')).click();
+  assert.equal(await componentArticle(a.page, 'German').count(), 1, 'a deck change never reaches the page');
+  await addFromWindow(a.page, 'german');
+  await componentArticle(a.page, 'German').nth(1).locator('.tab-button').click();
+  await componentArticle(a.page, 'German').nth(1).getByRole('button', { name: 'Retry German', exact: true }).click();
   await waitFor(async () => modulesOf(await application.store.page(pageId)).filter(item => item.attemptId).length === 3, 'the added module generated');
   assert.equal(await a.page.getByRole('dialog').count(), 0);
 });
@@ -1213,7 +1220,7 @@ test('sidebar: the current deck stays marked on a page while the account refresh
   const a = await launch(join(directory, 'a'));
   t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
   const store = application.store;
-  await useModules(store, ['german-examples']);
+  await useModules(store, ['german']);
   const session = { installationId: 'fixture', sessionId: 'sidebar', epoch: 1 };
   await store.openSession('sidebar-session', session);
   const { pageId } = await store.capture('sidebar-page', { session, mainKey: '幸福', snapshot: await store.snapshot() });
@@ -1252,7 +1259,7 @@ test('page view: main key tiers, Show all, rendered and plain content, quiet car
   const a = await launch(join(directory, 'a'));
   t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
   const store = application.store;
-  await useModules(store, ['context', 'german-examples', 'sentence-usage']);
+  await useModules(store, ['context', 'german', 'chinese']);
   const session = { installationId: 'fixture', sessionId: 'page-view', epoch: 1 };
   await store.openSession('page-view-session', session);
   const passage = Array.from({ length: 30 }, (_, index) => `Sentence number ${index + 1} of a long passage that keeps going.`).join(' ');
@@ -1287,14 +1294,14 @@ test('page view: main key tiers, Show all, rendered and plain content, quiet car
 
   // Text outside the render contract stays plain and literal; a failed card says so beside a visible Retry.
   await open('word');
-  const examples = componentArticle(a.page, 'German explanation + examples');
+  const examples = componentArticle(a.page, 'German');
   assert.equal(await examples.locator('pre').textContent(), 'My own edited explanation.\n=== not a contract');
   assert.equal(await examples.locator('.list-status').count(), 0, 'a completed card shows no status');
-  const failed = componentArticle(a.page, 'Sentence usage');
+  const failed = componentArticle(a.page, 'Chinese');
   assert.equal(await failed.locator('.list-status').textContent(), 'Generation failed');
   // Actions wait inside the tab until it is clicked (D07); a failed card keeps its Retry out.
-  await failed.getByRole('button', { name: 'Retry Sentence usage', exact: true }).waitFor();
-  assert.equal(await failed.getByRole('button', { name: 'Edit Sentence usage', exact: true }).count(), 0, 'only Retry waits beside a failed tab');
+  await failed.getByRole('button', { name: 'Retry Chinese', exact: true }).waitFor();
+  assert.equal(await failed.getByRole('button', { name: 'Edit Chinese', exact: true }).count(), 0, 'only Retry waits beside a failed tab');
   assert.equal(await examples.locator('.card-actions').count(), 0, 'no actions until the tab is clicked');
   // The tag is two buttons edge to edge: the six dots at its left end, the label to its right end.
   await examples.locator('.card-tab').scrollIntoViewIfNeeded();
@@ -1304,14 +1311,14 @@ test('page view: main key tiers, Show all, rendered and plain content, quiet car
   }), ['menu-button', 'tab-button', 'tab-button']);
   await examples.hover();
   assert.equal(await examples.locator('.card-actions').count(), 0, 'hovering no longer shows actions');
-  await cardTab(a.page, 'German explanation + examples').click();
+  await cardTab(a.page, 'German').click();
   assert.deepEqual(await examples.locator('.card-actions button').allTextContents(), ['Edit', 'Retry', 'Fold', 'Delete']);
-  assert.equal(await cardTab(a.page, 'German explanation + examples').getAttribute('aria-expanded'), 'true');
+  assert.equal(await cardTab(a.page, 'German').getAttribute('aria-expanded'), 'true');
   assert.equal(await examples.locator('.card-actions button').first().evaluate(node => getComputedStyle(node).animationName), 'eject', 'the actions eject from the tab');
   await a.page.mouse.click(5, 5);
   assert.equal(await examples.locator('.card-actions').count(), 0, 'a click elsewhere puts them back');
   // Fold: the card slides shut to its tab and stays folded in this browser; Unfold opens it again.
-  await (await cardButton(a.page, 'Fold German explanation + examples')).click();
+  await (await cardButton(a.page, 'Fold German')).click();
   assert.equal(await examples.getAttribute('data-folded'), 'true');
   assert.match(await examples.locator('.card-fold').evaluate(node => getComputedStyle(node).transitionProperty), /grid-template-rows/, 'folding moves smoothly');
   await waitFor(async () => (await examples.locator('.card-fold').evaluate(node => node.getBoundingClientRect().height)) < 1, 'the content folds away');
@@ -1319,19 +1326,19 @@ test('page view: main key tiers, Show all, rendered and plain content, quiet car
   await a.page.reload();
   await examples.locator('.card-tab').waitFor();
   assert.equal(await examples.getAttribute('data-folded'), 'true', 'the fold is remembered');
-  await (await cardButton(a.page, 'Unfold German explanation + examples')).click();
+  await (await cardButton(a.page, 'Unfold German')).click();
   await waitFor(async () => (await examples.locator('.card-fold').evaluate(node => node.getBoundingClientRect().height)) > 20, 'the content unfolds');
   assert.equal(await examples.getAttribute('data-folded'), null);
   // From the keyboard: Enter ejects them, Escape puts them back and returns to the tab.
-  await cardTab(a.page, 'German explanation + examples').focus();
+  await cardTab(a.page, 'German').focus();
   await a.page.keyboard.press('Enter');
-  await examples.getByRole('button', { name: 'Edit German explanation + examples', exact: true }).waitFor();
+  await examples.getByRole('button', { name: 'Edit German', exact: true }).waitFor();
   await a.page.keyboard.press('Escape');
   assert.equal(await examples.locator('.card-actions').count(), 0);
   assert.equal(await a.page.evaluate(() => document.activeElement.className), 'tab-button');
   // The six dots open the card's menu; its entries are placeholders.
-  await a.page.getByRole('button', { name: 'More for German explanation + examples', exact: true }).click();
-  const menu = a.page.getByRole('menu', { name: 'More for German explanation + examples' });
+  await a.page.getByRole('button', { name: 'More for German', exact: true }).click();
+  const menu = a.page.getByRole('menu', { name: 'More for German' });
   assert.deepEqual(await menu.getByRole('menuitem').evaluateAll(items => items.map(item => [item.firstChild.textContent, item.getAttribute('aria-disabled')])),
     [['Duplicate', 'true'], ['Copy text', 'true'], ['Move to page…', 'true']]);
   await a.page.keyboard.press('Escape');
@@ -1346,9 +1353,9 @@ test('page view: main key tiers, Show all, rendered and plain content, quiet car
   await a.page.keyboard.press('Escape');
   assert.equal(await contextMenu.count(), 0);
   // Retrying a card with nothing in it, such as a failed one, starts at once: no question, no dialog (0.6.3).
-  const usageBefore = (await store.page(pages.word)).components.find(item => item.moduleType === 'sentence-usage').attemptId;
-  await failed.getByRole('button', { name: 'Retry Sentence usage', exact: true }).click();
-  await waitFor(async () => (await store.page(pages.word)).components.find(item => item.moduleType === 'sentence-usage').attemptId !== usageBefore, 'the failed card retried');
+  const usageBefore = (await store.page(pages.word)).components.find(item => item.moduleType === 'chinese').attemptId;
+  await failed.getByRole('button', { name: 'Retry Chinese', exact: true }).click();
+  await waitFor(async () => (await store.page(pages.word)).components.find(item => item.moduleType === 'chinese').attemptId !== usageBefore, 'the failed card retried');
   assert.equal(await a.page.getByRole('dialog').count(), 0, 'no dialog');
   assert.equal(await a.page.locator('[data-confirm]').count(), 0, 'no question');
   for (const theme of ['light', 'dark']) {
@@ -1364,7 +1371,7 @@ test('page view: main key tiers, Show all, rendered and plain content, quiet car
   assert.equal(await helpText.isVisible(), false, 'the explanation is hidden at first');
   await help.hover();
   await helpText.waitFor();
-  assert.equal(await helpText.textContent(), 'Drag a module into the page, or back here to put it back. From the keyboard: Space picks it up, the arrow keys move it, Space drops it, Escape puts it back.');
+  assert.equal(await helpText.textContent(), 'Drag a module into the page, or back here to put it back. A facet goes onto a module of its own type. From the keyboard: Space picks it up, the arrow keys move it, Space drops it, Escape puts it back.');
   await a.page.mouse.move(5, 5);
   await helpText.waitFor({ state: 'hidden' });
   await help.click(); await a.page.mouse.move(5, 5);
@@ -1373,14 +1380,15 @@ test('page view: main key tiers, Show all, rendered and plain content, quiet car
   await a.page.keyboard.press('Escape');
   await helpText.waitFor({ state: 'hidden' });
   const families = await window.locator('details').evaluateAll(nodes => nodes.map(node => [node.querySelector('summary').textContent, node.open]));
-  assert.deepEqual(families, [['Meaning1', false], ['Usage2', true], ['Notes2', true]]);
-  assert.equal(await window.locator('.window-module[data-type="sentence-usage"]').getByText('Already here').count(), 1);
-  await window.getByLabel('Search modules', { exact: true }).fill('translations');
-  assert.deepEqual(await window.locator('.window-module:visible').evaluateAll(nodes => nodes.map(node => node.dataset.type)), ['german-examples']);
+  assert.deepEqual(families, [['Translation2', true], ['Notes2', true]]);
+  assert.equal(await window.locator('.window-module[data-type="chinese"]').getByText('Already here').count(), 1);
+  // A parent is found by its facets too (D08).
+  await window.getByLabel('Search modules', { exact: true }).fill('pinyin');
+  assert.deepEqual(await window.locator('.window-module:visible').evaluateAll(nodes => nodes.map(node => node.dataset.type)), ['chinese']);
   await window.getByLabel('Search modules', { exact: true }).fill('nothing like this');
   await window.getByText('No module matches “nothing like this”.').waitFor();
   await window.getByLabel('Search modules', { exact: true }).fill('');
-  assert.equal(await window.locator('.window-module').count(), 5);
+  assert.equal(await window.locator('.window-module').count(), 4);
   await a.page.setViewportSize({ width: 390, height: 800 });
   await a.page.screenshot({ path: 'artifacts/v0.6.0-page-narrow.png', fullPage: true });
   assert.equal(await a.page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
@@ -1392,7 +1400,7 @@ test('generation reveal: finished content rises into its card and is announced; 
   const a = await launch(join(directory, 'a'));
   t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
   const store = application.store;
-  await useModules(store, ['german-explanation', 'german-examples']);
+  await useModules(store, ['chinese', 'german']);
   const session = { installationId: 'fixture', sessionId: 'reveal', epoch: 1 };
   await store.openSession('reveal-session', session);
   const { pageId } = await store.capture('reveal-capture', { session, mainKey: '幸福', snapshot: await store.snapshot() });
@@ -1401,12 +1409,12 @@ test('generation reveal: finished content rises into its card and is announced; 
   await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
   const card = name => componentArticle(a.page, name);
   // While it generates, the card is only its tab, with a spark running round the tab's edge (0.6.3).
-  await card('German explanation').and(a.page.locator('[data-generating]')).waitFor();
-  assert.equal(await card('German explanation').locator('.card-fold').isVisible(), false, 'no body while generating');
-  assert.equal(await card('German explanation').locator('.list-status').count(), 0, 'no Generating line');
-  assert.equal(await card('German explanation').locator('.spark i').first().evaluate(node => getComputedStyle(node).animationName), 'travel');
+  await card('Chinese').and(a.page.locator('[data-generating]')).waitFor();
+  assert.equal(await card('Chinese').locator('.card-fold').isVisible(), false, 'no body while generating');
+  assert.equal(await card('Chinese').locator('.list-status').count(), 0, 'no Generating line');
+  assert.equal(await card('Chinese').locator('.spark i').first().evaluate(node => getComputedStyle(node).animationName), 'travel');
   // The comet runs round the tab's outline at a steady pace, corners and long edges alike.
-  const steps = await card('German explanation').locator('.spark i').first().evaluate(async head => {
+  const steps = await card('Chinese').locator('.spark i').first().evaluate(async head => {
     const points = [];
     for (let frame = 0; frame < 90; frame++) {
       const box = head.getBoundingClientRect();
@@ -1419,23 +1427,23 @@ test('generation reveal: finished content rises into its card and is announced; 
   const sorted = [...steps].sort((a, b) => a - b), median = sorted[Math.floor(sorted.length / 2)];
   assert.ok(sorted[Math.floor(sorted.length * .1)] > median * .6 && sorted[Math.floor(sorted.length * .9)] < median * 1.4,
     `steady speed (10th–90th percentile ${sorted[Math.floor(sorted.length * .1)].toFixed(3)}–${sorted[Math.floor(sorted.length * .9)].toFixed(3)} px/ms, median ${median.toFixed(3)})`);
-  assert.equal(await card('German explanation').getByRole('status').first().textContent(), 'German explanation: generating');
+  assert.equal(await card('Chinese').getByRole('status').first().textContent(), 'Chinese: generating');
   await a.page.locator('.shaping-list').screenshot({ path: 'artifacts/v0.6.3-generating.png' });
 
-  await store.stage(explanation.attemptId, { ok: true, text: '== Chinesisch ==\n=== Bedeutungen ===\n: [1] Glück' });
+  await store.stage(explanation.attemptId, { ok: true, text: '== 汉语 (幸福) ==\n=== 释义 ===\n: [1] 生活称心如意' });
   await store.publish('reveal-publish-1', { attemptId: explanation.attemptId, session });
   // The spark does not vanish: it fades away as the content rises in.
-  await card('German explanation').locator('.spark[data-ending]').waitFor({ state: 'attached', timeout: 15000 });
-  await card('German explanation').locator('.spark').waitFor({ state: 'detached', timeout: 3000 });
-  await card('German explanation').locator('.card-body[data-reveal] .meanings li').waitFor({ timeout: 15000 });
-  assert.equal(await card('German explanation').getByRole('status').textContent(), 'German explanation generated.');
-  assert.notEqual(await card('German explanation').locator('.meanings li').evaluate(node => getComputedStyle(node).animationName), 'none', 'the content rises');
+  await card('Chinese').locator('.spark[data-ending]').waitFor({ state: 'attached', timeout: 15000 });
+  await card('Chinese').locator('.spark').waitFor({ state: 'detached', timeout: 3000 });
+  await card('Chinese').locator('.card-body[data-reveal] .meanings li').waitFor({ timeout: 15000 });
+  assert.equal(await card('Chinese').getByRole('status').textContent(), 'Chinese generated.');
+  assert.notEqual(await card('Chinese').locator('.meanings li').evaluate(node => getComputedStyle(node).animationName), 'none', 'the content rises');
 
   // Reduced motion: the same state, shown at once.
   await a.page.emulateMedia({ reducedMotion: 'reduce' });
   await store.failAttempt(examples.attemptId);
-  await card('German explanation + examples').locator('.list-status').filter({ hasText: 'Generation failed' }).waitFor({ timeout: 15000 });
-  assert.equal(await card('German explanation + examples').getByRole('status').textContent(), 'German explanation + examples: generation failed.');
+  await card('German').locator('.list-status').filter({ hasText: 'Generation failed' }).waitFor({ timeout: 15000 });
+  assert.equal(await card('German').getByRole('status').textContent(), 'German: generation failed.');
   const durations = await a.page.evaluate(() => [...document.querySelectorAll('.component, .component *, .card-actions')]
     .map(node => getComputedStyle(node)).flatMap(style => [style.animationDuration, style.transitionDuration].flatMap(value => value.split(', ')))
     .map(value => parseFloat(value) * (value.endsWith('ms') ? 1 : 1000)));
@@ -1447,8 +1455,8 @@ test('module window: drag modules onto a page and into deck settings, and reorde
   const application = await createTestApplication(t); await application.start();
   const a = await launch(join(directory, 'a'));
   t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
-  // Tall enough that both the module window and its drop targets are on screen at once.
-  await a.page.setViewportSize({ width: 1280, height: 1200 });
+  // Tall enough that both the module window, with the Translation family's facets open, and its drop targets are on screen at once.
+  await a.page.setViewportSize({ width: 1280, height: 1700 });
   const store = application.store;
   const session = { installationId: 'fixture', sessionId: 'shaping', epoch: 1 };
   await store.openSession('shaping-session', session);
@@ -1484,7 +1492,7 @@ test('module window: drag modules onto a page and into deck settings, and reorde
   await moving.waitFor();
   await a.page.mouse.up();
   await new Promise(resolve => setTimeout(resolve, 300));
-  assert.deepEqual(await types(), ['main-key', 'context', 'german-examples'], 'a module dropped back on the window is not added');
+  assert.deepEqual(await types(), ['main-key', 'context', 'german'], 'a module dropped back on the window is not added');
   assert.equal(await a.page.locator('.landing-row').count(), 0);
 
   // Drag Text from the window onto the upper half of the Context card: it lands before it. From the
@@ -1520,9 +1528,9 @@ test('module window: drag modules onto a page and into deck settings, and reorde
   await waitFor(() => a.page.evaluate(() => window.track.length >= 200), 'arrival tracked', 8000);
   const track = await a.page.evaluate(() => window.track);
   assert.ok(Math.max(...track) - Math.min(...track) <= 3, `the module stays in place from drop to arrival (${Math.min(...track)}–${Math.max(...track)})`);
-  assert.deepEqual(await types(), ['main-key', 'text', 'context', 'german-examples']);
+  assert.deepEqual(await types(), ['main-key', 'text', 'context', 'german']);
   assert.deepEqual((await store.deck((await store.page(pageId)).deckId)).modules.map(module => module.type),
-    ['main-key', 'context', 'german-examples'], 'the deck is unchanged');
+    ['main-key', 'context', 'german'], 'the deck is unchanged');
 
   // Reorder by dragging a handle to the end. The server's move response is held:
   // the new order must show at once and never snap back while it is saved (D04).
@@ -1546,7 +1554,7 @@ test('module window: drag modules onto a page and into deck settings, and reorde
   await a.page.mouse.move(from.x + from.width / 2 + 10, from.y + from.height / 2 + 10, { steps: 4 });
   await a.page.mouse.move(end.x + end.width / 2 + 120, end.y + end.height / 2, { steps: 12 });
   const shiftOf = heading => rowOf(heading).evaluate(node => new DOMMatrix(getComputedStyle(node).transform).m42);
-  await waitFor(async () => await shiftOf('German explanation + examples') < -20 && await shiftOf('Context') < -20, 'every card after it makes room');
+  await waitFor(async () => await shiftOf('German') < -20 && await shiftOf('Context') < -20, 'every card after it makes room');
   assert.equal(await rowOf('Text').evaluate(node => new DOMMatrix(getComputedStyle(node).transform).m41), 0, 'the card stays in its column');
   // Every frame after the drop, each card only moves on toward its place, never back (no flicker).
   await a.page.evaluate(() => {
@@ -1561,20 +1569,20 @@ test('module window: drag modules onto a page and into deck settings, and reorde
   await a.page.mouse.up();
   await waitFor(() => a.page.evaluate(() => window.settling.length >= 45), 'drop settled');
   const settling = await a.page.evaluate(() => window.settling);
-  for (const heading of ['Context', 'German explanation + examples', 'Text']) {
+  for (const heading of ['Context', 'German', 'Text']) {
     const steps = settling.map(frame => frame[heading]).filter(y => y !== undefined).map((y, index, all) => index ? y - all[index - 1] : 0);
     assert.ok(!(steps.some(step => step > 2) && steps.some(step => step < -2)), `${heading} settles without jumping back (${steps.map(Math.round)})`);
   }
   await waitFor(() => heldMoves.length === 1, 'move request reached the server');
   for (let sample = 0; sample < 5; sample++) {
-    assert.deepEqual(await headings(), ['Main key', 'Context', 'German explanation + examples', 'Text'], 'the new order shows before the save finishes');
+    assert.deepEqual(await headings(), ['Main key', 'Context', 'German', 'Text'], 'the new order shows before the save finishes');
     await new Promise(resolve => setTimeout(resolve, 100));
   }
-  assert.deepEqual(await types(), ['main-key', 'text', 'context', 'german-examples'], 'the move is still held');
+  assert.deepEqual(await types(), ['main-key', 'text', 'context', 'german'], 'the move is still held');
   holdMoves = false; heldMoves.shift()();
   await waitFor(async () => (await types()).at(-1) === 'text', 'Text dragged to the end');
-  assert.deepEqual(await types(), ['main-key', 'context', 'german-examples', 'text']);
-  assert.deepEqual(await headings(), ['Main key', 'Context', 'German explanation + examples', 'Text']);
+  assert.deepEqual(await types(), ['main-key', 'context', 'german', 'text']);
+  assert.deepEqual(await headings(), ['Main key', 'Context', 'German', 'Text']);
 
   // Keyboard reorder: Space picks the card up by its tab, the arrows move it, Space drops it.
   await cardTab(a.page, 'Text').focus();
@@ -1589,7 +1597,7 @@ test('module window: drag modules onto a page and into deck settings, and reorde
   await announced('Text is over position 2.');
   await a.page.keyboard.press('Space');
   await waitFor(async () => (await types())[1] === 'text', 'Text moved up from the keyboard');
-  assert.deepEqual(await types(), ['main-key', 'text', 'context', 'german-examples']);
+  assert.deepEqual(await types(), ['main-key', 'text', 'context', 'german']);
   await announced('Text was dropped.');
   assert.equal(await a.page.locator('.card-actions').count(), 0, 'Space drags; it never ejects the actions');
 
@@ -1602,30 +1610,30 @@ test('module window: drag modules onto a page and into deck settings, and reorde
   await new Promise(resolve => setTimeout(resolve, 300));
   for (let step = 0; step < 6; step++) await a.page.keyboard.press('ArrowDown');
   await announced('Text is over the end.');
-  await openFamily(windowModule(a.page, 'sentence-usage'));
+  await openFamily(windowModule(a.page, 'chinese'));
   await a.page.keyboard.press('Space');
   // The window's + adds a module as the last component, without dragging (0.6.3), even when
   // pressed right after another add: the server appends it after whatever the page holds.
-  await a.page.locator('.window-module[data-type="sentence-usage"]').getByRole('button', { name: 'Add Sentence usage at the end', exact: true }).click();
-  await waitFor(async () => (await types()).length === 6, 'Text and Sentence usage added');
-  assert.deepEqual(await types(), ['main-key', 'text', 'context', 'german-examples', 'text', 'sentence-usage']);
-  await card('Sentence usage').waitFor();
+  await a.page.locator('.window-module[data-type="chinese"]').getByRole('button', { name: 'Add Chinese at the end', exact: true }).click();
+  await waitFor(async () => (await types()).length === 6, 'Text and Chinese added');
+  assert.deepEqual(await types(), ['main-key', 'text', 'context', 'german', 'text', 'chinese']);
+  await card('Chinese').waitFor();
 
   // Deck settings take a dragged module too, and the main key stays first.
   const deckId = (await store.page(pageId)).deckId;
   await a.page.goto(`chrome-extension://${a.id}/app.html#configure/${deckId}`);
   // Wait for the configuration itself, not only the page shell, before dragging.
-  await a.page.locator('.module-block[data-type="german-examples"]').waitFor();
-  await drag(a.page, windowModule(a.page, 'sentence-usage'), a.page.locator('.drop-end'));
-  await a.page.locator('.module-block').filter({ hasText: 'Sentence usage' }).waitFor();
+  await a.page.locator('.module-block[data-type="german"]').waitFor();
+  await drag(a.page, windowModule(a.page, 'chinese'), a.page.locator('.drop-end'));
+  await a.page.locator('.module-block').filter({ hasText: 'Chinese' }).waitFor();
   // The + works in deck settings too: the module goes last in the list.
-  await openFamily(windowModule(a.page, 'german-explanation'));
-  await a.page.locator('.window-module[data-type="german-explanation"]').getByRole('button', { name: 'Add German explanation at the end', exact: true }).click();
-  await waitFor(async () => await a.page.locator('.shaping-list .module-block').last().getAttribute('data-type') === 'german-explanation', 'German explanation added last');
+  await openFamily(windowModule(a.page, 'chinese'));
+  await a.page.locator('.window-module[data-type="chinese"]').getByRole('button', { name: 'Add Chinese at the end', exact: true }).click();
+  await waitFor(async () => await a.page.locator('.shaping-list .module-block').last().getAttribute('data-type') === 'chinese', 'Chinese added last');
   await a.page.getByRole('button', { name: 'Save', exact: true }).click();
   await a.page.getByRole('heading', { name: 'Your decks', exact: true }).waitFor();
-  assert.deepEqual((await store.deck(deckId)).modules.map(module => module.type), ['main-key', 'context', 'german-examples', 'sentence-usage', 'german-explanation']);
-  assert.deepEqual(await types(), ['main-key', 'text', 'context', 'german-examples', 'text', 'sentence-usage'], 'the page keeps its own modules');
+  assert.deepEqual((await store.deck(deckId)).modules.map(module => module.type), ['main-key', 'context', 'german', 'chinese', 'chinese']);
+  assert.deepEqual(await types(), ['main-key', 'text', 'context', 'german', 'text', 'chinese'], 'the page keeps its own modules');
 });
 
 async function loseNextAcknowledgment(worker, path) {
@@ -1651,9 +1659,10 @@ test('assembled reliability: lost acknowledgments, worker suspension, abrupt ori
   const application = await createTestApplication(t, {
     provider: {
       interpret: async () => ({ inputType: 'word_phrase', sourceLanguage: 'Chinese' }),
-      generate: ({ selectedText }, signal) => {
+      generate: ({ selectedText, module }, signal) => {
         calls.set(selectedText, (calls.get(selectedText) ?? 0) + 1);
-        if (!selectedText.startsWith('hold-') && selectedText !== 'publication acknowledgment') return Promise.resolve(`Generated: ${selectedText}`);
+        // Only the German parent is held; the Chinese one, first on the page, completes at once.
+        if ((!selectedText.startsWith('hold-') && selectedText !== 'publication acknowledgment') || module.type !== 'german') return Promise.resolve(`Generated: ${selectedText}`);
         return new Promise((resolve, reject) => {
           held.set(selectedText, () => resolve(`Generated: ${selectedText}`));
           signal.addEventListener('abort', () => { canceled.add(selectedText); reject(Error('aborted')); }, { once: true });
@@ -1661,7 +1670,7 @@ test('assembled reliability: lost acknowledgments, worker suspension, abrupt ori
       }
     }
   });
-  await useModules(application.store, ['sentence-usage', 'german-examples']);
+  await useModules(application.store, ['chinese', 'german']);
   await application.start();
   const contexts = new Set();
   t.after(async () => { for (const context of contexts) await context.close().catch(() => { }); await application.close(); await rm(directory, { recursive: true, force: true }); });
@@ -1676,12 +1685,13 @@ test('assembled reliability: lost acknowledgments, worker suspension, abrupt ori
   await a.page.getByRole('button', { name: 'Try saving again', exact: true }).waitFor();
   await a.page.getByRole('button', { name: 'Try saving again', exact: true }).click();
   await waitFor(async () => (await application.store.page(captured.id)).status === 'completed', 'uncertain capture recovered');
-  assert.equal((await application.store.pages()).length, 1); assert.equal(calls.get('uncertain capture'), 1);
+  assert.equal((await application.store.pages()).length, 1);
+  assert.equal(calls.get('uncertain capture'), modulesOf(captured).length, 'one call per parent, none again for the replayed capture');
   assert.deepEqual(modulesOf(await application.store.page(captured.id)).map(item => item.attemptId), attempts);
 
   await a.page.goto(`chrome-extension://${a.id}/app.html#page/${captured.id}`);
-  await (await cardButton(a.page, 'Edit Sentence usage')).click();
-  await a.page.getByRole('textbox', { name: 'Edit Sentence usage', exact: true }).fill('save with lost acknowledgment');
+  await (await cardButton(a.page, 'Edit Chinese')).click();
+  await a.page.getByRole('textbox', { name: 'Edit Chinese', exact: true }).fill('save with lost acknowledgment');
   await loseNextAcknowledgment(a.worker, '/api/page/save');
   await a.page.getByRole('button', { name: 'Save', exact: true }).click();
   await a.page.getByRole('button', { name: 'Try saving again', exact: true }).waitFor();
@@ -1691,7 +1701,7 @@ test('assembled reliability: lost acknowledgments, worker suspension, abrupt ori
   await a.page.getByRole('button', { name: 'Try saving again', exact: true }).click();
   await a.page.locator('.component-tools').waitFor({ state: 'detached' });
   assert.equal(text(modulesOf(await application.store.page(captured.id))[0]), 'later remote edit');
-  assert.equal(calls.get('uncertain capture'), 1);
+  assert.equal(calls.get('uncertain capture'), modulesOf(captured).length);
 
   await captureFrom(a, 'publication acknowledgment');
   const publicationPage = (await application.store.pages()).find(page => page.selectedText === 'publication acknowledgment');
@@ -1887,7 +1897,7 @@ test('save feedback: successful publication stays quiet in both lists, failures 
       async generate() { return 'Controlled explanation'; }
     }
   });
-  await useModules(application.store, ['sentence-usage', 'german-examples']);
+  await useModules(application.store, ['chinese', 'german']);
   const handler = application.server.listeners('request')[0];
   application.server.removeListener('request', handler);
   let hold = true, fail = false, requests = 0;
@@ -2037,4 +2047,100 @@ test('upgrade: the first start discards earlier cached content, unsent captures,
   assert.ok(Array.isArray(after.account.recentPages));
   assert.equal(await a.page.evaluate(() => sessionStorage.getItem('karte-draft')), null);
   assert.equal(await a.page.evaluate(() => sessionStorage.getItem('page-draft')), null);
+});
+
+test('parents and facets: core only on add, facets only on their own parent, the facet +, waiting and deleted facets, and deck settings', { timeout: 60000 }, async (t) => {
+  const directory = await mkdtemp(join(tmpdir(), 'vocabularium-facets-browser-'));
+  const application = await createTestApplication(t); await application.start();
+  const a = await launch(join(directory, 'a'));
+  t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
+  await a.page.setViewportSize({ width: 1280, height: 1400 });
+  const store = application.store;
+  const session = { installationId: 'fixture', sessionId: 'facets', epoch: 1 };
+  await store.openSession('facets-session', session);
+  // A new account's My Deck holds German with all its facets (D08).
+  const { pageId } = await store.capture('facets-capture', { session, mainKey: 'bank', snapshot: await store.snapshot() });
+  const german = () => store.page(pageId).then(page => page.components.filter(item => item.moduleType === 'german'));
+  const [first] = await german();
+  assert.deepEqual(first.facets, ['article', 'examples', 'synonyms', 'antonyms']);
+  const attempt = await store.attempt(first.attemptId);
+  await store.establishInterpretation(attempt.run_id, { inputType: 'word_phrase' });
+  await store.stage(first.attemptId, { ok: true, text: ['== Englisch (bank) ==', '=== Bedeutungen ===', ': [1] Ufer', '=== Article ===', ': das Ufer · die Ufer',
+    '=== Examples ===', ': [1] We sat on the bank.', ':: Wir saßen am Ufer.', '=== Synonyms ===', ': Böschung', '=== Antonyms ===', ': Strom'].join('\n') });
+  await store.publish('facets-publish', { attemptId: first.attemptId, session });
+  const card = name => componentArticle(a.page, name);
+  const facet = (parent, name) => a.page.locator(`.window-facet[data-parent="${parent}"][data-facet="${name}"]`);
+  await signIn(a.page);
+  await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
+  await card('German').locator('.facet').first().waitFor();
+
+  // The core, then each facet under its label, and how the key was read.
+  assert.equal(await a.page.locator('.interpretation').textContent(), 'Read as a word');
+  assert.deepEqual(await card('German').locator('.facet .facet-title > span:first-child').allTextContents(), ['Article', 'Examples', 'Synonyms', 'Antonyms']);
+  assert.equal(await card('German').locator('.meanings li').textContent(), 'Ufer');
+
+  // A facet goes nowhere without a parent of its type: the window says why.
+  await openFamily(facet('chinese', 'pinyin'));
+  assert.equal(await facet('chinese', 'pinyin').getAttribute('aria-disabled'), 'true');
+  assert.equal(await facet('chinese', 'pinyin').locator('.window-reason').textContent(), 'Add a Chinese module first.');
+
+  // Deleting a facet with content asks first; it leaves the content and the module.
+  await card('German').locator('.facet[data-facet="examples"]').hover();
+  await a.page.getByRole('button', { name: 'Delete Examples from German', exact: true }).click();
+  await a.page.getByRole('button', { name: 'Yes, delete Examples from German', exact: true }).click();
+  await waitFor(async () => !(await german())[0].facets.includes('examples'), 'Examples deleted');
+  await card('German').locator('.facet[data-facet="examples"]').waitFor({ state: 'detached' });
+  assert.doesNotMatch(text((await german())[0]), /Examples/);
+
+  // A parent added from the window has its core only.
+  await openFamily(windowModule(a.page, 'chinese'));
+  await a.page.getByRole('button', { name: 'Add Chinese at the end', exact: true }).click();
+  await card('Chinese').waitFor();
+  const chinese = async () => (await store.page(pageId)).components.find(item => item.moduleType === 'chinese');
+  await waitFor(async () => Boolean(await chinese()), 'Chinese added');
+  assert.deepEqual((await chinese()).facets, []);
+
+  // With one Chinese module, the facet's + adds to it directly.
+  await waitFor(async () => await facet('chinese', 'pinyin').getAttribute('aria-disabled') === 'false', 'Pinyin available');
+  await a.page.getByRole('button', { name: 'Add Chinese Pinyin', exact: true }).click();
+  await waitFor(async () => (await chinese()).facets.includes('pinyin'), 'Pinyin added to Chinese');
+
+  // A German facet dropped on the Chinese card is refused; on the German card it waits for Retry.
+  await drag(a.page, facet('german', 'examples').locator('.window-facet-body'), card('Chinese'), { follow: true });
+  assert.deepEqual((await chinese()).facets, ['pinyin'], 'a facet lands only on its own parent');
+  assert.equal((await german())[0].facets.includes('examples'), false);
+  await drag(a.page, facet('german', 'examples').locator('.window-facet-body'), card('German'), { follow: true });
+  await waitFor(async () => (await german())[0].facets.includes('examples'), 'Examples added back');
+  assert.deepEqual((await german())[0].facets, ['article', 'examples', 'synonyms', 'antonyms'], 'in the parent’s order');
+  await card('German').locator('.facet[data-waiting][data-facet="examples"]').getByText('Waiting for Retry').waitFor();
+  await a.page.screenshot({ path: 'artifacts/v0.7.0-facets-page.png', fullPage: true });
+
+  // With two German modules that lack a facet, its + asks which one.
+  await card('German').locator('.facet[data-facet="synonyms"]').hover();
+  await a.page.getByRole('button', { name: 'Delete Synonyms from German', exact: true }).click();
+  await a.page.getByRole('button', { name: 'Yes, delete Synonyms from German', exact: true }).click();
+  await waitFor(async () => !(await german())[0].facets.includes('synonyms'), 'Synonyms deleted');
+  await a.page.getByRole('button', { name: 'Add German at the end', exact: true }).click();
+  await waitFor(async () => (await german()).length === 2, 'second German added');
+  await a.page.getByRole('button', { name: 'Add German Synonyms', exact: true }).click();
+  const targets = a.page.getByRole('menu', { name: 'Add German Synonyms to' });
+  assert.deepEqual(await targets.getByRole('menuitem').allTextContents(), ['German 1', 'German 2']);
+  await a.page.locator('.module-window').screenshot({ path: 'artifacts/v0.7.0-facets-window.png' });
+  await targets.getByRole('menuitem', { name: 'German 2', exact: true }).click();
+  await waitFor(async () => (await german())[1].facets.includes('synonyms'), 'Synonyms added to the second German');
+  assert.equal((await german())[0].facets.includes('synonyms'), false);
+
+  // Deck settings: a parent row shows its facets, which can be removed; new pages copy them.
+  const deckId = (await store.page(pageId)).deckId;
+  await a.page.goto(`chrome-extension://${a.id}/app.html#configure/${deckId}`);
+  const row = a.page.locator('.module-block[data-type="german"]');
+  await row.locator('.facet-chip').first().waitFor();
+  assert.deepEqual(await row.locator('.facet-chip').evaluateAll(chips => chips.map(chip => chip.firstChild.textContent)), ['Article', 'Examples', 'Synonyms', 'Antonyms']);
+  await row.getByRole('button', { name: 'Remove Antonyms from German', exact: true }).click();
+  await a.page.getByRole('button', { name: 'Preview', exact: true }).click();
+  assert.deepEqual(await a.page.locator('.preview-dialog .component[data-type="german"] .facet-title > span:first-child').allTextContents(), ['Article', 'Examples', 'Synonyms']);
+  await a.page.getByRole('button', { name: 'Close preview', exact: true }).click();
+  await a.page.getByRole('button', { name: 'Save', exact: true }).click();
+  await waitFor(async () => (await store.deck(deckId)).modules.find(module => module.type === 'german').facets.length === 3, 'deck facets saved');
+  assert.deepEqual((await store.deck(deckId)).modules.find(module => module.type === 'german').facets, ['article', 'examples', 'synonyms']);
 });

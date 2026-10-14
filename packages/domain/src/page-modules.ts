@@ -1,15 +1,15 @@
 import type { Component, GenerationTarget, ModuleInstance } from '@vocabularium/contracts';
 import { MAX_MODULES } from '@vocabularium/contracts';
-import { MODULES } from './modules.js';
-import { isParentType, PARENTS, validateFacets } from './parents.js';
+import { PARENTS, validateFacets } from './parents.js';
+import { renderContent } from './render.js';
 import type { ParentType } from './parents.js';
-import type { ModuleType as ContentModuleType } from './modules.js';
 
 // Page-owned modules (D02). Shared by the backend and the extension so both
 // enforce the same rules for configurations and page shaping.
 
 export type InputModuleType = 'main-key' | 'context' | 'text';
-export type ModuleType = InputModuleType | ContentModuleType | ParentType;
+// Content modules are parent modules (D08); the earlier types retired in 0.7.0.
+export type ModuleType = InputModuleType | ParentType;
 export type ModuleKind = 'input' | 'content';
 // Module families (D05) give each module its colour and icon; the main key has
 // none. Translation (D08) holds the parent modules. A deck's colour is one of the
@@ -22,34 +22,19 @@ export const FAMILY_LABELS: Readonly<Record<ModuleFamily, string>> = Object.free
 });
 export type CatalogEntry = Readonly<{ kind: ModuleKind; label: string; description: string; family: ModuleFamily | null }>;
 
-const CONTENT_FAMILIES: Readonly<Record<ContentModuleType, ModuleFamily>> = {
-  'german-explanation': 'meaning',
-  'german-examples': 'usage',
-  'sentence-usage': 'usage'
-};
-
-const DESCRIPTIONS: Readonly<Record<ContentModuleType, string>> = {
-  'german-explanation': 'Explains a word or phrase in German.',
-  'german-examples': 'Explains a word or phrase in German, with examples and their translations.',
-  'sentence-usage': 'Uses a captured sentence in a natural example.'
-};
-
 // In module-window order: input modules, then the content catalog.
 export const CATALOG: Readonly<Record<ModuleType, CatalogEntry>> = Object.freeze({
   'main-key': { kind: 'input', label: 'Main key', description: 'The text you captured or typed. Every page has one.', family: null },
   context: { kind: 'input', label: 'Context', description: 'The text around your selection, used to find the right meaning.', family: 'notes' },
   text: { kind: 'input', label: 'Text', description: 'Your own notes. Generation never changes them.', family: 'notes' },
-  ...Object.fromEntries((Object.keys(MODULES) as ContentModuleType[]).map(type =>
-    [type, { kind: 'content', label: MODULES[type].label, description: DESCRIPTIONS[type], family: CONTENT_FAMILIES[type] }])),
   ...Object.fromEntries((Object.keys(PARENTS) as ParentType[]).map(type =>
     [type, { kind: 'content', label: PARENTS[type].label, description: PARENTS[type].description, family: PARENTS[type].family }]))
 } as Record<ModuleType, CatalogEntry>);
 
 export const isModuleType = (type: string): type is ModuleType => Object.hasOwn(CATALOG, type);
-export const isContentType = (type: string): type is ContentModuleType => isModuleType(type) && CATALOG[type].kind === 'content';
+export const isContentType = (type: string): type is ParentType => isModuleType(type) && CATALOG[type].kind === 'content';
 // The module window offers everything but the main key, which is always present.
-// Parents stay out of it until the extension shows facets (0.7.0 increment 4).
-export const WINDOW_MODULES = (Object.keys(CATALOG) as ModuleType[]).filter(type => type !== 'main-key' && !isParentType(type));
+export const WINDOW_MODULES = (Object.keys(CATALOG) as ModuleType[]).filter(type => type !== 'main-key');
 
 // Why a module of this type cannot be added to these modules, or null.
 export function addBlocked(modules: readonly { type: string }[], type: string): string | null {
@@ -136,15 +121,18 @@ export function firstMeaning(text: string): string | null {
   return null;
 }
 
-// The meaning line of a page summary (D05): the first meaning of its first
-// Meaning-family component, else of any other content component that has one.
+// The meaning line of a page summary (D05, D08): the first numbered meaning in
+// the core of the page's first content component that has one; otherwise, for
+// a sentence, the first line of the first translation.
 export function pageMeaning(components: readonly { type: string; text: string | null }[]): string | null {
-  const content = components.filter(component => isContentType(component.type) && component.text);
-  const ordered = [...content.filter(component => CATALOG[component.type as ModuleType].family === 'meaning'),
-    ...content.filter(component => CATALOG[component.type as ModuleType].family !== 'meaning')];
-  for (const component of ordered) {
+  const content = components.filter(item => isContentType(item.type) && item.text);
+  for (const component of content) {
     const meaning = firstMeaning(component.text!);
     if (meaning) return meaning;
+  }
+  for (const component of content) {
+    const rendered = renderContent(component.type, component.text!);
+    if (rendered.kind === 'parent' && rendered.core.kind === 'sentence') return rendered.core.text.split('\n')[0]!.trim();
   }
   return null;
 }

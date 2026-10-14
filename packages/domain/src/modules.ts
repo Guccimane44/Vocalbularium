@@ -1,20 +1,7 @@
-import type { InputInterpretation, InputType } from '@vocabularium/contracts';
+import type { InputInterpretation } from '@vocabularium/contracts';
 import { applicableFacets, facetsOf, isParentType } from './parents.js';
 import type { FacetType, ParentType } from './parents.js';
 import { renderContent, withoutEmptyFacets, withoutFacet } from './render.js';
-
-export type ModuleType = 'german-explanation' | 'german-examples' | 'sentence-usage';
-export type ModuleDefinition = Readonly<{
-  label: string;
-  applies: InputType;
-}>;
-export type ModuleInstance = Readonly<{ id: string; type: ModuleType }>;
-
-export const MODULES = Object.freeze({
-  'german-explanation': { label: 'German explanation', applies: 'word_phrase' },
-  'german-examples': { label: 'German explanation + examples', applies: 'word_phrase' },
-  'sentence-usage': { label: 'Sentence usage', applies: 'sentence' }
-} satisfies Readonly<Record<ModuleType, ModuleDefinition>>);
 
 // The run's reading of the main key (D08): word or phrase, or sentence. It no
 // longer chooses a source language; earlier runs stored one, which is ignored.
@@ -26,45 +13,38 @@ export function validateInterpretation(value: unknown): InputInterpretation {
   return { inputType: value.inputType };
 }
 
+// Content modules are parent modules (D08); the earlier types retired in 0.7.0.
+export type ModuleInstance = Readonly<{ id: string; type: ParentType; facets?: readonly string[] }>;
 export type GenerateModule = (request: {
-  module: ModuleInstance | ParentInstance;
+  module: ModuleInstance;
   selectedText: string;
   interpretation: InputInterpretation;
-  // For a parent: the facets that apply to this input, in the parent's order.
-  facets?: readonly FacetType[];
+  // The facets that apply to this input, in the parent's order.
+  facets: readonly FacetType[];
 }) => Promise<string>;
-export type ParentInstance = Readonly<{ id: string; type: ParentType; facets?: readonly string[] }>;
 
-// Generates one content module instance's component from the main key. A
-// parent (D08) always applies: it generates its core and the facets that apply,
-// and its text must follow the parent's render contract; sections of facets it
-// does not have are dropped. An earlier module returns '' when it does not
-// apply. A facet heading with nothing under it counts as an omitted facet.
-// Throws when generation fails. Repeated instances generate independently.
+// Generates one parent module instance's component from the main key. A
+// parent always applies: it generates its core and the facets that apply, and
+// its text must follow the parent's render contract. Sections of facets it does
+// not have are dropped, and a facet heading with nothing under it counts as an
+// omitted facet. Throws when generation fails. Repeated instances generate
+// independently.
 export async function generateComponent(input: {
   mainKey: string;
-  module: ModuleInstance | ParentInstance;
+  module: ModuleInstance;
   interpretation?: InputInterpretation | null;
   generate: GenerateModule;
 }): Promise<string> {
   const { module } = input;
+  if (!isParentType(module.type)) throw new Error('The deck contains an unsupported module.');
   if (!input.interpretation) throw new Error('Input interpretation is unavailable.');
-  const request = { module, selectedText: input.mainKey, interpretation: input.interpretation };
-  if (isParentType(module.type)) {
-    const facets = applicableFacets(module.type, (module as ParentInstance).facets ?? [], input.interpretation.inputType);
-    const text = await input.generate({ ...request, facets });
-    if (typeof text !== 'string' || !text.trim()) throw new Error('A module returned no usable content.');
-    const extra = facetsOf(module.type).filter(facet => !facets.includes(facet));
-    const kept = extra.reduce((current, facet) => withoutFacet(module.type, current, facet), withoutEmptyFacets(module.type, text.trim()));
-    if (renderContent(module.type, kept).kind !== 'parent') throw new Error('A module returned content in an unexpected format.');
-    return kept;
-  }
-  const definition = MODULES[module.type as ModuleType];
-  if (!definition) throw new Error('The deck contains an unsupported module.');
-  if (definition.applies !== input.interpretation.inputType) return '';
-  const text = await input.generate(request);
+  const facets = applicableFacets(module.type, module.facets ?? [], input.interpretation.inputType);
+  const text = await input.generate({ module, selectedText: input.mainKey, interpretation: input.interpretation, facets });
   if (typeof text !== 'string' || !text.trim()) throw new Error('A module returned no usable content.');
-  return text;
+  const extra = facetsOf(module.type).filter(facet => !facets.includes(facet));
+  const kept = extra.reduce((current, facet) => withoutFacet(module.type, current, facet), withoutEmptyFacets(module.type, text.trim()));
+  if (renderContent(module.type, kept).kind !== 'parent') throw new Error('A module returned content in an unexpected format.');
+  return kept;
 }
 
 export type ComponentOutcome = Readonly<

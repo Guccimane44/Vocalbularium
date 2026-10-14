@@ -43,7 +43,7 @@ test('page/component tables enforce ownership, uniqueness, limits and cascades',
   await client.query("INSERT INTO installations VALUES ('i', 1, 's')");
 
   for (let position = 0; position < 12; position++) {
-    await client.query('INSERT INTO deck_modules VALUES ($1, $2, $3, $4)', [`m${position}`, deck, position, 'german-examples']);
+    await client.query('INSERT INTO deck_modules VALUES ($1, $2, $3, $4)', [`m${position}`, deck, position, 'german']);
   }
   await rejects('INSERT INTO deck_modules VALUES ($1, $2, 12, $3)', ['m12', deck, 'selected'], /deck_module_limit/);
   await rejects('INSERT INTO deck_modules VALUES ($1, $2, 0, $3)', ['dup', deck, 'selected'], /deck_module_position/);
@@ -56,12 +56,12 @@ test('page/component tables enforce ownership, uniqueness, limits and cascades',
     [id, instance, type, position]);
   await component('key', 'main-key', 'i-key', 0);
   await component('ctx', 'context', 'i-ctx', 1);
-  await component('c0', 'german-examples', 'i-c0', 2);
+  await component('c0', 'german', 'i-c0', 2);
   await component('mine', 'text', 'i-mine', 3);
   await component('more', 'text', 'i-more', 4);
   await assert.rejects(component('key2', 'main-key', 'i-key2', 5), /components_single_main_key_module|component_main_key_first/);
   await assert.rejects(component('ctx2', 'context', 'i-ctx2', 5), /components_single_context_module/);
-  await assert.rejects(component('c0-again', 'german-examples', 'i-c0', 5), /components_module_instance/);
+  await assert.rejects(component('c0-again', 'german', 'i-c0', 5), /components_module_instance/);
   await assert.rejects(component('no-instance', 'text', null, 5), /not-null|null value/);
   await assert.rejects(component('above-key', 'text', 'i-above', 0), /component_main_key_first/);
   await assert.rejects(component('thirteenth', 'text', 'i-13', 12), /component_limit/);

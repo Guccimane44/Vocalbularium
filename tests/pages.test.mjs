@@ -15,7 +15,7 @@ const target = (scope, componentId) => ({ scope, ...(componentId ? { componentId
 
 test('manual pages copy the deck modules, keep the user’s text, and never generate by themselves', async (t) => {
   const store = await fixture(t), deck = await store.snapshot();
-  const [context, notes, explanation] = await useModules(store, ['context', 'text', 'german-examples']);
+  const [context, notes, explanation] = await useModules(store, ['context', 'text', 'german']);
   const initial = [{ moduleInstanceId: context.id, content: textBlocks('wrestler') }, { moduleInstanceId: notes.id, content: textBlocks('== literal ==\n: text') }];
   const payload = { deckId: deck.id, mainKey: 'john cena', initial };
   const first = await store.createPage('create', payload);
@@ -24,7 +24,7 @@ test('manual pages copy the deck modules, keep the user’s text, and never gene
   const page = await store.page(first.pageId);
   assert.equal(page.selectedText, null); assert.equal(page.status, null);
   assert.deepEqual(page.components.map(item => [item.moduleType, text(item), item.status]),
-    [['main-key', 'john cena', null], ['context', 'wrestler', null], ['text', '== literal ==\n: text', null], ['german-examples', '', null]]);
+    [['main-key', 'john cena', null], ['context', 'wrestler', null], ['text', '== literal ==\n: text', null], ['german', '', null]]);
   await assert.rejects(store.createPage('blank', { deckId: deck.id, mainKey: '  ' }), { code: 'invalid' });
   await assert.rejects(store.createPage('not-input', { deckId: deck.id, mainKey: 'x', initial: [{ moduleInstanceId: explanation.id, content: textBlocks('no') }] }), { code: 'invalid' });
 
@@ -32,7 +32,7 @@ test('manual pages copy the deck modules, keep the user’s text, and never gene
   const { attemptIds } = await store.generate('generate', { pageId: page.id, target: target('missing'), session });
   assert.equal(attemptIds.length, 1);
   const generatedPage = await store.page(page.id);
-  assert.deepEqual(generated(generatedPage).map(item => [item.moduleType, item.status]), [['german-examples', 'loading']]);
+  assert.deepEqual(generated(generatedPage).map(item => [item.moduleType, item.status]), [['german', 'loading']]);
   assert.equal(text(component(generatedPage, 'text')), '== literal ==\n: text');
   assert.deepEqual((await store.generate('generate-again', { pageId: page.id, target: target('missing'), session })).attemptIds, []);
 });
@@ -60,7 +60,7 @@ test('edits preserve creation time and other components; an emptied Context stay
 
 test('component retry confirms first, uses the current main key, and leaves other components alone', async (t) => {
   const store = await fixture(t);
-  await useModules(store, ['german-explanation', 'german-examples']);
+  await useModules(store, ['chinese', 'german']);
   const { pageId } = await store.capture('capture', { session, mainKey: 'original', snapshot: await store.snapshot() });
   await complete(store, await store.page(pageId), session, () => 'initial');
   let page = await store.page(pageId);
@@ -101,7 +101,7 @@ test('component retry confirms first, uses the current main key, and leaves othe
 
 test('shaping adds, deletes and moves page modules; generation never brings a deleted one back', async (t) => {
   const store = await fixture(t);
-  await useModules(store, ['context', 'german-explanation', 'sentence-usage']);
+  await useModules(store, ['context', 'chinese', 'chinese']);
   const { pageId } = await store.capture('capture', { session, mainKey: 'word', snapshot: await store.snapshot() });
   await complete(store, await store.page(pageId), session, item => `out ${item.moduleType}`);
   const order = async () => (await store.page(pageId)).components.map(item => item.moduleType);
@@ -110,26 +110,26 @@ test('shaping adds, deletes and moves page modules; generation never brings a de
   // Add: a page-only Text and a content module that waits as "not generated yet".
   const added = await store.addModule('add-text', { pageId, type: 'text', position: 1 });
   assert.equal((await store.addModule('add-text', { pageId, type: 'text', position: 1 })).componentId, added.componentId, 'replay adds nothing');
-  await store.addModule('add-examples', { pageId, type: 'german-examples' });
-  assert.deepEqual(await order(), ['main-key', 'text', 'context', 'german-explanation', 'sentence-usage', 'german-examples']);
+  await store.addModule('add-examples', { pageId, type: 'german' });
+  assert.deepEqual(await order(), ['main-key', 'text', 'context', 'chinese', 'chinese', 'german']);
   assert.deepEqual((await store.deck((await store.page(pageId)).deckId)).modules.map(module => module.type),
-    ['main-key', 'context', 'german-explanation', 'sentence-usage'], 'the deck is unchanged');
+    ['main-key', 'context', 'chinese', 'chinese'], 'the deck is unchanged');
   await assert.rejects(store.addModule('second-context', { pageId, type: 'context' }), { code: 'invalid' });
   await assert.rejects(store.addModule('second-key', { pageId, type: 'main-key' }), { code: 'invalid' });
   await assert.rejects(store.addModule('above-key', { pageId, type: 'text', position: 0 }), { code: 'invalid' });
 
   // Delete: never the main key; a deleted content component stays gone.
   page = await store.page(pageId);
-  const explanation = component(page, 'german-explanation');
+  const explanation = component(page, 'chinese');
   await assert.rejects(store.deleteComponent('delete-key', { pageId, componentId: component(page, 'main-key').id }), { code: 'invalid' });
   await store.deleteComponent('delete-explanation', { pageId, componentId: explanation.id });
   await store.deleteComponent('delete-context', { pageId, componentId: component(page, 'context').id });
-  assert.deepEqual(await order(), ['main-key', 'text', 'sentence-usage', 'german-examples']);
+  assert.deepEqual(await order(), ['main-key', 'text', 'chinese', 'german']);
   await assert.rejects(store.savePage('stale-draft', { pageId, changes: [{ componentId: explanation.id, content: textBlocks('draft') }] }), { code: 'deleted' });
   await assert.rejects(store.deleteComponent('delete-again', { pageId, componentId: explanation.id }), { code: 'deleted' });
   const missing = await store.generate('missing', { pageId, target: target('missing'), session });
-  assert.deepEqual((await Promise.all(missing.attemptIds.map(id => store.attempt(id)))).map(attempt => attempt.module.type), ['german-examples']);
-  await assert.rejects(store.deleteComponent('delete-loading', { pageId, componentId: component(await store.page(pageId), 'german-examples').id }), { code: 'invalid' });
+  assert.deepEqual((await Promise.all(missing.attemptIds.map(id => store.attempt(id)))).map(attempt => attempt.module.type), ['german']);
+  await assert.rejects(store.deleteComponent('delete-loading', { pageId, componentId: component(await store.page(pageId), 'german').id }), { code: 'invalid' });
   await complete(store, await store.page(pageId), session, () => 'examples');
   const whole = await confirmed(store, 'retry-page', { pageId, target: target('page'), session });
   assert.equal(whole.attemptIds.length, 2, 'page retry runs only the page’s own content modules');
@@ -137,8 +137,8 @@ test('shaping adds, deletes and moves page modules; generation never brings a de
 
   // Move: anything below the main key, never the main key itself.
   page = await store.page(pageId);
-  await store.moveComponent('move-examples', { pageId, componentId: component(page, 'german-examples').id, position: 1 });
-  assert.deepEqual(await order(), ['main-key', 'german-examples', 'text', 'sentence-usage']);
+  await store.moveComponent('move-examples', { pageId, componentId: component(page, 'german').id, position: 1 });
+  assert.deepEqual(await order(), ['main-key', 'german', 'text', 'chinese']);
   await assert.rejects(store.moveComponent('move-key', { pageId, componentId: component(page, 'main-key').id, position: 2 }), { code: 'invalid' });
   await assert.rejects(store.moveComponent('move-too-far', { pageId, componentId: component(page, 'text').id, position: 4 }), { code: 'invalid' });
 
@@ -159,7 +159,7 @@ test('four list orders use the current main key, deterministic ties, and creatio
 
 test('a component with nothing in it starts without confirmation, however it got there; anything with content asks first', async (t) => {
   const store = await fixture(t);
-  await useModules(store, ['german-explanation', 'sentence-usage']);
+  await useModules(store, ['chinese', 'chinese']);
   const { pageId } = await store.createPage('manual', { deckId: (await store.snapshot()).id, mainKey: 'word' });
   let page = await store.page(pageId);
   const [first, second] = generated(page);
