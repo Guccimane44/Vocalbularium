@@ -184,26 +184,39 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
     if (keyboardDrag || !rect) return index;
     return rect.top + rect.height / 2 > over.rect.top + over.rect.height / 2 ? index + 1 : index;
   }
+  // A keyboard drag is over a target as soon as it starts, and dnd-kit's live
+  // region shows only the latest announcement of a render: a place announced
+  // with the pickup also says it was picked up, or the pickup is never heard.
+  const pickedUp = useRef<string | null>(null);
   const announcements: Announcements = {
-    onDragStart: ({ active }) => `Picked up ${name(active.id)}.`,
-    onDragOver: ({ active, over }) => {
-      if (isFacet(active)) {
-        if (over && String(over.id) === BACK) return `${name(active.id)} is back in the module window.`;
-        return over && facetTargetIds.current.has(String(over.id)) ? `${name(active.id)} is over ${holderName(String(over.id))}.`
-          : `${name(active.id)} is not over a ${PARENTS[facetOf(active.id).parent].label} module.`;
-      }
-      if (!over) return `${name(active.id)} is not over the list.`;
-      if (String(over.id) === BACK) return `${name(active.id)} is back in the module window.`;
-      if (String(over.id) === LIST_END) return `${name(active.id)} is over the end.`;
-      if (String(over.id) === LANDING) return `${name(active.id)} is over position ${(slot ?? shown.length) + 2}.`;
-      const at = fromWindow(active) ? landing(active, over, true) : shown.findIndex(item => item.id === String(over.id));
-      return at === null || at < 0 ? `${name(active.id)} is over the end.` : `${name(active.id)} is over position ${at + 2}.`;
+    onDragStart: ({ active }) => {
+      pickedUp.current = `Picked up ${name(active.id)}.`;
+      setTimeout(() => { pickedUp.current = null; });
+      return pickedUp.current;
+    },
+    onDragOver: event => {
+      const lead = pickedUp.current ? `${pickedUp.current} ` : '';
+      pickedUp.current = null;
+      return lead + overAnnouncement(event);
     },
     onDragEnd: ({ active, over }) => isFacet(active)
       ? over && facetTargetIds.current.has(String(over.id)) ? `${name(active.id)} was added to ${holderName(String(over.id))}.` : `${name(active.id)} was not added.`
       : over && String(over.id) !== BACK ? `${name(active.id)} was dropped.` : `${name(active.id)} was not moved.`,
     onDragCancel: ({ active }) => `Moving ${name(active.id)} was cancelled.`
   };
+  function overAnnouncement({ active, over }: { active: Active; over: Over | null }) {
+    if (isFacet(active)) {
+      if (over && String(over.id) === BACK) return `${name(active.id)} is back in the module window.`;
+      return over && facetTargetIds.current.has(String(over.id)) ? `${name(active.id)} is over ${holderName(String(over.id))}.`
+        : `${name(active.id)} is not over a ${PARENTS[facetOf(active.id).parent].label} module.`;
+    }
+    if (!over) return `${name(active.id)} is not over the list.`;
+    if (String(over.id) === BACK) return `${name(active.id)} is back in the module window.`;
+    if (String(over.id) === LIST_END) return `${name(active.id)} is over the end.`;
+    if (String(over.id) === LANDING) return `${name(active.id)} is over position ${(slot ?? shown.length) + 2}.`;
+    const at = fromWindow(active) ? landing(active, over, true) : shown.findIndex(item => item.id === String(over.id));
+    return at === null || at < 0 ? `${name(active.id)} is over the end.` : `${name(active.id)} is over position ${at + 2}.`;
+  }
   const keyboardDrag = (event: { activatorEvent: Event }) => event.activatorEvent instanceof KeyboardEvent;
   function start({ active }: DragStartEvent) {
     if (isFacet(active)) {
@@ -217,7 +230,9 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
     if (fromWindow(event.active)) setSlot(landing(event.active, event.over, keyboardDrag(event)));
     if (isFacet(event.active)) setFacetOver(event.over && facetTargetIds.current.has(String(event.over.id)) ? String(event.over.id) : null);
   }
-  function finish() { setDragged(null); setSlot(null); setFacetOver(null); facetTargetIds.current = new Set(); }
+  // The facet's targets outlive its drag: dnd-kit announces the drop after
+  // onDragEnd, and a facet's next pickup sets them afresh.
+  function finish() { setDragged(null); setSlot(null); setFacetOver(null); }
   async function addFacet(id: string, parent: ParentType, facet: FacetType) {
     if (!disabled) await onAddFacet?.(id, parent, facet);
   }
@@ -439,7 +454,21 @@ function WindowFacet({ parent, facet, blocked, explain, targets, holderName, add
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: facetId(parent, facet), disabled: Boolean(blocked) });
   const [choosing, setChoosing] = useState(false);
   const root = useRef<HTMLLIElement>(null);
+  const plus = useRef<HTMLButtonElement>(null);
+  const menu = useRef<HTMLUListElement>(null);
   const listId = useId();
+  // The chooser is a menu: it opens on its first choice, the arrows move
+  // between the choices, and closing it from the keyboard returns to the +.
+  const close = () => { setChoosing(false); plus.current?.focus(); };
+  function step(event: KeyboardEvent) {
+    const choices = [...menu.current?.querySelectorAll<HTMLButtonElement>('[role="menuitem"]') ?? []];
+    const at = choices.indexOf(document.activeElement as HTMLButtonElement);
+    const next = { ArrowDown: at + 1, ArrowUp: at - 1, Home: 0, End: choices.length - 1 }[event.key];
+    if (next === undefined) { if (event.key === 'Tab') setChoosing(false); return; }
+    event.preventDefault();
+    choices[(next + choices.length) % choices.length]?.focus();
+  }
+  useEffect(() => { if (choosing) menu.current?.querySelector<HTMLButtonElement>('[role="menuitem"]')?.focus(); }, [choosing]);
   useEffect(() => {
     if (!choosing) return;
     const outside = (event: PointerEvent) => { if (!root.current?.contains(event.target as Node)) setChoosing(false); };
@@ -450,17 +479,17 @@ function WindowFacet({ parent, facet, blocked, explain, targets, holderName, add
   const definition = PARENTS[parent].facets[facet]!;
   const name = `${PARENTS[parent].label} ${label}`;
   return <li ref={root} className="window-facet" data-parent={parent} data-facet={facet} data-dragging={isDragging || undefined} aria-disabled={Boolean(blocked)}
-    onKeyDown={event => { if (event.key === 'Escape' && choosing) { event.stopPropagation(); setChoosing(false); } }}>
+    onKeyDown={event => { if (event.key === 'Escape' && choosing) { event.stopPropagation(); close(); } }}>
     <div ref={setNodeRef} className="window-facet-body" {...attributes} {...listeners}
       aria-label={`${name}: ${definition.description} Adds to a ${PARENTS[parent].label} module.${blocked ? ` ${blocked}` : ''}`} aria-roledescription="draggable facet">
       <span className="facet-chip">{label}</span>
     </div>
-    <button type="button" className="window-add" aria-label={`Add ${name}`} disabled={Boolean(blocked)}
+    <button ref={plus} type="button" className="window-add" aria-label={`Add ${name}`} disabled={Boolean(blocked)}
       aria-haspopup={targets.length > 1 ? 'menu' : undefined} aria-expanded={targets.length > 1 ? choosing : undefined} aria-controls={choosing ? listId : undefined}
       onClick={() => targets.length === 1 ? add(targets[0]!.id) : setChoosing(!choosing)}><PlusIcon /></button>
-    {choosing && targets.length > 1 && <ul id={listId} className="facet-targets" role="menu" aria-label={`Add ${name} to`}>
+    {choosing && targets.length > 1 && <ul ref={menu} id={listId} className="facet-targets" role="menu" aria-label={`Add ${name} to`} onKeyDown={step}>
       {targets.map(target => <li key={target.id} role="none">
-        <button type="button" role="menuitem" onClick={() => { setChoosing(false); add(target.id); }}>{holderName(target.id)}</button>
+        <button type="button" role="menuitem" tabIndex={-1} onClick={() => { close(); add(target.id); }}>{holderName(target.id)}</button>
       </li>)}
     </ul>}
     {blocked && explain && <p className="window-reason muted">{blocked}</p>}
