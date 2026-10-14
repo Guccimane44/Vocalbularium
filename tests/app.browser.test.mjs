@@ -2201,10 +2201,12 @@ test('facets from the keyboard: Space picks a facet up, the arrows step only thr
   await openFamily(windowModule(a.page, 'german'));
   await a.page.getByRole('button', { name: 'Add German at the end', exact: true }).click();
   await waitFor(async () => (await german()).length === 2, 'second German added');
-  await a.page.locator('article.component[data-type="german"]').nth(1).waitFor();
   const [firstId, secondId] = (await german()).map(item => item.id);
   const target = id => a.page.locator(`.sortable-row[data-row-id="${id}"]`);
-  const chineseRow = async () => a.page.locator(`.sortable-row[data-row-id="${(await chinese()).id}"]`);
+  const chineseRow = async () => target((await chinese()).id);
+  // Wait for the entries themselves: until the account refresh brings an added module, a landing
+  // card holds its place, and a facet picked up then would not count it among its targets.
+  for (const id of [firstId, (await chinese()).id, secondId]) await target(id).waitFor();
 
   // Space picks a facet up where it would land first; only the German cards are marked
   // as places it would go. Escape cancels the drag and adds nothing.
