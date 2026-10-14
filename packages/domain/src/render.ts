@@ -1,3 +1,6 @@
+import { facetsOf, isParentType, PARENTS } from './parents.js';
+import type { FacetType, ParentType } from './parents.js';
+
 // Render contracts (D05, C17): content stays stored as each module's text; this
 // turns that text into structure for reading. A renderer recognises the whole
 // component or none of it, and never produces HTML: clients build their own
@@ -9,7 +12,15 @@ export type Example = Readonly<{ number: string; sentence: string; translation: 
 export type Rendered =
   | Readonly<{ kind: 'plain'; text: string }>
   | Readonly<{ kind: 'sentence'; text: string }>
-  | Readonly<{ kind: 'entry'; heading: EntryHeading | null; meanings: readonly Meaning[]; examples: readonly Example[] }>;
+  | Readonly<{ kind: 'entry'; heading: EntryHeading | null; meanings: readonly Meaning[]; examples: readonly Example[] }>
+  | Readonly<{ kind: 'parent'; core: ParentCore; facets: readonly RenderedFacet[] }>;
+// A parent's core (D08): a word's explanation, or a sentence's translation.
+export type ParentCore =
+  | Readonly<{ kind: 'word'; heading: EntryHeading | null; meanings: readonly Meaning[] }>
+  | Readonly<{ kind: 'sentence'; text: string }>;
+export type RenderedFacet =
+  | Readonly<{ facet: 'examples'; label: string; examples: readonly Example[] }>
+  | Readonly<{ facet: Exclude<FacetType, 'examples'>; label: string; lines: readonly string[] }>;
 
 const HEADING = /^==\s*([^=].*?)\s*==$/;
 const SECTION = /^===\s*([^=].*?)\s*===$/;
@@ -53,9 +64,65 @@ function entry(text: string, withExamples: boolean): Rendered | null {
   return { kind: 'entry', heading: head, meanings, examples };
 }
 
+const LINE = /^:\s*(\S.*)$/;
+
+// A parent's text (D08): its core, then one section per facet, each starting
+// with "=== Facet ===" as the catalog names it. A word's core is
+// "== Language (key, pronunciation) ==", the meanings heading in the parent's
+// language and numbered meanings; a sentence's core is its translation. Facets
+// may come in any order, each once, and are returned in the parent's order.
+function parent(type: ParentType, text: string): Rendered | null {
+  const lines = text.split('\n').map(line => line.trim()).filter(Boolean);
+  const labels = new Map(facetsOf(type).map(facet => [PARENTS[type].facets[facet]!.label, facet]));
+  const facetAt = (index: number): FacetType | null => {
+    const label = SECTION.exec(lines[index] ?? '')?.[1];
+    return label !== undefined ? labels.get(label) ?? null : null;
+  };
+  let index = 0;
+  let core: ParentCore;
+  const top = HEADING.exec(lines[0] ?? '');
+  const meaningsAt = top ? 1 : 0;
+  if (SECTION.exec(lines[meaningsAt] ?? '')?.[1] === PARENTS[type].meaningsHeading) {
+    index = meaningsAt + 1;
+    const meanings: Meaning[] = [];
+    for (let match; index < lines.length && (match = NUMBERED.exec(lines[index])); index++) meanings.push({ number: match[1], text: match[2].trim() });
+    if (!meanings.length) return null;
+    core = { kind: 'word', heading: top ? heading(top[1]) : null, meanings };
+  } else {
+    const translation: string[] = [];
+    for (; index < lines.length && !lines[index].startsWith('='); index++) translation.push(lines[index]);
+    if (!translation.length) return null;
+    core = { kind: 'sentence', text: translation.join('\n') };
+  }
+  const found = new Map<FacetType, RenderedFacet>();
+  while (index < lines.length) {
+    const facet = facetAt(index);
+    if (!facet || found.has(facet)) return null;
+    const label = PARENTS[type].facets[facet]!.label;
+    index++;
+    if (facet === 'examples') {
+      const examples: Example[] = [];
+      for (let sentence; index < lines.length && (sentence = NUMBERED.exec(lines[index]));) {
+        const translation = TRANSLATION.exec(lines[index + 1] ?? '');
+        examples.push({ number: sentence[1], sentence: sentence[2].trim(), translation: translation ? translation[1].trim() : null });
+        index += translation ? 2 : 1;
+      }
+      if (!examples.length) return null;
+      found.set(facet, { facet, label, examples });
+    } else {
+      const items: string[] = [];
+      for (let match; index < lines.length && !NUMBERED.test(lines[index]) && (match = LINE.exec(lines[index])); index++) items.push(match[1].trim());
+      if (!items.length) return null;
+      found.set(facet, { facet, label, lines: items });
+    }
+  }
+  return { kind: 'parent', core, facets: facetsOf(type).filter(facet => found.has(facet)).map(facet => found.get(facet)!) };
+}
+
 export function renderContent(moduleType: string, text: string): Rendered {
   const plain: Rendered = { kind: 'plain', text };
   if (!text.trim()) return plain;
+  if (isParentType(moduleType)) return parent(moduleType, text) ?? plain;
   if (moduleType === 'german-explanation') return entry(text, false) ?? plain;
   if (moduleType === 'german-examples') return entry(text, true) ?? plain;
   if (moduleType === 'sentence-usage') return { kind: 'sentence', text: text.trim() };

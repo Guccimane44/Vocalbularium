@@ -24,9 +24,12 @@ export const ComponentStatusSchema = Type.Union([
 // Every module counts: main key, Context, Text, and content modules.
 export const MAX_MODULES = 12;
 
+// A parent module's facets (D08), in the parent's order. Other modules have none.
+export const FacetListSchema = Type.Array(Type.String({ minLength: 1 }), { maxItems: 8 });
 export const ModuleInstanceSchema = Type.Object({
   id: Type.String({ minLength: 1 }),
-  type: Type.String({ minLength: 1 })
+  type: Type.String({ minLength: 1 }),
+  facets: Type.Optional(FacetListSchema)
 }, { additionalProperties: false });
 // A deck's colour is one of the six module family colours (D06). A deck the
 // user has not coloured has none and shows the colour derived from its ID.
@@ -53,6 +56,7 @@ export const ComponentSchema = Type.Object({
   id: Type.String({ minLength: 1 }),
   moduleInstanceId: Type.String({ minLength: 1 }),
   moduleType: Type.String({ minLength: 1 }),
+  facets: Type.Optional(FacetListSchema),
   content: BlockDocumentSchema,
   // Null when the component has never had a generation attempt.
   status: Type.Union([ComponentStatusSchema, Type.Null()]),
@@ -66,7 +70,9 @@ export const PageSchema = Type.Object({
   createdAt: Type.String({ minLength: 1 }),
   // In page order; the main key is always first.
   components: Type.Array(ComponentSchema, { minItems: 1, maxItems: MAX_MODULES }),
-  status: Type.Union([ComponentStatusSchema, Type.Null()])
+  status: Type.Union([ComponentStatusSchema, Type.Null()]),
+  // The latest run's reading of the main key (D08); null before any run.
+  interpretation: Type.Optional(Type.Union([Type.Literal('word_phrase'), Type.Literal('sentence'), Type.Null()]))
 }, { additionalProperties: false });
 
 const OpenRequest = { additionalProperties: true } as const;
@@ -130,6 +136,17 @@ export const ComponentMovePayloadSchema = Type.Object({
   componentId: Type.String({ minLength: 1 }),
   position: Position
 }, OpenRequest);
+// Facets (D08) join or leave one parent component; a facet lands only on a
+// parent of its own type.
+export const FacetChangePayloadSchema = Type.Object({
+  pageId: Type.String({ minLength: 1 }),
+  componentId: Type.String({ minLength: 1 }),
+  // The facet's parent type: German Examples and Chinese Examples are different facets.
+  parent: Type.String({ minLength: 1 }),
+  facet: Type.String({ minLength: 1 })
+}, OpenRequest);
+export const FacetAddRequestSchema = Type.Object({ operationId: OperationIdSchema, payload: FacetChangePayloadSchema }, OpenRequest);
+export const FacetDeleteRequestSchema = Type.Object({ operationId: OperationIdSchema, payload: FacetChangePayloadSchema }, OpenRequest);
 export const ModuleAddRequestSchema = Type.Object({ operationId: OperationIdSchema, payload: ModuleAddPayloadSchema }, OpenRequest);
 export const ComponentDeleteRequestSchema = Type.Object({ operationId: OperationIdSchema, payload: ComponentDeletePayloadSchema }, OpenRequest);
 export const ComponentMoveRequestSchema = Type.Object({ operationId: OperationIdSchema, payload: ComponentMovePayloadSchema }, OpenRequest);
@@ -167,6 +184,9 @@ export type PageSaveRequest = Type.Static<typeof PageSaveRequestSchema>;
 export type ModuleAddRequest = Type.Static<typeof ModuleAddRequestSchema>;
 export type ComponentDeleteRequest = Type.Static<typeof ComponentDeleteRequestSchema>;
 export type ComponentMoveRequest = Type.Static<typeof ComponentMoveRequestSchema>;
+export type FacetChangePayload = Type.Static<typeof FacetChangePayloadSchema>;
+export type FacetAddRequest = Type.Static<typeof FacetAddRequestSchema>;
+export type FacetDeleteRequest = Type.Static<typeof FacetDeleteRequestSchema>;
 export type BlockDocument = Type.Static<typeof BlockDocumentSchema>;
 export type ComponentStatus = Type.Static<typeof ComponentStatusSchema>;
 export type ViewDefinition = Type.Static<typeof ViewDefinitionSchema>;

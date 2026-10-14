@@ -1,6 +1,7 @@
 import type { Component, GenerationTarget, ModuleInstance } from '@vocabularium/contracts';
 import { MAX_MODULES } from '@vocabularium/contracts';
 import { MODULES } from './modules.js';
+import { validateFacets } from './parents.js';
 import type { ModuleType as ContentModuleType } from './modules.js';
 
 // Page-owned modules (D02). Shared by the backend and the extension so both
@@ -60,6 +61,7 @@ export function validateConfiguration(modules: readonly ModuleInstance[]): void 
   for (const module of modules) {
     if (!isModuleType(module.type)) throw new Error('The deck contains an unsupported module.');
     if (ids.has(module.id)) throw new Error('Module instance IDs must be unique.');
+    validateFacets(module.type, module.facets);
     ids.add(module.id);
   }
   if (modules.filter(module => module.type === 'main-key').length !== 1) throw new Error('A deck has exactly one main key module.');
@@ -68,7 +70,7 @@ export function validateConfiguration(modules: readonly ModuleInstance[]): void 
 
 // A new page copies the deck's modules under its own instance IDs.
 export function copyModules(modules: readonly ModuleInstance[], newId: () => string): ModuleInstance[] {
-  return modules.map(module => ({ id: newId(), type: module.type }));
+  return modules.map(module => ({ id: newId(), type: module.type, ...(module.facets ? { facets: [...module.facets] } : {}) }));
 }
 
 // Shaping rules over a page's components in page order. Each returns why the
@@ -113,7 +115,8 @@ export function generationTargets(target: GenerationTarget | { scope: 'capture' 
 }
 
 // The first numbered meaning in a module's generated text (": [1] …"), outside
-// any subsection or under "Bedeutungen", never under examples; or null.
+// any subsection or under a meanings heading ("Bedeutungen", or "释义" for the
+// Chinese parent), never under examples or another facet; or null.
 export function firstMeaning(text: string): string | null {
   let section: string | null = null;
   for (const raw of text.split('\n')) {
@@ -121,7 +124,7 @@ export function firstMeaning(text: string): string | null {
     const heading = /^(=+)\s*(.*?)\s*=+$/.exec(line);
     if (heading) { section = heading[1].length > 2 ? heading[2] : null; continue; }
     const match = /^:\s*\[\d+[a-z]?\]\s*(.+)$/.exec(line);
-    if (match && (section === null || /bedeutung/i.test(section))) return match[1].trim();
+    if (match && (section === null || /bedeutung|释义/i.test(section))) return match[1].trim();
   }
   return null;
 }
