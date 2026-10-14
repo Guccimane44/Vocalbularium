@@ -142,6 +142,22 @@ export function withoutFacet(moduleType: string, text: string, facet: string): s
   }).join('\n');
 }
 
+// The text without facet headings that have nothing under them (D08): the
+// provider sometimes writes a heading for a facet that does not apply, such as
+// Article for an adjective. An empty facet counts as omitted. Other headings
+// and lines stay as they are.
+export function withoutEmptyFacets(moduleType: string, text: string): string {
+  if (!isParentType(moduleType)) return text;
+  const labels = new Set(facetsOf(moduleType).map(facet => PARENTS[moduleType].facets[facet]!.label));
+  const lines = text.split('\n');
+  return lines.filter((line, index) => {
+    const label = SECTION.exec(line.trim())?.[1];
+    if (label === undefined || !labels.has(label)) return true;
+    const next = lines.slice(index + 1).find(candidate => candidate.trim());
+    return next !== undefined && !next.trim().startsWith('==');
+  }).join('\n');
+}
+
 // Splits text around each occurrence of the main key, so a client can emphasise it.
 export function emphasise(text: string, key: string): { text: string; key: boolean }[] {
   const needle = key.trim();

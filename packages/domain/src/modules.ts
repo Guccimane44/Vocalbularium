@@ -1,7 +1,7 @@
 import type { InputInterpretation, InputType } from '@vocabularium/contracts';
 import { applicableFacets, facetsOf, isParentType } from './parents.js';
 import type { FacetType, ParentType } from './parents.js';
-import { renderContent, withoutFacet } from './render.js';
+import { renderContent, withoutEmptyFacets, withoutFacet } from './render.js';
 
 export type ModuleType = 'german-explanation' | 'german-examples' | 'sentence-usage';
 export type ModuleDefinition = Readonly<{
@@ -39,7 +39,8 @@ export type ParentInstance = Readonly<{ id: string; type: ParentType; facets?: r
 // parent (D08) always applies: it generates its core and the facets that apply,
 // and its text must follow the parent's render contract; sections of facets it
 // does not have are dropped. An earlier module returns '' when it does not
-// apply. Throws when generation fails. Repeated instances generate independently.
+// apply. A facet heading with nothing under it counts as an omitted facet.
+// Throws when generation fails. Repeated instances generate independently.
 export async function generateComponent(input: {
   mainKey: string;
   module: ModuleInstance | ParentInstance;
@@ -54,7 +55,7 @@ export async function generateComponent(input: {
     const text = await input.generate({ ...request, facets });
     if (typeof text !== 'string' || !text.trim()) throw new Error('A module returned no usable content.');
     const extra = facetsOf(module.type).filter(facet => !facets.includes(facet));
-    const kept = extra.reduce((current, facet) => withoutFacet(module.type, current, facet), text.trim());
+    const kept = extra.reduce((current, facet) => withoutFacet(module.type, current, facet), withoutEmptyFacets(module.type, text.trim()));
     if (renderContent(module.type, kept).kind !== 'parent') throw new Error('A module returned content in an unexpected format.');
     return kept;
   }

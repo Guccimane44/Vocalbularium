@@ -85,7 +85,7 @@ Applicability is judged per facet. A parent's core always applies. A facet that 
 - **Input:** the page's current main key, its saved Context when present, and the run's interpretation. These are a content module's only text inputs, whether capture or manual entry supplied them. The parent type and the instance's facets are the instructions governing the contribution.
 - **Interpretation:** one interpretation per generation run, shared by every attempt in that run. It must correspond to the run's main key and Context; a changed key must not reuse a prior key's classification.
 - **Output:** the block content of the instance's own component on that page: the core, then each applicable facet in the parent's order. An instance never changes an input module's component or another instance's component. Parents produce plain text, stored as paragraph blocks.
-- **Applicability:** the core always applies; an inapplicable facet is left out ([input and applicability](#input-and-applicability)).
+- **Applicability:** the core always applies; an inapplicable facet is left out ([input and applicability](#input-and-applicability)). A facet heading the provider writes with nothing under it counts as an omitted facet and is dropped before the output is checked against the render contract; any other text outside the contract fails the attempt.
 - **Editing:** editing the main key or the Context does not run modules or change saved output. Existing output reflects the main key and Context used in its attempt and may differ from the current values after an edit. The user may edit a generated component; the next retry of that component replaces the edit after confirmation.
 
 ## Render contracts

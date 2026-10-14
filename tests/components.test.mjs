@@ -51,6 +51,12 @@ test('a parent always applies; it asks for the facets that apply and checks the 
     { moduleInstanceId: 'p', status: 'completed', text: '我真的很幸福。\n=== Pinyin ===\n: wǒ zhēn de hěn xìngfú' },
     { moduleInstanceId: 'q', status: 'completed', text: '我真的很幸福。' }
   ], 'a section the parent does not have is dropped');
+  const [emptyArticle] = await generateComponents({ mainKey: 'beautiful', interpretation: word,
+    modules: [{ id: 'g', type: 'german', facets: ['article', 'examples'] }],
+    generate: async () => '== Englisch (beautiful) ==\n=== Bedeutungen ===\n: [1] schön\n=== Article ===\n=== Examples ===\n: [1] So beautiful.\n:: So schön.' });
+  assert.deepEqual(emptyArticle, { moduleInstanceId: 'g', status: 'completed',
+    text: '== Englisch (beautiful) ==\n=== Bedeutungen ===\n: [1] schön\n=== Examples ===\n: [1] So beautiful.\n:: So schön.' },
+    'an empty facet heading counts as an omitted facet');
   const [blank] = await generateComponents({ mainKey: 'x', interpretation: word, modules: [parent], generate: async () => '   ' });
   assert.equal(blank.status, 'failed');
 });

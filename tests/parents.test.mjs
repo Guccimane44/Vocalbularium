@@ -7,7 +7,7 @@ import {
   validateFacets, withFacet
 } from '@vocabularium/domain/parents';
 import { copyModules, firstMeaning, validateConfiguration } from '@vocabularium/domain/page-modules';
-import { renderContent } from '@vocabularium/domain/render';
+import { renderContent, withoutEmptyFacets } from '@vocabularium/domain/render';
 import { textBlocks } from '@vocabularium/domain/pages';
 
 // Parent modules with a core and facets (D08).
@@ -148,4 +148,19 @@ test('anything outside a parent’s contract falls back to the plain text, uncha
     ['Ein Satz.\n=== Synonyms ===\n: [1] numbered', 'numbered lines in a list facet']
   ];
   for (const [text, why] of cases) assert.deepEqual(renderContent('german', text), { kind: 'plain', text }, why);
+});
+
+test('a facet heading with nothing under it is dropped as an omitted facet; the renderer itself stays strict', () => {
+  // Golden set, 14 October 2026: "beautiful" came back with an empty Article section.
+  const text = ['== Englisch (beautiful) ==', '=== Bedeutungen ===', ': [1] schön', '=== Article ===', '=== Examples ===',
+    ': [1] She is beautiful.', ':: Sie ist schön.', '=== Synonyms ===', '', '=== Antonyms ===', ': hässlich', '=== Synonyms ==='].join('\n');
+  assert.equal(renderContent('german', text).kind, 'plain', 'an empty section still breaks the contract');
+  const cleaned = withoutEmptyFacets('german', text);
+  assert.equal(cleaned, ['== Englisch (beautiful) ==', '=== Bedeutungen ===', ': [1] schön', '=== Examples ===',
+    ': [1] She is beautiful.', ':: Sie ist schön.', '', '=== Antonyms ===', ': hässlich'].join('\n'));
+  assert.deepEqual(renderContent('german', cleaned).facets.map(facet => facet.facet), ['examples', 'antonyms']);
+  assert.equal(withoutEmptyFacets('german', '== Englisch (x) ==\n=== Bedeutungen ===\n=== Article ===\n: das X'),
+    '== Englisch (x) ==\n=== Bedeutungen ===\n=== Article ===\n: das X', 'the core’s own heading is never dropped');
+  assert.equal(withoutEmptyFacets('chinese', 'Satz.\n=== Article ==='), 'Satz.\n=== Article ===', 'only the parent’s own facets');
+  assert.equal(withoutEmptyFacets('text', '=== Examples ==='), '=== Examples ===', 'other modules are untouched');
 });
