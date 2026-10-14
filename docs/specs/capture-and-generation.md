@@ -6,7 +6,7 @@ This document is the authoritative source for detailed component completion, fai
 
 ## Status
 
-These rules describe the owner-approved deck → page → component model ([Q72](../architecture/questionnaire/answers/answers-06-data-and-semantics.md#q72)) with page-owned modules ([D02](../architecture/traceability-map.md#entries)). Release 0.4.0 implements the model, 0.4.1 adds capture with Context, and 0.5.0 implements D02 ([current scope](../product/scope.md)). Release 0.6.0 adds the capture flight, toolbar badge, and rendered content of [D05](../architecture/traceability-map.md#entries). Builds up to v0.3.0+ followed the [seite-level baseline](../history/v0.3.0-select-and-add.md). [Pages and editing](pages-and-editing.md) owns main key, Context, and component editing; [decks and configuration](decks-and-configuration.md) owns the template new pages start from.
+These rules describe the owner-approved deck → page → component model ([Q72](../architecture/questionnaire/answers/answers-06-data-and-semantics.md#q72)) with page-owned modules ([D02](../architecture/traceability-map.md#entries)). Release 0.4.0 implements the model, 0.4.1 adds capture with Context, and 0.5.0 implements D02 ([current scope](../product/scope.md)). Release 0.6.0 adds the capture flight, toolbar badge, and rendered content of [D05](../architecture/traceability-map.md#entries). Parent modules with facets and the word-or-sentence interpretation ([D08](../architecture/traceability-map.md#entries), accepted 14 October 2026) are not built yet; until then, interpretation also chooses one source language, and an inapplicable module completes empty. Builds up to v0.3.0+ followed the [seite-level baseline](../history/v0.3.0-select-and-add.md). [Pages and editing](pages-and-editing.md) owns main key, Context, and component editing; [decks and configuration](decks-and-configuration.md) owns the template new pages start from.
 
 ## Availability and default deck
 
@@ -22,8 +22,8 @@ A captured page receives a copy of the default deck's content module instances (
 2. The user right-clicks the selection and chooses **Create a page in “{default deck name}”**.
 3. Vocabularium takes the selected text exactly as selected. When the destination deck has the Context module, it also takes the surrounding block (capped at around 500 characters); otherwise no surrounding text is taken. The web page URL and title are never taken. The Context is defined in [Pages and editing](pages-and-editing.md#context).
 4. It automatically saves a page in the destination deck with the selected text as its main key and the captured Context when present. This page remains accessible if generation later fails; its existence does not mean generation succeeded.
-5. It starts one generation run for the page: one attempt per content module instance the page received from the deck. Where required by those instances, it determines the input type and one source language from the main key and Context, once for the whole run.
-6. Each attempt publishes its own component when it completes. Inapplicable instances complete with an empty component. A failed attempt leaves its component empty with a failure indicator; it does not affect the other components.
+5. It starts one generation run for the page: one attempt per content module instance the page received from the deck. It determines whether the input is a word or phrase, or a sentence, from the main key and Context, once for the whole run ([input interpretation](#input-interpretation)).
+6. Each attempt publishes its own component when it completes: the parent's core and its facets that apply. A failed attempt leaves its component empty with a failure indicator; it does not affect the other components.
 7. It automatically saves and synchronizes components and generation outcomes with the account. The user does not need to select **Save**.
 
 The destination is the default deck at the time the capture action is invoked. Changing the default deck while generation is running does not redirect that capture. Each page belongs to exactly one deck.
@@ -54,11 +54,11 @@ This transient popup is separate from the dashboard and from confirmation dialog
 
 ## Input interpretation
 
-The main key and the saved Context are used to determine whether the input is a word/phrase or a sentence and which source language applies. For ambiguous text, Vocabularium chooses one language automatically and uses it consistently across every attempt in the run. It does not generate separate interpretations for multiple source languages. Target languages are defined by the modules, not by a fixed language-pair setting for the deck.
+The main key and the saved Context are used to determine whether the input is a word or phrase, or a sentence, once per run; every attempt in the run uses that result. Interpretation does not choose a source language: each parent's generation reads the language from the key and Context ([D08](../architecture/traceability-map.md#entries)). Target languages are defined by the parent modules, not by a fixed language-pair setting for the deck. The page shows the result under its main key ([pages and editing](pages-and-editing.md#required-main-key)).
 
-If interpretation fails, every attempt in the run fails, because every current content module needs it.
+If interpretation fails, every attempt in the run fails, because every parent module needs it.
 
-The shared interpretation rules are defined in the [Modules specification](../history/mvp/MVP-Product-spec-modules.md).
+The interpretation and applicability rules are defined in the [Modules specification](modules.md#input-and-applicability).
 
 ## Generation actions
 
@@ -81,10 +81,10 @@ Generation-status labels describe actual generation attempts. A component that h
 Each component attempt has one of these states:
 
 - **Loading:** required interpretation or the component's generation is in progress.
-- **Completed:** the instance completed. Publish its output as the component's content. An inapplicable instance completes with an empty component and does not count as a failure.
+- **Completed:** the instance completed. Publish its output, the core and its applicable facets, as the component's content. A facet that does not apply is left out and does not count as a failure.
 - **Failed:** required interpretation or the instance failed. Discard any partial output from that attempt and show a failure indicator on the empty component. There is no partial success within a component.
 
-Components fail and complete independently. For example, if a deck has two `Sentence usage` instances and only one succeeds, the successful example is published and the other component fails. A later retry of the failed component generates only that example.
+Components fail and complete independently. For example, if a page has two `German` instances and only one succeeds, the successful one is published and the other component fails. A later retry of the failed component generates only that one.
 
 A page's overall generation outcome is derived from its components that have had attempts: **Failed** if any such component's current state is **Failed**, otherwise **Loading** while any attempt is running, otherwise **Completed**. Confirming a retry moves each target component to **Loading**, then to **Completed** or **Failed** by its own attempt's outcome. Saving a page or manually adding content does not turn a failed attempt into a successful one; outside an active retry, a component's failure indicator describes its last attempt.
 
@@ -119,7 +119,7 @@ For the whole page:
 - **Cancel** leaves the page unchanged.
 - **Confirm** discards the targeted components' current content and starts a fresh attempt for each. Previous edits and generated output are not preserved or merged into the replacement. If an attempt fails, its component stays empty with a failure indicator; the discarded content is not restored.
 
-Retry uses the page's current saved main key and Context and its content module instances at confirmation time. Required input classification and source language must correspond to that main key and Context; each retry starts a new run with a fresh interpretation.
+Retry uses the page's current saved main key and Context and its content module instances at confirmation time. The word-or-sentence classification must correspond to that main key and Context; each retry starts a new run with a fresh interpretation. A retry generates the parent's core and every facet it currently has, including facets added since its last attempt, and never a facet the user deleted.
 
 The warning describes the content shown when it opened. If a targeted component changes before the user confirms, for example through a save from another installation, Retry warns again with the current content instead of replacing content the user has not seen.
 
@@ -141,11 +141,11 @@ Account synchronization follows [accounts and synchronization](accounts-and-sync
 
 ## Initial default-deck example
 
-The initial **My Deck** has the main key module, the Context module, and one content module instance: `German explanation + examples`. A new deck starts with the same configuration.
+The initial **My Deck** has the main key module, the Context module, and one content module instance: `German`, with all four facets (Article, Examples, Synonyms, Antonyms) ([D08](../architecture/traceability-map.md#entries)). A new deck starts with the same configuration.
 
-For the selected input `幸福`, interpreted as Chinese in this example, the page shows its main key `幸福`, then a German-language explanation component for the Chinese word, with Chinese examples and their German translations, following the format in the [Modules specification](../history/mvp/MVP-Product-spec-modules.md). The exact generated wording may vary.
+For the selected input `幸福`, read as a word, the page shows its main key `幸福`, then a `German` component: an explanation in German of the word, then the article of its German translation (`das Glück`), examples with their translations, synonyms, and antonyms, following the [modules specification](modules.md#catalog). The exact generated wording may vary.
 
-For a selected sentence such as `我真的很幸福`, the `German explanation + examples` component completes empty because that module does not apply to sentences. This is an intentional, successfully completed page. A user can drag `Sentence usage` onto this page and generate it, add it to the deck configuration for future captures, or add their own component to this page.
+For a selected sentence such as `我真的很幸福`, the `German` component shows the German translation and, from Examples, one similar sentence with its translation; Article, Synonyms, and Antonyms do not apply to a sentence and are not shown. This is an intentional, successfully completed page.
 
 ## Editing after capture
 
