@@ -2,7 +2,7 @@
 
 ## Purpose and status
 
-This specification defines decks, the dashboard, the default deck, and deck configuration. Release 0.5.0 implements it, including the page-owned modules of [D02](../architecture/traceability-map.md#entries) and the module window. Release 0.6.0 adds the sidebar, account menu, dashboard presentation, and live preview of [D05](../architecture/traceability-map.md#entries). [Current scope](../product/scope.md) records the status.
+This specification defines decks, the dashboard, the default deck, and deck configuration. Release 0.5.0 implements it, including the page-owned modules of [D02](../architecture/traceability-map.md#entries) and the module window. Release 0.6.0 adds the sidebar, account menu, dashboard presentation, and live preview of [D05](../architecture/traceability-map.md#entries). Parent modules with facets ([D08](../architecture/traceability-map.md#entries), accepted 14 October 2026) are not built yet. [Current scope](../product/scope.md) records the status.
 
 The [product model](../product/model.md) defines decks, configuration, content module instances, and views. [Modules](modules.md) owns the module catalog and contracts. [Pages and editing](pages-and-editing.md) owns what happens to a page after it is created.
 
@@ -12,7 +12,7 @@ Every signed-in view shows a **deck sidebar** on the left: the wordmark, **Home*
 
 An **account menu** in the header holds appearance ([shared UI](shared-ui.md#appearance)), **Diagnostic logs**, and **Log out**.
 
-A deck's colour is one of the six family colours ([modules](modules.md#current-catalog)), chosen in [deck settings](#configuration) and the same in every view and installation. A new deck starts with one of them at random; a deck whose colour has never been chosen, such as one from before 0.6.2, shows a colour derived from its identity (since 0.6.2, [D06](../architecture/traceability-map.md#entries)). It identifies the deck only and says nothing about its modules, so deck settings name the colours by hue (Blue, Green, Amber, Violet, Rose, Sage), not by family.
+A deck's colour is one of the six family colours ([modules](modules.md#module-families)), chosen in [deck settings](#configuration) and the same in every view and installation. A new deck starts with one of them at random; a deck whose colour has never been chosen, such as one from before 0.6.2, shows a colour derived from its identity (since 0.6.2, [D06](../architecture/traceability-map.md#entries)). It identifies the deck only and says nothing about its modules, so deck settings name the colours by hue (Blue, Green, Amber, Violet, Rose, Sage), not by family.
 
 ## Dashboard
 
@@ -40,10 +40,10 @@ A deck's configuration has:
   - the **main key module**: compulsory and always first; it cannot be removed or moved;
   - the **Context module**: optional, at most one. When the deck has it, capture into the deck also takes the selection's surrounding block ([pages and editing](pages-and-editing.md#context));
   - **Text module instances**: optional and repeatable; each gives new pages an empty Text component for the user's own writing;
-  - **content module instances**: the same type may appear more than once;
+  - **content module instances**, each a [parent module](modules.md#parent-modules-and-facets) with the facets chosen for it: the same type may appear more than once, and facets do not count toward the 12;
 - its **view**: the default view, which shows each page as its ordered component list.
 
-The user edits the configuration in **deck settings**: name the deck, choose its colour from six swatches, and add, remove, and reorder the Context, Text, and content module instances; the main key stays first. Deck settings show the main key first in the list like the other modules, with no six-dot menu, drag, or **Remove** (since 0.6.3 without the lock mark it had from 0.5.2). A **Preview** button beside the list's heading opens the deck's **preview** in a dialog (since 0.6.3, [D07](../architecture/traceability-map.md#entries)): a sample page built from the configured instances in their current order, with a switch between a word and a sentence sample. The preview is labeled as a sample and never creates or changes pages. Like a page, it shows an empty component, such as Text or a module that does not apply to the sample input, as only its index tab. The close button, Escape, or a click outside closes it and returns to the button. Deck settings otherwise keep the page view's layout: the module list beside the module window. Configuration edits are a draft until **Save**; **Cancel** discards them. A failed save keeps the draft and offers **Try saving again**.
+The user edits the configuration in **deck settings**: name the deck, choose its colour from six swatches, add, remove, and reorder the Context, Text, and content module instances, and add or remove a parent's facets as on a page ([pages and editing](pages-and-editing.md#shaping-a-page)); the main key stays first. Deck settings show the main key first in the list like the other modules, with no six-dot menu, drag, or **Remove** (since 0.6.3 without the lock mark it had from 0.5.2). A **Preview** button beside the list's heading opens the deck's **preview** in a dialog (since 0.6.3, [D07](../architecture/traceability-map.md#entries)): a sample page built from the configured instances in their current order, with a switch between a word and a sentence sample, so the user sees which facets apply to each. The preview is labeled as a sample and never creates or changes pages. Like a page, it shows an empty component, such as Text or a module that does not apply to the sample input, as only its index tab. The close button, Escape, or a click outside closes it and returns to the button. Deck settings otherwise keep the page view's layout: the module list beside the module window. Configuration edits are a draft until **Save**; **Cancel** discards them. A failed save keeps the draft and offers **Try saving again**.
 
 A configuration with only the main key module is valid. Its new pages hold only the main key and whatever the user adds.
 
