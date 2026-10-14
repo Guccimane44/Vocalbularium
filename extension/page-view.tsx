@@ -111,6 +111,8 @@ export function Content({ type, text, mainKey }: { type: string; text: string; m
   const rendered = renderContent(type, text);
   if (rendered.kind === 'plain') return <pre>{rendered.text}</pre>;
   if (rendered.kind === 'sentence') return <p className="reading">{rendered.text}</p>;
+  // Parent modules (D08) are shown as their text until the page renders facets (0.7.0 increment 4).
+  if (rendered.kind === 'parent') return <pre>{text}</pre>;
   const { heading, meanings, examples } = rendered;
   const marked = (text: string) => emphasise(text, mainKey).map((part, index) => part.key ? <mark key={index}>{part.text}</mark> : part.text);
   return <div className="entry-content">
