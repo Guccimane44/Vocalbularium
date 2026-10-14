@@ -1,6 +1,6 @@
 # Plan: parent modules with a core and facets (0.7.0)
 
-Proposed: 14 October 2026 (Europe/Berlin). Implements [D08](../architecture/traceability-map.md#entries), accepted by the owner on 14 October 2026 and applied to the specifications in [#137](https://github.com/Guccimane44/Vocalbularium/pull/137). Tracker: [#138](https://github.com/Guccimane44/Vocalbularium/issues/138); milestone in [Actual Stages](https://app.notion.com/p/3f9bb1350208814b8731f4d726254fa5). Status: proposed; awaiting the owner's approval.
+Proposed: 14 October 2026 (Europe/Berlin). Implements [D08](../architecture/traceability-map.md#entries), accepted by the owner on 14 October 2026 and applied to the specifications in [#137](https://github.com/Guccimane44/Vocalbularium/pull/137). Tracker: [#138](https://github.com/Guccimane44/Vocalbularium/issues/138); milestone in [Actual Stages](https://app.notion.com/p/3f9bb1350208814b8731f4d726254fa5). Status: approved by the owner on 14 October 2026; increment 0 in [#139](https://github.com/Guccimane44/Vocalbularium/pull/139).
 
 ## Outcome
 
