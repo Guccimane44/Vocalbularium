@@ -2343,7 +2343,7 @@ test('facet tags: abbreviations in order, on the left edge, along the edge to th
   assert.match(down.keyframes[1], /^translate\(-?[\d.]+px, 0px\)$/, `the corner is on the bottom row (${down.keyframes[1]})`);
   await settle();
   const bottom = await geometry();
-  assert.ok(bottom.every(tag => tag.top >= tag.height - 8 && tag.bottom > tag.height), `the tags hang below the folded card (${JSON.stringify(bottom)})`);
+  assert.ok(bottom.every(tag => tag.top >= tag.height - 8 && tag.top <= tag.height && tag.bottom > tag.height), `the tags hang from the folded card's bottom edge (${JSON.stringify(bottom)})`);
   assert.ok(bottom.every(tag => tag.right <= tag.width && tag.left > tag.width / 2), 'at its right');
   assert.ok(bottom.every((tag, index) => !index || tag.left > bottom[index - 1].left), 'in order, left to right');
   await a.page.screenshot({ path: 'artifacts/v0.7.1-facet-tags-folded.png' });
