@@ -159,9 +159,9 @@
 /* Folding (0.6.3): the content slides shut and fades while the card narrows
    to a slim band under its tab, and opens the same way. The height moves by
    the grid row, the one place a layout property animates. */
-.component { transition: padding var(--dur-settle) var(--ease-out); }
-.card-fold { display: grid; grid-template-rows: 1fr; transition: grid-template-rows var(--dur-settle) var(--ease-out); }
-.card-fold-inner { min-height: 0; overflow: clip; overflow-clip-margin: 6px; transition: opacity var(--dur-settle) var(--ease-out), transform var(--dur-settle) var(--ease-out); }
+.component { --fold: 500ms; --ease-fold: cubic-bezier(.45, 0, .25, 1); transition: padding var(--fold) var(--ease-fold), margin var(--fold) var(--ease-fold), min-height var(--fold) var(--ease-fold); }
+.card-fold { display: grid; grid-template-rows: 1fr; transition: grid-template-rows var(--fold) var(--ease-fold); }
+.card-fold-inner { min-height: 0; overflow: clip; overflow-clip-margin: 6px; transition: opacity var(--fold) var(--ease-fold), transform var(--fold) var(--ease-fold); }
 .component[data-folded] { padding-top: 20px; padding-bottom: 0; }
 .component[data-folded] .card-fold { grid-template-rows: 0fr; }
 .component[data-folded] .card-fold-inner { opacity: 0; transform: translateY(-6px); }
@@ -301,7 +301,7 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
 .facet-tag { position: absolute; width: 24px; height: 30px; pointer-events: auto; --turn: 0deg; }
 .facet-tag::before { content: ""; position: absolute; left: 50%; top: 50%; width: 24px; height: 30px; translate: -50% -50%; rotate: var(--turn);
   background: var(--fam, var(--fam-notes)); clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 76%, 0 100%);
-  filter: drop-shadow(0 1px 1px #0002); transition: rotate var(--dur-settle) var(--ease-out); }
+  filter: drop-shadow(0 1px 1px #0002); transition: rotate var(--tag-travel) cubic-bezier(.45, 0, .25, 1); }
 .facet-tag-open { position: relative; display: grid; place-items: start center; width: 100%; height: 100%; padding: 5px 0 0; border: 0; border-radius: 0;
   background: transparent; color: var(--on-fam, var(--on-ink)); font: 700 11px/1 var(--font-text); letter-spacing: .02em; cursor: default; }
 button.facet-tag-open { cursor: pointer; }
@@ -332,11 +332,24 @@ button.facet-tag-open:hover { background: transparent; }
   transition: opacity var(--dur-quick) ease; }
 .facet-tags[data-layout="hanging"] .facet-tag { left: calc(var(--i) * 26px); top: 10px; }
 .facet-tags[data-layout="hanging"] .facet-tag::after { opacity: 1; }
+/* The chains hang from a rail under the tab, which reaches past the tab's
+   end when there are more tags than the tab is wide. */
+.facet-tags[data-layout="hanging"]::before { content: ""; position: absolute; left: 4px; top: -1px; height: 3px; border-radius: 0 2px 2px 0;
+  width: calc((var(--n) - 1) * 26px + 16px); background: var(--fam, var(--fam-notes)); }
 /* An empty or generating card makes room below its tab for what hangs there. */
 .component:is([data-empty], [data-generating])[data-tagged="hanging"] { padding-bottom: 56px; }
+/* Folding and the tags take turns (facet-tags.tsx holds the same durations):
+   folding, the card waits while its tags travel to the bottom right, the
+   last one setting out a little after the first; unfolding, it opens at once
+   and the tags wait on its bottom edge. */
+.component { --tag-travel: 600ms; }
+.component[data-tagged] { min-height: 0; }
+.component[data-folded][data-tagged], .component[data-folded][data-tagged] :is(.card-fold, .card-fold-inner) {
+  transition-delay: calc(var(--tag-travel) + (var(--tags, 1) - 1) * 40ms); }
 /* Folded, the card keeps room below for the tags hanging from it. */
-.component[data-tagged] { transition: padding var(--dur-settle) var(--ease-out), margin var(--dur-settle) var(--ease-out); }
 .component[data-tagged="folded"] { margin-bottom: 18px; }
+/* With content, the card is at least as tall as the tags on its left edge. */
+.component[data-tagged="edge"] { min-height: calc(40px + var(--tags, 0) * 30px); }
 /* Leaving, a tag pops where it stands, like a deleted card. */
 .facet-tag[data-leaving] { pointer-events: none; animation: bop 240ms cubic-bezier(.3, 0, .2, 1) forwards; }
 @keyframes tag-shown { 0%, 100% { box-shadow: none; } 30% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--fam, var(--focus)) 35%, transparent); } }

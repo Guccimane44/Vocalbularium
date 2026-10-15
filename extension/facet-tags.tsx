@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { facetAbbreviation, facetLabel, ordered } from '@vocabularium/domain/parents';
 import type { FacetType, ParentType } from '@vocabularium/domain/parents';
@@ -33,12 +33,47 @@ function takeLaunch(holderId: string, facet: string): DOMRect | null {
 }
 
 const still = () => Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
-// The tags move with the card as it folds (--dur-settle) and with its ease-out.
-const ALONG_THE_EDGE = { duration: 450, easing: 'cubic-bezier(.2,.8,.2,1)' };
+// Folding and the tags take turns, so the two never pull against each other
+// (page-view.css holds the same durations as --fold and --tag-travel):
+// folding, the tags first travel along the still edge to the bottom right,
+// then the card folds and they ride its bottom edge up; unfolding, the card
+// opens with them riding its bottom edge down, then they travel back.
+export const FOLD_MS = 500;
+export const TAG_TRAVEL_MS = 600;
+const ALONG_THE_EDGE = { duration: TAG_TRAVEL_MS, easing: 'cubic-bezier(.45,0,.25,1)' };
 const FLIGHT = { duration: 560, easing: 'cubic-bezier(.3,.7,.2,1)' };
 export const TAG_POP_MS = 240;
 
 type Spot = { x: number; y: number };
+
+// Keyframes for a move from `from` to the tag's place (0, 0) by way of
+// `corner`, both as offsets from that place: two straight runs joined by a
+// rounded turn, sampled by distance so the speed stays even through the turn.
+const ROUNDING = 14;
+function alongTheEdge(from: Spot, corner: Spot): Keyframe[] {
+  const to = { x: 0, y: 0 };
+  const run = (a: Spot, b: Spot) => Math.hypot(b.x - a.x, b.y - a.y);
+  const toward = (a: Spot, b: Spot, distance: number) => {
+    const length = run(a, b) || 1;
+    return { x: a.x + (b.x - a.x) * distance / length, y: a.y + (b.y - a.y) * distance / length };
+  };
+  const r = Math.min(ROUNDING, run(from, corner) / 2, run(corner, to) / 2);
+  const enter = toward(corner, from, r), leave = toward(corner, to, r);
+  // The turn as a quadratic curve through the corner, in a few short steps.
+  const turn = Array.from({ length: 7 }, (_, index) => {
+    const t = (index + 1) / 8;
+    return { x: (1 - t) ** 2 * enter.x + 2 * (1 - t) * t * corner.x + t * t * leave.x,
+      y: (1 - t) ** 2 * enter.y + 2 * (1 - t) * t * corner.y + t * t * leave.y };
+  });
+  const points = [from, enter, ...turn, leave, to];
+  const lengths = points.map((point, index) => index ? run(points[index - 1]!, point) : 0);
+  const total = lengths.reduce((sum, length) => sum + length, 0) || 1;
+  let travelled = 0;
+  return points.map((point, index) => {
+    travelled += lengths[index]!;
+    return { transform: `translate(${point.x}px, ${point.y}px)`, offset: travelled / total };
+  });
+}
 
 export function FacetTags({ holderId, parent, facets, layout, title, disabled = false, onOpen, onRemove }: {
   holderId: string; parent: ParentType; facets: readonly string[]; layout: TagLayout; title: string; disabled?: boolean;
@@ -52,6 +87,35 @@ export function FacetTags({ holderId, parent, facets, layout, title, disabled = 
   const [leaving, setLeaving] = useState<ReadonlyArray<{ facet: FacetType; index: number }>>([]);
   const root = useRef<HTMLUListElement>(null);
   const before = useRef<{ facets: readonly FacetType[]; layout: TagLayout; spots: Map<string, Spot> } | null>(null);
+  // Unfolding, the tags stay on the bottom edge while the card opens, and
+  // only then go back to the left side.
+  const [prior, setPrior] = useState(layout);
+  const [holding, setHolding] = useState(false);
+  const unfolding = prior === 'folded' && layout === 'edge';
+  if (layout !== prior) { setPrior(layout); setHolding(unfolding && !still()); }
+  const place: TagLayout = (layout !== prior ? unfolding && !still() : holding) ? 'folded' : layout;
+  // Where the tags stand now, against the card, so a scroll in between changes nothing.
+  const measure = () => {
+    const list = root.current, card = list?.closest<HTMLElement>('.component');
+    if (!list || !card) return null;
+    const tags = [...list.querySelectorAll<HTMLElement>('.facet-tag:not([data-leaving])')];
+    for (const tag of tags) for (const animation of tag.getAnimations()) if (animation.id === 'facet-tag') animation.cancel();
+    const box = card.getBoundingClientRect();
+    return { tags, spots: new Map(tags.map(tag => {
+      const rect = tag.getBoundingClientRect();
+      return [tag.dataset.facet!, { x: rect.left - box.left, y: rect.top - box.top }];
+    })) };
+  };
+  useEffect(() => {
+    if (!holding) return;
+    const timer = setTimeout(() => {
+      // The card has opened: the tags set out from where its bottom edge now is.
+      const now = measure();
+      if (now && before.current) before.current = { ...before.current, spots: now.spots };
+      setHolding(false);
+    }, FOLD_MS);
+    return () => clearTimeout(timer);
+  }, [holding]);
 
   useLayoutEffect(() => {
     const list = root.current;
@@ -64,17 +128,10 @@ export function FacetTags({ holderId, parent, facets, layout, title, disabled = 
         ...gone.map(facet => ({ facet, index: previous!.facets.indexOf(facet) }))]);
       setTimeout(() => setLeaving(current => current.filter(item => !gone.includes(item.facet))), TAG_POP_MS);
     }
-    const tags = [...list.querySelectorAll<HTMLElement>('.facet-tag:not([data-leaving])')];
-    // Settled places, against the card, so a scroll in between changes nothing.
-    for (const tag of tags) for (const animation of tag.getAnimations()) if (animation.id === 'facet-tag') animation.cancel();
-    const box = card.getBoundingClientRect();
-    const spots = new Map(tags.map(tag => {
-      const rect = tag.getBoundingClientRect();
-      return [tag.dataset.facet!, { x: rect.left - box.left, y: rect.top - box.top }];
-    }));
-    before.current = { facets: shown, layout, spots };
+    const { tags, spots } = measure()!;
+    before.current = { facets: shown, layout: place, spots };
     if (!previous || still()) return;
-    const turned = previous.layout !== layout;
+    const turned = previous.layout !== place;
     tags.forEach((tag, index) => {
       const facet = tag.dataset.facet!;
       const to = spots.get(facet)!;
@@ -94,15 +151,16 @@ export function FacetTags({ holderId, parent, facets, layout, title, disabled = 
       }
       const dx = from.x - to.x, dy = from.y - to.y;
       if (!dx && !dy) return;
-      const timing = { ...ALONG_THE_EDGE, delay: index * 30, fill: 'backwards' as const };
+      const timing = { ...ALONG_THE_EDGE, delay: index * 40, fill: 'backwards' as const };
       // Between the left side and the bottom right, a tag keeps to the card's
-      // edge: down the left side, then along the bottom, or back the same way.
-      const corner = turned && previous.layout === 'edge' && layout === 'folded' ? `translate(${dx}px, 0px)`
-        : turned && previous.layout === 'folded' && layout === 'edge' ? `translate(0px, ${dy}px)` : null;
-      play(corner ? [{ transform: `translate(${dx}px, ${dy}px)` }, { transform: corner, offset: .45 }, { transform: 'none' }]
+      // edge: down the left side, round the corner and along the bottom, or
+      // back the same way.
+      const corner = turned && previous.layout === 'edge' && place === 'folded' ? { x: dx, y: 0 }
+        : turned && previous.layout === 'folded' && place === 'edge' ? { x: 0, y: dy } : null;
+      play(corner ? alongTheEdge({ x: dx, y: dy }, corner)
         : [{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }], timing);
     });
-  }, [key, layout]);
+  }, [key, place]);
 
   // The list stays while empty, so the last tag can still pop and a facet added later flies in.
   const tag = (facet: FacetType, index: number, gone = false) => {
@@ -118,7 +176,7 @@ export function FacetTags({ holderId, parent, facets, layout, title, disabled = 
       </button>}
     </li>;
   };
-  return <ul ref={root} className="facet-tags" data-layout={layout} aria-label={shown.length ? `${title} facets` : undefined}
+  return <ul ref={root} className="facet-tags" data-layout={place} aria-label={shown.length ? `${title} facets` : undefined}
     hidden={!shown.length && !leaving.length || undefined} style={{ '--n': shown.length } as CSSProperties}>
     {shown.map((facet, index) => tag(facet, index))}
     {leaving.filter(item => !shown.includes(item.facet)).map(item => tag(item.facet, item.index, true))}

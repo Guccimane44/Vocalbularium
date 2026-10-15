@@ -8,7 +8,7 @@ import type { RenderedFacet } from '@vocabularium/domain/render';
 import { facetLabel, isFacetOf, isParentType } from '@vocabularium/domain/parents';
 import type { FacetType, ParentType } from '@vocabularium/domain/parents';
 import type { PageEditorDraft } from '../types/editor-drafts.js';
-import { FacetTags } from './facet-tags.tsx';
+import { FacetTags, FOLD_MS } from './facet-tags.tsx';
 import type { TagLayout } from './facet-tags.tsx';
 import { FamilyIcon } from './families.tsx';
 import { mainKeyTier } from './main-key.ts';
@@ -324,7 +324,7 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
       section?.scrollIntoView({ block: 'center', behavior: instant ? 'auto' : 'smooth' });
       if (section?.classList.contains('facet')) { section.focus({ preventScroll: true }); section.dataset.shown = ''; setTimeout(() => { delete section.dataset.shown; }, 1200); }
       then?.();
-    }, wasFolded ? 460 : 0);
+    }, wasFolded ? FOLD_MS : 0);
   };
   // The card asking whether to delete, and where its Delete stood in the row.
   const [confirming, setConfirming] = useState<{ id: string; offset: number; kind: 'delete' | 'retry' } | null>(null);
@@ -463,6 +463,7 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
       }} /> : null;
     return <article className={`component fam-${family}`} data-empty={empty || undefined} data-generating={generating || undefined}
       data-folded={isFolded || undefined} data-vanishing={gone || undefined} data-tagged={tagged ? layout : undefined}
+      style={tagged ? { '--tags': item.facets!.length } as CSSProperties : undefined}
       data-component-id={item.id} data-type={item.moduleType} data-status={item.status ?? undefined} data-editing={editingId === item.id || undefined}>
       <div className="card-head" onKeyDown={event => {
         if (event.key !== 'Escape' || opened !== item.id) return;

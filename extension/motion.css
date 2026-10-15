@@ -26,7 +26,11 @@
 
 /* A dragged card tilts slightly; the landing line opens out; the others make room
    with dnd-kit's own transition. */
-.sortable-row > .component { transition: transform var(--dur-spring) var(--ease-spring), box-shadow var(--dur-spring) ease; }
+/* The card's own fold transitions (page-view.css) are kept in the list: a
+   transition list here would otherwise replace them, and the card's padding,
+   margin and height would jump as it folds. */
+.sortable-row > .component { transition: transform var(--dur-spring) var(--ease-spring), box-shadow var(--dur-spring) ease,
+  padding var(--fold) var(--ease-fold), margin var(--fold) var(--ease-fold), min-height var(--fold) var(--ease-fold); }
 .sortable-row[data-dragging] > .component { transform: rotate(-1deg) scale(1.01); }
 @keyframes line-open { from { transform: scaleX(.3); opacity: 0; } to { transform: none; opacity: 1; } }
 .drag-preview { animation: pick-up var(--dur-quick) var(--ease-spring) both; }

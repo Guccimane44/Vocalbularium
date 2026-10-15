@@ -76,15 +76,15 @@ The main key, shown as the page title, has only **Edit**, always shown beside it
 
 Since 0.7.1 a parent's card also wears one **tag** per facet it has, shaped like a bookmark in the parent's family colour and marked with the facet's abbreviation ([modules](modules.md#catalog)). The tags follow the order the parent type defines, whatever order the facets were added in. Where they sit follows the card:
 
-- A card with content wears its tags stuck out of its left edge, one under another below the tab.
+- A card with content wears its tags stuck out of its left edge, one under another below the tab; the card is at least as tall as its tags.
 - A folded card wears them in a row at the right of its bottom edge, hanging below it.
-- A card that is only its tab, such as one that is generating, hangs them below the tab, each on a short chain. Every module in deck settings is drawn this way ([decks and configuration](decks-and-configuration.md#configuration)).
+- A card that is only its tab, such as one that is generating, hangs them below the tab, each on a short chain from a rail under the tab; with more tags than the tab is wide, the rail reaches past the tab's end. Every module in deck settings is drawn this way ([decks and configuration](decks-and-configuration.md#configuration)).
 
 The tags move with the card:
 
 1. **A facet is added.** Its tag flies from where it was let go, or from the facet in the module window when added with **+**, to its place: the left edge of a card with content, the bottom right of a folded card, or below the tab.
-2. **The card folds.** The tags move down the left edge and along the bottom edge to the bottom right.
-3. **The card unfolds.** They move back the same way, along the bottom edge and up the left side.
+2. **The card folds.** While the card holds still, the tags move down the left edge, round the corner and along the bottom edge to the bottom right; then the card folds and they ride its bottom edge up.
+3. **The card unfolds.** The card opens with the tags riding its bottom edge down; then they move back the same way, along the bottom edge, round the corner and up the left side.
 4. **A facet is deleted.** Its tag pops where it stands and disappears, like a deleted card.
 
 Clicking a tag shows its facet: a folded card unfolds first, then the facet's section scrolls into view and takes the focus; a facet that does not apply to the input has no section, so the card itself is shown. Pointed at or focused, a tag shows a small remove on its corner, which deletes the facet like the **Delete** beside its label: a facet with content shows its section and asks "Are you sure?" there; one with nothing in it, such as a facet waiting for **Retry**, goes at once. A tag shows no text beyond its abbreviation; its facet's name is in its accessible name. Under reduced motion the tags stand in their places without moving, and a deleted tag simply goes.

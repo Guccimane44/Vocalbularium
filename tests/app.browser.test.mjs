@@ -2318,6 +2318,14 @@ test('facet tags: abbreviations in order, on the left edge, along the edge to th
     };
   });
   const motions = async facet => (await a.page.evaluate(() => window.tagMotions)).filter(each => each.facet === facet);
+  // A move along the card's edge: from the start, every point keeps to one side or the other
+  // (within the rounded turn) and the move ends in place.
+  const points = motion => motion.keyframes.map(frame => frame.match(/^translate\((-?[\d.e-]+)px, (-?[\d.e-]+)px\)$/).slice(1).map(Number));
+  const keepsTo = (motion, onFirstSide, onSecondSide) => {
+    const path = points(motion);
+    const [x0, y0] = path[0];
+    return path.length > 3 && path.every(([x, y]) => onFirstSide(x, y, x0, y0) || onSecondSide(x, y, x0, y0)) && path.at(-1).every(value => Math.abs(value) < .5);
+  };
   const settle = () => card.evaluate(node => Promise.all(node.getAnimations({ subtree: true }).map(animation => animation.finished.catch(() => {}))));
   const geometry = () => card.evaluate(node => {
     const box = node.getBoundingClientRect();
@@ -2339,8 +2347,13 @@ test('facet tags: abbreviations in order, on the left edge, along the edge to th
   await (await cardButton(a.page, 'Fold German')).click();
   await waitFor(async () => await tags.getAttribute('data-layout') === 'folded', 'tags folded');
   const down = (await motions('article')).at(-1);
-  assert.equal(down.keyframes.length, 3, 'from the left side, by the bottom-left corner, to the bottom right');
-  assert.match(down.keyframes[1], /^translate\(-?[\d.]+px, 0px\)$/, `the corner is on the bottom row (${down.keyframes[1]})`);
+  assert.ok(keepsTo(down, (x, y, x0) => Math.abs(x - x0) <= 15, (x, y) => Math.abs(y) <= 15),
+    `down the left side, round the corner, along the bottom (${down.keyframes})`);
+  // The card folds only once its tags have travelled: the last one sets out 3 × 40ms after the first.
+  assert.equal(await card.locator('.card-fold').evaluate(node => getComputedStyle(node).transitionDelay), '0.72s');
+  // The card's padding and height fold with it rather than jumping (a row's own transitions once replaced them).
+  const folds = (await card.evaluate(node => getComputedStyle(node).transitionProperty)).split(', ');
+  assert.ok(['padding', 'margin', 'min-height'].every(property => folds.includes(property)), `the card's fold transitions stay (${folds})`);
   await settle();
   const bottom = await geometry();
   assert.ok(bottom.every(tag => tag.top >= tag.height - 8 && tag.top <= tag.height && tag.bottom > tag.height), `the tags hang from the folded card's bottom edge (${JSON.stringify(bottom)})`);
@@ -2350,10 +2363,14 @@ test('facet tags: abbreviations in order, on the left edge, along the edge to th
 
   // A tag shows its facet: the card unfolds, the tags go back the same way, and the section takes the focus.
   await a.page.getByRole('button', { name: 'Show Synonyms in German', exact: true }).click();
+  // The card opens first, with the tags waiting on its bottom edge; then they travel back.
+  assert.equal(await tags.getAttribute('data-layout'), 'folded', 'the tags wait while the card opens');
   await waitFor(async () => await tags.getAttribute('data-layout') === 'edge', 'tags back on the edge');
   const up = (await motions('article')).at(-1);
-  assert.equal(up.keyframes.length, 3);
-  assert.match(up.keyframes[1], /^translate\(0px, -?[\d.]+px\)$/, `along the bottom first, then up the left side (${up.keyframes[1]})`);
+  assert.ok(keepsTo(up, (x, y, x0, y0) => Math.abs(y - y0) <= 15, x => Math.abs(x) <= 15),
+    `along the bottom, round the corner, up the left side (${up.keyframes})`);
+  const [, startY] = points(up)[0];
+  assert.ok(startY > 100, `they set out from the opened card's bottom edge (${startY}px below their place)`);
   await waitFor(() => a.page.evaluate(() => document.activeElement?.dataset?.facet === 'synonyms'), 'the Synonyms section focused');
 
   // Removing a tag whose facet has content asks in its section; deleted, the tag pops.
@@ -2398,6 +2415,13 @@ test('facet tags: abbreviations in order, on the left edge, along the edge to th
     return [...node.querySelectorAll('.facet-tag')].map(tag => ({ top: tag.getBoundingClientRect().top - tab.bottom, chain: getComputedStyle(tag, '::after').opacity }));
   });
   assert.ok(hung.every(tag => tag.top > 4 && tag.top < 20 && tag.chain === '1'), `below the tab, each on its chain (${JSON.stringify(hung)})`);
+  // The chains hang from a rail that reaches the last one, however many there are.
+  const rail = await row.evaluate(node => {
+    const list = node.querySelector('.facet-tags'), box = list.getBoundingClientRect(), last = [...node.querySelectorAll('.facet-tag')].at(-1).getBoundingClientRect();
+    const style = getComputedStyle(list, '::before');
+    return { right: box.left + parseFloat(style.left) + parseFloat(style.width), chain: last.left + last.width / 2 };
+  });
+  assert.ok(rail.right >= rail.chain, `the rail reaches the last chain (${JSON.stringify(rail)})`);
   await a.page.screenshot({ path: 'artifacts/v0.7.1-facet-tags-deck-settings.png', fullPage: true });
   // Removed there, a tag pops; dragged back onto the module, it flies from where it was let go.
   await row.locator('.facet-tag[data-facet="antonyms"]').hover();
