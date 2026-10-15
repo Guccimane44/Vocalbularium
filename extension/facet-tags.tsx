@@ -148,9 +148,12 @@ export function FacetTags({ holderId, parent, facets, layout, title, disabled = 
       const to = spots.get(facet)!;
       const from = previous.spots.get(facet);
       const play = (keyframes: Keyframe[], timing: KeyframeAnimationOptions) => { tag.animate(keyframes, { ...timing, id: 'facet-tag' }); };
-      if (!from) {
+      // A tag arriving where its ghost waited flies in from the window too (0.7.2).
+      const replacing = facet === previous.ghost && facet !== ghostFacet;
+      if (!from || replacing) {
         // A new tag flies in from the window, or pops in when it came from elsewhere.
         const launch = takeLaunch(holderId, facet);
+        if (!launch && replacing) return;
         if (!launch) { play([{ transform: 'scale(.3)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: TAG_POP_MS, easing: 'cubic-bezier(.34,1.56,.64,1)' }); return; }
         const rect = tag.getBoundingClientRect();
         const dx = launch.left + launch.width / 2 - (rect.left + rect.width / 2), dy = launch.top + launch.height / 2 - (rect.top + rect.height / 2);

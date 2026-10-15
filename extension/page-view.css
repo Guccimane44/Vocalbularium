@@ -351,27 +351,31 @@ button.facet-tag-open:hover { background: transparent; }
 /* With content, the card is at least as tall as the tags on its left edge. */
 .component[data-tagged="edge"] { min-height: calc(40px + var(--tags, 0) * 30px); }
 /* A ghost tag (0.7.2): the tag's outline, dashed and barely filled, marked
-   in the family colour and gently pulsing, where a picked-up facet would go.
-   Placed, it fills in while the facet is saved, and the tag that arrives
-   takes its place. */
-.facet-tag[data-ghost]::before { background: color-mix(in srgb, var(--fam, var(--fam-notes)) 14%, transparent); filter: none;
-  transition: background var(--dur-quick) ease; }
+   in the family colour and glowing, where a picked-up facet would go.
+   Placed, it stops glowing and waits while the facet is saved; the tag then
+   flies in from the window and takes its place. */
+.facet-tag[data-ghost]::before { background: color-mix(in srgb, var(--fam, var(--fam-notes)) 14%, transparent); filter: none; }
 .facet-ghost-shape { position: absolute; left: 50%; top: 50%; width: 24px; height: 30px; translate: -50% -50%; rotate: var(--turn); overflow: visible; pointer-events: none;
   fill: none; stroke: var(--fam, var(--fam-notes)); stroke-width: 1.6; stroke-dasharray: 3 2.4; stroke-linejoin: round; }
-.facet-tag[data-ghost] .facet-tag-open { color: var(--fam, var(--fam-notes)); }
-.facet-tag[data-ghost=""] { animation: ghost-pulse 1.4s ease-in-out infinite; }
-.facet-tag[data-ghost="placing"]::before { background: var(--fam, var(--fam-notes)); }
-.facet-tag[data-ghost="placing"] .facet-tag-open { color: var(--on-fam, var(--on-ink)); }
-.facet-tag[data-ghost="placing"] .facet-ghost-shape { opacity: 0; transition: opacity var(--dur-quick) ease; }
+.facet-tag[data-ghost] .facet-tag-open { color: var(--fam, var(--fam-notes)); cursor: copy; }
+.facet-tag[data-ghost=""] { animation: ghost-glow 1.4s ease-in-out infinite; }
 .facet-ghost:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
-@keyframes ghost-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
+@keyframes ghost-glow {
+  0%, 100% { filter: drop-shadow(0 0 1px color-mix(in srgb, var(--fam, var(--fam-notes)) 40%, transparent)); }
+  50% { filter: drop-shadow(0 0 6px var(--fam, var(--fam-notes))); } }
+/* The tab of each parent that would take the picked-up facet glows too, and takes the click. */
+.sortable-row[data-ghost-target] .card-tab { cursor: copy; animation: tab-glow 1.4s ease-in-out infinite; }
+.sortable-row[data-ghost-target] .card-tab * { cursor: copy; }
+@keyframes tab-glow {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--fam, var(--fam-notes)) 0%, transparent); }
+  50% { box-shadow: 0 0 10px 3px color-mix(in srgb, var(--fam, var(--fam-notes)) 55%, transparent); } }
 /* Leaving, a tag pops where it stands, like a deleted card. */
 .facet-tag[data-leaving] { pointer-events: none; animation: bop 240ms cubic-bezier(.3, 0, .2, 1) forwards; }
 @keyframes tag-shown { 0%, 100% { box-shadow: none; } 30% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--fam, var(--focus)) 35%, transparent); } }
 .facet[data-shown] { border-radius: 6px; animation: tag-shown 1.2s var(--ease-out); }
 .facet:focus { outline: none; }
 .facet:focus-visible { outline: 2px solid var(--focus); outline-offset: 4px; border-radius: 4px; }
-@media (prefers-reduced-motion: reduce) { .facet-tag::before { transition: none; } .facet-tag:is([data-leaving], [data-ghost]) { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .facet-tag::before { transition: none; } .facet-tag:is([data-leaving], [data-ghost]) { animation: none; } .sortable-row[data-ghost-target] .card-tab { animation: none; box-shadow: 0 0 6px 2px color-mix(in srgb, var(--fam, var(--fam-notes)) 50%, transparent); } }
 @media (max-width: 600px) { .facet-tags[data-layout="edge"] { left: -16px; } }
 @media (forced-colors: active) {
   .facet-tag::before { forced-color-adjust: none; background: CanvasText; }

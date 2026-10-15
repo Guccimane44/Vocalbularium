@@ -108,8 +108,4 @@ h1, h2, .deck .open { overflow-wrap: anywhere; }
 /* While a facet is dragged, the parents that would take it are outlined. */
 .sortable-row[data-facet-target] > * { outline: 2px dashed color-mix(in srgb, var(--focus) 60%, transparent); outline-offset: 4px; border-radius: 10px; }
 .sortable-row[data-facet-target="over"] > * { outline-style: solid; outline-color: var(--focus); }
-/* While a picked facet waits, the cards wearing its ghost take it on a click anywhere. */
-.sortable-row[data-ghost-target] > * { cursor: copy; outline: 2px dashed color-mix(in srgb, var(--focus) 45%, transparent); outline-offset: 4px; border-radius: 10px; }
-.sortable-row[data-ghost-target]:hover > * { outline-style: solid; outline-color: var(--focus); }
-.sortable-row[data-ghost-target] * { cursor: copy; }
-@media (forced-colors: active) { .sortable-row:is([data-facet-target], [data-ghost-target]) > * { outline-color: Highlight; } }
+@media (forced-colors: active) { .sortable-row[data-facet-target] > * { outline-color: Highlight; } .sortable-row[data-ghost-target] .card-tab { outline: 2px solid Highlight; } }

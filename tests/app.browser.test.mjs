@@ -2158,15 +2158,36 @@ test('parents and facets: core only on add, facets only on their own parent, the
   await waitFor(async () => await ghosts.count() === 2, 'picked up again');
   await a.page.locator('.page-header').click();
   await waitFor(async () => await ghosts.count() === 0, 'a click elsewhere puts it back');
+  // The cards are not outlined; their tabs glow, and only a tab or a ghost takes the click:
+  // a click on the rest of a card puts the facet back.
+  await plus.click();
+  await waitFor(async () => await ghosts.count() === 2, 'picked up again');
+  assert.equal(await card('German 1').evaluate(node => getComputedStyle(node).outlineStyle), 'none', 'the cards are not outlined');
+  assert.equal(await card('German 1').locator('.card-tab').evaluate(node => getComputedStyle(node).animationName), 'tab-glow');
+  assert.equal(await ghosts.first().evaluate(node => getComputedStyle(node).animationName), 'ghost-glow');
+  await card('German 1').locator('.card-fold').click();
+  await waitFor(async () => await ghosts.count() === 0, 'a click on the card’s content puts it back');
   assert.deepEqual((await german()).map(item => item.facets.includes('synonyms')), [false, false], 'putting it back adds nothing');
-  // A click anywhere on the second German's card places it there, and there only.
+  // A click on the second German's tab places it there, and there only: its tag flies in from the window.
+  await a.page.evaluate(() => {
+    window.tagMotions = [];
+    const original = Element.prototype.animate;
+    Element.prototype.animate = function (keyframes, options) {
+      if (this.classList?.contains('facet-tag')) window.tagMotions.push({ facet: this.dataset.facet, keyframes: keyframes.map(frame => frame.transform ?? null) });
+      return original.call(this, keyframes, options);
+    };
+  });
   await plus.click();
   await waitFor(async () => await ghosts.count() === 2, 'picked up once more');
   await card('German 2').locator('.card-tab').click();
   await waitFor(async () => (await german())[1].facets.includes('synonyms'), 'Synonyms added to the second German');
   assert.equal((await german())[0].facets.includes('synonyms'), false);
-  await waitFor(async () => await ghosts.count() === 0, 'the ghost becomes the tag');
+  await waitFor(async () => await ghosts.count() === 0, 'the tag takes the ghost’s place');
   assert.deepEqual(await card('German 2').locator('.facet-tag .facet-tag-mark').allTextContents(), ['Sy']);
+  const flight = (await a.page.evaluate(() => window.tagMotions)).filter(each => each.facet === 'synonyms' && each.keyframes.length === 3).at(-1);
+  assert.ok(flight, 'the placed tag flies in');
+  const [, dx] = flight.keyframes[0].match(/^translate\((-?[\d.]+)px/);
+  assert.ok(Number(dx) > 300, `from the window, to the right (${flight.keyframes[0]})`);
 
   // Deck settings: a parent hangs its facets' tags below its tab, which can be removed; new pages copy them.
   const deckId = (await store.page(pageId)).deckId;

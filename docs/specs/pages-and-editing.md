@@ -91,14 +91,14 @@ Clicking a tag shows its facet: a folded card unfolds first, then the facet's se
 
 ### Ghost tags
 
-Since 0.7.2 a facet's **+** in the module window is pick, then place, when more than one parent would take the facet: two German parents on a page cannot be told apart by their labels, but they can be pointed at. Pressing **+** picks the facet up, and the facet stays marked in the window. Each parent that would take it shows a **ghost tag** in the slot the facet's tag would take there: an outline of the tag, dashed and unfilled, marked with the facet's abbreviation, gently pulsing. It stands among the parent's [tags](#facet-tags) in the parent's order, which make room for it, on the left edge of a card with content, in the row of a folded card, or on a chain below the tab. A parent that already has the facet, a parent of another type, and a generating parent show none.
+Since 0.7.2 a facet's **+** in the module window is pick, then place, when more than one parent would take the facet: two German parents on a page cannot be told apart by their labels, but they can be pointed at. Pressing **+** picks the facet up, and the facet stays marked in the window. Each parent that would take it shows a **ghost tag** in the slot the facet's tag would take there: an outline of the tag, dashed and barely filled, marked with the facet's abbreviation, glowing softly in the family colour. The tab of each such parent glows the same way; the cards themselves are not outlined. It stands among the parent's [tags](#facet-tags) in the parent's order, which make room for it, on the left edge of a card with content, in the row of a folded card, or on a chain below the tab. A parent that already has the facet, a parent of another type, and a generating parent show none.
 
-- **Placing.** Clicking a ghost, or anywhere on the card wearing it, adds the facet to that parent: the ghost becomes its tag, the other ghosts go, and the facet waits for **Retry** as when dragged in. A folded card stays folded.
-- **Cancelling.** Escape, the facet's **+** again, or a click anywhere else puts the facet back and the ghosts go. Picking up another facet replaces the first.
+- **Placing.** Clicking a ghost, or the tab of the card wearing it, adds the facet to that parent. The other ghosts go; this one stops glowing and waits until the facet is saved, when its tag flies in from the facet in the module window, as when added with **+** to a single parent, and takes the ghost's place. The facet waits for **Retry** as when dragged in. A folded card stays folded.
+- **Cancelling.** Escape, the facet's **+** again, or a click anywhere else, the rest of a glowing card included, puts the facet back and the ghosts go. Picking up another facet replaces the first.
 - **From the keyboard.** Pressing **+** moves the focus to the first ghost, scrolled into view; Tab and Shift+Tab move between the ghosts only, Enter or Space places the facet, and Escape cancels and returns the focus to the **+**. Each ghost's accessible name says which parent it adds to, by label and position, such as "Add Synonyms to German 2".
 - **One parent or none.** With one parent that would take the facet, the **+** adds it at once and its tag flies there (0.7.1). With none, the facet stays disabled.
 
-Deck settings work the same way, with the ghosts hanging below the tabs. Dragging a facet is unchanged. Under reduced motion the ghosts do not pulse.
+Deck settings work the same way, with the ghosts hanging below the tabs. Dragging a facet is unchanged. Under reduced motion the ghosts and tabs glow without pulsing, and the tag appears without flying.
 
 ### Shaping a page
 
@@ -179,7 +179,7 @@ Generation uses the page's own content module instances. Finish editing with **S
 23. Dragging the Pinyin facet onto a German parent is refused; dropping it on a Chinese parent adds it, showing only its label until **Retry** regenerates that parent with pinyin.
 24. Deleting the Examples facet removes the examples from the parent; the next **Retry** regenerates the parent without them.
 25. Two German parents on one page generate independently; retrying one leaves the other unchanged.
-26. A German parent dragged onto a page comes with its core only. With a second German on the page, the two tabs read German 1 and German 2 (since 0.7.2). With two German parents on the page, the Examples facet's **+** shows a ghost tag on each, and clicking the second German's ghost or card adds Examples to it alone (since 0.7.2); on a page without a German parent, German facets are disabled in the module window, which shows no text explaining why (since 0.7.1).
+26. A German parent dragged onto a page comes with its core only. With a second German on the page, the two tabs read German 1 and German 2 (since 0.7.2). With two German parents on the page, the Examples facet's **+** shows a glowing ghost tag on each, and clicking the second German's ghost or tab flies the Examples tag to it alone (since 0.7.2); on a page without a German parent, German facets are disabled in the module window, which shows no text explaining why (since 0.7.1).
 27. A German parent with all four facets wears the tags Ar, Ex, Sy and An, in that order, on its left edge. Folded, the tags travel along the card's edge to its bottom right; unfolded, they return the same way. A facet added from the window flies its tag to the card; a deleted facet's tag pops.
 
 ## Implementation details still to specify

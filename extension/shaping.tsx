@@ -38,6 +38,10 @@ const BACK = 'module-window';
 export const moduleLabel = (type: string) => CATALOG[type as ModuleType]?.label ?? type;
 const fromWindow = (active: Active | null) => Boolean(active && String(active.id).startsWith(WINDOW));
 const windowType = (active: Active) => String(active.id).slice(WINDOW.length);
+// Where a facet picked up with its + is placed (0.7.2): the tab of a parent
+// that would take it, or the ghost of its tag there.
+const PLACE = '.card-tab, .facet-tag[data-ghost]';
+const PLACES = '.sortable-row[data-ghost-target] :is(.card-tab, .facet-tag[data-ghost])';
 const isFacet = (active: Active | null) => Boolean(active && String(active.id).startsWith(FACET));
 const facetId = (parent: string, facet: string) => `${FACET}${parent}:${facet}`;
 function facetOf(id: string | number): { parent: ParentType; facet: FacetType } {
@@ -282,7 +286,9 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
     if (!picked || picked.placing || disabled || !onAddFacet) return;
     const { parent, facet } = picked;
     setPicked({ parent, facet, placing: id });
-    if (await onAddFacet(id, parent, facet) === false) setPicked(null);
+    // The tag flies from the facet in the window into its ghost, as when added with a single target.
+    launchFacet(id, facet, document.querySelector(`.window-facet[data-parent="${parent}"][data-facet="${facet}"] .window-facet-body`)?.getBoundingClientRect());
+    if (await onAddFacet(id, parent, facet) === false) { launchFacet(id, facet, undefined); setPicked(null); }
   }
   // Picked up, the focus goes to the first ghost, scrolled into view.
   useEffect(() => {
@@ -307,7 +313,7 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
     if (!picked || picked.placing) return;
     const outside = (event: PointerEvent) => {
       const target = event.target as Element;
-      if (!target.closest?.('.sortable-row[data-ghost-target], .window-facet[data-picked]')) cancelPick(false);
+      if (!target.closest?.(`${PLACES}, .window-facet[data-picked]`)) cancelPick(false);
     };
     const keys = (event: globalThis.KeyboardEvent) => {
       if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); cancelPick(true); return; }
@@ -432,8 +438,8 @@ function SortableRow<T extends ShapeItem>({ item, disabled, renderItem, menuItem
   item: T; disabled: boolean; renderItem: (item: T, parts: RowParts) => ReactNode; menuItems: readonly string[];
   // While a facet is dragged: this entry would take it, or the facet is over it.
   facet?: 'target' | 'over';
-  // While a facet picked up with its + would land here: a click anywhere on
-  // the entry, its ghost included, places the facet (0.7.2).
+  // While a facet picked up with its + would land here: a click on the
+  // entry's tab or on its ghost places the facet (0.7.2).
   ghost: GhostTag | null; onPlace: () => void;
 }) {
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id: item.id, disabled, transition: MAKING_ROOM });
@@ -445,7 +451,10 @@ function SortableRow<T extends ShapeItem>({ item, disabled, renderItem, menuItem
   const choosing = Boolean(ghost && !ghost.placing);
   return <div ref={setNodeRef} style={style} className="sortable-row" data-row-id={item.id} data-dragging={isDragging || undefined} data-facet-target={facet}
     data-ghost-target={choosing || undefined}
-    onClickCapture={choosing ? event => { event.preventDefault(); event.stopPropagation(); onPlace(); } : undefined}>
+    onClickCapture={choosing ? event => {
+      if (!(event.target as Element).closest(PLACE)) return;
+      event.preventDefault(); event.stopPropagation(); onPlace();
+    } : undefined}>
     {renderItem(item, { drag, menu: <RowMenu label={item.label} items={menuItems} />, ghost })}
   </div>;
 }
