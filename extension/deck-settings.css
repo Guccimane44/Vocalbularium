@@ -26,28 +26,14 @@
 .preview-open:hover { background: var(--surface-hover); }
 .list-intro p { margin: 0 0 10px; font-size: 13px; line-height: 1.45; }
 
-.module-block { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 8px 8px 8px 10px; border-radius: var(--radius-md); background: var(--surface);
-  box-shadow: inset 3px 0 0 var(--fam, var(--line-control)), 0 0 0 1px var(--line); font-size: 14px; font-weight: 500; }
-/* A module is two parts edge to edge, like a card's tag: the six dots fill its
-   left end after the family edge, and the icon and name fill the rest up to
-   Remove. Each part lights up as a whole. */
-.module-block:has(> .block-label) { align-items: stretch; gap: 0; min-height: 40px; padding: 0 6px 0 3px; }
-.module-block .row-menu { flex: none; align-self: stretch; }
-.module-block .menu-button { height: 100%; padding: 0 7px 0 8px; border-radius: 0; box-shadow: inset -1px 0 0 var(--line); transition: background var(--dur-instant) ease; }
-.module-block .menu-button:hover, .module-block .menu-button[aria-expanded="true"] { background: var(--surface-hover); }
-.module-block .block-label { padding: 8px 10px; transition: background var(--dur-instant) ease; }
-.module-block .block-label:hover { background: var(--surface-hover); }
-.module-block > button { align-self: center; margin-left: 4px; }
-.module-block span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
-.module-block .fam-icon { flex: none; color: var(--fam); }
-/* The label drags the module (D07); the six dots before it open its menu. */
-.module-block .block-label { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; border-radius: 0; cursor: grab; touch-action: none; }
-.module-block .block-label:active { cursor: grabbing; }
-.module-block .menu-button { color: var(--ink-muted); }
-.module-block button:not(.menu-button) { padding: 4px 8px; font-size: 12px; border-color: transparent; color: var(--ink-soft); }
-.module-block button:not(.menu-button):hover { color: var(--ink); }
-.module-block[data-type="main-key"] { background: transparent; box-shadow: 0 0 0 1px var(--line); }
-.sortable-row[data-dragging] > .module-block { box-shadow: inset 3px 0 0 var(--fam, var(--line-control)), 0 0 0 1px var(--line), var(--shadow-drag); transform: rotate(-1deg); }
+/* Each module is an empty card: only its tab, as on a page (0.7.1), with a
+   parent's facets hung below it. The main key's tab has no menu, family or
+   actions, and stands outlined rather than filled. */
+.deck-settings .shaping-list { gap: 12px; padding-top: 14px; }
+.deck-settings .component[data-empty] { margin-top: 0; padding-bottom: 4px; }
+.deck-settings .component[data-empty][data-tagged="hanging"] { padding-bottom: 46px; }
+.deck-module[data-type="main-key"] .card-tab { padding: 0 12px; background: transparent; color: var(--ink-soft); box-shadow: inset 0 0 0 1px var(--line-control); }
+.deck-module[data-type="main-key"] .card-tab h2 { align-items: center; }
 
 /* The preview dialog: a sample page, the page view's own title and cards, smaller. */
 .preview-dialog { width: min(640px, calc(100vw - 32px)); max-width: none; max-height: calc(100vh - 64px); overflow: auto; padding: 20px 24px 28px;
@@ -81,7 +67,3 @@
   .colour-swatch { forced-color-adjust: none; border: 1px solid CanvasText; }
   .colour-swatch:has(input:checked) { box-shadow: 0 0 0 2px Canvas, 0 0 0 4px Highlight; }
 }
-/* A parent's facets on its row in deck settings (D08). */
-.block-facets { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 0 4px; padding: 0; list-style: none; }
-.block-facets .facet-chip { padding-right: 4px; }
-.block-facets .facet-chip button { padding: 0 5px; border: 0; background: transparent; color: inherit; font-size: 14px; line-height: 1; }

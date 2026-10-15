@@ -8,6 +8,8 @@ import type { RenderedFacet } from '@vocabularium/domain/render';
 import { facetLabel, isFacetOf, isParentType } from '@vocabularium/domain/parents';
 import type { FacetType, ParentType } from '@vocabularium/domain/parents';
 import type { PageEditorDraft } from '../types/editor-drafts.js';
+import { FacetTags, FOLD_MS } from './facet-tags.tsx';
+import type { TagLayout } from './facet-tags.tsx';
 import { FamilyIcon } from './families.tsx';
 import { mainKeyTier } from './main-key.ts';
 import { AT_THE_END, moduleLabel, ShapingArea, SixDots } from './shaping.tsx';
@@ -21,7 +23,7 @@ const ACTION_ICONS = {
   fold: <><path d="M7 20l5-5 5 5" /><path d="M7 4l5 5 5-5" /></>,
   unfold: <><path d="M7 15l5 5 5-5" /><path d="M7 9l5-5 5 5" /></>
 } as const;
-const ActionIcon = ({ name }: { name: keyof typeof ACTION_ICONS }) => <svg className="action-icon" viewBox="0 0 24 24" aria-hidden="true"
+export const ActionIcon = ({ name }: { name: keyof typeof ACTION_ICONS }) => <svg className="action-icon" viewBox="0 0 24 24" aria-hidden="true"
   fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">{ACTION_ICONS[name]}</svg>;
 
 // The comet that runs round a generating card's tab: its head, then a fading
@@ -122,9 +124,11 @@ function FacetBody({ facet, mainKey }: { facet: RenderedFacet; mainKey: string }
 }
 
 // A facet's Delete beside its label: at once when the facet has nothing in it,
-// otherwise after "Are you sure?" in the same row, like a card's Delete.
-function FacetDelete({ name, hasContent, disabled, onDelete }: { name: string; hasContent: boolean; disabled: boolean; onDelete: () => void }) {
-  const [asking, setAsking] = useState(false);
+// otherwise after "Are you sure?" in the same row, like a card's Delete. Its
+// tag's remove asks here too (0.7.1).
+function FacetDelete({ name, hasContent, disabled, asking, setAsking, onDelete }: {
+  name: string; hasContent: boolean; disabled: boolean; asking: boolean; setAsking: (value: boolean) => void; onDelete: () => void;
+}) {
   const cancel = useRef<HTMLButtonElement>(null);
   useEffect(() => { if (asking) cancel.current?.focus(); }, [asking]);
   if (!asking) return <button type="button" className="facet-delete" aria-label={`Delete ${name}`} disabled={disabled}
@@ -137,8 +141,8 @@ function FacetDelete({ name, hasContent, disabled, onDelete }: { name: string; h
   </span>;
 }
 
-// What a parent card's facets need to be deleted.
-type FacetControls = { title: string; disabled: boolean; onDelete: (facet: FacetType) => void };
+// What a parent card's facets need to be deleted, and the facet asking "Are you sure?".
+type FacetControls = { title: string; disabled: boolean; onDelete: (facet: FacetType) => void; asking: FacetType | null; setAsking: (facet: FacetType | null) => void };
 
 // Generated content as its parent's render contract describes (D08): the core,
 // then each facet under its label, and the facets waiting for the next Retry.
@@ -152,10 +156,11 @@ export function Content({ type, text, mainKey, waiting = [], controls }: {
     <span>{facetLabel(parent, facet)}</span>
     {note && <span className="facet-note muted">{note}</span>}
     {controls && <FacetDelete name={`${facetLabel(parent, facet)} from ${controls.title}`} hasContent={hasContent}
-      disabled={controls.disabled} onDelete={() => controls.onDelete(facet)} />}
+      disabled={controls.disabled} asking={controls.asking === facet} setAsking={value => controls.setAsking(value ? facet : null)}
+      onDelete={() => controls.onDelete(facet)} />}
   </h3>;
   const waitingSections = parent ? waiting.filter(facet => isFacetOf(parent, facet)).map(facet =>
-    <section key={facet} className="facet" data-facet={facet} data-waiting>{facetHead(facet as FacetType, false, 'Waiting for Retry')}</section>) : [];
+    <section key={facet} className="facet" data-facet={facet} data-waiting tabIndex={-1}>{facetHead(facet as FacetType, false, 'Waiting for Retry')}</section>) : [];
   if (rendered.kind === 'plain') return <>{rendered.text && <pre>{rendered.text}</pre>}{waitingSections}</>;
   const { core, facets } = rendered;
   return <div className="entry-content">
@@ -167,7 +172,7 @@ export function Content({ type, text, mainKey, waiting = [], controls }: {
       </p>}
       <ol className="meanings">{core.meanings.map(meaning => <li key={meaning.number} data-number={meaning.number}>{meaning.text}</li>)}</ol>
     </> : <p className="reading">{core.text}</p>}
-    {facets.map(facet => <section key={facet.facet} className="facet" data-facet={facet.facet}>
+    {facets.map(facet => <section key={facet.facet} className="facet" data-facet={facet.facet} tabIndex={-1}>
       {facetHead(facet.facet, true)}
       <FacetBody facet={facet} mainKey={mainKey} />
     </section>)}
@@ -270,7 +275,7 @@ function ConfirmAction({ kind, title, offset, onConfirm, onCancel }: {
 // A module from the window, shown where it would land on the page: built
 // like the empty card it will become, so the card that arrives takes its
 // place unchanged. It is only a picture; the row says what is happening.
-function LandingCard({ type }: { type: string }) {
+export function LandingCard({ type }: { type: string }) {
   const family = isModuleType(type) ? CATALOG[type].family ?? 'notes' : 'notes';
   return <article className={`component fam-${family}`} data-empty data-landing data-type={type} aria-hidden="true">
     <div className="card-head"><div className="card-tab">
@@ -304,6 +309,22 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
         setVanishing(current => { const next = new Set(current); next.delete(item.id); return next; });
       } });
     }, POOF_MS);
+  };
+  // The facet asking "Are you sure?" before it is deleted, on which card.
+  const [askingFacet, setAskingFacet] = useState<{ id: string; facet: FacetType } | null>(null);
+  // A tag shows its facet's section: the card unfolds first, then the section
+  // scrolls into view and takes the focus (0.7.1).
+  const showFacet = (item: Component, facet: FacetType, then?: () => void) => {
+    const wasFolded = folded.has(item.id);
+    if (wasFolded) fold(item.id, false);
+    setTimeout(() => {
+      const card = document.querySelector<HTMLElement>(`[data-component-id="${CSS.escape(item.id)}"]`);
+      const section = card?.querySelector<HTMLElement>(`.facet[data-facet="${CSS.escape(facet)}"]`) ?? card;
+      const instant = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+      section?.scrollIntoView({ block: 'center', behavior: instant ? 'auto' : 'smooth' });
+      if (section?.classList.contains('facet')) { section.focus({ preventScroll: true }); section.dataset.shown = ''; setTimeout(() => { delete section.dataset.shown; }, 1200); }
+      then?.();
+    }, wasFolded ? FOLD_MS : 0);
   };
   // The card asking whether to delete, and where its Delete stood in the row.
   const [confirming, setConfirming] = useState<{ id: string; offset: number; kind: 'delete' | 'retry' } | null>(null);
@@ -418,15 +439,31 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
   const card = (item: Component, title: string, { drag, menu }: RowParts) => {
     const family = isModuleType(item.moduleType) ? CATALOG[item.moduleType].family ?? 'notes' : 'notes';
     const empty = !blockText(item.content) && !item.waitingFacets?.length && item.status !== 'loading' && item.status !== 'failed' && editingId !== item.id;
+    const removeFacet = (facet: FacetType) => void run(async () => { await deleteFacet(item.id, item.moduleType as ParentType, facet); });
     const controls: FacetControls | undefined = isParentType(item.moduleType) ? { title, disabled: disabled || working || item.status === 'loading',
-      onDelete: facet => void run(async () => { await deleteFacet(item.id, item.moduleType as ParentType, facet); }) } : undefined;
+      onDelete: removeFacet, asking: askingFacet?.id === item.id ? askingFacet.facet : null,
+      setAsking: facet => setAskingFacet(facet ? { id: item.id, facet } : null) } : undefined;
     // While it generates, a card is only its tab, with a spark running round
     // its edge; its content opens once there is some (0.6.3).
     const generating = item.status === 'loading' && editingId !== item.id;
     const isFolded = !empty && !generating && folded.has(item.id) && editingId !== item.id;
     const gone = vanishing.has(item.id);
+    // The parent's facets as tags on the card's edge, or hung from its tab while it is only its tab (0.7.1).
+    const layout: TagLayout = empty || generating ? 'hanging' : isFolded ? 'folded' : 'edge';
+    const tagged = Boolean(controls && item.facets?.length);
+    const tags = controls ? <FacetTags holderId={item.id} parent={item.moduleType as ParentType} facets={item.facets ?? []}
+      layout={layout} title={title} disabled={controls.disabled}
+      onOpen={layout === 'hanging' ? undefined : facet => showFacet(item, facet)}
+      onRemove={facet => {
+        // A facet with content asks first, in its section; one waiting for Retry goes at once.
+        const rendered = renderContent(item.moduleType, blockText(item.content));
+        const hasContent = rendered.kind === 'parent' && rendered.facets.some(each => each.facet === facet);
+        if (hasContent && layout !== 'hanging') showFacet(item, facet, () => setAskingFacet({ id: item.id, facet }));
+        else removeFacet(facet);
+      }} /> : null;
     return <article className={`component fam-${family}`} data-empty={empty || undefined} data-generating={generating || undefined}
-      data-folded={isFolded || undefined} data-vanishing={gone || undefined}
+      data-folded={isFolded || undefined} data-vanishing={gone || undefined} data-tagged={tagged ? layout : undefined}
+      style={tagged ? { '--tags': item.facets!.length } as CSSProperties : undefined}
       data-component-id={item.id} data-type={item.moduleType} data-status={item.status ?? undefined} data-editing={editingId === item.id || undefined}>
       <div className="card-head" onKeyDown={event => {
         if (event.key !== 'Escape' || opened !== item.id) return;
@@ -450,6 +487,7 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
         {item.status === 'failed' && <p className="card-status"><span className="list-status" data-status="failed">Generation failed</span></p>}
         {editor(item, title) || <Reveal status={item.status} title={title}><ComponentBody item={item} title={title} editable={false} draft={draft} locked={locked} persist={persist} mainKey={mainKey} controls={controls} /></Reveal>}
       </div></div>}
+      {tags}
     </article>;
   };
 

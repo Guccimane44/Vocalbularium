@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import Value from 'typebox/value';
 import { DeckConfigurationSchema, FacetAddRequestSchema, PageSchema } from '@vocabularium/contracts';
 import {
-  applicableFacets, facetAddBlocked, facetDeleteBlocked, facetsOf, facetTargets, facetUnavailable, isParentType, ordered, PARENTS,
+  applicableFacets, facetAbbreviation, facetAddBlocked, facetDeleteBlocked, facetsOf, facetTargets, facetUnavailable, isParentType, ordered, PARENTS,
   validateFacets, withFacet
 } from '@vocabularium/domain/parents';
 import { copyModules, firstMeaning, validateConfiguration } from '@vocabularium/domain/page-modules';
@@ -18,6 +18,18 @@ test('the first catalog is German and Chinese in the Translation family, with fa
   assert.deepEqual(facetsOf('chinese'), ['examples', 'pinyin']);
   for (const parent of Object.values(PARENTS)) assert.equal(parent.family, 'translation');
   assert.ok(isParentType('german') && !isParentType('german-examples') && !isParentType('text'));
+});
+
+test('every facet type has its own abbreviation for its tag, the same on every parent (0.7.1)', () => {
+  const byType = new Map();
+  for (const parent of Object.keys(PARENTS)) for (const facet of facetsOf(parent)) {
+    const abbreviation = facetAbbreviation(parent, facet);
+    assert.match(abbreviation, /^\p{Lu}\p{Ll}?$/u, `${parent} ${facet}`);
+    assert.equal(byType.get(facet) ?? abbreviation, abbreviation, `${facet} is marked alike on every parent`);
+    byType.set(facet, abbreviation);
+  }
+  assert.equal(new Set(byType.values()).size, byType.size, 'no two facet types share an abbreviation');
+  assert.deepEqual(facetsOf('german').map(facet => facetAbbreviation('german', facet)), ['Ar', 'Ex', 'Sy', 'An']);
 });
 
 test('a word gets every facet; a sentence only Examples and Pinyin', () => {

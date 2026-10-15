@@ -58,13 +58,15 @@ The main key module belongs to no family; it is shown as the page title. Transla
 | `German` | Translation | A word or phrase: an explanation in German, in the layout of the retired `German explanation`. A sentence: its German translation. | Article, Examples, Synonyms, Antonyms |
 | `Chinese` | Translation | A word or phrase: an explanation in Chinese, in the same layout. A sentence: its Chinese translation. Simplified characters. | Examples, Pinyin |
 
-| Facet | Word or phrase | Sentence |
-| --- | --- | --- |
-| Article (German) | The translation's article, gender and plural; shown for nouns only | Not shown |
-| Examples | Example sentences using the translation, each with its translation into the main key's language | One similar sentence, with its translation |
-| Synonyms (German) | Words with the same meaning as the translation | Not shown |
-| Antonyms (German) | Words with the opposite meaning | Not shown |
-| Pinyin (Chinese) | The pinyin of the Chinese translation | The pinyin of the Chinese translation |
+| Facet | Tag | Word or phrase | Sentence |
+| --- | --- | --- | --- |
+| Article (German) | Ar | The translation's article, gender and plural; shown for nouns only | Not shown |
+| Examples | Ex | Example sentences using the translation, each with its translation into the main key's language | One similar sentence, with its translation |
+| Synonyms (German) | Sy | Words with the same meaning as the translation | Not shown |
+| Antonyms (German) | An | Words with the opposite meaning | Not shown |
+| Pinyin (Chinese) | Py | The pinyin of the Chinese translation | The pinyin of the Chinese translation |
+
+Each facet type has an abbreviation that marks its [tag](pages-and-editing.md#facet-tags) on a card (since 0.7.1). No two facet types share one, and one facet type, such as Examples, has the same abbreviation on every parent.
 
 When the main key is already in the parent's language, examples have no translation line. The input modules belong to these families: Context and Text to Notes; the main key to none. Names remain provisional.
 
