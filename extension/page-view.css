@@ -302,7 +302,10 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
 .facet-tag::before { content: ""; position: absolute; left: 50%; top: 50%; width: 24px; height: 30px; translate: -50% -50%; rotate: var(--turn);
   background: var(--fam, var(--fam-notes)); clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 76%, 0 100%);
   filter: drop-shadow(0 1px 1px #0002); transition: rotate var(--tag-travel) cubic-bezier(.45, 0, .25, 1); }
-.facet-tag-open { position: relative; display: grid; place-items: start center; width: 100%; height: 100%; padding: 5px 0 0; border: 0; border-radius: 0;
+/* The mark is centred in the bookmark's solid body, beside its notch, which
+   cuts 24% into the free end: below the mark on a hanging or folded tag, to
+   its left on the card's edge. Every tag, ghosts included, the same way. */
+.facet-tag-open { position: relative; display: grid; place-items: center; width: 100%; height: 100%; padding: 0 0 7px; border: 0; border-radius: 0;
   background: transparent; color: var(--on-fam, var(--on-ink)); font: 700 11px/1 var(--font-text); letter-spacing: .02em; cursor: default; }
 button.facet-tag-open { cursor: pointer; }
 button.facet-tag-open:hover { background: transparent; }
@@ -320,11 +323,10 @@ button.facet-tag-open:hover { background: transparent; }
 /* Stuck out of the left edge, one under another below the tab, notch outward. */
 .facet-tags[data-layout="edge"] { left: -28px; top: 34px; }
 .facet-tags[data-layout="edge"] .facet-tag { width: 30px; height: 24px; left: 0; top: calc(var(--i) * 30px); --turn: 90deg; }
-.facet-tags[data-layout="edge"] .facet-tag-open { place-items: center end; padding: 0 8px 0 0; }
+.facet-tags[data-layout="edge"] .facet-tag-open { padding: 0 0 0 7px; }
 /* Folded: in a row at the right of the bottom edge, hanging below it. */
 .facet-tags[data-layout="folded"] { right: 18px; top: calc(100% - 6px); }
 .facet-tags[data-layout="folded"] .facet-tag { right: calc((var(--n) - 1 - var(--i)) * 28px); top: 0; }
-.facet-tags[data-layout="folded"] .facet-tag-open { padding-top: 7px; }
 /* Hung below the tab, each on its own chain of small links. */
 .facet-tags[data-layout="hanging"] { left: 28px; top: 28px; }
 .facet-tag::after { content: ""; position: absolute; left: 50%; top: -11px; width: 6px; height: 12px; translate: -50% 0; opacity: 0; pointer-events: none;
@@ -350,15 +352,54 @@ button.facet-tag-open:hover { background: transparent; }
 .component[data-tagged="folded"] { margin-bottom: 18px; }
 /* With content, the card is at least as tall as the tags on its left edge. */
 .component[data-tagged="edge"] { min-height: calc(40px + var(--tags, 0) * 30px); }
+/* A ghost tag (0.7.2): the tag's outline, dashed and barely filled, marked
+   in the family colour, where a picked-up facet would go. Placed, it waits
+   while the facet is saved; the tag then flies in from the window and takes
+   its place. */
+.facet-tag[data-ghost]::before { background: color-mix(in srgb, var(--fam, var(--fam-notes)) 14%, transparent); filter: none; }
+.facet-ghost-shape { position: absolute; left: 50%; top: 50%; width: 24px; height: 30px; translate: -50% -50%; rotate: var(--turn); overflow: visible; pointer-events: none;
+  fill: none; stroke: var(--fam, var(--fam-notes)); stroke-width: 1.6; stroke-dasharray: 3 2.4; stroke-linejoin: round; }
+.facet-tag[data-ghost] .facet-tag-open { color: var(--fam, var(--fam-notes)); cursor: copy; }
+.facet-ghost:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+/* While a facet is picked up, each parent that would take it glows at its
+   tab and its ghost on one beat. One value drives every glow: --glow-level
+   breathes from 0 to 1 and back on the list, and each tab and ghost draws
+   its glow from it, so they cannot drift apart and peak together. The tab
+   breathes an aura in its family colour, a ring tightening round it, and a
+   sheen of light sweeps across it, crossing its middle at the peak; the
+   ghost swells, fills and haloes. */
+@property --glow-level { syntax: "<number>"; inherits: true; initial-value: 0; }
+@property --glow-sweep { syntax: "<number>"; inherits: true; initial-value: 0; }
+.shaping-list[data-picking] { animation: glow-beat 1.6s infinite; }
+@keyframes glow-beat {
+  0% { --glow-level: 0; --glow-sweep: 0; animation-timing-function: ease-in-out; }
+  50% { --glow-level: 1; animation-timing-function: ease-in-out; }
+  100% { --glow-level: 0; --glow-sweep: 1; } }
+.sortable-row[data-ghost-target] .card-tab { --glow: color-mix(in srgb, var(--fam, var(--fam-notes)) 80%, white); position: relative; overflow: hidden; cursor: copy;
+  box-shadow: 0 0 0 calc(1px + 2px * var(--glow-level)) color-mix(in srgb, var(--glow) 50%, transparent),
+    0 0 calc(4px + 14px * var(--glow-level)) calc(5px * var(--glow-level)) var(--glow),
+    0 0 calc(36px * var(--glow-level)) calc(12px * var(--glow-level)) color-mix(in srgb, var(--glow) 45%, transparent); }
+.sortable-row[data-ghost-target] .card-tab * { cursor: copy; }
+.sortable-row[data-ghost-target] .card-tab::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(105deg, transparent 30%, rgb(255 255 255 / .6) 48%, rgb(255 255 255 / .15) 56%, transparent 70%) no-repeat;
+  background-size: 300% 100%; background-position: calc(100% - 100% * var(--glow-sweep)) 0; }
+.facet-tag[data-ghost=""] { --glow: color-mix(in srgb, var(--fam, var(--fam-notes)) 80%, white); scale: calc(1 + .12 * var(--glow-level));
+  filter: drop-shadow(0 0 calc(1px + 2px * var(--glow-level)) var(--glow)) drop-shadow(0 0 calc(10px * var(--glow-level)) var(--glow))
+    drop-shadow(0 0 calc(22px * var(--glow-level)) color-mix(in srgb, var(--glow) 55%, transparent)); }
+.facet-tag[data-ghost=""]::before { background: color-mix(in srgb, var(--fam, var(--fam-notes)) 26%, transparent); opacity: calc(.5 + .5 * var(--glow-level)); }
 /* Leaving, a tag pops where it stands, like a deleted card. */
 .facet-tag[data-leaving] { pointer-events: none; animation: bop 240ms cubic-bezier(.3, 0, .2, 1) forwards; }
 @keyframes tag-shown { 0%, 100% { box-shadow: none; } 30% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--fam, var(--focus)) 35%, transparent); } }
 .facet[data-shown] { border-radius: 6px; animation: tag-shown 1.2s var(--ease-out); }
 .facet:focus { outline: none; }
 .facet:focus-visible { outline: 2px solid var(--focus); outline-offset: 4px; border-radius: 4px; }
-@media (prefers-reduced-motion: reduce) { .facet-tag::before { transition: none; } .facet-tag[data-leaving] { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .facet-tag::before { transition: none; } .facet-tag[data-leaving] { animation: none; }
+  .shaping-list[data-picking] { animation: none; --glow-level: .7; --glow-sweep: .5; } }
 @media (max-width: 600px) { .facet-tags[data-layout="edge"] { left: -16px; } }
 @media (forced-colors: active) {
   .facet-tag::before { forced-color-adjust: none; background: CanvasText; }
   .facet-tag-open { forced-color-adjust: none; color: Canvas; }
+  .facet-tag[data-ghost=""]::before { background: Canvas; }
+  .facet-tag[data-ghost=""] .facet-tag-open { color: CanvasText; }
+  .facet-ghost-shape { forced-color-adjust: none; stroke: CanvasText; }
 }
