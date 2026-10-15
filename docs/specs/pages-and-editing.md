@@ -72,6 +72,23 @@ The six dots before the family icon open the card's **menu**. Its entries, **Dup
 
 The main key, shown as the page title, has only **Edit**, always shown beside it like **Delete page**, and no lock mark (since 0.6.3; from 0.5.2 Edit appeared on hover and focus, beside a lock mark). There are no page-level edit, generate, or retry controls; **Delete page** sits in the page header.
 
+### Facet tags
+
+Since 0.7.1 a parent's card also wears one **tag** per facet it has, shaped like a bookmark in the parent's family colour and marked with the facet's abbreviation ([modules](modules.md#catalog)). The tags follow the order the parent type defines, whatever order the facets were added in. Where they sit follows the card:
+
+- A card with content wears its tags stuck out of its left edge, one under another below the tab.
+- A folded card wears them in a row at the right of its bottom edge, hanging below it.
+- A card that is only its tab, such as one that is generating, hangs them below the tab, each on a short chain. Every module in deck settings is drawn this way ([decks and configuration](decks-and-configuration.md#configuration)).
+
+The tags move with the card:
+
+1. **A facet is added.** Its tag flies from where it was let go, or from the facet in the module window when added with **+**, to its place: the left edge of a card with content, the bottom right of a folded card, or below the tab.
+2. **The card folds.** The tags move down the left edge and along the bottom edge to the bottom right.
+3. **The card unfolds.** They move back the same way, along the bottom edge and up the left side.
+4. **A facet is deleted.** Its tag pops where it stands and disappears, like a deleted card.
+
+Clicking a tag shows its facet: a folded card unfolds first, then the facet's section scrolls into view and takes the focus; a facet that does not apply to the input has no section, so the card itself is shown. Pointed at or focused, a tag shows a small remove on its corner, which deletes the facet like the **Delete** beside its label: a facet with content shows its section and asks "Are you sure?" there; one with nothing in it, such as a facet waiting for **Retry**, goes at once. A tag shows no text beyond its abbreviation; its facet's name is in its accessible name. Under reduced motion the tags stand in their places without moving, and a deleted tag simply goes.
+
 ### Shaping a page
 
 The user shapes a page directly, outside editing. Each shaping step is saved immediately as one operation, with no separate **Save**, and reaches other installations in the order it arrives, like every save ([accounts and synchronization](accounts-and-sync.md#synchronization)). Shaping is unavailable while a component is being edited.
@@ -151,7 +168,8 @@ Generation uses the page's own content module instances. Finish editing with **S
 23. Dragging the Pinyin facet onto a German parent is refused; dropping it on a Chinese parent adds it, showing only its label until **Retry** regenerates that parent with pinyin.
 24. Deleting the Examples facet removes the examples from the parent; the next **Retry** regenerates the parent without them.
 25. Two German parents on one page generate independently; retrying one leaves the other unchanged.
-26. A German parent dragged onto a page comes with its core only. With two German parents on the page, the Examples facet's **+** asks which one gets it; on a page without a German parent, German facets are disabled in the module window, which says why.
+26. A German parent dragged onto a page comes with its core only. With two German parents on the page, the Examples facet's **+** asks which one gets it; on a page without a German parent, German facets are disabled in the module window, which shows no text explaining why (since 0.7.1).
+27. A German parent with all four facets wears the tags Ar, Ex, Sy and An, in that order, on its left edge. Folded, the tags travel along the card's edge to its bottom right; unfolded, they return the same way. A facet added from the window flies its tag to the card; a deleted facet's tag pops.
 
 ## Implementation details still to specify
 

@@ -9,7 +9,9 @@ export type ParentType = 'german' | 'chinese';
 export type FacetType = 'article' | 'examples' | 'synonyms' | 'antonyms' | 'pinyin';
 export type ParentFamily = 'translation';
 
-export type FacetDefinition = Readonly<{ label: string; description: string; applies: readonly InputType[] }>;
+// `abbreviation` marks the facet's tag on its parent's card (0.7.1): never
+// repeated among the facet types, and the same for one facet type on every parent.
+export type FacetDefinition = Readonly<{ label: string; abbreviation: string; description: string; applies: readonly InputType[] }>;
 export type ParentDefinition = Readonly<{
   label: string;
   description: string;
@@ -28,18 +30,18 @@ export const PARENTS: Readonly<Record<ParentType, ParentDefinition>> = Object.fr
     label: 'German', family: 'translation', meaningsHeading: 'Bedeutungen',
     description: 'Explains a word in German, or translates a sentence into German.',
     facets: {
-      article: { label: 'Article', description: 'The German article, gender and plural of a noun.', applies: WORDS },
-      examples: { label: 'Examples', description: 'Example sentences with their translations.', applies: BOTH },
-      synonyms: { label: 'Synonyms', description: 'German words with the same meaning.', applies: WORDS },
-      antonyms: { label: 'Antonyms', description: 'German words with the opposite meaning.', applies: WORDS }
+      article: { label: 'Article', abbreviation: 'Ar', description: 'The German article, gender and plural of a noun.', applies: WORDS },
+      examples: { label: 'Examples', abbreviation: 'Ex', description: 'Example sentences with their translations.', applies: BOTH },
+      synonyms: { label: 'Synonyms', abbreviation: 'Sy', description: 'German words with the same meaning.', applies: WORDS },
+      antonyms: { label: 'Antonyms', abbreviation: 'An', description: 'German words with the opposite meaning.', applies: WORDS }
     }
   },
   chinese: {
     label: 'Chinese', family: 'translation', meaningsHeading: '释义',
     description: 'Explains a word in Chinese, or translates a sentence into Chinese.',
     facets: {
-      examples: { label: 'Examples', description: 'Example sentences with their translations.', applies: BOTH },
-      pinyin: { label: 'Pinyin', description: 'The pinyin of the Chinese translation.', applies: BOTH }
+      examples: { label: 'Examples', abbreviation: 'Ex', description: 'Example sentences with their translations.', applies: BOTH },
+      pinyin: { label: 'Pinyin', abbreviation: 'Py', description: 'The pinyin of the Chinese translation.', applies: BOTH }
     }
   }
 });
@@ -49,6 +51,7 @@ export const facetsOf = (parent: ParentType): FacetType[] => Object.keys(PARENTS
 export const isFacetOf = (parent: string, facet: string): facet is FacetType =>
   isParentType(parent) && Object.hasOwn(PARENTS[parent].facets, facet);
 export const facetLabel = (parent: ParentType, facet: FacetType): string => PARENTS[parent].facets[facet]!.label;
+export const facetAbbreviation = (parent: ParentType, facet: FacetType): string => PARENTS[parent].facets[facet]!.abbreviation;
 
 // The given facets in the parent's order, without duplicates or strangers.
 export function ordered(parent: ParentType, facets: readonly string[]): FacetType[] {

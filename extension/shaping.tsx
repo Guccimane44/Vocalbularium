@@ -13,6 +13,7 @@ import { addBlocked, CATALOG, FAMILIES, FAMILY_LABELS, WINDOW_MODULES } from '@v
 import type { ModuleFamily, ModuleType } from '@vocabularium/domain/page-modules';
 import { facetLabel, facetsOf, facetTargets, facetUnavailable, isParentType, PARENTS } from '@vocabularium/domain/parents';
 import type { FacetHolder, FacetType, ParentType } from '@vocabularium/domain/parents';
+import { launchFacet } from './facet-tags.tsx';
 import { FamilyIcon } from './families.tsx';
 
 // Shared by the page view and deck settings (D02, D04): a list whose entries
@@ -233,8 +234,12 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
   // The facet's targets outlive its drag: dnd-kit announces the drop after
   // onDragEnd, and a facet's next pickup sets them afresh.
   function finish() { setDragged(null); setSlot(null); setFacetOver(null); }
-  async function addFacet(id: string, parent: ParentType, facet: FacetType) {
-    if (!disabled) await onAddFacet?.(id, parent, facet);
+  // The facet's tag flies to its parent from where the facet was let go, or
+  // from its place in the window when added with its + (0.7.1).
+  async function addFacet(id: string, parent: ParentType, facet: FacetType, from?: DOMRect) {
+    if (disabled || !onAddFacet) return;
+    launchFacet(id, facet, from ?? document.querySelector(`.window-facet[data-parent="${parent}"][data-facet="${facet}"] .window-facet-body`)?.getBoundingClientRect());
+    if (await onAddFacet(id, parent, facet) === false) launchFacet(id, facet, undefined);
   }
   // The window's + adds a module as the last entry: it waits at the end as a
   // dropped module does, scrolled into view.
@@ -249,8 +254,9 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
     const { active, over } = event;
     if (isFacet(active)) {
       const target = over && facetTargetIds.current.has(String(over.id)) ? String(over.id) : null;
+      const from = document.querySelector('.facet-preview .facet-chip')?.getBoundingClientRect();
       finish();
-      if (target) { const { parent, facet } = facetOf(active.id); await addFacet(target, parent, facet); }
+      if (target) { const { parent, facet } = facetOf(active.id); await addFacet(target, parent, facet, from); }
       return;
     }
     const target = fromWindow(active) ? landing(active, over, keyboardDrag(event)) : null;
@@ -446,9 +452,10 @@ const PlusIcon = () => <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" s
 // A parent's facet in the window (D08), drawn as a part of its parent. It
 // drags like a module but lands only on a parent of its own type; its + adds
 // it to the one parent that would take it, or offers them when there are
-// several. With none, it says why.
-function WindowFacet({ parent, facet, blocked, explain, targets, holderName, add }: {
-  parent: ParentType; facet: FacetType; blocked: string | null; explain: boolean;
+// several. With none, it is disabled; why is told only to assistive
+// technology, never as text in the window (0.7.1).
+function WindowFacet({ parent, facet, blocked, targets, holderName, add }: {
+  parent: ParentType; facet: FacetType; blocked: string | null;
   targets: readonly FacetHolder[]; holderName: (id: string) => string; add: (id: string) => void;
 }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: facetId(parent, facet), disabled: Boolean(blocked) });
@@ -492,7 +499,6 @@ function WindowFacet({ parent, facet, blocked, explain, targets, holderName, add
         <button type="button" role="menuitem" tabIndex={-1} onClick={() => { close(); add(target.id); }}>{holderName(target.id)}</button>
       </li>)}
     </ul>}
-    {blocked && explain && <p className="window-reason muted">{blocked}</p>}
   </li>;
 }
 
@@ -570,7 +576,7 @@ function ModuleWindow({ types, disabled, unavailable, where, addAtEnd, holders, 
         {modules.map(type => <WindowModule key={type} type={type} explain={!disabled} present={types.includes(type)} addAtEnd={addAtEnd}
           blocked={disabled ? unavailable ?? 'Unavailable' : addBlocked(types.map(value => ({ type: value })), type)}>
           {isParentType(type) && addFacet && <ul className="window-facets" aria-label={`${CATALOG[type].label} facets`}>
-            {facetsOf(type).map(facet => <WindowFacet key={facet} parent={type} facet={facet} explain={!disabled} holderName={holderName}
+            {facetsOf(type).map(facet => <WindowFacet key={facet} parent={type} facet={facet} holderName={holderName}
               targets={facetTargets(holders, type, facet)} add={id => addFacet(id, type, facet)}
               blocked={disabled ? unavailable ?? 'Unavailable' : facetUnavailable(holders, type, facet)} />)}
           </ul>}

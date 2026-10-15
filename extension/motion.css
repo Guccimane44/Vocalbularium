@@ -26,7 +26,7 @@
 
 /* A dragged card tilts slightly; the landing line opens out; the others make room
    with dnd-kit's own transition. */
-.sortable-row > .component, .sortable-row > .module-block { transition: transform var(--dur-spring) var(--ease-spring), box-shadow var(--dur-spring) ease; }
+.sortable-row > .component { transition: transform var(--dur-spring) var(--ease-spring), box-shadow var(--dur-spring) ease; }
 .sortable-row[data-dragging] > .component { transform: rotate(-1deg) scale(1.01); }
 @keyframes line-open { from { transform: scaleX(.3); opacity: 0; } to { transform: none; opacity: 1; } }
 .drag-preview { animation: pick-up var(--dur-quick) var(--ease-spring) both; }

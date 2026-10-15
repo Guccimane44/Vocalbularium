@@ -1,4 +1,5 @@
-import { useEffect, useReducer, useRef } from 'react';
+import { useEffect, useReducer, useRef, useState } from 'react';
+import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent } from 'react';
 import type { DeckEditorDraft } from '../types/editor-drafts.js';
 import type { DeckColour, DeckConfiguration } from '@vocabularium/contracts';
 import { applicableFacets, facetLabel, isParentType, withFacet } from '@vocabularium/domain/parents';
@@ -6,10 +7,12 @@ import type { FacetType, ParentType } from '@vocabularium/domain/parents';
 import { addBlocked, CATALOG, DECK_COLOURS, isModuleType } from '@vocabularium/domain/page-modules';
 import type { ModuleFamily } from '@vocabularium/domain/page-modules';
 import { deckColour } from './deck-colour.ts';
+import { FacetTags } from './facet-tags.tsx';
 import { FamilyIcon } from './families.tsx';
 import { mainKeyTier } from './main-key.ts';
-import { Content } from './page-view.tsx';
-import { moduleLabel, ShapingArea, SixDots } from './shaping.tsx';
+import { ActionIcon, Content, LandingCard } from './page-view.tsx';
+import { moduleLabel, ShapingArea } from './shaping.tsx';
+import type { RowParts } from './shaping.tsx';
 
 // A parent added to the deck starts with its core only (D08).
 const instance = (type: string, facets?: string[]) => ({ id: crypto.randomUUID(), type, ...(facets || isParentType(type) ? { facets: facets ?? [] } : {}) });
@@ -103,6 +106,39 @@ function PreviewDialog({ modules, sampleType, choose, close }: {
   </dialog>;
 }
 
+// In deck settings a module has no component yet, so it is drawn as an empty
+// component is on a page (0.7.1): only its tab, which drags it and, clicked,
+// ejects Remove beside it, and a parent's facets hung below the tab on chains.
+function DeckModule({ item, parts, busy, opened, setOpened, onRemove, onRemoveFacet }: {
+  item: { id: string; label: string; type: string; facets?: string[] }; parts: RowParts; busy: boolean;
+  opened: boolean; setOpened: (value: boolean) => void; onRemove: () => void; onRemoveFacet: (facet: string) => void;
+}) {
+  const family = familyOf(item.type);
+  const tagged = isParentType(item.type) && Boolean(item.facets?.length);
+  return <article className={`component deck-module fam-${family}`} data-empty data-module-id={item.id} data-type={item.type} data-tagged={tagged ? 'hanging' : undefined}>
+    <div className="card-head" onKeyDown={(event: ReactKeyboardEvent<HTMLDivElement>) => {
+      if (event.key !== 'Escape' || !opened) return;
+      setOpened(false);
+      event.currentTarget.querySelector<HTMLElement>('.tab-button')?.focus();
+    }}>
+      <div className="card-tab">
+        {parts.menu}
+        <h2><button type="button" className="tab-button" {...parts.drag} aria-disabled={undefined}
+          aria-expanded={opened} aria-controls={opened ? `actions-${item.id}` : undefined} onClick={() => setOpened(!opened)}>
+          <FamilyIcon family={family} />
+          <span className="tab-label">{item.label}</span>
+        </button></h2>
+      </div>
+      {opened && <div id={`actions-${item.id}`} className="card-actions" role="group" aria-label={`${item.label} actions`} data-open>
+        <button style={{ '--i': 0 } as CSSProperties} className="action-delete" aria-label={`Remove ${item.label}`} disabled={busy}
+          onClick={() => { setOpened(false); onRemove(); }}><ActionIcon name="delete" />Remove</button>
+      </div>}
+    </div>
+    {isParentType(item.type) && <FacetTags holderId={item.id} parent={item.type} facets={item.facets ?? []} layout="hanging" title={item.label}
+      disabled={busy} onRemove={onRemoveFacet} />}
+  </article>;
+}
+
 type Props = {
   draft: DeckEditorDraft;
   send: (message: Record<string, unknown>) => Promise<unknown>;
@@ -113,6 +149,16 @@ type Props = {
 
 export function ConfigurationView({ draft, send, onSaved, onCancel, externalError }: Props) {
   const [, redraw] = useReducer((value: number) => value + 1, 0);
+  // The module whose tab has ejected its Remove; one at a time.
+  const [opened, setOpened] = useState<string | null>(null);
+  useEffect(() => {
+    if (!opened) return;
+    const outside = (event: PointerEvent) => {
+      if (!(event.target as Element).closest?.(`[data-module-id="${CSS.escape(opened)}"] .card-head`)) setOpened(null);
+    };
+    document.addEventListener('pointerdown', outside);
+    return () => document.removeEventListener('pointerdown', outside);
+  }, [opened]);
   const refresh = () => redraw();
   const modules = draft.deck.modules;
   const busy = Boolean(draft.saving || draft.pending);
@@ -210,32 +256,17 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
           </div>
           <p className="muted">New pages start with these modules, in this order. Existing pages keep their own.</p>
         </div>
-        <div className="module-block" data-type={key.type}>
-          <span>{moduleLabel(key.type)}</span>
+        {/* The main key never moves and cannot be removed: a tab with its name only. */}
+        <div className="component deck-module" data-empty data-type={key.type}>
+          <div className="card-head"><div className="card-tab"><h2><span className="tab-label">{moduleLabel(key.type)}</span></h2></div></div>
         </div>
       </>}
       menuItems={DECK_MODULE_MENU}
-      renderLanding={type => <div className={`module-block fam-${familyOf(type)}`} data-landing data-type={type} aria-hidden="true">
-        <span className="row-menu"><span className="menu-button"><SixDots /></span></span>
-        <span className="block-label"><FamilyIcon family={familyOf(type)} /><span>{moduleLabel(type)}</span></span>
-        <button type="button" tabIndex={-1}>Remove</button>
-      </div>}
-      renderItem={(item, { drag, menu }) => <div className={`module-block fam-${familyOf(item.type)}`} data-type={item.type}>
-        {menu}
-        <span className="block-label" {...drag} aria-disabled={undefined}>
-          <FamilyIcon family={familyOf(item.type)} />
-          <span>{item.label}</span>
-        </span>
-        {isParentType(item.type) && <ul className="block-facets" aria-label={`${item.label} facets`}>
-          {(item.facets ?? []).map(facet => <li key={facet} className="facet-chip">
-            {facetLabel(item.type as ParentType, facet as FacetType)}
-            <button type="button" aria-label={`Remove ${facetLabel(item.type as ParentType, facet as FacetType)} from ${item.label}`} disabled={busy}
-              onClick={() => removeFacet(item.id, facet)}>×</button>
-          </li>)}
-        </ul>}
-        <button aria-label={`Remove ${item.label}`} disabled={busy}
-          onClick={() => { modules.splice(modules.findIndex(module => module.id === item.id), 1); refresh(); }}>Remove</button>
-      </div>} />
+      renderLanding={type => <LandingCard type={type} />}
+      renderItem={(item, parts) => <DeckModule item={item} parts={parts} busy={busy}
+        opened={opened === item.id} setOpened={value => setOpened(value ? item.id : null)}
+        onRemove={() => { modules.splice(modules.findIndex(module => module.id === item.id), 1); refresh(); }}
+        onRemoveFacet={facet => removeFacet(item.id, facet)} />} />
     {draft.previewing && <PreviewDialog modules={modules} sampleType={sampleType}
       choose={value => { draft.sampleType = value; refresh(); }}
       close={() => { draft.previewing = false; refresh(); }} />}

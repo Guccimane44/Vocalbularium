@@ -253,7 +253,7 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
 /* The dragged module itself: shown as the entry it will become, lifted and
    tilted like a dragged entry (its row is marked as dragging), and marked with
    a focus ring so it is never confused with the entries like it. */
-.drag-preview .card-tab, .drag-preview .module-block { outline: 2px solid var(--focus); outline-offset: 2px; }
+.drag-preview .card-tab { outline: 2px solid var(--focus); outline-offset: 2px; }
 
 @media (max-width: 900px) {
   .main-key[data-tier="word"] { font-size: 48px; }
@@ -289,3 +289,63 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
 /* Under the title: how the latest run read the main key. */
 .interpretation { margin: 6px 0 0; font-size: 13px; color: var(--ink-muted); }
 @media (hover: none) { .facet-delete { opacity: 1; } }
+
+/* Facet tags (0.7.1): a parent's facets as bookmarks on its card, in the
+   parent's order, each marked with its facet's abbreviation in the family
+   colour. A card with content wears them stuck out of its left edge; folded,
+   they hang from the right of its bottom edge; a card that is only its tab
+   hangs them below the tab on short chains. The bookmark is one shape, cut
+   with a notch at its free end, turned so the notch points away from the
+   card; facet-tags.tsx moves the tags between these places. */
+.facet-tags { position: absolute; z-index: 1; margin: 0; padding: 0; list-style: none; pointer-events: none; }
+.facet-tag { position: absolute; width: 24px; height: 30px; pointer-events: auto; --turn: 0deg; }
+.facet-tag::before { content: ""; position: absolute; left: 50%; top: 50%; width: 24px; height: 30px; translate: -50% -50%; rotate: var(--turn);
+  background: var(--fam, var(--fam-notes)); clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 76%, 0 100%);
+  filter: drop-shadow(0 1px 1px #0002); transition: rotate var(--dur-settle) var(--ease-out); }
+.facet-tag-open { position: relative; display: grid; place-items: start center; width: 100%; height: 100%; padding: 5px 0 0; border: 0; border-radius: 0;
+  background: transparent; color: var(--on-fam, var(--on-ink)); font: 700 11px/1 var(--font-text); letter-spacing: .02em; cursor: default; }
+button.facet-tag-open { cursor: pointer; }
+button.facet-tag-open:hover { background: transparent; }
+.facet-tag:has(> button.facet-tag-open:hover)::before { filter: drop-shadow(0 2px 3px #0003) brightness(1.08); }
+.facet-tag-open:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+/* A small round remove on the tag's corner, shown while it is pointed at or focused. */
+.facet-tag-remove { position: absolute; top: -7px; right: -7px; z-index: 1; display: grid; place-items: center; width: 16px; height: 16px; padding: 0; border: 0;
+  border-radius: 50%; color: var(--status-failed-bg); background: var(--status-failed); box-shadow: 0 0 0 2px var(--surface);
+  opacity: 0; transform: scale(.6); transition: opacity var(--dur-instant) ease, transform var(--dur-spring) var(--ease-spring); }
+.facet-tag-remove svg { width: 10px; height: 10px; }
+.facet-tag:hover .facet-tag-remove, .facet-tag:focus-within .facet-tag-remove { opacity: 1; transform: none; }
+.facet-tag-remove:disabled { display: none; }
+@media (hover: none) { .facet-tag-remove { opacity: 1; transform: none; } }
+
+/* Stuck out of the left edge, one under another below the tab, notch outward. */
+.facet-tags[data-layout="edge"] { left: -28px; top: 34px; }
+.facet-tags[data-layout="edge"] .facet-tag { width: 30px; height: 24px; left: 0; top: calc(var(--i) * 30px); --turn: 90deg; }
+.facet-tags[data-layout="edge"] .facet-tag-open { place-items: center end; padding: 0 8px 0 0; }
+/* Folded: in a row at the right of the bottom edge, hanging below it. */
+.facet-tags[data-layout="folded"] { right: 18px; bottom: -24px; }
+.facet-tags[data-layout="folded"] .facet-tag { right: calc((var(--n) - 1 - var(--i)) * 28px); top: 0; }
+.facet-tags[data-layout="folded"] .facet-tag-open { padding-top: 7px; }
+/* Hung below the tab, each on its own chain of small links. */
+.facet-tags[data-layout="hanging"] { left: 28px; top: 28px; }
+.facet-tag::after { content: ""; position: absolute; left: 50%; top: -11px; width: 6px; height: 12px; translate: -50% 0; opacity: 0; pointer-events: none;
+  background: radial-gradient(ellipse 2.4px 2.6px at 50% 50%, transparent 1.3px, var(--fam, var(--fam-notes)) 1.5px 2.4px, transparent 2.6px) 0 0 / 6px 4px repeat-y;
+  transition: opacity var(--dur-quick) ease; }
+.facet-tags[data-layout="hanging"] .facet-tag { left: calc(var(--i) * 26px); top: 10px; }
+.facet-tags[data-layout="hanging"] .facet-tag::after { opacity: 1; }
+/* An empty or generating card makes room below its tab for what hangs there. */
+.component:is([data-empty], [data-generating])[data-tagged="hanging"] { padding-bottom: 56px; }
+/* Folded, the card keeps room below for the tags hanging from it. */
+.component[data-tagged] { transition: padding var(--dur-settle) var(--ease-out), margin var(--dur-settle) var(--ease-out); }
+.component[data-tagged="folded"] { margin-bottom: 18px; }
+/* Leaving, a tag pops where it stands, like a deleted card. */
+.facet-tag[data-leaving] { pointer-events: none; animation: bop 240ms cubic-bezier(.3, 0, .2, 1) forwards; }
+@keyframes tag-shown { 0%, 100% { box-shadow: none; } 30% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--fam, var(--focus)) 35%, transparent); } }
+.facet[data-shown] { border-radius: 6px; animation: tag-shown 1.2s var(--ease-out); }
+.facet:focus { outline: none; }
+.facet:focus-visible { outline: 2px solid var(--focus); outline-offset: 4px; border-radius: 4px; }
+@media (prefers-reduced-motion: reduce) { .facet-tag::before { transition: none; } .facet-tag[data-leaving] { animation: none; } }
+@media (max-width: 600px) { .facet-tags[data-layout="edge"] { left: -16px; } }
+@media (forced-colors: active) {
+  .facet-tag::before { forced-color-adjust: none; background: CanvasText; }
+  .facet-tag-open { forced-color-adjust: none; color: Canvas; }
+}
