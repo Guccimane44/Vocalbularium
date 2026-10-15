@@ -16,6 +16,13 @@ import type { FacetType, ParentType } from '@vocabularium/domain/parents';
 // each simply stands in its place.
 export type TagLayout = 'edge' | 'folded' | 'hanging';
 
+// A facet picked up with its + in the module window, waiting to be placed
+// (0.7.2): each parent that would take it wears a ghost of its tag in the slot
+// the tag would take, and the real tags make room. Placed, the ghost stays on
+// its parent until the facet arrives there and its tag takes the ghost's place.
+// `label` is the ghost's accessible name, such as "Add Synonyms to German 2".
+export type GhostTag = { facet: FacetType; label: string; placing: boolean };
+
 // Where an added facet was last seen in the module window, by parent and facet,
 // so that its tag can fly from there once the parent has it.
 const launches = new Map<string, { rect: DOMRect; at: number }>();
@@ -75,18 +82,21 @@ function alongTheEdge(from: Spot, corner: Spot): Keyframe[] {
   });
 }
 
-export function FacetTags({ holderId, parent, facets, layout, title, disabled = false, onOpen, onRemove }: {
+export function FacetTags({ holderId, parent, facets, layout, title, disabled = false, ghost, onOpen, onRemove }: {
   holderId: string; parent: ParentType; facets: readonly string[]; layout: TagLayout; title: string; disabled?: boolean;
+  // The facet picked up in the module window, when this parent would take it.
+  ghost?: GhostTag | null;
   // Clicking a tag shows its facet's section; absent where a card has none.
   onOpen?: (facet: FacetType) => void;
   onRemove?: (facet: FacetType) => void;
 }) {
-  const shown = ordered(parent, facets);
-  const key = shown.join('|');
+  const ghostFacet = ghost && !facets.includes(ghost.facet) ? ghost.facet : null;
+  const shown = ordered(parent, ghostFacet ? [...facets, ghostFacet] : facets);
+  const key = `${shown.join('|')}:${ghostFacet ?? ''}`;
   // Tags popping away, each where it stood.
   const [leaving, setLeaving] = useState<ReadonlyArray<{ facet: FacetType; index: number }>>([]);
   const root = useRef<HTMLUListElement>(null);
-  const before = useRef<{ facets: readonly FacetType[]; layout: TagLayout; spots: Map<string, Spot> } | null>(null);
+  const before = useRef<{ facets: readonly FacetType[]; ghost: FacetType | null; layout: TagLayout; spots: Map<string, Spot> } | null>(null);
   // Unfolding, the tags stay on the bottom edge while the card opens, and
   // only then go back to the left side.
   const [prior, setPrior] = useState(layout);
@@ -122,14 +132,15 @@ export function FacetTags({ holderId, parent, facets, layout, title, disabled = 
     const card = list?.closest<HTMLElement>('.component');
     if (!list || !card) return;
     const previous = before.current;
-    const gone = previous ? previous.facets.filter(facet => !shown.includes(facet)) : [];
+    // A ghost that goes was never a facet: it vanishes without popping.
+    const gone = previous ? previous.facets.filter(facet => !shown.includes(facet) && facet !== previous.ghost) : [];
     if (gone.length && !still()) {
       setLeaving(current => [...current.filter(item => !gone.includes(item.facet)),
         ...gone.map(facet => ({ facet, index: previous!.facets.indexOf(facet) }))]);
       setTimeout(() => setLeaving(current => current.filter(item => !gone.includes(item.facet))), TAG_POP_MS);
     }
     const { tags, spots } = measure()!;
-    before.current = { facets: shown, layout: place, spots };
+    before.current = { facets: shown, ghost: ghostFacet, layout: place, spots };
     if (!previous || still()) return;
     const turned = previous.layout !== place;
     tags.forEach((tag, index) => {
@@ -166,6 +177,15 @@ export function FacetTags({ holderId, parent, facets, layout, title, disabled = 
   const tag = (facet: FacetType, index: number, gone = false) => {
     const label = facetLabel(parent, facet);
     const mark = <span className="facet-tag-mark" aria-hidden="true">{facetAbbreviation(parent, facet)}</span>;
+    // A ghost is the tag's outline; clicking it, or its card, places the facet
+    // there (shaping.tsx handles the click). The key stays the facet's, so
+    // the placed ghost turns into the tag that arrives in its place.
+    if (facet === ghostFacet) return <li key={facet} className="facet-tag" data-facet={facet} data-ghost={ghost!.placing ? 'placing' : ''}
+      style={{ '--i': index } as CSSProperties}>
+      <svg className="facet-ghost-shape" viewBox="0 0 24 30" aria-hidden="true"><path d="M1 1H23V28.4L12 21.8L1 28.4Z" /></svg>
+      {ghost!.placing ? <span className="facet-tag-open" aria-hidden="true">{mark}</span>
+        : <button type="button" className="facet-tag-open facet-ghost" aria-label={ghost!.label}>{mark}</button>}
+    </li>;
     return <li key={facet} className="facet-tag" data-facet={facet} data-leaving={gone || undefined} style={{ '--i': index } as CSSProperties}
       aria-hidden={gone || undefined}>
       {onOpen && !gone ? <button type="button" className="facet-tag-open" aria-label={`Show ${label} in ${title}`} onClick={() => onOpen(facet)}>{mark}</button>

@@ -11,7 +11,7 @@ import { FacetTags } from './facet-tags.tsx';
 import { FamilyIcon } from './families.tsx';
 import { mainKeyTier } from './main-key.ts';
 import { ActionIcon, Content, LandingCard } from './page-view.tsx';
-import { moduleLabel, ShapingArea } from './shaping.tsx';
+import { moduleLabel, numbered, ShapingArea } from './shaping.tsx';
 import type { RowParts } from './shaping.tsx';
 
 // A parent added to the deck starts with its core only (D08).
@@ -114,7 +114,7 @@ function DeckModule({ item, parts, busy, opened, setOpened, onRemove, onRemoveFa
   opened: boolean; setOpened: (value: boolean) => void; onRemove: () => void; onRemoveFacet: (facet: string) => void;
 }) {
   const family = familyOf(item.type);
-  const tagged = isParentType(item.type) && Boolean(item.facets?.length);
+  const tagged = isParentType(item.type) && Boolean(item.facets?.length || parts.ghost);
   return <article className={`component deck-module fam-${family}`} data-empty data-module-id={item.id} data-type={item.type} data-tagged={tagged ? 'hanging' : undefined}>
     <div className="card-head" onKeyDown={(event: ReactKeyboardEvent<HTMLDivElement>) => {
       if (event.key !== 'Escape' || !opened) return;
@@ -135,7 +135,7 @@ function DeckModule({ item, parts, busy, opened, setOpened, onRemove, onRemoveFa
       </div>}
     </div>
     {isParentType(item.type) && <FacetTags holderId={item.id} parent={item.type} facets={item.facets ?? []} layout="hanging" title={item.label}
-      disabled={busy} onRemove={onRemoveFacet} />}
+      disabled={busy} ghost={parts.ghost} onRemove={onRemoveFacet} />}
   </article>;
 }
 
@@ -165,8 +165,8 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
   const sampleType = draft.sampleType ?? 'word_phrase';
   // The main key stays first and cannot move or be removed; everything after it can.
   const [key, ...rest] = modules;
-  const items = rest.map(module => ({ id: module.id, label: moduleLabel(module.type), type: module.type, facets: module.facets,
-    holder: { id: module.id, type: module.type, facets: module.facets } }));
+  const items = numbered(rest.map(module => ({ id: module.id, label: moduleLabel(module.type), type: module.type, facets: module.facets,
+    holder: { id: module.id, type: module.type, facets: module.facets } })));
   // Facets join or leave a parent in the draft, in the parent's order (D08).
   const addFacet = (id: string, parent: ParentType, facet: FacetType) => {
     const module = modules.find(item => item.id === id);

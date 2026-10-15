@@ -14,6 +14,7 @@ import type { ModuleFamily, ModuleType } from '@vocabularium/domain/page-modules
 import { facetLabel, facetsOf, facetTargets, facetUnavailable, isParentType, PARENTS } from '@vocabularium/domain/parents';
 import type { FacetHolder, FacetType, ParentType } from '@vocabularium/domain/parents';
 import { launchFacet } from './facet-tags.tsx';
+import type { GhostTag } from './facet-tags.tsx';
 import { FamilyIcon } from './families.tsx';
 
 // Shared by the page view and deck settings (D02, D04): a list whose entries
@@ -94,9 +95,25 @@ const keyboardFor = (facetTargetIds: { current: ReadonlySet<string> }): Keyboard
 };
 
 export type ShapeItem = { id: string; label: string; holder?: FacetHolder };
+
+// Identical modules in one list are told apart by number, in the list's
+// order (0.7.2): with two German modules they are German 1 and German 2; a
+// module alone of its type keeps its plain label.
+export function numbered<T extends { type: string; label: string }>(items: readonly T[]): T[] {
+  const count = new Map<string, number>();
+  for (const item of items) count.set(item.type, (count.get(item.type) ?? 0) + 1);
+  const seen = new Map<string, number>();
+  return items.map(item => {
+    if (count.get(item.type)! < 2) return item;
+    const n = (seen.get(item.type) ?? 0) + 1;
+    seen.set(item.type, n);
+    return { ...item, label: `${item.label} ${n}` };
+  });
+}
 // What an entry needs to be dragged: spread `drag` on its label, which then
-// starts a drag with the pointer or Space, and show `menu` before it.
-export type RowParts = { drag: Record<string, unknown>; menu: ReactNode };
+// starts a drag with the pointer or Space, and show `menu` before it. `ghost`
+// is the facet picked up with its + that this entry would take, for its tags.
+export type RowParts = { drag: Record<string, unknown>; menu: ReactNode; ghost?: GhostTag | null };
 const KEYBOARD_CODES = { start: ['Space'], cancel: ['Escape'], end: ['Space'] };
 // The index onAdd receives from the window's +: after the last entry, whatever the list holds by then.
 export const AT_THE_END = Number.POSITIVE_INFINITY;
@@ -167,12 +184,8 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
     return value.startsWith(WINDOW) ? moduleLabel(value.slice(WINDOW.length)) : byId.get(value)?.label ?? 'the end';
   };
   const holders = items.flatMap(item => item.holder ? [item.holder] : []);
-  // Where a parent stands among the parents of its type, to tell them apart.
-  const holderName = (id: string) => {
-    const item = byId.get(id)!;
-    const same = items.filter(other => other.holder?.type === item.holder?.type);
-    return same.length > 1 ? `${item.label} ${same.indexOf(item) + 1}` : item.label;
-  };
+  // A parent by its label, numbered among the parents of its type by the list's owner (numbered).
+  const holderName = (id: string) => byId.get(id)!.label;
   // Where a window module would land: before the entry it is over, or after it
   // when a pointer is in its lower half; at the end over the end zone.
   function landing(active: Active, over: Over | null, keyboardDrag: boolean): number | null {
@@ -241,6 +254,77 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
     launchFacet(id, facet, from ?? document.querySelector(`.window-facet[data-parent="${parent}"][data-facet="${facet}"] .window-facet-body`)?.getBoundingClientRect());
     if (await onAddFacet(id, parent, facet) === false) launchFacet(id, facet, undefined);
   }
+  // A facet's + with several parents that would take it picks the facet up
+  // (0.7.2): each of them wears a ghost of its tag until one is clicked, or
+  // its card is, which places the facet there; Escape, the + again or a
+  // click elsewhere puts it back. With one such parent the + adds at once.
+  const [picked, setPicked] = useState<{ parent: ParentType; facet: FacetType; placing: string | null } | null>(null);
+  const reach = useRef(false);
+  const ghostTargets = picked ? picked.placing ? new Set([picked.placing])
+    : new Set(facetTargets(holders, picked.parent, picked.facet).map(holder => holder.id)) : new Set<string>();
+  const plusOf = (parent: ParentType, facet: FacetType) =>
+    document.querySelector<HTMLElement>(`.window-facet[data-parent="${parent}"][data-facet="${facet}"] .window-add`);
+  function cancelPick(refocus: boolean) {
+    if (!picked || picked.placing) return;
+    setPicked(null);
+    if (refocus) plusOf(picked.parent, picked.facet)?.focus();
+  }
+  function pick(parent: ParentType, facet: FacetType) {
+    if (disabled || !onAddFacet) return;
+    if (picked && !picked.placing && picked.parent === parent && picked.facet === facet) { cancelPick(false); return; }
+    const targets = facetTargets(holders, parent, facet);
+    if (targets.length === 1) { setPicked(null); void addFacet(targets[0]!.id, parent, facet); return; }
+    if (!targets.length) return;
+    reach.current = true;
+    setPicked({ parent, facet, placing: null });
+  }
+  async function place(id: string) {
+    if (!picked || picked.placing || disabled || !onAddFacet) return;
+    const { parent, facet } = picked;
+    setPicked({ parent, facet, placing: id });
+    if (await onAddFacet(id, parent, facet) === false) setPicked(null);
+  }
+  // Picked up, the focus goes to the first ghost, scrolled into view.
+  useEffect(() => {
+    if (!picked || !reach.current) return;
+    reach.current = false;
+    const first = list.current?.querySelector<HTMLElement>('.facet-ghost');
+    first?.focus({ preventScroll: true });
+    first?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }, [picked]);
+  // A placed ghost goes once its facet has arrived, or its parent has gone;
+  // a picked facet goes back when no parent would take it any more, or when
+  // shaping turns off.
+  const holderKey = holders.map(holder => `${holder.id}:${(holder.facets ?? []).join(',')}:${holder.status ?? ''}`).join('|');
+  useEffect(() => {
+    if (!picked) return;
+    if (picked.placing) {
+      const holder = holders.find(each => each.id === picked.placing);
+      if (!holder || holder.facets?.includes(picked.facet)) setPicked(null);
+    } else if (disabled || !ghostTargets.size) setPicked(null);
+  }, [holderKey, disabled, picked]);
+  useEffect(() => {
+    if (!picked || picked.placing) return;
+    const outside = (event: PointerEvent) => {
+      const target = event.target as Element;
+      if (!target.closest?.('.sortable-row[data-ghost-target], .window-facet[data-picked]')) cancelPick(false);
+    };
+    const keys = (event: globalThis.KeyboardEvent) => {
+      if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); cancelPick(true); return; }
+      // Tab and Shift+Tab move between the ghosts only.
+      if (event.key !== 'Tab' || !(document.activeElement as Element | null)?.classList.contains('facet-ghost')) return;
+      const ghosts = [...list.current?.querySelectorAll<HTMLElement>('.facet-ghost') ?? []];
+      const at = ghosts.indexOf(document.activeElement as HTMLElement);
+      event.preventDefault();
+      ghosts[(at + (event.shiftKey ? -1 : 1) + ghosts.length) % ghosts.length]?.focus();
+    };
+    document.addEventListener('pointerdown', outside, true);
+    document.addEventListener('keydown', keys, true);
+    return () => { document.removeEventListener('pointerdown', outside, true); document.removeEventListener('keydown', keys, true); };
+  }, [picked]);
+  const ghostFor = (item: T): GhostTag | null => picked && ghostTargets.has(item.id)
+    ? { facet: picked.facet, placing: Boolean(picked.placing), label: `Add ${facetLabel(picked.parent, picked.facet)} to ${holderName(item.id)}` } : null;
+
   // The window's + adds a module as the last entry: it waits at the end as a
   // dropped module does, scrolled into view.
   async function addAtEnd(type: string) {
@@ -278,7 +362,8 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
 
   const facetDrag = dragged?.startsWith(FACET) ? dragged : null;
   const rows: ReactNode[] = shown.map(item => <SortableRow key={item.id} item={item} disabled={disabled} renderItem={renderItem} menuItems={menuItems}
-    facet={facetDrag && facetTargetIds.current.has(item.id) ? facetOver === item.id ? 'over' : 'target' : undefined} />);
+    facet={facetDrag && facetTargetIds.current.has(item.id) ? facetOver === item.id ? 'over' : 'target' : undefined}
+    ghost={ghostFor(item)} onPlace={() => void place(item.id)} />);
   // A window module over the list stands where it would land, like the entry
   // it will become, and the entries make room around it (0.6.3).
   const incoming = dragged?.startsWith(WINDOW) && slot !== null ? dragged.slice(WINDOW.length) : null;
@@ -324,7 +409,7 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
         <DropEnd disabled={disabled} active={slot === shown.length} />
       </section>
       <ModuleWindow types={types} disabled={disabled} unavailable={unavailable} where={where} addAtEnd={type => void addAtEnd(type)}
-        holders={holders} holderName={holderName} addFacet={onAddFacet ? (id, parent, facet) => void addFacet(id, parent, facet) : undefined} />
+        holders={holders} picked={picked} pick={onAddFacet ? pick : undefined} />
     </div>
     <DragOverlay dropAnimation={null} modifiers={[intoColumn]}>
       {dragged?.startsWith(WINDOW) && <div className="drag-preview" style={incoming !== null ? { width: list.current?.clientWidth } : undefined}>
@@ -343,10 +428,13 @@ const MAKING_ROOM = { duration: 250, easing: 'cubic-bezier(.2,.8,.2,1)' };
 // A list entry that reorders by dragging its label, with the pointer or with
 // Space and the arrow keys. A pointer that moves less than the activation
 // distance is a click on the label instead.
-function SortableRow<T extends ShapeItem>({ item, disabled, renderItem, menuItems, facet }: {
+function SortableRow<T extends ShapeItem>({ item, disabled, renderItem, menuItems, facet, ghost, onPlace }: {
   item: T; disabled: boolean; renderItem: (item: T, parts: RowParts) => ReactNode; menuItems: readonly string[];
   // While a facet is dragged: this entry would take it, or the facet is over it.
   facet?: 'target' | 'over';
+  // While a facet picked up with its + would land here: a click anywhere on
+  // the entry, its ghost included, places the facet (0.7.2).
+  ghost: GhostTag | null; onPlace: () => void;
 }) {
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id: item.id, disabled, transition: MAKING_ROOM });
   // Translate only: cards of different heights keep their shape while moving.
@@ -354,8 +442,11 @@ function SortableRow<T extends ShapeItem>({ item, disabled, renderItem, menuItem
   // Space picks up and drops on keydown; its keyup would also click the label.
   const drag = { ref: setActivatorNodeRef, ...attributes, ...listeners,
     onKeyUp: (event: KeyboardEvent) => { if (event.code === 'Space') event.preventDefault(); } };
-  return <div ref={setNodeRef} style={style} className="sortable-row" data-row-id={item.id} data-dragging={isDragging || undefined} data-facet-target={facet}>
-    {renderItem(item, { drag, menu: <RowMenu label={item.label} items={menuItems} /> })}
+  const choosing = Boolean(ghost && !ghost.placing);
+  return <div ref={setNodeRef} style={style} className="sortable-row" data-row-id={item.id} data-dragging={isDragging || undefined} data-facet-target={facet}
+    data-ghost-target={choosing || undefined}
+    onClickCapture={choosing ? event => { event.preventDefault(); event.stopPropagation(); onPlace(); } : undefined}>
+    {renderItem(item, { drag, menu: <RowMenu label={item.label} items={menuItems} />, ghost })}
   </div>;
 }
 
@@ -450,55 +541,26 @@ function WindowModule({ type, blocked, explain, present, addAtEnd, children }: {
 const PlusIcon = () => <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>;
 
 // A parent's facet in the window (D08), drawn as a part of its parent. It
-// drags like a module but lands only on a parent of its own type; its + adds
-// it to the one parent that would take it, or offers them when there are
-// several. With none, it is disabled; why is told only to assistive
-// technology, never as text in the window (0.7.1).
-function WindowFacet({ parent, facet, blocked, targets, holderName, add }: {
-  parent: ParentType; facet: FacetType; blocked: string | null;
-  targets: readonly FacetHolder[]; holderName: (id: string) => string; add: (id: string) => void;
+// drags like a module but lands only on a parent of its own type. Its + adds
+// it to the one parent that would take it; with several, it picks the facet
+// up for the user to place on one of them by its ghost tag (0.7.2), and
+// pressed again puts it back. With none, it is disabled; why is told only to
+// assistive technology, never as text in the window (0.7.1).
+function WindowFacet({ parent, facet, blocked, several, picked, pick }: {
+  parent: ParentType; facet: FacetType; blocked: string | null; several: boolean; picked: boolean; pick: () => void;
 }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: facetId(parent, facet), disabled: Boolean(blocked) });
-  const [choosing, setChoosing] = useState(false);
-  const root = useRef<HTMLLIElement>(null);
-  const plus = useRef<HTMLButtonElement>(null);
-  const menu = useRef<HTMLUListElement>(null);
-  const listId = useId();
-  // The chooser is a menu: it opens on its first choice, the arrows move
-  // between the choices, and closing it from the keyboard returns to the +.
-  const close = () => { setChoosing(false); plus.current?.focus(); };
-  function step(event: KeyboardEvent) {
-    const choices = [...menu.current?.querySelectorAll<HTMLButtonElement>('[role="menuitem"]') ?? []];
-    const at = choices.indexOf(document.activeElement as HTMLButtonElement);
-    const next = { ArrowDown: at + 1, ArrowUp: at - 1, Home: 0, End: choices.length - 1 }[event.key];
-    if (next === undefined) { if (event.key === 'Tab') setChoosing(false); return; }
-    event.preventDefault();
-    choices[(next + choices.length) % choices.length]?.focus();
-  }
-  useEffect(() => { if (choosing) menu.current?.querySelector<HTMLButtonElement>('[role="menuitem"]')?.focus(); }, [choosing]);
-  useEffect(() => {
-    if (!choosing) return;
-    const outside = (event: PointerEvent) => { if (!root.current?.contains(event.target as Node)) setChoosing(false); };
-    document.addEventListener('pointerdown', outside);
-    return () => document.removeEventListener('pointerdown', outside);
-  }, [choosing]);
   const label = facetLabel(parent, facet);
   const definition = PARENTS[parent].facets[facet]!;
   const name = `${PARENTS[parent].label} ${label}`;
-  return <li ref={root} className="window-facet" data-parent={parent} data-facet={facet} data-dragging={isDragging || undefined} aria-disabled={Boolean(blocked)}
-    onKeyDown={event => { if (event.key === 'Escape' && choosing) { event.stopPropagation(); close(); } }}>
+  return <li className="window-facet" data-parent={parent} data-facet={facet} data-dragging={isDragging || undefined} data-picked={picked || undefined}
+    aria-disabled={Boolean(blocked)}>
     <div ref={setNodeRef} className="window-facet-body" {...attributes} {...listeners}
       aria-label={`${name}: ${definition.description} Adds to a ${PARENTS[parent].label} module.${blocked ? ` ${blocked}` : ''}`} aria-roledescription="draggable facet">
       <span className="facet-chip">{label}</span>
     </div>
-    <button ref={plus} type="button" className="window-add" aria-label={`Add ${name}`} disabled={Boolean(blocked)}
-      aria-haspopup={targets.length > 1 ? 'menu' : undefined} aria-expanded={targets.length > 1 ? choosing : undefined} aria-controls={choosing ? listId : undefined}
-      onClick={() => targets.length === 1 ? add(targets[0]!.id) : setChoosing(!choosing)}><PlusIcon /></button>
-    {choosing && targets.length > 1 && <ul ref={menu} id={listId} className="facet-targets" role="menu" aria-label={`Add ${name} to`} onKeyDown={step}>
-      {targets.map(target => <li key={target.id} role="none">
-        <button type="button" role="menuitem" tabIndex={-1} onClick={() => { close(); add(target.id); }}>{holderName(target.id)}</button>
-      </li>)}
-    </ul>}
+    <button type="button" className="window-add" aria-label={`Add ${name}`} disabled={Boolean(blocked)}
+      aria-pressed={several || picked ? picked : undefined} onClick={pick}><PlusIcon /></button>
   </li>;
 }
 
@@ -538,11 +600,12 @@ const searchText = (type: ModuleType) => [CATALOG[type].label, CATALOG[type].des
 // `disabled` turns it off as a whole (for example while a component is being
 // edited), with `unavailable` as an optional notice; otherwise each module
 // says why it is unavailable, such as the limit or an existing Context.
-function ModuleWindow({ types, disabled, unavailable, where, addAtEnd, holders, holderName, addFacet }: {
+function ModuleWindow({ types, disabled, unavailable, where, addAtEnd, holders, picked, pick }: {
   types: readonly string[]; disabled: boolean; unavailable?: string; where: string; addAtEnd: (type: string) => void;
-  holders: readonly FacetHolder[]; holderName: (id: string) => string;
-  // Absent where facets cannot be added.
-  addFacet?: (id: string, parent: ParentType, facet: FacetType) => void;
+  holders: readonly FacetHolder[];
+  // The facet picked up with its +, if any; `pick` is absent where facets cannot be added.
+  picked: { parent: ParentType; facet: FacetType; placing: string | null } | null;
+  pick?: (parent: ParentType, facet: FacetType) => void;
 }) {
   const { setNodeRef, isOver, active } = useDroppable({ id: BACK });
   const searchId = useId();
@@ -575,9 +638,10 @@ function ModuleWindow({ types, disabled, unavailable, where, addAtEnd, holders, 
       <ul>
         {modules.map(type => <WindowModule key={type} type={type} explain={!disabled} present={types.includes(type)} addAtEnd={addAtEnd}
           blocked={disabled ? unavailable ?? 'Unavailable' : addBlocked(types.map(value => ({ type: value })), type)}>
-          {isParentType(type) && addFacet && <ul className="window-facets" aria-label={`${CATALOG[type].label} facets`}>
-            {facetsOf(type).map(facet => <WindowFacet key={facet} parent={type} facet={facet} holderName={holderName}
-              targets={facetTargets(holders, type, facet)} add={id => addFacet(id, type, facet)}
+          {isParentType(type) && pick && <ul className="window-facets" aria-label={`${CATALOG[type].label} facets`}>
+            {facetsOf(type).map(facet => <WindowFacet key={facet} parent={type} facet={facet}
+              several={facetTargets(holders, type, facet).length > 1} picked={Boolean(picked && !picked.placing && picked.parent === type && picked.facet === facet)}
+              pick={() => pick(type, facet)}
               blocked={disabled ? unavailable ?? 'Unavailable' : facetUnavailable(holders, type, facet)} />)}
           </ul>}
         </WindowModule>)}

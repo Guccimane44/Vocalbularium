@@ -606,7 +606,10 @@ test('deck UI: draft previews, all modules, the module limit, removal without co
   const before = (await application.store.page(pageId)).components.map(item => [item.moduleType, text(item)]);
   await a.page.getByLabel('Options for Everyday Chinese').click();
   await a.page.locator('article.deck').filter({ hasText: 'Everyday Chinese' }).getByRole('button', { name: 'Configure deck', exact: true }).click();
-  await removeFromDeck(a.page, 'German');
+  // Two Germans in deck settings are numbered in their tabs (0.7.2).
+  await componentArticle(a.page, 'German 2').waitFor();
+  assert.deepEqual(await a.page.locator('.deck-module[data-type="german"] .tab-label').allTextContents(), ['German 1', 'German 2']);
+  await removeFromDeck(a.page, 'German 1');
   for (let count = 6; count < 12; count++) await addFromWindow(a.page, 'chinese');
   assert.equal(await a.page.locator('.deck-module').count(), 12);
   assert.equal(await a.page.locator('.window-module[aria-disabled="false"]').count(), 0, 'the window is closed at twelve modules');
@@ -616,7 +619,7 @@ test('deck UI: draft previews, all modules, the module limit, removal without co
   assert.equal(await a.page.getByRole('dialog').count(), 0, 'changing the deck needs no content-loss confirmation');
   assert.deepEqual((await application.store.page(pageId)).components.map(item => [item.moduleType, text(item)]), before, 'deck changes never reach an existing page');
   await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
-  await componentArticle(a.page, 'German').first().getByText('Saved explanation').waitFor();
+  await componentArticle(a.page, 'German 1').getByText('Saved explanation').waitFor();
   await a.page.goto(`chrome-extension://${a.id}/app.html`);
   await a.page.getByLabel('Options for Everyday Chinese').click();
   await a.page.locator('article.deck').filter({ hasText: 'Everyday Chinese' }).getByRole('button', { name: 'Delete deck', exact: true }).click();
@@ -1170,8 +1173,9 @@ test('retry UI: exact confirmation asked beside the tab, a first Retry without w
   await a.page.locator('h1.main-key').waitFor();
   assert.equal(await componentArticle(a.page, 'German').count(), 1, 'a deck change never reaches the page');
   await addFromWindow(a.page, 'german');
-  await componentArticle(a.page, 'German').nth(1).locator('.tab-button').click();
-  await componentArticle(a.page, 'German').nth(1).getByRole('button', { name: 'Retry German', exact: true }).click();
+  // Two Germans on one page are numbered in their tabs (0.7.2).
+  await componentArticle(a.page, 'German 2').locator('.tab-button').click();
+  await componentArticle(a.page, 'German 2').getByRole('button', { name: 'Retry German 2', exact: true }).click();
   await waitFor(async () => modulesOf(await application.store.page(pageId)).filter(item => item.attemptId).length === 3, 'the added module generated');
   assert.equal(await a.page.getByRole('dialog').count(), 0);
 });
@@ -2123,20 +2127,46 @@ test('parents and facets: core only on add, facets only on their own parent, the
   await card('German').locator('.facet[data-waiting][data-facet="examples"]').getByText('Waiting for Retry').waitFor();
   await a.page.screenshot({ path: 'artifacts/v0.7.0-facets-page.png', fullPage: true });
 
-  // With two German modules that lack a facet, its + asks which one.
+  // With two German modules that lack a facet, its + picks it up and each German wears its ghost (0.7.2).
   await card('German').locator('.facet[data-facet="synonyms"]').hover();
   await a.page.getByRole('button', { name: 'Delete Synonyms from German', exact: true }).click();
   await a.page.getByRole('button', { name: 'Yes, delete Synonyms from German', exact: true }).click();
   await waitFor(async () => !(await german())[0].facets.includes('synonyms'), 'Synonyms deleted');
   await a.page.getByRole('button', { name: 'Add German at the end', exact: true }).click();
   await waitFor(async () => (await german()).length === 2, 'second German added');
-  await a.page.getByRole('button', { name: 'Add German Synonyms', exact: true }).click();
-  const targets = a.page.getByRole('menu', { name: 'Add German Synonyms to' });
-  assert.deepEqual(await targets.getByRole('menuitem').allTextContents(), ['German 1', 'German 2']);
-  await a.page.locator('.module-window').screenshot({ path: 'artifacts/v0.7.0-facets-window.png' });
-  await targets.getByRole('menuitem', { name: 'German 2', exact: true }).click();
+  // Two Germans on one page are numbered in their tabs, in the page's order (0.7.2).
+  await card('German 2').waitFor();
+  assert.deepEqual(await a.page.locator('.component[data-type="german"] .tab-label').allTextContents(), ['German 1', 'German 2']);
+  const plus = a.page.getByRole('button', { name: 'Add German Synonyms', exact: true });
+  const ghosts = a.page.locator('.facet-tag[data-ghost]');
+  await plus.click();
+  await waitFor(async () => await ghosts.count() === 2, 'a ghost on each German');
+  assert.equal(await plus.getAttribute('aria-pressed'), 'true');
+  assert.equal(await facet('german', 'synonyms').getAttribute('data-picked'), 'true');
+  assert.equal(await card('Chinese').locator('.facet-tag[data-ghost]').count(), 0, 'no ghost on the Chinese card');
+  assert.deepEqual(await a.page.locator('.facet-ghost').evaluateAll(nodes => nodes.map(node => node.getAttribute('aria-label'))),
+    ['Add Synonyms to German 1', 'Add Synonyms to German 2']);
+  // The ghost stands in the slot the tag would take, among the tags, in the parent's order.
+  assert.deepEqual(await card('German 1').locator('.facet-tag .facet-tag-mark').allTextContents(), ['Ar', 'Ex', 'Sy', 'An']);
+  await new Promise(resolve => setTimeout(resolve, 900)); // the tags make room, and the ghosts pop in
+  await a.page.screenshot({ path: 'artifacts/v0.7.2-ghost-tags.png', fullPage: true });
+  // The + again, or a click elsewhere, puts it back and adds nothing.
+  await plus.click();
+  await waitFor(async () => await ghosts.count() === 0, 'the + again puts it back');
+  assert.equal(await plus.getAttribute('aria-pressed'), 'false');
+  await plus.click();
+  await waitFor(async () => await ghosts.count() === 2, 'picked up again');
+  await a.page.locator('.page-header').click();
+  await waitFor(async () => await ghosts.count() === 0, 'a click elsewhere puts it back');
+  assert.deepEqual((await german()).map(item => item.facets.includes('synonyms')), [false, false], 'putting it back adds nothing');
+  // A click anywhere on the second German's card places it there, and there only.
+  await plus.click();
+  await waitFor(async () => await ghosts.count() === 2, 'picked up once more');
+  await card('German 2').locator('.card-tab').click();
   await waitFor(async () => (await german())[1].facets.includes('synonyms'), 'Synonyms added to the second German');
   assert.equal((await german())[0].facets.includes('synonyms'), false);
+  await waitFor(async () => await ghosts.count() === 0, 'the ghost becomes the tag');
+  assert.deepEqual(await card('German 2').locator('.facet-tag .facet-tag-mark').allTextContents(), ['Sy']);
 
   // Deck settings: a parent hangs its facets' tags below its tab, which can be removed; new pages copy them.
   const deckId = (await store.page(pageId)).deckId;
@@ -2151,12 +2181,24 @@ test('parents and facets: core only on add, facets only on their own parent, the
   await a.page.getByRole('button', { name: 'Preview', exact: true }).click();
   assert.deepEqual(await a.page.locator('.preview-dialog .component[data-type="german"] .facet-title > span:first-child').allTextContents(), ['Article', 'Examples', 'Synonyms']);
   await a.page.getByRole('button', { name: 'Close preview', exact: true }).click();
+  // With two Germans in deck settings, a facet's + hangs a ghost below each tab; clicking one places it (0.7.2).
+  await a.page.getByRole('button', { name: 'Add German at the end', exact: true }).click();
+  const deckGermans = a.page.locator('.deck-module[data-type="german"]');
+  await deckGermans.nth(1).waitFor();
+  await a.page.getByRole('button', { name: 'Add German Antonyms', exact: true }).click();
+  const deckGhosts = deckGermans.locator('.facet-tag[data-ghost]');
+  await waitFor(async () => await deckGhosts.count() === 2, 'a ghost below each German tab');
+  assert.equal(await deckGermans.nth(1).locator('.facet-tags').getAttribute('data-layout'), 'hanging');
+  await a.page.getByRole('button', { name: 'Add Antonyms to German 2', exact: true }).click();
+  await waitFor(async () => await deckGhosts.count() === 0, 'placed');
+  assert.deepEqual(await deckGermans.nth(1).locator('.facet-tag-mark').allTextContents(), ['An']);
+  assert.deepEqual(await deckGermans.nth(0).locator('.facet-tag-mark').allTextContents(), ['Ar', 'Ex', 'Sy']);
   await a.page.getByRole('button', { name: 'Save', exact: true }).click();
   await waitFor(async () => (await store.deck(deckId)).modules.find(module => module.type === 'german').facets.length === 3, 'deck facets saved');
   assert.deepEqual((await store.deck(deckId)).modules.find(module => module.type === 'german').facets, ['article', 'examples', 'synonyms']);
 });
 
-test('facets from the keyboard: Space picks a facet up, the arrows step only through its own parents, Escape cancels, and the + chooser', { timeout: 60000 }, async (t) => {
+test('facets from the keyboard: Space picks a facet up, the arrows step only through its own parents, Escape cancels, and the + with ghost tags', { timeout: 60000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-facet-keys-browser-'));
   const application = await createTestApplication(t); await application.start();
   const a = await launch(join(directory, 'a'));
@@ -2261,27 +2303,31 @@ test('facets from the keyboard: Space picks a facet up, the arrows step only thr
   assert.equal((await german())[0].facets.includes('examples'), false, 'only the chosen German takes it');
   assert.deepEqual((await chinese()).facets, []);
 
-  // The facet's + chooser from the keyboard: Enter opens it on its first choice, the arrows
-  // move between the Germans, Enter adds to the chosen one; Escape closes it and returns to +.
+  // The facet's + from the keyboard (0.7.2): Enter picks it up and moves the focus to the first
+  // ghost; Tab and Shift+Tab move between the ghosts only; Escape puts it back and returns to +;
+  // Enter on a ghost places it there.
   const plus = a.page.getByRole('button', { name: 'Add German Synonyms', exact: true });
-  const menu = a.page.getByRole('menu', { name: 'Add German Synonyms to' });
+  const ghost = n => a.page.getByRole('button', { name: `Add Synonyms to German ${n}`, exact: true });
+  const focused = locator => locator.evaluate(node => node === document.activeElement);
   await plus.focus();
   await a.page.keyboard.press('Enter');
-  await menu.waitFor();
-  assert.equal(await plus.getAttribute('aria-expanded'), 'true');
-  assert.deepEqual(await menu.getByRole('menuitem').allTextContents(), ['German 1', 'German 2']);
-  await waitFor(() => menu.getByRole('menuitem', { name: 'German 1', exact: true }).evaluate(node => node === document.activeElement), 'focus on the first choice');
+  await waitFor(() => focused(ghost(1)), 'focus on the first ghost');
+  assert.equal(await a.page.locator('.facet-ghost').count(), 2);
+  assert.equal(await (await chineseRow()).locator('.facet-ghost').count(), 0);
+  await a.page.keyboard.press('Tab');
+  assert.equal(await focused(ghost(2)), true, 'Tab moves to the second ghost');
+  await a.page.keyboard.press('Tab');
+  assert.equal(await focused(ghost(1)), true, 'and round to the first');
+  await a.page.keyboard.press('Shift+Tab');
+  assert.equal(await focused(ghost(2)), true, 'Shift+Tab moves back');
   await a.page.keyboard.press('Escape');
-  await menu.waitFor({ state: 'detached' });
-  assert.equal(await plus.evaluate(node => node === document.activeElement), true, 'Escape returns focus to the +');
-  assert.equal(await plus.getAttribute('aria-expanded'), 'false');
-  assert.deepEqual((await german()).map(item => item.facets.includes('synonyms')), [false, false], 'closing the chooser adds nothing');
+  await waitFor(async () => await a.page.locator('.facet-ghost').count() === 0, 'Escape puts it back');
+  assert.equal(await focused(plus), true, 'Escape returns focus to the +');
+  assert.deepEqual((await german()).map(item => item.facets.includes('synonyms')), [false, false], 'putting it back adds nothing');
   await a.page.keyboard.press('Enter');
-  await menu.waitFor();
-  await a.page.keyboard.press('ArrowDown');
-  assert.equal(await menu.getByRole('menuitem', { name: 'German 2', exact: true }).evaluate(node => node === document.activeElement), true);
+  await waitFor(() => focused(ghost(1)), 'picked up again');
+  await a.page.keyboard.press('Tab');
   await a.page.keyboard.press('Enter');
-  await menu.waitFor({ state: 'detached' });
   await waitFor(async () => (await german())[1].facets.includes('synonyms'), 'Synonyms added to the second German');
   assert.equal((await german())[0].facets.includes('synonyms'), false);
 });

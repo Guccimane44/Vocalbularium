@@ -12,7 +12,7 @@ import { FacetTags, FOLD_MS } from './facet-tags.tsx';
 import type { TagLayout } from './facet-tags.tsx';
 import { FamilyIcon } from './families.tsx';
 import { mainKeyTier } from './main-key.ts';
-import { AT_THE_END, moduleLabel, ShapingArea, SixDots } from './shaping.tsx';
+import { AT_THE_END, moduleLabel, numbered, ShapingArea, SixDots } from './shaping.tsx';
 import type { RowParts } from './shaping.tsx';
 
 // Icons for a card's actions, drawn like the family icons: 24px grid, 2.2 stroke.
@@ -377,8 +377,8 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
   const disabled = Boolean(editingId) || busy;
   const known = new Set(page.components.map(item => item.id));
   const lost = editing && draft ? Object.keys(draft.texts).filter(id => !known.has(id)) : [];
-  const items = rest.map(item => ({ id: item.id, label: moduleLabel(item.moduleType), component: item,
-    holder: { id: item.id, type: item.moduleType, facets: item.facets, status: item.status } }));
+  const items = numbered(rest.map(item => ({ id: item.id, type: item.moduleType, label: moduleLabel(item.moduleType), component: item,
+    holder: { id: item.id, type: item.moduleType, facets: item.facets, status: item.status } })));
 
   const mainKey = mainKeyOf(page.components);
   // A card's actions are ejected from its tab when the tab is clicked (D07);
@@ -436,7 +436,7 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
   // card and, clicked, ejects its actions beside it), its status only while
   // unfinished, and its content. An empty component is only its tab. Editing
   // is one card at a time; Save and Cancel live in that card.
-  const card = (item: Component, title: string, { drag, menu }: RowParts) => {
+  const card = (item: Component, title: string, { drag, menu, ghost }: RowParts) => {
     const family = isModuleType(item.moduleType) ? CATALOG[item.moduleType].family ?? 'notes' : 'notes';
     const empty = !blockText(item.content) && !item.waitingFacets?.length && item.status !== 'loading' && item.status !== 'failed' && editingId !== item.id;
     const removeFacet = (facet: FacetType) => void run(async () => { await deleteFacet(item.id, item.moduleType as ParentType, facet); });
@@ -450,9 +450,11 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
     const gone = vanishing.has(item.id);
     // The parent's facets as tags on the card's edge, or hung from its tab while it is only its tab (0.7.1).
     const layout: TagLayout = empty || generating ? 'hanging' : isFolded ? 'folded' : 'edge';
-    const tagged = Boolean(controls && item.facets?.length);
+    // A ghost of a facet picked up in the window counts as a tag, so the card makes room for it (0.7.2).
+    const tagCount = (item.facets?.length ?? 0) + (ghost && !item.facets?.includes(ghost.facet) ? 1 : 0);
+    const tagged = Boolean(controls && tagCount);
     const tags = controls ? <FacetTags holderId={item.id} parent={item.moduleType as ParentType} facets={item.facets ?? []}
-      layout={layout} title={title} disabled={controls.disabled}
+      layout={layout} title={title} disabled={controls.disabled} ghost={ghost}
       onOpen={layout === 'hanging' ? undefined : facet => showFacet(item, facet)}
       onRemove={facet => {
         // A facet with content asks first, in its section; one waiting for Retry goes at once.
@@ -463,7 +465,7 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
       }} /> : null;
     return <article className={`component fam-${family}`} data-empty={empty || undefined} data-generating={generating || undefined}
       data-folded={isFolded || undefined} data-vanishing={gone || undefined} data-tagged={tagged ? layout : undefined}
-      style={tagged ? { '--tags': item.facets!.length } as CSSProperties : undefined}
+      style={tagged ? { '--tags': tagCount } as CSSProperties : undefined}
       data-component-id={item.id} data-type={item.moduleType} data-status={item.status ?? undefined} data-editing={editingId === item.id || undefined}>
       <div className="card-head" onKeyDown={event => {
         if (event.key !== 'Escape' || opened !== item.id) return;
