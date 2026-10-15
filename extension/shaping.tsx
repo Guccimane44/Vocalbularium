@@ -42,6 +42,8 @@ const windowType = (active: Active) => String(active.id).slice(WINDOW.length);
 // that would take it, or the ghost of its tag there.
 const PLACE = '.card-tab, .facet-tag[data-ghost]';
 const PLACES = '.sortable-row[data-ghost-target] :is(.card-tab, .facet-tag[data-ghost])';
+// The glow animations of page-view.css, kept on one beat.
+const GLOWS = new Set(['glow-aura', 'glow-sheen', 'ghost-aura', 'ghost-fill']);
 const isFacet = (active: Active | null) => Boolean(active && String(active.id).startsWith(FACET));
 const facetId = (parent: string, facet: string) => `${FACET}${parent}:${facet}`;
 function facetOf(id: string | number): { parent: ParentType; facet: FacetType } {
@@ -298,10 +300,22 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
     first?.focus({ preventScroll: true });
     first?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }, [picked]);
+  // What the parents hold, to notice when a ghost should go or move.
+  const holderKey = holders.map(holder => `${holder.id}:${(holder.facets ?? []).join(',')}:${holder.status ?? ''}`).join('|');
+  // The tabs and ghosts glow on one beat: CSS starts each animation when its
+  // element appears, so they are set to start together from the document
+  // timeline's origin, which keeps them in phase whenever they appeared.
+  useEffect(() => {
+    if (!picked || picked.placing) return;
+    const frame = requestAnimationFrame(() => {
+      for (const animation of document.getAnimations())
+        if (animation instanceof CSSAnimation && GLOWS.has(animation.animationName)) animation.startTime = 0;
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [picked, holderKey]);
   // A placed ghost goes once its facet has arrived, or its parent has gone;
   // a picked facet goes back when no parent would take it any more, or when
   // shaping turns off.
-  const holderKey = holders.map(holder => `${holder.id}:${(holder.facets ?? []).join(',')}:${holder.status ?? ''}`).join('|');
   useEffect(() => {
     if (!picked) return;
     if (picked.placing) {

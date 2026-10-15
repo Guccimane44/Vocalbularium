@@ -2149,7 +2149,12 @@ test('parents and facets: core only on add, facets only on their own parent, the
   // The ghost stands in the slot the tag would take, among the tags, in the parent's order.
   assert.deepEqual(await card('German 1').locator('.facet-tag .facet-tag-mark').allTextContents(), ['Ar', 'Ex', 'Sy', 'An']);
   await new Promise(resolve => setTimeout(resolve, 900)); // the tags make room, and the ghosts pop in
+  // Held at the glow's peak for the picture, then let go again in phase.
+  const glowing = names => a.page.evaluate(names => document.getAnimations().filter(animation => names.includes(animation.animationName))
+    .forEach(animation => { if (animation.playState === 'paused') animation.startTime = 0; else { animation.pause(); animation.currentTime = animation.effect.getTiming().duration / 2; } }), names);
+  await glowing(['glow-aura', 'glow-sheen', 'ghost-aura', 'ghost-fill']);
   await a.page.screenshot({ path: 'artifacts/v0.7.2-ghost-tags.png', fullPage: true });
+  await glowing(['glow-aura', 'glow-sheen', 'ghost-aura', 'ghost-fill']);
   // The + again, or a click elsewhere, puts it back and adds nothing.
   await plus.click();
   await waitFor(async () => await ghosts.count() === 0, 'the + again puts it back');
@@ -2163,8 +2168,13 @@ test('parents and facets: core only on add, facets only on their own parent, the
   await plus.click();
   await waitFor(async () => await ghosts.count() === 2, 'picked up again');
   assert.equal(await card('German 1').evaluate(node => getComputedStyle(node).outlineStyle), 'none', 'the cards are not outlined');
-  assert.equal(await card('German 1').locator('.card-tab').evaluate(node => getComputedStyle(node).animationName), 'tab-glow');
-  assert.equal(await ghosts.first().evaluate(node => getComputedStyle(node).animationName), 'ghost-glow');
+  assert.equal(await card('German 1').locator('.card-tab').evaluate(node => getComputedStyle(node).animationName), 'glow-aura');
+  assert.equal(await ghosts.first().evaluate(node => getComputedStyle(node).animationName), 'ghost-aura');
+  // Every tab and ghost glows on one beat: the same period, in phase.
+  await waitFor(() => a.page.evaluate(() => {
+    const glows = document.getAnimations().filter(animation => ['glow-aura', 'glow-sheen', 'ghost-aura', 'ghost-fill'].includes(animation.animationName));
+    return glows.length === 8 && glows.every(animation => animation.startTime === glows[0].startTime && animation.effect.getTiming().duration === glows[0].effect.getTiming().duration);
+  }), 'the glows in phase');
   await card('German 1').locator('.card-fold').click();
   await waitFor(async () => await ghosts.count() === 0, 'a click on the card’s content puts it back');
   assert.deepEqual((await german()).map(item => item.facets.includes('synonyms')), [false, false], 'putting it back adds nothing');
@@ -2210,7 +2220,8 @@ test('parents and facets: core only on add, facets only on their own parent, the
   const deckGhosts = deckGermans.locator('.facet-tag[data-ghost]');
   await waitFor(async () => await deckGhosts.count() === 2, 'a ghost below each German tab');
   assert.equal(await deckGermans.nth(1).locator('.facet-tags').getAttribute('data-layout'), 'hanging');
-  await a.page.getByRole('button', { name: 'Add Antonyms to German 2', exact: true }).click();
+  // The ghost swells with its glow, never still: click it without waiting for it to settle.
+  await a.page.getByRole('button', { name: 'Add Antonyms to German 2', exact: true }).click({ force: true });
   await waitFor(async () => await deckGhosts.count() === 0, 'placed');
   assert.deepEqual(await deckGermans.nth(1).locator('.facet-tag-mark').allTextContents(), ['An']);
   assert.deepEqual(await deckGermans.nth(0).locator('.facet-tag-mark').allTextContents(), ['Ar', 'Ex', 'Sy']);

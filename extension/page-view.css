@@ -351,31 +351,47 @@ button.facet-tag-open:hover { background: transparent; }
 /* With content, the card is at least as tall as the tags on its left edge. */
 .component[data-tagged="edge"] { min-height: calc(40px + var(--tags, 0) * 30px); }
 /* A ghost tag (0.7.2): the tag's outline, dashed and barely filled, marked
-   in the family colour and glowing, where a picked-up facet would go.
-   Placed, it stops glowing and waits while the facet is saved; the tag then
-   flies in from the window and takes its place. */
+   in the family colour, where a picked-up facet would go. Placed, it waits
+   while the facet is saved; the tag then flies in from the window and takes
+   its place. */
 .facet-tag[data-ghost]::before { background: color-mix(in srgb, var(--fam, var(--fam-notes)) 14%, transparent); filter: none; }
 .facet-ghost-shape { position: absolute; left: 50%; top: 50%; width: 24px; height: 30px; translate: -50% -50%; rotate: var(--turn); overflow: visible; pointer-events: none;
   fill: none; stroke: var(--fam, var(--fam-notes)); stroke-width: 1.6; stroke-dasharray: 3 2.4; stroke-linejoin: round; }
 .facet-tag[data-ghost] .facet-tag-open { color: var(--fam, var(--fam-notes)); cursor: copy; }
-.facet-tag[data-ghost=""] { animation: ghost-glow 1.4s ease-in-out infinite; }
 .facet-ghost:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
-@keyframes ghost-glow {
-  0%, 100% { filter: drop-shadow(0 0 1px color-mix(in srgb, var(--fam, var(--fam-notes)) 40%, transparent)); }
-  50% { filter: drop-shadow(0 0 6px var(--fam, var(--fam-notes))); } }
-/* The tab of each parent that would take the picked-up facet glows too, and takes the click. */
-.sortable-row[data-ghost-target] .card-tab { cursor: copy; animation: tab-glow 1.4s ease-in-out infinite; }
+/* While a facet is picked up, each parent that would take it glows at its
+   tab and its ghost, on one shared beat (shaping.tsx keeps them in phase):
+   an aura that breathes out in the family colour, a ring tightening round
+   the tab, and a sheen of light sweeping across it as the aura peaks; the
+   ghost swells, fills and haloes in time. */
+.sortable-row[data-ghost-target] .card-tab { --glow: color-mix(in srgb, var(--fam, var(--fam-notes)) 80%, white); position: relative; overflow: hidden; cursor: copy;
+  animation: glow-aura var(--glow-beat) ease-in-out infinite; }
 .sortable-row[data-ghost-target] .card-tab * { cursor: copy; }
-@keyframes tab-glow {
-  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--fam, var(--fam-notes)) 0%, transparent); }
-  50% { box-shadow: 0 0 10px 3px color-mix(in srgb, var(--fam, var(--fam-notes)) 55%, transparent); } }
+.sortable-row[data-ghost-target] .card-tab::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(105deg, transparent 30%, rgb(255 255 255 / .6) 48%, rgb(255 255 255 / .15) 56%, transparent 70%) no-repeat;
+  background-size: 300% 100%; animation: glow-sheen var(--glow-beat) linear infinite; }
+.facet-tag[data-ghost=""] { --glow: color-mix(in srgb, var(--fam, var(--fam-notes)) 80%, white); animation: ghost-aura var(--glow-beat) ease-in-out infinite; }
+.facet-tag[data-ghost=""]::before { animation: ghost-fill var(--glow-beat) ease-in-out infinite; }
+.shaping-list { --glow-beat: 1.6s; }
+@keyframes glow-aura {
+  0%, 100% { box-shadow: 0 0 0 1px color-mix(in srgb, var(--glow) 40%, transparent), 0 0 6px 1px color-mix(in srgb, var(--glow) 35%, transparent); }
+  50% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--glow) 55%, transparent), 0 0 16px 5px var(--glow), 0 0 34px 12px color-mix(in srgb, var(--glow) 45%, transparent); } }
+@keyframes glow-sheen { 0%, 30% { background-position: 100% 0; } 70%, 100% { background-position: 0 0; } }
+@keyframes ghost-aura {
+  0%, 100% { scale: 1; filter: drop-shadow(0 0 2px color-mix(in srgb, var(--glow) 60%, transparent)); }
+  50% { scale: 1.12; filter: drop-shadow(0 0 3px var(--glow)) drop-shadow(0 0 10px var(--glow)) drop-shadow(0 0 22px color-mix(in srgb, var(--glow) 55%, transparent)); } }
+@keyframes ghost-fill {
+  0%, 100% { background: color-mix(in srgb, var(--fam, var(--fam-notes)) 14%, transparent); }
+  50% { background: color-mix(in srgb, var(--fam, var(--fam-notes)) 26%, transparent); } }
 /* Leaving, a tag pops where it stands, like a deleted card. */
 .facet-tag[data-leaving] { pointer-events: none; animation: bop 240ms cubic-bezier(.3, 0, .2, 1) forwards; }
 @keyframes tag-shown { 0%, 100% { box-shadow: none; } 30% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--fam, var(--focus)) 35%, transparent); } }
 .facet[data-shown] { border-radius: 6px; animation: tag-shown 1.2s var(--ease-out); }
 .facet:focus { outline: none; }
 .facet:focus-visible { outline: 2px solid var(--focus); outline-offset: 4px; border-radius: 4px; }
-@media (prefers-reduced-motion: reduce) { .facet-tag::before { transition: none; } .facet-tag:is([data-leaving], [data-ghost]) { animation: none; } .sortable-row[data-ghost-target] .card-tab { animation: none; box-shadow: 0 0 6px 2px color-mix(in srgb, var(--fam, var(--fam-notes)) 50%, transparent); } }
+@media (prefers-reduced-motion: reduce) { .facet-tag::before { transition: none; } .facet-tag:is([data-leaving], [data-ghost]), .facet-tag[data-ghost]::before, .sortable-row[data-ghost-target] .card-tab::after { animation: none; }
+  .facet-tag[data-ghost=""] { filter: drop-shadow(0 0 3px var(--glow)) drop-shadow(0 0 8px var(--glow)); }
+  .sortable-row[data-ghost-target] .card-tab { animation: none; box-shadow: 0 0 0 2px color-mix(in srgb, var(--glow) 55%, transparent), 0 0 14px 4px var(--glow); } }
 @media (max-width: 600px) { .facet-tags[data-layout="edge"] { left: -16px; } }
 @media (forced-colors: active) {
   .facet-tag::before { forced-color-adjust: none; background: CanvasText; }
