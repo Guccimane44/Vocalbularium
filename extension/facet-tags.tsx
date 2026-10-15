@@ -185,7 +185,7 @@ export function FacetTags({ holderId, parent, facets, layout, title, disabled = 
     // the placed ghost turns into the tag that arrives in its place.
     if (facet === ghostFacet) return <li key={facet} className="facet-tag" data-facet={facet} data-ghost={ghost!.placing ? 'placing' : ''}
       style={{ '--i': index } as CSSProperties}>
-      <svg className="facet-ghost-shape" viewBox="0 0 24 30" aria-hidden="true"><path d="M1 1H23V28.4L12 21.8L1 28.4Z" /></svg>
+      <svg className="facet-ghost-shape" viewBox="0 0 24 30" aria-hidden="true"><path d="M.8 .8H23.2V29.2L12 22.8L.8 29.2Z" /></svg>
       {ghost!.placing ? <span className="facet-tag-open" aria-hidden="true">{mark}</span>
         : <button type="button" className="facet-tag-open facet-ghost" aria-label={ghost!.label}>{mark}</button>}
     </li>;

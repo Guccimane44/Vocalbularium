@@ -302,7 +302,10 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
 .facet-tag::before { content: ""; position: absolute; left: 50%; top: 50%; width: 24px; height: 30px; translate: -50% -50%; rotate: var(--turn);
   background: var(--fam, var(--fam-notes)); clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 76%, 0 100%);
   filter: drop-shadow(0 1px 1px #0002); transition: rotate var(--tag-travel) cubic-bezier(.45, 0, .25, 1); }
-.facet-tag-open { position: relative; display: grid; place-items: start center; width: 100%; height: 100%; padding: 5px 0 0; border: 0; border-radius: 0;
+/* The mark is centred in the bookmark's solid body, beside its notch, which
+   cuts 24% into the free end: below the mark on a hanging or folded tag, to
+   its left on the card's edge. Every tag, ghosts included, the same way. */
+.facet-tag-open { position: relative; display: grid; place-items: center; width: 100%; height: 100%; padding: 0 0 7px; border: 0; border-radius: 0;
   background: transparent; color: var(--on-fam, var(--on-ink)); font: 700 11px/1 var(--font-text); letter-spacing: .02em; cursor: default; }
 button.facet-tag-open { cursor: pointer; }
 button.facet-tag-open:hover { background: transparent; }
@@ -320,11 +323,10 @@ button.facet-tag-open:hover { background: transparent; }
 /* Stuck out of the left edge, one under another below the tab, notch outward. */
 .facet-tags[data-layout="edge"] { left: -28px; top: 34px; }
 .facet-tags[data-layout="edge"] .facet-tag { width: 30px; height: 24px; left: 0; top: calc(var(--i) * 30px); --turn: 90deg; }
-.facet-tags[data-layout="edge"] .facet-tag-open { place-items: center end; padding: 0 8px 0 0; }
+.facet-tags[data-layout="edge"] .facet-tag-open { padding: 0 0 0 7px; }
 /* Folded: in a row at the right of the bottom edge, hanging below it. */
 .facet-tags[data-layout="folded"] { right: 18px; top: calc(100% - 6px); }
 .facet-tags[data-layout="folded"] .facet-tag { right: calc((var(--n) - 1 - var(--i)) * 28px); top: 0; }
-.facet-tags[data-layout="folded"] .facet-tag-open { padding-top: 7px; }
 /* Hung below the tab, each on its own chain of small links. */
 .facet-tags[data-layout="hanging"] { left: 28px; top: 28px; }
 .facet-tag::after { content: ""; position: absolute; left: 50%; top: -11px; width: 6px; height: 12px; translate: -50% 0; opacity: 0; pointer-events: none;

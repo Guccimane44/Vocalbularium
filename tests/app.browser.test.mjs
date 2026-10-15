@@ -2150,7 +2150,18 @@ test('parents and facets: core only on add, facets only on their own parent, the
   assert.deepEqual(await card('German 1').locator('.facet-tag .facet-tag-mark').allTextContents(), ['Ar', 'Ex', 'Sy', 'An']);
   await new Promise(resolve => setTimeout(resolve, 900)); // the tags make room, and the ghosts pop in
   // Held at the glow's peak for the picture, then let go again in phase.
-  await a.page.locator('.shaping-list').evaluate(node => { const animation = node.getAnimations().find(each => each.animationName === 'glow-beat'); animation.pause(); animation.currentTime = 800; });
+  // At rest, every tag on the unfolded card, the ghost included, has its mark at the same place
+  // within it: centred in the bookmark's body beside the notch.
+  await a.page.locator('.shaping-list').evaluate(node => { const animation = node.getAnimations().find(each => each.animationName === 'glow-beat'); animation.pause(); animation.currentTime = 0; });
+  const marks = await card('German 1').locator('.facet-tag').evaluateAll(tags => tags.map(tag => {
+    const box = tag.getBoundingClientRect(), mark = tag.querySelector('.facet-tag-mark').getBoundingClientRect();
+    return { facet: tag.dataset.facet, x: mark.left + mark.width / 2 - box.left, y: mark.top + mark.height / 2 - box.top };
+  }));
+  assert.equal(marks.length, 4);
+  for (const each of marks) {
+    assert.ok(Math.abs(each.x - 18.6) <= 1 && Math.abs(each.y - 12) <= 1, `${each.facet}'s mark is centred in the body (${each.x}, ${each.y})`);
+  }
+  await a.page.locator('.shaping-list').evaluate(node => { node.getAnimations().find(each => each.animationName === 'glow-beat').currentTime = 800; });
   await a.page.screenshot({ path: 'artifacts/v0.7.2-ghost-tags.png', fullPage: true });
   await a.page.locator('.shaping-list').evaluate(node => node.getAnimations().find(each => each.animationName === 'glow-beat').play());
   // The + again, or a click elsewhere, puts it back and adds nothing.
