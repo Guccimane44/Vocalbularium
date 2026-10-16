@@ -2663,6 +2663,29 @@ test('0.7.3: a facet’s own Retry beside its Delete, a tag’s remove keeping i
   assert.deepEqual(await a.page.evaluate(() => [window.scrollY, document.activeElement?.tagName]), scrolled, 'nothing moves');
   await a.page.setViewportSize({ width: 1280, height: 1400 });
 
+  // The module window fits the viewport; below its search, the list scrolls on its own.
+  await a.page.setViewportSize({ width: 1280, height: 520 });
+  const moduleWindow = a.page.locator('.module-window');
+  const list = moduleWindow.locator('.window-scroll');
+  // Scrolled down, the sticky window stands wholly in the viewport.
+  await a.page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  await waitFor(async () => { const box = await moduleWindow.boundingBox(); return box.y >= -1 && box.y + box.height <= 521; }, 'the window wholly in view');
+  const windowBox = await moduleWindow.boundingBox();
+  assert.ok(windowBox.height <= 520 - 48 + 1, `the window fits the viewport (${windowBox.height}px)`);
+  assert.ok(await list.evaluate(node => node.scrollHeight > node.clientHeight + 20), 'the list overflows and scrolls');
+  const searchAt = (await moduleWindow.locator('.window-search').boundingBox()).y;
+  const pageAt = await a.page.evaluate(() => window.scrollY);
+  const listBox = await list.boundingBox();
+  await a.page.mouse.move(listBox.x + listBox.width / 2, listBox.y + listBox.height / 2);
+  await a.page.mouse.wheel(0, 2000);
+  await waitFor(() => list.evaluate(node => node.scrollTop + node.clientHeight >= node.scrollHeight - 1), 'list scrolled to its end');
+  assert.equal((await moduleWindow.locator('.window-search').boundingBox()).y, searchAt, 'the heading and search stay put');
+  assert.equal(await a.page.evaluate(() => window.scrollY), pageAt, 'the page does not scroll with it');
+  await list.evaluate(node => { node.scrollTop = 120; });
+  await moduleWindow.screenshot({ path: 'artifacts/v0.7.3-module-window-scroll.png' });
+  await list.evaluate(node => { node.scrollTop = 0; });
+  await a.page.setViewportSize({ width: 1280, height: 1400 });
+
   // Generating, a card's hung tags stay beneath its tab, so the rail does not cover the spark.
   await hung.locator('.tab-button').click();
   await a.page.getByRole('button', { name: 'Retry German 2', exact: true }).click();
