@@ -1135,9 +1135,10 @@ test('retry UI: exact confirmation asked beside the tab, a first Retry without w
   await signIn(a.page); await signIn(b.page);
   await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
   await b.page.goto(`chrome-extension://${b.id}/app.html#page/${pageId}`);
-  // A parent card waits for its live editor (0.7.4, increment 7), which brings back installation b's
-  // draft during a's retry; until then its Edit waits.
-  assert.equal(await (await cardButton(b.page, 'Edit German')).isDisabled(), true);
+  // Installation b edits the explanation card in its live editor while a retries it.
+  await (await cardButton(b.page, 'Edit German')).click();
+  const bMeanings = b.page.getByRole('textbox', { name: 'Meanings, German', exact: true });
+  await bMeanings.click(); await b.page.keyboard.press('ControlOrMeta+a'); await b.page.keyboard.type('draft back');
   // Retrying content asks beside the tab, as Delete does, in the card's colour; no dialog (0.6.3).
   const retryExplanation = () => cardButton(a.page, 'Retry German');
   await (await retryExplanation()).click();
@@ -1159,11 +1160,18 @@ test('retry UI: exact confirmation asked beside the tab, a first Retry without w
   // Every Retry is briefly disabled while the request is in flight; once accepted, only the generating component stays locked.
   await waitFor(async () => (await cardButton(a.page, 'Retry Chinese')).isEnabled(), 'other components stay available');
   assert.equal(await (await retryExplanation()).isDisabled(), true);
+  await b.page.getByRole('button', { name: 'Save', exact: true }).click();
+  await b.page.getByRole('alert').filter({ hasText: 'still generating' }).waitFor();
   assert.deepEqual(modulesOf(await application.store.page(pageId)).map(text), ['saved original', '']);
+  assert.equal(await bMeanings.textContent(), 'draft back', 'the draft is kept');
   release(wordResult('regenerated component'));
   await waitFor(async () => modulesOf(await application.store.page(pageId))[1].status === 'completed', 'retry saved');
   assert.deepEqual(modulesOf(await application.store.page(pageId)).map(text), ['saved original', 'regenerated component']);
   assert.deepEqual(modulesOf(await application.store.page(pageId)).map(text), ['saved original', 'regenerated component']);
+  // An explicit resubmission saves the draft over the regenerated content (D09).
+  await b.page.getByRole('button', { name: 'Try saving again', exact: true }).click();
+  await b.page.locator('.component-tools').waitFor({ state: 'detached' });
+  assert.deepEqual(modulesOf(await application.store.page(pageId)).map(text), ['saved original', 'draft back']);
 
   // A deck change never reaches the page; a module dragged onto it generates from its card without a warning.
   await useModules(application.store, ['chinese', 'german', 'german']);
@@ -2700,4 +2708,85 @@ test('0.7.3: a facet’s own Retry beside its Delete, a tag’s remove keeping i
   await hung.locator('.card-tab').screenshot({ path: 'artifacts/v0.7.3-spark-over-rail.png' });
   release(wordResult(['Ufer'], { synonyms: ['Böschung'] }, { key: 'bank' }));
   await waitFor(async () => await hung.getAttribute('data-generating') === null, 'German 2 generated');
+});
+
+test('0.7.4: the live editor formats markdown in place: names and top line locked, no markdown shown, lists, bold, highlight, empty facets filled, any part emptied', { timeout: 60000 }, async (t) => {
+  const directory = await mkdtemp(join(tmpdir(), 'vocabularium-live-editor-browser-'));
+  const application = await createTestApplication(t); await application.start();
+  const a = await launch(join(directory, 'a'));
+  t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
+  await a.page.setViewportSize({ width: 1280, height: 1400 });
+  const store = application.store;
+  const session = { installationId: 'fixture', sessionId: 'live-editor', epoch: 1 };
+  await store.openSession('live-editor-session', session);
+  const { pageId } = await store.capture('live-editor-capture', { session, mainKey: 'bank', snapshot: await store.snapshot() });
+  const first = (await store.page(pageId)).components.find(item => item.moduleType === 'german');
+  const { antonyms, ...facets } = BANK.facets;
+  await store.stage(first.attemptId, staged({ core: BANK.core, facets }));
+  await store.publish('live-editor-publish', { attemptId: first.attemptId, session });
+  const stored = async () => (await store.page(pageId)).components.find(item => item.moduleType === 'german').content.blocks[0];
+  await signIn(a.page);
+  await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
+  const card = componentArticle(a.page, 'German');
+  await card.locator('.entry-core').waitFor();
+  await (await cardButton(a.page, 'Edit German')).click();
+  const editor = card.getByRole('group', { name: 'Edit German', exact: true });
+  await editor.waitFor();
+  const part = name => editor.getByRole('textbox', { name: `${name}, German`, exact: true });
+
+  // In place, formatted, with no markdown characters, numbers or separators of its own.
+  assert.equal(await editor.locator('.entry-heading').textContent(), 'Englischbank');
+  assert.deepEqual(await editor.locator('.facet-title').allTextContents(), ['Article', 'Examples', 'Synonyms', 'Antonyms']);
+  assert.equal(await part('Meanings').textContent(), 'Ufer');
+  assert.equal(await part('Examples').locator('em').textContent(), 'Wir saßen am Ufer.', 'the translation is italic, not *starred*');
+  assert.doesNotMatch(await editor.textContent(), /\*|==|`|^\s*\d+\./m);
+  assert.equal(await a.page.evaluate(() => document.activeElement?.tagName), 'BODY', 'opening moves the focus nowhere');
+  assert.notEqual(await editor.locator('.facet[data-facet="antonyms"]').getAttribute('data-unfilled'), null, 'the empty facet is dimmed in its place');
+  await a.page.screenshot({ path: 'artifacts/v0.7.4-live-editor.png' });
+
+  // Typing markdown formats live; Cmd/Ctrl+B toggles bold; lists and highlight by input rules.
+  await part('Synonyms').click(); await a.page.keyboard.press('End');
+  await a.page.keyboard.type(', **fest**');
+  await waitFor(async () => await part('Synonyms').locator('strong').count() === 1, 'bold typed live');
+  assert.equal(await part('Synonyms').textContent(), 'Böschung, fest');
+  await part('Meanings').click(); await a.page.keyboard.press('ControlOrMeta+a');
+  await a.page.keyboard.press('ControlOrMeta+b');
+  await waitFor(async () => await part('Meanings').locator('strong').count() === 1, 'Cmd/Ctrl+B made bold');
+  const tag = card.locator('.facet-tag[data-facet="antonyms"]');
+  assert.notEqual(await tag.getAttribute('data-unfilled'), null);
+  await part('Antonyms').click();
+  await a.page.keyboard.type('- Strom');
+  await waitFor(async () => await part('Antonyms').locator('ul li').count() === 1, 'a bulleted list typed live');
+  await a.page.keyboard.type(' ==stark==');
+  await waitFor(async () => await part('Antonyms').locator('mark').count() === 1, 'highlight typed live');
+  await waitFor(async () => await tag.getAttribute('data-unfilled') === null, 'the tag fills as you type');
+  await part('Article').click(); await a.page.keyboard.press('ControlOrMeta+a'); await a.page.keyboard.press('Backspace');
+  assert.doesNotMatch(await editor.textContent(), /\*|==|`/, 'still no markdown characters');
+  assert.equal(await editor.locator('.md-editor > ul + p, .md-editor > ol + p').count(), 0, 'no blank line after a list');
+  await a.page.screenshot({ path: 'artifacts/v0.7.4-live-editor-typed.png' });
+  await card.getByRole('button', { name: 'Save', exact: true }).click();
+  await card.locator('.live-editor').waitFor({ state: 'detached' });
+  const saved = await stored();
+  assert.equal(saved.core, '1. **Ufer**');
+  assert.deepEqual(saved.facets, { examples: '1. We sat on the bank.\n   *Wir saßen am Ufer.*', synonyms: 'Böschung, **fest**', antonyms: '- Strom ==stark==' },
+    'markdown written as the card reads it; the emptied Article gone; the empty Antonyms filled');
+  assert.deepEqual(saved.header, { kind: 'word', language: 'Englisch', key: 'bank' }, 'the top line kept');
+  // The card shows it formatted, in its containers.
+  assert.equal(await card.locator('.entry-core strong').textContent(), 'Ufer');
+  assert.equal(await card.locator('.facet[data-facet="antonyms"] ul li').count(), 1);
+  assert.equal(await card.locator('.facet[data-facet="antonyms"] .md-highlight').textContent(), 'stark');
+  assert.equal(await card.locator('.facet[data-facet="article"]').count(), 0);
+
+  // Cancel discards; the core may be emptied too.
+  await (await cardButton(a.page, 'Edit German')).click();
+  await part('Meanings').click(); await a.page.keyboard.type('discarded');
+  await card.getByRole('button', { name: 'Cancel', exact: true }).click();
+  assert.equal((await stored()).core, '1. **Ufer**');
+  await (await cardButton(a.page, 'Edit German')).click();
+  await part('Meanings').click(); await a.page.keyboard.press('ControlOrMeta+a'); await a.page.keyboard.press('Backspace');
+  await card.getByRole('button', { name: 'Save', exact: true }).click();
+  await card.locator('.live-editor').waitFor({ state: 'detached' });
+  assert.equal((await stored()).core, '');
+  assert.equal(await card.locator('.entry-heading').textContent(), 'Englischbank', 'an emptied core shows its top line');
+  await a.page.screenshot({ path: 'artifacts/v0.7.4-live-editor-saved.png' });
 });

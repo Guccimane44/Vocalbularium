@@ -1,5 +1,9 @@
 import type { DeckConfiguration, InputType, OperationId } from '@vocabularium/contracts';
 
+// A parent card's editable parts (D09, amended): the core's markdown and one
+// markdown text per facet the card has, empty ones included.
+export type FieldDraft = { core: string; facets: Record<string, string> };
+
 export type EditorPendingPageSave = Readonly<{
   operationId: OperationId;
   type: 'save-page' | 'create-page';
@@ -17,6 +21,12 @@ export type PageEditorDraft = {
   componentId?: string;
   base: Record<string, string>;
   texts: Record<string, string>;
+  // A parent card in the live editor (D09, amended): its draft per component,
+  // the draft it opened with as JSON (to tell whether it changed), and the
+  // content it opened from (whose top line a save keeps; the server checks it).
+  fields?: Record<string, FieldDraft>;
+  fieldBase?: Record<string, string>;
+  fieldStored?: Record<string, unknown>;
   mainKey?: string;
   inputs?: Record<string, string>;
   pending?: EditorPendingPageSave;
