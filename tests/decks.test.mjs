@@ -1,7 +1,7 @@
 import test, { createTestStore } from './helpers/database.mjs';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
-import { complete, generated, text } from './helpers/pages.mjs';
+import { complete, generated, text, staged } from './helpers/pages.mjs';
 
 const instances = (...types) => types.map(type => ({ id: randomUUID(), type }));
 const withKey = (...types) => instances('main-key', ...types);
@@ -74,7 +74,7 @@ test('deck changes during generation leave the running attempt and its page alon
   const deck = await store.deck((await store.snapshot()).id);
   await save(store, { ...deck, modules: withKey('chinese') });
   assert.equal((await store.attempt(running.attemptId)).module.type, 'german');
-  await store.stage(running.attemptId, { ok: true, text: 'late but owned' });
+  await store.stage(running.attemptId, staged('late but owned'));
   await store.publish('publish', { attemptId: running.attemptId, session });
   assert.deepEqual(generated(await store.page(pageId)).map(item => [text(item), item.status]), [['late but owned', 'completed']]);
 });

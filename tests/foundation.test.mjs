@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { capture as captureWith, code, complete, component, confirmed, generated, text, textBlocks, useModules } from './helpers/pages.mjs';
+import { capture as captureWith, code, complete, component, confirmed, generated, text, textBlocks, useModules, staged, fieldEdit } from './helpers/pages.mjs';
 
 const a = { installationId: 'a', sessionId: 'a-1', epoch: 1 };
 const b = { installationId: 'b', sessionId: 'b-1', epoch: 1 };
@@ -66,7 +66,7 @@ test('server stage cannot publish; another installation cannot publish its resul
   const store = await fixture(t);
   const { pageId, page } = await capture(store);
   const { attemptId } = generated(page)[0];
-  await store.stage(attemptId, { ok: true, text: 'generated' });
+  await store.stage(attemptId, staged('generated'));
   assert.equal(text(generated(await store.page(pageId))[0]), '');
   assert.equal((await store.page(pageId)).status, 'loading');
   await assert.rejects(async () => (await store.publish('wrong', { attemptId, session: b })), code('wrong_session'));
@@ -101,9 +101,9 @@ test('browser restart fails only its unfinished components and fences late resul
   const own = await capture(store);
   const other = await capture(store, 'capture-b', b);
   const [done, pending] = generated(own.page);
-  await store.stage(done.attemptId, { ok: true, text: 'already saved' });
+  await store.stage(done.attemptId, staged('already saved'));
   await store.publish('complete-one', { attemptId: done.attemptId, session: a });
-  await store.stage(pending.attemptId, { ok: true, text: 'late result' });
+  await store.stage(pending.attemptId, staged('late result'));
   await store.openSession('restart-a', { ...a, sessionId: 'a-2', epoch: 2 });
   const reconciled = generated(await store.page(own.pageId));
   assert.equal(text(reconciled[0]), 'already saved');
@@ -112,7 +112,7 @@ test('browser restart fails only its unfinished components and fences late resul
   assert.equal((await store.page(own.pageId)).status, 'failed');
   assert.equal((await store.page(other.pageId)).status, 'loading');
   await assert.rejects(async () => (await store.publish('late-publish', { attemptId: pending.attemptId, session: a })), code('stale_session'));
-  await assert.rejects(async () => (await store.stage(pending.attemptId, { ok: true, text: 'even later' })), code('stale_attempt'));
+  await assert.rejects(async () => (await store.stage(pending.attemptId, staged('even later'))), code('stale_attempt'));
   await assert.rejects(async () => (await store.openSession('delayed-old-handshake', a)), code('stale_session'));
   await complete(store, other.page, b);
 });
@@ -121,7 +121,7 @@ test('a failed component discards its content without affecting the other; a com
   const store = await fixture(t);
   const { pageId, page } = await capture(store);
   const [first, second] = generated(page);
-  await store.stage(first.attemptId, { ok: true, text: '' });
+  await store.stage(first.attemptId, staged(''));
   await store.publish('empty', { attemptId: first.attemptId, session: a });
   await store.stage(second.attemptId, { ok: false, text: 'must not publish' });
   await store.publish('fail', { attemptId: second.attemptId, session: a });
@@ -136,12 +136,14 @@ test('save arrival order wins for the same component and preserves different com
   const store = await fixture(t);
   const { pageId, page } = await capture(store);
   await complete(store, page, a);
-  const [c1, c2] = generated(page).map(item => item.id);
-  const first = await store.savePage('save-a', { pageId, changes: [{ componentId: c1, content: textBlocks('A') }] });
-  const second = await store.savePage('save-b', { pageId, changes: [{ componentId: c1, content: textBlocks('B') }] });
-  const third = await store.savePage('save-c', { pageId, changes: [{ componentId: c2, content: textBlocks('C') }] });
+  // Field edits of the generated parents (D09).
+  const [p1, p2] = generated(await store.page(pageId));
+  const [c1, c2] = [p1.id, p2.id];
+  const first = await store.savePage('save-a', { pageId, changes: [{ componentId: c1, content: fieldEdit(p1, 'A') }] });
+  const second = await store.savePage('save-b', { pageId, changes: [{ componentId: c1, content: fieldEdit(p1, 'B') }] });
+  const third = await store.savePage('save-c', { pageId, changes: [{ componentId: c2, content: fieldEdit(p2, 'C') }] });
   assert.ok(first.sequence < second.sequence && second.sequence < third.sequence);
-  const replay = await store.savePage('save-a', { pageId, changes: [{ componentId: c1, content: textBlocks('A') }] });
+  const replay = await store.savePage('save-a', { pageId, changes: [{ componentId: c1, content: fieldEdit(p1, 'A') }] });
   assert.equal(replay.replayed, true);
   assert.deepEqual(generated(await store.page(pageId)).map(text), ['B', 'C']);
 });
@@ -150,13 +152,14 @@ test('generation rejects an entire multi-component save; explicit resubmission i
   const store = await fixture(t);
   const { pageId, page } = await capture(store);
   await complete(store, page, a);
-  const [c1, c2] = generated(page).map(item => item.id);
+  const [p1, p2] = generated(await store.page(pageId));
+  const [c1, c2] = [p1.id, p2.id];
   const { attemptIds: [attemptId] } = await confirmed(store, 'retry', { pageId, target: { scope: 'component', componentId: c2 }, session: b });
-  const payload = { pageId, changes: [{ componentId: c1, content: textBlocks('draft 1') }, { componentId: c2, content: textBlocks('draft 2') }] };
+  const payload = { pageId, changes: [{ componentId: c1, content: fieldEdit(p1, 'draft 1') }, { componentId: c2, content: fieldEdit(p2, 'draft 2') }] };
   await assert.rejects(async () => (await store.savePage('save-draft', payload)), code('generating'));
   assert.notEqual(text(generated(await store.page(pageId))[0]), 'draft 1');
   await assert.rejects(async () => (await confirmed(store, 'retry-again', { pageId, target: { scope: 'component', componentId: c2 }, session: a })), code('generating'));
-  await store.stage(attemptId, { ok: true, text: 'new generated text' });
+  await store.stage(attemptId, staged('new generated text'));
   await store.publish('publish-retry', { attemptId, session: b });
   assert.equal(text(generated(await store.page(pageId))[1]), 'new generated text');
   await store.savePage('save-draft', payload);
@@ -180,7 +183,7 @@ test('deletion prevents stale saves, retries, and generated results from recreat
   const store = await fixture(t);
   const { pageId, page } = await capture(store);
   await store.deletePage('delete', pageId);
-  await assert.rejects(async () => (await store.stage(generated(page)[0].attemptId, { ok: true, text: 'late' })), code('deleted'));
+  await assert.rejects(async () => (await store.stage(generated(page)[0].attemptId, staged('late'))), code('deleted'));
   await assert.rejects(async () => (await store.savePage('late-save', { pageId, changes: [] })), code('deleted'));
   await assert.rejects(async () => (await confirmed(store, 'late-retry', { pageId, target: { scope: 'page' }, session: a })), code('deleted'));
   assert.equal((await store.pages()).length, 0);

@@ -2,7 +2,7 @@ import test, { createTestStore } from './helpers/database.mjs';
 import assert from 'node:assert/strict';
 import { Generation } from '../src/server/generation.mjs';
 import { sortPages } from '../extension/sorting.ts';
-import { complete, component, confirmed, generated, text, textBlocks, useModules, resultFor } from './helpers/pages.mjs';
+import { complete, component, confirmed, generated, text, textBlocks, useModules, resultFor, fieldEdit } from './helpers/pages.mjs';
 
 const session = { installationId: 'a', sessionId: 'browser', epoch: 1 };
 async function fixture(t) {
@@ -67,12 +67,12 @@ test('component retry confirms first, uses the current main key, and leaves othe
   const [first, second] = generated(page);
   await store.savePage('manual', { pageId, changes: [
     { componentId: component(page, 'main-key').id, content: textBlocks('edited') },
-    { componentId: first.id, content: textBlocks('manual edit') }, { componentId: second.id, content: textBlocks('manual edit') }] });
+    { componentId: first.id, content: fieldEdit(first, 'manual edit') }, { componentId: second.id, content: fieldEdit(second, 'manual edit') }] });
 
   const retry = { pageId, target: target('component', second.id), session };
   let confirmation;
   await assert.rejects(store.generate('retry', retry), error => { confirmation = error.details.confirmation; return error.code === 'confirmation_required'; });
-  await store.savePage('remote-edit', { pageId, changes: [{ componentId: second.id, content: textBlocks('remote edit') }] });
+  await store.savePage('remote-edit', { pageId, changes: [{ componentId: second.id, content: fieldEdit(second, 'remote edit') }] });
   await assert.rejects(store.generate('retry', { ...retry, confirmation }), error => {
     const stale = confirmation; confirmation = error.details.confirmation;
     return error.code === 'confirmation_required' && confirmation !== stale;
@@ -89,7 +89,7 @@ test('component retry confirms first, uses the current main key, and leaves othe
   page = await store.page(pageId);
   assert.equal(text(generated(page)[1]), ''); assert.equal(text(generated(page)[0]), 'manual edit');
   await assert.rejects(store.savePage('locked', { pageId, changes: [{ componentId: second.id, content: textBlocks('draft') }] }), { code: 'generating' });
-  await store.savePage('other-editable', { pageId, changes: [{ componentId: first.id, content: textBlocks('still editable') }] });
+  await store.savePage('other-editable', { pageId, changes: [{ componentId: first.id, content: fieldEdit(first, 'still editable') }] });
   await Promise.all([...generation.tasks.values()].map(item => item.task));
   await store.publish('finish', { attemptId: result.attemptIds[0], session });
   assert.deepEqual(interpretations, ['edited']);

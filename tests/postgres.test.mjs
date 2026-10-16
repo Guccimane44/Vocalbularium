@@ -5,7 +5,7 @@ import test, { createTestStore, createTestDatabase, createTestApplication } from
 import { AccountStore } from '../src/core/store.mjs';
 import { Generation } from '../src/server/generation.mjs';
 import { migrateDatabase } from '../scripts/migrate.mjs';
-import { confirmed, generated, text, textBlocks, useModules, resultFor } from './helpers/pages.mjs';
+import { confirmed, generated, text, textBlocks, useModules, resultFor, staged, fieldEdit } from './helpers/pages.mjs';
 
 const session = { installationId: 'parallel', sessionId: 'first', epoch: 1 };
 function latch() {
@@ -57,13 +57,14 @@ test('queued writes keep admission order and independent components; replay cann
 test('a save admitted during generation rejects atomically before later publication and requires explicit resubmission', async t => {
   const store = await createTestStore(t), page = await captured(store);
   for (const item of generated(page)) {
-    await store.stage(item.attemptId, { ok: true, text: 'original' });
+    await store.stage(item.attemptId, staged('original'));
     await store.publish(item.id, { attemptId: item.attemptId, session });
   }
+  // Field edits of the generated parents (D09), drafted before the retry.
+  const payload = { pageId: page.id, changes: generated(await store.page(page.id)).map(item => ({ componentId: item.id, content: fieldEdit(item, 'draft') })) };
   const { attemptIds: [attemptId] } = await confirmed(store, 'retry', { pageId: page.id, target: { scope: 'component', componentId: generated(page)[1].id }, session });
-  const payload = { pageId: page.id, changes: generated(page).map(item => ({ componentId: item.id, content: textBlocks('draft') })) };
   const settled = await Promise.allSettled([
-    store.savePage('draft', payload), store.stage(attemptId, { ok: true, text: 'generated' }),
+    store.savePage('draft', payload), store.stage(attemptId, staged('generated')),
     store.publish('complete', { attemptId, session })
   ]);
   assert.equal(settled[0].reason.code, 'generating');
@@ -76,10 +77,10 @@ test('a save admitted during generation rejects atomically before later publicat
 test('page deletion and session invalidation fence simultaneously submitted late results', async t => {
   const store = await createTestStore(t), page = await captured(store);
   const [first, second] = generated(page);
-  await store.stage(second.attemptId, { ok: true, text: 'obsolete' });
+  await store.stage(second.attemptId, staged('obsolete'));
   const sessionRace = await Promise.allSettled([
     store.openSession('restart', { ...session, sessionId: 'second', epoch: 2 }),
-    store.stage(first.attemptId, { ok: true, text: 'late' })
+    store.stage(first.attemptId, staged('late'))
   ]);
   assert.equal(sessionRace[0].status, 'fulfilled'); assert.equal(sessionRace[1].reason.code, 'stale_attempt');
   const deleted = await Promise.allSettled([
@@ -108,7 +109,7 @@ test('restart preserves staged output, fails unowned generation, and excludes a 
   let store = await AccountStore.open(database);
   database.resources.push({ close: () => store.close() });
   const page = await captured(store);
-  await store.stage(generated(page)[0].attemptId, { ok: true, text: 'durably staged' });
+  await store.stage(generated(page)[0].attemptId, staged('durably staged'));
   await assert.rejects(AccountStore.open(database), /already has an API owner/);
   await assert.rejects(migrateDatabase(database.databaseUrl), /Stop the API/);
   await store.close();

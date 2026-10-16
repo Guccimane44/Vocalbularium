@@ -1,6 +1,6 @@
 import test, { createTestStore } from './helpers/database.mjs';
 import assert from 'node:assert/strict';
-import { component, text, textBlocks } from './helpers/pages.mjs';
+import { component, text, textBlocks, staged, wordResult } from './helpers/pages.mjs';
 
 // Parent modules and their facets in storage (D08, 0.7.0 increment 2).
 const session = { installationId: 'a', sessionId: 'browser', epoch: 1 };
@@ -105,7 +105,7 @@ test('a facet added after the last attempt, or deleted and added again, waits fo
   const { pageId } = await store.capture('capture', { session, mainKey: 'bank', snapshot: await store.snapshot() });
   const german = async () => component(await store.page(pageId), 'german');
   const first = await german();
-  await store.stage(first.attemptId, { ok: true, text: '== Englisch ==\n=== Bedeutungen ===\n: [1] Ufer\n=== Examples ===\n: [1] Bank.\n:: Ufer.' });
+  await store.stage(first.attemptId, staged(wordResult(['Ufer'], { examples: [{ sentence: 'Bank.', translation: 'Ufer.' }] })));
   await store.publish('publish', { attemptId: first.attemptId, session });
   assert.deepEqual((await german()).waitingFacets, []);
   await store.addFacet('synonyms', { pageId, componentId: first.id, parent: 'german', facet: 'synonyms' });
@@ -161,6 +161,11 @@ test('a parent’s structured content is saved through its fields: any field emp
   await assert.rejects(store.savePage('text-over', { pageId, changes: [{ componentId: first.id, content: textBlocks('typed over') }] }),
     { code: 'invalid', message: 'Edit this module through its fields.' });
   assert.equal((await stored()).blocks[0].type, 'parent', 'nothing was replaced');
+
+  // A provider result is staged only as structured content (D09).
+  const { componentId: third } = await store.addModule('third', { pageId, type: 'german' });
+  const { attemptIds: [attemptId] } = await store.generate('third-run', { pageId, target: { scope: 'component', componentId: third }, session });
+  await assert.rejects(store.stage(attemptId, { ok: true, text: '== Englisch ==\n: [1] Ufer' }), { code: 'invalid', message: 'Invalid component result.' });
 
   // A parent that never generated has no core to edit.
   const { componentId } = await store.addModule('second', { pageId, type: 'german' });
