@@ -117,7 +117,7 @@ function FacetBody({ facet, mainKey }: { facet: RenderedFacet; mainKey: string }
   const marked = (text: string) => emphasise(text, mainKey).map((part, index) => part.key ? <mark key={index}>{part.text}</mark> : part.text);
   if (facet.facet === 'examples') return <ul className="examples">{facet.examples.map((example, index) => <li key={index}>
     <span className="example-number">{example.number}</span>
-    <span className="example-sentence">{marked(example.sentence)}</span>
+    {example.sentence !== null && <span className="example-sentence">{marked(example.sentence)}</span>}
     {example.translation && <span className="example-translation">{example.translation}</span>}
   </li>)}</ul>;
   return <ul className="facet-lines">{facet.lines.map((line, index) => <li key={index}>{line}</li>)}</ul>;

@@ -5,8 +5,10 @@ import type { ParentType as ModuleType } from './parents.js';
 export function textBlocks(text: string): BlockDocument {
   return { version: 1, blocks: text ? [{ type: 'paragraph', text }] : [] };
 }
+// The plain text of a component's paragraph blocks; structured parent content
+// (D09) has none.
 export function blockText(content: BlockDocument): string {
-  return content.blocks.map(block => block.text).join('\n\n');
+  return content.blocks.flatMap(block => block.type === 'paragraph' ? [block.text] : []).join('\n\n');
 }
 
 // Page outcome from the components that have had an attempt.

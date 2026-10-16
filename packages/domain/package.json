@@ -20,6 +20,10 @@
       "types": "./dist/render.d.ts",
       "import": "./dist/render.js"
     },
+    "./content": {
+      "types": "./dist/content.d.ts",
+      "import": "./dist/content.js"
+    },
     "./parents": {
       "types": "./dist/parents.d.ts",
       "import": "./dist/parents.js"

@@ -1,6 +1,6 @@
 # Plan: structured parent content and a field editor (0.7.4)
 
-Proposed: 16 October 2026 (Europe/Berlin). Implements [D09](../architecture/traceability-map.md#entries), accepted by the owner on 16 October 2026 and applied to the specifications in increment 0. Tracker: [#152](https://github.com/Guccimane44/Vocalbularium/issues/152); milestone in [Actual Stages](https://app.notion.com/p/3fbbb135020881fb962ad678a3cb613f). Status: increment 0 in review.
+Proposed: 16 October 2026 (Europe/Berlin). Implements [D09](../architecture/traceability-map.md#entries), accepted by the owner on 16 October 2026 and applied to the specifications in increment 0. Tracker: [#152](https://github.com/Guccimane44/Vocalbularium/issues/152); milestone in [Actual Stages](https://app.notion.com/p/3fbbb135020881fb962ad678a3cb613f). Status: increment 0 merged in [#153](https://github.com/Guccimane44/Vocalbularium/pull/153); increment 1 (domain and contracts) in [#154](https://github.com/Guccimane44/Vocalbularium/pull/154).
 
 ## Outcome
 
@@ -12,7 +12,7 @@ Recorded in D09 on 16 October 2026 and applied to the specifications:
 
 1. **Structured result:** a core and one entry per facet, in the shapes of the [render contracts](../specs/modules.md#render-contracts). Examples are their own numbered list, not tied to meanings.
 2. **Containers:** the card is drawn from the data into fixed containers: the core, then each facet with content, in the parent's order. A facet without content is not shown and its tag stays blander.
-3. **Field editor:** **Edit** turns the whole card into fields in place, with one **Save** and **Cancel** ([pages and editing](../specs/pages-and-editing.md#editing-generated-components)). Items can be added at the end and deleted, not moved. The module's name, the facet names and the core's top line are shown but not editable; no syntax is shown. A facet without content appears as an empty container to fill. The core keeps at least one meaning, or its translation.
+3. **Field editor:** **Edit** turns the whole card into fields in place, with one **Save** and **Cancel** ([pages and editing](../specs/pages-and-editing.md#editing-generated-components)). Items can be added at the end and deleted, not moved. The module's name, the facet names and the core's top line are shown but not editable; no syntax is shown. A facet without content appears as an empty container to fill. Every field may be left empty, the core's included: Save never refuses, a row with nothing in it is dropped, and a half-filled item keeps and shows the parts that have text (amended 16 October 2026). Generated results stay complete.
 4. **Facet Retry and Delete** act on the facet's entry.
 5. **Upgrade:** every deck and page is discarded, sign-in stays, and My Deck starts fresh, as in 0.7.0.
 6. **Unchanged:** the interpretation stage and the model (`deepseek-v4.1-flash`); Context, Text and the main key keep plain text.
@@ -40,7 +40,7 @@ D09 in the traceability map with C21, the Notion decision record (Accepted), the
 ### 1. Domain and contracts
 
 - `packages/contracts`: the `parent` block type in the block document, with the core and facet shapes per parent.
-- `packages/domain`: validation of a parent's data against its shape; the renderer reads the data instead of parsing text; helpers to read, replace and remove one facet's entry; the save rule that the core keeps one meaning or its translation, with empty items dropped.
+- `packages/domain`: validation of a parent's data against its shape, complete for generated results and allowing empty parts for saved edits; the renderer reads the data instead of parsing text and shows half-filled items; helpers to read, replace and remove one facet's entry; the save rule (empty rows dropped, nothing refused).
 - Unit tests for the shapes, validation, rendering and facet helpers.
 
 ### 2. Generation
@@ -64,9 +64,9 @@ D09 in the traceability map with C21, the Notion decision record (Accepted), the
 ### 5. Field editor
 
 - **Edit** on a parent card: the core's top line shown read-only; meanings or the translation as fields; one container per facet the card has, empty ones included, with each facet's fields; **Add** at the end of every list and **Delete** on each item; one **Save** and **Cancel**.
-- Save validation and its message when the core would be left empty. Drafts, the leave warning and save recovery as for any card.
+- Drafts, the leave warning and save recovery as for any card.
 - Keyboard and screen-reader paths: every field labelled by its facet and number, focus kept sensibly after Add and Delete.
-- Browser E2E for editing, adding, deleting, filling an empty facet, the core rule, and Cancel.
+- Browser E2E for editing, adding, deleting, filling an empty facet, half-filled items, an emptied core, and Cancel.
 
 ### 6. Verification and delivery (0.7.4)
 
@@ -80,7 +80,7 @@ D09 in the traceability map with C21, the Notion decision record (Accepted), the
 3. **Edit** shows fields only: no `==`, `===`, `[1]`, `::` or other syntax anywhere; the module name, facet names and the core's top line are not editable.
 4. Meanings, examples, synonyms, antonyms and Pinyin lines can be added at the end and deleted, not moved; numbering follows.
 5. A facet without content appears in the editor and can be filled; once saved it shows on the card and its tag is no longer bland.
-6. Save is refused while the core has no meaning or translation, with a message; Cancel discards every change.
+6. Save accepts any empty field, the core's included; a half-filled item is kept and shown with the parts it has, an empty row is dropped; Cancel discards every change.
 7. Facet Retry replaces only its facet's entry; facet Delete removes it; the other facets and the core stay.
 8. Upgrading from 0.7.3 discards decks and pages, keeps sign-in, and leaves one My Deck.
 9. Every editor field works from the keyboard and has an accessible name naming its facet and position.
