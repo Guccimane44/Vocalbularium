@@ -106,7 +106,7 @@ Closing only the capture popup or dashboard tab does not count as closing Chrome
 
 ## Retry
 
-**Retry** is available in the page editor for one content component, or for the whole page. Completed, failed, empty, missing, or manually edited components can be targets. Capture origin does not matter: a manually created page has a main key and can retry like a captured one.
+**Retry** is available in the page editor for one content component, for one facet of a parent component ([below](#retrying-one-facet)), or for the whole page. Completed, failed, empty, missing, or manually edited components can be targets. Capture origin does not matter: a manually created page has a main key and can retry like a captured one.
 
 Before replacing content, always ask. For one component the question is asked beside the card's tab, as for **Delete** ([pages and editing](pages-and-editing.md#components-as-cards)): "Are you sure?" with a final **Retry** and **Cancel** (since 0.6.3). If the content changed after the user answered, for example in another browser, the warning below is shown before anything is replaced:
 
@@ -120,6 +120,16 @@ For the whole page:
 - **Confirm** discards the targeted components' current content and starts a fresh attempt for each. Previous edits and generated output are not preserved or merged into the replacement. If an attempt fails, its component stays empty with a failure indicator; the discarded content is not restored.
 
 Retry uses the page's current saved main key and Context and its content module instances at confirmation time. The word-or-sentence classification must correspond to that main key and Context; each retry starts a new run with a fresh interpretation. A retry generates the parent's core and every facet it currently has, including facets added since its last attempt, and never a facet the user deleted.
+
+### Retrying one facet
+
+Since 0.7.3 each facet of a parent component has its own **Retry** beside its **Delete** ([pages and editing](pages-and-editing.md#components-as-cards)). It regenerates that facet alone: the facet's section is replaced, or added in the parent's order when the facet had none, and the core and the other facets stay exactly as they are, edits included. A facet waiting for **Retry** can be generated this way without regenerating the rest.
+
+- **Asking.** A facet with content asks "Are you sure?" beside its label, with a final **Retry** and **Cancel**; one with nothing in it starts at once. If the facet's content changed after the user answered, the dialog warns: "Retry will replace this facet's content, including your edits to it. The rest of the component will not change."
+- **Input.** The attempt uses the page's saved main key and Context and the page's latest word-or-sentence reading, without interpreting again, so the facet follows the core it joins. The provider receives the component's current core and writes only that facet for it; anything else it returns is discarded. A facet that does not apply to the reading is left out, as in a whole attempt.
+- **While it runs.** The component keeps its content and stays open; the facet says it is generating, and the component is locked as during any attempt.
+- **Failure.** A failed or interrupted facet attempt leaves the content and the component's state as they were before it, and the facet says its Retry failed until the component's next attempt. A facet that was waiting still waits.
+- **Availability.** It needs content that follows the parent's [render contract](../specs/modules.md#parent-modules-and-facets); content edited outside it is retried whole.
 
 The warning describes the content shown when it opened. If a targeted component changes before the user confirms, for example through a save from another installation, Retry warns again with the current content instead of replacing content the user has not seen.
 

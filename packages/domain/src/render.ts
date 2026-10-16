@@ -108,6 +108,33 @@ export function withoutFacet(moduleType: string, text: string, facet: string): s
   }).join('\n');
 }
 
+// One facet's section of a parent's text, its heading left out, or '' when
+// the text has none or does not follow the parent's contract.
+export function facetSection(moduleType: string, text: string, facet: string): string {
+  if (!isParentType(moduleType) || !isFacetOf(moduleType, facet) || renderContent(moduleType, text).kind !== 'parent') return '';
+  const label = PARENTS[moduleType].facets[facet]!.label;
+  let inside = false;
+  return text.split('\n').filter(line => {
+    const section = SECTION.exec(line.trim());
+    if (section) { inside = section[1] === label; return false; }
+    return inside;
+  }).join('\n').trim();
+}
+
+// The text with one facet's section replaced by `section` (0.7.3), in the
+// parent's order; an empty `section` leaves the facet out. Text that does not
+// follow the parent's contract stays unchanged.
+export function withFacetSection(moduleType: string, text: string, facet: string, section: string): string {
+  if (!isParentType(moduleType) || !isFacetOf(moduleType, facet) || renderContent(moduleType, text).kind !== 'parent') return text;
+  const rest = withoutFacet(moduleType, text, facet).trimEnd();
+  if (!section.trim()) return rest;
+  const block = [`=== ${PARENTS[moduleType].facets[facet]!.label} ===`, section.trim()];
+  const later = new Set(facetsOf(moduleType).slice(facetsOf(moduleType).indexOf(facet) + 1).map(each => PARENTS[moduleType].facets[each]!.label));
+  const lines = rest.split('\n');
+  const at = lines.findIndex(line => later.has(SECTION.exec(line.trim())?.[1] ?? ''));
+  return (at < 0 ? [...lines, ...block] : [...lines.slice(0, at), ...block, ...lines.slice(at)]).join('\n');
+}
+
 // The text without facet headings that have nothing under them (D08): the
 // provider sometimes writes a heading for a facet that does not apply, such as
 // Article for an adjective. An empty facet counts as omitted. Other headings

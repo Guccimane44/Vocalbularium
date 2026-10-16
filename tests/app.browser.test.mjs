@@ -2543,3 +2543,86 @@ test('facet tags: abbreviations in order, on the left edge, along the edge to th
   await row.locator('.facet-tag[data-facet="article"]').waitFor();
   assert.equal((await motions('article')).at(-1)?.keyframes.length, 3, 'flown in, not moved from where it stood before');
 });
+
+test('0.7.3: a facet’s own Retry beside its Delete, a tag’s remove keeping its colours, and hung tags lifting with their tab', { timeout: 60000 }, async (t) => {
+  const directory = await mkdtemp(join(tmpdir(), 'vocabularium-facet-retry-browser-'));
+  const calls = [];
+  let release;
+  const application = await createTestApplication(t, { provider: {
+    interpret: async () => ({ inputType: 'word_phrase' }),
+    generate: request => { calls.push(request); return new Promise(resolve => { release = resolve; }); }
+  } });
+  await application.start();
+  const a = await launch(join(directory, 'a'));
+  t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
+  await a.page.setViewportSize({ width: 1280, height: 1400 });
+  const store = application.store;
+  const session = { installationId: 'fixture', sessionId: 'facet-retry', epoch: 1 };
+  await store.openSession('facet-retry-session', session);
+  const { pageId } = await store.capture('facet-retry-capture', { session, mainKey: 'bank', snapshot: await store.snapshot() });
+  const first = (await store.page(pageId)).components.find(item => item.moduleType === 'german');
+  await store.establishInterpretation((await store.attempt(first.attemptId)).run_id, { inputType: 'word_phrase' });
+  const core = ['== Englisch (bank) ==', '=== Bedeutungen ===', ': [1] Ufer'].join('\n');
+  await store.stage(first.attemptId, { ok: true, text: [core, '=== Article ===', ': das Ufer · die Ufer',
+    '=== Examples ===', ': [1] We sat on the bank.', ':: Wir saßen am Ufer.'].join('\n') });
+  await store.publish('facet-retry-publish', { attemptId: first.attemptId, session });
+  // A second German, empty, with a facet: only its tab, its tag hung below.
+  const { componentId: empty } = await store.addModule('facet-retry-empty', { pageId, type: 'german' });
+  await store.addFacet('facet-retry-empty-facet', { pageId, componentId: empty, parent: 'german', facet: 'synonyms' });
+  await signIn(a.page);
+  await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
+  const card = componentArticle(a.page, 'German 1');
+  const examples = card.locator('.facet[data-facet="examples"]');
+  await examples.waitFor();
+
+  // Retry sits beside Delete; with content it asks in the row, in the family colour.
+  await examples.hover();
+  const retry = a.page.getByRole('button', { name: 'Retry Examples from German 1', exact: true });
+  assert.deepEqual(await examples.locator('.facet-actions button').evaluateAll(buttons => buttons.map(button => button.getAttribute('aria-label'))),
+    ['Retry Examples from German 1', 'Delete Examples from German 1']);
+  await retry.click();
+  assert.equal(await examples.locator('.facet-confirm').getAttribute('data-confirm'), 'retry');
+  await a.page.getByRole('button', { name: 'Yes, retry Examples from German 1', exact: true }).click();
+
+  // While it regenerates the card stays open with the rest of its content.
+  await examples.locator('.facet-note[data-note="generating"]').waitFor();
+  assert.equal(await card.getAttribute('data-generating'), null, 'not folded down to its tab');
+  assert.match(await card.locator('.facet[data-facet="article"]').textContent(), /das Ufer · die Ufer/);
+  assert.match(await examples.textContent(), /We sat on the bank\./);
+  await waitFor(() => release, 'facet provider started');
+  assert.deepEqual(calls.map(call => [call.facets, call.core]), [[['examples'], core]], 'the provider writes the facet alone for the core');
+  release(`${core}\n=== Examples ===\n: [1] The bank was steep.\n:: Das Ufer war steil.`);
+  await waitFor(async () => /The bank was steep\./.test(await examples.textContent()), 'new examples shown');
+  assert.match(await card.locator('.facet[data-facet="article"]').textContent(), /das Ufer · die Ufer/, 'the other facet stays');
+  assert.equal(await examples.locator('.facet-note').count(), 0);
+  await a.page.screenshot({ path: 'artifacts/v0.7.3-facet-retry.png' });
+
+  // A tag's remove keeps the failed colour while it is pointed at, on a card and on an empty one.
+  for (const holder of [card, componentArticle(a.page, 'German 2')]) {
+    const tag = holder.locator('.facet-tag').first();
+    const remove = tag.locator('.facet-tag-remove');
+    await tag.locator('.facet-tag-open').hover();
+    await a.page.waitForTimeout(300);
+    const shown = await remove.evaluate(node => getComputedStyle(node).backgroundColor);
+    await remove.hover();
+    await a.page.waitForTimeout(300);
+    assert.equal(await remove.evaluate(node => getComputedStyle(node).backgroundColor), shown, 'the same colour under the pointer');
+    assert.equal(shown, await a.page.evaluate(() => {
+      const probe = document.body.appendChild(Object.assign(document.createElement('i'), { style: 'background: var(--status-failed)' }));
+      const colour = getComputedStyle(probe).backgroundColor; probe.remove(); return colour;
+    }), 'the failed colour');
+  }
+
+  // Hovering an empty card lifts its tab and what hangs below it together.
+  const hung = componentArticle(a.page, 'German 2');
+  await a.page.mouse.move(5, 5);
+  await a.page.waitForTimeout(400);
+  const place = () => hung.evaluate(node => ({ tab: node.querySelector('.card-tab').getBoundingClientRect().top,
+    tags: node.querySelector('.facet-tags').getBoundingClientRect().top }));
+  const rest = await place();
+  await hung.locator('.card-tab').hover();
+  await a.page.waitForTimeout(400);
+  const lifted = await place();
+  assert.ok(Math.abs((rest.tab - lifted.tab) - 2) < .5, `the tab lifts (${rest.tab} → ${lifted.tab})`);
+  assert.ok(Math.abs((rest.tags - lifted.tags) - (rest.tab - lifted.tab)) < .5, `the hung tags lift with it (${rest.tags} → ${lifted.tags})`);
+});

@@ -38,7 +38,7 @@ export class OpenCodeProvider {
     const response = await this.fetch('https://opencode.ai/zen/go/v1/chat/completions', {
       method: 'POST', headers: {
         Authorization: `Bearer ${this.apiKey}`, 'Content-Type': 'application/json',
-        'User-Agent': 'Vocabularium/0.7.2', 'x-opencode-session': sessionId
+        'User-Agent': 'Vocabularium/0.7.3', 'x-opencode-session': sessionId
       },
       body: JSON.stringify({
         model: this.model, stream: false, max_tokens: MAX_TOKENS,
@@ -88,15 +88,16 @@ export class OpenCodeProvider {
     return validateInterpretation(result);
   }
   // Content modules are parent modules (D08); the earlier types retired in 0.7.0.
-  async generate({ module, selectedText, context, interpretation, facets, sessionId }, signal) {
+  async generate({ module, selectedText, context, interpretation, facets, core, sessionId }, signal) {
     if (!isParentType(module.type)) throw new Error('Unsupported generation module.');
-    return this.parent({ module, selectedText, context, interpretation, facets: facets ?? [], sessionId }, signal);
+    return this.parent({ module, selectedText, context, interpretation, facets: facets ?? [], core, sessionId }, signal);
   }
   // A parent module (D08): its core and the facets that apply, in one call,
   // following the parent's render contract.
-  async parent({ module, selectedText, context, interpretation, facets, sessionId }, signal) {
-    const result = await this.structured('vocabulary_parent_module', textSchema, parentInstructions(module.type, interpretation.inputType, facets),
-      { selectedText, ...(context ? { context } : {}), inputType: interpretation.inputType, instanceId: module.id }, signal, sessionId);
+  // With a core, a facet's own Retry (0.7.3): the facets follow that core.
+  async parent({ module, selectedText, context, interpretation, facets, core, sessionId }, signal) {
+    const result = await this.structured('vocabulary_parent_module', textSchema, parentInstructions(module.type, interpretation.inputType, facets, Boolean(core)),
+      { selectedText, ...(context ? { context } : {}), ...(core ? { core } : {}), inputType: interpretation.inputType, instanceId: module.id }, signal, sessionId);
     if (typeof result.text !== 'string' || !result.text.trim()) throw new Error('A module returned no usable content.');
     return result.text;
   }
@@ -128,10 +129,13 @@ const FACET_INSTRUCTIONS = {
       sentence: 'Pinyin: one line ": <the pinyin with tone marks of the whole Chinese translation>". When the selection is Chinese, give the pinyin of the selection itself. Do not number this line.' }
   }
 };
-export function parentInstructions(type, inputType, facets) {
+export function parentInstructions(type, inputType, facets, withCore = false) {
   const language = LANGUAGES[type];
   if (!language) throw new Error('Unsupported generation module.');
-  const core = inputType === 'sentence'
+  // A facet's own Retry (0.7.3) keeps the core already written.
+  const core = withCore
+    ? `The core of this entry is already written and supplied as "core". Start with it exactly as supplied, then write the sections below for it: follow its meanings and their numbering.`
+    : inputType === 'sentence'
     ? `The selection is a sentence. Start with its ${language.name} translation as plain text lines, with no heading. When the selection is already in ${language.name}, explain its meaning in ${language.name} in one or two plain sentences instead.`
     : `The selection is a word or phrase. Start with a plain-text Wiktionary-style entry in ${language.name}: a first line "== <${language.name} name of the selection's language> (<selection>, <romanization when useful>) ==" such as "${language.example}", then "=== ${language.meanings} ===", then one numbered line per meaning in ${language.name}, such as ${language.numbered}. ${NUMBERING} Choose the one language the selection is in; when the selection is already in ${language.name}, explain it in ${language.name}.`;
   const sections = facets.map(facet => {

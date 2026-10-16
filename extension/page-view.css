@@ -277,18 +277,31 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
 .facet-note { font-weight: 400; letter-spacing: 0; text-transform: none; }
 .facet[data-waiting] { padding-bottom: 2px; }
 .facet-lines { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 16px; line-height: 1.5; }
-.facet-delete { margin-left: auto; display: inline-grid; place-items: center; width: 26px; height: 26px; padding: 0; border: 0; border-radius: var(--radius-control);
+.facet-actions { margin-left: auto; display: inline-flex; gap: 2px; }
+/* A facet's Retry (0.7.3) and Delete, shown while the facet is pointed at. */
+.facet-actions button { display: inline-grid; place-items: center; width: 26px; height: 26px; padding: 0; border: 0; border-radius: var(--radius-control);
   background: transparent; color: var(--ink-muted); opacity: 0; transition: opacity var(--dur-instant) ease, background var(--dur-instant) ease; }
-.facet:hover .facet-delete, .facet-delete:focus-visible { opacity: 1; }
+.facet:hover .facet-actions button, .facet-actions button:focus-visible { opacity: 1; }
+.facet-retry:not(:disabled):hover { background: var(--fam-tint, var(--fam-notes-tint)); color: var(--fam, var(--fam-notes)); }
 .facet-delete:not(:disabled):hover { background: var(--status-failed-bg); color: var(--status-failed); }
-.facet-delete .action-icon { width: 14px; height: 14px; }
+.facet-actions .action-icon { width: 14px; height: 14px; }
 .facet-confirm { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; letter-spacing: 0; text-transform: none; }
 .facet-confirm button { height: 24px; padding: 0 9px; font-size: 12px; }
 .facet-confirm .action-confirm { background: var(--status-failed); color: var(--status-failed-bg); border-color: transparent; }
 .facet-confirm .confirm-text { font-weight: 400; color: var(--status-failed); }
+/* Retry asks in the card's family colour, like a card's Retry. */
+.facet-confirm[data-confirm="retry"] .action-confirm { background: var(--fam, var(--fam-notes)); color: var(--on-fam, var(--on-ink)); }
+.facet-confirm[data-confirm="retry"] .confirm-text { color: var(--fam, var(--fam-notes)); }
+/* A facet regenerating on its own fades and breathes until it is back; one
+   whose Retry failed says so in the failed colour. */
+.facet-note[data-note="generating"] { color: var(--fam, var(--fam-notes)); }
+.facet-note[data-note="failed"] { color: var(--status-failed); }
+.facet[data-retrying] > :not(.facet-title) { animation: facet-breathe 1.6s ease-in-out infinite; }
+@keyframes facet-breathe { 0%, 100% { opacity: .55; } 50% { opacity: .25; } }
+@media (prefers-reduced-motion: reduce) { .facet[data-retrying] > :not(.facet-title) { animation: none; opacity: .45; } }
 /* Under the title: how the latest run read the main key. */
 .interpretation { margin: 6px 0 0; font-size: 13px; color: var(--ink-muted); }
-@media (hover: none) { .facet-delete { opacity: 1; } }
+@media (hover: none) { .facet-actions button:not(:disabled) { opacity: 1; } }
 
 /* Facet tags (0.7.1): a parent's facets as bookmarks on its card, in the
    parent's order, each marked with its facet's abbreviation in the family
@@ -317,6 +330,10 @@ button.facet-tag-open:hover { background: transparent; }
   opacity: 0; transform: scale(.6); transition: opacity var(--dur-instant) ease, transform var(--dur-spring) var(--ease-spring); }
 .facet-tag-remove svg { width: 10px; height: 10px; }
 .facet-tag:hover .facet-tag-remove, .facet-tag:focus-within .facet-tag-remove { opacity: 1; transform: none; }
+/* Pointed at, it keeps its colours and swells a little (0.7.3): the shared
+   button hover painted it the hover colour, dark on a card and pale on an
+   empty one. */
+.facet-tag .facet-tag-remove:not(:disabled):hover { background: var(--status-failed); color: var(--status-failed-bg); transform: scale(1.15); }
 .facet-tag-remove:disabled { display: none; }
 @media (hover: none) { .facet-tag-remove { opacity: 1; transform: none; } }
 
@@ -338,6 +355,9 @@ button.facet-tag-open:hover { background: transparent; }
    end when there are more tags than the tab is wide. */
 .facet-tags[data-layout="hanging"]::before { content: ""; position: absolute; left: 4px; top: -1px; height: 3px; border-radius: 0 2px 2px 0;
   width: calc((var(--n) - 1) * 26px + 16px); background: var(--fam, var(--fam-notes)); }
+/* What hangs below an empty or generating card's tab lifts with the tab (0.7.3). */
+.facet-tags[data-layout="hanging"] { transition: translate var(--dur-spring) var(--ease-spring); }
+.component:hover > .facet-tags[data-layout="hanging"] { translate: 0 -2px; }
 /* An empty or generating card makes room below its tab for what hangs there. */
 .component:is([data-empty], [data-generating])[data-tagged="hanging"] { padding-bottom: 56px; }
 /* Folding and the tags take turns (facet-tags.tsx holds the same durations):

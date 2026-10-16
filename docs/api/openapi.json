@@ -2,7 +2,7 @@
   "openapi": "3.0.3",
   "info": {
     "title": "Vocabularium Account API",
-    "version": "0.7.2",
+    "version": "0.7.3",
     "description": "Local account, capture, deck, page, and generation-session API."
   },
   "components": {
@@ -5721,6 +5721,31 @@
                                 ]
                               },
                               "componentId": {
+                                "type": "string",
+                                "minLength": 1
+                              }
+                            },
+                            "additionalProperties": true
+                          },
+                          {
+                            "type": "object",
+                            "required": [
+                              "scope",
+                              "componentId",
+                              "facet"
+                            ],
+                            "properties": {
+                              "scope": {
+                                "type": "string",
+                                "enum": [
+                                  "facet"
+                                ]
+                              },
+                              "componentId": {
+                                "type": "string",
+                                "minLength": 1
+                              },
+                              "facet": {
                                 "type": "string",
                                 "minLength": 1
                               }

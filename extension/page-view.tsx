@@ -123,26 +123,38 @@ function FacetBody({ facet, mainKey }: { facet: RenderedFacet; mainKey: string }
   return <ul className="facet-lines">{facet.lines.map((line, index) => <li key={index}>{line}</li>)}</ul>;
 }
 
-// A facet's Delete beside its label: at once when the facet has nothing in it,
-// otherwise after "Are you sure?" in the same row, like a card's Delete. Its
-// tag's remove asks here too (0.7.1).
-function FacetDelete({ name, hasContent, disabled, asking, setAsking, onDelete }: {
-  name: string; hasContent: boolean; disabled: boolean; asking: boolean; setAsking: (value: boolean) => void; onDelete: () => void;
+// A facet's Retry and Delete beside its label (0.7.3): each at once when the
+// facet has nothing in it, otherwise after "Are you sure?" in the same row,
+// like a card's Retry and Delete. Its tag's remove asks here too (0.7.1).
+// Retry regenerates the facet alone; its parent's core and other facets stay.
+type FacetAsk = 'delete' | 'retry';
+function FacetActions({ name, hasContent, canRetry, disabled, asking, setAsking, onDelete, onRetry }: {
+  name: string; hasContent: boolean; canRetry: boolean; disabled: boolean; asking: FacetAsk | null; setAsking: (value: FacetAsk | null) => void;
+  onDelete: () => void; onRetry: () => void;
 }) {
   const cancel = useRef<HTMLButtonElement>(null);
   useEffect(() => { if (asking) cancel.current?.focus(); }, [asking]);
-  if (!asking) return <button type="button" className="facet-delete" aria-label={`Delete ${name}`} disabled={disabled}
-    onClick={() => hasContent ? setAsking(true) : onDelete()}><ActionIcon name="delete" /></button>;
-  return <span className="facet-confirm" role="group" aria-label={`Delete ${name}?`}
-    onKeyDown={event => { if (event.key === 'Escape') { event.stopPropagation(); setAsking(false); } }}>
-    <button type="button" className="action-confirm" aria-label={`Yes, delete ${name}`} onClick={() => { setAsking(false); onDelete(); }}>Delete</button>
-    <button type="button" ref={cancel} aria-label={`Keep ${name}`} onClick={() => setAsking(false)}>Cancel</button>
+  if (!asking) return <span className="facet-actions">
+    {canRetry && <button type="button" className="facet-retry" aria-label={`Retry ${name}`} disabled={disabled}
+      onClick={() => hasContent ? setAsking('retry') : onRetry()}><ActionIcon name="retry" /></button>}
+    <button type="button" className="facet-delete" aria-label={`Delete ${name}`} disabled={disabled}
+      onClick={() => hasContent ? setAsking('delete') : onDelete()}><ActionIcon name="delete" /></button>
+  </span>;
+  const verb = asking === 'delete' ? 'Delete' : 'Retry';
+  return <span className="facet-confirm" data-confirm={asking} role="group" aria-label={`${verb} ${name}?`}
+    onKeyDown={event => { if (event.key === 'Escape') { event.stopPropagation(); setAsking(null); } }}>
+    <button type="button" className="action-confirm" aria-label={`Yes, ${verb.toLowerCase()} ${name}`}
+      onClick={() => { setAsking(null); if (asking === 'delete') onDelete(); else onRetry(); }}>{verb}</button>
+    <button type="button" ref={cancel} aria-label={`Keep ${name}`} onClick={() => setAsking(null)}>Cancel</button>
     <span className="confirm-text">Are you sure?</span>
   </span>;
 }
 
-// What a parent card's facets need to be deleted, and the facet asking "Are you sure?".
-type FacetControls = { title: string; disabled: boolean; onDelete: (facet: FacetType) => void; asking: FacetType | null; setAsking: (facet: FacetType | null) => void };
+// What a parent card's facets need to be retried or deleted, the facet asking
+// "Are you sure?", and the facet regenerating on its own or whose Retry failed.
+type FacetControls = { title: string; disabled: boolean; onDelete: (facet: FacetType) => void; onRetry: (facet: FacetType) => void;
+  asking: { facet: FacetType; kind: FacetAsk } | null; setAsking: (facet: FacetType | null, kind?: FacetAsk) => void;
+  retrying?: string; failed?: string };
 
 // Generated content as its parent's render contract describes (D08): the core,
 // then each facet under its label, and the facets waiting for the next Retry.
@@ -152,15 +164,22 @@ export function Content({ type, text, mainKey, waiting = [], controls }: {
 }) {
   const rendered = renderContent(type, text);
   const parent = isParentType(type) ? type : null;
+  // A facet's own Retry needs content that follows the parent's layout.
+  const canRetry = rendered.kind === 'parent';
   const facetHead = (facet: FacetType, hasContent: boolean, note?: string) => parent && <h3 className="facet-title">
     <span>{facetLabel(parent, facet)}</span>
-    {note && <span className="facet-note muted">{note}</span>}
-    {controls && <FacetDelete name={`${facetLabel(parent, facet)} from ${controls.title}`} hasContent={hasContent}
-      disabled={controls.disabled} asking={controls.asking === facet} setAsking={value => controls.setAsking(value ? facet : null)}
-      onDelete={() => controls.onDelete(facet)} />}
+    {controls?.retrying === facet ? <span className="facet-note" data-note="generating">Generating…</span>
+      : controls?.failed === facet ? <span className="facet-note" data-note="failed">Retry failed</span>
+      : note && <span className="facet-note muted">{note}</span>}
+    {controls && <FacetActions name={`${facetLabel(parent, facet)} from ${controls.title}`} hasContent={hasContent} canRetry={canRetry}
+      disabled={controls.disabled} asking={controls.asking?.facet === facet ? controls.asking.kind : null}
+      setAsking={kind => controls.setAsking(kind ? facet : null, kind ?? undefined)}
+      onDelete={() => controls.onDelete(facet)} onRetry={() => controls.onRetry(facet)} />}
   </h3>;
+  const section = (facet: string) => ({ className: 'facet', 'data-facet': facet, tabIndex: -1,
+    'data-retrying': controls?.retrying === facet || undefined, 'aria-busy': controls?.retrying === facet || undefined });
   const waitingSections = parent ? waiting.filter(facet => isFacetOf(parent, facet)).map(facet =>
-    <section key={facet} className="facet" data-facet={facet} data-waiting tabIndex={-1}>{facetHead(facet as FacetType, false, 'Waiting for Retry')}</section>) : [];
+    <section key={facet} {...section(facet)} data-waiting>{facetHead(facet as FacetType, false, 'Waiting for Retry')}</section>) : [];
   if (rendered.kind === 'plain') return <>{rendered.text && <pre>{rendered.text}</pre>}{waitingSections}</>;
   const { core, facets } = rendered;
   return <div className="entry-content">
@@ -172,7 +191,7 @@ export function Content({ type, text, mainKey, waiting = [], controls }: {
       </p>}
       <ol className="meanings">{core.meanings.map(meaning => <li key={meaning.number} data-number={meaning.number}>{meaning.text}</li>)}</ol>
     </> : <p className="reading">{core.text}</p>}
-    {facets.map(facet => <section key={facet.facet} className="facet" data-facet={facet.facet} tabIndex={-1}>
+    {facets.map(facet => <section key={facet.facet} {...section(facet.facet)}>
       {facetHead(facet.facet, true)}
       <FacetBody facet={facet} mainKey={mainKey} />
     </section>)}
@@ -198,22 +217,38 @@ function ComponentBody({ item, title, editable, draft, locked, persist, mainKey,
 // Motion (D05): when a component finishes generating while the page is open,
 // its content rises into the card line by line, and screen readers hear how
 // the attempt ended.
-function Reveal({ status, title, children }: { status: string | null; title: string; children: ReactNode }) {
+// A facet's own Retry (0.7.3) is announced by the facet's name, and only its
+// section lights up, as when its tag shows it.
+function Reveal({ status, title, facet, failedFacet, children }: {
+  status: string | null; title: string; facet?: { id: string; name: string }; failedFacet?: string; children: ReactNode;
+}) {
   const previous = useRef(status);
+  const retried = useRef(facet);
+  const body = useRef<HTMLDivElement>(null);
   const [revealing, setRevealing] = useState(false);
   const [announcement, setAnnouncement] = useState('');
   useEffect(() => {
     const ended = previous.current === 'loading' && status !== 'loading';
-    previous.current = status;
+    const was = retried.current;
+    previous.current = status; retried.current = facet;
     if (status === 'loading') setAnnouncement('');
     if (!ended) return;
+    if (was) {
+      const failed = failedFacet === was.id;
+      setAnnouncement(failed ? `${title}: ${was.name} failed to generate.` : `${title}: ${was.name} generated.`);
+      const section = body.current?.querySelector<HTMLElement>(`.facet[data-facet="${CSS.escape(was.id)}"]`);
+      if (!section || failed) return;
+      section.dataset.shown = '';
+      const timer = setTimeout(() => { delete section.dataset.shown; }, 1200);
+      return () => clearTimeout(timer);
+    }
     setAnnouncement(status === 'failed' ? `${title}: generation failed.` : `${title} generated.`);
     if (status !== 'completed') return;
     setRevealing(true);
     const timer = setTimeout(() => setRevealing(false), 1200);
     return () => clearTimeout(timer);
-  }, [status, title]);
-  return <div className="card-body" data-reveal={revealing || undefined}>
+  }, [status, title, facet, failedFacet]);
+  return <div ref={body} className="card-body" data-reveal={revealing || undefined}>
     {children}
     <span className="visually-hidden" role="status">{announcement}</span>
   </div>;
@@ -311,7 +346,7 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
     }, POOF_MS);
   };
   // The facet asking "Are you sure?" before it is deleted, on which card.
-  const [askingFacet, setAskingFacet] = useState<{ id: string; facet: FacetType } | null>(null);
+  const [askingFacet, setAskingFacet] = useState<{ id: string; facet: FacetType; kind: FacetAsk } | null>(null);
   // A tag shows its facet's section: the card unfolds first, then the section
   // scrolls into view and takes the focus (0.7.1).
   const showFacet = (item: Component, facet: FacetType, then?: () => void) => {
@@ -440,12 +475,16 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
     const family = isModuleType(item.moduleType) ? CATALOG[item.moduleType].family ?? 'notes' : 'notes';
     const empty = !blockText(item.content) && !item.waitingFacets?.length && item.status !== 'loading' && item.status !== 'failed' && editingId !== item.id;
     const removeFacet = (facet: FacetType) => void run(async () => { await deleteFacet(item.id, item.moduleType as ParentType, facet); });
+    // Confirmed in its row when the facet has content, as a card's Retry is beside its tab.
+    const retryFacet = (facet: FacetType) => void run(() => generate({ scope: 'facet', componentId: item.id, facet }, true));
     const controls: FacetControls | undefined = isParentType(item.moduleType) ? { title, disabled: disabled || working || item.status === 'loading',
-      onDelete: removeFacet, asking: askingFacet?.id === item.id ? askingFacet.facet : null,
-      setAsking: facet => setAskingFacet(facet ? { id: item.id, facet } : null) } : undefined;
+      onDelete: removeFacet, onRetry: retryFacet, asking: askingFacet?.id === item.id ? askingFacet : null,
+      setAsking: (facet, kind = 'delete') => setAskingFacet(facet ? { id: item.id, facet, kind } : null),
+      retrying: item.retryingFacet, failed: item.failedFacet } : undefined;
     // While it generates, a card is only its tab, with a spark running round
-    // its edge; its content opens once there is some (0.6.3).
-    const generating = item.status === 'loading' && editingId !== item.id;
+    // its edge; its content opens once there is some (0.6.3). A facet
+    // regenerating on its own keeps the card open (0.7.3).
+    const generating = item.status === 'loading' && !item.retryingFacet && editingId !== item.id;
     const isFolded = !empty && !generating && folded.has(item.id) && editingId !== item.id;
     const gone = vanishing.has(item.id);
     // The parent's facets as tags on the card's edge, or hung from its tab while it is only its tab (0.7.1).
@@ -460,7 +499,7 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
         // A facet with content asks first, in its section; one waiting for Retry goes at once.
         const rendered = renderContent(item.moduleType, blockText(item.content));
         const hasContent = rendered.kind === 'parent' && rendered.facets.some(each => each.facet === facet);
-        if (hasContent && layout !== 'hanging') showFacet(item, facet, () => setAskingFacet({ id: item.id, facet }));
+        if (hasContent && layout !== 'hanging') showFacet(item, facet, () => setAskingFacet({ id: item.id, facet, kind: 'delete' }));
         else removeFacet(facet);
       }} /> : null;
     return <article className={`component fam-${family}`} data-empty={empty || undefined} data-generating={generating || undefined}
@@ -487,7 +526,9 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
       </div>
       {!empty && <div className="card-fold"><div className="card-fold-inner" inert={isFolded || undefined}>
         {item.status === 'failed' && <p className="card-status"><span className="list-status" data-status="failed">Generation failed</span></p>}
-        {editor(item, title) || <Reveal status={item.status} title={title}><ComponentBody item={item} title={title} editable={false} draft={draft} locked={locked} persist={persist} mainKey={mainKey} controls={controls} /></Reveal>}
+        {editor(item, title) || <Reveal status={item.status} title={title} failedFacet={item.failedFacet}
+          facet={item.retryingFacet && isParentType(item.moduleType) && isFacetOf(item.moduleType, item.retryingFacet)
+            ? { id: item.retryingFacet, name: facetLabel(item.moduleType, item.retryingFacet) } : undefined}><ComponentBody item={item} title={title} editable={false} draft={draft} locked={locked} persist={persist} mainKey={mainKey} controls={controls} /></Reveal>}
       </div></div>}
       {tags}
     </article>;

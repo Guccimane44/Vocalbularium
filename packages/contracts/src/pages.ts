@@ -59,6 +59,10 @@ export const ComponentSchema = Type.Object({
   facets: Type.Optional(FacetListSchema),
   // Facets added since the parent's last attempt; they wait for the next Retry.
   waitingFacets: Type.Optional(FacetListSchema),
+  // The facet the current attempt regenerates on its own (0.7.3), and the
+  // facet whose own Retry last failed; the rest of the content stays meanwhile.
+  retryingFacet: Type.Optional(Type.String({ minLength: 1 })),
+  failedFacet: Type.Optional(Type.String({ minLength: 1 })),
   content: BlockDocumentSchema,
   // Null when the component has never had a generation attempt.
   status: Type.Union([ComponentStatusSchema, Type.Null()]),
@@ -160,7 +164,9 @@ export const PageDeleteRequestSchema = Type.Object({
 export const GenerationTargetSchema = Type.Union([
   Type.Object({ scope: Type.Literal('missing') }, OpenRequest),
   Type.Object({ scope: Type.Literal('page') }, OpenRequest),
-  Type.Object({ scope: Type.Literal('component'), componentId: Type.String({ minLength: 1 }) }, OpenRequest)
+  Type.Object({ scope: Type.Literal('component'), componentId: Type.String({ minLength: 1 }) }, OpenRequest),
+  // One facet of a parent component (0.7.3): its section alone, the rest kept.
+  Type.Object({ scope: Type.Literal('facet'), componentId: Type.String({ minLength: 1 }), facet: Type.String({ minLength: 1 }) }, OpenRequest)
 ]);
 export const PageGeneratePayloadSchema = Type.Object({
   pageId: Type.String({ minLength: 1 }),

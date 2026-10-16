@@ -1,6 +1,7 @@
 import type { Component, GenerationTarget, ModuleInstance } from '@vocabularium/contracts';
 import { MAX_MODULES } from '@vocabularium/contracts';
-import { PARENTS, validateFacets } from './parents.js';
+import { isParentType, PARENTS, validateFacets } from './parents.js';
+import { blockText } from './pages.js';
 import { renderContent } from './render.js';
 import type { ParentType } from './parents.js';
 
@@ -101,6 +102,15 @@ export function generationTargets(target: GenerationTarget | { scope: 'capture' 
       const component = components.find(item => item.id === target.componentId);
       if (!component) throw new Error('This component no longer exists.');
       if (!isContentType(component.moduleType)) throw new Error('Only generated components can be retried.');
+      return [component];
+    }
+    // A facet's own Retry (0.7.3) needs content that follows its parent's
+    // contract, so the facet's section can be found and replaced.
+    case 'facet': {
+      const component = components.find(item => item.id === target.componentId);
+      if (!component) throw new Error('This component no longer exists.');
+      if (!isParentType(component.moduleType) || !component.facets?.includes(target.facet)) throw new Error('This facet is no longer there.');
+      if (renderContent(component.moduleType, blockText(component.content)).kind !== 'parent') throw new Error('Retry the whole module: its content no longer follows its layout.');
       return [component];
     }
   }

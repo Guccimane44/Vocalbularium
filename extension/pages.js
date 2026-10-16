@@ -4,6 +4,7 @@ import { PageView } from './page-view.tsx';
 /** @typedef {import('../types/editor-drafts.js').PageEditorDraft} PageEditorDraft */
 
 const RETRY_COMPONENT = 'Retry will replace this component’s content, including your edits to it. The main key, Context, and other components will not change.';
+const RETRY_FACET = 'Retry will replace this facet’s content, including your edits to it. The rest of the component will not change.';
 const CHANGED = 'This content changed since you looked at it, possibly on another installation. ';
 const DRAFT_KEY = 'page-draft-modules';
 
@@ -89,7 +90,7 @@ export function pageViews({ getAccount, renderView, refresh, send, applyState, n
   async function generate(page, target, confirmed = false) {
     const request = confirmation => send({ type: 'generate-page', payload: { pageId: page.id, target, ...(confirmation ? { confirmation } : {}) } });
     try {
-      let warning = RETRY_COMPONENT;
+      let warning = target.scope === 'facet' ? RETRY_FACET : RETRY_COMPONENT;
       for (let round = 0; round < 3; round++) {
         let confirmation;
         try { await applyState(await request(confirmation)); return; }
@@ -98,13 +99,13 @@ export function pageViews({ getAccount, renderView, refresh, send, applyState, n
           confirmation = error.details?.confirmation;
         }
         if (!(confirmed && round === 0)) {
-          const choice = await dialog({ title: 'Retry this component?', message: warning, choices: ['Cancel', 'Confirm'] });
+          const choice = await dialog({ title: target.scope === 'facet' ? 'Retry this facet?' : 'Retry this component?', message: warning, choices: ['Cancel', 'Confirm'] });
           if (choice.choice !== 'Confirm') return;
         }
         try { await applyState(await request(confirmation)); return; }
         catch (error) {
           if (error.code !== 'confirmation_required') throw error;
-          warning = CHANGED + RETRY_COMPONENT;
+          warning = CHANGED + (target.scope === 'facet' ? RETRY_FACET : RETRY_COMPONENT);
         }
       }
     } catch (error) { showError(error); }

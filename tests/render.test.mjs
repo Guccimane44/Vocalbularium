@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { emphasise, renderContent } from '@vocabularium/domain/render';
+import { emphasise, facetSection, renderContent, withFacetSection } from '@vocabularium/domain/render';
 
 // Formats of the content modules retired in 0.7.0 (D08): they and every other
 // text outside a parent's contract render as plain text.
@@ -29,4 +29,17 @@ test('the main key is emphasised wherever it occurs, case-insensitively', () => 
   assert.deepEqual(emphasise('Serendipity, pure serendipity.', 'serendipity').filter(part => part.key).map(part => part.text), ['Serendipity', 'serendipity']);
   assert.deepEqual(emphasise('nothing here', 'Glück'), [{ text: 'nothing here', key: false }]);
   assert.deepEqual(emphasise('text', '  '), [{ text: 'text', key: false }]);
+});
+
+test('a facet’s section is read and replaced alone, in the parent’s order', () => {
+  const core = '== Englisch (bank) ==\n=== Bedeutungen ===\n: [1] Ufer';
+  const text = `${core}\n=== Article ===\n: das Ufer\n=== Synonyms ===\n: Böschung`;
+  assert.equal(facetSection('german', text, 'article'), ': das Ufer');
+  assert.equal(facetSection('german', text, 'examples'), '');
+  assert.equal(withFacetSection('german', text, 'examples', ': [1] Bank.\n:: Ufer.'),
+    `${core}\n=== Article ===\n: das Ufer\n=== Examples ===\n: [1] Bank.\n:: Ufer.\n=== Synonyms ===\n: Böschung`, 'inserted before a later facet');
+  assert.equal(withFacetSection('german', text, 'article', ': der Damm'), `${core}\n=== Article ===\n: der Damm\n=== Synonyms ===\n: Böschung`, 'replaced in place');
+  assert.equal(withFacetSection('german', text, 'antonyms', ': Strom'), `${text}\n=== Antonyms ===\n: Strom`, 'the last facet goes at the end');
+  assert.equal(withFacetSection('german', text, 'article', ''), `${core}\n=== Synonyms ===\n: Böschung`, 'an empty section leaves the facet out');
+  assert.equal(withFacetSection('german', 'Notes\n=== not a contract', 'article', ': x'), 'Notes\n=== not a contract');
 });
