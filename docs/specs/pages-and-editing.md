@@ -122,13 +122,12 @@ A **Text component** holds the user's own writing and belongs to a Text module i
 
 Generated components are editable. An edit to a generated component lasts until the next retry that targets that component. That retry asks for confirmation first because it replaces the edit ([capture and generation](capture-and-generation.md#retry)).
 
-Since 0.7.4 a parent card is edited through fields, never its stored structure ([D09](../architecture/traceability-map.md#entries)). **Edit** turns the whole card into fields in place, with one **Save** and **Cancel** in the card:
+Since 0.7.4 a parent card is edited with **live formatting**: **Edit** turns the core and each facet into a text editor in place, with one **Save** and **Cancel** in the card ([D09](../architecture/traceability-map.md#entries), amended). Each holds that part's markdown ([modules](modules.md#render-contracts)), shown formatted as the user types, as in a notes app: typing `**` makes bold, `*` italic, `- ` or `1. ` a list, `` ` `` inline code and `==` a highlight, and the characters themselves do not stay visible. Keyboard shortcuts toggle bold (Cmd/Ctrl+B) and italic (Cmd/Ctrl+I). The editor has no structure of its own: no fields, item numbers or separators beyond what the text holds.
 
-- **Shown, not editable:** the module's name in its tab, each facet's name, and the core's top line with the key's language, the key and its romanization. No structuring syntax is ever shown.
-- **Core:** the meanings, one field each, or a sentence's translation as one field.
-- **Facets:** a container per facet the card has, in the parent's order, under its name. Article has a singular and a plural field; each example has a sentence and a translation field; Synonyms and Antonyms have one field per word; Pinyin has a text and a pinyin field per line. A facet without content appears as an empty container that the user can fill.
-- **Items:** in every list (meanings, examples, synonyms, antonyms, Pinyin lines), **Add** puts a new item at the end and each item can be deleted. Items cannot be moved; numbering follows their order.
-- **Save** never refuses an empty field: any field may be left empty, the core's meanings or translation included. A row with nothing in it is dropped; an item keeps the parts that have text, such as an example with only its translation, and the card shows those parts. A facet left with nothing in it has no content: it is not shown on the card and its tag is blander, and its container stays in the editor to fill again. A core left empty shows only its top line.
+- **Shown, not editable:** the module's name in its tab, each facet's name, and the core's top line with the key's language, the key and its romanization.
+- **Editors:** one for the core's meanings or translation, then one per facet the card has, in the parent's order, under its name. A facet without content keeps its place with an empty editor and a dimmed name, to be filled.
+- **Save** never refuses an empty part: the core or any facet may be emptied. A facet left empty has no content: it is not shown on the card and its tag is blander. A core left empty shows only its top line.
+- **While editing,** the card's tags stay and show, as the user types, which facets have text; the facets' **Retry** and **Delete** and the tags' remove wait until **Save** or **Cancel**. Opening the editor moves the focus nowhere. A parent with no content yet cannot be edited; **Retry** fills it.
 
 ## Editing a component
 

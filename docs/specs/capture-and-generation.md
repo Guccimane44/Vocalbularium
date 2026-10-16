@@ -123,7 +123,7 @@ Retry uses the page's current saved main key and Context and its content module 
 
 ### Retrying one facet
 
-Since 0.7.3 each facet of a parent component has its own **Retry** beside its **Delete** ([pages and editing](pages-and-editing.md#components-as-cards)). It regenerates that facet alone: the facet's entry is replaced, or added when the facet had none (an entry in the structured content since 0.7.4), and the core and the other facets stay exactly as they are, edits included. A facet waiting for **Retry** can be generated this way without regenerating the rest.
+Since 0.7.3 each facet of a parent component has its own **Retry** beside its **Delete** ([pages and editing](pages-and-editing.md#components-as-cards)). It regenerates that facet alone: the facet's markdown is replaced with its new JSON formatted as markdown, or added when the facet had none (since 0.7.4), and the core and the other facets stay exactly as they are, edits included. A facet waiting for **Retry** can be generated this way without regenerating the rest.
 
 - **Asking.** A facet with content asks "Are you sure?" beside its label, with a final **Retry** and **Cancel**; one with nothing in it starts at once. If the facet's content changed after the user answered, the dialog warns: "Retry will replace this facet's content, including your edits to it. The rest of the component will not change."
 - **Input.** The attempt uses the page's saved main key and Context and the page's latest word-or-sentence reading, without interpreting again, so the facet follows the core it joins. The provider receives the component's current core and writes only that facet for it; anything else it returns is discarded. A facet that does not apply to the reading is left out, as in a whole attempt.

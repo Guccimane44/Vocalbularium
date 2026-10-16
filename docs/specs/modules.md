@@ -86,23 +86,35 @@ Applicability is judged per facet. A parent's core always applies. A facet that 
 
 - **Input:** the page's current main key, its saved Context when present, and the run's interpretation. These are a content module's only text inputs, whether capture or manual entry supplied them. The parent type and the instance's facets are the instructions governing the contribution.
 - **Interpretation:** one interpretation per generation run, shared by every attempt in that run. It must correspond to the run's main key and Context; a changed key must not reuse a prior key's classification.
-- **Output:** the block content of the instance's own component on that page: the core, then each applicable facet in the parent's order. An instance never changes an input module's component or another instance's component. Parents produce structured data, stored as one typed block ([render contracts](#render-contracts); D09).
+- **Output:** the block content of the instance's own component on that page: the core, then each applicable facet in the parent's order. An instance never changes an input module's component or another instance's component. Parents produce JSON, stored as markdown per facet in one typed block ([render contracts](#render-contracts); D09).
 - **Applicability:** the core always applies; an inapplicable facet is left out ([input and applicability](#input-and-applicability)). A facet the provider leaves out, or returns empty, counts as an omitted facet; anything else outside the parent's shape fails the attempt.
 - **Editing:** editing the main key or the Context does not run modules or change saved output. Existing output reflects the main key and Context used in its attempt and may differ from the current values after an edit. The user may edit a generated component; the next retry of that component replaces the edit after confirmation.
 
 ## Render contracts
 
-Since 0.7.4 a parent's content is structured data ([D09](../architecture/traceability-map.md#entries); [C21](../architecture/traceability-map.md#conflicts)). The provider returns it as a JSON object, generation validates it against the parent's shape, and the component stores it as one typed block in its block document ([Q13](../architecture/questionnaire/answers/answers-03-frontend.md#q13)). The card is drawn from that data, never from parsed text, and no structuring syntax is stored or shown.
+Since 0.7.4 the provider returns a parent's content as JSON, and the app keeps it as **markdown per facet** ([D09](../architecture/traceability-map.md#entries), amended; [C21](../architecture/traceability-map.md#conflicts)). Generation validates the JSON strictly against the parent's shape, then formats it into markdown as the card looks, and the component stores one typed block in its block document ([Q13](../architecture/questionnaire/answers/answers-03-frontend.md#q13)): the core's top line, the core's markdown, and one markdown text per facet with content.
 
-- **Core, word or phrase:** the key's language, the key, an optional romanization, and a list of meanings in the parent's language, at least one. Shown as a heading with the language, key and romanization, then the meanings as a numbered list.
-- **Core, sentence:** its translation, or for a sentence already in the parent's language, an explanation of its meaning. Shown as reading text.
-- **Facets:** one entry per facet the instance has and that has content, each shown in its own container under its label, in the parent's order:
-  - **Article:** `{ singular, plural }`, the plural optional, such as `das Ufer` and `die Ufer`; shown as `das Ufer · die Ufer`.
-  - **Examples:** a list of `{ sentence, translation }`, the translation optional, numbered by position and not tied to meanings; shown as each sentence beside its translation with the main key emphasised.
-  - **Synonyms**, **Antonyms:** lists of words, shown in a row.
-  - **Pinyin:** a list of `{ text, pinyin }`, one per meaning for a word and one for a sentence.
+**The provider's JSON**, complete for every result:
 
-Generated content is complete: a word has meanings, a sentence its translation, and each item every part above except the optional ones. Content the user saved may have any part left empty ([pages and editing](pages-and-editing.md#editing-generated-components)); an item then shows the parts it has, and a core with no meaning or translation shows only its top line. A facet with no entry, or an empty one, has no content: its container is not shown on the card, and its [tag](pages-and-editing.md#facet-tags) is blander. The iteration plan fixes each parent's exact JSON shape with its golden set ([C8](../architecture/traceability-map.md#conflicts)). Rendering is a pure function of the stored data, shared by every client; it never produces HTML. Each future module's specification states its shape and containers under *Output and presentation*.
+- **Core, word or phrase:** the key's language, the key, an optional romanization, and a list of meanings in the parent's language, at least one.
+- **Core, sentence:** its translation, or for a sentence already in the parent's language, an explanation of its meaning.
+- **Article:** `{ singular, plural }`, the plural optional, such as `das Ufer` and `die Ufer`.
+- **Examples:** a list of `{ sentence, translation }`, the translation optional, not tied to meanings.
+- **Synonyms**, **Antonyms:** lists of words.
+- **Pinyin:** a list of `{ text, pinyin }`, one per meaning for a word and one for a sentence.
+
+**Formatted into markdown** when it is stored:
+
+| Part | Markdown |
+| --- | --- |
+| Core, word | the meanings as a numbered list |
+| Core, sentence | the translation as text |
+| Article | one line, `das Ufer · die Ufer` (the singular alone without a plural) |
+| Examples | a numbered list, each item the sentence with its translation on the next line in italics |
+| Synonyms, Antonyms | one line, the words separated by commas |
+| Pinyin | a line each, `河岸 hé'àn` |
+
+The core's **top line** (the key's language, the key and its romanization, or that the core is a sentence's) stays structured: shown as a heading and never edited. The supported markdown is bold, italic, bulleted and numbered lists, inline code and highlight (`==text==`); anything else is shown as typed. The card renders each facet's markdown inside that facet's fixed container, under its label, in the parent's order, and emphasises the main key in it. A facet whose markdown is empty has no content: its container is not shown and its [tag](pages-and-editing.md#facet-tags) is blander. A core whose markdown is empty shows only its top line. Rendering is a pure function of the stored content, shared by every client; it never produces HTML ([Q59](../architecture/questionnaire/answers/answers-11-security-privacy.md#q59)). The iteration plan fixes each parent's JSON shape with its golden set ([C8](../architecture/traceability-map.md#conflicts)). Each future module's specification states its shape, its formatting and its containers under *Output and presentation*.
 
 ## View module contract
 

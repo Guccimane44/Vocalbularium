@@ -1,10 +1,12 @@
-# Plan: structured parent content and a field editor (0.7.4)
+# Plan: structured parent content, markdown facets and a live editor (0.7.4)
 
-Proposed: 16 October 2026 (Europe/Berlin). Implements [D09](../architecture/traceability-map.md#entries), accepted by the owner on 16 October 2026 and applied to the specifications in increment 0. Tracker: [#152](https://github.com/Guccimane44/Vocalbularium/issues/152); milestone in [Actual Stages](https://app.notion.com/p/3fbbb135020881fb962ad678a3cb613f). Status: increment 0 merged in [#153](https://github.com/Guccimane44/Vocalbularium/pull/153); increment 1 (domain and contracts) merged in [#154](https://github.com/Guccimane44/Vocalbularium/pull/154); increment 2 (generation) merged in [#156](https://github.com/Guccimane44/Vocalbularium/pull/156) after the owner approved the golden set (16 October 2026); increment 3 (storage, API and upgrade) merged in [#157](https://github.com/Guccimane44/Vocalbularium/pull/157); increment 4 (cards from data) in review.
+Proposed: 16 October 2026 (Europe/Berlin). Implements [D09](../architecture/traceability-map.md#entries), accepted by the owner on 16 October 2026 and applied to the specifications in increment 0. Tracker: [#152](https://github.com/Guccimane44/Vocalbularium/issues/152); milestone in [Actual Stages](https://app.notion.com/p/3fbbb135020881fb962ad678a3cb613f). Status: increment 0 merged in [#153](https://github.com/Guccimane44/Vocalbularium/pull/153); increment 1 (domain and contracts) merged in [#154](https://github.com/Guccimane44/Vocalbularium/pull/154); increment 2 (generation) merged in [#156](https://github.com/Guccimane44/Vocalbularium/pull/156) after the owner approved the golden set (16 October 2026); increment 3 (storage, API and upgrade) merged in [#157](https://github.com/Guccimane44/Vocalbularium/pull/157); increment 4 (cards from data) merged in [#158](https://github.com/Guccimane44/Vocalbularium/pull/158); the item-based field editor ([#159](https://github.com/Guccimane44/Vocalbularium/pull/159)) closed unmerged after the owner's review; increment 5 (the D09 amendment: markdown per facet) in review.
 
 ## Outcome
 
-A parent's content becomes structured data. The provider returns a JSON object instead of markup text, the component stores it, the card fills a fixed container per facet from it, and **Edit** shows fields instead of the stored syntax. The card's look stays as in 0.7.3; only the editor changes visibly.
+The provider returns a parent's content as JSON instead of markup text, checked strictly. The app formats it into **markdown per facet** when it is stored, the card renders each facet's markdown in its fixed container, and **Edit** formats markdown live, with no fields, numbers or separators of its own. The card's look stays as in 0.7.3.
+
+*Amended 16 October 2026:* increments 1–4 built structured items (merged). After trying the item-based field editor (#159, closed unmerged), the owner amended D09 so that each facet is one markdown text, edited with live formatting (TipTap).
 
 ## Owner decisions
 
@@ -17,16 +19,19 @@ Recorded in D09 on 16 October 2026 and applied to the specifications:
 5. **Upgrade:** every deck and page is discarded, sign-in stays, and My Deck starts fresh, as in 0.7.0.
 6. **Unchanged:** the interpretation stage and the model (`deepseek-v4.1-flash`); Context, Text and the main key keep plain text.
 7. **Release:** one release, 0.7.4, built in increments.
+8. **Markdown per facet (amendment, 16 October 2026):** the core's meanings or translation and each facet are one markdown text, formatted from the JSON when stored, as the card looks now ([render contracts](../specs/modules.md#render-contracts)). The core's top line stays structured and locked.
+9. **Live formatting (amendment):** TipTap editors, one for the core and one per facet; bold, italic, bulleted and numbered lists, inline code and highlight; markdown characters do not stay visible ([pages and editing](../specs/pages-and-editing.md#editing-generated-components)). This replaces decisions 3's fields and item rules; any part may be emptied.
+10. **Upgrade (amendment):** decks and pages are discarded again (migration 0013), sign-in kept.
 
 ## Target model
 
 | Concept | 0.7.3 | 0.7.4 |
 | --- | --- | --- |
 | Provider result | `{ text }`: markup with `== … ==`, `=== Facet ===`, `: [1]`, `::` | `{ core, facets }` per parent, validated against its shape |
-| Stored content | One paragraph block holding the markup | One typed `parent` block holding `{ core, facets }` |
-| Rendering | Parsed at display; any unrecognised line makes the card plain text | Drawn from the data into fixed containers; nothing parsed |
-| Editing a parent card | One textarea with the markup | Fields per meaning, translation and facet item; add at the end, delete |
-| Facet Retry and Delete | Splice and cut text sections | Replace and remove the facet's entry |
+| Stored content | One paragraph block holding the markup | One typed `parent` block: the core's top line, the core's markdown, and one markdown text per facet |
+| Rendering | Parsed at display; any unrecognised line makes the card plain text | Each facet's markdown rendered in its fixed container (a small markdown subset, never HTML) |
+| Editing a parent card | One textarea with the markup | Live-formatting editors (TipTap), one per facet and one for the core |
+| Facet Retry and Delete | Splice and cut text sections | Replace the facet's markdown with its new JSON formatted, or remove it |
 | Context, Text, main key | Plain text | Unchanged |
 
 ## Increments
@@ -63,29 +68,42 @@ D09 in the traceability map with C21, the Notion decision record (Accepted), the
 - The page view draws each parent card from its data into the containers it draws today, with the same look; tags are filled or bland from the facets' entries.
 - Browser tests updated from markup fixtures to structured ones.
 
-### 5. Field editor
+### 5. Amend D09: markdown per facet (this PR)
 
-- **Edit** on a parent card: the core's top line shown read-only; meanings or the translation as fields; one container per facet the card has, empty ones included, with each facet's fields; **Add** at the end of every list and **Delete** on each item; one **Save** and **Cancel**.
-- Drafts, the leave warning and save recovery as for any card.
-- Keyboard and screen-reader paths: every field labelled by its facet and number, focus kept sensibly after Add and Delete.
-- Browser E2E for editing, adding, deleting, filling an empty facet, half-filled items, an emptied core, and Cancel.
+The amendment in the map and Notion, the specifications (modules, pages and editing, shared UI, model, capture and generation, scope) and this plan. #159 (the item-based field editor) is closed unmerged.
 
-### 6. Verification and delivery (0.7.4)
+### 6. Markdown storage and rendering
+
+- `packages/contracts`: the `parent` block holds the core's top line, the core's markdown and a markdown text per facet.
+- `packages/domain`: formatting JSON into markdown per the [render contracts](../specs/modules.md#render-contracts); a parser for the supported markdown subset into a small tree (paragraphs, lists, bold, italic, inline code, highlight, line breaks) that clients draw, never HTML; facet helpers on markdown; the page list's meaning line from the core's first item.
+- Generation and store: results are formatted into markdown as they are stored; facet Retry formats its facet; saves take the core's and facets' markdown with the stored top line.
+- Migration `0013`: discards decks and pages, keeps sign-in, starts My Deck.
+- Cards render each facet's markdown in its container; tags read whether a facet's markdown has text.
+- Tests: formatting, the parser, saves, facet Retry, the upgrade; fixtures move to markdown.
+
+### 7. Live-formatting editor
+
+- TipTap editors, one for the core and one per facet, with the supported marks and lists, markdown in and out, input rules (`**`, `*`, `- `, `1. `, `` ` ``, `==`) and Cmd/Ctrl+B and +I.
+- The editor's look in place: names and the top line locked, empty facets dimmed, tags filling as you type, actions waiting, no focus move; drafts, the leave warning and save recovery as for any card.
+- Browser E2E for formatting, lists, emptying a facet and the core, filling an empty facet, Cancel and the two-installation resubmission.
+
+### 8. Verification and delivery (0.7.4)
 
 - Browser E2E across capture, cards, facet Retry and Delete, and editing.
 - Version 0.7.4, the upgrade note in scope, scope rows to `implemented`, D09 to Implemented in Notion; candidate package and evidence record. Owner acceptance is recorded separately.
 
 ## Acceptance criteria
 
-1. Capturing a word and a sentence into My Deck produces parent cards that look as in 0.7.3, drawn from structured data.
+1. Capturing a word and a sentence into My Deck produces parent cards that look as in 0.7.3, rendered from markdown formatted out of the provider's JSON.
 2. A provider result outside the parent's shape fails its attempt; an omitted or empty facet has no content and a blander tag.
-3. **Edit** shows fields only: no `==`, `===`, `[1]`, `::` or other syntax anywhere; the module name, facet names and the core's top line are not editable.
-4. Meanings, examples, synonyms, antonyms and Pinyin lines can be added at the end and deleted, not moved; numbering follows.
+3. **Edit** shows formatted text only: no `==`, `===`, `**`, list markers, item numbers in fields or separators of the editor's own; the module name, facet names and the core's top line are not editable.
+4. Typing markdown formats live: bold, italic, bulleted and numbered lists, inline code and highlight, with Cmd/Ctrl+B and +I.
 5. A facet without content appears in the editor and can be filled; once saved it shows on the card and its tag is no longer bland.
-6. Save accepts any empty field, the core's included; a half-filled item is kept and shown with the parts it has, an empty row is dropped; Cancel discards every change.
-7. Facet Retry replaces only its facet's entry; facet Delete removes it; the other facets and the core stay.
+6. Save accepts any empty part, the core's included; Cancel discards every change.
+7. Facet Retry replaces only its facet's markdown; facet Delete removes it; the other facets and the core stay.
 8. Upgrading from 0.7.3 discards decks and pages, keeps sign-in, and leaves one My Deck.
-9. Every editor field works from the keyboard and has an accessible name naming its facet and position.
+9. Every editor works from the keyboard and is named by its facet.
+10. Markdown never renders as HTML, whatever the user types.
 
 ## Risks
 
@@ -96,4 +114,4 @@ D09 in the traceability map with C21, the Notion decision record (Accepted), the
 
 ## Not in this milestone
 
-A different model for interpretation or generation; moving items; tying examples to meanings; editing the core's top line; rich text inside fields; new parents or facets.
+A different model for interpretation or generation; editing the core's top line; markdown beyond the supported subset (headings, links, images, tables); the model writing markdown itself; new parents or facets.
