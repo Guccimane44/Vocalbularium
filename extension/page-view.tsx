@@ -6,9 +6,10 @@ import { blockText, mainKeyOf } from '@vocabularium/domain/pages';
 import { emphasise, renderContent, renderParent } from '@vocabularium/domain/render';
 import type { Rendered, RenderedFacet } from '@vocabularium/domain/render';
 import { parentContentOf } from '@vocabularium/domain/content';
-import { facetLabel, isFacetOf, isParentType } from '@vocabularium/domain/parents';
+import type { ParentContent } from '@vocabularium/domain/content';
+import { facetLabel, facetsOf, isFacetOf, isParentType } from '@vocabularium/domain/parents';
 import type { FacetType, ParentType } from '@vocabularium/domain/parents';
-import type { PageEditorDraft } from '../types/editor-drafts.js';
+import type { FieldDraft, PageEditorDraft } from '../types/editor-drafts.js';
 import { FacetTags, FOLD_MS } from './facet-tags.tsx';
 import type { TagLayout } from './facet-tags.tsx';
 import { FamilyIcon } from './families.tsx';
@@ -210,9 +211,115 @@ export function Content({ type, rendered, mainKey, waiting = [], controls }: {
   </div>;
 }
 
-function ComponentBody({ item, title, editable, draft, locked, persist, mainKey, controls }: {
-  item: Component; title: string; editable: boolean; draft?: PageEditorDraft; locked: boolean; persist: () => void; mainKey: string; controls?: FacetControls;
+// The field editor (D09, 0.7.4): a parent card in its reading layout with
+// every text editable where it stands. The module's name, the facet names and
+// the core's top line are shown, never editable, and no syntax is shown. Each
+// list adds at its end and deletes per item; numbering follows. A facet
+// without content stays in its place, dimmed, to be filled. Enter is a line
+// break; nothing takes the focus when the editor opens.
+type ListName = 'meanings' | 'examples' | 'synonyms' | 'antonyms' | 'pinyin';
+// A field draft as plain lines, shown when its page or card is gone meanwhile.
+const draftText = (fields: FieldDraft): string => {
+  const lines: string[] = [];
+  const walk = (value: unknown) => { if (typeof value === 'string') { if (value.trim()) lines.push(value); } else if (value && typeof value === 'object') Object.values(value).forEach(walk); };
+  walk(fields); return lines.join('\n');
+};
+// Whether a draft value holds any text, in any of its parts.
+const hasText = (value: unknown): boolean => typeof value === 'string' ? Boolean(value.trim())
+  : Array.isArray(value) ? value.some(hasText) : value !== null && typeof value === 'object' ? Object.values(value).some(hasText) : false;
+const LIST_WORDS: Record<ListName, string> = { meanings: 'meaning', examples: 'example', synonyms: 'synonym', antonyms: 'antonym', pinyin: 'Pinyin line' };
+function FieldEditor({ item, title, fields, opened, locked, persist, redraw }: {
+  item: Component; title: string; fields: FieldDraft; opened?: ParentContent; locked: boolean; persist: () => void; redraw: () => void;
 }) {
+  const parent = item.moduleType as ParentType;
+  // The content the draft opened from: the card may be regenerating meanwhile.
+  const stored = opened ?? parentContentOf(item.content);
+  const root = useRef<HTMLDivElement>(null);
+  // Stable keys per row, so deleting one never moves what is typed in another.
+  const next = useRef(0);
+  const keyed = (count: number) => Array.from({ length: count }, () => next.current++);
+  const [keys, setKeys] = useState(() => ({ meanings: keyed(fields.meanings?.length ?? 0), examples: keyed(fields.facets.examples?.length ?? 0),
+    synonyms: keyed(fields.facets.synonyms?.length ?? 0), antonyms: keyed(fields.facets.antonyms?.length ?? 0), pinyin: keyed(fields.facets.pinyin?.length ?? 0) }));
+  const focus = (selector: string) => requestAnimationFrame(() => root.current?.querySelector<HTMLElement>(selector)?.focus());
+  // Which facets have text: the card redraws only when that changes, so its
+  // tags and dimmed names follow what is typed without redrawing per key.
+  const shape = () => JSON.stringify(Object.entries(fields.facets).map(([facet, value]) => [facet, hasText(value)]));
+  const typed = useRef(shape());
+  const changed = () => { persist(); const now = shape(); if (now !== typed.current) { typed.current = now; redraw(); } };
+  const list = (name: ListName): unknown[] => name === 'meanings' ? (fields.meanings ??= []) : ((fields.facets as Record<string, unknown[]>)[name] ??= []);
+  const add = (name: ListName, blank: unknown) => {
+    const key = next.current++;
+    list(name).push(blank); setKeys(current => ({ ...current, [name]: [...current[name], key] }));
+    persist(); typed.current = shape(); redraw(); focus(`[data-row="${name}-${key}"] .field-inline`);
+  };
+  const remove = (name: ListName, index: number) => {
+    const following = keys[name][index + 1];
+    list(name).splice(index, 1); setKeys(current => ({ ...current, [name]: current[name].filter((_, at) => at !== index) }));
+    persist(); typed.current = shape(); redraw();
+    focus(following !== undefined ? `[data-row="${name}-${following}"] .field-inline` : `[data-add="${name}"]`);
+  };
+  const field = (label: string, value: string | undefined, set: (value: string) => void, placeholder: string) =>
+    <textarea className="field-inline" rows={1} aria-label={`${label}, ${title}`} placeholder={placeholder} defaultValue={value ?? ''} readOnly={locked}
+      onChange={event => { set(event.target.value); changed(); }} />;
+  const row = (name: ListName, index: number, children: ReactNode, number = true) =>
+    <li key={keys[name][index]} className="field-row" data-row={`${name}-${keys[name][index]}`}>
+      {number && <span className="field-number" aria-hidden="true">{index + 1}</span>}
+      <div className="field-parts">{children}</div>
+      <button type="button" className="field-delete" aria-label={`Delete ${LIST_WORDS[name]} ${index + 1}, ${title}`} disabled={locked}
+        onClick={() => remove(name, index)}>×</button>
+    </li>;
+  const addButton = (name: ListName, blank: unknown) =>
+    <button type="button" className="field-add" data-add={name} disabled={locked} onClick={() => add(name, blank)}>+ Add {LIST_WORDS[name]}</button>;
+  const words = (name: 'synonyms' | 'antonyms', label: string) => {
+    const items = fields.facets[name]!;
+    return <><ul className="field-list field-words">{items.map((word, index) => row(name, index,
+      field(`${label} ${index + 1}`, word, value => { items[index] = value; }, label), false))}</ul>{addButton(name, '')}</>;
+  };
+  const facetBody = (facet: FacetType): ReactNode => {
+    const f = fields.facets;
+    if (facet === 'article') return <p className="field-article">
+      {field('Article: singular', f.article!.singular, value => { f.article!.singular = value; }, 'das Ufer')}
+      <span className="field-dot" aria-hidden="true">·</span>
+      {field('Article: plural', f.article!.plural, value => { f.article!.plural = value; }, 'die Ufer')}</p>;
+    if (facet === 'examples') return <><ol className="field-list">{f.examples!.map((example, index) => row('examples', index, <>
+      {field(`Example ${index + 1}: sentence`, example.sentence, value => { example.sentence = value; }, 'Sentence')}
+      {field(`Example ${index + 1}: translation`, example.translation, value => { example.translation = value; }, 'Translation')}</>))}</ol>
+      {addButton('examples', { sentence: '', translation: '' })}</>;
+    if (facet === 'synonyms') return words('synonyms', 'Synonym');
+    if (facet === 'antonyms') return words('antonyms', 'Antonym');
+    return <><ol className="field-list">{f.pinyin!.map((line, index) => row('pinyin', index, <div className="field-pair">
+      {field(`Pinyin ${index + 1}: text`, line.text, value => { line.text = value; }, '河岸')}
+      {field(`Pinyin ${index + 1}: pinyin`, line.pinyin, value => { line.pinyin = value; }, "hé'àn")}</div>))}</ol>
+      {addButton('pinyin', { text: '', pinyin: '' })}</>;
+  };
+  const core = stored?.core;
+  return <div ref={root} className="entry-content field-editor" role="group" aria-label={`Edit ${title}`}>
+    {core?.kind === 'word' ? <>
+      <p className="entry-heading" aria-label={`${core.language}, ${core.key}${core.romanization ? `, ${core.romanization}` : ''} (not editable)`}>
+        <span className="entry-language">{core.language}</span><span className="entry-key">{core.key}</span>
+        {core.romanization && <span className="entry-pronunciation">{core.romanization}</span>}
+      </p>
+      <ol className="field-list field-meanings">{fields.meanings!.map((meaning, index) => row('meanings', index,
+        field(`Meaning ${index + 1}`, meaning, value => { fields.meanings![index] = value; }, 'Meaning')))}</ol>
+      {addButton('meanings', '')}
+    </> : <div className="field-translation">{field('Translation', fields.translation, value => { fields.translation = value; }, 'Translation')}</div>}
+    {facetsOf(parent).filter(facet => fields.facets[facet as keyof FieldDraft['facets']] !== undefined).map(facet =>
+      <section key={facet} className="facet" data-facet={facet} data-unfilled={!hasText(fields.facets[facet as keyof FieldDraft['facets']]) || undefined}>
+        <h3 className="facet-title"><span>{facetLabel(parent, facet)}</span></h3>
+        {facetBody(facet)}
+      </section>)}
+  </div>;
+}
+
+function ComponentBody({ item, title, editable, draft, locked, persist, redraw, mainKey, controls }: {
+  item: Component; title: string; editable: boolean; draft?: PageEditorDraft; locked: boolean; persist: () => void; redraw: () => void; mainKey: string; controls?: FacetControls;
+}) {
+  const fields = draft?.fields?.[item.id];
+  if (editable && fields) return <>
+    <FieldEditor item={item} title={title} fields={fields} opened={draft?.fieldStored?.[item.id] as ParentContent | undefined}
+      locked={locked || item.status === 'loading'} persist={persist} redraw={redraw} />
+    {item.status === 'loading' && <p className="notice">This component is generating. Your draft is preserved; save explicitly after generation finishes.</p>}
+  </>;
   if (editable && draft) return <>
     <TextField id={`component-${item.id}`} labelText={`Edit ${title}`} value={draft.texts[item.id]}
       error={item.moduleType === 'main-key' ? draft.fieldError : undefined}
@@ -339,7 +446,7 @@ function readFolded(key: string | null): ReadonlySet<string> {
 }
 
 export function PageView({ page, deck, draft, isNew, editing, busy, error, pendingSaves, retryPendingSave,
-  navigate, begin, persist, save, cancel, discardUnavailable, deletePage, generate, addModule, moveComponent, deleteComponent, addFacet, deleteFacet }: Props) {
+  navigate, begin, persist, redraw, save, cancel, discardUnavailable, deletePage, generate, addModule, moveComponent, deleteComponent, addFacet, deleteFacet }: Props) {
   const [working, setWorking] = useState(false);
   // The card whose tab has ejected its actions; one at a time.
   const [opened, setOpened] = useState<string | null>(null);
@@ -405,7 +512,7 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
     <p>This page or deck has been deleted.</p>
     {draft && <>
       <p className="notice">Your unsaved text is still here. Copy anything you want to keep before discarding it.</p>
-      {[draft.mainKey, ...Object.values(draft.inputs ?? {}), ...Object.values(draft.texts)].filter(Boolean).map((text, index) => <pre key={index}>{text}</pre>)}
+      {[draft.mainKey, ...Object.values(draft.inputs ?? {}), ...Object.values(draft.texts), ...Object.values(draft.fields ?? {}).map(draftText)].filter(Boolean).map((text, index) => <pre key={index}>{text}</pre>)}
       <button onClick={() => void discardUnavailable()}>Discard draft</button>
     </>}
   </>;
@@ -422,7 +529,7 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
   // Shaping waits while a card is being edited; its Save and Cancel are right there.
   const disabled = Boolean(editingId) || busy;
   const known = new Set(page.components.map(item => item.id));
-  const lost = editing && draft ? Object.keys(draft.texts).filter(id => !known.has(id)) : [];
+  const lost = editing && draft ? [...Object.keys(draft.texts), ...Object.keys(draft.fields ?? {})].filter(id => !known.has(id)) : [];
   const items = numbered(rest.map(item => ({ id: item.id, type: item.moduleType, label: moduleLabel(item.moduleType), component: item,
     holder: { id: item.id, type: item.moduleType, facets: item.facets, status: item.status } })));
 
@@ -455,7 +562,8 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
     let index = 0;
     const order = () => ({ '--i': index++ }) as CSSProperties;
     return <div id={`actions-${item.id}`} className="card-actions" role="group" aria-label={`${title} actions`} data-open={open || undefined}>
-      {open && <button style={order()} aria-label={`Edit ${title}`} disabled={Boolean(editingId) || item.status === 'loading'}
+      {/* A parent is edited through its fields, once it has content to edit (D09). */}
+      {open && <button style={order()} aria-label={`Edit ${title}`} disabled={Boolean(editingId) || item.status === 'loading' || (isParentType(item.moduleType) && !parentContentOf(item.content))}
         onClick={choose(() => { if (isFolded) fold(item.id, false); begin(item.id); })}>
         <ActionIcon name="edit" />Edit</button>}
       {generated && <button style={order()} className={item.status === 'failed' ? 'action-failed' : undefined} aria-label={`Retry ${title}`}
@@ -470,7 +578,7 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
     </div>;
   };
   const editor = (item: Component, title: string) => editingId === item.id && draft && <>
-    <ComponentBody item={item} title={title} editable draft={draft} locked={locked} persist={persist} mainKey={mainKey} />
+    <ComponentBody item={item} title={title} editable draft={draft} locked={locked} persist={persist} redraw={redraw} mainKey={mainKey} />
     <div className="component-tools">
       <button disabled={busy} onClick={() => void cancel()}>Cancel</button>
       <button className="primary" disabled={busy} onClick={() => void save()}>{draft.pending ? 'Try saving again' : 'Save'}</button>
@@ -508,7 +616,10 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
     // content outside the parent's layout, the sections cannot be told apart,
     // so no tag is marked.
     const { rendered } = read;
-    const filled = generating || !read.present ? [] : rendered.kind === 'parent' ? rendered.facets.map(each => each.facet) : undefined;
+    // While its fields are edited, a tag shows whether its facet has text in the draft (D09).
+    const fieldDraft = editingId === item.id ? draft?.fields?.[item.id] : undefined;
+    const filled = fieldDraft ? Object.entries(fieldDraft.facets).filter(([, value]) => hasText(value)).map(([facet]) => facet)
+      : generating || !read.present ? [] : rendered.kind === 'parent' ? rendered.facets.map(each => each.facet) : undefined;
     const tags = controls ? <FacetTags holderId={item.id} parent={item.moduleType as ParentType} facets={item.facets ?? []} filled={filled}
       layout={layout} title={title} disabled={controls.disabled} ghost={ghost}
       onOpen={layout === 'hanging' ? undefined : facet => showFacet(item, facet)}
@@ -544,7 +655,7 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
         {item.status === 'failed' && <p className="card-status"><span className="list-status" data-status="failed">Generation failed</span></p>}
         {editor(item, title) || <Reveal status={item.status} title={title} failedFacet={item.failedFacet}
           facet={item.retryingFacet && isParentType(item.moduleType) && isFacetOf(item.moduleType, item.retryingFacet)
-            ? { id: item.retryingFacet, name: facetLabel(item.moduleType, item.retryingFacet) } : undefined}><ComponentBody item={item} title={title} editable={false} draft={draft} locked={locked} persist={persist} mainKey={mainKey} controls={controls} /></Reveal>}
+            ? { id: item.retryingFacet, name: facetLabel(item.moduleType, item.retryingFacet) } : undefined}><ComponentBody item={item} title={title} editable={false} draft={draft} locked={locked} redraw={redraw} persist={persist} mainKey={mainKey} controls={controls} /></Reveal>}
       </div></div>}
       {tags}
     </article>;
@@ -572,7 +683,7 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
       renderItem={(item, parts) => card(item.component, item.label, parts)} />
     {lost.map(id => <div key={id}>
       <p className="notice">The component you were editing no longer exists. Its unsaved text is preserved below.</p>
-      <pre>{draft!.texts[id]}</pre>
+      <pre>{draft!.texts[id] ?? draftText(draft!.fields![id]!)}</pre>
       <button onClick={() => void cancel()}>Discard draft</button>
     </div>)}
     {!editingId && pendingSaves.map(item => <div className="notice" key={item.operationId}>

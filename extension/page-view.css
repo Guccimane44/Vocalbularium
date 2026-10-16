@@ -280,6 +280,51 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
   mark { forced-color-adjust: none; background: Highlight; color: HighlightText; }
 }
 
+/* The field editor (D09, 0.7.4): the card keeps its reading layout and each
+   text is edited where it stands, with a soft underline and a focus ring.
+   Names and the core's top line stay as they read. Each row's × shows while
+   the row is pointed at or focused; + Add ends each list. A facet without
+   content stays in its place, dimmed, to be filled. Fields grow with their
+   text, and Enter is a line break. */
+.field-inline { display: block; width: 100%; min-height: 0; margin: 0; padding: 1px 4px; border: 0; border-radius: 4px; resize: none; field-sizing: content;
+  font: inherit; color: inherit; background: transparent; box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--fam, var(--ink-muted)) 35%, transparent);
+  transition: box-shadow var(--dur-instant) ease, background var(--dur-instant) ease; }
+.field-inline:hover { box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--fam, var(--ink-muted)) 70%, transparent); }
+.field-inline:focus { outline: 2px solid var(--focus); outline-offset: 1px; background: var(--surface); box-shadow: none; }
+.field-inline::placeholder { color: var(--ink-muted); opacity: .6; }
+.field-inline[readonly] { box-shadow: none; }
+.field-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.field-row { display: grid; grid-template-columns: 26px minmax(0, 1fr) 24px; align-items: start; column-gap: 2px; }
+.field-row:not(:has(.field-number)) { grid-template-columns: minmax(0, 1fr) 24px; }
+.field-number { font: 600 13px/26px var(--font-text); color: var(--fam, var(--ink-muted)); }
+.field-parts { display: grid; gap: 2px; min-width: 0; }
+.field-meanings .field-inline { font-size: 16px; line-height: 1.5; }
+.facet[data-facet="examples"] .field-parts > .field-inline:first-child { font: 400 18px/1.45 var(--font-display); }
+.facet[data-facet="examples"] .field-parts > .field-inline:nth-child(2) { color: var(--ink-soft); font-size: 15px; }
+.field-translation .field-inline { font: 400 19px/1.55 var(--font-display); }
+.field-article { display: flex; align-items: baseline; gap: 6px; margin: 0; font-size: 16px; }
+.field-article .field-inline { width: auto; min-width: 8ch; }
+.field-dot { color: var(--ink-muted); }
+.field-pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+.field-words { display: flex; flex-wrap: wrap; gap: 6px 14px; }
+.field-words .field-row { display: inline-grid; grid-template-columns: auto 22px; }
+.field-words .field-inline { width: auto; min-width: 6ch; font-size: 16px; line-height: 1.5; }
+.field-delete { display: grid; place-items: center; width: 22px; height: 22px; margin-top: 2px; padding: 0; border: 0; border-radius: 50%;
+  font: 400 15px/1 var(--font-text); color: var(--ink-muted); background: transparent; opacity: 0;
+  transition: opacity var(--dur-instant) ease, background var(--dur-instant) ease, color var(--dur-instant) ease; }
+.field-row:hover .field-delete, .field-row:focus-within .field-delete { opacity: 1; }
+.field-delete:not(:disabled):hover { color: var(--status-failed); background: var(--status-failed-bg); }
+.field-delete:disabled { display: none; }
+@media (hover: none) { .field-delete { opacity: 1; } }
+.field-add { justify-self: start; margin: 2px 0 0 22px; padding: 2px 8px; border: 0; border-radius: var(--radius-control);
+  font: 600 13px/20px var(--font-text); color: var(--fam, var(--fam-notes)); background: transparent; }
+.field-add:not(:disabled):hover { background: var(--fam-tint, var(--fam-notes-tint)); }
+/* Each + lines up with the text of its list's fields: past the numbers, or at the start. */
+.field-words + .field-add { margin-left: -4px; }
+.field-editor .facet[data-unfilled] .facet-title { opacity: .55; }
+/* Line breaks typed in the editor read as line breaks. */
+.meanings li, .facet-lines li, .example-sentence, .example-translation { white-space: pre-wrap; }
+
 /* Parent modules (D08): the core, then each facet under its label. */
 .facet { display: grid; gap: 6px; margin-top: 4px; padding-top: 10px; border-top: 1px solid var(--line); }
 .facet-title { display: flex; align-items: center; gap: 8px; min-height: 26px; margin: 0;

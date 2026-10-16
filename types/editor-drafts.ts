@@ -1,5 +1,19 @@
 import type { DeckConfiguration, InputType, OperationId } from '@vocabularium/contracts';
 
+// A parent card's editable parts (D09): the meanings or the translation, and
+// one entry per facet the card has, empty ones included. Any text may be empty.
+export type FieldDraft = {
+  meanings?: string[];
+  translation?: string;
+  facets: {
+    article?: { singular?: string; plural?: string };
+    examples?: Array<{ sentence?: string; translation?: string }>;
+    synonyms?: string[];
+    antonyms?: string[];
+    pinyin?: Array<{ text?: string; pinyin?: string }>;
+  };
+};
+
 export type EditorPendingPageSave = Readonly<{
   operationId: OperationId;
   type: 'save-page' | 'create-page';
@@ -17,6 +31,13 @@ export type PageEditorDraft = {
   componentId?: string;
   base: Record<string, string>;
   texts: Record<string, string>;
+  // A parent card edited through its fields (D09): the draft per component,
+  // and the draft it opened with, as JSON, to tell whether it changed.
+  fields?: Record<string, FieldDraft>;
+  fieldBase?: Record<string, string>;
+  // The structured content each field draft opened from: the save keeps its
+  // core's top line, which the server checks against what is stored.
+  fieldStored?: Record<string, unknown>;
   mainKey?: string;
   inputs?: Record<string, string>;
   pending?: EditorPendingPageSave;

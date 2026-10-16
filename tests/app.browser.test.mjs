@@ -1137,7 +1137,7 @@ test('retry UI: exact confirmation asked beside the tab, a first Retry without w
   await b.page.goto(`chrome-extension://${b.id}/app.html#page/${pageId}`);
   // Installation b edits the explanation card while a retries it.
   await (await cardButton(b.page, 'Edit German')).click();
-  await b.page.getByRole('textbox', { name: 'Edit German', exact: true }).fill('draft back');
+  await b.page.getByRole('textbox', { name: 'Meaning 1, German', exact: true }).fill('draft back');
   // Retrying content asks beside the tab, as Delete does, in the card's colour; no dialog (0.6.3).
   const retryExplanation = () => cardButton(a.page, 'Retry German');
   await (await retryExplanation()).click();
@@ -1162,16 +1162,14 @@ test('retry UI: exact confirmation asked beside the tab, a first Retry without w
   await b.page.getByRole('button', { name: 'Save', exact: true }).click();
   await b.page.getByRole('alert').filter({ hasText: 'still generating' }).waitFor();
   assert.deepEqual(modulesOf(await application.store.page(pageId)).map(text), ['saved original', '']);
-  assert.equal(await b.page.getByRole('textbox', { name: 'Edit German', exact: true }).inputValue(), 'draft back');
+  assert.equal(await b.page.getByRole('textbox', { name: 'Meaning 1, German', exact: true }).inputValue(), 'draft back');
   release(wordResult('regenerated component'));
   await waitFor(async () => modulesOf(await application.store.page(pageId))[1].status === 'completed', 'retry saved');
   assert.deepEqual(modulesOf(await application.store.page(pageId)).map(text), ['saved original', 'regenerated component']);
-  // The retry made the card structured (D09): a text draft can no longer replace it. It is
-  // refused and kept; the field editor (0.7.4, increment 5) resubmits drafts as fields.
+  // An explicit resubmission saves the field draft over the regenerated content (D09).
   await b.page.getByRole('button', { name: 'Try saving again', exact: true }).click();
-  await b.page.getByRole('alert').filter({ hasText: 'Edit this module through its fields.' }).waitFor();
-  assert.equal(await b.page.getByRole('textbox', { name: 'Edit German', exact: true }).inputValue(), 'draft back');
-  assert.deepEqual(modulesOf(await application.store.page(pageId)).map(text), ['saved original', 'regenerated component']);
+  await b.page.locator('.component-tools').waitFor({ state: 'detached' });
+  assert.deepEqual(modulesOf(await application.store.page(pageId)).map(text), ['saved original', 'draft back']);
 
   // A deck change never reaches the page; a module dragged onto it generates from its card without a warning.
   await useModules(application.store, ['chinese', 'german', 'german']);
@@ -2708,4 +2706,86 @@ test('0.7.3: a facet’s own Retry beside its Delete, a tag’s remove keeping i
   await hung.locator('.card-tab').screenshot({ path: 'artifacts/v0.7.3-spark-over-rail.png' });
   release(wordResult(['Ufer'], { synonyms: ['Böschung'] }, { key: 'bank' }));
   await waitFor(async () => await hung.getAttribute('data-generating') === null, 'German 2 generated');
+});
+
+test('0.7.4: the field editor edits a card in place: names and top line locked, no syntax, add and delete, empty facets filled, half items kept', { timeout: 60000 }, async (t) => {
+  const directory = await mkdtemp(join(tmpdir(), 'vocabularium-field-editor-browser-'));
+  const application = await createTestApplication(t); await application.start();
+  const a = await launch(join(directory, 'a'));
+  t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
+  await a.page.setViewportSize({ width: 1280, height: 1400 });
+  const store = application.store;
+  const session = { installationId: 'fixture', sessionId: 'field-editor', epoch: 1 };
+  await store.openSession('field-editor-session', session);
+  const { pageId } = await store.capture('field-editor-capture', { session, mainKey: 'bank', snapshot: await store.snapshot() });
+  const first = (await store.page(pageId)).components.find(item => item.moduleType === 'german');
+  const { antonyms, ...facets } = BANK.facets;
+  await store.stage(first.attemptId, staged({ core: BANK.core, facets }));
+  await store.publish('field-editor-publish', { attemptId: first.attemptId, session });
+  const german = async () => (await store.page(pageId)).components.find(item => item.moduleType === 'german').content.blocks[0];
+  await signIn(a.page);
+  await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
+  const card = componentArticle(a.page, 'German');
+  await card.locator('.meanings').waitFor();
+  await (await cardButton(a.page, 'Edit German')).click();
+  const editor = card.getByRole('group', { name: 'Edit German', exact: true });
+  await editor.waitFor();
+  const box = name => editor.getByRole('textbox', { name: `${name}, German`, exact: true });
+
+  // Fields only: the top line and the names are shown, not editable, and no syntax appears.
+  assert.equal(await editor.locator('.entry-heading').textContent(), 'Englischbank');
+  assert.equal(await editor.locator('.entry-heading textarea, .facet-title textarea').count(), 0);
+  assert.deepEqual(await editor.locator('.facet-title').allTextContents(), ['Article', 'Examples', 'Synonyms', 'Antonyms']);
+  assert.doesNotMatch(await editor.evaluate(node => [...node.querySelectorAll('textarea')].map(field => field.value).join('\n') + node.textContent), /===|\[\d\]|::/);
+  assert.equal(await box('Meaning 1').inputValue(), 'Ufer');
+  assert.equal(await a.page.evaluate(() => document.activeElement?.tagName), 'BODY', 'opening the editor moves the focus nowhere');
+  // The empty facet stays in its place, dimmed, with only its Add.
+  const antonymsSection = editor.locator('.facet[data-facet="antonyms"]');
+  assert.notEqual(await antonymsSection.getAttribute('data-unfilled'), null);
+  assert.equal(await antonymsSection.locator('textarea').count(), 0);
+  await a.page.screenshot({ path: 'artifacts/v0.7.4-field-editor.png' });
+
+  // Enter is a line break; Add puts a new item at the end and takes the focus; × shows on hover.
+  await box('Meaning 1').fill('Ufer\neines Flusses');
+  await editor.getByRole('button', { name: '+ Add meaning', exact: true }).click();
+  await waitFor(() => a.page.evaluate(() => document.activeElement?.getAttribute('aria-label') === 'Meaning 2, German'), 'the new meaning focused');
+  await a.page.keyboard.type('Böschung');
+  const synonymRow = editor.locator('.facet[data-facet="synonyms"] .field-row').first();
+  const remove = synonymRow.getByRole('button', { name: 'Delete synonym 1, German', exact: true });
+  assert.equal(await remove.evaluate(node => getComputedStyle(node).opacity), '0', 'hidden until pointed at');
+  await synonymRow.hover();
+  await waitFor(async () => await remove.evaluate(node => getComputedStyle(node).opacity) === '1', '× shown on hover');
+  await remove.click();
+  // Filling the empty facet makes its tag full as you type; a half example keeps its translation.
+  const tag = card.locator('.facet-tag[data-facet="antonyms"]');
+  assert.notEqual(await tag.getAttribute('data-unfilled'), null);
+  await antonymsSection.getByRole('button', { name: '+ Add antonym', exact: true }).click();
+  await waitFor(() => a.page.evaluate(() => document.activeElement?.getAttribute('aria-label') === 'Antonym 1, German'), 'the new antonym focused');
+  await a.page.keyboard.type('Strom');
+  await waitFor(async () => await tag.getAttribute('data-unfilled') === null, 'the tag fills as you type');
+  await box('Example 1: sentence').fill('');
+  await a.page.screenshot({ path: 'artifacts/v0.7.4-field-editor-edited.png' });
+  await card.getByRole('button', { name: 'Save', exact: true }).click();
+  await card.locator('.field-editor').waitFor({ state: 'detached' });
+  assert.deepEqual(await german(), { type: 'parent', core: { ...BANK.core, meanings: ['Ufer\neines Flusses', 'Böschung'] },
+    facets: { article: BANK.facets.article, examples: [{ translation: 'Wir saßen am Ufer.' }], antonyms: ['Strom'] } },
+    'the top line kept, a half example kept, an emptied facet gone, the empty one filled');
+  // The card shows what is there: the translation alone, numbered; the line break kept.
+  assert.equal(await card.locator('.examples li .example-sentence').count(), 0);
+  assert.equal(await card.locator('.examples li .example-translation').textContent(), 'Wir saßen am Ufer.');
+  assert.equal(await card.locator('.meanings li').first().evaluate(node => node.innerText), 'Ufer\neines Flusses');
+  assert.equal(await card.locator('.facet[data-facet="synonyms"]').count(), 0);
+
+  // Cancel discards; every field may be emptied, the core's too.
+  await (await cardButton(a.page, 'Edit German')).click();
+  await box('Meaning 1').fill('discarded');
+  await card.getByRole('button', { name: 'Cancel', exact: true }).click();
+  assert.equal((await german()).core.meanings[0], 'Ufer\neines Flusses');
+  await (await cardButton(a.page, 'Edit German')).click();
+  for (const name of ['Meaning 1', 'Meaning 2']) await box(name).fill('');
+  await card.getByRole('button', { name: 'Save', exact: true }).click();
+  await card.locator('.field-editor').waitFor({ state: 'detached' });
+  assert.deepEqual((await german()).core.meanings, []);
+  assert.equal(await card.locator('.entry-heading').textContent(), 'Englischbank', 'an emptied core shows its top line');
+  await a.page.screenshot({ path: 'artifacts/v0.7.4-field-editor-saved.png' });
 });

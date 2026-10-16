@@ -69,34 +69,36 @@ test('a parent added to a page has its core only; facets join only a parent of t
     { code: 'invalid', message: /still generating/ });
 });
 
-test('deleting a facet removes its section and keeps it gone from the next attempt', async t => {
+test('deleting a facet removes its entry and keeps it gone from the next attempt', async t => {
   const store = await fixture(t);
   await germanDeck(store);
-  const { pageId } = await store.createPage('create', { deckId: (await store.snapshot()).id, mainKey: 'bank' });
+  const { pageId } = await store.capture('capture', { session, mainKey: 'bank', snapshot: await store.snapshot() });
   const german = component(await store.page(pageId), 'german');
-  const content = ['== Englisch (bank) ==', '=== Bedeutungen ===', ': [1] Ufer', '=== Article ===', ': das Ufer',
-    '=== Examples ===', ': [1] We sat on the bank.', ':: Wir saßen am Ufer.', '=== Synonyms ===', ': Böschung'].join('\n');
-  await store.savePage('write', { pageId, changes: [{ componentId: german.id, content: textBlocks(content) }] });
+  const facets = { article: { singular: 'das Ufer' }, examples: [{ sentence: 'We sat on the bank.', translation: 'Wir saßen am Ufer.' }], synonyms: ['Böschung'] };
+  await store.stage(german.attemptId, staged(wordResult(['Ufer'], facets, { key: 'bank' })));
+  await store.publish('publish', { attemptId: german.attemptId, session });
 
   await store.deleteFacet('delete-examples', { pageId, componentId: german.id, parent: 'german', facet: 'examples' });
   let page = await store.page(pageId);
   assert.deepEqual(component(page, 'german').facets, ['article', 'synonyms', 'antonyms']);
-  assert.equal(text(component(page, 'german')),
-    ['== Englisch (bank) ==', '=== Bedeutungen ===', ': [1] Ufer', '=== Article ===', ': das Ufer', '=== Synonyms ===', ': Böschung'].join('\n'));
+  assert.deepEqual(component(page, 'german').content.blocks[0].facets, { article: facets.article, synonyms: facets.synonyms }, 'only its entry goes');
   await assert.rejects(store.deleteFacet('again', { pageId, componentId: german.id, parent: 'german', facet: 'examples' }),
     { code: 'invalid', message: 'This facet is no longer there.' });
   await assert.rejects(store.deleteFacet('other-parent', { pageId, componentId: german.id, parent: 'chinese', facet: 'examples' }),
     { code: 'invalid', message: 'This facet is no longer there.' });
 
-  // Text that no longer follows the contract keeps its words; only the facet goes.
-  await store.savePage('edit', { pageId, changes: [{ componentId: german.id, content: textBlocks('My own notes about === Article ===') }] });
-  await store.deleteFacet('delete-article', { pageId, componentId: german.id, parent: 'german', facet: 'article' });
+  // A facet without an entry, or a parent without content, loses only the facet.
+  await store.deleteFacet('delete-antonyms', { pageId, componentId: german.id, parent: 'german', facet: 'antonyms' });
   page = await store.page(pageId);
-  assert.equal(text(component(page, 'german')), 'My own notes about === Article ===');
+  assert.deepEqual(component(page, 'german').content.blocks[0].facets, { article: facets.article, synonyms: facets.synonyms });
+  const { componentId: empty } = await store.addModule('second', { pageId, type: 'german' });
+  await store.addFacet('second-facet', { pageId, componentId: empty, parent: 'german', facet: 'article' });
+  await store.deleteFacet('second-delete', { pageId, componentId: empty, parent: 'german', facet: 'article' });
+  assert.deepEqual((await store.page(pageId)).components.find(item => item.id === empty).content, { version: 1, blocks: [] });
 
   const { attemptIds } = await store.generate('retry', { pageId, target: { scope: 'component', componentId: german.id }, session,
     confirmation: store.confirmationDigest([component(page, 'german')]) });
-  assert.deepEqual((await store.attempt(attemptIds[0])).module.facets, ['synonyms', 'antonyms']);
+  assert.deepEqual((await store.attempt(attemptIds[0])).module.facets, ['article', 'synonyms']);
 });
 
 test('a facet added after the last attempt, or deleted and added again, waits for the next Retry', async t => {

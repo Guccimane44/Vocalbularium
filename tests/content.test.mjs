@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { applyDraft, ContentError, filledFacets, hasFacetContent, isEmptyContent, parentContentOf, parentDocument, validateParentContent, withFacetEntry } from '@vocabularium/domain/content';
 import { blockText } from '@vocabularium/domain/pages';
-import { renderContent, renderParent } from '@vocabularium/domain/render';
+import { renderParent } from '@vocabularium/domain/render';
 
 // Structured parent content (D09, 0.7.4): shapes, field-editor saves, facet entries and rendering.
 const ALL = ['article', 'examples', 'synonyms', 'antonyms'];
@@ -101,16 +101,18 @@ test('facet entries are read, replaced and removed one at a time, in the parent�
   assert.equal(isEmptyContent({ core: { kind: 'sentence' }, facets: {} }), true);
 });
 
-test('structured content is stored as one parent block, has no plain text, and renders as the same card as its 0.7.3 text', () => {
+test('structured content is stored as one parent block, has no plain text, and renders into the card’s containers', () => {
   const document = parentDocument(bank);
   assert.deepEqual(document, { version: 1, blocks: [{ type: 'parent', ...bank }] });
   assert.deepEqual(parentContentOf(document), bank);
   assert.equal(blockText(document), '', 'a parent block holds no paragraph text');
   assert.equal(parentContentOf({ version: 1, blocks: [{ type: 'paragraph', text: 'notes' }] }), null);
 
-  const markup = ['== Englisch (bank) ==', '=== Bedeutungen ===', ': [1] Ufer eines Flusses', '=== Article ===', ': das Ufer · die Ufer',
-    '=== Examples ===', ': [1] We sat on the bank.', ':: Wir saßen am Ufer.', '=== Synonyms ===', ': Flussufer', ': Gestade'].join('\n');
-  assert.deepEqual(renderParent('german', bank), renderContent('german', markup));
+  assert.deepEqual(renderParent('german', bank), { kind: 'parent',
+    core: { kind: 'word', heading: { language: 'Englisch', key: 'bank', pronunciation: null }, meanings: [{ number: '1', text: 'Ufer eines Flusses' }] },
+    facets: [{ facet: 'article', label: 'Article', lines: ['das Ufer · die Ufer'] },
+      { facet: 'examples', label: 'Examples', examples: [{ number: '1', sentence: 'We sat on the bank.', translation: 'Wir saßen am Ufer.' }] },
+      { facet: 'synonyms', label: 'Synonyms', lines: ['Flussufer', 'Gestade'] }] }, 'drawn as the 0.7.3 card drew its text');
 
   const chinese = { core: { kind: 'word', language: '英语', key: 'bank', romanization: 'bæŋk', meanings: ['河岸', '银行'] },
     facets: { pinyin: [{ text: '河岸', pinyin: 'hé’àn' }, { text: '银行', pinyin: 'yínháng' }], examples: [{ sentence: 'The bank is open.' }] } };

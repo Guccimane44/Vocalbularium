@@ -1,4 +1,6 @@
 import { blockText, textBlocks } from '@vocabularium/domain/pages';
+import { applyDraft, draftOf, parentContentOf, parentDocument } from '@vocabularium/domain/content';
+import { isParentType } from '@vocabularium/domain/parents';
 import { dialog } from './dialog.ts';
 import { PageView } from './page-view.tsx';
 /** @typedef {import('../types/editor-drafts.js').PageEditorDraft} PageEditorDraft */
@@ -22,14 +24,21 @@ export function pageViews({ getAccount, renderView, refresh, send, applyState, n
   const identity = hash => hash.split('/').slice(0, 2).join('/');
   const matches = hash => draft && identity(hash) === draft.route;
   const changed = () => draft ? Object.keys(draft.texts).filter(id => draft.texts[id] !== draft.base[id]) : [];
+  // Parent cards edited through their fields (D09) whose draft differs from the one they opened with.
+  const changedFields = () => draft ? Object.keys(draft.fields ?? {}).filter(id => JSON.stringify(draft.fields[id]) !== draft.fieldBase?.[id]) : [];
   const inputs = () => draft ? Object.entries(draft.inputs ?? {}).filter(([, text]) => text.length) : [];
-  const dirty = () => Boolean(draft && (changed().length || inputs().length || (!draft.pageId && draft.mainKey)));
-  // Editing is one card at a time (D04): the draft holds that component's text.
+  const dirty = () => Boolean(draft && (changed().length || changedFields().length || inputs().length || (!draft.pageId && draft.mainKey)));
+  // Editing is one card at a time (D04): the draft holds that component's
+  // text, or for a parent's structured content (D09), its fields.
   function begin(page, route, componentId) {
     const component = page.components.find(item => item.id === componentId);
     if (!component) return;
     draft = { route: identity(route), pageId: page.id, deckId: page.deckId, componentId, base: {}, texts: {} };
-    draft.base[componentId] = draft.texts[componentId] = blockText(component.content);
+    const content = isParentType(component.moduleType) ? parentContentOf(component.content) : null;
+    if (content) {
+      const fields = draftOf(component.moduleType, content, component.facets ?? []);
+      draft.fields = { [componentId]: fields }; draft.fieldBase = { [componentId]: JSON.stringify(fields) }; draft.fieldStored = { [componentId]: content };
+    } else draft.base[componentId] = draft.texts[componentId] = blockText(component.content);
     persist();
   }
   function beginNew(deckId, route) {
@@ -41,10 +50,18 @@ export function pageViews({ getAccount, renderView, refresh, send, applyState, n
     draft = undefined; persist();
   }
   // Context and Text values for a new page are keyed by the deck instance they fill.
-  function payload() {
+  // A field draft is saved as the parent's structured content: the stored core's
+  // top line with the draft's meanings or translation and facets (D09).
+  function payload(page) {
     if (!draft.pageId) return { deckId: draft.deckId, mainKey: draft.mainKey ?? '',
       initial: inputs().map(([moduleInstanceId, text]) => ({ moduleInstanceId, content: textBlocks(text) })) };
-    return { pageId: draft.pageId, changes: changed().map(componentId => ({ componentId, content: textBlocks(draft.texts[componentId]) })) };
+    const fieldChanges = changedFields().map(componentId => {
+      const component = page?.components.find(item => item.id === componentId);
+      const stored = draft.fieldStored?.[componentId];
+      if (!component || !stored) throw Object.assign(new Error('This module no longer exists; its draft can not be saved.'), { code: 'deleted' });
+      return { componentId, content: parentDocument(applyDraft(component.moduleType, stored, draft.fields[componentId], { facets: component.facets ?? [] })) };
+    });
+    return { pageId: draft.pageId, changes: [...changed().map(componentId => ({ componentId, content: textBlocks(draft.texts[componentId]) })), ...fieldChanges] };
   }
   async function save(page) {
     if (busy || !draft) return false;
@@ -54,7 +71,9 @@ export function pageViews({ getAccount, renderView, refresh, send, applyState, n
       // Shown inside the empty main key field rather than as a notice below it.
       draft.error = undefined; draft.fieldError = 'Main key can not be empty.'; draft.errorCode = 'invalid'; persist(); void refresh(); return false;
     }
-    const next = payload();
+    let next;
+    try { next = payload(page); }
+    catch (error) { draft.error = error.message; draft.errorCode = error.code ?? 'invalid'; persist(); void refresh(); return false; }
     if (draft.pageId && !next.changes.length) { await discard(); void refresh(); return true; }
     if (draft.pending && JSON.stringify(next) !== JSON.stringify(draft.pending.payload)) {
       await chrome.storage.local.remove(`save-${draft.pending.operationId}`); draft.pending = undefined;

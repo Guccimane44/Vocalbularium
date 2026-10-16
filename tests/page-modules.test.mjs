@@ -5,7 +5,7 @@ import {
   ComponentMovePayloadSchema, DeckConfigurationSchema, MAX_MODULES, ModuleAddPayloadSchema, PageSchema
 } from '@vocabularium/contracts';
 import {
-  addBlocked, CATALOG, copyModules, DECK_COLOURS, deleteBlocked, FAMILIES, FAMILY_LABELS, firstMeaning, generationTargets, isContentType, moveBlocked, moved,
+  addBlocked, CATALOG, copyModules, DECK_COLOURS, deleteBlocked, FAMILIES, FAMILY_LABELS, generationTargets, isContentType, moveBlocked, moved,
   pageMeaning, validateConfiguration, WINDOW_MODULES
 } from '@vocabularium/domain/page-modules';
 import { textBlocks } from '@vocabularium/domain/pages';
@@ -111,15 +111,12 @@ test('a page is its components in order, between one and twelve', () => {
   assert.ok(!Value.Check(PageSchema, { ...valid, components: [{ ...page()[0], kind: 'main_key' }] }), 'kind is retired');
 });
 
-test('the meaning line is the first numbered meaning of the first content module, or a sentence’s translation', () => {
-  const examples = '== Chinesisch (幸福, xìngfú) ==\n=== Bedeutungen ===\n: [1] Glück\n: [2] Wohlstand\n=== Examples ===\n: [1] 幸福就在身边。\n:: Das Glück ist ganz nah.';
-  const explanation = '== 汉语 ==\n=== 释义 ===\n: [1] 生活称心如意';
-  assert.equal(firstMeaning(examples), 'Glück');
-  assert.equal(firstMeaning(': [1] ohne Überschrift'), 'ohne Überschrift');
-  assert.equal(firstMeaning('=== Examples ===\n: [1] 她很幸福。'), null, 'examples are not meanings');
-  assert.equal(firstMeaning('Sie sagte leise: „我真的很幸福“.'), null);
-  assert.equal(pageMeaning([{ type: 'chinese', text: explanation }, { type: 'german', text: examples }]), '生活称心如意');
-  assert.equal(pageMeaning([{ type: 'german', text: 'Ich bin wirklich glücklich.\nZweite Zeile\n=== Examples ===\n: [1] Satz.' }]), 'Ich bin wirklich glücklich.', 'a sentence gives its translation');
-  assert.equal(pageMeaning([{ type: 'german', text: examples }, { type: 'chinese', text: null }]), 'Glück');
-  assert.equal(pageMeaning([{ type: 'text', text: ': [1] my note' }, { type: 'chinese', text: 'edited\n=== Nonsense ===' }]), null, 'input modules and text outside the contract never supply it');
+test('the meaning line is the first meaning of the first content module, or a sentence’s translation, read as data (D09)', () => {
+  const doc = core => ({ version: 1, blocks: [{ type: 'parent', core, facets: {} }] });
+  const word = meanings => doc({ kind: 'word', language: 'Chinesisch', key: '幸福', meanings });
+  assert.equal(pageMeaning([{ type: 'chinese', content: word(['生活称心如意']) }, { type: 'german', content: word(['Glück', 'Wohlstand']) }]), '生活称心如意');
+  assert.equal(pageMeaning([{ type: 'german', content: doc({ kind: 'sentence', translation: 'Ich bin wirklich glücklich.\nZweite Zeile' }) }]), 'Ich bin wirklich glücklich.', 'a sentence gives its translation');
+  assert.equal(pageMeaning([{ type: 'german', content: word([]) }, { type: 'chinese', content: word(['Glück']) }]), 'Glück', 'an emptied core is skipped');
+  assert.equal(pageMeaning([{ type: 'german', content: null }, { type: 'chinese', content: word(['Glück']) }]), 'Glück');
+  assert.equal(pageMeaning([{ type: 'text', content: { version: 1, blocks: [{ type: 'paragraph', text: 'my note' }] } }]), null, 'input modules never supply it');
 });

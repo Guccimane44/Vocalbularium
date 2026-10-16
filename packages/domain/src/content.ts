@@ -151,6 +151,24 @@ export type ParentDraft = Readonly<{
   }>;
 }>;
 
+// The field editor's draft of stored content (D09): the meanings or the
+// translation, and an entry for each facet the component has, in the parent's
+// order, empty for a facet without content so it can be filled.
+export function draftOf(parent: ParentType, content: ParentContent, facets: readonly string[]) {
+  const f = content.facets;
+  const has = (facet: FacetType) => facets.includes(facet) && isFacetOf(parent, facet);
+  return {
+    ...(content.core.kind === 'word' ? { meanings: [...content.core.meanings] } : { translation: content.core.translation ?? '' }),
+    facets: {
+      ...(has('article') ? { article: { singular: f.article?.singular ?? '', plural: f.article?.plural ?? '' } } : {}),
+      ...(has('examples') ? { examples: (f.examples ?? []).map(example => ({ sentence: example.sentence ?? '', translation: example.translation ?? '' })) } : {}),
+      ...(has('synonyms') ? { synonyms: [...(f.synonyms ?? [])] } : {}),
+      ...(has('antonyms') ? { antonyms: [...(f.antonyms ?? [])] } : {}),
+      ...(has('pinyin') ? { pinyin: (f.pinyin ?? []).map(line => ({ text: line.text ?? '', pinyin: line.pinyin ?? '' })) } : {})
+    }
+  };
+}
+
 const emptyItem = (item: unknown) => isRecord(item) ? Object.values(item).every(blank) : blank(item);
 const filled = <T>(items: readonly T[] | undefined): T[] => (items ?? []).filter(item => !emptyItem(item));
 

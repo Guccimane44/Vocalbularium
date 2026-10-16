@@ -8,7 +8,7 @@ import { Generation } from '../src/server/generation.mjs';
 import { OpenCodeProvider, parentInstructions, parentSchema } from '../src/server/opencode.mjs';
 import { generateComponents } from '@vocabularium/domain/modules';
 import { isContentType } from '@vocabularium/domain/page-modules';
-import { confirmed, generated, resultFor, sentenceResult, text, textBlocks, useModules, wordResult } from './helpers/pages.mjs';
+import { confirmed, generated, resultFor, sentenceResult, text, textBlocks, useModules, wordResult, staged } from './helpers/pages.mjs';
 
 const session = { installationId: 'test-installation', sessionId: 'test-browser', epoch: 1 };
 const word = { inputType: 'word_phrase' };
@@ -110,8 +110,8 @@ test('a busy confirmed Retry returns 429 and preserves component content and att
   const snapshot = await store.snapshot();
   const targetId = (await store.capture('target', { session, mainKey: 'target', snapshot })).pageId;
   const target = generated(await store.page(targetId))[0];
-  await store.failAttempt(target.attemptId);
-  await store.savePage('manual-edit', { pageId: targetId, changes: [{ componentId: target.id, content: textBlocks('preserve me') }] });
+  await store.stage(target.attemptId, staged('preserve me'));
+  await store.publish('target-publish', { attemptId: target.attemptId, session });
   const busyId = (await store.capture('busy', { session, mainKey: 'busy', snapshot })).pageId;
   await generation.start(busyId);
   await providerStarted;
@@ -133,7 +133,7 @@ test('a busy confirmed Retry returns 429 and preserves component content and att
   const after = generated(await store.page(targetId))[0];
   assert.equal(text(after), 'preserve me');
   assert.equal(after.attemptId, target.attemptId);
-  assert.equal(after.status, 'failed');
+  assert.equal(after.status, 'completed', 'its earlier state stays');
   release(word);
   await Promise.all([...generation.tasks.values()].map(item => item.task));
   await generation.cancelObsolete();
