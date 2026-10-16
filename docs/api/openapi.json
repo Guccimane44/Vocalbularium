@@ -3702,23 +3702,206 @@
                                 "blocks": {
                                   "type": "array",
                                   "items": {
-                                    "type": "object",
-                                    "required": [
-                                      "type",
-                                      "text"
-                                    ],
-                                    "properties": {
-                                      "type": {
-                                        "type": "string",
-                                        "enum": [
-                                          "paragraph"
-                                        ]
+                                    "anyOf": [
+                                      {
+                                        "type": "object",
+                                        "required": [
+                                          "type",
+                                          "text"
+                                        ],
+                                        "properties": {
+                                          "type": {
+                                            "type": "string",
+                                            "enum": [
+                                              "paragraph"
+                                            ]
+                                          },
+                                          "text": {
+                                            "type": "string"
+                                          }
+                                        },
+                                        "additionalProperties": false
                                       },
-                                      "text": {
-                                        "type": "string"
+                                      {
+                                        "type": "object",
+                                        "required": [
+                                          "type",
+                                          "core",
+                                          "facets"
+                                        ],
+                                        "properties": {
+                                          "type": {
+                                            "type": "string",
+                                            "enum": [
+                                              "parent"
+                                            ]
+                                          },
+                                          "core": {
+                                            "anyOf": [
+                                              {
+                                                "type": "object",
+                                                "required": [
+                                                  "kind",
+                                                  "language",
+                                                  "key",
+                                                  "meanings"
+                                                ],
+                                                "properties": {
+                                                  "kind": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                      "word"
+                                                    ]
+                                                  },
+                                                  "language": {
+                                                    "type": "string",
+                                                    "minLength": 1,
+                                                    "maxLength": 2000
+                                                  },
+                                                  "key": {
+                                                    "type": "string",
+                                                    "minLength": 1,
+                                                    "maxLength": 2000
+                                                  },
+                                                  "romanization": {
+                                                    "type": "string",
+                                                    "minLength": 1,
+                                                    "maxLength": 2000
+                                                  },
+                                                  "meanings": {
+                                                    "type": "array",
+                                                    "items": {
+                                                      "type": "string",
+                                                      "minLength": 1,
+                                                      "maxLength": 2000
+                                                    },
+                                                    "minItems": 1,
+                                                    "maxItems": 20
+                                                  }
+                                                },
+                                                "additionalProperties": false
+                                              },
+                                              {
+                                                "type": "object",
+                                                "required": [
+                                                  "kind",
+                                                  "translation"
+                                                ],
+                                                "properties": {
+                                                  "kind": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                      "sentence"
+                                                    ]
+                                                  },
+                                                  "translation": {
+                                                    "type": "string",
+                                                    "minLength": 1,
+                                                    "maxLength": 2000
+                                                  }
+                                                },
+                                                "additionalProperties": false
+                                              }
+                                            ]
+                                          },
+                                          "facets": {
+                                            "type": "object",
+                                            "properties": {
+                                              "article": {
+                                                "type": "object",
+                                                "required": [
+                                                  "singular"
+                                                ],
+                                                "properties": {
+                                                  "singular": {
+                                                    "type": "string",
+                                                    "minLength": 1,
+                                                    "maxLength": 2000
+                                                  },
+                                                  "plural": {
+                                                    "type": "string",
+                                                    "minLength": 1,
+                                                    "maxLength": 2000
+                                                  }
+                                                },
+                                                "additionalProperties": false
+                                              },
+                                              "examples": {
+                                                "type": "array",
+                                                "items": {
+                                                  "type": "object",
+                                                  "required": [
+                                                    "sentence"
+                                                  ],
+                                                  "properties": {
+                                                    "sentence": {
+                                                      "type": "string",
+                                                      "minLength": 1,
+                                                      "maxLength": 2000
+                                                    },
+                                                    "translation": {
+                                                      "type": "string",
+                                                      "minLength": 1,
+                                                      "maxLength": 2000
+                                                    }
+                                                  },
+                                                  "additionalProperties": false
+                                                },
+                                                "minItems": 1,
+                                                "maxItems": 20
+                                              },
+                                              "synonyms": {
+                                                "type": "array",
+                                                "items": {
+                                                  "type": "string",
+                                                  "minLength": 1,
+                                                  "maxLength": 2000
+                                                },
+                                                "minItems": 1,
+                                                "maxItems": 20
+                                              },
+                                              "antonyms": {
+                                                "type": "array",
+                                                "items": {
+                                                  "type": "string",
+                                                  "minLength": 1,
+                                                  "maxLength": 2000
+                                                },
+                                                "minItems": 1,
+                                                "maxItems": 20
+                                              },
+                                              "pinyin": {
+                                                "type": "array",
+                                                "items": {
+                                                  "type": "object",
+                                                  "required": [
+                                                    "text",
+                                                    "pinyin"
+                                                  ],
+                                                  "properties": {
+                                                    "text": {
+                                                      "type": "string",
+                                                      "minLength": 1,
+                                                      "maxLength": 2000
+                                                    },
+                                                    "pinyin": {
+                                                      "type": "string",
+                                                      "minLength": 1,
+                                                      "maxLength": 2000
+                                                    }
+                                                  },
+                                                  "additionalProperties": false
+                                                },
+                                                "minItems": 1,
+                                                "maxItems": 20
+                                              }
+                                            },
+                                            "additionalProperties": false
+                                          }
+                                        },
+                                        "additionalProperties": false
                                       }
-                                    },
-                                    "additionalProperties": false
+                                    ]
                                   }
                                 }
                               },
@@ -3988,23 +4171,206 @@
                                 "blocks": {
                                   "type": "array",
                                   "items": {
-                                    "type": "object",
-                                    "required": [
-                                      "type",
-                                      "text"
-                                    ],
-                                    "properties": {
-                                      "type": {
-                                        "type": "string",
-                                        "enum": [
-                                          "paragraph"
-                                        ]
+                                    "anyOf": [
+                                      {
+                                        "type": "object",
+                                        "required": [
+                                          "type",
+                                          "text"
+                                        ],
+                                        "properties": {
+                                          "type": {
+                                            "type": "string",
+                                            "enum": [
+                                              "paragraph"
+                                            ]
+                                          },
+                                          "text": {
+                                            "type": "string"
+                                          }
+                                        },
+                                        "additionalProperties": false
                                       },
-                                      "text": {
-                                        "type": "string"
+                                      {
+                                        "type": "object",
+                                        "required": [
+                                          "type",
+                                          "core",
+                                          "facets"
+                                        ],
+                                        "properties": {
+                                          "type": {
+                                            "type": "string",
+                                            "enum": [
+                                              "parent"
+                                            ]
+                                          },
+                                          "core": {
+                                            "anyOf": [
+                                              {
+                                                "type": "object",
+                                                "required": [
+                                                  "kind",
+                                                  "language",
+                                                  "key",
+                                                  "meanings"
+                                                ],
+                                                "properties": {
+                                                  "kind": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                      "word"
+                                                    ]
+                                                  },
+                                                  "language": {
+                                                    "type": "string",
+                                                    "minLength": 1,
+                                                    "maxLength": 2000
+                                                  },
+                                                  "key": {
+                                                    "type": "string",
+                                                    "minLength": 1,
+                                                    "maxLength": 2000
+                                                  },
+                                                  "romanization": {
+                                                    "type": "string",
+                                                    "minLength": 1,
+                                                    "maxLength": 2000
+                                                  },
+                                                  "meanings": {
+                                                    "type": "array",
+                                                    "items": {
+                                                      "type": "string",
+                                                      "minLength": 1,
+                                                      "maxLength": 2000
+                                                    },
+                                                    "minItems": 1,
+                                                    "maxItems": 20
+                                                  }
+                                                },
+                                                "additionalProperties": false
+                                              },
+                                              {
+                                                "type": "object",
+                                                "required": [
+                                                  "kind",
+                                                  "translation"
+                                                ],
+                                                "properties": {
+                                                  "kind": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                      "sentence"
+                                                    ]
+                                                  },
+                                                  "translation": {
+                                                    "type": "string",
+                                                    "minLength": 1,
+                                                    "maxLength": 2000
+                                                  }
+                                                },
+                                                "additionalProperties": false
+                                              }
+                                            ]
+                                          },
+                                          "facets": {
+                                            "type": "object",
+                                            "properties": {
+                                              "article": {
+                                                "type": "object",
+                                                "required": [
+                                                  "singular"
+                                                ],
+                                                "properties": {
+                                                  "singular": {
+                                                    "type": "string",
+                                                    "minLength": 1,
+                                                    "maxLength": 2000
+                                                  },
+                                                  "plural": {
+                                                    "type": "string",
+                                                    "minLength": 1,
+                                                    "maxLength": 2000
+                                                  }
+                                                },
+                                                "additionalProperties": false
+                                              },
+                                              "examples": {
+                                                "type": "array",
+                                                "items": {
+                                                  "type": "object",
+                                                  "required": [
+                                                    "sentence"
+                                                  ],
+                                                  "properties": {
+                                                    "sentence": {
+                                                      "type": "string",
+                                                      "minLength": 1,
+                                                      "maxLength": 2000
+                                                    },
+                                                    "translation": {
+                                                      "type": "string",
+                                                      "minLength": 1,
+                                                      "maxLength": 2000
+                                                    }
+                                                  },
+                                                  "additionalProperties": false
+                                                },
+                                                "minItems": 1,
+                                                "maxItems": 20
+                                              },
+                                              "synonyms": {
+                                                "type": "array",
+                                                "items": {
+                                                  "type": "string",
+                                                  "minLength": 1,
+                                                  "maxLength": 2000
+                                                },
+                                                "minItems": 1,
+                                                "maxItems": 20
+                                              },
+                                              "antonyms": {
+                                                "type": "array",
+                                                "items": {
+                                                  "type": "string",
+                                                  "minLength": 1,
+                                                  "maxLength": 2000
+                                                },
+                                                "minItems": 1,
+                                                "maxItems": 20
+                                              },
+                                              "pinyin": {
+                                                "type": "array",
+                                                "items": {
+                                                  "type": "object",
+                                                  "required": [
+                                                    "text",
+                                                    "pinyin"
+                                                  ],
+                                                  "properties": {
+                                                    "text": {
+                                                      "type": "string",
+                                                      "minLength": 1,
+                                                      "maxLength": 2000
+                                                    },
+                                                    "pinyin": {
+                                                      "type": "string",
+                                                      "minLength": 1,
+                                                      "maxLength": 2000
+                                                    }
+                                                  },
+                                                  "additionalProperties": false
+                                                },
+                                                "minItems": 1,
+                                                "maxItems": 20
+                                              }
+                                            },
+                                            "additionalProperties": false
+                                          }
+                                        },
+                                        "additionalProperties": false
                                       }
-                                    },
-                                    "additionalProperties": false
+                                    ]
                                   }
                                 }
                               },

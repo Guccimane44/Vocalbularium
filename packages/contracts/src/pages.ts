@@ -7,15 +7,54 @@ import { BrowserSessionSchema, OperationIdSchema } from './base.js';
 export const ViewDefinitionSchema = Type.Object({
   module: Type.Literal('default')
 }, { additionalProperties: false });
-// Q13 block document. The current modules emit plain text, stored as one
-// paragraph block so the text round-trips byte for byte.
+// Q13 block document. The main key, Context and Text hold plain text, stored
+// as one paragraph block so the text round-trips byte for byte.
 export const ParagraphBlockSchema = Type.Object({
   type: Type.Literal('paragraph'),
   text: Type.String()
 }, { additionalProperties: false });
+
+// A parent module's content as structured data (D09, 0.7.4): its core and one
+// entry per facet with content, stored as one typed block. Stored entries are
+// never empty: a facet without content has no entry.
+const Filled = Type.String({ minLength: 1, maxLength: 2000 });
+const MAX_ITEMS = 20;
+export const WordCoreSchema = Type.Object({
+  kind: Type.Literal('word'),
+  // The key's language, named in the parent's language, such as "Englisch".
+  language: Filled,
+  key: Filled,
+  romanization: Type.Optional(Filled),
+  meanings: Type.Array(Filled, { minItems: 1, maxItems: MAX_ITEMS })
+}, { additionalProperties: false });
+// A sentence's translation, or for a sentence already in the parent's
+// language, an explanation of its meaning.
+export const SentenceCoreSchema = Type.Object({
+  kind: Type.Literal('sentence'),
+  translation: Filled
+}, { additionalProperties: false });
+export const ParentCoreSchema = Type.Union([WordCoreSchema, SentenceCoreSchema]);
+export const ArticleEntrySchema = Type.Object({ singular: Filled, plural: Type.Optional(Filled) }, { additionalProperties: false });
+// Numbered by position; not tied to meanings.
+export const ExampleEntrySchema = Type.Object({ sentence: Filled, translation: Type.Optional(Filled) }, { additionalProperties: false });
+export const PinyinEntrySchema = Type.Object({ text: Filled, pinyin: Filled }, { additionalProperties: false });
+const Words = Type.Array(Filled, { minItems: 1, maxItems: MAX_ITEMS });
+export const ParentFacetsSchema = Type.Object({
+  article: Type.Optional(ArticleEntrySchema),
+  examples: Type.Optional(Type.Array(ExampleEntrySchema, { minItems: 1, maxItems: MAX_ITEMS })),
+  synonyms: Type.Optional(Words),
+  antonyms: Type.Optional(Words),
+  pinyin: Type.Optional(Type.Array(PinyinEntrySchema, { minItems: 1, maxItems: MAX_ITEMS }))
+}, { additionalProperties: false });
+export const ParentBlockSchema = Type.Object({
+  type: Type.Literal('parent'),
+  core: ParentCoreSchema,
+  facets: ParentFacetsSchema
+}, { additionalProperties: false });
+
 export const BlockDocumentSchema = Type.Object({
   version: Type.Literal(1),
-  blocks: Type.Array(ParagraphBlockSchema)
+  blocks: Type.Array(Type.Union([ParagraphBlockSchema, ParentBlockSchema]))
 }, { additionalProperties: false });
 
 export const ComponentStatusSchema = Type.Union([
@@ -196,6 +235,15 @@ export type FacetChangePayload = Type.Static<typeof FacetChangePayloadSchema>;
 export type FacetAddRequest = Type.Static<typeof FacetAddRequestSchema>;
 export type FacetDeleteRequest = Type.Static<typeof FacetDeleteRequestSchema>;
 export type BlockDocument = Type.Static<typeof BlockDocumentSchema>;
+export type ParagraphBlock = Type.Static<typeof ParagraphBlockSchema>;
+export type ParentBlock = Type.Static<typeof ParentBlockSchema>;
+export type WordCore = Type.Static<typeof WordCoreSchema>;
+export type SentenceCore = Type.Static<typeof SentenceCoreSchema>;
+export type ParentCore = Type.Static<typeof ParentCoreSchema>;
+export type ParentFacets = Type.Static<typeof ParentFacetsSchema>;
+export type ArticleEntry = Type.Static<typeof ArticleEntrySchema>;
+export type ExampleEntry = Type.Static<typeof ExampleEntrySchema>;
+export type PinyinEntry = Type.Static<typeof PinyinEntrySchema>;
 export type ComponentStatus = Type.Static<typeof ComponentStatusSchema>;
 export type ViewDefinition = Type.Static<typeof ViewDefinitionSchema>;
 export type PageDeleteRequest = Type.Static<typeof PageDeleteRequestSchema>;

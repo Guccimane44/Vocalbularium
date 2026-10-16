@@ -1,5 +1,6 @@
 import { facetsOf, isFacetOf, isParentType, PARENTS } from './parents.js';
 import type { FacetType, ParentType } from './parents.js';
+import type { ParentContent } from './content.js';
 
 // Render contracts (D05, C17): content stays stored as each module's text; this
 // turns that text into structure for reading. A renderer recognises the whole
@@ -86,6 +87,26 @@ function parent(type: ParentType, text: string): Rendered | null {
     }
   }
   return { kind: 'parent', core, facets: facetsOf(type).filter(facet => found.has(facet)).map(facet => found.get(facet)!) };
+}
+
+// Structured parent content (D09) in the same rendered form, so a card draws
+// it exactly as it drew parsed text: meanings and examples numbered by
+// position, Article as "das Ufer · die Ufer", Pinyin as "河岸 hé'àn".
+export function renderParent(type: ParentType, content: ParentContent): Rendered {
+  const core: ParentCore = content.core.kind === 'word'
+    ? { kind: 'word', heading: { language: content.core.language, key: content.core.key, pronunciation: content.core.romanization ?? null },
+      meanings: content.core.meanings.map((text, index) => ({ number: String(index + 1), text })) }
+    : { kind: 'sentence', text: content.core.translation };
+  const { article, examples, synonyms, antonyms, pinyin } = content.facets;
+  const entries: Partial<Record<FacetType, RenderedFacet>> = {};
+  const label = (facet: FacetType) => PARENTS[type].facets[facet]?.label ?? facet;
+  if (article) entries.article = { facet: 'article', label: label('article'), lines: [article.plural ? `${article.singular} · ${article.plural}` : article.singular] };
+  if (examples) entries.examples = { facet: 'examples', label: label('examples'),
+    examples: examples.map((example, index) => ({ number: String(index + 1), sentence: example.sentence, translation: example.translation ?? null })) };
+  if (synonyms) entries.synonyms = { facet: 'synonyms', label: label('synonyms'), lines: synonyms };
+  if (antonyms) entries.antonyms = { facet: 'antonyms', label: label('antonyms'), lines: antonyms };
+  if (pinyin) entries.pinyin = { facet: 'pinyin', label: label('pinyin'), lines: pinyin.map(line => `${line.text} ${line.pinyin}`) };
+  return { kind: 'parent', core, facets: facetsOf(type).filter(facet => entries[facet]).map(facet => entries[facet]!) };
 }
 
 export function renderContent(moduleType: string, text: string): Rendered {
