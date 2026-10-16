@@ -94,19 +94,21 @@
 .card-actions .action-confirm, .card-actions .action-confirm:not(:disabled):hover { background: var(--status-failed); color: var(--status-failed-bg); box-shadow: none; }
 /* Retry asks the same way, in the card's family colour rather than the failed one. */
 .card-actions[data-confirm="retry"] .action-confirm, .card-actions[data-confirm="retry"] .action-confirm:not(:disabled):hover { background: var(--fam, var(--fam-notes)); color: var(--on-fam, var(--on-ink)); }
-.card-actions[data-confirm="retry"] .confirm-text { color: var(--fam, var(--fam-notes)); background: var(--fam-tint, var(--fam-notes-tint));
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fam, var(--fam-notes)) 35%, transparent); }
-.card-actions[data-confirm="retry"] .confirm-text::before { background: var(--fam-tint, var(--fam-notes-tint));
-  box-shadow: inset 1px -1px 0 color-mix(in srgb, var(--fam, var(--fam-notes)) 35%, transparent); }
+:is(.card-actions, .facet-confirm)[data-confirm="retry"] .confirm-text { --ink-bubble: var(--fam, var(--fam-notes)); --bubble: var(--fam-tint, var(--fam-notes-tint)); }
 /* The question follows the final Delete and Cancel. */
 .card-actions[data-confirm] { align-items: center; }
 .card-head:has(> [data-confirm]) .card-tab { flex: none; }
-.confirm-text { position: relative; flex: none; align-self: center; margin-left: 10px; padding: 4px 11px 5px; border-radius: 999px;
-  font: 600 13px/1.2 var(--font-text); color: var(--status-failed); background: var(--status-failed-bg);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--status-failed) 35%, transparent); }
-/* A speech bubble: its tail points back at Delete and Cancel. */
-.confirm-text::before { content: ""; position: absolute; left: -5px; top: 50%; width: 9px; height: 9px; margin-top: -4.5px; transform: rotate(45deg);
-  background: var(--status-failed-bg); box-shadow: inset 1px -1px 0 color-mix(in srgb, var(--status-failed) 35%, transparent); }
+/* A speech bubble: its tail points back at Delete and Cancel. The pill and
+   its tail are filled alike, and one outline traces them both (0.7.3), so
+   the tail runs on from the pill's curve without a seam: four 1px shadows
+   of the whole shape, in an opaque mix of the line and fill colours. */
+.confirm-text { --ink-bubble: var(--status-failed); --bubble: var(--status-failed-bg);
+  --bubble-line: color-mix(in srgb, var(--ink-bubble) 35%, var(--bubble));
+  position: relative; flex: none; align-self: center; margin-left: 10px; padding: 4px 11px 5px; border-radius: 999px;
+  font: 600 13px/1.2 var(--font-text); color: var(--ink-bubble); background: var(--bubble);
+  filter: drop-shadow(1px 0 0 var(--bubble-line)) drop-shadow(-1px 0 0 var(--bubble-line)) drop-shadow(0 1px 0 var(--bubble-line)) drop-shadow(0 -1px 0 var(--bubble-line)); }
+.confirm-text::before { content: ""; position: absolute; left: -6px; top: 50%; width: 12px; height: 12px; margin-top: -6px;
+  background: var(--bubble); clip-path: polygon(0 45%, 100% 0, 100% 100%, 0 55%); }
 .card-actions[data-open] .confirm-text { animation: eject var(--dur-spring) var(--ease-spring) both, wobble 600ms var(--ease-out) 380ms; animation-delay: calc(var(--i, 0) * 40ms), 380ms; transform-origin: left center; }
 /* Once out, the question gives one small wobble, a nudge to look twice. */
 @keyframes wobble { 20% { transform: rotate(-4deg); } 45% { transform: rotate(3deg); } 70% { transform: rotate(-1.5deg); } }
@@ -287,11 +289,25 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
 .facet-actions .action-icon { width: 14px; height: 14px; }
 .facet-confirm { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; letter-spacing: 0; text-transform: none; }
 .facet-confirm button { height: 24px; padding: 0 9px; font-size: 12px; }
+/* Cancel stands where Retry or Delete was, wide enough to cover either. */
+.facet-confirm button:last-child { min-width: 64px; }
 .facet-confirm .action-confirm { background: var(--status-failed); color: var(--status-failed-bg); border-color: transparent; }
-.facet-confirm .confirm-text { font-weight: 400; color: var(--status-failed); }
+.facet-confirm .action-confirm:hover { background: var(--status-failed); }
 /* Retry asks in the card's family colour, like a card's Retry. */
 .facet-confirm[data-confirm="retry"] .action-confirm { background: var(--fam, var(--fam-notes)); color: var(--on-fam, var(--on-ink)); }
-.facet-confirm[data-confirm="retry"] .confirm-text { color: var(--fam, var(--fam-notes)); }
+/* The question sits left of its buttons, its tail pointing right at them. */
+.facet-confirm .confirm-text { margin: 0 6px 0 0; padding: 3px 10px 4px; font-size: 12px; }
+.facet-confirm .confirm-text::before { left: auto; right: -6px; clip-path: polygon(100% 45%, 0 0, 0 100%, 100% 55%); }
+/* The card's motion, mirrored (0.7.3): Cancel, then the final button, then
+   the question spring out leftwards one after another, and the question
+   gives its wobble. */
+.facet-confirm > * { animation: eject-left var(--dur-spring) var(--ease-spring) both; animation-delay: calc(var(--i, 0) * 40ms); transform-origin: right center; }
+.facet-confirm > .confirm-text { animation: eject-left var(--dur-spring) var(--ease-spring) both, wobble 600ms var(--ease-out) 380ms; animation-delay: calc(var(--i, 0) * 40ms), 380ms; }
+@keyframes eject-left {
+  from { opacity: 0; transform: translateX(calc(28px + var(--i, 0) * 28px)) scale(.7); }
+  50% { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) { .facet-confirm > * { animation: none !important; } }
 /* A facet regenerating on its own fades and breathes until it is back; one
    whose Retry failed says so in the failed colour. */
 .facet-note[data-note="generating"] { color: var(--fam, var(--fam-notes)); }

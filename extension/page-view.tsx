@@ -140,13 +140,15 @@ function FacetActions({ name, hasContent, canRetry, disabled, asking, setAsking,
     <button type="button" className="facet-delete" aria-label={`Delete ${name}`} disabled={disabled}
       onClick={() => hasContent ? setAsking('delete') : onDelete()}><ActionIcon name="delete" /></button>
   </span>;
+  // The card's question mirrored (0.7.3): it springs out leftwards from the
+  // row's end, and Cancel comes last, under the pointer that asked.
   const verb = asking === 'delete' ? 'Delete' : 'Retry';
   return <span className="facet-confirm" data-confirm={asking} role="group" aria-label={`${verb} ${name}?`}
     onKeyDown={event => { if (event.key === 'Escape') { event.stopPropagation(); setAsking(null); } }}>
-    <button type="button" className="action-confirm" aria-label={`Yes, ${verb.toLowerCase()} ${name}`}
+    <span className="confirm-text" style={{ '--i': 2 } as CSSProperties}>Are you sure?</span>
+    <button type="button" className="action-confirm" style={{ '--i': 1 } as CSSProperties} aria-label={`Yes, ${verb.toLowerCase()} ${name}`}
       onClick={() => { setAsking(null); if (asking === 'delete') onDelete(); else onRetry(); }}>{verb}</button>
-    <button type="button" ref={cancel} aria-label={`Keep ${name}`} onClick={() => setAsking(null)}>Cancel</button>
-    <span className="confirm-text">Are you sure?</span>
+    <button type="button" ref={cancel} style={{ '--i': 0 } as CSSProperties} aria-label={`Keep ${name}`} onClick={() => setAsking(null)}>Cancel</button>
   </span>;
 }
 

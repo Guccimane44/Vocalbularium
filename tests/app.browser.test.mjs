@@ -2580,8 +2580,26 @@ test('0.7.3: a facet’s own Retry beside its Delete, a tag’s remove keeping i
   const retry = a.page.getByRole('button', { name: 'Retry Examples from German 1', exact: true });
   assert.deepEqual(await examples.locator('.facet-actions button').evaluateAll(buttons => buttons.map(button => button.getAttribute('aria-label'))),
     ['Retry Examples from German 1', 'Delete Examples from German 1']);
-  await retry.click();
-  assert.equal(await examples.locator('.facet-confirm').getAttribute('data-confirm'), 'retry');
+  // Asking, the question stands left of its buttons and Cancel lands under the pointer (0.7.3).
+  const underPointer = async (button, confirm) => {
+    const box = await button.boundingBox();
+    const at = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+    await a.page.mouse.move(at.x, at.y); await a.page.mouse.down(); await a.page.mouse.up();
+    const row = examples.locator('.facet-confirm');
+    assert.equal(await row.getAttribute('data-confirm'), confirm);
+    assert.deepEqual(await row.locator(':scope > *').evaluateAll(parts => parts.map(part => part.getAttribute('aria-label') ?? part.textContent)),
+      ['Are you sure?', `Yes, ${confirm} Examples from German 1`, 'Keep Examples from German 1']);
+    await settleIn(row);
+    assert.equal(await a.page.evaluate(({ x, y }) => document.elementFromPoint(x, y)?.closest('button')?.getAttribute('aria-label'), at),
+      'Keep Examples from German 1', `Cancel is under the pointer after ${confirm}`);
+    assert.equal(await a.page.evaluate(() => document.activeElement?.getAttribute('aria-label')), 'Keep Examples from German 1');
+  };
+  const settleIn = locator => locator.evaluate(node => Promise.all(node.getAnimations({ subtree: true }).map(animation => animation.finished.catch(() => {}))));
+  await underPointer(a.page.getByRole('button', { name: 'Delete Examples from German 1', exact: true }), 'delete');
+  await a.page.getByRole('button', { name: 'Keep Examples from German 1', exact: true }).click();
+  await examples.hover();
+  await underPointer(retry, 'retry');
+  await examples.locator('.facet-confirm').screenshot({ path: 'artifacts/v0.7.3-facet-confirm.png' });
   await a.page.getByRole('button', { name: 'Yes, retry Examples from German 1', exact: true }).click();
 
   // While it regenerates the card stays open with the rest of its content.
