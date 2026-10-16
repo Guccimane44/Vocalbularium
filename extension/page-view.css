@@ -163,7 +163,8 @@
    the grid row, the one place a layout property animates. */
 .component { --fold: 500ms; --ease-fold: cubic-bezier(.45, 0, .25, 1); transition: padding var(--fold) var(--ease-fold), margin var(--fold) var(--ease-fold), min-height var(--fold) var(--ease-fold); }
 .card-fold { display: grid; grid-template-rows: 1fr; transition: grid-template-rows var(--fold) var(--ease-fold); }
-.card-fold-inner { min-height: 0; overflow: clip; overflow-clip-margin: 6px; transition: opacity var(--fold) var(--ease-fold), transform var(--fold) var(--ease-fold); }
+/* Folding clips only up and down, so a facet's flash can reach the card's sides. */
+.card-fold-inner { min-height: 0; overflow-x: visible; overflow-y: clip; overflow-clip-margin: 6px; transition: opacity var(--fold) var(--ease-fold), transform var(--fold) var(--ease-fold); }
 .component[data-folded] { padding-top: 20px; padding-bottom: 0; }
 .component[data-folded] .card-fold { grid-template-rows: 0fr; }
 .component[data-folded] .card-fold-inner { opacity: 0; transform: translateY(-6px); }
@@ -271,7 +272,7 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
   .main-key[data-tier="sentence"] { font-size: 24px; }
   .page-header { flex-wrap: wrap; }
   .title-actions { margin-top: 0; }
-  .component { padding: 24px 18px 16px; }
+  .component { padding: 24px 18px 16px; --card-pad-x: 18px; }
 }
 @media (forced-colors: active) {
   .card-tab, .fam-chip { forced-color-adjust: none; background: CanvasText; color: Canvas; }
@@ -507,8 +508,14 @@ button.facet-tag-open:hover { background: transparent; }
 .facet-tag[data-ghost=""]::before { background: color-mix(in srgb, var(--fam, var(--fam-notes)) 26%, transparent); opacity: calc(.5 + .5 * var(--glow-level)); }
 /* Leaving, a tag pops where it stands, like a deleted card. */
 .facet-tag[data-leaving] { pointer-events: none; animation: bop 240ms cubic-bezier(.3, 0, .2, 1) forwards; }
-@keyframes tag-shown { 0%, 100% { box-shadow: none; } 30% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--fam, var(--focus)) 35%, transparent); } }
-.facet[data-shown] { border-radius: 6px; animation: tag-shown 1.2s var(--ease-out); }
+/* A facet shown or just generated flashes a soft family tint over its whole
+   space, across the card from edge to edge, then fades (0.7.4; a ring round
+   its box until then). */
+.facet { position: relative; isolation: isolate; }
+.facet::before { content: ""; position: absolute; z-index: -1; inset: -6px calc(-1 * var(--card-pad-x, 26px)); pointer-events: none;
+  background: color-mix(in srgb, var(--fam, var(--focus)) 16%, transparent); opacity: 0; }
+.facet[data-shown]::before { animation: facet-shown 1.2s var(--ease-out); }
+@keyframes facet-shown { 0%, 100% { opacity: 0; } 25% { opacity: 1; } }
 .facet:focus { outline: none; }
 .facet:focus-visible { outline: 2px solid var(--focus); outline-offset: 4px; border-radius: 4px; }
 @media (prefers-reduced-motion: reduce) { .facet-tag::before { transition: none; } .facet-tag[data-leaving] { animation: none; }
