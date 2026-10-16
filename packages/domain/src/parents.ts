@@ -16,8 +16,6 @@ export type ParentDefinition = Readonly<{
   label: string;
   description: string;
   family: ParentFamily;
-  // The heading that starts a word's numbered meanings, in the parent's language.
-  meaningsHeading: string;
   // The parent's facets in the order they are shown.
   facets: Readonly<Partial<Record<FacetType, FacetDefinition>>>;
 }>;
@@ -27,7 +25,7 @@ const WORDS: readonly InputType[] = ['word_phrase'];
 
 export const PARENTS: Readonly<Record<ParentType, ParentDefinition>> = Object.freeze({
   german: {
-    label: 'German', family: 'translation', meaningsHeading: 'Bedeutungen',
+    label: 'German', family: 'translation',
     description: 'Explains a word in German, or translates a sentence into German.',
     facets: {
       article: { label: 'Article', abbreviation: 'Ar', description: 'The German article, gender and plural of a noun.', applies: WORDS },
@@ -37,7 +35,7 @@ export const PARENTS: Readonly<Record<ParentType, ParentDefinition>> = Object.fr
     }
   },
   chinese: {
-    label: 'Chinese', family: 'translation', meaningsHeading: '释义',
+    label: 'Chinese', family: 'translation',
     description: 'Explains a word in Chinese, or translates a sentence into Chinese.',
     facets: {
       examples: { label: 'Examples', abbreviation: 'Ex', description: 'Example sentences with their translations.', applies: BOTH },

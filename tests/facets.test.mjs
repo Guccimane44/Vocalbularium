@@ -69,34 +69,36 @@ test('a parent added to a page has its core only; facets join only a parent of t
     { code: 'invalid', message: /still generating/ });
 });
 
-test('deleting a facet removes its section and keeps it gone from the next attempt', async t => {
+test('deleting a facet removes its markdown and keeps it gone from the next attempt', async t => {
   const store = await fixture(t);
   await germanDeck(store);
-  const { pageId } = await store.createPage('create', { deckId: (await store.snapshot()).id, mainKey: 'bank' });
+  const { pageId } = await store.capture('capture', { session, mainKey: 'bank', snapshot: await store.snapshot() });
   const german = component(await store.page(pageId), 'german');
-  const content = ['== Englisch (bank) ==', '=== Bedeutungen ===', ': [1] Ufer', '=== Article ===', ': das Ufer',
-    '=== Examples ===', ': [1] We sat on the bank.', ':: Wir saßen am Ufer.', '=== Synonyms ===', ': Böschung'].join('\n');
-  await store.savePage('write', { pageId, changes: [{ componentId: german.id, content: textBlocks(content) }] });
+  const facets = { article: { singular: 'das Ufer' }, examples: [{ sentence: 'We sat on the bank.', translation: 'Wir saßen am Ufer.' }], synonyms: ['Böschung'] };
+  await store.stage(german.attemptId, staged(wordResult(['Ufer'], facets, { key: 'bank' })));
+  await store.publish('publish', { attemptId: german.attemptId, session });
 
   await store.deleteFacet('delete-examples', { pageId, componentId: german.id, parent: 'german', facet: 'examples' });
   let page = await store.page(pageId);
   assert.deepEqual(component(page, 'german').facets, ['article', 'synonyms', 'antonyms']);
-  assert.equal(text(component(page, 'german')),
-    ['== Englisch (bank) ==', '=== Bedeutungen ===', ': [1] Ufer', '=== Article ===', ': das Ufer', '=== Synonyms ===', ': Böschung'].join('\n'));
+  assert.deepEqual(component(page, 'german').content.blocks[0].facets, { article: 'das Ufer', synonyms: 'Böschung' }, 'only its markdown goes');
   await assert.rejects(store.deleteFacet('again', { pageId, componentId: german.id, parent: 'german', facet: 'examples' }),
     { code: 'invalid', message: 'This facet is no longer there.' });
   await assert.rejects(store.deleteFacet('other-parent', { pageId, componentId: german.id, parent: 'chinese', facet: 'examples' }),
     { code: 'invalid', message: 'This facet is no longer there.' });
 
-  // Text that no longer follows the contract keeps its words; only the facet goes.
-  await store.savePage('edit', { pageId, changes: [{ componentId: german.id, content: textBlocks('My own notes about === Article ===') }] });
-  await store.deleteFacet('delete-article', { pageId, componentId: german.id, parent: 'german', facet: 'article' });
+  // A facet without markdown, or a parent without content, loses only the facet.
+  await store.deleteFacet('delete-antonyms', { pageId, componentId: german.id, parent: 'german', facet: 'antonyms' });
   page = await store.page(pageId);
-  assert.equal(text(component(page, 'german')), 'My own notes about === Article ===');
+  assert.deepEqual(component(page, 'german').content.blocks[0].facets, { article: 'das Ufer', synonyms: 'Böschung' });
+  const { componentId: empty } = await store.addModule('second', { pageId, type: 'german' });
+  await store.addFacet('second-facet', { pageId, componentId: empty, parent: 'german', facet: 'article' });
+  await store.deleteFacet('second-delete', { pageId, componentId: empty, parent: 'german', facet: 'article' });
+  assert.deepEqual((await store.page(pageId)).components.find(item => item.id === empty).content, { version: 1, blocks: [] });
 
   const { attemptIds } = await store.generate('retry', { pageId, target: { scope: 'component', componentId: german.id }, session,
     confirmation: store.confirmationDigest([component(page, 'german')]) });
-  assert.deepEqual((await store.attempt(attemptIds[0])).module.facets, ['synonyms', 'antonyms']);
+  assert.deepEqual((await store.attempt(attemptIds[0])).module.facets, ['article', 'synonyms']);
 });
 
 test('a facet added after the last attempt, or deleted and added again, waits for the next Retry', async t => {
@@ -138,37 +140,35 @@ test('a page reports the latest run’s word-or-sentence reading, and none befor
   assert.equal((await store.page(pageId)).interpretation, 'sentence');
 });
 
-test('a parent’s structured content is saved through its fields: any field empty, never its top line, its facets only, and never replaced by text (D09)', async t => {
+test('a parent’s markdown is saved with its top line locked, its facets only, any part empty, and never as plain text (D09)', async t => {
   const store = await fixture(t);
   await germanDeck(store, ['article', 'examples']);
   const { pageId } = await store.capture('structured', { session, mainKey: 'bank', snapshot: await store.snapshot() });
   const first = component(await store.page(pageId), 'german');
-  const core = { kind: 'word', language: 'Englisch', key: 'bank', meanings: ['Ufer'] };
-  await store.stage(first.attemptId, { ok: true, content: { core, facets: { article: { singular: 'das Ufer', plural: 'die Ufer' } } } });
+  await store.stage(first.attemptId, staged(wordResult(['Ufer'], { article: { singular: 'das Ufer', plural: 'die Ufer' } }, { key: 'bank' })));
   await store.publish('structured-publish', { attemptId: first.attemptId, session });
+  const header = { kind: 'word', language: 'Englisch', key: 'bank' };
   const save = (id, block) => store.savePage(id, { pageId, changes: [{ componentId: first.id, content: { version: 1, blocks: [{ type: 'parent', ...block }] } }] });
   const stored = async () => component(await store.page(pageId), 'german').content;
 
-  // Any field may be emptied, the core's meanings included; half items keep the parts they have.
-  await save('emptied', { core: { ...core, meanings: [] }, facets: { article: { plural: ' die Ufer ' }, examples: [{ translation: 'Nur Übersetzung.' }] } });
-  assert.deepEqual(await stored(), { version: 1, blocks: [{ type: 'parent', core: { ...core, meanings: [] },
-    facets: { article: { plural: 'die Ufer' }, examples: [{ translation: 'Nur Übersetzung.' }] } }] });
+  // Any part may be emptied, the core included; a facet emptied loses its entry.
+  await save('emptied', { header, core: '', facets: { article: '  ', examples: '1. **Nur** Übersetzung.' } });
+  assert.deepEqual(await stored(), { version: 1, blocks: [{ type: 'parent', header, core: '', facets: { examples: '1. **Nur** Übersetzung.' } }] });
 
-  await assert.rejects(save('header', { core: { ...core, key: 'Bank' }, facets: {} }), { code: 'invalid', message: "The module's top line can not be changed." });
-  await assert.rejects(save('kind', { core: { kind: 'sentence', translation: 'x' }, facets: {} }), { code: 'invalid', message: "The module's top line can not be changed." });
-  await assert.rejects(save('stranger', { core, facets: { synonyms: ['Damm'] } }), { code: 'invalid', message: 'German has no Synonyms here.' });
-  await assert.rejects(save('empty-item', { core, facets: { examples: [{ sentence: ' ' }] } }), { code: 'invalid', message: 'Examples 1 is empty.' });
+  await assert.rejects(save('header', { header: { ...header, key: 'Bank' }, core: '', facets: {} }), { code: 'invalid', message: "The module's top line can not be changed." });
+  await assert.rejects(save('kind', { header: { kind: 'sentence' }, core: 'x', facets: {} }), { code: 'invalid', message: "The module's top line can not be changed." });
+  await assert.rejects(save('stranger', { header, core: '', facets: { synonyms: 'Damm' } }), { code: 'invalid', message: 'German has no Synonyms here.' });
   await assert.rejects(store.savePage('text-over', { pageId, changes: [{ componentId: first.id, content: textBlocks('typed over') }] }),
-    { code: 'invalid', message: 'Edit this module through its fields.' });
+    { code: 'invalid', message: 'Edit this module in its editor.' });
   assert.equal((await stored()).blocks[0].type, 'parent', 'nothing was replaced');
 
-  // A provider result is staged only as structured content (D09).
+  // A provider result is staged only as content with its top line (D09).
   const { componentId: third } = await store.addModule('third', { pageId, type: 'german' });
   const { attemptIds: [attemptId] } = await store.generate('third-run', { pageId, target: { scope: 'component', componentId: third }, session });
   await assert.rejects(store.stage(attemptId, { ok: true, text: '== Englisch ==\n: [1] Ufer' }), { code: 'invalid', message: 'Invalid component result.' });
 
-  // A parent that never generated has no core to edit.
+  // A parent that never generated has no top line to edit.
   const { componentId } = await store.addModule('second', { pageId, type: 'german' });
-  await assert.rejects(store.savePage('no-core', { pageId, changes: [{ componentId, content: { version: 1, blocks: [{ type: 'parent', core, facets: {} }] } }] }),
+  await assert.rejects(store.savePage('no-core', { pageId, changes: [{ componentId, content: { version: 1, blocks: [{ type: 'parent', header, core: '', facets: {} }] } }] }),
     { code: 'invalid', message: 'Generate this module before editing it.' });
 });

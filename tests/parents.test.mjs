@@ -6,8 +6,7 @@ import {
   applicableFacets, facetAbbreviation, facetAddBlocked, facetDeleteBlocked, facetsOf, facetTargets, facetUnavailable, isParentType, ordered, PARENTS,
   validateFacets, withFacet
 } from '@vocabularium/domain/parents';
-import { copyModules, firstMeaning, validateConfiguration } from '@vocabularium/domain/page-modules';
-import { renderContent, withoutEmptyFacets } from '@vocabularium/domain/render';
+import { copyModules, validateConfiguration } from '@vocabularium/domain/page-modules';
 import { textBlocks } from '@vocabularium/domain/pages';
 
 // Parent modules with a core and facets (D08).
@@ -116,63 +115,3 @@ const germanWord = [
   '=== Examples ===', ': [1] We sat on the bank.', ':: Wir saßen am Ufer.', ': [2] The river burst its banks.', ':: Der Fluss trat über die Ufer.',
   '=== Synonyms ===', ': Böschung', ': Uferstreifen'
 ].join('\n');
-
-test('a German word renders its explanation, then its facets in the parent’s order', () => {
-  const rendered = renderContent('german', germanWord);
-  assert.equal(rendered.kind, 'parent');
-  assert.deepEqual(rendered.core, { kind: 'word', heading: { language: 'Englisch', key: 'bank', pronunciation: 'bæŋk' },
-    meanings: [{ number: '1', text: 'Ufer eines Flusses' }, { number: '2', text: 'Geldinstitut' }] });
-  assert.deepEqual(rendered.facets.map(facet => facet.facet), ['article', 'examples', 'synonyms']);
-  assert.deepEqual(rendered.facets[0], { facet: 'article', label: 'Article', lines: ['das Ufer · die Ufer'] });
-  assert.deepEqual(rendered.facets[1].examples[1], { number: '2', sentence: 'The river burst its banks.', translation: 'Der Fluss trat über die Ufer.' });
-  assert.deepEqual(rendered.facets[2].lines, ['Böschung', 'Uferstreifen']);
-  const shuffled = germanWord.replace(/=== Article ===\n: das Ufer · die Ufer\n/, '') + '\n=== Article ===\n: das Ufer';
-  assert.deepEqual(renderContent('german', shuffled).facets.map(facet => facet.facet), ['article', 'examples', 'synonyms'], 'returned in order');
-  assert.equal(firstMeaning(germanWord), 'Ufer eines Flusses', 'the meaning line skips facets');
-});
-
-test('a sentence renders its translation, and a same-language example stands alone', () => {
-  const rendered = renderContent('german', 'Ich bin wirklich glücklich.\n=== Examples ===\n: [1] 想到家人，我觉得很幸福。\n:: Wenn ich an meine Familie denke, bin ich glücklich.');
-  assert.deepEqual(rendered.core, { kind: 'sentence', text: 'Ich bin wirklich glücklich.' });
-  assert.equal(rendered.facets[0].examples.length, 1);
-  assert.deepEqual(renderContent('german', 'Das Ufer ist steil.\n=== Examples ===\n: [1] Am Ufer stehen Bäume.').facets[0].examples[0].translation, null);
-  assert.deepEqual(renderContent('german', 'Nur eine Übersetzung.'), { kind: 'parent', core: { kind: 'sentence', text: 'Nur eine Übersetzung.' }, facets: [] });
-});
-
-test('a Chinese word uses its own meanings heading, and Pinyin follows the translation', () => {
-  const text = '== 英语 (bank) ==\n=== 释义 ===\n: [1] 河岸\n: [2] 银行\n=== Pinyin ===\n: hé àn';
-  const rendered = renderContent('chinese', text);
-  assert.equal(rendered.core.kind, 'word');
-  assert.deepEqual(rendered.core.meanings.map(meaning => meaning.text), ['河岸', '银行']);
-  assert.deepEqual(rendered.facets, [{ facet: 'pinyin', label: 'Pinyin', lines: ['hé àn'] }]);
-  assert.equal(firstMeaning(text), '河岸');
-  assert.equal(renderContent('german', text).kind, 'plain', 'German does not read 释义 or Pinyin');
-});
-
-test('anything outside a parent’s contract falls back to the plain text, unchanged', () => {
-  const cases = [
-    [`${germanWord}\n=== Pinyin ===\n: bank`, 'a facet of another parent'],
-    [`${germanWord}\n=== Article ===\n: das Ufer`, 'a facet twice'],
-    [`${germanWord}\nA stray line`, 'an unknown line'],
-    ['== Englisch (bank) ==\n=== Bedeutungen ===', 'a word without meanings'],
-    ['Ein Satz.\n=== Examples ===', 'an empty facet'],
-    ['=== Examples ===\n: [1] Satz', 'no core'],
-    ['Ein Satz.\n=== Synonyms ===\n: [1] numbered', 'numbered lines in a list facet']
-  ];
-  for (const [text, why] of cases) assert.deepEqual(renderContent('german', text), { kind: 'plain', text }, why);
-});
-
-test('a facet heading with nothing under it is dropped as an omitted facet; the renderer itself stays strict', () => {
-  // Golden set, 14 October 2026: "beautiful" came back with an empty Article section.
-  const text = ['== Englisch (beautiful) ==', '=== Bedeutungen ===', ': [1] schön', '=== Article ===', '=== Examples ===',
-    ': [1] She is beautiful.', ':: Sie ist schön.', '=== Synonyms ===', '', '=== Antonyms ===', ': hässlich', '=== Synonyms ==='].join('\n');
-  assert.equal(renderContent('german', text).kind, 'plain', 'an empty section still breaks the contract');
-  const cleaned = withoutEmptyFacets('german', text);
-  assert.equal(cleaned, ['== Englisch (beautiful) ==', '=== Bedeutungen ===', ': [1] schön', '=== Examples ===',
-    ': [1] She is beautiful.', ':: Sie ist schön.', '', '=== Antonyms ===', ': hässlich'].join('\n'));
-  assert.deepEqual(renderContent('german', cleaned).facets.map(facet => facet.facet), ['examples', 'antonyms']);
-  assert.equal(withoutEmptyFacets('german', '== Englisch (x) ==\n=== Bedeutungen ===\n=== Article ===\n: das X'),
-    '== Englisch (x) ==\n=== Bedeutungen ===\n=== Article ===\n: das X', 'the core’s own heading is never dropped');
-  assert.equal(withoutEmptyFacets('chinese', 'Satz.\n=== Article ==='), 'Satz.\n=== Article ===', 'only the parent’s own facets');
-  assert.equal(withoutEmptyFacets('text', '=== Examples ==='), '=== Examples ===', 'other modules are untouched');
-});

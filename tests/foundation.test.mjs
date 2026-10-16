@@ -128,8 +128,10 @@ test('a failed component discards its content without affecting the other; a com
   const result = await store.page(pageId);
   assert.deepEqual(generated(result).map(item => [item.status, text(item)]), [['completed', ''], ['failed', '']]);
   assert.equal(result.status, 'failed');
-  await store.savePage('manual-after-failure', { pageId, changes: [{ componentId: second.id, content: textBlocks('manual') }] });
-  assert.equal((await store.page(pageId)).status, 'failed');
+  await store.savePage('manual-after-failure', { pageId, changes: [{ componentId: result.components[0].id, content: textBlocks('manual') }] });
+  assert.equal((await store.page(pageId)).status, 'failed', 'an edit elsewhere leaves the failure');
+  await assert.rejects(store.savePage('into-failed', { pageId, changes: [{ componentId: second.id, content: textBlocks('manual') }] }),
+    { code: 'invalid', message: 'Edit this module in its editor.' }, 'a parent is never saved as text');
 });
 
 test('save arrival order wins for the same component and preserves different components', async (t) => {

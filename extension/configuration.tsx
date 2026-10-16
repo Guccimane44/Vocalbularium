@@ -8,7 +8,8 @@ import { addBlocked, CATALOG, DECK_COLOURS, isModuleType } from '@vocabularium/d
 import type { ModuleFamily } from '@vocabularium/domain/page-modules';
 import { renderContent, renderParent } from '@vocabularium/domain/render';
 import type { Rendered } from '@vocabularium/domain/render';
-import type { ParentContent } from '@vocabularium/domain/content';
+import { formatContent } from '@vocabularium/domain/content';
+import type { GeneratedParent } from '@vocabularium/contracts';
 import { deckColour } from './deck-colour.ts';
 import { FacetTags } from './facet-tags.tsx';
 import { FamilyIcon } from './families.tsx';
@@ -29,9 +30,9 @@ export const newDeckDraft = (): DeckConfiguration => ({
 });
 
 const SAMPLE = { word_phrase: '幸福', sentence: '我真的很幸福' } as const;
-// What each parent would write for the samples (D08), as structured content
-// (D09): its core, then the entries of the facets it has that apply.
-const SAMPLE_CONTENT: Record<ParentType, Record<'word_phrase' | 'sentence', ParentContent>> = {
+// What each parent would return for the samples (D08), as the provider's JSON,
+// formatted into markdown as a stored result is (D09).
+const SAMPLE_CONTENT: Record<ParentType, Record<'word_phrase' | 'sentence', GeneratedParent>> = {
   german: {
     word_phrase: { core: { kind: 'word', language: 'Chinesisch', key: '幸福', romanization: 'xìngfú', meanings: ['Glück; Glückseligkeit; Wohlbefinden'] },
       facets: { article: { singular: 'das Glück' }, examples: [{ sentence: '她希望孩子们拥有幸福。', translation: 'Sie hofft, dass die Kinder Glück haben.' }],
@@ -54,7 +55,7 @@ function sample(module: { type: string; facets?: readonly string[] }, inputType:
   const content = SAMPLE_CONTENT[module.type][inputType];
   const facets = applicableFacets(module.type, module.facets ?? [], inputType);
   const kept = Object.fromEntries(Object.entries(content.facets).filter(([facet]) => facets.includes(facet as FacetType)));
-  return renderParent(module.type, { core: content.core, facets: kept });
+  return renderParent(module.type, formatContent({ core: content.core, facets: kept }));
 }
 
 // Deck colours (D06) are the family colours, named by hue: a deck's colour

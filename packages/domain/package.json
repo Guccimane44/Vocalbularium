@@ -24,6 +24,14 @@
       "types": "./dist/content.d.ts",
       "import": "./dist/content.js"
     },
+    "./generated": {
+      "types": "./dist/generated.d.ts",
+      "import": "./dist/generated.js"
+    },
+    "./markdown": {
+      "types": "./dist/markdown.d.ts",
+      "import": "./dist/markdown.js"
+    },
     "./parents": {
       "types": "./dist/parents.d.ts",
       "import": "./dist/parents.js"

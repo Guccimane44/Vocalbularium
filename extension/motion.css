@@ -15,13 +15,13 @@
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
 
 /* Generated content rises into its card, one line after another. */
-.card-body[data-reveal] :is(.entry-heading, .meanings li, .examples-title, .examples li, .reading, pre) {
+.card-body[data-reveal] :is(.entry-heading, .md li, .md p, pre) {
   animation: rise var(--dur-settle) var(--ease-out) both;
 }
-.card-body[data-reveal] .meanings li:nth-child(2), .card-body[data-reveal] .examples li:nth-child(2) { animation-delay: 60ms; }
-.card-body[data-reveal] .meanings li:nth-child(3), .card-body[data-reveal] .examples li:nth-child(3) { animation-delay: 120ms; }
-.card-body[data-reveal] .meanings li:nth-child(n+4), .card-body[data-reveal] .examples li:nth-child(n+4) { animation-delay: 180ms; }
-.card-body[data-reveal] .examples-title, .card-body[data-reveal] .examples li { animation-delay: 160ms; }
+.card-body[data-reveal] .md li:nth-child(2) { animation-delay: 60ms; }
+.card-body[data-reveal] .md li:nth-child(3) { animation-delay: 120ms; }
+.card-body[data-reveal] .md li:nth-child(n+4) { animation-delay: 180ms; }
+.card-body[data-reveal] .facet .md :is(li, p) { animation-delay: 160ms; }
 @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
 /* A dragged card tilts slightly; the landing line opens out; the others make room

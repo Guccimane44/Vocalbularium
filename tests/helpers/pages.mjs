@@ -1,15 +1,15 @@
 import { blockText, textBlocks } from '@vocabularium/domain/pages';
-import { parentContentOf } from '@vocabularium/domain/content';
+import { formatContent, parentContentOf } from '@vocabularium/domain/content';
+import { formatCore, plainLines } from '@vocabularium/domain/markdown';
 import { isContentType } from '@vocabularium/domain/page-modules';
 import { facetsOf, isParentType } from '@vocabularium/domain/parents';
 
 export { textBlocks };
-// A component's text: its plain text, or for structured parent content (D09)
-// its meanings or translation, one per line.
+// A component's text: its plain text, or for a parent (D09) the plain lines of
+// its core's markdown: its meanings or its translation.
 export const text = component => {
   const data = parentContentOf(component.content);
-  if (!data) return blockText(component.content);
-  return data.core.kind === 'word' ? data.core.meanings.join('\n') : data.core.translation ?? '';
+  return data ? plainLines(data.core).join('\n') : blockText(component.content);
 };
 // Structured provider results (D09) for controlled providers.
 export const wordResult = (meanings, facets = {}, { language = 'Englisch', key = 'key' } = {}) =>
@@ -39,15 +39,17 @@ export async function capture(store, id = 'capture', session, mainKey = '  å¹¸ç¦
   const result = await store.capture(id, payload);
   return { ...result, payload, page: await store.page(result.pageId) };
 }
-// A field edit of a generated parent component (D09): its stored content with these meanings.
+// An edit of a generated parent component (D09): its stored content with this
+// core, as a numbered list of meanings for a word or the text for a sentence.
 export function fieldEdit(component, ...meanings) {
   const block = component.content.blocks[0];
   if (block?.type !== 'parent') throw new Error('fieldEdit needs a generated parent component.');
-  return { version: 1, blocks: [{ ...block, core: { ...block.core, meanings } }] };
+  const core = block.header.kind === 'word' ? formatCore({ kind: 'word', meanings }) : meanings.join('\n');
+  return { version: 1, blocks: [{ ...block, core }] };
 }
-// A staged provider result (D09): structured content, or for a string, a word
-// core with that one meaning ('' for no meaning).
-export const staged = value => ({ ok: true, content: typeof value === 'string' ? wordResult(value ? [value] : []) : value });
+// A staged result (D09): the provider's JSON formatted into markdown as the
+// worker does; a string stands for a word with that one meaning ('' for none).
+export const staged = value => ({ ok: true, content: value?.header ? value : formatContent(typeof value === 'string' ? wordResult(value ? [value] : []) : value) });
 export async function complete(store, page, session, output = component => `generated ${component.moduleInstanceId}`) {
   for (const item of generated(page).filter(item => item.status === 'loading')) {
     await store.stage(item.attemptId, staged(output(item)));

@@ -167,12 +167,7 @@ test('a component with nothing in it starts without confirmation, however it got
   assert.equal(started.attemptIds.length, 1, 'nothing to replace, so no confirmation');
   await complete(store, await store.page(pageId), session, () => 'explained');
   await assert.rejects(store.generate('retry-first', { pageId, target: target('component', first.id), session }), { code: 'confirmation_required' });
-  await store.savePage('typed', { pageId, changes: [{ componentId: second.id, content: textBlocks('my own example') }] });
-  await assert.rejects(store.generate('replace-typed', { pageId, target: target('component', second.id), session }), { code: 'confirmation_required' },
-    'text the user wrote is replaced only after confirmation');
-
-  // Generated, but nothing came back (a module that does not apply to the main key): nothing to replace (0.6.3).
-  await store.savePage('cleared', { pageId, changes: [{ componentId: second.id, content: textBlocks('') }] });
+  // A parent is never typed into before it generates (D09); one emptied of everything has nothing to replace (0.6.3).
   const empty = await store.generate('empty-run', { pageId, target: target('component', second.id), session });
   assert.equal(empty.attemptIds.length, 1);
   await complete(store, await store.page(pageId), session, () => '');

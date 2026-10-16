@@ -7,8 +7,10 @@ import { randomUUID } from 'node:crypto';
 import { Generation } from '../src/server/generation.mjs';
 import { OpenCodeProvider, parentInstructions, parentSchema } from '../src/server/opencode.mjs';
 import { generateComponents } from '@vocabularium/domain/modules';
+import { formatContent } from '@vocabularium/domain/content';
+import { plainLines } from '@vocabularium/domain/markdown';
 import { isContentType } from '@vocabularium/domain/page-modules';
-import { confirmed, generated, resultFor, sentenceResult, text, textBlocks, useModules, wordResult } from './helpers/pages.mjs';
+import { confirmed, generated, resultFor, sentenceResult, text, textBlocks, useModules, wordResult, staged } from './helpers/pages.mjs';
 
 const session = { installationId: 'test-installation', sessionId: 'test-browser', epoch: 1 };
 const word = { inputType: 'word_phrase' };
@@ -110,8 +112,8 @@ test('a busy confirmed Retry returns 429 and preserves component content and att
   const snapshot = await store.snapshot();
   const targetId = (await store.capture('target', { session, mainKey: 'target', snapshot })).pageId;
   const target = generated(await store.page(targetId))[0];
-  await store.failAttempt(target.attemptId);
-  await store.savePage('manual-edit', { pageId: targetId, changes: [{ componentId: target.id, content: textBlocks('preserve me') }] });
+  await store.stage(target.attemptId, staged('preserve me'));
+  await store.publish('target-publish', { attemptId: target.attemptId, session });
   const busyId = (await store.capture('busy', { session, mainKey: 'busy', snapshot })).pageId;
   await generation.start(busyId);
   await providerStarted;
@@ -133,7 +135,7 @@ test('a busy confirmed Retry returns 429 and preserves component content and att
   const after = generated(await store.page(targetId))[0];
   assert.equal(text(after), 'preserve me');
   assert.equal(after.attemptId, target.attemptId);
-  assert.equal(after.status, 'failed');
+  assert.equal(after.status, 'completed', 'its earlier state stays');
   release(word);
   await Promise.all([...generation.tasks.values()].map(item => item.task));
   await generation.cancelObsolete();
@@ -235,7 +237,7 @@ test('modules receive the exact main key and keep literal markers', async () => 
     mainKey: input, modules: modules('chinese', 'chinese'), interpretation: word,
     generate: async request => { received.push(request.selectedText); return resultFor(request, '<b>幸福</b> & 快乐'); }
   });
-  assert.deepEqual(outcomes.map(item => item.content.core.meanings[0]), ['<b>幸福</b> & 快乐', '<b>幸福</b> & 快乐']);
+  assert.deepEqual(outcomes.map(item => plainLines(item.content.core)[0]), ['<b>幸福</b> & 快乐', '<b>幸福</b> & 快乐']);
   assert.deepEqual(received, [input, input]);
 });
 
@@ -290,7 +292,7 @@ test('a parent generates its core and the facets that apply to the input, in one
   const sentencePage = await capture('We sat on the bank.'); await finish(store, generation);
   assert.deepEqual(requests.map(request => [request.module.type, request.facets]),
     [['german', ['article', 'examples', 'synonyms', 'antonyms']], ['german', ['examples']]]);
-  assert.deepEqual(await data(store, wordPage), [{ type: 'parent', ...BANK }], 'stored as one parent block; a facet left out, like Synonyms, has no entry');
+  assert.deepEqual(await data(store, wordPage), [{ type: 'parent', ...formatContent(BANK) }], 'stored as one parent block of markdown; a facet left out, like Synonyms, has none');
   assert.equal((await outcome(store, sentencePage))[0][1], 'completed', 'a parent never completes empty for a sentence');
   assert.equal((await store.page(sentencePage.id)).interpretation, 'sentence');
 });
@@ -300,7 +302,7 @@ test('a parent drops entries of facets it does not have, and fails on a result o
     wordResult(['Ufer'], { examples: [{ translation: 'only a translation' }] })];
   const { store, generation, capture } = await parentFixture(t, { interpret: async () => word, generate: async () => replies.shift() }, ['article', 'examples']);
   const kept = await capture('bank'); await finish(store, generation);
-  assert.deepEqual(await data(store, kept), [{ type: 'parent', ...BANK }]);
+  assert.deepEqual(await data(store, kept), [{ type: 'parent', ...formatContent(BANK) }]);
   for (let index = 0; index < 3; index++) {
     const wrong = await capture('bank'); await finish(store, generation);
     assert.deepEqual(await outcome(store, wrong), [['', 'failed']], `refused reply ${index + 2}`);
@@ -515,12 +517,12 @@ test('a failed result write retains the complete generated output for explicit s
   const { store, generation, capture } = await fixture(t, { interpret: async () => word, generate: async request => { calls++; return resultFor(request, 'complete generated text'); } });
   const stage = store.stage.bind(store);
   let failWrite = true;
-  store.stage = (id, result) => { if (failWrite && result.content?.core.meanings[0] === 'complete generated text') throw Error('controlled disk write failure'); return stage(id, result); };
+  store.stage = (id, result) => { if (failWrite && plainLines(result.content?.core ?? '')[0] === 'complete generated text') throw Error('controlled disk write failure'); return stage(id, result); };
   const page = await capture();
   await Promise.all([...generation.tasks.values()].map(item => item.task));
   const back = generated(page)[0];
   assert.equal(generated(await store.page(page.id))[0].status, 'loading');
-  assert.deepEqual(generation.pendingResults.get(back.attemptId), { ok: true, content: wordResult('complete generated text', {}, { key: '幸福' }) });
+  assert.deepEqual(generation.pendingResults.get(back.attemptId), { ok: true, content: formatContent(wordResult('complete generated text', {}, { key: '幸福' })) });
   assert.equal(generation.failedResults.has(back.attemptId), true);
   failWrite = false;
   await generation.saveResult(back.attemptId, session);
@@ -537,7 +539,7 @@ test('an in-progress result write does not advertise save recovery', async t => 
   let releaseStage, signalStage;
   const started = new Promise(resolve => { signalStage = resolve; });
   store.stage = async (id, result) => {
-    if (result.content?.core.meanings[0] === 'staged later') {
+    if (plainLines(result.content?.core ?? '')[0] === 'staged later') {
       signalStage();
       await new Promise(resolve => { releaseStage = resolve; });
     }
@@ -552,7 +554,7 @@ test('an in-progress result write does not advertise save recovery', async t => 
   await Promise.all([...generation.tasks.values()].map(item => item.task));
   assert.equal(generation.pendingResults.has(attemptId), false);
   assert.equal(generation.failedResults.has(attemptId), false);
-  assert.deepEqual((await store.attempt(attemptId)).result, { ok: true, content: wordResult('staged later', {}, { key: '幸福' }) });
+  assert.deepEqual((await store.attempt(attemptId)).result, { ok: true, content: formatContent(wordResult('staged later', {}, { key: '幸福' })) });
 });
 
 test('the result recovery journal survives a failed database write and server restart without regenerating', async (t) => {
@@ -564,7 +566,7 @@ test('the result recovery journal survives a failed database write and server re
   await store.openSession('open', session);
   const { pageId } = await store.capture('capture', { session, mainKey: '幸福', snapshot: (await store.snapshot()) });
   const originalStage = store.stage.bind(store);
-  store.stage = (id, result) => { if (result.content?.core.meanings[0] === 'journaled result') throw Error('database temporarily unavailable'); return originalStage(id, result); };
+  store.stage = (id, result) => { if (plainLines(result.content?.core ?? '')[0] === 'journaled result') throw Error('database temporarily unavailable'); return originalStage(id, result); };
   await generation.start(pageId);
   await Promise.all([...generation.tasks.values()].map(item => item.task));
   const { attemptId } = generated(await store.page(pageId))[0];
@@ -572,7 +574,7 @@ test('the result recovery journal survives a failed database write and server re
   await generation.close();
   await store.close();
   store = (await createTestStore(t, databaseKey)); generation = (await Generation.create(store, { interpret: async () => assert.fail(), generate: async () => assert.fail() }));
-  assert.deepEqual((await store.attempt(attemptId)).result, { ok: true, content: wordResult('journaled result', {}, { key: '幸福' }) });
+  assert.deepEqual((await store.attempt(attemptId)).result, { ok: true, content: formatContent(wordResult('journaled result', {}, { key: '幸福' })) });
   await store.publish('recovered', { attemptId, session });
   assert.equal(text(generated(await store.page(pageId))[0]), 'journaled result'); assert.equal(calls, 1);
 });
@@ -609,7 +611,7 @@ test('OpenCode asks a parent for its core and the facets asked for as JSON, with
     interpretation: { inputType: 'word_phrase' }, facets: ['examples'] }), wordResult('Ufer'));
 });
 
-test('a facet’s own Retry regenerates that facet’s entry for the core already there, keeps the rest and the page’s reading, and keeps everything when it fails', async (t) => {
+test('a facet’s own Retry regenerates that facet’s markdown for the core already there, keeps the rest and the page’s reading, and keeps everything when it fails', async (t) => {
   const requests = [];
   let interpretations = 0, failing = false;
   const steep = [{ sentence: 'The bank was steep.', translation: 'Das Ufer war steil.' }];
@@ -638,21 +640,23 @@ test('a facet’s own Retry regenerates that facet’s entry for the core alread
     { code: 'confirmation_required' });
   const { attemptIds } = await confirmed(store, randomUUID(), { pageId: page.id, target: { scope: 'facet', componentId: (await german()).id, facet: 'examples' }, session });
   let current = await german();
-  assert.deepEqual(current.content.blocks[0], { type: 'parent', ...BANK });
+  assert.deepEqual(current.content.blocks[0], { type: 'parent', ...formatContent(BANK) });
   assert.equal(current.status, 'loading');
   assert.equal(current.retryingFacet, 'examples');
   await generation.start(page.id, attemptIds); await finish(store, generation);
   assert.deepEqual(requests.at(-1).core, BANK.core, 'the provider writes for the core already there');
   assert.deepEqual(requests.at(-1).facets, ['examples']);
   assert.equal(interpretations, 1, 'the page’s reading of the main key is kept');
-  assert.deepEqual(await stored(), { type: 'parent', core: BANK.core, facets: { article: BANK.facets.article, examples: steep } }, 'only the facet’s entry changes');
+  const formatted = formatContent(BANK);
+  assert.deepEqual(await stored(), { type: 'parent', ...formatted, facets: { article: formatted.facets.article, examples: '1. The bank was steep.\n   *Das Ufer war steil.*' } },
+    'only the facet’s markdown changes, formatted from its JSON');
   current = await german();
   assert.equal(current.status, 'completed');
   assert.equal(current.retryingFacet, undefined);
 
   // A facet without an entry starts at once and gains one.
   await retryFacet('synonyms', false); await finish(store, generation);
-  assert.deepEqual((await stored()).facets.synonyms, ['Böschung']);
+  assert.equal((await stored()).facets.synonyms, 'Böschung');
 
   // A failed facet Retry keeps the content, and a waiting facet still waits.
   await store.deleteFacet(randomUUID(), { pageId: page.id, componentId: current.id, parent: 'german', facet: 'antonyms' });
