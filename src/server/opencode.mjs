@@ -48,7 +48,7 @@ export class OpenCodeProvider {
     const response = await this.fetch('https://opencode.ai/zen/go/v1/chat/completions', {
       method: 'POST', headers: {
         Authorization: `Bearer ${this.apiKey}`, 'Content-Type': 'application/json',
-        'User-Agent': 'Vocabularium/0.7.3', 'x-opencode-session': sessionId
+        'User-Agent': 'Vocabularium/0.7.4', 'x-opencode-session': sessionId
       },
       body: JSON.stringify({
         model: this.model, stream: false, max_tokens: MAX_TOKENS,
