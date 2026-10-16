@@ -330,6 +330,9 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
 /* A facet's block reaches the card's sides, its content kept in line with
    the rest of the card (0.7.4). */
 .facet { display: grid; gap: 8px; margin: 0 calc(-1 * var(--card-pad-x, 26px)); padding: 5px var(--card-pad-x, 26px); border-radius: var(--radius-control); }
+/* In a card each facet's block takes over the gap above it, so neighbouring
+   blocks, and the first one and the core, meet; the text stays put. */
+.entry-content > .facet { margin-top: -10px; padding-top: 15px; }
 /* The heading's tab sits on the facet's rule, as the module's tab sits on its
    card (0.7.4): smaller, in a pale tint of the family colour, rounded on top. */
 .facet-title { display: flex; align-items: flex-end; gap: 8px; min-height: 26px; margin: 0; border-bottom: 1px solid var(--line);
