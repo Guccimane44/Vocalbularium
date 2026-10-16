@@ -1699,17 +1699,19 @@ test('assembled reliability: lost acknowledgments, worker suspension, abrupt ori
   assert.deepEqual(modulesOf(await application.store.page(captured.id)).map(item => item.attemptId), attempts);
 
   await a.page.goto(`chrome-extension://${a.id}/app.html#page/${captured.id}`);
-  await (await cardButton(a.page, 'Edit Chinese')).click();
-  await a.page.getByRole('textbox', { name: 'Edit Chinese', exact: true }).fill('save with lost acknowledgment');
+  // The main key's text, as structured parent content is edited through its fields (D09).
+  await a.page.getByRole('button', { name: 'Edit Main key', exact: true }).click();
+  await a.page.getByRole('textbox', { name: 'Edit Main key', exact: true }).fill('save with lost acknowledgment');
   await loseNextAcknowledgment(a.worker, '/api/page/save');
   await a.page.getByRole('button', { name: 'Save', exact: true }).click();
   await a.page.getByRole('button', { name: 'Try saving again', exact: true }).waitFor();
-  const front = modulesOf(captured)[0];
-  await waitFor(async () => text(modulesOf(await application.store.page(captured.id))[0]) === 'save with lost acknowledgment', 'original component save committed');
+  const front = captured.components[0];
+  const mainKeyText = async () => text((await application.store.page(captured.id)).components[0]);
+  await waitFor(async () => await mainKeyText() === 'save with lost acknowledgment', 'original component save committed');
   await application.store.savePage('later-remote-edit', { pageId: captured.id, changes: [{ componentId: front.id, content: textBlocks('later remote edit') }] });
   await a.page.getByRole('button', { name: 'Try saving again', exact: true }).click();
   await a.page.locator('.component-tools').waitFor({ state: 'detached' });
-  assert.equal(text(modulesOf(await application.store.page(captured.id))[0]), 'later remote edit');
+  assert.equal(await mainKeyText(), 'later remote edit');
   assert.equal(calls.get('uncertain capture'), modulesOf(captured).length);
 
   await captureFrom(a, 'publication acknowledgment');
@@ -1729,7 +1731,9 @@ test('assembled reliability: lost acknowledgments, worker suspension, abrupt ori
   }, 'publication acknowledgment was lost');
   assert.equal(pending.payload.payload.attemptId, modulesOf(publicationPage)[1].attemptId, 'the generated component lost its acknowledgment');
   const publishedAttempt = await application.store.attempt(pending.payload.payload.attemptId);
-  await application.store.savePage('later-than-publication', { pageId: publishedAttempt.page_id, changes: [{ componentId: publishedAttempt.component_id, content: textBlocks('manual text after publication') }] });
+  const published = (await application.store.page(publishedAttempt.page_id)).components.find(item => item.id === publishedAttempt.component_id).content.blocks[0];
+  await application.store.savePage('later-than-publication', { pageId: publishedAttempt.page_id, changes: [{ componentId: publishedAttempt.component_id,
+    content: { version: 1, blocks: [{ ...published, core: { ...published.core, meanings: ['manual text after publication'] } }] } }] });
   await waitFor(async () => await a.page.getByRole('button', { name: 'Try saving again', exact: true }).count() === 1, 'only the lost acknowledgment needs retry');
   await a.page.getByRole('button', { name: 'Try saving again', exact: true }).click();
   await waitFor(async () => !(await a.worker.evaluate(async (id) => (await chrome.storage.local.get(`save-${id}`))[`save-${id}`], pending.operationId)), 'publication receipt recovered');
