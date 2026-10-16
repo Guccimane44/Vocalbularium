@@ -5,7 +5,7 @@ import {
   addBlocked, copyModules, deleteBlocked, DECK_COLOURS, generationTargets, moveBlocked, moved, pageMeaning, validateConfiguration
 } from '@vocabularium/domain/page-modules';
 import { facetAddBlocked, facetDeleteBlocked, isParentType, withFacet } from '@vocabularium/domain/parents';
-import { withoutFacet } from '@vocabularium/domain/render';
+import { facetSection, withoutFacet } from '@vocabularium/domain/render';
 import { sortKey } from './sort-key.mjs';
 /** @typedef {import('./store-records.js').PageRow} PageRow */
 /** @typedef {import('./store-records.js').ComponentRow} ComponentRow */
@@ -325,13 +325,18 @@ export class AccountStore {
       const page = await this.database.one("SELECT * FROM pages WHERE id = $1", [id]);
       if (!page) fail('deleted', 'The page no longer exists.');
       // A facet added since the parent's last attempt waits for the next Retry (D08).
-      const components = (await this.database.all(`SELECT c.*, a.module AS attempt_module FROM components c
+      const components = (await this.database.all(`SELECT c.*, a.module AS attempt_module, a.state AS attempt_state FROM components c
         LEFT JOIN component_attempts a ON a.id = c.attempt_id WHERE c.page_id = $1 ORDER BY c.position`, [id]))
         .map(row => {
-          const generated = row.attempt_module ? JSON.parse(row.attempt_module).facets ?? [] : null;
+          const module = row.attempt_module ? JSON.parse(row.attempt_module) : null;
+          const generated = module ? module.facets ?? [] : null;
           const waiting = generated && isParentType(row.module_type) ? row.facets.filter(facet => !generated.includes(facet)) : [];
+          // A facet's own Retry (0.7.3): the facet it regenerates, or the one whose Retry failed.
+          const retry = module?.retry && row.facets?.includes(module.retry) ? module.retry : null;
           return { id: row.id, moduleInstanceId: row.module_instance_id, moduleType: row.module_type,
             ...withFacets(row.module_type, row.facets), ...(isParentType(row.module_type) ? { waitingFacets: waiting } : {}),
+            ...(retry && row.status === 'loading' ? { retryingFacet: retry } : {}),
+            ...(retry && row.attempt_state === 'failed' ? { failedFacet: retry } : {}),
             content: JSON.parse(row.content), status: row.status, attemptId: row.attempt_id };
         });
       // The latest run's reading of the main key (D08), shown under the page title.
@@ -403,23 +408,42 @@ export class AccountStore {
     });
   }
   // One run per request: its attempts share one interpretation.
-  async startRun(pageId, session, targets) {
+  async startRun(pageId, session, targets, { facet } = {}) {
     if (!targets.length) return { runId: null, attemptIds: [] };
     const runId = randomUUID();
-    await this.database.run("INSERT INTO generation_runs (id, page_id) VALUES ($1, $2)", [runId, pageId]);
+    // A facet's own Retry (0.7.3) keeps the page's latest reading of the main
+    // key, so the facet follows the core it joins.
+    const reading = facet ? await this.database.one(`SELECT interpretation FROM generation_runs
+      WHERE page_id = $1 AND interpretation IS NOT NULL ORDER BY ordinal DESC LIMIT 1`, [pageId]) : null;
+    await this.database.run("INSERT INTO generation_runs (id, page_id, interpretation) VALUES ($1, $2, $3)", [runId, pageId, reading?.interpretation ?? null]);
     const attemptIds = [];
-    for (const { id: componentId, moduleInstanceId, moduleType, facets } of targets) {
+    for (const { id: componentId, moduleInstanceId, moduleType, facets, waitingFacets, status } of targets) {
       const attemptId = randomUUID();
       // An attempt generates the facets its parent has when it starts (D08).
-      const module = { id: moduleInstanceId, type: moduleType, ...withFacets(moduleType, facets) };
+      // A facet's own attempt generates that facet alone: afterwards the
+      // content holds what it held before, and that facet. It keeps the
+      // content meanwhile, and how to put the component back if it fails.
+      const module = facet
+        ? { id: moduleInstanceId, type: moduleType, facets: facets.filter(each => each === facet || !waitingFacets?.includes(each)),
+          retry: facet, prior: { status, waiting: Boolean(waitingFacets?.includes(facet)) } }
+        : { id: moduleInstanceId, type: moduleType, ...withFacets(moduleType, facets) };
       await this.database.run(`INSERT INTO component_attempts
         (id, page_id, component_id, run_id, installation_id, session_id, epoch, module) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
       [attemptId, pageId, componentId, runId, session.installationId, session.sessionId, session.epoch, JSON.stringify(module)]);
-      await this.database.run("UPDATE components SET content = $1, status = 'loading', attempt_id = $2 WHERE page_id = $3 AND id = $4",
+      if (facet) await this.database.run("UPDATE components SET status = 'loading', attempt_id = $1 WHERE page_id = $2 AND id = $3", [attemptId, pageId, componentId]);
+      else await this.database.run("UPDATE components SET content = $1, status = 'loading', attempt_id = $2 WHERE page_id = $3 AND id = $4",
         [JSON.stringify(textBlocks('')), attemptId, pageId, componentId]);
       attemptIds.push(attemptId);
     }
     return { runId, attemptIds };
+  }
+  // A facet's own attempt that fails (0.7.3) leaves the content as it was and
+  // the component in its earlier state; a facet that was waiting still waits.
+  async keepAfterFacetFailure(attempt) {
+    const { retry, prior } = attempt.module;
+    await this.database.run("UPDATE components SET status = $2 WHERE attempt_id = $1 AND status = 'loading'", [attempt.id, prior?.status ?? null]);
+    const module = prior?.waiting ? { ...attempt.module, facets: (attempt.module.facets ?? []).filter(item => item !== retry) } : attempt.module;
+    await this.database.run("UPDATE component_attempts SET state = 'failed', result = NULL, module = $2 WHERE id = $1 AND state = 'loading'", [attempt.id, JSON.stringify(module)]);
   }
   async attempt(id) {
     return this.database.transaction(async () => {
@@ -430,6 +454,9 @@ export class AccountStore {
   }
   async failAttempt(attemptId) {
     return this.database.transaction(async () => {
+      const row = await this.database.one("SELECT id, module FROM component_attempts WHERE id = $1", [attemptId]);
+      const attempt = row && { ...row, module: JSON.parse(row.module) };
+      if (attempt?.module.retry) return this.keepAfterFacetFailure(attempt);
       await this.database.run("UPDATE components SET content = $2, status = 'failed' WHERE attempt_id = $1 AND status = 'loading'", [attemptId, JSON.stringify(textBlocks(''))]);
       await this.database.run("UPDATE component_attempts SET state = 'failed', result = NULL WHERE id = $1 AND state = 'loading'", [attemptId]);
     });
@@ -477,6 +504,13 @@ export class AccountStore {
         fail('wrong_session', 'Only the originating browser session can publish this result.');
       }
       if (attempt.state !== 'loading' || !attempt.result) fail('stale_attempt', 'No current result is ready.');
+      if (attempt.module.retry && !attempt.result.ok) {
+        const component = await this.database.one("SELECT id FROM components WHERE page_id = $1 AND id = $2 AND attempt_id = $3 AND status = 'loading'",
+          [attempt.page_id, attempt.component_id, attemptId]);
+        if (!component) fail('stale_attempt', 'The component has moved on to another attempt.');
+        await this.keepAfterFacetFailure(attempt);
+        return { pageId: attempt.page_id, componentId: attempt.component_id, state: 'failed' };
+      }
       const state = attempt.result.ok ? 'completed' : 'failed';
       const content = textBlocks(attempt.result.ok ? attempt.result.text : '');
       const changed = await this.database.run(`UPDATE components SET content = $1, status = $2
@@ -598,7 +632,7 @@ export class AccountStore {
     return await this.command(operationId, 'generate', { pageId, target, session, confirmation }, async () => {
       await this.requireSession(session);
       const page = await this.page(pageId);
-      if (!target || !['missing', 'page', 'component'].includes(target.scope)) fail('invalid', 'Choose what to generate.');
+      if (!target || !['missing', 'page', 'component', 'facet'].includes(target.scope)) fail('invalid', 'Choose what to generate.');
       let targets;
       try { targets = generationTargets(target, page.components); }
       catch (error) { fail('invalid', error.message); }
@@ -606,15 +640,19 @@ export class AccountStore {
       // Replacing content needs confirmation. A component with nothing in it has
       // nothing to replace, whether it never generated, failed, or generated
       // nothing (0.6.3; until then any earlier attempt needed confirmation).
-      const replaces = targets.some(component => blockText(component.content));
+      // A facet's own Retry (0.7.3) replaces only its section.
+      const facet = target.scope === 'facet' ? target.facet : null;
+      const replaced = component => facet ? facetSection(component.moduleType, blockText(component.content), facet) : blockText(component.content);
+      const replaces = targets.some(replaced);
       if (target.scope !== 'missing' && replaces) {
-        const expected = this.confirmationDigest(targets);
+        const expected = facet ? digest(targets.map(component => ({ moduleInstanceId: component.moduleInstanceId, facet, content: replaced(component) })))
+          : this.confirmationDigest(targets);
         if (confirmation !== expected) {
           throw new StoreError('confirmation_required', 'Retry replaces this content, including your edits.', { confirmation: expected });
         }
       }
       admit?.(targets.length);
-      return { pageId, attemptIds: (await this.startRun(pageId, session, targets)).attemptIds };
+      return { pageId, attemptIds: (await this.startRun(pageId, session, targets, { facet })).attemptIds };
     });
   }
   async deletePage(operationId, pageId) {

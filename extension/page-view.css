@@ -94,19 +94,21 @@
 .card-actions .action-confirm, .card-actions .action-confirm:not(:disabled):hover { background: var(--status-failed); color: var(--status-failed-bg); box-shadow: none; }
 /* Retry asks the same way, in the card's family colour rather than the failed one. */
 .card-actions[data-confirm="retry"] .action-confirm, .card-actions[data-confirm="retry"] .action-confirm:not(:disabled):hover { background: var(--fam, var(--fam-notes)); color: var(--on-fam, var(--on-ink)); }
-.card-actions[data-confirm="retry"] .confirm-text { color: var(--fam, var(--fam-notes)); background: var(--fam-tint, var(--fam-notes-tint));
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fam, var(--fam-notes)) 35%, transparent); }
-.card-actions[data-confirm="retry"] .confirm-text::before { background: var(--fam-tint, var(--fam-notes-tint));
-  box-shadow: inset 1px -1px 0 color-mix(in srgb, var(--fam, var(--fam-notes)) 35%, transparent); }
+:is(.card-actions, .facet-confirm)[data-confirm="retry"] .confirm-text { --ink-bubble: var(--fam, var(--fam-notes)); --bubble: var(--fam-tint, var(--fam-notes-tint)); }
 /* The question follows the final Delete and Cancel. */
 .card-actions[data-confirm] { align-items: center; }
 .card-head:has(> [data-confirm]) .card-tab { flex: none; }
-.confirm-text { position: relative; flex: none; align-self: center; margin-left: 10px; padding: 4px 11px 5px; border-radius: 999px;
-  font: 600 13px/1.2 var(--font-text); color: var(--status-failed); background: var(--status-failed-bg);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--status-failed) 35%, transparent); }
-/* A speech bubble: its tail points back at Delete and Cancel. */
-.confirm-text::before { content: ""; position: absolute; left: -5px; top: 50%; width: 9px; height: 9px; margin-top: -4.5px; transform: rotate(45deg);
-  background: var(--status-failed-bg); box-shadow: inset 1px -1px 0 color-mix(in srgb, var(--status-failed) 35%, transparent); }
+/* A speech bubble: its tail points back at Delete and Cancel. The pill and
+   its tail are filled alike, and one outline traces them both (0.7.3), so
+   the tail runs on from the pill's curve without a seam: four 1px shadows
+   of the whole shape, in an opaque mix of the line and fill colours. */
+.confirm-text { --ink-bubble: var(--status-failed); --bubble: var(--status-failed-bg);
+  --bubble-line: color-mix(in srgb, var(--ink-bubble) 35%, var(--bubble));
+  position: relative; flex: none; align-self: center; margin-left: 10px; padding: 4px 11px 5px; border-radius: 999px;
+  font: 600 13px/1.2 var(--font-text); color: var(--ink-bubble); background: var(--bubble);
+  filter: drop-shadow(1px 0 0 var(--bubble-line)) drop-shadow(-1px 0 0 var(--bubble-line)) drop-shadow(0 1px 0 var(--bubble-line)) drop-shadow(0 -1px 0 var(--bubble-line)); }
+.confirm-text::before { content: ""; position: absolute; left: -6px; top: 50%; width: 12px; height: 12px; margin-top: -6px;
+  background: var(--bubble); clip-path: polygon(0 45%, 100% 0, 100% 100%, 0 55%); }
 .card-actions[data-open] .confirm-text { animation: eject var(--dur-spring) var(--ease-spring) both, wobble 600ms var(--ease-out) 380ms; animation-delay: calc(var(--i, 0) * 40ms), 380ms; transform-origin: left center; }
 /* Once out, the question gives one small wobble, a nudge to look twice. */
 @keyframes wobble { 20% { transform: rotate(-4deg); } 45% { transform: rotate(3deg); } 70% { transform: rotate(-1.5deg); } }
@@ -208,7 +210,15 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
 
 /* Module window: search and family groups */
 .module-window { position: sticky; top: 24px; padding: 18px; border-radius: var(--radius-card); background: var(--surface); box-shadow: 0 0 0 1px var(--line);
-  transition: box-shadow var(--dur-instant) ease; }
+  transition: box-shadow var(--dur-instant) ease;
+  /* The window never outgrows the viewport: the heading and search stay put,
+     and what is below them scrolls on its own (0.7.3). */
+  display: flex; flex-direction: column; max-height: calc(100dvh - 48px); }
+.window-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable;
+  margin: 2px -18px -18px; padding: 8px 18px 18px; border-radius: 0 0 var(--radius-card) var(--radius-card);
+  /* Scrolled content fades out under the search and at the bottom edge,
+     over padding that is empty when the list rests at either end. */
+  mask-image: linear-gradient(to bottom, transparent, #000 8px, #000 calc(100% - 14px), transparent); }
 .module-window[data-over] { box-shadow: 0 0 0 2px var(--focus); }
 .module-window h2 { margin: 0; font: 600 20px/1.2 var(--font-display); }
 /* The heading, with the "?" that explains how to drag modules. */
@@ -277,18 +287,45 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
 .facet-note { font-weight: 400; letter-spacing: 0; text-transform: none; }
 .facet[data-waiting] { padding-bottom: 2px; }
 .facet-lines { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 16px; line-height: 1.5; }
-.facet-delete { margin-left: auto; display: inline-grid; place-items: center; width: 26px; height: 26px; padding: 0; border: 0; border-radius: var(--radius-control);
+.facet-actions { margin-left: auto; display: inline-flex; gap: 2px; }
+/* A facet's Retry (0.7.3) and Delete, shown while the facet is pointed at. */
+.facet-actions button { display: inline-grid; place-items: center; width: 26px; height: 26px; padding: 0; border: 0; border-radius: var(--radius-control);
   background: transparent; color: var(--ink-muted); opacity: 0; transition: opacity var(--dur-instant) ease, background var(--dur-instant) ease; }
-.facet:hover .facet-delete, .facet-delete:focus-visible { opacity: 1; }
+.facet:hover .facet-actions button, .facet-actions button:focus-visible { opacity: 1; }
+.facet-retry:not(:disabled):hover { background: var(--fam-tint, var(--fam-notes-tint)); color: var(--fam, var(--fam-notes)); }
 .facet-delete:not(:disabled):hover { background: var(--status-failed-bg); color: var(--status-failed); }
-.facet-delete .action-icon { width: 14px; height: 14px; }
+.facet-actions .action-icon { width: 14px; height: 14px; }
 .facet-confirm { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; letter-spacing: 0; text-transform: none; }
 .facet-confirm button { height: 24px; padding: 0 9px; font-size: 12px; }
+/* Cancel stands where Retry or Delete was, wide enough to cover either. */
+.facet-confirm button:last-child { min-width: 64px; }
 .facet-confirm .action-confirm { background: var(--status-failed); color: var(--status-failed-bg); border-color: transparent; }
-.facet-confirm .confirm-text { font-weight: 400; color: var(--status-failed); }
+.facet-confirm .action-confirm:hover { background: var(--status-failed); }
+/* Retry asks in the card's family colour, like a card's Retry. */
+.facet-confirm[data-confirm="retry"] .action-confirm { background: var(--fam, var(--fam-notes)); color: var(--on-fam, var(--on-ink)); }
+/* The question sits left of its buttons, its tail pointing right at them. */
+.facet-confirm .confirm-text { margin: 0 6px 0 0; padding: 3px 10px 4px; font-size: 12px; }
+.facet-confirm .confirm-text::before { left: auto; right: -6px; clip-path: polygon(100% 45%, 0 0, 0 100%, 100% 55%); }
+/* The card's motion, mirrored (0.7.3): Cancel, then the final button, then
+   the question spring out leftwards one after another, and the question
+   gives its wobble. */
+.facet-confirm > * { animation: eject-left var(--dur-spring) var(--ease-spring) both; animation-delay: calc(var(--i, 0) * 40ms); transform-origin: right center; }
+.facet-confirm > .confirm-text { animation: eject-left var(--dur-spring) var(--ease-spring) both, wobble 600ms var(--ease-out) 380ms; animation-delay: calc(var(--i, 0) * 40ms), 380ms; }
+@keyframes eject-left {
+  from { opacity: 0; transform: translateX(calc(28px + var(--i, 0) * 28px)) scale(.7); }
+  50% { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) { .facet-confirm > * { animation: none !important; } }
+/* A facet regenerating on its own fades and breathes until it is back; one
+   whose Retry failed says so in the failed colour. */
+.facet-note[data-note="generating"] { color: var(--fam, var(--fam-notes)); }
+.facet-note[data-note="failed"] { color: var(--status-failed); }
+.facet[data-retrying] > :not(.facet-title) { animation: facet-breathe 1.6s ease-in-out infinite; }
+@keyframes facet-breathe { 0%, 100% { opacity: .55; } 50% { opacity: .25; } }
+@media (prefers-reduced-motion: reduce) { .facet[data-retrying] > :not(.facet-title) { animation: none; opacity: .45; } }
 /* Under the title: how the latest run read the main key. */
 .interpretation { margin: 6px 0 0; font-size: 13px; color: var(--ink-muted); }
-@media (hover: none) { .facet-delete { opacity: 1; } }
+@media (hover: none) { .facet-actions button:not(:disabled) { opacity: 1; } }
 
 /* Facet tags (0.7.1): a parent's facets as bookmarks on its card, in the
    parent's order, each marked with its facet's abbreviation in the family
@@ -310,6 +347,11 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
 button.facet-tag-open { cursor: pointer; }
 button.facet-tag-open:hover { background: transparent; }
 .facet-tag:has(> button.facet-tag-open:hover)::before { filter: drop-shadow(0 2px 3px #0003) brightness(1.08); }
+/* A facet with nothing in it, such as one waiting for Retry or one that does
+   not apply, wears a blander tag: its family colour, much less saturated
+   (0.7.3). Its mark stays legible. */
+.facet-tag[data-unfilled]::before { filter: drop-shadow(0 1px 1px #0002) saturate(.3) opacity(.75); }
+.facet-tag[data-unfilled]:has(> button.facet-tag-open:hover)::before { filter: drop-shadow(0 2px 3px #0003) saturate(.45) opacity(.85); }
 .facet-tag-open:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 /* A small round remove on the tag's corner, shown while it is pointed at or focused. */
 .facet-tag-remove { position: absolute; top: -7px; right: -7px; z-index: 1; display: grid; place-items: center; width: 16px; height: 16px; padding: 0; border: 0;
@@ -317,6 +359,10 @@ button.facet-tag-open:hover { background: transparent; }
   opacity: 0; transform: scale(.6); transition: opacity var(--dur-instant) ease, transform var(--dur-spring) var(--ease-spring); }
 .facet-tag-remove svg { width: 10px; height: 10px; }
 .facet-tag:hover .facet-tag-remove, .facet-tag:focus-within .facet-tag-remove { opacity: 1; transform: none; }
+/* Pointed at, it keeps its colours and swells a little (0.7.3): the shared
+   button hover painted it the hover colour, dark on a card and pale on an
+   empty one. */
+.facet-tag .facet-tag-remove:not(:disabled):hover { background: var(--status-failed); color: var(--status-failed-bg); transform: scale(1.15); }
 .facet-tag-remove:disabled { display: none; }
 @media (hover: none) { .facet-tag-remove { opacity: 1; transform: none; } }
 
@@ -338,6 +384,12 @@ button.facet-tag-open:hover { background: transparent; }
    end when there are more tags than the tab is wide. */
 .facet-tags[data-layout="hanging"]::before { content: ""; position: absolute; left: 4px; top: -1px; height: 3px; border-radius: 0 2px 2px 0;
   width: calc((var(--n) - 1) * 26px + 16px); background: var(--fam, var(--fam-notes)); }
+/* What hangs below an empty or generating card's tab lifts with the tab (0.7.3). */
+.facet-tags[data-layout="hanging"] { transition: translate var(--dur-spring) var(--ease-spring); }
+.component:hover > .facet-tags[data-layout="hanging"] { translate: 0 -2px; }
+/* While a card generates, what hangs below its tab stays beneath the tab,
+   so the rail never covers the spark running round the tab's edge (0.7.3). */
+.component[data-generating] > .facet-tags { z-index: 0; }
 /* An empty or generating card makes room below its tab for what hangs there. */
 .component:is([data-empty], [data-generating])[data-tagged="hanging"] { padding-bottom: 56px; }
 /* Folding and the tags take turns (facet-tags.tsx holds the same durations):

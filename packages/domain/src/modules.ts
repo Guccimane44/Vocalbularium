@@ -1,7 +1,7 @@
 import type { InputInterpretation } from '@vocabularium/contracts';
 import { applicableFacets, facetsOf, isParentType } from './parents.js';
 import type { FacetType, ParentType } from './parents.js';
-import { renderContent, withoutEmptyFacets, withoutFacet } from './render.js';
+import { facetSection, renderContent, withFacetSection, withoutEmptyFacets, withoutFacet } from './render.js';
 
 // The run's reading of the main key (D08): word or phrase, or sentence. It no
 // longer chooses a source language; earlier runs stored one, which is ignored.
@@ -21,6 +21,8 @@ export type GenerateModule = (request: {
   interpretation: InputInterpretation;
   // The facets that apply to this input, in the parent's order.
   facets: readonly FacetType[];
+  // For a facet's own Retry (0.7.3): the core already written, to follow.
+  core?: string;
 }) => Promise<string>;
 
 // Generates one parent module instance's component from the main key. A
@@ -45,6 +47,32 @@ export async function generateComponent(input: {
   const kept = extra.reduce((current, facet) => withoutFacet(module.type, current, facet), withoutEmptyFacets(module.type, text.trim()));
   if (renderContent(module.type, kept).kind !== 'parent') throw new Error('A module returned content in an unexpected format.');
   return kept;
+}
+
+// A facet's own Retry (0.7.3): the facet alone, written for the core already
+// in `existing`, takes its section's place; the core and the other facets stay
+// as they are. A facet that does not apply to this input is left out, as in a
+// whole attempt. Throws when generation fails.
+export async function generateFacet(input: {
+  mainKey: string;
+  module: ModuleInstance;
+  facet: string;
+  existing: string;
+  interpretation?: InputInterpretation | null;
+  generate: GenerateModule;
+}): Promise<string> {
+  const { module, facet, existing } = input;
+  if (!isParentType(module.type)) throw new Error('The deck contains an unsupported module.');
+  if (!input.interpretation) throw new Error('Input interpretation is unavailable.');
+  if (renderContent(module.type, existing).kind !== 'parent') throw new Error('The content no longer follows its layout.');
+  const facets = applicableFacets(module.type, [facet], input.interpretation.inputType);
+  if (!facets.length) return withoutFacet(module.type, existing, facet);
+  const core = facetsOf(module.type).reduce((current, each) => withoutFacet(module.type, current, each), existing).trim();
+  const text = await input.generate({ module, selectedText: input.mainKey, interpretation: input.interpretation, facets, core });
+  if (typeof text !== 'string' || !text.trim()) throw new Error('A module returned no usable content.');
+  const cleaned = withoutEmptyFacets(module.type, text.trim());
+  if (renderContent(module.type, cleaned).kind !== 'parent') throw new Error('A module returned content in an unexpected format.');
+  return withFacetSection(module.type, existing, facet, facetSection(module.type, cleaned, facet));
 }
 
 export type ComponentOutcome = Readonly<

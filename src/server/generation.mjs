@@ -1,4 +1,4 @@
-import { generateComponent, validateInterpretation } from '@vocabularium/domain/modules';
+import { generateComponent, generateFacet, validateInterpretation } from '@vocabularium/domain/modules';
 import { blockText, mainKeyOf } from '@vocabularium/domain/pages';
 
 // The saved Context, when the page has a non-empty one, is the only other generation input.
@@ -141,15 +141,17 @@ export class Generation {
       if (attempt.state !== 'loading' || attempt.result || controller.signal.aborted) return;
       await this.store.requireSession({ installationId: attempt.installation_id, sessionId: attempt.session_id, epoch: attempt.epoch });
       const page = await this.store.page(pageId);
-      if (!page.components.some(component => component.attemptId === attemptId && component.status === 'loading') || controller.signal.aborted) return;
+      const target = page.components.find(component => component.attemptId === attemptId && component.status === 'loading');
+      if (!target || controller.signal.aborted) return;
       const input = { pageId, mainKey: mainKeyOf(page.components), context: contextOf(page.components) };
       this.emit({ event: 'generation.input', attemptId, pageId, componentId: attempt.component_id, outcome: 'started', content: { selectedText: input.mainKey } });
       const interpretation = await this.interpretation(input, attempt);
       if (controller.signal.aborted) return;
-      const output = await generateComponent({
-        mainKey: input.mainKey, module: attempt.module, interpretation,
-        generate: request => this.provider.generate({ ...request, context: input.context, sessionId: pageId }, controller.signal)
-      });
+      const generate = request => this.provider.generate({ ...request, context: input.context, sessionId: pageId }, controller.signal);
+      // A facet's own Retry (0.7.3) replaces only its section of the content kept meanwhile.
+      const output = attempt.module.retry
+        ? await generateFacet({ mainKey: input.mainKey, module: attempt.module, facet: attempt.module.retry, existing: blockText(target.content), interpretation, generate })
+        : await generateComponent({ mainKey: input.mainKey, module: attempt.module, interpretation, generate });
       if (controller.signal.aborted) return;
       result = { ok: true, text: output };
       this.emit({ event: 'generation.output', attemptId, pageId, componentId: attempt.component_id, outcome: 'succeeded', content: { output } });

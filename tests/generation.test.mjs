@@ -367,7 +367,7 @@ test('OpenCode uses the Go endpoint, selected DeepSeek model, and only selection
     apiKey: 'test-only', fetchImpl: async (url, options) => {
       assert.equal(url, 'https://opencode.ai/zen/go/v1/chat/completions'); body = JSON.parse(options.body);
       assert.equal(options.headers.Authorization, 'Bearer test-only');
-      assert.equal(options.headers['User-Agent'], 'Vocabularium/0.7.2');
+      assert.equal(options.headers['User-Agent'], 'Vocabularium/0.7.3');
       assert.equal(options.headers['x-opencode-session'], 'capture-conversation');
       assert.equal(options.method, 'POST'); assert.ok(options.signal instanceof AbortSignal);
       return Response.json(completion(JSON.stringify(word)));
@@ -596,4 +596,81 @@ test('OpenCode asks a parent for its core and each facet section in order, with 
   } });
   assert.equal(await provider.generate({ module: { id: 'g', type: 'german', facets: ['examples'] }, selectedText: 'bank',
     interpretation: { inputType: 'word_phrase' }, facets: ['examples'] }), 'Ufer');
+});
+
+test('a facet’s own Retry regenerates that facet for the core already there, keeps the rest and the page’s reading, and keeps everything when it fails', async (t) => {
+  const requests = [];
+  let interpretations = 0, failing = false;
+  const { store, generation, capture } = await parentFixture(t, {
+    interpret: async () => { interpretations++; return word; },
+    generate: async request => {
+      requests.push(request);
+      if (failing) throw new Error('provider down');
+      if (!request.core) return GERMAN_WORD;
+      // A core written again differently is not taken.
+      return `${request.core.replace('Ufer', 'anders')}\n` + (request.facets[0] === 'examples'
+        ? '=== Examples ===\n: [1] The bank was steep.\n:: Das Ufer war steil.' : '=== Synonyms ===\n: Böschung');
+    }
+  });
+  const page = await capture('bank'); await finish(store, generation);
+  const german = async () => generated(await store.page(page.id))[0];
+  const retryFacet = async (facet, confirm = true) => {
+    const payload = { pageId: page.id, target: { scope: 'facet', componentId: (await german()).id, facet }, session };
+    const result = confirm ? await confirmed(store, randomUUID(), payload) : await store.generate(randomUUID(), payload);
+    await generation.start(page.id, result.attemptIds);
+    return result;
+  };
+
+  // A facet with content asks first; the content stays while it regenerates.
+  await assert.rejects(store.generate(randomUUID(), { pageId: page.id, target: { scope: 'facet', componentId: (await german()).id, facet: 'examples' }, session }),
+    { code: 'confirmation_required' });
+  const { attemptIds } = await confirmed(store, randomUUID(), { pageId: page.id, target: { scope: 'facet', componentId: (await german()).id, facet: 'examples' }, session });
+  let current = await german();
+  assert.equal(text(current), GERMAN_WORD);
+  assert.equal(current.status, 'loading');
+  assert.equal(current.retryingFacet, 'examples');
+  await generation.start(page.id, attemptIds); await finish(store, generation);
+  const core = '== Englisch (bank) ==\n=== Bedeutungen ===\n: [1] Ufer';
+  assert.equal(requests.at(-1).core, core, 'the provider writes for the core already there');
+  assert.deepEqual(requests.at(-1).facets, ['examples']);
+  assert.equal(interpretations, 1, 'the page’s reading of the main key is kept');
+  current = await german();
+  assert.equal(text(current), `${core}\n=== Article ===\n: das Ufer · die Ufer\n=== Examples ===\n: [1] The bank was steep.\n:: Das Ufer war steil.`,
+    'only the facet’s section changes');
+  assert.equal(current.status, 'completed');
+  assert.equal(current.retryingFacet, undefined);
+
+  // A facet without a section starts at once and lands in the parent's order.
+  await retryFacet('synonyms', false); await finish(store, generation);
+  assert.match(text(await german()), /=== Examples ===\n: \[1\] The bank was steep\.\n:: Das Ufer war steil\.\n=== Synonyms ===\n: Böschung$/);
+
+  // A failed facet Retry keeps the content, and a waiting facet still waits.
+  await store.deleteFacet(randomUUID(), { pageId: page.id, componentId: current.id, parent: 'german', facet: 'antonyms' });
+  await store.addFacet(randomUUID(), { pageId: page.id, componentId: current.id, parent: 'german', facet: 'antonyms' });
+  const before = text(await german());
+  failing = true;
+  await retryFacet('antonyms', false); await finish(store, generation);
+  current = await german();
+  assert.equal(text(current), before);
+  assert.equal(current.status, 'completed');
+  assert.equal(current.failedFacet, 'antonyms');
+  assert.deepEqual(current.waitingFacets, ['antonyms']);
+
+  // Content that no longer follows the layout is retried whole.
+  await store.savePage(randomUUID(), { pageId: page.id, changes: [{ componentId: current.id, content: textBlocks('My own notes\n=== not a contract') }] });
+  await assert.rejects(store.generate(randomUUID(), { pageId: page.id, target: { scope: 'facet', componentId: current.id, facet: 'examples' }, session }),
+    { code: 'invalid', message: /Retry the whole module/ });
+});
+
+test('OpenCode asks a facet’s own Retry to keep the supplied core', async () => {
+  const instructions = parentInstructions('german', 'word_phrase', ['examples'], true);
+  assert.match(instructions, /already written and supplied as "core"/);
+  assert.doesNotMatch(instructions, /Wiktionary-style/);
+  const provider = new OpenCodeProvider({ apiKey: 'test-only', fetchImpl: async (_, options) => {
+    const [, user] = JSON.parse(options.body).messages;
+    assert.deepEqual(JSON.parse(user.content), { selectedText: 'bank', core: ': [1] Ufer', inputType: 'word_phrase', instanceId: 'g' });
+    return Response.json(completion(JSON.stringify({ text: 'Ufer' })));
+  } });
+  await provider.generate({ module: { id: 'g', type: 'german', facets: ['examples'] }, selectedText: 'bank',
+    interpretation: { inputType: 'word_phrase' }, facets: ['examples'], core: ': [1] Ufer' });
 });

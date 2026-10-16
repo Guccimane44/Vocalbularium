@@ -636,6 +636,8 @@ function ModuleWindow({ types, disabled, unavailable, where, addAtEnd, holders, 
     </div>
     <label className="visually-hidden" htmlFor={searchId}>Search modules</label>
     <input id={searchId} className="window-search" type="search" placeholder="Search modules" value={query} onChange={event => setQuery(event.target.value)} />
+    {/* Below the search, the list scrolls on its own (0.7.3). */}
+    <div className="window-scroll">
     {unavailable && <p className="notice">{unavailable}</p>}
     {!groups.length && <p className="muted">No module matches “{query.trim()}”.</p>}
     {groups.map(({ family, modules, total }) => <details key={family} className={`window-family fam-${family}`} open={terms.length > 0 || open.has(family)}
@@ -658,5 +660,6 @@ function ModuleWindow({ types, disabled, unavailable, where, addAtEnd, holders, 
         </WindowModule>)}
       </ul>
     </details>)}
+    </div>
   </aside>;
 }
