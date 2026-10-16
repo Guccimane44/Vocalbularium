@@ -10,6 +10,9 @@ import type { FacetType, ParentType } from '@vocabularium/domain/parents';
 // - `folded`: a folded card, the tags hanging from the right of its bottom edge;
 // - `hanging`: a card that is only its tab (an empty or generating component,
 //   and every module in deck settings), the tags hung below the tab on chains.
+// On a card's edge, clicking a tag pulls it out of the card, showing a Retry
+// that regenerates its facet at once, without asking (0.7.4); Escape, a click
+// elsewhere or the tag again push it back. Elsewhere a click does nothing.
 // A facet added from the module window flies there from where it was let go;
 // folding and unfolding move the tags along the card's edge between the left
 // side and the bottom right; a deleted facet's tag pops. Under reduced motion
@@ -82,15 +85,17 @@ function alongTheEdge(from: Spot, corner: Spot): Keyframe[] {
   });
 }
 
-export function FacetTags({ holderId, parent, facets, filled, layout, title, disabled = false, ghost, onOpen, onRemove }: {
+export function FacetTags({ holderId, parent, facets, filled, layout, title, disabled = false, ghost, onRetry, retrying, failed, onRemove }: {
   holderId: string; parent: ParentType; facets: readonly string[]; layout: TagLayout; title: string; disabled?: boolean;
   // The facets with content on the card (0.7.3); the others wear a blander
   // tag. Absent where content does not apply, as in deck settings.
   filled?: readonly string[];
   // The facet picked up in the module window, when this parent would take it.
   ghost?: GhostTag | null;
-  // Clicking a tag shows its facet's section; absent where a card has none.
-  onOpen?: (facet: FacetType) => void;
+  // A pulled-out tag's Retry; absent where a card has no content to keep.
+  onRetry?: (facet: FacetType) => void;
+  // The facet regenerating on its own, or whose own Retry failed (0.7.3).
+  retrying?: string; failed?: string;
   onRemove?: (facet: FacetType) => void;
 }) {
   const ghostFacet = ghost && !facets.includes(ghost.facet) ? ghost.facet : null;
@@ -99,6 +104,24 @@ export function FacetTags({ holderId, parent, facets, filled, layout, title, dis
   // Tags popping away, each where it stood.
   const [leaving, setLeaving] = useState<ReadonlyArray<{ facet: FacetType; index: number }>>([]);
   const root = useRef<HTMLUListElement>(null);
+  // The tag pulled out of the card's edge, showing its Retry (0.7.4).
+  const [pulled, setPulled] = useState<FacetType | null>(null);
+  const pulling = layout === 'edge' && Boolean(onRetry);
+  if (pulled && (!pulling || !facets.includes(pulled))) setPulled(null);
+  useEffect(() => {
+    if (!pulled) return;
+    const away = (event: PointerEvent) => {
+      if (!(event.target as Element | null)?.closest?.(`.facet-tag[data-facet="${pulled}"]`)) setPulled(null);
+    };
+    const escape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      event.stopPropagation(); setPulled(null);
+      root.current?.querySelector<HTMLElement>(`.facet-tag[data-facet="${pulled}"] .facet-tag-open`)?.focus();
+    };
+    document.addEventListener('pointerdown', away, true);
+    document.addEventListener('keydown', escape, true);
+    return () => { document.removeEventListener('pointerdown', away, true); document.removeEventListener('keydown', escape, true); };
+  }, [pulled]);
   const before = useRef<{ facets: readonly FacetType[]; ghost: FacetType | null; layout: TagLayout; spots: Map<string, Spot> } | null>(null);
   // Unfolding, the tags stay on the bottom edge while the card opens, and
   // only then go back to the left side.
@@ -193,12 +216,24 @@ export function FacetTags({ holderId, parent, facets, filled, layout, title, dis
       {ghost!.placing ? <span className="facet-tag-open" aria-hidden="true">{mark}</span>
         : <button type="button" className="facet-tag-open facet-ghost" aria-label={ghost!.label}>{mark}</button>}
     </li>;
+    const out = pulled === facet && !gone;
+    const state = retrying === facet ? ', generating' : failed === facet ? ', retry failed' : '';
+    const name = `${label}${unfilled ? ', empty' : ''}${state}`;
     return <li key={facet} className="facet-tag" data-facet={facet} data-leaving={gone || undefined} data-unfilled={unfilled || undefined}
+      data-pulled={out || undefined} data-retrying={retrying === facet || undefined} data-failed={failed === facet || undefined}
       style={{ '--i': index } as CSSProperties} aria-hidden={gone || undefined}>
-      {/* A facet with nothing in it has nothing to show: its tag is not a button,
-          so clicking it moves nothing (0.7.3). */}
-      {onOpen && !gone && !unfilled ? <button type="button" className="facet-tag-open" aria-label={`Show ${label} in ${title}`} onClick={() => onOpen(facet)}>{mark}</button>
-        : <span className="facet-tag-open" role="img" aria-label={unfilled ? `${label}, empty` : label}>{mark}</span>}
+      {/* On a card's edge the tag pulls out to its Retry (0.7.4); elsewhere it
+          is no button, so clicking it moves nothing (0.7.3). */}
+      {pulling && !gone ? <button type="button" className="facet-tag-open" aria-label={`${name} in ${title}`} aria-expanded={out}
+        onClick={() => setPulled(out ? null : facet)}>{mark}</button>
+        : <span className="facet-tag-open" role="img" aria-label={name}>{mark}</span>}
+      {pulling && !gone && <button type="button" className="facet-tag-retry" aria-label={`Retry ${label} in ${title}`} tabIndex={out ? 0 : -1}
+        aria-hidden={!out || undefined} disabled={disabled || retrying === facet}
+        onClick={() => { setPulled(null); onRetry!(facet); }}>
+        {/* The card's Retry icon (page-view.tsx). */}
+        <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M3 12a9 9 0 1 0 3-6.7L3 8" /><path d="M3 3v5h5" /></svg>
+      </button>}
       {onRemove && !gone && <button type="button" className="facet-tag-remove" aria-label={`Remove ${label} from ${title}`} disabled={disabled}
         onClick={() => onRemove(facet)}>
         <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><path d="M7 7l10 10M17 7L7 17" /></svg>

@@ -10,7 +10,7 @@ import { parentContentOf } from '@vocabularium/domain/content';
 import type { ParentContent } from '@vocabularium/domain/content';
 import { hasText } from '@vocabularium/domain/markdown';
 import { LiveEditor } from './live-editor.tsx';
-import { facetLabel, facetsOf, isFacetOf, isParentType, ordered } from '@vocabularium/domain/parents';
+import { facetLabel, isFacetOf, isParentType } from '@vocabularium/domain/parents';
 import type { FacetType, ParentType } from '@vocabularium/domain/parents';
 import type { FieldDraft, PageEditorDraft } from '../types/editor-drafts.js';
 import { FacetTags, FOLD_MS } from './facet-tags.tsx';
@@ -185,30 +185,26 @@ export function readContent(type: string, content: Component['content']): { rend
 }
 
 // Generated content as its parent's render contract describes (D08): the core,
-// then each facet under its label, those waiting for the next Retry among them,
-// always in the parent's order. Anything else, and the user's own text, is plain text with its line breaks.
-export function Content({ type, rendered, mainKey, waiting = [], controls }: {
-  type: string; rendered: Rendered; mainKey: string; waiting?: readonly string[]; controls?: FacetControls;
+// then each facet with content under its label, in the parent's order. A facet
+// waiting for Retry is only its tag (0.7.4). Anything else, and the user's own text, is plain text with its line breaks.
+export function Content({ type, rendered, mainKey, controls }: {
+  type: string; rendered: Rendered; mainKey: string; controls?: FacetControls;
 }) {
   const parent = isParentType(type) ? type : null;
   // A facet's own Retry needs content that follows the parent's layout.
   const canRetry = rendered.kind === 'parent';
-  const facetHead = (facet: FacetType, hasContent: boolean, note?: string) => parent && <h3 className="facet-title">
+  const facetHead = (facet: FacetType) => parent && <h3 className="facet-title">
     <span>{facetLabel(parent, facet)}</span>
     {controls?.retrying === facet ? <span className="facet-note" data-note="generating">Generating…</span>
-      : controls?.failed === facet ? <span className="facet-note" data-note="failed">Retry failed</span>
-      : note && <span className="facet-note muted">{note}</span>}
-    {controls && <FacetActions name={`${facetLabel(parent, facet)} from ${controls.title}`} hasContent={hasContent} canRetry={canRetry}
+      : controls?.failed === facet && <span className="facet-note" data-note="failed">Retry failed</span>}
+    {controls && <FacetActions name={`${facetLabel(parent, facet)} from ${controls.title}`} hasContent canRetry={canRetry}
       disabled={controls.disabled} asking={controls.asking?.facet === facet ? controls.asking.kind : null}
       setAsking={kind => controls.setAsking(kind ? facet : null, kind ?? undefined)}
       onDelete={() => controls.onDelete(facet)} onRetry={() => controls.onRetry(facet)} />}
   </h3>;
   const section = (facet: string) => ({ className: 'facet', 'data-facet': facet, tabIndex: -1,
     'data-retrying': controls?.retrying === facet || undefined, 'aria-busy': controls?.retrying === facet || undefined });
-  const waitingSection = (facet: string) =>
-    <section key={facet} {...section(facet)} data-waiting>{facetHead(facet as FacetType, false, 'Waiting for Retry')}</section>;
-  const waits = parent ? waiting.filter(facet => isFacetOf(parent, facet)) : [];
-  if (rendered.kind === 'plain') return <>{rendered.text && <pre>{rendered.text}</pre>}{parent && ordered(parent, waits).map(waitingSection)}</>;
+  if (rendered.kind === 'plain') return rendered.text ? <pre>{rendered.text}</pre> : null;
   const { heading, core, facets } = rendered;
   // The core's top line, then its markdown; each facet's markdown in its container (D09).
   return <div className="entry-content">
@@ -218,15 +214,10 @@ export function Content({ type, rendered, mainKey, waiting = [], controls }: {
       {heading.pronunciation && <span className="entry-pronunciation">{heading.pronunciation}</span>}
     </p>}
     {core.length > 0 && <Markdown blocks={core} mainKey={mainKey} className={heading ? 'entry-core' : 'entry-core reading'} />}
-    {parent && facetsOf(parent).map(name => {
-      // A re-added facet waits in its own slot, not after the rest.
-      const facet = facets.find(each => each.facet === name);
-      if (!facet) return waits.includes(name) ? waitingSection(name) : null;
-      return <section key={name} {...section(name)}>
-        {facetHead(name, true)}
-        <Markdown blocks={facet.body} mainKey={mainKey} className="facet-body" />
-      </section>;
-    })}
+    {facets.map(facet => <section key={facet.facet} {...section(facet.facet)}>
+      {facetHead(facet.facet)}
+      <Markdown blocks={facet.body} mainKey={mainKey} className="facet-body" />
+    </section>)}
   </div>;
 }
 
@@ -252,8 +243,7 @@ function ComponentBody({ item, title, editable, draft, locked, persist, redraw, 
     {item.status === 'loading' && <p className="notice">This component is generating. Your draft is preserved; save explicitly after generation finishes.</p>}
   </>;
   const { rendered, present } = readContent(item.moduleType, item.content);
-  return present || item.waitingFacets?.length
-    ? <Content type={item.moduleType} rendered={rendered} mainKey={mainKey} waiting={item.waitingFacets} controls={controls} /> : null;
+  return present ? <Content type={item.moduleType} rendered={rendered} mainKey={mainKey} controls={controls} /> : null;
 }
 
 // Motion (D05): when a component finishes generating while the page is open,
@@ -517,7 +507,7 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
   const card = (item: Component, title: string, { drag, menu, ghost }: RowParts) => {
     const family = isModuleType(item.moduleType) ? CATALOG[item.moduleType].family ?? 'notes' : 'notes';
     const read = readContent(item.moduleType, item.content);
-    const empty = !read.present && !item.waitingFacets?.length && item.status !== 'loading' && item.status !== 'failed' && editingId !== item.id;
+    const empty = !read.present && item.status !== 'loading' && item.status !== 'failed' && editingId !== item.id;
     const removeFacet = (facet: FacetType) => void run(async () => { await deleteFacet(item.id, item.moduleType as ParentType, facet); });
     // Confirmed in its row when the facet has content, as a card's Retry is beside its tab.
     const retryFacet = (facet: FacetType) => void run(() => generate({ scope: 'facet', componentId: item.id, facet }, true));
@@ -546,7 +536,9 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
       : generating || !read.present ? [] : rendered.kind === 'parent' ? rendered.facets.map(each => each.facet) : undefined;
     const tags = controls ? <FacetTags holderId={item.id} parent={item.moduleType as ParentType} facets={item.facets ?? []} filled={filled}
       layout={layout} title={title} disabled={controls.disabled} ghost={ghost}
-      onOpen={layout === 'hanging' ? undefined : facet => showFacet(item, facet)}
+      // On an open card's edge a tag pulls out to its own Retry, which asks nothing (0.7.4).
+      onRetry={layout === 'edge' && rendered.kind === 'parent' && editingId !== item.id ? retryFacet : undefined}
+      retrying={item.retryingFacet} failed={item.failedFacet}
       onRemove={facet => {
         // A facet with content asks first, in its section; one waiting for Retry goes at once.
         const hasContent = rendered.kind === 'parent' && rendered.facets.some(each => each.facet === facet);

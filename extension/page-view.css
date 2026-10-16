@@ -325,7 +325,6 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
 .facet-title { display: flex; align-items: center; gap: 8px; min-height: 26px; margin: 0;
   font: 600 12px/16px var(--font-text); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-muted); }
 .facet-note { font-weight: 400; letter-spacing: 0; text-transform: none; }
-.facet[data-waiting] { padding-bottom: 2px; }
 .facet-lines { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 16px; line-height: 1.5; }
 .facet-actions { margin-left: auto; display: inline-flex; gap: 2px; }
 /* A facet's Retry (0.7.3) and Delete, shown while the facet is pointed at. */
@@ -410,6 +409,29 @@ button.facet-tag-open:hover { background: transparent; }
 .facet-tags[data-layout="edge"] { left: -28px; top: 34px; }
 .facet-tags[data-layout="edge"] .facet-tag { width: 30px; height: 24px; left: 0; top: calc(var(--i) * 30px); --turn: 90deg; }
 .facet-tags[data-layout="edge"] .facet-tag-open { padding: 0 0 0 7px; }
+/* Clicked, a tag on the edge pulls out of the card (0.7.4): it slides out
+   further and the ribbon it was tucked in by shows, holding its Retry, in a
+   deeper shade of the family colour, under the tag and up to the card. */
+.facet-tag { transition: translate var(--dur-spring) var(--ease-spring); }
+.facet-tags[data-layout="edge"] .facet-tag[data-pulled] { translate: -34px 0; z-index: 2; }
+.facet-tag-retry { display: none; }
+.facet-tags[data-layout="edge"] .facet-tag-retry { position: absolute; z-index: -1; left: 26px; top: 0; display: grid; place-items: center; width: 36px; height: 24px;
+  padding: 0 0 0 4px; border: 0; border-radius: 0; color: var(--on-fam, var(--on-ink));
+  background: color-mix(in srgb, var(--fam, var(--fam-notes)) 78%, black); box-shadow: inset 6px 0 6px -4px #0004;
+  transform: scaleX(0); transform-origin: right; opacity: 0; pointer-events: none; cursor: pointer;
+  transition: transform var(--dur-spring) var(--ease-spring), opacity var(--dur-instant) ease; }
+.facet-tags[data-layout="edge"] .facet-tag[data-pulled] .facet-tag-retry { transform: none; opacity: 1; pointer-events: auto; }
+.facet-tags[data-layout="edge"] .facet-tag[data-unfilled] .facet-tag-retry { filter: saturate(.45); }
+.facet-tag-retry svg { width: 13px; height: 13px; transition: rotate var(--dur-spring) var(--ease-spring); }
+.facet-tag .facet-tag-retry:not(:disabled):hover { background: color-mix(in srgb, var(--fam, var(--fam-notes)) 66%, black); color: var(--on-fam, var(--on-ink)); }
+.facet-tag-retry:not(:disabled):hover svg { rotate: -40deg; }
+.facet-tag-retry:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+.facet-tag-retry:disabled { cursor: default; opacity: .5; }
+/* Regenerating on its own, a tag breathes; its Retry having failed, it wears a
+   small dot in the failed colour. */
+.facet-tag[data-retrying] .facet-tag-open { animation: tag-busy 900ms ease-in-out infinite alternate; }
+@keyframes tag-busy { from { opacity: 1; } to { opacity: .45; } }
+.facet-tag[data-failed] .facet-tag-open { background: radial-gradient(circle at 5px 5px, var(--status-failed) 3px, transparent 3.5px); }
 /* Folded: in a row at the right of the bottom edge, hanging below it. */
 .facet-tags[data-layout="folded"] { right: 18px; top: calc(100% - 6px); }
 .facet-tags[data-layout="folded"] .facet-tag { right: calc((var(--n) - 1 - var(--i)) * 28px); top: 0; }
@@ -485,7 +507,7 @@ button.facet-tag-open:hover { background: transparent; }
 .facet[data-shown] { border-radius: 6px; animation: tag-shown 1.2s var(--ease-out); }
 .facet:focus { outline: none; }
 .facet:focus-visible { outline: 2px solid var(--focus); outline-offset: 4px; border-radius: 4px; }
-@media (prefers-reduced-motion: reduce) { .facet-tag::before { transition: none; } .facet-tag[data-leaving] { animation: none; }
+@media (prefers-reduced-motion: reduce) { .facet-tag::before { transition: none; } .facet-tag[data-retrying] .facet-tag-open { animation: none; } .facet-tag[data-leaving] { animation: none; }
   .shaping-list[data-picking] { animation: none; --glow-level: .7; --glow-sweep: .5; } }
 @media (max-width: 600px) { .facet-tags[data-layout="edge"] { left: -16px; } }
 @media (forced-colors: active) {
