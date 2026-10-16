@@ -66,4 +66,4 @@ Confirmation dialogs for retry, deletion, and unsaved changes stay open until th
 
 ## Text content
 
-The Context, the Text module and the main key hold plain text, shown with line breaks preserved and never interpreted as HTML; editing them edits that text. A parent module's content is structured data drawn into fixed containers ([modules](modules.md#render-contracts); [D09](../architecture/traceability-map.md#entries)): the core, then one container per facet with content. Editing it shows fields, never stored syntax ([pages and editing](pages-and-editing.md#editing-generated-components)).
+The Context, the Text module and the main key hold plain text, shown with line breaks preserved and never interpreted as HTML; editing them edits that text. A parent module's content is markdown per facet, drawn into fixed containers ([modules](modules.md#render-contracts); [D09](../architecture/traceability-map.md#entries)): the core, then one container per facet with content. Editing it formats the text live, without showing markdown characters ([pages and editing](pages-and-editing.md#editing-generated-components)).
