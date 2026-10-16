@@ -54,7 +54,7 @@ A component records the page's module instance that owns it. That ownership, not
 
 A **Text component** is the user's own writing, owned by a Text module instance. Generation never creates, replaces, or removes it. Text modules replace the earlier manual components, which no module owned.
 
-A component's content is a versioned block document ([Q13](../architecture/questionnaire/answers/answers-03-frontend.md#q13)). The current modules produce plain text, stored as paragraph blocks and shown as plain text. A component can be empty; emptiness alone does not indicate a failed generation attempt. Components have no inherent subject or language; their meaning comes from the module that owns them or from what the user writes. A parent module's component holds its core followed by one section per facet.
+A component's content is a versioned block document ([Q13](../architecture/questionnaire/answers/answers-03-frontend.md#q13)). Context and Text hold plain text, stored as paragraph blocks. Since D09 a parent module's component holds structured data as one typed block: its core and an entry per facet ([modules](../specs/modules.md#render-contracts)). A component can be empty; emptiness alone does not indicate a failed generation attempt. Components have no inherent subject or language; their meaning comes from the module that owns them or from what the user writes. A parent module's component holds its core followed by one entry per facet.
 
 ## Module type, instance, and output
 
@@ -74,7 +74,7 @@ A **module instance** is one placement of an input or content module type, with 
 
 **Applicability** means whether a facet is relevant to the input interpretation, such as an article only for a word. A parent's core always applies; a facet that does not apply contributes nothing and is not shown. Instances in one generation run share the input interpretation but evaluate their own facets. Several instances of one parent type generate independently.
 
-**Module output** is the content an instance contributes to its own component: its core and its applicable facets. A content module never changes another component. The user may edit a generated component; the edit lasts until the next retry of that component.
+**Module output** is the content an instance contributes to its own component: its core and its applicable facets. A content module never changes another component. The user may edit a generated component through its fields, never its structure; the edit lasts until the next retry of that component.
 
 ## View
 

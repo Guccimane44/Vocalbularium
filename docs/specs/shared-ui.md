@@ -66,6 +66,4 @@ Confirmation dialogs for retry, deletion, and unsaved changes stay open until th
 
 ## Text content
 
-Component content is stored as text and rendered for reading. Each content module type has a render contract ([modules](modules.md#render-contracts)): the extension recognizes the module's text format and shows its structure, such as headings, numbered meanings, and examples beside their translations. Text it does not recognize, the user's own text, and edited content that no longer matches the format are shown as plain text with line breaks preserved. Rendering never interprets text as HTML; markup that is not part of a render contract is shown literally. Editing a component shows and saves its stored text, never the rendered form.
-
-Rich block content follows [Q13](../architecture/questionnaire/answers/answers-03-frontend.md#q13) and [Q59](../architecture/questionnaire/answers/answers-11-security-privacy.md#q59), which are still `Proposed`; D05 does not change storage ([C17](../architecture/traceability-map.md#conflicts)).
+The Context, the Text module and the main key hold plain text, shown with line breaks preserved and never interpreted as HTML; editing them edits that text. A parent module's content is structured data drawn into fixed containers ([modules](modules.md#render-contracts); [D09](../architecture/traceability-map.md#entries)): the core, then one container per facet with content. Editing it shows fields, never stored syntax ([pages and editing](pages-and-editing.md#editing-generated-components)).
