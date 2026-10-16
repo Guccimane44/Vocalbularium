@@ -1,7 +1,8 @@
-import type { Component, GenerationTarget, ModuleInstance } from '@vocabularium/contracts';
+import type { BlockDocument, Component, GenerationTarget, ModuleInstance } from '@vocabularium/contracts';
 import { MAX_MODULES } from '@vocabularium/contracts';
 import { isParentType, PARENTS, validateFacets } from './parents.js';
 import { blockText } from './pages.js';
+import { parentContentOf } from './content.js';
 import { renderContent } from './render.js';
 import type { ParentType } from './parents.js';
 
@@ -110,7 +111,7 @@ export function generationTargets(target: GenerationTarget | { scope: 'capture' 
       const component = components.find(item => item.id === target.componentId);
       if (!component) throw new Error('This component no longer exists.');
       if (!isParentType(component.moduleType) || !component.facets?.includes(target.facet)) throw new Error('This facet is no longer there.');
-      if (renderContent(component.moduleType, blockText(component.content)).kind !== 'parent') throw new Error('Retry the whole module: its content no longer follows its layout.');
+      if (!parentContentOf(component.content)) throw new Error('Retry the whole module first: it has no content yet.');
       return [component];
     }
   }
@@ -131,17 +132,21 @@ export function firstMeaning(text: string): string | null {
   return null;
 }
 
-// The meaning line of a page summary (D05, D08): the first numbered meaning in
-// the core of the page's first content component that has one; otherwise, for
-// a sentence, the first line of the first translation.
-export function pageMeaning(components: readonly { type: string; text: string | null }[]): string | null {
-  const content = components.filter(item => isContentType(item.type) && item.text);
-  for (const component of content) {
-    const meaning = firstMeaning(component.text!);
+// The meaning line of a page summary (D05, D08): the first meaning in the core
+// of the page's first content component that has one; otherwise, for a
+// sentence, the first line of the first translation. Structured content (D09)
+// is read as data; plain text as before.
+export function pageMeaning(components: readonly { type: string; text?: string | null; content?: BlockDocument | null }[]): string | null {
+  const content = components.filter(item => isContentType(item.type)).map(item => ({
+    type: item.type, data: item.content ? parentContentOf(item.content) : null, text: item.text ?? (item.content ? blockText(item.content) : '') }));
+  for (const { data, text } of content) {
+    const meaning = data ? (data.core.kind === 'word' ? data.core.meanings[0] ?? null : null) : text ? firstMeaning(text) : null;
     if (meaning) return meaning;
   }
-  for (const component of content) {
-    const rendered = renderContent(component.type, component.text!);
+  for (const { type, data, text } of content) {
+    if (data?.core.kind === 'sentence' && data.core.translation) return data.core.translation.split('\n')[0]!.trim();
+    if (data || !text) continue;
+    const rendered = renderContent(type, text);
     if (rendered.kind === 'parent' && rendered.core.kind === 'sentence') return rendered.core.text.split('\n')[0]!.trim();
   }
   return null;

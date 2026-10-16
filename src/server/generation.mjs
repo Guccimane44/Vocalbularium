@@ -1,5 +1,6 @@
 import { generateComponent, generateFacet, validateInterpretation } from '@vocabularium/domain/modules';
 import { blockText, mainKeyOf } from '@vocabularium/domain/pages';
+import { parentContentOf } from '@vocabularium/domain/content';
 
 // The saved Context, when the page has a non-empty one, is the only other generation input.
 function contextOf(components) {
@@ -10,6 +11,13 @@ import { OpenCodeProvider } from './opencode.mjs';
 import { mkdirSync, readdirSync, readFileSync, writeFileSync, renameSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { diagnosticContext } from './diagnostics.mjs';
+
+// The content a facet's own Retry builds on: the component's structured data.
+function existingContent(component) {
+  const content = parentContentOf(component.content);
+  if (!content) throw new Error('The component has no structured content to keep.');
+  return content;
+}
 
 export class Generation {
   constructor(store, provider = new OpenCodeProvider(), { maxActive = 4, maxQueued = 16, diagnostic = () => {}, emit = () => {} } = {}) {
@@ -150,10 +158,11 @@ export class Generation {
       const generate = request => this.provider.generate({ ...request, context: input.context, sessionId: pageId }, controller.signal);
       // A facet's own Retry (0.7.3) replaces only its section of the content kept meanwhile.
       const output = attempt.module.retry
-        ? await generateFacet({ mainKey: input.mainKey, module: attempt.module, facet: attempt.module.retry, existing: blockText(target.content), interpretation, generate })
+        ? await generateFacet({ mainKey: input.mainKey, module: attempt.module, facet: attempt.module.retry, existing: existingContent(target), interpretation, generate })
         : await generateComponent({ mainKey: input.mainKey, module: attempt.module, interpretation, generate });
       if (controller.signal.aborted) return;
-      result = { ok: true, text: output };
+      // Structured content (D09), journalled and staged as data.
+      result = { ok: true, content: output };
       this.emit({ event: 'generation.output', attemptId, pageId, componentId: attempt.component_id, outcome: 'succeeded', content: { output } });
     } catch (error) {
       job.outcome = 'failed';

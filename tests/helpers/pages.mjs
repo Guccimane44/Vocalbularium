@@ -1,9 +1,23 @@
 import { blockText, textBlocks } from '@vocabularium/domain/pages';
+import { parentContentOf } from '@vocabularium/domain/content';
 import { isContentType } from '@vocabularium/domain/page-modules';
 import { facetsOf, isParentType } from '@vocabularium/domain/parents';
 
 export { textBlocks };
-export const text = component => blockText(component.content);
+// A component's text: its plain text, or for structured parent content (D09)
+// its meanings or translation, one per line.
+export const text = component => {
+  const data = parentContentOf(component.content);
+  if (!data) return blockText(component.content);
+  return data.core.kind === 'word' ? data.core.meanings.join('\n') : data.core.translation ?? '';
+};
+// Structured provider results (D09) for controlled providers.
+export const wordResult = (meanings, facets = {}, { language = 'Englisch', key = 'key' } = {}) =>
+  ({ core: { kind: 'word', language, key, meanings: [].concat(meanings) }, facets });
+export const sentenceResult = (translation, facets = {}) => ({ core: { kind: 'sentence', translation }, facets });
+// The result for the request's input type: `value` as the one meaning of a word, or a sentence's translation.
+export const resultFor = (request, value, facets = {}) =>
+  request.interpretation.inputType === 'sentence' ? sentenceResult(value, facets) : wordResult(value, facets, { key: request.selectedText });
 // Content components: the ones generation produces.
 export const generated = page => page.components.filter(component => isContentType(component.moduleType));
 export const component = (page, moduleType) => page.components.find(candidate => candidate.moduleType === moduleType);

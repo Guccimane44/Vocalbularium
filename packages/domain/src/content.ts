@@ -118,6 +118,18 @@ export function validateParentContent(parent: ParentType, value: unknown, { face
   return { core: core(value.core, complete), facets: checked as ParentFacets };
 }
 
+// One facet's entry checked on its own, as `validateParentContent` checks it.
+export function validateFacetEntry(parent: ParentType, facet: FacetType, value: unknown, { complete = false }: { complete?: boolean } = {}): unknown {
+  if (!isFacetOf(parent, facet)) return fail(`${PARENTS[parent].label} has no facet "${facet}".`);
+  return FACET_SHAPES[facet](value, PARENTS[parent].facets[facet]!.label, complete);
+}
+
+// Whether a provider left a facet's entry out or empty: no content, not a failure (D09).
+export function emptyEntry(value: unknown): boolean {
+  return value === undefined || value === null || (Array.isArray(value) && value.every(emptyItem)) || (isRecord(value) && Object.values(value).every(blank))
+    || (typeof value === 'string' && !value.trim());
+}
+
 // What the field editor sends: every text may be empty and every list may hold
 // empty items; nothing else may differ from the stored shape.
 export type ParentDraft = Readonly<{
