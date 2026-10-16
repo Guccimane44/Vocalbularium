@@ -124,3 +124,24 @@ test('stored content is one parent block, has no plain text, and renders its cor
   assert.equal(sentence.heading, null);
   assert.deepEqual(sentence.facets.map(facet => facet.facet), ['examples', 'pinyin'], 'in the parent’s order, not the data’s');
 });
+
+test('the live editor’s document converts to and from the markdown subset, round-tripping what generation writes (D09)', async () => {
+  const { fromEditorDoc, toEditorDoc } = await import('@vocabularium/domain/markdown');
+  const content = formatContent({ ...bank, facets: { ...bank.facets, antonyms: ['Strom', 'a*b'] } });
+  for (const text of [content.core, ...Object.values(content.facets), 'Plain\nwith a break', '**bold** *italic* `code` ==mark==', '- a\n- **b**', '3. three\n4. four'])
+    assert.equal(fromEditorDoc(toEditorDoc(text)), text, text);
+  assert.deepEqual(toEditorDoc('1. We sat.\n   *Wir saßen.*'), { type: 'doc', content: [{ type: 'orderedList', attrs: { start: 1 }, content: [{ type: 'listItem', content: [
+    { type: 'paragraph', content: [{ type: 'text', text: 'We sat.' }, { type: 'hardBreak' }, { type: 'text', text: 'Wir saßen.', marks: [{ type: 'italic' }] }] }] }] }] });
+  assert.deepEqual(toEditorDoc(''), { type: 'doc', content: [{ type: 'paragraph' }] });
+  // What a user types in the editor becomes markdown the card reads back the same way.
+  const typed = { type: 'doc', content: [
+    { type: 'paragraph', content: [{ type: 'text', text: 'both ', marks: [] }, { type: 'text', text: 'loud', marks: [{ type: 'italic' }, { type: 'bold' }] },
+      { type: 'text', text: ' 1. not a list *star*' }] },
+    { type: 'paragraph' },
+    { type: 'bulletList', content: [{ type: 'listItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'one ', marks: [{ type: 'highlight' }] }] },
+      { type: 'bulletList', content: [{ type: 'listItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'nested' }] }] }] }] }] }] };
+  const written = fromEditorDoc(typed);
+  assert.equal(written, 'both **_loud_** 1. not a list \\*star\\*\n\n- ==one== \n  nested', 'marks close in order, spaces stay outside them, nested items flatten');
+  assert.deepEqual(plainLines(written), ['both loud 1. not a list *star*', 'one']);
+  assert.equal(fromEditorDoc({ type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: '1. starts like a list' }] }] }), '1\\. starts like a list');
+});

@@ -7,9 +7,12 @@ import { emphasise, renderContent, renderParent } from '@vocabularium/domain/ren
 import type { Rendered } from '@vocabularium/domain/render';
 import type { MdBlock, MdInline } from '@vocabularium/domain/markdown';
 import { parentContentOf } from '@vocabularium/domain/content';
+import type { ParentContent } from '@vocabularium/domain/content';
+import { hasText } from '@vocabularium/domain/markdown';
+import { LiveEditor } from './live-editor.tsx';
 import { facetLabel, isFacetOf, isParentType } from '@vocabularium/domain/parents';
 import type { FacetType, ParentType } from '@vocabularium/domain/parents';
-import type { PageEditorDraft } from '../types/editor-drafts.js';
+import type { FieldDraft, PageEditorDraft } from '../types/editor-drafts.js';
 import { FacetTags, FOLD_MS } from './facet-tags.tsx';
 import type { TagLayout } from './facet-tags.tsx';
 import { FamilyIcon } from './families.tsx';
@@ -222,9 +225,20 @@ export function Content({ type, rendered, mainKey, waiting = [], controls }: {
   </div>;
 }
 
-function ComponentBody({ item, title, editable, draft, locked, persist, mainKey, controls }: {
-  item: Component; title: string; editable: boolean; draft?: PageEditorDraft; locked: boolean; persist: () => void; mainKey: string; controls?: FacetControls;
+// A live-editor draft as plain lines, shown when its page or card is gone meanwhile.
+const draftText = (fields: FieldDraft): string => [fields.core, ...Object.values(fields.facets)].filter(text => hasText(text)).join('\n\n');
+
+function ComponentBody({ item, title, editable, draft, locked, persist, redraw, mainKey, controls }: {
+  item: Component; title: string; editable: boolean; draft?: PageEditorDraft; locked: boolean; persist: () => void; redraw: () => void; mainKey: string; controls?: FacetControls;
 }) {
+  // A parent in its live editor (D09), drawn from the content it opened with:
+  // the card may be regenerating meanwhile.
+  const fields = draft?.fields?.[item.id];
+  if (editable && fields && isParentType(item.moduleType)) return <>
+    <LiveEditor parent={item.moduleType} title={title} fields={fields} redraw={redraw} persist={persist}
+      opened={(draft?.fieldStored?.[item.id] as ParentContent | undefined) ?? parentContentOf(item.content)} locked={locked || item.status === 'loading'} />
+    {item.status === 'loading' && <p className="notice">This component is generating. Your draft is preserved; save explicitly after generation finishes.</p>}
+  </>;
   if (editable && draft) return <>
     <TextField id={`component-${item.id}`} labelText={`Edit ${title}`} value={draft.texts[item.id]}
       error={item.moduleType === 'main-key' ? draft.fieldError : undefined}
@@ -351,7 +365,7 @@ function readFolded(key: string | null): ReadonlySet<string> {
 }
 
 export function PageView({ page, deck, draft, isNew, editing, busy, error, pendingSaves, retryPendingSave,
-  navigate, begin, persist, save, cancel, discardUnavailable, deletePage, generate, addModule, moveComponent, deleteComponent, addFacet, deleteFacet }: Props) {
+  navigate, begin, persist, redraw, save, cancel, discardUnavailable, deletePage, generate, addModule, moveComponent, deleteComponent, addFacet, deleteFacet }: Props) {
   const [working, setWorking] = useState(false);
   // The card whose tab has ejected its actions; one at a time.
   const [opened, setOpened] = useState<string | null>(null);
@@ -417,7 +431,7 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
     <p>This page or deck has been deleted.</p>
     {draft && <>
       <p className="notice">Your unsaved text is still here. Copy anything you want to keep before discarding it.</p>
-      {[draft.mainKey, ...Object.values(draft.inputs ?? {}), ...Object.values(draft.texts)].filter(Boolean).map((text, index) => <pre key={index}>{text}</pre>)}
+      {[draft.mainKey, ...Object.values(draft.inputs ?? {}), ...Object.values(draft.texts), ...Object.values(draft.fields ?? {}).map(draftText)].filter(Boolean).map((text, index) => <pre key={index}>{text}</pre>)}
       <button onClick={() => void discardUnavailable()}>Discard draft</button>
     </>}
   </>;
@@ -434,7 +448,7 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
   // Shaping waits while a card is being edited; its Save and Cancel are right there.
   const disabled = Boolean(editingId) || busy;
   const known = new Set(page.components.map(item => item.id));
-  const lost = editing && draft ? Object.keys(draft.texts).filter(id => !known.has(id)) : [];
+  const lost = editing && draft ? [...Object.keys(draft.texts), ...Object.keys(draft.fields ?? {})].filter(id => !known.has(id)) : [];
   const items = numbered(rest.map(item => ({ id: item.id, type: item.moduleType, label: moduleLabel(item.moduleType), component: item,
     holder: { id: item.id, type: item.moduleType, facets: item.facets, status: item.status } })));
 
@@ -467,8 +481,8 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
     let index = 0;
     const order = () => ({ '--i': index++ }) as CSSProperties;
     return <div id={`actions-${item.id}`} className="card-actions" role="group" aria-label={`${title} actions`} data-open={open || undefined}>
-      {/* A parent is edited in its live editor (D09, 0.7.4 increment 7); until then, not here. */}
-      {open && <button style={order()} aria-label={`Edit ${title}`} disabled={Boolean(editingId) || item.status === 'loading' || isParentType(item.moduleType)}
+      {/* A parent is edited in its live editor once it has content (D09); Retry fills it first. */}
+      {open && <button style={order()} aria-label={`Edit ${title}`} disabled={Boolean(editingId) || item.status === 'loading' || (isParentType(item.moduleType) && !parentContentOf(item.content))}
         onClick={choose(() => { if (isFolded) fold(item.id, false); begin(item.id); })}>
         <ActionIcon name="edit" />Edit</button>}
       {generated && <button style={order()} className={item.status === 'failed' ? 'action-failed' : undefined} aria-label={`Retry ${title}`}
@@ -483,7 +497,7 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
     </div>;
   };
   const editor = (item: Component, title: string) => editingId === item.id && draft && <>
-    <ComponentBody item={item} title={title} editable draft={draft} locked={locked} persist={persist} mainKey={mainKey} />
+    <ComponentBody item={item} title={title} editable draft={draft} locked={locked} persist={persist} redraw={redraw} mainKey={mainKey} />
     <div className="component-tools">
       <button disabled={busy} onClick={() => void cancel()}>Cancel</button>
       <button className="primary" disabled={busy} onClick={() => void save()}>{draft.pending ? 'Try saving again' : 'Save'}</button>
@@ -521,7 +535,10 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
     // content outside the parent's layout, the sections cannot be told apart,
     // so no tag is marked.
     const { rendered } = read;
-    const filled = generating || !read.present ? [] : rendered.kind === 'parent' ? rendered.facets.map(each => each.facet) : undefined;
+    // While it is edited, a tag shows whether its facet has text in the draft (D09).
+    const fieldDraft = editingId === item.id ? draft?.fields?.[item.id] : undefined;
+    const filled = fieldDraft ? Object.entries(fieldDraft.facets).filter(([, text]) => hasText(text)).map(([facet]) => facet)
+      : generating || !read.present ? [] : rendered.kind === 'parent' ? rendered.facets.map(each => each.facet) : undefined;
     const tags = controls ? <FacetTags holderId={item.id} parent={item.moduleType as ParentType} facets={item.facets ?? []} filled={filled}
       layout={layout} title={title} disabled={controls.disabled} ghost={ghost}
       onOpen={layout === 'hanging' ? undefined : facet => showFacet(item, facet)}
@@ -557,7 +574,7 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
         {item.status === 'failed' && <p className="card-status"><span className="list-status" data-status="failed">Generation failed</span></p>}
         {editor(item, title) || <Reveal status={item.status} title={title} failedFacet={item.failedFacet}
           facet={item.retryingFacet && isParentType(item.moduleType) && isFacetOf(item.moduleType, item.retryingFacet)
-            ? { id: item.retryingFacet, name: facetLabel(item.moduleType, item.retryingFacet) } : undefined}><ComponentBody item={item} title={title} editable={false} draft={draft} locked={locked} persist={persist} mainKey={mainKey} controls={controls} /></Reveal>}
+            ? { id: item.retryingFacet, name: facetLabel(item.moduleType, item.retryingFacet) } : undefined}><ComponentBody item={item} title={title} editable={false} draft={draft} locked={locked} redraw={redraw} persist={persist} mainKey={mainKey} controls={controls} /></Reveal>}
       </div></div>}
       {tags}
     </article>;
@@ -585,7 +602,7 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
       renderItem={(item, parts) => card(item.component, item.label, parts)} />
     {lost.map(id => <div key={id}>
       <p className="notice">The component you were editing no longer exists. Its unsaved text is preserved below.</p>
-      <pre>{draft!.texts[id]}</pre>
+      <pre>{draft!.texts[id] ?? draftText(draft!.fields![id]!)}</pre>
       <button onClick={() => void cancel()}>Discard draft</button>
     </div>)}
     {!editingId && pendingSaves.map(item => <div className="notice" key={item.operationId}>

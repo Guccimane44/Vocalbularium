@@ -153,3 +153,83 @@ export function plainLines(source: string): string[] {
 }
 // Whether a markdown text holds anything to read.
 export const hasText = (source: string | undefined): boolean => Boolean(source && plainLines(source).length);
+
+// --- The editor's document (D09, amended) ---------------------------------
+// The live editor (TipTap) holds a document of paragraphs, hard breaks,
+// bulleted and numbered lists and the bold, italic, code and highlight marks,
+// named as TipTap's StarterKit and Highlight name them. These convert it to
+// and from the markdown subset above, so what the editor writes is exactly
+// what the card reads. Nested lists are flattened into their item.
+
+export type EditorMark = Readonly<{ type: 'bold' | 'italic' | 'code' | 'highlight' }>;
+export type EditorNode = Readonly<{
+  type: string;
+  attrs?: Readonly<Record<string, unknown>>;
+  content?: readonly EditorNode[];
+  text?: string;
+  marks?: readonly EditorMark[];
+}>;
+
+const MARK_OF: Record<'strong' | 'em' | 'mark', EditorMark['type']> = { strong: 'bold', em: 'italic', mark: 'highlight' };
+function inlineNodes(runs: readonly MdInline[], marks: readonly EditorMark[] = []): EditorNode[] {
+  return runs.flatMap((run): EditorNode[] => {
+    if (run.type === 'text') return run.text ? [{ type: 'text', text: run.text, ...(marks.length ? { marks } : {}) }] : [];
+    if (run.type === 'break') return [{ type: 'hardBreak' }];
+    if (run.type === 'code') return run.text ? [{ type: 'text', text: run.text, marks: [...marks, { type: 'code' }] }] : [];
+    return inlineNodes(run.children, [...marks, { type: MARK_OF[run.type] }]);
+  });
+}
+const paragraph = (runs: readonly MdInline[]): EditorNode => {
+  const content = inlineNodes(runs);
+  return content.length ? { type: 'paragraph', content } : { type: 'paragraph' };
+};
+export function toEditorDoc(source: string): EditorNode {
+  const blocks = parseMarkdown(source);
+  const content = blocks.map((block): EditorNode => block.type === 'paragraph' ? paragraph(block.children)
+    : { type: block.ordered ? 'orderedList' : 'bulletList', ...(block.ordered ? { attrs: { start: block.start } } : {}),
+      content: block.items.map(item => ({ type: 'listItem', content: [paragraph(item)] })) });
+  return { type: 'doc', content: content.length ? content : [{ type: 'paragraph' }] };
+}
+
+// Inline text with only the subset's markup characters escaped; line starts
+// are escaped where lines are put together.
+const escapeInline = (text: string) => text.replace(/[\\`*_=]/g, '\\$&');
+const escapeLineStart = (line: string) => line.replace(/^(\s*)(\d+)\.(\s)/, '$1$2\\.$3').replace(/^(\s*)([-+])(\s)/, '$1\\$2$3');
+const WRAP: Record<EditorMark['type'], string> = { bold: '**', italic: '*', code: '`', highlight: '==' };
+function inlineText(nodes: readonly EditorNode[] | undefined): string {
+  return (nodes ?? []).map(node => {
+    if (node.type === 'hardBreak') return '\n';
+    if (node.type !== 'text' || !node.text) return '';
+    const marks = node.marks ?? [];
+    if (marks.some(mark => mark.type === 'code')) return `\`${node.text.replace(/`/g, '')}\``;
+    // Bold outside italic outside highlight, so nested marks always close in order.
+    const order: EditorMark['type'][] = ['bold', 'italic', 'highlight'];
+    const applied = order.filter(type => marks.some(mark => mark.type === type));
+    const text = escapeInline(node.text);
+    // A mark cannot open or close on a space: keep the spaces outside it.
+    const [, lead, body, trail] = /^(\s*)([\s\S]*?)(\s*)$/.exec(text)!;
+    if (!body) return text;
+    // Italic inside bold is written with _, so ***x*** never has to be read.
+    const wrap = (type: EditorMark['type']) => type === 'italic' && applied.includes('bold') ? '_' : WRAP[type];
+    return lead + applied.map(wrap).join('') + body + [...applied].reverse().map(wrap).join('') + trail;
+  }).join('');
+}
+// A block's lines: a paragraph's text, or a list's items, continuation lines
+// indented under their item.
+function blockLines(node: EditorNode): string[] {
+  if (node.type === 'paragraph') return inlineText(node.content).split('\n').map(escapeLineStart);
+  if (node.type === 'bulletList' || node.type === 'orderedList') {
+    const start = Number(node.attrs?.start ?? 1) || 1;
+    return (node.content ?? []).flatMap((item, index) => {
+      const marker = node.type === 'orderedList' ? `${start + index}. ` : '- ';
+      const lines = (item.content ?? []).flatMap(child => child.type === 'paragraph' ? blockLines(child)
+        : blockLines(child).map(line => line.replace(/^\d+\.\s|^-\s/, ''))).filter(line => line.trim());
+      return (lines.length ? lines : ['']).map((line, at) => (at ? ' '.repeat(marker.length) : marker) + line);
+    });
+  }
+  return (node.content ?? []).flatMap(blockLines);
+}
+export function fromEditorDoc(doc: EditorNode): string {
+  const blocks = (doc.content ?? []).map(blockLines).map(lines => lines.join('\n')).filter(text => text.trim());
+  return blocks.join('\n\n');
+}
