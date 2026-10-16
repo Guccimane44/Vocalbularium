@@ -2,7 +2,7 @@ import test, { createTestStore } from './helpers/database.mjs';
 import assert from 'node:assert/strict';
 import { Generation } from '../src/server/generation.mjs';
 import { sortPages } from '../extension/sorting.ts';
-import { complete, component, confirmed, generated, text, textBlocks, useModules } from './helpers/pages.mjs';
+import { complete, component, confirmed, generated, text, textBlocks, useModules, resultFor } from './helpers/pages.mjs';
 
 const session = { installationId: 'a', sessionId: 'browser', epoch: 1 };
 async function fixture(t) {
@@ -82,7 +82,7 @@ test('component retry confirms first, uses the current main key, and leaves othe
   const interpretations = [];
   const generation = await Generation.create(store, {
     interpret: async mainKey => { interpretations.push(mainKey); return { inputType: 'word_phrase', sourceLanguage: 'English' }; },
-    generate: async () => 'regenerated' });
+    generate: async request => resultFor(request, 'regenerated') });
   t.after(() => generation.close());
   const result = await store.generate('retry', { ...retry, confirmation });
   await generation.start(pageId, result.attemptIds);

@@ -5,10 +5,10 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { Generation } from '../src/server/generation.mjs';
-import { OpenCodeProvider, parentInstructions } from '../src/server/opencode.mjs';
+import { OpenCodeProvider, parentInstructions, parentSchema } from '../src/server/opencode.mjs';
 import { generateComponents } from '@vocabularium/domain/modules';
 import { isContentType } from '@vocabularium/domain/page-modules';
-import { confirmed, generated, text, textBlocks, useModules } from './helpers/pages.mjs';
+import { confirmed, generated, resultFor, sentenceResult, text, textBlocks, useModules, wordResult } from './helpers/pages.mjs';
 
 const session = { installationId: 'test-installation', sessionId: 'test-browser', epoch: 1 };
 const word = { inputType: 'word_phrase' };
@@ -58,7 +58,7 @@ test('bounded generation queues component attempts and fails an overloaded saved
         signal.addEventListener('abort', () => reject(signal.reason), { once: true });
       });
     },
-    generate: async () => 'generated text'
+    generate: async request => resultFor(request, 'generated text')
   }, { maxActive: 1, maxQueued: 1, diagnostic: event => {
     events.push(event);
     if (event.event === 'settled' && event.attemptId === secondAttemptId) secondSettled();
@@ -100,7 +100,7 @@ test('a busy confirmed Retry returns 429 and preserves component content and att
         release = resolve; started();
         signal.addEventListener('abort', () => reject(signal.reason), { once: true });
       }),
-      generate: async () => 'generated text'
+      generate: async request => resultFor(request, 'generated text')
     }
   });
   t.after(() => application.close());
@@ -147,7 +147,7 @@ test('a busy confirmed Retry returns 429 and preserves component content and att
 
 test('a multi-component request reserves all its slots or none', async t => {
   const pending = (_text, signal) => new Promise((_, reject) => signal.addEventListener('abort', () => reject(signal.reason), { once: true }));
-  const { generation, capture } = await fixture(t, { interpret: pending, generate: async () => 'x' }, ['chinese'], { maxActive: 1, maxQueued: 2 });
+  const { generation, capture } = await fixture(t, { interpret: pending, generate: async request => resultFor(request, 'x') }, ['chinese'], { maxActive: 1, maxQueued: 2 });
   await capture();
   assert.equal(generation.occupied(), 1);
   assert.equal(generation.reserve(3), null);
@@ -204,7 +204,7 @@ test('an obsolete interpretation is canceled even when the same page has a new-s
         releases[index] = resolve; started[index]();
         signal.addEventListener('abort', () => reject(signal.reason), { once: true });
       });
-    }, generate: async () => 'generated text'
+    }, generate: async request => resultFor(request, 'generated text')
   }, ['chinese'], { maxActive: 2, maxQueued: 0 });
   const page = await capture('word');
   await firstStarted;
@@ -221,7 +221,7 @@ test('an obsolete interpretation is canceled even when the same page has a new-s
 });
 
 test('diagnostic failures cannot turn an admitted saved capture into a failed request', async t => {
-  const { store, generation, capture } = await fixture(t, { interpret: async () => word, generate: async () => 'text' }, undefined,
+  const { store, generation, capture } = await fixture(t, { interpret: async () => word, generate: async request => resultFor(request, 'text') }, undefined,
     { diagnostic: () => { throw new Error('logger unavailable'); } });
   const page = await capture('word');
   await finish(store, generation);
@@ -233,9 +233,9 @@ test('modules receive the exact main key and keep literal markers', async () => 
   const received = [];
   const outcomes = await generateComponents({
     mainKey: input, modules: modules('chinese', 'chinese'), interpretation: word,
-    generate: async ({ selectedText }) => { received.push(selectedText); return '<b>幸福</b> & 快乐'; }
+    generate: async request => { received.push(request.selectedText); return resultFor(request, '<b>幸福</b> & 快乐'); }
   });
-  assert.deepEqual(outcomes.map(item => item.text), ['<b>幸福</b> & 快乐', '<b>幸福</b> & 快乐']);
+  assert.deepEqual(outcomes.map(item => item.content.core.meanings[0]), ['<b>幸福</b> & 快乐', '<b>幸福</b> & 快乐']);
   assert.deepEqual(received, [input, input]);
 });
 
@@ -243,7 +243,7 @@ test('one shared interpretation per run; components fail independently', async (
   let interpretations = 0;
   const { store, generation, capture } = await fixture(t, {
     interpret: async () => { interpretations++; return word; },
-    generate: async ({ module }) => { if (module.type === 'german') throw Error('controlled failure'); return 'explanation'; }
+    generate: async request => { if (request.module.type === 'german') throw Error('controlled failure'); return resultFor(request, 'explanation'); }
   }, ['chinese', 'german', 'chinese']);
   const page = await capture();
   assert.equal((await store.page(page.id)).status, 'loading');
@@ -262,7 +262,7 @@ test('interpretation failure fails every component without a module call', async
 
 test('repeated modules generate independently, even when they produce the same text', async (t) => {
   let calls = 0;
-  const { store, generation, capture } = await fixture(t, { interpret: async () => sentence, generate: async () => { calls++; return 'same example'; } }, ['chinese', 'chinese']);
+  const { store, generation, capture } = await fixture(t, { interpret: async () => sentence, generate: async request => { calls++; return resultFor(request, 'same example'); } }, ['chinese', 'chinese']);
   const page = await capture(); await finish(store, generation);
   assert.equal(calls, 2);
   assert.deepEqual(await outcome(store, page), [['same example', 'completed'], ['same example', 'completed']]);
@@ -275,30 +275,36 @@ async function parentFixture(t, provider, facets = ['article', 'examples', 'syno
   await result.store.saveDeck('german', { deck: { ...deck, modules: [deck.modules[0], { id: 'g', type: 'german', facets }] } });
   return result;
 }
-const GERMAN_WORD = '== Englisch (bank) ==\n=== Bedeutungen ===\n: [1] Ufer\n=== Article ===\n: das Ufer · die Ufer\n=== Examples ===\n: [1] We sat on the bank.\n:: Wir saßen am Ufer.';
+const BANK = wordResult(['Ufer'], { article: { singular: 'das Ufer', plural: 'die Ufer' },
+  examples: [{ sentence: 'We sat on the bank.', translation: 'Wir saßen am Ufer.' }] }, { key: 'bank' });
+const data = async (store, page) => (await store.page(page.id)).components.filter(item => item.moduleType === 'german').map(item => item.content.blocks[0]);
 
-test('a parent generates its core and the facets that apply to the input, in one call', async (t) => {
+test('a parent generates its core and the facets that apply to the input, in one call, as structured content (D09)', async (t) => {
   const requests = [];
   const { store, generation, capture } = await parentFixture(t, {
     interpret: async text => text.includes(' ') ? sentence : word,
-    generate: async request => { requests.push(request); return request.interpretation.inputType === 'sentence' ? 'Wir saßen am Ufer.\n=== Examples ===\n: [1] Wir standen am Fluss.' : GERMAN_WORD; }
+    generate: async request => { requests.push(request); return request.interpretation.inputType === 'sentence'
+      ? sentenceResult('Wir saßen am Ufer.', { examples: [{ sentence: 'We stood by the river.', translation: 'Wir standen am Fluss.' }] }) : BANK; }
   });
   const wordPage = await capture('bank'); await finish(store, generation);
   const sentencePage = await capture('We sat on the bank.'); await finish(store, generation);
   assert.deepEqual(requests.map(request => [request.module.type, request.facets]),
     [['german', ['article', 'examples', 'synonyms', 'antonyms']], ['german', ['examples']]]);
-  assert.deepEqual(await outcome(store, wordPage), [[GERMAN_WORD, 'completed']], 'a facet the provider leaves out, like Synonyms, is not shown');
+  assert.deepEqual(await data(store, wordPage), [{ type: 'parent', ...BANK }], 'stored as one parent block; a facet left out, like Synonyms, has no entry');
   assert.equal((await outcome(store, sentencePage))[0][1], 'completed', 'a parent never completes empty for a sentence');
   assert.equal((await store.page(sentencePage.id)).interpretation, 'sentence');
 });
 
-test('a parent drops sections of facets it does not have, and fails on text outside its contract', async (t) => {
-  const replies = [`${GERMAN_WORD}\n=== Antonyms ===\n: Strom`, 'Just some prose without the entry format\n=== Pinyin ===\n: àn'];
+test('a parent drops entries of facets it does not have, and fails on a result outside its shape', async (t) => {
+  const replies = [{ ...BANK, facets: { ...BANK.facets, antonyms: ['Strom'] } }, { text: '== Englisch ==\n: [1] Ufer' }, sentenceResult('a sentence core for a word'),
+    wordResult(['Ufer'], { examples: [{ translation: 'only a translation' }] })];
   const { store, generation, capture } = await parentFixture(t, { interpret: async () => word, generate: async () => replies.shift() }, ['article', 'examples']);
   const kept = await capture('bank'); await finish(store, generation);
-  assert.deepEqual(await outcome(store, kept), [[GERMAN_WORD, 'completed']]);
-  const wrong = await capture('bank'); await finish(store, generation);
-  assert.deepEqual(await outcome(store, wrong), [['', 'failed']]);
+  assert.deepEqual(await data(store, kept), [{ type: 'parent', ...BANK }]);
+  for (let index = 0; index < 3; index++) {
+    const wrong = await capture('bank'); await finish(store, generation);
+    assert.deepEqual(await outcome(store, wrong), [['', 'failed']], `refused reply ${index + 2}`);
+  }
 });
 
 test('a provider resolving after abort cannot stage output from an interrupted browser session', async (t) => {
@@ -306,7 +312,7 @@ test('a provider resolving after abort cannot stage output from an interrupted b
   const providerStarted = new Promise(resolve => { started = resolve; });
   const { store, generation, capture } = await fixture(t, { interpret: (_text, providerSignal) => new Promise(resolve => {
     signal = providerSignal; release = resolve; started();
-  }), generate: async () => 'late' });
+  }), generate: async request => resultFor(request, 'late') });
   const page = await capture();
   await providerStarted;
   const old = generated(page)[0];
@@ -402,26 +408,27 @@ test('OpenCode rejects incomplete, refused, malformed, and wrong-schema response
   await assert.rejects(provider.interpret('幸福'), /invalid result/);
 });
 
-test('OpenCode preserves module context and literal multiline output; rejects empty or extra fields', async () => {
+test('OpenCode passes module context and returns the structured result; rejects a result without its parts or with extra fields', async () => {
   const input = { module: { id: 'example-2', type: 'german' }, selectedText: '幸福', interpretation: word, facets: ['examples'] };
-  const output = '== Chinesisch (幸福, xìngfú) ==\n=== Bedeutungen ===\n: [1] Glück\n=== Examples ===\n: [1] 幸福就在身边。\n:: Das Glück ist ganz nah.';
+  const output = { core: { kind: 'word', language: 'Chinesisch', key: '幸福', romanization: 'xìngfú', meanings: ['Glück'] },
+    facets: { examples: [{ sentence: '幸福就在身边。', translation: 'Das Glück ist ganz nah.' }] } };
   const provider = new OpenCodeProvider({
     apiKey: 'test-only', model: 'configured-model', fetchImpl: async (url, options) => {
       const body = JSON.parse(options.body);
       assert.equal(body.model, 'configured-model');
       assert.deepEqual(JSON.parse(body.messages[1].content), { selectedText: input.selectedText, inputType: 'word_phrase', instanceId: 'example-2' });
-      return Response.json(completion(JSON.stringify({ text: output })));
+      return Response.json(completion(JSON.stringify(output)));
     }
   });
-  assert.equal(await provider.generate(input), output);
+  assert.deepEqual(await provider.generate(input), output);
   const withContext = new OpenCodeProvider({ apiKey: 'test-only', fetchImpl: async (_, options) => {
     assert.equal(JSON.parse(JSON.parse(options.body).messages[1].content).context, 'surrounding text');
-    return Response.json(completion(JSON.stringify({ text: output })));
+    return Response.json(completion(JSON.stringify(output)));
   } });
-  assert.equal(await withContext.generate({ ...input, context: 'surrounding text' }), output);
-  for (const value of [{ text: '' }, { text: ' ' }, { text: 7 }, { text: output, extra: 'ignored?' }, {}]) {
+  assert.deepEqual(await withContext.generate({ ...input, context: 'surrounding text' }), output);
+  for (const value of [{ text: 'markup' }, { core: output.core }, { core: 'text', facets: {} }, { core: output.core, facets: [] }, { ...output, extra: 'ignored?' }, {}]) {
     provider.fetch = async () => Response.json(completion(JSON.stringify(value)));
-    await assert.rejects(provider.generate(input), /invalid result/);
+    await assert.rejects(provider.generate(input), /invalid result/, JSON.stringify(value));
   }
 });
 
@@ -472,7 +479,7 @@ test('generation passes the saved Context to interpretation and modules', async 
   const seen = [];
   const { store, generation } = await fixture(t, {
     interpret: async (mainKey, _signal, _session, context) => { seen.push(['interpret', mainKey, context]); return word; },
-    generate: async ({ selectedText, context }) => { seen.push(['generate', selectedText, context]); return 'explained'; }
+    generate: async request => { seen.push(['generate', request.selectedText, request.context]); return resultFor(request, 'explained'); }
   }, ['context', 'chinese']);
   const { pageId } = await store.capture('with-context', { session, mainKey: 'Bismarck', context: 'Otto von Bismarck, chancellor', snapshot: await store.snapshot() });
   await generation.start(pageId); await finish(store, generation);
@@ -481,7 +488,7 @@ test('generation passes the saved Context to interpretation and modules', async 
 
 test('authenticated capture saves before generation, repeats safely, and publishes only from its origin', async (t) => {
   let release;
-  const application = await createTestApplication(t, { provider: { interpret: () => new Promise(resolve => { release = resolve; }), generate: async () => 'Glück' } });
+  const application = await createTestApplication(t, { provider: { interpret: () => new Promise(resolve => { release = resolve; }), generate: async request => resultFor(request, 'Glück') } });
   const origin = await application.start({ port: 0 });
   t.after(() => application.close());
   const login = await fetch(origin + '/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: 'admin', password: 'admin' }) }).then(response => response.json());
@@ -505,15 +512,15 @@ test('authenticated capture saves before generation, repeats safely, and publish
 
 test('a failed result write retains the complete generated output for explicit save recovery without a new model call', async (t) => {
   let calls = 0;
-  const { store, generation, capture } = await fixture(t, { interpret: async () => word, generate: async () => { calls++; return 'complete generated text'; } });
+  const { store, generation, capture } = await fixture(t, { interpret: async () => word, generate: async request => { calls++; return resultFor(request, 'complete generated text'); } });
   const stage = store.stage.bind(store);
   let failWrite = true;
-  store.stage = (id, result) => { if (failWrite && result.text === 'complete generated text') throw Error('controlled disk write failure'); return stage(id, result); };
+  store.stage = (id, result) => { if (failWrite && result.content?.core.meanings[0] === 'complete generated text') throw Error('controlled disk write failure'); return stage(id, result); };
   const page = await capture();
   await Promise.all([...generation.tasks.values()].map(item => item.task));
   const back = generated(page)[0];
   assert.equal(generated(await store.page(page.id))[0].status, 'loading');
-  assert.deepEqual(generation.pendingResults.get(back.attemptId), { ok: true, text: 'complete generated text' });
+  assert.deepEqual(generation.pendingResults.get(back.attemptId), { ok: true, content: wordResult('complete generated text', {}, { key: '幸福' }) });
   assert.equal(generation.failedResults.has(back.attemptId), true);
   failWrite = false;
   await generation.saveResult(back.attemptId, session);
@@ -524,13 +531,13 @@ test('a failed result write retains the complete generated output for explicit s
 
 test('an in-progress result write does not advertise save recovery', async t => {
   const { store, generation, capture } = await fixture(t, {
-    interpret: async () => word, generate: async () => 'staged later'
+    interpret: async () => word, generate: async request => resultFor(request, 'staged later')
   });
   const stage = store.stage.bind(store);
   let releaseStage, signalStage;
   const started = new Promise(resolve => { signalStage = resolve; });
   store.stage = async (id, result) => {
-    if (result.text === 'staged later') {
+    if (result.content?.core.meanings[0] === 'staged later') {
       signalStage();
       await new Promise(resolve => { releaseStage = resolve; });
     }
@@ -545,19 +552,19 @@ test('an in-progress result write does not advertise save recovery', async t => 
   await Promise.all([...generation.tasks.values()].map(item => item.task));
   assert.equal(generation.pendingResults.has(attemptId), false);
   assert.equal(generation.failedResults.has(attemptId), false);
-  assert.deepEqual((await store.attempt(attemptId)).result, { ok: true, text: 'staged later' });
+  assert.deepEqual((await store.attempt(attemptId)).result, { ok: true, content: wordResult('staged later', {}, { key: '幸福' }) });
 });
 
 test('the result recovery journal survives a failed database write and server restart without regenerating', async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-result-journal-'));
   const databaseKey = join(directory, 'account-fixture');
   let store = await createTestStore(t, databaseKey), calls = 0;
-  let generation = await Generation.create(store, { interpret: async () => word, generate: async () => { calls++; return 'journaled result'; } });
+  let generation = await Generation.create(store, { interpret: async () => word, generate: async request => { calls++; return resultFor(request, 'journaled result'); } });
   t.after(async () => { await generation.close(); await store.close(); await rm(directory, { recursive: true, force: true }); });
   await store.openSession('open', session);
   const { pageId } = await store.capture('capture', { session, mainKey: '幸福', snapshot: (await store.snapshot()) });
   const originalStage = store.stage.bind(store);
-  store.stage = (id, result) => { if (result.text === 'journaled result') throw Error('database temporarily unavailable'); return originalStage(id, result); };
+  store.stage = (id, result) => { if (result.content?.core.meanings[0] === 'journaled result') throw Error('database temporarily unavailable'); return originalStage(id, result); };
   await generation.start(pageId);
   await Promise.all([...generation.tasks.values()].map(item => item.task));
   const { attemptId } = generated(await store.page(pageId))[0];
@@ -565,55 +572,60 @@ test('the result recovery journal survives a failed database write and server re
   await generation.close();
   await store.close();
   store = (await createTestStore(t, databaseKey)); generation = (await Generation.create(store, { interpret: async () => assert.fail(), generate: async () => assert.fail() }));
-  assert.deepEqual((await store.attempt(attemptId)).result, { ok: true, text: 'journaled result' });
+  assert.deepEqual((await store.attempt(attemptId)).result, { ok: true, content: wordResult('journaled result', {}, { key: '幸福' }) });
   await store.publish('recovered', { attemptId, session });
   assert.equal(text(generated(await store.page(pageId))[0]), 'journaled result'); assert.equal(calls, 1);
 });
 
-test('OpenCode asks a parent for its core and each facet section in order, with literal headings', async () => {
+test('OpenCode asks a parent for its core and the facets asked for as JSON, without markup (D09)', async () => {
   const word = parentInstructions('german', 'word_phrase', ['article', 'synonyms']);
-  assert.match(word, /=== Bedeutungen ===/);
-  assert.ok(word.indexOf('"=== Article ==="') < word.indexOf('"=== Synonyms ==="'));
-  assert.doesNotMatch(word, /=== Examples ===|=== Antonyms ===/);
+  assert.match(word, /"kind": "word"/);
+  assert.ok(word.indexOf('"article"') < word.indexOf('"synonyms"'));
+  assert.doesNotMatch(word, /"examples"|"antonyms"|===|\[1\]/);
   const sentence = parentInstructions('chinese', 'sentence', ['examples', 'pinyin']);
-  assert.match(sentence, /Chinese translation as plain text lines/);
+  assert.match(sentence, /"kind": "sentence", "translation"/);
   assert.match(sentence, /simplified characters/);
-  assert.match(sentence, /"=== Pinyin ==="/);
-  assert.match(parentInstructions('german', 'sentence', []), /Write nothing after the core/);
-  // Golden set, 14 October 2026: "[n]" and "[名]" broke the contract, and Pinyin had no fixed target.
+  assert.match(sentence, /"pinyin": exactly one/);
+  assert.match(parentInstructions('german', 'sentence', []), /"facets" as an empty object/);
   const chinese = parentInstructions('chinese', 'word_phrase', ['examples', 'pinyin']);
-  assert.match(chinese, /": \[1\] 河岸；堤岸" then ": \[2\] 银行"/);
-  assert.match(chinese, /never put a part of speech, a letter or a word inside the brackets/);
-  assert.match(chinese, /one line per meaning, in the same order.*": 河岸 hé'àn"/);
-  assert.doesNotMatch(chinese, /\[n\]/);
-  assert.match(sentence, /pinyin with tone marks of the whole Chinese translation/);
+  assert.match(chinese, /one \{ "text": "<the Chinese word or words of that meaning>", "pinyin": "<their pinyin with tone marks>" \} per meaning/);
+  assert.match(chinese, /without Markdown, numbering or headings/);
+
+  const schema = parentSchema('german', 'word_phrase', ['article', 'examples']);
+  assert.deepEqual(Object.keys(schema.properties), ['core', 'facets']);
+  assert.deepEqual(schema.properties.core.required, ['kind', 'language', 'key', 'meanings']);
+  assert.deepEqual(Object.keys(schema.properties.facets.properties), ['article', 'examples']);
+  assert.deepEqual(schema.properties.facets.required, [], 'every facet may be left out');
+  assert.deepEqual(parentSchema('chinese', 'sentence', ['pinyin']).properties.core.required, ['kind', 'translation']);
 
   const provider = new OpenCodeProvider({ apiKey: 'test-only', fetchImpl: async (_, options) => {
     const [system, user] = JSON.parse(options.body).messages;
-    assert.match(system.content, /=== Examples ===/);
+    assert.match(system.content, /"examples"/);
+    assert.match(system.content, /Match this JSON schema: \{"type":"object"/);
     assert.deepEqual(JSON.parse(user.content), { selectedText: 'bank', inputType: 'word_phrase', instanceId: 'g' });
-    return Response.json(completion(JSON.stringify({ text: 'Ufer' })));
+    return Response.json(completion(JSON.stringify(wordResult('Ufer'))));
   } });
-  assert.equal(await provider.generate({ module: { id: 'g', type: 'german', facets: ['examples'] }, selectedText: 'bank',
-    interpretation: { inputType: 'word_phrase' }, facets: ['examples'] }), 'Ufer');
+  assert.deepEqual(await provider.generate({ module: { id: 'g', type: 'german', facets: ['examples'] }, selectedText: 'bank',
+    interpretation: { inputType: 'word_phrase' }, facets: ['examples'] }), wordResult('Ufer'));
 });
 
-test('a facet’s own Retry regenerates that facet for the core already there, keeps the rest and the page’s reading, and keeps everything when it fails', async (t) => {
+test('a facet’s own Retry regenerates that facet’s entry for the core already there, keeps the rest and the page’s reading, and keeps everything when it fails', async (t) => {
   const requests = [];
   let interpretations = 0, failing = false;
+  const steep = [{ sentence: 'The bank was steep.', translation: 'Das Ufer war steil.' }];
   const { store, generation, capture } = await parentFixture(t, {
     interpret: async () => { interpretations++; return word; },
     generate: async request => {
       requests.push(request);
       if (failing) throw new Error('provider down');
-      if (!request.core) return GERMAN_WORD;
-      // A core written again differently is not taken.
-      return `${request.core.replace('Ufer', 'anders')}\n` + (request.facets[0] === 'examples'
-        ? '=== Examples ===\n: [1] The bank was steep.\n:: Das Ufer war steil.' : '=== Synonyms ===\n: Böschung');
+      if (!request.core) return BANK;
+      // A core written again is not taken; nor is another facet's entry.
+      return { facets: request.facets[0] === 'examples' ? { examples: steep, synonyms: ['ignored'] } : { synonyms: ['Böschung'] } };
     }
   });
   const page = await capture('bank'); await finish(store, generation);
   const german = async () => generated(await store.page(page.id))[0];
+  const stored = async () => (await german()).content.blocks[0];
   const retryFacet = async (facet, confirm = true) => {
     const payload = { pageId: page.id, target: { scope: 'facet', componentId: (await german()).id, facet }, session };
     const result = confirm ? await confirmed(store, randomUUID(), payload) : await store.generate(randomUUID(), payload);
@@ -626,51 +638,51 @@ test('a facet’s own Retry regenerates that facet for the core already there, k
     { code: 'confirmation_required' });
   const { attemptIds } = await confirmed(store, randomUUID(), { pageId: page.id, target: { scope: 'facet', componentId: (await german()).id, facet: 'examples' }, session });
   let current = await german();
-  assert.equal(text(current), GERMAN_WORD);
+  assert.deepEqual(current.content.blocks[0], { type: 'parent', ...BANK });
   assert.equal(current.status, 'loading');
   assert.equal(current.retryingFacet, 'examples');
   await generation.start(page.id, attemptIds); await finish(store, generation);
-  const core = '== Englisch (bank) ==\n=== Bedeutungen ===\n: [1] Ufer';
-  assert.equal(requests.at(-1).core, core, 'the provider writes for the core already there');
+  assert.deepEqual(requests.at(-1).core, BANK.core, 'the provider writes for the core already there');
   assert.deepEqual(requests.at(-1).facets, ['examples']);
   assert.equal(interpretations, 1, 'the page’s reading of the main key is kept');
+  assert.deepEqual(await stored(), { type: 'parent', core: BANK.core, facets: { article: BANK.facets.article, examples: steep } }, 'only the facet’s entry changes');
   current = await german();
-  assert.equal(text(current), `${core}\n=== Article ===\n: das Ufer · die Ufer\n=== Examples ===\n: [1] The bank was steep.\n:: Das Ufer war steil.`,
-    'only the facet’s section changes');
   assert.equal(current.status, 'completed');
   assert.equal(current.retryingFacet, undefined);
 
-  // A facet without a section starts at once and lands in the parent's order.
+  // A facet without an entry starts at once and gains one.
   await retryFacet('synonyms', false); await finish(store, generation);
-  assert.match(text(await german()), /=== Examples ===\n: \[1\] The bank was steep\.\n:: Das Ufer war steil\.\n=== Synonyms ===\n: Böschung$/);
+  assert.deepEqual((await stored()).facets.synonyms, ['Böschung']);
 
   // A failed facet Retry keeps the content, and a waiting facet still waits.
   await store.deleteFacet(randomUUID(), { pageId: page.id, componentId: current.id, parent: 'german', facet: 'antonyms' });
   await store.addFacet(randomUUID(), { pageId: page.id, componentId: current.id, parent: 'german', facet: 'antonyms' });
-  const before = text(await german());
+  const before = await stored();
   failing = true;
   await retryFacet('antonyms', false); await finish(store, generation);
   current = await german();
-  assert.equal(text(current), before);
+  assert.deepEqual(await stored(), before);
   assert.equal(current.status, 'completed');
   assert.equal(current.failedFacet, 'antonyms');
   assert.deepEqual(current.waitingFacets, ['antonyms']);
 
-  // Content that no longer follows the layout is retried whole.
-  await store.savePage(randomUUID(), { pageId: page.id, changes: [{ componentId: current.id, content: textBlocks('My own notes\n=== not a contract') }] });
+  // A component without structured content is retried whole.
+  await store.savePage(randomUUID(), { pageId: page.id, changes: [{ componentId: current.id, content: textBlocks('My own notes') }] });
   await assert.rejects(store.generate(randomUUID(), { pageId: page.id, target: { scope: 'facet', componentId: current.id, facet: 'examples' }, session }),
-    { code: 'invalid', message: /Retry the whole module/ });
+    { code: 'invalid', message: /Retry the whole module first/ });
 });
 
-test('OpenCode asks a facet’s own Retry to keep the supplied core', async () => {
+test('OpenCode asks a facet’s own Retry for its facets only, written for the supplied core', async () => {
   const instructions = parentInstructions('german', 'word_phrase', ['examples'], true);
-  assert.match(instructions, /already written and supplied as "core"/);
-  assert.doesNotMatch(instructions, /Wiktionary-style/);
+  assert.match(instructions, /already written and supplied as "core". Return only "facets"/);
+  assert.doesNotMatch(instructions, /"kind": "word"/);
+  assert.deepEqual(Object.keys(parentSchema('german', 'word_phrase', ['examples'], true).properties), ['facets']);
+  const core = { kind: 'word', language: 'Englisch', key: 'bank', meanings: ['Ufer'] };
   const provider = new OpenCodeProvider({ apiKey: 'test-only', fetchImpl: async (_, options) => {
     const [, user] = JSON.parse(options.body).messages;
-    assert.deepEqual(JSON.parse(user.content), { selectedText: 'bank', core: ': [1] Ufer', inputType: 'word_phrase', instanceId: 'g' });
-    return Response.json(completion(JSON.stringify({ text: 'Ufer' })));
+    assert.deepEqual(JSON.parse(user.content), { selectedText: 'bank', core, inputType: 'word_phrase', instanceId: 'g' });
+    return Response.json(completion(JSON.stringify({ facets: { examples: [{ sentence: 'A bank.' }] } })));
   } });
-  await provider.generate({ module: { id: 'g', type: 'german', facets: ['examples'] }, selectedText: 'bank',
-    interpretation: { inputType: 'word_phrase' }, facets: ['examples'], core: ': [1] Ufer' });
+  assert.deepEqual(await provider.generate({ module: { id: 'g', type: 'german', facets: ['examples'] }, selectedText: 'bank',
+    interpretation: { inputType: 'word_phrase' }, facets: ['examples'], core }), { facets: { examples: [{ sentence: 'A bank.' }] } });
 });

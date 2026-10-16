@@ -5,7 +5,8 @@ import {
   addBlocked, copyModules, deleteBlocked, DECK_COLOURS, generationTargets, moveBlocked, moved, pageMeaning, validateConfiguration
 } from '@vocabularium/domain/page-modules';
 import { facetAddBlocked, facetDeleteBlocked, isParentType, withFacet } from '@vocabularium/domain/parents';
-import { facetSection, withoutFacet } from '@vocabularium/domain/render';
+import { withoutFacet } from '@vocabularium/domain/render';
+import { hasFacetContent, parentContentOf, parentDocument, validateParentContent, withFacetEntry } from '@vocabularium/domain/content';
 import { sortKey } from './sort-key.mjs';
 /** @typedef {import('./store-records.js').PageRow} PageRow */
 /** @typedef {import('./store-records.js').ComponentRow} ComponentRow */
@@ -42,13 +43,13 @@ const summaryFields = `b.id, b.deck_id, b.selected_text, b.created_at, b.main_ke
     WHEN COUNT(q.status) > 0 THEN 'completed' ELSE NULL END
     FROM components q WHERE q.page_id = b.id) AS status,
   (SELECT json_agg(json_build_object('type', m.module_type, 'status', m.status,
-      'filled', EXISTS (SELECT 1 FROM jsonb_array_elements(m.content::jsonb -> 'blocks') e WHERE btrim(e ->> 'text') <> ''),
+      'filled', EXISTS (SELECT 1 FROM jsonb_array_elements(m.content::jsonb -> 'blocks') e WHERE e ->> 'type' = 'parent' OR btrim(e ->> 'text') <> ''),
       'content', CASE WHEN m.module_type IN ('main-key', 'context', 'text') THEN NULL ELSE m.content END) ORDER BY m.position)
     FROM components m WHERE m.page_id = b.id) AS modules`;
 // A page summary (D05): the list shows the main key, the first meaning, and one
 // family mark per module, never the page's full content.
 function pageSummary(row) {
-  const components = (row.modules ?? []).map(module => ({ ...module, text: module.content ? blockText(JSON.parse(module.content)) : null }));
+  const components = (row.modules ?? []).map(module => ({ ...module, content: module.content ? JSON.parse(module.content) : null }));
   return { id: row.id, deckId: row.deck_id, selectedText: row.selected_text, createdAt: row.created_at,
     mainKey: row.main_key ? blockText(JSON.parse(row.main_key)) : '', status: row.status,
     meaning: pageMeaning(components),
@@ -492,7 +493,8 @@ export class AccountStore {
       const attempt = await this.attempt(attemptId);
       if (attempt.state !== 'loading' || attempt.result) fail('stale_attempt', 'The attempt no longer accepts results.');
       await this.requireSession({ installationId: attempt.installation_id, sessionId: attempt.session_id, epoch: attempt.epoch });
-      if (typeof result.ok !== 'boolean' || (result.ok && typeof result.text !== 'string')) fail('invalid', 'Invalid component result.');
+      // A generated result is structured content (D09); plain text stays accepted for fixtures until 0.7.4's cards switch.
+      if (typeof result.ok !== 'boolean' || (result.ok && typeof result.text !== 'string' && !(result.content && typeof result.content === 'object'))) fail('invalid', 'Invalid component result.');
       await this.database.run("UPDATE component_attempts SET result = $1 WHERE id = $2", [JSON.stringify(result), attemptId]);
     });
   }
@@ -512,7 +514,9 @@ export class AccountStore {
         return { pageId: attempt.page_id, componentId: attempt.component_id, state: 'failed' };
       }
       const state = attempt.result.ok ? 'completed' : 'failed';
-      const content = textBlocks(attempt.result.ok ? attempt.result.text : '');
+      const content = !attempt.result.ok ? textBlocks('')
+        : attempt.result.content ? parentDocument(validateParentContent(attempt.module.type, attempt.result.content))
+        : textBlocks(attempt.result.text);
       const changed = await this.database.run(`UPDATE components SET content = $1, status = $2
         WHERE page_id = $3 AND id = $4 AND attempt_id = $5 AND status = 'loading'`, [JSON.stringify(content), state, attempt.page_id, attempt.component_id, attemptId]);
       if (!changed.rowCount) fail('stale_attempt', 'The component has moved on to another attempt.');
@@ -591,7 +595,9 @@ export class AccountStore {
       const holder = component && { id: component.id, type: component.moduleType, facets: component.facets, status: component.status };
       const blocked = component && component.moduleType !== parent ? 'This facet is no longer there.' : facetDeleteBlocked(holder, facet);
       if (blocked) fail(component ? 'invalid' : 'deleted', blocked);
-      const content = textBlocks(withoutFacet(parent, blockText(component.content), facet));
+      // Structured content (D09) loses the facet's entry; plain text, its section.
+      const data = parentContentOf(component.content);
+      const content = data ? parentDocument(withFacetEntry(data, facet, undefined)) : textBlocks(withoutFacet(parent, blockText(component.content), facet));
       await this.database.run("UPDATE components SET facets = $1, content = $2 WHERE page_id = $3 AND id = $4",
         [component.facets.filter(item => item !== facet), JSON.stringify(content), pageId, componentId]);
       // Its section is gone from the content, so the last attempt no longer counts
@@ -642,7 +648,12 @@ export class AccountStore {
       // nothing (0.6.3; until then any earlier attempt needed confirmation).
       // A facet's own Retry (0.7.3) replaces only its section.
       const facet = target.scope === 'facet' ? target.facet : null;
-      const replaced = component => facet ? facetSection(component.moduleType, blockText(component.content), facet) : blockText(component.content);
+      // Structured content (D09) is compared as data: a facet's entry, or the whole content.
+      const replaced = component => {
+        const data = parentContentOf(component.content);
+        if (facet) return data && hasFacetContent(data, facet) ? data.facets[facet] : null;
+        return data ?? (blockText(component.content) || null);
+      };
       const replaces = targets.some(replaced);
       if (target.scope !== 'missing' && replaces) {
         const expected = facet ? digest(targets.map(component => ({ moduleInstanceId: component.moduleInstanceId, facet, content: replaced(component) })))

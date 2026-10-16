@@ -5,7 +5,7 @@ import test, { createTestStore, createTestDatabase, createTestApplication } from
 import { AccountStore } from '../src/core/store.mjs';
 import { Generation } from '../src/server/generation.mjs';
 import { migrateDatabase } from '../scripts/migrate.mjs';
-import { confirmed, generated, text, textBlocks, useModules } from './helpers/pages.mjs';
+import { confirmed, generated, text, textBlocks, useModules, resultFor } from './helpers/pages.mjs';
 
 const session = { installationId: 'parallel', sessionId: 'first', epoch: 1 };
 function latch() {
@@ -161,7 +161,7 @@ test('a lost database connection preserves generated output in the journal for r
   let calls = 0;
   let application = await createTestApplication(t, { databaseKey: key, provider: {
     interpret: async () => ({ inputType: 'word_phrase', sourceLanguage: 'English' }),
-    generate: async () => { calls++; started.resolve(); await release.promise; return 'survives a real database outage'; }
+    generate: async request => { calls++; started.resolve(); await release.promise; return resultFor(request, 'survives a real database outage'); }
   } });
   t.after(async () => { release.resolve(); await application.close(); await rm(directory, { recursive: true, force: true }); });
   const database = await createTestDatabase(t, key);

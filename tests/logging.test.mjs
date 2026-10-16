@@ -19,7 +19,7 @@ async function fixture(t, options = {}) {
     const interpretation = input.messages[0].content.includes('vocabulary_interpretation');
     return new Response(JSON.stringify({ choices: [{ finish_reason: 'stop', message: {
       role: 'assistant', content: options.invalid ? 'invalid-output-fixture' : JSON.stringify(interpretation
-        ? { inputType: 'word_phrase' } : { text: 'unexpected-output-fixture' })
+        ? { inputType: 'word_phrase' } : { core: { kind: 'word', language: 'Chinesisch', key: '幸福', meanings: ['unexpected-output-fixture'] }, facets: {} })
     } }] }), { headers: { 'Content-Type': 'application/json' } });
   } });
   const application = await createTestApplication(t, { diagnostics, provider });

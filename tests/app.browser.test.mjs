@@ -7,8 +7,7 @@ import { once } from 'node:events';
 import { chromium } from 'playwright';
 import { blockText } from '@vocabularium/domain/pages';
 import { isContentType } from '@vocabularium/domain/page-modules';
-import { textBlocks, useModules } from './helpers/pages.mjs';
-const text = component => blockText(component.content);
+import { resultFor, sentenceResult, text, textBlocks, useModules, wordResult } from './helpers/pages.mjs';
 const keyOf = page => text(page.components.find(component => component.moduleType === 'main-key'));
 const modulesOf = page => page.components.filter(component => isContentType(component.moduleType));
 const byKey = async (store, key) => (await store.pages()).find(page => keyOf(page) === key);
@@ -221,10 +220,11 @@ test('capture extension: receipt lifetime, exact duplicate pages, shared outcome
       if (text === 'fail') throw Error('controlled interpretation failure');
       return { inputType: text === '我真的很幸福' ? 'sentence' : 'word_phrase', sourceLanguage: 'Chinese' };
     },
-    // Each parent writes its own format (D08).
-    async generate({ module }) {
-      return module.type === 'chinese' ? '== 汉语 (幸福, xìngfú) ==\n=== 释义 ===\n: [1] 生活称心如意'
-        : '== Chinesisch ==\n=== Bedeutungen ===\n: [1] Glück\n=== Examples ===\n: [1] 她很幸福。\n:: Sie ist glücklich.';
+    // Each parent writes its own content, as structured data (D08, D09).
+    async generate({ module, interpretation }) {
+      if (interpretation.inputType === 'sentence') return sentenceResult(module.type === 'chinese' ? '我真的很幸福。' : 'Ich bin wirklich glücklich.');
+      return module.type === 'chinese' ? { core: { kind: 'word', language: '汉语', key: '幸福', romanization: 'xìngfú', meanings: ['生活称心如意'] }, facets: {} }
+        : wordResult(['Glück'], { examples: [{ sentence: '她很幸福。', translation: 'Sie ist glücklich.' }] }, { language: 'Chinesisch', key: '幸福' });
     }
   };
   let application = await createTestApplication(t, { databaseKey, provider });
@@ -327,7 +327,7 @@ test('capture with Context: the surrounding block follows the deck’s Context m
   const interpreted = [];
   const provider = {
     async interpret(text, signal, sessionId, context) { interpreted.push({ text, context }); return { inputType: 'word_phrase', sourceLanguage: 'Chinese' }; },
-    async generate() { return 'Glück'; }
+    async generate(request) { return resultFor(request, 'Glück'); }
   };
   const application = await createTestApplication(t, { provider });
   await useModules(application.store, ['context', 'german']);
@@ -387,7 +387,7 @@ test('capture motion: the selection flies into the popup, reduced motion skips i
   await appendFile(join(testingExtension, 'background.js'), '\nglobalThis.captureForTest = handleCapture;\n');
   const application = await createTestApplication(t, { provider: {
     async interpret() { return { inputType: 'word_phrase', sourceLanguage: 'German' }; },
-    async generate() { return 'Glück'; }
+    async generate(request) { return resultFor(request, 'Glück'); }
   } });
   await application.start();
   const a = await launch(join(directory, 'a'), testingExtension);
@@ -448,7 +448,7 @@ test('recent captures: the pending receipt hands off to its account page without
         await new Promise(resolve => { releaseGeneration = resolve; });
         return { inputType: 'word_phrase', sourceLanguage: 'English' };
       },
-      async generate() { return 'Controlled explanation'; }
+      async generate(request) { return resultFor(request, 'Controlled explanation'); }
     }
   });
   const handler = application.server.listeners('request')[0];
@@ -1160,7 +1160,7 @@ test('retry UI: exact confirmation asked beside the tab, a first Retry without w
   await b.page.getByRole('alert').filter({ hasText: 'still generating' }).waitFor();
   assert.deepEqual(modulesOf(await application.store.page(pageId)).map(text), ['saved original', '']);
   assert.equal(await b.page.getByRole('textbox', { name: 'Edit German', exact: true }).inputValue(), 'draft back');
-  release('regenerated component');
+  release(wordResult('regenerated component'));
   await waitFor(async () => modulesOf(await application.store.page(pageId))[1].status === 'completed', 'retry saved');
   assert.deepEqual(modulesOf(await application.store.page(pageId)).map(text), ['saved original', 'regenerated component']);
   await b.page.getByRole('button', { name: 'Try saving again', exact: true }).click();
@@ -1671,9 +1671,9 @@ test('assembled reliability: lost acknowledgments, worker suspension, abrupt ori
       generate: ({ selectedText, module }, signal) => {
         calls.set(selectedText, (calls.get(selectedText) ?? 0) + 1);
         // Only the German parent is held; the Chinese one, first on the page, completes at once.
-        if ((!selectedText.startsWith('hold-') && selectedText !== 'publication acknowledgment') || module.type !== 'german') return Promise.resolve(`Generated: ${selectedText}`);
+        if ((!selectedText.startsWith('hold-') && selectedText !== 'publication acknowledgment') || module.type !== 'german') return Promise.resolve(wordResult(`Generated: ${selectedText}`));
         return new Promise((resolve, reject) => {
-          held.set(selectedText, () => resolve(`Generated: ${selectedText}`));
+          held.set(selectedText, () => resolve(wordResult(`Generated: ${selectedText}`)));
           signal.addEventListener('abort', () => { canceled.add(selectedText); reject(Error('aborted')); }, { once: true });
         });
       }
@@ -1801,7 +1801,7 @@ test('dashboard capture feedback: shared appearance, original lifetime, originat
   const application = await createTestApplication(t, {
     provider: {
       async interpret() { return { inputType: 'word_phrase', sourceLanguage: 'English' }; },
-      async generate() { return 'Controlled explanation'; }
+      async generate(request) { return resultFor(request, 'Controlled explanation'); }
     }
   });
   await application.start();
@@ -1903,7 +1903,7 @@ test('save feedback: successful publication stays quiet in both lists, failures 
   const application = await createTestApplication(t, {
     provider: {
       async interpret() { return { inputType: 'word_phrase', sourceLanguage: 'English' }; },
-      async generate() { return 'Controlled explanation'; }
+      async generate(request) { return resultFor(request, 'Controlled explanation'); }
     }
   });
   await useModules(application.store, ['chinese', 'german']);
@@ -2562,9 +2562,10 @@ test('0.7.3: a facet’s own Retry beside its Delete, a tag’s remove keeping i
   const { pageId } = await store.capture('facet-retry-capture', { session, mainKey: 'bank', snapshot: await store.snapshot() });
   const first = (await store.page(pageId)).components.find(item => item.moduleType === 'german');
   await store.establishInterpretation((await store.attempt(first.attemptId)).run_id, { inputType: 'word_phrase' });
-  const core = ['== Englisch (bank) ==', '=== Bedeutungen ===', ': [1] Ufer'].join('\n');
-  await store.stage(first.attemptId, { ok: true, text: [core, '=== Article ===', ': das Ufer · die Ufer',
-    '=== Examples ===', ': [1] We sat on the bank.', ':: Wir saßen am Ufer.'].join('\n') });
+  // Structured content (D09).
+  const core = { kind: 'word', language: 'Englisch', key: 'bank', meanings: ['Ufer'] };
+  await store.stage(first.attemptId, { ok: true, content: { core, facets: { article: { singular: 'das Ufer', plural: 'die Ufer' },
+    examples: [{ sentence: 'We sat on the bank.', translation: 'Wir saßen am Ufer.' }] } } });
   await store.publish('facet-retry-publish', { attemptId: first.attemptId, session });
   // A second German, empty, with a facet: only its tab, its tag hung below.
   const { componentId: empty } = await store.addModule('facet-retry-empty', { pageId, type: 'german' });
@@ -2609,7 +2610,7 @@ test('0.7.3: a facet’s own Retry beside its Delete, a tag’s remove keeping i
   assert.match(await examples.textContent(), /We sat on the bank\./);
   await waitFor(() => release, 'facet provider started');
   assert.deepEqual(calls.map(call => [call.facets, call.core]), [[['examples'], core]], 'the provider writes the facet alone for the core');
-  release(`${core}\n=== Examples ===\n: [1] The bank was steep.\n:: Das Ufer war steil.`);
+  release({ facets: { examples: [{ sentence: 'The bank was steep.', translation: 'Das Ufer war steil.' }] } });
   await waitFor(async () => /The bank was steep\./.test(await examples.textContent()), 'new examples shown');
   assert.match(await card.locator('.facet[data-facet="article"]').textContent(), /das Ufer · die Ufer/, 'the other facet stays');
   assert.equal(await examples.locator('.facet-note').count(), 0);
@@ -2697,6 +2698,6 @@ test('0.7.3: a facet’s own Retry beside its Delete, a tag’s remove keeping i
   assert.equal(await a.page.evaluate(({ x, y }) => document.elementsFromPoint(x, y).find(node => node.matches('.spark i, .facet-tags, .card-tab'))?.className,
     { x: box.x + 30, y: box.y + box.height - 1 }), 'card-tab', 'at the tab\'s bottom edge the tab is uppermost, not the rail');
   await hung.locator('.card-tab').screenshot({ path: 'artifacts/v0.7.3-spark-over-rail.png' });
-  release(`${core}\n=== Synonyms ===\n: Böschung`);
+  release(wordResult(['Ufer'], { synonyms: ['Böschung'] }, { key: 'bank' }));
   await waitFor(async () => await hung.getAttribute('data-generating') === null, 'German 2 generated');
 });

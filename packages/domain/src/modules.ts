@@ -1,7 +1,8 @@
-import type { InputInterpretation } from '@vocabularium/contracts';
-import { applicableFacets, facetsOf, isParentType } from './parents.js';
+import type { InputInterpretation, ParentCore } from '@vocabularium/contracts';
+import { applicableFacets, isFacetOf, isParentType } from './parents.js';
 import type { FacetType, ParentType } from './parents.js';
-import { facetSection, renderContent, withFacetSection, withoutEmptyFacets, withoutFacet } from './render.js';
+import { emptyEntry, validateFacetEntry, validateParentContent, withFacetEntry } from './content.js';
+import type { ParentContent } from './content.js';
 
 // The run's reading of the main key (D08): word or phrase, or sentence. It no
 // longer chooses a source language; earlier runs stored one, which is ignored.
@@ -15,68 +16,80 @@ export function validateInterpretation(value: unknown): InputInterpretation {
 
 // Content modules are parent modules (D08); the earlier types retired in 0.7.0.
 export type ModuleInstance = Readonly<{ id: string; type: ParentType; facets?: readonly string[] }>;
+// The provider's result is structured data (D09), checked here before it is kept.
 export type GenerateModule = (request: {
   module: ModuleInstance;
   selectedText: string;
   interpretation: InputInterpretation;
   // The facets that apply to this input, in the parent's order.
   facets: readonly FacetType[];
-  // For a facet's own Retry (0.7.3): the core already written, to follow.
-  core?: string;
-}) => Promise<string>;
+  // For a facet's own Retry (0.7.3): the core already there, to follow.
+  core?: ParentCore;
+}) => Promise<unknown>;
+
+const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
 
 // Generates one parent module instance's component from the main key. A
-// parent always applies: it generates its core and the facets that apply, and
-// its text must follow the parent's render contract. Sections of facets it does
-// not have are dropped, and a facet heading with nothing under it counts as an
-// omitted facet. Throws when generation fails. Repeated instances generate
-// independently.
+// parent always applies: it generates its core and the facets that apply.
+// The result must have the parent's shape, complete, with the core for the
+// input type (D09). Entries of facets it was not asked for are dropped, and a
+// facet left out or empty has no content. Throws when generation fails.
+// Repeated instances generate independently.
 export async function generateComponent(input: {
   mainKey: string;
   module: ModuleInstance;
   interpretation?: InputInterpretation | null;
   generate: GenerateModule;
-}): Promise<string> {
+}): Promise<ParentContent> {
   const { module } = input;
   if (!isParentType(module.type)) throw new Error('The deck contains an unsupported module.');
   if (!input.interpretation) throw new Error('Input interpretation is unavailable.');
   const facets = applicableFacets(module.type, module.facets ?? [], input.interpretation.inputType);
-  const text = await input.generate({ module, selectedText: input.mainKey, interpretation: input.interpretation, facets });
-  if (typeof text !== 'string' || !text.trim()) throw new Error('A module returned no usable content.');
-  const extra = facetsOf(module.type).filter(facet => !facets.includes(facet));
-  const kept = extra.reduce((current, facet) => withoutFacet(module.type, current, facet), withoutEmptyFacets(module.type, text.trim()));
-  if (renderContent(module.type, kept).kind !== 'parent') throw new Error('A module returned content in an unexpected format.');
-  return kept;
+  const value = await input.generate({ module, selectedText: input.mainKey, interpretation: input.interpretation, facets });
+  if (!isRecord(value)) throw new Error('A module returned no usable content.');
+  const stray = Object.keys(value).find(key => key !== 'core' && key !== 'facets');
+  if (stray) throw new Error(`A module returned content in an unexpected format: an unexpected field "${stray}".`);
+  const given = isRecord(value.facets) ? value.facets : {};
+  const kept = Object.fromEntries(facets.filter(facet => !emptyEntry(given[facet])).map(facet => [facet, given[facet]]));
+  let content: ParentContent;
+  try { content = validateParentContent(module.type, { core: value.core, facets: kept }, { facets, complete: true }); }
+  catch (error) { throw new Error(`A module returned content in an unexpected format: ${(error as Error).message}`); }
+  if (content.core.kind !== (input.interpretation.inputType === 'sentence' ? 'sentence' : 'word')) {
+    throw new Error('A module returned content in an unexpected format: the core does not match the input.');
+  }
+  return content;
 }
 
 // A facet's own Retry (0.7.3): the facet alone, written for the core already
-// in `existing`, takes its section's place; the core and the other facets stay
-// as they are. A facet that does not apply to this input is left out, as in a
-// whole attempt. Throws when generation fails.
+// in `existing`, takes its entry's place; the core and the other facets stay
+// as they are (D09). A facet that does not apply to this input, or that comes
+// back empty, has no content. Throws when generation fails.
 export async function generateFacet(input: {
   mainKey: string;
   module: ModuleInstance;
   facet: string;
-  existing: string;
+  existing: ParentContent;
   interpretation?: InputInterpretation | null;
   generate: GenerateModule;
-}): Promise<string> {
+}): Promise<ParentContent> {
   const { module, facet, existing } = input;
   if (!isParentType(module.type)) throw new Error('The deck contains an unsupported module.');
   if (!input.interpretation) throw new Error('Input interpretation is unavailable.');
-  if (renderContent(module.type, existing).kind !== 'parent') throw new Error('The content no longer follows its layout.');
+  if (!isFacetOf(module.type, facet)) throw new Error('This facet is no longer there.');
   const facets = applicableFacets(module.type, [facet], input.interpretation.inputType);
-  if (!facets.length) return withoutFacet(module.type, existing, facet);
-  const core = facetsOf(module.type).reduce((current, each) => withoutFacet(module.type, current, each), existing).trim();
-  const text = await input.generate({ module, selectedText: input.mainKey, interpretation: input.interpretation, facets, core });
-  if (typeof text !== 'string' || !text.trim()) throw new Error('A module returned no usable content.');
-  const cleaned = withoutEmptyFacets(module.type, text.trim());
-  if (renderContent(module.type, cleaned).kind !== 'parent') throw new Error('A module returned content in an unexpected format.');
-  return withFacetSection(module.type, existing, facet, facetSection(module.type, cleaned, facet));
+  if (!facets.length) return withFacetEntry(existing, facet, undefined);
+  const value = await input.generate({ module, selectedText: input.mainKey, interpretation: input.interpretation, facets, core: existing.core });
+  if (!isRecord(value)) throw new Error('A module returned no usable content.');
+  const entry = isRecord(value.facets) ? value.facets[facet] : undefined;
+  if (emptyEntry(entry)) return withFacetEntry(existing, facet, undefined);
+  let checked: unknown;
+  try { checked = validateFacetEntry(module.type, facet, entry, { complete: true }); }
+  catch (error) { throw new Error(`A module returned content in an unexpected format: ${(error as Error).message}`); }
+  return withFacetEntry(existing, facet, checked as never);
 }
 
 export type ComponentOutcome = Readonly<
-  { moduleInstanceId: string; status: 'completed'; text: string } |
+  { moduleInstanceId: string; status: 'completed'; content: ParentContent } |
   { moduleInstanceId: string; status: 'failed'; error: string }
 >;
 
@@ -91,7 +104,7 @@ export async function generateComponents(input: {
   const outcomes: ComponentOutcome[] = [];
   for (const module of input.modules) {
     try {
-      outcomes.push({ moduleInstanceId: module.id, status: 'completed', text: await generateComponent({ ...input, module }) });
+      outcomes.push({ moduleInstanceId: module.id, status: 'completed', content: await generateComponent({ ...input, module }) });
     } catch (error) {
       outcomes.push({ moduleInstanceId: module.id, status: 'failed', error: error instanceof Error ? error.message : String(error) });
     }

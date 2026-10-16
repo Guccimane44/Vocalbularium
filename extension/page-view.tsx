@@ -3,8 +3,9 @@ import type { CSSProperties, ReactNode } from 'react';
 import type { Component, GenerationTarget, ModuleInstance, Page } from '@vocabularium/contracts';
 import { CATALOG, isContentType, isModuleType } from '@vocabularium/domain/page-modules';
 import { blockText, mainKeyOf } from '@vocabularium/domain/pages';
-import { emphasise, renderContent } from '@vocabularium/domain/render';
-import type { RenderedFacet } from '@vocabularium/domain/render';
+import { emphasise, renderContent, renderParent } from '@vocabularium/domain/render';
+import type { Rendered, RenderedFacet } from '@vocabularium/domain/render';
+import { parentContentOf } from '@vocabularium/domain/content';
 import { facetLabel, isFacetOf, isParentType } from '@vocabularium/domain/parents';
 import type { FacetType, ParentType } from '@vocabularium/domain/parents';
 import type { PageEditorDraft } from '../types/editor-drafts.js';
@@ -158,13 +159,21 @@ type FacetControls = { title: string; disabled: boolean; onDelete: (facet: Facet
   asking: { facet: FacetType; kind: FacetAsk } | null; setAsking: (facet: FacetType | null, kind?: FacetAsk) => void;
   retrying?: string; failed?: string };
 
+// A component's content for reading: a parent's structured data (D09), drawn
+// as its text once was, or plain text; and whether there is any.
+export function readContent(type: string, content: Component['content']): { rendered: Rendered; present: boolean } {
+  const data = isParentType(type) ? parentContentOf(content) : null;
+  if (data) return { rendered: renderParent(type as ParentType, data), present: true };
+  const text = blockText(content);
+  return { rendered: renderContent(type, text), present: Boolean(text) };
+}
+
 // Generated content as its parent's render contract describes (D08): the core,
 // then each facet under its label, and the facets waiting for the next Retry.
 // Anything else, and the user's own text, is plain text with its line breaks.
-export function Content({ type, text, mainKey, waiting = [], controls }: {
-  type: string; text: string; mainKey: string; waiting?: readonly string[]; controls?: FacetControls;
+export function Content({ type, rendered, mainKey, waiting = [], controls }: {
+  type: string; rendered: Rendered; mainKey: string; waiting?: readonly string[]; controls?: FacetControls;
 }) {
-  const rendered = renderContent(type, text);
   const parent = isParentType(type) ? type : null;
   // A facet's own Retry needs content that follows the parent's layout.
   const canRetry = rendered.kind === 'parent';
@@ -204,7 +213,6 @@ export function Content({ type, text, mainKey, waiting = [], controls }: {
 function ComponentBody({ item, title, editable, draft, locked, persist, mainKey, controls }: {
   item: Component; title: string; editable: boolean; draft?: PageEditorDraft; locked: boolean; persist: () => void; mainKey: string; controls?: FacetControls;
 }) {
-  const text = blockText(item.content);
   if (editable && draft) return <>
     <TextField id={`component-${item.id}`} labelText={`Edit ${title}`} value={draft.texts[item.id]}
       error={item.moduleType === 'main-key' ? draft.fieldError : undefined}
@@ -212,8 +220,9 @@ function ComponentBody({ item, title, editable, draft, locked, persist, mainKey,
       onChange={value => { draft.texts[item.id] = value; persist(); }} />
     {item.status === 'loading' && <p className="notice">This component is generating. Your draft is preserved; save explicitly after generation finishes.</p>}
   </>;
-  return text || item.waitingFacets?.length
-    ? <Content type={item.moduleType} text={text} mainKey={mainKey} waiting={item.waitingFacets} controls={controls} /> : null;
+  const { rendered, present } = readContent(item.moduleType, item.content);
+  return present || item.waitingFacets?.length
+    ? <Content type={item.moduleType} rendered={rendered} mainKey={mainKey} waiting={item.waitingFacets} controls={controls} /> : null;
 }
 
 // Motion (D05): when a component finishes generating while the page is open,
@@ -438,9 +447,9 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
       setConfirming({ id: item.id, kind, offset: button.offsetLeft - (button.parentElement?.offsetLeft ?? 0) });
     };
     // A component with nothing in it has nothing to lose: Delete and Retry act at once.
-    const hasContent = Boolean(blockText(item.content));
+    const hasContent = readContent(item.moduleType, item.content).present;
     // An empty component is already only its tab: there is nothing to fold.
-    const foldable = Boolean(blockText(item.content)) || item.status === 'failed';
+    const foldable = hasContent || item.status === 'failed';
     const isFolded = folded.has(item.id);
     const choose = (action: () => void) => () => { setOpened(null); action(); };
     let index = 0;
@@ -475,7 +484,8 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
   // is one card at a time; Save and Cancel live in that card.
   const card = (item: Component, title: string, { drag, menu, ghost }: RowParts) => {
     const family = isModuleType(item.moduleType) ? CATALOG[item.moduleType].family ?? 'notes' : 'notes';
-    const empty = !blockText(item.content) && !item.waitingFacets?.length && item.status !== 'loading' && item.status !== 'failed' && editingId !== item.id;
+    const read = readContent(item.moduleType, item.content);
+    const empty = !read.present && !item.waitingFacets?.length && item.status !== 'loading' && item.status !== 'failed' && editingId !== item.id;
     const removeFacet = (facet: FacetType) => void run(async () => { await deleteFacet(item.id, item.moduleType as ParentType, facet); });
     // Confirmed in its row when the facet has content, as a card's Retry is beside its tab.
     const retryFacet = (facet: FacetType) => void run(() => generate({ scope: 'facet', componentId: item.id, facet }, true));
@@ -497,8 +507,8 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
     // Which facets have content: none on a card that is only its tab; on
     // content outside the parent's layout, the sections cannot be told apart,
     // so no tag is marked.
-    const rendered = renderContent(item.moduleType, blockText(item.content));
-    const filled = generating || !blockText(item.content) ? [] : rendered.kind === 'parent' ? rendered.facets.map(each => each.facet) : undefined;
+    const { rendered } = read;
+    const filled = generating || !read.present ? [] : rendered.kind === 'parent' ? rendered.facets.map(each => each.facet) : undefined;
     const tags = controls ? <FacetTags holderId={item.id} parent={item.moduleType as ParentType} facets={item.facets ?? []} filled={filled}
       layout={layout} title={title} disabled={controls.disabled} ghost={ghost}
       onOpen={layout === 'hanging' ? undefined : facet => showFacet(item, facet)}

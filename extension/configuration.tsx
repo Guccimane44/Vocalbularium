@@ -6,6 +6,7 @@ import { applicableFacets, facetLabel, isParentType, withFacet } from '@vocabula
 import type { FacetType, ParentType } from '@vocabularium/domain/parents';
 import { addBlocked, CATALOG, DECK_COLOURS, isModuleType } from '@vocabularium/domain/page-modules';
 import type { ModuleFamily } from '@vocabularium/domain/page-modules';
+import { renderContent } from '@vocabularium/domain/render';
 import { deckColour } from './deck-colour.ts';
 import { FacetTags } from './facet-tags.tsx';
 import { FamilyIcon } from './families.tsx';
@@ -99,7 +100,7 @@ function PreviewDialog({ modules, sampleType, choose, close }: {
         // Like a page, an empty component (Text) is only its tab.
         return <article className={`component preview fam-${family}`} data-empty={!text || undefined} key={module.id} data-type={module.type}>
           <div className="card-tab"><FamilyIcon family={family} /><h3>{moduleLabel(module.type)}</h3></div>
-          {text && <Content type={module.type} text={text} mainKey={mainKey} />}
+          {text && <Content type={module.type} rendered={renderContent(module.type, text)} mainKey={mainKey} />}
         </article>;
       })}
     </div>
