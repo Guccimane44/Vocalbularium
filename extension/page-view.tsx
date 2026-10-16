@@ -10,7 +10,7 @@ import { parentContentOf } from '@vocabularium/domain/content';
 import type { ParentContent } from '@vocabularium/domain/content';
 import { hasText } from '@vocabularium/domain/markdown';
 import { LiveEditor } from './live-editor.tsx';
-import { facetLabel, isFacetOf, isParentType } from '@vocabularium/domain/parents';
+import { facetLabel, facetsOf, isFacetOf, isParentType, ordered } from '@vocabularium/domain/parents';
 import type { FacetType, ParentType } from '@vocabularium/domain/parents';
 import type { FieldDraft, PageEditorDraft } from '../types/editor-drafts.js';
 import { FacetTags, FOLD_MS } from './facet-tags.tsx';
@@ -185,8 +185,8 @@ export function readContent(type: string, content: Component['content']): { rend
 }
 
 // Generated content as its parent's render contract describes (D08): the core,
-// then each facet under its label, and the facets waiting for the next Retry.
-// Anything else, and the user's own text, is plain text with its line breaks.
+// then each facet under its label, those waiting for the next Retry among them,
+// always in the parent's order. Anything else, and the user's own text, is plain text with its line breaks.
 export function Content({ type, rendered, mainKey, waiting = [], controls }: {
   type: string; rendered: Rendered; mainKey: string; waiting?: readonly string[]; controls?: FacetControls;
 }) {
@@ -205,9 +205,10 @@ export function Content({ type, rendered, mainKey, waiting = [], controls }: {
   </h3>;
   const section = (facet: string) => ({ className: 'facet', 'data-facet': facet, tabIndex: -1,
     'data-retrying': controls?.retrying === facet || undefined, 'aria-busy': controls?.retrying === facet || undefined });
-  const waitingSections = parent ? waiting.filter(facet => isFacetOf(parent, facet)).map(facet =>
-    <section key={facet} {...section(facet)} data-waiting>{facetHead(facet as FacetType, false, 'Waiting for Retry')}</section>) : [];
-  if (rendered.kind === 'plain') return <>{rendered.text && <pre>{rendered.text}</pre>}{waitingSections}</>;
+  const waitingSection = (facet: string) =>
+    <section key={facet} {...section(facet)} data-waiting>{facetHead(facet as FacetType, false, 'Waiting for Retry')}</section>;
+  const waits = parent ? waiting.filter(facet => isFacetOf(parent, facet)) : [];
+  if (rendered.kind === 'plain') return <>{rendered.text && <pre>{rendered.text}</pre>}{parent && ordered(parent, waits).map(waitingSection)}</>;
   const { heading, core, facets } = rendered;
   // The core's top line, then its markdown; each facet's markdown in its container (D09).
   return <div className="entry-content">
@@ -217,11 +218,15 @@ export function Content({ type, rendered, mainKey, waiting = [], controls }: {
       {heading.pronunciation && <span className="entry-pronunciation">{heading.pronunciation}</span>}
     </p>}
     {core.length > 0 && <Markdown blocks={core} mainKey={mainKey} className={heading ? 'entry-core' : 'entry-core reading'} />}
-    {facets.map(facet => <section key={facet.facet} {...section(facet.facet)}>
-      {facetHead(facet.facet, true)}
-      <Markdown blocks={facet.body} mainKey={mainKey} className="facet-body" />
-    </section>)}
-    {waitingSections}
+    {parent && facetsOf(parent).map(name => {
+      // A re-added facet waits in its own slot, not after the rest.
+      const facet = facets.find(each => each.facet === name);
+      if (!facet) return waits.includes(name) ? waitingSection(name) : null;
+      return <section key={name} {...section(name)}>
+        {facetHead(name, true)}
+        <Markdown blocks={facet.body} mainKey={mainKey} className="facet-body" />
+      </section>;
+    })}
   </div>;
 }
 

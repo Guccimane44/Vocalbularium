@@ -2135,6 +2135,10 @@ test('parents and facets: core only on add, facets only on their own parent, the
   await waitFor(async () => (await german())[0].facets.includes('examples'), 'Examples added back');
   assert.deepEqual((await german())[0].facets, ['article', 'examples', 'synonyms', 'antonyms'], 'in the parent’s order');
   await card('German').locator('.facet[data-waiting][data-facet="examples"]').getByText('Waiting for Retry').waitFor();
+  // A re-added facet waits in its own slot, not after the rest; its tag too.
+  assert.deepEqual(await card('German').locator('.facet').evaluateAll(sections => sections.map(each => each.dataset.facet)),
+    ['article', 'examples', 'synonyms', 'antonyms'], 'the sections keep the parent’s order');
+  assert.deepEqual(await card('German').locator('.facet-tag .facet-tag-mark').allTextContents(), ['Ar', 'Ex', 'Sy', 'An']);
   await a.page.screenshot({ path: 'artifacts/v0.7.0-facets-page.png', fullPage: true });
 
   // With two German modules that lack a facet, its + picks it up and each German wears its ghost (0.7.2).
