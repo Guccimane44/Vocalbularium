@@ -23,7 +23,7 @@
 /* Cards: an index tab on the top edge in the family colour, with its name. */
 .shaping-layout { margin-top: 18px; }
 .shaping-list { gap: 30px; padding-top: 14px; }
-.component { position: relative; padding: 26px 26px 20px; border: 0; border-radius: var(--radius-card); background: var(--surface);
+.component { position: relative; padding: 26px 26px 0; --card-pad-bottom: 20px; border: 0; border-radius: var(--radius-card); background: var(--surface);
   box-shadow: inset 0 3px 0 var(--fam, var(--fam-notes)), 0 0 0 1px var(--line); min-width: 0; }
 /* An empty component is only its tab; clicking the tab ejects its actions as
    on any card. The tab sits in the flow where a card's tab would, and the
@@ -163,6 +163,11 @@
    the grid row, the one place a layout property animates. */
 .component { --fold: 500ms; --ease-fold: cubic-bezier(.45, 0, .25, 1); transition: padding var(--fold) var(--ease-fold), margin var(--fold) var(--ease-fold), min-height var(--fold) var(--ease-fold); }
 .card-fold { display: grid; grid-template-rows: 1fr; transition: grid-template-rows var(--fold) var(--ease-fold); }
+/* The card's bottom padding lives inside the fold, so the last facet's block
+   can reach the card's bottom edge and folding hides it with the rest (0.7.4). */
+.card-fold-inner::after { content: ""; display: block; height: var(--card-pad-bottom, 20px); }
+.card-body .entry-content > .facet:last-child { margin-bottom: calc(-1 * var(--card-pad-bottom, 20px)); padding-bottom: calc(5px + var(--card-pad-bottom, 20px));
+  border-radius: var(--radius-control) var(--radius-control) var(--radius-card) var(--radius-card); }
 /* Folding clips only up and down, so a facet's flash can reach the card's sides. */
 .card-fold-inner { min-height: 0; overflow-x: visible; overflow-y: clip; overflow-clip-margin: 6px; transition: opacity var(--fold) var(--ease-fold), transform var(--fold) var(--ease-fold); }
 .component[data-folded] { padding-top: 20px; padding-bottom: 0; }
@@ -272,7 +277,7 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
   .main-key[data-tier="sentence"] { font-size: 24px; }
   .page-header { flex-wrap: wrap; }
   .title-actions { margin-top: 0; }
-  .component { padding: 24px 18px 16px; --card-pad-x: 18px; }
+  .component { padding: 24px 18px 0; --card-pad-x: 18px; --card-pad-bottom: 16px; }
 }
 @media (forced-colors: active) {
   .card-tab, .fam-chip { forced-color-adjust: none; background: CanvasText; color: Canvas; }
