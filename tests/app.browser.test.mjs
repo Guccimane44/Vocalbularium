@@ -1163,9 +1163,12 @@ test('retry UI: exact confirmation asked beside the tab, a first Retry without w
   release(wordResult('regenerated component'));
   await waitFor(async () => modulesOf(await application.store.page(pageId))[1].status === 'completed', 'retry saved');
   assert.deepEqual(modulesOf(await application.store.page(pageId)).map(text), ['saved original', 'regenerated component']);
+  // The retry made the card structured (D09): a text draft can no longer replace it. It is
+  // refused and kept; the field editor (0.7.4, increment 5) resubmits drafts as fields.
   await b.page.getByRole('button', { name: 'Try saving again', exact: true }).click();
-  await b.page.locator('.component-tools').waitFor({ state: 'detached' });
-  assert.deepEqual(modulesOf(await application.store.page(pageId)).map(text), ['saved original', 'draft back']);
+  await b.page.getByRole('alert').filter({ hasText: 'Edit this module through its fields.' }).waitFor();
+  assert.equal(await b.page.getByRole('textbox', { name: 'Edit German', exact: true }).inputValue(), 'draft back');
+  assert.deepEqual(modulesOf(await application.store.page(pageId)).map(text), ['saved original', 'regenerated component']);
 
   // A deck change never reaches the page; a module dragged onto it generates from its card without a warning.
   await useModules(application.store, ['chinese', 'german', 'german']);
