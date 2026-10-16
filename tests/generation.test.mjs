@@ -666,9 +666,10 @@ test('a facet’s own Retry regenerates that facet’s entry for the core alread
   assert.equal(current.failedFacet, 'antonyms');
   assert.deepEqual(current.waitingFacets, ['antonyms']);
 
-  // A component without structured content is retried whole.
-  await store.savePage(randomUUID(), { pageId: page.id, changes: [{ componentId: current.id, content: textBlocks('My own notes') }] });
-  await assert.rejects(store.generate(randomUUID(), { pageId: page.id, target: { scope: 'facet', componentId: current.id, facet: 'examples' }, session }),
+  // A parent without structured content yet is retried whole.
+  const { componentId } = await store.addModule(randomUUID(), { pageId: page.id, type: 'german' });
+  await store.addFacet(randomUUID(), { pageId: page.id, componentId, parent: 'german', facet: 'examples' });
+  await assert.rejects(store.generate(randomUUID(), { pageId: page.id, target: { scope: 'facet', componentId, facet: 'examples' }, session }),
     { code: 'invalid', message: /Retry the whole module first/ });
 });
 

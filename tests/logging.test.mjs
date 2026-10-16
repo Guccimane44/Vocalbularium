@@ -52,7 +52,7 @@ test('diagnostic history joins capture, actual prompts, phase timings and commit
   const pageId = await capture();
   const page = await application.store.page(pageId);
   await call('/api/page/save', { operationId: 'manual-edit-fixture', payload: { pageId,
-    changes: [{ componentId: generated(page)[0].id, content: textBlocks('MANUAL-PRIVATE-ONLY') }] } });
+    changes: [{ componentId: page.components[0].id, content: textBlocks('MANUAL-PRIVATE-ONLY') }] } });
   const manual = await call('/api/page/create', { operationId: 'manual-create-fixture', payload: {
     deckId: page.deckId, mainKey: 'MANUAL-PRIVATE-ONLY', manual: [textBlocks('MANUAL-PRIVATE-ONLY')] }
   });
@@ -83,16 +83,16 @@ test('diagnostic budget and write failures do not prevent capture, generation or
   const page = await application.store.page(pageId);
   assert.equal(page.status, 'completed');
   assert.equal((await call('/api/page/save', { operationId: 'full-budget-edit', payload: { pageId,
-    changes: [{ componentId: generated(page)[0].id, content: textBlocks('saved despite log capacity') }] } })).response.status, 200);
+    changes: [{ componentId: page.components[0].id, content: textBlocks('saved despite log capacity') }] } })).response.status, 200);
   assert.equal((await call('/api/diagnostics/status')).value.degraded, true);
   diagnostics.budgetBytes = 1024 * 1024;
   await rm(diagnostics.generationDirectory(), { recursive: true, force: true });
   await writeFile(diagnostics.generationDirectory(), 'controlled logging filesystem failure');
   assert.equal((await call('/api/page/save', { operationId: 'failed-writer-edit', payload: { pageId,
-    changes: [{ componentId: generated(page)[0].id, content: textBlocks('saved despite log writer failure') }] } })).response.status, 200);
+    changes: [{ componentId: page.components[0].id, content: textBlocks('saved despite log writer failure') }] } })).response.status, 200);
   await diagnostics.tail;
   assert.equal(diagnostics.status().reason, 'storage_unavailable');
-  assert.equal(text(generated(await application.store.page(pageId))[0]), 'saved despite log writer failure');
+  assert.equal(text((await application.store.page(pageId)).components[0]), 'saved despite log writer failure', 'a main-key edit is saved');
 });
 test('authenticated management and the Codex command share inspection, preview and deletion rules', async t => {
   const { diagnostics, url, call, capture } = await fixture(t);

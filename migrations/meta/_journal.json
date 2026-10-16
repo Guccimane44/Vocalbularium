@@ -85,6 +85,13 @@
       "when": 1792009171178,
       "tag": "0011_retire_earlier_modules",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1792169101613,
+      "tag": "0012_structured_parent_content",
+      "breakpoints": true
     }
   ]
 }

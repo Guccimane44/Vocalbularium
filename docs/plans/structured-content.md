@@ -1,6 +1,6 @@
 # Plan: structured parent content and a field editor (0.7.4)
 
-Proposed: 16 October 2026 (Europe/Berlin). Implements [D09](../architecture/traceability-map.md#entries), accepted by the owner on 16 October 2026 and applied to the specifications in increment 0. Tracker: [#152](https://github.com/Guccimane44/Vocalbularium/issues/152); milestone in [Actual Stages](https://app.notion.com/p/3fbbb135020881fb962ad678a3cb613f). Status: increment 0 merged in [#153](https://github.com/Guccimane44/Vocalbularium/pull/153); increment 1 (domain and contracts) merged in [#154](https://github.com/Guccimane44/Vocalbularium/pull/154); increment 2 (generation) in review, waiting for the owner's golden-set review.
+Proposed: 16 October 2026 (Europe/Berlin). Implements [D09](../architecture/traceability-map.md#entries), accepted by the owner on 16 October 2026 and applied to the specifications in increment 0. Tracker: [#152](https://github.com/Guccimane44/Vocalbularium/issues/152); milestone in [Actual Stages](https://app.notion.com/p/3fbbb135020881fb962ad678a3cb613f). Status: increment 0 merged in [#153](https://github.com/Guccimane44/Vocalbularium/pull/153); increment 1 (domain and contracts) merged in [#154](https://github.com/Guccimane44/Vocalbularium/pull/154); increment 2 (generation) merged in [#156](https://github.com/Guccimane44/Vocalbularium/pull/156) after the owner approved the golden set (16 October 2026); increment 3 (storage, API and upgrade) in review.
 
 ## Outcome
 
@@ -55,6 +55,8 @@ D09 in the traceability map with C21, the Notion decision record (Accepted), the
 - The store publishes the `parent` block; saving a parent component validates it with the domain rules; facet Delete and Retry act on entries.
 - Migration `0012`: discards every deck and page as `0011` did, keeps sign-in, and creates My Deck with Context and `German` with all four facets. Back up first with `npm run db:backup`.
 - OpenAPI regenerated; store and upgrade tests, including an upgrade from a 0.7.3 database.
+
+*Changed during increment 3 (16 October 2026):* until the field editor lands in increment 5, a parent component that holds only text still accepts a text save, so the existing editor and its browser tests keep working; plain text can never replace structured content. Increment 5 removes the text path.
 
 ### 4. Cards from data
 

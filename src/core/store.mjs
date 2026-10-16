@@ -68,6 +68,25 @@ function blockValue(value, message) {
     value.blocks.some(block => !block || block.type !== 'paragraph' || typeof block.text !== 'string')) fail('invalid', message);
   return { version: 1, blocks: value.blocks.map(block => ({ type: 'paragraph', text: block.text })) };
 }
+// A parent component's saved edit (D09): one parent block whose data has the
+// parent's shape, only the component's facets, and the core's top line
+// (kind, language, key, romanization) as stored; any other field may be empty.
+// Plain text may not replace structured content: until the field editor
+// (0.7.4, increment 5), a component that holds only text still takes text.
+function parentEdit(component, value) {
+  const stored = parentContentOf(component.content);
+  if (value?.version === 1 && Array.isArray(value.blocks) && value.blocks.length === 1 && value.blocks[0]?.type === 'parent') {
+    if (!stored) fail('invalid', 'Generate this module before editing it.');
+    let content;
+    try { content = validateParentContent(component.moduleType, { core: value.blocks[0].core, facets: value.blocks[0].facets }, { facets: component.facets ?? [] }); }
+    catch (error) { fail('invalid', error.message); }
+    const header = core => core.kind === 'word' ? [core.kind, core.language, core.key, core.romanization ?? null] : [core.kind];
+    if (JSON.stringify(header(content.core)) !== JSON.stringify(header(stored.core))) fail('invalid', "The module's top line can not be changed.");
+    return parentDocument(content);
+  }
+  if (stored) fail('invalid', 'Edit this module through its fields.');
+  return blockValue(value, 'Component content must be a text document.');
+}
 function textValue(value, message) {
   if (typeof value !== 'string') fail('invalid', message);
   return value;
@@ -534,7 +553,7 @@ export class AccountStore {
         const component = page.components.find(component => component.id === change.componentId);
         if (!component) fail('deleted', 'A changed component no longer exists.');
         if (component.status === 'loading') fail('generating', 'A component is still generating. Your drafts are preserved.');
-        const content = blockValue(change.content, 'Component content must be a text document.');
+        const content = isParentType(component.moduleType) ? parentEdit(component, change.content) : blockValue(change.content, 'Component content must be a text document.');
         if (component.moduleType === 'main-key' && !blockText(content).trim()) fail('invalid', 'Main key can not be empty.');
         updates.push({ component, content });
       }
