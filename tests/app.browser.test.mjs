@@ -7,7 +7,7 @@ import { once } from 'node:events';
 import { chromium } from 'playwright';
 import { blockText } from '@vocabularium/domain/pages';
 import { isContentType } from '@vocabularium/domain/page-modules';
-import { resultFor, sentenceResult, text, textBlocks, useModules, wordResult, staged } from './helpers/pages.mjs';
+import { resultFor, sentenceResult, text, textBlocks, useModules, wordResult, staged, fieldEdit } from './helpers/pages.mjs';
 const keyOf = page => text(page.components.find(component => component.moduleType === 'main-key'));
 // The bank entry with all four German facets, as structured content (D09).
 const BANK = { core: { kind: 'word', language: 'Englisch', key: 'bank', meanings: ['Ufer'] }, facets: { article: { singular: 'das Ufer', plural: 'die Ufer' },
@@ -267,9 +267,9 @@ test('capture extension: receipt lifetime, exact duplicate pages, shared outcome
   // Generated content is rendered by its module's render contract (D05): numbered
   // meanings and an example beside its translation, the main key emphasised.
   const generatedCard = componentArticle(b.page, 'German');
-  await generatedCard.locator('.meanings li').filter({ hasText: 'Glück' }).waitFor();
-  assert.equal(await generatedCard.locator('.example-translation').textContent(), 'Sie ist glücklich.');
-  assert.equal(await generatedCard.locator('.example-sentence mark').textContent(), '幸福');
+  await generatedCard.locator('.entry-core li').filter({ hasText: 'Glück' }).waitFor();
+  assert.equal(await generatedCard.locator('.facet[data-facet="examples"] li em').textContent(), 'Sie ist glücklich.');
+  assert.equal(await generatedCard.locator('.facet[data-facet="examples"] li mark').textContent(), '幸福');
   assert.equal(await generatedCard.getByText('===', { exact: false }).count(), 0, 'no literal markup');
   assert.equal(await generatedCard.locator('.badge, .list-status').count(), 0, 'a completed card shows no status');
 
@@ -1135,9 +1135,9 @@ test('retry UI: exact confirmation asked beside the tab, a first Retry without w
   await signIn(a.page); await signIn(b.page);
   await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
   await b.page.goto(`chrome-extension://${b.id}/app.html#page/${pageId}`);
-  // Installation b edits the explanation card while a retries it.
-  await (await cardButton(b.page, 'Edit German')).click();
-  await b.page.getByRole('textbox', { name: 'Edit German', exact: true }).fill('draft back');
+  // A parent card waits for its live editor (0.7.4, increment 7), which brings back installation b's
+  // draft during a's retry; until then its Edit waits.
+  assert.equal(await (await cardButton(b.page, 'Edit German')).isDisabled(), true);
   // Retrying content asks beside the tab, as Delete does, in the card's colour; no dialog (0.6.3).
   const retryExplanation = () => cardButton(a.page, 'Retry German');
   await (await retryExplanation()).click();
@@ -1159,18 +1159,10 @@ test('retry UI: exact confirmation asked beside the tab, a first Retry without w
   // Every Retry is briefly disabled while the request is in flight; once accepted, only the generating component stays locked.
   await waitFor(async () => (await cardButton(a.page, 'Retry Chinese')).isEnabled(), 'other components stay available');
   assert.equal(await (await retryExplanation()).isDisabled(), true);
-  await b.page.getByRole('button', { name: 'Save', exact: true }).click();
-  await b.page.getByRole('alert').filter({ hasText: 'still generating' }).waitFor();
   assert.deepEqual(modulesOf(await application.store.page(pageId)).map(text), ['saved original', '']);
-  assert.equal(await b.page.getByRole('textbox', { name: 'Edit German', exact: true }).inputValue(), 'draft back');
   release(wordResult('regenerated component'));
   await waitFor(async () => modulesOf(await application.store.page(pageId))[1].status === 'completed', 'retry saved');
   assert.deepEqual(modulesOf(await application.store.page(pageId)).map(text), ['saved original', 'regenerated component']);
-  // The retry made the card structured (D09): a text draft can no longer replace it. It is
-  // refused and kept; the field editor (0.7.4, increment 5) resubmits drafts as fields.
-  await b.page.getByRole('button', { name: 'Try saving again', exact: true }).click();
-  await b.page.getByRole('alert').filter({ hasText: 'Edit this module through its fields.' }).waitFor();
-  assert.equal(await b.page.getByRole('textbox', { name: 'Edit German', exact: true }).inputValue(), 'draft back');
   assert.deepEqual(modulesOf(await application.store.page(pageId)).map(text), ['saved original', 'regenerated component']);
 
   // A deck change never reaches the page; a module dragged onto it generates from its card without a warning.
@@ -1310,7 +1302,7 @@ test('page view: main key tiers, Show all, rendered and plain content, quiet car
   // A card draws its structured content (D09), never stored syntax; a failed card says so beside a visible Retry.
   await open('word');
   const examples = componentArticle(a.page, 'German');
-  assert.equal(await examples.locator('.meanings li').textContent(), 'Bedeutung');
+  assert.equal(await examples.locator('.entry-core li').textContent(), 'Bedeutung');
   assert.equal(await examples.locator('pre').count(), 0);
   assert.equal(await examples.locator('.list-status').count(), 0, 'a completed card shows no status');
   const failed = componentArticle(a.page, 'Chinese');
@@ -1451,9 +1443,9 @@ test('generation reveal: finished content rises into its card and is announced; 
   // The spark does not vanish: it fades away as the content rises in.
   await card('Chinese').locator('.spark[data-ending]').waitFor({ state: 'attached', timeout: 15000 });
   await card('Chinese').locator('.spark').waitFor({ state: 'detached', timeout: 3000 });
-  await card('Chinese').locator('.card-body[data-reveal] .meanings li').waitFor({ timeout: 15000 });
+  await card('Chinese').locator('.card-body[data-reveal] .entry-core li').waitFor({ timeout: 15000 });
   assert.equal(await card('Chinese').getByRole('status').textContent(), 'Chinese generated.');
-  assert.notEqual(await card('Chinese').locator('.meanings li').evaluate(node => getComputedStyle(node).animationName), 'none', 'the content rises');
+  assert.notEqual(await card('Chinese').locator('.entry-core li').evaluate(node => getComputedStyle(node).animationName), 'none', 'the content rises');
 
   // Reduced motion: the same state, shown at once.
   await a.page.emulateMedia({ reducedMotion: 'reduce' });
@@ -1738,9 +1730,9 @@ test('assembled reliability: lost acknowledgments, worker suspension, abrupt ori
   }, 'publication acknowledgment was lost');
   assert.equal(pending.payload.payload.attemptId, modulesOf(publicationPage)[1].attemptId, 'the generated component lost its acknowledgment');
   const publishedAttempt = await application.store.attempt(pending.payload.payload.attemptId);
-  const published = (await application.store.page(publishedAttempt.page_id)).components.find(item => item.id === publishedAttempt.component_id).content.blocks[0];
+  const published = (await application.store.page(publishedAttempt.page_id)).components.find(item => item.id === publishedAttempt.component_id);
   await application.store.savePage('later-than-publication', { pageId: publishedAttempt.page_id, changes: [{ componentId: publishedAttempt.component_id,
-    content: { version: 1, blocks: [{ ...published, core: { ...published.core, meanings: ['manual text after publication'] } }] } }] });
+    content: fieldEdit(published, 'manual text after publication') }] });
   await waitFor(async () => await a.page.getByRole('button', { name: 'Try saving again', exact: true }).count() === 1, 'only the lost acknowledgment needs retry');
   await a.page.getByRole('button', { name: 'Try saving again', exact: true }).click();
   await waitFor(async () => !(await a.worker.evaluate(async (id) => (await chrome.storage.local.get(`save-${id}`))[`save-${id}`], pending.operationId)), 'publication receipt recovered');
@@ -2096,7 +2088,7 @@ test('parents and facets: core only on add, facets only on their own parent, the
   // The core, then each facet under its label, and how the key was read.
   assert.equal(await a.page.locator('.interpretation').textContent(), 'Read as a word');
   assert.deepEqual(await card('German').locator('.facet .facet-title > span:first-child').allTextContents(), ['Article', 'Examples', 'Synonyms', 'Antonyms']);
-  assert.equal(await card('German').locator('.meanings li').textContent(), 'Ufer');
+  assert.equal(await card('German').locator('.entry-core li').textContent(), 'Ufer');
 
   // A facet goes nowhere without a parent of its type. Why is told to assistive technology only:
   // the window shows no text for it, pointed at or not (0.7.1).
@@ -2572,8 +2564,8 @@ test('0.7.3: a facet’s own Retry beside its Delete, a tag’s remove keeping i
   await store.establishInterpretation((await store.attempt(first.attemptId)).run_id, { inputType: 'word_phrase' });
   // Structured content (D09).
   const core = { kind: 'word', language: 'Englisch', key: 'bank', meanings: ['Ufer'] };
-  await store.stage(first.attemptId, { ok: true, content: { core, facets: { article: { singular: 'das Ufer', plural: 'die Ufer' },
-    examples: [{ sentence: 'We sat on the bank.', translation: 'Wir saßen am Ufer.' }] } } });
+  await store.stage(first.attemptId, staged({ core, facets: { article: { singular: 'das Ufer', plural: 'die Ufer' },
+    examples: [{ sentence: 'We sat on the bank.', translation: 'Wir saßen am Ufer.' }] } }));
   await store.publish('facet-retry-publish', { attemptId: first.attemptId, session });
   // A second German, empty, with a facet: only its tab, its tag hung below.
   const { componentId: empty } = await store.addModule('facet-retry-empty', { pageId, type: 'german' });

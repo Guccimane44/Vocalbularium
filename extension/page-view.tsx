@@ -1,10 +1,11 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import type { Component, GenerationTarget, ModuleInstance, Page } from '@vocabularium/contracts';
 import { CATALOG, isContentType, isModuleType } from '@vocabularium/domain/page-modules';
 import { blockText, mainKeyOf } from '@vocabularium/domain/pages';
 import { emphasise, renderContent, renderParent } from '@vocabularium/domain/render';
-import type { Rendered, RenderedFacet } from '@vocabularium/domain/render';
+import type { Rendered } from '@vocabularium/domain/render';
+import type { MdBlock, MdInline } from '@vocabularium/domain/markdown';
 import { parentContentOf } from '@vocabularium/domain/content';
 import { facetLabel, isFacetOf, isParentType } from '@vocabularium/domain/parents';
 import type { FacetType, ParentType } from '@vocabularium/domain/parents';
@@ -114,14 +115,26 @@ function NewPageEditor({ draft, deck, busy, persist, save, cancel }: Pick<Props,
 }
 
 // One facet's content (D08): examples beside their translations, or its lines.
-function FacetBody({ facet, mainKey }: { facet: RenderedFacet; mainKey: string }) {
-  const marked = (text: string) => emphasise(text, mainKey).map((part, index) => part.key ? <mark key={index}>{part.text}</mark> : part.text);
-  if (facet.facet === 'examples') return <ul className="examples">{facet.examples.map((example, index) => <li key={index}>
-    <span className="example-number">{example.number}</span>
-    {example.sentence !== null && <span className="example-sentence">{marked(example.sentence)}</span>}
-    {example.translation && <span className="example-translation">{example.translation}</span>}
-  </li>)}</ul>;
-  return <ul className="facet-lines">{facet.lines.map((line, index) => <li key={index}>{line}</li>)}</ul>;
+// Markdown as the domain reads it (D09, amended): paragraphs, lists, bold,
+// italic, inline code and highlight, drawn as elements, never as HTML. The
+// main key is emphasised wherever it occurs in the text.
+function Inline({ runs, mainKey }: { runs: readonly MdInline[]; mainKey: string }) {
+  return <>{runs.map((run, index) => {
+    if (run.type === 'text') return <Fragment key={index}>{emphasise(run.text, mainKey).map((part, at) => part.key ? <mark key={at}>{part.text}</mark> : part.text)}</Fragment>;
+    if (run.type === 'break') return <br key={index} />;
+    if (run.type === 'code') return <code key={index}>{run.text}</code>;
+    const children = <Inline runs={run.children} mainKey={mainKey} />;
+    return run.type === 'strong' ? <strong key={index}>{children}</strong> : run.type === 'em' ? <em key={index}>{children}</em>
+      : <mark key={index} className="md-highlight">{children}</mark>;
+  })}</>;
+}
+export function Markdown({ blocks, mainKey, className }: { blocks: readonly MdBlock[]; mainKey: string; className?: string }) {
+  return <div className={`md${className ? ` ${className}` : ''}`}>{blocks.map((block, index) => block.type === 'paragraph'
+    ? <p key={index}><Inline runs={block.children} mainKey={mainKey} /></p>
+    : block.ordered
+      ? <ol key={index} start={block.start}>{block.items.map((item, at) =>
+        <li key={at} data-number={block.start + at}><span><Inline runs={item} mainKey={mainKey} /></span></li>)}</ol>
+      : <ul key={index}>{block.items.map((item, at) => <li key={at}><Inline runs={item} mainKey={mainKey} /></li>)}</ul>)}</div>;
 }
 
 // A facet's Retry and Delete beside its label (0.7.3): each at once when the
@@ -192,19 +205,18 @@ export function Content({ type, rendered, mainKey, waiting = [], controls }: {
   const waitingSections = parent ? waiting.filter(facet => isFacetOf(parent, facet)).map(facet =>
     <section key={facet} {...section(facet)} data-waiting>{facetHead(facet as FacetType, false, 'Waiting for Retry')}</section>) : [];
   if (rendered.kind === 'plain') return <>{rendered.text && <pre>{rendered.text}</pre>}{waitingSections}</>;
-  const { core, facets } = rendered;
+  const { heading, core, facets } = rendered;
+  // The core's top line, then its markdown; each facet's markdown in its container (D09).
   return <div className="entry-content">
-    {core.kind === 'word' ? <>
-      {core.heading && <p className="entry-heading">
-        <span className="entry-language">{core.heading.language}</span>
-        {core.heading.key && <span className="entry-key">{core.heading.key}</span>}
-        {core.heading.pronunciation && <span className="entry-pronunciation">{core.heading.pronunciation}</span>}
-      </p>}
-      <ol className="meanings">{core.meanings.map(meaning => <li key={meaning.number} data-number={meaning.number}>{meaning.text}</li>)}</ol>
-    </> : <p className="reading">{core.text}</p>}
+    {heading && <p className="entry-heading">
+      <span className="entry-language">{heading.language}</span>
+      <span className="entry-key">{heading.key}</span>
+      {heading.pronunciation && <span className="entry-pronunciation">{heading.pronunciation}</span>}
+    </p>}
+    {core.length > 0 && <Markdown blocks={core} mainKey={mainKey} className={heading ? 'entry-core' : 'entry-core reading'} />}
     {facets.map(facet => <section key={facet.facet} {...section(facet.facet)}>
       {facetHead(facet.facet, true)}
-      <FacetBody facet={facet} mainKey={mainKey} />
+      <Markdown blocks={facet.body} mainKey={mainKey} className="facet-body" />
     </section>)}
     {waitingSections}
   </div>;
@@ -455,7 +467,8 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
     let index = 0;
     const order = () => ({ '--i': index++ }) as CSSProperties;
     return <div id={`actions-${item.id}`} className="card-actions" role="group" aria-label={`${title} actions`} data-open={open || undefined}>
-      {open && <button style={order()} aria-label={`Edit ${title}`} disabled={Boolean(editingId) || item.status === 'loading'}
+      {/* A parent is edited in its live editor (D09, 0.7.4 increment 7); until then, not here. */}
+      {open && <button style={order()} aria-label={`Edit ${title}`} disabled={Boolean(editingId) || item.status === 'loading' || isParentType(item.moduleType)}
         onClick={choose(() => { if (isFolded) fold(item.id, false); begin(item.id); })}>
         <ActionIcon name="edit" />Edit</button>}
       {generated && <button style={order()} className={item.status === 'failed' ? 'action-failed' : undefined} aria-label={`Retry ${title}`}

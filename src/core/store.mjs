@@ -5,8 +5,7 @@ import {
   addBlocked, copyModules, deleteBlocked, DECK_COLOURS, generationTargets, moveBlocked, moved, pageMeaning, validateConfiguration
 } from '@vocabularium/domain/page-modules';
 import { facetAddBlocked, facetDeleteBlocked, isParentType, withFacet } from '@vocabularium/domain/parents';
-import { withoutFacet } from '@vocabularium/domain/render';
-import { hasFacetContent, isEmptyContent, parentContentOf, parentDocument, validateParentContent, withFacetEntry } from '@vocabularium/domain/content';
+import { hasFacetContent, isEmptyContent, parentContentOf, parentDocument, validateParentContent, withFacetText } from '@vocabularium/domain/content';
 import { sortKey } from './sort-key.mjs';
 /** @typedef {import('./store-records.js').PageRow} PageRow */
 /** @typedef {import('./store-records.js').ComponentRow} ComponentRow */
@@ -68,24 +67,23 @@ function blockValue(value, message) {
     value.blocks.some(block => !block || block.type !== 'paragraph' || typeof block.text !== 'string')) fail('invalid', message);
   return { version: 1, blocks: value.blocks.map(block => ({ type: 'paragraph', text: block.text })) };
 }
-// A parent component's saved edit (D09): one parent block whose data has the
-// parent's shape, only the component's facets, and the core's top line
-// (kind, language, key, romanization) as stored; any other field may be empty.
-// Plain text may not replace structured content: until the field editor
-// (0.7.4, increment 5), a component that holds only text still takes text.
+// A parent component's saved edit (D09, amended): one parent block with the
+// core's top line as stored, the core's markdown and markdown for the
+// component's facets only; any text may be empty. A parent is never saved as
+// plain text, and one that never generated has no top line to edit.
 function parentEdit(component, value) {
   const stored = parentContentOf(component.content);
-  if (value?.version === 1 && Array.isArray(value.blocks) && value.blocks.length === 1 && value.blocks[0]?.type === 'parent') {
-    if (!stored) fail('invalid', 'Generate this module before editing it.');
-    let content;
-    try { content = validateParentContent(component.moduleType, { core: value.blocks[0].core, facets: value.blocks[0].facets }, { facets: component.facets ?? [] }); }
-    catch (error) { fail('invalid', error.message); }
-    const header = core => core.kind === 'word' ? [core.kind, core.language, core.key, core.romanization ?? null] : [core.kind];
-    if (JSON.stringify(header(content.core)) !== JSON.stringify(header(stored.core))) fail('invalid', "The module's top line can not be changed.");
-    return parentDocument(content);
+  if (!(value?.version === 1 && Array.isArray(value.blocks) && value.blocks.length === 1 && value.blocks[0]?.type === 'parent')) {
+    fail('invalid', 'Edit this module in its editor.');
   }
-  if (stored) fail('invalid', 'Edit this module through its fields.');
-  return blockValue(value, 'Component content must be a text document.');
+  if (!stored) fail('invalid', 'Generate this module before editing it.');
+  const { type, ...block } = value.blocks[0];
+  let content;
+  try { content = validateParentContent(component.moduleType, block, { facets: component.facets ?? [] }); }
+  catch (error) { fail('invalid', error.message); }
+  const line = header => header.kind === 'word' ? [header.kind, header.language, header.key, header.romanization ?? null] : [header.kind];
+  if (JSON.stringify(line(content.header)) !== JSON.stringify(line(stored.header))) fail('invalid', "The module's top line can not be changed.");
+  return parentDocument(content);
 }
 function textValue(value, message) {
   if (typeof value !== 'string') fail('invalid', message);
@@ -612,9 +610,9 @@ export class AccountStore {
       const holder = component && { id: component.id, type: component.moduleType, facets: component.facets, status: component.status };
       const blocked = component && component.moduleType !== parent ? 'This facet is no longer there.' : facetDeleteBlocked(holder, facet);
       if (blocked) fail(component ? 'invalid' : 'deleted', blocked);
-      // Structured content (D09) loses the facet's entry; plain text, its section.
+      // Its markdown leaves the content (D09), if there is any yet.
       const data = parentContentOf(component.content);
-      const content = data ? parentDocument(withFacetEntry(data, facet, undefined)) : textBlocks(withoutFacet(parent, blockText(component.content), facet));
+      const content = data ? parentDocument(withFacetText(data, facet, undefined)) : component.content;
       await this.database.run("UPDATE components SET facets = $1, content = $2 WHERE page_id = $3 AND id = $4",
         [component.facets.filter(item => item !== facet), JSON.stringify(content), pageId, componentId]);
       // Its section is gone from the content, so the last attempt no longer counts

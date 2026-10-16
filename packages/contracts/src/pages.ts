@@ -14,11 +14,9 @@ export const ParagraphBlockSchema = Type.Object({
   text: Type.String()
 }, { additionalProperties: false });
 
-// A parent module's content as structured data (D09, 0.7.4): its core and one
-// entry per facet with content, stored as one typed block. A facet without
-// content has no entry. Generated content is complete; the user may empty any
-// field, so a stored item needs only one part, and the core may have no
-// meaning or translation. The domain rejects items with no part at all.
+// The provider's result for a parent module (D09, 0.7.4): JSON with a core and
+// one entry per facet, checked complete before it is kept. The app formats it
+// into markdown per facet for storage.
 const Filled = Type.String({ minLength: 1, maxLength: 2000 });
 const MAX_ITEMS = 20;
 export const WordCoreSchema = Type.Object({
@@ -27,19 +25,19 @@ export const WordCoreSchema = Type.Object({
   language: Filled,
   key: Filled,
   romanization: Type.Optional(Filled),
-  meanings: Type.Array(Filled, { maxItems: MAX_ITEMS })
+  meanings: Type.Array(Filled, { minItems: 1, maxItems: MAX_ITEMS })
 }, { additionalProperties: false });
 // A sentence's translation, or for a sentence already in the parent's
 // language, an explanation of its meaning.
 export const SentenceCoreSchema = Type.Object({
   kind: Type.Literal('sentence'),
-  translation: Type.Optional(Filled)
+  translation: Filled
 }, { additionalProperties: false });
 export const ParentCoreSchema = Type.Union([WordCoreSchema, SentenceCoreSchema]);
-export const ArticleEntrySchema = Type.Object({ singular: Type.Optional(Filled), plural: Type.Optional(Filled) }, { additionalProperties: false });
+export const ArticleEntrySchema = Type.Object({ singular: Filled, plural: Type.Optional(Filled) }, { additionalProperties: false });
 // Numbered by position; not tied to meanings.
-export const ExampleEntrySchema = Type.Object({ sentence: Type.Optional(Filled), translation: Type.Optional(Filled) }, { additionalProperties: false });
-export const PinyinEntrySchema = Type.Object({ text: Type.Optional(Filled), pinyin: Type.Optional(Filled) }, { additionalProperties: false });
+export const ExampleEntrySchema = Type.Object({ sentence: Filled, translation: Type.Optional(Filled) }, { additionalProperties: false });
+export const PinyinEntrySchema = Type.Object({ text: Filled, pinyin: Filled }, { additionalProperties: false });
 const Words = Type.Array(Filled, { minItems: 1, maxItems: MAX_ITEMS });
 export const ParentFacetsSchema = Type.Object({
   article: Type.Optional(ArticleEntrySchema),
@@ -48,10 +46,24 @@ export const ParentFacetsSchema = Type.Object({
   antonyms: Type.Optional(Words),
   pinyin: Type.Optional(Type.Array(PinyinEntrySchema, { minItems: 1, maxItems: MAX_ITEMS }))
 }, { additionalProperties: false });
+export const GeneratedParentSchema = Type.Object({ core: ParentCoreSchema, facets: ParentFacetsSchema }, { additionalProperties: false });
+
+// A parent module's stored content (D09, amended): the core's top line, kept
+// structured and never edited, then the core and each facet with content as
+// one markdown text. A facet without content has no entry.
+const Markdown = Type.String({ maxLength: 8000 });
+export const ParentHeaderSchema = Type.Union([
+  Type.Object({ kind: Type.Literal('word'), language: Filled, key: Filled, romanization: Type.Optional(Filled) }, { additionalProperties: false }),
+  Type.Object({ kind: Type.Literal('sentence') }, { additionalProperties: false })
+]);
 export const ParentBlockSchema = Type.Object({
   type: Type.Literal('parent'),
-  core: ParentCoreSchema,
-  facets: ParentFacetsSchema
+  header: ParentHeaderSchema,
+  core: Markdown,
+  facets: Type.Object({
+    article: Type.Optional(Markdown), examples: Type.Optional(Markdown), synonyms: Type.Optional(Markdown),
+    antonyms: Type.Optional(Markdown), pinyin: Type.Optional(Markdown)
+  }, { additionalProperties: false })
 }, { additionalProperties: false });
 
 export const BlockDocumentSchema = Type.Object({
@@ -243,6 +255,8 @@ export type WordCore = Type.Static<typeof WordCoreSchema>;
 export type SentenceCore = Type.Static<typeof SentenceCoreSchema>;
 export type ParentCore = Type.Static<typeof ParentCoreSchema>;
 export type ParentFacets = Type.Static<typeof ParentFacetsSchema>;
+export type GeneratedParent = Type.Static<typeof GeneratedParentSchema>;
+export type ParentHeader = Type.Static<typeof ParentHeaderSchema>;
 export type ArticleEntry = Type.Static<typeof ArticleEntrySchema>;
 export type ExampleEntry = Type.Static<typeof ExampleEntrySchema>;
 export type PinyinEntry = Type.Static<typeof PinyinEntrySchema>;

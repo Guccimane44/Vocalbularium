@@ -92,6 +92,13 @@
       "when": 1792169101613,
       "tag": "0012_structured_parent_content",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1792176028084,
+      "tag": "0013_markdown_parent_content",
+      "breakpoints": true
     }
   ]
 }

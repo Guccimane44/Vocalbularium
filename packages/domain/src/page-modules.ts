@@ -1,9 +1,8 @@
 import type { BlockDocument, Component, GenerationTarget, ModuleInstance } from '@vocabularium/contracts';
 import { MAX_MODULES } from '@vocabularium/contracts';
 import { isParentType, PARENTS, validateFacets } from './parents.js';
-import { blockText } from './pages.js';
 import { parentContentOf } from './content.js';
-import { renderContent } from './render.js';
+import { plainLines } from './markdown.js';
 import type { ParentType } from './parents.js';
 
 // Page-owned modules (D02). Shared by the backend and the extension so both
@@ -117,37 +116,12 @@ export function generationTargets(target: GenerationTarget | { scope: 'capture' 
   }
 }
 
-// The first numbered meaning in a module's generated text (": [1] …"), outside
-// any subsection or under a meanings heading ("Bedeutungen", or "释义" for the
-// Chinese parent), never under examples or another facet; or null.
-export function firstMeaning(text: string): string | null {
-  let section: string | null = null;
-  for (const raw of text.split('\n')) {
-    const line = raw.trim();
-    const heading = /^(=+)\s*(.*?)\s*=+$/.exec(line);
-    if (heading) { section = heading[1].length > 2 ? heading[2] : null; continue; }
-    const match = /^:\s*\[\d+[a-z]?\]\s*(.+)$/.exec(line);
-    if (match && (section === null || /bedeutung|释义/i.test(section))) return match[1].trim();
-  }
-  return null;
-}
-
 // The meaning line of a page summary (D05, D08): the first meaning in the core
 // of the page's first content component that has one; otherwise, for a
-// sentence, the first line of the first translation. Structured content (D09)
-// is read as data; plain text as before.
-export function pageMeaning(components: readonly { type: string; text?: string | null; content?: BlockDocument | null }[]): string | null {
-  const content = components.filter(item => isContentType(item.type)).map(item => ({
-    type: item.type, data: item.content ? parentContentOf(item.content) : null, text: item.text ?? (item.content ? blockText(item.content) : '') }));
-  for (const { data, text } of content) {
-    const meaning = data ? (data.core.kind === 'word' ? data.core.meanings[0] ?? null : null) : text ? firstMeaning(text) : null;
-    if (meaning) return meaning;
-  }
-  for (const { type, data, text } of content) {
-    if (data?.core.kind === 'sentence' && data.core.translation) return data.core.translation.split('\n')[0]!.trim();
-    if (data || !text) continue;
-    const rendered = renderContent(type, text);
-    if (rendered.kind === 'parent' && rendered.core.kind === 'sentence') return rendered.core.text.split('\n')[0]!.trim();
-  }
-  return null;
+// sentence, the first line of the first translation (D09: read from the core's
+// markdown, formatting left out).
+export function pageMeaning(components: readonly { type: string; content?: BlockDocument | null }[]): string | null {
+  const cores = components.filter(item => isContentType(item.type) && item.content).map(item => parentContentOf(item.content!)).filter(content => content !== null);
+  const first = (kind: 'word' | 'sentence') => cores.filter(content => content!.header.kind === kind).map(content => plainLines(content!.core)[0]).find(Boolean);
+  return first('word') ?? first('sentence') ?? null;
 }

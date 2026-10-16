@@ -1,8 +1,10 @@
 import type { InputInterpretation, ParentCore } from '@vocabularium/contracts';
 import { applicableFacets, isFacetOf, isParentType } from './parents.js';
 import type { FacetType, ParentType } from './parents.js';
-import { emptyEntry, validateFacetEntry, validateParentContent, withFacetEntry } from './content.js';
+import { formatContent, providerCore, withFacetText } from './content.js';
 import type { ParentContent } from './content.js';
+import { emptyEntry, validateGenerated, validateGeneratedFacet } from './generated.js';
+import { formatFacet } from './markdown.js';
 
 // The run's reading of the main key (D08): word or phrase, or sentence. It no
 // longer chooses a source language; earlier runs stored one, which is ignored.
@@ -33,8 +35,9 @@ const isRecord = (value: unknown): value is Record<string, unknown> => typeof va
 // parent always applies: it generates its core and the facets that apply.
 // The result must have the parent's shape, complete, with the core for the
 // input type (D09). Entries of facets it was not asked for are dropped, and a
-// facet left out or empty has no content. Throws when generation fails.
-// Repeated instances generate independently.
+// facet left out or empty has no content. The result is kept as markdown per
+// facet, formatted as the card looks (D09, amended). Throws when generation
+// fails. Repeated instances generate independently.
 export async function generateComponent(input: {
   mainKey: string;
   module: ModuleInstance;
@@ -51,19 +54,19 @@ export async function generateComponent(input: {
   if (stray) throw new Error(`A module returned content in an unexpected format: an unexpected field "${stray}".`);
   const given = isRecord(value.facets) ? value.facets : {};
   const kept = Object.fromEntries(facets.filter(facet => !emptyEntry(given[facet])).map(facet => [facet, given[facet]]));
-  let content: ParentContent;
-  try { content = validateParentContent(module.type, { core: value.core, facets: kept }, { facets, complete: true }); }
+  let generated;
+  try { generated = validateGenerated(module.type, { core: value.core, facets: kept }, { facets }); }
   catch (error) { throw new Error(`A module returned content in an unexpected format: ${(error as Error).message}`); }
-  if (content.core.kind !== (input.interpretation.inputType === 'sentence' ? 'sentence' : 'word')) {
+  if (generated.core.kind !== (input.interpretation.inputType === 'sentence' ? 'sentence' : 'word')) {
     throw new Error('A module returned content in an unexpected format: the core does not match the input.');
   }
-  return content;
+  return formatContent(generated);
 }
 
 // A facet's own Retry (0.7.3): the facet alone, written for the core already
-// in `existing`, takes its entry's place; the core and the other facets stay
-// as they are (D09). A facet that does not apply to this input, or that comes
-// back empty, has no content. Throws when generation fails.
+// in `existing`, is formatted into that facet's markdown; the core and the
+// other facets stay as they are (D09). A facet that does not apply to this
+// input, or that comes back empty, has no content. Throws when generation fails.
 export async function generateFacet(input: {
   mainKey: string;
   module: ModuleInstance;
@@ -77,15 +80,15 @@ export async function generateFacet(input: {
   if (!input.interpretation) throw new Error('Input interpretation is unavailable.');
   if (!isFacetOf(module.type, facet)) throw new Error('This facet is no longer there.');
   const facets = applicableFacets(module.type, [facet], input.interpretation.inputType);
-  if (!facets.length) return withFacetEntry(existing, facet, undefined);
-  const value = await input.generate({ module, selectedText: input.mainKey, interpretation: input.interpretation, facets, core: existing.core });
+  if (!facets.length) return withFacetText(existing, facet, undefined);
+  const value = await input.generate({ module, selectedText: input.mainKey, interpretation: input.interpretation, facets, core: providerCore(existing) });
   if (!isRecord(value)) throw new Error('A module returned no usable content.');
   const entry = isRecord(value.facets) ? value.facets[facet] : undefined;
-  if (emptyEntry(entry)) return withFacetEntry(existing, facet, undefined);
+  if (emptyEntry(entry)) return withFacetText(existing, facet, undefined);
   let checked: unknown;
-  try { checked = validateFacetEntry(module.type, facet, entry, { complete: true }); }
+  try { checked = validateGeneratedFacet(module.type, facet, entry); }
   catch (error) { throw new Error(`A module returned content in an unexpected format: ${(error as Error).message}`); }
-  return withFacetEntry(existing, facet, checked as never);
+  return withFacetText(existing, facet, formatFacet(facet, checked));
 }
 
 export type ComponentOutcome = Readonly<
