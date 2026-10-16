@@ -7,8 +7,11 @@ import { once } from 'node:events';
 import { chromium } from 'playwright';
 import { blockText } from '@vocabularium/domain/pages';
 import { isContentType } from '@vocabularium/domain/page-modules';
-import { resultFor, sentenceResult, text, textBlocks, useModules, wordResult } from './helpers/pages.mjs';
+import { resultFor, sentenceResult, text, textBlocks, useModules, wordResult, staged } from './helpers/pages.mjs';
 const keyOf = page => text(page.components.find(component => component.moduleType === 'main-key'));
+// The bank entry with all four German facets, as structured content (D09).
+const BANK = { core: { kind: 'word', language: 'Englisch', key: 'bank', meanings: ['Ufer'] }, facets: { article: { singular: 'das Ufer', plural: 'die Ufer' },
+    examples: [{ sentence: 'We sat on the bank.', translation: 'Wir saßen am Ufer.' }], synonyms: ['Böschung'], antonyms: ['Strom'] } };
 const modulesOf = page => page.components.filter(component => isContentType(component.moduleType));
 const byKey = async (store, key) => (await store.pages()).find(page => keyOf(page) === key);
 const componentArticle = (page, heading) => page.locator('article.component').filter({ has: page.getByRole('heading', { name: heading, exact: true }) });
@@ -600,7 +603,7 @@ test('deck UI: draft previews, all modules, the module limit, removal without co
   await application.store.openSession('fixture-session', session);
   const pageId = (await application.store.capture('fixture-capture', { session, mainKey: '幸福', snapshot: (await application.store.snapshot()) })).pageId;
   for (const item of modulesOf(await application.store.page(pageId))) {
-    await application.store.stage(item.attemptId, { ok: true, text: item.moduleType === 'german' ? 'Saved explanation' : '' });
+    await application.store.stage(item.attemptId, staged(item.moduleType === 'german' ? 'Saved explanation' : ''));
     await application.store.publish(`fixture-${item.id}`, { attemptId: item.attemptId, session });
   }
   const before = (await application.store.page(pageId)).components.map(item => [item.moduleType, text(item)]);
@@ -807,10 +810,10 @@ test('page list: quiet states, layouts remembered per deck, sorting, grouping, e
   for (const state of ['completed', 'loading', 'failed']) {
     const { pageId } = await store.capture(`row-${state}`, { session, mainKey: `${state} entry`, snapshot: deck }); ids[state] = pageId;
     const [front, back] = modulesOf(await store.page(pageId));
-    await store.stage(front.attemptId, { ok: true, text: `${state} entry` });
+    await store.stage(front.attemptId, staged(sentenceResult(`${state} entry`)));
     await store.publish(`row-front-${state}`, { attemptId: front.attemptId, session });
     if (state === 'completed') {
-      await store.stage(back.attemptId, { ok: true, text: '== Englisch ==\n=== Bedeutungen ===\n: [1] erledigter Eintrag\n=== Examples ===\n: [1] Done.\n:: Erledigt.' });
+      await store.stage(back.attemptId, staged(wordResult(['erledigter Eintrag'], { examples: [{ sentence: 'Done.', translation: 'Erledigt.' }] })));
       await store.publish('row-completed-back', { attemptId: back.attemptId, session });
     } else if (state === 'failed')
       await store.failAttempt(back.attemptId);
@@ -1124,7 +1127,7 @@ test('retry UI: exact confirmation asked beside the tab, a first Retry without w
   await application.store.openSession('fixture', session);
   const { pageId } = await application.store.capture('fixture-capture', { session, mainKey: '幸福', snapshot: (await application.store.snapshot()) });
   for (const item of modulesOf(await application.store.page(pageId))) {
-    await application.store.stage(item.attemptId, { ok: true, text: 'saved original' });
+    await application.store.stage(item.attemptId, staged('saved original'));
     await application.store.publish(item.id, { attemptId: item.attemptId, session });
   }
   const a = await launch(join(directory, 'a')), b = await launch(join(directory, 'b'));
@@ -1237,7 +1240,7 @@ test('sidebar: the current deck stays marked on a page while the account refresh
   await store.openSession('sidebar-session', session);
   const { pageId } = await store.capture('sidebar-page', { session, mainKey: '幸福', snapshot: await store.snapshot() });
   const [examples] = modulesOf(await store.page(pageId));
-  await store.stage(examples.attemptId, { ok: true, text: 'Glück' });
+  await store.stage(examples.attemptId, staged('Glück'));
   await store.publish('sidebar-publish', { attemptId: examples.attemptId, session });
   await signIn(a.page);
   await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
@@ -1280,7 +1283,7 @@ test('page view: main key tiers, Show all, rendered and plain content, quiet car
     const { pageId } = await store.capture(`page-view-${name}`, { session, mainKey: key, snapshot: await store.snapshot() });
     pages[name] = pageId; keys[name] = key;
     const [examples, usage] = modulesOf(await store.page(pageId));
-    await store.stage(examples.attemptId, { ok: true, text: name === 'word' ? 'My own edited explanation.\n=== not a contract' : '== Englisch ==\n=== Bedeutungen ===\n: [1] Bedeutung' });
+    await store.stage(examples.attemptId, staged('Bedeutung'));
     await store.publish(`page-view-examples-${name}`, { attemptId: examples.attemptId, session });
     await store.failAttempt(usage.attemptId);
   }
@@ -1304,10 +1307,11 @@ test('page view: main key tiers, Show all, rendered and plain content, quiet car
   await a.page.getByRole('button', { name: 'Show less', exact: true }).click();
   assert.equal(await lines(), 6);
 
-  // Text outside the render contract stays plain and literal; a failed card says so beside a visible Retry.
+  // A card draws its structured content (D09), never stored syntax; a failed card says so beside a visible Retry.
   await open('word');
   const examples = componentArticle(a.page, 'German');
-  assert.equal(await examples.locator('pre').textContent(), 'My own edited explanation.\n=== not a contract');
+  assert.equal(await examples.locator('.meanings li').textContent(), 'Bedeutung');
+  assert.equal(await examples.locator('pre').count(), 0);
   assert.equal(await examples.locator('.list-status').count(), 0, 'a completed card shows no status');
   const failed = componentArticle(a.page, 'Chinese');
   assert.equal(await failed.locator('.list-status').textContent(), 'Generation failed');
@@ -1442,7 +1446,7 @@ test('generation reveal: finished content rises into its card and is announced; 
   assert.equal(await card('Chinese').getByRole('status').first().textContent(), 'Chinese: generating');
   await a.page.locator('.shaping-list').screenshot({ path: 'artifacts/v0.6.3-generating.png' });
 
-  await store.stage(explanation.attemptId, { ok: true, text: '== 汉语 (幸福) ==\n=== 释义 ===\n: [1] 生活称心如意' });
+  await store.stage(explanation.attemptId, staged(wordResult(['生活称心如意'], {}, { language: '汉语', key: '幸福' })));
   await store.publish('reveal-publish-1', { attemptId: explanation.attemptId, session });
   // The spark does not vanish: it fades away as the content rises in.
   await card('Chinese').locator('.spark[data-ending]').waitFor({ state: 'attached', timeout: 15000 });
@@ -2081,8 +2085,7 @@ test('parents and facets: core only on add, facets only on their own parent, the
   assert.deepEqual(first.facets, ['article', 'examples', 'synonyms', 'antonyms']);
   const attempt = await store.attempt(first.attemptId);
   await store.establishInterpretation(attempt.run_id, { inputType: 'word_phrase' });
-  await store.stage(first.attemptId, { ok: true, text: ['== Englisch (bank) ==', '=== Bedeutungen ===', ': [1] Ufer', '=== Article ===', ': das Ufer · die Ufer',
-    '=== Examples ===', ': [1] We sat on the bank.', ':: Wir saßen am Ufer.', '=== Synonyms ===', ': Böschung', '=== Antonyms ===', ': Strom'].join('\n') });
+  await store.stage(first.attemptId, staged(BANK));
   await store.publish('facets-publish', { attemptId: first.attemptId, session });
   const card = name => componentArticle(a.page, name);
   const facet = (parent, name) => a.page.locator(`.window-facet[data-parent="${parent}"][data-facet="${name}"]`);
@@ -2265,8 +2268,7 @@ test('facets from the keyboard: Space picks a facet up, the arrows step only thr
   const [first] = await german();
   const attempt = await store.attempt(first.attemptId);
   await store.establishInterpretation(attempt.run_id, { inputType: 'word_phrase' });
-  await store.stage(first.attemptId, { ok: true, text: ['== Englisch (bank) ==', '=== Bedeutungen ===', ': [1] Ufer', '=== Article ===', ': das Ufer · die Ufer',
-    '=== Examples ===', ': [1] We sat on the bank.', ':: Wir saßen am Ufer.', '=== Synonyms ===', ': Böschung', '=== Antonyms ===', ': Strom'].join('\n') });
+  await store.stage(first.attemptId, staged(BANK));
   await store.publish('facet-keys-publish', { attemptId: first.attemptId, session });
   const card = name => componentArticle(a.page, name);
   const facet = (parent, name) => a.page.locator(`.window-facet[data-parent="${parent}"][data-facet="${name}"]`);
@@ -2398,8 +2400,7 @@ test('facet tags: abbreviations in order, on the left edge, along the edge to th
   const first = await german();
   const attempt = await store.attempt(first.attemptId);
   await store.establishInterpretation(attempt.run_id, { inputType: 'word_phrase' });
-  await store.stage(first.attemptId, { ok: true, text: ['== Englisch (bank) ==', '=== Bedeutungen ===', ': [1] Ufer', '=== Article ===', ': das Ufer · die Ufer',
-    '=== Examples ===', ': [1] We sat on the bank.', ':: Wir saßen am Ufer.', '=== Synonyms ===', ': Böschung', '=== Antonyms ===', ': Strom'].join('\n') });
+  await store.stage(first.attemptId, staged(BANK));
   await store.publish('facet-tags-publish', { attemptId: first.attemptId, session });
   await signIn(a.page);
   await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);

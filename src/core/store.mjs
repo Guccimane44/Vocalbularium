@@ -6,7 +6,7 @@ import {
 } from '@vocabularium/domain/page-modules';
 import { facetAddBlocked, facetDeleteBlocked, isParentType, withFacet } from '@vocabularium/domain/parents';
 import { withoutFacet } from '@vocabularium/domain/render';
-import { hasFacetContent, parentContentOf, parentDocument, validateParentContent, withFacetEntry } from '@vocabularium/domain/content';
+import { hasFacetContent, isEmptyContent, parentContentOf, parentDocument, validateParentContent, withFacetEntry } from '@vocabularium/domain/content';
 import { sortKey } from './sort-key.mjs';
 /** @typedef {import('./store-records.js').PageRow} PageRow */
 /** @typedef {import('./store-records.js').ComponentRow} ComponentRow */
@@ -512,8 +512,8 @@ export class AccountStore {
       const attempt = await this.attempt(attemptId);
       if (attempt.state !== 'loading' || attempt.result) fail('stale_attempt', 'The attempt no longer accepts results.');
       await this.requireSession({ installationId: attempt.installation_id, sessionId: attempt.session_id, epoch: attempt.epoch });
-      // A generated result is structured content (D09); plain text stays accepted for fixtures until 0.7.4's cards switch.
-      if (typeof result.ok !== 'boolean' || (result.ok && typeof result.text !== 'string' && !(result.content && typeof result.content === 'object'))) fail('invalid', 'Invalid component result.');
+      // A generated result is structured content (D09).
+      if (typeof result.ok !== 'boolean' || (result.ok && !(result.content && typeof result.content === 'object' && !Array.isArray(result.content)))) fail('invalid', 'Invalid component result.');
       await this.database.run("UPDATE component_attempts SET result = $1 WHERE id = $2", [JSON.stringify(result), attemptId]);
     });
   }
@@ -533,9 +533,7 @@ export class AccountStore {
         return { pageId: attempt.page_id, componentId: attempt.component_id, state: 'failed' };
       }
       const state = attempt.result.ok ? 'completed' : 'failed';
-      const content = !attempt.result.ok ? textBlocks('')
-        : attempt.result.content ? parentDocument(validateParentContent(attempt.module.type, attempt.result.content))
-        : textBlocks(attempt.result.text);
+      const content = attempt.result.ok ? parentDocument(validateParentContent(attempt.module.type, attempt.result.content)) : textBlocks('');
       const changed = await this.database.run(`UPDATE components SET content = $1, status = $2
         WHERE page_id = $3 AND id = $4 AND attempt_id = $5 AND status = 'loading'`, [JSON.stringify(content), state, attempt.page_id, attempt.component_id, attemptId]);
       if (!changed.rowCount) fail('stale_attempt', 'The component has moved on to another attempt.');
@@ -671,7 +669,8 @@ export class AccountStore {
       const replaced = component => {
         const data = parentContentOf(component.content);
         if (facet) return data && hasFacetContent(data, facet) ? data.facets[facet] : null;
-        return data ?? (blockText(component.content) || null);
+        // Structured content emptied of everything has nothing to replace (0.6.3).
+        return data ? (isEmptyContent(data) ? null : data) : (blockText(component.content) || null);
       };
       const replaces = targets.some(replaced);
       if (target.scope !== 'missing' && replaces) {

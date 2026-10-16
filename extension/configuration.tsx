@@ -2,11 +2,13 @@ import { useEffect, useReducer, useRef, useState } from 'react';
 import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent } from 'react';
 import type { DeckEditorDraft } from '../types/editor-drafts.js';
 import type { DeckColour, DeckConfiguration } from '@vocabularium/contracts';
-import { applicableFacets, facetLabel, isParentType, withFacet } from '@vocabularium/domain/parents';
+import { applicableFacets, isParentType, withFacet } from '@vocabularium/domain/parents';
 import type { FacetType, ParentType } from '@vocabularium/domain/parents';
 import { addBlocked, CATALOG, DECK_COLOURS, isModuleType } from '@vocabularium/domain/page-modules';
 import type { ModuleFamily } from '@vocabularium/domain/page-modules';
-import { renderContent } from '@vocabularium/domain/render';
+import { renderContent, renderParent } from '@vocabularium/domain/render';
+import type { Rendered } from '@vocabularium/domain/render';
+import type { ParentContent } from '@vocabularium/domain/content';
 import { deckColour } from './deck-colour.ts';
 import { FacetTags } from './facet-tags.tsx';
 import { FamilyIcon } from './families.tsx';
@@ -27,28 +29,32 @@ export const newDeckDraft = (): DeckConfiguration => ({
 });
 
 const SAMPLE = { word_phrase: '幸福', sentence: '我真的很幸福' } as const;
-// What each parent would write for the samples (D08): its core, then the
-// sections of the facets it has that apply to the sample.
-const SAMPLE_TEXT: Record<ParentType, Record<'word_phrase' | 'sentence', { core: string; facets: Partial<Record<FacetType, string>> }>> = {
+// What each parent would write for the samples (D08), as structured content
+// (D09): its core, then the entries of the facets it has that apply.
+const SAMPLE_CONTENT: Record<ParentType, Record<'word_phrase' | 'sentence', ParentContent>> = {
   german: {
-    word_phrase: { core: '== Chinesisch (幸福, xìngfú) ==\n=== Bedeutungen ===\n: [1] Glück; Glückseligkeit; Wohlbefinden',
-      facets: { article: ': das Glück', examples: ': [1] 她希望孩子们拥有幸福。\n:: Sie hofft, dass die Kinder Glück haben.', synonyms: ': Freude\n: Seligkeit', antonyms: ': Unglück' } },
-    sentence: { core: 'Ich bin wirklich glücklich.',
-      facets: { examples: ': [1] 想到我的家人和朋友，我觉得很幸福。\n:: Wenn ich an meine Familie und Freunde denke, bin ich glücklich.' } }
+    word_phrase: { core: { kind: 'word', language: 'Chinesisch', key: '幸福', romanization: 'xìngfú', meanings: ['Glück; Glückseligkeit; Wohlbefinden'] },
+      facets: { article: { singular: 'das Glück' }, examples: [{ sentence: '她希望孩子们拥有幸福。', translation: 'Sie hofft, dass die Kinder Glück haben.' }],
+        synonyms: ['Freude', 'Seligkeit'], antonyms: ['Unglück'] } },
+    sentence: { core: { kind: 'sentence', translation: 'Ich bin wirklich glücklich.' },
+      facets: { examples: [{ sentence: '想到我的家人和朋友，我觉得很幸福。', translation: 'Wenn ich an meine Familie und Freunde denke, bin ich glücklich.' }] } }
   },
   chinese: {
-    word_phrase: { core: '== 汉语 (幸福, xìngfú) ==\n=== 释义 ===\n: [1] 生活、境遇称心如意',
-      facets: { examples: ': [1] 她希望孩子们拥有幸福。', pinyin: ': 幸福 xìngfú' } },
-    sentence: { core: '说话人表示自己非常满足、快乐。', facets: { examples: ': [1] 我现在真的很快乐。', pinyin: ': wǒ zhēn de hěn xìngfú' } }
+    word_phrase: { core: { kind: 'word', language: '汉语', key: '幸福', romanization: 'xìngfú', meanings: ['生活、境遇称心如意'] },
+      facets: { examples: [{ sentence: '她希望孩子们拥有幸福。' }], pinyin: [{ text: '幸福', pinyin: 'xìngfú' }] } },
+    sentence: { core: { kind: 'sentence', translation: '说话人表示自己非常满足、快乐。' },
+      facets: { examples: [{ sentence: '我现在真的很快乐。' }], pinyin: [{ text: '我真的很幸福', pinyin: 'wǒ zhēn de hěn xìngfú' }] } }
   }
 };
-function sample(module: { type: string; facets?: readonly string[] }, inputType: 'word_phrase' | 'sentence'): string {
-  if (module.type === 'main-key') return SAMPLE[inputType];
-  if (module.type === 'context') return inputType === 'word_phrase' ? 'Wir wünschen euch viel 幸福 und Gesundheit.' : '她笑着说：“我真的很幸福。”';
-  if (!isParentType(module.type)) return '';
-  const text = SAMPLE_TEXT[module.type][inputType];
-  return [text.core, ...applicableFacets(module.type, module.facets ?? [], inputType)
-    .flatMap(facet => text.facets[facet] ? [`=== ${facetLabel(module.type as ParentType, facet)} ===\n${text.facets[facet]}`] : [])].join('\n');
+// A sample's rendered content, or null for a module that starts empty (Text).
+function sample(module: { type: string; facets?: readonly string[] }, inputType: 'word_phrase' | 'sentence'): Rendered | null {
+  if (module.type === 'main-key') return renderContent('main-key', SAMPLE[inputType]);
+  if (module.type === 'context') return renderContent('context', inputType === 'word_phrase' ? 'Wir wünschen euch viel 幸福 und Gesundheit.' : '她笑着说：“我真的很幸福。”');
+  if (!isParentType(module.type)) return null;
+  const content = SAMPLE_CONTENT[module.type][inputType];
+  const facets = applicableFacets(module.type, module.facets ?? [], inputType);
+  const kept = Object.fromEntries(Object.entries(content.facets).filter(([facet]) => facets.includes(facet as FacetType)));
+  return renderParent(module.type, { core: content.core, facets: kept });
 }
 
 // Deck colours (D06) are the family colours, named by hue: a deck's colour
@@ -93,14 +99,14 @@ function PreviewDialog({ modules, sampleType, choose, close }: {
     </div>
     <p className="muted preview-note">A sample new page in this deck. Previews never create or change pages.</p>
     <div className="sample-page">
-      <p className="main-key preview" data-type={key.type} data-tier={mainKeyTier(mainKey)}>{sample(key, sampleType)}</p>
+      <p className="main-key preview" data-type={key.type} data-tier={mainKeyTier(mainKey)}>{mainKey}</p>
       {rest.map(module => {
-        const text = sample(module, sampleType);
+        const rendered = sample(module, sampleType);
         const family = familyOf(module.type);
         // Like a page, an empty component (Text) is only its tab.
-        return <article className={`component preview fam-${family}`} data-empty={!text || undefined} key={module.id} data-type={module.type}>
+        return <article className={`component preview fam-${family}`} data-empty={!rendered || undefined} key={module.id} data-type={module.type}>
           <div className="card-tab"><FamilyIcon family={family} /><h3>{moduleLabel(module.type)}</h3></div>
-          {text && <Content type={module.type} rendered={renderContent(module.type, text)} mainKey={mainKey} />}
+          {rendered && <Content type={module.type} rendered={rendered} mainKey={mainKey} />}
         </article>;
       })}
     </div>

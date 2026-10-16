@@ -1,7 +1,7 @@
 import test, { createTestStore, createTestApplication } from './helpers/database.mjs';
 import assert from 'node:assert/strict';
 import { sortPages as sortSummaries } from '../extension/sorting.ts';
-import { capture, complete, component, text, textBlocks, useModules } from './helpers/pages.mjs';
+import { capture, complete, component, text, textBlocks, useModules, staged, wordResult } from './helpers/pages.mjs';
 
 // The extension's list ordering, applied to full pages by their main key.
 const sortPages = (pages, order) => sortSummaries(pages.map(page => ({ id: page.id, createdAt: page.createdAt,
@@ -112,7 +112,7 @@ test('page summaries carry the meaning line and one entry per module, not the co
   assert.deepEqual(loading.modules, [
     { type: 'context', status: null, filled: true }, { type: 'german', status: 'loading', filled: false }, { type: 'text', status: null, filled: false }
   ]);
-  await complete(store, page, session, () => '== Chinesisch ==\n=== Bedeutungen ===\n: [1] Glück\n=== Beispiele ===\n: [1] 她很幸福。\n:: Sie ist glücklich.');
+  await complete(store, page, session, () => wordResult(['Glück'], { examples: [{ sentence: '她很幸福。', translation: 'Sie ist glücklich.' }] }, { language: 'Chinesisch', key: '幸福' }));
   const [done] = (await store.listPages(deckId, { order: 'newest' })).pages;
   assert.equal(done.meaning, 'Glück');
   assert.deepEqual(done.modules.map(module => [module.type, module.status, module.filled]),

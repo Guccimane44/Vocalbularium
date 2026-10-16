@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { applyDraft, ContentError, filledFacets, hasFacetContent, parentContentOf, parentDocument, validateParentContent, withFacetEntry } from '@vocabularium/domain/content';
+import { applyDraft, ContentError, filledFacets, hasFacetContent, isEmptyContent, parentContentOf, parentDocument, validateParentContent, withFacetEntry } from '@vocabularium/domain/content';
 import { blockText } from '@vocabularium/domain/pages';
 import { renderContent, renderParent } from '@vocabularium/domain/render';
 
@@ -94,6 +94,11 @@ test('facet entries are read, replaced and removed one at a time, in the parentâ
   assert.deepEqual(removed.core, bank.core, 'the core stays');
   assert.deepEqual(bank.facets.examples.length, 1, 'the original is not changed');
   assert.equal(filledFacets('german', null).length, 0);
+  // Content emptied of everything has nothing to replace; its top line alone does not count.
+  assert.equal(isEmptyContent(bank), false);
+  assert.equal(isEmptyContent({ core: { ...bank.core, meanings: [] }, facets: {} }), true);
+  assert.equal(isEmptyContent({ core: { ...bank.core, meanings: [] }, facets: { synonyms: ['Damm'] } }), false);
+  assert.equal(isEmptyContent({ core: { kind: 'sentence' }, facets: {} }), true);
 });
 
 test('structured content is stored as one parent block, has no plain text, and renders as the same card as its 0.7.3 text', () => {

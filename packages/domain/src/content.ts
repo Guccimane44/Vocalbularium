@@ -23,6 +23,13 @@ export function parentDocument(content: ParentContent): BlockDocument {
   return { version: 1, blocks: [{ type: 'parent', core: content.core, facets: content.facets }] };
 }
 
+// Whether the content holds nothing: no meaning or translation and no facet
+// (D09: the user may empty every field). Such content has nothing to replace.
+export function isEmptyContent(content: ParentContent): boolean {
+  const core = content.core.kind === 'word' ? content.core.meanings.length : content.core.translation ? 1 : 0;
+  return !core && !Object.keys(content.facets).length;
+}
+
 // Whether a facet has content, and which of the parent's facets do, in its order.
 export function hasFacetContent(content: ParentContent | null, facet: string): boolean {
   return Boolean(content && (content.facets as Record<string, unknown>)[facet] !== undefined);

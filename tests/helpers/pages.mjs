@@ -39,9 +39,18 @@ export async function capture(store, id = 'capture', session, mainKey = '  å¹¸ç¦
   const result = await store.capture(id, payload);
   return { ...result, payload, page: await store.page(result.pageId) };
 }
+// A field edit of a generated parent component (D09): its stored content with these meanings.
+export function fieldEdit(component, ...meanings) {
+  const block = component.content.blocks[0];
+  if (block?.type !== 'parent') throw new Error('fieldEdit needs a generated parent component.');
+  return { version: 1, blocks: [{ ...block, core: { ...block.core, meanings } }] };
+}
+// A staged provider result (D09): structured content, or for a string, a word
+// core with that one meaning ('' for no meaning).
+export const staged = value => ({ ok: true, content: typeof value === 'string' ? wordResult(value ? [value] : []) : value });
 export async function complete(store, page, session, output = component => `generated ${component.moduleInstanceId}`) {
   for (const item of generated(page).filter(item => item.status === 'loading')) {
-    await store.stage(item.attemptId, { ok: true, text: output(item) });
+    await store.stage(item.attemptId, staged(output(item)));
     await store.publish(`publish-${item.attemptId}`, { attemptId: item.attemptId, session });
   }
 }
