@@ -205,7 +205,7 @@
 .example-number { grid-row: span 2; font: 600 13px/26px var(--font-text); color: var(--fam, var(--ink-muted)); }
 .example-sentence { font: 400 18px/1.45 var(--font-display); }
 .example-translation { grid-column: 2; color: var(--ink-soft); font-size: 15px; }
-.examples li:not(:has(.example-translation)) .example-number { grid-row: auto; }
+.examples li:not(:has(.example-translation)) .example-number, .examples li:not(:has(.example-sentence)) .example-number { grid-row: auto; }
 mark { background: var(--highlight); color: inherit; border-radius: 3px; padding: 0 2px; }
 
 /* Module window: search and family groups */

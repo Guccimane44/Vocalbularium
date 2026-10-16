@@ -102,7 +102,7 @@ Since 0.7.4 a parent's content is structured data ([D09](../architecture/traceab
   - **Synonyms**, **Antonyms:** lists of words, shown in a row.
   - **Pinyin:** a list of `{ text, pinyin }`, one per meaning for a word and one for a sentence.
 
-A facet with no entry, or an empty one, has no content: its container is not shown on the card, and its [tag](pages-and-editing.md#facet-tags) is blander. The iteration plan fixes each parent's exact JSON shape with its golden set ([C8](../architecture/traceability-map.md#conflicts)). Rendering is a pure function of the stored data, shared by every client; it never produces HTML. Each future module's specification states its shape and containers under *Output and presentation*.
+Generated content is complete: a word has meanings, a sentence its translation, and each item every part above except the optional ones. Content the user saved may have any part left empty ([pages and editing](pages-and-editing.md#editing-generated-components)); an item then shows the parts it has, and a core with no meaning or translation shows only its top line. A facet with no entry, or an empty one, has no content: its container is not shown on the card, and its [tag](pages-and-editing.md#facet-tags) is blander. The iteration plan fixes each parent's exact JSON shape with its golden set ([C8](../architecture/traceability-map.md#conflicts)). Rendering is a pure function of the stored data, shared by every client; it never produces HTML. Each future module's specification states its shape and containers under *Output and presentation*.
 
 ## View module contract
 

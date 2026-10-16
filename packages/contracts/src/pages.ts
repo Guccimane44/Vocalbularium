@@ -15,8 +15,10 @@ export const ParagraphBlockSchema = Type.Object({
 }, { additionalProperties: false });
 
 // A parent module's content as structured data (D09, 0.7.4): its core and one
-// entry per facet with content, stored as one typed block. Stored entries are
-// never empty: a facet without content has no entry.
+// entry per facet with content, stored as one typed block. A facet without
+// content has no entry. Generated content is complete; the user may empty any
+// field, so a stored item needs only one part, and the core may have no
+// meaning or translation. The domain rejects items with no part at all.
 const Filled = Type.String({ minLength: 1, maxLength: 2000 });
 const MAX_ITEMS = 20;
 export const WordCoreSchema = Type.Object({
@@ -25,19 +27,19 @@ export const WordCoreSchema = Type.Object({
   language: Filled,
   key: Filled,
   romanization: Type.Optional(Filled),
-  meanings: Type.Array(Filled, { minItems: 1, maxItems: MAX_ITEMS })
+  meanings: Type.Array(Filled, { maxItems: MAX_ITEMS })
 }, { additionalProperties: false });
 // A sentence's translation, or for a sentence already in the parent's
 // language, an explanation of its meaning.
 export const SentenceCoreSchema = Type.Object({
   kind: Type.Literal('sentence'),
-  translation: Filled
+  translation: Type.Optional(Filled)
 }, { additionalProperties: false });
 export const ParentCoreSchema = Type.Union([WordCoreSchema, SentenceCoreSchema]);
-export const ArticleEntrySchema = Type.Object({ singular: Filled, plural: Type.Optional(Filled) }, { additionalProperties: false });
+export const ArticleEntrySchema = Type.Object({ singular: Type.Optional(Filled), plural: Type.Optional(Filled) }, { additionalProperties: false });
 // Numbered by position; not tied to meanings.
-export const ExampleEntrySchema = Type.Object({ sentence: Filled, translation: Type.Optional(Filled) }, { additionalProperties: false });
-export const PinyinEntrySchema = Type.Object({ text: Filled, pinyin: Filled }, { additionalProperties: false });
+export const ExampleEntrySchema = Type.Object({ sentence: Type.Optional(Filled), translation: Type.Optional(Filled) }, { additionalProperties: false });
+export const PinyinEntrySchema = Type.Object({ text: Type.Optional(Filled), pinyin: Type.Optional(Filled) }, { additionalProperties: false });
 const Words = Type.Array(Filled, { minItems: 1, maxItems: MAX_ITEMS });
 export const ParentFacetsSchema = Type.Object({
   article: Type.Optional(ArticleEntrySchema),

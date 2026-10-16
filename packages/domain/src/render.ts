@@ -9,7 +9,8 @@ import type { ParentContent } from './content.js';
 
 export type EntryHeading = Readonly<{ language: string; key: string | null; pronunciation: string | null }>;
 export type Meaning = Readonly<{ number: string; text: string }>;
-export type Example = Readonly<{ number: string; sentence: string; translation: string | null }>;
+// The sentence is null only for an example the user emptied to its translation (D09).
+export type Example = Readonly<{ number: string; sentence: string | null; translation: string | null }>;
 export type Rendered =
   | Readonly<{ kind: 'plain'; text: string }>
   | Readonly<{ kind: 'parent'; core: ParentCore; facets: readonly RenderedFacet[] }>;
@@ -96,16 +97,17 @@ export function renderParent(type: ParentType, content: ParentContent): Rendered
   const core: ParentCore = content.core.kind === 'word'
     ? { kind: 'word', heading: { language: content.core.language, key: content.core.key, pronunciation: content.core.romanization ?? null },
       meanings: content.core.meanings.map((text, index) => ({ number: String(index + 1), text })) }
-    : { kind: 'sentence', text: content.core.translation };
+    : { kind: 'sentence', text: content.core.translation ?? '' };
   const { article, examples, synonyms, antonyms, pinyin } = content.facets;
   const entries: Partial<Record<FacetType, RenderedFacet>> = {};
   const label = (facet: FacetType) => PARENTS[type].facets[facet]?.label ?? facet;
-  if (article) entries.article = { facet: 'article', label: label('article'), lines: [article.plural ? `${article.singular} · ${article.plural}` : article.singular] };
+  // A half-filled item (D09: the user may empty any field) shows the parts it has.
+  if (article) entries.article = { facet: 'article', label: label('article'), lines: [[article.singular, article.plural].filter(Boolean).join(' · ')] };
   if (examples) entries.examples = { facet: 'examples', label: label('examples'),
-    examples: examples.map((example, index) => ({ number: String(index + 1), sentence: example.sentence, translation: example.translation ?? null })) };
+    examples: examples.map((example, index) => ({ number: String(index + 1), sentence: example.sentence ?? null, translation: example.translation ?? null })) };
   if (synonyms) entries.synonyms = { facet: 'synonyms', label: label('synonyms'), lines: synonyms };
   if (antonyms) entries.antonyms = { facet: 'antonyms', label: label('antonyms'), lines: antonyms };
-  if (pinyin) entries.pinyin = { facet: 'pinyin', label: label('pinyin'), lines: pinyin.map(line => `${line.text} ${line.pinyin}`) };
+  if (pinyin) entries.pinyin = { facet: 'pinyin', label: label('pinyin'), lines: pinyin.map(line => [line.text, line.pinyin].filter(Boolean).join(' ')) };
   return { kind: 'parent', core, facets: facetsOf(type).filter(facet => entries[facet]).map(facet => entries[facet]!) };
 }
 

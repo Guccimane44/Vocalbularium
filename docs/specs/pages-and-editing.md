@@ -128,7 +128,7 @@ Since 0.7.4 a parent card is edited through fields, never its stored structure (
 - **Core:** the meanings, one field each, or a sentence's translation as one field.
 - **Facets:** a container per facet the card has, in the parent's order, under its name. Article has a singular and a plural field; each example has a sentence and a translation field; Synonyms and Antonyms have one field per word; Pinyin has a text and a pinyin field per line. A facet without content appears as an empty container that the user can fill.
 - **Items:** in every list (meanings, examples, synonyms, antonyms, Pinyin lines), **Add** puts a new item at the end and each item can be deleted. Items cannot be moved; numbering follows their order.
-- **Save** requires the core to keep at least one meaning, or its translation, and says so otherwise. A facet left with nothing in it has no content: it is not shown on the card and its tag is blander. Empty items are dropped on Save.
+- **Save** never refuses an empty field: any field may be left empty, the core's meanings or translation included. A row with nothing in it is dropped; an item keeps the parts that have text, such as an example with only its translation, and the card shows those parts. A facet left with nothing in it has no content: it is not shown on the card and its tag is blander, and its container stays in the editor to fill again. A core left empty shows only its top line.
 
 ## Editing a component
 
