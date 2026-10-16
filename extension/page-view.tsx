@@ -494,12 +494,16 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
     // A ghost of a facet picked up in the window counts as a tag, so the card makes room for it (0.7.2).
     const tagCount = (item.facets?.length ?? 0) + (ghost && !item.facets?.includes(ghost.facet) ? 1 : 0);
     const tagged = Boolean(controls && tagCount);
-    const tags = controls ? <FacetTags holderId={item.id} parent={item.moduleType as ParentType} facets={item.facets ?? []}
+    // Which facets have content: none on a card that is only its tab; on
+    // content outside the parent's layout, the sections cannot be told apart,
+    // so no tag is marked.
+    const rendered = renderContent(item.moduleType, blockText(item.content));
+    const filled = generating || !blockText(item.content) ? [] : rendered.kind === 'parent' ? rendered.facets.map(each => each.facet) : undefined;
+    const tags = controls ? <FacetTags holderId={item.id} parent={item.moduleType as ParentType} facets={item.facets ?? []} filled={filled}
       layout={layout} title={title} disabled={controls.disabled} ghost={ghost}
       onOpen={layout === 'hanging' ? undefined : facet => showFacet(item, facet)}
       onRemove={facet => {
         // A facet with content asks first, in its section; one waiting for Retry goes at once.
-        const rendered = renderContent(item.moduleType, blockText(item.content));
         const hasContent = rendered.kind === 'parent' && rendered.facets.some(each => each.facet === facet);
         if (hasContent && layout !== 'hanging') showFacet(item, facet, () => setAskingFacet({ id: item.id, facet, kind: 'delete' }));
         else removeFacet(facet);

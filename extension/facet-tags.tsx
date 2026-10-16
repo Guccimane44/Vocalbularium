@@ -82,8 +82,11 @@ function alongTheEdge(from: Spot, corner: Spot): Keyframe[] {
   });
 }
 
-export function FacetTags({ holderId, parent, facets, layout, title, disabled = false, ghost, onOpen, onRemove }: {
+export function FacetTags({ holderId, parent, facets, filled, layout, title, disabled = false, ghost, onOpen, onRemove }: {
   holderId: string; parent: ParentType; facets: readonly string[]; layout: TagLayout; title: string; disabled?: boolean;
+  // The facets with content on the card (0.7.3); the others wear a blander
+  // tag. Absent where content does not apply, as in deck settings.
+  filled?: readonly string[];
   // The facet picked up in the module window, when this parent would take it.
   ghost?: GhostTag | null;
   // Clicking a tag shows its facet's section; absent where a card has none.
@@ -179,6 +182,7 @@ export function FacetTags({ holderId, parent, facets, layout, title, disabled = 
   // The list stays while empty, so the last tag can still pop and a facet added later flies in.
   const tag = (facet: FacetType, index: number, gone = false) => {
     const label = facetLabel(parent, facet);
+    const unfilled = filled && !filled.includes(facet);
     const mark = <span className="facet-tag-mark" aria-hidden="true">{facetAbbreviation(parent, facet)}</span>;
     // A ghost is the tag's outline; clicking it, or its card, places the facet
     // there (shaping.tsx handles the click). The key stays the facet's, so
@@ -189,10 +193,10 @@ export function FacetTags({ holderId, parent, facets, layout, title, disabled = 
       {ghost!.placing ? <span className="facet-tag-open" aria-hidden="true">{mark}</span>
         : <button type="button" className="facet-tag-open facet-ghost" aria-label={ghost!.label}>{mark}</button>}
     </li>;
-    return <li key={facet} className="facet-tag" data-facet={facet} data-leaving={gone || undefined} style={{ '--i': index } as CSSProperties}
-      aria-hidden={gone || undefined}>
-      {onOpen && !gone ? <button type="button" className="facet-tag-open" aria-label={`Show ${label} in ${title}`} onClick={() => onOpen(facet)}>{mark}</button>
-        : <span className="facet-tag-open" role="img" aria-label={label}>{mark}</span>}
+    return <li key={facet} className="facet-tag" data-facet={facet} data-leaving={gone || undefined} data-unfilled={unfilled || undefined}
+      style={{ '--i': index } as CSSProperties} aria-hidden={gone || undefined}>
+      {onOpen && !gone ? <button type="button" className="facet-tag-open" aria-label={`Show ${label} in ${title}${unfilled ? ', empty' : ''}`} onClick={() => onOpen(facet)}>{mark}</button>
+        : <span className="facet-tag-open" role="img" aria-label={unfilled ? `${label}, empty` : label}>{mark}</span>}
       {onRemove && !gone && <button type="button" className="facet-tag-remove" aria-label={`Remove ${label} from ${title}`} disabled={disabled}
         onClick={() => onRemove(facet)}>
         <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><path d="M7 7l10 10M17 7L7 17" /></svg>

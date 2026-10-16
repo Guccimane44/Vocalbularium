@@ -2643,4 +2643,26 @@ test('0.7.3: a facet’s own Retry beside its Delete, a tag’s remove keeping i
   const lifted = await place();
   assert.ok(Math.abs((rest.tab - lifted.tab) - 2) < .5, `the tab lifts (${rest.tab} → ${lifted.tab})`);
   assert.ok(Math.abs((rest.tags - lifted.tags) - (rest.tab - lifted.tab)) < .5, `the hung tags lift with it (${rest.tags} → ${lifted.tags})`);
+
+  // A facet with nothing in it wears a blander tag; one with content does not.
+  const unfilled = holder => holder.locator('.facet-tag').evaluateAll(tags => tags.map(tag => [tag.dataset.facet, tag.hasAttribute('data-unfilled')]));
+  assert.deepEqual(await unfilled(card), [['article', false], ['examples', false], ['synonyms', true], ['antonyms', true]]);
+  assert.deepEqual(await unfilled(hung), [['synonyms', true]]);
+  assert.match(await card.locator('.facet-tag[data-facet="synonyms"]').evaluate(tag => getComputedStyle(tag, '::before').filter), /saturate\(0\.3\)/);
+  assert.doesNotMatch(await card.locator('.facet-tag[data-facet="article"]').evaluate(tag => getComputedStyle(tag, '::before').filter), /saturate/);
+  assert.ok(await a.page.getByRole('button', { name: 'Show Synonyms in German 1, empty', exact: true }).count());
+
+  // Generating, a card's hung tags stay beneath its tab, so the rail does not cover the spark.
+  await hung.locator('.tab-button').click();
+  await a.page.getByRole('button', { name: 'Retry German 2', exact: true }).click();
+  await waitFor(async () => await hung.getAttribute('data-generating') !== null, 'German 2 generating');
+  await hung.locator('.spark').waitFor();
+  const layers = await hung.evaluate(node => [getComputedStyle(node.querySelector('.card-tab')).zIndex, getComputedStyle(node.querySelector('.facet-tags')).zIndex]);
+  assert.ok(Number(layers[0]) > Number(layers[1]), `the tab, with its spark, above the hung tags (${layers})`);
+  const box = await hung.locator('.card-tab').boundingBox();
+  assert.equal(await a.page.evaluate(({ x, y }) => document.elementsFromPoint(x, y).find(node => node.matches('.spark i, .facet-tags, .card-tab'))?.className,
+    { x: box.x + 30, y: box.y + box.height - 1 }), 'card-tab', 'at the tab\'s bottom edge the tab is uppermost, not the rail');
+  await hung.locator('.card-tab').screenshot({ path: 'artifacts/v0.7.3-spark-over-rail.png' });
+  release(`${core}\n=== Synonyms ===\n: Böschung`);
+  await waitFor(async () => await hung.getAttribute('data-generating') === null, 'German 2 generated');
 });

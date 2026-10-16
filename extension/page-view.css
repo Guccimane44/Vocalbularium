@@ -339,6 +339,11 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
 button.facet-tag-open { cursor: pointer; }
 button.facet-tag-open:hover { background: transparent; }
 .facet-tag:has(> button.facet-tag-open:hover)::before { filter: drop-shadow(0 2px 3px #0003) brightness(1.08); }
+/* A facet with nothing in it, such as one waiting for Retry or one that does
+   not apply, wears a blander tag: its family colour, much less saturated
+   (0.7.3). Its mark stays legible. */
+.facet-tag[data-unfilled]::before { filter: drop-shadow(0 1px 1px #0002) saturate(.3) opacity(.75); }
+.facet-tag[data-unfilled]:has(> button.facet-tag-open:hover)::before { filter: drop-shadow(0 2px 3px #0003) saturate(.45) opacity(.85); }
 .facet-tag-open:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 /* A small round remove on the tag's corner, shown while it is pointed at or focused. */
 .facet-tag-remove { position: absolute; top: -7px; right: -7px; z-index: 1; display: grid; place-items: center; width: 16px; height: 16px; padding: 0; border: 0;
@@ -374,6 +379,9 @@ button.facet-tag-open:hover { background: transparent; }
 /* What hangs below an empty or generating card's tab lifts with the tab (0.7.3). */
 .facet-tags[data-layout="hanging"] { transition: translate var(--dur-spring) var(--ease-spring); }
 .component:hover > .facet-tags[data-layout="hanging"] { translate: 0 -2px; }
+/* While a card generates, what hangs below its tab stays beneath the tab,
+   so the rail never covers the spark running round the tab's edge (0.7.3). */
+.component[data-generating] > .facet-tags { z-index: 0; }
 /* An empty or generating card makes room below its tab for what hangs there. */
 .component:is([data-empty], [data-generating])[data-tagged="hanging"] { padding-bottom: 56px; }
 /* Folding and the tags take turns (facet-tags.tsx holds the same durations):
