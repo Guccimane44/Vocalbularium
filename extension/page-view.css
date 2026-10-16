@@ -322,7 +322,9 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
 .live-editor > .md-editor-frame:first-of-type .md-editor { font-size: 16px; }
 
 /* Parent modules (D08): the core, then each facet under its label. */
-.facet { display: grid; gap: 8px; margin-top: 10px; }
+/* A facet's block reaches the card's sides, its content kept in line with
+   the rest of the card (0.7.4). */
+.facet { display: grid; gap: 8px; margin: 0 calc(-1 * var(--card-pad-x, 26px)); padding: 5px var(--card-pad-x, 26px); }
 /* The heading's tab sits on the facet's rule, as the module's tab sits on its
    card (0.7.4): smaller, in a pale tint of the family colour, rounded on top. */
 .facet-title { display: flex; align-items: flex-end; gap: 8px; min-height: 26px; margin: 0; border-bottom: 1px solid var(--line);
@@ -508,16 +510,12 @@ button.facet-tag-open:hover { background: transparent; }
 .facet-tag[data-ghost=""]::before { background: color-mix(in srgb, var(--fam, var(--fam-notes)) 26%, transparent); opacity: calc(.5 + .5 * var(--glow-level)); }
 /* Leaving, a tag pops where it stands, like a deleted card. */
 .facet-tag[data-leaving] { pointer-events: none; animation: bop 240ms cubic-bezier(.3, 0, .2, 1) forwards; }
-/* A facet shown or just generated flashes a soft family tint over its whole
-   space, across the card from edge to edge, then fades (0.7.4; a ring round
-   its box until then). */
-.facet { position: relative; isolation: isolate; }
-.facet::before { content: ""; position: absolute; z-index: -1; inset: -6px calc(-1 * var(--card-pad-x, 26px)); pointer-events: none;
-  background: color-mix(in srgb, var(--fam, var(--focus)) 16%, transparent); opacity: 0; }
-.facet[data-shown]::before { animation: facet-shown 1.2s var(--ease-out); }
-@keyframes facet-shown { 0%, 100% { opacity: 0; } 25% { opacity: 1; } }
+/* A facet shown or just generated: a shining frame on its block's edges,
+   which reach the card's sides (0.7.4; a ring just outside its text until then). */
+@keyframes facet-shown { 0%, 100% { box-shadow: inset 0 0 0 0 transparent; } 30% { box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--fam, var(--focus)) 35%, transparent); } }
+.facet[data-shown] { animation: facet-shown 1.2s var(--ease-out); }
 .facet:focus { outline: none; }
-.facet:focus-visible { outline: 2px solid var(--focus); outline-offset: 4px; border-radius: 4px; }
+.facet:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
 @media (prefers-reduced-motion: reduce) { .facet-tag::before { transition: none; } .facet-tag[data-leaving] { animation: none; }
   .shaping-list[data-picking] { animation: none; --glow-level: .7; --glow-sweep: .5; } }
 @media (max-width: 600px) { .facet-tags[data-layout="edge"] { left: -16px; } }
