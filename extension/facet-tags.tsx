@@ -195,7 +195,9 @@ export function FacetTags({ holderId, parent, facets, filled, layout, title, dis
     </li>;
     return <li key={facet} className="facet-tag" data-facet={facet} data-leaving={gone || undefined} data-unfilled={unfilled || undefined}
       style={{ '--i': index } as CSSProperties} aria-hidden={gone || undefined}>
-      {onOpen && !gone ? <button type="button" className="facet-tag-open" aria-label={`Show ${label} in ${title}${unfilled ? ', empty' : ''}`} onClick={() => onOpen(facet)}>{mark}</button>
+      {/* A facet with nothing in it has nothing to show: its tag is not a button,
+          so clicking it moves nothing (0.7.3). */}
+      {onOpen && !gone && !unfilled ? <button type="button" className="facet-tag-open" aria-label={`Show ${label} in ${title}`} onClick={() => onOpen(facet)}>{mark}</button>
         : <span className="facet-tag-open" role="img" aria-label={unfilled ? `${label}, empty` : label}>{mark}</span>}
       {onRemove && !gone && <button type="button" className="facet-tag-remove" aria-label={`Remove ${label} from ${title}`} disabled={disabled}
         onClick={() => onRemove(facet)}>

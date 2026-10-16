@@ -2650,7 +2650,18 @@ test('0.7.3: a facet’s own Retry beside its Delete, a tag’s remove keeping i
   assert.deepEqual(await unfilled(hung), [['synonyms', true]]);
   assert.match(await card.locator('.facet-tag[data-facet="synonyms"]').evaluate(tag => getComputedStyle(tag, '::before').filter), /saturate\(0\.3\)/);
   assert.doesNotMatch(await card.locator('.facet-tag[data-facet="article"]').evaluate(tag => getComputedStyle(tag, '::before').filter), /saturate/);
-  assert.ok(await a.page.getByRole('button', { name: 'Show Synonyms in German 1, empty', exact: true }).count());
+  // Its tag shows nothing: it is no button, and clicking it leaves the page where it is.
+  assert.equal(await a.page.getByRole('button', { name: /^Show Synonyms in German 1/ }).count(), 0);
+  assert.equal(await card.getByRole('img', { name: 'Synonyms, empty', exact: true }).count(), 1);
+  // A short window, so a scroll to the card would show.
+  await a.page.setViewportSize({ width: 1280, height: 420 });
+  await card.locator('.facet-tag[data-facet="synonyms"]').scrollIntoViewIfNeeded();
+  await a.page.waitForTimeout(300);
+  const scrolled = await a.page.evaluate(() => [window.scrollY, document.activeElement?.tagName]);
+  await card.locator('.facet-tag[data-facet="synonyms"] .facet-tag-open').click();
+  await a.page.waitForTimeout(600);
+  assert.deepEqual(await a.page.evaluate(() => [window.scrollY, document.activeElement?.tagName]), scrolled, 'nothing moves');
+  await a.page.setViewportSize({ width: 1280, height: 1400 });
 
   // Generating, a card's hung tags stay beneath its tab, so the rail does not cover the spark.
   await hung.locator('.tab-button').click();
