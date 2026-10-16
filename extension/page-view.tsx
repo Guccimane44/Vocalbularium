@@ -10,10 +10,10 @@ import { parentContentOf } from '@vocabularium/domain/content';
 import type { ParentContent } from '@vocabularium/domain/content';
 import { hasText } from '@vocabularium/domain/markdown';
 import { LiveEditor } from './live-editor.tsx';
-import { facetLabel, isFacetOf, isParentType } from '@vocabularium/domain/parents';
+import { facetLabel, facetsOf, isFacetOf, isParentType } from '@vocabularium/domain/parents';
 import type { FacetType, ParentType } from '@vocabularium/domain/parents';
 import type { FieldDraft, PageEditorDraft } from '../types/editor-drafts.js';
-import { FacetTags, FOLD_MS } from './facet-tags.tsx';
+import { FacetTab, FacetTags, FOLD_MS } from './facet-tags.tsx';
 import type { TagLayout } from './facet-tags.tsx';
 import { FamilyIcon } from './families.tsx';
 import { mainKeyTier } from './main-key.ts';
@@ -185,17 +185,20 @@ export function readContent(type: string, content: Component['content']): { rend
 }
 
 // Generated content as its parent's render contract describes (D08): the core,
-// then each facet with content under its label, in the parent's order. A facet
-// waiting for Retry is only its tag (0.7.4). Anything else, and the user's own text, is plain text with its line breaks.
+// then each facet with content under its tab, in the parent's order. A facet
+// waiting for Retry is only its tag (0.7.4), until its own Retry starts: then
+// its section stands in its place, the spark running round its tab, and stays
+// only if the facet comes back with content. Anything else, and the user's own text, is plain text with its line breaks.
 export function Content({ type, rendered, mainKey, controls }: {
   type: string; rendered: Rendered; mainKey: string; controls?: FacetControls;
 }) {
   const parent = isParentType(type) ? type : null;
   // A facet's own Retry needs content that follows the parent's layout.
   const canRetry = rendered.kind === 'parent';
+  // While the facet generates on its own, the spark runs round its tab (0.7.4).
   const facetHead = (facet: FacetType) => parent && <h3 className="facet-title">
-    <span>{facetLabel(parent, facet)}</span>
-    {controls?.retrying === facet ? <span className="facet-note" data-note="generating">Generating…</span>
+    <FacetTab parent={parent} facet={facet}><Spark active={controls?.retrying === facet} /></FacetTab>
+    {controls?.retrying === facet ? <span className="visually-hidden">Generating…</span>
       : controls?.failed === facet && <span className="facet-note" data-note="failed">Retry failed</span>}
     {controls && <FacetActions name={`${facetLabel(parent, facet)} from ${controls.title}`} hasContent canRetry={canRetry}
       disabled={controls.disabled} asking={controls.asking?.facet === facet ? controls.asking.kind : null}
@@ -214,10 +217,15 @@ export function Content({ type, rendered, mainKey, controls }: {
       {heading.pronunciation && <span className="entry-pronunciation">{heading.pronunciation}</span>}
     </p>}
     {core.length > 0 && <Markdown blocks={core} mainKey={mainKey} className={heading ? 'entry-core' : 'entry-core reading'} />}
-    {facets.map(facet => <section key={facet.facet} {...section(facet.facet)}>
-      {facetHead(facet.facet)}
-      <Markdown blocks={facet.body} mainKey={mainKey} className="facet-body" />
-    </section>)}
+    {parent && facetsOf(parent).map(name => {
+      const facet = facets.find(each => each.facet === name);
+      if (facet) return <section key={name} {...section(name)}>
+        {facetHead(name)}
+        <Markdown blocks={facet.body} mainKey={mainKey} className="facet-body" />
+      </section>;
+      // A facet without content, generating on its own: its heading only.
+      return controls?.retrying === name ? <section key={name} {...section(name)} data-pending>{facetHead(name)}</section> : null;
+    })}
   </div>;
 }
 

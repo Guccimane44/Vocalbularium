@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import type { CSSProperties } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { facetAbbreviation, facetLabel, ordered } from '@vocabularium/domain/parents';
 import type { FacetType, ParentType } from '@vocabularium/domain/parents';
 
@@ -245,4 +245,17 @@ export function FacetTags({ holderId, parent, facets, filled, layout, title, dis
     {shown.map((facet, index) => tag(facet, index))}
     {leaving.filter(item => !shown.includes(item.facet)).map(item => tag(item.facet, item.index, true))}
   </ul>;
+}
+
+
+// A facet's heading in its card and in the editor (0.7.4): a small tab, a
+// cousin of the module's index tab, in a pale tint of the family colour with
+// the facet's abbreviation, then its name. `children` holds what runs round
+// it, such as the spark while the facet generates on its own.
+export function FacetTab({ parent, facet, children }: { parent: ParentType; facet: FacetType; children?: ReactNode }) {
+  return <span className="facet-tab">
+    <span className="facet-tab-mark" aria-hidden="true">{facetAbbreviation(parent, facet)}</span>
+    <span className="facet-tab-label">{facetLabel(parent, facet)}</span>
+    {children}
+  </span>;
 }

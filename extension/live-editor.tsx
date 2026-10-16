@@ -8,6 +8,7 @@ import type { EditorNode } from '@vocabularium/domain/markdown';
 import { facetLabel, facetsOf } from '@vocabularium/domain/parents';
 import type { FacetType, ParentType } from '@vocabularium/domain/parents';
 import type { FieldDraft } from '../types/editor-drafts.js';
+import { FacetTab } from './facet-tags.tsx';
 
 // The live-formatting editor (D09, amended; 0.7.4): a parent card's core and
 // each of its facets as one editor each, in place, formatting markdown as the
@@ -60,7 +61,7 @@ export function LiveEditor({ parent, title, fields, opened, locked, persist, red
       onChange={markdown => { fields.core = markdown; changed(); }} />
     {facetsOf(parent).filter(facet => fields.facets[facet] !== undefined).map((facet: FacetType) =>
       <section key={facet} className="facet" data-facet={facet} data-unfilled={!hasText(fields.facets[facet]) || undefined}>
-        <h3 className="facet-title"><span>{facetLabel(parent, facet)}</span></h3>
+        <h3 className="facet-title"><FacetTab parent={parent} facet={facet} /></h3>
         <MarkdownEditor value={fields.facets[facet] ?? ''} editable={!locked} label={`${facetLabel(parent, facet)}, ${title}`}
           onChange={markdown => { fields.facets[facet] = markdown; changed(); }} />
       </section>)}

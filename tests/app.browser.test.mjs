@@ -549,7 +549,7 @@ test('deck UI: draft previews, all modules, the module limit, removal without co
   assert.match(await preview.locator('.preview').nth(0).textContent(), /我真的很幸福/);
   // Every parent applies to a sentence: its translation, and the facets that apply (D08).
   assert.match(await preview.locator('.preview').nth(2).textContent(), /Ich bin wirklich glücklich/);
-  assert.deepEqual(await preview.locator('.preview').nth(2).locator('.facet-title > span:first-child').allTextContents(), ['Examples'], 'Article, Synonyms and Antonyms are for words');
+  assert.deepEqual(await preview.locator('.preview').nth(2).locator('.facet-tab-label').allTextContents(), ['Examples'], 'Article, Synonyms and Antonyms are for words');
   assert.equal(await preview.locator('.preview').nth(3).locator('.facet').count(), 0, 'a parent added from the window has its core only');
   assert.match(await preview.locator('.preview').nth(4).textContent(), /说话人表示自己非常满足/);
   const previewTypes = () => preview.locator('.sample-page .component').evaluateAll(nodes => nodes.map(node => node.dataset.type));
@@ -2095,7 +2095,7 @@ test('parents and facets: core only on add, facets only on their own parent, the
 
   // The core, then each facet under its label, and how the key was read.
   assert.equal(await a.page.locator('.interpretation').textContent(), 'Read as a word');
-  assert.deepEqual(await card('German').locator('.facet .facet-title > span:first-child').allTextContents(), ['Article', 'Examples', 'Synonyms', 'Antonyms']);
+  assert.deepEqual(await card('German').locator('.facet .facet-tab-label').allTextContents(), ['Article', 'Examples', 'Synonyms', 'Antonyms']);
   assert.equal(await card('German').locator('.entry-core li').textContent(), 'Ufer');
 
   // A facet goes nowhere without a parent of its type. Why is told to assistive technology only:
@@ -2238,7 +2238,7 @@ test('parents and facets: core only on add, facets only on their own parent, the
   await row.getByRole('button', { name: 'Remove Antonyms from German', exact: true }).click();
   await waitFor(async () => await row.locator('.facet-tag').count() === 3, 'the Antonyms tag popped');
   await a.page.getByRole('button', { name: 'Preview', exact: true }).click();
-  assert.deepEqual(await a.page.locator('.preview-dialog .component[data-type="german"] .facet-title > span:first-child').allTextContents(), ['Article', 'Examples', 'Synonyms']);
+  assert.deepEqual(await a.page.locator('.preview-dialog .component[data-type="german"] .facet-tab-label').allTextContents(), ['Article', 'Examples', 'Synonyms']);
   await a.page.getByRole('button', { name: 'Close preview', exact: true }).click();
   // With two Germans in deck settings, a facet's + hangs a ghost below each tab; clicking one places it (0.7.2).
   await a.page.getByRole('button', { name: 'Add German at the end', exact: true }).click();
@@ -2617,7 +2617,10 @@ test('0.7.3: a facet’s own Retry beside its Delete, a tag’s remove keeping i
   await a.page.getByRole('button', { name: 'Yes, retry Examples from German 1', exact: true }).click();
 
   // While it regenerates the card stays open with the rest of its content.
-  await examples.locator('.facet-note[data-note="generating"]').waitFor();
+  // The spark runs round the facet's tab (0.7.4), the only sign that it generates.
+  await examples.locator('.facet-tab .spark:not([data-ending])').waitFor();
+  assert.equal(await examples.locator('.facet-body').evaluate(node => getComputedStyle(node).animationName), 'none', 'its content no longer fades');
+  assert.equal(await card.locator('.facet-tag[data-facet="examples"] .facet-tag-open').evaluate(node => getComputedStyle(node).animationName), 'none', 'nor its tag breathes');
   assert.equal(await card.getAttribute('data-generating'), null, 'not folded down to its tab');
   assert.match(await card.locator('.facet[data-facet="article"]').textContent(), /das Ufer · die Ufer/);
   assert.match(await examples.textContent(), /We sat on the bank\./);
@@ -2700,12 +2703,20 @@ test('0.7.3: a facet’s own Retry beside its Delete, a tag’s remove keeping i
   await settleIn(synonymsTag);
   await tagRetry.click();
   assert.equal(await card.locator('.facet-confirm').count(), 0, 'no "Are you sure?"');
-  await waitFor(async () => await synonymsTag.getAttribute('data-retrying') !== null, 'the tag breathes');
+  await waitFor(async () => await synonymsTag.getAttribute('data-retrying') !== null, 'Synonyms generating');
   assert.equal(await synonymsTag.getAttribute('data-pulled'), null, 'and goes back in');
+  // Generating, the empty facet's section stands in its place, its heading only, the spark round its tab (0.7.4).
+  const synonyms = card.locator('.facet[data-facet="synonyms"]');
+  await synonyms.locator('.facet-tab .spark').waitFor();
+  assert.notEqual(await synonyms.getAttribute('data-pending'), null);
+  assert.equal(await synonyms.locator('.facet-body').count(), 0);
+  assert.deepEqual(await card.locator('.facet').evaluateAll(sections => sections.map(each => each.dataset.facet)), ['article', 'examples', 'synonyms']);
+  await card.screenshot({ path: 'artifacts/v0.7.4-facet-generating.png' });
   await waitFor(() => calls.length === 2, 'facet provider started again');
   assert.deepEqual(calls[1].facets, ['synonyms']);
   release({ facets: { synonyms: ['Böschung'] } });
-  await waitFor(async () => await card.locator('.facet[data-facet="synonyms"]').count() === 1, 'Synonyms generated');
+  await synonyms.locator('.facet-body').waitFor();
+  assert.equal(await synonyms.getAttribute('data-pending'), null, 'the block stays, with its content');
   assert.deepEqual(await card.locator('.facet').evaluateAll(sections => sections.map(each => each.dataset.facet)), ['article', 'examples', 'synonyms'],
     'in its place in the parent’s order');
   assert.equal(await synonymsTag.getAttribute('data-unfilled'), null);
@@ -2716,6 +2727,15 @@ test('0.7.3: a facet’s own Retry beside its Delete, a tag’s remove keeping i
   await waitFor(() => calls.length === 3, 'the Article regenerates at once');
   release({ facets: { article: { singular: 'das Ufer', plural: 'die Ufer' } } });
   await waitFor(async () => await card.locator('.facet-tag[data-facet="article"]').getAttribute('data-retrying') === null, 'Article done');
+  // An empty facet that comes back empty: its section shows while it generates, then goes again.
+  await card.getByRole('button', { name: 'Antonyms, empty in German 1', exact: true }).click();
+  await card.getByRole('button', { name: 'Retry Antonyms in German 1', exact: true }).click();
+  await card.locator('.facet[data-facet="antonyms"][data-pending]').waitFor();
+  await waitFor(() => calls.length === 4, 'Antonyms requested');
+  release({ facets: {} });
+  await card.locator('.facet[data-facet="antonyms"]').waitFor({ state: 'detached' });
+  assert.notEqual(await card.locator('.facet-tag[data-facet="antonyms"]').getAttribute('data-unfilled'), null, 'its tag stays bland');
+  await card.screenshot({ path: 'artifacts/v0.7.4-facet-tabs.png' });
 
   // The module window fits the viewport; below its search, the list scrolls on its own.
   await a.page.setViewportSize({ width: 1280, height: 520 });
@@ -2781,7 +2801,7 @@ test('0.7.4: the live editor formats markdown in place: names and top line locke
 
   // In place, formatted, with no markdown characters, numbers or separators of its own.
   assert.equal(await editor.locator('.entry-heading').textContent(), 'Englischbank');
-  assert.deepEqual(await editor.locator('.facet-title').allTextContents(), ['Article', 'Examples', 'Synonyms', 'Antonyms']);
+  assert.deepEqual(await editor.locator('.facet-tab-label').allTextContents(), ['Article', 'Examples', 'Synonyms', 'Antonyms']);
   assert.equal(await part('Meanings').textContent(), 'Ufer');
   assert.equal(await part('Examples').locator('em').textContent(), 'Wir saßen am Ufer.', 'the translation is italic, not *starred*');
   assert.doesNotMatch(await editor.textContent(), /\*|==|`|^\s*\d+\./m);
