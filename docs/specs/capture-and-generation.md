@@ -32,7 +32,7 @@ Each separate **Create a page in “{default deck name}”** action creates a ne
 
 A generation run keeps the module instances it started with. Later changes to the deck or the page do not change that run. Deleting a page, its destination deck, or a targeted component cancels the affected pending generation; it must not recreate deleted pages, decks, or components.
 
-The saved page appears in the destination deck's page list, including while generation is loading or after it fails. Page lists show each page's main key. Opening a page shows it in the default view, with **Generate** or **Retry** in each content card ([generation actions](#generation-actions)). Component content is rendered as its module's render contract describes, with plain text as the fallback ([shared UI](shared-ui.md#text-content)). The extension does not automatically open the new page or move the user away from the web page they are reading.
+The saved page appears in the destination deck's page list, including while generation is loading or after it fails. Page lists show each page's main key. Opening a page shows it in the default view, with **Generate** or **Retry** in each content card ([generation actions](#generation-actions)). Component content is rendered as its module's render contract describes ([shared UI](shared-ui.md#text-content)). The extension does not automatically open the new page or move the user away from the web page they are reading.
 
 Clicking the extension button opens the dashboard in a Chrome tab. The dashboard provides access to recent capture outcomes and their destination decks, including requests that have not yet produced a saved page. A new capture remains visible while its local pending receipt hands off to the saved account page; a delayed account refresh must not briefly remove the row.
 
@@ -123,13 +123,13 @@ Retry uses the page's current saved main key and Context and its content module 
 
 ### Retrying one facet
 
-Since 0.7.3 each facet of a parent component has its own **Retry** beside its **Delete** ([pages and editing](pages-and-editing.md#components-as-cards)). It regenerates that facet alone: the facet's section is replaced, or added in the parent's order when the facet had none, and the core and the other facets stay exactly as they are, edits included. A facet waiting for **Retry** can be generated this way without regenerating the rest.
+Since 0.7.3 each facet of a parent component has its own **Retry** beside its **Delete** ([pages and editing](pages-and-editing.md#components-as-cards)). It regenerates that facet alone: the facet's entry is replaced, or added when the facet had none (an entry in the structured content since 0.7.4), and the core and the other facets stay exactly as they are, edits included. A facet waiting for **Retry** can be generated this way without regenerating the rest.
 
 - **Asking.** A facet with content asks "Are you sure?" beside its label, with a final **Retry** and **Cancel**; one with nothing in it starts at once. If the facet's content changed after the user answered, the dialog warns: "Retry will replace this facet's content, including your edits to it. The rest of the component will not change."
 - **Input.** The attempt uses the page's saved main key and Context and the page's latest word-or-sentence reading, without interpreting again, so the facet follows the core it joins. The provider receives the component's current core and writes only that facet for it; anything else it returns is discarded. A facet that does not apply to the reading is left out, as in a whole attempt.
 - **While it runs.** The component keeps its content and stays open; the facet says it is generating, and the component is locked as during any attempt.
 - **Failure.** A failed or interrupted facet attempt leaves the content and the component's state as they were before it, and the facet says its Retry failed until the component's next attempt. A facet that was waiting still waits.
-- **Availability.** It needs content that follows the parent's [render contract](../specs/modules.md#parent-modules-and-facets); content edited outside it is retried whole.
+- **Availability.** Since 0.7.4 every parent's content is structured, so every facet of a parent with a core can be retried alone ([render contracts](modules.md#render-contracts)).
 
 The warning describes the content shown when it opened. If a targeted component changes before the user confirms, for example through a save from another installation, Retry warns again with the current content instead of replacing content the user has not seen.
 

@@ -86,19 +86,23 @@ Applicability is judged per facet. A parent's core always applies. A facet that 
 
 - **Input:** the page's current main key, its saved Context when present, and the run's interpretation. These are a content module's only text inputs, whether capture or manual entry supplied them. The parent type and the instance's facets are the instructions governing the contribution.
 - **Interpretation:** one interpretation per generation run, shared by every attempt in that run. It must correspond to the run's main key and Context; a changed key must not reuse a prior key's classification.
-- **Output:** the block content of the instance's own component on that page: the core, then each applicable facet in the parent's order. An instance never changes an input module's component or another instance's component. Parents produce plain text, stored as paragraph blocks.
-- **Applicability:** the core always applies; an inapplicable facet is left out ([input and applicability](#input-and-applicability)). A facet heading the provider writes with nothing under it counts as an omitted facet and is dropped before the output is checked against the render contract; any other text outside the contract fails the attempt.
+- **Output:** the block content of the instance's own component on that page: the core, then each applicable facet in the parent's order. An instance never changes an input module's component or another instance's component. Parents produce structured data, stored as one typed block ([render contracts](#render-contracts); D09).
+- **Applicability:** the core always applies; an inapplicable facet is left out ([input and applicability](#input-and-applicability)). A facet the provider leaves out, or returns empty, counts as an omitted facet; anything else outside the parent's shape fails the attempt.
 - **Editing:** editing the main key or the Context does not run modules or change saved output. Existing output reflects the main key and Context used in its attempt and may differ from the current values after an edit. The user may edit a generated component; the next retry of that component replaces the edit after confirmation.
 
 ## Render contracts
 
-Content stays stored as the module's text ([C17](../architecture/traceability-map.md#conflicts)). Each parent type declares how that text is rendered for reading ([shared UI](shared-ui.md#text-content)):
+Since 0.7.4 a parent's content is structured data ([D09](../architecture/traceability-map.md#entries); [C21](../architecture/traceability-map.md#conflicts)). The provider returns it as a JSON object, generation validates it against the parent's shape, and the component stores it as one typed block in its block document ([Q13](../architecture/questionnaire/answers/answers-03-frontend.md#q13)). The card is drawn from that data, never from parsed text, and no structuring syntax is stored or shown.
 
-- **Core, word or phrase:** as the retired `German explanation`, with its headings in the parent's language: a line `== Language (key, pronunciation) ==` becomes a heading with the key's language and, where present, the key and its pronunciation; a meanings heading starts the meanings; each line `: [n] text` becomes meaning *n* of a numbered list.
-- **Core, sentence:** the translation, shown as reading text.
-- **Facets:** each facet starts with a line `=== Facet ===` naming it as in the catalog, shown as the facet's label. Examples are lines `: [n] sentence`, each followed by a `:: translation` line where there is one, shown as the sentence beside its translation with the translated word emphasised. Article, Synonyms, Antonyms, and Pinyin are lines `: text`.
+- **Core, word or phrase:** the key's language, the key, an optional romanization, and a list of meanings in the parent's language, at least one. Shown as a heading with the language, key and romanization, then the meanings as a numbered list.
+- **Core, sentence:** its translation, or for a sentence already in the parent's language, an explanation of its meaning. Shown as reading text.
+- **Facets:** one entry per facet the instance has and that has content, each shown in its own container under its label, in the parent's order:
+  - **Article:** `{ singular, plural }`, the plural optional, such as `das Ufer` and `die Ufer`; shown as `das Ufer · die Ufer`.
+  - **Examples:** a list of `{ sentence, translation }`, the translation optional, numbered by position and not tied to meanings; shown as each sentence beside its translation with the main key emphasised.
+  - **Synonyms**, **Antonyms:** lists of words, shown in a row.
+  - **Pinyin:** a list of `{ text, pinyin }`, one per meaning for a word and one for a sentence.
 
-The iteration plan fixes each parent's exact text format with its golden set ([C8](../architecture/traceability-map.md#conflicts)). A renderer recognizes the whole component or none of it: if any line does not fit its contract, the component is shown as plain text, as is empty or edited content that no longer fits. Rendering is a pure function of the stored text, shared by every client; it never produces HTML. Each future module's specification states its render contract under *Output and presentation*.
+A facet with no entry, or an empty one, has no content: its container is not shown on the card, and its [tag](pages-and-editing.md#facet-tags) is blander. The iteration plan fixes each parent's exact JSON shape with its golden set ([C8](../architecture/traceability-map.md#conflicts)). Rendering is a pure function of the stored data, shared by every client; it never produces HTML. Each future module's specification states its shape and containers under *Output and presentation*.
 
 ## View module contract
 
