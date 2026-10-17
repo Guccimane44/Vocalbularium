@@ -559,8 +559,8 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
     let index = 0;
     const order = () => ({ '--i': index++ }) as CSSProperties;
     return <div id={`actions-${item.id}`} className="card-actions" role="group" aria-label={`${title} actions`} data-open={open || undefined}>
-      {/* A parent is edited in its live editor once it has content (D09); Retry fills it first. */}
-      {open && <button style={order()} aria-label={`Edit ${title}`} disabled={Boolean(editingId) || item.status === 'loading' || (isParentType(item.moduleType) && !parentContentOf(item.content))}
+      {/* An empty parent can be written by hand too (D10, amended a fourth time). */}
+      {open && <button style={order()} aria-label={`Edit ${title}`} disabled={Boolean(editingId) || item.status === 'loading'}
         onClick={choose(() => { if (isFolded) fold(item.id, false); begin(item.id); })}>
         <ActionIcon name="edit" />Edit</button>}
       {generated && <button style={order()} className={item.status === 'failed' ? 'action-failed' : undefined} aria-label={`Retry ${title}`}

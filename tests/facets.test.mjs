@@ -167,8 +167,8 @@ test('a parent’s markdown is saved with its top line locked, its facets only, 
   const { attemptIds: [attemptId] } = await store.generate('third-run', { pageId, target: { scope: 'component', componentId: third }, session });
   await assert.rejects(store.stage(attemptId, { ok: true, text: '== Englisch ==\n: [1] Ufer' }), { code: 'invalid', message: 'Invalid component result.' });
 
-  // A parent that never generated has no top line to edit.
+  // A parent that never generated starts only from the blank top line of its main key (D10, amended a fourth time).
   const { componentId } = await store.addModule('second', { pageId, type: 'german' });
   await assert.rejects(store.savePage('no-core', { pageId, changes: [{ componentId, content: { version: 1, blocks: [{ type: 'parent', header, core: '', facets: {} }] } }] }),
-    { code: 'invalid', message: 'Generate this module before editing it.' });
+    { code: 'invalid', message: "The module's top line can not be changed." });
 });

@@ -3754,9 +3754,7 @@
                                                     ]
                                                   },
                                                   "language": {
-                                                    "type": "string",
-                                                    "minLength": 1,
-                                                    "maxLength": 2000
+                                                    "type": "string"
                                                   },
                                                   "key": {
                                                     "type": "string",
@@ -4143,9 +4141,7 @@
                                                     ]
                                                   },
                                                   "language": {
-                                                    "type": "string",
-                                                    "minLength": 1,
-                                                    "maxLength": 2000
+                                                    "type": "string"
                                                   },
                                                   "key": {
                                                     "type": "string",

@@ -53,7 +53,8 @@ export const GeneratedParentSchema = Type.Object({ core: ParentCoreSchema, facet
 // one markdown text. A facet without content has no entry.
 const Markdown = Type.String({ maxLength: 8000 });
 export const ParentHeaderSchema = Type.Union([
-  Type.Object({ kind: Type.Literal('word'), language: Filled, key: Filled, romanization: Type.Optional(Filled) }, { additionalProperties: false }),
+  // The language is blank on a card written by hand until a Retry fills it (D10, amended a fourth time).
+  Type.Object({ kind: Type.Literal('word'), language: Type.String(), key: Filled, romanization: Type.Optional(Filled) }, { additionalProperties: false }),
   Type.Object({ kind: Type.Literal('sentence') }, { additionalProperties: false })
 ]);
 export const ParentBlockSchema = Type.Object({

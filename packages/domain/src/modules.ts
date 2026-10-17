@@ -1,7 +1,7 @@
 import type { InputInterpretation, ParentCore } from '@vocabularium/contracts';
 import { applicableFacets, isFacetOf, isParentType } from './parents.js';
 import type { FacetType, ParentType } from './parents.js';
-import { formatContent, providerCore, withFacetText, withKeyHighlighted } from './content.js';
+import { formatContent, isBlankHeader, providerCore, withFacetText, withKeyHighlighted } from './content.js';
 import type { ParentContent } from './content.js';
 import { emptyEntry, validateGenerated, validateGeneratedFacet } from './generated.js';
 import { formatFacet, highlightKey } from './markdown.js';
@@ -103,7 +103,8 @@ export async function generateCore(input: {
   generate: GenerateModule;
 }): Promise<ParentContent> {
   const fresh = await generateComponent({ ...input, module: { ...input.module, facets: [] } });
-  return { header: input.existing.header, core: fresh.core, facets: input.existing.facets };
+  // A top line left blank by a hand-written card takes the generated one (D10, amended a fourth time).
+  return { header: isBlankHeader(input.existing.header) ? fresh.header : input.existing.header, core: fresh.core, facets: input.existing.facets };
 }
 
 export type ComponentOutcome = Readonly<

@@ -169,6 +169,24 @@ test('a facet saved on its own takes only that facet over the stored content (D1
     { code: 'invalid', message: 'This facet is no longer there.' });
 });
 
+test('an empty parent is written by hand from the blank top line of the page’s main key (D10, amended a fourth time)', async (t) => {
+  const store = await fixture(t);
+  const { pageId } = await capture(store, 'manual-parent', a, 'bank');
+  const { componentId } = await store.addModule('empty-german', { pageId, type: 'german' });
+  await store.addFacet('empty-german-examples', { pageId, componentId, parent: 'german', facet: 'examples' });
+  const parent = (header, core, facets = {}) => ({ version: 1, blocks: [{ type: 'parent', header, core, facets }] });
+  const blank = { kind: 'word', language: '', key: 'bank' };
+  await assert.rejects(store.savePage('wrong-key', { pageId, changes: [{ componentId, content: parent({ ...blank, key: 'other' }, '1. Ufer') }] }),
+    { code: 'invalid', message: "The module's top line can not be changed." });
+  await assert.rejects(store.savePage('a-language', { pageId, changes: [{ componentId, content: parent({ ...blank, language: 'Englisch' }, '1. Ufer') }] }),
+    { code: 'invalid' }, 'the language stays for a Retry to fill');
+  await assert.rejects(store.savePage('facet-first', { pageId, changes: [{ componentId, content: parent(blank, ''), facet: 'examples' }] }),
+    { code: 'invalid', message: 'Generate this module before editing it.' }, 'a facet alone cannot start it');
+  await store.savePage('by-hand', { pageId, changes: [{ componentId, content: parent(blank, '1. Ufer', { examples: '1. Am Ufer.' }) }] });
+  const block = (await store.page(pageId)).components.find(item => item.id === componentId).content.blocks[0];
+  assert.deepEqual(block, { type: 'parent', header: blank, core: '1. Ufer', facets: { examples: '1. Am Ufer.' } });
+});
+
 test('generation rejects an entire multi-component save; explicit resubmission is a new arrival', async (t) => {
   const store = await fixture(t);
   const { pageId, page } = await capture(store);
