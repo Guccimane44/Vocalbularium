@@ -191,16 +191,6 @@ function topLine(header: ParentContent['header'] | undefined, toolbar: ReactNode
     : <p className="entry-heading entry-heading-tools">{toolbar}</p>;
 }
 
-// The core edited on its own (D10, amended), in its place: its top line with
-// the toolbar, its text, then its Save and Cancel (`children`).
-export function CoreEditor({ title, fields, header, locked, persist, redraw, children }: {
-  title: string; fields: FieldDraft; header: ParentContent['header']; locked: boolean; persist: () => void; redraw: () => void; children: ReactNode;
-}) {
-  const changed = useTyped(fields, persist, redraw);
-  return <PartEditor className="live-core core-editing" value={fields.core} editable={!locked} autofocus reading={header.kind === 'sentence'}
-    label={`${header.kind === 'sentence' ? 'Translation' : 'Meanings'}, ${title}`}
-    onChange={markdown => { fields.core = markdown; changed(); }} head={toolbar => topLine(header, toolbar)} after={children} />;
-}
 
 // Context or Text in the same toolbar editor (D10, amended a fourth time):
 // its text alone, the toolbar on a row above it while it is focused, then its

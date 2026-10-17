@@ -197,11 +197,9 @@
 .component pre { margin: 0; font: 16px/1.6 var(--font-text); }
 .component[data-type="context"] pre { color: var(--ink-soft); font-style: italic; }
 /* Context and Text as markdown (D10, amended a fourth time), reading as their plain text did; Edit and Delete on a top row. */
-.note-part { display: grid; gap: 4px; }
 .note-body { line-height: 1.6; }
 .component[data-type="context"] :is(.note-body, .note-editing .md-editor) { color: var(--ink-soft); font-style: italic; }
-.note-part:hover .facet-actions button, .note-part .facet-actions button:focus-visible { opacity: 1; }
-.note-part .entry-heading-tools, .note-editing .entry-heading-tools { justify-content: flex-end; min-height: 26px; }
+.note-editing .entry-heading-tools { justify-content: flex-end; min-height: 26px; }
 .reading { margin: 0; font: 400 19px/1.55 var(--font-display); overflow-wrap: anywhere; white-space: pre-wrap; }
 .entry-content { display: grid; gap: 10px; overflow-wrap: anywhere; }
 .entry-heading { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: 0; }
@@ -411,17 +409,8 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
 .facet-actions button { display: inline-grid; place-items: center; width: 26px; height: 26px; padding: 0; border: 0; border-radius: var(--radius-control);
   background: transparent; color: var(--ink-muted); opacity: 0; transition: opacity var(--dur-instant) ease, background var(--dur-instant) ease; }
 .facet:hover .facet-actions button, .facet-actions button:focus-visible { opacity: 1; }
-/* The core's own Edit and Retry on its top line (D10, amended), shown as a facet's are. */
-.core-part { display: grid; gap: 10px; }
-.facet-action-gap { width: 26px; }
-.core-part:hover .facet-actions button, .core-part .facet-actions button:focus-visible { opacity: 1; }
-.core-part .entry-heading { align-items: center; min-height: 26px; }
-.entry-heading-text { position: relative; border-radius: var(--radius-control); }
-.core-part .entry-heading-tools { justify-content: flex-end; }
-/* While the core regenerates on its own, the spark runs round its top line, in the family colour. */
-.core-part[data-retrying] .entry-heading-text { padding: 2px 8px; margin: -2px -8px; }
-.entry-heading .spark { --spark-light: var(--fam, var(--fam-notes)); --spark-glow: color-mix(in srgb, var(--fam, var(--fam-notes)) 45%, transparent); }
-@media (prefers-reduced-motion: reduce) { .core-part[data-retrying] .entry-heading-text { box-shadow: 0 0 0 2px var(--fam, var(--fam-notes)) inset; } }
+/* Each part's top line; Context and Text as markdown, edited from their tab. */
+.entry-heading-text { position: relative; }
 .facet-edit:not(:disabled):hover, .facet-retry:not(:disabled):hover { background: var(--fam-tint, var(--fam-notes-tint)); color: var(--fam, var(--fam-notes)); }
 .facet-delete:not(:disabled):hover { background: var(--status-failed-bg); color: var(--status-failed); }
 .facet-actions .action-icon { width: 14px; height: 14px; }

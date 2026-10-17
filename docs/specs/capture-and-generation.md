@@ -106,7 +106,7 @@ Closing only the capture popup or dashboard tab does not count as closing Chrome
 
 ## Retry
 
-**Retry** is available in the page editor for one content component, for one facet of a parent component ([below](#retrying-one-facet)) or its core alone ([below](#retrying-the-core), since 0.7.5), or for the whole page. Completed, failed, empty, missing, or manually edited components can be targets. Capture origin does not matter: a manually created page has a main key and can retry like a captured one.
+**Retry** is available in the page editor for one content component, for one facet of a parent component ([below](#retrying-one-facet)) or for the whole page. Completed, failed, empty, missing, or manually edited components can be targets. Capture origin does not matter: a manually created page has a main key and can retry like a captured one.
 
 Before replacing content, always ask. For one component the question is asked beside the card's tab, as for **Delete** ([pages and editing](pages-and-editing.md#components-as-cards)): "Are you sure?" with a final **Retry** and **Cancel** (since 0.6.3). If the content changed after the user answered, for example in another browser, the warning below is shown before anything is replaced:
 
@@ -130,15 +130,6 @@ Since 0.7.3 each facet of a parent component has its own **Retry** beside its **
 - **While it runs.** The component keeps its content and stays open; the spark runs round the facet's tab (since 0.7.4); a facet without content shows its section, its tab alone, while it generates and keeps it only if it comes back with content; the component is locked as during any attempt.
 - **Failure.** A failed or interrupted facet attempt leaves the content and the component's state as they were before it, and the facet says its Retry failed until the component's next attempt (a facet without a section, through its tag). A facet that was waiting still waits.
 - **Availability.** Since 0.7.4 every parent's content is structured, so every facet of a parent with a core can be retried alone ([render contracts](modules.md#render-contracts)).
-
-### Retrying the core
-
-Since 0.7.5 a parent's core has its own **Retry** on its top line ([pages and editing](pages-and-editing.md#editing-and-retrying-the-core); [D10](../architecture/traceability-map.md#entries), amended). It regenerates the meanings or the translation alone, formatted as markdown as in a whole attempt; the top line stays as stored, and every facet stays exactly as it is, edits included, even where it no longer matches the new meanings.
-
-- **Asking.** A core with content asks "Are you sure?" beside its top line, with a final **Retry** and **Cancel**; an empty core starts at once. The dialog warns when the core changed after the user answered, as for a facet.
-- **Input.** As a facet's own attempt: the page's saved main key and Context and its latest word-or-sentence reading, without interpreting again. The provider writes the core and no facet; anything else it returns is discarded.
-- **While it runs.** The component keeps its content and stays open; the spark runs round the core's top line; the component is locked as during any attempt.
-- **Failure.** A failed or interrupted core attempt leaves the content and the component's state as they were, and the top line says its Retry failed until the component's next attempt.
 
 The warning describes the content shown when it opened. If a targeted component changes before the user confirms, for example through a save from another installation, Retry warns again with the current content instead of replacing content the user has not seen.
 
