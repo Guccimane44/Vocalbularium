@@ -2775,7 +2775,7 @@ test('0.7.3: a facet’s own Retry beside its Delete, a tag’s remove keeping i
   await waitFor(async () => await hung.getAttribute('data-generating') === null, 'German 2 generated');
 });
 
-test('0.7.4: the live editor formats markdown in place: names and top line locked, no markdown shown, lists, bold, highlight, empty facets filled, any part emptied', { timeout: 60000 }, async (t) => {
+test('0.7.5: the parent editor in place: names and top line locked, no markdown (typed stays typed), the toolbar beside the focused part, empty facets filled, any part emptied', { timeout: 60000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-live-editor-browser-'));
   const application = await createTestApplication(t); await application.start();
   const a = await launch(join(directory, 'a'));
@@ -2809,36 +2809,82 @@ test('0.7.4: the live editor formats markdown in place: names and top line locke
   assert.notEqual(await editor.locator('.facet[data-facet="antonyms"]').getAttribute('data-unfilled'), null, 'the empty facet is dimmed in its place');
   await a.page.screenshot({ path: 'artifacts/v0.7.4-live-editor.png' });
 
-  // Typing markdown formats live; Cmd/Ctrl+B toggles bold; lists and highlight by input rules.
+  // No markdown (D10, 0.7.5): typed markdown stays as typed; the toolbar formats.
+  const toolbars = editor.locator('.md-toolbar');
+  const facetTool = (facet, label) => editor.locator(`.facet[data-facet="${facet}"] .md-toolbar`).getByRole('button', { name: label, exact: true });
+  const coreTool = label => editor.locator('.live-core .md-toolbar').getByRole('button', { name: label, exact: true });
+  assert.equal(await toolbars.count(), 0, 'no toolbar while nothing is focused');
   await part('Synonyms').click(); await a.page.keyboard.press('End');
   await a.page.keyboard.type(', **fest**');
-  await waitFor(async () => await part('Synonyms').locator('strong').count() === 1, 'bold typed live');
-  assert.equal(await part('Synonyms').textContent(), 'Böschung, fest');
+  assert.equal(await part('Synonyms').textContent(), 'Böschung, **fest**', 'typed markdown stays as typed');
+  assert.equal(await part('Synonyms').locator('strong').count(), 0);
+  assert.equal(await toolbars.count(), 1, 'one toolbar, beside the focused facet');
+  assert.equal(await editor.locator('.facet[data-facet="synonyms"] .facet-title .md-toolbar').count(), 1, 'on its rule, beside its tab');
+  assert.deepEqual(await toolbars.getByRole('button').evaluateAll(buttons => buttons.map(button => button.getAttribute('aria-label'))),
+    ['Bold', 'Italic', 'Highlight', 'Inline code', 'Bulleted list', 'Numbered list']);
+  // A button shows whether its formatting applies at the cursor.
+  await part('Examples').locator('em').click();
+  await waitFor(async () => await facetTool('examples', 'Italic').getAttribute('aria-pressed') === 'true', 'Italic pressed in the translation');
+  assert.equal(await facetTool('examples', 'Bold').getAttribute('aria-pressed'), 'false');
+  assert.equal(await toolbars.count(), 1, 'the toolbar follows the focus');
+  // Bold from the toolbar and from Cmd/Ctrl+B; inline code from the toolbar, keeping the focus in the text.
   await part('Meanings').click(); await a.page.keyboard.press('ControlOrMeta+a');
+  await coreTool('Bold').click();
+  assert.equal(await part('Meanings').locator('strong').count(), 1);
+  assert.equal(await a.page.evaluate(() => document.activeElement?.getAttribute('aria-label')), 'Meanings, German', 'the focus stays in the text');
   await a.page.keyboard.press('ControlOrMeta+b');
-  await waitFor(async () => await part('Meanings').locator('strong').count() === 1, 'Cmd/Ctrl+B made bold');
+  assert.equal(await part('Meanings').locator('strong').count(), 0, 'Cmd/Ctrl+B toggles it back');
+  await a.page.keyboard.press('ControlOrMeta+b');
+  // Faster than a person, ProseMirror would still hold the whole selection.
+  await a.page.waitForTimeout(300);
+  await part('Meanings').click(); await a.page.waitForTimeout(300);
+  await a.page.keyboard.type(' x'); await a.page.keyboard.press('Shift+ArrowLeft');
+  await coreTool('Inline code').click();
+  assert.equal(await part('Meanings').locator('code').textContent(), 'x');
+  // Lists and highlight from the toolbar; a typed "- " stays a dash.
   const tag = card.locator('.facet-tag[data-facet="antonyms"]');
   assert.notEqual(await tag.getAttribute('data-unfilled'), null);
   await part('Antonyms').click();
   await a.page.keyboard.type('- Strom');
-  await waitFor(async () => await part('Antonyms').locator('ul li').count() === 1, 'a bulleted list typed live');
-  await a.page.keyboard.type(' ==stark==');
-  await waitFor(async () => await part('Antonyms').locator('mark').count() === 1, 'highlight typed live');
+  assert.equal(await part('Antonyms').locator('ul').count(), 0, 'no list from a typed dash');
   await waitFor(async () => await tag.getAttribute('data-unfilled') === null, 'the tag fills as you type');
+  await a.page.keyboard.press('ControlOrMeta+a'); await a.page.keyboard.type('Strom stark');
+  await facetTool('antonyms', 'Bulleted list').click();
+  assert.equal(await part('Antonyms').locator('ul li').count(), 1);
+  assert.equal(await facetTool('antonyms', 'Bulleted list').getAttribute('aria-pressed'), 'true');
+  await facetTool('antonyms', 'Numbered list').click();
+  assert.equal(await part('Antonyms').locator('ol li').count(), 1, 'the numbered list takes its place');
+  await a.page.keyboard.press('End');
+  for (let i = 0; i < 5; i++) await a.page.keyboard.press('Shift+ArrowLeft');
+  await facetTool('antonyms', 'Highlight').click();
+  assert.equal(await part('Antonyms').locator('mark').textContent(), 'stark');
+  // Pasted markdown stays as its characters.
+  await a.page.waitForTimeout(300); await part('Synonyms').click(); await a.page.waitForTimeout(300);
+  await part('Synonyms').evaluate(node => {
+    const data = new DataTransfer(); data.setData('text/plain', ' ==p==');
+    node.dispatchEvent(new ClipboardEvent('paste', { clipboardData: data, bubbles: true, cancelable: true }));
+  });
+  assert.match(await part('Synonyms').textContent(), /\*\*fest\*\* ==p==$/);
+  // Tabbing to the toolbar keeps it shown; leaving the part hides it.
   await part('Article').click(); await a.page.keyboard.press('ControlOrMeta+a'); await a.page.keyboard.press('Backspace');
-  assert.doesNotMatch(await editor.textContent(), /\*|==|`/, 'still no markdown characters');
+  await a.page.keyboard.press('Shift+Tab');
+  assert.equal(await a.page.evaluate(() => document.activeElement?.getAttribute('aria-label')), 'Numbered list', 'the toolbar is reached from the keyboard');
+  assert.equal(await editor.locator('.facet[data-facet="article"] .md-toolbar').count(), 1);
   assert.equal(await editor.locator('.md-editor > ul + p, .md-editor > ol + p').count(), 0, 'no blank line after a list');
-  await a.page.screenshot({ path: 'artifacts/v0.7.4-live-editor-typed.png' });
+  await part('Antonyms').click();
+  await editor.locator('.facet[data-facet="antonyms"] .facet-title').screenshot({ path: 'artifacts/v0.7.5-toolbar.png' });
+  await a.page.screenshot({ path: 'artifacts/v0.7.5-toolbar-editor.png' });
   await card.getByRole('button', { name: 'Save', exact: true }).click();
   await card.locator('.live-editor').waitFor({ state: 'detached' });
   const saved = await stored();
-  assert.equal(saved.core, '1. **Ufer**');
-  assert.deepEqual(saved.facets, { examples: '1. We sat on the bank.\n   *Wir saßen am Ufer.*', synonyms: 'Böschung, **fest**', antonyms: '- Strom ==stark==' },
-    'markdown written as the card reads it; the emptied Article gone; the empty Antonyms filled');
+  assert.equal(saved.core, '1. **Ufer** `x`');
+  assert.deepEqual(saved.facets, { examples: '1. We sat on the bank.\n   *Wir saßen am Ufer.*', synonyms: 'Böschung, \\*\\*fest\\*\\* \\=\\=p\\=\\=', antonyms: '1. Strom ==stark==' },
+    'typed markdown stored escaped; the emptied Article gone; the empty Antonyms filled');
   assert.deepEqual(saved.header, { kind: 'word', language: 'Englisch', key: 'bank' }, 'the top line kept');
-  // The card shows it formatted, in its containers.
+  // The card shows the formatting, and typed markdown as typed.
   assert.equal(await card.locator('.entry-core strong').textContent(), 'Ufer');
-  assert.equal(await card.locator('.facet[data-facet="antonyms"] ul li').count(), 1);
+  assert.equal(await card.locator('.facet[data-facet="synonyms"]').locator('.facet-body').textContent(), 'Böschung, **fest** ==p==');
+  assert.equal(await card.locator('.facet[data-facet="antonyms"] ol li').count(), 1);
   assert.equal(await card.locator('.facet[data-facet="antonyms"] .md-highlight').textContent(), 'stark');
   assert.equal(await card.locator('.facet[data-facet="article"]').count(), 0);
 
@@ -2846,7 +2892,7 @@ test('0.7.4: the live editor formats markdown in place: names and top line locke
   await (await cardButton(a.page, 'Edit German')).click();
   await part('Meanings').click(); await a.page.keyboard.type('discarded');
   await card.getByRole('button', { name: 'Cancel', exact: true }).click();
-  assert.equal((await stored()).core, '1. **Ufer**');
+  assert.equal((await stored()).core, '1. **Ufer** `x`');
   await (await cardButton(a.page, 'Edit German')).click();
   await part('Meanings').click(); await a.page.keyboard.press('ControlOrMeta+a'); await a.page.keyboard.press('Backspace');
   await card.getByRole('button', { name: 'Save', exact: true }).click();

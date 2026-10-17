@@ -324,7 +324,22 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
 .live-editor .md-editor ol > li::marker { font: 600 13px var(--font-text); color: var(--fam, var(--ink-muted)); }
 .live-editor .md-editor mark { background: var(--fam-tint, var(--fam-notes-tint)); color: inherit; border-radius: 3px; padding: 0 2px; }
 .live-editor .facet[data-unfilled] .facet-tab { opacity: .55; }
-.live-editor > .md-editor-frame:first-of-type .md-editor { font-size: 16px; }
+.live-core .md-editor { font-size: 16px; }
+.live-core { display: grid; gap: 4px; }
+.live-editor .entry-heading { align-items: center; min-height: 24px; }
+.entry-heading-text { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+/* The formatting toolbar (D10, 0.7.5): beside the focused part, on its
+   facet's rule or the core's top line, at the end of that row. */
+.md-toolbar { display: inline-flex; gap: 2px; margin-left: auto; animation: tools-in var(--dur-instant) ease-out; }
+@keyframes tools-in { from { opacity: 0; transform: translateY(2px); } }
+.md-tool { display: inline-grid; place-items: center; width: 24px; height: 24px; padding: 0; border: 0; border-radius: 6px;
+  background: transparent; color: var(--ink-muted); cursor: pointer; }
+.md-tool svg { width: 15px; height: 15px; }
+.md-tool circle { fill: currentColor; stroke: none; }
+.md-tool:hover { background: var(--fam-tint, var(--fam-notes-tint)); color: var(--fam, var(--fam-notes)); }
+.md-tool[aria-pressed="true"] { background: var(--fam, var(--fam-notes)); color: var(--on-fam, var(--on-ink)); }
+.md-tool:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+@media (prefers-reduced-motion: reduce) { .md-toolbar { animation: none; } }
 
 /* Parent modules (D08): the core, then each facet under its label. */
 /* A facet's block reaches the card's sides, its content kept in line with

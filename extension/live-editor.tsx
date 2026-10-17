@@ -1,7 +1,11 @@
-import { useEffect, useRef } from 'react';
-import { EditorContent, useEditor } from '@tiptap/react';
+import { useEffect, useRef, useState } from 'react';
+import type { FocusEvent, ReactNode } from 'react';
+import { EditorContent, useEditor, useEditorState } from '@tiptap/react';
+import type { Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
+import Code from '@tiptap/extension-code';
 import Highlight from '@tiptap/extension-highlight';
+import { BulletList, OrderedList } from '@tiptap/extension-list';
 import type { ParentContent } from '@vocabularium/domain/content';
 import { fromEditorDoc, hasText, toEditorDoc } from '@vocabularium/domain/markdown';
 import type { EditorNode } from '@vocabularium/domain/markdown';
@@ -10,24 +14,62 @@ import type { FacetType, ParentType } from '@vocabularium/domain/parents';
 import type { FieldDraft } from '../types/editor-drafts.js';
 import { FacetTab } from './facet-tags.tsx';
 
-// The live-formatting editor (D09, amended; 0.7.4): a parent card's core and
-// each of its facets as one editor each, in place, formatting markdown as the
-// user types (**bold**, *italic*, - and 1. lists, `code`, ==highlight==) with
-// the characters not staying visible, and Cmd/Ctrl+B and +I. Only the
-// supported subset exists in the editor; anything pasted outside it becomes
-// plain text. The module's name, the facet names and the core's top line are
-// shown, never edited. A facet without content keeps its place with an empty
-// editor and a dimmed name. Opening the editor moves the focus nowhere.
+// The parent editor (D09, amended; D10, 0.7.5): a parent card's core and each
+// of its facets as one editor each, in place. It shows no markdown: what the
+// user types stays as typed, markdown characters included, and is stored
+// escaped (markdown.ts). Formatting comes from a toolbar beside the focused
+// part, on its facet's rule or the core's top line, and from Cmd/Ctrl+B and
+// +I. Only the supported subset exists in the editor; anything pasted outside
+// it becomes plain text. The module's name, the facet names and the core's
+// top line are shown, never edited. A facet without content keeps its place
+// with an empty editor and a dimmed name. Opening the editor moves the focus
+// nowhere.
 
+// Without the shortcuts beyond bold and italic (D10): the toolbar is the way.
+const quiet = { addKeyboardShortcuts: () => ({}) };
 // TipTap with only the subset: no headings, quotes, code blocks, rules,
 // strikethrough, underline or links, and no blank line added after a list.
+// Markdown typed or pasted never formats (enableInputRules and
+// enablePasteRules below).
 const EXTENSIONS = [
-  StarterKit.configure({ heading: false, blockquote: false, codeBlock: false, horizontalRule: false, strike: false, underline: false, link: false, trailingNode: false }),
-  Highlight
+  StarterKit.configure({ heading: false, blockquote: false, codeBlock: false, horizontalRule: false, strike: false, underline: false,
+    link: false, trailingNode: false, code: false, bulletList: false, orderedList: false }),
+  Code.extend(quiet), Highlight.extend(quiet), BulletList.extend(quiet), OrderedList.extend(quiet)
 ];
 
-function MarkdownEditor({ value, label, editable, onChange }: {
-  value: string; label: string; editable: boolean; onChange: (markdown: string) => void;
+// The toolbar's buttons, each with its icon on the 24px grid of the card's icons.
+const TOOLS = [
+  { name: 'bold', label: 'Bold', run: (editor: Editor) => editor.chain().focus().toggleBold().run(),
+    icon: <path d="M7 5h6a3.5 3.5 0 0 1 0 7H7zM7 12h7a3.5 3.5 0 0 1 0 7H7z" /> },
+  { name: 'italic', label: 'Italic', run: (editor: Editor) => editor.chain().focus().toggleItalic().run(),
+    icon: <path d="M14 5h-4M14 19h-4M14 5l-4 14" /> },
+  { name: 'highlight', label: 'Highlight', run: (editor: Editor) => editor.chain().focus().toggleHighlight().run(),
+    icon: <><path d="M9 15l-3 3h6l1-1" /><path d="M13 5l6 6-6 6-6-6z" /></> },
+  { name: 'code', label: 'Inline code', run: (editor: Editor) => editor.chain().focus().toggleCode().run(),
+    icon: <path d="M9 8l-4 4 4 4M15 8l4 4-4 4" /> },
+  { name: 'bulletList', label: 'Bulleted list', run: (editor: Editor) => editor.chain().focus().toggleBulletList().run(),
+    icon: <><path d="M10 7h10M10 12h10M10 17h10" /><circle cx="5" cy="7" r="1" /><circle cx="5" cy="12" r="1" /><circle cx="5" cy="17" r="1" /></> },
+  { name: 'orderedList', label: 'Numbered list', run: (editor: Editor) => editor.chain().focus().toggleOrderedList().run(),
+    icon: <><path d="M10 7h10M10 12h10M10 17h10" /><path d="M4 6l1-1v4M4 14h2l-2 3h2" /></> }
+] as const;
+
+// Each button says whether its formatting applies at the cursor, and keeps
+// the focus in the text when clicked.
+function Toolbar({ editor, label }: { editor: Editor; label: string }) {
+  const active = useEditorState({ editor, selector: ({ editor: current }) => TOOLS.map(tool => current.isActive(tool.name)) });
+  return <span className="md-toolbar" role="toolbar" aria-label={`Formatting, ${label}`}>
+    {TOOLS.map((tool, index) => <button key={tool.name} type="button" className="md-tool" data-tool={tool.name} aria-label={tool.label}
+      aria-pressed={active[index]} title={tool.label} onMouseDown={event => event.preventDefault()} onClick={() => tool.run(editor)}>
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">{tool.icon}</svg>
+    </button>)}
+  </span>;
+}
+
+// One part: its head (a facet's tab or the core's top line), then its text.
+// The toolbar shows in the head while the focus is anywhere in the part.
+function PartEditor({ value, label, editable, head, onChange, ...rest }: {
+  value: string; label: string; editable: boolean; head: (toolbar: ReactNode) => ReactNode; onChange: (markdown: string) => void;
+  className?: string; 'data-facet'?: string; 'data-unfilled'?: true;
 }) {
   const changed = useRef(onChange);
   changed.current = onChange;
@@ -35,12 +77,19 @@ function MarkdownEditor({ value, label, editable, onChange }: {
     extensions: EXTENSIONS,
     content: toEditorDoc(value) as never,
     editable,
+    enableInputRules: false,
+    enablePasteRules: false,
     immediatelyRender: true,
     editorProps: { attributes: { 'aria-label': label, role: 'textbox', 'aria-multiline': 'true', class: 'md md-editor' } },
     onUpdate: ({ editor: current }) => changed.current(fromEditorDoc(current.getJSON() as EditorNode))
   });
   useEffect(() => { editor?.setEditable(editable); }, [editor, editable]);
-  return <EditorContent editor={editor} className="md-editor-frame" />;
+  const [focused, setFocused] = useState(false);
+  const leave = (event: FocusEvent) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setFocused(false); };
+  return <section {...rest} data-focused={focused || undefined} onFocus={() => setFocused(true)} onBlur={leave}>
+    {head(focused && editable && editor ? <Toolbar editor={editor} label={label} /> : null)}
+    <EditorContent editor={editor} className="md-editor-frame" />
+  </section>;
 }
 
 export function LiveEditor({ parent, title, fields, opened, locked, persist, redraw }: {
@@ -52,18 +101,24 @@ export function LiveEditor({ parent, title, fields, opened, locked, persist, red
   const typed = useRef(shape());
   const changed = () => { persist(); const now = shape(); if (now !== typed.current) { typed.current = now; redraw(); } };
   const header = opened?.header;
+  const coreLabel = `${header?.kind === 'sentence' ? 'Translation' : 'Meanings'}, ${title}`;
   return <div className="entry-content live-editor" role="group" aria-label={`Edit ${title}`}>
-    {header?.kind === 'word' && <p className="entry-heading" aria-label={`${header.language}, ${header.key}${header.romanization ? `, ${header.romanization}` : ''} (not editable)`}>
-      <span className="entry-language">{header.language}</span><span className="entry-key">{header.key}</span>
-      {header.romanization && <span className="entry-pronunciation">{header.romanization}</span>}
-    </p>}
-    <MarkdownEditor value={fields.core} editable={!locked} label={`${header?.kind === 'sentence' ? 'Translation' : 'Meanings'}, ${title}`}
-      onChange={markdown => { fields.core = markdown; changed(); }} />
+    <PartEditor className="live-core" value={fields.core} editable={!locked} label={coreLabel}
+      onChange={markdown => { fields.core = markdown; changed(); }}
+      head={toolbar => header?.kind === 'word'
+        ? <p className="entry-heading">
+          <span className="entry-heading-text" aria-label={`${header.language}, ${header.key}${header.romanization ? `, ${header.romanization}` : ''} (not editable)`}>
+            <span className="entry-language">{header.language}</span><span className="entry-key">{header.key}</span>
+            {header.romanization && <span className="entry-pronunciation">{header.romanization}</span>}
+          </span>
+          {toolbar}
+        </p>
+        // A sentence has no top line: its toolbar takes a row of its own while it shows.
+        : toolbar && <p className="entry-heading entry-heading-tools">{toolbar}</p>} />
     {facetsOf(parent).filter(facet => fields.facets[facet] !== undefined).map((facet: FacetType) =>
-      <section key={facet} className="facet" data-facet={facet} data-unfilled={!hasText(fields.facets[facet]) || undefined}>
-        <h3 className="facet-title"><FacetTab parent={parent} facet={facet} /></h3>
-        <MarkdownEditor value={fields.facets[facet] ?? ''} editable={!locked} label={`${facetLabel(parent, facet)}, ${title}`}
-          onChange={markdown => { fields.facets[facet] = markdown; changed(); }} />
-      </section>)}
+      <PartEditor key={facet} className="facet" data-facet={facet} data-unfilled={!hasText(fields.facets[facet]) || undefined}
+        value={fields.facets[facet] ?? ''} editable={!locked} label={`${facetLabel(parent, facet)}, ${title}`}
+        onChange={markdown => { fields.facets[facet] = markdown; changed(); }}
+        head={toolbar => <h3 className="facet-title"><FacetTab parent={parent} facet={facet} />{toolbar}</h3>} />)}
   </div>;
 }
