@@ -116,6 +116,9 @@ export const ComponentSchema = Type.Object({
   // facet whose own Retry last failed; the rest of the content stays meanwhile.
   retryingFacet: Type.Optional(Type.String({ minLength: 1 })),
   failedFacet: Type.Optional(Type.String({ minLength: 1 })),
+  // The core regenerating on its own (D10, amended; 0.7.5), or whose own Retry last failed.
+  retryingCore: Type.Optional(Type.Boolean()),
+  failedCore: Type.Optional(Type.Boolean()),
   content: BlockDocumentSchema,
   // Null when the component has never had a generation attempt.
   status: Type.Union([ComponentStatusSchema, Type.Null()]),
@@ -170,7 +173,9 @@ export const ComponentChangeSchema = Type.Object({
   content: BlockDocumentSchema,
   // A facet edited on its own (D10, 0.7.5): only that facet's text is taken
   // from `content`, over the component as stored.
-  facet: Type.Optional(Type.String({ minLength: 1 }))
+  facet: Type.Optional(Type.String({ minLength: 1 })),
+  // The core edited on its own (D10, amended): only the core is taken.
+  core: Type.Optional(Type.Literal(true))
 }, OpenRequest);
 export const PageSavePayloadSchema = Type.Object({
   pageId: Type.String({ minLength: 1 }),
@@ -222,7 +227,9 @@ export const GenerationTargetSchema = Type.Union([
   Type.Object({ scope: Type.Literal('page') }, OpenRequest),
   Type.Object({ scope: Type.Literal('component'), componentId: Type.String({ minLength: 1 }) }, OpenRequest),
   // One facet of a parent component (0.7.3): its section alone, the rest kept.
-  Type.Object({ scope: Type.Literal('facet'), componentId: Type.String({ minLength: 1 }), facet: Type.String({ minLength: 1 }) }, OpenRequest)
+  Type.Object({ scope: Type.Literal('facet'), componentId: Type.String({ minLength: 1 }), facet: Type.String({ minLength: 1 }) }, OpenRequest),
+  // The core's own Retry (D10, amended; 0.7.5).
+  Type.Object({ scope: Type.Literal('core'), componentId: Type.String({ minLength: 1 }) }, OpenRequest)
 ]);
 export const PageGeneratePayloadSchema = Type.Object({
   pageId: Type.String({ minLength: 1 }),

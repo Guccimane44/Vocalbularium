@@ -677,6 +677,56 @@ test('a facet’s own Retry regenerates that facet’s markdown for the core alr
     { code: 'invalid', message: /Retry the whole module first/ });
 });
 
+test('the core’s own Retry regenerates only the meanings, keeps the top line, every facet and the page’s reading, and keeps everything when it fails (D10, amended)', async (t) => {
+  const requests = [];
+  let interpretations = 0, failing = false;
+  const { store, generation, capture } = await parentFixture(t, {
+    interpret: async () => { interpretations++; return word; },
+    generate: async request => {
+      requests.push(request);
+      if (failing) throw new Error('provider down');
+      if (requests.length === 1) return BANK;
+      // Facets returned anyway are not taken; nor is another top line.
+      return { core: { ...BANK.core, language: 'Anders', meanings: ['Flussufer', 'Geldinstitut'] }, facets: { synonyms: ['ignored'] } };
+    }
+  });
+  const page = await capture('bank'); await finish(store, generation);
+  const german = async () => generated(await store.page(page.id))[0];
+  const stored = async () => (await german()).content.blocks[0];
+  const before = await stored();
+  const payload = async () => ({ pageId: page.id, target: { scope: 'core', componentId: (await german()).id }, session });
+
+  // A core with content asks first; the content stays while it regenerates.
+  await assert.rejects(store.generate(randomUUID(), await payload()), { code: 'confirmation_required' });
+  const { attemptIds } = await confirmed(store, randomUUID(), await payload());
+  let current = await german();
+  assert.deepEqual(current.content.blocks[0], before);
+  assert.equal(current.status, 'loading');
+  assert.equal(current.retryingCore, true);
+  await generation.start(page.id, attemptIds); await finish(store, generation);
+  assert.deepEqual(requests.at(-1).facets, [], 'the provider is asked for the core alone');
+  assert.equal(interpretations, 1, 'the page’s reading of the main key is kept');
+  assert.deepEqual(await stored(), { ...before, core: '1. Flussufer\n2. Geldinstitut' }, 'only the core changes; the top line and facets stay');
+  current = await german();
+  assert.equal(current.status, 'completed');
+  assert.equal(current.retryingCore, undefined);
+
+  // A failed core Retry keeps the content and says so.
+  failing = true;
+  const kept = await stored();
+  const failed = await confirmed(store, randomUUID(), await payload());
+  await generation.start(page.id, failed.attemptIds); await finish(store, generation);
+  current = await german();
+  assert.deepEqual(await stored(), kept);
+  assert.equal(current.status, 'completed');
+  assert.equal(current.failedCore, true);
+
+  // The core saved on its own takes only the core.
+  const edited = { version: 1, blocks: [{ ...kept, core: '1. mine', facets: {} }] };
+  await store.savePage(randomUUID(), { pageId: page.id, changes: [{ componentId: current.id, content: edited, core: true }] });
+  assert.deepEqual(await stored(), { ...kept, core: '1. mine' }, 'the facets stay');
+});
+
 test('OpenCode asks a facet’s own Retry for its facets only, written for the supplied core', async () => {
   const instructions = parentInstructions('german', 'word_phrase', ['examples'], true);
   assert.match(instructions, /already written and supplied as "core". Return only "facets"/);

@@ -4219,6 +4219,12 @@
                             "facet": {
                               "type": "string",
                               "minLength": 1
+                            },
+                            "core": {
+                              "type": "boolean",
+                              "enum": [
+                                true
+                              ]
                             }
                           },
                           "additionalProperties": true
@@ -5956,6 +5962,26 @@
                                 "minLength": 1
                               },
                               "facet": {
+                                "type": "string",
+                                "minLength": 1
+                              }
+                            },
+                            "additionalProperties": true
+                          },
+                          {
+                            "type": "object",
+                            "required": [
+                              "scope",
+                              "componentId"
+                            ],
+                            "properties": {
+                              "scope": {
+                                "type": "string",
+                                "enum": [
+                                  "core"
+                                ]
+                              },
+                              "componentId": {
                                 "type": "string",
                                 "minLength": 1
                               }

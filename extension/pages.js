@@ -39,7 +39,8 @@ export function pageViews({ getAccount, renderView, refresh, send, applyState, n
     if (content) {
       const fields = draftOf(component.moduleType, content, component.facets ?? []);
       draft.fields = { [componentId]: fields }; draft.fieldBase = { [componentId]: JSON.stringify(fields) }; draft.fieldStored = { [componentId]: content };
-      if (facet && fields.facets[facet] !== undefined) draft.facet = facet;
+      if (facet === 'core') draft.core = true;
+      else if (facet && fields.facets[facet] !== undefined) draft.facet = facet;
     } else draft.base[componentId] = draft.texts[componentId] = blockText(component.content);
     persist();
   }
@@ -62,7 +63,8 @@ export function pageViews({ getAccount, renderView, refresh, send, applyState, n
       if (!component || !stored) throw Object.assign(new Error('This module no longer exists; its draft can not be saved.'), { code: 'deleted' });
       const content = parentDocument(applyDraft(component.moduleType, stored, draft.fields[componentId], { facets: component.facets ?? [] }));
       // A facet edited on its own (D10): the server takes only that facet, over what it has stored.
-      return { componentId, content, ...(draft.facet ? { facet: draft.facet } : {}) };
+      // The core edited on its own (D10, amended) likewise.
+      return { componentId, content, ...(draft.facet ? { facet: draft.facet } : draft.core ? { core: true } : {}) };
     });
     return { pageId: draft.pageId, changes: [...changed().map(componentId => ({ componentId, content: textBlocks(draft.texts[componentId]) })), ...fieldChanges] };
   }

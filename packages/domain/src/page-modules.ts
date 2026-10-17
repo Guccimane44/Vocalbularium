@@ -106,6 +106,14 @@ export function generationTargets(target: GenerationTarget | { scope: 'capture' 
     }
     // A facet's own Retry (0.7.3) needs content that follows its parent's
     // contract, so the facet's section can be found and replaced.
+    // The core's own Retry (D10, amended) keeps the facets, so it needs content too.
+    case 'core': {
+      const component = components.find(item => item.id === target.componentId);
+      if (!component) throw new Error('This component no longer exists.');
+      if (!isParentType(component.moduleType)) throw new Error('Only a parent module has a core.');
+      if (!parentContentOf(component.content)) throw new Error('Retry the whole module first: it has no content yet.');
+      return [component];
+    }
     case 'facet': {
       const component = components.find(item => item.id === target.componentId);
       if (!component) throw new Error('This component no longer exists.');
