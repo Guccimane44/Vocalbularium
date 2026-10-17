@@ -2935,6 +2935,9 @@ test('0.7.5: a facet’s own Edit opens that facet alone in place, with its tool
   const synonyms = card.locator('.facet[data-facet="synonyms"]');
   await synonyms.waitFor();
 
+  // The Examples are plain text like every other facet (D10, amended again).
+  const font = locator => locator.evaluate(node => { const css = getComputedStyle(node); return [css.fontFamily, css.fontSize, css.lineHeight]; });
+  assert.deepEqual(await font(card.locator('.facet[data-facet="examples"] li > span')), await font(card.locator('.facet[data-facet="article"] p')));
   // Edit sits beside Retry and Delete, for a facet with content.
   await synonyms.hover();
   assert.deepEqual(await synonyms.locator('.facet-actions button').evaluateAll(buttons => buttons.map(button => button.getAttribute('aria-label'))),
@@ -2982,6 +2985,33 @@ test('0.7.5: a facet’s own Edit opens that facet alone in place, with its tool
   assert.equal(saved.core, '1. Flussufer', 'the core changed elsewhere is kept');
   assert.equal(saved.facets.article, 'das Ufer · die Ufer');
   await waitFor(async () => (await synonyms.locator('.facet-body strong').count()) === 1, 'the card shows it');
+
+  // A size and a font from the toolbar, on the selected text; saved inside the markdown, shown on the card, read back when edited.
+  await synonyms.hover();
+  await a.page.getByRole('button', { name: 'Edit Synonyms from German', exact: true }).click();
+  await text.waitFor();
+  await waitFor(() => a.page.evaluate(() => document.activeElement?.getAttribute('aria-label') === 'Synonyms, German'), 'focused for size');
+  await a.page.keyboard.press('ControlOrMeta+a'); await a.page.waitForTimeout(300);
+  const size = synonyms.locator('.md-toolbar').getByRole('combobox', { name: 'Text size', exact: true });
+  const fontChoice = synonyms.locator('.md-toolbar').getByRole('combobox', { name: 'Font', exact: true });
+  assert.deepEqual([await size.inputValue(), await fontChoice.inputValue()], ['', ''], 'Normal and Text at first');
+  await size.selectOption('large');
+  await fontChoice.selectOption('display');
+  await waitFor(async () => await text.locator('.md-size-large .md-font-display, .md-font-display .md-size-large').count() > 0, 'the editor shows it at once');
+  await synonyms.locator('.facet-title').screenshot({ path: 'artifacts/v0.7.5-size-font-toolbar.png' });
+  await synonyms.getByRole('button', { name: 'Save', exact: true }).click();
+  await card.getByRole('textbox').waitFor({ state: 'detached' });
+  assert.equal((await stored()).facets.synonyms, '[Böschung,]{size=large font=display} [**fest**]{size=large font=display}');
+  assert.equal(await synonyms.locator('.facet-body .md-size-large.md-font-display').count(), 2, 'the card shows it as set');
+  assert.equal(await synonyms.locator('.facet-body').textContent(), 'Böschung, fest');
+  await card.screenshot({ path: 'artifacts/v0.7.5-size-font-card.png' });
+  await synonyms.hover();
+  await a.page.getByRole('button', { name: 'Edit Synonyms from German', exact: true }).click();
+  await text.waitFor();
+  await text.locator('strong').click();
+  await waitFor(async () => await size.inputValue() === 'large' && await fontChoice.inputValue() === 'display', 'the choices show what applies');
+  await synonyms.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await card.getByRole('textbox').waitFor({ state: 'detached' });
 
   // Emptied, the facet loses its content and leaves the card; its tag stays, bland.
   await synonyms.hover();
@@ -3036,7 +3066,7 @@ test('0.7.5: the core’s own Edit and Retry on its top line: Edit changes only 
   await text.waitFor();
   await waitFor(() => a.page.evaluate(() => document.activeElement?.getAttribute('aria-label') === 'Meanings, German'), 'the focus is in the core');
   assert.equal(await card.getByRole('textbox').count(), 1, 'only the core is open');
-  assert.equal(await card.locator('.core-editing .entry-heading').textContent(), 'Englischbank', 'the top line stays, not editable');
+  assert.equal(await card.locator('.core-editing .entry-heading-text').textContent(), 'Englischbank', 'the top line stays, not editable');
   assert.equal(await card.locator('.core-editing .entry-heading .md-toolbar').count(), 1);
   assert.deepEqual(await card.locator('.core-editing .component-tools button').allTextContents(), ['Cancel', 'Save']);
   assert.match(await card.locator('.facet[data-facet="article"]').textContent(), /das Ufer · die Ufer/, 'the facets read as before');

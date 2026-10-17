@@ -11,7 +11,13 @@ export type MdInline =
   | Readonly<{ type: 'text'; text: string }>
   | Readonly<{ type: 'break' }>
   | Readonly<{ type: 'code'; text: string }>
-  | Readonly<{ type: 'strong' | 'em' | 'mark'; children: readonly MdInline[] }>;
+  | Readonly<{ type: 'strong' | 'em' | 'mark'; children: readonly MdInline[] }>
+  // A size and a font on a stretch of text (D10, amended again): `[text]{size=large font=display}`.
+  | Readonly<{ type: 'span'; size?: TextSize; font?: TextFont; children: readonly MdInline[] }>;
+export type TextSize = 'small' | 'large';
+export type TextFont = 'display' | 'mono';
+const SIZES: readonly string[] = ['small', 'large'];
+const FONTS: readonly string[] = ['display', 'mono'];
 export type MdBlock =
   | Readonly<{ type: 'paragraph'; children: readonly MdInline[] }>
   | Readonly<{ type: 'list'; ordered: boolean; start: number; items: ReadonlyArray<readonly MdInline[]> }>;
@@ -21,7 +27,7 @@ export type MdBlock =
 // Literal text: every character the subset reads as markup is escaped, and a
 // line that would start a list does not.
 export function escapeMarkdown(text: string): string {
-  return text.replace(/[\\`*_=]/g, '\\$&').split('\n')
+  return text.replace(/[\\`*_=[]/g, '\\$&').split('\n')
     .map(line => line.replace(/^(\s*)(\d+)\.(\s)/, '$1$2\\.$3').replace(/^(\s*)([-+])(\s)/, '$1\\$2$3')).join('\n');
 }
 // A numbered list; an item's further lines indent under it.
@@ -80,6 +86,11 @@ export function parseInline(source: string): MdInline[] {
       const end = source.indexOf('`', index + 1);
       if (end > index + 1) { flush(); out.push({ type: 'code', text: source.slice(index + 1, end) }); index = end + 1; continue; }
     }
+    // A bracketed span with a known size or font; anything else stays text.
+    if (char === '[') {
+      const span = readSpan(source, index);
+      if (span) { flush(); out.push(span.run); index = span.end; continue; }
+    }
     const pair = rest.startsWith('**') ? ['**', 'strong'] : rest.startsWith('==') ? ['==', 'mark'] : rest.startsWith('__') ? ['__', 'strong']
       : char === '*' || char === '_' ? [char, 'em'] : null;
     if (pair) {
@@ -95,6 +106,31 @@ export function parseInline(source: string): MdInline[] {
   }
   flush();
   return out;
+}
+// `[text]{size=… font=…}` from `[` at `from`: the closing `]`, skipping escaped
+// characters, code and nested brackets, then attributes of known values only.
+function readSpan(source: string, from: number): { run: MdInline; end: number } | null {
+  let depth = 0;
+  for (let index = from + 1; index < source.length; index++) {
+    const char = source[index]!;
+    if (char === '\\') { index++; continue; }
+    if (char === '`') { const end = source.indexOf('`', index + 1); if (end > 0) { index = end; continue; } }
+    if (char === '[') depth++;
+    if (char !== ']') continue;
+    if (depth--) continue;
+    const attrs = /^\{([a-z= ]+)\}/.exec(source.slice(index + 1));
+    if (!attrs) return null;
+    let size: TextSize | undefined, font: TextFont | undefined;
+    for (const pair of attrs[1]!.trim().split(/\s+/)) {
+      const [key, value] = pair.split('=');
+      if (key === 'size' && SIZES.includes(value!) && !size) size = value as TextSize;
+      else if (key === 'font' && FONTS.includes(value!) && !font) font = value as TextFont;
+      else return null;
+    }
+    if (!size && !font) return null;
+    return { run: { type: 'span', ...(size ? { size } : {}), ...(font ? { font } : {}), children: parseInline(source.slice(from + 1, index)) }, end: index + 1 + attrs[0].length };
+  }
+  return null;
 }
 // The closing delimiter, skipping escaped characters, code and a longer run
 // of the same character (so `*` does not close on `**`).
@@ -161,7 +197,8 @@ export const hasText = (source: string | undefined): boolean => Boolean(source &
 // and from the markdown subset above, so what the editor writes is exactly
 // what the card reads. Nested lists are flattened into their item.
 
-export type EditorMark = Readonly<{ type: 'bold' | 'italic' | 'code' | 'highlight' }>;
+// A size or font mark carries its value (D10, amended again).
+export type EditorMark = Readonly<{ type: 'bold' | 'italic' | 'code' | 'highlight' } | { type: 'size' | 'font'; attrs: Readonly<{ value: string }> }>;
 export type EditorNode = Readonly<{
   type: string;
   attrs?: Readonly<Record<string, unknown>>;
@@ -170,12 +207,14 @@ export type EditorNode = Readonly<{
   marks?: readonly EditorMark[];
 }>;
 
-const MARK_OF: Record<'strong' | 'em' | 'mark', EditorMark['type']> = { strong: 'bold', em: 'italic', mark: 'highlight' };
+const MARK_OF: Record<'strong' | 'em' | 'mark', 'bold' | 'italic' | 'highlight'> = { strong: 'bold', em: 'italic', mark: 'highlight' };
 function inlineNodes(runs: readonly MdInline[], marks: readonly EditorMark[] = []): EditorNode[] {
   return runs.flatMap((run): EditorNode[] => {
     if (run.type === 'text') return run.text ? [{ type: 'text', text: run.text, ...(marks.length ? { marks } : {}) }] : [];
     if (run.type === 'break') return [{ type: 'hardBreak' }];
     if (run.type === 'code') return run.text ? [{ type: 'text', text: run.text, marks: [...marks, { type: 'code' }] }] : [];
+    if (run.type === 'span') return inlineNodes(run.children, [...marks,
+      ...(run.size ? [{ type: 'size' as const, attrs: { value: run.size } }] : []), ...(run.font ? [{ type: 'font' as const, attrs: { value: run.font } }] : [])]);
     return inlineNodes(run.children, [...marks, { type: MARK_OF[run.type] }]);
   });
 }
@@ -193,25 +232,32 @@ export function toEditorDoc(source: string): EditorNode {
 
 // Inline text with only the subset's markup characters escaped; line starts
 // are escaped where lines are put together.
-const escapeInline = (text: string) => text.replace(/[\\`*_=]/g, '\\$&');
+const escapeInline = (text: string) => text.replace(/[\\`*_=[]/g, '\\$&');
 const escapeLineStart = (line: string) => line.replace(/^(\s*)(\d+)\.(\s)/, '$1$2\\.$3').replace(/^(\s*)([-+])(\s)/, '$1\\$2$3');
-const WRAP: Record<EditorMark['type'], string> = { bold: '**', italic: '*', code: '`', highlight: '==' };
+const WRAP: Record<'bold' | 'italic' | 'code' | 'highlight', string> = { bold: '**', italic: '*', code: '`', highlight: '==' };
+// The span a size or font mark writes around the rest, outermost.
+function spanAround(marks: readonly EditorMark[], inner: string): string {
+  const value = (type: 'size' | 'font') => { const mark = marks.find(each => each.type === type); return mark && 'attrs' in mark ? mark.attrs.value : undefined; };
+  const size = value('size'), font = value('font');
+  const attrs = [SIZES.includes(size ?? '') ? `size=${size}` : '', FONTS.includes(font ?? '') ? `font=${font}` : ''].filter(Boolean);
+  return attrs.length ? `[${inner}]{${attrs.join(' ')}}` : inner;
+}
 function inlineText(nodes: readonly EditorNode[] | undefined): string {
   return (nodes ?? []).map(node => {
     if (node.type === 'hardBreak') return '\n';
     if (node.type !== 'text' || !node.text) return '';
     const marks = node.marks ?? [];
-    if (marks.some(mark => mark.type === 'code')) return `\`${node.text.replace(/`/g, '')}\``;
+    if (marks.some(mark => mark.type === 'code')) return spanAround(marks, `\`${node.text.replace(/`/g, '')}\``);
     // Bold outside italic outside highlight, so nested marks always close in order.
-    const order: EditorMark['type'][] = ['bold', 'italic', 'highlight'];
+    const order = ['bold', 'italic', 'highlight'] as const;
     const applied = order.filter(type => marks.some(mark => mark.type === type));
     const text = escapeInline(node.text);
     // A mark cannot open or close on a space: keep the spaces outside it.
     const [, lead, body, trail] = /^(\s*)([\s\S]*?)(\s*)$/.exec(text)!;
     if (!body) return text;
     // Italic inside bold is written with _, so ***x*** never has to be read.
-    const wrap = (type: EditorMark['type']) => type === 'italic' && applied.includes('bold') ? '_' : WRAP[type];
-    return lead + applied.map(wrap).join('') + body + [...applied].reverse().map(wrap).join('') + trail;
+    const wrap = (type: typeof order[number]) => type === 'italic' && applied.includes('bold') ? '_' : WRAP[type];
+    return lead + spanAround(marks, applied.map(wrap).join('') + body + [...applied].reverse().map(wrap).join('')) + trail;
   }).join('');
 }
 // A block's lines: a paragraph's text, or a list's items, continuation lines
