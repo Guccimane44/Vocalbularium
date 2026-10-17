@@ -1,4 +1,4 @@
-import { generateComponent, generateFacet, validateInterpretation } from '@vocabularium/domain/modules';
+import { generateComponent, generateCore, generateFacet, validateInterpretation } from '@vocabularium/domain/modules';
 import { blockText, mainKeyOf } from '@vocabularium/domain/pages';
 import { parentContentOf } from '@vocabularium/domain/content';
 
@@ -157,7 +157,10 @@ export class Generation {
       if (controller.signal.aborted) return;
       const generate = request => this.provider.generate({ ...request, context: input.context, sessionId: pageId }, controller.signal);
       // A facet's own Retry (0.7.3) replaces only its section of the content kept meanwhile.
-      const output = attempt.module.retry
+      // The core's own Retry (D10, amended) replaces only the core.
+      const output = attempt.module.retryCore
+        ? await generateCore({ mainKey: input.mainKey, module: attempt.module, existing: existingContent(target), interpretation, generate })
+        : attempt.module.retry
         ? await generateFacet({ mainKey: input.mainKey, module: attempt.module, facet: attempt.module.retry, existing: existingContent(target), interpretation, generate })
         : await generateComponent({ mainKey: input.mainKey, module: attempt.module, interpretation, generate });
       if (controller.signal.aborted) return;

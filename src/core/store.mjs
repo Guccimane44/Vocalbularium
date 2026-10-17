@@ -6,6 +6,7 @@ import {
 } from '@vocabularium/domain/page-modules';
 import { facetAddBlocked, facetDeleteBlocked, isParentType, withFacet } from '@vocabularium/domain/parents';
 import { hasFacetContent, isEmptyContent, parentContentOf, parentDocument, validateParentContent, withFacetText } from '@vocabularium/domain/content';
+import { hasText } from '@vocabularium/domain/markdown';
 import { sortKey } from './sort-key.mjs';
 /** @typedef {import('./store-records.js').PageRow} PageRow */
 /** @typedef {import('./store-records.js').ComponentRow} ComponentRow */
@@ -71,9 +72,9 @@ function blockValue(value, message) {
 // core's top line as stored, the core's markdown and markdown for the
 // component's facets only; any text may be empty. A parent is never saved as
 // plain text, and one that never generated has no top line to edit.
-// With a facet (D10), only that facet's text is taken, over the stored content,
-// so an edit of the rest elsewhere meanwhile stays.
-function parentEdit(component, value, facet) {
+// With a facet (D10), or the core (D10, amended), only that part's text is
+// taken, over the stored content, so an edit of the rest elsewhere meanwhile stays.
+function parentEdit(component, value, facet, core = false) {
   const stored = parentContentOf(component.content);
   if (!(value?.version === 1 && Array.isArray(value.blocks) && value.blocks.length === 1 && value.blocks[0]?.type === 'parent')) {
     fail('invalid', 'Edit this module in its editor.');
@@ -85,6 +86,7 @@ function parentEdit(component, value, facet) {
   try {
     content = validateParentContent(component.moduleType, block, { facets: component.facets ?? [] });
     if (facet !== undefined) content = validateParentContent(component.moduleType, withFacetText(stored, facet, content.facets[facet]), { facets: component.facets ?? [] });
+    else if (core) content = validateParentContent(component.moduleType, { header: stored.header, core: content.core, facets: stored.facets }, { facets: component.facets ?? [] });
   } catch (error) { fail('invalid', error.message); }
   const line = header => header.kind === 'word' ? [header.kind, header.language, header.key, header.romanization ?? null] : [header.kind];
   if (JSON.stringify(line(content.header)) !== JSON.stringify(line(stored.header))) fail('invalid', "The module's top line can not be changed.");
@@ -356,10 +358,13 @@ export class AccountStore {
           const waiting = generated && isParentType(row.module_type) ? row.facets.filter(facet => !generated.includes(facet)) : [];
           // A facet's own Retry (0.7.3): the facet it regenerates, or the one whose Retry failed.
           const retry = module?.retry && row.facets?.includes(module.retry) ? module.retry : null;
+          // The core's own Retry (D10, amended): regenerating, or failed.
+          const core = Boolean(module?.retryCore);
           return { id: row.id, moduleInstanceId: row.module_instance_id, moduleType: row.module_type,
             ...withFacets(row.module_type, row.facets), ...(isParentType(row.module_type) ? { waitingFacets: waiting } : {}),
             ...(retry && row.status === 'loading' ? { retryingFacet: retry } : {}),
             ...(retry && row.attempt_state === 'failed' ? { failedFacet: retry } : {}),
+            ...(core && row.status === 'loading' ? { retryingCore: true } : {}), ...(core && row.attempt_state === 'failed' ? { failedCore: true } : {}),
             content: JSON.parse(row.content), status: row.status, attemptId: row.attempt_id };
         });
       // The latest run's reading of the main key (D08), shown under the page title.
@@ -431,12 +436,12 @@ export class AccountStore {
     });
   }
   // One run per request: its attempts share one interpretation.
-  async startRun(pageId, session, targets, { facet } = {}) {
+  async startRun(pageId, session, targets, { facet, core = false } = {}) {
     if (!targets.length) return { runId: null, attemptIds: [] };
     const runId = randomUUID();
     // A facet's own Retry (0.7.3) keeps the page's latest reading of the main
     // key, so the facet follows the core it joins.
-    const reading = facet ? await this.database.one(`SELECT interpretation FROM generation_runs
+    const reading = facet || core ? await this.database.one(`SELECT interpretation FROM generation_runs
       WHERE page_id = $1 AND interpretation IS NOT NULL ORDER BY ordinal DESC LIMIT 1`, [pageId]) : null;
     await this.database.run("INSERT INTO generation_runs (id, page_id, interpretation) VALUES ($1, $2, $3)", [runId, pageId, reading?.interpretation ?? null]);
     const attemptIds = [];
@@ -449,11 +454,13 @@ export class AccountStore {
       const module = facet
         ? { id: moduleInstanceId, type: moduleType, facets: facets.filter(each => each === facet || !waitingFacets?.includes(each)),
           retry: facet, prior: { status, waiting: Boolean(waitingFacets?.includes(facet)) } }
+        // The core's own attempt (D10, amended) generates the core alone and keeps the rest.
+        : core ? { id: moduleInstanceId, type: moduleType, facets: facets.filter(each => !waitingFacets?.includes(each)), retryCore: true, prior: { status } }
         : { id: moduleInstanceId, type: moduleType, ...withFacets(moduleType, facets) };
       await this.database.run(`INSERT INTO component_attempts
         (id, page_id, component_id, run_id, installation_id, session_id, epoch, module) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
       [attemptId, pageId, componentId, runId, session.installationId, session.sessionId, session.epoch, JSON.stringify(module)]);
-      if (facet) await this.database.run("UPDATE components SET status = 'loading', attempt_id = $1 WHERE page_id = $2 AND id = $3", [attemptId, pageId, componentId]);
+      if (facet || core) await this.database.run("UPDATE components SET status = 'loading', attempt_id = $1 WHERE page_id = $2 AND id = $3", [attemptId, pageId, componentId]);
       else await this.database.run("UPDATE components SET content = $1, status = 'loading', attempt_id = $2 WHERE page_id = $3 AND id = $4",
         [JSON.stringify(textBlocks('')), attemptId, pageId, componentId]);
       attemptIds.push(attemptId);
@@ -479,7 +486,7 @@ export class AccountStore {
     return this.database.transaction(async () => {
       const row = await this.database.one("SELECT id, module FROM component_attempts WHERE id = $1", [attemptId]);
       const attempt = row && { ...row, module: JSON.parse(row.module) };
-      if (attempt?.module.retry) return this.keepAfterFacetFailure(attempt);
+      if (attempt?.module.retry || attempt?.module.retryCore) return this.keepAfterFacetFailure(attempt);
       await this.database.run("UPDATE components SET content = $2, status = 'failed' WHERE attempt_id = $1 AND status = 'loading'", [attemptId, JSON.stringify(textBlocks(''))]);
       await this.database.run("UPDATE component_attempts SET state = 'failed', result = NULL WHERE id = $1 AND state = 'loading'", [attemptId]);
     });
@@ -528,7 +535,7 @@ export class AccountStore {
         fail('wrong_session', 'Only the originating browser session can publish this result.');
       }
       if (attempt.state !== 'loading' || !attempt.result) fail('stale_attempt', 'No current result is ready.');
-      if (attempt.module.retry && !attempt.result.ok) {
+      if ((attempt.module.retry || attempt.module.retryCore) && !attempt.result.ok) {
         const component = await this.database.one("SELECT id FROM components WHERE page_id = $1 AND id = $2 AND attempt_id = $3 AND status = 'loading'",
           [attempt.page_id, attempt.component_id, attemptId]);
         if (!component) fail('stale_attempt', 'The component has moved on to another attempt.');
@@ -554,8 +561,9 @@ export class AccountStore {
         const component = page.components.find(component => component.id === change.componentId);
         if (!component) fail('deleted', 'A changed component no longer exists.');
         if (component.status === 'loading') fail('generating', 'A component is still generating. Your drafts are preserved.');
-        const content = isParentType(component.moduleType) ? parentEdit(component, change.content, change.facet)
-          : change.facet === undefined ? blockValue(change.content, 'Component content must be a text document.') : fail('invalid', 'Only a parent module has facets.');
+        const content = isParentType(component.moduleType) ? parentEdit(component, change.content, change.facet, change.core === true)
+          : change.facet === undefined && change.core === undefined ? blockValue(change.content, 'Component content must be a text document.')
+          : fail('invalid', 'Only a parent module has facets and a core.');
         if (component.moduleType === 'main-key' && !blockText(content).trim()) fail('invalid', 'Main key can not be empty.');
         updates.push({ component, content });
       }
@@ -659,7 +667,7 @@ export class AccountStore {
     return await this.command(operationId, 'generate', { pageId, target, session, confirmation }, async () => {
       await this.requireSession(session);
       const page = await this.page(pageId);
-      if (!target || !['missing', 'page', 'component', 'facet'].includes(target.scope)) fail('invalid', 'Choose what to generate.');
+      if (!target || !['missing', 'page', 'component', 'facet', 'core'].includes(target.scope)) fail('invalid', 'Choose what to generate.');
       let targets;
       try { targets = generationTargets(target, page.components); }
       catch (error) { fail('invalid', error.message); }
@@ -669,23 +677,26 @@ export class AccountStore {
       // nothing (0.6.3; until then any earlier attempt needed confirmation).
       // A facet's own Retry (0.7.3) replaces only its section.
       const facet = target.scope === 'facet' ? target.facet : null;
-      // Structured content (D09) is compared as data: a facet's entry, or the whole content.
+      // The core's own Retry (D10, amended) replaces only the core.
+      const core = target.scope === 'core';
+      // Structured content (D09) is compared as data: a facet's entry, the core, or the whole content.
       const replaced = component => {
         const data = parentContentOf(component.content);
         if (facet) return data && hasFacetContent(data, facet) ? data.facets[facet] : null;
+        if (core) return data && hasText(data.core) ? data.core : null;
         // Structured content emptied of everything has nothing to replace (0.6.3).
         return data ? (isEmptyContent(data) ? null : data) : (blockText(component.content) || null);
       };
       const replaces = targets.some(replaced);
       if (target.scope !== 'missing' && replaces) {
-        const expected = facet ? digest(targets.map(component => ({ moduleInstanceId: component.moduleInstanceId, facet, content: replaced(component) })))
+        const expected = facet || core ? digest(targets.map(component => ({ moduleInstanceId: component.moduleInstanceId, ...(core ? { core } : { facet }), content: replaced(component) })))
           : this.confirmationDigest(targets);
         if (confirmation !== expected) {
           throw new StoreError('confirmation_required', 'Retry replaces this content, including your edits.', { confirmation: expected });
         }
       }
       admit?.(targets.length);
-      return { pageId, attemptIds: (await this.startRun(pageId, session, targets, { facet })).attemptIds };
+      return { pageId, attemptIds: (await this.startRun(pageId, session, targets, { facet, core })).attemptIds };
     });
   }
   async deletePage(operationId, pageId) {

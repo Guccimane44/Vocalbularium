@@ -119,6 +119,31 @@ export function FacetEditor({ parent, facet, title, fields, locked, persist, red
     head={toolbar => <h3 className="facet-title"><FacetTab parent={parent} facet={facet} />{toolbar}</h3>} after={children} />;
 }
 
+// The core's top line, never editable, with the toolbar at its end while the
+// core is focused. A sentence has no top line: its toolbar takes a row of its own while it shows.
+function topLine(header: ParentContent['header'] | undefined, toolbar: ReactNode) {
+  return header?.kind === 'word'
+    ? <p className="entry-heading">
+      <span className="entry-heading-text" aria-label={`${header.language}, ${header.key}${header.romanization ? `, ${header.romanization}` : ''} (not editable)`}>
+        <span className="entry-language">{header.language}</span><span className="entry-key">{header.key}</span>
+        {header.romanization && <span className="entry-pronunciation">{header.romanization}</span>}
+      </span>
+      {toolbar}
+    </p>
+    : toolbar && <p className="entry-heading entry-heading-tools">{toolbar}</p>;
+}
+
+// The core edited on its own (D10, amended), in its place: its top line with
+// the toolbar, its text, then its Save and Cancel (`children`).
+export function CoreEditor({ title, fields, header, locked, persist, redraw, children }: {
+  title: string; fields: FieldDraft; header: ParentContent['header']; locked: boolean; persist: () => void; redraw: () => void; children: ReactNode;
+}) {
+  const changed = useTyped(fields, persist, redraw);
+  return <PartEditor className="live-core core-editing" value={fields.core} editable={!locked} autofocus reading={header.kind === 'sentence'}
+    label={`${header.kind === 'sentence' ? 'Translation' : 'Meanings'}, ${title}`}
+    onChange={markdown => { fields.core = markdown; changed(); }} head={toolbar => topLine(header, toolbar)} after={children} />;
+}
+
 export function LiveEditor({ parent, title, fields, opened, locked, persist, redraw }: {
   parent: ParentType; title: string; fields: FieldDraft; opened: ParentContent | null; locked: boolean; persist: () => void; redraw: () => void;
 }) {
@@ -127,17 +152,7 @@ export function LiveEditor({ parent, title, fields, opened, locked, persist, red
   const coreLabel = `${header?.kind === 'sentence' ? 'Translation' : 'Meanings'}, ${title}`;
   return <div className="entry-content live-editor" role="group" aria-label={`Edit ${title}`}>
     <PartEditor className="live-core" value={fields.core} editable={!locked} label={coreLabel} reading={header?.kind === 'sentence'}
-      onChange={markdown => { fields.core = markdown; changed(); }}
-      head={toolbar => header?.kind === 'word'
-        ? <p className="entry-heading">
-          <span className="entry-heading-text" aria-label={`${header.language}, ${header.key}${header.romanization ? `, ${header.romanization}` : ''} (not editable)`}>
-            <span className="entry-language">{header.language}</span><span className="entry-key">{header.key}</span>
-            {header.romanization && <span className="entry-pronunciation">{header.romanization}</span>}
-          </span>
-          {toolbar}
-        </p>
-        // A sentence has no top line: its toolbar takes a row of its own while it shows.
-        : toolbar && <p className="entry-heading entry-heading-tools">{toolbar}</p>} />
+      onChange={markdown => { fields.core = markdown; changed(); }} head={toolbar => topLine(header, toolbar)} />
     {facetsOf(parent).filter(facet => fields.facets[facet] !== undefined).map((facet: FacetType) =>
       <PartEditor key={facet} className="facet" data-facet={facet} data-unfilled={!hasText(fields.facets[facet]) || undefined}
         value={fields.facets[facet] ?? ''} editable={!locked} label={`${facetLabel(parent, facet)}, ${title}`}

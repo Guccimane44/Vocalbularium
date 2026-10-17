@@ -91,6 +91,20 @@ export async function generateFacet(input: {
   return withFacetText(existing, facet, formatFacet(facet, checked));
 }
 
+// The core's own Retry (D10, amended; 0.7.5): the core alone, generated with
+// no facet, replaces the meanings or translation in `existing`; the top line
+// and every facet stay as they are. Throws when generation fails.
+export async function generateCore(input: {
+  mainKey: string;
+  module: ModuleInstance;
+  existing: ParentContent;
+  interpretation?: InputInterpretation | null;
+  generate: GenerateModule;
+}): Promise<ParentContent> {
+  const fresh = await generateComponent({ ...input, module: { ...input.module, facets: [] } });
+  return { header: input.existing.header, core: fresh.core, facets: input.existing.facets };
+}
+
 export type ComponentOutcome = Readonly<
   { moduleInstanceId: string; status: 'completed'; content: ParentContent } |
   { moduleInstanceId: string; status: 'failed'; error: string }
