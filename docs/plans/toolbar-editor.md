@@ -1,6 +1,6 @@
 # Plan: an editor without markdown, a toolbar and a facet's own Edit (0.7.5)
 
-Proposed: 17 October 2026 (Europe/Berlin). Implements [D10](../architecture/traceability-map.md#entries), accepted by the owner on 17 October 2026 and applied to the specifications in increment 0. Tracker: [#167](https://github.com/Guccimane44/Vocalbularium/issues/167); milestone in [Actual Stages](https://app.notion.com/p/3fcbb1350208816382f8d2a2fb4fb0f8). Status: increment 0 merged in [#168](https://github.com/Guccimane44/Vocalbularium/pull/168) after the owner accepted D10 (17 October 2026); increment 1 (the toolbar editor) merged in [#169](https://github.com/Guccimane44/Vocalbularium/pull/169); increment 2 (a facet's own Edit) merged in [#170](https://github.com/Guccimane44/Vocalbularium/pull/170); increment 3 (verification and delivery) in review.
+Proposed: 17 October 2026 (Europe/Berlin). Implements [D10](../architecture/traceability-map.md#entries), accepted by the owner on 17 October 2026 and applied to the specifications in increment 0. Tracker: [#167](https://github.com/Guccimane44/Vocalbularium/issues/167); milestone in [Actual Stages](https://app.notion.com/p/3fcbb1350208816382f8d2a2fb4fb0f8). Status: increment 0 merged in [#168](https://github.com/Guccimane44/Vocalbularium/pull/168) after the owner accepted D10 (17 October 2026); increment 1 (the toolbar editor) merged in [#169](https://github.com/Guccimane44/Vocalbularium/pull/169); increment 2 (a facet's own Edit) merged in [#170](https://github.com/Guccimane44/Vocalbularium/pull/170); increment 3 (verification and delivery) merged in [#171](https://github.com/Guccimane44/Vocalbularium/pull/171); increment 4 (the D10 amendment) in review.
 
 ## Outcome
 
@@ -44,6 +44,25 @@ D10 and C22 in the traceability map, the specifications, the scope rows `accepte
 - Browser E2E across capture, cards, the card editor and a facet's Edit.
 - Version 0.7.5, the upgrade note in scope (no migration expected), scope rows `implemented`, D10 Implemented in Notion; candidate package and evidence. Owner acceptance is recorded separately.
 
+### 4. Amend D10: the editor as the card, the core's own Edit and Retry (this PR)
+
+*Amended 17 October 2026, before the owner accepted 0.7.5.* The owner asked that what the editor shows be what the card shows, and that the core be edited and retried on its own, placed as a facet's actions; the card's Edit stays so empty facets can still be filled. Owner answers: the editor takes the card's styling; the core's Retry regenerates only the core; still 0.7.5.
+
+### 5. The editor as the card
+
+- Each part's editor in its card styling: the numbered list's number column, the Examples' display font and soft-italic translations, the core's size.
+- Browser E2E comparing the editor's and the card's styles for a numbered list and the Examples.
+
+### 6. The core's own Edit and Retry
+
+- Edit and Retry on the core's top line, shown on hover or focus as a facet's; Edit opens the core alone with its toolbar, Save and Cancel; Save writes only the core over the stored content.
+- A core target for generation: the provider writes the core and no facet; the result replaces only the meanings or translation; the top line and facets stay; the spark round the top line; a failure leaves everything as it was and says so on the top line.
+- Browser E2E for both, and a store test for the core-only save and attempt.
+
+### 7. Rebuild and deliver 0.7.5
+
+- The full suites, D10 back to `implemented (0.7.5)`, the candidate rebuilt with the earlier ZIP kept, and the owner's API restarted if the API changed.
+
 ## Acceptance criteria
 
 1. Typing `**word**`, `- item` or `==mark==` in any editor leaves those characters as typed; after Save the card shows them as typed.
@@ -52,6 +71,8 @@ D10 and C22 in the traceability map, the specifications, the scope rows `accepte
 4. A facet with content offers Edit beside Retry and Delete; it edits that facet alone and Save changes only that facet.
 5. While a facet is edited, the card's Edit, the other facets' actions and the other cards wait; Cancel restores everything.
 6. Every editor and toolbar button works from the keyboard and is named.
+7. The editor shows each part as the card does: a numbered list's numbers and the Examples' font match before and after Save.
+8. The core offers Edit and Retry on its top line; Edit changes only the core; Retry regenerates only the meanings or translation and leaves every facet and the top line as they were.
 
 ## Risks
 
