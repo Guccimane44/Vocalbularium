@@ -19,7 +19,7 @@ const LEGACY = {
 
 // Forced-colors mode: system colours for every surface, text and cue.
 const FORCED = {
-  Canvas: ['ground', 'sidebar', 'surface', 'surface-hover', 'surface-active', 'highlight', 'status-failed-bg', 'background', 'hover',
+  Canvas: ['ground', 'sidebar', 'surface', 'surface-hover', 'surface-active', 'highlight', 'highlight-green', 'highlight-blue', 'highlight-pink', 'highlight-orange', 'status-failed-bg', 'background', 'hover',
     'completed-bg', 'pending-bg', 'failed-bg', 'fam-translation-tint', 'fam-meaning-tint', 'fam-usage-tint', 'fam-roots-tint', 'fam-connections-tint', 'fam-sound-tint', 'fam-notes-tint'],
   CanvasText: ['ink', 'ink-soft', 'ink-muted', 'line', 'mark', 'status-busy', 'status-failed', 'text', 'muted',
     'completed-cue', 'pending-cue', 'failed-cue', 'fam-translation', 'fam-meaning', 'fam-usage', 'fam-roots', 'fam-connections', 'fam-sound', 'fam-notes'],

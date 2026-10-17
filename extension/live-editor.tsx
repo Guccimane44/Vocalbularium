@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import type { FocusEvent, ReactNode } from 'react';
+import type { FocusEvent, KeyboardEvent, ReactNode } from 'react';
 import { EditorContent, Mark, mergeAttributes, useEditor, useEditorState } from '@tiptap/react';
 import type { Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -42,7 +42,10 @@ const valueMark = (name: 'size' | 'font') => Mark.create({
 const EXTENSIONS = [
   StarterKit.configure({ heading: false, blockquote: false, codeBlock: false, horizontalRule: false, strike: false, underline: false,
     link: false, trailingNode: false, code: false, bulletList: false, orderedList: false }),
-  Code.extend(quiet), Highlight.extend(quiet), BulletList.extend(quiet), valueMark('size'), valueMark('font'),
+  Code.extend(quiet), BulletList.extend(quiet), valueMark('size'), valueMark('font'),
+  // A highlight may carry a colour beside the default yellow (D10, amended a third time).
+  Highlight.extend({ ...quiet, addAttributes: () => ({ colour: { default: null, parseHTML: element => element.getAttribute('data-colour'),
+    renderHTML: attributes => attributes.colour ? { 'data-colour': attributes.colour } : {} } }) }),
   // The card's number column counts from the list's start (page-view.css).
   OrderedList.extend({ ...quiet, renderHTML({ node, HTMLAttributes }) {
     return ['ol', mergeAttributes(HTMLAttributes, { style: `--start: ${Number(node.attrs.start ?? 1) - 1}` }), 0];
@@ -74,6 +77,35 @@ const CHOICES = [
 const choose = (editor: Editor, name: 'size' | 'font', value: string) =>
   value ? editor.chain().focus().setMark(name, { value }).run() : editor.chain().focus().unsetMark(name).run();
 
+// The highlight's palette (D10, amended a third time): the default yellow, the
+// main key's, then four colours. The button applies the last one used.
+const PALETTE = [['', 'Yellow'], ['green', 'Green'], ['blue', 'Blue'], ['pink', 'Pink'], ['orange', 'Orange']] as const;
+let lastColour = '';
+const highlight = (editor: Editor, colour: string) => editor.chain().focus().setMark('highlight', { colour: colour || null }).run();
+function HighlightTool({ editor, icon }: { editor: Editor; icon: ReactNode }) {
+  const [open, setOpen] = useState(false);
+  const state = useEditorState({ editor, selector: ({ editor: current }) => ({
+    active: current.isActive('highlight'), colour: String(current.getAttributes('highlight').colour ?? '') }) });
+  const keep = (event: { preventDefault: () => void }) => event.preventDefault();
+  const close = (event: KeyboardEvent) => { if (event.key === 'Escape') { event.stopPropagation(); setOpen(false); editor.commands.focus(); } };
+  return <span className="md-split" data-open={open || undefined} onKeyDown={close}>
+    <button type="button" className="md-tool" data-tool="highlight" aria-label="Highlight" title="Highlight" aria-pressed={state.active}
+      data-colour={lastColour || 'yellow'} onMouseDown={keep}
+      onClick={() => state.active ? editor.chain().focus().unsetMark('highlight').run() : highlight(editor, lastColour)}>{icon}</button>
+    <button type="button" className="md-tool md-tool-more" aria-label="Highlight colours" title="Highlight colours" aria-expanded={open} aria-haspopup="true"
+      onMouseDown={keep} onClick={() => setOpen(!open)}>
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M7 10l5 5 5-5" /></svg>
+    </button>
+    {open && <span className="md-palette" role="group" aria-label="Highlight colours">
+      {PALETTE.map(([colour, name]) => <button key={name} type="button" className="md-swatch" data-colour={colour || 'yellow'} aria-label={`${name} highlight`}
+        title={name} aria-pressed={state.active && state.colour === colour} onMouseDown={keep}
+        onClick={() => { lastColour = colour; highlight(editor, colour); setOpen(false); }} />)}
+      <button type="button" className="md-swatch md-swatch-none" aria-label="No highlight" title="No highlight" onMouseDown={keep}
+        onClick={() => { editor.chain().focus().unsetMark('highlight').run(); setOpen(false); }}>✕</button>
+    </span>}
+  </span>;
+}
+
 // Each button says whether its formatting applies at the cursor, and keeps
 // the focus in the text when clicked.
 function Toolbar({ editor, label }: { editor: Editor; label: string }) {
@@ -84,7 +116,10 @@ function Toolbar({ editor, label }: { editor: Editor; label: string }) {
       value={chosen[index]} onChange={event => choose(editor, choice.name, event.target.value)}>
       {choice.options.map(([value, text]) => <option key={value} value={value}>{text}</option>)}
     </select>)}
-    {TOOLS.map((tool, index) => <button key={tool.name} type="button" className="md-tool" data-tool={tool.name} aria-label={tool.label}
+    {TOOLS.map((tool, index) => tool.name === 'highlight'
+      ? <HighlightTool key={tool.name} editor={editor} icon={<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.2"
+        strokeLinecap="round" strokeLinejoin="round">{tool.icon}</svg>} />
+      : <button key={tool.name} type="button" className="md-tool" data-tool={tool.name} aria-label={tool.label}
       aria-pressed={active[index]} title={tool.label} onMouseDown={event => event.preventDefault()} onClick={() => tool.run(editor)}>
       <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">{tool.icon}</svg>
     </button>)}

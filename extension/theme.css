@@ -16,6 +16,10 @@
   --mark: #b23a5e;
   --focus: #1f7a5a;
   --highlight: #f1db86;
+  --highlight-green: #cfe8b6;
+  --highlight-blue: #c4def3;
+  --highlight-pink: #f5cad8;
+  --highlight-orange: #f7d4ad;
   --status-busy: #5a3d96;
   --status-failed: #a0301c;
   --status-failed-bg: #fbe9e4;
@@ -100,6 +104,10 @@
     --mark: #f29bb5;
     --focus: #7dd3ae;
     --highlight: #f1db864d;
+    --highlight-green: #9fd17a4d;
+    --highlight-blue: #8cc0ea4d;
+    --highlight-pink: #ee95b34d;
+    --highlight-orange: #f2ad6a4d;
     --status-busy: #cdbdf5;
     --status-failed: #ff9c86;
     --status-failed-bg: #3a201b;
@@ -144,6 +152,10 @@
   --mark: #f29bb5;
   --focus: #7dd3ae;
   --highlight: #f1db864d;
+  --highlight-green: #9fd17a4d;
+  --highlight-blue: #8cc0ea4d;
+  --highlight-pink: #ee95b34d;
+  --highlight-orange: #f2ad6a4d;
   --status-busy: #cdbdf5;
   --status-failed: #ff9c86;
   --status-failed-bg: #3a201b;
@@ -188,6 +200,10 @@
     --surface-hover: Canvas;
     --surface-active: Canvas;
     --highlight: Canvas;
+    --highlight-green: Canvas;
+    --highlight-blue: Canvas;
+    --highlight-pink: Canvas;
+    --highlight-orange: Canvas;
     --status-failed-bg: Canvas;
     --background: Canvas;
     --hover: Canvas;
