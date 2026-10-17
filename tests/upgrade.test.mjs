@@ -273,7 +273,7 @@ test('0012 starts structured parent content: discards 0.7.3 decks and pages with
   assert.equal((await store.page(pageId)).components.find(component => component.moduleType === 'german').status, 'loading');
 });
 
-test('0014 and its one-time conversion turn the main key’s drawn emphasis into stored highlights, once, keeping everything else', async t => {
+test('0014 and its one-time conversions turn the main key’s drawn emphasis into stored highlights and Context and Text into markdown, once, keeping everything else', async t => {
   const database = await legacyDatabase(t, 'key-highlights-upgrade', 13);
   const client = new pg.Client({ connectionString: database.databaseUrl }); await client.connect();
   t.after(() => client.end());
@@ -285,14 +285,17 @@ test('0014 and its one-time conversion turn the main key’s drawn emphasis into
   await client.query(`INSERT INTO components (page_id, id, module_instance_id, module_type, position, content, status, facets) VALUES
     ('page', 'key', 'k', 'main-key', 0, '{"version":1,"blocks":[{"type":"paragraph","text":"bank"}]}', NULL, '{}'),
     ('page', 'german', 'g', 'german', 1, $1, 'completed', '{examples}'),
-    ('page', 'context', 'c', 'context', 2, '{"version":1,"blocks":[{"type":"paragraph","text":"by the bank"}]}', NULL, '{}')`,
+    ('page', 'context', 'c', 'context', 2, '{"version":1,"blocks":[{"type":"paragraph","text":"by the bank"}]}', NULL, '{}'),
+    ('page', 'text', 't', 'text', 3, '{"version":1,"blocks":[{"type":"paragraph","text":"- 2*3 is a bank sum"}]}', NULL, '{}')`,
   [parent({ examples: '1. We sat on the Bank.\n   *Wir saßen am Ufer.*' })]);
   const content = async id => (await client.query('SELECT content FROM components WHERE id = $1', [id])).rows[0].content;
 
   await migrateDatabase(database.databaseUrl);
   assert.equal(await content('german'), parent({ examples: '1. We sat on the ==Bank==.\n   *Wir saßen am Ufer.*' }), 'the main key highlighted where the card drew it');
   assert.equal(await content('key'), '{"version":1,"blocks":[{"type":"paragraph","text":"bank"}]}', 'the main key itself stays');
-  assert.deepEqual((await client.query('SELECT name FROM data_migrations')).rows, [{ name: '0.7.5-main-key-highlights' }]);
+  assert.equal(await content('context'), '{"version":1,"blocks":[{"type":"paragraph","text":"by the ==bank=="}]}', 'Context becomes markdown, the main key highlighted');
+  assert.equal(await content('text'), '{"version":1,"blocks":[{"type":"paragraph","text":"\\\\- 2\\\\*3 is a bank sum"}]}', 'Text kept as typed: escaped, and no highlight');
+  assert.deepEqual((await client.query('SELECT name FROM data_migrations ORDER BY name')).rows, [{ name: '0.7.5-main-key-highlights' }, { name: '0.7.5-notes-markdown' }]);
 
   // Once only: a highlight the user removed afterwards stays removed.
   await client.query('UPDATE components SET content = $1 WHERE id = $2', [parent({ examples: '1. We sat on the Bank.' }), 'german']);

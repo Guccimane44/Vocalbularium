@@ -187,7 +187,8 @@ function topLine(header: ParentContent['header'] | undefined, toolbar: ReactNode
       </span>
       {toolbar}
     </p>
-    : toolbar && <p className="entry-heading entry-heading-tools">{toolbar}</p>;
+    // A sentence's row keeps its place too, so Save does not move under the pointer.
+    : <p className="entry-heading entry-heading-tools">{toolbar}</p>;
 }
 
 // The core edited on its own (D10, amended), in its place: its top line with
@@ -199,6 +200,17 @@ export function CoreEditor({ title, fields, header, locked, persist, redraw, chi
   return <PartEditor className="live-core core-editing" value={fields.core} editable={!locked} autofocus reading={header.kind === 'sentence'}
     label={`${header.kind === 'sentence' ? 'Translation' : 'Meanings'}, ${title}`}
     onChange={markdown => { fields.core = markdown; changed(); }} head={toolbar => topLine(header, toolbar)} after={children} />;
+}
+
+// Context or Text in the same toolbar editor (D10, amended a fourth time):
+// its text alone, the toolbar on a row above it while it is focused, then its
+// Save and Cancel (`children`). Named as its text field once was.
+export function NoteEditor({ title, value, locked, onChange, children }: {
+  title: string; value: string; locked: boolean; onChange: (markdown: string) => void; children?: ReactNode;
+}) {
+  return <PartEditor className="note-editing" value={value} editable={!locked} autofocus label={`Edit ${title}`} onChange={onChange}
+    // The row keeps its place while the toolbar comes and goes, so nothing below moves under the pointer.
+    head={toolbar => <p className="entry-heading entry-heading-tools">{toolbar}</p>} after={children} />;
 }
 
 export function LiveEditor({ parent, title, fields, opened, locked, persist, redraw }: {

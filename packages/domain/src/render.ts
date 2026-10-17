@@ -14,7 +14,9 @@ export type RenderedFacet = Readonly<{ facet: FacetType; label: string; body: re
 export type Rendered =
   | Readonly<{ kind: 'plain'; text: string }>
   // `heading` is a word's top line; a sentence has none.
-  | Readonly<{ kind: 'parent'; heading: EntryHeading | null; core: readonly MdBlock[]; facets: readonly RenderedFacet[] }>;
+  | Readonly<{ kind: 'parent'; heading: EntryHeading | null; core: readonly MdBlock[]; facets: readonly RenderedFacet[] }>
+  // Context and Text are markdown since 0.7.5 (D10, amended a fourth time).
+  | Readonly<{ kind: 'note'; blocks: readonly MdBlock[] }>;
 
 export function renderParent(type: ParentType, content: ParentContent): Rendered {
   const header = content.header;
@@ -28,9 +30,10 @@ export function renderParent(type: ParentType, content: ParentContent): Rendered
   };
 }
 
-// Plain text: the main key, Context and Text (D09: a parent is never text).
-export function renderContent(_moduleType: string, text: string): Rendered {
-  return { kind: 'plain', text };
+// Plain text: the main key (D09: a parent is never text); Context and Text as
+// markdown (D10, amended a fourth time).
+export function renderContent(moduleType: string, text: string): Rendered {
+  return moduleType === 'context' || moduleType === 'text' ? { kind: 'note', blocks: parseMarkdown(text) } : { kind: 'plain', text };
 }
 
 // Splits text around each occurrence of the main key, so a client can emphasise it.

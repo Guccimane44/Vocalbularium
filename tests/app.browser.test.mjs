@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { once } from 'node:events';
 import { chromium } from 'playwright';
-import { blockText } from '@vocabularium/domain/pages';
+import { blockText, notePlain } from '@vocabularium/domain/pages';
 import { isContentType } from '@vocabularium/domain/page-modules';
 import { resultFor, sentenceResult, text, textBlocks, useModules, wordResult, staged, fieldEdit } from './helpers/pages.mjs';
 const keyOf = page => text(page.components.find(component => component.moduleType === 'main-key'));
@@ -345,7 +345,8 @@ test('capture with Context: the surrounding block follows the deck’s Context m
     const range = document.createRange(); range.selectNodeContents(node); getSelection().removeAllRanges(); getSelection().addRange(range); return getSelection().toString();
   });
   // A Context module with nothing captured leaves an empty Context component.
-  const contextOf = page => page.components.filter(component => component.moduleType === 'context').map(text).filter(Boolean);
+  // Context is markdown, the main key highlighted (D10, amended a fourth time); compared here as generation reads it.
+  const contextOf = page => page.components.filter(component => component.moduleType === 'context').map(component => notePlain(component.content)).filter(Boolean);
 
   // On by default: the block around the selection, capped near 500 characters, with whitespace collapsed.
   await captureFrom(a, await select('#word'));
@@ -357,7 +358,8 @@ test('capture with Context: the surrounding block follows the deck’s Context m
   assert.ok(!context.includes('Nicht dieser Absatz'), 'only the selection’s own block');
   assert.deepEqual(interpreted.at(-1), { text: '幸福', context });
   await a.page.goto(`chrome-extension://${a.id}/app.html#page/${(await application.store.pages())[0].id}`);
-  await componentArticle(a.page, 'Context').locator('pre').filter({ hasText: 'Sie war 幸福 und lachte.' }).waitFor();
+  await componentArticle(a.page, 'Context').locator('.note-body').filter({ hasText: 'Sie war 幸福 und lachte.' }).waitFor();
+  assert.equal(await componentArticle(a.page, 'Context').locator('.note-body mark.md-highlight').first().textContent(), '幸福', 'the main key a stored highlight in Context');
 
   // A selection filling its whole block has no surrounding text and so no Context.
   await captureFrom(a, await select('main > p:first-child'));
@@ -3021,7 +3023,7 @@ test('0.7.5: a facet’s own Edit opens that facet alone in place, with its tool
   await synonyms.locator('.facet-title').screenshot({ path: 'artifacts/v0.7.5-size-font-toolbar.png' });
   await synonyms.getByRole('button', { name: 'Save', exact: true }).click();
   await card.getByRole('textbox').waitFor({ state: 'detached' });
-  assert.equal((await stored()).facets.synonyms, '[Böschung,]{size=large font=display} [**fest**]{size=large font=display}');
+  assert.equal((await stored()).facets.synonyms, '[Böschung,]{size=large font=display} **[fest]{size=large font=display}**');
   assert.equal(await synonyms.locator('.facet-body .md-size-large.md-font-display').count(), 2, 'the card shows it as set');
   assert.equal(await synonyms.locator('.facet-body').textContent(), 'Böschung, fest');
   await card.screenshot({ path: 'artifacts/v0.7.5-size-font-card.png' });
@@ -3050,7 +3052,7 @@ test('0.7.5: a facet’s own Edit opens that facet alone in place, with its tool
   assert.equal(await synonyms.locator('.md-toolbar [data-tool="highlight"]').getAttribute('data-colour'), 'green', 'the button keeps the colour');
   await synonyms.getByRole('button', { name: 'Save', exact: true }).click();
   await card.getByRole('textbox').waitFor({ state: 'detached' });
-  assert.equal((await stored()).facets.synonyms, '[Böschung,]{size=large font=display highlight=green} [**fest**]{size=large font=display highlight=green}');
+  assert.equal((await stored()).facets.synonyms, '[Böschung,]{size=large font=display highlight=green} **[fest]{size=large font=display highlight=green}**');
   assert.equal(await synonyms.locator('.facet-body mark.md-highlight-green').count(), 2);
   assert.equal(await synonyms.locator('.facet-body mark.md-highlight-green').first().evaluate(node => getComputedStyle(node).backgroundColor),
     await a.page.evaluate(() => { const probe = document.body.appendChild(Object.assign(document.createElement('i'), { style: 'background: var(--highlight-green)' }));
@@ -3143,4 +3145,49 @@ test('0.7.5: the core’s own Edit and Retry on its top line: Edit changes only 
   release(new Error('provider down'));
   await core.locator('.facet-note[data-note="failed"]').waitFor();
   assert.deepEqual(await stored(), after);
+});
+
+test('0.7.5: Context and Text edit with the toolbar editor, with Edit and Delete on their top row', { timeout: 60000 }, async (t) => {
+  const directory = await mkdtemp(join(tmpdir(), 'vocabularium-notes-browser-'));
+  const application = await createTestApplication(t); await application.start();
+  const a = await launch(join(directory, 'a'));
+  t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
+  await a.page.setViewportSize({ width: 1280, height: 1400 });
+  const store = application.store;
+  const session = { installationId: 'fixture', sessionId: 'notes', epoch: 1 };
+  await store.openSession('notes-session', session);
+  const { pageId } = await store.capture('notes-capture', { session, mainKey: 'bank', context: 'We sat by the bank, 2*3 times.', snapshot: await store.snapshot() });
+  const context = async () => (await store.page(pageId)).components.find(item => item.moduleType === 'context');
+  assert.equal(blockText((await context()).content), 'We sat by the ==bank==, 2\\*3 times.', 'captured as markdown, the main key highlighted');
+  await signIn(a.page);
+  await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
+  const card = componentArticle(a.page, 'Context');
+  await card.locator('.note-body').waitFor();
+  assert.equal(await card.locator('.note-body').textContent(), 'We sat by the bank, 2*3 times.', 'reads as captured');
+
+  // Edit and Delete on its top row, shown as a facet's are.
+  await card.locator('.note-part').hover();
+  assert.deepEqual(await card.locator('.note-part .facet-actions button').evaluateAll(buttons => buttons.map(button => button.getAttribute('aria-label'))),
+    ['Edit Context text', 'Delete Context text']);
+  await card.locator('.note-part').screenshot({ path: 'artifacts/v0.7.5-context-actions.png' });
+
+  // Edit opens the same toolbar editor; the main key's highlight shows there.
+  await a.page.getByRole('button', { name: 'Edit Context text', exact: true }).click();
+  const text = card.getByRole('textbox', { name: 'Edit Context', exact: true });
+  await text.waitFor();
+  await waitFor(() => a.page.evaluate(() => document.activeElement?.getAttribute('aria-label') === 'Edit Context'), 'focused');
+  assert.equal(await text.locator('mark').textContent(), 'bank');
+  assert.equal(await card.locator('.md-toolbar').count(), 1);
+  await a.page.keyboard.press('ControlOrMeta+a'); await a.page.waitForTimeout(300);
+  await card.locator('.md-toolbar').getByRole('button', { name: 'Italic', exact: true }).click();
+  await card.getByRole('button', { name: 'Save', exact: true }).click();
+  await text.waitFor({ state: 'detached' });
+  assert.match(blockText((await context()).content), /^\*We sat by the ==bank==, 2\\\*3 times\.\*$/);
+  assert.equal(await card.locator('.note-body em').count() > 0, true, 'the card shows it formatted');
+
+  // Delete asks first, then deletes the component.
+  await card.locator('.note-part').hover();
+  await a.page.getByRole('button', { name: 'Delete Context text', exact: true }).click();
+  await a.page.getByRole('button', { name: 'Yes, delete Context text', exact: true }).click();
+  await waitFor(async () => !(await context()), 'Context deleted');
 });

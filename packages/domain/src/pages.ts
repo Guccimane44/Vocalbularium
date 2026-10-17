@@ -1,9 +1,20 @@
 import type { BlockDocument, Component, ModuleInstance, ViewDefinition } from '@vocabularium/contracts';
 import { PARENTS } from './parents.js';
+import { escapeMarkdown, highlightKey, plainText } from './markdown.js';
 import type { ParentType as ModuleType } from './parents.js';
 
 export function textBlocks(text: string): BlockDocument {
   return { version: 1, blocks: text ? [{ type: 'paragraph', text }] : [] };
+}
+// Context and Text hold markdown since 0.7.5 (D10, amended a fourth time):
+// typed or captured plain text is stored escaped, so it reads as typed, with
+// the main key highlighted when a key is given (Context at capture).
+export function noteDocument(plain: string, key = ''): BlockDocument {
+  return textBlocks(plain ? highlightKey(escapeMarkdown(plain), key) : '');
+}
+// A Context's or Text's markdown as plain text, as generation reads Context.
+export function notePlain(content: BlockDocument): string {
+  return plainText(blockText(content));
 }
 // The plain text of a component's paragraph blocks; structured parent content
 // (D09) has none.

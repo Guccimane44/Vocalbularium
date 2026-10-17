@@ -1,6 +1,6 @@
 import { Postgres, OWNER_ACCOUNT_ID } from '../persistence/postgres.ts';
 import { createHash, randomUUID } from 'node:crypto';
-import { blockText, pageStatus, textBlocks } from '@vocabularium/domain/pages';
+import { blockText, noteDocument, pageStatus, textBlocks } from '@vocabularium/domain/pages';
 import {
   addBlocked, copyModules, deleteBlocked, DECK_COLOURS, generationTargets, moveBlocked, moved, pageMeaning, validateConfiguration
 } from '@vocabularium/domain/page-modules';
@@ -421,7 +421,8 @@ export class AccountStore {
       // Capture follows the deck's current configuration, not the prepared snapshot:
       // Context taken while the deck had the Context module is dropped if it no longer does.
       const contextModule = deck.modules.find(module => module.type === 'context');
-      const values = new Map(contextModule && context ? [[contextModule.id, textBlocks(context)]] : []);
+      // Context is markdown (D10, amended a fourth time): stored escaped, the main key highlighted.
+      const values = new Map(contextModule && context ? [[contextModule.id, noteDocument(context, mainKey)]] : []);
       const id = await this.insertPage(deck, { selectedText: mainKey, mainKey, values });
       const { attemptIds } = await this.startRun(id, session, generationTargets({ scope: 'capture' }, (await this.page(id)).components));
       if (interrupted) for (const attemptId of attemptIds) await this.failAttempt(attemptId);

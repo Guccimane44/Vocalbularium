@@ -196,6 +196,12 @@
 /* Rendered content */
 .component pre { margin: 0; font: 16px/1.6 var(--font-text); }
 .component[data-type="context"] pre { color: var(--ink-soft); font-style: italic; }
+/* Context and Text as markdown (D10, amended a fourth time), reading as their plain text did; Edit and Delete on a top row. */
+.note-part { display: grid; gap: 4px; }
+.note-body { line-height: 1.6; }
+.component[data-type="context"] :is(.note-body, .note-editing .md-editor) { color: var(--ink-soft); font-style: italic; }
+.note-part:hover .facet-actions button, .note-part .facet-actions button:focus-visible { opacity: 1; }
+.note-part .entry-heading-tools, .note-editing .entry-heading-tools { justify-content: flex-end; min-height: 26px; }
 .reading { margin: 0; font: 400 19px/1.55 var(--font-display); overflow-wrap: anywhere; white-space: pre-wrap; }
 .entry-content { display: grid; gap: 10px; overflow-wrap: anywhere; }
 .entry-heading { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: 0; }
@@ -313,19 +319,19 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
    type, with a soft underline in the family colour and a focus ring; the
    markdown characters never show. Lists keep their markers while editing. A
    facet without content keeps its place with its name dimmed. */
-:is(.live-editor, .facet-editing) .md-editor-frame { min-width: 0; }
-:is(.live-editor, .facet-editing) .md-editor { min-height: 28px; padding: 2px 6px; margin: 0 -6px; border-radius: 6px; outline: none; white-space: pre-wrap;
+:is(.live-editor, .facet-editing, .note-editing) .md-editor-frame { min-width: 0; }
+:is(.live-editor, .facet-editing, .note-editing) .md-editor { min-height: 28px; padding: 2px 6px; margin: 0 -6px; border-radius: 6px; outline: none; white-space: pre-wrap;
   box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--fam, var(--ink-muted)) 35%, transparent); transition: box-shadow var(--dur-instant) ease, background var(--dur-instant) ease; }
-:is(.live-editor, .facet-editing) .md-editor:hover { box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--fam, var(--ink-muted)) 70%, transparent); }
-:is(.live-editor, .facet-editing) .md-editor:focus { outline: 2px solid var(--focus); outline-offset: 1px; background: var(--surface); box-shadow: none; }
-:is(.live-editor, .facet-editing) .md-editor[contenteditable="false"] { box-shadow: none; opacity: .7; }
-:is(.live-editor, .facet-editing) .md-editor p { margin: 0; }
+:is(.live-editor, .facet-editing, .note-editing) .md-editor:hover { box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--fam, var(--ink-muted)) 70%, transparent); }
+:is(.live-editor, .facet-editing, .note-editing) .md-editor:focus { outline: 2px solid var(--focus); outline-offset: 1px; background: var(--surface); box-shadow: none; }
+:is(.live-editor, .facet-editing, .note-editing) .md-editor[contenteditable="false"] { box-shadow: none; opacity: .7; }
+:is(.live-editor, .facet-editing, .note-editing) .md-editor p { margin: 0; }
 /* The editor looks as the card will (D10, amended): a numbered list keeps
    the card's number column, counted from the list's start. */
 .md-editor ol { counter-reset: md-item var(--start, 0); }
 .md-editor ol > li { counter-increment: md-item; }
 .md-editor ol > li::before { content: counter(md-item); }
-:is(.live-editor, .facet-editing) .md-editor mark { background: var(--highlight); color: inherit; border-radius: 3px; padding: 0 2px; }
+:is(.live-editor, .facet-editing, .note-editing) .md-editor mark { background: var(--highlight); color: inherit; border-radius: 3px; padding: 0 2px; }
 .live-editor .facet[data-unfilled] .facet-tab { opacity: .55; }
 .live-core .md-editor:not(.reading) { font-size: 16px; }
 .live-core { display: grid; gap: 4px; }

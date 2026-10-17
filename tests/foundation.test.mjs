@@ -56,7 +56,8 @@ test('capture saves the main key and Context and starts one attempt per content 
   const store = await fixture(t);
   const { page } = await captureWith(store, 'with-context', a, 'Bismarck', 'Otto von Bismarck was chancellor.');
   assert.deepEqual(page.components.map(item => item.moduleType), ['main-key', 'context', 'chinese', 'german']);
-  assert.equal(text(component(page, 'context')), 'Otto von Bismarck was chancellor.');
+  // Context is markdown with the main key highlighted (D10, amended a fourth time).
+  assert.equal(text(component(page, 'context')), 'Otto von ==Bismarck== was chancellor.');
   assert.ok(generated(page).every(item => item.status === 'loading' && item.attemptId));
   assert.equal(new Set(await Promise.all(generated(page).map(async item => (await store.attempt(item.attemptId)).run_id))).size, 1);
   assert.equal(page.status, 'loading');
