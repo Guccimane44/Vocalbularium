@@ -1,6 +1,6 @@
 # Plan: an editor without markdown, a toolbar and a facet's own Edit (0.7.5)
 
-Proposed: 17 October 2026 (Europe/Berlin). Implements [D10](../architecture/traceability-map.md#entries), accepted by the owner on 17 October 2026 and applied to the specifications in increment 0. Tracker: [#167](https://github.com/Guccimane44/Vocalbularium/issues/167); milestone in [Actual Stages](https://app.notion.com/p/3fcbb1350208816382f8d2a2fb4fb0f8). Status: increment 0 merged in [#168](https://github.com/Guccimane44/Vocalbularium/pull/168) after the owner accepted D10 (17 October 2026); increment 1 (the toolbar editor) merged in [#169](https://github.com/Guccimane44/Vocalbularium/pull/169); increment 2 (a facet's own Edit) merged in [#170](https://github.com/Guccimane44/Vocalbularium/pull/170); increment 3 (verification and delivery) merged in [#171](https://github.com/Guccimane44/Vocalbularium/pull/171); increment 4 (the D10 amendment) merged in [#172](https://github.com/Guccimane44/Vocalbularium/pull/172); increment 5 (the editor as the card) merged in [#173](https://github.com/Guccimane44/Vocalbularium/pull/173); increment 6 (the core's own Edit and Retry) merged in [#174](https://github.com/Guccimane44/Vocalbularium/pull/174); increment 7 (rebuild and delivery) in review.
+Proposed: 17 October 2026 (Europe/Berlin). Implements [D10](../architecture/traceability-map.md#entries), accepted by the owner on 17 October 2026 and applied to the specifications in increment 0. Tracker: [#167](https://github.com/Guccimane44/Vocalbularium/issues/167); milestone in [Actual Stages](https://app.notion.com/p/3fcbb1350208816382f8d2a2fb4fb0f8). Status: increment 0 merged in [#168](https://github.com/Guccimane44/Vocalbularium/pull/168) after the owner accepted D10 (17 October 2026); increment 1 (the toolbar editor) merged in [#169](https://github.com/Guccimane44/Vocalbularium/pull/169); increment 2 (a facet's own Edit) merged in [#170](https://github.com/Guccimane44/Vocalbularium/pull/170); increment 3 (verification and delivery) merged in [#171](https://github.com/Guccimane44/Vocalbularium/pull/171); increment 4 (the D10 amendment) merged in [#172](https://github.com/Guccimane44/Vocalbularium/pull/172); increment 5 (the editor as the card) merged in [#173](https://github.com/Guccimane44/Vocalbularium/pull/173); increment 6 (the core's own Edit and Retry) merged in [#174](https://github.com/Guccimane44/Vocalbularium/pull/174); increment 7 (rebuild and delivery) merged in [#175](https://github.com/Guccimane44/Vocalbularium/pull/175); increment 8 (the second D10 amendment) in review.
 
 ## Outcome
 
@@ -63,6 +63,21 @@ D10 and C22 in the traceability map, the specifications, the scope rows `accepte
 
 - The full suites, D10 back to `implemented (0.7.5)`, the candidate rebuilt with the earlier ZIP kept, and the owner's API restarted if the API changed.
 
+### 8. Amend D10 again: plain Examples, size and font (this PR)
+
+*Amended 17 October 2026, before the owner accepted 0.7.5.* The owner found the Examples still in a size of their own, with no way to change text size, and asked for the Examples as plain text like the other facets and for font and size in the toolbar. Owner answers: Small / Normal / Large; Text / Display / Mono; on the selected text; stored inside today's markdown. Still 0.7.5 (a default the owner may change on review).
+
+### 9. Plain Examples, size and font
+
+- The Examples' own display font and size go; they render as every other facet does.
+- The markdown subset gains a bracketed span, `[text]{size=… font=…}`, parsed and rendered by the shared render contract, escaped in what the user types, and converted to and from the editor's marks.
+- Two editor marks, size and font, with a Size and a Font choice in the toolbar showing what applies at the cursor.
+- Unit tests for the span (parse, render, round trip, escaping); browser E2E setting a size and a font, saved and shown on the card, and the Examples looking like the other facets.
+
+### 10. Rebuild and deliver 0.7.5
+
+- The full suites, D10 back to `implemented (0.7.5)`, the candidate rebuilt with the earlier ZIP kept, and the owner's API restarted if the API changed.
+
 ## Acceptance criteria
 
 1. Typing `**word**`, `- item` or `==mark==` in any editor leaves those characters as typed; after Save the card shows them as typed.
@@ -73,6 +88,8 @@ D10 and C22 in the traceability map, the specifications, the scope rows `accepte
 6. Every editor and toolbar button works from the keyboard and is named.
 7. The editor shows each part as the card does: a numbered list's numbers and the Examples' font match before and after Save.
 8. The core offers Edit and Retry on its top line; Edit changes only the core; Retry regenerates only the meanings or translation and leaves every facet and the top line as they were.
+9. The Examples show in the same font and size as every other facet.
+10. Text given a size or a font in the toolbar keeps it after Save, on the card and when edited again.
 
 ## Risks
 
