@@ -9,7 +9,7 @@ import type { MdBlock, MdInline } from '@vocabularium/domain/markdown';
 import { parentContentOf } from '@vocabularium/domain/content';
 import type { ParentContent } from '@vocabularium/domain/content';
 import { hasText } from '@vocabularium/domain/markdown';
-import { LiveEditor } from './live-editor.tsx';
+import { FacetEditor, LiveEditor } from './live-editor.tsx';
 import { facetLabel, facetsOf, isFacetOf, isParentType } from '@vocabularium/domain/parents';
 import type { FacetType, ParentType } from '@vocabularium/domain/parents';
 import type { FieldDraft, PageEditorDraft } from '../types/editor-drafts.js';
@@ -66,7 +66,7 @@ type Props = {
   pendingSaves: Array<{ operationId: string }>;
   retryPendingSave: (operationId: string) => Promise<void>;
   navigate: (hash: string) => void;
-  begin: (componentId: string) => void;
+  begin: (componentId: string, facet?: string) => void;
   persist: () => void;
   redraw: () => void;
   save: () => Promise<boolean>;
@@ -140,18 +140,22 @@ export function Markdown({ blocks, mainKey, className }: { blocks: readonly MdBl
       : <ul key={index}>{block.items.map((item, at) => <li key={at}><Inline runs={item} mainKey={mainKey} /></li>)}</ul>)}</div>;
 }
 
-// A facet's Retry and Delete beside its label (0.7.3): each at once when the
-// facet has nothing in it, otherwise after "Are you sure?" in the same row,
-// like a card's Retry and Delete. Its tag's remove asks here too (0.7.1).
-// Retry regenerates the facet alone; its parent's core and other facets stay.
+// A facet's Edit (0.7.5), Retry and Delete beside its label (0.7.3): Edit
+// opens that facet alone in its editor (D10); Retry and Delete act at once
+// when the facet has nothing in it, otherwise after "Are you sure?" in the
+// same row, like a card's Retry and Delete. Its tag's remove asks here too
+// (0.7.1). Retry regenerates the facet alone; its parent's core and other
+// facets stay.
 type FacetAsk = 'delete' | 'retry';
-function FacetActions({ name, hasContent, canRetry, disabled, asking, setAsking, onDelete, onRetry }: {
+function FacetActions({ name, hasContent, canRetry, disabled, asking, setAsking, onDelete, onRetry, onEdit }: {
   name: string; hasContent: boolean; canRetry: boolean; disabled: boolean; asking: FacetAsk | null; setAsking: (value: FacetAsk | null) => void;
-  onDelete: () => void; onRetry: () => void;
+  onDelete: () => void; onRetry: () => void; onEdit?: () => void;
 }) {
   const cancel = useRef<HTMLButtonElement>(null);
   useEffect(() => { if (asking) cancel.current?.focus(); }, [asking]);
   if (!asking) return <span className="facet-actions">
+    {onEdit && <button type="button" className="facet-edit" aria-label={`Edit ${name}`} disabled={disabled}
+      onClick={onEdit}><ActionIcon name="edit" /></button>}
     {canRetry && <button type="button" className="facet-retry" aria-label={`Retry ${name}`} disabled={disabled}
       onClick={() => hasContent ? setAsking('retry') : onRetry()}><ActionIcon name="retry" /></button>}
     <button type="button" className="facet-delete" aria-label={`Delete ${name}`} disabled={disabled}
@@ -172,6 +176,8 @@ function FacetActions({ name, hasContent, canRetry, disabled, asking, setAsking,
 // What a parent card's facets need to be retried or deleted, the facet asking
 // "Are you sure?", and the facet regenerating on its own or whose Retry failed.
 type FacetControls = { title: string; disabled: boolean; onDelete: (facet: FacetType) => void; onRetry: (facet: FacetType) => void;
+  // A facet's own Edit (D10), and the facet open in its editor with what to draw there.
+  onEdit?: (facet: FacetType) => void; editing?: { facet: string; node: ReactNode };
   asking: { facet: FacetType; kind: FacetAsk } | null; setAsking: (facet: FacetType | null, kind?: FacetAsk) => void;
   retrying?: string; failed?: string };
 
@@ -203,7 +209,8 @@ export function Content({ type, rendered, mainKey, controls }: {
     {controls && <FacetActions name={`${facetLabel(parent, facet)} from ${controls.title}`} hasContent canRetry={canRetry}
       disabled={controls.disabled} asking={controls.asking?.facet === facet ? controls.asking.kind : null}
       setAsking={kind => controls.setAsking(kind ? facet : null, kind ?? undefined)}
-      onDelete={() => controls.onDelete(facet)} onRetry={() => controls.onRetry(facet)} />}
+      onDelete={() => controls.onDelete(facet)} onRetry={() => controls.onRetry(facet)}
+      onEdit={controls.onEdit && (() => controls.onEdit!(facet))} />}
   </h3>;
   const section = (facet: string) => ({ className: 'facet', 'data-facet': facet, tabIndex: -1,
     'data-retrying': controls?.retrying === facet || undefined, 'aria-busy': controls?.retrying === facet || undefined });
@@ -219,6 +226,8 @@ export function Content({ type, rendered, mainKey, controls }: {
     {core.length > 0 && <Markdown blocks={core} mainKey={mainKey} className={heading ? 'entry-core' : 'entry-core reading'} />}
     {parent && facetsOf(parent).map(name => {
       const facet = facets.find(each => each.facet === name);
+      // The facet open in its own editor (D10) stands in its place.
+      if (controls?.editing?.facet === name) return <Fragment key={name}>{controls.editing.node}</Fragment>;
       if (facet) return <section key={name} {...section(name)}>
         {facetHead(name)}
         <Markdown blocks={facet.body} mainKey={mainKey} className="facet-body" />
@@ -232,12 +241,24 @@ export function Content({ type, rendered, mainKey, controls }: {
 // A live-editor draft as plain lines, shown when its page or card is gone meanwhile.
 const draftText = (fields: FieldDraft): string => [fields.core, ...Object.values(fields.facets)].filter(text => hasText(text)).join('\n\n');
 
-function ComponentBody({ item, title, editable, draft, locked, persist, redraw, mainKey, controls }: {
-  item: Component; title: string; editable: boolean; draft?: PageEditorDraft; locked: boolean; persist: () => void; redraw: () => void; mainKey: string; controls?: FacetControls;
+function ComponentBody({ item, title, editable, draft, locked, persist, redraw, mainKey, controls, tools }: {
+  item: Component; title: string; editable: boolean; draft?: PageEditorDraft; locked: boolean; persist: () => void; redraw: () => void; mainKey: string;
+  controls?: FacetControls; tools?: ReactNode;
 }) {
   // A parent in its live editor (D09), drawn from the content it opened with:
   // the card may be regenerating meanwhile.
   const fields = draft?.fields?.[item.id];
+  // One facet open on its own (D10): the card as it reads, that facet in its editor with its Save and Cancel.
+  if (editable && fields && draft?.facet && isParentType(item.moduleType)) {
+    const { rendered } = readContent(item.moduleType, item.content);
+    const facet = draft.facet as FacetType;
+    const node = <FacetEditor key={facet} parent={item.moduleType} facet={facet} title={title} fields={fields} redraw={redraw} persist={persist}
+      locked={locked || item.status === 'loading'}>
+      {item.status === 'loading' && <p className="notice">This component is generating. Your draft is preserved; save explicitly after generation finishes.</p>}
+      {tools}
+    </FacetEditor>;
+    return <Content type={item.moduleType} rendered={rendered} mainKey={mainKey} controls={controls && { ...controls, editing: { facet, node } }} />;
+  }
   if (editable && fields && isParentType(item.moduleType)) return <>
     <LiveEditor parent={item.moduleType} title={title} fields={fields} redraw={redraw} persist={persist}
       opened={(draft?.fieldStored?.[item.id] as ParentContent | undefined) ?? parentContentOf(item.content)} locked={locked || item.status === 'loading'} />
@@ -499,14 +520,23 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
         <ActionIcon name="delete" />Delete</button>}
     </div>;
   };
-  const editor = (item: Component, title: string) => editingId === item.id && draft && <>
-    <ComponentBody item={item} title={title} editable draft={draft} locked={locked} persist={persist} redraw={redraw} mainKey={mainKey} />
-    <div className="component-tools">
-      <button disabled={busy} onClick={() => void cancel()}>Cancel</button>
-      <button className="primary" disabled={busy} onClick={() => void save()}>{draft.pending ? 'Try saving again' : 'Save'}</button>
-    </div>
-    {draft.error && <p className="notice error" role="alert">{draft.error}</p>}
-  </>;
+  const editor = (item: Component, title: string, controls?: FacetControls) => {
+    if (editingId !== item.id || !draft) return null;
+    const tools = <>
+      <div className="component-tools">
+        <button disabled={busy} onClick={() => void cancel()}>Cancel</button>
+        <button className="primary" disabled={busy} onClick={() => void save()}>{draft.pending ? 'Try saving again' : 'Save'}</button>
+      </div>
+      {draft.error && <p className="notice error" role="alert">{draft.error}</p>}
+    </>;
+    // A facet open on its own keeps its Save and Cancel below it (D10).
+    if (draft.facet) return <ComponentBody item={item} title={title} editable draft={draft} locked={locked} persist={persist} redraw={redraw}
+      mainKey={mainKey} controls={controls} tools={tools} />;
+    return <>
+      <ComponentBody item={item} title={title} editable draft={draft} locked={locked} persist={persist} redraw={redraw} mainKey={mainKey} />
+      {tools}
+    </>;
+  };
 
   // One card: its index tab (menu, then the family and label, which drags the
   // card and, clicked, ejects its actions beside it), its status only while
@@ -521,6 +551,8 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
     const retryFacet = (facet: FacetType) => void run(() => generate({ scope: 'facet', componentId: item.id, facet }, true));
     const controls: FacetControls | undefined = isParentType(item.moduleType) ? { title, disabled: disabled || working || item.status === 'loading',
       onDelete: removeFacet, onRetry: retryFacet, asking: askingFacet?.id === item.id ? askingFacet : null,
+      // A facet with content edits on its own (D10, 0.7.5).
+      onEdit: facet => { setAskingFacet(null); begin(item.id, facet); },
       setAsking: (facet, kind = 'delete') => setAskingFacet(facet ? { id: item.id, facet, kind } : null),
       retrying: item.retryingFacet, failed: item.failedFacet } : undefined;
     // While it generates, a card is only its tab, with a spark running round
@@ -577,7 +609,7 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
       </div>
       {!empty && <div className="card-fold"><div className="card-fold-inner" inert={isFolded || undefined}>
         {item.status === 'failed' && <p className="card-status"><span className="list-status" data-status="failed">Generation failed</span></p>}
-        {editor(item, title) || <Reveal status={item.status} title={title} failedFacet={item.failedFacet}
+        {editor(item, title, controls) || <Reveal status={item.status} title={title} failedFacet={item.failedFacet}
           facet={item.retryingFacet && isParentType(item.moduleType) && isFacetOf(item.moduleType, item.retryingFacet)
             ? { id: item.retryingFacet, name: facetLabel(item.moduleType, item.retryingFacet) } : undefined}><ComponentBody item={item} title={title} editable={false} draft={draft} locked={locked} redraw={redraw} persist={persist} mainKey={mainKey} controls={controls} /></Reveal>}
       </div></div>}

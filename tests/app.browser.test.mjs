@@ -2593,7 +2593,7 @@ test('0.7.3: a facet’s own Retry beside its Delete, a tag’s remove keeping i
   await examples.hover();
   const retry = a.page.getByRole('button', { name: 'Retry Examples from German 1', exact: true });
   assert.deepEqual(await examples.locator('.facet-actions button').evaluateAll(buttons => buttons.map(button => button.getAttribute('aria-label'))),
-    ['Retry Examples from German 1', 'Delete Examples from German 1']);
+    ['Edit Examples from German 1', 'Retry Examples from German 1', 'Delete Examples from German 1']);
   // Asking, the question stands left of its buttons and Cancel lands under the pointer (0.7.3).
   const underPointer = async (button, confirm) => {
     const box = await button.boundingBox();
@@ -2900,4 +2900,86 @@ test('0.7.5: the parent editor in place: names and top line locked, no markdown 
   assert.equal((await stored()).core, '');
   assert.equal(await card.locator('.entry-heading').textContent(), 'Englischbank', 'an emptied core shows its top line');
   await a.page.screenshot({ path: 'artifacts/v0.7.4-live-editor-saved.png' });
+});
+
+test('0.7.5: a facet’s own Edit opens that facet alone in place, with its toolbar, Save and Cancel, and saves only that facet', { timeout: 60000 }, async (t) => {
+  const directory = await mkdtemp(join(tmpdir(), 'vocabularium-facet-edit-browser-'));
+  const application = await createTestApplication(t); await application.start();
+  const a = await launch(join(directory, 'a'));
+  t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
+  await a.page.setViewportSize({ width: 1280, height: 1400 });
+  const store = application.store;
+  const session = { installationId: 'fixture', sessionId: 'facet-edit', epoch: 1 };
+  await store.openSession('facet-edit-session', session);
+  const { pageId } = await store.capture('facet-edit-capture', { session, mainKey: 'bank', snapshot: await store.snapshot() });
+  const first = (await store.page(pageId)).components.find(item => item.moduleType === 'german');
+  const { antonyms, ...facets } = BANK.facets;
+  await store.stage(first.attemptId, staged({ core: BANK.core, facets }));
+  await store.publish('facet-edit-publish', { attemptId: first.attemptId, session });
+  const german = async () => (await store.page(pageId)).components.find(item => item.moduleType === 'german');
+  const stored = async () => (await german()).content.blocks[0];
+  await signIn(a.page);
+  await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
+  const card = componentArticle(a.page, 'German');
+  const synonyms = card.locator('.facet[data-facet="synonyms"]');
+  await synonyms.waitFor();
+
+  // Edit sits beside Retry and Delete, for a facet with content.
+  await synonyms.hover();
+  assert.deepEqual(await synonyms.locator('.facet-actions button').evaluateAll(buttons => buttons.map(button => button.getAttribute('aria-label'))),
+    ['Edit Synonyms from German', 'Retry Synonyms from German', 'Delete Synonyms from German']);
+  await a.page.getByRole('button', { name: 'Edit Synonyms from German', exact: true }).click();
+
+  // That facet alone becomes an editor in place, focused, with its toolbar and its Save and Cancel below it.
+  const text = card.getByRole('textbox', { name: 'Synonyms, German', exact: true });
+  await text.waitFor();
+  assert.equal(await card.getByRole('textbox').count(), 1, 'only that facet is open');
+  await waitFor(() => a.page.evaluate(() => document.activeElement?.getAttribute('aria-label') === 'Synonyms, German'), 'the focus is in its text');
+  assert.equal(await synonyms.locator('.facet-title .md-toolbar').count(), 1);
+  assert.deepEqual(await synonyms.locator('.component-tools button').allTextContents(), ['Cancel', 'Save']);
+  assert.equal(await card.locator(':scope > .card-fold .component-tools').count(), 1, 'one Save and Cancel, the facet\'s');
+  assert.deepEqual(await card.locator('.facet').evaluateAll(sections => sections.map(each => each.dataset.facet)), ['article', 'examples', 'synonyms'], 'in its place');
+  assert.match(await card.locator('.facet[data-facet="article"]').textContent(), /das Ufer · die Ufer/, 'the rest reads as before');
+  // It counts as editing the card: the other facets' actions and the card's Edit wait.
+  await card.locator('.facet[data-facet="article"]').hover();
+  assert.equal(await a.page.getByRole('button', { name: 'Edit Article from German', exact: true }).isDisabled(), true);
+  assert.equal(await a.page.getByRole('button', { name: 'Retry Article from German', exact: true }).isDisabled(), true);
+  assert.equal(await card.locator('.card-actions').count(), 0, 'the card\'s actions are put away');
+  await a.page.screenshot({ path: 'artifacts/v0.7.5-facet-edit.png' });
+
+  // Cancel restores everything.
+  await text.click(); await a.page.keyboard.type(', discarded');
+  await synonyms.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await card.getByRole('textbox').waitFor({ state: 'detached' });
+  assert.equal((await stored()).facets.synonyms, 'Böschung');
+  assert.equal(await synonyms.locator('.facet-body').textContent(), 'Böschung');
+
+  // Save writes only that facet, over the latest content: another installation's core edit meanwhile stays.
+  await synonyms.hover();
+  await a.page.getByRole('button', { name: 'Edit Synonyms from German', exact: true }).click();
+  await text.waitFor();
+  await waitFor(() => a.page.evaluate(() => document.activeElement?.getAttribute('aria-label') === 'Synonyms, German'), 'focused again');
+  await a.page.keyboard.type(', fest');
+  await a.page.keyboard.press('Shift+ArrowLeft'); await a.page.keyboard.press('Shift+ArrowLeft');
+  await a.page.keyboard.press('Shift+ArrowLeft'); await a.page.keyboard.press('Shift+ArrowLeft');
+  await synonyms.locator('.md-toolbar').getByRole('button', { name: 'Bold', exact: true }).click();
+  await store.savePage('facet-edit-elsewhere', { pageId, changes: [{ componentId: first.id, content: fieldEdit(await german(), 'Flussufer') }] });
+  await synonyms.getByRole('button', { name: 'Save', exact: true }).click();
+  await card.getByRole('textbox').waitFor({ state: 'detached' });
+  const saved = await stored();
+  assert.equal(saved.facets.synonyms, 'Böschung, **fest**');
+  assert.equal(saved.core, '1. Flussufer', 'the core changed elsewhere is kept');
+  assert.equal(saved.facets.article, 'das Ufer · die Ufer');
+  await waitFor(async () => (await synonyms.locator('.facet-body strong').count()) === 1, 'the card shows it');
+
+  // Emptied, the facet loses its content and leaves the card; its tag stays, bland.
+  await synonyms.hover();
+  await a.page.getByRole('button', { name: 'Edit Synonyms from German', exact: true }).click();
+  await text.waitFor();
+  await waitFor(() => a.page.evaluate(() => document.activeElement?.getAttribute('aria-label') === 'Synonyms, German'), 'focused again');
+  await a.page.keyboard.press('ControlOrMeta+a'); await a.page.keyboard.press('Backspace');
+  await synonyms.getByRole('button', { name: 'Save', exact: true }).click();
+  await synonyms.waitFor({ state: 'detached' });
+  assert.equal((await stored()).facets.synonyms, undefined);
+  assert.notEqual(await card.locator('.facet-tag[data-facet="synonyms"]').getAttribute('data-unfilled'), null);
 });

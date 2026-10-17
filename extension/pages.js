@@ -29,8 +29,9 @@ export function pageViews({ getAccount, renderView, refresh, send, applyState, n
   const inputs = () => draft ? Object.entries(draft.inputs ?? {}).filter(([, text]) => text.length) : [];
   const dirty = () => Boolean(draft && (changed().length || changedFields().length || inputs().length || (!draft.pageId && draft.mainKey)));
   // Editing is one card at a time (D04): the draft holds that component's
-  // text, or for a parent (D09), its core's and facets' markdown.
-  function begin(page, route, componentId) {
+  // text, or for a parent (D09), its core's and facets' markdown; with a
+  // facet (D10), only that facet is open.
+  function begin(page, route, componentId, facet) {
     const component = page.components.find(item => item.id === componentId);
     if (!component) return;
     draft = { route: identity(route), pageId: page.id, deckId: page.deckId, componentId, base: {}, texts: {} };
@@ -38,6 +39,7 @@ export function pageViews({ getAccount, renderView, refresh, send, applyState, n
     if (content) {
       const fields = draftOf(component.moduleType, content, component.facets ?? []);
       draft.fields = { [componentId]: fields }; draft.fieldBase = { [componentId]: JSON.stringify(fields) }; draft.fieldStored = { [componentId]: content };
+      if (facet && fields.facets[facet] !== undefined) draft.facet = facet;
     } else draft.base[componentId] = draft.texts[componentId] = blockText(component.content);
     persist();
   }
@@ -58,7 +60,9 @@ export function pageViews({ getAccount, renderView, refresh, send, applyState, n
       const component = page?.components.find(item => item.id === componentId);
       const stored = draft.fieldStored?.[componentId];
       if (!component || !stored) throw Object.assign(new Error('This module no longer exists; its draft can not be saved.'), { code: 'deleted' });
-      return { componentId, content: parentDocument(applyDraft(component.moduleType, stored, draft.fields[componentId], { facets: component.facets ?? [] })) };
+      const content = parentDocument(applyDraft(component.moduleType, stored, draft.fields[componentId], { facets: component.facets ?? [] }));
+      // A facet edited on its own (D10): the server takes only that facet, over what it has stored.
+      return { componentId, content, ...(draft.facet ? { facet: draft.facet } : {}) };
     });
     return { pageId: draft.pageId, changes: [...changed().map(componentId => ({ componentId, content: textBlocks(draft.texts[componentId]) })), ...fieldChanges] };
   }
@@ -153,7 +157,7 @@ export function pageViews({ getAccount, renderView, refresh, send, applyState, n
         try { const next = await send({ type: 'try-saving-again', operationId }); await applyState(next); }
         catch (error) { showError(error); }
       },
-      begin: componentId => { begin(page, hash, componentId); void refresh(); },
+      begin: (componentId, facet) => { begin(page, hash, componentId, facet); void refresh(); },
       save: () => save(page),
       cancel: async () => { await discard(); if (isNew) navigate(`deck/${deck.id}`); else void refresh(); },
       discardUnavailable: async () => { await discard(); navigate(''); },

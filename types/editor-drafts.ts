@@ -27,6 +27,9 @@ export type PageEditorDraft = {
   fields?: Record<string, FieldDraft>;
   fieldBase?: Record<string, string>;
   fieldStored?: Record<string, unknown>;
+  // A facet edited on its own (D10, 0.7.5): only it is open, and Save writes
+  // only its text into the component's latest content.
+  facet?: string;
   mainKey?: string;
   inputs?: Record<string, string>;
   pending?: EditorPendingPageSave;

@@ -71,16 +71,21 @@ function blockValue(value, message) {
 // core's top line as stored, the core's markdown and markdown for the
 // component's facets only; any text may be empty. A parent is never saved as
 // plain text, and one that never generated has no top line to edit.
-function parentEdit(component, value) {
+// With a facet (D10), only that facet's text is taken, over the stored content,
+// so an edit of the rest elsewhere meanwhile stays.
+function parentEdit(component, value, facet) {
   const stored = parentContentOf(component.content);
   if (!(value?.version === 1 && Array.isArray(value.blocks) && value.blocks.length === 1 && value.blocks[0]?.type === 'parent')) {
     fail('invalid', 'Edit this module in its editor.');
   }
   if (!stored) fail('invalid', 'Generate this module before editing it.');
   const { type, ...block } = value.blocks[0];
+  if (facet !== undefined && !(component.facets ?? []).includes(facet)) fail('invalid', 'This facet is no longer there.');
   let content;
-  try { content = validateParentContent(component.moduleType, block, { facets: component.facets ?? [] }); }
-  catch (error) { fail('invalid', error.message); }
+  try {
+    content = validateParentContent(component.moduleType, block, { facets: component.facets ?? [] });
+    if (facet !== undefined) content = validateParentContent(component.moduleType, withFacetText(stored, facet, content.facets[facet]), { facets: component.facets ?? [] });
+  } catch (error) { fail('invalid', error.message); }
   const line = header => header.kind === 'word' ? [header.kind, header.language, header.key, header.romanization ?? null] : [header.kind];
   if (JSON.stringify(line(content.header)) !== JSON.stringify(line(stored.header))) fail('invalid', "The module's top line can not be changed.");
   return parentDocument(content);
@@ -549,7 +554,8 @@ export class AccountStore {
         const component = page.components.find(component => component.id === change.componentId);
         if (!component) fail('deleted', 'A changed component no longer exists.');
         if (component.status === 'loading') fail('generating', 'A component is still generating. Your drafts are preserved.');
-        const content = isParentType(component.moduleType) ? parentEdit(component, change.content) : blockValue(change.content, 'Component content must be a text document.');
+        const content = isParentType(component.moduleType) ? parentEdit(component, change.content, change.facet)
+          : change.facet === undefined ? blockValue(change.content, 'Component content must be a text document.') : fail('invalid', 'Only a parent module has facets.');
         if (component.moduleType === 'main-key' && !blockText(content).trim()) fail('invalid', 'Main key can not be empty.');
         updates.push({ component, content });
       }

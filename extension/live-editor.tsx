@@ -67,9 +67,9 @@ function Toolbar({ editor, label }: { editor: Editor; label: string }) {
 
 // One part: its head (a facet's tab or the core's top line), then its text.
 // The toolbar shows in the head while the focus is anywhere in the part.
-function PartEditor({ value, label, editable, head, onChange, ...rest }: {
+function PartEditor({ value, label, editable, head, onChange, after, autofocus = false, ...rest }: {
   value: string; label: string; editable: boolean; head: (toolbar: ReactNode) => ReactNode; onChange: (markdown: string) => void;
-  className?: string; 'data-facet'?: string; 'data-unfilled'?: true;
+  after?: ReactNode; autofocus?: boolean; className?: string; 'data-facet'?: string; 'data-unfilled'?: true;
 }) {
   const changed = useRef(onChange);
   changed.current = onChange;
@@ -79,6 +79,7 @@ function PartEditor({ value, label, editable, head, onChange, ...rest }: {
     editable,
     enableInputRules: false,
     enablePasteRules: false,
+    autofocus: autofocus ? 'end' : false,
     immediatelyRender: true,
     editorProps: { attributes: { 'aria-label': label, role: 'textbox', 'aria-multiline': 'true', class: 'md md-editor' } },
     onUpdate: ({ editor: current }) => changed.current(fromEditorDoc(current.getJSON() as EditorNode))
@@ -89,17 +90,35 @@ function PartEditor({ value, label, editable, head, onChange, ...rest }: {
   return <section {...rest} data-focused={focused || undefined} onFocus={() => setFocused(true)} onBlur={leave}>
     {head(focused && editable && editor ? <Toolbar editor={editor} label={label} /> : null)}
     <EditorContent editor={editor} className="md-editor-frame" />
+    {after}
   </section>;
+}
+
+// The card redraws only when a facet flips between empty and having text,
+// so its tags and dimmed names follow what is typed.
+function useTyped(fields: FieldDraft, persist: () => void, redraw: () => void) {
+  const shape = () => JSON.stringify(Object.entries(fields.facets).map(([facet, text]) => [facet, hasText(text)]));
+  const typed = useRef(shape());
+  return () => { persist(); const now = shape(); if (now !== typed.current) { typed.current = now; redraw(); } };
+}
+
+// One facet edited on its own (D10, 0.7.5), in its place on the card: its tab
+// and toolbar, its text, then its Save and Cancel (`children`). The focus goes
+// into its text, since the Edit that opened it is gone.
+export function FacetEditor({ parent, facet, title, fields, locked, persist, redraw, children }: {
+  parent: ParentType; facet: FacetType; title: string; fields: FieldDraft; locked: boolean; persist: () => void; redraw: () => void; children: ReactNode;
+}) {
+  const changed = useTyped(fields, persist, redraw);
+  return <PartEditor className="facet facet-editing" data-facet={facet} data-unfilled={!hasText(fields.facets[facet]) || undefined}
+    value={fields.facets[facet] ?? ''} editable={!locked} autofocus label={`${facetLabel(parent, facet)}, ${title}`}
+    onChange={markdown => { fields.facets[facet] = markdown; changed(); }}
+    head={toolbar => <h3 className="facet-title"><FacetTab parent={parent} facet={facet} />{toolbar}</h3>} after={children} />;
 }
 
 export function LiveEditor({ parent, title, fields, opened, locked, persist, redraw }: {
   parent: ParentType; title: string; fields: FieldDraft; opened: ParentContent | null; locked: boolean; persist: () => void; redraw: () => void;
 }) {
-  // The card redraws only when a facet flips between empty and having text,
-  // so its tags and dimmed names follow what is typed.
-  const shape = () => JSON.stringify(Object.entries(fields.facets).map(([facet, text]) => [facet, hasText(text)]));
-  const typed = useRef(shape());
-  const changed = () => { persist(); const now = shape(); if (now !== typed.current) { typed.current = now; redraw(); } };
+  const changed = useTyped(fields, persist, redraw);
   const header = opened?.header;
   const coreLabel = `${header?.kind === 'sentence' ? 'Translation' : 'Meanings'}, ${title}`;
   return <div className="entry-content live-editor" role="group" aria-label={`Edit ${title}`}>

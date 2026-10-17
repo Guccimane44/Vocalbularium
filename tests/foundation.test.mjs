@@ -150,6 +150,24 @@ test('save arrival order wins for the same component and preserves different com
   assert.deepEqual(generated(await store.page(pageId)).map(text), ['B', 'C']);
 });
 
+test('a facet saved on its own takes only that facet over the stored content (D10)', async (t) => {
+  const store = await fixture(t);
+  const { pageId, page } = await capture(store);
+  await complete(store, page, a);
+  const [p1] = generated(await store.page(pageId));
+  const facet = p1.facets[0];
+  // Another installation edits the core meanwhile.
+  await store.savePage('core-elsewhere', { pageId, changes: [{ componentId: p1.id, content: fieldEdit(p1, 'elsewhere') }] });
+  const stale = fieldEdit(p1, 'stale');
+  stale.blocks[0] = { ...stale.blocks[0], facets: { [facet]: 'mine' } };
+  await store.savePage('facet-only', { pageId, changes: [{ componentId: p1.id, content: stale, facet }] });
+  const block = generated(await store.page(pageId))[0].content.blocks[0];
+  assert.equal(text(generated(await store.page(pageId))[0]), 'elsewhere', 'the core edited elsewhere stays');
+  assert.equal(block.facets[facet], 'mine');
+  await assert.rejects(store.savePage('facet-missing', { pageId, changes: [{ componentId: p1.id, content: stale, facet: 'no-such-facet' }] }),
+    { code: 'invalid', message: 'This facet is no longer there.' });
+});
+
 test('generation rejects an entire multi-component save; explicit resubmission is a new arrival', async (t) => {
   const store = await fixture(t);
   const { pageId, page } = await capture(store);
