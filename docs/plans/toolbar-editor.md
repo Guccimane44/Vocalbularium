@@ -1,6 +1,6 @@
 # Plan: an editor without markdown, a toolbar and a facet's own Edit (0.7.5)
 
-Proposed: 17 October 2026 (Europe/Berlin). Implements [D10](../architecture/traceability-map.md#entries), accepted by the owner on 17 October 2026 and applied to the specifications in increment 0. Tracker: [#167](https://github.com/Guccimane44/Vocalbularium/issues/167); milestone in [Actual Stages](https://app.notion.com/p/3fcbb1350208816382f8d2a2fb4fb0f8). Status: increment 0 merged in [#168](https://github.com/Guccimane44/Vocalbularium/pull/168) after the owner accepted D10 (17 October 2026); increment 1 (the toolbar editor) in review.
+Proposed: 17 October 2026 (Europe/Berlin). Implements [D10](../architecture/traceability-map.md#entries), accepted by the owner on 17 October 2026 and applied to the specifications in increment 0. Tracker: [#167](https://github.com/Guccimane44/Vocalbularium/issues/167); milestone in [Actual Stages](https://app.notion.com/p/3fcbb1350208816382f8d2a2fb4fb0f8). Status: increment 0 merged in [#168](https://github.com/Guccimane44/Vocalbularium/pull/168) after the owner accepted D10 (17 October 2026); increment 1 (the toolbar editor) merged in [#169](https://github.com/Guccimane44/Vocalbularium/pull/169); increment 2 (a facet's own Edit) in review.
 
 ## Outcome
 
@@ -35,6 +35,8 @@ D10 and C22 in the traceability map, the specifications, the scope rows `accepte
 
 - Edit beside Retry and Delete for a facet with content; that facet alone becomes an editor in place with the toolbar, Save and Cancel; the rest stays read-only.
 - It counts as editing the card: the other actions wait; drafts, the leave warning, save recovery and a save during generation as for a card. Save sends only that facet's change over the stored content.
+
+*Changed during increment 2 (17 October 2026):* a save's change gains an optional `facet`, and the server takes only that facet's text over the content it has stored. So the API and the extension upgrade together in 0.7.5; a 0.7.4 API would save the whole component.
 - Browser E2E: edit one facet and save; Cancel; emptying it; the card's Edit unchanged; a save while the card generates.
 
 ### 3. Verification and delivery (0.7.5)
