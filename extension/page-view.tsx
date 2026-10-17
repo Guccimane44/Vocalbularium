@@ -3,7 +3,7 @@ import type { CSSProperties, ReactNode } from 'react';
 import type { Component, GenerationTarget, ModuleInstance, Page } from '@vocabularium/contracts';
 import { CATALOG, isContentType, isModuleType } from '@vocabularium/domain/page-modules';
 import { blockText, mainKeyOf } from '@vocabularium/domain/pages';
-import { emphasise, renderContent, renderParent } from '@vocabularium/domain/render';
+import { renderContent, renderParent } from '@vocabularium/domain/render';
 import type { Rendered } from '@vocabularium/domain/render';
 import type { MdBlock, MdInline } from '@vocabularium/domain/markdown';
 import { parentContentOf } from '@vocabularium/domain/content';
@@ -120,10 +120,11 @@ function NewPageEditor({ draft, deck, busy, persist, save, cancel }: Pick<Props,
 // One facet's content (D08): examples beside their translations, or its lines.
 // Markdown as the domain reads it (D09, amended): paragraphs, lists, bold,
 // italic, inline code and highlight, drawn as elements, never as HTML. The
-// main key is emphasised wherever it occurs in the text.
+// main key's yellow is a stored highlight like any other (D10, amended a fourth time).
 function Inline({ runs, mainKey }: { runs: readonly MdInline[]; mainKey: string }) {
   return <>{runs.map((run, index) => {
-    if (run.type === 'text') return <Fragment key={index}>{emphasise(run.text, mainKey).map((part, at) => part.key ? <mark key={at}>{part.text}</mark> : part.text)}</Fragment>;
+    // The main key's yellow is a stored highlight (D10, amended a fourth time): the card adds none of its own.
+    if (run.type === 'text') return <Fragment key={index}>{run.text}</Fragment>;
     if (run.type === 'break') return <br key={index} />;
     if (run.type === 'code') return <code key={index}>{run.text}</code>;
     const children = <Inline runs={run.children} mainKey={mainKey} />;

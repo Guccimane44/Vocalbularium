@@ -7,7 +7,9 @@ import { randomUUID } from 'node:crypto';
 import { Generation } from '../src/server/generation.mjs';
 import { OpenCodeProvider, parentInstructions, parentSchema } from '../src/server/opencode.mjs';
 import { generateComponents } from '@vocabularium/domain/modules';
-import { formatContent } from '@vocabularium/domain/content';
+import { formatContent, withKeyHighlighted } from '@vocabularium/domain/content';
+// Generated content as stored: formatted, with the main key highlighted (D10, amended a fourth time).
+const keyed = (value, key = 'bank') => withKeyHighlighted(formatContent(value), key);
 import { plainLines } from '@vocabularium/domain/markdown';
 import { isContentType } from '@vocabularium/domain/page-modules';
 import { confirmed, generated, resultFor, sentenceResult, text, textBlocks, useModules, wordResult, staged } from './helpers/pages.mjs';
@@ -292,7 +294,7 @@ test('a parent generates its core and the facets that apply to the input, in one
   const sentencePage = await capture('We sat on the bank.'); await finish(store, generation);
   assert.deepEqual(requests.map(request => [request.module.type, request.facets]),
     [['german', ['article', 'examples', 'synonyms', 'antonyms']], ['german', ['examples']]]);
-  assert.deepEqual(await data(store, wordPage), [{ type: 'parent', ...formatContent(BANK) }], 'stored as one parent block of markdown; a facet left out, like Synonyms, has none');
+  assert.deepEqual(await data(store, wordPage), [{ type: 'parent', ...keyed(BANK) }], 'stored as one parent block of markdown; a facet left out, like Synonyms, has none');
   assert.equal((await outcome(store, sentencePage))[0][1], 'completed', 'a parent never completes empty for a sentence');
   assert.equal((await store.page(sentencePage.id)).interpretation, 'sentence');
 });
@@ -302,7 +304,7 @@ test('a parent drops entries of facets it does not have, and fails on a result o
     wordResult(['Ufer'], { examples: [{ translation: 'only a translation' }] })];
   const { store, generation, capture } = await parentFixture(t, { interpret: async () => word, generate: async () => replies.shift() }, ['article', 'examples']);
   const kept = await capture('bank'); await finish(store, generation);
-  assert.deepEqual(await data(store, kept), [{ type: 'parent', ...formatContent(BANK) }]);
+  assert.deepEqual(await data(store, kept), [{ type: 'parent', ...keyed(BANK) }]);
   for (let index = 0; index < 3; index++) {
     const wrong = await capture('bank'); await finish(store, generation);
     assert.deepEqual(await outcome(store, wrong), [['', 'failed']], `refused reply ${index + 2}`);
@@ -640,15 +642,15 @@ test('a facet’s own Retry regenerates that facet’s markdown for the core alr
     { code: 'confirmation_required' });
   const { attemptIds } = await confirmed(store, randomUUID(), { pageId: page.id, target: { scope: 'facet', componentId: (await german()).id, facet: 'examples' }, session });
   let current = await german();
-  assert.deepEqual(current.content.blocks[0], { type: 'parent', ...formatContent(BANK) });
+  assert.deepEqual(current.content.blocks[0], { type: 'parent', ...keyed(BANK) });
   assert.equal(current.status, 'loading');
   assert.equal(current.retryingFacet, 'examples');
   await generation.start(page.id, attemptIds); await finish(store, generation);
   assert.deepEqual(requests.at(-1).core, BANK.core, 'the provider writes for the core already there');
   assert.deepEqual(requests.at(-1).facets, ['examples']);
   assert.equal(interpretations, 1, 'the page’s reading of the main key is kept');
-  const formatted = formatContent(BANK);
-  assert.deepEqual(await stored(), { type: 'parent', ...formatted, facets: { article: formatted.facets.article, examples: '1. The bank was steep.\n   *Das Ufer war steil.*' } },
+  const formatted = keyed(BANK);
+  assert.deepEqual(await stored(), { type: 'parent', ...formatted, facets: { article: formatted.facets.article, examples: '1. The ==bank== was steep.\n   *Das Ufer war steil.*' } },
     'only the facet’s markdown changes, formatted from its JSON');
   current = await german();
   assert.equal(current.status, 'completed');

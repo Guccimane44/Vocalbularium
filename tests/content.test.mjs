@@ -155,6 +155,14 @@ test('the live editor’s document converts to and from the markdown subset, rou
   assert.deepEqual(plainLines('[big]{size=large} word'), ['big word'], 'the span leaves no trace in plain text');
   assert.deepEqual(parse('[x]{highlight=blue}'), [{ type: 'paragraph', children: [{ type: 'span', highlight: 'blue', children: [{ type: 'text', text: 'x' }] }] }]);
   assert.deepEqual(parse('[x]{highlight=yellow}'), [{ type: 'paragraph', children: [{ type: 'text', text: '[x]{highlight=yellow}' }] }], 'yellow is written ==, never as a span');
+  // The main key as a stored highlight (D10, amended a fourth time).
+  const { highlightKey } = await import('@vocabularium/domain/markdown');
+  assert.equal(highlightKey('1. We sat on the bank.\n   *Wir saßen am Ufer.*', 'bank'), '1. We sat on the ==bank==.\n   *Wir saßen am Ufer.*');
+  assert.equal(highlightKey('Bank and banks', ' bank '), '==Bank== and ==bank==s', 'ignoring case, as the card matched');
+  assert.equal(highlightKey('`bank` and ==bank==', 'bank'), '`bank` and ==bank==', 'code and existing highlights stay');
+  assert.equal(highlightKey(highlightKey('the bank', 'bank'), 'bank'), 'the ==bank==', 'applied twice, the same');
+  assert.equal(highlightKey('**bank**', 'bank'), '**==bank==**');
+  assert.equal(highlightKey('Ufer', 'bank'), 'Ufer', 'nothing to mark leaves the text as it was');
   // No markdown in the editor (D10): whatever is typed reads back as typed.
   const { parseMarkdown } = await import('@vocabularium/domain/markdown');
   for (const literal of ['**bold?**', '*star* and _under_', '- a dash', '+ a plus', '1. a number', '`tick`', '==mark==', 'back\\slash', '[x]{size=large}']) {

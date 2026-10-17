@@ -1,10 +1,10 @@
 import type { InputInterpretation, ParentCore } from '@vocabularium/contracts';
 import { applicableFacets, isFacetOf, isParentType } from './parents.js';
 import type { FacetType, ParentType } from './parents.js';
-import { formatContent, providerCore, withFacetText } from './content.js';
+import { formatContent, providerCore, withFacetText, withKeyHighlighted } from './content.js';
 import type { ParentContent } from './content.js';
 import { emptyEntry, validateGenerated, validateGeneratedFacet } from './generated.js';
-import { formatFacet } from './markdown.js';
+import { formatFacet, highlightKey } from './markdown.js';
 
 // The run's reading of the main key (D08): word or phrase, or sentence. It no
 // longer chooses a source language; earlier runs stored one, which is ignored.
@@ -60,7 +60,8 @@ export async function generateComponent(input: {
   if (generated.core.kind !== (input.interpretation.inputType === 'sentence' ? 'sentence' : 'word')) {
     throw new Error('A module returned content in an unexpected format: the core does not match the input.');
   }
-  return formatContent(generated);
+  // The main key is a stored highlight in what was generated (D10, amended a fourth time).
+  return withKeyHighlighted(formatContent(generated), input.mainKey);
 }
 
 // A facet's own Retry (0.7.3): the facet alone, written for the core already
@@ -88,7 +89,7 @@ export async function generateFacet(input: {
   let checked: unknown;
   try { checked = validateGeneratedFacet(module.type, facet, entry); }
   catch (error) { throw new Error(`A module returned content in an unexpected format: ${(error as Error).message}`); }
-  return withFacetText(existing, facet, formatFacet(facet, checked));
+  return withFacetText(existing, facet, highlightKey(formatFacet(facet, checked), input.mainKey));
 }
 
 // The core's own Retry (D10, amended; 0.7.5): the core alone, generated with

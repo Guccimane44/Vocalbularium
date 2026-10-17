@@ -1,5 +1,5 @@
 import type { BlockDocument, GeneratedParent, ParentBlock, ParentCore, ParentHeader } from '@vocabularium/contracts';
-import { formatCore, formatFacets, hasText, plainLines } from './markdown.js';
+import { formatCore, formatFacets, hasText, highlightKey, plainLines } from './markdown.js';
 import { facetsOf, isFacetOf, ordered, PARENTS } from './parents.js';
 import type { FacetType, ParentType } from './parents.js';
 
@@ -32,6 +32,11 @@ export function formatContent(generated: GeneratedParent): ParentContent {
   const header: ParentHeader = core.kind === 'word'
     ? { kind: 'word', language: core.language, key: core.key, ...(core.romanization ? { romanization: core.romanization } : {}) } : { kind: 'sentence' };
   return { header, core: formatCore(core), facets: formatFacets(generated) };
+}
+// The main key highlighted in the core and every facet (D10, amended a fourth time).
+export function withKeyHighlighted(content: ParentContent, key: string): ParentContent {
+  return { header: content.header, core: highlightKey(content.core, key),
+    facets: Object.fromEntries(Object.entries(content.facets).map(([facet, text]) => [facet, highlightKey(text as string, key)])) };
 }
 // The core as the provider reads it for a facet's own Retry: the top line and
 // the core's lines as meanings, or its text as the translation.
