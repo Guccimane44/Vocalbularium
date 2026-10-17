@@ -1,0 +1,61 @@
+# Plan: an editor without markdown, a toolbar and a facet's own Edit (0.7.5)
+
+Proposed: 17 October 2026 (Europe/Berlin). Implements [D10](../architecture/traceability-map.md#entries). Tracker: [#167](https://github.com/Guccimane44/Vocalbularium/issues/167); milestone in [Actual Stages](https://app.notion.com/p/3fcbb1350208816382f8d2a2fb4fb0f8). Status: increment 0 (this PR) in review.
+
+## Outcome
+
+Editing a parent card no longer involves markdown. What the user types stays as typed, and formatting comes from a toolbar beside the part being edited. A facet with content can also be edited on its own, without opening the whole card. The card, the stored content and generation are unchanged from 0.7.4.
+
+## Owner decisions
+
+From the owner's answers in chat on 17 October 2026:
+
+1. **No markdown in the editor:** typed `**`, `*`, `-`, `1.`, `` ` `` and `==` stay as characters, with no live formatting ([pages and editing](../specs/pages-and-editing.md#editing-generated-components)).
+2. **Toolbar:** bold, italic, highlight, inline code, bulleted list and numbered list; no font or size choice. Cmd/Ctrl+B and +I stay.
+3. **Placement:** beside the focused facet, on its rule next to its tab (the core's toolbar sits on its top line).
+4. **Facet Edit:** beside Retry and Delete; edits that facet alone, in place, with its own Save and Cancel ([editing one facet](../specs/pages-and-editing.md#editing-one-facet)).
+5. **Release:** 0.7.5. 0.7.4 is accepted as built at `8fa0caa`.
+
+## Increments
+
+Stacked PRs, each reviewed and green in CI.
+
+### 0. Record the decision and the plan (this PR)
+
+D10 and C22 in the traceability map, the specifications, the scope rows `accepted for 1.0`, this plan, the tracker and the Notion records.
+
+### 1. Toolbar editor without markdown
+
+- TipTap without its markdown input rules or the shortcuts beyond Cmd/Ctrl+B and +I; typed markdown characters are stored escaped and shown as typed.
+- The toolbar: six buttons with pressed states and names, shown beside the focused part only, keeping the focus in the text.
+- Pasting keeps the supported formatting; pasted markdown stays characters.
+- Browser E2E: typed markdown stays literal in the editor, the stored text and the card; each button toggles its formatting; the toolbar follows the focus; keyboard use.
+
+### 2. A facet's own Edit
+
+- Edit beside Retry and Delete for a facet with content; that facet alone becomes an editor in place with the toolbar, Save and Cancel; the rest stays read-only.
+- It counts as editing the card: the other actions wait; drafts, the leave warning, save recovery and a save during generation as for a card. Save sends only that facet's change over the stored content.
+- Browser E2E: edit one facet and save; Cancel; emptying it; the card's Edit unchanged; a save while the card generates.
+
+### 3. Verification and delivery (0.7.5)
+
+- Browser E2E across capture, cards, the card editor and a facet's Edit.
+- Version 0.7.5, the upgrade note in scope (no migration expected), scope rows `implemented`, D10 Implemented in Notion; candidate package and evidence. Owner acceptance is recorded separately.
+
+## Acceptance criteria
+
+1. Typing `**word**`, `- item` or `==mark==` in any editor leaves those characters as typed; after Save the card shows them as typed.
+2. Each toolbar button applies and removes its formatting on the selection, and shows whether it applies at the cursor; Cmd/Ctrl+B and +I still work.
+3. The toolbar shows only beside the focused facet or the core, never two at once.
+4. A facet with content offers Edit beside Retry and Delete; it edits that facet alone and Save changes only that facet.
+5. While a facet is edited, the card's Edit, the other facets' actions and the other cards wait; Cancel restores everything.
+6. Every editor and toolbar button works from the keyboard and is named.
+
+## Risks
+
+- **Escaping:** characters the user types must round-trip without turning into formatting; the existing serializer escapes them, and increment 1 adds tests for each.
+- **Facet save:** a facet-only save must not overwrite a concurrent change to the rest of the component; it applies over the stored content like the card's Save.
+
+## Not in this milestone
+
+Font and size choices (they would need storage beyond markdown); editing the core alone; changes to generation or the card's look.
