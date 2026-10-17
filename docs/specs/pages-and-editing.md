@@ -128,7 +128,7 @@ Since 0.7.4 a parent card is edited in place: **Edit** turns the core and each f
 - **Where it shows:** on the focused facet's rule, beside its tab, or on the core's top line while the core is focused; one toolbar at a time, and none while no part is focused. Using it keeps the focus in the text.
 - **Pasting** keeps the supported formatting and drops the rest; pasted markdown stays as its characters.
 
-The editor has no structure of its own: no fields, item numbers or separators beyond what the text holds.
+The editor has no structure of its own: no fields, item numbers or separators beyond what the text holds. It looks as the card will (D10, amended): each part in its card styling, such as a numbered list's numbers in the family colour in their own column, the Examples in the larger display font with each translation in soft italics, so what the user sees while editing is what the card shows after **Save**.
 
 - **Shown, not editable:** the module's name in its tab, each facet's name, and the core's top line with the key's language, the key and its romanization.
 - **Editors:** one for the core's meanings or translation, then one per facet the card has, in the parent's order, under its name. A facet without content keeps its place with an empty editor and a dimmed name, to be filled.
@@ -138,6 +138,14 @@ The editor has no structure of its own: no fields, item numbers or separators be
 ### Editing one facet
 
 Since 0.7.5 a facet with content has its own **Edit** beside its **Retry** and **Delete** ([D10](../architecture/traceability-map.md#entries)). It turns that facet alone into an editor in place, under its tab, with the toolbar and its own **Save** and **Cancel** below it; the core and the other facets stay as they are, read-only. It counts as editing the card: the card's **Edit**, the other facets' actions and the tags' remove wait, as do the other cards ([editing a component](#editing-a-component)). **Save** writes only that facet's text into the component, over its content as the server has it, so an edit of the rest from another installation meanwhile stays; emptying it removes the facet's content, as in the card's editor. Drafts, the leave warning, save recovery and a save during generation work as for a card. A facet without content has no **Edit** of its own; the card's **Edit** fills it.
+
+### Editing and retrying the core
+
+Since 0.7.5 the core, a parent's meanings or translation, has its own **Edit** and **Retry** on its top line, placed as a facet's are beside its tab and shown while the core is pointed at or focused ([D10](../architecture/traceability-map.md#entries), amended). The top line itself, the key's language and the key with its romanization, is never editable.
+
+- **Edit** turns the core alone into an editor in place under its top line, with the toolbar there and its own **Save** and **Cancel** below it; the facets stay as they are, read-only. It works as a facet's own **Edit** does ([editing one facet](#editing-one-facet)): it counts as editing the card, and **Save** writes only the core over the component's content as the server has it.
+- **Retry** regenerates the core alone ([capture and generation](capture-and-generation.md#retrying-the-core)); the facets stay as they are. With content it asks "Are you sure?" beside the top line, as a facet's **Retry** does; while it runs, the spark runs round the top line.
+- The card's **Edit** still edits the core and every facet together.
 
 ## Editing a component
 
