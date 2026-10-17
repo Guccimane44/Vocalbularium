@@ -302,10 +302,7 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
 .md code { padding: 0 4px; border-radius: 4px; font: 0.92em/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; background: color-mix(in srgb, var(--ink) 7%, transparent); }
 .md .md-highlight { background: var(--fam-tint, var(--fam-notes-tint)); color: inherit; border-radius: 3px; padding: 0 2px; }
 .md.reading { font: 400 19px/1.55 var(--font-display); }
-.facet[data-facet="examples"] .md ol { gap: 10px; }
-.facet[data-facet="examples"] .md li { font: 400 18px/1.45 var(--font-display); }
-.facet[data-facet="examples"] .md ol > li::before { line-height: 26px; }
-.facet[data-facet="examples"] .md li em { color: var(--ink-soft); font: italic 400 15px/1.5 var(--font-text); }
+/* The Examples are plain text like every other facet (D10, amended again). */
 
 /* The live editor (D09, amended): each part edits in place, in its reading
    type, with a soft underline in the family colour and a focus ring; the
@@ -331,6 +328,16 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
 /* A facet edited on its own (D10): its Save and Cancel right below its text. */
 .facet-editing .component-tools { margin-top: 2px; }
 .entry-heading-text { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+/* A size and a font the user set (D10, amended again), on the card and in the editor. */
+.md-size-small { font-size: .85em; }
+.md-size-large { font-size: 1.25em; }
+.md-font-display { font-family: var(--font-display); }
+.md-font-mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .92em; }
+.md-font-mono.md-size-large { font-size: 1.15em; }
+.md-choice { width: auto; height: 24px; padding: 0 2px; border: 1px solid var(--line-control, var(--line)); border-radius: 6px; background: var(--surface);
+  color: var(--ink-muted); font: 500 12px/1 var(--font-text); cursor: pointer; }
+.md-choice:hover { color: var(--fam, var(--fam-notes)); }
+.md-choice:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
 /* The formatting toolbar (D10, 0.7.5): beside the focused part, on its
    facet's rule or the core's top line, at the end of that row. */
 .md-toolbar { display: inline-flex; gap: 2px; margin-left: auto; animation: tools-in var(--dur-instant) ease-out; }

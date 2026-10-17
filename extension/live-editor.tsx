@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { FocusEvent, ReactNode } from 'react';
-import { EditorContent, mergeAttributes, useEditor, useEditorState } from '@tiptap/react';
+import { EditorContent, Mark, mergeAttributes, useEditor, useEditorState } from '@tiptap/react';
 import type { Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Code from '@tiptap/extension-code';
@@ -27,6 +27,14 @@ import { FacetTab } from './facet-tags.tsx';
 
 // Without the shortcuts beyond bold and italic (D10): the toolbar is the way.
 const quiet = { addKeyboardShortcuts: () => ({}) };
+// A size or a font on a stretch of text (D10, amended again), drawn with the
+// card's classes and written as the markdown's bracketed span (markdown.ts).
+const valueMark = (name: 'size' | 'font') => Mark.create({
+  name,
+  addAttributes: () => ({ value: { default: null, parseHTML: element => element.getAttribute(`data-${name}`), renderHTML: () => ({}) } }),
+  parseHTML: () => [{ tag: `span[data-${name}]` }],
+  renderHTML: ({ mark, HTMLAttributes }) => ['span', mergeAttributes(HTMLAttributes, { [`data-${name}`]: mark.attrs.value, class: `md-${name}-${mark.attrs.value}` }), 0]
+});
 // TipTap with only the subset: no headings, quotes, code blocks, rules,
 // strikethrough, underline or links, and no blank line added after a list.
 // Markdown typed or pasted never formats (enableInputRules and
@@ -34,7 +42,7 @@ const quiet = { addKeyboardShortcuts: () => ({}) };
 const EXTENSIONS = [
   StarterKit.configure({ heading: false, blockquote: false, codeBlock: false, horizontalRule: false, strike: false, underline: false,
     link: false, trailingNode: false, code: false, bulletList: false, orderedList: false }),
-  Code.extend(quiet), Highlight.extend(quiet), BulletList.extend(quiet),
+  Code.extend(quiet), Highlight.extend(quiet), BulletList.extend(quiet), valueMark('size'), valueMark('font'),
   // The card's number column counts from the list's start (page-view.css).
   OrderedList.extend({ ...quiet, renderHTML({ node, HTMLAttributes }) {
     return ['ol', mergeAttributes(HTMLAttributes, { style: `--start: ${Number(node.attrs.start ?? 1) - 1}` }), 0];
@@ -57,11 +65,25 @@ const TOOLS = [
     icon: <><path d="M10 7h10M10 12h10M10 17h10" /><path d="M4 6l1-1v4M4 14h2l-2 3h2" /></> }
 ] as const;
 
+// The size and font choices (D10, amended again): each shows what applies at
+// the cursor and sets it on the selected text, or on what is typed next.
+const CHOICES = [
+  { name: 'size', label: 'Text size', options: [['small', 'Small'], ['', 'Normal'], ['large', 'Large']] },
+  { name: 'font', label: 'Font', options: [['', 'Text'], ['display', 'Display'], ['mono', 'Mono']] }
+] as const;
+const choose = (editor: Editor, name: 'size' | 'font', value: string) =>
+  value ? editor.chain().focus().setMark(name, { value }).run() : editor.chain().focus().unsetMark(name).run();
+
 // Each button says whether its formatting applies at the cursor, and keeps
 // the focus in the text when clicked.
 function Toolbar({ editor, label }: { editor: Editor; label: string }) {
   const active = useEditorState({ editor, selector: ({ editor: current }) => TOOLS.map(tool => current.isActive(tool.name)) });
+  const chosen = useEditorState({ editor, selector: ({ editor: current }) => CHOICES.map(choice => String(current.getAttributes(choice.name).value ?? '')) });
   return <span className="md-toolbar" role="toolbar" aria-label={`Formatting, ${label}`}>
+    {CHOICES.map((choice, index) => <select key={choice.name} className="md-choice" data-choice={choice.name} aria-label={choice.label} title={choice.label}
+      value={chosen[index]} onChange={event => choose(editor, choice.name, event.target.value)}>
+      {choice.options.map(([value, text]) => <option key={value} value={value}>{text}</option>)}
+    </select>)}
     {TOOLS.map((tool, index) => <button key={tool.name} type="button" className="md-tool" data-tool={tool.name} aria-label={tool.label}
       aria-pressed={active[index]} title={tool.label} onMouseDown={event => event.preventDefault()} onClick={() => tool.run(editor)}>
       <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">{tool.icon}</svg>

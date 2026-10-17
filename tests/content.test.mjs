@@ -144,9 +144,17 @@ test('the live editor’s document converts to and from the markdown subset, rou
   assert.equal(written, 'both **_loud_** 1. not a list \\*star\\*\n\n- ==one== \n  nested', 'marks close in order, spaces stay outside them, nested items flatten');
   assert.deepEqual(plainLines(written), ['both loud 1. not a list *star*', 'one']);
   assert.equal(fromEditorDoc({ type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: '1. starts like a list' }] }] }), '1\\. starts like a list');
+  // Size and font (D10, amended again): a bracketed span, read and written back the same way.
+  for (const text of ['[big]{size=large} and [code-ish]{font=mono}', '[**both**]{size=small font=display}', '1. [one]{size=large}\n2. two'])
+    assert.equal(fromEditorDoc(toEditorDoc(text)), text, text);
+  const { parseMarkdown: parse } = await import('@vocabularium/domain/markdown');
+  assert.deepEqual(parse('[big]{size=large font=display}'), [{ type: 'paragraph', children: [{ type: 'span', size: 'large', font: 'display', children: [{ type: 'text', text: 'big' }] }] }]);
+  for (const literal of ['[not]{size=huge}', '[x]{colour=red}', '[open', '[a] {size=large}'])
+    assert.deepEqual(parse(literal), [{ type: 'paragraph', children: [{ type: 'text', text: literal }] }], `${literal} stays text`);
+  assert.deepEqual(plainLines('[big]{size=large} word'), ['big word'], 'the span leaves no trace in plain text');
   // No markdown in the editor (D10): whatever is typed reads back as typed.
   const { parseMarkdown } = await import('@vocabularium/domain/markdown');
-  for (const literal of ['**bold?**', '*star* and _under_', '- a dash', '+ a plus', '1. a number', '`tick`', '==mark==', 'back\\slash']) {
+  for (const literal of ['**bold?**', '*star* and _under_', '- a dash', '+ a plus', '1. a number', '`tick`', '==mark==', 'back\\slash', '[x]{size=large}']) {
     const stored = fromEditorDoc({ type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: literal }] }] });
     assert.deepEqual(parseMarkdown(stored), [{ type: 'paragraph', children: [{ type: 'text', text: literal }] }], `${literal} → ${stored}`);
   }
