@@ -2794,8 +2794,19 @@ test('0.7.5: the parent editor in place: names and top line locked, no markdown 
   await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
   const card = componentArticle(a.page, 'German');
   await card.locator('.entry-core').waitFor();
+  // The editor looks as the card will (D10, amended): the same number column, fonts and colours.
+  const looks = scope => scope.evaluate(node => {
+    const style = (element, pseudo) => { const css = getComputedStyle(element, pseudo); return [css.fontFamily, css.fontSize, css.fontStyle, css.color, css.fontWeight, css.lineHeight]; };
+    const core = node.querySelector('.entry-core li, .live-core li');
+    const example = node.querySelector('.facet[data-facet="examples"] li');
+    return { coreNumber: style(core, '::before'), coreText: style(core), exampleNumber: style(example, '::before'), example: style(example),
+      translation: style(example.querySelector('em')), synonyms: style(node.querySelector('.facet[data-facet="synonyms"] p')) };
+  });
+  const onCard = await looks(card);
   await (await cardButton(a.page, 'Edit German')).click();
   const editor = card.getByRole('group', { name: 'Edit German', exact: true });
+  await editor.waitFor();
+  assert.deepEqual(await looks(card), onCard, 'what is edited looks as the card shows it');
   await editor.waitFor();
   const part = name => editor.getByRole('textbox', { name: `${name}, German`, exact: true });
 
