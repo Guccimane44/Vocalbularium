@@ -1,5 +1,5 @@
-import { blockText, noteDocument, textBlocks } from '@vocabularium/domain/pages';
-import { applyDraft, draftOf, parentContentOf, parentDocument } from '@vocabularium/domain/content';
+import { blockText, mainKeyOf, noteDocument, textBlocks } from '@vocabularium/domain/pages';
+import { applyDraft, blankContent, draftOf, parentContentOf, parentDocument } from '@vocabularium/domain/content';
 import { isParentType } from '@vocabularium/domain/parents';
 import { dialog } from './dialog.ts';
 import { PageView } from './page-view.tsx';
@@ -35,7 +35,8 @@ export function pageViews({ getAccount, renderView, refresh, send, applyState, n
     const component = page.components.find(item => item.id === componentId);
     if (!component) return;
     draft = { route: identity(route), pageId: page.id, deckId: page.deckId, componentId, base: {}, texts: {} };
-    const content = isParentType(component.moduleType) ? parentContentOf(component.content) : null;
+    // An empty parent opens with a blank top line of the main key (D10, amended a fourth time).
+    const content = isParentType(component.moduleType) ? parentContentOf(component.content) ?? blankContent(mainKeyOf(page.components), page.interpretation) : null;
     if (content) {
       const fields = draftOf(component.moduleType, content, component.facets ?? []);
       draft.fields = { [componentId]: fields }; draft.fieldBase = { [componentId]: JSON.stringify(fields) }; draft.fieldStored = { [componentId]: content };

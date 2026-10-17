@@ -727,6 +727,16 @@ test('the core’s own Retry regenerates only the meanings, keeps the top line, 
   const edited = { version: 1, blocks: [{ ...kept, core: '1. mine', facets: {} }] };
   await store.savePage(randomUUID(), { pageId: page.id, changes: [{ componentId: current.id, content: edited, core: true }] });
   assert.deepEqual(await stored(), { ...kept, core: '1. mine' }, 'the facets stay');
+
+  // A hand-written card's blank top line is filled by the core's Retry (D10, amended a fourth time).
+  failing = false;
+  const { componentId: written } = await store.addModule(randomUUID(), { pageId: page.id, type: 'german' });
+  await store.savePage(randomUUID(), { pageId: page.id, changes: [{ componentId: written,
+    content: { version: 1, blocks: [{ type: 'parent', header: { kind: 'word', language: '', key: 'bank' }, core: '1. by hand', facets: {} }] } }] });
+  const filled = await confirmed(store, randomUUID(), { pageId: page.id, target: { scope: 'core', componentId: written }, session });
+  await generation.start(page.id, filled.attemptIds); await finish(store, generation);
+  const header = (await store.page(page.id)).components.find(item => item.id === written).content.blocks[0].header;
+  assert.equal(header.language, 'Anders', 'the generated top line fills the blank one');
 });
 
 test('OpenCode asks a facet’s own Retry for its facets only, written for the supplied core', async () => {

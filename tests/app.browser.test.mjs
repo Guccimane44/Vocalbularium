@@ -3191,3 +3191,41 @@ test('0.7.5: Context and Text edit with the toolbar editor, with Edit and Delete
   await a.page.getByRole('button', { name: 'Yes, delete Context text', exact: true }).click();
   await waitFor(async () => !(await context()), 'Context deleted');
 });
+
+test('0.7.5: an empty parent is written by hand: its top line the main key, the language blank, saved and shown', { timeout: 60000 }, async (t) => {
+  const directory = await mkdtemp(join(tmpdir(), 'vocabularium-empty-parent-browser-'));
+  const application = await createTestApplication(t); await application.start();
+  const a = await launch(join(directory, 'a'));
+  t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
+  await a.page.setViewportSize({ width: 1280, height: 1400 });
+  const store = application.store;
+  const session = { installationId: 'fixture', sessionId: 'empty-parent', epoch: 1 };
+  await store.openSession('empty-parent-session', session);
+  const { pageId } = await store.capture('empty-parent-capture', { session, mainKey: 'bank', snapshot: await store.snapshot() });
+  const first = (await store.page(pageId)).components.find(item => item.moduleType === 'german');
+  await store.stage(first.attemptId, staged('Ufer'));
+  await store.publish('empty-parent-publish', { attemptId: first.attemptId, session });
+  const { componentId } = await store.addModule('empty-parent-add', { pageId, type: 'german' });
+  const written = async () => (await store.page(pageId)).components.find(item => item.id === componentId).content.blocks[0];
+  await signIn(a.page);
+  await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
+  const card = componentArticle(a.page, 'German 2');
+  await card.waitFor();
+  assert.notEqual(await card.getAttribute('data-empty'), null, 'only its tab');
+
+  // Edit opens it with a top line of the main key, the language blank, and an empty core to fill.
+  await (await cardButton(a.page, 'Edit German 2')).click();
+  const editor = card.getByRole('group', { name: 'Edit German 2', exact: true });
+  await editor.waitFor();
+  assert.equal(await editor.locator('.entry-heading-text').textContent(), 'bank');
+  const core = editor.getByRole('textbox', { name: 'Meanings, German 2', exact: true });
+  await core.click();
+  await a.page.keyboard.type('Ufer am Fluss');
+  await card.screenshot({ path: 'artifacts/v0.7.5-empty-parent-editor.png' });
+  await card.getByRole('button', { name: 'Save', exact: true }).click();
+  await editor.waitFor({ state: 'detached' });
+  assert.deepEqual(await written(), { type: 'parent', header: { kind: 'word', language: '', key: 'bank' }, core: 'Ufer am Fluss', facets: {} });
+  await card.locator('.entry-core').waitFor();
+  assert.equal(await card.getAttribute('data-empty'), null, 'a card with content now');
+  assert.equal(await card.locator('.entry-core').textContent(), 'Ufer am Fluss');
+});

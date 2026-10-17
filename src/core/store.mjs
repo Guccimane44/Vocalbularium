@@ -1,11 +1,11 @@
 import { Postgres, OWNER_ACCOUNT_ID } from '../persistence/postgres.ts';
 import { createHash, randomUUID } from 'node:crypto';
-import { blockText, noteDocument, pageStatus, textBlocks } from '@vocabularium/domain/pages';
+import { blockText, mainKeyOf, noteDocument, pageStatus, textBlocks } from '@vocabularium/domain/pages';
 import {
   addBlocked, copyModules, deleteBlocked, DECK_COLOURS, generationTargets, moveBlocked, moved, pageMeaning, validateConfiguration
 } from '@vocabularium/domain/page-modules';
 import { facetAddBlocked, facetDeleteBlocked, isParentType, withFacet } from '@vocabularium/domain/parents';
-import { hasFacetContent, isEmptyContent, parentContentOf, parentDocument, validateParentContent, withFacetText } from '@vocabularium/domain/content';
+import { blankContent, hasFacetContent, isEmptyContent, parentContentOf, parentDocument, validateParentContent, withFacetText } from '@vocabularium/domain/content';
 import { hasText } from '@vocabularium/domain/markdown';
 import { sortKey } from './sort-key.mjs';
 /** @typedef {import('./store-records.js').PageRow} PageRow */
@@ -74,8 +74,10 @@ function blockValue(value, message) {
 // plain text, and one that never generated has no top line to edit.
 // With a facet (D10), or the core (D10, amended), only that part's text is
 // taken, over the stored content, so an edit of the rest elsewhere meanwhile stays.
-function parentEdit(component, value, facet, core = false) {
-  const stored = parentContentOf(component.content);
+function parentEdit(component, value, facet, core = false, page) {
+  // An empty parent written by hand (D10, amended a fourth time) starts from
+  // the blank top line of the page's main key; nothing else can start one.
+  const stored = parentContentOf(component.content) ?? (facet === undefined && !core && page ? blankContent(mainKeyOf(page.components), page.interpretation) : null);
   if (!(value?.version === 1 && Array.isArray(value.blocks) && value.blocks.length === 1 && value.blocks[0]?.type === 'parent')) {
     fail('invalid', 'Edit this module in its editor.');
   }
@@ -562,7 +564,7 @@ export class AccountStore {
         const component = page.components.find(component => component.id === change.componentId);
         if (!component) fail('deleted', 'A changed component no longer exists.');
         if (component.status === 'loading') fail('generating', 'A component is still generating. Your drafts are preserved.');
-        const content = isParentType(component.moduleType) ? parentEdit(component, change.content, change.facet, change.core === true)
+        const content = isParentType(component.moduleType) ? parentEdit(component, change.content, change.facet, change.core === true, page)
           : change.facet === undefined && change.core === undefined ? blockValue(change.content, 'Component content must be a text document.')
           : fail('invalid', 'Only a parent module has facets and a core.');
         if (component.moduleType === 'main-key' && !blockText(content).trim()) fail('invalid', 'Main key can not be empty.');
