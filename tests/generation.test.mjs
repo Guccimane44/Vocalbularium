@@ -375,7 +375,7 @@ test('OpenCode uses the Go endpoint, selected DeepSeek model, and only selection
     apiKey: 'test-only', fetchImpl: async (url, options) => {
       assert.equal(url, 'https://opencode.ai/zen/go/v1/chat/completions'); body = JSON.parse(options.body);
       assert.equal(options.headers.Authorization, 'Bearer test-only');
-      assert.equal(options.headers['User-Agent'], 'Vocabularium/0.7.4');
+      assert.equal(options.headers['User-Agent'], 'Vocabularium/0.7.5');
       assert.equal(options.headers['x-opencode-session'], 'capture-conversation');
       assert.equal(options.method, 'POST'); assert.ok(options.signal instanceof AbortSignal);
       return Response.json(completion(JSON.stringify(word)));
