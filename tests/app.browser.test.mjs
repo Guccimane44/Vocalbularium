@@ -2832,7 +2832,7 @@ test('0.7.5: the parent editor in place: names and top line locked, no markdown 
   assert.equal(await toolbars.count(), 1, 'one toolbar, beside the focused facet');
   assert.equal(await editor.locator('.facet[data-facet="synonyms"] .facet-title .md-toolbar').count(), 1, 'on its rule, beside its tab');
   assert.deepEqual(await toolbars.getByRole('button').evaluateAll(buttons => buttons.map(button => button.getAttribute('aria-label'))),
-    ['Bold', 'Italic', 'Highlight', 'Inline code', 'Bulleted list', 'Numbered list']);
+    ['Bold', 'Italic', 'Highlight', 'Highlight colours', 'Inline code', 'Bulleted list', 'Numbered list']);
   // A button shows whether its formatting applies at the cursor.
   await part('Examples').locator('em').click();
   await waitFor(async () => await facetTool('examples', 'Italic').getAttribute('aria-pressed') === 'true', 'Italic pressed in the translation');
@@ -2898,6 +2898,9 @@ test('0.7.5: the parent editor in place: names and top line locked, no markdown 
   assert.equal(await card.locator('.facet[data-facet="antonyms"] ol li').count(), 1);
   assert.equal(await card.locator('.facet[data-facet="antonyms"] .md-highlight').textContent(), 'stark');
   assert.equal(await card.locator('.facet[data-facet="article"]').count(), 0);
+  // The default highlight is the main key's yellow (D10, amended a third time).
+  const background = locator => locator.evaluate(node => getComputedStyle(node).backgroundColor);
+  assert.equal(await background(card.locator('.facet[data-facet="antonyms"] .md-highlight')), await background(card.locator('.facet[data-facet="examples"] mark:not(.md-highlight)')));
 
   // Cancel discards; the core may be emptied too.
   await (await cardButton(a.page, 'Edit German')).click();
@@ -3012,6 +3015,30 @@ test('0.7.5: a facet’s own Edit opens that facet alone in place, with its tool
   await waitFor(async () => await size.inputValue() === 'large' && await fontChoice.inputValue() === 'display', 'the choices show what applies');
   await synonyms.getByRole('button', { name: 'Cancel', exact: true }).click();
   await card.getByRole('textbox').waitFor({ state: 'detached' });
+
+  // A highlight colour from the palette: the button keeps the last one used; saved in the span, shown on the card.
+  await synonyms.hover();
+  await a.page.getByRole('button', { name: 'Edit Synonyms from German', exact: true }).click();
+  await text.waitFor();
+  await waitFor(() => a.page.evaluate(() => document.activeElement?.getAttribute('aria-label') === 'Synonyms, German'), 'focused for colour');
+  await a.page.keyboard.press('ControlOrMeta+a'); await a.page.waitForTimeout(300);
+  await synonyms.locator('.md-toolbar').getByRole('button', { name: 'Highlight colours', exact: true }).click();
+  const palette = synonyms.locator('.md-palette');
+  assert.deepEqual(await palette.getByRole('button').evaluateAll(buttons => buttons.map(button => button.getAttribute('aria-label'))),
+    ['Yellow highlight', 'Green highlight', 'Blue highlight', 'Pink highlight', 'Orange highlight', 'No highlight']);
+  { const box = await synonyms.locator('.facet-title').boundingBox();
+    await a.page.screenshot({ path: 'artifacts/v0.7.5-highlight-palette.png', clip: { x: box.x + box.width - 340, y: box.y - 6, width: 350, height: 80 } }); }
+  await palette.getByRole('button', { name: 'Green highlight', exact: true }).click();
+  assert.equal(await palette.count(), 0, 'the palette closes');
+  assert.equal(await synonyms.locator('.md-toolbar [data-tool="highlight"]').getAttribute('data-colour'), 'green', 'the button keeps the colour');
+  await synonyms.getByRole('button', { name: 'Save', exact: true }).click();
+  await card.getByRole('textbox').waitFor({ state: 'detached' });
+  assert.equal((await stored()).facets.synonyms, '[Böschung,]{size=large font=display highlight=green} [**fest**]{size=large font=display highlight=green}');
+  assert.equal(await synonyms.locator('.facet-body mark.md-highlight-green').count(), 2);
+  assert.equal(await synonyms.locator('.facet-body mark.md-highlight-green').first().evaluate(node => getComputedStyle(node).backgroundColor),
+    await a.page.evaluate(() => { const probe = document.body.appendChild(Object.assign(document.createElement('i'), { style: 'background: var(--highlight-green)' }));
+      const colour = getComputedStyle(probe).backgroundColor; probe.remove(); return colour; }), 'in the palette\'s green');
+  await card.screenshot({ path: 'artifacts/v0.7.5-highlight-card.png' });
 
   // Emptied, the facet loses its content and leaves the card; its tag stays, bland.
   await synonyms.hover();

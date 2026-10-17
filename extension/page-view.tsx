@@ -128,7 +128,12 @@ function Inline({ runs, mainKey }: { runs: readonly MdInline[]; mainKey: string 
     if (run.type === 'code') return <code key={index}>{run.text}</code>;
     const children = <Inline runs={run.children} mainKey={mainKey} />;
     // A size and a font the user set (D10, amended again).
-    if (run.type === 'span') return <span key={index} className={[run.size && `md-size-${run.size}`, run.font && `md-font-${run.font}`].filter(Boolean).join(' ')}>{children}</span>;
+    if (run.type === 'span') {
+      const className = [run.size && `md-size-${run.size}`, run.font && `md-font-${run.font}`].filter(Boolean).join(' ');
+      // A highlight colour (D10, amended a third time) is a highlight, in that colour.
+      return run.highlight ? <mark key={index} className={`md-highlight md-highlight-${run.highlight}${className ? ` ${className}` : ''}`}>{children}</mark>
+        : <span key={index} className={className}>{children}</span>;
+    }
     return run.type === 'strong' ? <strong key={index}>{children}</strong> : run.type === 'em' ? <em key={index}>{children}</em>
       : <mark key={index} className="md-highlight">{children}</mark>;
   })}</>;

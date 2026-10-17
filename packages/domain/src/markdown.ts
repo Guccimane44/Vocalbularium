@@ -13,11 +13,14 @@ export type MdInline =
   | Readonly<{ type: 'code'; text: string }>
   | Readonly<{ type: 'strong' | 'em' | 'mark'; children: readonly MdInline[] }>
   // A size and a font on a stretch of text (D10, amended again): `[text]{size=large font=display}`.
-  | Readonly<{ type: 'span'; size?: TextSize; font?: TextFont; children: readonly MdInline[] }>;
+  // A highlight colour beside the default yellow (D10, amended a third time): `[text]{highlight=green}`.
+  | Readonly<{ type: 'span'; size?: TextSize; font?: TextFont; highlight?: HighlightColour; children: readonly MdInline[] }>;
 export type TextSize = 'small' | 'large';
 export type TextFont = 'display' | 'mono';
+export type HighlightColour = 'green' | 'blue' | 'pink' | 'orange';
 const SIZES: readonly string[] = ['small', 'large'];
 const FONTS: readonly string[] = ['display', 'mono'];
+export const HIGHLIGHT_COLOURS: readonly HighlightColour[] = ['green', 'blue', 'pink', 'orange'];
 export type MdBlock =
   | Readonly<{ type: 'paragraph'; children: readonly MdInline[] }>
   | Readonly<{ type: 'list'; ordered: boolean; start: number; items: ReadonlyArray<readonly MdInline[]> }>;
@@ -120,15 +123,17 @@ function readSpan(source: string, from: number): { run: MdInline; end: number } 
     if (depth--) continue;
     const attrs = /^\{([a-z= ]+)\}/.exec(source.slice(index + 1));
     if (!attrs) return null;
-    let size: TextSize | undefined, font: TextFont | undefined;
+    let size: TextSize | undefined, font: TextFont | undefined, highlight: HighlightColour | undefined;
     for (const pair of attrs[1]!.trim().split(/\s+/)) {
       const [key, value] = pair.split('=');
       if (key === 'size' && SIZES.includes(value!) && !size) size = value as TextSize;
       else if (key === 'font' && FONTS.includes(value!) && !font) font = value as TextFont;
+      else if (key === 'highlight' && (HIGHLIGHT_COLOURS as readonly string[]).includes(value!) && !highlight) highlight = value as HighlightColour;
       else return null;
     }
-    if (!size && !font) return null;
-    return { run: { type: 'span', ...(size ? { size } : {}), ...(font ? { font } : {}), children: parseInline(source.slice(from + 1, index)) }, end: index + 1 + attrs[0].length };
+    if (!size && !font && !highlight) return null;
+    return { run: { type: 'span', ...(size ? { size } : {}), ...(font ? { font } : {}), ...(highlight ? { highlight } : {}),
+      children: parseInline(source.slice(from + 1, index)) }, end: index + 1 + attrs[0].length };
   }
   return null;
 }
@@ -198,7 +203,9 @@ export const hasText = (source: string | undefined): boolean => Boolean(source &
 // what the card reads. Nested lists are flattened into their item.
 
 // A size or font mark carries its value (D10, amended again).
-export type EditorMark = Readonly<{ type: 'bold' | 'italic' | 'code' | 'highlight' } | { type: 'size' | 'font'; attrs: Readonly<{ value: string }> }>;
+// A highlight may carry a colour other than the default yellow (D10, amended a third time).
+export type EditorMark = Readonly<{ type: 'bold' | 'italic' | 'code' } | { type: 'highlight'; attrs?: Readonly<{ colour?: string | null }> }
+  | { type: 'size' | 'font'; attrs: Readonly<{ value: string }> }>;
 export type EditorNode = Readonly<{
   type: string;
   attrs?: Readonly<Record<string, unknown>>;
@@ -214,7 +221,8 @@ function inlineNodes(runs: readonly MdInline[], marks: readonly EditorMark[] = [
     if (run.type === 'break') return [{ type: 'hardBreak' }];
     if (run.type === 'code') return run.text ? [{ type: 'text', text: run.text, marks: [...marks, { type: 'code' }] }] : [];
     if (run.type === 'span') return inlineNodes(run.children, [...marks,
-      ...(run.size ? [{ type: 'size' as const, attrs: { value: run.size } }] : []), ...(run.font ? [{ type: 'font' as const, attrs: { value: run.font } }] : [])]);
+      ...(run.size ? [{ type: 'size' as const, attrs: { value: run.size } }] : []), ...(run.font ? [{ type: 'font' as const, attrs: { value: run.font } }] : []),
+      ...(run.highlight ? [{ type: 'highlight' as const, attrs: { colour: run.highlight } }] : [])]);
     return inlineNodes(run.children, [...marks, { type: MARK_OF[run.type] }]);
   });
 }
@@ -235,11 +243,17 @@ export function toEditorDoc(source: string): EditorNode {
 const escapeInline = (text: string) => text.replace(/[\\`*_=[]/g, '\\$&');
 const escapeLineStart = (line: string) => line.replace(/^(\s*)(\d+)\.(\s)/, '$1$2\\.$3').replace(/^(\s*)([-+])(\s)/, '$1\\$2$3');
 const WRAP: Record<'bold' | 'italic' | 'code' | 'highlight', string> = { bold: '**', italic: '*', code: '`', highlight: '==' };
-// The span a size or font mark writes around the rest, outermost.
+// A highlight's colour, when it is not the default yellow.
+const colourOf = (marks: readonly EditorMark[]): string | undefined => {
+  const mark = marks.find(each => each.type === 'highlight');
+  const colour = mark && 'attrs' in mark ? mark.attrs?.colour ?? undefined : undefined;
+  return colour && (HIGHLIGHT_COLOURS as readonly string[]).includes(colour) ? colour : undefined;
+};
+// The span a size, font or highlight colour writes around the rest, outermost.
 function spanAround(marks: readonly EditorMark[], inner: string): string {
-  const value = (type: 'size' | 'font') => { const mark = marks.find(each => each.type === type); return mark && 'attrs' in mark ? mark.attrs.value : undefined; };
-  const size = value('size'), font = value('font');
-  const attrs = [SIZES.includes(size ?? '') ? `size=${size}` : '', FONTS.includes(font ?? '') ? `font=${font}` : ''].filter(Boolean);
+  const value = (type: 'size' | 'font') => { const mark = marks.find(each => each.type === type); return mark && 'attrs' in mark ? (mark.attrs as { value: string }).value : undefined; };
+  const size = value('size'), font = value('font'), highlight = colourOf(marks);
+  const attrs = [SIZES.includes(size ?? '') ? `size=${size}` : '', FONTS.includes(font ?? '') ? `font=${font}` : '', highlight ? `highlight=${highlight}` : ''].filter(Boolean);
   return attrs.length ? `[${inner}]{${attrs.join(' ')}}` : inner;
 }
 function inlineText(nodes: readonly EditorNode[] | undefined): string {
@@ -250,7 +264,8 @@ function inlineText(nodes: readonly EditorNode[] | undefined): string {
     if (marks.some(mark => mark.type === 'code')) return spanAround(marks, `\`${node.text.replace(/`/g, '')}\``);
     // Bold outside italic outside highlight, so nested marks always close in order.
     const order = ['bold', 'italic', 'highlight'] as const;
-    const applied = order.filter(type => marks.some(mark => mark.type === type));
+    // A coloured highlight is written in the span, not as ==.
+    const applied = order.filter(type => marks.some(mark => mark.type === type) && !(type === 'highlight' && colourOf(marks)));
     const text = escapeInline(node.text);
     // A mark cannot open or close on a space: keep the spaces outside it.
     const [, lead, body, trail] = /^(\s*)([\s\S]*?)(\s*)$/.exec(text)!;

@@ -300,7 +300,12 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
 .md ul { padding: 0 0 0 26px; }
 .md ul > li::marker { color: var(--fam, var(--ink-muted)); }
 .md code { padding: 0 4px; border-radius: 4px; font: 0.92em/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; background: color-mix(in srgb, var(--ink) 7%, transparent); }
-.md .md-highlight { background: var(--fam-tint, var(--fam-notes-tint)); color: inherit; border-radius: 3px; padding: 0 2px; }
+/* A highlight is the main key's yellow by default (D10, amended a third time), or a colour from the palette. */
+.md .md-highlight { background: var(--highlight); color: inherit; border-radius: 3px; padding: 0 2px; }
+.md .md-highlight-green, .md.md-editor mark[data-colour="green"] { background: var(--highlight-green); }
+.md .md-highlight-blue, .md.md-editor mark[data-colour="blue"] { background: var(--highlight-blue); }
+.md .md-highlight-pink, .md.md-editor mark[data-colour="pink"] { background: var(--highlight-pink); }
+.md .md-highlight-orange, .md.md-editor mark[data-colour="orange"] { background: var(--highlight-orange); }
 .md.reading { font: 400 19px/1.55 var(--font-display); }
 /* The Examples are plain text like every other facet (D10, amended again). */
 
@@ -320,7 +325,7 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
 .md-editor ol { counter-reset: md-item var(--start, 0); }
 .md-editor ol > li { counter-increment: md-item; }
 .md-editor ol > li::before { content: counter(md-item); }
-:is(.live-editor, .facet-editing) .md-editor mark { background: var(--fam-tint, var(--fam-notes-tint)); color: inherit; border-radius: 3px; padding: 0 2px; }
+:is(.live-editor, .facet-editing) .md-editor mark { background: var(--highlight); color: inherit; border-radius: 3px; padding: 0 2px; }
 .live-editor .facet[data-unfilled] .facet-tab { opacity: .55; }
 .live-core .md-editor:not(.reading) { font-size: 16px; }
 .live-core { display: grid; gap: 4px; }
@@ -328,6 +333,23 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
 /* A facet edited on its own (D10): its Save and Cancel right below its text. */
 .facet-editing .component-tools { margin-top: 2px; }
 .entry-heading-text { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+/* The Highlight button with its palette (D10, amended a third time): the
+   button wears the last colour used under its icon; the arrow opens the swatches. */
+.md-split { position: relative; display: inline-flex; }
+.md-tool[data-tool="highlight"] { box-shadow: inset 0 -3px 0 var(--swatch, var(--highlight)); }
+.md-tool.md-tool-more { width: 14px; }
+.md-tool.md-tool-more svg { width: 12px; height: 12px; }
+.md-palette { position: absolute; top: 28px; right: 0; z-index: 5; display: flex; align-items: center; gap: 4px; padding: 6px;
+  border: 1px solid var(--line); border-radius: 8px; background: var(--surface); box-shadow: var(--shadow-drag, 0 6px 18px #0002); }
+.md-swatch { width: 20px; height: 20px; padding: 0; border: 1px solid var(--line-control, var(--line)); border-radius: 50%;
+  background: var(--swatch, var(--highlight)); cursor: pointer; font: 600 10px/1 var(--font-text); color: var(--ink-muted); }
+.md-swatch[aria-pressed="true"] { outline: 2px solid var(--fam, var(--focus)); outline-offset: 1px; }
+.md-swatch:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+.md-swatch-none { background: var(--surface); }
+:is(.md-swatch, .md-tool)[data-colour="green"] { --swatch: var(--highlight-green); }
+:is(.md-swatch, .md-tool)[data-colour="blue"] { --swatch: var(--highlight-blue); }
+:is(.md-swatch, .md-tool)[data-colour="pink"] { --swatch: var(--highlight-pink); }
+:is(.md-swatch, .md-tool)[data-colour="orange"] { --swatch: var(--highlight-orange); }
 /* A size and a font the user set (D10, amended again), on the card and in the editor. */
 .md-size-small { font-size: .85em; }
 .md-size-large { font-size: 1.25em; }
