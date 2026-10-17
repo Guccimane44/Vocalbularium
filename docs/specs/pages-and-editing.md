@@ -116,7 +116,7 @@ When another installation deletes a component the user is editing, the user's sa
 
 ### Text components
 
-A **Text component** holds the user's own writing and belongs to a Text module instance. The user adds one by dragging the Text module onto the page, and a deck that includes the Text module gives every new page an empty one. It is edited and saved like other components. Generation and every retry leave Text components unchanged, and they are never a generation input. Image components follow the rich-media scope (Q59) and are not part of this specification.
+A **Text component** holds the user's own writing and belongs to a Text module instance. The user adds one by dragging the Text module onto the page, and a deck that includes the Text module gives every new page an empty one. It is edited and saved like other components. Since 0.7.5 a Context or Text card with content has **Edit** and **Delete** on a top row, placed as a facet's are and shown while the card is pointed at or focused ([D10](../architecture/traceability-map.md#entries), amended a fourth time): Edit opens its text in the same toolbar editor as a parent's core, with its own Save and Cancel; Delete deletes the component, after "Are you sure?", like the tab's Delete. Their text is markdown, so it is formatted as the editor shows it; the main key in a captured Context is a stored highlight. Generation and every retry leave Text components unchanged, and they are never a generation input. Image components follow the rich-media scope (Q59) and are not part of this specification.
 
 ### Editing generated components
 
@@ -135,7 +135,7 @@ The editor has no structure of its own: no fields, item numbers or separators be
 - **Shown, not editable:** the module's name in its tab, each facet's name, and the core's top line with the key's language, the key and its romanization.
 - **Editors:** one for the core's meanings or translation, then one per facet the card has, in the parent's order, under its name. A facet without content keeps its place with an empty editor and a dimmed name, to be filled.
 - **Save** never refuses an empty part: the core or any facet may be emptied. A facet left empty has no content: it is not shown on the card and its tag is blander. A core left empty shows only its top line.
-- **While editing,** the card's tags stay and show, as the user types, which facets have text; the facets' **Retry** and **Delete** and the tags' remove wait until **Save** or **Cancel**. Opening the editor moves the focus nowhere. A parent with no content yet cannot be edited; **Retry** fills it.
+- **While editing,** the card's tags stay and show, as the user types, which facets have text; the facets' **Retry** and **Delete** and the tags' remove wait until **Save** or **Cancel**. Opening the editor moves the focus nowhere. Since 0.7.5 a parent with no content yet can be edited too (D10, amended a fourth time): its editor opens with a top line of the page's main key and the language blank, read as a word unless the page's latest reading is a sentence, and an empty core and facets to fill; **Save** stores what was written with that top line. A later **Retry** fills the language, and the core's own Retry does too while it is blank.
 
 ### Editing one facet
 
