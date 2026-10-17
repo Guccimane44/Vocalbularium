@@ -1,7 +1,7 @@
 import type { InputInterpretation, ParentCore } from '@vocabularium/contracts';
 import { applicableFacets, isFacetOf, isParentType } from './parents.js';
 import type { FacetType, ParentType } from './parents.js';
-import { formatContent, isBlankHeader, providerCore, withFacetText, withKeyHighlighted } from './content.js';
+import { formatContent, providerCore, withFacetText, withKeyHighlighted } from './content.js';
 import type { ParentContent } from './content.js';
 import { emptyEntry, validateGenerated, validateGeneratedFacet } from './generated.js';
 import { formatFacet, highlightKey } from './markdown.js';
@@ -90,21 +90,6 @@ export async function generateFacet(input: {
   try { checked = validateGeneratedFacet(module.type, facet, entry); }
   catch (error) { throw new Error(`A module returned content in an unexpected format: ${(error as Error).message}`); }
   return withFacetText(existing, facet, highlightKey(formatFacet(facet, checked), input.mainKey));
-}
-
-// The core's own Retry (D10, amended; 0.7.5): the core alone, generated with
-// no facet, replaces the meanings or translation in `existing`; the top line
-// and every facet stay as they are. Throws when generation fails.
-export async function generateCore(input: {
-  mainKey: string;
-  module: ModuleInstance;
-  existing: ParentContent;
-  interpretation?: InputInterpretation | null;
-  generate: GenerateModule;
-}): Promise<ParentContent> {
-  const fresh = await generateComponent({ ...input, module: { ...input.module, facets: [] } });
-  // A top line left blank by a hand-written card takes the generated one (D10, amended a fourth time).
-  return { header: isBlankHeader(input.existing.header) ? fresh.header : input.existing.header, core: fresh.core, facets: input.existing.facets };
 }
 
 export type ComponentOutcome = Readonly<

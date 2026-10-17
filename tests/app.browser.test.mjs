@@ -3071,83 +3071,7 @@ test('0.7.5: a facet’s own Edit opens that facet alone in place, with its tool
   assert.notEqual(await card.locator('.facet-tag[data-facet="synonyms"]').getAttribute('data-unfilled'), null);
 });
 
-test('0.7.5: the core’s own Edit and Retry on its top line: Edit changes only the core; Retry regenerates only the meanings, the spark on the top line', { timeout: 60000 }, async (t) => {
-  const directory = await mkdtemp(join(tmpdir(), 'vocabularium-core-edit-browser-'));
-  const calls = [];
-  let release;
-  const application = await createTestApplication(t, { provider: {
-    interpret: async () => ({ inputType: 'word_phrase' }),
-    generate: request => { calls.push(request); return new Promise((resolve, reject) => { release = value => value instanceof Error ? reject(value) : resolve(value); }); }
-  } });
-  await application.start();
-  const a = await launch(join(directory, 'a'));
-  t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
-  await a.page.setViewportSize({ width: 1280, height: 1400 });
-  const store = application.store;
-  const session = { installationId: 'fixture', sessionId: 'core-edit', epoch: 1 };
-  await store.openSession('core-edit-session', session);
-  const { pageId } = await store.capture('core-edit-capture', { session, mainKey: 'bank', snapshot: await store.snapshot() });
-  const first = (await store.page(pageId)).components.find(item => item.moduleType === 'german');
-  await store.establishInterpretation((await store.attempt(first.attemptId)).run_id, { inputType: 'word_phrase' });
-  const { antonyms, ...facets } = BANK.facets;
-  await store.stage(first.attemptId, staged({ core: BANK.core, facets }));
-  await store.publish('core-edit-publish', { attemptId: first.attemptId, session });
-  const stored = async () => (await store.page(pageId)).components.find(item => item.moduleType === 'german').content.blocks[0];
-  const before = await stored();
-  await signIn(a.page);
-  await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
-  const card = componentArticle(a.page, 'German');
-  const core = card.locator('.core-part');
-  await core.waitFor();
-
-  // Edit and Retry on the top line, as a facet's beside its tab; the top line itself is no editor.
-  await core.hover();
-  assert.deepEqual(await core.locator('.entry-heading .facet-actions button').evaluateAll(buttons => buttons.map(button => button.getAttribute('aria-label'))),
-    ['Edit Meanings from German', 'Retry Meanings from German']);
-  await core.locator('.entry-heading').screenshot({ path: 'artifacts/v0.7.5-core-actions.png' });
-
-  // Edit opens the core alone, under its locked top line, with its toolbar, Save and Cancel.
-  await a.page.getByRole('button', { name: 'Edit Meanings from German', exact: true }).click();
-  const text = card.getByRole('textbox', { name: 'Meanings, German', exact: true });
-  await text.waitFor();
-  await waitFor(() => a.page.evaluate(() => document.activeElement?.getAttribute('aria-label') === 'Meanings, German'), 'the focus is in the core');
-  assert.equal(await card.getByRole('textbox').count(), 1, 'only the core is open');
-  assert.equal(await card.locator('.core-editing .entry-heading-text').textContent(), 'Englischbank', 'the top line stays, not editable');
-  assert.equal(await card.locator('.core-editing .entry-heading .md-toolbar').count(), 1);
-  assert.deepEqual(await card.locator('.core-editing .component-tools button').allTextContents(), ['Cancel', 'Save']);
-  assert.match(await card.locator('.facet[data-facet="article"]').textContent(), /das Ufer · die Ufer/, 'the facets read as before');
-  await a.page.keyboard.type(' am Fluss');
-  await card.locator('.core-editing').getByRole('button', { name: 'Save', exact: true }).click();
-  await card.getByRole('textbox').waitFor({ state: 'detached' });
-  assert.deepEqual(await stored(), { ...before, core: '1. Ufer am Fluss' }, 'only the core changes');
-
-  // Retry asks first, then regenerates the core alone; the card stays open with the spark round the top line.
-  await core.hover();
-  await a.page.getByRole('button', { name: 'Retry Meanings from German', exact: true }).click();
-  await a.page.getByRole('button', { name: 'Yes, retry Meanings from German', exact: true }).click();
-  await core.locator('.entry-heading .spark:not([data-ending])').waitFor();
-  assert.equal(await card.getAttribute('data-generating'), null, 'not folded down to its tab');
-  assert.match(await card.locator('.facet[data-facet="examples"]').textContent(), /We sat on the bank\./);
-  await card.screenshot({ path: 'artifacts/v0.7.5-core-retry.png' });
-  await waitFor(() => calls.length === 1, 'core provider started');
-  assert.deepEqual(calls[0].facets, [], 'the provider writes the core alone');
-  release(wordResult(['Flussufer'], { synonyms: ['ignored'] }, { key: 'bank' }));
-  await waitFor(async () => /Flussufer/.test(await card.locator('.entry-core').textContent()), 'the new core shown');
-  const after = await stored();
-  assert.equal(after.core, '1. Flussufer');
-  assert.deepEqual([after.header, after.facets], [before.header, before.facets], 'the top line and every facet stay');
-
-  // A failed core Retry leaves everything and says so on the top line.
-  await core.hover();
-  await a.page.getByRole('button', { name: 'Retry Meanings from German', exact: true }).click();
-  await a.page.getByRole('button', { name: 'Yes, retry Meanings from German', exact: true }).click();
-  await waitFor(() => calls.length === 2, 'second core attempt');
-  release(new Error('provider down'));
-  await core.locator('.facet-note[data-note="failed"]').waitFor();
-  assert.deepEqual(await stored(), after);
-});
-
-test('0.7.5: Context and Text edit with the toolbar editor, with Edit and Delete on their top row', { timeout: 60000 }, async (t) => {
+test('0.7.5: Context and Text edit with the toolbar editor, from their tab', { timeout: 60000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-notes-browser-'));
   const application = await createTestApplication(t); await application.start();
   const a = await launch(join(directory, 'a'));
@@ -3165,14 +3089,10 @@ test('0.7.5: Context and Text edit with the toolbar editor, with Edit and Delete
   await card.locator('.note-body').waitFor();
   assert.equal(await card.locator('.note-body').textContent(), 'We sat by the bank, 2*3 times.', 'reads as captured');
 
-  // Edit and Delete on its top row, shown as a facet's are.
-  await card.locator('.note-part').hover();
-  assert.deepEqual(await card.locator('.note-part .facet-actions button').evaluateAll(buttons => buttons.map(button => button.getAttribute('aria-label'))),
-    ['Edit Context text', 'Delete Context text']);
-  await card.locator('.note-part').screenshot({ path: 'artifacts/v0.7.5-context-actions.png' });
-
+  // No row of its own (D10, amended a fifth time): it is edited and deleted from its tab.
+  assert.equal(await card.locator('.facet-actions').count(), 0);
   // Edit opens the same toolbar editor; the main key's highlight shows there.
-  await a.page.getByRole('button', { name: 'Edit Context text', exact: true }).click();
+  await (await cardButton(a.page, 'Edit Context')).click();
   const text = card.getByRole('textbox', { name: 'Edit Context', exact: true });
   await text.waitFor();
   await waitFor(() => a.page.evaluate(() => document.activeElement?.getAttribute('aria-label') === 'Edit Context'), 'focused');
@@ -3185,10 +3105,9 @@ test('0.7.5: Context and Text edit with the toolbar editor, with Edit and Delete
   assert.match(blockText((await context()).content), /^\*We sat by the ==bank==, 2\\\*3 times\.\*$/);
   assert.equal(await card.locator('.note-body em').count() > 0, true, 'the card shows it formatted');
 
-  // Delete asks first, then deletes the component.
-  await card.locator('.note-part').hover();
-  await a.page.getByRole('button', { name: 'Delete Context text', exact: true }).click();
-  await a.page.getByRole('button', { name: 'Yes, delete Context text', exact: true }).click();
+  // The tab's Delete asks first, then deletes the component.
+  await (await cardButton(a.page, 'Delete Context')).click();
+  await a.page.getByRole('button', { name: 'Yes, delete Context', exact: true }).click();
   await waitFor(async () => !(await context()), 'Context deleted');
 });
 

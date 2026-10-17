@@ -107,8 +107,6 @@ export type ParentDraft = Readonly<{ core: string; facets: ParentFacetTexts }>;
 export function blankContent(mainKey: string, reading?: string | null): ParentContent {
   return { header: reading === 'sentence' ? { kind: 'sentence' } : { kind: 'word', language: '', key: mainKey.trim() }, core: '', facets: {} };
 }
-// Whether a top line is the blank one an empty parent was edited with.
-export const isBlankHeader = (header: ParentHeader): boolean => header.kind === 'word' && header.language === '';
 
 // The editor's draft of stored content: its core and an entry for each facet
 // the component has, empty for a facet without content so it can be filled.
