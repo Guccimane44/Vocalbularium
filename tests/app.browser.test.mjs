@@ -2628,6 +2628,21 @@ test('0.7.3: a facet’s own Retry beside its Delete, a tag’s remove keeping i
   assert.deepEqual(calls.map(call => [call.facets, call.core]), [[['examples'], core]], 'the provider writes the facet alone for the core');
   release({ facets: { examples: [{ sentence: 'The bank was steep.', translation: 'Das Ufer war steil.' }] } });
   await waitFor(async () => /The bank was steep\./.test(await examples.textContent()), 'new examples shown');
+  // The main key is a stored highlight in what was generated (D10, amended a fourth time):
+  // the editor shows it, and removing it there removes it from the card.
+  assert.equal(await examples.locator('.facet-body mark.md-highlight').textContent(), 'bank');
+  await examples.hover();
+  await a.page.getByRole('button', { name: 'Edit Examples from German 1', exact: true }).click();
+  const exampleText = card.getByRole('textbox', { name: 'Examples, German 1', exact: true });
+  await exampleText.waitFor();
+  assert.equal(await exampleText.locator('mark').textContent(), 'bank', 'the editor shows the main key’s highlight');
+  await exampleText.locator('mark').dblclick(); await a.page.waitForTimeout(300);
+  await examples.locator('.md-toolbar [data-tool="highlight"]').click();
+  assert.equal(await exampleText.locator('mark').count(), 0);
+  await examples.getByRole('button', { name: 'Save', exact: true }).click();
+  await card.getByRole('textbox').waitFor({ state: 'detached' });
+  assert.equal(await examples.locator('.facet-body mark').count(), 0, 'and it stays removed on the card');
+  assert.match(await examples.textContent(), /The bank was steep\./);
   assert.match(await card.locator('.facet[data-facet="article"]').textContent(), /das Ufer · die Ufer/, 'the other facet stays');
   assert.equal(await examples.locator('.facet-note').count(), 0);
   await a.page.screenshot({ path: 'artifacts/v0.7.3-facet-retry.png' });
@@ -2898,9 +2913,11 @@ test('0.7.5: the parent editor in place: names and top line locked, no markdown 
   assert.equal(await card.locator('.facet[data-facet="antonyms"] ol li').count(), 1);
   assert.equal(await card.locator('.facet[data-facet="antonyms"] .md-highlight').textContent(), 'stark');
   assert.equal(await card.locator('.facet[data-facet="article"]').count(), 0);
-  // The default highlight is the main key's yellow (D10, amended a third time).
-  const background = locator => locator.evaluate(node => getComputedStyle(node).backgroundColor);
-  assert.equal(await background(card.locator('.facet[data-facet="antonyms"] .md-highlight')), await background(card.locator('.facet[data-facet="examples"] mark:not(.md-highlight)')));
+  // The default highlight is the main key's yellow (D10, amended a third time); the card draws no emphasis of its own (fourth).
+  assert.equal(await card.locator('.facet[data-facet="antonyms"] .md-highlight').evaluate(node => getComputedStyle(node).backgroundColor),
+    await a.page.evaluate(() => { const probe = document.body.appendChild(Object.assign(document.createElement('i'), { style: 'background: var(--highlight)' }));
+      const colour = getComputedStyle(probe).backgroundColor; probe.remove(); return colour; }));
+  assert.equal(await card.locator('mark:not(.md-highlight)').count(), 0, 'no drawn emphasis of the main key');
 
   // Cancel discards; the core may be emptied too.
   await (await cardButton(a.page, 'Edit German')).click();

@@ -85,4 +85,8 @@ export const componentAttempts = pgTable('component_attempts', {
   index('component_attempts_session_state').on(table.installation_id, table.session_id, table.state),
   index('component_attempts_page_state').on(table.page_id, table.state), index('component_attempts_run').on(table.run_id),
   check('component_attempt_state', sql`${table.state} in ('loading', 'completed', 'failed')`)]);
-
+// One-time conversions of stored content (D10, amended a fourth time), each
+// recorded by name once applied, so `npm run db:migrate` runs it only once.
+export const dataMigrations = pgTable('data_migrations', {
+  name: text().primaryKey()
+});

@@ -290,6 +290,32 @@ function blockLines(node: EditorNode): string[] {
   }
   return (node.content ?? []).flatMap(blockLines);
 }
+// The main key as a stored highlight (D10, amended a fourth time): every
+// occurrence of `key` in plain text, matched as the card once matched it
+// (ignoring case), gains the default highlight; text in code or already
+// highlighted is left as it is. Written back through the editor's document,
+// so the markdown is what the editor would write.
+export function highlightKey(source: string, key: string): string {
+  const needle = key.trim().toLocaleLowerCase();
+  if (!needle || !source.toLocaleLowerCase().includes(needle)) return source;
+  const split = (node: EditorNode): EditorNode[] => {
+    const marks = node.marks ?? [];
+    if (!node.text || marks.some(mark => mark.type === 'code' || mark.type === 'highlight')) return [node];
+    const lower = node.text.toLocaleLowerCase();
+    const parts: EditorNode[] = [];
+    let from = 0;
+    for (let at = lower.indexOf(needle); at >= 0 && lower.length === node.text.length; at = lower.indexOf(needle, from)) {
+      if (at > from) parts.push({ ...node, text: node.text.slice(from, at) });
+      parts.push({ ...node, text: node.text.slice(at, at + needle.length), marks: [...marks, { type: 'highlight' }] });
+      from = at + needle.length;
+    }
+    if (from < node.text.length) parts.push({ ...node, text: node.text.slice(from) });
+    return parts;
+  };
+  const walk = (node: EditorNode): EditorNode => node.content
+    ? { ...node, content: node.content.flatMap(child => child.type === 'text' ? split(child) : [walk(child)]) } : node;
+  return fromEditorDoc(walk(toEditorDoc(source)));
+}
 export function fromEditorDoc(doc: EditorNode): string {
   const blocks = (doc.content ?? []).map(blockLines).map(lines => lines.join('\n')).filter(text => text.trim());
   return blocks.join('\n\n');
