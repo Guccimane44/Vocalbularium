@@ -1,4 +1,4 @@
-import { blockText, textBlocks } from '@vocabularium/domain/pages';
+import { blockText, noteDocument, textBlocks } from '@vocabularium/domain/pages';
 import { applyDraft, draftOf, parentContentOf, parentDocument } from '@vocabularium/domain/content';
 import { isParentType } from '@vocabularium/domain/parents';
 import { dialog } from './dialog.ts';
@@ -56,7 +56,8 @@ export function pageViews({ getAccount, renderView, refresh, send, applyState, n
   // A parent's draft is saved as its markdown with the top line it opened with (D09).
   function payload(page) {
     if (!draft.pageId) return { deckId: draft.deckId, mainKey: draft.mainKey ?? '',
-      initial: inputs().map(([moduleInstanceId, text]) => ({ moduleInstanceId, content: textBlocks(text) })) };
+      // A new page's Context and Text are typed as plain text and stored as markdown (D10, amended a fourth time).
+      initial: inputs().map(([moduleInstanceId, text]) => ({ moduleInstanceId, content: noteDocument(text) })) };
     const fieldChanges = changedFields().map(componentId => {
       const component = page?.components.find(item => item.id === componentId);
       const stored = draft.fieldStored?.[componentId];

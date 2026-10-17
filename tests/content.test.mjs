@@ -145,8 +145,8 @@ test('the live editor’s document converts to and from the markdown subset, rou
   assert.deepEqual(plainLines(written), ['both loud 1. not a list *star*', 'one']);
   assert.equal(fromEditorDoc({ type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: '1. starts like a list' }] }] }), '1\\. starts like a list');
   // Size and font (D10, amended again): a bracketed span, read and written back the same way.
-  for (const text of ['[big]{size=large} and [code-ish]{font=mono}', '[**both**]{size=small font=display}', '1. [one]{size=large}\n2. two',
-    '==yellow== and [green]{highlight=green}', '[**x**]{size=large highlight=pink}'])
+  for (const text of ['[big]{size=large} and [code-ish]{font=mono}', '**[both]{size=small font=display}**', '1. [one]{size=large}\n2. two',
+    '==yellow== and [green]{highlight=green}', '**[x]{size=large highlight=pink}**'])
     assert.equal(fromEditorDoc(toEditorDoc(text)), text, text);
   const { parseMarkdown: parse } = await import('@vocabularium/domain/markdown');
   assert.deepEqual(parse('[big]{size=large font=display}'), [{ type: 'paragraph', children: [{ type: 'span', size: 'large', font: 'display', children: [{ type: 'text', text: 'big' }] }] }]);
@@ -155,6 +155,16 @@ test('the live editor’s document converts to and from the markdown subset, rou
   assert.deepEqual(plainLines('[big]{size=large} word'), ['big word'], 'the span leaves no trace in plain text');
   assert.deepEqual(parse('[x]{highlight=blue}'), [{ type: 'paragraph', children: [{ type: 'span', highlight: 'blue', children: [{ type: 'text', text: 'x' }] }] }]);
   assert.deepEqual(parse('[x]{highlight=yellow}'), [{ type: 'paragraph', children: [{ type: 'text', text: '[x]{highlight=yellow}' }] }], 'yellow is written ==, never as a span');
+  // Marks written as runs across neighbouring text: overlapping formats read back as they were set.
+  const run = (...parts) => ({ type: 'doc', content: [{ type: 'paragraph', content: parts.map(([text, ...marks]) => ({ type: 'text', text, marks: marks.map(type => ({ type })) })) }] });
+  for (const [doc, markdown] of [
+    [run(['We sat by the ', 'italic'], ['bank', 'italic', 'highlight'], [', twice.', 'italic']), '*We sat by the ==bank==, twice.*'],
+    [run(['a ', 'bold'], ['b', 'bold', 'italic'], [' c']), '**a _b_** c'],
+    [run(['one', 'highlight'], [' two', 'bold', 'highlight']), '==one **two**==']
+  ]) {
+    assert.equal(fromEditorDoc(doc), markdown);
+    assert.equal(fromEditorDoc(toEditorDoc(markdown)), markdown, `${markdown} round-trips`);
+  }
   // The main key as a stored highlight (D10, amended a fourth time).
   const { highlightKey } = await import('@vocabularium/domain/markdown');
   assert.equal(highlightKey('1. We sat on the bank.\n   *Wir saßen am Ufer.*', 'bank'), '1. We sat on the ==bank==.\n   *Wir saßen am Ufer.*');

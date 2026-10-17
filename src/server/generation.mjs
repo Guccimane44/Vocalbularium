@@ -1,11 +1,13 @@
 import { generateComponent, generateCore, generateFacet, validateInterpretation } from '@vocabularium/domain/modules';
-import { blockText, mainKeyOf } from '@vocabularium/domain/pages';
+import { mainKeyOf, notePlain } from '@vocabularium/domain/pages';
 import { parentContentOf } from '@vocabularium/domain/content';
 
-// The saved Context, when the page has a non-empty one, is the only other generation input.
+// The saved Context, when the page has a non-empty one, is the only other
+// generation input, read as plain text (it is markdown since 0.7.5).
 function contextOf(components) {
   const context = components.find(component => component.moduleType === 'context');
-  return context && blockText(context.content) ? blockText(context.content) : undefined;
+  const text = context ? notePlain(context.content).trim() : '';
+  return text || undefined;
 }
 import { OpenCodeProvider } from './opencode.mjs';
 import { mkdirSync, readdirSync, readFileSync, writeFileSync, renameSync, rmSync } from 'node:fs';

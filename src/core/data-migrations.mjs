@@ -1,4 +1,5 @@
 import { blockText } from '@vocabularium/domain/pages';
+import { escapeMarkdown, highlightKey } from '@vocabularium/domain/markdown';
 import { parentContentOf, parentDocument, withKeyHighlighted } from '@vocabularium/domain/content';
 import { isParentType } from '@vocabularium/domain/parents';
 
@@ -16,6 +17,19 @@ export const DATA_MIGRATIONS = [
       const data = parentContentOf(JSON.parse(row.content));
       if (!data) continue;
       const content = JSON.stringify(parentDocument(withKeyHighlighted(data, blockText(JSON.parse(row.key)))));
+      if (content !== row.content) await client.query('UPDATE components SET content = $1 WHERE page_id = $2 AND id = $3', [content, row.page_id, row.id]);
+    }
+  } },
+  // Context and Text become markdown, read as before: their plain text is
+  // escaped, and the main key in a Context is highlighted as a parent's is.
+  { name: '0.7.5-notes-markdown', async run(client) {
+    const { rows } = await client.query(`SELECT c.page_id, c.id, c.module_type, c.content, key.content AS key FROM components c
+      JOIN components key ON key.page_id = c.page_id AND key.module_type = 'main-key' WHERE c.module_type IN ('context', 'text')`);
+    for (const row of rows) {
+      const document = JSON.parse(row.content);
+      const mainKey = row.module_type === 'context' ? blockText(JSON.parse(row.key)) : '';
+      const blocks = document.blocks.map(block => block.type === 'paragraph' ? { ...block, text: highlightKey(escapeMarkdown(block.text), mainKey) } : block);
+      const content = JSON.stringify({ ...document, blocks });
       if (content !== row.content) await client.query('UPDATE components SET content = $1 WHERE page_id = $2 AND id = $3', [content, row.page_id, row.id]);
     }
   } }

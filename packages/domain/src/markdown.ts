@@ -192,6 +192,12 @@ export function plainLines(source: string): string[] {
     ? block.items.map(item => plainInline(item).split('\n')[0]!.trim()) : plainInline(block.children).split('\n').map(line => line.trim()))
     .filter(Boolean);
 }
+// Markdown as plain text: each block's text, list items a line each, blocks
+// apart by a blank line, formatting left out (D10, amended a fourth time:
+// Context is markdown, and generation reads it as plain text).
+export function plainText(source: string): string {
+  return parseMarkdown(source).map(block => block.type === 'list' ? block.items.map(plainInline).join('\n') : plainInline(block.children)).join('\n\n');
+}
 // Whether a markdown text holds anything to read.
 export const hasText = (source: string | undefined): boolean => Boolean(source && plainLines(source).length);
 
@@ -256,24 +262,44 @@ function spanAround(marks: readonly EditorMark[], inner: string): string {
   const attrs = [SIZES.includes(size ?? '') ? `size=${size}` : '', FONTS.includes(font ?? '') ? `font=${font}` : '', highlight ? `highlight=${highlight}` : ''].filter(Boolean);
   return attrs.length ? `[${inner}]{${attrs.join(' ')}}` : inner;
 }
+// Marks are written as runs across neighbouring text, so a word highlighted
+// inside italic text is `*a ==b== c*`, never `*a* *==b==**c*` (whose `**`
+// would read as bold). Bold outside italic outside highlight; italic inside
+// bold is written with _, so ***x*** never has to be read. A mark cannot open
+// or close on a space: the spaces stay outside it. A size, font or colour
+// span wraps each piece of text, innermost; code stands alone.
+type RunMark = 'bold' | 'italic' | 'highlight';
+const RUN_ORDER: readonly RunMark[] = ['bold', 'italic', 'highlight'];
 function inlineText(nodes: readonly EditorNode[] | undefined): string {
-  return (nodes ?? []).map(node => {
-    if (node.type === 'hardBreak') return '\n';
-    if (node.type !== 'text' || !node.text) return '';
+  let out = '';
+  const open: { type: RunMark; text: string }[] = [];
+  // Close the open marks from the top down to `depth`, ahead of any trailing spaces.
+  const closeTo = (depth: number) => {
+    if (open.length <= depth) return;
+    const [, body, trail] = /^([\s\S]*?)(\s*)$/.exec(out)!;
+    out = body + open.splice(depth).reverse().map(mark => mark.text).join('') + trail;
+  };
+  for (const node of nodes ?? []) {
+    if (node.type === 'hardBreak') { closeTo(0); out += '\n'; continue; }
+    if (node.type !== 'text' || !node.text) continue;
     const marks = node.marks ?? [];
-    if (marks.some(mark => mark.type === 'code')) return spanAround(marks, `\`${node.text.replace(/`/g, '')}\``);
-    // Bold outside italic outside highlight, so nested marks always close in order.
-    const order = ['bold', 'italic', 'highlight'] as const;
+    if (marks.some(mark => mark.type === 'code')) { closeTo(0); out += spanAround(marks, `\`${node.text.replace(/`/g, '')}\``); continue; }
     // A coloured highlight is written in the span, not as ==.
-    const applied = order.filter(type => marks.some(mark => mark.type === type) && !(type === 'highlight' && colourOf(marks)));
+    const wanted = RUN_ORDER.filter(type => marks.some(mark => mark.type === type) && !(type === 'highlight' && colourOf(marks)));
+    const keep = open.findIndex(mark => !wanted.includes(mark.type));
+    closeTo(keep < 0 ? open.length : keep);
     const text = escapeInline(node.text);
-    // A mark cannot open or close on a space: keep the spaces outside it.
     const [, lead, body, trail] = /^(\s*)([\s\S]*?)(\s*)$/.exec(text)!;
-    if (!body) return text;
-    // Italic inside bold is written with _, so ***x*** never has to be read.
-    const wrap = (type: typeof order[number]) => type === 'italic' && applied.includes('bold') ? '_' : WRAP[type];
-    return lead + spanAround(marks, applied.map(wrap).join('') + body + [...applied].reverse().map(wrap).join('')) + trail;
-  }).join('');
+    if (!body) { out += text; continue; }
+    out += lead;
+    for (const type of wanted.filter(type => !open.some(mark => mark.type === type))) {
+      const delimiter = type === 'italic' && (wanted.includes('bold') || open.some(mark => mark.type === 'bold')) ? '_' : WRAP[type];
+      out += delimiter; open.push({ type, text: delimiter });
+    }
+    out += spanAround(marks, body) + trail;
+  }
+  closeTo(0);
+  return out;
 }
 // A block's lines: a paragraph's text, or a list's items, continuation lines
 // indented under their item.

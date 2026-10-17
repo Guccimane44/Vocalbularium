@@ -64,7 +64,7 @@ test('a new page copies the deck modules; later deck changes never reach it', as
   await save(store, { ...deck, modules: withKey('chinese', 'text') });
   page = await store.page(pageId);
   assert.deepEqual(page.components.map(component => [component.moduleType, text(component)]),
-    [['main-key', '幸福'], ['context', 'Wir sind 幸福.'], ['german', 'saved explanation']]);
+    [['main-key', '幸福'], ['context', 'Wir sind ==幸福==.'], ['german', 'saved explanation']]);
   assert.deepEqual(types(await store.page(await capture(store))), ['main-key', 'chinese', 'text'], 'the next page uses the new template');
 });
 
@@ -115,7 +115,7 @@ test('capture preparation resolves the shared default once; capture follows that
 test('the Context module decides whether capture keeps the surrounding block', async (t) => {
   const store = await fixture(t), deck = await store.deck((await store.snapshot()).id);
   const contextOf = async pageId => (await store.page(pageId)).components.filter(component => component.moduleType === 'context').map(text);
-  assert.deepEqual(await contextOf(await capture(store, 'Wir sind 幸福.')), ['Wir sind 幸福.']);
+  assert.deepEqual(await contextOf(await capture(store, 'Wir sind 幸福.')), ['Wir sind ==幸福==.']);
   assert.deepEqual(await contextOf(await capture(store)), [''], 'the Context module still gives the page an empty Context');
   await save(store, { ...deck, modules: deck.modules.filter(module => module.type !== 'context') });
   // Context sent while the deck had the module is not stored once it is removed.
