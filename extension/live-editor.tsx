@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { FocusEvent, ReactNode } from 'react';
-import { EditorContent, useEditor, useEditorState } from '@tiptap/react';
+import { EditorContent, mergeAttributes, useEditor, useEditorState } from '@tiptap/react';
 import type { Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Code from '@tiptap/extension-code';
@@ -34,7 +34,11 @@ const quiet = { addKeyboardShortcuts: () => ({}) };
 const EXTENSIONS = [
   StarterKit.configure({ heading: false, blockquote: false, codeBlock: false, horizontalRule: false, strike: false, underline: false,
     link: false, trailingNode: false, code: false, bulletList: false, orderedList: false }),
-  Code.extend(quiet), Highlight.extend(quiet), BulletList.extend(quiet), OrderedList.extend(quiet)
+  Code.extend(quiet), Highlight.extend(quiet), BulletList.extend(quiet),
+  // The card's number column counts from the list's start (page-view.css).
+  OrderedList.extend({ ...quiet, renderHTML({ node, HTMLAttributes }) {
+    return ['ol', mergeAttributes(HTMLAttributes, { style: `--start: ${Number(node.attrs.start ?? 1) - 1}` }), 0];
+  } })
 ];
 
 // The toolbar's buttons, each with its icon on the 24px grid of the card's icons.
@@ -67,9 +71,9 @@ function Toolbar({ editor, label }: { editor: Editor; label: string }) {
 
 // One part: its head (a facet's tab or the core's top line), then its text.
 // The toolbar shows in the head while the focus is anywhere in the part.
-function PartEditor({ value, label, editable, head, onChange, after, autofocus = false, ...rest }: {
+function PartEditor({ value, label, editable, head, onChange, after, autofocus = false, reading = false, ...rest }: {
   value: string; label: string; editable: boolean; head: (toolbar: ReactNode) => ReactNode; onChange: (markdown: string) => void;
-  after?: ReactNode; autofocus?: boolean; className?: string; 'data-facet'?: string; 'data-unfilled'?: true;
+  after?: ReactNode; autofocus?: boolean; reading?: boolean; className?: string; 'data-facet'?: string; 'data-unfilled'?: true;
 }) {
   const changed = useRef(onChange);
   changed.current = onChange;
@@ -81,7 +85,7 @@ function PartEditor({ value, label, editable, head, onChange, after, autofocus =
     enablePasteRules: false,
     autofocus: autofocus ? 'end' : false,
     immediatelyRender: true,
-    editorProps: { attributes: { 'aria-label': label, role: 'textbox', 'aria-multiline': 'true', class: 'md md-editor' } },
+    editorProps: { attributes: { 'aria-label': label, role: 'textbox', 'aria-multiline': 'true', class: `md md-editor${reading ? ' reading' : ''}` } },
     onUpdate: ({ editor: current }) => changed.current(fromEditorDoc(current.getJSON() as EditorNode))
   });
   useEffect(() => { editor?.setEditable(editable); }, [editor, editable]);
@@ -122,7 +126,7 @@ export function LiveEditor({ parent, title, fields, opened, locked, persist, red
   const header = opened?.header;
   const coreLabel = `${header?.kind === 'sentence' ? 'Translation' : 'Meanings'}, ${title}`;
   return <div className="entry-content live-editor" role="group" aria-label={`Edit ${title}`}>
-    <PartEditor className="live-core" value={fields.core} editable={!locked} label={coreLabel}
+    <PartEditor className="live-core" value={fields.core} editable={!locked} label={coreLabel} reading={header?.kind === 'sentence'}
       onChange={markdown => { fields.core = markdown; changed(); }}
       head={toolbar => header?.kind === 'word'
         ? <p className="entry-heading">

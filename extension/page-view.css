@@ -318,13 +318,14 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
 :is(.live-editor, .facet-editing) .md-editor:focus { outline: 2px solid var(--focus); outline-offset: 1px; background: var(--surface); box-shadow: none; }
 :is(.live-editor, .facet-editing) .md-editor[contenteditable="false"] { box-shadow: none; opacity: .7; }
 :is(.live-editor, .facet-editing) .md-editor p { margin: 0; }
-:is(.live-editor, .facet-editing) .md-editor ol { list-style: decimal; padding-left: 26px; }
-:is(.live-editor, .facet-editing) .md-editor ol > li { display: list-item; }
-:is(.live-editor, .facet-editing) .md-editor ol > li::before { content: none; }
-:is(.live-editor, .facet-editing) .md-editor ol > li::marker { font: 600 13px var(--font-text); color: var(--fam, var(--ink-muted)); }
+/* The editor looks as the card will (D10, amended): a numbered list keeps
+   the card's number column, counted from the list's start. */
+.md-editor ol { counter-reset: md-item var(--start, 0); }
+.md-editor ol > li { counter-increment: md-item; }
+.md-editor ol > li::before { content: counter(md-item); }
 :is(.live-editor, .facet-editing) .md-editor mark { background: var(--fam-tint, var(--fam-notes-tint)); color: inherit; border-radius: 3px; padding: 0 2px; }
 .live-editor .facet[data-unfilled] .facet-tab { opacity: .55; }
-.live-core .md-editor { font-size: 16px; }
+.live-core .md-editor:not(.reading) { font-size: 16px; }
 .live-core { display: grid; gap: 4px; }
 .live-editor .entry-heading { align-items: center; min-height: 24px; }
 /* A facet edited on its own (D10): its Save and Cancel right below its text. */
