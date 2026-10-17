@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Vocabularium",
-  "version": "0.7.4",
+  "version": "0.7.5",
   "description": "Save language as you discover it.",
   "minimum_chrome_version": "120",
   "permissions": [
