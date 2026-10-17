@@ -1,6 +1,6 @@
 # Plan: an editor without markdown, a toolbar and a facet's own Edit (0.7.5)
 
-Proposed: 17 October 2026 (Europe/Berlin). Implements [D10](../architecture/traceability-map.md#entries), accepted by the owner on 17 October 2026 and applied to the specifications in increment 0. Tracker: [#167](https://github.com/Guccimane44/Vocalbularium/issues/167); milestone in [Actual Stages](https://app.notion.com/p/3fcbb1350208816382f8d2a2fb4fb0f8). Status: increment 0 merged in [#168](https://github.com/Guccimane44/Vocalbularium/pull/168) after the owner accepted D10 (17 October 2026); increment 1 (the toolbar editor) merged in [#169](https://github.com/Guccimane44/Vocalbularium/pull/169); increment 2 (a facet's own Edit) merged in [#170](https://github.com/Guccimane44/Vocalbularium/pull/170); increment 3 (verification and delivery) merged in [#171](https://github.com/Guccimane44/Vocalbularium/pull/171); increment 4 (the D10 amendment) merged in [#172](https://github.com/Guccimane44/Vocalbularium/pull/172); increment 5 (the editor as the card) merged in [#173](https://github.com/Guccimane44/Vocalbularium/pull/173); increment 6 (the core's own Edit and Retry) merged in [#174](https://github.com/Guccimane44/Vocalbularium/pull/174); increment 7 (rebuild and delivery) merged in [#175](https://github.com/Guccimane44/Vocalbularium/pull/175); increment 8 (the second D10 amendment) merged in [#176](https://github.com/Guccimane44/Vocalbularium/pull/176); increment 9 (plain Examples, size and font) merged in [#177](https://github.com/Guccimane44/Vocalbularium/pull/177); increment 10 (rebuild and delivery) merged in [#178](https://github.com/Guccimane44/Vocalbularium/pull/178); increment 11 (the third D10 amendment) merged in [#179](https://github.com/Guccimane44/Vocalbularium/pull/179); increment 12 (highlight colours) merged in [#180](https://github.com/Guccimane44/Vocalbularium/pull/180); increment 13 (rebuild and delivery) in review.
+Proposed: 17 October 2026 (Europe/Berlin). Implements [D10](../architecture/traceability-map.md#entries), accepted by the owner on 17 October 2026 and applied to the specifications in increment 0. Tracker: [#167](https://github.com/Guccimane44/Vocalbularium/issues/167); milestone in [Actual Stages](https://app.notion.com/p/3fcbb1350208816382f8d2a2fb4fb0f8). Status: increment 0 merged in [#168](https://github.com/Guccimane44/Vocalbularium/pull/168) after the owner accepted D10 (17 October 2026); increment 1 (the toolbar editor) merged in [#169](https://github.com/Guccimane44/Vocalbularium/pull/169); increment 2 (a facet's own Edit) merged in [#170](https://github.com/Guccimane44/Vocalbularium/pull/170); increment 3 (verification and delivery) merged in [#171](https://github.com/Guccimane44/Vocalbularium/pull/171); increment 4 (the D10 amendment) merged in [#172](https://github.com/Guccimane44/Vocalbularium/pull/172); increment 5 (the editor as the card) merged in [#173](https://github.com/Guccimane44/Vocalbularium/pull/173); increment 6 (the core's own Edit and Retry) merged in [#174](https://github.com/Guccimane44/Vocalbularium/pull/174); increment 7 (rebuild and delivery) merged in [#175](https://github.com/Guccimane44/Vocalbularium/pull/175); increment 8 (the second D10 amendment) merged in [#176](https://github.com/Guccimane44/Vocalbularium/pull/176); increment 9 (plain Examples, size and font) merged in [#177](https://github.com/Guccimane44/Vocalbularium/pull/177); increment 10 (rebuild and delivery) merged in [#178](https://github.com/Guccimane44/Vocalbularium/pull/178); increment 11 (the third D10 amendment) merged in [#179](https://github.com/Guccimane44/Vocalbularium/pull/179); increment 12 (highlight colours) merged in [#180](https://github.com/Guccimane44/Vocalbularium/pull/180); increment 13 (rebuild and delivery) merged in [#181](https://github.com/Guccimane44/Vocalbularium/pull/181); increment 14 (the fourth D10 amendment) in review.
 
 ## Outcome
 
@@ -92,6 +92,32 @@ D10 and C22 in the traceability map, the specifications, the scope rows `accepte
 
 - The full suites, D10 back to `implemented (0.7.5)`, the candidate rebuilt with the earlier ZIP kept, and the owner's API restarted.
 
+### 14. Amend D10 a fourth time: stored main-key highlights, Context and Text, empty parents (this PR)
+
+*Amended 17 October 2026, before the owner accepted 0.7.5.* The owner wanted the main key's yellow to come from the highlight function, visible in the editor, instead of being drawn by the card; and every card, Context and Text included, and every empty card, editable with the same editor. Owner answers: every part of a parent; existing cards converted once; Context and Text get Edit and Delete on a top row and their text converted once; an empty parent's top line is the main key with the language blank; still 0.7.5. Defaults to confirm: Context's main key is a stored highlight too; the row's Delete deletes the component after asking; the core's own Retry fills a blank language.
+
+### 15. The main key as a stored highlight
+
+- Formatting writes `==…==` around each occurrence of the main key in the core and every facet; the card's own emphasis goes for parent content and Context.
+- A migration converts existing parent content and Context once.
+- Unit tests for the formatting and the conversion; browser E2E that the editor shows the main key's highlight and that removing it sticks.
+
+### 16. Context and Text in the toolbar editor
+
+- Their text becomes markdown, converted once with characters kept as typed; the card renders it with the shared renderer.
+- Edit and Delete on a top row; Edit opens the toolbar editor with its own Save and Cancel; Delete asks first.
+- Browser E2E for both, and for capture still filling Context.
+
+### 17. Editing an empty parent
+
+- Edit for a parent without content: a top line of the main key, the language blank, word or sentence from the page's reading; Save stores it; the server accepts that top line only for a parent without content.
+- A later Retry, or the core's own, fills the language.
+- Browser E2E and store tests.
+
+### 18. Rebuild and deliver 0.7.5
+
+- The full suites, D10 back to `implemented (0.7.5)`, the owner's database backed up, the migration run, the candidate rebuilt with the earlier ZIP kept, and the API restarted.
+
 ## Acceptance criteria
 
 1. Typing `**word**`, `- item` or `==mark==` in any editor leaves those characters as typed; after Save the card shows them as typed.
@@ -105,6 +131,9 @@ D10 and C22 in the traceability map, the specifications, the scope rows `accepte
 9. The Examples show in the same font and size as every other facet.
 10. Text given a size or a font in the toolbar keeps it after Save, on the card and when edited again.
 11. The default highlight is the same yellow as the main key's emphasis; a colour chosen from the palette keeps it after Save.
+12. In a generated card the main key shows as a highlight in the editor too, and removing it there removes it from the card.
+13. Context and Text offer Edit and Delete on a top row; their text edits with the toolbar and reads as before after the upgrade.
+14. An empty German card can be written by hand and saved, with the main key in its top line.
 
 ## Risks
 
