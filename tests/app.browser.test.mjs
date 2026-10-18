@@ -3071,7 +3071,9 @@ test('0.7.5: a facet’s own Edit opens that facet alone in place, with its tool
   await waitFor(() => a.page.evaluate(() => document.activeElement?.getAttribute('aria-label') === 'Synonyms, German'), 'focused again');
   await a.page.keyboard.press('ControlOrMeta+a'); await a.page.keyboard.press('Backspace');
   await synonyms.getByRole('button', { name: 'Save', exact: true }).click();
-  // Emptied, it keeps its heading, dimmed, with no text (D10, amended a sixth time).
+  // Emptied, it keeps its heading, dimmed, with no text (D10, amended a sixth time). The editor's own
+  // section is dimmed too while its text is empty, so the editor has to be closed first.
+  await card.getByRole('textbox').waitFor({ state: 'detached' });
   await waitFor(async () => await synonyms.getAttribute('data-unfilled') !== null, 'Synonyms emptied');
   assert.equal(await synonyms.locator('.facet-body').count(), 0);
   // Its heading keeps Edit, Retry and Delete; Edit fills it by hand; Delete goes at once, as there is nothing to lose.
