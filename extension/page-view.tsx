@@ -185,6 +185,8 @@ function FacetActions({ name, hasContent, canRetry, disabled, asking, setAsking,
 // What a parent card's facets need to be retried or deleted, the facet asking
 // "Are you sure?", and the facet regenerating on its own or whose Retry failed.
 type FacetControls = { title: string; disabled: boolean; onDelete: (facet: FacetType) => void; onRetry: (facet: FacetType) => void;
+  // The card's facets, each shown with its heading (D10, amended a sixth time).
+  facets?: readonly string[];
   // A facet's own Edit (D10), and the facet open in its editor with what to draw there.
   onEdit?: (facet: FacetType) => void; editing?: { facet: string; node: ReactNode };
 
@@ -203,8 +205,10 @@ export function readContent(type: string, content: Component['content']): { rend
 // Generated content as its parent's render contract describes (D08): the core,
 // then each facet with content under its tab, in the parent's order. A facet
 // waiting for Retry is only its tag (0.7.4), until its own Retry starts: then
-// its section stands in its place, the spark running round its tab, and stays
-// only if the facet comes back with content. Anything else, and the user's own text, is plain text with its line breaks.
+// its section stands in its place, the spark running round its tab. Since
+// D10's sixth amendment every facet the card has shows its heading, an empty
+// one dimmed, without text, and with its Edit, Retry and Delete. Anything
+// else, and the user's own text, is plain text with its line breaks.
 export function Content({ type, rendered, mainKey, controls }: {
   type: string; rendered: Rendered; mainKey: string; controls?: FacetControls;
 }) {
@@ -214,11 +218,11 @@ export function Content({ type, rendered, mainKey, controls }: {
   // A facet's own Retry needs content that follows the parent's layout.
   const canRetry = rendered.kind === 'parent';
   // While the facet generates on its own, the spark runs round its tab (0.7.4).
-  const facetHead = (facet: FacetType) => parent && <h3 className="facet-title">
+  const facetHead = (facet: FacetType, hasContent = true) => parent && <h3 className="facet-title">
     <FacetTab parent={parent} facet={facet}><Spark active={controls?.retrying === facet} /></FacetTab>
     {controls?.retrying === facet ? <span className="visually-hidden">Generating…</span>
       : controls?.failed === facet && <span className="facet-note" data-note="failed">Retry failed</span>}
-    {controls && <FacetActions name={`${facetLabel(parent, facet)} from ${controls.title}`} hasContent canRetry={canRetry}
+    {controls && <FacetActions name={`${facetLabel(parent, facet)} from ${controls.title}`} hasContent={hasContent} canRetry={canRetry}
       disabled={controls.disabled} asking={controls.asking?.facet === facet ? controls.asking.kind : null}
       setAsking={kind => controls.setAsking(kind ? facet : null, kind ?? undefined)}
       onDelete={() => controls.onDelete(facet)} onRetry={() => controls.onRetry(facet)}
@@ -244,8 +248,10 @@ export function Content({ type, rendered, mainKey, controls }: {
         {facetHead(name)}
         <Markdown blocks={facet.body} mainKey={mainKey} className="facet-body" />
       </section>;
-      // A facet without content, generating on its own: its heading only.
-      return controls?.retrying === name ? <section key={name} {...section(name)} data-pending>{facetHead(name)}</section> : null;
+      // A facet the card has without content: its heading only, dimmed (D10, amended a sixth time),
+      // also while it generates on its own.
+      return controls?.retrying === name || controls?.facets?.includes(name)
+        ? <section key={name} {...section(name)} data-unfilled data-pending={controls?.retrying === name || undefined}>{facetHead(name, false)}</section> : null;
     })}
   </div>;
 }
@@ -566,8 +572,8 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
     const retryFacet = (facet: FacetType) => void run(() => generate({ scope: 'facet', componentId: item.id, facet }, true));
     const controls: FacetControls | undefined = isParentType(item.moduleType) ? { title, disabled: disabled || working || item.status === 'loading',
       onDelete: removeFacet, onRetry: retryFacet, asking: askingFacet?.id === item.id ? askingFacet : null,
-      // A facet with content edits on its own (D10, 0.7.5).
-      onEdit: facet => { setAskingFacet(null); begin(item.id, facet); },
+      // A facet edits on its own (D10, 0.7.5), an empty one too (amended a sixth time).
+      onEdit: facet => { setAskingFacet(null); begin(item.id, facet); }, facets: item.facets ?? [],
       setAsking: (facet, kind = 'delete') => setAskingFacet(facet ? { id: item.id, facet, kind } : null),
       retrying: item.retryingFacet, failed: item.failedFacet } : undefined;
     // While it generates, a card is only its tab, with a spark running round

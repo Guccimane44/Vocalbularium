@@ -330,7 +330,8 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
 .md-editor ol > li { counter-increment: md-item; }
 .md-editor ol > li::before { content: counter(md-item); }
 :is(.live-editor, .facet-editing, .note-editing) .md-editor mark { background: var(--highlight); color: inherit; border-radius: 3px; padding: 0 2px; }
-.live-editor .facet[data-unfilled] .facet-tab { opacity: .55; }
+/* An empty facet's heading is dimmed, in the card as in the editor (D10, amended a sixth time). */
+.facet[data-unfilled] .facet-tab { opacity: .55; }
 .live-core .md-editor:not(.reading) { font-size: 16px; }
 .live-core { display: grid; gap: 4px; }
 .live-editor .entry-heading { align-items: center; min-height: 24px; }
