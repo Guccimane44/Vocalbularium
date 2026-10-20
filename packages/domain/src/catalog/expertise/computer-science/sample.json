@@ -1,0 +1,23 @@
+{
+  "word_phrase": {
+    "core": {
+      "kind": "word",
+      "key": "Frontend",
+      "explanation": [
+        "The frontend is the part of a program that people see and touch: the screens, buttons and forms in a browser or an app. It shows information and passes what you do on to the backend, the part that stores data and does the heavy work.",
+        "Think of a restaurant: the frontend is the dining room and the menu, the backend is the kitchen."
+      ]
+    },
+    "facets": {}
+  },
+  "sentence": {
+    "core": {
+      "kind": "sentence",
+      "explanation": [
+        "The page in your browser (the frontend) asks a server (the backend) for data, using a message called a request. The server answers with a response, and the page shows what came back.",
+        "This split lets one backend serve many frontends, such as a website and a phone app."
+      ]
+    },
+    "facets": {}
+  }
+}

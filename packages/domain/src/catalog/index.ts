@@ -3,6 +3,9 @@ import mainKey from './main-key/module.js';
 import languages from './languages/family.js';
 import german from './languages/german/module.js';
 import chinese from './languages/chinese/module.js';
+import expertise from './expertise/family.js';
+import computerScience from './expertise/computer-science/module.js';
+import mathematics from './expertise/mathematics/module.js';
 import notes from './notes/family.js';
 import context from './notes/context/module.js';
 import text from './notes/text/module.js';
@@ -14,7 +17,9 @@ const ENTRIES = [
   { module: context, family: notes },
   { module: text, family: notes },
   { module: german, family: languages },
-  { module: chinese, family: languages }
+  { module: chinese, family: languages },
+  { module: computerScience, family: expertise },
+  { module: mathematics, family: expertise }
 ] as const satisfies readonly { module: ModuleDefinition; family: FamilyDefinition | null }[];
 
 type Entry = typeof ENTRIES[number];

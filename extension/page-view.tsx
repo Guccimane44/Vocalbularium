@@ -235,7 +235,8 @@ export function Content({ type, rendered, mainKey, controls }: {
   // The core's top line, then its markdown; each facet's markdown in its container (D09).
   return <div className="entry-content">
     {heading && <p className="entry-heading">
-      <span className="entry-language">{heading.language}</span>
+      {/* An Expertise core names no language (D11). */}
+      {heading.language && <span className="entry-language">{heading.language}</span>}
       <span className="entry-key">{heading.key}</span>
       {heading.pronunciation && <span className="entry-pronunciation">{heading.pronunciation}</span>}
     </p>}

@@ -20,21 +20,24 @@ const page = () => [
 
 test('the catalog lists input modules first and the window offers everything but the main key', () => {
   assert.deepEqual(Object.keys(CATALOG).slice(0, 3), ['main-key', 'context', 'text']);
-  assert.deepEqual(WINDOW_MODULES, ['context', 'text', 'german', 'chinese'], 'the earlier content modules are retired (D08)');
+  assert.deepEqual(WINDOW_MODULES, ['context', 'text', 'german', 'chinese', 'computer-science', 'mathematics'], 'the earlier content modules are retired (D08); Expertise joins (D11)');
   for (const entry of Object.values(CATALOG)) assert.ok(entry.label && entry.description);
   assert.equal(isContentType('text'), false); assert.equal(isContentType('german'), true);
   assert.equal(isContentType('selected'), false);
 });
 
 test('every module but the main key belongs to one module family (D05)', () => {
-  assert.deepEqual([...FAMILIES], ['translation', 'meaning', 'usage', 'roots', 'connections', 'sound', 'notes'], 'Translation joins for the parents (D08)');
+  assert.deepEqual([...FAMILIES], ['translation', 'expertise', 'meaning', 'usage', 'roots', 'connections', 'sound', 'notes'], 'Translation joins for the parents (D08), Expertise for its subjects (D11)');
+  assert.equal(FAMILY_LABELS.translation, 'Languages', 'Translation is called Languages since 0.8.0 (D11)');
+  assert.equal(FAMILY_LABELS.expertise, 'Expertise');
   assert.deepEqual([...DECK_COLOURS], ['meaning', 'usage', 'roots', 'connections', 'sound', 'notes'], 'deck colours stay the six earlier ones');
   assert.equal(CATALOG.german.family, 'translation');
   assert.equal(CATALOG.chinese.kind, 'content');
   for (const family of FAMILIES) assert.ok(FAMILY_LABELS[family]);
   assert.equal(CATALOG['main-key'].family, null);
   assert.deepEqual(WINDOW_MODULES.map(type => [type, CATALOG[type].family]), [
-    ['context', 'notes'], ['text', 'notes'], ['german', 'translation'], ['chinese', 'translation']
+    ['context', 'notes'], ['text', 'notes'], ['german', 'translation'], ['chinese', 'translation'],
+    ['computer-science', 'expertise'], ['mathematics', 'expertise']
   ]);
 });
 

@@ -26,6 +26,9 @@
   --fam-translation: #0b6b82;
   --on-fam-translation: #ffffff;
   --fam-translation-tint: #e0eff2;
+  --fam-expertise: #466e12;
+  --on-fam-expertise: #ffffff;
+  --fam-expertise-tint: #e9f1da;
   --fam-meaning: #2c5aa0;
   --on-fam-meaning: #ffffff;
   --fam-meaning-tint: #e6eef9;
@@ -114,6 +117,9 @@
     --fam-translation: #6fcde0;
     --on-fam-translation: #062a33;
     --fam-translation-tint: #18282c;
+    --fam-expertise: #a9d46f;
+    --on-fam-expertise: #1c2a08;
+    --fam-expertise-tint: #212a17;
     --fam-meaning: #8db4f2;
     --on-fam-meaning: #0e1f3d;
     --fam-meaning-tint: #1d2636;
@@ -162,6 +168,9 @@
   --fam-translation: #6fcde0;
   --on-fam-translation: #062a33;
   --fam-translation-tint: #18282c;
+  --fam-expertise: #a9d46f;
+  --on-fam-expertise: #1c2a08;
+  --fam-expertise-tint: #212a17;
   --fam-meaning: #8db4f2;
   --on-fam-meaning: #0e1f3d;
   --fam-meaning-tint: #1d2636;
@@ -211,6 +220,7 @@
     --pending-bg: Canvas;
     --failed-bg: Canvas;
     --fam-translation-tint: Canvas;
+    --fam-expertise-tint: Canvas;
     --fam-meaning-tint: Canvas;
     --fam-usage-tint: Canvas;
     --fam-roots-tint: Canvas;
@@ -230,6 +240,7 @@
     --pending-cue: CanvasText;
     --failed-cue: CanvasText;
     --fam-translation: CanvasText;
+    --fam-expertise: CanvasText;
     --fam-meaning: CanvasText;
     --fam-usage: CanvasText;
     --fam-roots: CanvasText;
@@ -241,6 +252,7 @@
     --on-ink: ButtonText;
     --on-primary: ButtonText;
     --on-fam-translation: ButtonText;
+    --on-fam-expertise: ButtonText;
     --on-fam-meaning: ButtonText;
     --on-fam-usage: ButtonText;
     --on-fam-roots: ButtonText;

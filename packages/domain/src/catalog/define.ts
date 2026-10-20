@@ -35,6 +35,8 @@ export type CoreValue = Readonly<{ kind: 'word' | 'sentence' } & Record<string, 
 export type CoreDefinition<T extends CoreValue = any> = Readonly<{
   id: 'core';
   label: string;
+  // How the editor names the core's text for each input type.
+  labels: Readonly<Record<InputType, string>>;
   output: OutputType;
   shapes: Readonly<Record<InputType, Shape<T>>>;
   format: (value: T) => string;

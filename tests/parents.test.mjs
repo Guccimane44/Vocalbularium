@@ -11,24 +11,26 @@ import { textBlocks } from '@vocabularium/domain/pages';
 
 // Parent modules with a core and facets (D08).
 
-test('the first catalog is German and Chinese in the Translation family, with facets in a fixed order', () => {
-  assert.deepEqual(Object.keys(PARENTS), ['german', 'chinese']);
+test('the catalog is German and Chinese in Languages, with facets in a fixed order, and Computer Science and Mathematics in Expertise (D08, D11)', () => {
+  assert.deepEqual(Object.keys(PARENTS), ['german', 'chinese', 'computer-science', 'mathematics']);
   assert.deepEqual(facetsOf('german'), ['article', 'examples', 'synonyms', 'antonyms']);
   assert.deepEqual(facetsOf('chinese'), ['examples', 'pinyin']);
-  for (const parent of Object.values(PARENTS)) assert.equal(parent.family, 'translation');
+  for (const parent of ['german', 'chinese']) assert.equal(PARENTS[parent].family, 'translation');
+  for (const parent of ['computer-science', 'mathematics']) {
+    assert.equal(PARENTS[parent].family, 'expertise');
+    assert.deepEqual(facetsOf(parent), [], 'a provisional core only (D11)');
+  }
   assert.ok(isParentType('german') && !isParentType('german-examples') && !isParentType('text'));
 });
 
-test('every facet type has its own abbreviation for its tag, the same on every parent (0.7.1)', () => {
-  const byType = new Map();
-  for (const parent of Object.keys(PARENTS)) for (const facet of facetsOf(parent)) {
-    const abbreviation = facetAbbreviation(parent, facet);
-    assert.match(abbreviation, /^\p{Lu}\p{Ll}?$/u, `${parent} ${facet}`);
-    assert.equal(byType.get(facet) ?? abbreviation, abbreviation, `${facet} is marked alike on every parent`);
-    byType.set(facet, abbreviation);
+test('each facet has its own abbreviation for its tag, unique within its parent (0.7.1, D11)', () => {
+  for (const parent of Object.keys(PARENTS)) {
+    const abbreviations = facetsOf(parent).map(facet => facetAbbreviation(parent, facet));
+    for (const abbreviation of abbreviations) assert.match(abbreviation, /^\p{Lu}\p{Ll}?$/u, parent);
+    assert.equal(new Set(abbreviations).size, abbreviations.length, `${parent} repeats an abbreviation`);
   }
-  assert.equal(new Set(byType.values()).size, byType.size, 'no two facet types share an abbreviation');
   assert.deepEqual(facetsOf('german').map(facet => facetAbbreviation('german', facet)), ['Ar', 'Ex', 'Sy', 'An']);
+  assert.deepEqual(facetsOf('chinese').map(facet => facetAbbreviation('chinese', facet)), ['Ex', 'Py']);
 });
 
 test('a word gets every facet; a sentence only Examples and Pinyin', () => {

@@ -651,7 +651,7 @@ function ModuleWindow({ types, disabled, unavailable, where, addAtEnd, holders, 
       <ul>
         {modules.map(type => <WindowModule key={type} type={type} explain={!disabled} present={types.includes(type)} addAtEnd={addAtEnd}
           blocked={disabled ? unavailable ?? 'Unavailable' : addBlocked(types.map(value => ({ type: value })), type)}>
-          {isParentType(type) && pick && <ul className="window-facets" aria-label={`${CATALOG[type].label} facets`}>
+          {isParentType(type) && pick && facetsOf(type).length > 0 && <ul className="window-facets" aria-label={`${CATALOG[type].label} facets`}>
             {facetsOf(type).map(facet => <WindowFacet key={facet} parent={type} facet={facet}
               several={facetTargets(holders, type, facet).length > 1} picked={Boolean(picked && !picked.placing && picked.parent === type && picked.facet === facet)}
               pick={() => pick(type, facet)}
