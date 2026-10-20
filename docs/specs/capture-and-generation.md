@@ -139,6 +139,10 @@ While an attempt is running on a component, another retry targeting it and manua
 
 The generation lock applies across installations. Another installation may already have an unsaved draft when a component's generation starts. If a manual save arrives that changes any component that is generating, reject that save immediately rather than queueing it. For a save containing several changed components, reject the whole save without updating any of them. Preserve all the user's drafts and explain that a component is still generating. After the attempt finishes, the user can explicitly select **Save** or **Try saving again**; the new save follows the normal server-arrival order. Do not automatically apply the previously rejected save when generation ends.
 
+## Generation record
+
+From 0.8.0 each generated facet of a parent, the core included, records with its component the model and the version of the prompt that produced it ([D11](../architecture/traceability-map.md#entries); [generation architecture](../architecture/generation.md#generation-record)). A whole attempt records them for the core and every facet it generated; a facet's own Retry records them for that facet only, and the other facets keep theirs. A user's edit does not change the record. Components generated before 0.8.0 have none. The interface does not show the record.
+
 ## Saving and synchronization failures
 
 Generation outcomes and persistence are distinct. Persisting a page with failed components makes it accessible for retry; it does not label incomplete generation as successful. Never report unsaved content as saved or synchronized.

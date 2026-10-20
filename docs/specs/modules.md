@@ -4,7 +4,7 @@
 
 Modules provide focused capabilities that users choose and combine in a deck's configuration. A rich library of creative and useful modules is the central direction in the [product vision](../product/vision.md). The [product model](../product/model.md) defines module types, instances, outputs, pages, components, and views; [scope](../product/scope.md) identifies what is supported now.
 
-The rules below describe content modules as **parent modules** with a core and facets ([D08](../architecture/traceability-map.md#entries)). Release 0.7.0 implements them. Until 0.6.3, the extension offered the three retired types, `German explanation`, `German explanation + examples`, and `Sentence usage`, as the [0.6.3 version of this specification](https://github.com/Guccimane44/Vocalbularium/blob/97ff10f/docs/specs/modules.md) describes, with formats in the [MVP module specification](../history/mvp/MVP-Product-spec-modules.md). [Capture and generation](capture-and-generation.md) owns generation completion, failure, interruption, publication, and retry behavior.
+The rules below describe content modules as **parent modules** with a core and facets ([D08](../architecture/traceability-map.md#entries)). Release 0.7.0 implements them. Until 0.6.3, the extension offered the three retired types, `German explanation`, `German explanation + examples`, and `Sentence usage`, as the [0.6.3 version of this specification](https://github.com/Guccimane44/Vocalbularium/blob/97ff10f/docs/specs/modules.md) describes, with formats in the [MVP module specification](../history/mvp/MVP-Product-spec-modules.md). [Capture and generation](capture-and-generation.md) owns generation completion, failure, interruption, publication, and retry behavior. From 0.8.0 every module is defined once in the **module catalog**, grouped by family, with its facets, their shapes and their prompts ([D11](../architecture/traceability-map.md#entries)); the [generation architecture](../architecture/generation.md) describes the catalog, the prompt composer and the provider adapters.
 
 ## Module kinds
 
@@ -21,7 +21,9 @@ A **parent module** contributes one focused kind of content, such as a translati
 - a required **core**, which applies to every word, phrase, and sentence, so a parent never completes empty because of the kind of input;
 - **facets**, each adding one kind of content about the core, such as an article, examples, or pinyin. A facet type belongs to one parent type, and the parent type fixes the order its facets appear in, whatever order the user adds them in.
 
-Facets describe the core's translation, not the main key. When the main key is already in the parent's language, the core explains it in that language instead of translating it, and the translation the facets describe is the main key itself; this is how a user finds, for example, the article of a German noun.
+From 0.8.0 the catalog defines the core as the parent's first facet, one the user cannot add or delete, and each parent owns all its facets: facets that look alike in two parents, such as German and Chinese Examples, are defined separately and may differ ([D11](../architecture/traceability-map.md#entries)). Input modules have no facets yet.
+
+In a Languages parent, facets describe the core's translation, not the main key. When the main key is already in the parent's language, the core explains it in that language instead of translating it, and the translation the facets describe is the main key itself; this is how a user finds, for example, the article of a German noun.
 
 Facets have no options. Variety comes from more parent types: a German and a Spanish translation are two parent types, not one type with a language setting ([D08](../architecture/traceability-map.md#entries); partly answers [Q41](../architecture/questionnaire/08-modules.md#q41-what-can-a-module-be-configured-with)).
 
@@ -41,7 +43,8 @@ Every input and content module belongs to one **module family**, which gives it 
 
 | Family | Icon | What belongs here |
 | --- | --- | --- |
-| Translation | two speech bubbles | a translation into one language, with facets about it ([D08](../architecture/traceability-map.md#entries)) |
+| Languages | two speech bubbles | a translation into one language, with facets about it ([D08](../architecture/traceability-map.md#entries)); called Translation until 0.8.0 |
+| Expertise | graduation cap | an explanation of a technical term or a difficult concept in one subject's context ([D11](../architecture/traceability-map.md#entries)) |
 | Meaning | open book | explanations, definitions |
 | Usage | quotation marks | example sentences, usage notes, collocations |
 | Roots | sprouting stem | etymology, character parts, word history |
@@ -49,14 +52,16 @@ Every input and content module belongs to one **module family**, which gives it 
 | Sound | sound bars | pronunciation, audio, tones, stress |
 | Notes | pencil | the user's own input: Context and Text |
 
-The main key module belongs to no family; it is shown as the page title. Translation is a family of its own because a translation's facets span Meaning, Usage, Connections, and Sound. Families with no module yet (Meaning, Usage, Roots, Connections, Sound) stay defined so that future modules have a place; they add no module to the catalog. A Creative family, for parents that write something new from the key such as a poem, is added with its first parent. Translation is coloured petrol ([K26](../architecture/traceability-map.md#clarifications)); deck colours stay the six earlier family colours ([decks and configuration](decks-and-configuration.md#navigation)).
+The main key module belongs to no family; it is shown as the page title. Languages is a family of its own because a translation's facets span Meaning, Usage, Connections, and Sound; Expertise is one because it explains a key as one field understands it, whatever language the key is in. Families with no module yet (Meaning, Usage, Roots, Connections, Sound) stay defined so that future modules have a place; they add no module to the catalog. A Creative family, for parents that write something new from the key such as a poem, is added with its first parent. Languages is coloured petrol ([K26](../architecture/traceability-map.md#clarifications)) and Expertise leaf green ([K30](../architecture/traceability-map.md#clarifications)); deck colours stay the six earlier family colours ([decks and configuration](decks-and-configuration.md#navigation)).
 
 ## Catalog
 
 | Parent module | Family | Core | Facets, in order |
 | --- | --- | --- | --- |
-| `German` | Translation | A word or phrase: an explanation in German, in the layout of the retired `German explanation`. A sentence: its German translation. | Article, Examples, Synonyms, Antonyms |
-| `Chinese` | Translation | A word or phrase: an explanation in Chinese, in the same layout. A sentence: its Chinese translation. Simplified characters. | Examples, Pinyin |
+| `German` | Languages | A word or phrase: an explanation in German, in the layout of the retired `German explanation`. A sentence: its German translation. | Article, Examples, Synonyms, Antonyms |
+| `Chinese` | Languages | A word or phrase: an explanation in Chinese, in the same layout. A sentence: its Chinese translation. Simplified characters. | Examples, Pinyin |
+| `Computer Science` | Expertise | A short explanation of the word, phrase or sentence in intuitive, comprehensive English, as computer science understands it. Provisional (0.8.0). | none yet |
+| `Mathematics` | Expertise | The same, as mathematics understands it. Provisional (0.8.0). | none yet |
 
 | Facet | Tag | Word or phrase | Sentence |
 | --- | --- | --- | --- |
@@ -66,9 +71,9 @@ The main key module belongs to no family; it is shown as the page title. Transla
 | Antonyms (German) | An | Words with the opposite meaning | Not shown |
 | Pinyin (Chinese) | Py | The pinyin of the Chinese translation | The pinyin of the Chinese translation |
 
-Each facet type has an abbreviation that marks its [tag](pages-and-editing.md#facet-tags) on a card (since 0.7.1). No two facet types share one, and one facet type, such as Examples, has the same abbreviation on every parent.
+Each facet type has an abbreviation that marks its [tag](pages-and-editing.md#facet-tags) on a card (since 0.7.1). From 0.8.0 no two facets of one parent share an abbreviation; facets of different parents may (until 0.8.0 no two facet types shared one, which a growing catalog cannot keep). The facets above keep their abbreviations.
 
-When the main key is already in the parent's language, examples have no translation line. The input modules belong to these families: Context and Text to Notes; the main key to none. Names remain provisional.
+When the main key is already in the parent's language, examples have no translation line. The Expertise modules write in English until a language setting exists, which the interface will also follow; a key in another language is still explained in English. The input modules belong to these families: Context and Text to Notes; the main key to none. Names remain provisional.
 
 `German explanation`, `German explanation + examples`, and `Sentence usage` are retired ([D08](../architecture/traceability-map.md#entries)), as `<The selected>` and `<The selected + original language tag>` were before them ([D03](../architecture/traceability-map.md#entries)). Release 0.7.0 deletes their deck instances and the components they produced along with every deck and page (migration `0011`, [scope](../product/scope.md#upgrade-from-earlier-builds)).
 
@@ -98,6 +103,7 @@ Since 0.7.4 the provider returns a parent's content as JSON, and the app keeps i
 
 - **Core, word or phrase:** the key's language, the key, an optional romanization, and a list of meanings in the parent's language, at least one.
 - **Core, sentence:** its translation, or for a sentence already in the parent's language, an explanation of its meaning.
+- **Core, Expertise:** for a word or phrase, the key and an explanation; for a sentence, an explanation. Its top line shows the key, or that the core is a sentence's, without a language or romanization. The [0.8.0 plan](../plans/module-catalog.md) fixes the exact shape with the golden sets.
 - **Article:** `{ singular, plural }`, the plural optional, such as `das Ufer` and `die Ufer`.
 - **Examples:** a list of `{ sentence, translation }`, the translation optional, not tied to meanings.
 - **Synonyms**, **Antonyms:** lists of words.
@@ -109,12 +115,13 @@ Since 0.7.4 the provider returns a parent's content as JSON, and the app keeps i
 | --- | --- |
 | Core, word | the meanings as a numbered list |
 | Core, sentence | the translation as text |
+| Core, Expertise | the explanation as text, in paragraphs |
 | Article | one line, `das Ufer · die Ufer` (the singular alone without a plural) |
 | Examples | a numbered list, each item the sentence with its translation on the next line in italics |
 | Synonyms, Antonyms | one line, the words separated by commas |
 | Pinyin | a line each, `河岸 hé'àn` |
 
-The core's **top line** (the key's language, the key and its romanization, or that the core is a sentence's) stays structured: shown as a heading and never edited. The supported markdown is bold, italic, bulleted and numbered lists, inline code and highlight (`==text==`), and since 0.7.5 a text size and a font on a stretch of text, written as a bracketed span, `[text]{size=small}`, `[text]{size=large font=display}` (sizes `small` and `large`, fonts `display` and `mono`; normal size and the text font need no span), and since the third amendment a highlight colour, `[text]{highlight=green}` (`green`, `blue`, `pink`, `orange`; the default yellow is written `==text==`); anything else is shown as typed. The default highlight is the same yellow as the main key's emphasis. Since the fourth amendment the main key's emphasis is itself a stored highlight: when generated content is formatted, each occurrence of the main key in the core and every facet is written as `==…==` (not inside code or an existing highlight), and the card draws no emphasis of its own, so the editor shows the same highlights and the user can remove or add them. Since 0.7.5 the markdown is internal to storage: the editor never shows it, and characters the user types are stored escaped, so they show as typed ([D10](../architecture/traceability-map.md#entries)). The card renders each facet's markdown inside that facet's fixed container, under its label, in the parent's order, and emphasises the main key in it. A facet whose markdown is empty has no content: its container is not shown and its [tag](pages-and-editing.md#facet-tags) is blander. A core whose markdown is empty shows only its top line. Rendering is a pure function of the stored content, shared by every client; it never produces HTML ([Q59](../architecture/questionnaire/answers/answers-11-security-privacy.md#q59)). The iteration plan fixes each parent's JSON shape with its golden set ([C8](../architecture/traceability-map.md#conflicts)). Each future module's specification states its shape, its formatting and its containers under *Output and presentation*.
+The core's **top line** (the key's language, the key and its romanization, or that the core is a sentence's) stays structured: shown as a heading and never edited. The supported markdown is bold, italic, bulleted and numbered lists, inline code and highlight (`==text==`), and since 0.7.5 a text size and a font on a stretch of text, written as a bracketed span, `[text]{size=small}`, `[text]{size=large font=display}` (sizes `small` and `large`, fonts `display` and `mono`; normal size and the text font need no span), and since the third amendment a highlight colour, `[text]{highlight=green}` (`green`, `blue`, `pink`, `orange`; the default yellow is written `==text==`); anything else is shown as typed. The default highlight is the same yellow as the main key's emphasis. Since the fourth amendment the main key's emphasis is itself a stored highlight: when generated content is formatted, each occurrence of the main key in the core and every facet is written as `==…==` (not inside code or an existing highlight), and the card draws no emphasis of its own, so the editor shows the same highlights and the user can remove or add them. Since 0.7.5 the markdown is internal to storage: the editor never shows it, and characters the user types are stored escaped, so they show as typed ([D10](../architecture/traceability-map.md#entries)). The card renders each facet's markdown inside that facet's fixed container, under its label, in the parent's order, and emphasises the main key in it. A facet whose markdown is empty has no content: its container is not shown and its [tag](pages-and-editing.md#facet-tags) is blander. A core whose markdown is empty shows only its top line. Rendering is a pure function of the stored content, shared by every client; it never produces HTML ([Q59](../architecture/questionnaire/answers/answers-11-security-privacy.md#q59)). The iteration plan fixes each parent's JSON shape with its golden set ([C8](../architecture/traceability-map.md#conflicts)); from 0.8.0 each shape is defined once, in its facet's folder in the catalog ([D11](../architecture/traceability-map.md#entries)). Each future module's specification states its shape, its formatting and its containers under *Output and presentation*.
 
 ## View module contract
 

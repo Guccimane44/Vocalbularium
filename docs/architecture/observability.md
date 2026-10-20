@@ -12,6 +12,8 @@ Record successful and failed actions and important transitions: requests, captur
 
 [The shared version-1 contract](../../shared/diagnostics.mjs) allowlists event names and fields. Events have stable UUIDs, original occurrence time, source, severity and outcome; the collector adds receipt time. Request IDs identify network attempts, operation IDs identify logical mutations across explicit replay, and page/component/attempt IDs link generation and publication. Recovered attempts join earlier history by attempt ID.
 
+From 0.8.0 provider events also carry the prompt version, the fingerprint of the composed request that the component's [generation record](generation.md#generation-record) stores, so a component's content can be traced to the request that produced it ([D11](traceability-map.md#entries)).
+
 Outcomes are started, succeeded, failed, canceled, rejected or replayed. Provider success, persisted result staging and acknowledged publication are distinct facts. Queue, provider, staging and request durations use monotonic clocks. Device wall-clock timestamps alone do not establish causal ordering.
 
 ## Content policy

@@ -66,9 +66,9 @@ Modules have three kinds:
 
 A **module type** defines one focused way to contribute content, such as displaying the selected text or generating an explanation. Some types use generative AI; others display input directly.
 
-A **parent module** has a required **core**, which applies to every word, phrase, and sentence, and **facets**: optional parts that each add one kind of content to the core, such as an article or examples. Each facet belongs to one parent module type, which fixes the order facets appear in. A facet exists only inside a parent of its type and is not a module instance. Variety comes from more parent types, not from options on a facet ([D08](../architecture/traceability-map.md#entries)).
+A **parent module** has a required **core**, which applies to every word, phrase, and sentence, and **facets**: optional parts that each add one kind of content to the core, such as an article or examples. Each facet belongs to one parent module type, which fixes the order facets appear in. A facet exists only inside a parent of its type and is not a module instance. Variety comes from more parent types, not from options on a facet ([D08](../architecture/traceability-map.md#entries)). Since 0.8.0 the core is itself a facet, the first of every parent and one that cannot be removed, and a parent owns all its facets: two parents never share one, however alike, such as German and Chinese Examples ([D11](../architecture/traceability-map.md#entries)). Input modules have no facets yet, but may gain them.
 
-A module's purpose, applicable inputs, supported options, and output behavior are product-defined. The [module specification](../specs/modules.md) describes the current catalog and the design contract for future additions. A module can serve different subjects or languages within its applicability; it need not apply to every input.
+A module's purpose, applicable inputs, supported options, and output behavior are product-defined. The [module specification](../specs/modules.md) describes the current catalog and the design contract for future additions. The **module catalog** defines every module type once, grouped by family, with its facets and their prompts ([generation architecture](../architecture/generation.md#module-catalog)). A module can serve different subjects or languages within its applicability; it need not apply to every input.
 
 A **module instance** is one placement of an input or content module type, with the facets chosen for it, either in a deck configuration, where it is a template for new pages, or on a page, where it owns one component. A deck or page holds at most 12 module instances, counting every module, including the main key, Context, and Text. Text and content module types may have several instances.
 
@@ -86,7 +86,7 @@ Other view modules, such as a **card** view module that recreates the earlier ka
 
 A **layout** is how a deck's page list shows its pages: List, Table, or Gallery ([pages and editing](../specs/pages-and-editing.md#page-list)). A layout lists many pages; a view shows one. Layouts are presentation choices remembered on each installation, not modules and not part of the deck configuration ([D05](../architecture/traceability-map.md#entries)).
 
-A **module family** groups module types by what they contribute (Translation, Meaning, Usage, Roots, Connections, Sound, Notes) and gives them their colour and icon ([modules](../specs/modules.md#module-families)). It is a property of the module type; it does not change what a module does.
+A **module family** groups module types by what they contribute (Languages, Expertise, Meaning, Usage, Roots, Connections, Sound, Notes; Languages was called Translation until 0.8.0) and gives them their colour and icon ([modules](../specs/modules.md#module-families)). It is a property of the module type; it does not change what a module does.
 
 ## Generation attempt and outcome
 
