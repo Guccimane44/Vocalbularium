@@ -9,7 +9,7 @@ function contextOf(components) {
   const text = context ? notePlain(context.content).trim() : '';
   return text || undefined;
 }
-import { OpenCodeProvider } from './opencode.mjs';
+import { createProvider } from './providers.mjs';
 import { mkdirSync, readdirSync, readFileSync, writeFileSync, renameSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { diagnosticContext } from './diagnostics.mjs';
@@ -22,7 +22,7 @@ function existingContent(component) {
 }
 
 export class Generation {
-  constructor(store, provider = new OpenCodeProvider(), { maxActive = 4, maxQueued = 16, diagnostic = () => {}, emit = () => {} } = {}) {
+  constructor(store, provider = createProvider(), { maxActive = 4, maxQueued = 16, diagnostic = () => {}, emit = () => {} } = {}) {
     if (!Number.isSafeInteger(maxActive) || maxActive < 1 || !Number.isSafeInteger(maxQueued) || maxQueued < 0) {
       throw new Error('Generation limits must be non-negative safe integers with at least one active slot.');
     }

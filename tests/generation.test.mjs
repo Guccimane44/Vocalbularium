@@ -5,11 +5,12 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { Generation } from '../src/server/generation.mjs';
-import { OpenCodeProvider, parentInstructions, parentSchema } from '../src/server/opencode.mjs';
+import { OpenCodeProvider } from '../src/server/opencode.mjs';
+import { moduleInstructions as parentInstructions, moduleSchema as parentSchema } from '@vocabularium/domain/composer';
 import { generateComponents } from '@vocabularium/domain/modules';
 import { formatContent, withKeyHighlighted } from '@vocabularium/domain/content';
 // Generated content as stored: formatted, with the main key highlighted (D10, amended a fourth time).
-const keyed = (value, key = 'bank') => withKeyHighlighted(formatContent(value), key);
+const keyed = (value, key = 'bank') => withKeyHighlighted(formatContent('german', value), key);
 import { plainLines } from '@vocabularium/domain/markdown';
 import { isContentType } from '@vocabularium/domain/page-modules';
 import { confirmed, generated, resultFor, sentenceResult, text, textBlocks, useModules, wordResult, staged } from './helpers/pages.mjs';
@@ -524,7 +525,7 @@ test('a failed result write retains the complete generated output for explicit s
   await Promise.all([...generation.tasks.values()].map(item => item.task));
   const back = generated(page)[0];
   assert.equal(generated(await store.page(page.id))[0].status, 'loading');
-  assert.deepEqual(generation.pendingResults.get(back.attemptId), { ok: true, content: formatContent(wordResult('complete generated text', {}, { key: '幸福' })) });
+  assert.deepEqual(generation.pendingResults.get(back.attemptId), { ok: true, content: formatContent('german', wordResult('complete generated text', {}, { key: '幸福' })) });
   assert.equal(generation.failedResults.has(back.attemptId), true);
   failWrite = false;
   await generation.saveResult(back.attemptId, session);
@@ -556,7 +557,7 @@ test('an in-progress result write does not advertise save recovery', async t => 
   await Promise.all([...generation.tasks.values()].map(item => item.task));
   assert.equal(generation.pendingResults.has(attemptId), false);
   assert.equal(generation.failedResults.has(attemptId), false);
-  assert.deepEqual((await store.attempt(attemptId)).result, { ok: true, content: formatContent(wordResult('staged later', {}, { key: '幸福' })) });
+  assert.deepEqual((await store.attempt(attemptId)).result, { ok: true, content: formatContent('german', wordResult('staged later', {}, { key: '幸福' })) });
 });
 
 test('the result recovery journal survives a failed database write and server restart without regenerating', async (t) => {
@@ -576,7 +577,7 @@ test('the result recovery journal survives a failed database write and server re
   await generation.close();
   await store.close();
   store = (await createTestStore(t, databaseKey)); generation = (await Generation.create(store, { interpret: async () => assert.fail(), generate: async () => assert.fail() }));
-  assert.deepEqual((await store.attempt(attemptId)).result, { ok: true, content: formatContent(wordResult('journaled result', {}, { key: '幸福' })) });
+  assert.deepEqual((await store.attempt(attemptId)).result, { ok: true, content: formatContent('german', wordResult('journaled result', {}, { key: '幸福' })) });
   await store.publish('recovered', { attemptId, session });
   assert.equal(text(generated(await store.page(pageId))[0]), 'journaled result'); assert.equal(calls, 1);
 });

@@ -4,12 +4,13 @@ import type { DeckEditorDraft } from '../types/editor-drafts.js';
 import type { DeckColour, DeckConfiguration } from '@vocabularium/contracts';
 import { applicableFacets, isParentType, withFacet } from '@vocabularium/domain/parents';
 import type { FacetType, ParentType } from '@vocabularium/domain/parents';
+import { isCatalogModule, MODULES } from '@vocabularium/domain/catalog';
 import { addBlocked, CATALOG, DECK_COLOURS, isModuleType } from '@vocabularium/domain/page-modules';
 import type { ModuleFamily } from '@vocabularium/domain/page-modules';
 import { renderContent, renderParent } from '@vocabularium/domain/render';
 import type { Rendered } from '@vocabularium/domain/render';
 import { formatContent } from '@vocabularium/domain/content';
-import type { GeneratedParent } from '@vocabularium/contracts';
+import type { GeneratedParent } from '@vocabularium/domain/generated';
 import { deckColour } from './deck-colour.ts';
 import { FacetTags } from './facet-tags.tsx';
 import { FamilyIcon } from './families.tsx';
@@ -29,33 +30,17 @@ export const newDeckDraft = (): DeckConfiguration => ({
   view: { module: 'default' }
 });
 
-const SAMPLE = { word_phrase: '幸福', sentence: '我真的很幸福' } as const;
-// What each parent would return for the samples (D08), as the provider's JSON,
-// formatted into markdown as a stored result is (D09).
-const SAMPLE_CONTENT: Record<ParentType, Record<'word_phrase' | 'sentence', GeneratedParent>> = {
-  german: {
-    word_phrase: { core: { kind: 'word', language: 'Chinesisch', key: '幸福', romanization: 'xìngfú', meanings: ['Glück; Glückseligkeit; Wohlbefinden'] },
-      facets: { article: { singular: 'das Glück' }, examples: [{ sentence: '她希望孩子们拥有幸福。', translation: 'Sie hofft, dass die Kinder Glück haben.' }],
-        synonyms: ['Freude', 'Seligkeit'], antonyms: ['Unglück'] } },
-    sentence: { core: { kind: 'sentence', translation: 'Ich bin wirklich glücklich.' },
-      facets: { examples: [{ sentence: '想到我的家人和朋友，我觉得很幸福。', translation: 'Wenn ich an meine Familie und Freunde denke, bin ich glücklich.' }] } }
-  },
-  chinese: {
-    word_phrase: { core: { kind: 'word', language: '汉语', key: '幸福', romanization: 'xìngfú', meanings: ['生活、境遇称心如意'] },
-      facets: { examples: [{ sentence: '她希望孩子们拥有幸福。' }], pinyin: [{ text: '幸福', pinyin: 'xìngfú' }] } },
-    sentence: { core: { kind: 'sentence', translation: '说话人表示自己非常满足、快乐。' },
-      facets: { examples: [{ sentence: '我现在真的很快乐。' }], pinyin: [{ text: '我真的很幸福', pinyin: 'wǒ zhēn de hěn xìngfú' }] } }
-  }
-};
-// A sample's rendered content, or null for a module that starts empty (Text).
+// A module's sample from the catalog (D11): input modules their text, a parent
+// what it would return, as the provider's JSON formatted into markdown as a
+// stored result is (D09). Null for a module that starts empty (Text).
 function sample(module: { type: string; facets?: readonly string[] }, inputType: 'word_phrase' | 'sentence'): Rendered | null {
-  if (module.type === 'main-key') return renderContent('main-key', SAMPLE[inputType]);
-  if (module.type === 'context') return renderContent('context', inputType === 'word_phrase' ? 'Wir wünschen euch viel 幸福 und Gesundheit.' : '她笑着说：“我真的很幸福。”');
-  if (!isParentType(module.type)) return null;
-  const content = SAMPLE_CONTENT[module.type][inputType];
+  const given = isCatalogModule(module.type) ? MODULES[module.type].sample?.[inputType] : undefined;
+  if (given === undefined) return null;
+  if (!isParentType(module.type)) return renderContent(module.type, given as string);
+  const content = given as GeneratedParent;
   const facets = applicableFacets(module.type, module.facets ?? [], inputType);
   const kept = Object.fromEntries(Object.entries(content.facets).filter(([facet]) => facets.includes(facet as FacetType)));
-  return renderParent(module.type, formatContent({ core: content.core, facets: kept }));
+  return renderParent(module.type, formatContent(module.type, { core: content.core, facets: kept }));
 }
 
 // Deck colours (D06) are the family colours, named by hue: a deck's colour
@@ -85,7 +70,7 @@ function PreviewDialog({ modules, sampleType, choose, close }: {
   // Closing the dialog first returns focus to the Preview button that opened it.
   const done = () => { ref.current?.close(); close(); };
   const [key, ...rest] = modules;
-  const mainKey = SAMPLE[sampleType];
+  const mainKey = MODULES['main-key'].sample![sampleType] as string;
   return <dialog ref={ref} className="preview-dialog" aria-labelledby="preview-title"
     onCancel={event => { event.preventDefault(); done(); }}
     onClick={event => { if (event.target === event.currentTarget) done(); }}>

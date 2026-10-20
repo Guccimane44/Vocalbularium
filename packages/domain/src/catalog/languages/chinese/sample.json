@@ -1,0 +1,45 @@
+{
+  "word_phrase": {
+    "core": {
+      "kind": "word",
+      "language": "汉语",
+      "key": "幸福",
+      "romanization": "xìngfú",
+      "meanings": [
+        "生活、境遇称心如意"
+      ]
+    },
+    "facets": {
+      "examples": [
+        {
+          "sentence": "她希望孩子们拥有幸福。"
+        }
+      ],
+      "pinyin": [
+        {
+          "text": "幸福",
+          "pinyin": "xìngfú"
+        }
+      ]
+    }
+  },
+  "sentence": {
+    "core": {
+      "kind": "sentence",
+      "translation": "说话人表示自己非常满足、快乐。"
+    },
+    "facets": {
+      "examples": [
+        {
+          "sentence": "我现在真的很快乐。"
+        }
+      ],
+      "pinyin": [
+        {
+          "text": "我真的很幸福",
+          "pinyin": "wǒ zhēn de hěn xìngfú"
+        }
+      ]
+    }
+  }
+}

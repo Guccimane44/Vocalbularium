@@ -1,10 +1,11 @@
-import type { InputInterpretation, ParentCore } from '@vocabularium/contracts';
+import type { InputInterpretation } from '@vocabularium/contracts';
+import type { CoreValue } from './catalog/define.js';
 import { applicableFacets, isFacetOf, isParentType } from './parents.js';
 import type { FacetType, ParentType } from './parents.js';
-import { formatContent, providerCore, withFacetText, withKeyHighlighted } from './content.js';
+import { formatContent, formatFacet, providerCore, withFacetText, withKeyHighlighted } from './content.js';
 import type { ParentContent } from './content.js';
 import { emptyEntry, validateGenerated, validateGeneratedFacet } from './generated.js';
-import { formatFacet, highlightKey } from './markdown.js';
+import { highlightKey } from './markdown.js';
 
 // The run's reading of the main key (D08): word or phrase, or sentence. It no
 // longer chooses a source language; earlier runs stored one, which is ignored.
@@ -26,7 +27,7 @@ export type GenerateModule = (request: {
   // The facets that apply to this input, in the parent's order.
   facets: readonly FacetType[];
   // For a facet's own Retry (0.7.3): the core already there, to follow.
-  core?: ParentCore;
+  core?: CoreValue;
 }) => Promise<unknown>;
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -61,7 +62,7 @@ export async function generateComponent(input: {
     throw new Error('A module returned content in an unexpected format: the core does not match the input.');
   }
   // The main key is a stored highlight in what was generated (D10, amended a fourth time).
-  return withKeyHighlighted(formatContent(generated), input.mainKey);
+  return withKeyHighlighted(formatContent(module.type, generated), input.mainKey);
 }
 
 // A facet's own Retry (0.7.3): the facet alone, written for the core already
@@ -82,14 +83,14 @@ export async function generateFacet(input: {
   if (!isFacetOf(module.type, facet)) throw new Error('This facet is no longer there.');
   const facets = applicableFacets(module.type, [facet], input.interpretation.inputType);
   if (!facets.length) return withFacetText(existing, facet, undefined);
-  const value = await input.generate({ module, selectedText: input.mainKey, interpretation: input.interpretation, facets, core: providerCore(existing) });
+  const value = await input.generate({ module, selectedText: input.mainKey, interpretation: input.interpretation, facets, core: providerCore(module.type, existing) });
   if (!isRecord(value)) throw new Error('A module returned no usable content.');
   const entry = isRecord(value.facets) ? value.facets[facet] : undefined;
   if (emptyEntry(entry)) return withFacetText(existing, facet, undefined);
   let checked: unknown;
   try { checked = validateGeneratedFacet(module.type, facet, entry); }
   catch (error) { throw new Error(`A module returned content in an unexpected format: ${(error as Error).message}`); }
-  return withFacetText(existing, facet, highlightKey(formatFacet(facet, checked), input.mainKey));
+  return withFacetText(existing, facet, highlightKey(formatFacet(module.type, facet, checked), input.mainKey));
 }
 
 export type ComponentOutcome = Readonly<

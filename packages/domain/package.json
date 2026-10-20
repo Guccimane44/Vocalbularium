@@ -35,6 +35,14 @@
     "./parents": {
       "types": "./dist/parents.d.ts",
       "import": "./dist/parents.js"
+    },
+    "./catalog": {
+      "types": "./dist/catalog/index.d.ts",
+      "import": "./dist/catalog/index.js"
+    },
+    "./composer": {
+      "types": "./dist/composer/compose.d.ts",
+      "import": "./dist/composer/compose.js"
     }
   },
   "dependencies": {
