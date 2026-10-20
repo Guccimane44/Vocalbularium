@@ -7,6 +7,7 @@ import { once } from 'node:events';
 import { chromium } from 'playwright';
 import { blockText, notePlain } from '@vocabularium/domain/pages';
 import { isContentType } from '@vocabularium/domain/page-modules';
+import { formatContent } from '@vocabularium/domain/content';
 import { resultFor, sentenceResult, text, textBlocks, useModules, wordResult, staged, fieldEdit } from './helpers/pages.mjs';
 const keyOf = page => text(page.components.find(component => component.moduleType === 'main-key'));
 // The bank entry with all four German facets, as structured content (D09).
@@ -534,9 +535,9 @@ test('deck UI: draft previews, all modules, the module limit, removal without co
   await addFromWindow(a.page, 'chinese');
   await addFromWindow(a.page, 'chinese');
   assert.equal(await a.page.locator('.deck-module').count(), 7);
-  assert.equal(await a.page.locator('.module-window .window-module').count(), 4, 'the window offers Context, Text and the two parents (D08)');
+  assert.equal(await a.page.locator('.module-window .window-module').count(), 6, 'the window offers Context, Text, the two Languages parents (D08) and the two Expertise modules (D11)');
   // Every module and facet has its + (0.6.3; D04 had none).
-  assert.equal(await a.page.locator('.window-module > .window-add').count(), 4, 'every module has its +');
+  assert.equal(await a.page.locator('.window-module > .window-add').count(), 6, 'every module has its +');
   assert.equal(await a.page.locator('.window-facet .window-add').count(), 6, 'and every facet');
   assert.equal(await a.page.locator('.window-module[data-type="context"]').getAttribute('aria-disabled'), 'true', 'one Context per deck');
   assert.equal(await a.page.locator('.window-module[data-type="context"] .window-add').isDisabled(), true, 'a blocked module cannot be added');
@@ -1398,7 +1399,8 @@ test('page view: main key tiers, Show all, rendered and plain content, quiet car
   await a.page.keyboard.press('Escape');
   await helpText.waitFor({ state: 'hidden' });
   const families = await window.locator('details').evaluateAll(nodes => nodes.map(node => [node.querySelector('summary').textContent, node.open]));
-  assert.deepEqual(families, [['Translation2', true], ['Notes2', true]]);
+  // Translation is called Languages since 0.8.0; Expertise has no module on this page, so it starts closed (D11).
+  assert.deepEqual(families, [['Languages2', true], ['Expertise2', false], ['Notes2', true]]);
   assert.equal(await window.locator('.window-module[data-type="chinese"]').getByText('Already here').count(), 1);
   // A parent is found by its facets too (D08).
   await window.getByLabel('Search modules', { exact: true }).fill('pinyin');
@@ -1406,7 +1408,7 @@ test('page view: main key tiers, Show all, rendered and plain content, quiet car
   await window.getByLabel('Search modules', { exact: true }).fill('nothing like this');
   await window.getByText('No module matches “nothing like this”.').waitFor();
   await window.getByLabel('Search modules', { exact: true }).fill('');
-  assert.equal(await window.locator('.window-module').count(), 4);
+  assert.equal(await window.locator('.window-module').count(), 6);
   await a.page.setViewportSize({ width: 390, height: 800 });
   await a.page.screenshot({ path: 'artifacts/v0.6.0-page-narrow.png', fullPage: true });
   assert.equal(await a.page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
@@ -3179,4 +3181,47 @@ test('0.7.5: an empty parent is written by hand: its top line the main key, the 
   await card.locator('.entry-core').waitFor();
   assert.equal(await card.getAttribute('data-empty'), null, 'a card with content now');
   assert.equal(await card.locator('.entry-core').textContent(), 'Ufer am Fluss');
+});
+
+test('0.8.0: an Expertise card, leaf green with a graduation cap, explains the key in English under a top line without a language', { timeout: 60000 }, async (t) => {
+  const directory = await mkdtemp(join(tmpdir(), 'vocabularium-expertise-browser-'));
+  const application = await createTestApplication(t); await application.start();
+  const a = await launch(join(directory, 'a'));
+  t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
+  await a.page.setViewportSize({ width: 1280, height: 1200 });
+  const store = application.store;
+  const session = { installationId: 'fixture', sessionId: 'expertise', epoch: 1 };
+  await store.openSession('expertise-session', session);
+  const { pageId } = await store.createPage('expertise-page', { deckId: (await store.snapshot()).id, mainKey: 'Frontend' });
+  await signIn(a.page);
+  await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
+  await a.page.getByRole('heading', { name: 'Frontend', exact: true }).first().waitFor();
+
+  // The module window groups Computer Science and Mathematics under Expertise, with its mark.
+  const window = a.page.locator('.module-window');
+  const expertise = window.locator('details').filter({ has: a.page.locator('summary', { hasText: 'Expertise' }) });
+  await expertise.locator('summary').click();
+  assert.deepEqual(await expertise.locator('.window-module').evaluateAll(nodes => nodes.map(node => node.dataset.type)), ['computer-science', 'mathematics']);
+  assert.equal(await expertise.locator('.window-facets').count(), 0, 'a provisional core only: no facets listed');
+  assert.equal(await expertise.locator('summary .fam-icon path').count(), 3, 'the graduation cap');
+  await a.page.getByRole('button', { name: 'Add Computer Science at the end', exact: true }).click();
+  const card = componentArticle(a.page, 'Computer Science');
+  await card.waitFor();
+  assert.match(await card.getAttribute('class'), /fam-expertise/);
+
+  // Generated: the key on the top line, no language, and the explanation in paragraphs.
+  const component = (await store.page(pageId)).components.find(item => item.moduleType === 'computer-science');
+  const { attemptIds: [attemptId] } = await store.generate('expertise-generate', { pageId, target: { scope: 'component', componentId: component.id }, session });
+  await store.establishInterpretation((await store.attempt(attemptId)).run_id, { inputType: 'word_phrase' });
+  await store.stage(attemptId, staged(formatContent('computer-science', { core: { kind: 'word', key: 'Frontend',
+    explanation: 'The part of a program that people see and touch.\n\nThink of a restaurant: the frontend is the dining room.' }, facets: {} })));
+  await store.publish('expertise-publish', { attemptId, session });
+  await a.page.reload();
+  await card.locator('.entry-core').waitFor();
+  assert.equal(await card.locator('.entry-heading .entry-key').textContent(), 'Frontend');
+  assert.equal(await card.locator('.entry-heading .entry-language').count(), 0, 'an Expertise core names no language');
+  assert.deepEqual(await card.locator('.entry-core p').allTextContents(), ['The part of a program that people see and touch.', 'Think of a restaurant: the frontend is the dining room.']);
+  const colours = await card.locator('.card-tab').first().evaluate(node => [getComputedStyle(node).backgroundColor, getComputedStyle(node).color]);
+  assert.deepEqual(colours, ['rgb(70, 110, 18)', 'rgb(255, 255, 255)'], 'leaf green with a white label in the light theme');
+  await a.page.screenshot({ path: 'artifacts/v0.8.0-expertise-card.png', fullPage: true });
 });

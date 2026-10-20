@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, readdirSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { CATALOG_FAMILIES, folderOf, MODULE_IDS, MODULES } from '@vocabularium/domain/catalog';
 import { composeModule } from '@vocabularium/domain/composer';
 import { formatContent } from '@vocabularium/domain/content';
@@ -99,4 +99,12 @@ test('each module sample validates against its shapes and formats into markdown'
       for (const facet of Object.keys(checked.facets)) assert.ok(stored.facets[facet], `${id}.${facet} ${inputType}`);
     }
   }
+});
+
+test('every content module has a golden set (C8)', () => {
+  const sets = readdirSync(new URL('./golden/', import.meta.url)).filter(file => file.endsWith('.json'))
+    .map(file => JSON.parse(readFileSync(new URL(`./golden/${file}`, import.meta.url), 'utf8')));
+  const covered = sets.flatMap(set => set.modules);
+  for (const set of sets) assert.ok(set.inputs.length > 0 && set.modules.every(id => MODULE_IDS.includes(id)), set.note);
+  assert.deepEqual([...new Set(covered)].sort(), [...content].sort());
 });

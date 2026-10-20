@@ -1,0 +1,17 @@
+{
+  "word_phrase": {
+    "core": {
+      "kind": "word",
+      "key": "eigenvalue",
+      "explanation": "An eigenvalue is a number that tells you how much a transformation stretches a special direction. For most directions a matrix both turns and stretches a vector, but along an eigenvector it only stretches it, by the eigenvalue.\n\nFor example, if a matrix doubles every vector along the x-axis without turning it, then 2 is an eigenvalue."
+    },
+    "facets": {}
+  },
+  "sentence": {
+    "core": {
+      "kind": "sentence",
+      "explanation": "For every square matrix there is at least one direction that the matrix only stretches, once complex numbers are allowed. The stretch factor along that direction is an eigenvalue.\n\nIt holds because every polynomial has a complex root, and the eigenvalues are the roots of the matrix's characteristic polynomial."
+    },
+    "facets": {}
+  }
+}

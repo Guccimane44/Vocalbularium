@@ -750,3 +750,30 @@ test('provider events carry the prompt version of the request they send (D11)', 
   const expected = promptVersion({ instructions: parentInstructions('german', 'word_phrase', facets), schema: parentSchema('german', 'word_phrase', facets) });
   assert.deepEqual(events.map(event => [event.event, event.promptVersion]), [['provider.request', expected], ['provider.response', expected]]);
 });
+
+test('an Expertise module explains the key in English as one core, its top line without a language (D11)', async (t) => {
+  const requests = [];
+  const { store, generation, capture } = await fixture(t, {
+    model: 'pinned-model',
+    interpret: async (selection) => selection.endsWith('.') ? sentence : word,
+    generate: async request => {
+      requests.push(request);
+      return request.interpretation.inputType === 'sentence'
+        ? { core: { kind: 'sentence', explanation: 'A page asks a server for data.' }, facets: {} }
+        : { core: { kind: 'word', key: request.selectedText, explanation: 'The part of a program people see.\n\nLike a dining room.' }, facets: {} };
+    }
+  }, ['computer-science']);
+  const page = await capture('Frontend'); await finish(store, generation);
+  const card = generated(await store.page(page.id))[0];
+  assert.equal(card.status, 'completed');
+  assert.deepEqual(card.content.blocks[0], { type: 'parent', header: { kind: 'word', language: '', key: 'Frontend' },
+    core: 'The part of a program people see.\n\nLike a dining room.', facets: {} });
+  assert.deepEqual(requests[0].facets, [], 'a provisional core only');
+  const prompt = promptVersion({ instructions: parentInstructions('computer-science', 'word_phrase', []), schema: parentSchema('computer-science', 'word_phrase', []) });
+  assert.deepEqual((await store.generationRecords(page.id))[card.id], { core: { model: 'pinned-model', prompt } });
+  assert.match(parentInstructions('computer-science', 'word_phrase', []), /as computer science understands it/);
+  assert.match(parentInstructions('mathematics', 'sentence', []), /Write every part in English/);
+
+  const said = await capture('The frontend sends a request.'); await finish(store, generation);
+  assert.deepEqual(generated(await store.page(said.id))[0].content.blocks[0], { type: 'parent', header: { kind: 'sentence' }, core: 'A page asks a server for data.', facets: {} });
+});

@@ -7,6 +7,7 @@ import Code from '@tiptap/extension-code';
 import Highlight from '@tiptap/extension-highlight';
 import { BulletList, OrderedList } from '@tiptap/extension-list';
 import type { ParentContent } from '@vocabularium/domain/content';
+import { contentModule } from '@vocabularium/domain/catalog';
 import { fromEditorDoc, hasText, toEditorDoc } from '@vocabularium/domain/markdown';
 import type { EditorNode } from '@vocabularium/domain/markdown';
 import { facetLabel, facetsOf } from '@vocabularium/domain/parents';
@@ -181,8 +182,8 @@ export function FacetEditor({ parent, facet, title, fields, locked, persist, red
 function topLine(header: ParentContent['header'] | undefined, toolbar: ReactNode) {
   return header?.kind === 'word'
     ? <p className="entry-heading">
-      <span className="entry-heading-text" aria-label={`${header.language}, ${header.key}${header.romanization ? `, ${header.romanization}` : ''} (not editable)`}>
-        <span className="entry-language">{header.language}</span><span className="entry-key">{header.key}</span>
+      <span className="entry-heading-text" aria-label={`${[header.language, header.key, header.romanization].filter(Boolean).join(', ')} (not editable)`}>
+        {header.language && <span className="entry-language">{header.language}</span>}<span className="entry-key">{header.key}</span>
         {header.romanization && <span className="entry-pronunciation">{header.romanization}</span>}
       </span>
       {toolbar}
@@ -208,7 +209,8 @@ export function LiveEditor({ parent, title, fields, opened, locked, persist, red
 }) {
   const changed = useTyped(fields, persist, redraw);
   const header = opened?.header;
-  const coreLabel = `${header?.kind === 'sentence' ? 'Translation' : 'Meanings'}, ${title}`;
+  // The core's name for its input type comes from its module (D11), such as Meanings or Explanation.
+  const coreLabel = `${contentModule(parent).core.labels[header?.kind === 'sentence' ? 'sentence' : 'word_phrase']}, ${title}`;
   return <div className="entry-content live-editor" role="group" aria-label={`Edit ${title}`}>
     <PartEditor className="live-core" value={fields.core} editable={!locked} label={coreLabel} reading={header?.kind === 'sentence'}
       onChange={markdown => { fields.core = markdown; changed(); }} head={toolbar => topLine(header, toolbar)} />

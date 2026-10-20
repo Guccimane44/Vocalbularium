@@ -6,7 +6,7 @@ import { readFile } from 'node:fs/promises';
 // in both themes, from the design tokens themselves. Text needs 4.5:1 (WCAG AA);
 // focus rings, control borders, status marks and family shapes need 3:1.
 const tokens = JSON.parse(await readFile(new URL('../extension/design/tokens.json', import.meta.url), 'utf8'));
-const FAMILIES = ['translation', 'meaning', 'usage', 'roots', 'connections', 'sound', 'notes'];
+const FAMILIES = ['translation', 'expertise', 'meaning', 'usage', 'roots', 'connections', 'sound', 'notes'];
 const BACKGROUNDS = ['ground', 'sidebar', 'surface', 'surface-hover', 'surface-active'];
 
 const channel = value => { const v = value / 255; return v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; };

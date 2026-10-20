@@ -14,7 +14,7 @@ const sentence = object({ kind: literal('sentence'), translation: text('The tran
 type Core = ReturnType<typeof word.check> | ReturnType<typeof sentence.check>;
 
 export default defineCore<Core>({
-  id: 'core', label: 'Core', output: 'text',
+  id: 'core', label: 'Core', labels: { word_phrase: 'Meanings', sentence: 'Translation' }, output: 'text',
   shapes: { word_phrase: word, sentence },
   // The meanings as a numbered list; a translation as text.
   format: core => core.kind === 'word' ? numbered(core.meanings.map(escapeMarkdown)) : escapeMarkdown(core.translation),

@@ -1,5 +1,6 @@
 {
   "note": "Golden set for the German and Chinese parent modules (D08, C8). Every input runs through both parents with all their facets; the owner reviews the outputs before a prompt change merges.",
+  "modules": ["german", "chinese"],
   "inputs": [
     { "key": "bank", "context": "We sat on the bank and watched the river go by.", "why": "English noun; Context picks the river sense" },
     { "key": "bank", "context": "I need to go to the bank before it closes.", "why": "English noun; Context picks the money sense" },
