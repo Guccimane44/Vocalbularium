@@ -1,6 +1,6 @@
 # Plan: one module catalog, a prompt composer and Expertise modules (0.8.0)
 
-Proposed: 20 October 2026 (Europe/Berlin). Implements [D11](../architecture/traceability-map.md#entries), accepted by the owner on 20 October 2026 and applied to the specifications in [#191](https://github.com/Guccimane44/Vocalbularium/pull/191). Tracker: [#193](https://github.com/Guccimane44/Vocalbularium/issues/193). Architecture: [generation](../architecture/generation.md). Status: proposed; no increment started.
+Proposed: 20 October 2026 (Europe/Berlin). Implements [D11](../architecture/traceability-map.md#entries), accepted by the owner on 20 October 2026 and applied to the specifications in [#191](https://github.com/Guccimane44/Vocalbularium/pull/191). Tracker: [#193](https://github.com/Guccimane44/Vocalbularium/issues/193); milestone in [Actual Stages](https://app.notion.com/p/3ffbb13502088113900edd1bc9795ce7). Architecture: [generation](../architecture/generation.md). Status: proposed; no increment started.
 
 ## Outcome
 
