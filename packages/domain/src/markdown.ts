@@ -1,6 +1,3 @@
-import type { ArticleEntry, ExampleEntry, GeneratedParent, ParentCore, PinyinEntry } from '@vocabularium/contracts';
-import type { FacetType } from './parents.js';
-
 // Markdown per facet (D09, amended): the app formats the provider's JSON into
 // markdown as the card looks, and reads a small subset of markdown back for
 // drawing: paragraphs with line breaks, bulleted and numbered lists, bold,
@@ -34,36 +31,12 @@ export function escapeMarkdown(text: string): string {
     .map(line => line.replace(/^(\s*)(\d+)\.(\s)/, '$1$2\\.$3').replace(/^(\s*)([-+])(\s)/, '$1\\$2$3')).join('\n');
 }
 // A numbered list; an item's further lines indent under it.
-const numbered = (items: readonly string[]) => items.map((item, index) => {
+export const numbered = (items: readonly string[]) => items.map((item, index) => {
   const marker = `${index + 1}. `;
   return marker + item.split('\n').join(`\n${' '.repeat(marker.length)}`);
 }).join('\n');
 
-export function formatCore(core: ParentCore): string {
-  return core.kind === 'word' ? numbered(core.meanings.map(escapeMarkdown)) : escapeMarkdown(core.translation);
-}
-// Each facet as the card shows it: Article "das Ufer · die Ufer"; Examples a
-// numbered list, the translation on the next line in italics; Synonyms and
-// Antonyms one comma-separated line; Pinyin a line each.
-export function formatFacet(facet: FacetType, entry: unknown): string {
-  switch (facet) {
-    case 'article': {
-      const article = entry as ArticleEntry;
-      return [article.singular, article.plural].filter(Boolean).map(part => escapeMarkdown(part!)).join(' · ');
-    }
-    case 'examples':
-      return numbered((entry as ExampleEntry[]).map(example =>
-        [escapeMarkdown(example.sentence), ...(example.translation ? [`*${escapeMarkdown(example.translation)}*`] : [])].join('\n')));
-    case 'synonyms':
-    case 'antonyms':
-      return (entry as string[]).map(escapeMarkdown).join(', ');
-    case 'pinyin':
-      return (entry as PinyinEntry[]).map(line => `${escapeMarkdown(line.text)} ${escapeMarkdown(line.pinyin)}`).join('\n');
-  }
-}
-export function formatFacets(generated: GeneratedParent): Partial<Record<FacetType, string>> {
-  return Object.fromEntries(Object.entries(generated.facets).map(([facet, entry]) => [facet, formatFacet(facet as FacetType, entry)]));
-}
+// Each module's facets format themselves with these (catalog, D11).
 
 // --- Parsing ----------------------------------------------------------------
 

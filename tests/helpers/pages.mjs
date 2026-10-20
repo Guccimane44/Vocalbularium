@@ -1,6 +1,6 @@
 import { blockText, textBlocks } from '@vocabularium/domain/pages';
-import { formatContent, parentContentOf } from '@vocabularium/domain/content';
-import { formatCore, plainLines } from '@vocabularium/domain/markdown';
+import { formatContent, formatCore, parentContentOf } from '@vocabularium/domain/content';
+import { plainLines } from '@vocabularium/domain/markdown';
 import { isContentType } from '@vocabularium/domain/page-modules';
 import { facetsOf, isParentType } from '@vocabularium/domain/parents';
 
@@ -44,12 +44,12 @@ export async function capture(store, id = 'capture', session, mainKey = '  å¹¸ç¦
 export function fieldEdit(component, ...meanings) {
   const block = component.content.blocks[0];
   if (block?.type !== 'parent') throw new Error('fieldEdit needs a generated parent component.');
-  const core = block.header.kind === 'word' ? formatCore({ kind: 'word', meanings }) : meanings.join('\n');
+  const core = block.header.kind === 'word' ? formatCore('german', { kind: 'word', meanings }) : meanings.join('\n');
   return { version: 1, blocks: [{ ...block, core }] };
 }
 // A staged result (D09): the provider's JSON formatted into markdown as the
 // worker does; a string stands for a word with that one meaning ('' for none).
-export const staged = value => ({ ok: true, content: value?.header ? value : formatContent(typeof value === 'string' ? wordResult(value ? [value] : []) : value) });
+export const staged = value => ({ ok: true, content: value?.header ? value : formatContent('german', typeof value === 'string' ? wordResult(value ? [value] : []) : value) });
 export async function complete(store, page, session, output = component => `generated ${component.moduleInstanceId}`) {
   for (const item of generated(page).filter(item => item.status === 'loading')) {
     await store.stage(item.attemptId, staged(output(item)));

@@ -1,0 +1,69 @@
+import { composeInterpretation, composeModule } from '@vocabularium/domain/composer';
+import { validateInterpretation } from '@vocabularium/domain/modules';
+import { isParentType } from '@vocabularium/domain/parents';
+import { randomUUID } from 'node:crypto';
+
+// What every provider shares (D11): the composer builds the request, and this
+// wraps the adapter's transport with the timeout, diagnostics, error codes and
+// the result's outer checks. The domain checks the content afterwards (D09).
+// An adapter extends Provider with `prompts(request)`, what it sends, and
+// `send(request, prompts, signal, sessionId, reply)`, which fills `reply` with
+// the response's status, its raw body and the model's text.
+
+export const failure = (code, message) => Object.assign(new Error(message), { code });
+const TIMEOUT = 60000;
+
+// Every required part is there: a text part non-empty (and one of its enum,
+// if any), an object part an object. Prompted JSON is no schema guarantee.
+function requiredParts(value, schema) {
+  for (const key of schema.required) {
+    const field = schema.properties[key];
+    if (field.type === 'object') {
+      if (!value[key] || typeof value[key] !== 'object' || Array.isArray(value[key])) throw new Error();
+      continue;
+    }
+    if (!Object.hasOwn(value, key) || typeof value[key] !== field.type || !value[key].trim()) throw new Error();
+    if (field.enum && !field.enum.includes(value[key])) throw new Error();
+  }
+}
+
+export class Provider {
+  // A composed request's result as an object with the request's outer shape.
+  async complete(request, signal, sessionId = randomUUID()) {
+    const started = performance.now();
+    const trace = (event, extra = {}) => {
+      try { this.diagnostic?.({ event, phase: request.name, pageId: sessionId, model: this.model, maxTokens: request.maxTokens, ...extra }); }
+      catch { /* Logging never changes generation results. */ }
+    };
+    const prompts = this.prompts(request);
+    trace('provider.request', { outcome: 'started', content: { prompts } });
+    const reply = {};
+    try {
+      await this.send(request, prompts, AbortSignal.any([AbortSignal.timeout(TIMEOUT), ...(signal ? [signal] : [])]), sessionId, reply);
+      let value;
+      try {
+        if (typeof reply.content !== 'string') throw new Error();
+        value = JSON.parse(reply.content);
+        if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error();
+        if (Object.keys(value).some(key => !Object.hasOwn(request.schema.properties, key))) throw new Error();
+        requiredParts(value, request.schema);
+      } catch { throw failure('provider_invalid', 'Generation returned an invalid result.'); }
+      trace('provider.response', { outcome: 'succeeded', status: reply.status, durationMs: Math.round(performance.now() - started), content: { output: reply.raw } });
+      return value;
+    } catch (error) {
+      trace('provider.response', { outcome: 'failed', severity: 'error', status: reply.status, errorType: error.name,
+        errorCode: error.code, durationMs: Math.round(performance.now() - started), content: { output: reply.raw } });
+      throw error;
+    }
+  }
+  // The run's reading of the main key; the optional Context only disambiguates.
+  async interpret(selectedText, signal, sessionId, context) {
+    return validateInterpretation(await this.complete(composeInterpretation(selectedText, context), signal, sessionId));
+  }
+  // A parent module (D08) as structured data (D09): its core and the facets
+  // that apply, in one call; with a core, a facet's own Retry (0.7.3).
+  async generate({ module, selectedText, context, interpretation, facets, core, sessionId }, signal) {
+    if (!isParentType(module.type)) throw new Error('Unsupported generation module.');
+    return this.complete(composeModule({ module, selectedText, context, interpretation, facets: facets ?? [], core }), signal, sessionId);
+  }
+}

@@ -23,9 +23,9 @@ test('each instance produces its own component; one failure leaves the others co
     generate: async ({ module }) => { if (module.type === 'german') throw new Error('controlled'); return wordOf([`out-${module.type}`]); }
   });
   assert.deepEqual(outcomes, [
-    { moduleInstanceId: 'm0', status: 'completed', content: formatContent(wordOf(['out-chinese'])) },
+    { moduleInstanceId: 'm0', status: 'completed', content: formatContent('german', wordOf(['out-chinese'])) },
     { moduleInstanceId: 'm1', status: 'failed', error: 'controlled' },
-    { moduleInstanceId: 'm2', status: 'completed', content: formatContent(wordOf(['out-chinese'])) }
+    { moduleInstanceId: 'm2', status: 'completed', content: formatContent('german', wordOf(['out-chinese'])) }
   ]);
 });
 
@@ -41,7 +41,7 @@ test('a parent applies to a sentence as well as a word (D08)', async () => {
     mainKey: '我真的很幸福', interpretation: sentence, modules: [{ id: 'm0', type: 'german', facets: ['article', 'examples'] }],
     generate: async ({ facets }) => { assert.deepEqual(facets, ['examples']); return sentenceOf('Ich bin wirklich glücklich.'); }
   });
-  assert.deepEqual(outcomes, [{ moduleInstanceId: 'm0', status: 'completed', content: formatContent(sentenceOf('Ich bin wirklich glücklich.')) }]);
+  assert.deepEqual(outcomes, [{ moduleInstanceId: 'm0', status: 'completed', content: formatContent('german', sentenceOf('Ich bin wirklich glücklich.')) }]);
 });
 
 test('a parent always applies; it asks for the facets that apply and checks the structured result (D09)', async () => {
@@ -54,13 +54,13 @@ test('a parent always applies; it asks for the facets that apply and checks the 
   });
   assert.deepEqual(requests, [['examples', 'pinyin'], []]);
   assert.deepEqual(outcomes, [
-    { moduleInstanceId: 'p', status: 'completed', content: withKeyHighlighted(formatContent(sentenceOf('我真的很幸福。', { pinyin })), '我真的很幸福') },
-    { moduleInstanceId: 'q', status: 'completed', content: withKeyHighlighted(formatContent(sentenceOf('我真的很幸福。')), '我真的很幸福') }
+    { moduleInstanceId: 'p', status: 'completed', content: withKeyHighlighted(formatContent('chinese', sentenceOf('我真的很幸福。', { pinyin })), '我真的很幸福') },
+    { moduleInstanceId: 'q', status: 'completed', content: withKeyHighlighted(formatContent('chinese', sentenceOf('我真的很幸福。')), '我真的很幸福') }
   ], 'an entry for a facet the parent was not asked for is dropped');
   const german = [{ id: 'g', type: 'german', facets: ['article', 'examples'] }];
   const [emptyArticle] = await generateComponents({ mainKey: 'beautiful', interpretation: word, modules: german,
     generate: async () => wordOf(['schön'], { article: { singular: ' ', plural: '' }, examples: [{ sentence: 'So beautiful.', translation: 'So schön.' }] }) });
-  assert.deepEqual(emptyArticle, { moduleInstanceId: 'g', status: 'completed', content: withKeyHighlighted(formatContent(wordOf(['schön'], { examples: [{ sentence: 'So beautiful.', translation: 'So schön.' }] })), 'beautiful') },
+  assert.deepEqual(emptyArticle, { moduleInstanceId: 'g', status: 'completed', content: withKeyHighlighted(formatContent('german', wordOf(['schön'], { examples: [{ sentence: 'So beautiful.', translation: 'So schön.' }] })), 'beautiful') },
     'an empty facet counts as an omitted facet');
   const failed = async value => (await generateComponents({ mainKey: 'x', interpretation: word, modules: german, generate: async () => value }))[0];
   for (const value of ['   ', 'plain text', null, { core: { kind: 'word', language: 'Englisch', key: 'x', meanings: [] }, facets: {} },

@@ -1,16 +1,19 @@
 import type { InputType } from '@vocabularium/contracts';
+import { contentModule, familyOf, isContentModule, MODULE_IDS } from './catalog/index.js';
+import type { ContentModuleId, FacetId, FamilyId } from './catalog/index.js';
 
 // Parent modules with a core and facets (D08). A parent's core applies to every
 // input type; its facets add one kind of content each, in an order the parent
 // type fixes, and are judged applicable per input type. A facet type belongs to
 // one parent type: German Examples and Chinese Examples are different facets.
+// Each parent is defined once in the module catalog (D11); this is its summary.
 
-export type ParentType = 'german' | 'chinese';
-export type FacetType = 'article' | 'examples' | 'synonyms' | 'antonyms' | 'pinyin';
-export type ParentFamily = 'translation';
+export type ParentType = ContentModuleId;
+export type FacetType = FacetId;
+export type ParentFamily = FamilyId;
 
-// `abbreviation` marks the facet's tag on its parent's card (0.7.1): never
-// repeated among the facet types, and the same for one facet type on every parent.
+// `abbreviation` marks the facet's tag on its parent's card (0.7.1), unique
+// within its parent (D11).
 export type FacetDefinition = Readonly<{ label: string; abbreviation: string; description: string; applies: readonly InputType[] }>;
 export type ParentDefinition = Readonly<{
   label: string;
@@ -20,29 +23,14 @@ export type ParentDefinition = Readonly<{
   facets: Readonly<Partial<Record<FacetType, FacetDefinition>>>;
 }>;
 
-const BOTH: readonly InputType[] = ['word_phrase', 'sentence'];
-const WORDS: readonly InputType[] = ['word_phrase'];
-
-export const PARENTS: Readonly<Record<ParentType, ParentDefinition>> = Object.freeze({
-  german: {
-    label: 'German', family: 'translation',
-    description: 'Explains a word in German, or translates a sentence into German.',
-    facets: {
-      article: { label: 'Article', abbreviation: 'Ar', description: 'The German article, gender and plural of a noun.', applies: WORDS },
-      examples: { label: 'Examples', abbreviation: 'Ex', description: 'Example sentences with their translations.', applies: BOTH },
-      synonyms: { label: 'Synonyms', abbreviation: 'Sy', description: 'German words with the same meaning.', applies: WORDS },
-      antonyms: { label: 'Antonyms', abbreviation: 'An', description: 'German words with the opposite meaning.', applies: WORDS }
-    }
-  },
-  chinese: {
-    label: 'Chinese', family: 'translation',
-    description: 'Explains a word in Chinese, or translates a sentence into Chinese.',
-    facets: {
-      examples: { label: 'Examples', abbreviation: 'Ex', description: 'Example sentences with their translations.', applies: BOTH },
-      pinyin: { label: 'Pinyin', abbreviation: 'Py', description: 'The pinyin of the Chinese translation.', applies: BOTH }
-    }
-  }
-});
+export const PARENTS: Readonly<Record<ParentType, ParentDefinition>> = Object.freeze(Object.fromEntries(MODULE_IDS.filter(isContentModule).map(id => {
+  const module = contentModule(id);
+  return [id, {
+    label: module.label, description: module.description, family: familyOf(id)!,
+    facets: Object.fromEntries(module.facets.map(facet =>
+      [facet.id, { label: facet.label, abbreviation: facet.abbreviation, description: facet.description, applies: facet.applies }]))
+  }];
+})) as Record<ParentType, ParentDefinition>);
 
 export const isParentType = (type: string): type is ParentType => Object.hasOwn(PARENTS, type);
 export const facetsOf = (parent: ParentType): FacetType[] => Object.keys(PARENTS[parent].facets) as FacetType[];

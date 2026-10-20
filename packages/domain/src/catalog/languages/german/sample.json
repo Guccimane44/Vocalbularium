@@ -1,0 +1,45 @@
+{
+  "word_phrase": {
+    "core": {
+      "kind": "word",
+      "language": "Chinesisch",
+      "key": "幸福",
+      "romanization": "xìngfú",
+      "meanings": [
+        "Glück; Glückseligkeit; Wohlbefinden"
+      ]
+    },
+    "facets": {
+      "article": {
+        "singular": "das Glück"
+      },
+      "examples": [
+        {
+          "sentence": "她希望孩子们拥有幸福。",
+          "translation": "Sie hofft, dass die Kinder Glück haben."
+        }
+      ],
+      "synonyms": [
+        "Freude",
+        "Seligkeit"
+      ],
+      "antonyms": [
+        "Unglück"
+      ]
+    }
+  },
+  "sentence": {
+    "core": {
+      "kind": "sentence",
+      "translation": "Ich bin wirklich glücklich."
+    },
+    "facets": {
+      "examples": [
+        {
+          "sentence": "想到我的家人和朋友，我觉得很幸福。",
+          "translation": "Wenn ich an meine Familie und Freunde denke, bin ich glücklich."
+        }
+      ]
+    }
+  }
+}

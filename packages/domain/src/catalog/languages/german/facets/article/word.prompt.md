@@ -1,0 +1,1 @@
+"article": { "singular": "<article> <noun>", "plural": "die <plural>" } for the German translation of the main meaning (for a German selection, for the selection itself), such as { "singular": "das Ufer", "plural": "die Ufer" }. Leave out "plural" when the noun has none, and leave out "article" when that word is not a noun.

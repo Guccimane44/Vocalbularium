@@ -1,6 +1,9 @@
 import type { BlockDocument, Component, GenerationTarget, ModuleInstance } from '@vocabularium/contracts';
 import { MAX_MODULES } from '@vocabularium/contracts';
-import { isParentType, PARENTS, validateFacets } from './parents.js';
+import { CATALOG_FAMILIES, familyOf, MODULE_IDS, MODULES } from './catalog/index.js';
+import type { FamilyId, InputModuleId } from './catalog/index.js';
+import type { Instances } from './catalog/define.js';
+import { isParentType, validateFacets } from './parents.js';
 import { parentContentOf } from './content.js';
 import { plainLines } from './markdown.js';
 import type { ParentType } from './parents.js';
@@ -8,40 +11,40 @@ import type { ParentType } from './parents.js';
 // Page-owned modules (D02). Shared by the backend and the extension so both
 // enforce the same rules for configurations and page shaping.
 
-export type InputModuleType = 'main-key' | 'context' | 'text';
+export type InputModuleType = InputModuleId;
 // Content modules are parent modules (D08); the earlier types retired in 0.7.0.
 export type ModuleType = InputModuleType | ParentType;
 export type ModuleKind = 'input' | 'content';
 // Module families (D05) give each module its colour and icon; the main key has
-// none. Translation (D08) holds the parent modules. A deck's colour is one of the
-// six earlier family colours (D06).
+// none. The catalog's families hold its modules (D11). A deck's colour is one
+// of the six earlier family colours (D06); those without modules keep their
+// label here until their first module brings a folder.
 export const DECK_COLOURS = Object.freeze(['meaning', 'usage', 'roots', 'connections', 'sound', 'notes'] as const);
-export const FAMILIES = Object.freeze(['translation', ...DECK_COLOURS] as const);
-export type ModuleFamily = typeof FAMILIES[number];
+type DeckColour = typeof DECK_COLOURS[number];
+export const FAMILIES = Object.freeze([...CATALOG_FAMILIES.map(family => family.id).filter(id => !(DECK_COLOURS as readonly string[]).includes(id)), ...DECK_COLOURS] as (FamilyId | DeckColour)[]);
+export type ModuleFamily = FamilyId | DeckColour;
+const DECK_COLOUR_LABELS: Readonly<Record<DeckColour, string>> = { meaning: 'Meaning', usage: 'Usage', roots: 'Roots', connections: 'Connections', sound: 'Sound', notes: 'Notes' };
 export const FAMILY_LABELS: Readonly<Record<ModuleFamily, string>> = Object.freeze({
-  translation: 'Translation', meaning: 'Meaning', usage: 'Usage', roots: 'Roots', connections: 'Connections', sound: 'Sound', notes: 'Notes'
-});
-export type CatalogEntry = Readonly<{ kind: ModuleKind; label: string; description: string; family: ModuleFamily | null }>;
+  ...DECK_COLOUR_LABELS, ...Object.fromEntries(CATALOG_FAMILIES.map(family => [family.id, family.label]))
+} as Record<ModuleFamily, string>);
+export type CatalogEntry = Readonly<{ kind: ModuleKind; label: string; description: string; family: ModuleFamily | null; instances: Instances }>;
 
 // In module-window order: input modules, then the content catalog.
-export const CATALOG: Readonly<Record<ModuleType, CatalogEntry>> = Object.freeze({
-  'main-key': { kind: 'input', label: 'Main key', description: 'The text you captured or typed. Every page has one.', family: null },
-  context: { kind: 'input', label: 'Context', description: 'The text around your selection, used to find the right meaning.', family: 'notes' },
-  text: { kind: 'input', label: 'Text', description: 'Your own notes. Generation never changes them.', family: 'notes' },
-  ...Object.fromEntries((Object.keys(PARENTS) as ParentType[]).map(type =>
-    [type, { kind: 'content', label: PARENTS[type].label, description: PARENTS[type].description, family: PARENTS[type].family }]))
-} as Record<ModuleType, CatalogEntry>);
+export const CATALOG: Readonly<Record<ModuleType, CatalogEntry>> = Object.freeze(Object.fromEntries(MODULE_IDS.map(id => {
+  const module = MODULES[id];
+  return [id, { kind: module.kind, label: module.label, description: module.description, family: familyOf(id), instances: module.instances }];
+})) as Record<ModuleType, CatalogEntry>);
 
 export const isModuleType = (type: string): type is ModuleType => Object.hasOwn(CATALOG, type);
 export const isContentType = (type: string): type is ParentType => isModuleType(type) && CATALOG[type].kind === 'content';
 // The module window offers everything but the main key, which is always present.
-export const WINDOW_MODULES = (Object.keys(CATALOG) as ModuleType[]).filter(type => type !== 'main-key');
+export const WINDOW_MODULES = (Object.keys(CATALOG) as ModuleType[]).filter(type => CATALOG[type].instances !== 'first-once');
 
 // Why a module of this type cannot be added to these modules, or null.
 export function addBlocked(modules: readonly { type: string }[], type: string): string | null {
-  if (!isModuleType(type) || type === 'main-key') return 'This module cannot be added.';
+  if (!isModuleType(type) || CATALOG[type].instances === 'first-once') return 'This module cannot be added.';
   if (modules.length >= MAX_MODULES) return `At most ${MAX_MODULES} modules, including the main key.`;
-  if (type === 'context' && modules.some(module => module.type === 'context')) return 'There is already a Context.';
+  if (CATALOG[type].instances === 'at-most-one' && modules.some(module => module.type === type)) return `There is already a ${CATALOG[type].label}.`;
   return null;
 }
 
