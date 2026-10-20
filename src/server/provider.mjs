@@ -1,4 +1,4 @@
-import { composeInterpretation, composeModule } from '@vocabularium/domain/composer';
+import { composeInterpretation, composeModule, promptVersion } from '@vocabularium/domain/composer';
 import { validateInterpretation } from '@vocabularium/domain/modules';
 import { isParentType } from '@vocabularium/domain/parents';
 import { randomUUID } from 'node:crypto';
@@ -32,7 +32,7 @@ export class Provider {
   async complete(request, signal, sessionId = randomUUID()) {
     const started = performance.now();
     const trace = (event, extra = {}) => {
-      try { this.diagnostic?.({ event, phase: request.name, pageId: sessionId, model: this.model, maxTokens: request.maxTokens, ...extra }); }
+      try { this.diagnostic?.({ event, phase: request.name, pageId: sessionId, model: this.model, promptVersion: promptVersion(request), maxTokens: request.maxTokens, ...extra }); }
       catch { /* Logging never changes generation results. */ }
     };
     const prompts = this.prompts(request);

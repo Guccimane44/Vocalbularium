@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import type { InputInterpretation, InputType } from '@vocabularium/contracts';
 import type { CoreValue } from '../catalog/define.js';
@@ -87,4 +88,11 @@ export function composeInterpretation(selectedText: string, context?: string): R
     input: { selectedText, ...(context ? { context } : {}) },
     schema: interpretationSchema, maxTokens: MAX_TOKENS
   };
+}
+
+// The prompt version (D11): a fingerprint of a request's instructions and
+// schema, so it changes whenever a prompt file, the rules or a shape does, and
+// never with the selection.
+export function promptVersion(request: Pick<Request, 'instructions' | 'schema'>): string {
+  return createHash('sha256').update(`${request.instructions}\n${JSON.stringify(request.schema)}`).digest('hex').slice(0, 16);
 }

@@ -3,7 +3,7 @@ export const DIAGNOSTIC_VERSION = 1;
 export const MAX_EVENT_BYTES = 4 * 1024 * 1024;
 export const EXTENSION_LOG_BUDGET = 16 * 1024 * 1024;
 const textFields = ['operationId', 'requestId', 'pageId', 'componentId', 'attemptId', 'installationId',
-  'sessionId', 'route', 'method', 'category', 'errorType', 'errorCode', 'model', 'phase'];
+  'sessionId', 'route', 'method', 'category', 'errorType', 'errorCode', 'model', 'phase', 'promptVersion'];
 const numberFields = ['durationMs', 'queueMs', 'active', 'queued', 'reserved', 'admitted', 'rejected',
   'status', 'sequence', 'maxTokens', 'dropped'];
 const contentEvents = new Set(['capture.invoked', 'capture.saved', 'generation.input', 'generation.output', 'provider.request', 'provider.response']);

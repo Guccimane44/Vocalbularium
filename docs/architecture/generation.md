@@ -84,6 +84,15 @@ OpenCode is the only adapter (`src/server/opencode.mjs`). `GENERATION_PROVIDER` 
 
 Each generated facet, the core included, records with its component the **model** and the **prompt version** that produced it. The prompt version is a fingerprint (a hash) of the composed request's instructions and schema, so it changes whenever a prompt file, the rules or a shape changes. A whole attempt writes the record for the core and every facet it generated; a facet's own Retry rewrites only that facet's record. A migration adds the record empty, so components generated before 0.8.0 have none. The record is evidence for comparing prompts and models and for finding components made with an earlier prompt; the interface does not show it.
 
+It is stored as JSON in the component's `generation` column (migration `0015`), keyed by part, and read with `store.generationRecords(pageId)`:
+
+```json
+{ "core": { "model": "deepseek-v4.1-flash", "prompt": "3f9a0c1e8b27d455" },
+  "examples": { "model": "deepseek-v4.1-flash", "prompt": "b81e44c09d3a7f12" } }
+```
+
+The prompt version is the first 16 hex digits of a SHA-256 over the instructions and the schema (`promptVersion` in the composer); provider diagnostics events carry the same value. A whole attempt records only the parts that came back with content, and a whole attempt that fails, or a facet that comes back empty, leaves no entry for it. Manual saves change only the content, never the record.
+
 ## Guards
 
 A **catalog conformance test** covers every module, every facet and every input type:
