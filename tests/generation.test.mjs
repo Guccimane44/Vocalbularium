@@ -6,10 +6,13 @@ import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { Generation } from '../src/server/generation.mjs';
 import { OpenCodeProvider } from '../src/server/opencode.mjs';
-import { moduleInstructions as parentInstructions, moduleSchema as parentSchema } from '@vocabularium/domain/composer';
+import { moduleInstructions as parentInstructions, moduleSchema as parentSchema, promptVersion } from '@vocabularium/domain/composer';
 import { generateComponents } from '@vocabularium/domain/modules';
 import { formatContent, withKeyHighlighted } from '@vocabularium/domain/content';
 // Generated content as stored: formatted, with the main key highlighted (D10, amended a fourth time).
+// The prompt version of German's whole attempt on a word (D11); the fake provider names no model.
+const GERMAN_WORD_PROMPT = promptVersion({ instructions: parentInstructions('german', 'word_phrase', ['article', 'examples', 'synonyms', 'antonyms']),
+  schema: parentSchema('german', 'word_phrase', ['article', 'examples', 'synonyms', 'antonyms']) });
 const keyed = (value, key = 'bank') => withKeyHighlighted(formatContent('german', value), key);
 import { plainLines } from '@vocabularium/domain/markdown';
 import { isContentType } from '@vocabularium/domain/page-modules';
@@ -525,7 +528,7 @@ test('a failed result write retains the complete generated output for explicit s
   await Promise.all([...generation.tasks.values()].map(item => item.task));
   const back = generated(page)[0];
   assert.equal(generated(await store.page(page.id))[0].status, 'loading');
-  assert.deepEqual(generation.pendingResults.get(back.attemptId), { ok: true, content: formatContent('german', wordResult('complete generated text', {}, { key: '幸福' })) });
+  assert.deepEqual(generation.pendingResults.get(back.attemptId), { ok: true, content: formatContent('german', wordResult('complete generated text', {}, { key: '幸福' })), generation: { model: null, prompt: GERMAN_WORD_PROMPT } });
   assert.equal(generation.failedResults.has(back.attemptId), true);
   failWrite = false;
   await generation.saveResult(back.attemptId, session);
@@ -557,7 +560,7 @@ test('an in-progress result write does not advertise save recovery', async t => 
   await Promise.all([...generation.tasks.values()].map(item => item.task));
   assert.equal(generation.pendingResults.has(attemptId), false);
   assert.equal(generation.failedResults.has(attemptId), false);
-  assert.deepEqual((await store.attempt(attemptId)).result, { ok: true, content: formatContent('german', wordResult('staged later', {}, { key: '幸福' })) });
+  assert.deepEqual((await store.attempt(attemptId)).result, { ok: true, content: formatContent('german', wordResult('staged later', {}, { key: '幸福' })), generation: { model: null, prompt: GERMAN_WORD_PROMPT } });
 });
 
 test('the result recovery journal survives a failed database write and server restart without regenerating', async (t) => {
@@ -577,7 +580,7 @@ test('the result recovery journal survives a failed database write and server re
   await generation.close();
   await store.close();
   store = (await createTestStore(t, databaseKey)); generation = (await Generation.create(store, { interpret: async () => assert.fail(), generate: async () => assert.fail() }));
-  assert.deepEqual((await store.attempt(attemptId)).result, { ok: true, content: formatContent('german', wordResult('journaled result', {}, { key: '幸福' })) });
+  assert.deepEqual((await store.attempt(attemptId)).result, { ok: true, content: formatContent('german', wordResult('journaled result', {}, { key: '幸福' })), generation: { model: null, prompt: GERMAN_WORD_PROMPT } });
   await store.publish('recovered', { attemptId, session });
   assert.equal(text(generated(await store.page(pageId))[0]), 'journaled result'); assert.equal(calls, 1);
 });
@@ -693,4 +696,57 @@ test('OpenCode asks a facet’s own Retry for its facets only, written for the s
   } });
   assert.deepEqual(await provider.generate({ module: { id: 'g', type: 'german', facets: ['examples'] }, selectedText: 'bank',
     interpretation: { inputType: 'word_phrase' }, facets: ['examples'], core }), { facets: { examples: [{ sentence: 'A bank.' }] } });
+});
+
+test('each generated part records its model and prompt version; a facet’s own Retry records only that facet, and saves keep the record (D11)', async (t) => {
+  let failing = false;
+  const provider = {
+    model: 'pinned-model',
+    interpret: async () => word,
+    generate: async request => {
+      if (failing) throw new Error('provider down');
+      return request.core ? { facets: { examples: [{ sentence: 'The bank was steep.', translation: 'Das Ufer war steil.' }] } } : BANK;
+    }
+  };
+  const { store, generation, capture } = await parentFixture(t, provider, ['article', 'examples', 'synonyms']);
+  const page = await capture('bank'); await finish(store, generation);
+  const german = async () => generated(await store.page(page.id))[0];
+  const record = async () => (await store.generationRecords(page.id))[(await german()).id];
+  const whole = promptVersion({ instructions: parentInstructions('german', 'word_phrase', ['article', 'examples', 'synonyms']),
+    schema: parentSchema('german', 'word_phrase', ['article', 'examples', 'synonyms']) });
+  const entry = { model: 'pinned-model', prompt: whole };
+  // Synonyms came back empty: it has no content, so nothing records it.
+  assert.deepEqual(await record(), { core: entry, article: entry, examples: entry });
+
+  const retry = promptVersion({ instructions: parentInstructions('german', 'word_phrase', ['examples'], true),
+    schema: parentSchema('german', 'word_phrase', ['examples'], true) });
+  assert.notEqual(retry, whole);
+  const { attemptIds } = await confirmed(store, randomUUID(), { pageId: page.id, target: { scope: 'facet', componentId: (await german()).id, facet: 'examples' }, session });
+  await generation.start(page.id, attemptIds); await finish(store, generation);
+  assert.deepEqual(await record(), { core: entry, article: entry, examples: { model: 'pinned-model', prompt: retry } }, 'only the retried facet changes');
+
+  // A user's edits, whole or of one facet, never change the record.
+  const block = (await german()).content.blocks[0];
+  await store.savePage(randomUUID(), { pageId: page.id, changes: [{ componentId: (await german()).id, content: { version: 1, blocks: [{ ...block, core: 'mein Ufer' }] } }] });
+  await store.savePage(randomUUID(), { pageId: page.id, changes: [{ componentId: (await german()).id, facet: 'article',
+    content: { version: 1, blocks: [{ ...block, facets: { ...block.facets, article: 'das Bankufer' } }] } }] });
+  assert.equal((await german()).content.blocks[0].core, 'mein Ufer');
+  assert.deepEqual(await record(), { core: entry, article: entry, examples: { model: 'pinned-model', prompt: retry } });
+
+  // A whole Retry that fails leaves no content, and no record.
+  failing = true;
+  await generation.start(page.id, (await retryComponent(store, randomUUID(), await store.page(page.id), 0)).attemptIds); await finish(store, generation);
+  assert.equal((await german()).status, 'failed');
+  assert.equal(await record(), undefined);
+});
+
+test('provider events carry the prompt version of the request they send (D11)', async () => {
+  const events = [];
+  const provider = new OpenCodeProvider({ apiKey: 'test-only', fetchImpl: async () => Response.json({ choices: [{ finish_reason: 'stop',
+    message: { role: 'assistant', content: JSON.stringify(BANK) } }] }) });
+  provider.diagnostic = event => events.push(event);
+  const facets = ['article', 'examples'];
+  await provider.generate({ module: { id: 'g', type: 'german' }, selectedText: 'bank', interpretation: word, facets });
+  const expected = promptVersion({ instructions: parentInstructions('german', 'word_phrase', facets), schema: parentSchema('german', 'word_phrase', facets) });
+  assert.deepEqual(events.map(event => [event.event, event.promptVersion]), [['provider.request', expected], ['provider.response', expected]]);
 });

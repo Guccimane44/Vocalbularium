@@ -67,7 +67,10 @@ export const components = pgTable('components', {
   page_id: text().notNull().references(() => pages.id, { onDelete: 'cascade' }),
   id: text().notNull(), module_instance_id: text().notNull(), module_type: text().notNull(),
   position: integer().notNull(), content: text().notNull(), status: text(), attempt_id: text(),
-  facets: text().array().notNull().default(sql`'{}'::text[]`)
+  facets: text().array().notNull().default(sql`'{}'::text[]`),
+  // The generation record (D11): per generated part (the core and each facet),
+  // the model and prompt version that produced it, as JSON. Empty before 0.8.0.
+  generation: text()
 }, table => [primaryKey({ columns: [table.page_id, table.id] }), index('components_attempt').on(table.attempt_id),
   uniqueIndex('components_module_instance').on(table.page_id, table.module_instance_id),
   uniqueIndex('components_single_main_key_module').on(table.page_id).where(sql`${table.module_type} = 'main-key'`),
