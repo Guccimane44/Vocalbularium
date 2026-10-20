@@ -3214,7 +3214,7 @@ test('0.8.0: an Expertise card, leaf green with a graduation cap, explains the k
   const { attemptIds: [attemptId] } = await store.generate('expertise-generate', { pageId, target: { scope: 'component', componentId: component.id }, session });
   await store.establishInterpretation((await store.attempt(attemptId)).run_id, { inputType: 'word_phrase' });
   await store.stage(attemptId, staged(formatContent('computer-science', { core: { kind: 'word', key: 'Frontend',
-    explanation: 'The part of a program that people see and touch.\n\nThink of a restaurant: the frontend is the dining room.' }, facets: {} })));
+    explanation: ['The part of a program that people see and touch.', 'Think of a restaurant: the frontend is the dining room.'] }, facets: {} })));
   await store.publish('expertise-publish', { attemptId, session });
   await a.page.reload();
   await card.locator('.entry-core').waitFor();

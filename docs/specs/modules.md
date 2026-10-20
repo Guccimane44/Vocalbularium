@@ -103,7 +103,7 @@ Since 0.7.4 the provider returns a parent's content as JSON, and the app keeps i
 
 - **Core, word or phrase:** the key's language, the key, an optional romanization, and a list of meanings in the parent's language, at least one.
 - **Core, sentence:** its translation, or for a sentence already in the parent's language, an explanation of its meaning.
-- **Core, Expertise:** for a word or phrase, the key and an explanation; for a sentence, an explanation. Its top line shows the key, or that the core is a sentence's, without a language or romanization. The [0.8.0 plan](../plans/module-catalog.md) fixes the exact shape with the golden sets.
+- **Core, Expertise:** for a word or phrase, the key and an explanation; for a sentence, an explanation. The explanation is a list of one to three paragraphs, one string each, so no line break has to travel inside a JSON string (fixed with the golden sets, 0.8.0). Its top line shows the key, or that the core is a sentence's, without a language or romanization.
 - **Article:** `{ singular, plural }`, the plural optional, such as `das Ufer` and `die Ufer`.
 - **Examples:** a list of `{ sentence, translation }`, the translation optional, not tied to meanings.
 - **Synonyms**, **Antonyms:** lists of words.

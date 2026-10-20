@@ -759,8 +759,8 @@ test('an Expertise module explains the key in English as one core, its top line 
     generate: async request => {
       requests.push(request);
       return request.interpretation.inputType === 'sentence'
-        ? { core: { kind: 'sentence', explanation: 'A page asks a server for data.' }, facets: {} }
-        : { core: { kind: 'word', key: request.selectedText, explanation: 'The part of a program people see.\n\nLike a dining room.' }, facets: {} };
+        ? { core: { kind: 'sentence', explanation: ['A page asks a server for data.'] }, facets: {} }
+        : { core: { kind: 'word', key: request.selectedText, explanation: ['The part of a program people see.', 'Like a dining room.'] }, facets: {} };
     }
   }, ['computer-science']);
   const page = await capture('Frontend'); await finish(store, generation);

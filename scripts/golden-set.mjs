@@ -19,11 +19,21 @@ for (const file of (await readdir(directory)).filter(name => name.endsWith('.jso
   if (types.length) sets.push({ types, inputs });
 }
 const provider = new OpenCodeProvider();
+// A transient service error (such as a rate limit) is tried once more after a
+// pause, so the review shows the prompt's results rather than the service's.
+async function steady(call) {
+  try { return await call(); }
+  catch (error) {
+    if (error.code !== 'provider_response') throw error;
+    await new Promise(resolve => setTimeout(resolve, 10000));
+    return call();
+  }
+}
 const evidence = { date: new Date().toISOString(), provider: 'OpenCode Go', model: provider.model, results: [] };
 for (const { types, inputs } of sets) for (const input of inputs) {
   const sessionId = randomUUID();
   let interpretation;
-  try { interpretation = await provider.interpret(input.key, undefined, sessionId, input.context); }
+  try { interpretation = await steady(() => provider.interpret(input.key, undefined, sessionId, input.context)); }
   catch (error) { evidence.results.push({ ...input, error: `interpretation: ${error.message}` }); continue; }
   for (const type of types) {
     const module = { id: `golden-${type}`, type, facets: facetsOf(type) };
@@ -32,7 +42,7 @@ for (const { types, inputs } of sets) for (const input of inputs) {
     try {
       // The model's JSON (D09), and the markdown per facet it is stored as.
       const content = await generateComponent({ mainKey: input.key, interpretation, module,
-        generate: async request => (raw = await provider.generate({ ...request, context: input.context, sessionId })) });
+        generate: async request => (raw = await steady(() => provider.generate({ ...request, context: input.context, sessionId }))) });
       evidence.results.push({ ...input, parent: type, inputType: interpretation.inputType, json: raw, content, facets: filledFacets(type, content) });
     } catch (error) {
       evidence.results.push({ ...input, parent: type, inputType: interpretation.inputType, error: error.message, ...(raw ? { content: raw } : {}) });
