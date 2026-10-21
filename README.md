@@ -1,11 +1,11 @@
 # Vocabularium
 
-A vocabulary capture extension for Chrome, at release 0.7.5. A local Fastify API with PostgreSQL 18 serves one owner-test account; the extension's dashboard, deck settings and page editor use WXT and React.
+A vocabulary capture extension for Chrome, at release 0.8.0. A local Fastify API with PostgreSQL 18 serves one owner-test account; the extension's dashboard, deck settings and page editor use WXT and React.
 
 The product uses deck → page → component. A page holds a main key, optional Context, one component per configured content module, and your own text.
 
 - [Product model](docs/product/model.md): the terms
-- [Current scope](docs/product/scope.md): what 0.7.5 supports, with links to each specification
+- [Current scope](docs/product/scope.md): what 0.8.0 supports, with links to each specification
 - [Vision](docs/product/vision.md): where the product is going
 - [Project workflow](docs/guides/project-workflow.md): how decisions become specifications and releases
 - [Install a candidate package](docs/guides/install.md): load and update the extension in Chrome
@@ -56,7 +56,7 @@ A page shows its main key, Context, one component per configured module (or a "N
 
 Copy `.env.example` to the ignored `.env` file (or add its generation settings to your existing file), configure `OPENCODE_API_KEY` with your OpenCode Go key, then restart the account server. Keep the key on the server. The extension never receives it. The default is `deepseek-v4.1-flash` through `https://opencode.ai/zen/go/v1/chat/completions`; `OPENCODE_MODEL` can override the model. Requests never fall back to another model automatically.
 
-The adapter requests JSON in its instructions and validates the completion status, object fields, the word-or-sentence classification, and nonempty text locally before publishing. It does not depend on undocumented provider support for strict structured outputs. Each request has a 60-second limit and an 8,192-token output budget. Requests identify this app as `Vocabularium/0.7.5` and use one stable conversation ID per page, including retries. [OpenCode Go](https://opencode.ai/docs/go/) is a subscription service intended for coding-agent traffic; the app's live requests succeeded with the owner's key on 12 September 2026. Keep its console **Use balance** option off to stop at the subscription limit instead of drawing from Zen credits. The app does not change that account setting.
+The adapter requests JSON in its instructions and validates the completion status, object fields, the word-or-sentence classification, and nonempty text locally before publishing. It does not depend on undocumented provider support for strict structured outputs. Each request has a 60-second limit and an 8,192-token output budget. Requests identify this app as `Vocabularium/0.8.0` and use one stable conversation ID per page, including retries. [OpenCode Go](https://opencode.ai/docs/go/) is a subscription service intended for coding-agent traffic; the app's live requests succeeded with the owner's key on 12 September 2026. Keep its console **Use balance** option off to stop at the subscription limit instead of drawing from Zen credits. The app does not change that account setting.
 
 Without a key, the original capture is still saved. Components requiring interpretation or generation fail visibly; exact-selection components still complete. Automated checks inject controlled provider responses and do not spend API credits. The live word/sentence smoke passed with the configured Go key; see the [recorded provider samples](docs/history/evidence/deepseek-v4.1-flash-smoke-2026-09-12.json) and [hosted word/phrase/sentence results](docs/history/evidence/render-smoke-2026-09-12.json).
 
