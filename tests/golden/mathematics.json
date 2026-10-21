@@ -1,0 +1,23 @@
+{
+  "note": "Golden set for Mathematics (D11, C8). The owner reviews the outputs before a prompt change merges.",
+  "modules": ["mathematics"],
+  "inputs": [
+    { "key": "eigenvalue", "why": "Core term, the module's sample" },
+    { "key": "derivative", "why": "Core concept" },
+    { "key": "prime number", "why": "Phrase" },
+    { "key": "vector space", "why": "Phrase" },
+    { "key": "proof by induction", "why": "Method" },
+    { "key": "limit", "why": "Everyday word with a technical meaning" },
+    { "key": "ring", "context": "Every field is a ring in which each nonzero element has an inverse.", "why": "Context picks the algebra sense" },
+    { "key": "ring", "context": "She wore her grandmother's ring.", "why": "Context outside the subject: say so, explain it" },
+    { "key": "field", "why": "Everyday word with a technical meaning" },
+    { "key": "group", "why": "Everyday word with a technical meaning" },
+    { "key": "Big O notation", "why": "Phrase shared with computer science" },
+    { "key": "导数", "why": "Chinese key: explained in English" },
+    { "key": "Ableitung", "why": "German key: explained in English" },
+    { "key": "Frontend", "why": "No meaning in the subject" },
+    { "key": "Every continuous function on a closed interval attains its maximum.", "why": "Sentence: a theorem" },
+    { "key": "The derivative of x² is 2x.", "why": "Sentence with notation" },
+    { "key": "Zwei Geraden schneiden sich in höchstens einem Punkt.", "why": "German sentence: explained in English" }
+  ]
+}

@@ -11,6 +11,19 @@ import { sortKey } from './sort-key.mjs';
 /** @typedef {import('./store-records.js').ComponentRow} ComponentRow */
 /** @typedef {import('./store-records.js').AttemptRow} AttemptRow */
 /** @typedef {import('./store-records.js').ReceiptRow} ReceiptRow */
+// The generation record after a published attempt (D11): per part with
+// content, the model and prompt version that produced it. A whole attempt
+// records the core and each facet it produced; a facet's own Retry only that
+// facet, the others keeping theirs. A result without a record leaves none.
+function generationAfter(previous, module, content, made) {
+  const entry = made?.prompt ? { model: made.model ?? null, prompt: made.prompt } : null;
+  if (!module.retry) return entry ? Object.fromEntries(['core', ...Object.keys(content.facets)].map(part => [part, entry])) : null;
+  const record = { ...(previous ?? {}) };
+  if (entry && hasFacetContent(content, module.retry)) record[module.retry] = entry;
+  else delete record[module.retry];
+  return Object.keys(record).length ? record : null;
+}
+
 export class StoreError extends Error {
   constructor(code, message, details) { super(message); this.code = code; this.details = details; }
 }
@@ -171,7 +184,7 @@ export class AccountStore {
         fail('stale_session', 'This browser session has ended.');
       }
       if (previous && previous.session_id !== sessionId) {
-        await this.database.run(`UPDATE components SET content = $2, status = 'failed' WHERE attempt_id IN
+        await this.database.run(`UPDATE components SET content = $2, status = 'failed', generation = NULL WHERE attempt_id IN
           (SELECT id FROM component_attempts WHERE installation_id = $1 AND state = 'loading')`, [installationId, JSON.stringify(textBlocks(''))]);
         await this.database.run(`UPDATE component_attempts SET state = 'failed', result = NULL
           WHERE installation_id = $1 AND state = 'loading'`, [installationId]);
@@ -457,7 +470,7 @@ export class AccountStore {
         (id, page_id, component_id, run_id, installation_id, session_id, epoch, module) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
       [attemptId, pageId, componentId, runId, session.installationId, session.sessionId, session.epoch, JSON.stringify(module)]);
       if (facet) await this.database.run("UPDATE components SET status = 'loading', attempt_id = $1 WHERE page_id = $2 AND id = $3", [attemptId, pageId, componentId]);
-      else await this.database.run("UPDATE components SET content = $1, status = 'loading', attempt_id = $2 WHERE page_id = $3 AND id = $4",
+      else await this.database.run("UPDATE components SET content = $1, status = 'loading', attempt_id = $2, generation = NULL WHERE page_id = $3 AND id = $4",
         [JSON.stringify(textBlocks('')), attemptId, pageId, componentId]);
       attemptIds.push(attemptId);
     }
@@ -478,12 +491,19 @@ export class AccountStore {
       return { ...attempt, module: JSON.parse(attempt.module), result: attempt.result && JSON.parse(attempt.result) };
     });
   }
+  // Each component's generation record (D11), by component ID; the interface does not show it.
+  async generationRecords(pageId) {
+    return this.database.transaction(async () => {
+      const rows = await this.database.all('SELECT id, generation FROM components WHERE page_id = $1 AND generation IS NOT NULL', [pageId]);
+      return Object.fromEntries(rows.map(row => [row.id, JSON.parse(row.generation)]));
+    });
+  }
   async failAttempt(attemptId) {
     return this.database.transaction(async () => {
       const row = await this.database.one("SELECT id, module FROM component_attempts WHERE id = $1", [attemptId]);
       const attempt = row && { ...row, module: JSON.parse(row.module) };
       if (attempt?.module.retry) return this.keepAfterFacetFailure(attempt);
-      await this.database.run("UPDATE components SET content = $2, status = 'failed' WHERE attempt_id = $1 AND status = 'loading'", [attemptId, JSON.stringify(textBlocks(''))]);
+      await this.database.run("UPDATE components SET content = $2, status = 'failed', generation = NULL WHERE attempt_id = $1 AND status = 'loading'", [attemptId, JSON.stringify(textBlocks(''))]);
       await this.database.run("UPDATE component_attempts SET state = 'failed', result = NULL WHERE id = $1 AND state = 'loading'", [attemptId]);
     });
   }
@@ -520,6 +540,9 @@ export class AccountStore {
       await this.requireSession({ installationId: attempt.installation_id, sessionId: attempt.session_id, epoch: attempt.epoch });
       // A generated result is structured content (D09).
       if (typeof result.ok !== 'boolean' || (result.ok && !(result.content && typeof result.content === 'object' && !Array.isArray(result.content)))) fail('invalid', 'Invalid component result.');
+      // The model and prompt version that produced it (D11), when known.
+      if (result.generation !== undefined && !(result.generation && typeof result.generation.prompt === 'string' &&
+        (result.generation.model === null || typeof result.generation.model === 'string'))) fail('invalid', 'Invalid generation record.');
       await this.database.run("UPDATE component_attempts SET result = $1 WHERE id = $2", [JSON.stringify(result), attemptId]);
     });
   }
@@ -539,9 +562,13 @@ export class AccountStore {
         return { pageId: attempt.page_id, componentId: attempt.component_id, state: 'failed' };
       }
       const state = attempt.result.ok ? 'completed' : 'failed';
-      const content = attempt.result.ok ? parentDocument(validateParentContent(attempt.module.type, attempt.result.content)) : textBlocks('');
-      const changed = await this.database.run(`UPDATE components SET content = $1, status = $2
-        WHERE page_id = $3 AND id = $4 AND attempt_id = $5 AND status = 'loading'`, [JSON.stringify(content), state, attempt.page_id, attempt.component_id, attemptId]);
+      const generated = attempt.result.ok ? validateParentContent(attempt.module.type, attempt.result.content) : null;
+      const content = generated ? parentDocument(generated) : textBlocks('');
+      const previous = await this.database.one('SELECT generation FROM components WHERE page_id = $1 AND id = $2', [attempt.page_id, attempt.component_id]);
+      const generation = generated ? generationAfter(previous?.generation && JSON.parse(previous.generation), attempt.module, generated, attempt.result.generation) : null;
+      const changed = await this.database.run(`UPDATE components SET content = $1, status = $2, generation = $6
+        WHERE page_id = $3 AND id = $4 AND attempt_id = $5 AND status = 'loading'`,
+      [JSON.stringify(content), state, attempt.page_id, attempt.component_id, attemptId, generation && JSON.stringify(generation)]);
       if (!changed.rowCount) fail('stale_attempt', 'The component has moved on to another attempt.');
       await this.database.run("UPDATE component_attempts SET state = $1, result = NULL WHERE id = $2", [state, attemptId]);
       return { pageId: attempt.page_id, componentId: attempt.component_id, state };

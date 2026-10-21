@@ -302,3 +302,30 @@ test('0014 and its one-time conversions turn the main key’s drawn emphasis int
   await migrateDatabase(database.databaseUrl);
   assert.equal(await content('german'), parent({ examples: '1. We sat on the Bank.' }));
 });
+
+test('0015 adds an empty generation record and keeps every deck, page, component and sign-in (D11)', async t => {
+  const database = await legacyDatabase(t, 'generation-record-upgrade', 14);
+  const client = new pg.Client({ connectionString: database.databaseUrl }); await client.connect();
+  t.after(() => client.end());
+  const parent = JSON.stringify({ version: 1, blocks: [{ type: 'parent', header: { kind: 'word', language: 'Englisch', key: 'bank' }, core: '1. Ufer', facets: {} }] });
+  await client.query(`INSERT INTO decks (id, name) VALUES ('deck', 'Bank words');
+    INSERT INTO account VALUES (1, 'deck');
+    INSERT INTO deck_modules (id, deck_id, position, type, facets) VALUES ('key', 'deck', 0, 'main-key', '{}'), ('german', 'deck', 1, 'german', '{}');
+    INSERT INTO pages (id, deck_id, selected_text, created_at) VALUES ('page', 'deck', 'bank', '2026-10-20T10:00:00.000Z');`);
+  await client.query(`INSERT INTO components (page_id, id, module_instance_id, module_type, position, content, status, facets) VALUES
+    ('page', 'key', 'k', 'main-key', 0, '{"version":1,"blocks":[{"type":"paragraph","text":"bank"}]}', NULL, '{}'),
+    ('page', 'german', 'g', 'german', 1, $1, 'completed', '{}')`, [parent]);
+  const kept = {};
+  for (const table of ['account', 'decks', 'deck_modules', 'credentials', 'login_tokens', 'installations', 'pages']) kept[table] = await rows(client, table);
+  const components = async () => (await client.query('SELECT id, content, status, generation FROM components ORDER BY position')).rows;
+
+  await migrateTo(t, database, 15);
+
+  for (const table of Object.keys(kept)) assert.deepEqual(await rows(client, table), kept[table], table);
+  assert.deepEqual(await components(), [
+    { id: 'key', content: '{"version":1,"blocks":[{"type":"paragraph","text":"bank"}]}', status: null, generation: null },
+    { id: 'german', content: parent, status: 'completed', generation: null }
+  ], 'earlier components keep their content and have no record');
+  const store = await AccountStore.open(database); database.resources.push(store);
+  assert.deepEqual(await store.generationRecords('page'), {});
+});

@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { applyDraft, ContentError, draftOf, filledFacets, formatContent, hasFacetContent, isEmptyContent, parentContentOf, parentDocument, providerCore,
+import { applyDraft, ContentError, draftOf, filledFacets, formatContent, formatFacet, hasFacetContent, isEmptyContent, parentContentOf, parentDocument, providerCore,
   validateParentContent, withFacetText } from '@vocabularium/domain/content';
 import { GeneratedError, validateGenerated } from '@vocabularium/domain/generated';
-import { escapeMarkdown, formatFacet, parseMarkdown, plainLines } from '@vocabularium/domain/markdown';
+import { escapeMarkdown, parseMarkdown, plainLines } from '@vocabularium/domain/markdown';
 import { blockText } from '@vocabularium/domain/pages';
 import { renderParent } from '@vocabularium/domain/render';
 
@@ -41,7 +41,7 @@ test('a provider result is checked complete against the parent’s shape and tri
 });
 
 test('a result is formatted into markdown as the card looks, every literal character escaped', () => {
-  const content = formatContent(bank);
+  const content = formatContent('german', bank);
   assert.deepEqual(content.header, { kind: 'word', language: 'Englisch', key: 'bank' });
   assert.equal(content.core, '1. Ufer eines Flusses\n2. Geldinstitut');
   assert.deepEqual(content.facets, {
@@ -49,13 +49,13 @@ test('a result is formatted into markdown as the card looks, every literal chara
     examples: '1. We sat on the bank.\n   *Wir saßen am Ufer.*\n2. The bank opened.',
     synonyms: 'Flussufer, Gestade'
   });
-  assert.equal(formatFacet('article', { singular: 'das Fernweh' }), 'das Fernweh');
-  assert.equal(formatFacet('pinyin', [{ text: '河岸', pinyin: 'hé’àn' }, { text: '银行', pinyin: 'yínháng' }]), '河岸 hé’àn\n银行 yínháng');
-  assert.deepEqual(formatContent({ core: { kind: 'sentence', translation: 'Wir saßen am Ufer.' }, facets: {} }), { header: { kind: 'sentence' }, core: 'Wir saßen am Ufer.', facets: {} });
+  assert.equal(formatFacet('german', 'article', { singular: 'das Fernweh' }), 'das Fernweh');
+  assert.equal(formatFacet('chinese', 'pinyin', [{ text: '河岸', pinyin: 'hé’àn' }, { text: '银行', pinyin: 'yínháng' }]), '河岸 hé’àn\n银行 yínháng');
+  assert.deepEqual(formatContent('german', { core: { kind: 'sentence', translation: 'Wir saßen am Ufer.' }, facets: {} }), { header: { kind: 'sentence' }, core: 'Wir saßen am Ufer.', facets: {} });
   // Text the model writes is literal: nothing in it turns into formatting.
   assert.equal(escapeMarkdown('a *b* `c` ==d== \\e'), 'a \\*b\\* \\`c\\` \\=\\=d\\=\\= \\\\e');
   assert.equal(escapeMarkdown('1. not a list\n- nor this'), '1\\. not a list\n\\- nor this');
-  assert.deepEqual(plainLines(formatContent({ core: { kind: 'word', language: 'x', key: 'x', meanings: ['*stars* and `ticks`'] }, facets: {} }).core),
+  assert.deepEqual(plainLines(formatContent('german', { core: { kind: 'word', language: 'x', key: 'x', meanings: ['*stars* and `ticks`'] }, facets: {} }).core),
     ['*stars* and `ticks`']);
 });
 
@@ -77,7 +77,7 @@ test('the markdown subset reads paragraphs, lists, bold, italic, code and highli
 });
 
 test('saved content keeps its top line, any part may be empty, and only the instance’s facets count', () => {
-  const stored = formatContent(bank);
+  const stored = formatContent('german', bank);
   assert.deepEqual(validateParentContent('german', stored, { facets: ALL }), stored);
   const draft = { ...draftOf('german', stored, ALL), language: 'Spanisch' };
   assert.deepEqual(draft, { core: stored.core, facets: { article: stored.facets.article, examples: stored.facets.examples, synonyms: stored.facets.synonyms, antonyms: '' },
@@ -93,7 +93,7 @@ test('saved content keeps its top line, any part may be empty, and only the inst
 });
 
 test('facet texts are read, replaced and removed one at a time; empty content has nothing to replace', () => {
-  const content = formatContent(bank);
+  const content = formatContent('german', bank);
   assert.deepEqual(filledFacets('german', content), ['article', 'examples', 'synonyms']);
   assert.equal(hasFacetContent(content, 'antonyms'), false);
   const added = withFacetText(content, 'antonyms', 'Strom');
@@ -103,13 +103,13 @@ test('facet texts are read, replaced and removed one at a time; empty content ha
   assert.equal(isEmptyContent(content), false);
   assert.equal(isEmptyContent({ header: content.header, core: '', facets: {} }), true);
   assert.equal(isEmptyContent({ header: content.header, core: '', facets: { synonyms: 'Damm' } }), false);
-  assert.deepEqual(providerCore(content), { kind: 'word', language: 'Englisch', key: 'bank', meanings: ['Ufer eines Flusses', 'Geldinstitut'] },
+  assert.deepEqual(providerCore('german', content), { kind: 'word', language: 'Englisch', key: 'bank', meanings: ['Ufer eines Flusses', 'Geldinstitut'] },
     'a facet’s own Retry gives the provider the core it follows');
-  assert.deepEqual(providerCore({ header: { kind: 'sentence' }, core: 'Wir **saßen** am Ufer.', facets: {} }), { kind: 'sentence', translation: 'Wir saßen am Ufer.' });
+  assert.deepEqual(providerCore('german', { header: { kind: 'sentence' }, core: 'Wir **saßen** am Ufer.', facets: {} }), { kind: 'sentence', translation: 'Wir saßen am Ufer.' });
 });
 
 test('stored content is one parent block, has no plain text, and renders its core and facets into containers', () => {
-  const content = formatContent(bank);
+  const content = formatContent('german', bank);
   const document = parentDocument(content);
   assert.deepEqual(document, { version: 1, blocks: [{ type: 'parent', ...content }] });
   assert.deepEqual(parentContentOf(document), content);
@@ -127,7 +127,7 @@ test('stored content is one parent block, has no plain text, and renders its cor
 
 test('the live editor’s document converts to and from the markdown subset, round-tripping what generation writes (D09)', async () => {
   const { fromEditorDoc, toEditorDoc } = await import('@vocabularium/domain/markdown');
-  const content = formatContent({ ...bank, facets: { ...bank.facets, antonyms: ['Strom', 'a*b'] } });
+  const content = formatContent('german', { ...bank, facets: { ...bank.facets, antonyms: ['Strom', 'a*b'] } });
   for (const text of [content.core, ...Object.values(content.facets), 'Plain\nwith a break', '**bold** *italic* `code` ==mark==', '- a\n- **b**', '3. three\n4. four'])
     assert.equal(fromEditorDoc(toEditorDoc(text)), text, text);
   assert.deepEqual(toEditorDoc('1. We sat.\n   *Wir saßen.*'), { type: 'doc', content: [{ type: 'orderedList', attrs: { start: 1 }, content: [{ type: 'listItem', content: [

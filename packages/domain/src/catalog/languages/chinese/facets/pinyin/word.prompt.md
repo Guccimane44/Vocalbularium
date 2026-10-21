@@ -1,0 +1,1 @@
+"pinyin": one { "text": "<the Chinese word or words of that meaning>", "pinyin": "<their pinyin with tone marks>" } per meaning, in the same order, such as { "text": "河岸", "pinyin": "hé'àn" }. When the selection is Chinese, one entry for the selection itself.

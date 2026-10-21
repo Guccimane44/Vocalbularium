@@ -1,5 +1,8 @@
-import type { BlockDocument, GeneratedParent, ParentBlock, ParentCore, ParentHeader } from '@vocabularium/contracts';
-import { formatCore, formatFacets, hasText, highlightKey, plainLines } from './markdown.js';
+import type { BlockDocument, ParentBlock, ParentHeader } from '@vocabularium/contracts';
+import type { CoreValue } from './catalog/define.js';
+import { contentModule } from './catalog/index.js';
+import type { GeneratedParent } from './generated.js';
+import { hasText, highlightKey } from './markdown.js';
 import { facetsOf, isFacetOf, ordered, PARENTS } from './parents.js';
 import type { FacetType, ParentType } from './parents.js';
 
@@ -25,26 +28,27 @@ export function parentDocument(content: ParentContent): BlockDocument {
   return { version: 1, blocks: [{ type: 'parent', header: content.header, core: content.core, facets: content.facets }] };
 }
 
+// A checked result formatted as the card shows it, by the facets of its module
+// in the catalog (D11): the core's markdown, and one facet's.
+export const formatCore = (parent: ParentType, core: CoreValue): string => contentModule(parent).core.format(core);
+export function formatFacet(parent: ParentType, facet: FacetType, entry: unknown): string {
+  return contentModule(parent).facets.find(each => each.id === facet)!.format(entry);
+}
 // A generated result as stored: its top line, and its core and facets formatted
 // into markdown as the card looks.
-export function formatContent(generated: GeneratedParent): ParentContent {
-  const core = generated.core;
-  const header: ParentHeader = core.kind === 'word'
-    ? { kind: 'word', language: core.language, key: core.key, ...(core.romanization ? { romanization: core.romanization } : {}) } : { kind: 'sentence' };
-  return { header, core: formatCore(core), facets: formatFacets(generated) };
+export function formatContent(parent: ParentType, generated: GeneratedParent): ParentContent {
+  return { header: contentModule(parent).core.header(generated.core), core: formatCore(parent, generated.core),
+    facets: Object.fromEntries(Object.entries(generated.facets).map(([facet, entry]) => [facet, formatFacet(parent, facet as FacetType, entry)])) };
 }
 // The main key highlighted in the core and every facet (D10, amended a fourth time).
 export function withKeyHighlighted(content: ParentContent, key: string): ParentContent {
   return { header: content.header, core: highlightKey(content.core, key),
     facets: Object.fromEntries(Object.entries(content.facets).map(([facet, text]) => [facet, highlightKey(text as string, key)])) };
 }
-// The core as the provider reads it for a facet's own Retry: the top line and
-// the core's lines as meanings, or its text as the translation.
-export function providerCore(content: ParentContent): ParentCore {
-  const lines = plainLines(content.core);
-  return content.header.kind === 'word'
-    ? { ...content.header, meanings: lines.length ? lines : ['—'] }
-    : { kind: 'sentence', translation: lines.join('\n') || '—' };
+// The core as the provider reads it for a facet's own Retry, read back from
+// what is stored by the module's core.
+export function providerCore(parent: ParentType, content: ParentContent): CoreValue {
+  return contentModule(parent).core.read({ header: content.header, text: content.core });
 }
 
 // Whether the content holds nothing: no core text and no facet (D09: the user

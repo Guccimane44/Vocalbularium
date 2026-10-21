@@ -1,0 +1,1 @@
+"examples": exactly one { "sentence": "<a new sentence in the selection's language with the same structure or meaning>", "translation": "<its German translation>" }. When the selection is German, leave out "translation".
