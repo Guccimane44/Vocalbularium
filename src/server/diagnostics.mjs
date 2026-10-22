@@ -6,6 +6,7 @@ import { safeEvent, timeRange, withinRange, MAX_EVENT_BYTES } from '../../shared
 
 const defaultBudget = 256 * 1024 * 1024;
 const segmentBytes = 8 * 1024 * 1024;
+/** @type {AsyncLocalStorage<Record<string, unknown>>} */
 export const diagnosticContext = new AsyncLocalStorage();
 async function privateWrite(path, data) {
   const handle = await open(path, 'w', 0o600);
