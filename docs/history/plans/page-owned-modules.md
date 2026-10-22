@@ -1,12 +1,14 @@
 # Plan: page-owned modules and the module window (0.5.0)
 
-Proposed: 10 October 2026 (Europe/Berlin). Implements [D02](../architecture/traceability-map.md#entries), accepted by the owner on 10 October 2026, with the decisions recorded below. Tracker: [#108](https://github.com/Guccimane44/Vocalbularium/issues/108). Status: approved by the owner on 10 October 2026; implemented in release 0.5.0 (increments 0–5 in #109–#113, increment 6 in the release PR).
+> **Historical, 22 October 2026.** Release 0.5.0 implemented this plan and [#108](https://github.com/Guccimane44/Vocalbularium/issues/108) is closed. The status line below is the plan's state when it was approved.
+
+Proposed: 10 October 2026 (Europe/Berlin). Implements [D02](../../architecture/traceability-map.md#entries), accepted by the owner on 10 October 2026, with the decisions recorded below. Tracker: [#108](https://github.com/Guccimane44/Vocalbularium/issues/108). Status: approved by the owner on 10 October 2026; implemented in release 0.5.0 (increments 0–5 in #109–#113, increment 6 in the release PR).
 
 ## Outcome
 
 The deck configuration becomes the template for page creation only. After creation, a page owns its modules. The user deletes components, rearranges them, and drags modules onto the page from a **module window** on the right of both the page view and deck settings. The main key, Context, and the user's own text become modules like the rest.
 
-This milestone builds the interaction model and the two-panel layout with today's styling. The distinctive visual identity ([vision](../product/vision.md#uiux-direction), [Q67](../architecture/questionnaire/answers/answers-13-ux-and-migration.md#67)) is a later milestone.
+This milestone builds the interaction model and the two-panel layout with today's styling. The distinctive visual identity ([vision](../../product/vision.md#uiux-direction), [Q67](../../architecture/questionnaire/answers/answers-13-ux-and-migration.md#67)) is a later milestone.
 
 ## Owner decisions
 
@@ -47,7 +49,7 @@ This plan, the tracker issue, and the D02 amendment (Text module, upgrade discar
 
 ### 1. Specifications (docs only)
 
-Update the product model, [pages and editing](../specs/pages-and-editing.md), [decks and configuration](../specs/decks-and-configuration.md), [modules](../specs/modules.md), [capture and generation](../specs/capture-and-generation.md), [shared UI](../specs/shared-ui.md) and [scope](../product/scope.md) for the Text module and the 0.5.0 upgrade. They replace manual components and "Add your own text" with the Text module. They define the shaping operations, their confirmation and concurrency rules, and the module window's contents. Remove the "Before D02" sections when 0.5.0 ships (increment 6).
+Update the product model, [pages and editing](../../specs/pages-and-editing.md), [decks and configuration](../../specs/decks-and-configuration.md), [modules](../../specs/modules.md), [capture and generation](../../specs/capture-and-generation.md), [shared UI](../../specs/shared-ui.md) and [scope](../../product/scope.md) for the Text module and the 0.5.0 upgrade. They replace manual components and "Add your own text" with the Text module. They define the shaping operations, their confirmation and concurrency rules, and the module window's contents. Remove the "Before D02" sections when 0.5.0 ships (increment 6).
 
 ### 2. Domain and contracts (`packages/domain`, `packages/contracts`)
 

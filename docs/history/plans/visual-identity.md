@@ -1,12 +1,14 @@
 # Plan: the Vocabularium Sage visual identity (0.6.0)
 
-Proposed: 12 October 2026 (Europe/Berlin). Implements [D05](../architecture/traceability-map.md#entries), accepted by the owner on 12 October 2026. Tracker: [#120](https://github.com/Guccimane44/Vocalbularium/issues/120). Status: approved by the owner on 12 October 2026; increment 0 merged in [#121](https://github.com/Guccimane44/Vocalbularium/pull/121), increment 1 (specifications) in [#122](https://github.com/Guccimane44/Vocalbularium/pull/122), increment 2 (foundation) in [#123](https://github.com/Guccimane44/Vocalbularium/pull/123), increment 3 (shell and dashboard) in [#124](https://github.com/Guccimane44/Vocalbularium/pull/124), increment 4 (page list layouts) in [#125](https://github.com/Guccimane44/Vocalbularium/pull/125), increment 5 (page view and module window) in [#126](https://github.com/Guccimane44/Vocalbularium/pull/126), increment 6 (deck settings) in [#127](https://github.com/Guccimane44/Vocalbularium/pull/127), increment 7 (motion) in [#128](https://github.com/Guccimane44/Vocalbularium/pull/128); increment 8 (verification and delivery) in progress.
+> **Historical, 22 October 2026.** Release 0.6.0 implemented this plan and [#120](https://github.com/Guccimane44/Vocalbularium/issues/120) is closed. The status line below is the plan's state when it was approved.
+
+Proposed: 12 October 2026 (Europe/Berlin). Implements [D05](../../architecture/traceability-map.md#entries), accepted by the owner on 12 October 2026. Tracker: [#120](https://github.com/Guccimane44/Vocalbularium/issues/120). Status: approved by the owner on 12 October 2026; increment 0 merged in [#121](https://github.com/Guccimane44/Vocalbularium/pull/121), increment 1 (specifications) in [#122](https://github.com/Guccimane44/Vocalbularium/pull/122), increment 2 (foundation) in [#123](https://github.com/Guccimane44/Vocalbularium/pull/123), increment 3 (shell and dashboard) in [#124](https://github.com/Guccimane44/Vocalbularium/pull/124), increment 4 (page list layouts) in [#125](https://github.com/Guccimane44/Vocalbularium/pull/125), increment 5 (page view and module window) in [#126](https://github.com/Guccimane44/Vocalbularium/pull/126), increment 6 (deck settings) in [#127](https://github.com/Guccimane44/Vocalbularium/pull/127), increment 7 (motion) in [#128](https://github.com/Guccimane44/Vocalbularium/pull/128); increment 8 (verification and delivery) in progress.
 
 ## Outcome
 
 Vocabularium gets its own visual identity, **Vocabularium Sage**: a calm, Notion-like workspace on green-grey paper where each module is marked by a coloured index tab of its module family. Generated content is shown as readable structure (numbered meanings, examples beside their translations) instead of raw markup. Every layout handles main keys of any length, from one word to a passage. Motion is quick and physical, and the capture gains a short signature moment.
 
-The interaction model of 0.5.x stays: page-owned modules, the module window, per-card actions and drag-only shaping ([D02](../architecture/traceability-map.md#entries), [D04](../architecture/traceability-map.md#entries)). This milestone changes how it looks and moves, and how deck pages are listed.
+The interaction model of 0.5.x stays: page-owned modules, the module window, per-card actions and drag-only shaping ([D02](../../architecture/traceability-map.md#entries), [D04](../../architecture/traceability-map.md#entries)). This milestone changes how it looks and moves, and how deck pages are listed.
 
 ## Design sources
 
@@ -30,7 +32,7 @@ Recorded in D05, from the design interview on 11 October and the review rounds o
 6. **Page list:** List, Table and Gallery are **layouts** of a deck's page list, not views (K19). List is the default for every deck, grouped by capture date for the creation-time sort orders only (K20). Table and Gallery are also built in this milestone, with a switch remembered per deck.
 7. **Quiet status:** completed work shows no badge; only waiting, generating and failed states appear. A failed row offers its action (Retry, Try saving again) as a visible button.
 8. **Rendering:** generated content is rendered from its current text format by the extension. Stored content, prompts and the API do not change; text that the renderer does not recognise is shown as plain text, as today.
-11. **Page summaries** (12 October 2026, during increment 4): the backend adds each page's meaning line and per-component family data to the page summaries it already sends, so the page list needs no request per page. The change is additive: no migration, no change to stored content, and earlier extensions ignore the new fields ([decks and configuration](../specs/decks-and-configuration.md#views-and-layouts)).
+11. **Page summaries** (12 October 2026, during increment 4): the backend adds each page's meaning line and per-component family data to the page summaries it already sends, so the page list needs no request per page. The change is additive: no migration, no change to stored content, and earlier extensions ignore the new fields ([decks and configuration](../../specs/decks-and-configuration.md#views-and-layouts)).
 9. **Capture:** stays in the context menu. After the user chooses it, the selection lifts off the page and flies into the capture feedback popup in about half a second, and the toolbar badge counts captures until the dashboard is opened (K21). No new extension permission; the floating selection button from the prototype is not part of this milestone.
 10. **Motion:** the durations and easings in the design system; every animation stops under reduced motion.
 
@@ -54,18 +56,18 @@ Each increment is one PR against `main`, reviewed and green in CI before the nex
 
 ### 0. Record the plan (this PR)
 
-This plan, the D05 row with its conflict and clarifications in the [traceability map](../architecture/traceability-map.md), the tracker issue, the Notion decision record (`Proposed`) and the 0.6.0 milestone in Actual Stages (`Not started`).
+This plan, the D05 row with its conflict and clarifications in the [traceability map](../../architecture/traceability-map.md), the tracker issue, the Notion decision record (`Proposed`) and the 0.6.0 milestone in Actual Stages (`Not started`).
 
 ### 1. Specifications (docs only, after D05 is accepted)
 
-- [Shared UI](../specs/shared-ui.md): a visual identity section that points to the design system and names the rules the extension must keep (families, quiet status, focus, contrast, motion and reduced motion); appearance follows the system; *List state presentation* and *Text content* are replaced by the new list states and the rendering rule.
-- [Pages and editing](../specs/pages-and-editing.md): page list layouts (List, Table, Gallery) and date groups; main key tiers; cards with hover actions; empty Text as one line.
-- [Decks and configuration](../specs/decks-and-configuration.md): dashboard and sidebar; deck settings with the live preview; the per-deck remembered layout.
-- [Capture and generation](../specs/capture-and-generation.md): the capture flight into the feedback popup.
-- [Modules](../specs/modules.md): each module type's family, and the render contract of the three content modules.
-- [Product model](../product/model.md): **layout** (how a deck lists its pages) as a term distinct from **view** (how one page is shown).
-- [Vision](../product/vision.md#uiux-direction): the UI/UX direction is set; the open paragraph points to the design system.
-- [Scope](../product/scope.md): new rows as `accepted for 1.0`, then `implemented` in increment 8.
+- [Shared UI](../../specs/shared-ui.md): a visual identity section that points to the design system and names the rules the extension must keep (families, quiet status, focus, contrast, motion and reduced motion); appearance follows the system; *List state presentation* and *Text content* are replaced by the new list states and the rendering rule.
+- [Pages and editing](../../specs/pages-and-editing.md): page list layouts (List, Table, Gallery) and date groups; main key tiers; cards with hover actions; empty Text as one line.
+- [Decks and configuration](../../specs/decks-and-configuration.md): dashboard and sidebar; deck settings with the live preview; the per-deck remembered layout.
+- [Capture and generation](../../specs/capture-and-generation.md): the capture flight into the feedback popup.
+- [Modules](../../specs/modules.md): each module type's family, and the render contract of the three content modules.
+- [Product model](../../product/model.md): **layout** (how a deck lists its pages) as a term distinct from **view** (how one page is shown).
+- [Vision](../../product/vision.md#uiux-direction): the UI/UX direction is set; the open paragraph points to the design system.
+- [Scope](../../product/scope.md): new rows as `accepted for 1.0`, then `implemented` in increment 8.
 
 ### 2. Foundation: tokens, fonts, appearance
 
@@ -138,4 +140,4 @@ The module list on the left, the live preview of a sample page in the middle (wo
 
 ## Not in this milestone
 
-The floating selection button on web pages; structured (block) generation output ([Q13](../architecture/questionnaire/answers/answers-03-frontend.md#q13)); view modules other than the default view; new modules (Pronunciation, Etymology and others appear only as design examples); a logo; localisation of the interface.
+The floating selection button on web pages; structured (block) generation output ([Q13](../../architecture/questionnaire/answers/answers-03-frontend.md#q13)); view modules other than the default view; new modules (Pronunciation, Etymology and others appear only as design examples); a logo; localisation of the interface.

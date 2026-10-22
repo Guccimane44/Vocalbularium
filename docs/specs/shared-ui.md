@@ -2,7 +2,7 @@
 
 ## Purpose and status
 
-This specification defines interface rules shared across the extension's views. Release 0.5.2 implements the module window of [D02](../architecture/traceability-map.md#entries) as revised by [D04](../architecture/traceability-map.md#entries). [D05](../architecture/traceability-map.md#entries), accepted on 12 October 2026, gives the extension its visual identity, **Vocabularium Sage**; release 0.6.0 implements it ([plan](../plans/visual-identity.md), [scope](../product/scope.md)).
+This specification defines interface rules shared across the extension's views. Release 0.5.2 implements the module window of [D02](../architecture/traceability-map.md#entries) as revised by [D04](../architecture/traceability-map.md#entries). [D05](../architecture/traceability-map.md#entries), accepted on 12 October 2026, gives the extension its visual identity, **Vocabularium Sage**; release 0.6.0 implements it ([plan](../history/plans/visual-identity.md), [scope](../product/scope.md)).
 
 ## Visual identity
 
