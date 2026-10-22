@@ -32,8 +32,8 @@ A parent and its facets are one component, produced by one generation attempt, a
 ### Choosing and changing facets
 
 - **Adding a parent.** A parent is added like any module, by dragging it or with its **+**, with its core only.
-- **Adding a facet.** Facets are listed in the module window beneath their parent type, drawn differently from modules, and are added the way modules are: by dragging or with their **+** ([shared UI](shared-ui.md#module-window)). Unlike a module, a facet cannot be placed freely: it can only be added to a parent it applies to, a parent of its own type, on a page or in deck settings. An added facet waits, shown as its label only, until the user's next **Retry** regenerates the whole parent ([capture and generation](capture-and-generation.md#retry)); a parent already generating takes no facet until its attempt finishes.
-- **Deleting a facet.** A facet is deleted from its parent the way a component is deleted from a page ([pages and editing](pages-and-editing.md#components-as-cards)). A deleted facet stays gone: Retry never brings it back, and the user drags it in again to restore it.
+- **Adding a facet.** Since 0.8.1 a parent's facets are chosen on the parent itself: **Facet** among its actions, on a page or in deck settings, opens its [facet window](pages-and-editing.md#facet-window), which lists every facet of the parent's module ([D13](../architecture/traceability-map.md#entries)). Until 0.8.1 facets were listed in the module window beneath their parent type and dragged onto a parent of their own type or added with their **+** ([D08](../architecture/traceability-map.md#entries)). An added facet waits, shown as its tag only, until the user's next **Retry** regenerates the whole parent ([capture and generation](capture-and-generation.md#retry)); a parent already generating takes no facet until its attempt finishes.
+- **Deleting a facet.** A facet is deleted from its parent the way a component is deleted from a page ([pages and editing](pages-and-editing.md#components-as-cards)). A deleted facet stays gone: Retry never brings it back, and the user ticks it again in the facet window to restore it.
 
 A deck configuration stores each parent instance with its facets, and a new page copies them ([decks and configuration](decks-and-configuration.md#configuration-and-pages)). Facets are not module instances and do not count toward the limit of 12.
 
@@ -73,9 +73,18 @@ The main key module belongs to no family; it is shown as the page title. Languag
 
 Each facet type has an abbreviation that marks its [tag](pages-and-editing.md#facet-tags) on a card (since 0.7.1). From 0.8.0 no two facets of one parent share an abbreviation; facets of different parents may (until 0.8.0 no two facet types shared one, which a growing catalog cannot keep). The facets above keep their abbreviations.
 
-When the main key is already in the parent's language, examples have no translation line. The Expertise modules write in English until a language setting exists, which the interface will also follow; a key in another language is still explained in English. The input modules belong to these families: Context and Text to Notes; the main key to none. Names remain provisional.
+When the main key is already in the parent's language, examples have no translation line. The Expertise modules write in English, the default language preference, until the interface is localised; they will then write in the user's language preference, as the interface does ([D14](../architecture/traceability-map.md#entries); [shared UI](shared-ui.md#interface-language)). Until then a key in another language is still explained in English. The input modules belong to these families: Context and Text to Notes; the main key to none. Names remain provisional.
 
 `German explanation`, `German explanation + examples`, and `Sentence usage` are retired ([D08](../architecture/traceability-map.md#entries)), as `<The selected>` and `<The selected + original language tag>` were before them ([D03](../architecture/traceability-map.md#entries)). Release 0.7.0 deletes their deck instances and the components they produced along with every deck and page (migration `0011`, [scope](../product/scope.md#upgrade-from-earlier-builds)).
+
+## Explanations
+
+Since 0.8.1 every module in the module window and every facet has an **explanation**, so a user can learn what it does without trying it ([D13](../architecture/traceability-map.md#entries)). It has:
+
+- **a few sentences** on what the module or facet contributes and when to use it; a facet's also says which inputs it applies to, such as words only;
+- **a sample** of its output for a word and for a sentence, rendered as its card renders it. A content module's sample is its preview sample, the one the deck-settings preview shows; a facet's is its own part of that sample, and a facet that applies to one input type only shows that one. Context and Text show their sample text. The core has no explanation of its own: its parent's explains it.
+
+A module's explanation opens from its module window entry ([shared UI](shared-ui.md#module-window)); a facet's from its row in the [facet window](pages-and-editing.md#facet-window). The one-line descriptions stay. The main key, which is not in the window, has no explanation. Explanations are written in English, the default interface language, and are localised with the interface ([D14](../architecture/traceability-map.md#entries)). Each lives in its module's or facet's folder in the catalog ([generation architecture](../architecture/generation.md#module-catalog)).
 
 ## Input and applicability
 
@@ -131,7 +140,7 @@ The **default view** module shows every component in page order: the main key fi
 
 ## Composition
 
-Users add, remove, reorder, and repeat content module instances in deck settings, and add or remove the Context and Text modules, up to the [limit of 12 module instances](decks-and-configuration.md#configuration) counting every module, and the deck's instances become the starting modules of each new page. After creation, users add, delete, and rearrange modules on the page itself, and add or delete a parent's facets ([D02](../architecture/traceability-map.md#entries); [pages and editing](pages-and-editing.md#shaping-a-page)). Both use the module window. Adding an instance does not remove its type from the library. Repeated instances of one parent type generate independently while sharing the run's interpretation.
+Users add, remove, reorder, and repeat content module instances in deck settings, and add or remove the Context and Text modules, up to the [limit of 12 module instances](decks-and-configuration.md#configuration) counting every module, and the deck's instances become the starting modules of each new page. After creation, users add, delete, and rearrange modules on the page itself, and add or delete a parent's facets ([D02](../architecture/traceability-map.md#entries); [pages and editing](pages-and-editing.md#shaping-a-page)). Both use the module window for modules and, since 0.8.1, a parent's facet window for its facets. Adding an instance does not remove its type from the library. Repeated instances of one parent type generate independently while sharing the run's interpretation.
 
 Each instance's output is its own component, and users edit each component separately. Deck configuration edits affect only pages created afterwards ([decks and configuration](decks-and-configuration.md#configuration-and-pages)).
 
