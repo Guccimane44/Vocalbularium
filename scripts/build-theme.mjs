@@ -7,7 +7,8 @@ import { resolve } from 'node:path';
 const SOURCE = resolve('extension/design/tokens.json');
 const TARGET = resolve('extension/theme.css');
 
-// Forced-colors mode: system colours for every surface, text and cue.
+// Forced-colors mode: system colours for every surface, text and cue, in either
+// theme. Its selectors repeat each theme block's, so coming last they win.
 const FORCED = {
   Canvas: ['ground', 'sidebar', 'surface', 'surface-hover', 'surface-active', 'highlight', 'highlight-green', 'highlight-blue', 'highlight-pink', 'highlight-orange', 'status-failed-bg',
     'fam-translation-tint', 'fam-expertise-tint', 'fam-meaning-tint', 'fam-usage-tint', 'fam-roots-tint', 'fam-connections-tint', 'fam-sound-tint', 'fam-notes-tint'],
@@ -51,7 +52,7 @@ ${(tokens.duration?.tokens ?? []).map(entry => `    --${entry.name}: 0ms;`).join
   }
 }
 @media (forced-colors: active) {
-  :root, :host, :root[data-theme="dark"], :host([data-theme="dark"]) {
+  :root, :host, :root:not([data-theme="light"]), :host(:not([data-theme="light"])), :root[data-theme="dark"], :host([data-theme="dark"]) {
 ${Object.entries(FORCED).map(([system, names]) => names.map(name => `    --${name}: ${system};`).join('\n')).join('\n')}
   }
 }

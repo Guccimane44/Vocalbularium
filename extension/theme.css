@@ -188,7 +188,7 @@
   }
 }
 @media (forced-colors: active) {
-  :root, :host, :root[data-theme="dark"], :host([data-theme="dark"]) {
+  :root, :host, :root:not([data-theme="light"]), :host(:not([data-theme="light"])), :root[data-theme="dark"], :host([data-theme="dark"]) {
     --ground: Canvas;
     --sidebar: Canvas;
     --surface: Canvas;
