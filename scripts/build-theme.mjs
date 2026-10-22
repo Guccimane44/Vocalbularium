@@ -25,7 +25,10 @@ export async function buildTheme() {
   const tokens = JSON.parse(await readFile(SOURCE, 'utf8'));
   const colors = tokens.color.tokens;
   const shadows = tokens.shadow?.tokens ?? [];
-  const themed = theme => [...colors, ...shadows].map(entry => [entry.name, value(entry, theme)]);
+  // Each family colour again for swatches, which show the colour itself: forced
+  // colours leave these copies alone.
+  const swatches = colors.filter(entry => /^fam-[a-z]+$/.test(entry.name)).map(entry => ({ ...entry, name: `${entry.name}-swatch` }));
+  const themed = theme => [...colors, ...swatches, ...shadows].map(entry => [entry.name, value(entry, theme)]);
   const fixed = ['spacing', 'radius', 'duration', 'easing', 'layout']
     .flatMap(family => (tokens[family]?.tokens ?? []).map(entry => [entry.name, entry.value]));
   const fonts = Object.entries(tokens.type.families).map(([key, stack]) => [`font-${key}`, stack]);

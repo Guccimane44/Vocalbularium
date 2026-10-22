@@ -47,6 +47,14 @@
   --fam-notes: #556150;
   --on-fam-notes: #ffffff;
   --fam-notes-tint: #e5ebdf;
+  --fam-translation-swatch: #0b6b82;
+  --fam-expertise-swatch: #466e12;
+  --fam-meaning-swatch: #2c5aa0;
+  --fam-usage-swatch: #1f7a5a;
+  --fam-roots-swatch: #9a5a0b;
+  --fam-connections-swatch: #6a45b0;
+  --fam-sound-swatch: #b23a5e;
+  --fam-notes-swatch: #556150;
   --shadow-lift: 0 18px 36px -20px rgba(27,36,25,0.35);
   --shadow-drag: 0 10px 24px -12px rgba(27,36,25,0.35);
   --space-1: 4px;
@@ -124,6 +132,14 @@
     --fam-notes: #a3ae9e;
     --on-fam-notes: #161a15;
     --fam-notes-tint: #232a20;
+    --fam-translation-swatch: #6fcde0;
+    --fam-expertise-swatch: #a9d46f;
+    --fam-meaning-swatch: #8db4f2;
+    --fam-usage-swatch: #7dd3ae;
+    --fam-roots-swatch: #f0b663;
+    --fam-connections-swatch: #b9a0f0;
+    --fam-sound-swatch: #f29bb5;
+    --fam-notes-swatch: #a3ae9e;
     --shadow-lift: 0 18px 36px -16px rgba(0,0,0,0.7);
     --shadow-drag: 0 10px 24px -10px rgba(0,0,0,0.75);
   }
@@ -175,6 +191,14 @@
   --fam-notes: #a3ae9e;
   --on-fam-notes: #161a15;
   --fam-notes-tint: #232a20;
+  --fam-translation-swatch: #6fcde0;
+  --fam-expertise-swatch: #a9d46f;
+  --fam-meaning-swatch: #8db4f2;
+  --fam-usage-swatch: #7dd3ae;
+  --fam-roots-swatch: #f0b663;
+  --fam-connections-swatch: #b9a0f0;
+  --fam-sound-swatch: #f29bb5;
+  --fam-notes-swatch: #a3ae9e;
   --shadow-lift: 0 18px 36px -16px rgba(0,0,0,0.7);
   --shadow-drag: 0 10px 24px -10px rgba(0,0,0,0.75);
 }

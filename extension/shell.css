@@ -1,14 +1,14 @@
 /* Vocabularium Sage shell (D05, 0.6.0 increment 3): deck sidebar, header and
    account menu, dashboard, and recent captures. Built from theme.css tokens. */
 
-.fam-translation { --fam: var(--fam-translation); --on-fam: var(--on-fam-translation); --fam-tint: var(--fam-translation-tint); }
-.fam-expertise { --fam: var(--fam-expertise); --on-fam: var(--on-fam-expertise); --fam-tint: var(--fam-expertise-tint); }
-.fam-meaning { --fam: var(--fam-meaning); --on-fam: var(--on-fam-meaning); --fam-tint: var(--fam-meaning-tint); }
-.fam-usage { --fam: var(--fam-usage); --on-fam: var(--on-fam-usage); --fam-tint: var(--fam-usage-tint); }
-.fam-roots { --fam: var(--fam-roots); --on-fam: var(--on-fam-roots); --fam-tint: var(--fam-roots-tint); }
-.fam-connections { --fam: var(--fam-connections); --on-fam: var(--on-fam-connections); --fam-tint: var(--fam-connections-tint); }
-.fam-sound { --fam: var(--fam-sound); --on-fam: var(--on-fam-sound); --fam-tint: var(--fam-sound-tint); }
-.fam-notes { --fam: var(--fam-notes); --on-fam: var(--on-fam-notes); --fam-tint: var(--fam-notes-tint); }
+.fam-translation { --fam: var(--fam-translation); --on-fam: var(--on-fam-translation); --fam-tint: var(--fam-translation-tint); --fam-swatch: var(--fam-translation-swatch); }
+.fam-expertise { --fam: var(--fam-expertise); --on-fam: var(--on-fam-expertise); --fam-tint: var(--fam-expertise-tint); --fam-swatch: var(--fam-expertise-swatch); }
+.fam-meaning { --fam: var(--fam-meaning); --on-fam: var(--on-fam-meaning); --fam-tint: var(--fam-meaning-tint); --fam-swatch: var(--fam-meaning-swatch); }
+.fam-usage { --fam: var(--fam-usage); --on-fam: var(--on-fam-usage); --fam-tint: var(--fam-usage-tint); --fam-swatch: var(--fam-usage-swatch); }
+.fam-roots { --fam: var(--fam-roots); --on-fam: var(--on-fam-roots); --fam-tint: var(--fam-roots-tint); --fam-swatch: var(--fam-roots-swatch); }
+.fam-connections { --fam: var(--fam-connections); --on-fam: var(--on-fam-connections); --fam-tint: var(--fam-connections-tint); --fam-swatch: var(--fam-connections-swatch); }
+.fam-sound { --fam: var(--fam-sound); --on-fam: var(--on-fam-sound); --fam-tint: var(--fam-sound-tint); --fam-swatch: var(--fam-sound-swatch); }
+.fam-notes { --fam: var(--fam-notes); --on-fam: var(--on-fam-notes); --fam-tint: var(--fam-notes-tint); --fam-swatch: var(--fam-notes-swatch); }
 .fam-mark { display: inline-block; flex: none; width: 10px; height: 14px; border-radius: 2px 2px 0 0; background: var(--fam, var(--fam-notes)); }
 .brand-mark { color: var(--mark); }
 
