@@ -75,6 +75,8 @@ npx playwright install chromium
 npm run test:browser
 ```
 
+`npm run check` type-checks, under `strict`, the TypeScript sources and the JavaScript files listed in `tsconfig.json`. A JavaScript file joins with `// @ts-check` and JSDoc types, using the contract and record types rather than its own copies; until it is listed, it only gets the syntax check.
+
 Browser checks use temporary isolated profiles and their own servers on ports 4317 and 4318; stop manual servers first. The tests create and remove uniquely named PostgreSQL databases using `.env.postgres` or `TEST_DATABASE_ADMIN_URL`; they reject the development database as a reset target. Linux machines may need `npx playwright install --with-deps chromium`.
 
 For updates, pull the working branch, run `npm ci`, apply reviewed migrations with the API stopped, restart the API, then reload the unpacked extension and open dashboard tabs. Extension reload ends that installation's generation session; review interrupted components using the [capture and generation rules](docs/specs/capture-and-generation.md).

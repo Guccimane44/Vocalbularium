@@ -86,6 +86,7 @@ export type MutationOutcome = Type.Static<typeof MutationOutcomeSchema>;
 export type PendingMutation = Type.Static<typeof PendingMutationSchema>;
 export type LoginRequest = Type.Static<typeof LoginRequestSchema>;
 export type SessionRequest = Type.Static<typeof SessionRequestSchema>;
+export type CapturePreparationRequest = Type.Static<typeof CapturePreparationRequestSchema>;
 export type DeckDeleteRequest = Type.Static<typeof DeckDeleteRequestSchema>;
 export type PollRequest = Type.Static<typeof PollRequestSchema>;
 export type PublishRequest = Type.Static<typeof PublishRequestSchema>;

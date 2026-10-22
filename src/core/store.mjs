@@ -1,3 +1,4 @@
+// @ts-check
 import { Postgres, OWNER_ACCOUNT_ID } from '../persistence/postgres.ts';
 import { createHash, randomUUID } from 'node:crypto';
 import { blockText, mainKeyOf, noteDocument, pageStatus, textBlocks } from '@vocabularium/domain/pages';
@@ -7,14 +8,16 @@ import {
 import { facetAddBlocked, facetDeleteBlocked, isParentType, withFacet } from '@vocabularium/domain/parents';
 import { blankContent, hasFacetContent, isEmptyContent, parentContentOf, parentDocument, validateParentContent, withFacetText } from '@vocabularium/domain/content';
 import { sortKey } from './sort-key.mjs';
-/** @typedef {import('./store-records.js').PageRow} PageRow */
-/** @typedef {import('./store-records.js').ComponentRow} ComponentRow */
-/** @typedef {import('./store-records.js').AttemptRow} AttemptRow */
-/** @typedef {import('./store-records.js').ReceiptRow} ReceiptRow */
+/** @import { BlockDocument, BrowserSession, CapturePreparationRequest, Component, ComponentDeleteRequest, ComponentMoveRequest, DeckConfiguration, DeckDeleteRequest, FacetChangePayload, InputInterpretation, ModuleAddRequest, ModuleInstance, Page, PageCaptureRequest, PageCreateRequest, PageGenerateRequest, PageSaveRequest, ParentHeader, PublishRequest } from '@vocabularium/contracts' */
+/** @import { ParentContent } from '@vocabularium/domain/content' */
+/** @import { FacetType, ParentType } from '@vocabularium/domain/parents' */
+/** @import { AccountRow, Attempt, AttemptModule, AttemptResult, AttemptRow, ComponentRow, DeckModuleRow, DeckRow, GenerationEntry, GenerationRecord, InstallationRow, PageRow, PageSummaryRow, ReceiptRow, Run, RunRow } from './store-records.js' */
+/** @typedef {Readonly<{ v: 1; kind: string; sequence: number; key: string | number; id: string }>} Cursor */
 // The generation record after a published attempt (D11): per part with
 // content, the model and prompt version that produced it. A whole attempt
 // records the core and each facet it produced; a facet's own Retry only that
 // facet, the others keeping theirs. A result without a record leaves none.
+/** @param {GenerationRecord | null} previous @param {AttemptModule} module @param {ParentContent} content @param {GenerationEntry | undefined} made @returns {GenerationRecord | null} */
 function generationAfter(previous, module, content, made) {
   const entry = made?.prompt ? { model: made.model ?? null, prompt: made.prompt } : null;
   if (!module.retry) return entry ? Object.fromEntries(['core', ...Object.keys(content.facets)].map(part => [part, entry])) : null;
@@ -25,10 +28,13 @@ function generationAfter(previous, module, content, made) {
 }
 
 export class StoreError extends Error {
+  /** @param {string} code @param {string} message @param {Record<string, unknown>} [details] */
   constructor(code, message, details) { super(message); this.code = code; this.details = details; }
 }
+/** @type {(code: string, message: string) => never} */
 const fail = (code, message) => { throw new StoreError(code, message); };
-const encodeCursor = value => Buffer.from(JSON.stringify(value)).toString('base64url');
+const encodeCursor = (/** @type {Cursor} */ value) => Buffer.from(JSON.stringify(value)).toString('base64url');
+/** @param {unknown} value @param {string} kind @param {number} sequence @returns {Cursor | null} */
 function decodeCursor(value, kind, sequence) {
   if (!value) return null;
   if (typeof value !== 'string' || value.length > 2048 || !/^[A-Za-z0-9_-]+$/.test(value)) fail('invalid', 'The list cursor is invalid.');
@@ -42,6 +48,7 @@ function decodeCursor(value, kind, sequence) {
   if (cursor.sequence !== sequence) fail('stale_cursor', 'The list changed. Start from its first page again.');
   return cursor;
 }
+/** @param {unknown} value @param {number} fallback @param {number} maximum */
 function pageLimit(value, fallback, maximum) {
   if (value === undefined) return fallback;
   const limit = Number(value);
@@ -60,6 +67,7 @@ const summaryFields = `b.id, b.deck_id, b.selected_text, b.created_at, b.main_ke
     FROM components m WHERE m.page_id = b.id) AS modules`;
 // A page summary (D05): the list shows the main key, the first meaning, and one
 // family mark per module, never the page's full content.
+/** @param {PageSummaryRow} row */
 function pageSummary(row) {
   const components = (row.modules ?? []).map(module => ({ ...module, content: module.content ? JSON.parse(module.content) : null }));
   return { id: row.id, deckId: row.deck_id, selectedText: row.selected_text, createdAt: row.created_at,
@@ -67,18 +75,21 @@ function pageSummary(row) {
     meaning: pageMeaning(components),
     modules: components.filter(module => module.type !== 'main-key').map(({ type, status, filled }) => ({ type, status, filled })) };
 }
+/** @param {unknown} value @returns {unknown} */
 function canonical(value) {
   if (Array.isArray(value)) return value.map(canonical);
   if (value && typeof value === 'object') {
-    return Object.fromEntries(Object.keys(value).sort().map(key => [key, canonical(value[key])]));
+    return Object.fromEntries(Object.keys(value).sort().map(key => [key, canonical(/** @type {Record<string, unknown>} */ (value)[key])]));
   }
   return value;
 }
-const digest = value => createHash('sha256').update(JSON.stringify(canonical(value))).digest('hex');
+const digest = (/** @type {unknown} */ value) => createHash('sha256').update(JSON.stringify(canonical(value))).digest('hex');
+// The value is unchecked input; this is its check.
+/** @param {any} value @param {string} message @returns {BlockDocument} */
 function blockValue(value, message) {
   if (!value || value.version !== 1 || !Array.isArray(value.blocks) ||
-    value.blocks.some(block => !block || block.type !== 'paragraph' || typeof block.text !== 'string')) fail('invalid', message);
-  return { version: 1, blocks: value.blocks.map(block => ({ type: 'paragraph', text: block.text })) };
+    value.blocks.some((/** @type {any} */ block) => !block || block.type !== 'paragraph' || typeof block.text !== 'string')) fail('invalid', message);
+  return { version: 1, blocks: value.blocks.map((/** @type {any} */ block) => ({ type: 'paragraph', text: block.text })) };
 }
 // A parent component's saved edit (D09, amended): one parent block with the
 // core's top line as stored, the core's markdown and markdown for the
@@ -86,6 +97,7 @@ function blockValue(value, message) {
 // plain text, and one that never generated has no top line to edit.
 // With a facet (D10), only that facet's text is taken, over the stored
 // content, so an edit of the rest elsewhere meanwhile stays.
+/** @param {Component} component @param {any} value unchecked input @param {string | undefined} facet @param {Page} page */
 function parentEdit(component, value, facet, page) {
   // An empty parent written by hand (D10, amended a fourth time) starts from
   // the blank top line of the page's main key; nothing else can start one.
@@ -98,13 +110,14 @@ function parentEdit(component, value, facet, page) {
   if (facet !== undefined && !(component.facets ?? []).includes(facet)) fail('invalid', 'This facet is no longer there.');
   let content;
   try {
-    content = validateParentContent(component.moduleType, block, { facets: component.facets ?? [] });
-    if (facet !== undefined) content = validateParentContent(component.moduleType, withFacetText(stored, facet, content.facets[facet]), { facets: component.facets ?? [] });
-  } catch (error) { fail('invalid', error.message); }
-  const line = header => header.kind === 'word' ? [header.kind, header.language, header.key, header.romanization ?? null] : [header.kind];
+    content = validateParentContent(/** @type {ParentType} */ (component.moduleType), block, { facets: component.facets ?? [] });
+    if (facet !== undefined) content = validateParentContent(/** @type {ParentType} */ (component.moduleType), withFacetText(stored, /** @type {FacetType} */ (facet), content.facets[/** @type {FacetType} */ (facet)]), { facets: component.facets ?? [] });
+  } catch (error) { fail('invalid', /** @type {Error} */ (error).message); }
+  const line = (/** @type {ParentHeader} */ header) => header.kind === 'word' ? [header.kind, header.language, header.key, header.romanization ?? null] : [header.kind];
   if (JSON.stringify(line(content.header)) !== JSON.stringify(line(stored.header))) fail('invalid', "The module's top line can not be changed.");
   return parentDocument(content);
 }
+/** @param {unknown} value @param {string} message */
 function textValue(value, message) {
   if (typeof value !== 'string') fail('invalid', message);
   return value;
@@ -113,16 +126,19 @@ function textValue(value, message) {
 export const DEFAULT_DECK_MODULES = Object.freeze([{ type: 'main-key' }, { type: 'context' },
   { type: 'german', facets: ['article', 'examples', 'synonyms', 'antonyms'] }]);
 // A parent module carries its facets (D08); other modules keep their earlier shape.
+/** @type {(type: string, facets?: readonly string[] | null) => { facets?: string[] }} */
 const withFacets = (type, facets) => isParentType(type) || facets?.length ? { facets: [...(facets ?? [])] } : {};
 
 // Account mutations are admitted synchronously and commit before acknowledgment.
 // Provider work never runs inside the ordered executor or database transaction.
 export class AccountStore {
+  /** @param {Postgres} database @param {{ outbox?: string | null }} [options] */
   constructor(database, { outbox = null } = {}) {
     this.database = database;
     this.accountId = database.accountId;
     this.outbox = outbox;
   }
+  /** @param {{ databaseUrl?: string, accountId?: number, outbox?: string | null, diagnostic?: (event: Record<string, unknown>) => void }} [options] */
   static async open({ databaseUrl, accountId = OWNER_ACCOUNT_ID, outbox, diagnostic } = {}) {
     if (!databaseUrl)
       throw new Error('DATABASE_URL is required.');
@@ -143,11 +159,14 @@ export class AccountStore {
   }
   close() { return this.database.close(); }
   ready() { return this.database.ready(); }
+  /** @template T @param {() => Promise<T>} action */
   ordered(action) { return this.database.ordered.run(action); }
+  /** @template T @param {() => T} action */
   background(action) { return this.database.detached(action); }
   loadingAttempts() {
-    return this.database.transaction(() => this.database.all("SELECT id, page_id, run_id, session_id, result FROM component_attempts WHERE state = 'loading'"));
+    return this.database.transaction(() => /** @type {Promise<Pick<AttemptRow, 'id' | 'page_id' | 'run_id' | 'session_id' | 'result'>[]>} */ (this.database.all("SELECT id, page_id, run_id, session_id, result FROM component_attempts WHERE state = 'loading'")));
   }
+  /** @param {string} name @param {readonly (string | Readonly<{ type: string, facets?: readonly string[] }>)[]} [types] */
   async createDeck(name, types = DEFAULT_DECK_MODULES) {
     return this.database.transaction(async () => {
       const id = randomUUID();
@@ -159,27 +178,29 @@ export class AccountStore {
       return await this.deck(id);
     });
   }
+  /** @template {object} T @param {string} operationId @param {string} kind @param {unknown} payload @param {() => Promise<T>} action @returns {Promise<T & { sequence: number, replayed: boolean }>} */
   async command(operationId, kind, payload, action) {
     if (typeof operationId !== 'string' || !operationId) fail('invalid', 'An operation ID is required.');
     const fingerprint = digest([kind, payload]);
     return this.database.transaction(async () => {
-      const receipt = await this.database.one('SELECT * FROM receipts WHERE operation_id = $1', [operationId]);
+      const receipt = /** @type {ReceiptRow | undefined} */ (await this.database.one('SELECT * FROM receipts WHERE operation_id = $1', [operationId]));
       if (receipt) {
         if (receipt.fingerprint !== fingerprint) fail('operation_reused', 'Operation ID belongs to another change.');
         return { ...JSON.parse(receipt.result), sequence: Number(receipt.sequence), replayed: true };
       }
       const result = await action();
-      const receiptRow = await this.database.one('INSERT INTO receipts (operation_id, fingerprint, result) VALUES ($1, $2, $3) RETURNING sequence', [operationId, fingerprint, JSON.stringify(result)]);
+      const receiptRow = /** @type {Pick<ReceiptRow, 'sequence'>} */ (await this.database.one('INSERT INTO receipts (operation_id, fingerprint, result) VALUES ($1, $2, $3) RETURNING sequence', [operationId, fingerprint, JSON.stringify(result)]));
       return { ...result, sequence: Number(receiptRow.sequence), replayed: false };
     });
   }
+  /** @param {string} operationId @param {BrowserSession} session */
   async openSession(operationId, session) {
     return await this.command(operationId, 'open-session', session, async () => {
       const { installationId, epoch, sessionId } = session;
       if (!installationId || !sessionId || !Number.isSafeInteger(epoch) || epoch < 1) {
         fail('invalid', 'A valid installation and browser session are required.');
       }
-      const previous = await this.database.one("SELECT * FROM installations WHERE id = $1", [installationId]);
+      const previous = /** @type {InstallationRow | undefined} */ (await this.database.one("SELECT * FROM installations WHERE id = $1", [installationId]));
       if (previous && (previous.epoch > epoch || (previous.epoch === epoch && previous.session_id !== sessionId))) {
         fail('stale_session', 'This browser session has ended.');
       }
@@ -194,69 +215,73 @@ export class AccountStore {
       return { session };
     });
   }
+  /** @param {BrowserSession} session */
   async requireSession(session) {
     return this.database.transaction(async () => {
-      const current = await this.database.one("SELECT * FROM installations WHERE id = $1", [session.installationId]);
+      const current = /** @type {InstallationRow | undefined} */ (await this.database.one("SELECT * FROM installations WHERE id = $1", [session.installationId]));
       if (!current || current.epoch !== session.epoch || current.session_id !== session.sessionId) {
         fail('stale_session', 'This browser session has ended.');
       }
     });
   }
+  /** @param {string} id */
   async deck(id) {
     return this.database.transaction(async () => {
-      const deck = await this.database.one("SELECT id, name, view, colour FROM decks WHERE id = $1", [id]);
+      const deck = /** @type {Pick<DeckRow, 'id' | 'name' | 'view' | 'colour'> | undefined} */ (await this.database.one("SELECT id, name, view, colour FROM decks WHERE id = $1", [id]));
       if (!deck) fail('deleted', 'The deck no longer exists.');
-      const modules = await this.database.all("SELECT id, type, facets FROM deck_modules WHERE deck_id = $1 ORDER BY position", [id]);
+      const modules = /** @type {Pick<DeckModuleRow, 'id' | 'type' | 'facets'>[]} */ (await this.database.all("SELECT id, type, facets FROM deck_modules WHERE deck_id = $1 ORDER BY position", [id]));
       return { id: deck.id, name: deck.name, colour: deck.colour,
         modules: modules.map(({ id, type, facets }) => ({ id, type, ...withFacets(type, facets) })), view: { module: deck.view } };
     });
   }
   async snapshot() {
     return this.database.transaction(async () => {
-      const { default_deck_id: id } = await this.database.one("SELECT * FROM account", []);
+      const { default_deck_id: id } = /** @type {AccountRow} */ (await this.database.one("SELECT * FROM account", []));
       const { modules } = await this.deck(id);
       return { id, modules };
     });
   }
   async account() {
     return this.database.transaction(async () => {
-      const { default_deck_id: defaultDeckId } = await this.database.one("SELECT * FROM account", []);
+      const { default_deck_id: defaultDeckId } = /** @type {AccountRow} */ (await this.database.one("SELECT * FROM account", []));
       const decks = [];
-      for (const { id } of await this.database.all('SELECT id FROM decks ORDER BY ordinal')) decks.push(await this.deck(id));
+      for (const { id } of /** @type {Pick<DeckRow, 'id'>[]} */ (await this.database.all('SELECT id FROM decks ORDER BY ordinal'))) decks.push(await this.deck(id));
       return { defaultDeckId, decks, pages: (await this.pages()), sequence: await this.readSequence() };
     });
   }
   async readSequence() {
-    const { sequence } = await this.database.one('SELECT COALESCE(MAX(sequence), 0) AS sequence FROM receipts');
+    const { sequence } = /** @type {Pick<ReceiptRow, 'sequence'>} */ (await this.database.one('SELECT COALESCE(MAX(sequence), 0) AS sequence FROM receipts'));
     return Number(sequence);
   }
+  /** @param {{ cursor?: string, limit?: number }} [options] */
   async listDecks({ cursor, limit } = {}) {
     return this.database.transaction(async () => {
       const size = pageLimit(limit, 40, 50);
       const sequence = await this.readSequence();
       const after = decodeCursor(cursor, 'decks', sequence);
-      if (after && (!Number.isSafeInteger(after.key) || after.key < 0)) fail('invalid', 'The list cursor is invalid.');
-      const rows = await this.database.all(`WITH bounded AS MATERIALIZED (
+      if (after && (!Number.isSafeInteger(after.key) || /** @type {number} */ (after.key) < 0)) fail('invalid', 'The list cursor is invalid.');
+      const rows = /** @type {(Pick<DeckRow, 'id' | 'name' | 'colour' | 'ordinal'> & { module_count: number, page_count: number })[]} */ (await this.database.all(`WITH bounded AS MATERIALIZED (
         SELECT id, name, colour, ordinal FROM decks WHERE ordinal > $1 ORDER BY ordinal LIMIT $2
       ) SELECT b.id, b.name, b.colour, b.ordinal,
         (SELECT COUNT(*) FROM deck_modules WHERE deck_id = b.id) AS module_count,
         (SELECT COUNT(*) FROM pages WHERE deck_id = b.id) AS page_count
-        FROM bounded b ORDER BY b.ordinal`, [after?.key ?? 0, size + 1]);
+        FROM bounded b ORDER BY b.ordinal`, [after?.key ?? 0, size + 1]));
       const visible = rows.slice(0, size);
       return {
         decks: visible.map(row => ({ id: row.id, name: row.name, colour: row.colour, moduleCount: Number(row.module_count), pageCount: Number(row.page_count) })),
-        nextCursor: rows.length > size ? encodeCursor({ v: 1, kind: 'decks', sequence, key: visible.at(-1).ordinal, id: visible.at(-1).id }) : null,
+        nextCursor: rows.length > size ? encodeCursor({ v: 1, kind: 'decks', sequence, key: /** @type {Pick<DeckRow, 'id' | 'ordinal'>} */ (visible.at(-1)).ordinal, id: /** @type {Pick<DeckRow, 'id' | 'ordinal'>} */ (visible.at(-1)).id }) : null,
         sequence
       };
     });
   }
   async summary() {
     return this.database.transaction(async () => {
-      const { default_deck_id: defaultDeckId } = await this.database.one('SELECT default_deck_id FROM account WHERE id = $1', [this.accountId]);
+      const { default_deck_id: defaultDeckId } = /** @type {AccountRow} */ (await this.database.one('SELECT default_deck_id FROM account WHERE id = $1', [this.accountId]));
       const listed = await this.listDecks();
       return { defaultDeckId, defaultDeckSnapshot: await this.deck(defaultDeckId), ...listed };
     });
   }
+  /** @param {string} deckId @param {{ order?: string, cursor?: string, limit?: number }} [options] */
   async listPages(deckId, { order = 'newest', cursor, limit } = {}) {
     return this.database.transaction(async () => {
       await this.deck(deckId);
@@ -268,23 +293,25 @@ export class AccountStore {
       const alphabetic = order === 'az' || order === 'za';
       const column = alphabetic ? 'c.main_key_sort_key' : 'c.created_at COLLATE "C"';
       const direction = order === 'newest' || order === 'za' ? 'DESC' : 'ASC';
+      /** @type {unknown[]} */
       const values = [deckId];
       let afterClause = '';
       if (after) {
-        values.push(alphabetic ? Buffer.from(after.key, 'base64url') : after.key, after.id);
+        values.push(alphabetic ? Buffer.from(/** @type {string} */ (after.key), 'base64url') : after.key, after.id);
         afterClause = `AND (${column} ${direction === 'ASC' ? '>' : '<'} $2 OR
           (${column} = $2 AND c.id COLLATE "C" > $3 COLLATE "C"))`;
       }
       values.push(size + 1);
       const outerColumn = alphabetic ? 'b.main_key_sort_key' : 'b.created_at COLLATE "C"';
-      const rows = await this.database.all(`WITH bounded AS MATERIALIZED (
+      const rows = /** @type {PageSummaryRow[]} */ (await this.database.all(`WITH bounded AS MATERIALIZED (
         SELECT c.id, c.deck_id, c.selected_text, c.created_at, c.main_key_sort_key
         FROM pages c WHERE c.deck_id = $1 ${afterClause}
         ORDER BY ${column} ${direction}, c.id COLLATE "C" ASC LIMIT $${values.length}
       ) SELECT ${summaryFields} FROM bounded b
-        ORDER BY ${outerColumn} ${direction}, b.id COLLATE "C" ASC`, values);
+        ORDER BY ${outerColumn} ${direction}, b.id COLLATE "C" ASC`, values));
       const visible = rows.slice(0, size);
-      const last = visible.at(-1);
+      // Read only when the batch is full.
+      const last = /** @type {PageSummaryRow} */ (visible.at(-1));
       return {
         pages: visible.map(pageSummary),
         nextCursor: rows.length > size ? encodeCursor({ v: 1, kind: `pages:${deckId}:${order}`, sequence,
@@ -295,15 +322,16 @@ export class AccountStore {
   }
   async recentCaptures() {
     return this.database.transaction(async () => {
-      const rows = await this.database.all(`WITH bounded AS MATERIALIZED (
+      const rows = /** @type {PageSummaryRow[]} */ (await this.database.all(`WITH bounded AS MATERIALIZED (
         SELECT c.id, c.deck_id, c.selected_text, c.created_at, c.main_key_sort_key
         FROM pages c WHERE c.selected_text IS NOT NULL
         ORDER BY c.created_at COLLATE "C" DESC, c.id COLLATE "C" ASC LIMIT 20
       ) SELECT ${summaryFields} FROM bounded b
-        ORDER BY b.created_at COLLATE "C" DESC, b.id COLLATE "C" ASC`);
+        ORDER BY b.created_at COLLATE "C" DESC, b.id COLLATE "C" ASC`));
       return { pages: rows.map(pageSummary), sequence: await this.readSequence() };
     });
   }
+  /** @param {string} operationId @param {string} deckId */
   async setDefault(operationId, deckId) {
     return await this.command(operationId, 'set-default', { deckId }, async () => {
       await this.deck(deckId);
@@ -313,19 +341,20 @@ export class AccountStore {
   }
   // The configuration is only the template for new pages; saving it never
   // changes an existing page.
+  /** @param {string} operationId @param {{ deck?: DeckConfiguration }} payload */
   async saveDeck(operationId, { deck }) {
     return await this.command(operationId, 'save-deck', { deck }, async () => {
       if (!deck || typeof deck.name !== 'string' || !deck.name.trim() || !Array.isArray(deck.modules) ||
         deck.modules.some(module => !module || typeof module.id !== 'string' || !module.id || typeof module.type !== 'string')) {
         fail('invalid', 'Give the deck a name and choose supported modules.');
       }
-      try { validateConfiguration(deck.modules); } catch (error) { fail('invalid', error.message); }
+      try { validateConfiguration(deck.modules); } catch (error) { fail('invalid', /** @type {Error} */ (error).message); }
       if (deck.view !== undefined && deck.view?.module !== 'default') fail('invalid', 'Choose a supported view.');
       if (deck.colour != null && !DECK_COLOURS.includes(deck.colour)) fail('invalid', 'Choose one of the deck colours.');
       const current = deck.id ? (await this.deck(deck.id)) : null;
       const id = current?.id ?? randomUUID();
       for (const module of deck.modules) {
-        const saved = await this.database.one("SELECT deck_id FROM deck_modules WHERE id = $1", [module.id]);
+        const saved = /** @type {Pick<DeckModuleRow, 'deck_id'> | undefined} */ (await this.database.one("SELECT deck_id FROM deck_modules WHERE id = $1", [module.id]));
         if (saved && saved.deck_id !== id) fail('invalid', 'This module instance belongs to another deck.');
       }
       // A save without a colour keeps the deck's current one.
@@ -340,17 +369,18 @@ export class AccountStore {
       return { deckId: id };
     });
   }
+  /** @param {string} operationId @param {DeckDeleteRequest['payload']} payload */
   async deleteDeck(operationId, { deckId, replacementId }) {
     return await this.command(operationId, 'delete-deck', { deckId, replacementId }, async () => {
       await this.deck(deckId);
-      const { default_deck_id: defaultId } = await this.database.one("SELECT * FROM account", []);
-      const other = await this.database.all("SELECT id FROM decks WHERE id != $1 ORDER BY ordinal", [deckId]);
+      const { default_deck_id: defaultId } = /** @type {AccountRow} */ (await this.database.one("SELECT * FROM account", []));
+      const other = /** @type {Pick<DeckRow, 'id'>[]} */ (await this.database.all("SELECT id FROM decks WHERE id != $1 ORDER BY ordinal", [deckId]));
       let nextDefault = defaultId;
       if (defaultId === deckId) {
         if (!other.length) nextDefault = (await this.createDeck('My Deck')).id;
         else {
           if (!other.some(deck => deck.id === replacementId)) fail('replacement', 'Choose another deck as the default.');
-          nextDefault = replacementId;
+          nextDefault = /** @type {string} */ (replacementId);
         }
         await this.database.run("UPDATE account SET default_deck_id = $1 WHERE id = 1", [nextDefault]);
       }
@@ -358,15 +388,16 @@ export class AccountStore {
       return { deckId, defaultDeckId: nextDefault };
     });
   }
+  /** @param {string} id @returns {Promise<Page>} */
   async page(id) {
     return this.database.transaction(async () => {
-      const page = await this.database.one("SELECT * FROM pages WHERE id = $1", [id]);
+      const page = /** @type {PageRow | undefined} */ (await this.database.one("SELECT * FROM pages WHERE id = $1", [id]));
       if (!page) fail('deleted', 'The page no longer exists.');
       // A facet added since the parent's last attempt waits for the next Retry (D08).
-      const components = (await this.database.all(`SELECT c.*, a.module AS attempt_module, a.state AS attempt_state FROM components c
-        LEFT JOIN component_attempts a ON a.id = c.attempt_id WHERE c.page_id = $1 ORDER BY c.position`, [id]))
+      const components = (/** @type {(ComponentRow & { attempt_module: string | null, attempt_state: AttemptRow['state'] | null })[]} */ (await this.database.all(`SELECT c.*, a.module AS attempt_module, a.state AS attempt_state FROM components c
+        LEFT JOIN component_attempts a ON a.id = c.attempt_id WHERE c.page_id = $1 ORDER BY c.position`, [id])))
         .map(row => {
-          const module = row.attempt_module ? JSON.parse(row.attempt_module) : null;
+          const module = /** @type {AttemptModule | null} */ (row.attempt_module ? JSON.parse(row.attempt_module) : null);
           const generated = module ? module.facets ?? [] : null;
           const waiting = generated && isParentType(row.module_type) ? row.facets.filter(facet => !generated.includes(facet)) : [];
           // A facet's own Retry (0.7.3): the facet it regenerates, or the one whose Retry failed.
@@ -378,8 +409,8 @@ export class AccountStore {
             content: JSON.parse(row.content), status: row.status, attemptId: row.attempt_id };
         });
       // The latest run's reading of the main key (D08), shown under the page title.
-      const latest = await this.database.one(`SELECT interpretation FROM generation_runs
-        WHERE page_id = $1 AND interpretation IS NOT NULL ORDER BY ordinal DESC LIMIT 1`, [id]);
+      const latest = /** @type {{ interpretation: string } | undefined} */ (await this.database.one(`SELECT interpretation FROM generation_runs
+        WHERE page_id = $1 AND interpretation IS NOT NULL ORDER BY ordinal DESC LIMIT 1`, [id]));
       return { id: page.id, deckId: page.deck_id, selectedText: page.selected_text, createdAt: page.created_at,
         components, status: pageStatus(components), interpretation: latest ? JSON.parse(latest.interpretation).inputType : null };
     });
@@ -387,17 +418,19 @@ export class AccountStore {
   async pages() {
     return this.database.transaction(async () => {
       const pages = [];
-      for (const { id } of await this.database.all('SELECT id FROM pages ORDER BY created_at DESC, id')) pages.push(await this.page(id));
+      for (const { id } of /** @type {Pick<PageRow, 'id'>[]} */ (await this.database.all('SELECT id FROM pages ORDER BY created_at DESC, id'))) pages.push(await this.page(id));
       return pages;
     });
   }
   // Each module instance on a page owns one component; positions follow page order.
+  /** @param {string} pageId @param {{ moduleInstanceId: string, moduleType: string, facets?: readonly string[], content: BlockDocument }} component @param {number} position */
   async insertComponent(pageId, { moduleInstanceId, moduleType, facets = [], content }, position) {
     const id = randomUUID();
     await this.database.run(`INSERT INTO components (page_id, id, module_instance_id, module_type, position, content, facets)
       VALUES ($1, $2, $3, $4, $5, $6, $7)`, [pageId, id, moduleInstanceId, moduleType, position, JSON.stringify(content), facets]);
     return id;
   }
+  /** @param {string} pageId @param {readonly { id: string }[]} components */
   async renumber(pageId, components) {
     for (const [position, component] of components.entries()) {
       await this.database.run("UPDATE components SET position = $1 WHERE page_id = $2 AND id = $3", [position, pageId, component.id]);
@@ -406,6 +439,7 @@ export class AccountStore {
   // A new page copies the deck's modules under its own instance IDs. The main
   // key, and the Context and Text values keyed by deck instance, fill input
   // components; content components wait until generated.
+  /** @param {{ id: string, modules: readonly ModuleInstance[] }} deck @param {{ selectedText: string | null, mainKey: string, values?: Map<string, BlockDocument> }} page */
   async insertPage(deck, { selectedText, mainKey, values = new Map() }) {
     if (typeof mainKey !== 'string' || !mainKey.trim()) fail('invalid', 'Main key can not be empty.');
     const id = randomUUID();
@@ -418,6 +452,7 @@ export class AccountStore {
     }
     return id;
   }
+  /** @param {string} operationId @param {PageCaptureRequest['payload']} payload @param {{ recoverySession?: BrowserSession }} [options] */
   async capture(operationId, { session, mainKey, context, snapshot }, { recoverySession } = {}) {
     return await this.command(operationId, 'capture', { session, mainKey, context, snapshot }, async () => {
       await this.requireSession(recoverySession ?? session);
@@ -439,6 +474,7 @@ export class AccountStore {
       return { pageId: id, interrupted: Boolean(interrupted) };
     });
   }
+  /** @param {string} operationId @param {CapturePreparationRequest['payload']} payload */
   async prepareCapture(operationId, { session, mainKey }) {
     return await this.command(operationId, 'prepare-capture', { session, mainKey }, async () => {
       await this.requireSession(session);
@@ -447,13 +483,14 @@ export class AccountStore {
     });
   }
   // One run per request: its attempts share one interpretation.
+  /** @param {string} pageId @param {BrowserSession} session @param {readonly Component[]} targets @param {{ facet?: string | null }} [options] */
   async startRun(pageId, session, targets, { facet } = {}) {
     if (!targets.length) return { runId: null, attemptIds: [] };
     const runId = randomUUID();
     // A facet's own Retry (0.7.3) keeps the page's latest reading of the main
     // key, so the facet follows the core it joins.
-    const reading = facet ? await this.database.one(`SELECT interpretation FROM generation_runs
-      WHERE page_id = $1 AND interpretation IS NOT NULL ORDER BY ordinal DESC LIMIT 1`, [pageId]) : null;
+    const reading = facet ? /** @type {Pick<RunRow, 'interpretation'> | undefined} */ (await this.database.one(`SELECT interpretation FROM generation_runs
+      WHERE page_id = $1 AND interpretation IS NOT NULL ORDER BY ordinal DESC LIMIT 1`, [pageId])) : null;
     await this.database.run("INSERT INTO generation_runs (id, page_id, interpretation) VALUES ($1, $2, $3)", [runId, pageId, reading?.interpretation ?? null]);
     const attemptIds = [];
     for (const { id: componentId, moduleInstanceId, moduleType, facets, waitingFacets, status } of targets) {
@@ -463,7 +500,8 @@ export class AccountStore {
       // content holds what it held before, and that facet. It keeps the
       // content meanwhile, and how to put the component back if it fails.
       const module = facet
-        ? { id: moduleInstanceId, type: moduleType, facets: facets.filter(each => each === facet || !waitingFacets?.includes(each)),
+        // A facet's own Retry targets a parent component, which has its facets.
+        ? { id: moduleInstanceId, type: moduleType, facets: /** @type {string[]} */ (facets).filter(each => each === facet || !waitingFacets?.includes(each)),
           retry: facet, prior: { status, waiting: Boolean(waitingFacets?.includes(facet)) } }
         : { id: moduleInstanceId, type: moduleType, ...withFacets(moduleType, facets) };
       await this.database.run(`INSERT INTO component_attempts
@@ -478,42 +516,48 @@ export class AccountStore {
   }
   // A facet's own attempt that fails (0.7.3) leaves the content as it was and
   // the component in its earlier state; a facet that was waiting still waits.
+  /** @param {Pick<Attempt, 'id' | 'module'>} attempt */
   async keepAfterFacetFailure(attempt) {
     const { retry, prior } = attempt.module;
     await this.database.run("UPDATE components SET status = $2 WHERE attempt_id = $1 AND status = 'loading'", [attempt.id, prior?.status ?? null]);
     const module = prior?.waiting ? { ...attempt.module, facets: (attempt.module.facets ?? []).filter(item => item !== retry) } : attempt.module;
     await this.database.run("UPDATE component_attempts SET state = 'failed', result = NULL, module = $2 WHERE id = $1 AND state = 'loading'", [attempt.id, JSON.stringify(module)]);
   }
+  /** @param {string} id @returns {Promise<Attempt>} */
   async attempt(id) {
     return this.database.transaction(async () => {
-      const attempt = await this.database.one("SELECT * FROM component_attempts WHERE id = $1", [id]);
+      const attempt = /** @type {AttemptRow | undefined} */ (await this.database.one("SELECT * FROM component_attempts WHERE id = $1", [id]));
       if (!attempt) fail('deleted', 'The attempt no longer exists.');
       return { ...attempt, module: JSON.parse(attempt.module), result: attempt.result && JSON.parse(attempt.result) };
     });
   }
   // Each component's generation record (D11), by component ID; the interface does not show it.
+  /** @param {string} pageId @returns {Promise<Record<string, GenerationRecord>>} */
   async generationRecords(pageId) {
     return this.database.transaction(async () => {
-      const rows = await this.database.all('SELECT id, generation FROM components WHERE page_id = $1 AND generation IS NOT NULL', [pageId]);
+      const rows = /** @type {{ id: string, generation: string }[]} */ (await this.database.all('SELECT id, generation FROM components WHERE page_id = $1 AND generation IS NOT NULL', [pageId]));
       return Object.fromEntries(rows.map(row => [row.id, JSON.parse(row.generation)]));
     });
   }
+  /** @param {string} attemptId */
   async failAttempt(attemptId) {
     return this.database.transaction(async () => {
-      const row = await this.database.one("SELECT id, module FROM component_attempts WHERE id = $1", [attemptId]);
-      const attempt = row && { ...row, module: JSON.parse(row.module) };
+      const row = /** @type {Pick<AttemptRow, 'id' | 'module'> | undefined} */ (await this.database.one("SELECT id, module FROM component_attempts WHERE id = $1", [attemptId]));
+      const attempt = row && { ...row, module: /** @type {AttemptModule} */ (JSON.parse(row.module)) };
       if (attempt?.module.retry) return this.keepAfterFacetFailure(attempt);
       await this.database.run("UPDATE components SET content = $2, status = 'failed', generation = NULL WHERE attempt_id = $1 AND status = 'loading'", [attemptId, JSON.stringify(textBlocks(''))]);
       await this.database.run("UPDATE component_attempts SET state = 'failed', result = NULL WHERE id = $1 AND state = 'loading'", [attemptId]);
     });
   }
+  /** @param {string} id @returns {Promise<Run>} */
   async run(id) {
     return this.database.transaction(async () => {
-      const run = await this.database.one("SELECT * FROM generation_runs WHERE id = $1", [id]);
+      const run = /** @type {RunRow | undefined} */ (await this.database.one("SELECT * FROM generation_runs WHERE id = $1", [id]));
       if (!run) fail('deleted', 'The generation run no longer exists.');
       return { ...run, interpretation: run.interpretation ? JSON.parse(run.interpretation) : null };
     });
   }
+  /** @param {string} runId @param {InputInterpretation} interpretation */
   async establishInterpretation(runId, interpretation) {
     return this.database.transaction(async () => {
       const run = await this.run(runId);
@@ -524,15 +568,17 @@ export class AccountStore {
       return interpretation;
     });
   }
+  /** @param {BrowserSession} session */
   async pendingAttempts(session) {
     return this.database.transaction(async () => {
       await this.requireSession(session);
       const attempts = [];
-      for (const { id } of await this.database.all("SELECT id FROM component_attempts WHERE installation_id = $1 AND session_id = $2 AND state = 'loading'", [session.installationId, session.sessionId])) attempts.push(await this.attempt(id));
+      for (const { id } of /** @type {Pick<AttemptRow, 'id'>[]} */ (await this.database.all("SELECT id FROM component_attempts WHERE installation_id = $1 AND session_id = $2 AND state = 'loading'", [session.installationId, session.sessionId]))) attempts.push(await this.attempt(id));
       return attempts;
     });
   }
   // Provider completion only stages a result. It cannot publish component content.
+  /** @param {string} attemptId @param {AttemptResult} result */
   async stage(attemptId, result) {
     return this.database.transaction(async () => {
       const attempt = await this.attempt(attemptId);
@@ -546,6 +592,7 @@ export class AccountStore {
       await this.database.run("UPDATE component_attempts SET result = $1 WHERE id = $2", [JSON.stringify(result), attemptId]);
     });
   }
+  /** @param {string} operationId @param {PublishRequest['payload']} payload */
   async publish(operationId, { attemptId, session }) {
     return await this.command(operationId, 'publish', { attemptId, session }, async () => {
       await this.requireSession(session);
@@ -564,7 +611,7 @@ export class AccountStore {
       const state = attempt.result.ok ? 'completed' : 'failed';
       const generated = attempt.result.ok ? validateParentContent(attempt.module.type, attempt.result.content) : null;
       const content = generated ? parentDocument(generated) : textBlocks('');
-      const previous = await this.database.one('SELECT generation FROM components WHERE page_id = $1 AND id = $2', [attempt.page_id, attempt.component_id]);
+      const previous = /** @type {Pick<ComponentRow, 'generation'> | undefined} */ (await this.database.one('SELECT generation FROM components WHERE page_id = $1 AND id = $2', [attempt.page_id, attempt.component_id]));
       const generation = generated ? generationAfter(previous?.generation && JSON.parse(previous.generation), attempt.module, generated, attempt.result.generation) : null;
       const changed = await this.database.run(`UPDATE components SET content = $1, status = $2, generation = $6
         WHERE page_id = $3 AND id = $4 AND attempt_id = $5 AND status = 'loading'`,
@@ -574,6 +621,7 @@ export class AccountStore {
       return { pageId: attempt.page_id, componentId: attempt.component_id, state };
     });
   }
+  /** @param {string} operationId @param {PageSaveRequest['payload']} payload */
   async savePage(operationId, { pageId, changes }) {
     return await this.command(operationId, 'save-page', { pageId, changes }, async () => {
       const page = await this.page(pageId);
@@ -598,10 +646,12 @@ export class AccountStore {
   }
   // Manual creation copies the deck's modules and never starts generation. The
   // user's Context and Text values are keyed by the deck instance they fill.
+  /** @param {string} operationId @param {PageCreateRequest['payload']} payload */
   async createPage(operationId, { deckId, mainKey, initial = [] }) {
     return await this.command(operationId, 'create-page', { deckId, mainKey, initial }, async () => {
       const deck = await this.deck(deckId);
       if (!Array.isArray(initial)) fail('invalid', 'Initial content must be a list.');
+      /** @type {Map<string, BlockDocument>} */
       const values = new Map();
       for (const item of initial) {
         const module = deck.modules.find(candidate => candidate.id === item?.moduleInstanceId);
@@ -612,6 +662,7 @@ export class AccountStore {
     });
   }
   // Shaping: each step is one ordered operation, applied immediately.
+  /** @param {string} operationId @param {ModuleAddRequest['payload']} payload */
   async addModule(operationId, { pageId, type, position }) {
     return await this.command(operationId, 'add-module', { pageId, type, position }, async () => {
       const page = await this.page(pageId);
@@ -626,29 +677,34 @@ export class AccountStore {
   }
   // Facets (D08) join or leave one parent component, immediately. A facet lands
   // only on a parent of its own type; an added one waits for the next Retry.
+  /** @param {string} operationId @param {FacetChangePayload} payload */
   async addFacet(operationId, { pageId, componentId, parent, facet }) {
     return await this.command(operationId, 'add-facet', { pageId, componentId, parent, facet }, async () => {
       const page = await this.page(pageId);
-      const component = page.components.find(item => item.id === componentId);
+      // Undefined when the component is gone: the blocked check then fails the operation.
+      const component = /** @type {Component} */ (page.components.find(item => item.id === componentId));
       const blocked = facetAddBlocked(component && { id: component.id, type: component.moduleType, facets: component.facets, status: component.status }, parent, facet);
       if (blocked) fail(component ? 'invalid' : 'deleted', blocked);
+      // Not blocked: the facet belongs to the parent, the component's type.
       await this.database.run("UPDATE components SET facets = $1 WHERE page_id = $2 AND id = $3",
-        [withFacet(parent, component.facets ?? [], facet), pageId, componentId]);
+        [withFacet(/** @type {ParentType} */ (parent), component.facets ?? [], /** @type {FacetType} */ (facet)), pageId, componentId]);
       return { pageId, componentId };
     });
   }
   // Deleting a facet removes its section from the content and the facet from the
   // instance, so a later Retry does not bring it back.
+  /** @param {string} operationId @param {FacetChangePayload} payload */
   async deleteFacet(operationId, { pageId, componentId, parent, facet }) {
     return await this.command(operationId, 'delete-facet', { pageId, componentId, parent, facet }, async () => {
       const page = await this.page(pageId);
-      const component = page.components.find(item => item.id === componentId);
+      // Undefined when the component is gone: the blocked check then fails the operation.
+      const component = /** @type {Component & { facets: string[] }} */ (page.components.find(item => item.id === componentId));
       const holder = component && { id: component.id, type: component.moduleType, facets: component.facets, status: component.status };
       const blocked = component && component.moduleType !== parent ? 'This facet is no longer there.' : facetDeleteBlocked(holder, facet);
       if (blocked) fail(component ? 'invalid' : 'deleted', blocked);
       // Its markdown leaves the content (D09), if there is any yet.
       const data = parentContentOf(component.content);
-      const content = data ? parentDocument(withFacetText(data, facet, undefined)) : component.content;
+      const content = data ? parentDocument(withFacetText(data, /** @type {FacetType} */ (facet), undefined)) : component.content;
       await this.database.run("UPDATE components SET facets = $1, content = $2 WHERE page_id = $3 AND id = $4",
         [component.facets.filter(item => item !== facet), JSON.stringify(content), pageId, componentId]);
       // Its section is gone from the content, so the last attempt no longer counts
@@ -662,6 +718,7 @@ export class AccountStore {
     });
   }
   // Deleting removes the module instance from the page: generation never brings it back.
+  /** @param {string} operationId @param {ComponentDeleteRequest['payload']} payload */
   async deleteComponent(operationId, { pageId, componentId }) {
     return await this.command(operationId, 'delete-component', { pageId, componentId }, async () => {
       const page = await this.page(pageId);
@@ -672,6 +729,7 @@ export class AccountStore {
       return { pageId, componentId };
     });
   }
+  /** @param {string} operationId @param {ComponentMoveRequest['payload']} payload */
   async moveComponent(operationId, { pageId, componentId, position }) {
     return await this.command(operationId, 'move-component', { pageId, componentId, position }, async () => {
       const page = await this.page(pageId);
@@ -682,9 +740,11 @@ export class AccountStore {
     });
   }
   // The content a confirmed retry replaces. The client shows it, then echoes the digest.
+  /** @param {readonly Component[]} targets */
   confirmationDigest(targets) {
     return digest(targets.map(component => ({ moduleInstanceId: component.moduleInstanceId, content: component.content })));
   }
+  /** @param {string} operationId @param {PageGenerateRequest['payload']} payload @param {{ admit?: (count: number) => void }} [options] */
   async generate(operationId, { pageId, target, session, confirmation }, { admit } = {}) {
     return await this.command(operationId, 'generate', { pageId, target, session, confirmation }, async () => {
       await this.requireSession(session);
@@ -692,7 +752,7 @@ export class AccountStore {
       if (!target || !['missing', 'page', 'component', 'facet'].includes(target.scope)) fail('invalid', 'Choose what to generate.');
       let targets;
       try { targets = generationTargets(target, page.components); }
-      catch (error) { fail('invalid', error.message); }
+      catch (error) { fail('invalid', /** @type {Error} */ (error).message); }
       if (targets.some(component => component.status === 'loading')) fail('generating', 'A component is already generating.');
       // Replacing content needs confirmation. A component with nothing in it has
       // nothing to replace, whether it never generated, failed, or generated
@@ -700,9 +760,9 @@ export class AccountStore {
       // A facet's own Retry (0.7.3) replaces only its section.
       const facet = target.scope === 'facet' ? target.facet : null;
       // Structured content (D09) is compared as data: a facet's entry, or the whole content.
-      const replaced = component => {
+      const replaced = (/** @type {Component} */ component) => {
         const data = parentContentOf(component.content);
-        if (facet) return data && hasFacetContent(data, facet) ? data.facets[facet] : null;
+        if (facet) return data && hasFacetContent(data, facet) ? data.facets[/** @type {FacetType} */ (facet)] : null;
         // Structured content emptied of everything has nothing to replace (0.6.3).
         return data ? (isEmptyContent(data) ? null : data) : (blockText(component.content) || null);
       };
@@ -718,6 +778,7 @@ export class AccountStore {
       return { pageId, attemptIds: (await this.startRun(pageId, session, targets, { facet })).attemptIds };
     });
   }
+  /** @param {string} operationId @param {string} pageId */
   async deletePage(operationId, pageId) {
     return await this.command(operationId, 'delete-page', { pageId }, async () => {
       await this.page(pageId);

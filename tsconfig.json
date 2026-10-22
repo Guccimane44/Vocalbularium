@@ -9,14 +9,19 @@
     "jsx": "react-jsx",
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "noEmit": true,
-    "allowImportingTsExtensions": true
+    "allowImportingTsExtensions": true,
+    "allowJs": true
   },
   "include": [
     "packages/contracts/src/**/*.ts",
     "packages/domain/src/**/*.ts",
     "src/core/store-records.ts",
+    "src/core/store.mjs",
+    "src/server/routes.mjs",
+    "src/server/generation.mjs",
     "types/editor-drafts.ts",
     "types/chrome.d.ts",
+    "types/fastify.ts",
     "extension/dialog.ts",
     "extension/sorting.ts",
     "extension/dashboard.tsx",

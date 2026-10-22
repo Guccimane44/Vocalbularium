@@ -1,3 +1,4 @@
+// @ts-check
 import { StoreError } from '../core/store.mjs';
 import { isModuleType } from '@vocabularium/domain/page-modules';
 import {
@@ -10,6 +11,12 @@ import {
 import { apiFailure } from './api-failure.mjs';
 import { isCapturePayload } from './contract-validation.mjs';
 import Type from 'typebox';
+/** @import { FastifyReply } from 'fastify' */
+/** @import { TSchema } from 'typebox' */
+/** @import { AccountStore } from '../core/store.mjs' */
+/** @import { ApiInstance } from '../../types/fastify.js' */
+/** @import { Authentication } from './auth.mjs' */
+/** @import { Generation } from './generation.mjs' */
 
 const errorResponses = {
   400: ApiFailureSchema,
@@ -27,6 +34,7 @@ const pageListQuery = Type.Object({
 const deckParams = Type.Object({ deckId: Type.String({ minLength: 1 }) });
 const pageParams = Type.Object({ pageId: Type.String({ minLength: 1 }) });
 
+/** @template {TSchema | undefined} [B=undefined] @param {string} summary @param {B} [body] @param {{ publicRoute?: boolean, success?: TSchema, errors?: Record<number, TSchema> }} [options] */
 function routeSchema(summary, body, { publicRoute = false, success = JsonObjectSchema, errors = {} } = {}) {
   return {
     summary,
@@ -37,6 +45,7 @@ function routeSchema(summary, body, { publicRoute = false, success = JsonObjectS
   };
 }
 
+/** @param {AccountStore} store @param {FastifyReply} reply */
 async function healthReply(store, reply) {
   try {
     await store.ready();
@@ -46,7 +55,7 @@ async function healthReply(store, reply) {
   }
 }
 
-/** @param {import('fastify').FastifyInstance} fastify @param {{store: import('../core/store.mjs').AccountStore, authentication: import('./auth.mjs').Authentication, generation: import('./generation.mjs').Generation}} services */
+/** @param {ApiInstance} fastify @param {{ store: AccountStore, authentication: Authentication, generation: Generation }} services */
 export function registerRoutes(fastify, { store, authentication, generation }) {
   fastify.get('/health/live', {
     schema: {
@@ -258,6 +267,7 @@ export function registerRoutes(fastify, { store, authentication, generation }) {
   });
 }
 
+/** @param {any} session unchecked input */
 export function sessionValue(session) {
   if (!session || typeof session.installationId !== 'string' || typeof session.sessionId !== 'string' ||
     !session.installationId || !session.sessionId || !Number.isSafeInteger(session.epoch) || session.epoch < 1) {
@@ -265,6 +275,7 @@ export function sessionValue(session) {
   }
 }
 
+/** @param {any} payload unchecked input */
 export function captureValue(payload) {
   if (!payload || typeof payload.mainKey !== 'string' || !payload.mainKey.length) {
     throw new StoreError('invalid', 'Select some text first.');
