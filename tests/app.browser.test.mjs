@@ -2274,8 +2274,11 @@ test('facet window from the keyboard: Facet among the actions, Space on a tick, 
   await facets.waitFor();
   await waitFor(() => focused(tick(facets, 'Article')), 'the focus on the first tick');
 
-  // Tab moves through the ticks; Space on one with content asks, with the focus on Cancel; Escape takes back
-  // the question and returns the focus to its tick, still ticked.
+  // Tab moves through each row's ⓘ, then its tick; Space on a tick with content asks, with the focus on
+  // Cancel; Escape takes back the question and returns the focus to its tick, still ticked.
+  await a.page.keyboard.press('Tab');
+  assert.equal(await focused(facets.getByRole('button', { name: 'About Examples', exact: true })), true);
+  await a.page.keyboard.press('Tab');
   await a.page.keyboard.press('Tab');
   await a.page.keyboard.press('Tab');
   assert.equal(await focused(tick(facets, 'Synonyms')), true);
@@ -2308,6 +2311,82 @@ test('facet window from the keyboard: Facet among the actions, Space on a tick, 
   await card('German').locator('.component-tools').waitFor();
   assert.equal(await a.page.getByRole('button', { name: 'Facets of German', exact: true }).count(), 0);
   await card('German').getByRole('button', { name: 'Cancel', exact: true }).click();
+});
+
+test('0.8.1: explanations: About a module in a dialog with its samples, and a facet’s ⓘ in its window', { timeout: 60000 }, async (t) => {
+  const directory = await mkdtemp(join(tmpdir(), 'vocabularium-explanations-browser-'));
+  const application = await createTestApplication(t); await application.start();
+  const a = await launch(join(directory, 'a'));
+  t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
+  await a.page.setViewportSize({ width: 1280, height: 1400 });
+  const store = application.store;
+  const session = { installationId: 'fixture', sessionId: 'explanations', epoch: 1 };
+  await store.openSession('explanations-session', session);
+  const { pageId } = await store.capture('explanations-capture', { session, mainKey: 'bank', snapshot: await store.snapshot() });
+  const [german] = (await store.page(pageId)).components.filter(item => item.moduleType === 'german');
+  const attempt = await store.attempt(german.attemptId);
+  await store.establishInterpretation(attempt.run_id, { inputType: 'word_phrase' });
+  await store.stage(german.attemptId, staged(BANK));
+  await store.publish('explanations-publish', { attemptId: german.attemptId, session });
+  const components = async () => (await store.page(pageId)).components.length;
+  const before = await components();
+  const focused = locator => locator.evaluate(node => node === document.activeElement);
+  await signIn(a.page);
+  await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
+  await componentArticle(a.page, 'German').waitFor();
+
+  // Below German's +, About German opens its explanation in a dialog: its sentences, then its
+  // sample for a word and for a sentence, drawn as its card.
+  const about = a.page.getByRole('button', { name: 'About German', exact: true });
+  await openFamily(about);
+  await about.click();
+  const dialog = a.page.getByRole('dialog', { name: 'German', exact: true });
+  await dialog.waitFor();
+  assert.match(await dialog.locator('.explanation-text').innerText(), /Explains the key in German/);
+  assert.deepEqual(await dialog.locator('.explanation-sample > h3').allTextContents(), ['For a word: 幸福 · sample', 'For a sentence: 我真的很幸福 · sample']);
+  assert.deepEqual(await dialog.locator('.explanation-sample').first().locator('.facet-tab-label').allTextContents(), ['Article', 'Examples', 'Synonyms', 'Antonyms']);
+  assert.deepEqual(await dialog.locator('.explanation-sample').nth(1).locator('.facet-tab-label').allTextContents(), ['Examples'], 'only what applies to a sentence');
+  await a.page.screenshot({ path: 'artifacts/v0.8.1-about-german.png', animations: 'disabled' });
+  // Escape closes it, returns the focus to the link, and adds nothing.
+  await a.page.keyboard.press('Escape');
+  await dialog.waitFor({ state: 'detached' });
+  assert.equal(await focused(about), true, 'the focus back on About German');
+  assert.equal(await components(), before, 'reading about a module adds nothing');
+  // An Expertise module's sample explains a key of its own; its sentence is not named.
+  // Expertise starts closed: the link is found in the window, and its family opened.
+  const aboutCs = a.page.locator('.window-module[data-type="computer-science"] .window-about');
+  await openFamily(aboutCs);
+  await aboutCs.click();
+  const csDialog = a.page.getByRole('dialog', { name: 'Computer Science', exact: true });
+  await csDialog.waitFor();
+  assert.deepEqual(await csDialog.locator('.explanation-sample > h3').allTextContents(), ['For a word: Frontend · sample', 'For a sentence · sample']);
+  // The close button, and a click outside, close it too.
+  await csDialog.getByRole('button', { name: 'Close About Computer Science', exact: true }).click();
+  await csDialog.waitFor({ state: 'detached' });
+  await aboutCs.click();
+  await csDialog.waitFor();
+  await a.page.mouse.click(5, 5);
+  await csDialog.waitFor({ state: 'detached' });
+
+  // In the facet window each row's ⓘ expands its facet's explanation beneath it, one at a time;
+  // Article applies to words only, so it shows a sample for a word alone.
+  const facets = await facetWindow(a.page, 'German');
+  const info = name => facets.getByRole('button', { name: `About ${name}`, exact: true });
+  await info('Article').click();
+  assert.equal(await info('Article').getAttribute('aria-expanded'), 'true');
+  const article = facets.locator('.facet-window-row[data-facet="article"] .facet-explanation');
+  assert.match(await article.locator('.explanation-text').innerText(), /For words only/);
+  assert.deepEqual(await article.locator('h4').allTextContents(), ['For a word: 幸福 · sample']);
+  assert.equal(await article.locator('.facet-body').innerText(), 'das Glück');
+  await a.page.screenshot({ path: 'artifacts/v0.8.1-facet-explanation.png', animations: 'disabled' });
+  await info('Examples').click();
+  await article.waitFor({ state: 'detached' });
+  assert.deepEqual(await facets.locator('.facet-window-row[data-facet="examples"] .facet-explanation h4').allTextContents(),
+    ['For a word: 幸福 · sample', 'For a sentence: 我真的很幸福 · sample']);
+  // Pressed again it folds away; reading changes no tick.
+  await info('Examples').click();
+  assert.equal(await facets.locator('.facet-explanation').count(), 0);
+  assert.deepEqual(await facets.getByRole('checkbox').evaluateAll(nodes => nodes.map(node => node.checked)), [true, true, true, true]);
 });
 
 test('facet tags: abbreviations in order, on the left edge, along the edge to the bottom right when folded and back, flown in from the facet window, popped when deleted, and hung from the tab in deck settings', { timeout: 60000 }, async (t) => {

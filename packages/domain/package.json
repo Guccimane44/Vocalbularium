@@ -43,6 +43,10 @@
     "./composer": {
       "types": "./dist/composer/compose.d.ts",
       "import": "./dist/composer/compose.js"
+    },
+    "./explanations": {
+      "types": "./dist/explanations.d.ts",
+      "import": "./dist/explanations.js"
     }
   },
   "dependencies": {

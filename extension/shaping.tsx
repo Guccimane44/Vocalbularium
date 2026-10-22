@@ -11,6 +11,7 @@ import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, v
 import { CSS } from '@dnd-kit/utilities';
 import { addBlocked, CATALOG, FAMILIES, FAMILY_LABELS, WINDOW_MODULES } from '@vocabularium/domain/page-modules';
 import type { ModuleFamily, ModuleType } from '@vocabularium/domain/page-modules';
+import { ModuleExplanation } from './explanation.tsx';
 import { FamilyIcon } from './families.tsx';
 
 // Shared by the page view and deck settings (D02, D04): a list whose entries
@@ -369,8 +370,10 @@ function DropEnd({ disabled, active }: { disabled: boolean; active: boolean }) {
   return disabled ? null : <div ref={setNodeRef} className="drop-end" data-over={active || undefined}>Drop a module here to add it at the end</div>;
 }
 
-function WindowModule({ type, blocked, explain, addAtEnd }: {
+function WindowModule({ type, blocked, explain, addAtEnd, about }: {
   type: string; blocked: string | null; explain: boolean; addAtEnd: (type: string) => void;
+  // Opens the module's explanation (D13, 0.8.1).
+  about: (type: string) => void;
 }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: WINDOW + type, disabled: Boolean(blocked) });
   const entry = CATALOG[type as ModuleType];
@@ -385,6 +388,8 @@ function WindowModule({ type, blocked, explain, addAtEnd }: {
       <PlusIcon />
     </button>
     {blocked && explain && <p className="window-reason muted">{blocked}</p>}
+    {/* Below the +, what the module does, with a sample, without trying it (D13, 0.8.1). */}
+    <button type="button" className="window-about" aria-haspopup="dialog" onClick={() => about(type)}>About {entry.label}</button>
   </li>;
 }
 
@@ -429,6 +434,8 @@ function ModuleWindow({ types, disabled, unavailable, where, addAtEnd }: {
 }) {
   const { setNodeRef, isOver, active } = useDroppable({ id: BACK });
   const searchId = useId();
+  // The module whose explanation is open.
+  const [about, setAbout] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const familyOf = (type: ModuleType) => CATALOG[type].family as ModuleFamily;
   const [open, setOpen] = useState(() => new Set(types.filter(type => CATALOG[type as ModuleType]?.family).map(type => familyOf(type as ModuleType))));
@@ -458,10 +465,11 @@ function ModuleWindow({ types, disabled, unavailable, where, addAtEnd }: {
       }}>
       <summary><span className="fam-chip"><FamilyIcon family={family} /></span>{FAMILY_LABELS[family]}<span className="family-count">{total}</span></summary>
       <ul>
-        {modules.map(type => <WindowModule key={type} type={type} explain={!disabled} addAtEnd={addAtEnd}
+        {modules.map(type => <WindowModule key={type} type={type} explain={!disabled} addAtEnd={addAtEnd} about={setAbout}
           blocked={disabled ? unavailable ?? 'Unavailable' : addBlocked(types.map(value => ({ type: value })), type)} />)}
       </ul>
     </details>)}
     </div>
+    {about && <ModuleExplanation type={about} close={() => setAbout(null)} />}
   </aside>;
 }
