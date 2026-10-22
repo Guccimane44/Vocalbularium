@@ -39,7 +39,9 @@ Both themes keep readable hover and focus states, non-color status cues, and usa
 
 ## Interface language
 
-Every interface text is English, in sentence case, and English is the default **language preference** ([D14](../architecture/traceability-map.md#entries); [Q69](../architecture/questionnaire/13-ux-and-migration.md#q69-which-languages-does-the-ui-speak)). 1.0 ships with the interface localised into the major languages, whose list is still to be chosen ([K35](../architecture/traceability-map.md#clarifications)):
+Every interface text is English, in sentence case, and English is the default **language preference** ([D14](../architecture/traceability-map.md#entries); [Q69](../architecture/questionnaire/13-ux-and-migration.md#q69-which-languages-does-the-ui-speak)). 1.0 ships with the interface localised into the major languages ([K35](../architecture/traceability-map.md#clarifications)):
+
+- **The languages** for 1.0 are English and the other official UN languages: Arabic, Chinese (Simplified), French, Russian and Spanish. Arabic is written right to left, so every surface mirrors its layout in Arabic, while generated content keeps the direction of its own language. After 1.0 the list grows release by release; a new language is a catalogue of strings and explanations, not a code change.
 
 - **The preference** belongs to the account, so every installation shows the same language. It starts as English and does not follow the browser's language unless the user chooses.
 - **What it sets:** the interface text, the [explanations](modules.md#explanations) of modules and facets, and the language the Expertise modules write in ([modules](modules.md#catalog)). The Languages modules keep writing in their own language, and a captured key is never translated by the preference; otherwise the interface language is independent of the language of generated content.

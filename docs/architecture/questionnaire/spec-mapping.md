@@ -214,7 +214,7 @@ Link paths are relative to this file. *S&A* is [Select and Add](../../specs/capt
 | --- | --- | --- | --- | --- |
 | Q67 | Visual direction decided after the editor/state model locks | shared-ui, vision §UI/UX direction | — | ready |
 | Q68 | WCAG 2.2 AA + keyboard parity, audited per release | shared-ui, verification | Audit step per release | ready |
-| Q69 | English-only UI until localisation for 1.0 (D14) | shared-ui | — | applied (D14; K35 open) |
+| Q69 | English-only UI until localisation for 1.0 (D14) | shared-ui | — | applied (D14) |
 | Q70 | Retire v0.3.0 compatibility immediately | terminology-compatibility (historical), [AGENTS.md](../../../AGENTS.md) | Done in 0.4.0 with Q72: v0.3.0+ content, receipts, dialects and draft fallbacks removed; AGENTS.md keeps recovery for data created after the refactor only. Notion terminology decision Superseded | implemented (0.4.0) |
 | Q71 | Vertical slices on a contract-first foundation; 7-step order (step 2's main key + Context shipped in 0.4.x) | v0.5.0 plan (`docs/plans/v0.5.0.md`, not yet written) | Roadmap after 0.4.x | ready |
 
