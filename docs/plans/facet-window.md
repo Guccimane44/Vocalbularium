@@ -1,6 +1,6 @@
 # Plan: facets chosen on the parent, and explanations (0.8.1)
 
-Proposed: 22 October 2026 (Europe/Berlin). Implements [D13](../architecture/traceability-map.md#entries), accepted by the owner on 22 October 2026 and applied to the specifications in [#202](https://github.com/Guccimane44/Vocalbularium/pull/202), together with [D14](../architecture/traceability-map.md#entries), which this milestone does not build. Tracker: [#203](https://github.com/Guccimane44/Vocalbularium/issues/203); milestone in [Actual Stages](https://app.notion.com/p/401bb1350208813c886dde8014d5ed17).
+Proposed: 22 October 2026 (Europe/Berlin). Implemented in release 0.8.1 (increments A and B, [#204](https://github.com/Guccimane44/Vocalbularium/pull/204) and [#205](https://github.com/Guccimane44/Vocalbularium/pull/205)); owner acceptance is recorded on the tracker. Implements [D13](../architecture/traceability-map.md#entries), accepted by the owner on 22 October 2026 and applied to the specifications in [#202](https://github.com/Guccimane44/Vocalbularium/pull/202), together with [D14](../architecture/traceability-map.md#entries), which this milestone does not build. Tracker: [#203](https://github.com/Guccimane44/Vocalbularium/issues/203); milestone in [Actual Stages](https://app.notion.com/p/401bb1350208813c886dde8014d5ed17).
 
 ## Outcome
 

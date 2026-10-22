@@ -2387,6 +2387,27 @@ test('0.8.1: explanations: About a module in a dialog with its samples, and a fa
   await info('Examples').click();
   assert.equal(await facets.locator('.facet-explanation').count(), 0);
   assert.deepEqual(await facets.getByRole('checkbox').evaluateAll(nodes => nodes.map(node => node.checked)), [true, true, true, true]);
+
+  // Both themes, with forced colours off and on: the facet window, an open explanation and the
+  // About dialog keep their outline and readable text (0.8.1 increment C).
+  await info('Article').click();
+  for (const colorScheme of ['light', 'dark']) for (const forcedColors of ['none', 'active']) {
+    await a.page.emulateMedia({ colorScheme, forcedColors });
+    const name = `${colorScheme}${forcedColors === 'active' ? '-forced' : ''}`;
+    const window = await facets.evaluate(node => { const style = getComputedStyle(node); return { border: style.borderTopStyle, shadow: style.boxShadow }; });
+    assert.ok(forcedColors === 'active' ? window.border === 'solid' : window.shadow !== 'none', `${name}: the window is outlined (${JSON.stringify(window)})`);
+    await facets.screenshot({ path: `artifacts/v0.8.1-facet-window-${name}.png`, animations: 'disabled' });
+  }
+  await a.page.emulateMedia({ colorScheme: 'light', forcedColors: 'none' });
+  await a.page.keyboard.press('Escape');
+  await about.click();
+  await dialog.waitFor();
+  for (const colorScheme of ['light', 'dark']) for (const forcedColors of ['none', 'active']) {
+    await a.page.emulateMedia({ colorScheme, forcedColors });
+    await dialog.screenshot({ path: `artifacts/v0.8.1-about-${colorScheme}${forcedColors === 'active' ? '-forced' : ''}.png`, animations: 'disabled' });
+  }
+  await a.page.emulateMedia({ colorScheme: 'light', forcedColors: 'none' });
+  await a.page.keyboard.press('Escape');
 });
 
 test('facet tags: abbreviations in order, on the left edge, along the edge to the bottom right when folded and back, flown in from the facet window, popped when deleted, and hung from the tab in deck settings', { timeout: 60000 }, async (t) => {
