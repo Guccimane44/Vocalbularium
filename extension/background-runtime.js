@@ -1,3 +1,4 @@
+// @ts-check
 import { discardRetiredData, readLocal } from './recovery.js';
 import { saveOperations } from './save-operations.js';
 import { API_URL } from './config.js';
@@ -7,6 +8,7 @@ import { captureBadge } from './badge.js';
 import { relayFeedbackTheme } from './feedback.js';
 import { isApiFailure } from './api-failure.js';
 import { extensionDiagnostics } from './diagnostics.js';
+/** @import { AccessState, CaptureReceipt, RuntimeMessage, SessionItems, StoredAccount } from '../types/extension.js' */
 
 export function startBackground() {
   const diagnostics = extensionDiagnostics({ upload: async events => {
@@ -23,29 +25,33 @@ export function startBackground() {
   globalThis.addEventListener?.('unhandledrejection', event => diagnostics.record({ event: 'worker.failed', severity: 'error', outcome: 'failed', errorType: event.reason?.name }));
   globalThis.addEventListener?.('error', event => diagnostics.record({ event: 'worker.failed', severity: 'error', outcome: 'failed', errorType: event.error?.name }));
   void chrome.alarms.create('diagnostics', { periodInMinutes: 0.5 });
+  /** @type {Promise<AccessState> | undefined} */
   let initialization;
   let accessVersion = 0, sessionReady = false;
-  let writes = Promise.resolve(), refreshes = Promise.resolve();
+  let writes = /** @type {Promise<unknown>} */ (Promise.resolve()), refreshes = /** @type {Promise<unknown>} */ (Promise.resolve());
   const updateCaptureMenu = captureMenu();
   const saves = saveOperations({ request });
   const badge = captureBadge();
   void badge.restore().catch(() => {});
+  /** @template T @param {() => Promise<T>} action */
   function writeState(action) {
     const next = writes.then(action); writes = next.catch(() => {}); return next;
   }
+  /** @param {CaptureReceipt} [savedCapture] @returns {Promise<AccessState>} */
   function refreshAccount(savedCapture) {
     const version = accessVersion;
     const next = refreshes.then(async () => {
       if (version !== accessVersion) return { signedIn: false };
       const { auth } = await readLocal('auth');
       if (!auth) return { signedIn: false };
+      /** @type {StoredAccount} */
       let account;
       try {
         const summary = await request('/api/account/summary', null, auth.token);
         const recent = await request('/api/captures/recent', null, auth.token);
         account = { ...summary, recentPages: recent.pages };
       }
-      catch (error) {
+      catch (/** @type {any} */ error) {
         if (version !== accessVersion) return { signedIn: false };
         if (error.status === 401) { await removeAccess(); return { signedIn: false }; }
         throw error;
@@ -62,12 +68,15 @@ export function startBackground() {
     });
     refreshes = next.catch(() => {}); return next;
   }
+  /** @param {StoredAccount} account @param {string} token @param {number} version */
   async function clearHandedOffCaptures(account, token, version) {
     const local = await readLocal(null);
     const recentIds = new Set(account.recentPages.map(page => page.id));
+    /** @type {[`capture-${string}`, string][]} */
     const confirmed = [];
     let detailChecks = 0;
-    for (const [key, receipt] of Object.entries(local)) {
+    // Only the capture receipts are read; the key says which entries they are.
+    for (const [key, receipt] of /** @type {[`capture-${string}`, CaptureReceipt | undefined][]} */ (Object.entries(local))) {
       if (!key.startsWith('capture-') || receipt?.state !== 'saved' || !receipt.pageId) continue;
       if (recentIds.has(receipt.pageId)) { confirmed.push([key, receipt.pageId]); continue; }
       if (detailChecks++ >= 10) continue;
@@ -83,6 +92,8 @@ export function startBackground() {
       if (removable.length) await chrome.storage.local.remove(removable);
     });
   }
+  // The account server's JSON reply. Its routes declare no response types.
+  /** @param {string} path @param {any} [body] @param {string} [token] @returns {Promise<any>} */
   async function request(path, body, token) {
     const started = performance.now();
     const diagnosticRoute = path.startsWith('/api/diagnostics/');
@@ -100,7 +111,7 @@ export function startBackground() {
       });
       result = await response.json();
       if (!result || typeof result !== 'object') throw new Error();
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       if (!diagnosticRoute) diagnostics.record({ ...metadata, event: 'request.failed', outcome: 'failed', severity: 'error',
         category: error.name === 'TimeoutError' ? 'timeout' : error instanceof SyntaxError ? 'invalid_response' : 'transport',
         durationMs: Math.round(performance.now() - started) });
@@ -141,7 +152,7 @@ export function startBackground() {
         await writeState(async () => { if (version === accessVersion) await updateCaptureMenu(null); });
         return { signedIn: false };
       }
-      let { session } = await chrome.storage.session.get('session');
+      let { session } = /** @type {SessionItems} */ (await chrome.storage.session.get('session'));
       if (!session) {
         const local = await readLocal(['installationId', 'epoch']);
         session = { installationId: local.installationId ?? crypto.randomUUID(), epoch: (local.epoch ?? 0) + 1, sessionId: crypto.randomUUID() };
@@ -159,13 +170,14 @@ export function startBackground() {
     })();
     initialization = pending;
     try { return await pending; }
-    catch (error) {
+    catch (/** @type {any} */ error) {
       if (initialization === pending) initialization = undefined;
       if (error.status === 401 && version === accessVersion) await removeAccess();
       throw error;
     }
   }
 
+  /** @param {RuntimeMessage} message @returns {Promise<any>} */
   async function run(message) {
     if (message.type === 'diagnostics-status') {
       const local = await diagnostics.status(), { auth } = await readLocal('auth');
@@ -196,7 +208,7 @@ export function startBackground() {
       const { auth } = await readLocal('auth');
       if (auth) {
         try { await request('/api/logout', {}, auth.token); }
-        catch (error) { if (error.status !== 401) throw error; }
+        catch (/** @type {any} */ error) { if (error.status !== 401) throw error; }
       }
       await removeAccess();
       return { signedIn: false };
@@ -213,6 +225,7 @@ export function startBackground() {
       if (message.type === 'refresh') return { signedIn: false };
       throw Object.assign(new Error('Sign in to continue.'), { code: 'unauthorized' });
     }
+    /** @param {unknown} [saved] @returns {Promise<any>} */
     async function refreshAfterMutation(saved) {
       const state = await run({ type: 'refresh' });
       if (!state.signedIn) throw Object.assign(new Error('Sign in to confirm the saved change.'), { code: 'unauthorized' });
@@ -234,12 +247,13 @@ export function startBackground() {
         await saves.perform(pending, auth.token);
         return refreshAfterMutation();
       }
+      /** @type {Record<string, string>} */
       const paths = { 'save-deck': '/api/deck/save', 'delete-deck': '/api/deck/delete', 'create-page': '/api/page/create', 'save-page': '/api/page/save', 'delete-page': '/api/page/delete', 'generate-page': '/api/page/generate',
         'add-module': '/api/page/modules/add', 'delete-component': '/api/page/components/delete', 'move-component': '/api/page/components/move',
         'add-facet': '/api/page/facets/add', 'delete-facet': '/api/page/facets/delete' };
       if (paths[message.type]) {
         if (message.type === 'generate-page') {
-          const { session } = await chrome.storage.session.get('session');
+          const { session } = /** @type {SessionItems} */ (await chrome.storage.session.get('session'));
           message.payload = { ...message.payload, session };
         }
         const operationId = message.operationId ?? crypto.randomUUID();
@@ -251,12 +265,12 @@ export function startBackground() {
         return refreshAfterMutation(saved);
       }
       if (message.type === 'try-saving-again') {
-        const captureKey = `capture-${message.operationId}`;
+        const captureKey = /** @type {`capture-${string}`} */ (`capture-${message.operationId}`);
         const { [captureKey]: receipt } = await readLocal(captureKey);
         if (receipt && receipt.state !== 'saved') {
           await captures.submit(receipt); return refreshAfterMutation();
         }
-        const key = `save-${message.operationId}`;
+        const key = /** @type {`save-${string}`} */ (`save-${message.operationId}`);
         const { [key]: pending } = await readLocal(key);
         if (pending) {
           const saved = await saves.perform(pending, auth.token);
@@ -266,7 +280,7 @@ export function startBackground() {
         return refreshAfterMutation();
       }
       throw new Error('This action is unavailable.');
-    } catch (error) {
+    } catch (/** @type {any} */ error) {
       if (error.status === 401) { if (version === accessVersion) await removeAccess(); throw Object.assign(new Error('Sign in to continue.'), { code: 'unauthorized' }); }
       throw error;
     }
