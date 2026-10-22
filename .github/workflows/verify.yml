@@ -61,5 +61,32 @@ jobs:
           psql -h 127.0.0.1 -U postgres -d postgres -v ON_ERROR_STOP=1 \
             -c "CREATE ROLE vocabularium_test LOGIN CREATEDB NOSUPERUSER NOCREATEROLE PASSWORD 'test-ci-only'"
       - run: npm test
-      - run: npx playwright install --with-deps chromium
+      # The browser download is quick; the system packages from the Ubuntu
+      # mirror can take minutes. Cache both per runner image and Playwright
+      # version, and install the cached packages offline on a hit.
+      - name: Read Playwright version and runner image
+        id: playwright
+        run: |
+          echo "version=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
+          echo "image=$ImageOS-$ImageVersion" >> "$GITHUB_OUTPUT"
+      - name: Restore Playwright browser and system packages
+        id: playwright-cache
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.cache/ms-playwright
+            ~/.cache/playwright-debs
+          key: playwright-${{ steps.playwright.outputs.image }}-${{ steps.playwright.outputs.version }}
+      - name: Install Playwright system packages from cache
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: find ~/.cache/playwright-debs -name "*.deb" -exec sudo dpkg -i {} +
+      - name: Install Playwright system packages
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: |
+          echo 'APT::Keep-Downloaded-Packages "true";' | sudo tee /etc/apt/apt.conf.d/99-keep-debs
+          sudo rm -f /var/cache/apt/archives/*.deb
+          npx playwright install-deps chromium
+          mkdir -p ~/.cache/playwright-debs
+          find /var/cache/apt/archives -maxdepth 1 -name "*.deb" -exec cp {} ~/.cache/playwright-debs/ \;
+      - run: npx playwright install chromium
       - run: npm run test:browser
