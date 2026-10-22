@@ -62,31 +62,34 @@ jobs:
             -c "CREATE ROLE vocabularium_test LOGIN CREATEDB NOSUPERUSER NOCREATEROLE PASSWORD 'test-ci-only'"
       - run: npm test
       # The browser download is quick; the system packages from the Ubuntu
-      # mirror can take minutes. Cache both per runner image and Playwright
-      # version, and install the cached packages offline on a hit.
+      # mirror can take minutes. Seed apt's archive directory with the
+      # packages from an earlier run: apt verifies each one against its index
+      # and downloads only what the current runner image still needs.
       - name: Read Playwright version and runner image
         id: playwright
         run: |
           echo "version=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
           echo "image=$ImageOS-$ImageVersion" >> "$GITHUB_OUTPUT"
-      - name: Restore Playwright browser and system packages
-        id: playwright-cache
+      - name: Restore Playwright system packages
+        id: playwright-debs
         uses: actions/cache@v6
         with:
-          path: |
-            ~/.cache/ms-playwright
-            ~/.cache/playwright-debs
-          key: playwright-${{ steps.playwright.outputs.image }}-${{ steps.playwright.outputs.version }}
-      - name: Install Playwright system packages from cache
-        if: steps.playwright-cache.outputs.cache-hit == 'true'
-        run: find ~/.cache/playwright-debs -name "*.deb" -exec sudo dpkg -i {} +
+          path: ~/.cache/playwright-debs
+          key: playwright-debs-${{ steps.playwright.outputs.version }}-${{ steps.playwright.outputs.image }}
+          restore-keys: playwright-debs-${{ steps.playwright.outputs.version }}-
       - name: Install Playwright system packages
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: |
           echo 'APT::Keep-Downloaded-Packages "true";' | sudo tee /etc/apt/apt.conf.d/99-keep-debs
-          sudo rm -f /var/cache/apt/archives/*.deb
-          npx playwright install-deps chromium
           mkdir -p ~/.cache/playwright-debs
-          find /var/cache/apt/archives -maxdepth 1 -name "*.deb" -exec cp {} ~/.cache/playwright-debs/ \;
+          find ~/.cache/playwright-debs -name '*.deb' -exec sudo cp {} /var/cache/apt/archives/ \;
+          npx playwright install-deps chromium
+          rm -f ~/.cache/playwright-debs/*.deb
+          for deb in /var/cache/apt/archives/*.deb; do
+            [ -e "$deb" ] || continue
+            package=$(dpkg-deb -f "$deb" Package); version=$(dpkg-deb -f "$deb" Version)
+            if [ "$(dpkg-query -W -f='${Version}' "$package" 2>/dev/null)" = "$version" ]; then
+              cp "$deb" ~/.cache/playwright-debs/
+            fi
+          done
       - run: npx playwright install chromium
       - run: npm run test:browser
