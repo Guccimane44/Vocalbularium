@@ -18,10 +18,11 @@ packages/domain/src/catalog/
 │   ├── family.ts
 │   ├── german/
 │   │   ├── module.ts
+│   │   ├── explanation.md
 │   │   ├── sample.json
 │   │   └── facets/
 │   │       ├── core/       facet.ts, word.prompt.md, sentence.prompt.md
-│   │       ├── article/    facet.ts, word.prompt.md
+│   │       ├── article/    facet.ts, explanation.md, word.prompt.md
 │   │       └── …
 │   └── chinese/
 ├── expertise/
@@ -36,8 +37,8 @@ packages/domain/src/catalog/
 ```
 
 - **Family** (`family.ts`): its ID, label, colour tokens and icon. A module takes its family from the folder it sits in. A family gets its folder with its first module: Creative, whose colour and icon are chosen then, and Meaning, Usage, Roots, Connections and Sound, which keep their colours as deck colours until then ([modules](../specs/modules.md#module-families)).
-- **Module** (`module.ts`): its ID, kind (input or content), label, description, how many instances a deck or page allows (the Main key first and exactly once, Context at most one, the others many), where its content comes from (captured, written by the user, or generated), the provider kind it needs, its settings (such as its language and the subject it explains) and its ordered facets. One module has n facets. Input modules have none yet but may gain them. `sample.json` is the content the deck-settings preview shows for a word and for a sentence.
-- **Facet** (a folder under `facets/`): `facet.ts` holds its ID, label, abbreviation, the input types it applies to, its output type, its shape and its formatter; one prompt file per input type it applies to holds its prompt. The **core** is a facet, mandatory and first in every content module, with a shape per input type.
+- **Module** (`module.ts`): its ID, kind (input or content), label, description, how many instances a deck or page allows (the Main key first and exactly once, Context at most one, the others many), where its content comes from (captured, written by the user, or generated), the provider kind it needs, its settings (such as its language and the subject it explains) and its ordered facets. One module has n facets. Input modules have none yet but may gain them. `sample.json` is the content the deck-settings preview shows for a word and for a sentence. Since 0.8.1 `explanation.md` holds its [explanation](../specs/modules.md#explanations) in markdown, shown with its sample from the module window ([D13](traceability-map.md#entries)); every module in the window has one, the Main key none.
+- **Facet** (a folder under `facets/`): `facet.ts` holds its ID, label, abbreviation, the input types it applies to, its output type, its shape and its formatter; one prompt file per input type it applies to holds its prompt, and, since 0.8.1, `explanation.md` its explanation, shown in the facet window with its part of the module's sample; the core has none. The **core** is a facet, mandatory and first in every content module, with a shape per input type.
 
 Every module owns all its facets; nothing is shared between modules, because modules also include poems, music or pictures. Facets that look alike stay separate: German Examples and Chinese Examples are two complete folders, and a German and a Swedish article are two facets. A change meant for several look-alike facets is made in each. Facet IDs and abbreviations are unique within their module. The domain offers building blocks for writing facets (strings, lists, items, optional fields, markdown helpers), never facets.
 
@@ -100,13 +101,14 @@ A **catalog conformance test** covers every module, every facet and every input 
 - each content module's first facet is its core, and each module ID, facet ID and abbreviation is unique where it must be;
 - each facet has a prompt file for exactly the input types it applies to, and the composer builds a request for every module × input type;
 - each module's sample validates against its facets' shapes and formats into markdown;
-- input modules are never generated.
+- input modules are never generated;
+- every module in the module window and every facet but the core has an explanation that renders as markdown (since 0.8.1).
 
 Each content module has its own **golden set** under `tests/golden/`, run against the live provider for the owner's review ([C8](traceability-map.md#conflicts)).
 
 ## Adding to the catalog
 
-- **A module** is one folder under its family, with its definition, its sample, its facets and a golden set.
-- **A facet** is one folder in its module and an entry in the module's facet order.
+- **A module** is one folder under its family, with its definition, its explanation, its sample, its facets and a golden set.
+- **A facet** is one folder in its module, with its explanation, and an entry in the module's facet order.
 - **A family** is one folder with its definition, and its colour tokens in the design tokens, meeting the contrast tests in both themes.
 - **A provider** is one adapter.
