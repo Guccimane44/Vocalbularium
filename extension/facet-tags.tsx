@@ -13,20 +13,13 @@ import type { FacetType, ParentType } from '@vocabularium/domain/parents';
 // On a card's edge, clicking a tag pulls it out of the card, showing a Retry
 // that regenerates its facet at once, without asking (0.7.4); Escape, a click
 // elsewhere or the tag again push it back. Elsewhere a click does nothing.
-// A facet added from the module window flies there from where it was let go;
+// A facet ticked in its parent's facet window flies there from its row (D13);
 // folding and unfolding move the tags along the card's edge between the left
 // side and the bottom right; a deleted facet's tag pops. Under reduced motion
 // each simply stands in its place.
 export type TagLayout = 'edge' | 'folded' | 'hanging';
 
-// A facet picked up with its + in the module window, waiting to be placed
-// (0.7.2): each parent that would take it wears a ghost of its tag in the slot
-// the tag would take, and the real tags make room. Placed, the ghost stays on
-// its parent until the facet arrives there and its tag takes the ghost's place.
-// `label` is the ghost's accessible name, such as "Add Synonyms to German 2".
-export type GhostTag = { facet: FacetType; label: string; placing: boolean };
-
-// Where an added facet was last seen in the module window, by parent and facet,
+// Where an added facet was last seen in its facet window, by parent and facet,
 // so that its tag can fly from there once the parent has it.
 const launches = new Map<string, { rect: DOMRect; at: number }>();
 const LAUNCH_TTL_MS = 15000;
@@ -85,22 +78,19 @@ function alongTheEdge(from: Spot, corner: Spot): Keyframe[] {
   });
 }
 
-export function FacetTags({ holderId, parent, facets, filled, layout, title, disabled = false, ghost, onRetry, retrying, failed, onRemove }: {
+export function FacetTags({ holderId, parent, facets, filled, layout, title, disabled = false, onRetry, retrying, failed, onRemove }: {
   holderId: string; parent: ParentType; facets: readonly string[]; layout: TagLayout; title: string; disabled?: boolean;
   // The facets with content on the card (0.7.3); the others wear a blander
   // tag. Absent where content does not apply, as in deck settings.
   filled?: readonly string[];
-  // The facet picked up in the module window, when this parent would take it.
-  ghost?: GhostTag | null;
   // A pulled-out tag's Retry; absent where a card has no content to keep.
   onRetry?: (facet: FacetType) => void;
   // The facet regenerating on its own, or whose own Retry failed (0.7.3).
   retrying?: string; failed?: string;
   onRemove?: (facet: FacetType) => void;
 }) {
-  const ghostFacet = ghost && !facets.includes(ghost.facet) ? ghost.facet : null;
-  const shown = ordered(parent, ghostFacet ? [...facets, ghostFacet] : facets);
-  const key = `${shown.join('|')}:${ghostFacet ?? ''}`;
+  const shown = ordered(parent, facets);
+  const key = shown.join('|');
   // Tags popping away, each where it stood.
   const [leaving, setLeaving] = useState<ReadonlyArray<{ facet: FacetType; index: number }>>([]);
   const root = useRef<HTMLUListElement>(null);
@@ -122,7 +112,7 @@ export function FacetTags({ holderId, parent, facets, filled, layout, title, dis
     document.addEventListener('keydown', escape, true);
     return () => { document.removeEventListener('pointerdown', away, true); document.removeEventListener('keydown', escape, true); };
   }, [pulled]);
-  const before = useRef<{ facets: readonly FacetType[]; ghost: FacetType | null; layout: TagLayout; spots: Map<string, Spot> } | null>(null);
+  const before = useRef<{ facets: readonly FacetType[]; layout: TagLayout; spots: Map<string, Spot> } | null>(null);
   // Unfolding, the tags stay on the bottom edge while the card opens, and
   // only then go back to the left side.
   const [prior, setPrior] = useState(layout);
@@ -158,15 +148,14 @@ export function FacetTags({ holderId, parent, facets, filled, layout, title, dis
     const card = list?.closest<HTMLElement>('.component');
     if (!list || !card) return;
     const previous = before.current;
-    // A ghost that goes was never a facet: it vanishes without popping.
-    const gone = previous ? previous.facets.filter(facet => !shown.includes(facet) && facet !== previous.ghost) : [];
+    const gone = previous ? previous.facets.filter(facet => !shown.includes(facet)) : [];
     if (gone.length && !still()) {
       setLeaving(current => [...current.filter(item => !gone.includes(item.facet)),
         ...gone.map(facet => ({ facet, index: previous!.facets.indexOf(facet) }))]);
       setTimeout(() => setLeaving(current => current.filter(item => !gone.includes(item.facet))), TAG_POP_MS);
     }
     const { tags, spots } = measure()!;
-    before.current = { facets: shown, ghost: ghostFacet, layout: place, spots };
+    before.current = { facets: shown, layout: place, spots };
     if (!previous || still()) return;
     const turned = previous.layout !== place;
     tags.forEach((tag, index) => {
@@ -174,12 +163,9 @@ export function FacetTags({ holderId, parent, facets, filled, layout, title, dis
       const to = spots.get(facet)!;
       const from = previous.spots.get(facet);
       const play = (keyframes: Keyframe[], timing: KeyframeAnimationOptions) => { tag.animate(keyframes, { ...timing, id: 'facet-tag' }); };
-      // A tag arriving where its ghost waited flies in from the window too (0.7.2).
-      const replacing = facet === previous.ghost && facet !== ghostFacet;
-      if (!from || replacing) {
-        // A new tag flies in from the window, or pops in when it came from elsewhere.
+      if (!from) {
+        // A new tag flies in from its facet window, or pops in when it came from elsewhere.
         const launch = takeLaunch(holderId, facet);
-        if (!launch && replacing) return;
         if (!launch) { play([{ transform: 'scale(.3)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: TAG_POP_MS, easing: 'cubic-bezier(.34,1.56,.64,1)' }); return; }
         const rect = tag.getBoundingClientRect();
         const dx = launch.left + launch.width / 2 - (rect.left + rect.width / 2), dy = launch.top + launch.height / 2 - (rect.top + rect.height / 2);
@@ -207,15 +193,6 @@ export function FacetTags({ holderId, parent, facets, filled, layout, title, dis
     const label = facetLabel(parent, facet);
     const unfilled = filled && !filled.includes(facet);
     const mark = <span className="facet-tag-mark" aria-hidden="true">{facetAbbreviation(parent, facet)}</span>;
-    // A ghost is the tag's outline; clicking it, or its card, places the facet
-    // there (shaping.tsx handles the click). The key stays the facet's, so
-    // the placed ghost turns into the tag that arrives in its place.
-    if (facet === ghostFacet) return <li key={facet} className="facet-tag" data-facet={facet} data-ghost={ghost!.placing ? 'placing' : ''}
-      style={{ '--i': index } as CSSProperties}>
-      <svg className="facet-ghost-shape" viewBox="0 0 24 30" aria-hidden="true"><path d="M.8 .8H23.2V29.2L12 22.8L.8 29.2Z" /></svg>
-      {ghost!.placing ? <span className="facet-tag-open" aria-hidden="true">{mark}</span>
-        : <button type="button" className="facet-tag-open facet-ghost" aria-label={ghost!.label}>{mark}</button>}
-    </li>;
     const out = pulled === facet && !gone;
     const state = retrying === facet ? ', generating' : failed === facet ? ', retry failed' : '';
     const name = `${label}${unfilled ? ', empty' : ''}${state}`;

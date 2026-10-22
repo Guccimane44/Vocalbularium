@@ -13,6 +13,7 @@ import { formatContent } from '@vocabularium/domain/content';
 import type { GeneratedParent } from '@vocabularium/domain/generated';
 import { deckColour } from './deck-colour.ts';
 import { FacetTags } from './facet-tags.tsx';
+import { FacetWindow } from './facet-window.tsx';
 import { FamilyIcon } from './families.tsx';
 import { mainKeyTier } from './main-key.ts';
 import { ActionIcon, Content, LandingCard } from './page-view.tsx';
@@ -102,12 +103,17 @@ function PreviewDialog({ modules, sampleType, choose, close }: {
 // In deck settings a module has no component yet, so it is drawn as an empty
 // component is on a page (0.7.1): only its tab, which drags it and, clicked,
 // ejects Remove beside it, and a parent's facets hung below the tab on chains.
-function DeckModule({ item, parts, busy, opened, setOpened, onRemove, onRemoveFacet }: {
+// A parent also ejects Facet before Remove, opening its facet window on the
+// draft (D13, 0.8.1); with no content to lose, unticking never asks.
+function DeckModule({ item, parts, busy, opened, setOpened, choosing, setChoosing, onRemove, onAddFacet, onRemoveFacet }: {
   item: { id: string; label: string; type: string; facets?: string[] }; parts: RowParts; busy: boolean;
-  opened: boolean; setOpened: (value: boolean) => void; onRemove: () => void; onRemoveFacet: (facet: string) => void;
+  opened: boolean; setOpened: (value: boolean) => void;
+  // Whether this parent's facet window is open.
+  choosing: boolean; setChoosing: (value: boolean) => void;
+  onRemove: () => void; onAddFacet: (facet: FacetType) => boolean; onRemoveFacet: (facet: string) => void;
 }) {
   const family = familyOf(item.type);
-  const tagged = isParentType(item.type) && Boolean(item.facets?.length || parts.ghost);
+  const tagged = isParentType(item.type) && Boolean(item.facets?.length);
   return <article className={`component deck-module fam-${family}`} data-empty data-module-id={item.id} data-type={item.type} data-tagged={tagged ? 'hanging' : undefined}>
     <div className="card-head" onKeyDown={(event: ReactKeyboardEvent<HTMLDivElement>) => {
       if (event.key !== 'Escape' || !opened) return;
@@ -123,12 +129,20 @@ function DeckModule({ item, parts, busy, opened, setOpened, onRemove, onRemoveFa
         </button></h2>
       </div>
       {opened && <div id={`actions-${item.id}`} className="card-actions" role="group" aria-label={`${item.label} actions`} data-open>
-        <button style={{ '--i': 0 } as CSSProperties} className="action-delete" aria-label={`Remove ${item.label}`} disabled={busy}
+        {isParentType(item.type) && <button style={{ '--i': 0 } as CSSProperties} aria-label={`Facets of ${item.label}`} disabled={busy}
+          onClick={() => { setOpened(false); setChoosing(true); }}><ActionIcon name="facet" />Facet</button>}
+        <button style={{ '--i': isParentType(item.type) ? 1 : 0 } as CSSProperties} className="action-delete" aria-label={`Remove ${item.label}`} disabled={busy}
           onClick={() => { setOpened(false); onRemove(); }}><ActionIcon name="delete" />Remove</button>
       </div>}
+      {choosing && isParentType(item.type) && <FacetWindow holderId={item.id} parent={item.type} title={item.label} facets={item.facets ?? []}
+        disabled={busy} hasContent={() => false} onAdd={onAddFacet} onRemove={onRemoveFacet}
+        onClose={refocus => {
+          setChoosing(false);
+          if (refocus) document.querySelector<HTMLElement>(`[data-module-id="${CSS.escape(item.id)}"] .tab-button`)?.focus();
+        }} />}
     </div>
     {isParentType(item.type) && <FacetTags holderId={item.id} parent={item.type} facets={item.facets ?? []} layout="hanging" title={item.label}
-      disabled={busy} ghost={parts.ghost} onRemove={onRemoveFacet} />}
+      disabled={busy} onRemove={onRemoveFacet} />}
   </article>;
 }
 
@@ -144,6 +158,8 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
   const [, redraw] = useReducer((value: number) => value + 1, 0);
   // The module whose tab has ejected its Remove; one at a time.
   const [opened, setOpened] = useState<string | null>(null);
+  // The parent whose facet window is open (D13, 0.8.1).
+  const [choosing, setChoosing] = useState<string | null>(null);
   useEffect(() => {
     if (!opened) return;
     const outside = (event: PointerEvent) => {
@@ -158,8 +174,7 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
   const sampleType = draft.sampleType ?? 'word_phrase';
   // The main key stays first and cannot move or be removed; everything after it can.
   const [key, ...rest] = modules;
-  const items = numbered(rest.map(module => ({ id: module.id, label: moduleLabel(module.type), type: module.type, facets: module.facets,
-    holder: { id: module.id, type: module.type, facets: module.facets } })));
+  const items = numbered(rest.map(module => ({ id: module.id, label: moduleLabel(module.type), type: module.type, facets: module.facets })));
   // Facets join or leave a parent in the draft, in the parent's order (D08).
   const addFacet = (id: string, parent: ParentType, facet: FacetType) => {
     const module = modules.find(item => item.id === id);
@@ -240,7 +255,7 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
       </div>
     </fieldset>
     <ShapingArea items={items} types={modules.map(module => module.type)} disabled={busy} unavailable={busy ? 'Saving…' : undefined}
-      label="Modules for new pages" where="the list" onAdd={add} onMove={(id, index) => { move(id, index); return true; }} onAddFacet={addFacet}
+      label="Modules for new pages" where="the list" onAdd={add} onMove={(id, index) => { move(id, index); return true; }}
       pinned={<>
         <div className="list-intro">
           <div className="list-intro-head">
@@ -258,7 +273,9 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
       renderLanding={type => <LandingCard type={type} />}
       renderItem={(item, parts) => <DeckModule item={item} parts={parts} busy={busy}
         opened={opened === item.id} setOpened={value => setOpened(value ? item.id : null)}
+        choosing={choosing === item.id} setChoosing={value => setChoosing(value ? item.id : null)}
         onRemove={() => { modules.splice(modules.findIndex(module => module.id === item.id), 1); refresh(); }}
+        onAddFacet={facet => isParentType(item.type) && addFacet(item.id, item.type, facet)}
         onRemoveFacet={facet => removeFacet(item.id, facet)} />} />
     {draft.previewing && <PreviewDialog modules={modules} sampleType={sampleType}
       choose={value => { draft.sampleType = value; refresh(); }}
