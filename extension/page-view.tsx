@@ -15,6 +15,7 @@ import type { FacetType, ParentType } from '@vocabularium/domain/parents';
 import type { FieldDraft, PageEditorDraft } from '../types/editor-drafts.js';
 import { FacetTab, FacetTags, FOLD_MS } from './facet-tags.tsx';
 import type { TagLayout } from './facet-tags.tsx';
+import { FacetWindow } from './facet-window.tsx';
 import { FamilyIcon } from './families.tsx';
 import { mainKeyTier } from './main-key.ts';
 import { AT_THE_END, moduleLabel, numbered, ShapingArea, SixDots } from './shaping.tsx';
@@ -25,6 +26,8 @@ const ACTION_ICONS = {
   edit: <><path d="M12 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6" /><path d="M17.5 3.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4z" /></>,
   retry: <><path d="M3 12a9 9 0 1 0 3-6.7L3 8" /><path d="M3 3v5h5" /></>,
   delete: <><path d="M4 7h16" /><path d="M9 7V4h6v3" /><path d="M18 7l-1 13H7L6 7" /></>,
+  // A bookmark, as a facet's tag is drawn (0.7.1).
+  facet: <path d="M7 4h10v16l-5-3.5L7 20z" />,
   fold: <><path d="M7 20l5-5 5 5" /><path d="M7 4l5 5 5-5" /></>,
   unfold: <><path d="M7 15l5 5 5-5" /><path d="M7 9l5-5 5 5" /></>
 } as const;
@@ -415,6 +418,8 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
   const [working, setWorking] = useState(false);
   // The card whose tab has ejected its actions; one at a time.
   const [opened, setOpened] = useState<string | null>(null);
+  // The parent whose facet window is open (D13, 0.8.1); one at a time.
+  const [facetsFor, setFacetsFor] = useState<string | null>(null);
   // Cards popping away: a deleted card pops where it stands first, then goes;
   // under reduced motion it goes at once, and a failed delete brings it back.
   const [vanishing, setVanishing] = useState<ReadonlySet<string>>(new Set());
@@ -495,8 +500,7 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
   const disabled = Boolean(editingId) || busy;
   const known = new Set(page.components.map(item => item.id));
   const lost = editing && draft ? [...Object.keys(draft.texts), ...Object.keys(draft.fields ?? {})].filter(id => !known.has(id)) : [];
-  const items = numbered(rest.map(item => ({ id: item.id, type: item.moduleType, label: moduleLabel(item.moduleType), component: item,
-    holder: { id: item.id, type: item.moduleType, facets: item.facets, status: item.status } })));
+  const items = numbered(rest.map(item => ({ id: item.id, type: item.moduleType, label: moduleLabel(item.moduleType), component: item })));
 
   const mainKey = mainKeyOf(page.components);
   // A card's actions are ejected from its tab when the tab is clicked (D07);
@@ -535,6 +539,10 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
         disabled={working || Boolean(editingId) || item.status === 'loading'}
         onClick={hasContent && open ? ask('retry') : choose(() => void run(() => generate({ scope: 'component', componentId: item.id })))}>
         <ActionIcon name="retry" />Retry</button>}
+      {/* A parent's facets are chosen in its facet window (D13, 0.8.1). */}
+      {open && isParentType(item.moduleType) && <button style={order()} aria-label={`Facets of ${title}`}
+        disabled={disabled || working || item.status === 'loading'} onClick={choose(() => setFacetsFor(item.id))}>
+        <ActionIcon name="facet" />Facet</button>}
       {open && foldable && <button style={order()} aria-label={`${isFolded ? 'Unfold' : 'Fold'} ${title}`} onClick={choose(() => fold(item.id, !isFolded))}>
         <ActionIcon name={isFolded ? 'unfold' : 'fold'} />{isFolded ? 'Unfold' : 'Fold'}</button>}
       {open && <button style={order()} className="action-delete" aria-label={`Delete ${title}`} disabled={disabled || working || item.status === 'loading'}
@@ -564,7 +572,7 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
   // card and, clicked, ejects its actions beside it), its status only while
   // unfinished, and its content. An empty component is only its tab. Editing
   // is one card at a time; Save and Cancel live in that card.
-  const card = (item: Component, title: string, { drag, menu, ghost }: RowParts) => {
+  const card = (item: Component, title: string, { drag, menu }: RowParts) => {
     const family = isModuleType(item.moduleType) ? CATALOG[item.moduleType].family ?? 'notes' : 'notes';
     const read = readContent(item.moduleType, item.content);
     const empty = !read.present && item.status !== 'loading' && item.status !== 'failed' && editingId !== item.id;
@@ -585,27 +593,34 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
     const gone = vanishing.has(item.id);
     // The parent's facets as tags on the card's edge, or hung from its tab while it is only its tab (0.7.1).
     const layout: TagLayout = empty || generating ? 'hanging' : isFolded ? 'folded' : 'edge';
-    // A ghost of a facet picked up in the window counts as a tag, so the card makes room for it (0.7.2).
-    const tagCount = (item.facets?.length ?? 0) + (ghost && !item.facets?.includes(ghost.facet) ? 1 : 0);
+    const tagCount = item.facets?.length ?? 0;
     const tagged = Boolean(controls && tagCount);
     // Which facets have content: none on a card that is only its tab; on
     // content outside the parent's layout, the sections cannot be told apart,
     // so no tag is marked.
     const { rendered } = read;
+    const hasContent = (facet: FacetType) => rendered.kind === 'parent' && rendered.facets.some(each => each.facet === facet);
     // While it is edited, a tag shows whether its facet has text in the draft (D09).
     const fieldDraft = editingId === item.id ? draft?.fields?.[item.id] : undefined;
     const filled = fieldDraft ? Object.entries(fieldDraft.facets).filter(([, text]) => hasText(text)).map(([facet]) => facet)
       : generating || !read.present ? [] : rendered.kind === 'parent' ? rendered.facets.map(each => each.facet) : undefined;
     const tags = controls ? <FacetTags holderId={item.id} parent={item.moduleType as ParentType} facets={item.facets ?? []} filled={filled}
-      layout={layout} title={title} disabled={controls.disabled} ghost={ghost}
+      layout={layout} title={title} disabled={controls.disabled}
       // On an open card's edge a tag pulls out to its own Retry, which asks nothing (0.7.4).
       onRetry={layout === 'edge' && rendered.kind === 'parent' && editingId !== item.id ? retryFacet : undefined}
       retrying={item.retryingFacet} failed={item.failedFacet}
       onRemove={facet => {
         // A facet with content asks first, in its section; one waiting for Retry goes at once.
-        const hasContent = rendered.kind === 'parent' && rendered.facets.some(each => each.facet === facet);
-        if (hasContent && layout !== 'hanging') showFacet(item, facet, () => setAskingFacet({ id: item.id, facet, kind: 'delete' }));
+        if (hasContent(facet) && layout !== 'hanging') showFacet(item, facet, () => setAskingFacet({ id: item.id, facet, kind: 'delete' }));
         else removeFacet(facet);
+      }} /> : null;
+    const facetWindow = controls && facetsFor === item.id ? <FacetWindow holderId={item.id} parent={item.moduleType as ParentType} title={title}
+      facets={item.facets ?? []} disabled={controls.disabled} hasContent={hasContent}
+      onAdd={facet => addFacet(item.id, item.moduleType as ParentType, facet)}
+      onRemove={async facet => { let saved = true; await run(async () => { saved = await deleteFacet(item.id, item.moduleType as ParentType, facet); }); return saved; }}
+      onClose={refocus => {
+        setFacetsFor(null);
+        if (refocus) document.querySelector<HTMLElement>(`[data-component-id="${CSS.escape(item.id)}"] .tab-button`)?.focus();
       }} /> : null;
     return <article className={`component fam-${family}`} data-empty={empty || undefined} data-generating={generating || undefined}
       data-folded={isFolded || undefined} data-vanishing={gone || undefined} data-tagged={tagged ? layout : undefined}
@@ -628,6 +643,7 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
           {generating && <span className="visually-hidden" role="status">{title}: generating</span>}
         </div>
         {editingId !== item.id && actions(item, title)}
+        {facetWindow}
       </div>
       {!empty && <div className="card-fold"><div className="card-fold-inner" inert={isFolded || undefined}>
         {item.status === 'failed' && <p className="card-status"><span className="list-status" data-status="failed">Generation failed</span></p>}
@@ -655,7 +671,6 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
       // The server appends a module sent without a position, after anything added meanwhile.
       onAdd={(type, index) => addModule(type, index === AT_THE_END ? undefined : index + 1)}
       onMove={(id, index) => moveComponent(id, index + 1)}
-      onAddFacet={(id, parent, facet) => addFacet(id, parent, facet)}
       menuItems={COMPONENT_MENU}
       renderLanding={type => <LandingCard type={type} />}
       renderItem={(item, parts) => card(item.component, item.label, parts)} />
