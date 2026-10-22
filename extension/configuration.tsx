@@ -2,15 +2,12 @@ import { useEffect, useReducer, useRef, useState } from 'react';
 import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent } from 'react';
 import type { DeckEditorDraft } from '../types/editor-drafts.js';
 import type { DeckColour, DeckConfiguration } from '@vocabularium/contracts';
-import { applicableFacets, isParentType, withFacet } from '@vocabularium/domain/parents';
+import { isParentType, withFacet } from '@vocabularium/domain/parents';
 import type { FacetType, ParentType } from '@vocabularium/domain/parents';
-import { isCatalogModule, MODULES } from '@vocabularium/domain/catalog';
+import { MODULES } from '@vocabularium/domain/catalog';
 import { addBlocked, CATALOG, DECK_COLOURS, isModuleType } from '@vocabularium/domain/page-modules';
 import type { ModuleFamily } from '@vocabularium/domain/page-modules';
-import { renderContent, renderParent } from '@vocabularium/domain/render';
-import type { Rendered } from '@vocabularium/domain/render';
-import { formatContent } from '@vocabularium/domain/content';
-import type { GeneratedParent } from '@vocabularium/domain/generated';
+import { sampleOf } from '@vocabularium/domain/explanations';
 import { deckColour } from './deck-colour.ts';
 import { FacetTags } from './facet-tags.tsx';
 import { FacetWindow } from './facet-window.tsx';
@@ -30,19 +27,6 @@ export const newDeckDraft = (): DeckConfiguration => ({
   modules: [instance('main-key'), instance('context'), instance('german', ['article', 'examples', 'synonyms', 'antonyms'])],
   view: { module: 'default' }
 });
-
-// A module's sample from the catalog (D11): input modules their text, a parent
-// what it would return, as the provider's JSON formatted into markdown as a
-// stored result is (D09). Null for a module that starts empty (Text).
-function sample(module: { type: string; facets?: readonly string[] }, inputType: 'word_phrase' | 'sentence'): Rendered | null {
-  const given = isCatalogModule(module.type) ? MODULES[module.type].sample?.[inputType] : undefined;
-  if (given === undefined) return null;
-  if (!isParentType(module.type)) return renderContent(module.type, given as string);
-  const content = given as GeneratedParent;
-  const facets = applicableFacets(module.type, module.facets ?? [], inputType);
-  const kept = Object.fromEntries(Object.entries(content.facets).filter(([facet]) => facets.includes(facet as FacetType)));
-  return renderParent(module.type, formatContent(module.type, { core: content.core, facets: kept }));
-}
 
 // Deck colours (D06) are the family colours, named by hue: a deck's colour
 // identifies the deck and says nothing about its modules.
@@ -88,7 +72,8 @@ function PreviewDialog({ modules, sampleType, choose, close }: {
     <div className="sample-page">
       <p className="main-key preview" data-type={key.type} data-tier={mainKeyTier(mainKey)}>{mainKey}</p>
       {rest.map(module => {
-        const rendered = sample(module, sampleType);
+        // A module's sample from the catalog (D11), with the facets it has here.
+        const rendered = sampleOf(module.type, sampleType, module.facets ?? []);
         const family = familyOf(module.type);
         // Like a page, an empty component (Text) is only its tab.
         return <article className={`component preview fam-${family}`} data-empty={!rendered || undefined} key={module.id} data-type={module.type}>

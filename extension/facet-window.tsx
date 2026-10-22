@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { facetAbbreviation, facetLabel, facetsOf } from '@vocabularium/domain/parents';
 import type { FacetType, ParentType } from '@vocabularium/domain/parents';
+import { FacetExplanation } from './explanation.tsx';
 import { launchFacet } from './facet-tags.tsx';
 
 // A parent's facet window (D13, 0.8.1), opened by Facet among the parent's
@@ -12,6 +13,7 @@ import { launchFacet } from './facet-tags.tsx';
 // content asks "Are you sure?" in its row first, as its Delete does beside its
 // label. The window stays open for more until Escape, a click outside or
 // another of the card's actions; Escape returns the focus to the card's tab.
+// Each row's ⓘ expands the facet's explanation beneath it, one at a time.
 export function FacetWindow({ holderId, parent, title, facets, disabled, hasContent, onAdd, onRemove, onClose }: {
   holderId: string; parent: ParentType; title: string; facets: readonly string[]; disabled: boolean;
   // Whether unticking would lose what the facet holds; never in deck settings.
@@ -29,6 +31,9 @@ export function FacetWindow({ holderId, parent, title, facets, disabled, hasCont
   // focus back to once the row shows its tick again.
   const [asking, setAsking] = useState<FacetType | null>(null);
   const [returning, setReturning] = useState<FacetType | null>(null);
+  // The facet whose explanation is open.
+  const [reading, setReading] = useState<FacetType | null>(null);
+  const ids = useId();
   // A tick shows at once, before the parent has saved it; what the parent
   // holds takes over as soon as it changes, and a failed add takes it back.
   const [wanted, setWanted] = useState<Readonly<Record<string, boolean>>>({});
@@ -76,17 +81,24 @@ export function FacetWindow({ holderId, parent, title, facets, disabled, hasCont
       {facetsOf(parent).map(facet => {
         const label = facetLabel(parent, facet);
         const on = equipped(facet);
-        return <li key={facet} className="facet-window-row" data-facet={facet} data-equipped={on || undefined}>
-          <label>
+        const tickId = `${ids}-${facet}`, aboutId = `${ids}-${facet}-about`;
+        return <li key={facet} className="facet-window-row" data-facet={facet} data-equipped={on || undefined} data-reading={reading === facet || undefined}>
+          <label htmlFor={tickId}>
             <span className="facet-tab-mark" aria-hidden="true">{facetAbbreviation(parent, facet)}</span>
             <span className="facet-window-name">{label}</span>
-            {/* While the parent is busy a tick still holds the focus, so it is only marked unavailable. */}
-            <input type="checkbox" checked={on} aria-disabled={disabled || undefined} hidden={asking === facet}
-              onClick={event => { if (disabled) event.preventDefault(); }} onChange={() => void toggle(facet)} />
           </label>
+          <button type="button" className="facet-about" aria-label={`About ${label}`} aria-expanded={reading === facet}
+            aria-controls={reading === facet ? aboutId : undefined} onClick={() => setReading(reading === facet ? null : facet)}>
+            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+              <circle cx="12" cy="12" r="9.5" /><path d="M12 11v6" /><path d="M12 7.5h.01" /></svg>
+          </button>
+          {/* While the parent is busy a tick still holds the focus, so it is only marked unavailable. */}
+          <input id={tickId} type="checkbox" checked={on} aria-disabled={disabled || undefined} hidden={asking === facet}
+            onClick={event => { if (disabled) event.preventDefault(); }} onChange={() => void toggle(facet)} />
           {asking === facet && <FacetQuestion name={`${label} from ${title}`}
             onConfirm={() => { answer(facet); void remove(facet); }}
             onCancel={() => answer(facet)} />}
+          {reading === facet && <FacetExplanation id={aboutId} parent={parent} facet={facet} />}
         </li>;
       })}
     </ul>

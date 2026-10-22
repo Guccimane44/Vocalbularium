@@ -1,5 +1,6 @@
 node_modules/
 packages/*/dist/
+packages/domain/src/catalog/explanations.generated.ts
 .env
 .env.*
 !.env.example

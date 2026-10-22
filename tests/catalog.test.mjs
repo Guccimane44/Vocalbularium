@@ -108,3 +108,56 @@ test('every content module has a golden set (C8)', () => {
   for (const set of sets) assert.ok(set.inputs.length > 0 && set.modules.every(id => MODULE_IDS.includes(id)), set.note);
   assert.deepEqual([...new Set(covered)].sort(), [...content].sort());
 });
+
+// Explanations (D13, 0.8.1): every module in the module window and every facet
+// but the core explains itself, and the extension sees exactly the files.
+test('every module in the window and every facet but the core has an explanation that renders as markdown', async () => {
+  const { explanationBlocks, explanationOf } = await import('@vocabularium/domain/explanations');
+  const { WINDOW_MODULES } = await import('@vocabularium/domain/page-modules');
+  const explained = [];
+  for (const id of MODULE_IDS) {
+    const file = new URL(`${folderOf(id)}/explanation.md`, SRC);
+    if (WINDOW_MODULES.includes(id)) {
+      assert.ok(existsSync(file), `${id} has no explanation.md`);
+      explained.push([id, undefined, file]);
+    } else assert.equal(existsSync(file), false, `${id} is not in the window and needs no explanation`);
+    if (MODULES[id].kind !== 'content') continue;
+    assert.equal(existsSync(new URL(`${folderOf(id)}/facets/core/explanation.md`, SRC)), false, `${id}: the core is explained by its module`);
+    for (const facet of MODULES[id].facets) {
+      const facetFile = new URL(`${folderOf(id)}/facets/${facet.id}/explanation.md`, SRC);
+      assert.ok(existsSync(facetFile), `${id}.${facet.id} has no explanation.md`);
+      explained.push([id, facet.id, facetFile]);
+    }
+  }
+  for (const [id, facet, file] of explained) {
+    const name = facet ? `${id}.${facet}` : id;
+    assert.equal(explanationOf(id, facet), readFileSync(file, 'utf8'), `${name}: the built explanation matches its file`);
+    const blocks = explanationBlocks(id, facet);
+    assert.ok(blocks.length > 0 && blocks.every(block => block.type === 'paragraph' || block.items.length > 0), `${name} renders as markdown`);
+    assert.doesNotMatch(explanationOf(id, facet), /<[a-z]/i, `${name} holds no HTML`);
+  }
+});
+
+test('a facet’s sample is its own part of its module’s sample, only for the inputs it applies to', async () => {
+  const { facetSampleOf, sampleKeyOf, sampleOf } = await import('@vocabularium/domain/explanations');
+  // Article applies to words only: a sample for a word, none for a sentence.
+  assert.deepEqual(facetSampleOf('german', 'article', 'word_phrase'), [{ type: 'paragraph', children: [{ type: 'text', text: 'das Glück' }] }]);
+  assert.equal(facetSampleOf('german', 'article', 'sentence'), null);
+  // Examples applies to both, and each sample holds that facet only.
+  for (const inputType of INPUT_TYPES) {
+    const blocks = facetSampleOf('german', 'examples', inputType);
+    assert.ok(blocks?.length, inputType);
+    const whole = sampleOf('german', inputType);
+    assert.deepEqual(whole.facets.find(each => each.facet === 'examples').body, blocks);
+  }
+  assert.ok(facetSampleOf('chinese', 'pinyin', 'sentence')?.length);
+  // A module's sample shows every facet its sample holds; given facets, only those that apply.
+  assert.deepEqual(sampleOf('german', 'word_phrase').facets.map(each => each.facet), ['article', 'examples', 'synonyms', 'antonyms']);
+  assert.deepEqual(sampleOf('german', 'sentence', ['article', 'examples']).facets.map(each => each.facet), ['examples']);
+  assert.equal(sampleOf('context', 'word_phrase').kind, 'note');
+  assert.equal(sampleOf('text', 'word_phrase'), null, 'Text starts empty');
+  // What a sample was written for: the main key's sample, or an Expertise module's own word.
+  assert.equal(sampleKeyOf('german', 'sentence'), MODULES['main-key'].sample.sentence);
+  assert.equal(sampleKeyOf('computer-science', 'word_phrase'), 'Frontend');
+  assert.equal(sampleKeyOf('computer-science', 'sentence'), undefined);
+});
