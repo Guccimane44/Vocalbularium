@@ -1,7 +1,7 @@
+// Each order with its label's key in the interface catalogue (D14).
 export const SORT_ORDERS = [
-  ['newest', 'Creation time, newest to oldest'], ['oldest', 'Creation time, oldest to newest'],
-  ['az', 'Alphabetical, A to Z'], ['za', 'Alphabetical, Z to A']
-];
+  ['newest', 'sort.newest'], ['oldest', 'sort.oldest'], ['az', 'sort.az'], ['za', 'sort.za']
+] as const;
 const compare = (a: string, b: string) => a < b ? -1 : a > b ? 1 : 0;
 export function sortPages<T extends { id: string; createdAt: string; mainKey: string }>(pages: T[], order = 'newest'): T[] {
   // Unicode normalization plus case folding, then code-unit order is identical on every installation.

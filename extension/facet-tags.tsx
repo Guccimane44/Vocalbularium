@@ -1,7 +1,9 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
-import { facetAbbreviation, facetLabel, ordered } from '@vocabularium/domain/parents';
+import { ordered } from '@vocabularium/domain/parents';
 import type { FacetType, ParentType } from '@vocabularium/domain/parents';
+import { t } from './i18n.ts';
+import { facetMark, facetName } from './catalog-text.ts';
 
 // A parent's facets as bookmark tags on its card (0.7.1), one per facet in the
 // parent's order, each marked with its facet's abbreviation. Where they sit
@@ -190,34 +192,34 @@ export function FacetTags({ holderId, parent, facets, filled, layout, title, dis
 
   // The list stays while empty, so the last tag can still pop and a facet added later flies in.
   const tag = (facet: FacetType, index: number, gone = false) => {
-    const label = facetLabel(parent, facet);
+    const label = facetName(parent, facet);
     const unfilled = filled && !filled.includes(facet);
-    const mark = <span className="facet-tag-mark" aria-hidden="true">{facetAbbreviation(parent, facet)}</span>;
+    const mark = <span className="facet-tag-mark" aria-hidden="true">{facetMark(parent, facet)}</span>;
     const out = pulled === facet && !gone;
-    const state = retrying === facet ? ', generating' : failed === facet ? ', retry failed' : '';
-    const name = `${label}${unfilled ? ', empty' : ''}${state}`;
+    const name = t(retrying === facet ? (unfilled ? 'tag.empty.generating' : 'tag.generating')
+      : failed === facet ? (unfilled ? 'tag.empty.failed' : 'tag.failed') : unfilled ? 'tag.empty' : 'tag.filled', { name: label });
     return <li key={facet} className="facet-tag" data-facet={facet} data-leaving={gone || undefined} data-unfilled={unfilled || undefined}
       data-pulled={out || undefined} data-retrying={retrying === facet || undefined} data-failed={failed === facet || undefined}
       style={{ '--i': index } as CSSProperties} aria-hidden={gone || undefined}>
       {/* On a card's edge the tag pulls out to its Retry (0.7.4); elsewhere it
           is no button, so clicking it moves nothing (0.7.3). */}
-      {pulling && !gone ? <button type="button" className="facet-tag-open" aria-label={`${name} in ${title}`} aria-expanded={out}
+      {pulling && !gone ? <button type="button" className="facet-tag-open" aria-label={t('tag.inCard', { name, card: title })} aria-expanded={out}
         onClick={() => setPulled(out ? null : facet)}>{mark}</button>
         : <span className="facet-tag-open" role="img" aria-label={name}>{mark}</span>}
-      {pulling && !gone && <button type="button" className="facet-tag-retry" aria-label={`Retry ${label} in ${title}`} tabIndex={out ? 0 : -1}
+      {pulling && !gone && <button type="button" className="facet-tag-retry" aria-label={t('tag.retryIn', { name: label, card: title })} tabIndex={out ? 0 : -1}
         aria-hidden={!out || undefined} disabled={disabled || retrying === facet}
         onClick={() => { setPulled(null); onRetry!(facet); }}>
         {/* The card's Retry icon (page-view.tsx). */}
         <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
           <path d="M3 12a9 9 0 1 0 3-6.7L3 8" /><path d="M3 3v5h5" /></svg>
       </button>}
-      {onRemove && !gone && <button type="button" className="facet-tag-remove" aria-label={`Remove ${label} from ${title}`} disabled={disabled}
+      {onRemove && !gone && <button type="button" className="facet-tag-remove" aria-label={t('tag.removeFrom', { name: label, card: title })} disabled={disabled}
         onClick={() => onRemove(facet)}>
         <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><path d="M7 7l10 10M17 7L7 17" /></svg>
       </button>}
     </li>;
   };
-  return <ul ref={root} className="facet-tags" data-layout={place} aria-label={shown.length ? `${title} facets` : undefined}
+  return <ul ref={root} className="facet-tags" data-layout={place} aria-label={shown.length ? t('tag.list', { card: title }) : undefined}
     hidden={!shown.length && !leaving.length || undefined} style={{ '--n': shown.length } as CSSProperties}>
     {shown.map((facet, index) => tag(facet, index))}
     {leaving.filter(item => !shown.includes(item.facet)).map(item => tag(item.facet, item.index, true))}
@@ -231,8 +233,8 @@ export function FacetTags({ holderId, parent, facets, filled, layout, title, dis
 // it, such as the spark while the facet generates on its own.
 export function FacetTab({ parent, facet, children }: { parent: ParentType; facet: FacetType; children?: ReactNode }) {
   return <span className="facet-tab">
-    <span className="facet-tab-mark" aria-hidden="true">{facetAbbreviation(parent, facet)}</span>
-    <span className="facet-tab-label">{facetLabel(parent, facet)}</span>
+    <span className="facet-tab-mark" aria-hidden="true">{facetMark(parent, facet)}</span>
+    <span className="facet-tab-label">{facetName(parent, facet)}</span>
     {children}
   </span>;
 }

@@ -33,11 +33,12 @@
 
 .app-header { max-width: 1160px; margin: 0 auto; padding: 18px 36px; display: flex; align-items: center; gap: 16px; border-bottom: 0; }
 .app-header .header-actions { margin-left: auto; flex-wrap: nowrap; }
-#theme-error:empty { display: none; }
+#theme-error:empty, #language-error:empty { display: none; }
 .app-header .brand { font: 700 24px var(--font-display); }
 body.signed-in .app-header .brand { display: none; }
 .sidebar-toggle { display: none; }
 .theme-control { display: flex; align-items: center; gap: 8px; }
+.theme-control[hidden] { display: none; }
 .theme-control label { margin: 0; }
 .theme-control select { width: auto; padding: 8px 10px; }
 

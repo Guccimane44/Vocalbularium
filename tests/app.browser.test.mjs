@@ -3245,3 +3245,35 @@ test('0.8.0: an Expertise card, leaf green with a graduation cap, explains the k
   assert.deepEqual(colours, ['rgb(70, 110, 18)', 'rgb(255, 255, 255)'], 'leaf green with a white label in the light theme');
   await a.page.screenshot({ path: 'artifacts/v0.8.0-expertise-card.png', fullPage: true });
 });
+
+test('0.9.0: Language in the account menu is the account’s preference, English by default, and a language not offered keeps English (D14)', { timeout: 45000 }, async (t) => {
+  const directory = await mkdtemp(join(tmpdir(), 'vocabularium-language-browser-'));
+  const application = await createTestApplication(t); await application.start();
+  const a = await launch(join(directory, 'a'));
+  t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
+  const documentLanguage = () => a.page.evaluate(() => [document.documentElement.lang, document.documentElement.dir]);
+  // Signed out there is no account, so no Language; the interface is English.
+  assert.deepEqual(await documentLanguage(), ['en', 'ltr']);
+  assert.equal(await a.page.locator('#language-control').isVisible(), false);
+  await signIn(a.page);
+  await accountMenu(a.page);
+  const language = a.page.getByLabel('Language', { exact: true });
+  await language.waitFor();
+  assert.equal(await language.inputValue(), 'en');
+  assert.deepEqual(await language.locator('option').allTextContents(), ['English'], 'only complete, reviewed languages are offered');
+  // The worker saves the preference to the account and returns the refreshed account.
+  const saved = await a.page.evaluate(() => chrome.runtime.sendMessage({ type: 'set-language', language: 'en' }));
+  assert.equal(saved.account.language, 'en');
+  assert.equal((await application.store.summary()).language, 'en');
+  const rejected = await a.page.evaluate(() => chrome.runtime.sendMessage({ type: 'set-language', language: 'de' }));
+  assert.equal(rejected.code, 'invalid');
+  // Another installation chooses a language this build does not offer yet: the interface stays English.
+  await application.store.setLanguage('remote-french', 'fr');
+  await a.page.waitForFunction(async () => (await chrome.storage.local.get('account')).account?.language === 'fr', null, { timeout: 15000 });
+  assert.deepEqual(await documentLanguage(), ['en', 'ltr']);
+  await a.page.getByRole('heading', { name: 'Your decks', exact: true }).waitFor();
+  assert.equal(await language.inputValue(), 'en');
+  await a.page.reload();
+  await a.page.getByRole('heading', { name: 'Your decks', exact: true }).waitFor();
+  assert.deepEqual(await documentLanguage(), ['en', 'ltr']);
+});

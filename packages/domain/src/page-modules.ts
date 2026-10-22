@@ -40,11 +40,20 @@ export const isContentType = (type: string): type is ParentType => isModuleType(
 // The module window offers everything but the main key, which is always present.
 export const WINDOW_MODULES = (Object.keys(CATALOG) as ModuleType[]).filter(type => CATALOG[type].instances !== 'first-once');
 
-// Why a module of this type cannot be added to these modules, or null.
+// Why a module of this type cannot be added to these modules, or null: as a
+// reason the interface words in its language (D14), and in English for the API.
+export type AddBlockedReason = 'unavailable' | 'limit' | 'single';
+export function addBlockedReason(modules: readonly { type: string }[], type: string): AddBlockedReason | null {
+  if (!isModuleType(type) || CATALOG[type].instances === 'first-once') return 'unavailable';
+  if (modules.length >= MAX_MODULES) return 'limit';
+  if (CATALOG[type].instances === 'at-most-one' && modules.some(module => module.type === type)) return 'single';
+  return null;
+}
 export function addBlocked(modules: readonly { type: string }[], type: string): string | null {
-  if (!isModuleType(type) || CATALOG[type].instances === 'first-once') return 'This module cannot be added.';
-  if (modules.length >= MAX_MODULES) return `At most ${MAX_MODULES} modules, including the main key.`;
-  if (CATALOG[type].instances === 'at-most-one' && modules.some(module => module.type === type)) return `There is already a ${CATALOG[type].label}.`;
+  const reason = addBlockedReason(modules, type);
+  if (reason === 'unavailable') return 'This module cannot be added.';
+  if (reason === 'limit') return `At most ${MAX_MODULES} modules, including the main key.`;
+  if (reason === 'single') return `There is already a ${CATALOG[type as ModuleType].label}.`;
   return null;
 }
 

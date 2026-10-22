@@ -21,20 +21,24 @@ Recorded in D14 and K35 on 22 October 2026 and applied to the specifications:
 
 ## Cost baseline
 
-Counted on `main` at 0.8.1, before increment A:
+Counted at 0.8.1, the extension's count by the extraction in increment A:
 
 | Source | Count |
 | --- | --- |
-| Distinct interface strings in the extension (labels, buttons, messages, statuses; estimated by scanning text nodes and capitalised string literals) | about 150; the extraction in increment A gives the exact number |
-| Interface messages from the API, shown to the user (`StoreError` and `apiFailure` texts) | counted in increment A |
+| Interface messages of the extension (`extension/locales/en/messages.json`: labels, buttons, statuses, announcements, dialogs, the worker's menu and feedback) | 263 |
+| Catalog texts shown in the interface (module and family names, descriptions, facet names and marks, the core's names) | 42 |
+| Messages from the API that reach the user (`StoreError` and `apiFailure` texts) | about 58 |
 | Explanations (`explanation.md` in the catalog) | 24 |
 
-Each language other than English therefore translates a few hundred short strings and 24 short texts. Increment A records the exact counts in its PR, and the tracker carries them forward.
+Each language other than English therefore translates about 360 short strings and 24 short texts.
 
 ## String process
 
 - **Catalogue per language.** `extension/locales/<language>/messages.json`: flat keys (`settings.appearance.label`), each with a message in ICU-like form, `{name}` placeholders and plural forms chosen with `Intl.PluralRules`. English is the source; it is complete by definition.
-- **One lookup.** `extension/i18n.ts` exports `t(key, values)`, the current language and its direction, and a subscription that redraws the interface when the preference changes. The API keeps returning English messages with stable codes; the extension shows the message for the code from its catalogue and the English text only as a fallback.
+- **One lookup.** `extension/i18n.ts` exports `t(key, values)`, the current language and its direction, and a subscription that redraws the interface when the preference changes. Static pages mark their texts with `data-i18n`.
+- **Catalog texts** keep their English in the catalog; a language's catalogue names them as `catalog.<module>.label` and the like, read through `extension/catalog-text.ts`. A reason the domain gives the interface, such as why a module cannot be added, is a code the extension words (`addBlockedReason`).
+- **API messages** stay English on the wire. Increment C gives each message the API shows a stable key in its failure details, so the extension shows it from its catalogue; until then they are shown in English.
+- **The manifest's** name and description stay English (Chrome would choose their language by the browser's, not the account's); the toolbar button's title follows the preference, set by the worker.
 - **Explanations** move to `explanation.<language>.md` beside the English `explanation.md`; a missing translation falls back to English.
 - **Checks.** A conformance test fails when a key used in the code is missing from the English catalogue, when a catalogue has keys English does not, when placeholders differ from English, or when a language offered in the settings is incomplete. A scan fails on a new hard-coded interface text in the extension.
 - **Translation.** Claude drafts every translation; the owner arranges a review by a fluent reader for each language before that language is offered. A language becomes selectable only when its catalogue and explanations are complete and reviewed.
@@ -49,7 +53,7 @@ K35 applied to the traceability map, shared UI, scope and the Q69 answer; this p
 
 ### A. Strings externalised, and the language preference
 
-- **Catalogue and lookup** as in the string process, with the English catalogue only. Every interface text in `extension/` moves to it, including `app.html`, `feedback.html`, the context menu and the badge; API codes shown to the user get catalogue entries.
+- **Catalogue and lookup** as in the string process, with the English catalogue only. Every interface text in `extension/` moves to it, including `app.html`, `feedback.html`, the context menu, the capture feedback and the worker's messages.
 - **Preference.** Migration `0016` adds `account.language` (`text not null default 'en'`, checked against the six codes). `GET /api/account/summary` returns it; `POST /api/language` sets it as an operation with a receipt, like the default deck. The extension keeps the last known value locally, so the interface starts in it before the API answers.
 - **Settings.** A **Language** select beside **Appearance**, each language named in itself, listing only the languages whose catalogue is complete; in this increment only English. A save failure shows "Language could not be saved. Try again." and keeps the previous value.
 - **Document language.** `<html lang dir>` follows the preference on every extension page.
@@ -64,7 +68,8 @@ K35 applied to the traceability map, shared UI, scope and the Q69 answer; this p
 
 ### C. The five translations
 
-- **Interface catalogues** for Arabic, Chinese (Simplified), French, Russian and Spanish, and the 24 explanations in each.
+- **Interface catalogues** for Arabic, Chinese (Simplified), French, Russian and Spanish, with their catalog texts, and the 24 explanations in each.
+- **API messages** gain stable keys, translated in each catalogue.
 - **Expertise modules** write in the language preference: the prompt composer receives it as generation input, and the generation record notes it. The Languages modules are unchanged.
 - **Fonts:** the bundled Fraunces and Instrument Sans cover Latin and Cyrillic; Arabic and Chinese use system fonts, as Chinese content already does ([shared UI](../specs/shared-ui.md#visual-identity)).
 - **Review:** each language is offered once its review is done; the PR lists the reviewer per language.
@@ -90,7 +95,7 @@ K35 applied to the traceability map, shared UI, scope and the Q69 answer; this p
 - **Translation quality** in languages the owner does not read: no language is offered before a fluent reader has reviewed it.
 - **Right-to-left layout** touches every stylesheet and the shared drag-and-drop code; increment B tests it on its own before any translation lands.
 - **Text length:** French, Russian and Spanish run up to a third longer than English; the lengthened pseudo-language finds truncation early.
-- **API messages** stay English on the wire; a code without a catalogue entry shows English. The conformance test lists the codes.
+- **API messages** stay English until increment C keys them; a message without a key shows English.
 
 ## Not in this milestone
 

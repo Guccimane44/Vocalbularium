@@ -1,4 +1,5 @@
 import { deckColour } from './deck-colour.ts';
+import { t } from './i18n.ts';
 
 // The signed-in shell (D05): the deck sidebar and the account menu around the
 // views in #app. Plain DOM, like the session controls it replaces.
@@ -10,7 +11,13 @@ const element = (tag, text, className) => {
   return node;
 };
 
+// An element whose text is a catalogue message, redrawn when the language changes.
+const labelled = (tag, key, className) => { const node = element(tag, t(key), className); node.dataset.i18n = key; return node; };
 const sidebar = () => document.querySelector('#sidebar');
+// Appearance and Language move between the header and the account menu, which
+// logging out discards, so they are kept from the first lookup.
+let kept;
+const controls = () => (kept ??= { theme: document.querySelector('#theme-control'), language: document.querySelector('#language-control') });
 const toggle = () => document.querySelector('#sidebar-toggle');
 const narrow = matchMedia('(max-width: 900px)');
 
@@ -40,7 +47,9 @@ export function showSignedOutShell() {
   document.body.classList.remove('signed-in');
   sidebar().hidden = true; sidebar().replaceChildren(); order = [];
   toggle().hidden = true; setSidebarOpen(false);
-  document.querySelector('.header-actions').prepend(document.querySelector('#theme-control'));
+  const { theme, language } = controls();
+  document.querySelector('.header-actions').prepend(theme, language);
+  language.hidden = true;
 }
 
 // Views sometimes merge a fetched deck into the account's list; keep the
@@ -58,10 +67,10 @@ export function renderSidebar({ decks, currentDeckId, newDeck }) {
   nav.hidden = false; toggle().hidden = false;
   const brand = element('a', 'Vocabularium', 'brand');
   brand.href = '#'; brand.append(element('span', '.', 'brand-mark'));
-  const home = element('a', 'Home', 'nav-item');
+  const home = element('a', t('nav.home'), 'nav-item');
   home.href = '#';
   if (!location.hash || location.hash === '#') home.setAttribute('aria-current', 'page');
-  const heading = element('p', 'Decks', 'nav-heading');
+  const heading = element('p', t('nav.decks'), 'nav-heading');
   const list = element('ul', undefined, 'nav-decks');
   for (const deck of stable(decks)) {
     const item = element('li');
@@ -70,11 +79,11 @@ export function renderSidebar({ decks, currentDeckId, newDeck }) {
     if (deck.id === currentDeckId) link.setAttribute('aria-current', 'page');
     const mark = element('span', undefined, 'fam-mark'); mark.setAttribute('aria-hidden', 'true');
     const count = element('span', String(deck.pageCount ?? 0), 'nav-count');
-    count.setAttribute('aria-label', `${deck.pageCount ?? 0} ${deck.pageCount === 1 ? 'page' : 'pages'}`);
+    count.setAttribute('aria-label', t('deck.pageCount', { count: deck.pageCount ?? 0 }));
     link.append(mark, element('span', deck.name, 'nav-label'), count);
     item.append(link); list.append(item);
   }
-  const add = element('button', '+ New deck', 'nav-item nav-add');
+  const add = element('button', t('nav.newDeck'), 'nav-item nav-add');
   add.type = 'button'; add.onclick = newDeck;
   nav.replaceChildren(brand, home, heading, list, add);
 }
@@ -94,7 +103,7 @@ export function renderAccountMenu(root, { logOut, diagnostics }) {
   if (root.querySelector('.account-menu')) return;
   {
     const menu = element('div', undefined, 'account-menu');
-    const trigger = element('button', 'Account', 'account-trigger');
+    const trigger = labelled('button', 'account.menu', 'account-trigger');
     trigger.type = 'button'; trigger.setAttribute('aria-expanded', 'false'); trigger.setAttribute('aria-controls', 'account-panel');
     const panel = element('div', undefined, 'account-panel');
     panel.id = 'account-panel'; panel.hidden = true;
@@ -102,15 +111,16 @@ export function renderAccountMenu(root, { logOut, diagnostics }) {
       const open = panel.hidden;
       panel.hidden = !open; menu.classList.toggle('open', open); trigger.setAttribute('aria-expanded', String(open));
     };
-    const action = (text, run) => {
-      const node = element('button', text, 'menu-action');
+    const action = (key, run) => {
+      const node = labelled('button', key, 'menu-action');
       node.type = 'button';
       node.onclick = () => { closeAccountMenu(); run(); };
       return node;
     };
-    panel.append(document.querySelector('#theme-control'), action('Diagnostic logs', diagnostics), action('Log out', logOut));
-    // Choosing an appearance is the menu's action: close it and return focus to its trigger.
-    panel.querySelector('#theme').addEventListener('change', () => { closeAccountMenu(); trigger.focus(); });
+    const { theme, language } = controls(); language.hidden = false;
+    panel.append(theme, language, action('account.diagnostics', diagnostics), action('account.logOut', logOut));
+    // Choosing an appearance or a language is the menu's action: close it and return focus to its trigger.
+    for (const control of panel.querySelectorAll('#theme, #language')) control.addEventListener('change', () => { closeAccountMenu(); trigger.focus(); });
     menu.append(trigger, panel);
     root.replaceChildren(menu);
   }

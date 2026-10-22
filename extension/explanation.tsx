@@ -5,6 +5,8 @@ import type { ModuleFamily } from '@vocabularium/domain/page-modules';
 import type { FacetType, ParentType } from '@vocabularium/domain/parents';
 import { FamilyIcon } from './families.tsx';
 import { Content, Markdown } from './page-view.tsx';
+import { t } from './i18n.ts';
+import { moduleLabel } from './catalog-text.ts';
 
 // Explanations (D13, 0.8.1): what a module or a facet contributes and when to
 // use it, then its sample for a word and for a sentence, as its card would
@@ -12,8 +14,8 @@ import { Content, Markdown } from './page-view.tsx';
 
 const forWhat = (module: string, inputType: 'word_phrase' | 'sentence') => {
   const key = sampleKeyOf(module, inputType);
-  const what = inputType === 'word_phrase' ? 'For a word' : 'For a sentence';
-  return key ? `${what}: ${key}` : what;
+  const what = inputType === 'word_phrase' ? t('about.forWord') : t('about.forSentence');
+  return key ? t('about.forKey', { what, key }) : what;
 };
 
 // A module's explanation in a dialog, opened from the link below its + in the
@@ -30,7 +32,7 @@ export function ModuleExplanation({ type, close }: { type: string; close: () => 
   const done = () => { ref.current?.close(); close(); };
   const entry = isModuleType(type) ? CATALOG[type] : null;
   const family: ModuleFamily = entry?.family ?? 'notes';
-  const label = entry?.label ?? type;
+  const label = moduleLabel(type);
   const titleId = `about-${type}`;
   return <dialog ref={ref} className={`explanation-dialog fam-${family}`} aria-labelledby={titleId}
     onCancel={event => { event.preventDefault(); done(); }}
@@ -38,15 +40,15 @@ export function ModuleExplanation({ type, close }: { type: string; close: () => 
     <div className="explanation-head">
       <span className="fam-chip"><FamilyIcon family={family} /></span>
       <h2 id={titleId}>{label}</h2>
-      <button type="button" className="preview-close" aria-label={`Close About ${label}`} onClick={done}>×</button>
+      <button type="button" className="preview-close" aria-label={t('about.close', { name: label })} onClick={done}>×</button>
     </div>
     <Markdown blocks={explanationBlocks(type)} mainKey="" className="explanation-text" />
     <div className="explanation-samples">
       {INPUT_TYPES.map(inputType => {
         const rendered = sampleOf(type, inputType);
         if (!rendered) return null;
-        return <section key={inputType} className="explanation-sample" aria-label={`Sample: ${forWhat(type, inputType)}`}>
-          <h3>{forWhat(type, inputType)} <span className="muted">· sample</span></h3>
+        return <section key={inputType} className="explanation-sample" aria-label={t('about.sampleLabel', { what: forWhat(type, inputType) })}>
+          <h3>{forWhat(type, inputType)} <span className="muted">{t('about.sample')}</span></h3>
           <article className={`component preview fam-${family}`} data-type={type}>
             <Content type={type} rendered={rendered} mainKey={sampleKeyOf(type, inputType) ?? ''} />
           </article>
@@ -64,7 +66,7 @@ export function FacetExplanation({ id, parent, facet }: { id: string; parent: Pa
     {INPUT_TYPES.map(inputType => {
       const blocks = facetSampleOf(parent, facet, inputType);
       return blocks && <div key={inputType} className="explanation-sample">
-        <h4>{forWhat(parent, inputType)} <span className="muted">· sample</span></h4>
+        <h4>{forWhat(parent, inputType)} <span className="muted">{t('about.sample')}</span></h4>
         <Markdown blocks={blocks} mainKey={sampleKeyOf(parent, inputType) ?? ''} className="facet-body" />
       </div>;
     })}

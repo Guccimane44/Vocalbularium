@@ -8,17 +8,22 @@ import { captureBadge } from './badge.js';
 import { relayFeedbackTheme } from './feedback.js';
 import { isApiFailure } from './api-failure.js';
 import { extensionDiagnostics } from './diagnostics.js';
+import { initializeLanguage, onLanguageChange, setLanguage, t } from './i18n.ts';
 /** @import { AccessState, CaptureReceipt, RuntimeMessage, SessionItems, StoredAccount } from '../types/extension.js' */
 
 export function startBackground() {
+  // The worker's texts (the capture menu, feedback, errors) follow the account's language (D14);
+  // the toolbar button's title too, which the manifest gives in English.
+  onLanguageChange(() => { void chrome.action.setTitle({ title: t('worker.openTitle') }).catch(() => {}); });
+  void initializeLanguage();
   const diagnostics = extensionDiagnostics({ upload: async events => {
     const { auth } = await readLocal('auth');
-    if (!auth) throw new Error('Collection requires sign-in.');
+    if (!auth) throw new Error(t('worker.collectionSignIn'));
     const response = await fetch(API_URL + '/api/diagnostics/events', {
       method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${auth.token}` },
       body: JSON.stringify({ events }), signal: AbortSignal.timeout(10000)
     });
-    if (!response.ok) throw new Error('Diagnostic collection is unavailable.');
+    if (!response.ok) throw new Error(t('worker.collectionUnavailable'));
     return response.json();
   } });
   diagnostics.record({ event: 'worker.started', outcome: 'succeeded' });
@@ -115,7 +120,7 @@ export function startBackground() {
       if (!diagnosticRoute) diagnostics.record({ ...metadata, event: 'request.failed', outcome: 'failed', severity: 'error',
         category: error.name === 'TimeoutError' ? 'timeout' : error instanceof SyntaxError ? 'invalid_response' : 'transport',
         durationMs: Math.round(performance.now() - started) });
-      throw new Error('The account server is unavailable or waking up. Wait a minute and try again.');
+      throw new Error(t('worker.serverUnavailable'));
     }
     diagnostics.addSecret(result.token);
     if (meaningful || (!diagnosticRoute && !response.ok)) diagnostics.record({ ...metadata,
@@ -124,7 +129,7 @@ export function startBackground() {
       errorCode: result.code, outcome: response.ok ? result.replayed ? 'replayed' : 'succeeded' : 'failed',
       severity: response.ok ? 'info' : 'warn', durationMs: Math.round(performance.now() - started) });
     if (!response.ok) {
-      const failure = isApiFailure(result) ? result : { error: 'The account server rejected the request.', code: 'server_error' };
+      const failure = isApiFailure(result) ? result : { error: t('worker.serverRejected'), code: 'server_error' };
       throw Object.assign(new Error(failure.error), { code: failure.code, status: response.status, details: failure.details });
     }
     return result;
@@ -187,7 +192,7 @@ export function startBackground() {
     if (message.type === 'diagnostics-configure') return diagnostics.configure({ budgetBytes: message.budgetBytes });
     if (message.type === 'diagnostics-cleanup') {
       const { auth } = await readLocal('auth');
-      if (!auth) throw new Error('Sign in to manage backend logs.');
+      if (!auth) throw new Error(t('worker.logsSignIn'));
       const backend = await request('/api/diagnostics/cleanup', { ...message.range, preview: message.preview === true }, auth.token);
       if (message.preview) return { backend };
       return { backend, local: await diagnostics.cleanup(backend.range) };
@@ -223,12 +228,12 @@ export function startBackground() {
     const { auth } = await readLocal('auth');
     if (!auth) {
       if (message.type === 'refresh') return { signedIn: false };
-      throw Object.assign(new Error('Sign in to continue.'), { code: 'unauthorized' });
+      throw Object.assign(new Error(t('worker.signIn')), { code: 'unauthorized' });
     }
     /** @param {unknown} [saved] @returns {Promise<any>} */
     async function refreshAfterMutation(saved) {
       const state = await run({ type: 'refresh' });
-      if (!state.signedIn) throw Object.assign(new Error('Sign in to confirm the saved change.'), { code: 'unauthorized' });
+      if (!state.signedIn) throw Object.assign(new Error(t('worker.signInToConfirm')), { code: 'unauthorized' });
       return saved === undefined ? state : { ...state, saved };
     }
     try {
@@ -245,6 +250,13 @@ export function startBackground() {
         const operationId = message.operationId ?? crypto.randomUUID();
         const pending = { operationId, path: '/api/default-deck', payload: { operationId, deckId: message.deckId } };
         await saves.perform(pending, auth.token);
+        return refreshAfterMutation();
+      }
+      if (message.type === 'set-language') {
+        const operationId = message.operationId ?? crypto.randomUUID();
+        await saves.perform({ operationId, path: '/api/language', payload: { operationId, language: message.language } }, auth.token, ['invalid']);
+        // The worker's own texts, such as the capture menu, change before the refresh redraws them.
+        setLanguage(message.language);
         return refreshAfterMutation();
       }
       /** @type {Record<string, string>} */
@@ -279,9 +291,9 @@ export function startBackground() {
         }
         return refreshAfterMutation();
       }
-      throw new Error('This action is unavailable.');
+      throw new Error(t('worker.actionUnavailable'));
     } catch (/** @type {any} */ error) {
-      if (error.status === 401) { if (version === accessVersion) await removeAccess(); throw Object.assign(new Error('Sign in to continue.'), { code: 'unauthorized' }); }
+      if (error.status === 401) { if (version === accessVersion) await removeAccess(); throw Object.assign(new Error(t('worker.signIn')), { code: 'unauthorized' }); }
       throw error;
     }
   }

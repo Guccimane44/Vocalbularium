@@ -1,4 +1,5 @@
 import { safeEvent, timeRange, withinRange, MAX_EVENT_BYTES, EXTENSION_LOG_BUDGET } from '../shared/diagnostics.mjs';
+import { t } from './i18n.ts';
 
 const requestValue = request => new Promise((resolve, reject) => {
   request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error);
@@ -121,7 +122,7 @@ export function extensionDiagnostics({ upload, databaseName = 'vocabularium-diag
     }));
   }
   async function configure({ budgetBytes: value }) {
-    if (!Number.isSafeInteger(value) || value < 0 || value > 1024 * 1024 * 1024) throw new Error('Buffer budget must be between 0 and 1024 MiB.');
+    if (!Number.isSafeInteger(value) || value < 0 || value > 1024 * 1024 * 1024) throw new Error(t('diagnostics.budgetRange'));
     return ordered(() => transaction('readwrite', async (_events, state) => {
       const policy = await readState(state);
       policy.budgetBytes = value;

@@ -45,7 +45,7 @@ Every interface text is English, in sentence case, and English is the default **
 
 - **The preference** belongs to the account, so every installation shows the same language. It starts as English and does not follow the browser's language unless the user chooses.
 - **What it sets:** the interface text, the [explanations](modules.md#explanations) of modules and facets, and the language the Expertise modules write in ([modules](modules.md#catalog)). The Languages modules keep writing in their own language, and a captured key is never translated by the preference; otherwise the interface language is independent of the language of generated content.
-- **Until it is built,** interface text stays English in the code. The localisation plan chooses the string process (externalised strings, translator workflow, checks per language) and first counts the interface strings as its cost baseline.
+- **Strings.** Every interface text is an entry of the English catalogue (`extension/locales/en/messages.json`), the source of every other language; no interface text is written into the code, and the localisation test fails on one that is. A language is offered only when its catalogue and explanations are complete and reviewed ([localisation plan](../plans/localisation.md#string-process)). Until then the preference offers English alone.
 
 ## List state presentation
 

@@ -1,9 +1,9 @@
-import type { DeckColour, InputInterpretation } from '@vocabularium/contracts';
+import type { DeckColour, InputInterpretation, InterfaceLanguage } from '@vocabularium/contracts';
 import type { ModuleInstance } from '@vocabularium/domain/modules';
 
 export type DeckRow = Readonly<{ id: string; name: string; view: 'default'; colour: DeckColour | null; ordinal: number }>;
 export type DeckModuleRow = Readonly<{ id: string; deck_id: string; position: number; type: string; facets: string[] }>;
-export type AccountRow = Readonly<{ id: 1; default_deck_id: string }>;
+export type AccountRow = Readonly<{ id: 1; default_deck_id: string; language: InterfaceLanguage }>;
 export type InstallationRow = Readonly<{ id: string; epoch: number; session_id: string }>;
 export type PageRow = Readonly<{
   id: string;

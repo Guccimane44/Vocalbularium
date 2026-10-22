@@ -1,3 +1,5 @@
+import { t } from './i18n.ts';
+
 type ChoiceOption = { value: string; label: string };
 type ChoiceSelect = {
   label: string;
@@ -22,7 +24,7 @@ export function dialog({ title, message, choices, select }: {
       for (const option of select.options) { const node = document.createElement('option'); node.value = option.value; node.textContent = option.label; input.append(node); }
       label.append(input); modal.append(label);
       if (select.cursor && select.loadMore) {
-        const more = document.createElement('button'); more.textContent = 'Load more decks';
+        const more = document.createElement('button'); more.textContent = t('dashboard.moreDecks');
         const error = document.createElement('p'); error.className = 'error'; error.setAttribute('role', 'alert');
         let cursor: string | null = select.cursor;
         const loadMore = select.loadMore;
@@ -39,7 +41,7 @@ export function dialog({ title, message, choices, select }: {
             cursor = page.nextCursor;
             if (confirm && input!.options.length) confirm.disabled = false;
             if (!cursor) more.remove(); else more.disabled = false;
-          } catch (cause) { error.textContent = cause instanceof Error ? cause.message : 'Could not load more decks.'; more.disabled = false; }
+          } catch (cause) { error.textContent = cause instanceof Error ? cause.message : t('dialog.moreDecksFailed'); more.disabled = false; }
         };
         modal.append(more, error);
       }

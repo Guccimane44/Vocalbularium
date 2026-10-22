@@ -1,9 +1,11 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
-import { facetAbbreviation, facetLabel, facetsOf } from '@vocabularium/domain/parents';
+import { facetsOf } from '@vocabularium/domain/parents';
 import type { FacetType, ParentType } from '@vocabularium/domain/parents';
 import { FacetExplanation } from './explanation.tsx';
 import { launchFacet } from './facet-tags.tsx';
+import { t } from './i18n.ts';
+import { facetMark, facetName } from './catalog-text.ts';
 
 // A parent's facet window (D13, 0.8.1), opened by Facet among the parent's
 // actions, on a page and in deck settings. It lists every facet of the
@@ -71,7 +73,7 @@ export function FacetWindow({ holderId, parent, title, facets, disabled, hasCont
       forget(facet);
     }
   }
-  return <div ref={root} className="facet-window" role="group" aria-label={`Facets of ${title}`}
+  return <div ref={root} className="facet-window" role="group" aria-label={t('card.facetsOf', { card: title })}
     onKeyDown={event => {
       if (event.key !== 'Escape') return;
       event.stopPropagation();
@@ -79,15 +81,15 @@ export function FacetWindow({ holderId, parent, title, facets, disabled, hasCont
     }}>
     <ul>
       {facetsOf(parent).map(facet => {
-        const label = facetLabel(parent, facet);
+        const label = facetName(parent, facet);
         const on = equipped(facet);
         const tickId = `${ids}-${facet}`, aboutId = `${ids}-${facet}-about`;
         return <li key={facet} className="facet-window-row" data-facet={facet} data-equipped={on || undefined} data-reading={reading === facet || undefined}>
           <label htmlFor={tickId}>
-            <span className="facet-tab-mark" aria-hidden="true">{facetAbbreviation(parent, facet)}</span>
+            <span className="facet-tab-mark" aria-hidden="true">{facetMark(parent, facet)}</span>
             <span className="facet-window-name">{label}</span>
           </label>
-          <button type="button" className="facet-about" aria-label={`About ${label}`} aria-expanded={reading === facet}
+          <button type="button" className="facet-about" aria-label={t('shaping.about', { name: label })} aria-expanded={reading === facet}
             aria-controls={reading === facet ? aboutId : undefined} onClick={() => setReading(reading === facet ? null : facet)}>
             <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
               <circle cx="12" cy="12" r="9.5" /><path d="M12 11v6" /><path d="M12 7.5h.01" /></svg>
@@ -95,7 +97,7 @@ export function FacetWindow({ holderId, parent, title, facets, disabled, hasCont
           {/* While the parent is busy a tick still holds the focus, so it is only marked unavailable. */}
           <input id={tickId} type="checkbox" checked={on} aria-disabled={disabled || undefined} hidden={asking === facet}
             onClick={event => { if (disabled) event.preventDefault(); }} onChange={() => void toggle(facet)} />
-          {asking === facet && <FacetQuestion name={`${label} from ${title}`}
+          {asking === facet && <FacetQuestion name={t('facet.fromCard', { facet: label, card: title })}
             onConfirm={() => { answer(facet); void remove(facet); }}
             onCancel={() => answer(facet)} />}
           {reading === facet && <FacetExplanation id={aboutId} parent={parent} facet={facet} />}
@@ -110,9 +112,9 @@ export function FacetWindow({ holderId, parent, title, facets, disabled, hasCont
 function FacetQuestion({ name, onConfirm, onCancel }: { name: string; onConfirm: () => void; onCancel: () => void }) {
   const cancel = useRef<HTMLButtonElement>(null);
   useEffect(() => { cancel.current?.focus(); }, []);
-  return <span className="facet-confirm" data-confirm="delete" role="group" aria-label={`Delete ${name}?`}>
-    <span className="confirm-text" style={{ '--i': 2 } as CSSProperties}>Are you sure?</span>
-    <button type="button" className="action-confirm" style={{ '--i': 1 } as CSSProperties} aria-label={`Yes, delete ${name}`} onClick={onConfirm}>Delete</button>
-    <button type="button" ref={cancel} style={{ '--i': 0 } as CSSProperties} aria-label={`Keep ${name}`} onClick={onCancel}>Cancel</button>
+  return <span className="facet-confirm" data-confirm="delete" role="group" aria-label={t('action.deleteAsk', { name })}>
+    <span className="confirm-text" style={{ '--i': 2 } as CSSProperties}>{t('common.areYouSure')}</span>
+    <button type="button" className="action-confirm" style={{ '--i': 1 } as CSSProperties} aria-label={t('action.confirmDelete', { name })} onClick={onConfirm}>{t('common.delete')}</button>
+    <button type="button" ref={cancel} style={{ '--i': 0 } as CSSProperties} aria-label={t('action.keepNamed', { name })} onClick={onCancel}>{t('common.cancel')}</button>
   </span>;
 }

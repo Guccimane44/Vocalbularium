@@ -3,18 +3,20 @@
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Vocabularium</title><link rel="stylesheet" href="../app.css"></head>
 <body>
   <div class="shell">
-    <nav id="sidebar" class="sidebar" aria-label="Decks" hidden></nav>
+    <nav id="sidebar" class="sidebar" aria-label="Decks" data-i18n="nav.decks" data-i18n-attribute="aria-label" hidden></nav>
     <div class="main-column">
       <header class="app-header">
-        <button type="button" id="sidebar-toggle" class="sidebar-toggle" aria-controls="sidebar" aria-expanded="false" hidden>Decks</button>
+        <button type="button" id="sidebar-toggle" class="sidebar-toggle" aria-controls="sidebar" aria-expanded="false" data-i18n="nav.decks" hidden>Decks</button>
         <a class="brand" id="header-brand" href="#">Vocabularium<span class="brand-mark">.</span></a>
         <div class="header-actions">
-          <div class="theme-control" id="theme-control"><label for="theme">Appearance</label><select id="theme"><option value="system">System</option><option value="light">Sage</option><option value="dark">Moss night</option></select></div>
+          <div class="theme-control" id="theme-control"><label for="theme" data-i18n="settings.appearance">Appearance</label><select id="theme"><option value="system" data-i18n="settings.appearance.system">System</option><option value="light" data-i18n="settings.appearance.light">Sage</option><option value="dark" data-i18n="settings.appearance.dark">Moss night</option></select></div>
+          <div class="theme-control" id="language-control" hidden><label for="language" data-i18n="settings.language">Language</label><select id="language"></select></div>
           <div id="session-actions"></div>
           <p id="theme-error" class="error" role="alert"></p>
+          <p id="language-error" class="error" role="alert"></p>
         </div>
       </header>
-      <main id="app" aria-live="polite"><p>Opening your vocabulary…</p></main>
+      <main id="app" aria-live="polite"><p data-i18n="app.opening">Opening your vocabulary…</p></main>
     </div>
   </div>
   <script type="module" src="../app.js"></script>

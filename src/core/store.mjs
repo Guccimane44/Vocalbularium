@@ -8,6 +8,7 @@ import {
 import { facetAddBlocked, facetDeleteBlocked, isParentType, withFacet } from '@vocabularium/domain/parents';
 import { blankContent, hasFacetContent, isEmptyContent, parentContentOf, parentDocument, validateParentContent, withFacetText } from '@vocabularium/domain/content';
 import { sortKey } from './sort-key.mjs';
+import { INTERFACE_LANGUAGES } from '@vocabularium/contracts';
 /** @import { BlockDocument, BrowserSession, CapturePreparationRequest, Component, ComponentDeleteRequest, ComponentMoveRequest, DeckConfiguration, DeckDeleteRequest, FacetChangePayload, InputInterpretation, ModuleAddRequest, ModuleInstance, Page, PageCaptureRequest, PageCreateRequest, PageGenerateRequest, PageSaveRequest, ParentHeader, PublishRequest } from '@vocabularium/contracts' */
 /** @import { ParentContent } from '@vocabularium/domain/content' */
 /** @import { FacetType, ParentType } from '@vocabularium/domain/parents' */
@@ -243,10 +244,10 @@ export class AccountStore {
   }
   async account() {
     return this.database.transaction(async () => {
-      const { default_deck_id: defaultDeckId } = /** @type {AccountRow} */ (await this.database.one("SELECT * FROM account", []));
+      const { default_deck_id: defaultDeckId, language } = /** @type {AccountRow} */ (await this.database.one("SELECT * FROM account", []));
       const decks = [];
       for (const { id } of /** @type {Pick<DeckRow, 'id'>[]} */ (await this.database.all('SELECT id FROM decks ORDER BY ordinal'))) decks.push(await this.deck(id));
-      return { defaultDeckId, decks, pages: (await this.pages()), sequence: await this.readSequence() };
+      return { defaultDeckId, language, decks, pages: (await this.pages()), sequence: await this.readSequence() };
     });
   }
   async readSequence() {
@@ -276,9 +277,9 @@ export class AccountStore {
   }
   async summary() {
     return this.database.transaction(async () => {
-      const { default_deck_id: defaultDeckId } = /** @type {AccountRow} */ (await this.database.one('SELECT default_deck_id FROM account WHERE id = $1', [this.accountId]));
+      const { default_deck_id: defaultDeckId, language } = /** @type {AccountRow} */ (await this.database.one('SELECT default_deck_id, language FROM account WHERE id = $1', [this.accountId]));
       const listed = await this.listDecks();
-      return { defaultDeckId, defaultDeckSnapshot: await this.deck(defaultDeckId), ...listed };
+      return { defaultDeckId, language, defaultDeckSnapshot: await this.deck(defaultDeckId), ...listed };
     });
   }
   /** @param {string} deckId @param {{ order?: string, cursor?: string, limit?: number }} [options] */
@@ -337,6 +338,14 @@ export class AccountStore {
       await this.deck(deckId);
       await this.database.run("UPDATE account SET default_deck_id = $1 WHERE id = 1", [deckId]);
       return { defaultDeckId: deckId };
+    });
+  }
+  /** @param {string} operationId @param {unknown} language */
+  async setLanguage(operationId, language) {
+    return await this.command(operationId, 'set-language', { language }, async () => {
+      if (!INTERFACE_LANGUAGES.includes(/** @type {any} */ (language))) fail('invalid', 'Choose a supported language.');
+      await this.database.run('UPDATE account SET language = $1 WHERE id = 1', [language]);
+      return { language };
     });
   }
   // The configuration is only the template for new pages; saving it never

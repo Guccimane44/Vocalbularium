@@ -11,12 +11,15 @@ import { createRoot } from 'react-dom/client';
 import { Dashboard } from './dashboard.tsx';
 import { diagnosticSettings } from './diagnostic-settings.js';
 import { initializeShell, renderAccountMenu, renderSidebar, showSignedOutShell } from './shell.js';
+import { initializeLanguage, onLanguageChange, t, translateDocument } from './i18n.ts';
+import { initializeLanguageSetting } from './language-setting.js';
 /** @typedef {import('../types/editor-drafts.js').DeckEditorDraft} DeckEditorDraft */
 /** @import { Root } from 'react-dom/client' */
 /** @import { Page } from '@vocabularium/contracts' */
 /** @import { DashboardAccount } from './dashboard.tsx' */
 /** @import { AccessState, DeckDetail, ViewAccount } from '../types/extension.js' */
 
+await initializeLanguage();
 await initializeFeedback();
 await initializeTheme();
 initializeShell();
@@ -80,15 +83,15 @@ function login() {
   currentPageDetail = undefined; currentDeckDetail = undefined;
   if (viewRoot) { viewRoot.unmount(); viewRoot = undefined; }
   const section = element('section', undefined, 'login');
-  section.append(element('p', 'A home for the language you discover', 'eyebrow'), element('h1', 'Welcome back.'), element('p', 'Sign in to open your decks and saved vocabulary.', 'muted'));
+  section.append(element('p', t('login.eyebrow'), 'eyebrow'), element('h1', t('login.title')), element('p', t('login.body'), 'muted'));
   const form = element('form');
-  for (const [id, text, type] of [['username', 'Username', 'text'], ['password', 'Password', 'password']]) {
+  for (const [id, text, type] of [['username', t('login.username'), 'text'], ['password', t('login.password'), 'password']]) {
     const label = element('label', text); label.htmlFor = id;
     const input = element('input'); input.id = id; input.name = id; input.type = type; input.required = true;
     input.autocomplete = id === 'username' ? 'username' : 'current-password';
     form.append(label, input);
   }
-  const submit = element('button', 'Sign in', 'primary'); submit.type = 'submit'; form.append(submit);
+  const submit = element('button', t('login.submit'), 'primary'); submit.type = 'submit'; form.append(submit);
   form.onsubmit = async event => {
     event.preventDefault(); submit.disabled = true;
     try {
@@ -99,6 +102,9 @@ function login() {
   };
   section.append(form); app.replaceChildren(section);
 }
+initializeLanguageSetting({ send });
+// A new language redraws the static texts and the view in it.
+onLanguageChange(() => { translateDocument(); if (signedIn) void render(); else login(); });
 const pageUI = pageViews({ getAccount: () => /** @type {ViewAccount} */ (account), send, showError,
   renderView: (Component, props) => {
     if (!viewRoot) viewRoot = createRoot(app);
