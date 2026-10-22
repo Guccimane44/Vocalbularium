@@ -7,6 +7,7 @@ const done = tx => new Promise((resolve, reject) => {
   tx.oncomplete = resolve; tx.onabort = tx.onerror = () => reject(tx.error ?? new Error('Diagnostic transaction failed.'));
 });
 
+/** @param {{ upload?: (events: Record<string, unknown>[]) => Promise<unknown>, databaseName?: string, budgetBytes?: number }} [options] */
 export function extensionDiagnostics({ upload, databaseName = 'vocabularium-diagnostics-v1', budgetBytes = EXTENSION_LOG_BUDGET } = {}) {
   let tail = Promise.resolve(), pending = 0, pendingBytes = 0, scheduled, flushing;
   let current = { enabled: true, bytes: 0, budgetBytes, degraded: false, reason: null, dropped: 0, mode: 'full' };

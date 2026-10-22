@@ -1,3 +1,4 @@
+// @ts-check
 import { readLocal } from './recovery.js';
 import { initializeFeedback } from './feedback-dashboard.js';
 import { initializeTheme } from './theme.js';
@@ -11,40 +12,59 @@ import { Dashboard } from './dashboard.tsx';
 import { diagnosticSettings } from './diagnostic-settings.js';
 import { initializeShell, renderAccountMenu, renderSidebar, showSignedOutShell } from './shell.js';
 /** @typedef {import('../types/editor-drafts.js').DeckEditorDraft} DeckEditorDraft */
+/** @import { Root } from 'react-dom/client' */
+/** @import { Page } from '@vocabularium/contracts' */
+/** @import { DashboardAccount } from './dashboard.tsx' */
+/** @import { AccessState, DeckDetail, ViewAccount } from '../types/extension.js' */
 
 await initializeFeedback();
 await initializeTheme();
 initializeShell();
-const app = document.querySelector('#app');
-const actions = document.querySelector('#session-actions');
+// Both are in app.html.
+const app = /** @type {HTMLElement} */ (document.querySelector('#app'));
+const actions = /** @type {HTMLElement} */ (document.querySelector('#session-actions'));
+// Set while signed in, which is when the views read it.
+/** @type {ViewAccount | undefined} */
 let account;
 let signedIn = false;
 let renderVersion = 0;
+/** @type {Root | undefined} */
 let viewRoot;
+/** @type {string | undefined} */
 let nextError;
-let currentPageDetail, currentDeckDetail;
+/** @type {Page | undefined} */
+let currentPageDetail;
+/** @type {DeckDetail | undefined} */
+let currentDeckDetail;
 // The deck marked in the sidebar, kept while a page's deck is still loading.
+/** @type {string | null} */
 let markedDeck = null;
 // The account as the last refresh returned it. Views merge the open page and
 // deck into `account`, so comparing a refresh with it would always differ.
+/** @type {string | undefined} */
 let refreshed;
 /** @type {DeckEditorDraft | undefined} */
 let configuration;
-const viewAccount = value => ({ ...value, pages: value.pages ?? [] });
+const viewAccount = (/** @type {ViewAccount} */ value) => ({ ...value, pages: value.pages ?? [] });
 
+/** @template {keyof HTMLElementTagNameMap} K @param {K} tag @param {string} [text] @param {string} [className] */
 const element = (tag, text, className) => {
   const node = document.createElement(tag);
   if (text !== undefined) node.textContent = text;
   if (className) node.className = className;
   return node;
 };
+// The worker's answer; most messages answer with an AccessState.
+/** @param {Record<string, unknown>} message @returns {Promise<any>} */
 async function send(message) {
   const result = await chrome.runtime.sendMessage(message);
   if (result.error) throw Object.assign(new Error(result.error), { code: result.code, details: result.details });
   return result;
 }
+/** @type {(deckId: string, order: string, cursor?: string) => Promise<any>} */
 const loadPages = (deckId, order, cursor) => send({ type: 'deck-pages', deckId, order, cursor });
-const loadDecks = cursor => send({ type: 'deck-page', cursor });
+const loadDecks = (/** @type {string} */ cursor) => send({ type: 'deck-page', cursor });
+/** @param {any} error */
 function showError(error) {
   if (viewRoot) {
     nextError = error.message;
@@ -79,14 +99,14 @@ function login() {
   };
   section.append(form); app.replaceChildren(section);
 }
-const pageUI = pageViews({ getAccount: () => account, send, showError,
+const pageUI = pageViews({ getAccount: () => /** @type {ViewAccount} */ (account), send, showError,
   renderView: (Component, props) => {
     if (!viewRoot) viewRoot = createRoot(app);
-    flushSync(() => viewRoot.render(createElement(Component, props)));
+    flushSync(() => /** @type {Root} */ (viewRoot).render(createElement(Component, props)));
   },
   refresh: () => render(),
   navigate: hash => { location.hash = hash; },
-  applyState: async (next, redraw = true) => { account = next.account; signedIn = next.signedIn; if (redraw) await render(); }
+  applyState: async (/** @type {AccessState} */ next, redraw = true) => { account = next.account; signedIn = next.signedIn; if (redraw) await render(); }
 });
 let lastHash = location.hash;
 // Opening the dashboard clears the toolbar badge of new captures (D05, K21).
@@ -96,8 +116,9 @@ const clearBadge = () => {
 document.addEventListener('visibilitychange', clearBadge);
 
 async function render() {
-  const focusedMenu = document.activeElement?.dataset.deckOptions;
-  const focused = document.activeElement;
+  const focusedMenu = /** @type {HTMLElement | null} */ (document.activeElement)?.dataset.deckOptions;
+  // An input or a text area when it has `selectionStart`.
+  const focused = /** @type {HTMLInputElement | null} */ (document.activeElement);
   const active = focused?.closest?.('.page-components') && 'selectionStart' in focused ? { id: focused.id, start: focused.selectionStart, end: focused.selectionEnd } : null;
   const version = ++renderVersion;
   const local = await readLocal(null);
@@ -119,14 +140,15 @@ async function render() {
     : location.hash.startsWith('#configure/') && location.hash !== '#configure/new' ? location.hash.slice(11)
     : location.hash.startsWith('#new-page/') ? location.hash.slice(10)
     : openPage ? (currentPageDetail?.id === openPage ? currentPageDetail.deckId : markedDeck) : null;
-  const sidebar = currentDeckId => {
+  // From here the view is signed in, with its account.
+  const sidebar = (/** @type {string | null} */ currentDeckId) => {
     markedDeck = currentDeckId;
-    renderSidebar({ decks: account.decks, currentDeckId, newDeck: () => { configuration = undefined; location.hash = 'configure/new'; } });
+    renderSidebar({ decks: /** @type {ViewAccount} */ (account).decks, currentDeckId, newDeck: () => { configuration = undefined; location.hash = 'configure/new'; } });
   };
   sidebar(routeDeck);
   if (location.hash === '#diagnostics') {
     if (viewRoot) { viewRoot.unmount(); viewRoot = undefined; }
-    await diagnosticSettings({ send, root: app, navigate: hash => { location.hash = hash; } }); return;
+    await diagnosticSettings({ send, root: app, navigate: (/** @type {string} */ hash) => { location.hash = hash; } }); return;
   }
   const deckId = location.hash.startsWith('#deck/') ? decodeURIComponent(location.hash.slice(6)) : null;
   const configId = location.hash.startsWith('#configure/') ? location.hash.slice(11) : null;
@@ -141,10 +163,10 @@ async function render() {
     }
     if (!viewRoot) viewRoot = createRoot(app);
     const error = nextError; nextError = undefined;
-    flushSync(() => viewRoot.render(createElement(ConfigurationView, {
-      key: configId, draft: configuration, send, externalError: error,
+    flushSync(() => /** @type {Root} */ (viewRoot).render(createElement(ConfigurationView, {
+      key: configId, draft: /** @type {DeckEditorDraft} */ (configuration), send, externalError: error,
       onSaved: async next => {
-        account = next.account; signedIn = next.signedIn; configuration = undefined;
+        account = /** @type {AccessState} */ (next).account; signedIn = /** @type {AccessState} */ (next).signedIn; configuration = undefined;
         location.hash = ''; await render();
       },
       onCancel: () => { configuration = undefined; location.hash = ''; }
@@ -153,17 +175,18 @@ async function render() {
   }
   const pageRoute = location.hash.startsWith('#page/') || location.hash.startsWith('#new-page/');
   if (!pageRoute) {
-    if (deckId && !account.decks.some(deck => deck.id === deckId)) {
+    if (deckId && !/** @type {ViewAccount} */ (account).decks.some(deck => deck.id === deckId)) {
       try {
         const detail = await send({ type: 'deck-detail', deckId });
         if (version !== renderVersion) return;
-        account = { ...account, decks: [...account.decks, { ...detail, moduleCount: detail.modules.length, pageCount: 0 }] };
+        account = { .../** @type {ViewAccount} */ (account), decks: [.../** @type {ViewAccount} */ (account).decks, { ...detail, moduleCount: detail.modules.length, pageCount: 0 }] };
       } catch (error) { showError(error); location.hash = ''; return; }
     }
     if (!viewRoot) viewRoot = createRoot(app);
     const error = nextError; nextError = undefined;
-    flushSync(() => viewRoot.render(createElement(Dashboard, {
-      account, local, deckId, focusedMenu, showPendingSaves: !pageUI.isEditing(), error, loadPages, loadDecks,
+    // On the dashboard every deck in the account is a summary with its counts.
+    flushSync(() => /** @type {Root} */ (viewRoot).render(createElement(Dashboard, {
+      account: /** @type {DashboardAccount} */ (account), local, deckId, focusedMenu, showPendingSaves: !pageUI.isEditing(), error, loadPages, loadDecks,
       navigate: hash => { location.hash = hash; },
       configure: id => { configuration = undefined; location.hash = `configure/${id}`; },
       mutate: async command => {
@@ -175,28 +198,31 @@ async function render() {
     return;
   }
   const [, routeId] = location.hash.split('/');
-  let detail, page;
+  /** @type {DeckDetail | undefined} */
+  let detail;
+  /** @type {Page | undefined} */
+  let page;
   try {
     if (location.hash.startsWith('#page/')) {
       page = await send({ type: 'page-detail', pageId: routeId });
-      detail = await send({ type: 'deck-detail', deckId: page.deckId });
+      detail = await send({ type: 'deck-detail', deckId: /** @type {Page} */ (page).deckId });
     } else detail = await send({ type: 'deck-detail', deckId: routeId });
     currentPageDetail = page; currentDeckDetail = detail;
-  } catch (error) {
+  } catch (/** @type {any} */ error) {
     if (error.code !== 'deleted') nextError = error.message;
     if (error.code === 'deleted') { currentPageDetail = undefined; currentDeckDetail = undefined; }
     page = currentPageDetail?.id === routeId ? currentPageDetail : undefined;
     detail = currentDeckDetail?.id === (page?.deckId ?? routeId) ? currentDeckDetail
-      : account.defaultDeckSnapshot?.id === routeId ? account.defaultDeckSnapshot : undefined;
+      : /** @type {ViewAccount} */ (account).defaultDeckSnapshot?.id === routeId ? /** @type {ViewAccount} */ (account).defaultDeckSnapshot : undefined;
   }
   if (version !== renderVersion) return;
   if (page && page.deckId !== markedDeck) sidebar(page.deckId);
-  account = { ...account, pages: page ? [page] : [], decks: detail
-    ? [...account.decks.filter(deck => deck.id !== detail.id), detail] : account.decks };
+  account = { .../** @type {ViewAccount} */ (account), pages: page ? [page] : [], decks: detail
+    ? [.../** @type {ViewAccount} */ (account).decks.filter(deck => deck.id !== /** @type {DeckDetail} */ (detail).id), detail] : /** @type {ViewAccount} */ (account).decks };
   const error = nextError; nextError = undefined;
   pageUI.render(location.hash, local, error);
-  if (focusedMenu) [...app.querySelectorAll('[data-deck-options]')].find(node => node.dataset.deckOptions === focusedMenu)?.focus();
-  if (active?.id) { const input = document.getElementById(active.id); input?.focus(); input?.setSelectionRange?.(active.start, active.end); }
+  if (focusedMenu) [.../** @type {NodeListOf<HTMLElement>} */ (app.querySelectorAll('[data-deck-options]'))].find(node => node.dataset.deckOptions === focusedMenu)?.focus();
+  if (active?.id) { const input = /** @type {HTMLInputElement | null} */ (document.getElementById(active.id)); input?.focus(); input?.setSelectionRange?.(active.start, active.end); }
 }
 
 window.addEventListener('hashchange', async () => {
