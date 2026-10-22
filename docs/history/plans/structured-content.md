@@ -1,6 +1,8 @@
 # Plan: structured parent content, markdown facets and a live editor (0.7.4)
 
-Proposed: 16 October 2026 (Europe/Berlin). Implements [D09](../architecture/traceability-map.md#entries), accepted by the owner on 16 October 2026 and applied to the specifications in increment 0. Tracker: [#152](https://github.com/Guccimane44/Vocalbularium/issues/152); milestone in [Actual Stages](https://app.notion.com/p/3fbbb135020881fb962ad678a3cb613f). Status: increment 0 merged in [#153](https://github.com/Guccimane44/Vocalbularium/pull/153); increment 1 (domain and contracts) merged in [#154](https://github.com/Guccimane44/Vocalbularium/pull/154); increment 2 (generation) merged in [#156](https://github.com/Guccimane44/Vocalbularium/pull/156) after the owner approved the golden set (16 October 2026); increment 3 (storage, API and upgrade) merged in [#157](https://github.com/Guccimane44/Vocalbularium/pull/157); increment 4 (cards from data) merged in [#158](https://github.com/Guccimane44/Vocalbularium/pull/158); the item-based field editor ([#159](https://github.com/Guccimane44/Vocalbularium/pull/159)) closed unmerged after the owner's review; increment 5 (the D09 amendment: markdown per facet) merged in [#160](https://github.com/Guccimane44/Vocalbularium/pull/160); increment 6 (markdown storage and rendering) merged in [#161](https://github.com/Guccimane44/Vocalbularium/pull/161); increment 7 (the live-formatting editor) merged in [#162](https://github.com/Guccimane44/Vocalbularium/pull/162); increment 8 (verification and delivery) in review.
+> **Historical, 22 October 2026.** Release 0.7.4 implemented this plan and [#152](https://github.com/Guccimane44/Vocalbularium/issues/152) is closed. The status line below is the plan's state when it was approved.
+
+Proposed: 16 October 2026 (Europe/Berlin). Implements [D09](../../architecture/traceability-map.md#entries), accepted by the owner on 16 October 2026 and applied to the specifications in increment 0. Tracker: [#152](https://github.com/Guccimane44/Vocalbularium/issues/152); milestone in [Actual Stages](https://app.notion.com/p/3fbbb135020881fb962ad678a3cb613f). Status: increment 0 merged in [#153](https://github.com/Guccimane44/Vocalbularium/pull/153); increment 1 (domain and contracts) merged in [#154](https://github.com/Guccimane44/Vocalbularium/pull/154); increment 2 (generation) merged in [#156](https://github.com/Guccimane44/Vocalbularium/pull/156) after the owner approved the golden set (16 October 2026); increment 3 (storage, API and upgrade) merged in [#157](https://github.com/Guccimane44/Vocalbularium/pull/157); increment 4 (cards from data) merged in [#158](https://github.com/Guccimane44/Vocalbularium/pull/158); the item-based field editor ([#159](https://github.com/Guccimane44/Vocalbularium/pull/159)) closed unmerged after the owner's review; increment 5 (the D09 amendment: markdown per facet) merged in [#160](https://github.com/Guccimane44/Vocalbularium/pull/160); increment 6 (markdown storage and rendering) merged in [#161](https://github.com/Guccimane44/Vocalbularium/pull/161); increment 7 (the live-formatting editor) merged in [#162](https://github.com/Guccimane44/Vocalbularium/pull/162); increment 8 (verification and delivery) in review.
 
 ## Outcome
 
@@ -12,15 +14,15 @@ The provider returns a parent's content as JSON instead of markup text, checked 
 
 Recorded in D09 on 16 October 2026 and applied to the specifications:
 
-1. **Structured result:** a core and one entry per facet, in the shapes of the [render contracts](../specs/modules.md#render-contracts). Examples are their own numbered list, not tied to meanings.
+1. **Structured result:** a core and one entry per facet, in the shapes of the [render contracts](../../specs/modules.md#render-contracts). Examples are their own numbered list, not tied to meanings.
 2. **Containers:** the card is drawn from the data into fixed containers: the core, then each facet with content, in the parent's order. A facet without content is not shown and its tag stays blander.
-3. **Field editor:** **Edit** turns the whole card into fields in place, with one **Save** and **Cancel** ([pages and editing](../specs/pages-and-editing.md#editing-generated-components)). Items can be added at the end and deleted, not moved. The module's name, the facet names and the core's top line are shown but not editable; no syntax is shown. A facet without content appears as an empty container to fill. Every field may be left empty, the core's included: Save never refuses, a row with nothing in it is dropped, and a half-filled item keeps and shows the parts that have text (amended 16 October 2026). Generated results stay complete.
+3. **Field editor:** **Edit** turns the whole card into fields in place, with one **Save** and **Cancel** ([pages and editing](../../specs/pages-and-editing.md#editing-generated-components)). Items can be added at the end and deleted, not moved. The module's name, the facet names and the core's top line are shown but not editable; no syntax is shown. A facet without content appears as an empty container to fill. Every field may be left empty, the core's included: Save never refuses, a row with nothing in it is dropped, and a half-filled item keeps and shows the parts that have text (amended 16 October 2026). Generated results stay complete.
 4. **Facet Retry and Delete** act on the facet's entry.
 5. **Upgrade:** every deck and page is discarded, sign-in stays, and My Deck starts fresh, as in 0.7.0.
 6. **Unchanged:** the interpretation stage and the model (`deepseek-v4.1-flash`); Context, Text and the main key keep plain text.
 7. **Release:** one release, 0.7.4, built in increments.
-8. **Markdown per facet (amendment, 16 October 2026):** the core's meanings or translation and each facet are one markdown text, formatted from the JSON when stored, as the card looks now ([render contracts](../specs/modules.md#render-contracts)). The core's top line stays structured and locked.
-9. **Live formatting (amendment):** TipTap editors, one for the core and one per facet; bold, italic, bulleted and numbered lists, inline code and highlight; markdown characters do not stay visible ([pages and editing](../specs/pages-and-editing.md#editing-generated-components)). This replaces decisions 3's fields and item rules; any part may be emptied.
+8. **Markdown per facet (amendment, 16 October 2026):** the core's meanings or translation and each facet are one markdown text, formatted from the JSON when stored, as the card looks now ([render contracts](../../specs/modules.md#render-contracts)). The core's top line stays structured and locked.
+9. **Live formatting (amendment):** TipTap editors, one for the core and one per facet; bold, italic, bulleted and numbered lists, inline code and highlight; markdown characters do not stay visible ([pages and editing](../../specs/pages-and-editing.md#editing-generated-components)). This replaces decisions 3's fields and item rules; any part may be emptied.
 10. **Upgrade (amendment):** decks and pages are discarded again (migration 0013), sign-in kept.
 
 ## Target model
@@ -40,7 +42,7 @@ The increments are stacked PRs, each reviewed and green in CI. As in 0.7.0, they
 
 ### 0. Record the decision and the plan (this PR)
 
-D09 in the traceability map with C21, the Notion decision record (Accepted), the specifications ([model](../product/model.md#component), [modules](../specs/modules.md#render-contracts), [shared UI](../specs/shared-ui.md#text-content), [pages and editing](../specs/pages-and-editing.md#editing-generated-components), [capture and generation](../specs/capture-and-generation.md#retrying-one-facet), [scope](../product/scope.md)), this plan, the tracker issue and the 0.7.4 milestone in Actual Stages.
+D09 in the traceability map with C21, the Notion decision record (Accepted), the specifications ([model](../../product/model.md#component), [modules](../../specs/modules.md#render-contracts), [shared UI](../../specs/shared-ui.md#text-content), [pages and editing](../../specs/pages-and-editing.md#editing-generated-components), [capture and generation](../../specs/capture-and-generation.md#retrying-one-facet), [scope](../../product/scope.md)), this plan, the tracker issue and the 0.7.4 milestone in Actual Stages.
 
 ### 1. Domain and contracts
 
@@ -52,7 +54,7 @@ D09 in the traceability map with C21, the Notion decision record (Accepted), the
 
 - One JSON shape per parent and input type in the provider prompt and its result schema, replacing the markup instructions. A facet that does not apply, or comes back missing or empty, has no content; anything else outside the shape fails the attempt.
 - Facet Retry sends the core as data and asks for that facet's entry alone.
-- The golden set writes the structured results for review. **The owner reviews the golden-set outputs before this increment merges** ([C8](../architecture/traceability-map.md#conflicts)).
+- The golden set writes the structured results for review. **The owner reviews the golden-set outputs before this increment merges** ([C8](../../architecture/traceability-map.md#conflicts)).
 - Generation tests with controlled providers: both input types, both parents, omitted and empty facets, malformed results, facet Retry.
 
 ### 3. Storage, API and upgrade
@@ -75,7 +77,7 @@ The amendment in the map and Notion, the specifications (modules, pages and edit
 ### 6. Markdown storage and rendering
 
 - `packages/contracts`: the `parent` block holds the core's top line, the core's markdown and a markdown text per facet.
-- `packages/domain`: formatting JSON into markdown per the [render contracts](../specs/modules.md#render-contracts); a parser for the supported markdown subset into a small tree (paragraphs, lists, bold, italic, inline code, highlight, line breaks) that clients draw, never HTML; facet helpers on markdown; the page list's meaning line from the core's first item.
+- `packages/domain`: formatting JSON into markdown per the [render contracts](../../specs/modules.md#render-contracts); a parser for the supported markdown subset into a small tree (paragraphs, lists, bold, italic, inline code, highlight, line breaks) that clients draw, never HTML; facet helpers on markdown; the page list's meaning line from the core's first item.
 - Generation and store: results are formatted into markdown as they are stored; facet Retry formats its facet; saves take the core's and facets' markdown with the stored top line.
 - Migration `0013`: discards decks and pages, keeps sign-in, starts My Deck.
 - Cards render each facet's markdown in its container; tags read whether a facet's markdown has text.

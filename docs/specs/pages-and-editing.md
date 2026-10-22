@@ -207,4 +207,4 @@ Generation uses the page's own content module instances. Finish editing with **S
 
 ## Implementation details still to specify
 
-Releases 0.5.0 to 0.5.2 build shaping with the functional styling ([plan](../plans/page-owned-modules.md), [D04](../architecture/traceability-map.md#entries)). Release 0.6.0 builds the page list layouts and the page view in the Vocabularium Sage identity ([D05](../architecture/traceability-map.md#entries), [plan](../plans/visual-identity.md)).
+Releases 0.5.0 to 0.5.2 build shaping with the functional styling ([plan](../history/plans/page-owned-modules.md), [D04](../architecture/traceability-map.md#entries)). Release 0.6.0 builds the page list layouts and the page view in the Vocabularium Sage identity ([D05](../architecture/traceability-map.md#entries), [plan](../history/plans/visual-identity.md)).

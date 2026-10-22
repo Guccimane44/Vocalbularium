@@ -1,6 +1,9 @@
 import test from 'node:test';
 import pg from 'pg';
 import { randomBytes } from 'node:crypto';
+import { rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { migrateDatabase } from '../../scripts/migrate.mjs';
 import { AccountStore } from '../../src/core/store.mjs';
 import { createApplication } from '../../src/server/app.mjs';
@@ -19,6 +22,8 @@ export async function createTestDatabase(t, key, { migrate = true } = {}) {
   await admin.connect();
   try { await admin.query(`CREATE DATABASE "${name}"`); } finally { await admin.end(); }
   const url = new URL(adminUrl); url.pathname = `/${name}`;
+  // A keyed store's generation outbox is temporary, like its database, never in the checkout.
+  const outbox = join(tmpdir(), `${name}.generation-outbox`);
   let removed = false;
   const cleanup = async () => {
     if (removed) return;
@@ -34,16 +39,17 @@ export async function createTestDatabase(t, key, { migrate = true } = {}) {
       }
       removed = true;
     } finally { await connection.end(); }
+    await rm(outbox, { recursive: true, force: true });
   };
   // The databaseTest wrapper registers final cleanup after user cleanup hooks.
-  const database = { databaseUrl: url.href, cleanup, resources: [] };
+  const database = { databaseUrl: url.href, outbox, cleanup, resources: [] };
   databases.set(key ?? name, database);
   try { if (migrate) await migrateDatabase(url.href); } catch (error) { await cleanup(); throw error; }
   return database;
 }
 export async function createTestStore(t, databaseKey) {
   const database = await createTestDatabase(t, databaseKey);
-  const store = await AccountStore.open({ databaseUrl: database.databaseUrl, outbox: databaseKey ? `${databaseKey}.generation-outbox` : undefined });
+  const store = await AccountStore.open({ databaseUrl: database.databaseUrl, outbox: databaseKey ? database.outbox : undefined });
   database.resources.push(store);
   return store;
 }
@@ -52,7 +58,7 @@ export async function createTestApplication(t, { databaseKey, ...options } = {})
   const unavailable = async () => { throw new Error('Controlled provider is unavailable.'); };
   const application = await createApplication({ provider: { interpret: unavailable, generate: unavailable },
     ...options, databaseUrl: database.databaseUrl,
-    outbox: options.outbox === null ? undefined : databaseKey ? `${databaseKey}.generation-outbox` : undefined });
+    outbox: options.outbox === null ? undefined : databaseKey ? database.outbox : undefined });
   database.resources.push(application);
   if (process.env.TEST_API_PORT) {
     const start = application.start.bind(application);

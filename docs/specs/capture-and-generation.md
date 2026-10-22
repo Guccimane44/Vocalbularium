@@ -1,6 +1,6 @@
 # Capture and generation (Select and Add)
 
-This specification defines capture and generation. The supported modules and their applicability are defined in the [Modules specification](modules.md) and its [detailed catalog](../history/mvp/MVP-Product-spec-modules.md).
+This specification defines capture and generation. The supported modules and their applicability are defined in the [Modules specification](modules.md) and its [catalog](modules.md#catalog).
 
 This document is the authoritative source for detailed component completion, failure, interruption, and retry behavior. The scope, module specification, and general product description summarize and link to these rules.
 

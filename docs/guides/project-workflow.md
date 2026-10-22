@@ -12,7 +12,7 @@ The [working-agreement decision](https://app.notion.com/p/3ecbb135020881ff9036e7
 | Notion | Milestone intent and completion scope, decision context and approval history, concise progress summaries, and reusable Q&As |
 | GitHub | Implementation issues and PRs, reviews and merge state, CI runs, releases, and delivery evidence tied to a revision and environment |
 
-Use the [product model](../product/model.md) for terms, [current scope](../product/scope.md) for implementation boundaries, and the relevant substantive specification for behavior. Some documents remain under `docs/history/mvp/` during the taxonomy migration; follow the current scope's authority links. An empty destination file does not replace an existing specification. Vision and proposals do not establish implementation or approval.
+Use the [product model](../product/model.md) for terms, [current scope](../product/scope.md) for implementation boundaries, and the relevant substantive specification for behavior. Documents under `docs/history/`, finished plans included, are historical context, not current authority. Vision and proposals do not establish implementation or approval.
 
 Link between records. Keep the complete plan, specification, test output, and package evidence in their appropriate sources; Notion summarizes the result and points to them. Derive GitHub links from the actual remote and relevant branch or commit. Use immutable revision links for verified facts and evidence; identify the branch when linking evolving documentation. Do not assume the default branch contains the working specification or released backend.
 

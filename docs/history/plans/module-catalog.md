@@ -1,23 +1,25 @@
 # Plan: one module catalog, a prompt composer and Expertise modules (0.8.0)
 
-Proposed: 20 October 2026 (Europe/Berlin). Implements [D11](../architecture/traceability-map.md#entries), accepted by the owner on 20 October 2026 and applied to the specifications in [#191](https://github.com/Guccimane44/Vocalbularium/pull/191). Tracker: [#193](https://github.com/Guccimane44/Vocalbularium/issues/193); milestone in [Actual Stages](https://app.notion.com/p/3ffbb13502088113900edd1bc9795ce7). Architecture: [generation](../architecture/generation.md). Status: increment A merged in [#194](https://github.com/Guccimane44/Vocalbularium/pull/194); increment B (the generation record) merged in [#195](https://github.com/Guccimane44/Vocalbularium/pull/195); increment C (Languages, Expertise, Computer Science and Mathematics) merged in [#196](https://github.com/Guccimane44/Vocalbularium/pull/196); increment D (verification and delivery) in progress.
+> **Historical, 22 October 2026.** Release 0.8.0 implemented this plan; [#193](https://github.com/Guccimane44/Vocalbularium/issues/193) stays open for the owner's acceptance. The status line below is the plan's state when it was approved.
+
+Proposed: 20 October 2026 (Europe/Berlin). Implements [D11](../../architecture/traceability-map.md#entries), accepted by the owner on 20 October 2026 and applied to the specifications in [#191](https://github.com/Guccimane44/Vocalbularium/pull/191). Tracker: [#193](https://github.com/Guccimane44/Vocalbularium/issues/193); milestone in [Actual Stages](https://app.notion.com/p/3ffbb13502088113900edd1bc9795ce7). Architecture: [generation](../../architecture/generation.md). Status: increment A merged in [#194](https://github.com/Guccimane44/Vocalbularium/pull/194); increment B (the generation record) merged in [#195](https://github.com/Guccimane44/Vocalbularium/pull/195); increment C (Languages, Expertise, Computer Science and Mathematics) merged in [#196](https://github.com/Guccimane44/Vocalbularium/pull/196); increment D (verification and delivery) in progress.
 
 ## Outcome
 
 Every module is defined once, in one catalog of family and module folders, and each module owns its facets: their shapes, formatters and prompts are files the owner can read and edit. A prompt composer builds each request and alone carries the rules every request needs; a provider adapter only transports it, with OpenCode as the only one. Each generated facet records the model and prompt version that produced it. The Translation family is called Languages, and a new Expertise family brings `Computer Science` and `Mathematics`.
 
-0.8.0 builds on `main` as it stands when increment A starts, including 0.7.6 if [D12](../architecture/traceability-map.md#entries) is accepted and shipped first. Cards, storage and the interaction model stay as they are, apart from the changes in increment C.
+0.8.0 builds on `main` as it stands when increment A starts, including 0.7.6 if [D12](../../architecture/traceability-map.md#entries) is accepted and shipped first. Cards, storage and the interaction model stay as they are, apart from the changes in increment C.
 
 ## Owner decisions
 
 Recorded in D11 on 20 October 2026 and applied to the specifications:
 
-1. **One catalog** of family folders (`languages/`, `expertise/`, `notes/`; `creative/` with its first module) and module folders, the Main key at the root. Each module declares its kind, instances, content source, provider kind, settings, sample and ordered facets ([generation architecture](../architecture/generation.md#module-catalog)).
-2. **Module-owned facets.** Nothing is shared between modules; look-alike facets stay separate. The core is the first facet. IDs and abbreviations are unique within a module ([modules](../specs/modules.md#catalog)).
-3. **Prompts as files**, written in full per module; a facet's prompt is a fragment that the composer joins with the shared rules. The interpretation prompt belongs to the Main key. The token budget stays 8192 ([prompts](../architecture/generation.md#prompts)).
-4. **OpenCode** stays the only provider, behind a provider interface ([providers](../architecture/generation.md#providers)).
-5. **Generation record:** the model and a fingerprint of the composed request per facet, stored with the component ([capture and generation](../specs/capture-and-generation.md#generation-record)).
-6. **Languages and Expertise:** Translation's label becomes Languages (ID unchanged). Expertise is leaf green with a graduation cap; `Computer Science` and `Mathematics` write in English, each with a provisional core only ([module families](../specs/modules.md#module-families)).
+1. **One catalog** of family folders (`languages/`, `expertise/`, `notes/`; `creative/` with its first module) and module folders, the Main key at the root. Each module declares its kind, instances, content source, provider kind, settings, sample and ordered facets ([generation architecture](../../architecture/generation.md#module-catalog)).
+2. **Module-owned facets.** Nothing is shared between modules; look-alike facets stay separate. The core is the first facet. IDs and abbreviations are unique within a module ([modules](../../specs/modules.md#catalog)).
+3. **Prompts as files**, written in full per module; a facet's prompt is a fragment that the composer joins with the shared rules. The interpretation prompt belongs to the Main key. The token budget stays 8192 ([prompts](../../architecture/generation.md#prompts)).
+4. **OpenCode** stays the only provider, behind a provider interface ([providers](../../architecture/generation.md#providers)).
+5. **Generation record:** the model and a fingerprint of the composed request per facet, stored with the component ([capture and generation](../../specs/capture-and-generation.md#generation-record)).
+6. **Languages and Expertise:** Translation's label becomes Languages (ID unchanged). Expertise is leaf green with a graduation cap; `Computer Science` and `Mathematics` write in English, each with a provisional core only ([module families](../../specs/modules.md#module-families)).
 7. **Delivery** in increments A, B and C, in that order. User-visible changes are accepted.
 
 ## Target model
@@ -39,7 +41,7 @@ Each increment is one PR against `main`, reviewed and green in CI before the nex
 
 ### 0. Record the plan
 
-D11, the specification updates, the [generation architecture](../architecture/generation.md), this plan and tracker [#193](https://github.com/Guccimane44/Vocalbularium/issues/193), in [#191](https://github.com/Guccimane44/Vocalbularium/pull/191).
+D11, the specification updates, the [generation architecture](../../architecture/generation.md), this plan and tracker [#193](https://github.com/Guccimane44/Vocalbularium/issues/193), in [#191](https://github.com/Guccimane44/Vocalbularium/pull/191).
 
 ### A. Catalog, composer and provider interface
 
@@ -50,14 +52,14 @@ Behaviour-neutral: nothing the user sees, stores or sends to the provider change
 - **Composer.** `packages/domain/src/composer/` with `rules.md` and `compose()`, producing `{ name, instructions, input, schema, maxTokens }`. The snapshots stay byte-identical.
 - **Provider.** `src/server/opencode.mjs` becomes an adapter implementing `complete(request, signal)`; timeouts, cancellation, diagnostics and error codes wrap it as before. The provider is chosen by configuration, defaulting to OpenCode.
 - **Shipping prompts.** The prompt files reach the API's build; the extension bundle does not need them.
-- **Conformance test** `tests/catalog.test.mjs` ([guards](../architecture/generation.md#guards)).
+- **Conformance test** `tests/catalog.test.mjs` ([guards](../../architecture/generation.md#guards)).
 - Existing unit and browser tests pass unchanged; no live provider run is needed while the snapshots are identical.
 
 ### B. Prompt version per facet
 
 - **Migration** (the next free number, `0015` after `0014_data_migrations`): an empty generation record on components, per facet.
 - **Recording.** A whole attempt writes the model and the prompt version for the core and every facet it generated; a facet's own Retry rewrites only that facet's. Manual saves, including a save that names one facet, keep the record as it is.
-- **Diagnostics.** Provider events carry the prompt version ([observability](../architecture/observability.md)).
+- **Diagnostics.** Provider events carry the prompt version ([observability](../../architecture/observability.md)).
 - Store and generation tests: the record after an attempt, after a facet's Retry, after a manual save; an upgrade from a 0.7.x database keeps every deck and page with empty records.
 
 ### C. Languages, Expertise, Computer Science and Mathematics
@@ -94,4 +96,4 @@ Behaviour-neutral: nothing the user sees, stores or sends to the provider change
 
 ## Not in this milestone
 
-Other modalities and provider kinds ([K29](../architecture/traceability-map.md#clarifications), possibly 0.9.0); a language setting for the Expertise modules and the interface; Expertise facets and further subjects; the Creative family and its first module; a second provider such as DeepSeek's own API; facets on input modules.
+Other modalities and provider kinds ([K29](../../architecture/traceability-map.md#clarifications), possibly 0.9.0); a language setting for the Expertise modules and the interface; Expertise facets and further subjects; the Creative family and its first module; a second provider such as DeepSeek's own API; facets on input modules.
