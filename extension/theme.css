@@ -75,20 +75,6 @@
   --width-list: 900px;
   --font-display: "Fraunces", "Songti SC", "Noto Serif CJK SC", "Source Han Serif SC", "Noto Serif SC", "Hiragino Mincho ProN", Georgia, serif;
   --font-text: "Instrument Sans", "PingFang SC", "Hiragino Sans", "Noto Sans CJK SC", "Microsoft YaHei", system-ui, sans-serif;
-  --background: var(--ground);
-  --text: var(--ink);
-  --muted: var(--ink-muted);
-  --border: var(--line-control);
-  --hover: var(--surface-hover);
-  --primary: var(--ink);
-  --primary-hover: var(--ink-soft);
-  --on-primary: var(--on-ink);
-  --completed-bg: var(--fam-usage-tint);
-  --completed-cue: var(--fam-usage);
-  --pending-bg: var(--fam-roots-tint);
-  --pending-cue: var(--fam-roots);
-  --failed-bg: var(--status-failed-bg);
-  --failed-cue: var(--status-failed);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]), :host(:not([data-theme="light"])) {
@@ -214,11 +200,6 @@
     --highlight-pink: Canvas;
     --highlight-orange: Canvas;
     --status-failed-bg: Canvas;
-    --background: Canvas;
-    --hover: Canvas;
-    --completed-bg: Canvas;
-    --pending-bg: Canvas;
-    --failed-bg: Canvas;
     --fam-translation-tint: Canvas;
     --fam-expertise-tint: Canvas;
     --fam-meaning-tint: Canvas;
@@ -234,11 +215,6 @@
     --mark: CanvasText;
     --status-busy: CanvasText;
     --status-failed: CanvasText;
-    --text: CanvasText;
-    --muted: CanvasText;
-    --completed-cue: CanvasText;
-    --pending-cue: CanvasText;
-    --failed-cue: CanvasText;
     --fam-translation: CanvasText;
     --fam-expertise: CanvasText;
     --fam-meaning: CanvasText;
@@ -248,9 +224,7 @@
     --fam-sound: CanvasText;
     --fam-notes: CanvasText;
     --line-control: ButtonText;
-    --border: ButtonText;
     --on-ink: ButtonText;
-    --on-primary: ButtonText;
     --on-fam-translation: ButtonText;
     --on-fam-expertise: ButtonText;
     --on-fam-meaning: ButtonText;
@@ -259,8 +233,6 @@
     --on-fam-connections: ButtonText;
     --on-fam-sound: ButtonText;
     --on-fam-notes: ButtonText;
-    --primary: ButtonFace;
-    --primary-hover: ButtonFace;
     --focus: Highlight;
   }
 }

@@ -7,24 +7,13 @@ import { resolve } from 'node:path';
 const SOURCE = resolve('extension/design/tokens.json');
 const TARGET = resolve('extension/theme.css');
 
-// Names the 0.5.2 stylesheets still use, mapped onto the Sage tokens until the
-// views are restyled. The test suite checks the contrast of these pairs.
-const LEGACY = {
-  background: 'ground', text: 'ink', muted: 'ink-muted', border: 'line-control', hover: 'surface-hover',
-  primary: 'ink', 'primary-hover': 'ink-soft', 'on-primary': 'on-ink',
-  'completed-bg': 'fam-usage-tint', 'completed-cue': 'fam-usage',
-  'pending-bg': 'fam-roots-tint', 'pending-cue': 'fam-roots',
-  'failed-bg': 'status-failed-bg', 'failed-cue': 'status-failed'
-};
-
 // Forced-colors mode: system colours for every surface, text and cue.
 const FORCED = {
-  Canvas: ['ground', 'sidebar', 'surface', 'surface-hover', 'surface-active', 'highlight', 'highlight-green', 'highlight-blue', 'highlight-pink', 'highlight-orange', 'status-failed-bg', 'background', 'hover',
-    'completed-bg', 'pending-bg', 'failed-bg', 'fam-translation-tint', 'fam-expertise-tint', 'fam-meaning-tint', 'fam-usage-tint', 'fam-roots-tint', 'fam-connections-tint', 'fam-sound-tint', 'fam-notes-tint'],
-  CanvasText: ['ink', 'ink-soft', 'ink-muted', 'line', 'mark', 'status-busy', 'status-failed', 'text', 'muted',
-    'completed-cue', 'pending-cue', 'failed-cue', 'fam-translation', 'fam-expertise', 'fam-meaning', 'fam-usage', 'fam-roots', 'fam-connections', 'fam-sound', 'fam-notes'],
-  ButtonText: ['line-control', 'border', 'on-ink', 'on-primary', 'on-fam-translation', 'on-fam-expertise', 'on-fam-meaning', 'on-fam-usage', 'on-fam-roots', 'on-fam-connections', 'on-fam-sound', 'on-fam-notes'],
-  ButtonFace: ['primary', 'primary-hover'],
+  Canvas: ['ground', 'sidebar', 'surface', 'surface-hover', 'surface-active', 'highlight', 'highlight-green', 'highlight-blue', 'highlight-pink', 'highlight-orange', 'status-failed-bg',
+    'fam-translation-tint', 'fam-expertise-tint', 'fam-meaning-tint', 'fam-usage-tint', 'fam-roots-tint', 'fam-connections-tint', 'fam-sound-tint', 'fam-notes-tint'],
+  CanvasText: ['ink', 'ink-soft', 'ink-muted', 'line', 'mark', 'status-busy', 'status-failed',
+    'fam-translation', 'fam-expertise', 'fam-meaning', 'fam-usage', 'fam-roots', 'fam-connections', 'fam-sound', 'fam-notes'],
+  ButtonText: ['line-control', 'on-ink', 'on-fam-translation', 'on-fam-expertise', 'on-fam-meaning', 'on-fam-usage', 'on-fam-roots', 'on-fam-connections', 'on-fam-sound', 'on-fam-notes'],
   Highlight: ['focus']
 };
 
@@ -39,7 +28,6 @@ export async function buildTheme() {
   const fixed = ['spacing', 'radius', 'duration', 'easing', 'layout']
     .flatMap(family => (tokens[family]?.tokens ?? []).map(entry => [entry.name, entry.value]));
   const fonts = Object.entries(tokens.type.families).map(([key, stack]) => [`font-${key}`, stack]);
-  const legacy = Object.entries(LEGACY).map(([name, target]) => [name, `var(--${target})`]);
   const dark = `  color-scheme: dark;\n${declarations(themed('dark'))}`;
   return `/* Vocabularium Sage: generated from extension/design/tokens.json by scripts/build-theme.mjs. Do not edit. */
 /* No data-theme follows the system setting; data-theme="light" or "dark" overrides it. */
@@ -48,7 +36,6 @@ export async function buildTheme() {
 ${declarations(themed('light'))}
 ${declarations(fixed)}
 ${declarations(fonts)}
-${declarations(legacy)}
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]), :host(:not([data-theme="light"])) {
