@@ -1,1 +1,27 @@
-{}
+{
+  "ar": {
+    "reviewed": "2026-10-23",
+    "reviewer": "Claude, a reviewer separate from the drafter (one review and one re-check)",
+    "summary": "Complete and correct in placeholders and its six plural forms. Must-fix items applied: a bidi-mirrored back arrow, number agreement in the diagnostics counts, three word choices; المفتاح الرئيسي and وحدة kept, their alternatives left to the owner."
+  },
+  "es": {
+    "reviewed": "2026-10-23",
+    "reviewer": "Claude, a reviewer separate from the drafter (one review and one re-check)",
+    "summary": "Complete, placeholder-safe and consistent in terminology (mazo, faceta, clave principal) and register. Must-fix items applied: participle agreement in three announcements and the many plural form; 18 polish items taken."
+  },
+  "fr": {
+    "reviewed": "2026-10-23",
+    "reviewer": "Claude, a reviewer separate from the drafter (one review and one re-check)",
+    "summary": "Complete and accurate, with CLDR plurals and consistent terminology (paquet, facette, clé principale). Must-fix items applied: about 20 strings reworded for elision and agreement around inserted names, typography with narrow no-break spaces."
+  },
+  "ru": {
+    "reviewed": "2026-10-23",
+    "reviewer": "Claude, a reviewer separate from the drafter (one review and one re-check)",
+    "summary": "Complete and technically correct, with all four plural forms. Must-fix items applied: генерация for generation, gender agreement in announcements; раздел adopted for facet and добавление for capture on the reviewer's recommendation."
+  },
+  "zh-Hans": {
+    "reviewed": "2026-10-23",
+    "reviewer": "Claude, a reviewer separate from the drafter (one review and one re-check)",
+    "summary": "Complete with correct placeholders. Must-fix items applied: grammatical gender wording, relative minutes, number spacing, and list joining in code; 子项 adopted for facet and quotes instead of italics in explanations."
+  }
+}

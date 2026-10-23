@@ -10,7 +10,8 @@ const root = new URL('../extension/', import.meta.url).pathname;
 const sources = readdirSync(root, { recursive: true }).map(String)
   .filter(path => /\.(tsx?|js|html)$/.test(path) && !path.startsWith('design/') && !path.startsWith('locales/'))
   .map(path => ({ path, text: readFileSync(join(root, path), 'utf8') }));
-const placeholders = message => [...new Set([...message.matchAll(/\{(\w+)/g)].map(match => match[1]))].sort();
+// A placeholder is a name followed by } or by the comma of its plural.
+const placeholders = message => [...new Set([...message.matchAll(/\{(\w+)\s*[},]/g)].map(match => match[1]))].sort();
 
 test('every key the extension names is in the English catalogue, and every entry is used', () => {
   const named = new Set();
@@ -69,12 +70,15 @@ test('messages fill placeholders and choose plural forms by language', () => {
 });
 
 test('only offered languages apply; English is the fallback and the default', () => {
-  assert.deepEqual(offeredLanguages().map(language => language.code), ['en']);
+  assert.deepEqual(offeredLanguages().map(language => language.code), ['en', 'ar', 'zh-Hans', 'fr', 'ru', 'es'], 'each language is offered once its review is recorded');
   assert.equal(isOffered('en'), true);
-  assert.equal(isOffered('fr'), false, 'a language is offered only once its catalogue is complete and reviewed');
+  assert.equal(isOffered('de'), false);
   setLanguage('fr');
-  assert.equal(t('common.cancel'), 'Cancel');
+  assert.equal(t('common.cancel'), 'Annuler');
   assert.equal(t('deck.pageCount', { count: 2 }), '2 pages');
+  assert.equal(t('deck.pageCount', { count: 1 }), '1 page');
+  setLanguage('de');
+  assert.equal(t('common.cancel'), 'Cancel', 'a language not offered shows English');
   assert.throws(() => t(/** @type {any} */ ('no.such.key')), /Unknown message/);
 });
 
@@ -90,7 +94,7 @@ test('pseudo-languages accent and lengthen every message, or run English right t
   setPseudoLanguage('ar-XB');
   assert.equal(t('common.cancel'), 'Cancel');
   assert.equal(direction(), 'rtl');
-  assert.deepEqual(offeredLanguages().map(language => language.code), ['en']);
+  assert.equal(offeredLanguages().length, 6, 'pseudo-languages are never offered');
   setPseudoLanguage(null);
   assert.equal(direction(), 'ltr');
   assert.equal(t('common.cancel'), 'Cancel');
