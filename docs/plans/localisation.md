@@ -1,6 +1,6 @@
 # Plan: the interface localised into the six UN languages (0.9.0)
 
-Proposed: 22 October 2026 (Europe/Berlin). Implements [D14](../architecture/traceability-map.md#entries), accepted by the owner on 22 October 2026, with the languages chosen in [K35](../architecture/traceability-map.md#clarifications) on the same day. Tracker: [#208](https://github.com/Guccimane44/Vocalbularium/issues/208).
+Proposed: 22 October 2026 (Europe/Berlin). Implemented in release 0.9.0 (plan [#209](https://github.com/Guccimane44/Vocalbularium/pull/209); increments A, B and C, [#210](https://github.com/Guccimane44/Vocalbularium/pull/210), [#211](https://github.com/Guccimane44/Vocalbularium/pull/211) and [#212](https://github.com/Guccimane44/Vocalbularium/pull/212)); owner acceptance is recorded on the tracker. Implements [D14](../architecture/traceability-map.md#entries), accepted by the owner on 22 October 2026, with the languages chosen in [K35](../architecture/traceability-map.md#clarifications) on the same day. Tracker: [#208](https://github.com/Guccimane44/Vocalbularium/issues/208).
 
 ## Outcome
 
