@@ -2,8 +2,13 @@
   "en": {
     "writingGuide": {
       "reviewed": "2026-10-23",
-      "reviewer": "Claude, a reviewer separate from the drafter (one review and one re-check)",
-      "summary": "Register reworded to a textbook for a learner; double quotation marks; examples hash table and prime. Five sections from the shared template; term examples paired across computer science and mathematics; formulas and symbols kept as they are; stock phrases banned as paragraph openers only."
+      "reviewer": "Claude, a reviewer separate from the drafter (review, then re-checks after each guide revision)",
+      "summary": "Revised in increment C after three rounds of the Expertise generation review: stock openers banned as announcing sentences without replacement phrases, English glosses limited to the selection and one or two specialist terms, the language's term put first. Register reworded to a textbook for a learner; double quotation marks; examples hash table and prime. Five sections from the shared template; term examples paired across computer science and mathematics; formulas and symbols kept as they are; stock phrases banned as paragraph openers only."
+    },
+    "expertise": {
+      "reviewed": "2026-10-23",
+      "reviewer": "Claude, a reviewer separate from the drafter (review, then re-checks after each guide revision)",
+      "summary": "Computer Science and Mathematics golden sets, 3 samples, three rounds (612 calls each). Pass: no template openers, terms explained without nesting, British spelling consistent. Model slips left (eigenvalue direction, skew lines, the moth story) are recorded in the evidence."
     }
   },
   "ar": {
@@ -12,8 +17,13 @@
     "summary": "Complete and correct in placeholders and its six plural forms. Must-fix items applied: a bidi-mirrored back arrow, number agreement in the diagnostics counts, three word choices; المفتاح الرئيسي and وحدة kept, their alternatives left to the owner.",
     "writingGuide": {
       "reviewed": "2026-10-23",
-      "reviewer": "Claude, a reviewer separate from the drafter (one review and one re-check)",
-      "summary": "English commas in the English instructions; parentheses, not brackets; examples جدول التجزئة and القيمة الذاتية; Western digits in prose only. Five sections from the shared template; term examples paired across computer science and mathematics; formulas and symbols kept as they are; stock phrases banned as paragraph openers only."
+      "reviewer": "Claude, a reviewer separate from the drafter (review, then re-checks after each guide revision)",
+      "summary": "Revised in increment C after three rounds of the Expertise generation review: stock openers banned as announcing sentences without replacement phrases, English glosses limited to the selection and one or two specialist terms, the language's term put first. English commas in the English instructions; parentheses, not brackets; examples جدول التجزئة and القيمة الذاتية; Western digits in prose only. Five sections from the shared template; term examples paired across computer science and mathematics; formulas and symbols kept as they are; stock phrases banned as paragraph openers only."
+    },
+    "expertise": {
+      "reviewed": "2026-10-23",
+      "reviewer": "Claude, a reviewer separate from the drafter (review, then re-checks after each guide revision)",
+      "summary": "Computer Science and Mathematics golden sets, 3 samples, three rounds. Pass: no quoted terms, Latin formulas, no repeated openers, basic words unglossed. Model slips recorded in the evidence."
     }
   },
   "es": {
@@ -22,8 +32,13 @@
     "summary": "Complete, placeholder-safe and consistent in terminology (mazo, faceta, clave principal) and register. Must-fix items applied: participle agreement in three announcements and the many plural form; 18 polish items taken.",
     "writingGuide": {
       "reviewed": "2026-10-23",
-      "reviewer": "Claude, a reviewer separate from the drafter (one review and one re-check)",
-      "summary": "Examples tabla hash and valor propio; «Piensa en ello como» added. Five sections from the shared template; term examples paired across computer science and mathematics; formulas and symbols kept as they are; stock phrases banned as paragraph openers only."
+      "reviewer": "Claude, a reviewer separate from the drafter (review, then re-checks after each guide revision)",
+      "summary": "Revised in increment C after three rounds of the Expertise generation review: stock openers banned as announcing sentences without replacement phrases, English glosses limited to the selection and one or two specialist terms, the language's term put first. Examples tabla hash and valor propio; «Piensa en ello como» added. Five sections from the shared template; term examples paired across computer science and mathematics; formulas and symbols kept as they are; stock phrases banned as paragraph openers only."
+    },
+    "expertise": {
+      "reviewed": "2026-10-23",
+      "reviewer": "Claude, a reviewer separate from the drafter (review, then re-checks after each guide revision)",
+      "summary": "Computer Science and Mathematics golden sets, 3 samples, three rounds. Pass: Spanish term first, no «Importa porque», textbook terms, glosses limited."
     }
   },
   "fr": {
@@ -32,8 +47,13 @@
     "summary": "Complete and accurate, with CLDR plurals and consistent terminology (paquet, facette, clé principale). Must-fix items applied: about 20 strings reworded for elision and agreement around inserted names, typography with narrow no-break spaces.",
     "writingGuide": {
       "reviewed": "2026-10-23",
-      "reviewer": "Claude, a reviewer separate from the drafter (one review and one re-check)",
-      "summary": "Examples corrected to table de hachage and valeur propre (ramasse-miettes named the collector); non-breaking spaces inside « » in the examples; decimal comma in prose. Five sections from the shared template; term examples paired across computer science and mathematics; formulas and symbols kept as they are; stock phrases banned as paragraph openers only."
+      "reviewer": "Claude, a reviewer separate from the drafter (review, then re-checks after each guide revision)",
+      "summary": "Revised in increment C after three rounds of the Expertise generation review: stock openers banned as announcing sentences without replacement phrases, English glosses limited to the selection and one or two specialist terms, the language's term put first. Examples corrected to table de hachage and valeur propre (ramasse-miettes named the collector); non-breaking spaces inside « » in the examples; decimal comma in prose. Five sections from the shared template; term examples paired across computer science and mathematics; formulas and symbols kept as they are; stock phrases banned as paragraph openers only."
+    },
+    "expertise": {
+      "reviewed": "2026-10-23",
+      "reviewer": "Claude, a reviewer separate from the drafter (review, then re-checks after each guide revision)",
+      "summary": "Computer Science and Mathematics golden sets, 3 samples, three rounds. Pass: textbook terms over calques, no English word as a French noun, length overruns 6–11% (from 14%). Non-breaking spaces need a normaliser (not in this release)."
     }
   },
   "ru": {
@@ -42,8 +62,13 @@
     "summary": "Complete and technically correct, with all four plural forms. Must-fix items applied: генерация for generation, gender agreement in announcements; раздел adopted for facet and добавление for capture on the reviewer's recommendation.",
     "writingGuide": {
       "reviewed": "2026-10-23",
-      "reviewer": "Claude, a reviewer separate from the drafter (one review and one re-check)",
-      "summary": "Examples хеш-таблица and собственное значение; dash with a non-breaking space before it; decimal comma in prose; «Давайте разберёмся» added. Five sections from the shared template; term examples paired across computer science and mathematics; formulas and symbols kept as they are; stock phrases banned as paragraph openers only."
+      "reviewer": "Claude, a reviewer separate from the drafter (review, then re-checks after each guide revision)",
+      "summary": "Revised in increment C after three rounds of the Expertise generation review: stock openers banned as announcing sentences without replacement phrases, English glosses limited to the selection and one or two specialist terms, the language's term put first. Examples хеш-таблица and собственное значение; dash with a non-breaking space before it; decimal comma in prose; «Давайте разберёмся» added. Five sections from the shared template; term examples paired across computer science and mathematics; formulas and symbols kept as they are; stock phrases banned as paragraph openers only."
+    },
+    "expertise": {
+      "reviewed": "2026-10-23",
+      "reviewer": "Claude, a reviewer separate from the drafter (review, then re-checks after each guide revision)",
+      "summary": "Computer Science and Mathematics golden sets, 3 samples, three rounds. Pass: Russian term first, no «Без…» or «важен» openers, calques gone. Non-breaking space before dashes needs a normaliser (not in this release)."
     }
   },
   "zh-Hans": {
@@ -52,8 +77,13 @@
     "summary": "Complete with correct placeholders. Must-fix items applied: grammatical gender wording, relative minutes, number spacing, and list joining in code; 子项 adopted for facet and quotes instead of italics in explanations.",
     "writingGuide": {
       "reviewed": "2026-10-23",
-      "reviewer": "Claude, a reviewer separate from the drafter (one review and one re-check)",
-      "summary": "Full-width punctuation list completed with 、？！ and a spacing rule; 换句话说 instead of 打个比方; examples 哈希表 and 特征值. Five sections from the shared template; term examples paired across computer science and mathematics; formulas and symbols kept as they are; stock phrases banned as paragraph openers only."
+      "reviewer": "Claude, a reviewer separate from the drafter (review, then re-checks after each guide revision)",
+      "summary": "Revised in increment C after three rounds of the Expertise generation review: stock openers banned as announcing sentences without replacement phrases, English glosses limited to the selection and one or two specialist terms, the language's term put first. Full-width punctuation list completed with 、？！ and a spacing rule; 换句话说 instead of 打个比方; examples 哈希表 and 特征值. Five sections from the shared template; term examples paired across computer science and mathematics; formulas and symbols kept as they are; stock phrases banned as paragraph openers only."
+    },
+    "expertise": {
+      "reviewed": "2026-10-23",
+      "reviewer": "Claude, a reviewer separate from the drafter (review, then re-checks after each guide revision)",
+      "summary": "Computer Science and Mathematics golden sets, 3 samples, three rounds. Pass: no announcing openers, half-width formulas, consistent spacing, glosses limited. Optional: count abbreviations such as API as having no Chinese term."
     }
   }
 }

@@ -30,10 +30,10 @@ export const LANGUAGES: readonly Readonly<{ code: InterfaceLanguage; name: strin
 export const CATALOGUES: Readonly<Record<InterfaceLanguage, Catalogue>> = { en: english, ar: arabic, 'zh-Hans': chinese, fr: french, ru: russian, es: spanish };
 // A language is offered once its catalogue and explanations are complete (the
 // localisation test checks this) and its separate review is recorded here,
-// with the review of its Expertise writing guide (D15). English, the source,
-// records only its guide's.
+// with the reviews of its Expertise writing guide and of the Expertise output
+// in it (D15, K42). English, the source, records only those two.
 type Reviewed = Readonly<{ reviewed: string; reviewer: string; summary: string }>;
-export type Review = Partial<Reviewed> & Readonly<{ writingGuide?: Reviewed }>;
+export type Review = Partial<Reviewed> & Readonly<{ writingGuide?: Reviewed; expertise?: Reviewed }>;
 export const REVIEWS: Readonly<Partial<Record<InterfaceLanguage, Review>>> = reviews;
 export const ENGLISH: Readonly<Record<MessageKey, string>> = english;
 
@@ -51,7 +51,7 @@ let preference: InterfaceLanguage = 'en';
 let pseudo: PseudoLanguage | null = null;
 const listeners = new Set<() => void>();
 
-export const offeredLanguages = () => LANGUAGES.filter(language => language.code === 'en' || (REVIEWS[language.code]?.reviewed && REVIEWS[language.code]?.writingGuide));
+export const offeredLanguages = () => LANGUAGES.filter(language => language.code === 'en' || (REVIEWS[language.code]?.reviewed && REVIEWS[language.code]?.writingGuide && REVIEWS[language.code]?.expertise));
 export const isOffered = (value: unknown): value is InterfaceLanguage => offeredLanguages().some(language => language.code === value);
 export const currentLanguage = () => current;
 // The account's preference, whatever pseudo-language is shown.

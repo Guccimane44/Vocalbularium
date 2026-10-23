@@ -93,7 +93,7 @@ test('an Expertise length is stated in the unit of its language, never as a word
   }
 });
 
-test('every interface language has an Expertise writing guide with its five sections, and its review recorded (D15, K41)', () => {
+test('every interface language has an Expertise writing guide with its five sections, and the reviews of the guide and its output recorded (D15, K41, K42)', () => {
   const reviews = JSON.parse(readFileSync(new URL('../extension/locales/reviews.json', import.meta.url), 'utf8'));
   const folder = new URL('../packages/domain/src/catalog/expertise/writing/', import.meta.url);
   assert.deepEqual(readdirSync(folder).filter(file => file.endsWith('.md')).map(file => file.slice(0, -3)).sort(), [...INTERFACE_LANGUAGES].sort());
@@ -101,7 +101,11 @@ test('every interface language has an Expertise writing guide with its five sect
     const guide = writingGuide(language);
     for (const heading of GUIDE_SECTIONS) assert.ok(guide[heading], `${language}: ${heading}`);
     assert.match(guide.Length, /\{\d*\.?\d*n\}/, `${language}: the length unit names n`);
+    const words = GUIDE_SECTIONS.slice(0, 4).map(heading => guide[heading]).join(' ').split(/\s+/).length;
+    assert.ok(words <= 400, `${language}: the guide has ${words} words, more than K41's about 250–400`);
     const review = reviews[language]?.writingGuide;
     assert.ok(review?.reviewed && review.reviewer && review.summary, `${language}: the guide's review is recorded`);
+    const output = reviews[language]?.expertise;
+    assert.ok(output?.reviewed && output.reviewer && output.summary, `${language}: the review of its Expertise output is recorded (K42)`);
   }
 });
