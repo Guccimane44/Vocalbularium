@@ -69,12 +69,12 @@ K35 applied to the traceability map, shared UI, scope and the Q69 answer; this p
 
 ### C. The five translations
 
-- **Interface catalogues** for Arabic, Chinese (Simplified), French, Russian and Spanish, with the names and descriptions of modules and facets (not their abbreviations), and the 12 explanations in each.
-- **API messages** gain stable keys, translated in each catalogue.
-- **Expertise modules** write in the language preference: the prompt composer receives it as generation input, and the generation record notes it. The Languages modules are unchanged.
-- **Fonts:** the bundled Fraunces and Instrument Sans cover Latin and Cyrillic; Arabic and Chinese use system fonts, as Chinese content already does ([shared UI](../specs/shared-ui.md#visual-identity)).
-- **Review:** a Claude reviewer, separate from the drafting, reviews each language; its findings are fixed before the language is offered, and the PR records the review per language. The owner's manual check comes later.
-- **Tests.** Catalogue completeness per language; browser E2E switching to each language and back; an Expertise page generated in French with a mocked provider, checking the prompt's language.
+- **Interface catalogues** for Arabic, Chinese (Simplified), French, Russian and Spanish (`extension/locales/<language>/messages.json`), with the names and descriptions of modules and facets (`catalog.*`, not their abbreviations), and the 12 explanations in each (`explanation.<language>.md`).
+- **API messages:** the API keeps answering in English; each `api.*` entry of the English catalogue matches one message the API or the domain sends, its placeholders standing for the values, and the worker shows it in the interface language (`apiText`). Operator messages (configuration, database ownership) stay English. A test fails when an entry's English no longer appears in the API or the domain.
+- **Expertise modules** write in the language preference: their prompts name `{{language}}`, which the composer fills from the account, so the prompt version recorded with each part differs per language. The Languages modules are unchanged.
+- **Fonts:** the bundled Fraunces and Instrument Sans cover Latin only; the stacks name system Cyrillic (Georgia, Segoe UI, Helvetica Neue, Arial) and Arabic (Noto Naskh or Sans Arabic, Geeza Pro) fonts before the CJK ones ([shared UI](../specs/shared-ui.md#visual-identity)).
+- **Review:** each language is reviewed by a Claude reviewer separate from the drafting, then re-checked after its findings are applied; the review is recorded in `extension/locales/reviews.json`, and only a language recorded there is offered. Terms changed on review: Russian генерация for generation, раздел for facet and добавление for capture; Chinese 子项 for facet. Left to the owner: Arabic المدخل الرئيسي instead of المفتاح الرئيسي for main key, and whether وحدة (module) reads too much like a lesson unit. The owner's manual check comes later.
+- **Tests.** Catalogue completeness per language, including the plural forms each language needs; every explanation in every language; the API entries still sent; browser E2E picking a language from the list, another installation's choice followed, and each language's dashboard, page, names, explanation and direction; an Expertise page generated in French with a mocked provider, checking the prompt's language.
 
 ### D. Verification and delivery (0.9.0)
 
