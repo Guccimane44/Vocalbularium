@@ -16,7 +16,7 @@ Recorded in D14 and K35 on 22 October 2026 and applied to the specifications:
 2. **Right to left in 1.0:** Arabic mirrors the layout of every surface (K35).
 3. **The list grows after 1.0:** adding a language is a catalogue of strings and explanations, with no code change (K35).
 4. **The preference** belongs to the account, starts as English, and does not follow the browser (K37).
-5. **What it sets:** interface text, explanations and the Expertise modules' output; the Languages modules and captured keys do not follow it (K36).
+5. **What it sets:** interface text, the names and descriptions of modules and facets, explanations and the Expertise modules' output; the Languages modules and captured keys do not follow it, and facet abbreviations stay as they are (K36, confirmed and extended by the owner on 23 October 2026).
 6. **String process:** chosen by this plan, after counting the strings (K38).
 
 ## Cost baseline
@@ -26,17 +26,17 @@ Counted at 0.8.1, the extension's count by the extraction in increment A:
 | Source | Count |
 | --- | --- |
 | Interface messages of the extension (`extension/locales/en/messages.json`: labels, buttons, statuses, announcements, dialogs, the worker's menu and feedback) | 263 |
-| Catalog texts shown in the interface (module and family names, descriptions, facet names and marks, the core's names) | 42 |
+| Catalog texts shown in the interface (module and family names, descriptions, facet names, the core's names; facet abbreviations stay as they are) | 36 |
 | Messages from the API that reach the user (`StoreError` and `apiFailure` texts) | about 58 |
 | Explanations (`explanation.md` in the catalog) | 24 |
 
-Each language other than English therefore translates about 360 short strings and 24 short texts.
+Each language other than English therefore translates about 355 short strings and 24 short texts.
 
 ## String process
 
 - **Catalogue per language.** `extension/locales/<language>/messages.json`: flat keys (`settings.appearance.label`), each with a message in ICU-like form, `{name}` placeholders and plural forms chosen with `Intl.PluralRules`. English is the source; it is complete by definition.
 - **One lookup.** `extension/i18n.ts` exports `t(key, values)`, the current language and its direction, and a subscription that redraws the interface when the preference changes. Static pages mark their texts with `data-i18n`.
-- **Catalog texts** keep their English in the catalog; a language's catalogue names them as `catalog.<module>.label` and the like, read through `extension/catalog-text.ts`. A reason the domain gives the interface, such as why a module cannot be added, is a code the extension words (`addBlockedReason`).
+- **Catalog texts** keep their English in the catalog; a language's catalogue names them as `catalog.<module>.label` and the like, read through `extension/catalog-text.ts`. A facet's abbreviation is not translated (K36). A reason the domain gives the interface, such as why a module cannot be added, is a code the extension words (`addBlockedReason`).
 - **API messages** stay English on the wire. Increment C gives each message the API shows a stable key in its failure details, so the extension shows it from its catalogue; until then they are shown in English.
 - **The manifest's** name and description stay English (Chrome would choose their language by the browser's, not the account's); the toolbar button's title follows the preference, set by the worker.
 - **Explanations** move to `explanation.<language>.md` beside the English `explanation.md`; a missing translation falls back to English.
@@ -68,7 +68,7 @@ K35 applied to the traceability map, shared UI, scope and the Q69 answer; this p
 
 ### C. The five translations
 
-- **Interface catalogues** for Arabic, Chinese (Simplified), French, Russian and Spanish, with their catalog texts, and the 24 explanations in each.
+- **Interface catalogues** for Arabic, Chinese (Simplified), French, Russian and Spanish, with the names and descriptions of modules and facets (not their abbreviations), and the 24 explanations in each.
 - **API messages** gain stable keys, translated in each catalogue.
 - **Expertise modules** write in the language preference: the prompt composer receives it as generation input, and the generation record notes it. The Languages modules are unchanged.
 - **Fonts:** the bundled Fraunces and Instrument Sans cover Latin and Cyrillic; Arabic and Chinese use system fonts, as Chinese content already does ([shared UI](../specs/shared-ui.md#visual-identity)).

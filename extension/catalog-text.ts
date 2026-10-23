@@ -11,5 +11,6 @@ export const moduleLabel = (type: string) => catalogText(`${type}.label`, CATALO
 export const moduleDescription = (type: ModuleType) => catalogText(`${type}.description`, CATALOG[type].description);
 export const familyLabel = (family: ModuleFamily) => catalogText(`family.${family}`, FAMILY_LABELS[family]);
 export const facetName = (parent: ParentType, facet: FacetType) => catalogText(`${parent}.${facet}.label`, facetLabel(parent, facet));
-export const facetMark = (parent: ParentType, facet: FacetType) => catalogText(`${parent}.${facet}.abbreviation`, facetAbbreviation(parent, facet));
+// A facet's abbreviation, on its tags, tab and facet-window row, stays as the catalog gives it in every language (K36).
+export const facetMark = (parent: ParentType, facet: FacetType) => facetAbbreviation(parent, facet);
 export const coreLabel = (parent: ParentType, kind: 'word_phrase' | 'sentence') => catalogText(`${parent}.core.${kind}`, contentModule(parent).core.labels[kind]);
