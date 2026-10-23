@@ -101,6 +101,8 @@ test('every interface language has an Expertise writing guide with its five sect
     const guide = writingGuide(language);
     for (const heading of GUIDE_SECTIONS) assert.ok(guide[heading], `${language}: ${heading}`);
     assert.match(guide.Length, /\{\d*\.?\d*n\}/, `${language}: the length unit names n`);
+    const words = GUIDE_SECTIONS.slice(0, 4).map(heading => guide[heading]).join(' ').split(/\s+/).length;
+    assert.ok(words <= 400, `${language}: the guide has ${words} words, more than K41's about 250–400`);
     const review = reviews[language]?.writingGuide;
     assert.ok(review?.reviewed && review.reviewer && review.summary, `${language}: the guide's review is recorded`);
     const output = reviews[language]?.expertise;

@@ -36,7 +36,7 @@ The lesson for later guides: a phrase offered as an example is copied as a templ
 - **Module prompts.** In every language the model restates or explains the Context when it is inside the subject, which the [modules spec](../../specs/modules.md#input-and-applicability) forbids, and adds an everyday meaning when no Context asks for one. Both come from the Computer Science and Mathematics prompts' wording, which this release leaves unchanged.
 - **French and Russian non-breaking spaces.** The model writes them before ; : ! ? and dashes only part of the time, whatever the guide says; a normaliser after generation would fix it.
 - **Facts.** Each round had isolated factual slips. Recurring ones: an eigenvector "keeps its direction" (false for negative eigenvalues), Big O read as an exact growth rate, the 1947 moth told as the origin of "bug", lines that do not meet called parallel without "in the plane", and garbage collection said to prevent all memory leaks.
-- **Guide length.** The guides grew to 290–364 words, above the 150–250 words of [K41](../../architecture/traceability-map.md#clarifications).
+- **Guide length.** The guides grew to 290–364 words, above the 150–250 words of [K41](../../architecture/traceability-map.md#clarifications); the owner amended K41 to about 250–400 words on 23 October 2026.
 
 ## Limits
 
