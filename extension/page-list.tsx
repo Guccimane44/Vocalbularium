@@ -84,10 +84,11 @@ export function MeaningLine({ page, navigate }: { page: ListPage; navigate: Navi
     <button className="retry" onClick={event => { event.stopPropagation(); navigate(`page/${page.id}`); }}>{t('pageList.retry')}</button>
   </span>;
   const tier = mainKeyTier(page.mainKey);
-  const parts = tier === 'passage' ? [t('pageList.passage', { count: wordCount(page.mainKey) })]
-    : [tier === 'sentence' ? t('pageList.sentence') : null, page.meaning ?? null].filter(Boolean);
-  if (!parts.length) return null;
-  return <span className="meaning-line muted">{parts.join(' · ')}</span>;
+  if (tier === 'passage') return <span className="meaning-line muted">{t('pageList.passage', { count: wordCount(page.mainKey) })}</span>;
+  const kind = tier === 'sentence' ? t('pageList.sentence') : null;
+  if (!kind && !page.meaning) return null;
+  // The meaning is the page's content, isolated in its own direction (D14).
+  return <span className="meaning-line muted">{kind}{kind && page.meaning && ' · '}{page.meaning && <bdi className="meaning">{page.meaning}</bdi>}</span>;
 }
 
 const sameDay = (a: Date, b: Date) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
@@ -118,7 +119,7 @@ function useOpen<T extends HTMLElement>(page: ListPage, navigate: Navigate) {
 }
 
 function KeyLink({ page, link, describedBy }: { page: ListPage; link: (event: ReactMouseEvent) => void; describedBy?: string }) {
-  return <a className="entry" href={`#page/${page.id}`} onClick={link} aria-describedby={describedBy}
+  return <a className="entry" dir="auto" href={`#page/${page.id}`} onClick={link} aria-describedby={describedBy}
     data-tier={mainKeyTier(page.mainKey)}>{page.mainKey}</a>;
 }
 

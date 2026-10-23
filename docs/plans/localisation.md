@@ -61,10 +61,11 @@ K35 applied to the traceability map, shared UI, scope and the Q69 answer; this p
 
 ### B. Right to left and a pseudo-language
 
-- **Layout.** Styles move to logical properties (`margin-inline-start`, `inset-inline-end`, `text-align: start`); direction-carrying icons and the card's ejected actions mirror; drag and drop, the drop line and keyboard dragging follow the reading direction.
-- **Content direction.** Main keys, generated content and the editor take `dir="auto"`, so a German card stays left to right in an Arabic interface.
-- **Pseudo-languages** for testing, never offered to users: an accented and lengthened English, and a right-to-left one, to find hard-coded texts, truncation and mirroring faults before real translations.
-- **Tests.** Browser E2E in the right-to-left pseudo-language: the page list, a page, deck settings, the module and facet windows, dialogs and drag and drop; screenshots of each in both themes.
+- **Layout.** Styles move to logical properties (`margin-inline-start`, `inset-inline-end`, `text-align: start`). Sideways motion multiplies by `--flip` and start- or end-side origins name `--start` or `--end`, all set from `dir` on the document (`app.css`). The card's tab, its ejected actions and question, the facet tags, the facet window, the module window, the sidebar and the account menu mirror; the question's tail and the family chevrons turn. Keyboard dragging takes the arrow towards the reading start as back. Arrows that are text, such as **← My Deck** and **‹ Language**, are catalogue entries, so each language draws its own.
+- **Content direction.** Main keys, generated and written content blocks, the editors, deck names and the meaning line's meaning take their own direction (`dir="auto"` or `<bdi>`), so a German card stays left to right in an Arabic interface.
+- **Pseudo-languages** for testing, never offered to users: `en-XA` accents and lengthens each message by a third inside ⟦…⟧, `ar-XB` keeps English and runs right to left. They are set by `pseudoLanguage` in the extension's local storage and override the account's language until removed. In `ar-XB` English punctuation lands at the wrong end of a line, as English always does in a right-to-left layout; Arabic text does not.
+- **Not mirrored:** the capture feedback on a web page keeps its corner, as the web page's own layout decides nothing about it.
+- **Tests.** Browser E2E in `ar-XB`: the sidebar, account menu, card tab, facet tags, card question, module window and the direction of German content and a Latin main key; in `en-XA`: no visible interface text or label left unaccented on the dashboard, account menu, language list, page list, page, card actions, deck settings and diagnostic logs. Screenshots of the dashboard, page, card question, facet window and deck settings in both themes.
 
 ### C. The five translations
 

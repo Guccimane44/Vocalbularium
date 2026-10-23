@@ -170,7 +170,7 @@ function DeckList({ deck, account, navigate, configure, mutate, reportError, loa
   return <div className={`deck-view fam-${deckColour(deck)}`}>
     <div className="page-head">
       <div>
-        <h1><span className="fam-mark deck-mark" aria-hidden="true" />{deck.name}</h1>
+        <h1><span className="fam-mark deck-mark" aria-hidden="true" /><bdi>{deck.name}</bdi></h1>
         <p className="muted">{t('deck.pageCount', { count: deck.pageCount })}</p>
       </div>
       <div className="head-actions">
@@ -223,7 +223,7 @@ function RecentCaptures({ account, local, navigate, mutate, reportError }: Pick<
         : entry.receipt?.state === 'saving' ? 'saving' : entry.receipt?.state === 'pending' ? 'unsaved' : 'loading';
       const deck = account.decks.find(item => item.id === entry.deckId);
       const pageId = entry.page?.id ?? (entry.receipt?.state === 'saved' ? entry.receipt.pageId : undefined);
-      const text = <span className="capture-text" data-tier={mainKeyTier(entry.text)}>{entry.text}</span>;
+      const text = <span className="capture-text" dir="auto" data-tier={mainKeyTier(entry.text)}>{entry.text}</span>;
       let line: ReactNode = null;
       if (entry.page) line = <MeaningLine page={{ ...entry.page, mainKey: entry.text }} navigate={navigate} key={entry.page.status ?? 'none'} />;
       else if (entry.receipt?.state === 'saving') line = <span className="meaning-line"><SavingStatus /></span>;
@@ -273,7 +273,7 @@ function DeckGrid({ account, local, navigate, configure, mutate, reportError, lo
       {decks.map(deck => <article className={`deck fam-${deckColour(deck)}`} key={deck.id}>
         <span className="deck-tab" aria-hidden="true" />
         <button className="open" onClick={() => navigate(`deck/${deck.id}`)}>
-          <h2>{deck.name}</h2>
+          <h2 dir="auto">{deck.name}</h2>
           <p className="muted">{t('deck.pageCount', { count: deck.pageCount })} · {t('deck.moduleCount', { count: deck.moduleCount })}</p>
         </button>
         <footer>

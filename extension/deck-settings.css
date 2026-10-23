@@ -52,10 +52,10 @@
 .sample-page .main-key[data-tier="word"] { font-size: 44px; }
 .sample-page .main-key[data-tier="phrase"], .sample-page .main-key[data-tier="sentence"] { font-size: 28px; }
 .sample-page .component { padding: 22px 18px 16px; }
-.sample-page .card-tab { left: 14px; height: 24px; top: -12px; }
+.sample-page .card-tab { inset-inline-start: 14px; height: 24px; top: -12px; }
 .sample-page .card-tab h3 { margin: 0; font: 600 12px/1 var(--font-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: inherit; }
 .sample-page .component[data-empty] { margin-top: -12px; padding: 0 0 12px; }
-.sample-page .component[data-empty] .card-tab { left: 14px; }
+.sample-page .component[data-empty] .card-tab { inset-inline-start: 14px; }
 .sample-page .reading, .sample-page .example-sentence { font-size: 16px; }
 .sample-page .meanings li, .sample-page .component pre { font-size: 14px; }
 

@@ -29,11 +29,11 @@
    on any card. The tab sits in the flow where a card's tab would, and the
    space below it keeps the card a full-size drop target. */
 .component:is([data-empty], [data-generating]) { display: flex; margin-top: -14px; padding: 0 0 14px; background: transparent; box-shadow: none; }
-.component:is([data-empty], [data-generating]) .card-head { position: relative; top: 0; left: 18px; right: auto; width: calc(100% - 36px); }
+.component:is([data-empty], [data-generating]) .card-head { position: relative; top: 0; inset-inline: 18px auto; width: calc(100% - 36px); }
 
 /* The head on a card's top edge: the index tab, then the actions it ejects (D07). */
-.card-head { position: absolute; top: -14px; left: 18px; right: 18px; display: flex; align-items: center; gap: 8px; min-width: 0; }
-.card-tab { position: absolute; top: -14px; left: 18px; max-width: calc(100% - 36px); height: 28px; display: inline-flex; align-items: center; gap: 6px;
+.card-head { position: absolute; top: -14px; inset-inline: 18px; display: flex; align-items: center; gap: 8px; min-width: 0; }
+.card-tab { position: absolute; top: -14px; inset-inline-start: 18px; max-width: calc(100% - 36px); height: 28px; display: inline-flex; align-items: center; gap: 6px;
   padding: 0 12px 0 6px; border-radius: var(--radius-control) var(--radius-control) var(--radius-control) 2px;
   background: var(--fam, var(--fam-notes)); color: var(--on-fam, var(--on-ink)); transition: transform var(--dur-spring) var(--ease-spring); }
 .card-head .card-tab { position: static; flex: 0 1 auto; min-width: 0; max-width: 100%; }
@@ -63,7 +63,7 @@
   box-shadow: inset -1px 0 0 color-mix(in srgb, currentColor 22%, transparent); }
 .card-head .card-tab h2 { display: flex; flex: 1 1 auto; }
 .card-head .card-tab .tab-button { width: 100%; height: 100%; padding: 0 12px 0 7px; border-radius: 0 var(--radius-control) var(--radius-control) 0; }
-.row-menu-list { position: absolute; top: calc(100% + 6px); left: -4px; z-index: 5; min-width: 210px; margin: 0; padding: 4px; list-style: none;
+.row-menu-list { position: absolute; top: calc(100% + 6px); inset-inline-start: -4px; z-index: 5; min-width: 210px; margin: 0; padding: 4px; list-style: none;
   border-radius: var(--radius-md); background: var(--surface); color: var(--ink); box-shadow: 0 0 0 1px var(--line), var(--shadow-lift);
   font: 500 13px/1.2 var(--font-text); letter-spacing: normal; animation: menu-open var(--dur-quick) var(--ease-out) both; transform-origin: top left; }
 .row-menu-list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 10px; border-radius: 6px; color: var(--ink-muted); cursor: default; }
@@ -72,7 +72,7 @@
 /* A parent's facet window (D13, 0.8.1): a popover below the tab, in the
    card's family tint, one row per facet with its mark, its name and a tick
    at the row's end, where its question's Cancel then stands. */
-.facet-window { position: absolute; top: calc(100% + 8px); left: 0; z-index: 5; min-width: 250px; padding: 4px;
+.facet-window { position: absolute; top: calc(100% + 8px); inset-inline-start: 0; z-index: 5; min-width: 250px; padding: 4px;
   border-radius: var(--radius-md); background: var(--fam-tint, var(--fam-notes-tint)); color: var(--ink);
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--fam, var(--fam-notes)) 35%, transparent), var(--shadow-lift);
   font: 500 13px/1.2 var(--font-text); letter-spacing: normal; text-transform: none; animation: menu-open var(--dur-quick) var(--ease-out) both; transform-origin: top left; }
@@ -85,7 +85,7 @@
 .facet-window-row input[type="checkbox"] { width: 16px; height: 16px; margin: 0 4px 0 0; accent-color: var(--fam, var(--fam-notes)); cursor: pointer; }
 .facet-window-row:has(input[aria-disabled="true"]) label { cursor: default; opacity: .6; }
 .facet-window-row:not([data-equipped]) .facet-tab-mark { opacity: .7; }
-.facet-window .facet-confirm { margin-left: 0; }
+.facet-window .facet-confirm { margin-inline-start: 0; }
 /* Each row's ⓘ expands the facet's explanation beneath the row. */
 .facet-window { max-width: min(360px, calc(100vw - 48px)); }
 .facet-window-row { flex-wrap: wrap; }
@@ -107,9 +107,9 @@
    each springs out from behind the tab, one after the other, and the tab
    kicks back a few pixels as it lets them go. Hovering one fills it with the
    family colour and lifts it like a tab; Delete fills with the failed colour. */
-.card-head .card-tab { position: relative; top: 0; left: 0; z-index: 1; }
+.card-head .card-tab { position: relative; top: 0; inset-inline-start: 0; z-index: 1; }
 .card-tab:has(> h2 > .tab-button[aria-expanded="true"]) { animation: tab-kick var(--dur-spring) var(--ease-spring); }
-@keyframes tab-kick { 30% { transform: translateX(-4px) scale(.98); } }
+@keyframes tab-kick { 30% { transform: translateX(calc(-4px * var(--flip))) scale(.98); } }
 .card-actions { display: flex; flex: none; gap: 4px; }
 .card-actions button { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 11px 0 9px; border: 0;
   border-radius: var(--radius-control) var(--radius-control) var(--radius-control) 2px;
@@ -137,17 +137,18 @@
    of the whole shape, in an opaque mix of the line and fill colours. */
 .confirm-text { --ink-bubble: var(--status-failed); --bubble: var(--status-failed-bg);
   --bubble-line: color-mix(in srgb, var(--ink-bubble) 35%, var(--bubble));
-  position: relative; flex: none; align-self: center; margin-left: 10px; padding: 4px 11px 5px; border-radius: 999px;
+  position: relative; flex: none; align-self: center; margin-inline-start: 10px; padding: 4px 11px 5px; border-radius: 999px;
   font: 600 13px/1.2 var(--font-text); color: var(--ink-bubble); background: var(--bubble);
   filter: drop-shadow(1px 0 0 var(--bubble-line)) drop-shadow(-1px 0 0 var(--bubble-line)) drop-shadow(0 1px 0 var(--bubble-line)) drop-shadow(0 -1px 0 var(--bubble-line)); }
-.confirm-text::before { content: ""; position: absolute; left: -6px; top: 50%; width: 12px; height: 12px; margin-top: -6px;
+.confirm-text::before { content: ""; position: absolute; inset-inline-start: -6px; top: 50%; width: 12px; height: 12px; margin-top: -6px;
   background: var(--bubble); clip-path: polygon(0 45%, 100% 0, 100% 100%, 0 55%); }
-.card-actions[data-open] .confirm-text { animation: eject var(--dur-spring) var(--ease-spring) both, wobble 600ms var(--ease-out) 380ms; animation-delay: calc(var(--i, 0) * 40ms), 380ms; transform-origin: left center; }
+:root[dir="rtl"] .confirm-text::before { clip-path: polygon(100% 45%, 0 0, 0 100%, 100% 55%); }
+.card-actions[data-open] .confirm-text { animation: eject var(--dur-spring) var(--ease-spring) both, wobble 600ms var(--ease-out) 380ms; animation-delay: calc(var(--i, 0) * 40ms), 380ms; transform-origin: var(--start) center; }
 /* Once out, the question gives one small wobble, a nudge to look twice. */
 @keyframes wobble { 20% { transform: rotate(-4deg); } 45% { transform: rotate(3deg); } 70% { transform: rotate(-1.5deg); } }
-.card-actions[data-open] button { animation: eject var(--dur-spring) var(--ease-spring) both; animation-delay: calc(var(--i, 0) * 40ms); transform-origin: left center; }
+.card-actions[data-open] button { animation: eject var(--dur-spring) var(--ease-spring) both; animation-delay: calc(var(--i, 0) * 40ms); transform-origin: var(--start) center; }
 @keyframes eject {
-  from { opacity: 0; transform: translateX(calc(-36px - var(--i, 0) * 28px)) scale(.7); }
+  from { opacity: 0; transform: translateX(calc((-36px - var(--i, 0) * 28px) * var(--flip))) scale(.7); }
   50% { opacity: 1; }
 }
 @media (prefers-reduced-motion: reduce) { .card-tab, .confirm-text { animation: none !important; } }
@@ -271,7 +272,7 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
   background: transparent; transition: background var(--dur-instant) ease, color var(--dur-instant) ease; }
 .help-button svg { width: 18px; height: 18px; }
 .help-button:hover, .help-button[aria-expanded="true"] { color: var(--ink); background: var(--surface-hover); }
-.help-text { position: absolute; top: calc(100% + 8px); left: -4px; right: -4px; z-index: 5; padding: 10px 12px; border-radius: var(--radius-md);
+.help-text { position: absolute; top: calc(100% + 8px); inset-inline: -4px; z-index: 5; padding: 10px 12px; border-radius: var(--radius-md);
   background: var(--surface); color: var(--ink-soft); box-shadow: 0 0 0 1px var(--line), var(--shadow-lift); font: 400 13px/1.45 var(--font-text);
   animation: menu-open var(--dur-quick) var(--ease-out) both; transform-origin: top left; }
 .help-text[hidden] { display: none; }
@@ -280,11 +281,12 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
 .window-family { border-top: 1px solid var(--line); }
 .window-family summary { display: flex; align-items: center; gap: 8px; padding: 10px 2px; cursor: pointer; list-style: none; font-weight: 600; font-size: 14px; }
 .window-family summary::-webkit-details-marker { display: none; }
-.window-family summary::after { content: ""; margin-left: 6px; width: 7px; height: 7px; border-right: 1.5px solid var(--ink-muted); border-bottom: 1.5px solid var(--ink-muted);
+.window-family summary::after { content: ""; margin-inline-start: 6px; width: 7px; height: 7px; border-right: 1.5px solid var(--ink-muted); border-bottom: 1.5px solid var(--ink-muted);
   transform: rotate(-45deg); transition: transform var(--dur-quick) var(--ease-out); }
 .window-family[open] summary::after { transform: rotate(45deg); }
+:root[dir="rtl"] .window-family:not([open]) summary::after { transform: rotate(135deg); }
 .fam-chip { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 6px; background: var(--fam); color: var(--on-fam); }
-.family-count { margin-left: auto; font-weight: 500; font-size: 13px; color: var(--ink-muted); }
+.family-count { margin-inline-start: auto; font-weight: 500; font-size: 13px; color: var(--ink-muted); }
 .module-window ul { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 8px; }
 .window-module { display: grid; grid-template-columns: 1fr; gap: 4px; padding: 10px 12px; border-radius: var(--radius-md); background: var(--ground);
   box-shadow: inset 3px 0 0 var(--fam), 0 0 0 1px var(--line); transition: box-shadow var(--dur-instant) ease, transform var(--dur-spring) var(--ease-spring); }
@@ -292,14 +294,14 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
 /* The + adds the module as the last entry: a small round tab-coloured button
    in the module's bottom-right corner, filled with the family colour on hover. */
 .window-module { position: relative; }
-.window-module .window-add { position: absolute; right: 8px; bottom: 8px; display: grid; place-items: center; width: 26px; height: 26px; padding: 0; border: 0;
+.window-module .window-add { position: absolute; inset-inline-end: 8px; bottom: 8px; display: grid; place-items: center; width: 26px; height: 26px; padding: 0; border: 0;
   border-radius: 50%; color: var(--fam); background: var(--fam-tint); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fam) 30%, transparent);
   transition: background var(--dur-instant) ease, color var(--dur-instant) ease, transform var(--dur-spring) var(--ease-spring); }
 .window-module .window-add svg { width: 14px; height: 14px; }
 .window-module .window-add:not(:disabled):hover { color: var(--on-fam); background: var(--fam); transform: scale(1.08); }
 .window-module .window-add:not(:disabled):active { transform: scale(.94); }
 .window-module .window-add:disabled { opacity: .45; cursor: default; }
-.window-module-body { padding-right: 30px; }
+.window-module-body { padding-inline-end: 30px; }
 /* Below the +, the module's explanation (D13, 0.8.1): a quiet link at the
    corner, the + standing just above it. */
 .window-module .window-add { bottom: 34px; }
@@ -403,7 +405,7 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
 .md-tool[data-tool="highlight"] { box-shadow: inset 0 -3px 0 var(--swatch, var(--highlight)); }
 .md-tool.md-tool-more { width: 14px; }
 .md-tool.md-tool-more svg { width: 12px; height: 12px; }
-.md-palette { position: absolute; top: 28px; right: 0; z-index: 5; display: flex; align-items: center; gap: 4px; padding: 6px;
+.md-palette { position: absolute; top: 28px; inset-inline-end: 0; z-index: 5; display: flex; align-items: center; gap: 4px; padding: 6px;
   border: 1px solid var(--line); border-radius: 8px; background: var(--surface); box-shadow: var(--shadow-drag, 0 6px 18px #0002); }
 .md-swatch { width: 20px; height: 20px; padding: 0; border: 1px solid var(--line-control, var(--line)); border-radius: 50%;
   background: var(--swatch, var(--highlight)); cursor: pointer; font: 600 10px/1 var(--font-text); color: var(--ink-muted); }
@@ -426,7 +428,7 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
 .md-choice:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
 /* The formatting toolbar (D10, 0.7.5): beside the focused part, on its
    facet's rule or the core's top line, at the end of that row. */
-.md-toolbar { display: inline-flex; gap: 2px; margin-left: auto; animation: tools-in var(--dur-instant) ease-out; }
+.md-toolbar { display: inline-flex; gap: 2px; margin-inline-start: auto; animation: tools-in var(--dur-instant) ease-out; }
 @keyframes tools-in { from { opacity: 0; transform: translateY(2px); } }
 .md-tool { display: inline-grid; place-items: center; width: 24px; height: 24px; padding: 0; border: 0; border-radius: 6px;
   background: transparent; color: var(--ink-muted); cursor: pointer; }
@@ -464,7 +466,7 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
 @media (prefers-reduced-motion: reduce) { .facet[data-retrying] .facet-tab { box-shadow: 0 0 0 2px var(--fam, var(--fam-notes)) inset; } }
 .facet-note { font-weight: 400; letter-spacing: 0; text-transform: none; }
 .facet-lines { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 16px; line-height: 1.5; }
-.facet-actions { margin-left: auto; display: inline-flex; gap: 2px; }
+.facet-actions { margin-inline-start: auto; display: inline-flex; gap: 2px; }
 /* A facet's Retry (0.7.3) and Delete, shown while the facet is pointed at. */
 .facet-actions button { display: inline-grid; place-items: center; width: 26px; height: 26px; padding: 0; border: 0; border-radius: var(--radius-control);
   background: transparent; color: var(--ink-muted); opacity: 0; transition: opacity var(--dur-instant) ease, background var(--dur-instant) ease; }
@@ -474,7 +476,7 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
 .facet-edit:not(:disabled):hover, .facet-retry:not(:disabled):hover { background: var(--fam-tint, var(--fam-notes-tint)); color: var(--fam, var(--fam-notes)); }
 .facet-delete:not(:disabled):hover { background: var(--status-failed-bg); color: var(--status-failed); }
 .facet-actions .action-icon { width: 14px; height: 14px; }
-.facet-confirm { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; letter-spacing: 0; text-transform: none; }
+.facet-confirm { margin-inline-start: auto; display: inline-flex; align-items: center; gap: 6px; letter-spacing: 0; text-transform: none; }
 .facet-confirm button { height: 24px; padding: 0 9px; font-size: 12px; }
 /* Cancel stands where Retry or Delete was, wide enough to cover either. */
 .facet-confirm button:last-child { min-width: 64px; }
@@ -483,15 +485,16 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
 /* Retry asks in the card's family colour, like a card's Retry. */
 .facet-confirm[data-confirm="retry"] .action-confirm { background: var(--fam, var(--fam-notes)); color: var(--on-fam, var(--on-ink)); }
 /* The question sits left of its buttons, its tail pointing right at them. */
-.facet-confirm .confirm-text { margin: 0 6px 0 0; padding: 3px 10px 4px; font-size: 12px; }
-.facet-confirm .confirm-text::before { left: auto; right: -6px; clip-path: polygon(100% 45%, 0 0, 0 100%, 100% 55%); }
+.facet-confirm .confirm-text { margin: 0; margin-inline-end: 6px; padding: 3px 10px 4px; font-size: 12px; }
+.facet-confirm .confirm-text::before { inset-inline: auto -6px; clip-path: polygon(100% 45%, 0 0, 0 100%, 100% 55%); }
+:root[dir="rtl"] .facet-confirm .confirm-text::before { clip-path: polygon(0 45%, 100% 0, 100% 100%, 0 55%); }
 /* The card's motion, mirrored (0.7.3): Cancel, then the final button, then
    the question spring out leftwards one after another, and the question
    gives its wobble. */
-.facet-confirm > * { animation: eject-left var(--dur-spring) var(--ease-spring) both; animation-delay: calc(var(--i, 0) * 40ms); transform-origin: right center; }
+.facet-confirm > * { animation: eject-left var(--dur-spring) var(--ease-spring) both; animation-delay: calc(var(--i, 0) * 40ms); transform-origin: var(--end) center; }
 .facet-confirm > .confirm-text { animation: eject-left var(--dur-spring) var(--ease-spring) both, wobble 600ms var(--ease-out) 380ms; animation-delay: calc(var(--i, 0) * 40ms), 380ms; }
 @keyframes eject-left {
-  from { opacity: 0; transform: translateX(calc(28px + var(--i, 0) * 28px)) scale(.7); }
+  from { opacity: 0; transform: translateX(calc((28px + var(--i, 0) * 28px) * var(--flip))) scale(.7); }
   50% { opacity: 1; }
 }
 @media (prefers-reduced-motion: reduce) { .facet-confirm > * { animation: none !important; } }
@@ -528,7 +531,7 @@ button.facet-tag-open:hover { background: transparent; }
 .facet-tag[data-unfilled]:has(> button.facet-tag-open:hover)::before { filter: drop-shadow(0 2px 3px #0003) saturate(.45) opacity(.85); }
 .facet-tag-open:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 /* A small round remove on the tag's corner, shown while it is pointed at or focused. */
-.facet-tag-remove { position: absolute; top: -7px; right: -7px; z-index: 1; display: grid; place-items: center; width: 16px; height: 16px; padding: 0; border: 0;
+.facet-tag-remove { position: absolute; top: -7px; inset-inline-end: -7px; z-index: 1; display: grid; place-items: center; width: 16px; height: 16px; padding: 0; border: 0;
   border-radius: 50%; color: var(--status-failed-bg); background: var(--status-failed); box-shadow: 0 0 0 2px var(--surface);
   opacity: 0; transform: scale(.6); transition: opacity var(--dur-instant) ease, transform var(--dur-spring) var(--ease-spring); }
 .facet-tag-remove svg { width: 10px; height: 10px; }
@@ -540,20 +543,21 @@ button.facet-tag-open:hover { background: transparent; }
 .facet-tag-remove:disabled { display: none; }
 @media (hover: none) { .facet-tag-remove { opacity: 1; transform: none; } }
 
-/* Stuck out of the left edge, one under another below the tab, notch outward. */
-.facet-tags[data-layout="edge"] { left: -28px; top: 34px; }
-.facet-tags[data-layout="edge"] .facet-tag { width: 30px; height: 24px; left: 0; top: calc(var(--i) * 30px); --turn: 90deg; }
-.facet-tags[data-layout="edge"] .facet-tag-open { padding: 0 0 0 7px; }
+/* Stuck out of the start edge (the left, or the right in a right-to-left
+   language), one under another below the tab, notch outward. */
+.facet-tags[data-layout="edge"] { inset-inline-start: -28px; top: 34px; }
+.facet-tags[data-layout="edge"] .facet-tag { width: 30px; height: 24px; inset-inline-start: 0; top: calc(var(--i) * 30px); --turn: calc(90deg * var(--flip)); }
+.facet-tags[data-layout="edge"] .facet-tag-open { padding: 0; padding-inline-start: 7px; }
 /* Clicked, a tag on the edge pulls out of the card (0.7.4): it slides out
    further and the ribbon it was tucked in by shows, holding its Retry, in a
    deeper shade of the family colour, under the tag and up to the card. */
 .facet-tag { transition: translate var(--dur-spring) var(--ease-spring); }
-.facet-tags[data-layout="edge"] .facet-tag[data-pulled] { translate: -34px 0; z-index: 2; }
+.facet-tags[data-layout="edge"] .facet-tag[data-pulled] { translate: calc(-34px * var(--flip)) 0; z-index: 2; }
 .facet-tag-retry { display: none; }
-.facet-tags[data-layout="edge"] .facet-tag-retry { position: absolute; z-index: -1; left: 26px; top: 0; display: grid; place-items: center; width: 36px; height: 24px;
-  padding: 0 0 0 4px; border: 0; border-radius: 0; color: var(--on-fam, var(--on-ink));
-  background: color-mix(in srgb, var(--fam, var(--fam-notes)) 78%, black); box-shadow: inset 6px 0 6px -4px #0004;
-  transform: scaleX(0); transform-origin: right; opacity: 0; pointer-events: none; cursor: pointer;
+.facet-tags[data-layout="edge"] .facet-tag-retry { position: absolute; z-index: -1; inset-inline-start: 26px; top: 0; display: grid; place-items: center; width: 36px; height: 24px;
+  padding: 0; padding-inline-start: 4px; border: 0; border-radius: 0; color: var(--on-fam, var(--on-ink));
+  background: color-mix(in srgb, var(--fam, var(--fam-notes)) 78%, black); box-shadow: inset calc(6px * var(--flip)) 0 6px -4px #0004;
+  transform: scaleX(0); transform-origin: var(--end); opacity: 0; pointer-events: none; cursor: pointer;
   transition: transform var(--dur-spring) var(--ease-spring), opacity var(--dur-instant) ease; }
 .facet-tags[data-layout="edge"] .facet-tag[data-pulled] .facet-tag-retry { transform: none; opacity: 1; pointer-events: auto; }
 .facet-tags[data-layout="edge"] .facet-tag[data-unfilled] .facet-tag-retry { filter: saturate(.45); }
@@ -564,19 +568,20 @@ button.facet-tag-open:hover { background: transparent; }
 .facet-tag-retry:disabled { cursor: default; opacity: .5; }
 /* Its Retry having failed, a tag wears a small dot in the failed colour. */
 .facet-tag[data-failed] .facet-tag-open { background: radial-gradient(circle at 5px 5px, var(--status-failed) 3px, transparent 3.5px); }
-/* Folded: in a row at the right of the bottom edge, hanging below it. */
-.facet-tags[data-layout="folded"] { right: 18px; top: calc(100% - 6px); }
-.facet-tags[data-layout="folded"] .facet-tag { right: calc((var(--n) - 1 - var(--i)) * 28px); top: 0; }
+/* Folded: in a row at the end of the bottom edge, hanging below it. */
+.facet-tags[data-layout="folded"] { inset-inline-end: 18px; top: calc(100% - 6px); }
+.facet-tags[data-layout="folded"] .facet-tag { inset-inline-end: calc((var(--n) - 1 - var(--i)) * 28px); top: 0; }
 /* Hung below the tab, each on its own chain of small links. */
-.facet-tags[data-layout="hanging"] { left: 28px; top: 28px; }
+.facet-tags[data-layout="hanging"] { inset-inline-start: 28px; top: 28px; }
 .facet-tag::after { content: ""; position: absolute; left: 50%; top: -11px; width: 6px; height: 12px; translate: -50% 0; opacity: 0; pointer-events: none;
   background: radial-gradient(ellipse 2.4px 2.6px at 50% 50%, transparent 1.3px, var(--fam, var(--fam-notes)) 1.5px 2.4px, transparent 2.6px) 0 0 / 6px 4px repeat-y;
   transition: opacity var(--dur-quick) ease; }
-.facet-tags[data-layout="hanging"] .facet-tag { left: calc(var(--i) * 26px); top: 10px; }
+.facet-tags[data-layout="hanging"] .facet-tag { inset-inline-start: calc(var(--i) * 26px); top: 10px; }
 .facet-tags[data-layout="hanging"] .facet-tag::after { opacity: 1; }
 /* The chains hang from a rail under the tab, which reaches past the tab's
    end when there are more tags than the tab is wide. */
-.facet-tags[data-layout="hanging"]::before { content: ""; position: absolute; left: 4px; top: -1px; height: 3px; border-radius: 0 2px 2px 0;
+.facet-tags[data-layout="hanging"]::before { content: ""; position: absolute; inset-inline-start: 4px; top: -1px; height: 3px;
+  border-start-start-radius: 0; border-end-start-radius: 0; border-start-end-radius: 2px; border-end-end-radius: 2px;
   width: calc((var(--n) - 1) * 26px + 16px); background: var(--fam, var(--fam-notes)); }
 /* What hangs below an empty or generating card's tab lifts with the tab (0.7.3). */
 .facet-tags[data-layout="hanging"] { transition: translate var(--dur-spring) var(--ease-spring); }
@@ -611,7 +616,7 @@ button.facet-tag-open:hover { background: transparent; }
 .facet:focus { outline: none; }
 .facet:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
 @media (prefers-reduced-motion: reduce) { .facet-tag::before { transition: none; } .facet-tag[data-leaving] { animation: none; } }
-@media (max-width: 600px) { .facet-tags[data-layout="edge"] { left: -16px; } }
+@media (max-width: 600px) { .facet-tags[data-layout="edge"] { inset-inline-start: -16px; } }
 @media (forced-colors: active) {
   .facet-tag::before { forced-color-adjust: none; background: CanvasText; }
   .facet-tag-open { forced-color-adjust: none; color: Canvas; }

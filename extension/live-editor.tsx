@@ -144,7 +144,7 @@ function PartEditor({ value, label, editable, head, onChange, after, autofocus =
     enablePasteRules: false,
     autofocus: autofocus ? 'end' : false,
     immediatelyRender: true,
-    editorProps: { attributes: { 'aria-label': label, role: 'textbox', 'aria-multiline': 'true', class: `md md-editor${reading ? ' reading' : ''}` } },
+    editorProps: { attributes: { 'aria-label': label, role: 'textbox', 'aria-multiline': 'true', dir: 'auto', class: `md md-editor${reading ? ' reading' : ''}` } },
     onUpdate: ({ editor: current }) => changed.current(fromEditorDoc(current.getJSON() as EditorNode))
   });
   useEffect(() => { editor?.setEditable(editable); }, [editor, editable]);

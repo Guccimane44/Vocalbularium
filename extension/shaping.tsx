@@ -15,7 +15,7 @@ import type { AddBlockedReason } from '@vocabularium/domain/page-modules';
 import type { ModuleFamily, ModuleType } from '@vocabularium/domain/page-modules';
 import { ModuleExplanation } from './explanation.tsx';
 import { FamilyIcon } from './families.tsx';
-import { t } from './i18n.ts';
+import { direction, t } from './i18n.ts';
 import { familyLabel, moduleDescription, moduleLabel } from './catalog-text.ts';
 
 // Shared by the page view and deck settings (D02, D04): a list whose entries
@@ -66,7 +66,8 @@ const keyboard: KeyboardCoordinateGetter = (event, args) => {
   const targets = droppableContainers.getEnabled().filter(entry => entry.id !== BACK && entry.id !== LANDING && droppableRects.get(entry.id))
     .sort((a, b) => droppableRects.get(a.id)!.top - droppableRects.get(b.id)!.top);
   if (!targets.length) return undefined;
-  const back = event.code === 'ArrowUp' || event.code === 'ArrowLeft';
+  // The arrow pointing to the reading start goes back: Left, or Right in a right-to-left language.
+  const back = event.code === 'ArrowUp' || event.code === (direction() === 'rtl' ? 'ArrowRight' : 'ArrowLeft');
   // Over the landing card, the module stands before the entry that follows it.
   const landingRect = over?.id === LANDING ? droppableRects.get(LANDING) : undefined;
   const current = landingRect ? targets.findIndex(entry => droppableRects.get(entry.id)!.top >= landingRect.bottom - 1)

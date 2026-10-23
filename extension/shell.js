@@ -1,5 +1,5 @@
 import { deckColour } from './deck-colour.ts';
-import { currentLanguage, isOffered, LANGUAGES, onLanguageChange, t } from './i18n.ts';
+import { preferredLanguage, isOffered, LANGUAGES, onLanguageChange, t } from './i18n.ts';
 
 // The signed-in shell (D05): the deck sidebar and the account menu around the
 // views in #app. Plain DOM, like the session controls it replaces.
@@ -78,7 +78,8 @@ export function renderSidebar({ decks, currentDeckId, newDeck }) {
     const mark = element('span', undefined, 'fam-mark'); mark.setAttribute('aria-hidden', 'true');
     const count = element('span', String(deck.pageCount ?? 0), 'nav-count');
     count.setAttribute('aria-label', t('deck.pageCount', { count: deck.pageCount ?? 0 }));
-    link.append(mark, element('span', deck.name, 'nav-label'), count);
+    const label = element('span', deck.name, 'nav-label'); label.dir = 'auto';
+    link.append(mark, label, count);
     item.append(link); list.append(item);
   }
   const add = element('button', t('nav.newDeck'), 'nav-item nav-add');
@@ -122,10 +123,10 @@ function languageViews(menu, { chooseLanguage, done }) {
   const error = element('p', '', 'error language-error'); error.setAttribute('role', 'alert');
   list.append(back, choices, error);
   const fill = () => {
-    const name = LANGUAGES.find(language => language.code === currentLanguage())?.name ?? 'English';
-    current.textContent = name; current.lang = currentLanguage();
+    const name = LANGUAGES.find(language => language.code === preferredLanguage())?.name ?? 'English';
+    current.textContent = name; current.lang = preferredLanguage();
     row.setAttribute('aria-label', t('settings.language.row', { language: name }));
-    back.textContent = `‹ ${t('settings.language')}`; back.setAttribute('aria-label', t('settings.language.back'));
+    back.textContent = t('settings.language.backLabel'); back.setAttribute('aria-label', t('settings.language.back'));
     list.setAttribute('aria-label', t('settings.language'));
     choices.replaceChildren(...LANGUAGES.map(({ code, name: own, direction }) => {
       const item = element('li');
@@ -134,13 +135,13 @@ function languageViews(menu, { chooseLanguage, done }) {
       const label = element('span', own, 'language-name'); label.lang = code; label.dir = direction;
       choice.append(element('span', '✓', 'language-tick'), label);
       choice.querySelector('.language-tick').setAttribute('aria-hidden', 'true');
-      choice.setAttribute('aria-pressed', String(code === currentLanguage()));
+      choice.setAttribute('aria-pressed', String(code === preferredLanguage()));
       if (!isOffered(code)) {
         choice.disabled = true;
         choice.append(element('span', t('settings.language.comingSoon'), 'soon'));
       }
       choice.onclick = async () => {
-        if (code === currentLanguage()) { done(); return; }
+        if (code === preferredLanguage()) { done(); return; }
         error.textContent = '';
         for (const button of choices.querySelectorAll('button')) button.disabled = true;
         try { await chooseLanguage(code); done(); }
