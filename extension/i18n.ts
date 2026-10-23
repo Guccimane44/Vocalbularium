@@ -138,8 +138,8 @@ export function apiText(message: string): string {
   }
   return message;
 }
-// A list of names joined as the language joins them ("German, Chinese").
-export const listFormat = (items: readonly string[]) => new Intl.ListFormat(current, { type: 'unit', style: 'short' }).format(items);
+// A list of names joined as the language joins them ("German and Chinese").
+export const listFormat = (items: readonly string[]) => new Intl.ListFormat(current, { type: 'conjunction', style: 'long' }).format(items);
 export function onLanguageChange(listener: () => void) {
   listeners.add(listener);
   return () => { listeners.delete(listener); };

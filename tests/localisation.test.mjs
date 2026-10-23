@@ -10,7 +10,7 @@ const root = new URL('../extension/', import.meta.url).pathname;
 const sources = readdirSync(root, { recursive: true }).map(String)
   .filter(path => /\.(tsx?|js|html)$/.test(path) && !path.startsWith('design/') && !path.startsWith('locales/'))
   .map(path => ({ path, text: readFileSync(join(root, path), 'utf8') }));
-const placeholders = message => [...message.matchAll(/\{(\w+)/g)].map(match => match[1]).sort();
+const placeholders = message => [...new Set([...message.matchAll(/\{(\w+)/g)].map(match => match[1]))].sort();
 
 test('every key the extension names is in the English catalogue, and every entry is used', () => {
   const named = new Set();
