@@ -16,7 +16,7 @@ Recorded in D14 and K35 on 22 October 2026 and applied to the specifications:
 2. **Right to left in 1.0:** Arabic mirrors the layout of every surface (K35).
 3. **The list grows after 1.0:** adding a language is a catalogue of strings and explanations, with no code change (K35).
 4. **The preference** belongs to the account, starts as English, and does not follow the browser (K37).
-5. **What it sets:** interface text, explanations and the Expertise modules' output; the Languages modules and captured keys do not follow it (K36).
+5. **What it sets:** interface text, the names and descriptions of modules and facets, explanations and the Expertise modules' output; the Languages modules and captured keys do not follow it, and facet abbreviations stay as they are (K36, confirmed and extended by the owner on 23 October 2026).
 6. **String process:** chosen by this plan, after counting the strings (K38).
 
 ## Cost baseline
@@ -64,7 +64,7 @@ K35 applied to the traceability map, shared UI, scope and the Q69 answer; this p
 
 ### C. The five translations
 
-- **Interface catalogues** for Arabic, Chinese (Simplified), French, Russian and Spanish, and the 24 explanations in each.
+- **Interface catalogues** for Arabic, Chinese (Simplified), French, Russian and Spanish, with the names and descriptions of modules and facets (not their abbreviations), and the 24 explanations in each.
 - **Expertise modules** write in the language preference: the prompt composer receives it as generation input, and the generation record notes it. The Languages modules are unchanged.
 - **Fonts:** the bundled Fraunces and Instrument Sans cover Latin and Cyrillic; Arabic and Chinese use system fonts, as Chinese content already does ([shared UI](../specs/shared-ui.md#visual-identity)).
 - **Review:** each language is offered once its review is done; the PR lists the reviewer per language.
