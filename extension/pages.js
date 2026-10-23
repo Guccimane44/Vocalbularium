@@ -4,6 +4,7 @@ import { applyDraft, blankContent, draftOf, parentContentOf, parentDocument } fr
 import { isParentType } from '@vocabularium/domain/parents';
 import { dialog } from './dialog.ts';
 import { PageView } from './page-view.tsx';
+import { t } from './i18n.ts';
 /** @typedef {import('../types/editor-drafts.js').PageEditorDraft} PageEditorDraft */
 /** @import { ReactNode } from 'react' */
 /** @import { Component, GenerationTarget, Page } from '@vocabularium/contracts' */
@@ -11,9 +12,6 @@ import { PageView } from './page-view.tsx';
 /** @import { ParentType } from '@vocabularium/domain/parents' */
 /** @import { AccessState, DeckDetail, LocalItems, RuntimeMessage, ViewAccount } from '../types/extension.js' */
 
-const RETRY_COMPONENT = 'Retry will replace this component’s content, including your edits to it. The main key, Context, and other components will not change.';
-const RETRY_FACET = 'Retry will replace this facet’s content, including your edits to it. The rest of the component will not change.';
-const CHANGED = 'This content changed since you looked at it, possibly on another installation. ';
 const DRAFT_KEY = 'page-draft-modules';
 
 /**
@@ -84,7 +82,7 @@ export function pageViews({ getAccount, renderView, refresh, send, applyState, n
     const fieldChanges = changedFields().map(componentId => {
       const component = page?.components.find(item => item.id === componentId);
       const stored = /** @type {ParentContent | undefined} */ (/** @type {PageEditorDraft} */ (draft).fieldStored?.[componentId]);
-      if (!component || !stored) throw Object.assign(new Error('This module no longer exists; its draft can not be saved.'), { code: 'deleted' });
+      if (!component || !stored) throw Object.assign(new Error(t('page.draft.moduleGone')), { code: 'deleted' });
       const content = parentDocument(applyDraft(/** @type {ParentType} */ (component.moduleType), stored, /** @type {NonNullable<PageEditorDraft['fields']>} */ (/** @type {PageEditorDraft} */ (draft).fields)[componentId], { facets: component.facets ?? [] }));
       // A facet edited on its own (D10): the server takes only that facet, over what it has stored.
       return { componentId, content, ...(/** @type {PageEditorDraft} */ (draft).facet ? { facet: /** @type {PageEditorDraft} */ (draft).facet } : {}) };
@@ -99,7 +97,7 @@ export function pageViews({ getAccount, renderView, refresh, send, applyState, n
     const mainKey = draft.pageId ? draft.texts[/** @type {string} */ (key?.id)] : draft.mainKey;
     if (mainKey !== undefined && !mainKey.trim()) {
       // Shown inside the empty main key field rather than as a notice below it.
-      draft.error = undefined; draft.fieldError = 'Main key can not be empty.'; draft.errorCode = 'invalid'; persist(); void refresh(); return false;
+      draft.error = undefined; draft.fieldError = t('page.draft.mainKeyEmpty'); draft.errorCode = 'invalid'; persist(); void refresh(); return false;
     }
     let next;
     try { next = payload(page); }
@@ -127,9 +125,10 @@ export function pageViews({ getAccount, renderView, refresh, send, applyState, n
     if (busy) return false;
     if (!draft) return true;
     if (!dirty()) { await discard(); return true; }
-    const result = await dialog({ title: 'Unsaved changes', message: 'Save your changes before leaving, discard them, or continue editing.', choices: ['Continue editing', 'Discard', 'Save'] });
-    if (result.choice === 'Continue editing') return false;
-    if (result.choice === 'Discard') { await discard(); return true; }
+    const [stay, drop] = [t('page.leave.continue'), t('page.leave.discard')];
+    const result = await dialog({ title: t('page.leave.title'), message: t('page.leave.message'), choices: [stay, drop, t('common.save')] });
+    if (result.choice === stay) return false;
+    if (result.choice === drop) { await discard(); return true; }
     return save(getAccount().pages?.[0]);
   }
   // Retries replace content. The server reports a digest of the content they
@@ -142,7 +141,8 @@ export function pageViews({ getAccount, renderView, refresh, send, applyState, n
   async function generate(page, target, confirmed = false) {
     const request = (/** @type {string | undefined} */ confirmation) => send({ type: 'generate-page', payload: { pageId: page.id, target, ...(confirmation ? { confirmation } : {}) } });
     try {
-      let warning = target.scope === 'facet' ? RETRY_FACET : RETRY_COMPONENT;
+      const replaces = target.scope === 'facet' ? t('page.retry.facet') : t('page.retry.component');
+      let warning = replaces;
       for (let round = 0; round < 3; round++) {
         let confirmation;
         try { await applyState(await request(confirmation)); return; }
@@ -151,13 +151,13 @@ export function pageViews({ getAccount, renderView, refresh, send, applyState, n
           confirmation = error.details?.confirmation;
         }
         if (!(confirmed && round === 0)) {
-          const choice = await dialog({ title: target.scope === 'facet' ? 'Retry this facet?' : 'Retry this component?', message: warning, choices: ['Cancel', 'Confirm'] });
-          if (choice.choice !== 'Confirm') return;
+          const choice = await dialog({ title: target.scope === 'facet' ? t('page.retry.facetTitle') : t('page.retry.componentTitle'), message: warning, choices: [t('common.cancel'), t('common.confirm')] });
+          if (choice.choice !== t('common.confirm')) return;
         }
         try { await applyState(await request(confirmation)); return; }
         catch (/** @type {any} */ error) {
           if (error.code !== 'confirmation_required') throw error;
-          warning = CHANGED + (target.scope === 'facet' ? RETRY_FACET : RETRY_COMPONENT);
+          warning = t('page.retry.changed', { warning: replaces });
         }
       }
     } catch (error) { showError(error); }
@@ -199,8 +199,8 @@ export function pageViews({ getAccount, renderView, refresh, send, applyState, n
       cancel: async () => { await discard(); if (isNew) navigate(`deck/${/** @type {DeckDetail} */ (deck).id}`); else void refresh(); },
       discardUnavailable: async () => { await discard(); navigate(''); },
       deletePage: async () => {
-        const decision = await dialog({ title: 'Delete page?', message: 'This page and all its components will be deleted.', choices: ['Cancel', 'Delete page'] });
-        if (decision.choice !== 'Delete page') return;
+        const decision = await dialog({ title: t('page.delete.title'), message: t('page.delete.message'), choices: [t('common.cancel'), t('page.delete')] });
+        if (decision.choice !== t('page.delete')) return;
         try { const next = await send({ type: 'delete-page', payload: { pageId: /** @type {Page} */ (page).id } }); await discard(); await applyState(next); navigate(`deck/${/** @type {DeckDetail} */ (deck).id}`); }
         catch (error) { showError(error); }
       },

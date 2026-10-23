@@ -1,4 +1,6 @@
 import { initializeTheme } from './theme.js';
+import { initializeLanguage } from './i18n.ts';
+await initializeLanguage();
 await initializeTheme();
 const params = new URLSearchParams(location.search);
 document.querySelector('#message').textContent = params.get('message');

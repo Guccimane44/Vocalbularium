@@ -3245,3 +3245,57 @@ test('0.8.0: an Expertise card, leaf green with a graduation cap, explains the k
   assert.deepEqual(colours, ['rgb(70, 110, 18)', 'rgb(255, 255, 255)'], 'leaf green with a white label in the light theme');
   await a.page.screenshot({ path: 'artifacts/v0.8.0-expertise-card.png', fullPage: true });
 });
+
+test('0.9.0: Language in the account menu is the account’s preference, English by default, and a language not offered keeps English (D14)', { timeout: 45000 }, async (t) => {
+  const directory = await mkdtemp(join(tmpdir(), 'vocabularium-language-browser-'));
+  const application = await createTestApplication(t); await application.start();
+  const a = await launch(join(directory, 'a'));
+  t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
+  const documentLanguage = () => a.page.evaluate(() => [document.documentElement.lang, document.documentElement.dir]);
+  // Signed out there is no account, so no Language; the interface is English.
+  assert.deepEqual(await documentLanguage(), ['en', 'ltr']);
+  assert.equal(await a.page.getByRole('button', { name: /^Language/ }).count(), 0);
+  await signIn(a.page);
+  // The account menu's Language row shows the current language and opens the list in the menu.
+  await accountMenu(a.page);
+  const row = a.page.getByRole('button', { name: 'Language, English', exact: true });
+  await a.page.locator('.account-panel').screenshot({ path: 'artifacts/v0.9.0-account-menu-light.png' });
+  await row.click();
+  const list = a.page.getByRole('group', { name: 'Language', exact: true });
+  await list.waitFor();
+  assert.equal(await row.isVisible(), false, 'the list takes the menu’s place');
+  const choices = list.locator('.language-choice');
+  assert.deepEqual(await choices.evaluateAll(nodes => nodes.map(node => [node.dataset.language, node.getAttribute('aria-pressed'), node.disabled])), [
+    ['en', 'true', false], ['ar', 'false', true], ['zh-Hans', 'false', true], ['fr', 'false', true], ['ru', 'false', true], ['es', 'false', true]
+  ], 'every language listed in its own name; only complete, reviewed languages can be picked');
+  assert.equal(await list.getByRole('button', { name: 'Français Coming soon', exact: true }).isDisabled(), true);
+  assert.equal(await list.locator('[data-language="ar"] .language-name').getAttribute('dir'), 'rtl');
+  assert.equal(await a.page.evaluate(() => document.activeElement?.dataset.language), 'en', 'the focus moves to the first language that can be picked');
+  for (const theme of ['light', 'dark']) {
+    await a.page.evaluate(value => { document.documentElement.dataset.theme = value; }, theme);
+    await a.page.locator('.account-panel').screenshot({ path: `artifacts/v0.9.0-language-list-${theme}.png` });
+  }
+  await a.page.evaluate(() => { delete document.documentElement.dataset.theme; });
+  // Back returns to the menu with the focus on Language; picking the current language closes the menu.
+  await list.getByRole('button', { name: 'Back to the account menu', exact: true }).click();
+  assert.equal(await a.page.evaluate(() => document.activeElement?.classList.contains('language-row')), true);
+  await row.click();
+  await list.locator('[data-language="en"]').click();
+  assert.equal(await a.page.locator('.account-panel').isVisible(), false);
+  // The worker saves the preference to the account and returns the refreshed account.
+  const saved = await a.page.evaluate(() => chrome.runtime.sendMessage({ type: 'set-language', language: 'en' }));
+  assert.equal(saved.account.language, 'en');
+  assert.equal((await application.store.summary()).language, 'en');
+  const rejected = await a.page.evaluate(() => chrome.runtime.sendMessage({ type: 'set-language', language: 'de' }));
+  assert.equal(rejected.code, 'invalid');
+  // Another installation chooses a language this build does not offer yet: the interface stays English.
+  await application.store.setLanguage('remote-french', 'fr');
+  await a.page.waitForFunction(async () => (await chrome.storage.local.get('account')).account?.language === 'fr', null, { timeout: 15000 });
+  assert.deepEqual(await documentLanguage(), ['en', 'ltr']);
+  await a.page.getByRole('heading', { name: 'Your decks', exact: true }).waitFor();
+  await accountMenu(a.page);
+  await a.page.getByRole('button', { name: 'Language, English', exact: true }).waitFor();
+  await a.page.reload();
+  await a.page.getByRole('heading', { name: 'Your decks', exact: true }).waitFor();
+  assert.deepEqual(await documentLanguage(), ['en', 'ltr']);
+});

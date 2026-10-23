@@ -1,3 +1,5 @@
+import { t } from './i18n.ts';
+
 // Appearance (D05): 'system' follows the operating system and is the default;
 // 'light' (Sage) and 'dark' (Moss night) override it. theme.css reads data-theme.
 export const appearance = value => value === 'dark' || value === 'light' ? value : 'system';
@@ -30,7 +32,7 @@ export async function initializeTheme() {
       document.querySelector('#theme-error').textContent = '';
     } catch {
       apply(previous);
-      document.querySelector('#theme-error').textContent = 'Appearance could not be saved. Try again.';
+      document.querySelector('#theme-error').textContent = t('settings.appearanceError');
     }
   };
 }

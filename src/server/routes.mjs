@@ -4,7 +4,7 @@ import { isModuleType } from '@vocabularium/domain/page-modules';
 import {
   ApiFailureSchema, CapturePreparationRequestSchema, ComponentDeleteRequestSchema, ComponentMoveRequestSchema,
   DeckConfigurationSaveRequestSchema, DeckDeleteRequestSchema, FacetAddRequestSchema, FacetDeleteRequestSchema, ModuleAddRequestSchema,
-  DefaultDeckRequestSchema, JsonObjectSchema, LoginRequestSchema, HealthResponseSchema, LoginResponseSchema,
+  DefaultDeckRequestSchema, JsonObjectSchema, LanguageRequestSchema, LoginRequestSchema, HealthResponseSchema, LoginResponseSchema,
   PageCaptureRequestSchema, PageCreateRequestSchema, PageDeleteRequestSchema, PageGenerateRequestSchema,
   PageSaveRequestSchema, PollRequestSchema, PublishRequestSchema, SessionRequestSchema
 } from '@vocabularium/contracts';
@@ -140,6 +140,10 @@ export function registerRoutes(fastify, { store, authentication, generation }) {
     if (typeof body.deckId !== 'string') throw new StoreError('invalid', 'Choose a deck.');
     return store.setDefault(body.operationId, body.deckId);
   });
+
+  fastify.post('/api/language', {
+    schema: routeSchema('Set the account interface language', LanguageRequestSchema)
+  }, async request => store.setLanguage(request.body.operationId, request.body.language));
 
   fastify.post('/api/capture/prepare', {
     schema: routeSchema('Read the current capture destination', CapturePreparationRequestSchema)

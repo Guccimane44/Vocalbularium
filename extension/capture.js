@@ -1,13 +1,14 @@
 import { readLocal } from './recovery.js';
 import { showFeedback } from './feedback.js';
 import { captureContext } from './context-extraction.js';
+import { t } from './i18n.ts';
 
 export function captureRuntime({ request, initialize, refresh, removeAccess, saves, diagnostic = () => {}, extractContext = captureContext, accepted = async () => {} }) {
   let polling;
   let pollAgain = false;
   async function context() {
     const state = await initialize();
-    if (!state.signedIn) throw new Error('Sign in to capture vocabulary.');
+    if (!state.signedIn) throw new Error(t('capture.signIn'));
     const [{ auth }, { session }] = await Promise.all([readLocal('auth'), chrome.storage.session.get('session')]);
     return { auth, session };
   }
@@ -52,7 +53,7 @@ export function captureRuntime({ request, initialize, refresh, removeAccess, sav
     const deck = account?.defaultDeckSnapshot ?? account?.decks.find(deck => deck.id === account.defaultDeckId);
     const snapshot = deck && { id: deck.id, modules: deck.modules };
     if (!auth || !session || !snapshot || typeof info.selectionText !== 'string' || !info.selectionText.length) {
-      await showFeedback(tab.id, 'Capture unavailable. Open Vocabularium to sign in.', true, info.pageUrl ?? tab.url); return;
+      await showFeedback(tab.id, t('capture.unavailable'), true, info.pageUrl ?? tab.url); return;
     }
     const operationId = crypto.randomUUID();
     // A deck with the Context module captures the surrounding block; otherwise nothing beyond the selection is read.
@@ -62,8 +63,8 @@ export function captureRuntime({ request, initialize, refresh, removeAccess, sav
     const payload = { session, snapshot, mainKey: info.selectionText, ...(context ? { context } : {}) };
     const receipt = { operationId, payload, state: 'saving', createdAt: new Date().toISOString() };
     try { await chrome.storage.local.set({ [`capture-${operationId}`]: receipt }); }
-    catch { await showFeedback(tab.id, 'Capture could not be received.', true, info.pageUrl ?? tab.url); return; }
-    await showFeedback(tab.id, 'Capture received', false, info.pageUrl ?? tab.url, info.selectionText);
+    catch { await showFeedback(tab.id, t('capture.notReceived'), true, info.pageUrl ?? tab.url); return; }
+    await showFeedback(tab.id, t('capture.received'), false, info.pageUrl ?? tab.url, info.selectionText);
     await submit(receipt).catch(recordError);
     return operationId;
   }
@@ -110,7 +111,7 @@ export function captureRuntime({ request, initialize, refresh, removeAccess, sav
         await chrome.storage.local.remove(key);
       }
       if (key.startsWith('capture-') && item.state === 'saving') {
-        await chrome.storage.local.set({ [key]: { ...item, state: 'pending', error: 'The save was interrupted. Try saving again.' } });
+        await chrome.storage.local.set({ [key]: { ...item, state: 'pending', error: t('save.interrupted') } });
       }
     }
   }

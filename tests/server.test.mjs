@@ -70,6 +70,20 @@ test('ordered account writes and uncertain resubmission work across authenticate
   assert.equal((await call(url, '/api/account', undefined, a)).data.defaultDeckId, first.id);
 });
 
+test('the interface language belongs to the account, starts as English and replays its receipt (D14)', async (t) => {
+  const { url } = await fixture(t);
+  const a = await login(url), b = await login(url);
+  assert.equal((await call(url, '/api/account/summary', undefined, a)).data.language, 'en');
+  const saved = await call(url, '/api/language', { operationId: 'french', language: 'fr' }, a);
+  assert.equal(saved.status, 200); assert.equal(saved.data.language, 'fr');
+  assert.equal((await call(url, '/api/account/summary', undefined, b)).data.language, 'fr', 'another installation reads the same preference');
+  assert.equal((await call(url, '/api/account', undefined, b)).data.language, 'fr');
+  assert.equal((await call(url, '/api/language', { operationId: 'french', language: 'fr' }, a)).data.replayed, true);
+  const rejected = await call(url, '/api/language', { operationId: 'german', language: 'de' }, a);
+  assert.equal(rejected.status, 400); assert.equal(rejected.data.code, 'invalid');
+  assert.equal((await call(url, '/api/account/summary', undefined, a)).data.language, 'fr');
+});
+
 test('database and valid logins survive an account-server restart', async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-account-'));
   let application = await createTestApplication(t, { databaseKey: join(directory, 'account-fixture') });

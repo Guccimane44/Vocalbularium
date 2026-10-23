@@ -10,6 +10,12 @@ export const InputInterpretationSchema = Type.Object({
 });
 
 
+// The account's interface language (D14, K35): English is the default.
+export const InterfaceLanguageSchema = Type.Union([
+  Type.Literal('en'), Type.Literal('ar'), Type.Literal('es'), Type.Literal('fr'), Type.Literal('ru'), Type.Literal('zh-Hans')
+]);
+export const INTERFACE_LANGUAGES: readonly InterfaceLanguage[] = ['en', 'ar', 'es', 'fr', 'ru', 'zh-Hans'];
+
 export const ApiFailureSchema = Type.Object({
   error: Type.String(),
   code: Type.String({ minLength: 1 }),
@@ -49,6 +55,10 @@ export const DefaultDeckRequestSchema = Type.Object({
   operationId: OperationIdSchema,
   deckId: Type.String()
 }, OpenRequest);
+export const LanguageRequestSchema = Type.Object({
+  operationId: OperationIdSchema,
+  language: Type.String()
+}, OpenRequest);
 export const CapturePreparationPayloadSchema = Type.Object({
   session: BrowserSessionSchema,
   mainKey: Type.String({ minLength: 1 })
@@ -76,6 +86,8 @@ export const PublishRequestSchema = Type.Object({
 }, OpenRequest);
 
 export type OperationId = Type.Static<typeof OperationIdSchema>;
+export type InterfaceLanguage = Type.Static<typeof InterfaceLanguageSchema>;
+export type LanguageRequest = Type.Static<typeof LanguageRequestSchema>;
 export type InputType = Type.Static<typeof InputTypeSchema>;
 export type InputInterpretation = Type.Static<typeof InputInterpretationSchema>;
 export type BrowserSession = Type.Static<typeof BrowserSessionSchema>;

@@ -53,6 +53,7 @@ declare const chrome: {
   };
   action: {
     setBadgeText(details: { text: string; tabId?: number }): Promise<void>;
+    setTitle(details: { title: string; tabId?: number }): Promise<void>;
     setBadgeBackgroundColor(details: { color: string; tabId?: number }): Promise<void>;
     // Chrome 110 and later.
     setBadgeTextColor?(details: { color: string; tabId?: number }): Promise<void>;

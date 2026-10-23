@@ -1,7 +1,7 @@
 // Self-contained so Chrome can serialize this same renderer into ordinary webpages.
 // With `flight`, the selected text first lifts off the page and flies into the
 // popup's place (D05); the popup then appears and lasts as long as before.
-export function renderFeedback(message, failed, theme, css, flight) {
+export function renderFeedback(message, failed, theme, css, flight, closeLabel = 'Close capture feedback') {
   // This reference lives in the isolated extension world, not page scripts.
   let active = globalThis.vocabulariumFeedback;
   if (active && !active.host.isConnected) { chrome.runtime.onMessage.removeListener(active.listener); active = undefined; }
@@ -26,7 +26,7 @@ export function renderFeedback(message, failed, theme, css, flight) {
   item.setAttribute('role', 'status');
   const mark = document.createElement('span'); mark.className = 'feedback-mark'; mark.setAttribute('aria-hidden', 'true');
   const text = document.createElement('span'); text.className = 'feedback-text'; text.textContent = message;
-  const close = document.createElement('button'); close.textContent = '×'; close.setAttribute('aria-label', 'Close capture feedback');
+  const close = document.createElement('button'); close.textContent = '×'; close.setAttribute('aria-label', closeLabel);
   const remove = () => {
     clearTimeout(timer); item.remove();
     if (!host.shadowRoot.querySelector('.feedback-item')) {

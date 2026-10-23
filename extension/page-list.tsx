@@ -2,6 +2,8 @@ import { useEffect, useId, useRef } from 'react';
 import type { MouseEvent as ReactMouseEvent, ReactNode } from 'react';
 import { CATALOG, isModuleType } from '@vocabularium/domain/page-modules';
 import { mainKeyTier, wordCount } from './main-key.ts';
+import { currentLanguage, t } from './i18n.ts';
+import type { MessageKey } from './i18n.ts';
 
 // Page list layouts and quiet list states (D05): a completed page shows no
 // status; saving, generating, failed and not-saved replace the meaning line.
@@ -16,7 +18,7 @@ export type ListPage = {
   modules?: SummaryModule[];
 };
 export type Layout = 'list' | 'table' | 'gallery';
-export const LAYOUTS: [Layout, string][] = [['list', 'List'], ['table', 'Table'], ['gallery', 'Gallery']];
+export const LAYOUTS: [Layout, MessageKey][] = [['list', 'layout.list'], ['table', 'layout.table'], ['gallery', 'layout.gallery']];
 export const isLayout = (value: unknown): value is Layout => LAYOUTS.some(([layout]) => layout === value);
 
 type Navigate = (hash: string) => void;
@@ -47,7 +49,7 @@ export function FamilyMarks({ modules }: { modules?: SummaryModule[] }) {
   const before = shown.current;
   useEffect(() => { shown.current = filled.length; });
   if (!filled.length) return null;
-  const label = `${filled.length} ${filled.length === 1 ? 'module' : 'modules'} filled`;
+  const label = t('pageList.modulesFilled', { count: filled.length });
   return <span className="fam-marks" role="img" aria-label={label} title={label}>
     {filled.map((module, index) => <span className={`fam-mark fam-${familyOf(module.type)}`} key={index}
       data-new={before !== null && index >= before ? true : undefined} />)}
@@ -58,10 +60,10 @@ export function FamilyMarks({ modules }: { modules?: SummaryModule[] }) {
 function generatingLabel(modules?: SummaryModule[]) {
   const attempted = (modules ?? []).filter(module => module.status !== null);
   const finished = attempted.filter(module => module.status !== 'loading').length;
-  return attempted.length > 1 ? `Generating ${finished} of ${attempted.length}` : 'Generating';
+  return attempted.length > 1 ? t('status.generatingOf', { finished, total: attempted.length }) : t('status.generating');
 }
 
-export function GeneratingStatus({ label = 'Generating' }: { label?: string }) {
+export function GeneratingStatus({ label = t('status.generating') }: { label?: string }) {
   return <span className="list-status" data-status="loading">
     <span className="dots" aria-hidden="true"><i /><i /><i /></span>{label}
   </span>;
@@ -70,7 +72,7 @@ export function GeneratingStatus({ label = 'Generating' }: { label?: string }) {
 export function SavingStatus() {
   return <span className="list-status" data-status="saving">
     <svg className="clock" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
-    Saving to your account
+    {t('status.savingToAccount')}
   </span>;
 }
 
@@ -78,12 +80,12 @@ export function SavingStatus() {
 export function MeaningLine({ page, navigate }: { page: ListPage; navigate: Navigate }) {
   if (page.status === 'loading') return <span className="meaning-line"><GeneratingStatus label={generatingLabel(page.modules)} /></span>;
   if (page.status === 'failed') return <span className="meaning-line">
-    <span className="list-status" data-status="failed">Generation failed</span>
-    <button className="retry" onClick={event => { event.stopPropagation(); navigate(`page/${page.id}`); }}>Retry…</button>
+    <span className="list-status" data-status="failed">{t('status.generationFailed')}</span>
+    <button className="retry" onClick={event => { event.stopPropagation(); navigate(`page/${page.id}`); }}>{t('pageList.retry')}</button>
   </span>;
   const tier = mainKeyTier(page.mainKey);
-  const parts = tier === 'passage' ? [`Passage · ${wordCount(page.mainKey)} words`]
-    : [tier === 'sentence' ? 'Sentence' : null, page.meaning ?? null].filter(Boolean);
+  const parts = tier === 'passage' ? [t('pageList.passage', { count: wordCount(page.mainKey) })]
+    : [tier === 'sentence' ? t('pageList.sentence') : null, page.meaning ?? null].filter(Boolean);
   if (!parts.length) return null;
   return <span className="meaning-line muted">{parts.join(' · ')}</span>;
 }
@@ -92,11 +94,11 @@ const sameDay = (a: Date, b: Date) => a.getFullYear() === b.getFullYear() && a.g
 // Group headings for the creation-time orders: Today, Yesterday, then month and day.
 export function dateGroup(iso: string, now = new Date()) {
   const date = new Date(iso);
-  if (sameDay(date, now)) return 'Today';
-  if (sameDay(date, new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1))) return 'Yesterday';
-  return date.toLocaleDateString([], { day: 'numeric', month: 'long', ...(date.getFullYear() === now.getFullYear() ? {} : { year: 'numeric' }) });
+  if (sameDay(date, now)) return t('time.today');
+  if (sameDay(date, new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1))) return t('time.yesterday');
+  return date.toLocaleDateString(currentLanguage(), { day: 'numeric', month: 'long', ...(date.getFullYear() === now.getFullYear() ? {} : { year: 'numeric' }) });
 }
-const shortDate = (iso: string) => new Date(iso).toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' });
+const shortDate = (iso: string) => new Date(iso).toLocaleDateString(currentLanguage(), { day: 'numeric', month: 'short', year: 'numeric' });
 
 // The row, card or table row opens its page; selecting its text does not.
 function useOpen<T extends HTMLElement>(page: ListPage, navigate: Navigate) {
@@ -129,7 +131,7 @@ function ListRow({ page, navigate, arrived }: { page: ListPage; navigate: Naviga
       <span id={meaning}><MeaningLine page={page} navigate={navigate} key={page.status ?? 'none'} /></span>
     </span>
     <FamilyMarks modules={page.modules} />
-    <span className="row-open" aria-hidden="true">Open →</span>
+    <span className="row-open" aria-hidden="true">{t('pageList.open')}</span>
   </li>;
 }
 
@@ -167,7 +169,7 @@ function groups(pages: ListPage[], grouped: boolean) {
 export function PageList({ pages, layout, order, navigate }: { pages: ListPage[]; layout: Layout; order: string; navigate: Navigate }) {
   const arrived = useArrivals(pages.map(page => page.id));
   if (layout === 'table') return <table className="page-table">
-    <thead><tr><th scope="col">Main key</th><th scope="col">Meaning</th><th scope="col">Modules</th><th scope="col">Date</th></tr></thead>
+    <thead><tr><th scope="col">{t('module.mainKey')}</th><th scope="col">{t('pageList.meaning')}</th><th scope="col">{t('shaping.modules')}</th><th scope="col">{t('pageList.date')}</th></tr></thead>
     <tbody>{pages.map(page => <TableRow page={page} navigate={navigate} key={page.id} arrived={arrived(page.id)} />)}</tbody>
   </table>;
   const sections = groups(pages, order === 'newest' || order === 'oldest');
@@ -184,7 +186,7 @@ export function PageList({ pages, layout, order, navigate }: { pages: ListPage[]
 }
 
 export function LayoutSwitch({ layout, choose }: { layout: Layout; choose: (layout: Layout) => void }) {
-  return <div className="layout-switch" role="group" aria-label="Layout">
-    {LAYOUTS.map(([value, label]) => <button key={value} aria-pressed={layout === value} onClick={() => choose(value)}>{label}</button>)}
+  return <div className="layout-switch" role="group" aria-label={t('layout')}>
+    {LAYOUTS.map(([value, label]) => <button key={value} aria-pressed={layout === value} onClick={() => choose(value)}>{t(label)}</button>)}
   </div>;
 }

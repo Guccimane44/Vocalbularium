@@ -1,4 +1,5 @@
 import { renderFeedback } from './feedback-view.js';
+import { t } from './i18n.ts';
 let feedbackStyles;
 async function styles() {
   feedbackStyles ??= Promise.all(['theme.css', 'feedback.css'].map(async file => {
@@ -39,7 +40,7 @@ export async function showFeedback(tabId, message, failed = false, sourceUrl, fl
     const result = await chrome.scripting.executeScript({
       target: { tabId },
       func: renderFeedback,
-      args: [message, failed, theme, css, flight ?? null]
+      args: [message, failed, theme, css, flight ?? null, t('feedback.close')]
     });
     injected = true;
     // Session metadata lets a newly woken worker find only still-active feedback.

@@ -10,7 +10,8 @@ import { parentContentOf } from '@vocabularium/domain/content';
 import type { ParentContent } from '@vocabularium/domain/content';
 import { hasText } from '@vocabularium/domain/markdown';
 import { FacetEditor, LiveEditor, NoteEditor } from './live-editor.tsx';
-import { facetLabel, facetsOf, isFacetOf, isParentType } from '@vocabularium/domain/parents';
+import { facetsOf, isFacetOf, isParentType } from '@vocabularium/domain/parents';
+import { facetName } from './catalog-text.ts';
 import type { FacetType, ParentType } from '@vocabularium/domain/parents';
 import type { FieldDraft, PageEditorDraft } from '../types/editor-drafts.js';
 import { FacetTab, FacetTags, FOLD_MS } from './facet-tags.tsx';
@@ -20,6 +21,7 @@ import { FamilyIcon } from './families.tsx';
 import { mainKeyTier } from './main-key.ts';
 import { AT_THE_END, moduleLabel, numbered, ShapingArea, SixDots } from './shaping.tsx';
 import type { RowParts } from './shaping.tsx';
+import { listFormat, t } from './i18n.ts';
 
 // Icons for a card's actions, drawn like the family icons: 24px grid, 2.2 stroke.
 const ACTION_ICONS = {
@@ -55,7 +57,7 @@ function Spark({ active }: { active: boolean }) {
 const POOF_MS = 240;
 
 // The six-dot menu on each card; its entries are placeholders (0.6.3).
-const COMPONENT_MENU = ['Duplicate', 'Copy text', 'Move to page…'] as const;
+const componentMenu = () => [t('card.menu.duplicate'), t('card.menu.copyText'), t('card.menu.moveToPage')];
 
 type Deck = { id: string; name: string; modules: ModuleInstance[] };
 type Props = {
@@ -106,15 +108,15 @@ function NewPageEditor({ draft, deck, busy, persist, save, cancel }: Pick<Props,
   const inputs = deck.modules.filter(module => module.type === 'context' || module.type === 'text');
   const content = deck.modules.filter(module => isContentType(module.type));
   return <section className="page-components">
-    <TextField id="main-key" labelText="Main key" value={draft.mainKey ?? ''} readOnly={locked} multiline={false} error={draft.fieldError}
+    <TextField id="main-key" labelText={t('module.mainKey')} value={draft.mainKey ?? ''} readOnly={locked} multiline={false} error={draft.fieldError}
       onChange={value => { draft.mainKey = value; persist(); }} />
     {inputs.map(module => <TextField key={module.id} id={`input-${module.id}`} value={draft.inputs?.[module.id] ?? ''} readOnly={locked}
-      labelText={module.type === 'context' ? 'Context (optional)' : moduleLabel(module.type)}
+      labelText={module.type === 'context' ? t('page.new.contextOptional') : moduleLabel(module.type)}
       onChange={value => { draft.inputs = { ...draft.inputs, [module.id]: value }; persist(); }} />)}
-    {content.length > 0 && <p className="muted">Saving does not generate. The page also gets {content.map(module => moduleLabel(module.type)).join(', ')}; use Generate missing after saving to fill them from the main key.</p>}
+    {content.length > 0 && <p className="muted">{t('page.new.contentHint', { modules: listFormat(content.map(module => moduleLabel(module.type))) })}</p>}
     <div className="dialog-actions">
-      <button disabled={busy} onClick={() => void cancel()}>Cancel</button>
-      <button className="primary" disabled={busy} onClick={() => void save()}>{draft.pending ? 'Try saving again' : 'Save'}</button>
+      <button disabled={busy} onClick={() => void cancel()}>{t('common.cancel')}</button>
+      <button className="primary" disabled={busy} onClick={() => void save()}>{draft.pending ? t('common.trySavingAgain') : t('common.save')}</button>
     </div>
     {draft.error && <p className="notice error" role="alert">{draft.error}</p>}
   </section>;
@@ -166,22 +168,22 @@ function FacetActions({ name, hasContent, canRetry, disabled, asking, setAsking,
   const cancel = useRef<HTMLButtonElement>(null);
   useEffect(() => { if (asking) cancel.current?.focus(); }, [asking]);
   if (!asking) return <span className="facet-actions">
-    {onEdit && <button type="button" className="facet-edit" aria-label={`Edit ${name}`} disabled={disabled}
+    {onEdit && <button type="button" className="facet-edit" aria-label={t('action.editNamed', { name })} disabled={disabled}
       onClick={onEdit}><ActionIcon name="edit" /></button>}
-    {canRetry && <button type="button" className="facet-retry" aria-label={`Retry ${name}`} disabled={disabled}
+    {canRetry && <button type="button" className="facet-retry" aria-label={t('action.retryNamed', { name })} disabled={disabled}
       onClick={() => hasContent ? setAsking('retry') : onRetry()}><ActionIcon name="retry" /></button>}
-    {onDelete && <button type="button" className="facet-delete" aria-label={`Delete ${name}`} disabled={disabled}
+    {onDelete && <button type="button" className="facet-delete" aria-label={t('action.deleteNamed', { name })} disabled={disabled}
       onClick={() => hasContent ? setAsking('delete') : onDelete()}><ActionIcon name="delete" /></button>}
   </span>;
   // The card's question mirrored (0.7.3): it springs out leftwards from the
   // row's end, and Cancel comes last, under the pointer that asked.
-  const verb = asking === 'delete' ? 'Delete' : 'Retry';
-  return <span className="facet-confirm" data-confirm={asking} role="group" aria-label={`${verb} ${name}?`}
+  const verb = asking === 'delete' ? t('common.delete') : t('common.retry');
+  return <span className="facet-confirm" data-confirm={asking} role="group" aria-label={asking === 'delete' ? t('action.deleteAsk', { name }) : t('action.retryAsk', { name })}
     onKeyDown={event => { if (event.key === 'Escape') { event.stopPropagation(); setAsking(null); } }}>
-    <span className="confirm-text" style={{ '--i': 2 } as CSSProperties}>Are you sure?</span>
-    <button type="button" className="action-confirm" style={{ '--i': 1 } as CSSProperties} aria-label={`Yes, ${verb.toLowerCase()} ${name}`}
+    <span className="confirm-text" style={{ '--i': 2 } as CSSProperties}>{t('common.areYouSure')}</span>
+    <button type="button" className="action-confirm" style={{ '--i': 1 } as CSSProperties} aria-label={asking === 'delete' ? t('action.confirmDelete', { name }) : t('action.confirmRetry', { name })}
       onClick={() => { setAsking(null); if (asking === 'delete') onDelete?.(); else onRetry(); }}>{verb}</button>
-    <button type="button" ref={cancel} style={{ '--i': 0 } as CSSProperties} aria-label={`Keep ${name}`} onClick={() => setAsking(null)}>Cancel</button>
+    <button type="button" ref={cancel} style={{ '--i': 0 } as CSSProperties} aria-label={t('action.keepNamed', { name })} onClick={() => setAsking(null)}>{t('common.cancel')}</button>
   </span>;
 }
 
@@ -223,9 +225,9 @@ export function Content({ type, rendered, mainKey, controls }: {
   // While the facet generates on its own, the spark runs round its tab (0.7.4).
   const facetHead = (facet: FacetType, hasContent = true) => parent && <h3 className="facet-title">
     <FacetTab parent={parent} facet={facet}><Spark active={controls?.retrying === facet} /></FacetTab>
-    {controls?.retrying === facet ? <span className="visually-hidden">Generating…</span>
-      : controls?.failed === facet && <span className="facet-note" data-note="failed">Retry failed</span>}
-    {controls && <FacetActions name={`${facetLabel(parent, facet)} from ${controls.title}`} hasContent={hasContent} canRetry={canRetry}
+    {controls?.retrying === facet ? <span className="visually-hidden">{t('status.generatingEllipsis')}</span>
+      : controls?.failed === facet && <span className="facet-note" data-note="failed">{t('card.retryFailed')}</span>}
+    {controls && <FacetActions name={t('facet.fromCard', { facet: facetName(parent, facet), card: controls.title })} hasContent={hasContent} canRetry={canRetry}
       disabled={controls.disabled} asking={controls.asking?.facet === facet ? controls.asking.kind : null}
       setAsking={kind => controls.setAsking(kind ? facet : null, kind ?? undefined)}
       onDelete={() => controls.onDelete(facet)} onRetry={() => controls.onRetry(facet)}
@@ -276,7 +278,7 @@ function ComponentBody({ item, title, editable, draft, locked, persist, redraw, 
     const facet = draft.facet as FacetType;
     const node = <FacetEditor key={facet} parent={item.moduleType} facet={facet} title={title} fields={fields} redraw={redraw} persist={persist}
       locked={locked || item.status === 'loading'}>
-      {item.status === 'loading' && <p className="notice">This component is generating. Your draft is preserved; save explicitly after generation finishes.</p>}
+      {item.status === 'loading' && <p className="notice">{t('card.generatingDraft')}</p>}
       {tools}
     </FacetEditor>;
     return <Content type={item.moduleType} rendered={rendered} mainKey={mainKey} controls={controls && { ...controls, editing: { facet, node } }} />;
@@ -284,17 +286,17 @@ function ComponentBody({ item, title, editable, draft, locked, persist, redraw, 
   if (editable && fields && isParentType(item.moduleType)) return <>
     <LiveEditor parent={item.moduleType} title={title} fields={fields} redraw={redraw} persist={persist}
       opened={(draft?.fieldStored?.[item.id] as ParentContent | undefined) ?? parentContentOf(item.content)} locked={locked || item.status === 'loading'} />
-    {item.status === 'loading' && <p className="notice">This component is generating. Your draft is preserved; save explicitly after generation finishes.</p>}
+    {item.status === 'loading' && <p className="notice">{t('card.generatingDraft')}</p>}
   </>;
   // Context and Text in the same toolbar editor (D10, amended a fourth time).
   if (editable && draft && (item.moduleType === 'context' || item.moduleType === 'text')) return <NoteEditor title={title} value={draft.texts[item.id] ?? ''}
     locked={locked} onChange={markdown => { draft.texts[item.id] = markdown; persist(); }} />;
   if (editable && draft) return <>
-    <TextField id={`component-${item.id}`} labelText={`Edit ${title}`} value={draft.texts[item.id]}
+    <TextField id={`component-${item.id}`} labelText={t('action.editNamed', { name: title })} value={draft.texts[item.id]}
       error={item.moduleType === 'main-key' ? draft.fieldError : undefined}
       readOnly={locked || item.status === 'loading'} multiline={item.moduleType !== 'main-key' || mainKeyTier(draft.texts[item.id]) === 'passage'}
       onChange={value => { draft.texts[item.id] = value; persist(); }} />
-    {item.status === 'loading' && <p className="notice">This component is generating. Your draft is preserved; save explicitly after generation finishes.</p>}
+    {item.status === 'loading' && <p className="notice">{t('card.generatingDraft')}</p>}
   </>;
   const { rendered, present } = readContent(item.moduleType, item.content);
   return present ? <Content type={item.moduleType} rendered={rendered} mainKey={mainKey} controls={controls} /> : null;
@@ -321,14 +323,14 @@ function Reveal({ status, title, facet, failedFacet, children }: {
     if (!ended) return;
     if (was) {
       const failed = failedFacet === was.id;
-      setAnnouncement(failed ? `${title}: ${was.name} failed to generate.` : `${title}: ${was.name} generated.`);
+      setAnnouncement(t(failed ? 'card.facetFailedAnnouncement' : 'card.facetGeneratedAnnouncement', { card: title, facet: was.name }));
       const section = body.current?.querySelector<HTMLElement>(`.facet[data-facet="${CSS.escape(was.id)}"]`);
       if (!section || failed) return;
       section.dataset.shown = '';
       const timer = setTimeout(() => { delete section.dataset.shown; }, 1200);
       return () => clearTimeout(timer);
     }
-    setAnnouncement(status === 'failed' ? `${title}: generation failed.` : `${title} generated.`);
+    setAnnouncement(t(status === 'failed' ? 'card.failedAnnouncement' : 'card.generatedAnnouncement', { card: title }));
     if (status !== 'completed') return;
     setRevealing(true);
     const timer = setTimeout(() => setRevealing(false), 1200);
@@ -344,7 +346,7 @@ function Reveal({ status, title, facet, failedFacet, children }: {
 // as a sentence. It names no language and cannot be changed directly.
 function Interpretation({ value }: { value: Page['interpretation'] }) {
   if (!value) return null;
-  return <p className="interpretation" data-interpretation={value}>Read as a {value === 'sentence' ? 'sentence' : 'word'}</p>;
+  return <p className="interpretation" data-interpretation={value}>{value === 'sentence' ? t('page.readAsSentence') : t('page.readAsWord')}</p>;
 }
 
 // The page title: the main key in its tier; a passage is cut after six lines.
@@ -364,7 +366,7 @@ export function MainKeyTitle({ text }: { text: string }) {
   }, [text, tier, expanded]);
   return <>
     <h1 ref={title} className="main-key" data-tier={tier} data-expanded={expanded || undefined}>{text}</h1>
-    {overflows && <button className="show-all" aria-expanded={expanded} onClick={() => setExpanded(!expanded)}>{expanded ? 'Show less' : 'Show all'}</button>}
+    {overflows && <button className="show-all" aria-expanded={expanded} onClick={() => setExpanded(!expanded)}>{expanded ? t('page.showLess') : t('page.showAll')}</button>}
   </>;
 }
 
@@ -383,13 +385,13 @@ function ConfirmAction({ kind, title, offset, onConfirm, onCancel }: {
     cancel.current?.focus();
   }, [offset]);
   const questionId = `confirm-${title.replace(/\W+/g, '-')}`;
-  const verb = kind === 'delete' ? 'Delete' : 'Retry';
-  return <div className="card-actions" role="group" aria-label={`${verb} ${title}?`} aria-describedby={questionId} data-open data-confirm={kind}
+  const verb = kind === 'delete' ? t('common.delete') : t('common.retry');
+  return <div className="card-actions" role="group" aria-label={kind === 'delete' ? t('action.deleteAsk', { name: title }) : t('action.retryAsk', { name: title })} aria-describedby={questionId} data-open data-confirm={kind}
     style={{ paddingLeft: inset }}>
-    <button ref={confirm} style={{ '--i': 0 } as CSSProperties} className="action-confirm" aria-label={`Yes, ${verb.toLowerCase()} ${title}`} onClick={onConfirm}>
+    <button ref={confirm} style={{ '--i': 0 } as CSSProperties} className="action-confirm" aria-label={kind === 'delete' ? t('action.confirmDelete', { name: title }) : t('action.confirmRetry', { name: title })} onClick={onConfirm}>
       <ActionIcon name={kind} />{verb}</button>
-    <button ref={cancel} style={{ '--i': 1 } as CSSProperties} aria-label={`Keep ${title}`} onClick={onCancel}>Cancel</button>
-    <span id={questionId} className="confirm-text" style={{ '--i': 2 } as CSSProperties}>Are you sure?</span>
+    <button ref={cancel} style={{ '--i': 1 } as CSSProperties} aria-label={t('action.keepNamed', { name: title })} onClick={onCancel}>{t('common.cancel')}</button>
+    <span id={questionId} className="confirm-text" style={{ '--i': 2 } as CSSProperties}>{t('common.areYouSure')}</span>
   </div>;
 }
 
@@ -478,18 +480,18 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
   const notice = error && error !== draft?.error && <p className="notice error" role="alert">{error}</p>;
   if (!deck || (!page && !isNew)) return <>
     {notice}
-    <h1>Page unavailable</h1>
-    <p>This page or deck has been deleted.</p>
+    <h1>{t('page.unavailable.title')}</h1>
+    <p>{t('page.unavailable.body')}</p>
     {draft && <>
-      <p className="notice">Your unsaved text is still here. Copy anything you want to keep before discarding it.</p>
+      <p className="notice">{t('page.unavailable.draft')}</p>
       {[draft.mainKey, ...Object.values(draft.inputs ?? {}), ...Object.values(draft.texts), ...Object.values(draft.fields ?? {}).map(draftText)].filter(Boolean).map((text, index) => <pre key={index}>{text}</pre>)}
-      <button onClick={() => void discardUnavailable()}>Discard draft</button>
+      <button onClick={() => void discardUnavailable()}>{t('common.discardDraft')}</button>
     </>}
   </>;
   const back = <button className="back" onClick={() => navigate(`deck/${deck.id}`)}>← {deck.name}</button>;
   if (isNew || !page) return <>
     {notice}{back}
-    <h1>A new page.</h1>
+    <h1>{t('page.new.title')}</h1>
     {draft && <NewPageEditor draft={draft} deck={deck} busy={busy} persist={persist} save={save} cancel={cancel} />}
   </>;
 
@@ -530,32 +532,32 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
     const choose = (action: () => void) => () => { setOpened(null); action(); };
     let index = 0;
     const order = () => ({ '--i': index++ }) as CSSProperties;
-    return <div id={`actions-${item.id}`} className="card-actions" role="group" aria-label={`${title} actions`} data-open={open || undefined}>
+    return <div id={`actions-${item.id}`} className="card-actions" role="group" aria-label={t('card.actions', { card: title })} data-open={open || undefined}>
       {/* An empty parent can be written by hand too (D10, amended a fourth time). */}
-      {open && <button style={order()} aria-label={`Edit ${title}`} disabled={Boolean(editingId) || item.status === 'loading'}
+      {open && <button style={order()} aria-label={t('action.editNamed', { name: title })} disabled={Boolean(editingId) || item.status === 'loading'}
         onClick={choose(() => { if (isFolded) fold(item.id, false); begin(item.id); })}>
-        <ActionIcon name="edit" />Edit</button>}
-      {generated && <button style={order()} className={item.status === 'failed' ? 'action-failed' : undefined} aria-label={`Retry ${title}`}
+        <ActionIcon name="edit" />{t('common.edit')}</button>}
+      {generated && <button style={order()} className={item.status === 'failed' ? 'action-failed' : undefined} aria-label={t('action.retryNamed', { name: title })}
         disabled={working || Boolean(editingId) || item.status === 'loading'}
         onClick={hasContent && open ? ask('retry') : choose(() => void run(() => generate({ scope: 'component', componentId: item.id })))}>
-        <ActionIcon name="retry" />Retry</button>}
+        <ActionIcon name="retry" />{t('common.retry')}</button>}
       {/* A parent's facets are chosen in its facet window (D13, 0.8.1). */}
-      {open && isParentType(item.moduleType) && <button style={order()} aria-label={`Facets of ${title}`}
+      {open && isParentType(item.moduleType) && <button style={order()} aria-label={t('card.facetsOf', { card: title })}
         disabled={disabled || working || item.status === 'loading'} onClick={choose(() => setFacetsFor(item.id))}>
-        <ActionIcon name="facet" />Facet</button>}
-      {open && foldable && <button style={order()} aria-label={`${isFolded ? 'Unfold' : 'Fold'} ${title}`} onClick={choose(() => fold(item.id, !isFolded))}>
-        <ActionIcon name={isFolded ? 'unfold' : 'fold'} />{isFolded ? 'Unfold' : 'Fold'}</button>}
-      {open && <button style={order()} className="action-delete" aria-label={`Delete ${title}`} disabled={disabled || working || item.status === 'loading'}
+        <ActionIcon name="facet" />{t('card.facet')}</button>}
+      {open && foldable && <button style={order()} aria-label={t(isFolded ? 'card.unfoldNamed' : 'card.foldNamed', { card: title })} onClick={choose(() => fold(item.id, !isFolded))}>
+        <ActionIcon name={isFolded ? 'unfold' : 'fold'} />{isFolded ? t('card.unfold') : t('card.fold')}</button>}
+      {open && <button style={order()} className="action-delete" aria-label={t('action.deleteNamed', { name: title })} disabled={disabled || working || item.status === 'loading'}
         onClick={hasContent ? ask('delete') : choose(() => vanish(item))}>
-        <ActionIcon name="delete" />Delete</button>}
+        <ActionIcon name="delete" />{t('common.delete')}</button>}
     </div>;
   };
   const editor = (item: Component, title: string, controls?: FacetControls) => {
     if (editingId !== item.id || !draft) return null;
     const tools = <>
       <div className="component-tools">
-        <button disabled={busy} onClick={() => void cancel()}>Cancel</button>
-        <button className="primary" disabled={busy} onClick={() => void save()}>{draft.pending ? 'Try saving again' : 'Save'}</button>
+        <button disabled={busy} onClick={() => void cancel()}>{t('common.cancel')}</button>
+        <button className="primary" disabled={busy} onClick={() => void save()}>{draft.pending ? t('common.trySavingAgain') : t('common.save')}</button>
       </div>
       {draft.error && <p className="notice error" role="alert">{draft.error}</p>}
     </>;
@@ -640,16 +642,16 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
             <span className="tab-label">{title}</span>
           </button></h2>
           <Spark active={generating} />
-          {generating && <span className="visually-hidden" role="status">{title}: generating</span>}
+          {generating && <span className="visually-hidden" role="status">{t('card.generatingStatus', { card: title })}</span>}
         </div>
         {editingId !== item.id && actions(item, title)}
         {facetWindow}
       </div>
       {!empty && <div className="card-fold"><div className="card-fold-inner" inert={isFolded || undefined}>
-        {item.status === 'failed' && <p className="card-status"><span className="list-status" data-status="failed">Generation failed</span></p>}
+        {item.status === 'failed' && <p className="card-status"><span className="list-status" data-status="failed">{t('status.generationFailed')}</span></p>}
         {editor(item, title, controls) || <Reveal status={item.status} title={title} failedFacet={item.failedFacet}
           facet={item.retryingFacet && isParentType(item.moduleType) && isFacetOf(item.moduleType, item.retryingFacet)
-            ? { id: item.retryingFacet, name: facetLabel(item.moduleType, item.retryingFacet) } : undefined}><ComponentBody item={item} title={title} editable={false} draft={draft} locked={locked} redraw={redraw} persist={persist} mainKey={mainKey} controls={controls} /></Reveal>}
+            ? { id: item.retryingFacet, name: facetName(item.moduleType, item.retryingFacet) } : undefined}><ComponentBody item={item} title={title} editable={false} draft={draft} locked={locked} redraw={redraw} persist={persist} mainKey={mainKey} controls={controls} /></Reveal>}
       </div></div>}
       {tags}
     </article>;
@@ -659,29 +661,29 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
     {notice}{back}
     <div className="page-header" data-component-id={key.id} data-type="main-key" data-editing={editingId === key.id || undefined}>
       <div className="page-title">
-        {editingId === key.id ? editor(key, 'Main key') : <><MainKeyTitle text={mainKey} /><Interpretation value={page.interpretation} /></>}
+        {editingId === key.id ? editor(key, t('module.mainKey')) : <><MainKeyTitle text={mainKey} /><Interpretation value={page.interpretation} /></>}
       </div>
       <div className="title-actions">
-        {editingId !== key.id && <button className="title-edit" aria-label="Edit Main key" disabled={Boolean(editingId)} onClick={() => begin(key.id)}>Edit</button>}
-        <button disabled={busy || Boolean(editingId)} onClick={() => void deletePage()}>Delete page</button>
+        {editingId !== key.id && <button className="title-edit" aria-label={t('action.editNamed', { name: t('module.mainKey') })} disabled={Boolean(editingId)} onClick={() => begin(key.id)}>{t('common.edit')}</button>}
+        <button disabled={busy || Boolean(editingId)} onClick={() => void deletePage()}>{t('page.delete')}</button>
       </div>
     </div>
     <ShapingArea items={items} types={page.components.map(item => item.moduleType)} disabled={disabled}
-      label="Components" where="the page"
+      label={t('page.components')} where="page"
       // The server appends a module sent without a position, after anything added meanwhile.
       onAdd={(type, index) => addModule(type, index === AT_THE_END ? undefined : index + 1)}
       onMove={(id, index) => moveComponent(id, index + 1)}
-      menuItems={COMPONENT_MENU}
+      menuItems={componentMenu()}
       renderLanding={type => <LandingCard type={type} />}
       renderItem={(item, parts) => card(item.component, item.label, parts)} />
     {lost.map(id => <div key={id}>
-      <p className="notice">The component you were editing no longer exists. Its unsaved text is preserved below.</p>
+      <p className="notice">{t('page.lostComponent')}</p>
       <pre>{draft!.texts[id] ?? draftText(draft!.fields![id]!)}</pre>
-      <button onClick={() => void cancel()}>Discard draft</button>
+      <button onClick={() => void cancel()}>{t('common.discardDraft')}</button>
     </div>)}
     {!editingId && pendingSaves.map(item => <div className="notice" key={item.operationId}>
-      <p>A change is waiting to be saved to your account.</p>
-      <button onClick={() => void retryPendingSave(item.operationId)}>Try saving again</button>
+      <p>{t('save.waiting')}</p>
+      <button onClick={() => void retryPendingSave(item.operationId)}>{t('common.trySavingAgain')}</button>
     </div>)}
   </>;
 }

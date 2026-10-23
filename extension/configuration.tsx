@@ -16,6 +16,8 @@ import { mainKeyTier } from './main-key.ts';
 import { ActionIcon, Content, LandingCard } from './page-view.tsx';
 import { moduleLabel, numbered, ShapingArea } from './shaping.tsx';
 import type { RowParts } from './shaping.tsx';
+import { t } from './i18n.ts';
+import type { MessageKey } from './i18n.ts';
 
 // A parent added to the deck starts with its core only (D08).
 const instance = (type: string, facets?: string[]) => ({ id: crypto.randomUUID(), type, ...(facets || isParentType(type) ? { facets: facets ?? [] } : {}) });
@@ -30,12 +32,12 @@ export const newDeckDraft = (): DeckConfiguration => ({
 
 // Deck colours (D06) are the family colours, named by hue: a deck's colour
 // identifies the deck and says nothing about its modules.
-const COLOUR_NAMES: Readonly<Record<DeckColour, string>> = {
-  meaning: 'Blue', usage: 'Green', roots: 'Amber', connections: 'Violet', sound: 'Rose', notes: 'Sage'
+const COLOUR_NAMES: Readonly<Record<DeckColour, MessageKey>> = {
+  meaning: 'deck.colour.blue', usage: 'deck.colour.green', roots: 'deck.colour.amber', connections: 'deck.colour.violet', sound: 'deck.colour.rose', notes: 'deck.colour.sage'
 };
 
 // The six-dot menu on each module in the list; its entries are placeholders (0.6.3).
-const DECK_MODULE_MENU = ['Duplicate', 'Copy to another deck…'] as const;
+const deckModuleMenu = () => [t('card.menu.duplicate'), t('deck.menu.copyToDeck')];
 
 const familyOf = (type: string): ModuleFamily => (isModuleType(type) && CATALOG[type].family) || 'notes';
 
@@ -60,15 +62,15 @@ function PreviewDialog({ modules, sampleType, choose, close }: {
     onCancel={event => { event.preventDefault(); done(); }}
     onClick={event => { if (event.target === event.currentTarget) done(); }}>
     <div className="preview-head">
-      <h2 id="preview-title">Preview</h2>
-      <label className="visually-hidden" htmlFor="sample-input">Sample input</label>
+      <h2 id="preview-title">{t('deck.preview')}</h2>
+      <label className="visually-hidden" htmlFor="sample-input">{t('deck.preview.sampleInput')}</label>
       <select id="sample-input" value={sampleType} onChange={event => choose(event.target.value as 'word_phrase' | 'sentence')}>
-        <option value="word_phrase">Word: 幸福</option>
-        <option value="sentence">Sentence: 我真的很幸福</option>
+        <option value="word_phrase">{t('deck.preview.word', { sample: '幸福' })}</option>
+        <option value="sentence">{t('deck.preview.sentence', { sample: '我真的很幸福' })}</option>
       </select>
-      <button type="button" className="preview-close" aria-label="Close preview" onClick={done}>×</button>
+      <button type="button" className="preview-close" aria-label={t('deck.preview.close')} onClick={done}>×</button>
     </div>
-    <p className="muted preview-note">A sample new page in this deck. Previews never create or change pages.</p>
+    <p className="muted preview-note">{t('deck.preview.note')}</p>
     <div className="sample-page">
       <p className="main-key preview" data-type={key.type} data-tier={mainKeyTier(mainKey)}>{mainKey}</p>
       {rest.map(module => {
@@ -113,11 +115,11 @@ function DeckModule({ item, parts, busy, opened, setOpened, choosing, setChoosin
           <span className="tab-label">{item.label}</span>
         </button></h2>
       </div>
-      {opened && <div id={`actions-${item.id}`} className="card-actions" role="group" aria-label={`${item.label} actions`} data-open>
-        {isParentType(item.type) && <button style={{ '--i': 0 } as CSSProperties} aria-label={`Facets of ${item.label}`} disabled={busy}
-          onClick={() => { setOpened(false); setChoosing(true); }}><ActionIcon name="facet" />Facet</button>}
-        <button style={{ '--i': isParentType(item.type) ? 1 : 0 } as CSSProperties} className="action-delete" aria-label={`Remove ${item.label}`} disabled={busy}
-          onClick={() => { setOpened(false); onRemove(); }}><ActionIcon name="delete" />Remove</button>
+      {opened && <div id={`actions-${item.id}`} className="card-actions" role="group" aria-label={t('card.actions', { card: item.label })} data-open>
+        {isParentType(item.type) && <button style={{ '--i': 0 } as CSSProperties} aria-label={t('card.facetsOf', { card: item.label })} disabled={busy}
+          onClick={() => { setOpened(false); setChoosing(true); }}><ActionIcon name="facet" />{t('card.facet')}</button>}
+        <button style={{ '--i': isParentType(item.type) ? 1 : 0 } as CSSProperties} className="action-delete" aria-label={t('action.removeNamed', { name: item.label })} disabled={busy}
+          onClick={() => { setOpened(false); onRemove(); }}><ActionIcon name="delete" />{t('common.remove')}</button>
       </div>}
       {choosing && isParentType(item.type) && <FacetWindow holderId={item.id} parent={item.type} title={item.label} facets={item.facets ?? []}
         disabled={busy} hasContent={() => false} onAdd={onAddFacet} onRemove={onRemoveFacet}
@@ -204,57 +206,57 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
     <button onClick={async () => {
       if (draft.pending) await chrome.storage.local.remove('save-' + draft.pending.operationId);
       onCancel();
-    }}>Cancel</button>
+    }}>{t('common.cancel')}</button>
     <button className="primary" disabled={Boolean(draft.saving)} onClick={() => void saveDraft()}>
-      {draft.pending ? 'Try saving again' : 'Save'}
+      {draft.pending ? t('common.trySavingAgain') : t('common.save')}
     </button>
   </div>;
   return <div className="deck-settings">
     <div className="page-head">
       <div>
-        <p className="eyebrow">Deck settings</p>
-        <h1>{draft.deck.id ? 'Shape your deck.' : 'A new collection.'}</h1>
+        <p className="eyebrow">{t('deck.settings')}</p>
+        <h1>{draft.deck.id ? t('deck.settings.title') : t('deck.settings.newTitle')}</h1>
       </div>
       {actions}
     </div>
     {draft.error && <p className="notice error">{draft.error}</p>}
     {externalError && <p className="notice error" role="alert">{externalError}</p>}
     <fieldset className="deck-name" disabled={busy}>
-      <label htmlFor="deck-name">Deck name</label>
+      <label htmlFor="deck-name">{t('deck.name')}</label>
       <input id="deck-name" value={draft.deck.name} onChange={event => {
         draft.deck.name = event.target.value;
         refresh();
       }} />
     </fieldset>
     <fieldset className="deck-colour" disabled={busy}>
-      <legend>Deck colour</legend>
+      <legend>{t('deck.colour')}</legend>
       <div className="colour-swatches">
         {DECK_COLOURS.map(colour => {
           const checked = deckColour(draft.deck) === colour;
-          return <label key={colour} className={`colour-swatch fam-${colour}`} title={COLOUR_NAMES[colour]}>
+          return <label key={colour} className={`colour-swatch fam-${colour}`} title={t(COLOUR_NAMES[colour])}>
             <input type="radio" name="deck-colour" value={colour} checked={checked}
               onChange={() => { draft.deck.colour = colour; refresh(); }} />
-            <span className="visually-hidden">{COLOUR_NAMES[colour]}</span>
+            <span className="visually-hidden">{t(COLOUR_NAMES[colour])}</span>
           </label>;
         })}
       </div>
     </fieldset>
-    <ShapingArea items={items} types={modules.map(module => module.type)} disabled={busy} unavailable={busy ? 'Saving…' : undefined}
-      label="Modules for new pages" where="the list" onAdd={add} onMove={(id, index) => { move(id, index); return true; }}
+    <ShapingArea items={items} types={modules.map(module => module.type)} disabled={busy} unavailable={busy ? t('status.savingEllipsis') : undefined}
+      label={t('deck.modules')} where="list" onAdd={add} onMove={(id, index) => { move(id, index); return true; }}
       pinned={<>
         <div className="list-intro">
           <div className="list-intro-head">
-            <h2>Modules for new pages</h2>
-            <button type="button" className="preview-open" aria-haspopup="dialog" onClick={() => { draft.previewing = true; refresh(); }}>Preview</button>
+            <h2>{t('deck.modules')}</h2>
+            <button type="button" className="preview-open" aria-haspopup="dialog" onClick={() => { draft.previewing = true; refresh(); }}>{t('deck.preview')}</button>
           </div>
-          <p className="muted">New pages start with these modules, in this order. Existing pages keep their own.</p>
+          <p className="muted">{t('deck.modules.hint')}</p>
         </div>
         {/* The main key never moves and cannot be removed: a tab with its name only. */}
         <div className="component deck-module" data-empty data-type={key.type}>
           <div className="card-head"><div className="card-tab"><h2><span className="tab-label">{moduleLabel(key.type)}</span></h2></div></div>
         </div>
       </>}
-      menuItems={DECK_MODULE_MENU}
+      menuItems={deckModuleMenu()}
       renderLanding={type => <LandingCard type={type} />}
       renderItem={(item, parts) => <DeckModule item={item} parts={parts} busy={busy}
         opened={opened === item.id} setOpened={value => setOpened(value ? item.id : null)}

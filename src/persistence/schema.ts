@@ -13,8 +13,11 @@ export const decks = pgTable('decks', {
 }, table => [check('deck_view', sql`${table.view} in ('default')`),
   check('deck_colour', sql`${table.colour} in ('meaning', 'usage', 'roots', 'connections', 'sound', 'notes')`)]);
 export const account = pgTable('account', {
-  id: integer().primaryKey(), default_deck_id: text().notNull().references(() => decks.id)
-}, table => [check('singleton_account', sql`${table.id} = 1`)]);
+  id: integer().primaryKey(), default_deck_id: text().notNull().references(() => decks.id),
+  // The interface language (D14); English until the user chooses another.
+  language: text().notNull().default('en')
+}, table => [check('singleton_account', sql`${table.id} = 1`),
+  check('account_language', sql`${table.language} in ('en', 'ar', 'es', 'fr', 'ru', 'zh-Hans')`)]);
 export const installations = pgTable('installations', {
   id: text().primaryKey(), epoch: bigint({ mode: 'number' }).notNull(), session_id: text().notNull()
 }, table => [check('session_epoch', sql`${table.epoch} > 0`)]);

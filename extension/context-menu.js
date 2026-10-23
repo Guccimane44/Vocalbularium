@@ -1,7 +1,9 @@
+import { t } from './i18n.ts';
+
 export function captureMenuTitle(name) {
   // Chromium replaces every literal %s and has no %% escape. A zero-width
   // separator preserves its appearance without interpolating the selection.
-  return `Create a page in “${name.replaceAll('%s', '%\u200bs')}”`;
+  return t('capture.menu', { deck: name.replaceAll('%s', '%\u200bs') });
 }
 
 export function captureMenu(api = chrome) {

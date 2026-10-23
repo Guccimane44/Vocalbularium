@@ -6,6 +6,7 @@ import { deckColour } from './deck-colour.ts';
 import { mainKeyTier } from './main-key.ts';
 import { GeneratingStatus, isLayout, LayoutSwitch, MeaningLine, PageList, SavingStatus, useArrivals } from './page-list.tsx';
 import type { Layout, ListPage } from './page-list.tsx';
+import { currentLanguage, t } from './i18n.ts';
 
 // A page summary: list rows show the main key, the first meaning and the
 // filled modules, never the page's content.
@@ -74,7 +75,7 @@ function RecoveryButton({ operationId, mutate, reportError }: Pick<DashboardProp
     try { await mutate({ type: 'try-saving-again', operationId }); }
     catch (error) { reportError(error); }
     finally { setBusy(false); }
-  }}>Try saving again</button>;
+  }}>{t('common.trySavingAgain')}</button>;
 }
 
 function PendingSaveNotices({ local, mutate, reportError }: Pick<DashboardProps, 'local' | 'mutate' | 'reportError'>) {
@@ -82,7 +83,7 @@ function PendingSaveNotices({ local, mutate, reportError }: Pick<DashboardProps,
     .filter(([key, item]) => key.startsWith('save-') && isSaveReceipt(item) && item.state !== 'saving')
     .map(([, item]) => item as SaveReceipt);
   return <>{pending.map(item => <div className="notice" key={item.operationId}>
-    <p>A change is waiting to be saved to your account.</p>
+    <p>{t('save.waiting')}</p>
     <RecoveryButton operationId={item.operationId} mutate={mutate} reportError={reportError} />
   </div>)}</>;
 }
@@ -100,11 +101,11 @@ function DeckMenu({ deck, account, replacementDecks, replacementCursor, loadDeck
   const deleteDeck = action(async () => {
     const replacements = deck.id === account.defaultDeckId ? replacementDecks.filter(item => item.id !== deck.id) : [];
     const decision = await dialog({
-      title: 'Delete deck?',
-      message: `“${deck.name}” and all its pages will be deleted.${replacementDecks.length === 1 && !replacementCursor ? ' A new empty My Deck will replace it.' : ''}`,
-      choices: ['Cancel', 'Delete deck'],
+      title: t('deck.delete.title'),
+      message: t(replacementDecks.length === 1 && !replacementCursor ? 'deck.delete.lastMessage' : 'deck.delete.message', { name: deck.name }),
+      choices: [t('common.cancel'), t('deck.delete')],
       select: replacements.length || replacementCursor ? {
-        label: 'New default deck', options: replacements.map(item => ({ value: item.id, label: item.name })),
+        label: t('deck.delete.newDefault'), options: replacements.map(item => ({ value: item.id, label: item.name })),
         cursor: replacementCursor,
         loadMore: async (cursor: string) => {
           const page = await loadDecks(cursor);
@@ -112,7 +113,7 @@ function DeckMenu({ deck, account, replacementDecks, replacementCursor, loadDeck
         }
       } : undefined
     });
-    if (decision.choice !== 'Delete deck') return;
+    if (decision.choice !== t('deck.delete')) return;
     await mutate({ type: 'delete-deck', payload: { deckId: deck.id, replacementId: decision.value } });
   });
   return <details className="deck-menu" ref={menu}
@@ -120,11 +121,11 @@ function DeckMenu({ deck, account, replacementDecks, replacementCursor, loadDeck
       if (event.key === 'Escape' && menu.current?.open) { event.preventDefault(); event.stopPropagation(); close(); }
     }}
     onBlur={event => { if (!menu.current?.contains(event.relatedTarget)) menu.current!.open = false; }}>
-    <summary ref={summary} aria-label={`Options for ${deck.name}`} data-deck-options={deck.id}>•••</summary>
+    <summary ref={summary} aria-label={t('deck.optionsFor', { name: deck.name })} data-deck-options={deck.id}>•••</summary>
     <div className="menu-choices">
-      <button disabled={deck.id === account.defaultDeckId} onClick={action(() => mutate({ type: 'set-default', deckId: deck.id }))}>Set as default</button>
-      <button onClick={action(() => configure(deck.id))}>Configure deck</button>
-      <button onClick={deleteDeck}>Delete deck</button>
+      <button disabled={deck.id === account.defaultDeckId} onClick={action(() => mutate({ type: 'set-default', deckId: deck.id }))}>{t('deck.setDefault')}</button>
+      <button onClick={action(() => configure(deck.id))}>{t('deck.configure')}</button>
+      <button onClick={deleteDeck}>{t('deck.delete')}</button>
     </div>
   </details>;
 }
@@ -170,23 +171,23 @@ function DeckList({ deck, account, navigate, configure, mutate, reportError, loa
     <div className="page-head">
       <div>
         <h1><span className="fam-mark deck-mark" aria-hidden="true" />{deck.name}</h1>
-        <p className="muted">{deck.pageCount} {deck.pageCount === 1 ? 'page' : 'pages'}</p>
+        <p className="muted">{t('deck.pageCount', { count: deck.pageCount })}</p>
       </div>
       <div className="head-actions">
         <DeckMenu deck={deck} account={account} replacementDecks={account.decks} replacementCursor={account.nextCursor ?? null} loadDecks={loadDecks} configure={configure} mutate={mutate} reportError={reportError} />
-        <button className="primary" onClick={() => navigate(`new-page/${deck.id}`)}>Add page manually</button>
+        <button className="primary" onClick={() => navigate(`new-page/${deck.id}`)}>{t('deck.addPage')}</button>
       </div>
     </div>
     <div className="list-toolbar">
-      <label htmlFor="page-sort">Sort pages</label>
+      <label htmlFor="page-sort">{t('deck.sortPages')}</label>
       <select id="page-sort" value={order} onChange={event => { localStorage.setItem(`sort-${deck.id}`, event.target.value); setOrder(event.target.value); }}>
-        {SORT_ORDERS.map(([value, label]) => <option value={value} key={value}>{label}</option>)}
+        {SORT_ORDERS.map(([value, label]) => <option value={value} key={value}>{t(label)}</option>)}
       </select>
       <LayoutSwitch layout={layout} choose={choose} />
     </div>
-    {!pages.length ? <div className="empty">{loading ? 'Loading pages…' : 'No pages in this deck yet.'}</div> :
+    {!pages.length ? <div className="empty">{loading ? t('deck.loadingPages') : t('deck.noPages')}</div> :
       <PageList pages={pages} layout={layout} order={order} navigate={navigate} />}
-    {cursor && <button className="load-more" disabled={loading} onClick={() => void more()}>Load more pages</button>}
+    {cursor && <button className="load-more" disabled={loading} onClick={() => void more()}>{t('deck.morePages')}</button>}
   </div>;
 }
 
@@ -195,13 +196,13 @@ type CaptureEntry = { key: string; text: string; deckId: string; date: string; r
 // Compact capture times: "now", minutes, today's time, "Yesterday", or the date.
 function captureTime(iso: string, now = new Date()) {
   const date = new Date(iso), minutes = Math.round((now.getTime() - date.getTime()) / 60000);
-  if (minutes < 1) return 'now';
-  if (minutes < 60) return `${minutes} min`;
+  if (minutes < 1) return t('time.now');
+  if (minutes < 60) return t('time.minutes', { count: minutes });
   const day = (value: Date) => new Date(value.getFullYear(), value.getMonth(), value.getDate()).getTime();
   const days = Math.round((day(now) - day(date)) / 86400000);
-  if (days === 0) return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  if (days === 1) return 'Yesterday';
-  return date.toLocaleDateString([], { day: 'numeric', month: 'short' });
+  if (days === 0) return date.toLocaleTimeString(currentLanguage(), { hour: '2-digit', minute: '2-digit' });
+  if (days === 1) return t('time.yesterday');
+  return date.toLocaleDateString(currentLanguage(), { day: 'numeric', month: 'short' });
 }
 
 function RecentCaptures({ account, local, navigate, mutate, reportError }: Pick<DashboardProps, 'account' | 'local' | 'navigate' | 'mutate' | 'reportError'>) {
@@ -216,7 +217,7 @@ function RecentCaptures({ account, local, navigate, mutate, reportError }: Pick<
   // A new capture arrives as its receipt; the page that replaces it is not a second arrival.
   const arrived = useArrivals(entries.filter(entry => entry.receipt).map(entry => entry.key), { appended: true });
   return <section className="recent" aria-labelledby="recent-captures">
-    <h2 className="section-title" id="recent-captures">Recent captures</h2>
+    <h2 className="section-title" id="recent-captures">{t('dashboard.recentCaptures')}</h2>
     {entries.length > 0 && <ul className="captures">{entries.map(entry => {
       const state = entry.page ? entry.page.status ?? 'neutral'
         : entry.receipt?.state === 'saving' ? 'saving' : entry.receipt?.state === 'pending' ? 'unsaved' : 'loading';
@@ -237,7 +238,7 @@ function RecentCaptures({ account, local, navigate, mutate, reportError }: Pick<
           <time dateTime={entry.date}>{captureTime(entry.date)}</time>
         </span>
         {entry.receipt?.state === 'pending' && <div className="capture-recovery">
-          <span className="list-status" data-status="failed">Not saved</span>
+          <span className="list-status" data-status="failed">{t('status.notSaved')}</span>
           {entry.receipt.error && <span className="error">{entry.receipt.error}</span>}
           <RecoveryButton operationId={entry.receipt.operationId} mutate={mutate} reportError={reportError} />
         </div>}
@@ -262,10 +263,10 @@ function DeckGrid({ account, local, navigate, configure, mutate, reportError, lo
   return <>
     <div className="page-head">
       <div>
-        <h1>Your decks</h1>
-        <p className="muted">Keep the words and expressions you want to come back to.</p>
+        <h1>{t('dashboard.title')}</h1>
+        <p className="muted">{t('dashboard.subtitle')}</p>
       </div>
-      <button className="primary" onClick={() => configure('new')}>Add new deck</button>
+      <button className="primary" onClick={() => configure('new')}>{t('dashboard.addDeck')}</button>
     </div>
     <RecentCaptures account={account} local={local} navigate={navigate} mutate={mutate} reportError={reportError} />
     <div className="grid">
@@ -273,15 +274,15 @@ function DeckGrid({ account, local, navigate, configure, mutate, reportError, lo
         <span className="deck-tab" aria-hidden="true" />
         <button className="open" onClick={() => navigate(`deck/${deck.id}`)}>
           <h2>{deck.name}</h2>
-          <p className="muted">{deck.pageCount} {deck.pageCount === 1 ? 'page' : 'pages'} · {deck.moduleCount} {deck.moduleCount === 1 ? 'module' : 'modules'}</p>
+          <p className="muted">{t('deck.pageCount', { count: deck.pageCount })} · {t('deck.moduleCount', { count: deck.moduleCount })}</p>
         </button>
         <footer>
-          {deck.id === account.defaultDeckId && <span className="default-label">Default</span>}
+          {deck.id === account.defaultDeckId && <span className="default-label">{t('deck.default')}</span>}
           <DeckMenu deck={deck} account={account} replacementDecks={decks} replacementCursor={cursor} loadDecks={loadDecks} configure={configure} mutate={mutate} reportError={reportError} />
         </footer>
       </article>)}
     </div>
-    {cursor && <button disabled={loading} onClick={() => void more()}>Load more decks</button>}
+    {cursor && <button disabled={loading} onClick={() => void more()}>{t('dashboard.moreDecks')}</button>}
   </>;
 }
 

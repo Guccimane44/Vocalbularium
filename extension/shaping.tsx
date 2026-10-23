@@ -9,10 +9,14 @@ import type {
 } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { addBlocked, CATALOG, FAMILIES, FAMILY_LABELS, WINDOW_MODULES } from '@vocabularium/domain/page-modules';
+import { MAX_MODULES } from '@vocabularium/contracts';
+import { addBlockedReason, CATALOG, FAMILIES, WINDOW_MODULES } from '@vocabularium/domain/page-modules';
+import type { AddBlockedReason } from '@vocabularium/domain/page-modules';
 import type { ModuleFamily, ModuleType } from '@vocabularium/domain/page-modules';
 import { ModuleExplanation } from './explanation.tsx';
 import { FamilyIcon } from './families.tsx';
+import { t } from './i18n.ts';
+import { familyLabel, moduleDescription, moduleLabel } from './catalog-text.ts';
 
 // Shared by the page view and deck settings (D02, D04): a list whose entries
 // reorder by drag, and the module window whose modules drag into the list.
@@ -32,7 +36,7 @@ const alongTheList: Modifier = ({ active, transform }) => fromWindow(active) ? t
 
 // The module window itself: dropping a module back onto it cancels the drag.
 const BACK = 'module-window';
-export const moduleLabel = (type: string) => CATALOG[type as ModuleType]?.label ?? type;
+export { moduleLabel };
 const fromWindow = (active: Active | null) => Boolean(active && String(active.id).startsWith(WINDOW));
 const windowType = (active: Active) => String(active.id).slice(WINDOW.length);
 
@@ -109,7 +113,7 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
   // Shown above the list and never moved; the page view shows its main key as the title instead.
   pinned?: ReactNode;
   label: string;
-  where: string;
+  where: 'page' | 'list';
   onAdd: (type: string, index: number) => Result;
   onMove: (id: string, index: number) => Result;
   renderItem: (item: T, parts: RowParts) => ReactNode;
@@ -151,7 +155,7 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
 
   const name = (id: string | number) => {
     const value = String(id);
-    return value.startsWith(WINDOW) ? moduleLabel(value.slice(WINDOW.length)) : byId.get(value)?.label ?? 'the end';
+    return value.startsWith(WINDOW) ? moduleLabel(value.slice(WINDOW.length)) : byId.get(value)?.label ?? t('shaping.theEnd');
   };
   // Where a window module would land: before the entry it is over, or after it
   // when a pointer is in its lower half; at the end over the end zone.
@@ -171,7 +175,7 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
   const pickedUp = useRef<string | null>(null);
   const announcements: Announcements = {
     onDragStart: ({ active }) => {
-      pickedUp.current = `Picked up ${name(active.id)}.`;
+      pickedUp.current = t('shaping.pickedUp', { name: name(active.id) });
       setTimeout(() => { pickedUp.current = null; });
       return pickedUp.current;
     },
@@ -180,16 +184,17 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
       pickedUp.current = null;
       return lead + overAnnouncement(event);
     },
-    onDragEnd: ({ active, over }) => over && String(over.id) !== BACK ? `${name(active.id)} was dropped.` : `${name(active.id)} was not moved.`,
-    onDragCancel: ({ active }) => `Moving ${name(active.id)} was cancelled.`
+    onDragEnd: ({ active, over }) => t(over && String(over.id) !== BACK ? 'shaping.dropped' : 'shaping.notMoved', { name: name(active.id) }),
+    onDragCancel: ({ active }) => t('shaping.cancelled', { name: name(active.id) })
   };
   function overAnnouncement({ active, over }: { active: Active; over: Over | null }) {
-    if (!over) return `${name(active.id)} is not over the list.`;
-    if (String(over.id) === BACK) return `${name(active.id)} is back in the module window.`;
-    if (String(over.id) === LIST_END) return `${name(active.id)} is over the end.`;
-    if (String(over.id) === LANDING) return `${name(active.id)} is over position ${(slot ?? shown.length) + 2}.`;
+    const dragged = name(active.id);
+    if (!over) return t('shaping.notOverList', { name: dragged });
+    if (String(over.id) === BACK) return t('shaping.backInWindow', { name: dragged });
+    if (String(over.id) === LIST_END) return t('shaping.overEnd', { name: dragged });
+    if (String(over.id) === LANDING) return t('shaping.overPosition', { name: dragged, position: (slot ?? shown.length) + 2 });
     const at = fromWindow(active) ? landing(active, over, true) : shown.findIndex(item => item.id === String(over.id));
-    return at === null || at < 0 ? `${name(active.id)} is over the end.` : `${name(active.id)} is over position ${at + 2}.`;
+    return at === null || at < 0 ? t('shaping.overEnd', { name: dragged }) : t('shaping.overPosition', { name: dragged, position: at + 2 });
   }
   const keyboardDrag = (event: { activatorEvent: Event }) => event.activatorEvent instanceof KeyboardEvent;
   function start({ active }: DragStartEvent) {
@@ -325,10 +330,10 @@ export function RowMenu({ label, items }: { label: string; items: readonly strin
     if (event.key !== 'Escape' || !open) return;
     event.stopPropagation(); setOpen(false); button.current?.focus();
   }}>
-    <button ref={button} type="button" className="menu-button" aria-label={`More for ${label}`} aria-haspopup="menu" aria-expanded={open}
+    <button ref={button} type="button" className="menu-button" aria-label={t('shaping.moreFor', { name: label })} aria-haspopup="menu" aria-expanded={open}
       aria-controls={open ? menuId : undefined} onClick={() => setOpen(!open)}><SixDots /></button>
-    {open && <ul id={menuId} className="row-menu-list" role="menu" aria-label={`More for ${label}`}>
-      {items.map(entry => <li key={entry} role="menuitem" aria-disabled="true">{entry}<span className="soon">Coming soon</span></li>)}
+    {open && <ul id={menuId} className="row-menu-list" role="menu" aria-label={t('shaping.moreFor', { name: label })}>
+      {items.map(entry => <li key={entry} role="menuitem" aria-disabled="true">{entry}<span className="soon">{t('shaping.comingSoon')}</span></li>)}
     </ul>}
   </span>;
 }
@@ -339,7 +344,7 @@ function LandingRow({ type, render, saving = false }: { type: string; render: (t
   const { setNodeRef } = useDroppable({ id: LANDING, disabled: saving });
   return <div ref={setNodeRef} className="sortable-row landing-row" data-row-id={LANDING} data-saving={saving || undefined} role={saving ? 'status' : undefined}>
     {render(type)}
-    {saving && <span className="visually-hidden">Adding {moduleLabel(type)}…</span>}
+    {saving && <span className="visually-hidden">{t('shaping.adding', { name: moduleLabel(type) })}</span>}
   </div>;
 }
 
@@ -367,7 +372,7 @@ function useMakeRoom(list: { current: HTMLElement | null }, key: string) {
 // Where a module dragged from the window lands after the last entry.
 function DropEnd({ disabled, active }: { disabled: boolean; active: boolean }) {
   const { setNodeRef } = useDroppable({ id: LIST_END, disabled });
-  return disabled ? null : <div ref={setNodeRef} className="drop-end" data-over={active || undefined}>Drop a module here to add it at the end</div>;
+  return disabled ? null : <div ref={setNodeRef} className="drop-end" data-over={active || undefined}>{t('shaping.dropEnd')}</div>;
 }
 
 function WindowModule({ type, blocked, explain, addAtEnd, about }: {
@@ -377,19 +382,20 @@ function WindowModule({ type, blocked, explain, addAtEnd, about }: {
 }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: WINDOW + type, disabled: Boolean(blocked) });
   const entry = CATALOG[type as ModuleType];
+  const label = moduleLabel(type), description = moduleDescription(type as ModuleType);
   return <li className={`window-module fam-${entry.family}`} data-type={type} data-dragging={isDragging || undefined} aria-disabled={Boolean(blocked)}>
     <div ref={setNodeRef} className="window-module-body" {...attributes} {...listeners}
-      aria-label={`${entry.label}: ${entry.description}`} aria-roledescription="draggable module">
-      <strong>{entry.label}</strong>
-      <span className="muted">{entry.description}</span>
+      aria-label={t('shaping.windowModule', { name: label, description })} aria-roledescription={t('shaping.draggableModule')}>
+      <strong>{label}</strong>
+      <span className="muted">{description}</span>
     </div>
     {/* Adds the module as the last entry, without dragging (0.6.3). */}
-    <button type="button" className="window-add" aria-label={`Add ${entry.label} at the end`} disabled={Boolean(blocked)} onClick={() => addAtEnd(type)}>
+    <button type="button" className="window-add" aria-label={t('shaping.addAtEnd', { name: label })} disabled={Boolean(blocked)} onClick={() => addAtEnd(type)}>
       <PlusIcon />
     </button>
     {blocked && explain && <p className="window-reason muted">{blocked}</p>}
     {/* Below the +, what the module does, with a sample, without trying it (D13, 0.8.1). */}
-    <button type="button" className="window-about" aria-haspopup="dialog" onClick={() => about(type)}>About {entry.label}</button>
+    <button type="button" className="window-about" aria-haspopup="dialog" onClick={() => about(type)}>{t('shaping.about', { name: label })}</button>
   </li>;
 }
 
@@ -421,7 +427,14 @@ function HelpTip({ label, children }: { label: string; children: ReactNode }) {
   </span>;
 }
 
-const searchText = (type: ModuleType) => `${CATALOG[type].label} ${CATALOG[type].description}`.toLocaleLowerCase();
+const searchText = (type: ModuleType) => `${moduleLabel(type)} ${moduleDescription(type)}`.toLocaleLowerCase();
+// Why the window disables a module, in the interface language.
+const BLOCKED: Readonly<Record<AddBlockedReason, (type: string) => string>> = {
+  unavailable: () => t('shaping.blocked.unavailable'),
+  limit: () => t('shaping.blocked.limit', { count: MAX_MODULES }),
+  single: type => t('shaping.blocked.single', { name: moduleLabel(type) })
+};
+const blockedText = (reason: AddBlockedReason | null, type: string) => reason && BLOCKED[reason](type);
 
 // The catalog beside the list, and the place a dragged module goes back to.
 // Modules are grouped by family; the families of modules already present
@@ -430,7 +443,7 @@ const searchText = (type: ModuleType) => `${CATALOG[type].label} ${CATALOG[type]
 // edited), with `unavailable` as an optional notice; otherwise each module
 // says why it is unavailable, such as the limit or an existing Context.
 function ModuleWindow({ types, disabled, unavailable, where, addAtEnd }: {
-  types: readonly string[]; disabled: boolean; unavailable?: string; where: string; addAtEnd: (type: string) => void;
+  types: readonly string[]; disabled: boolean; unavailable?: string; where: 'page' | 'list'; addAtEnd: (type: string) => void;
 }) {
   const { setNodeRef, isOver, active } = useDroppable({ id: BACK });
   const searchId = useId();
@@ -445,17 +458,17 @@ function ModuleWindow({ types, disabled, unavailable, where, addAtEnd }: {
     total: WINDOW_MODULES.filter(type => familyOf(type) === family).length })).filter(group => group.modules.length);
   return <aside ref={setNodeRef} className="module-window" aria-labelledby="module-window-title" data-over={(isOver && fromWindow(active)) || undefined}>
     <div className="window-head">
-      <h2 id="module-window-title">Modules</h2>
-      <HelpTip label="How to add modules">
-        Drag a module into {where}, or back here to put it back. From the keyboard: Space picks it up, the arrow keys move it, Space drops it, Escape puts it back.
+      <h2 id="module-window-title">{t('shaping.modules')}</h2>
+      <HelpTip label={t('shaping.howToAdd')}>
+        {t(where === 'page' ? 'shaping.help.page' : 'shaping.help.list')}
       </HelpTip>
     </div>
-    <label className="visually-hidden" htmlFor={searchId}>Search modules</label>
-    <input id={searchId} className="window-search" type="search" placeholder="Search modules" value={query} onChange={event => setQuery(event.target.value)} />
+    <label className="visually-hidden" htmlFor={searchId}>{t('shaping.search')}</label>
+    <input id={searchId} className="window-search" type="search" placeholder={t('shaping.search')} value={query} onChange={event => setQuery(event.target.value)} />
     {/* Below the search, the list scrolls on its own (0.7.3). */}
     <div className="window-scroll">
     {unavailable && <p className="notice">{unavailable}</p>}
-    {!groups.length && <p className="muted">No module matches “{query.trim()}”.</p>}
+    {!groups.length && <p className="muted">{t('shaping.noMatch', { query: query.trim() })}</p>}
     {groups.map(({ family, modules, total }) => <details key={family} className={`window-family fam-${family}`} open={terms.length > 0 || open.has(family)}
       onToggle={event => {
         if (terms.length) return;
@@ -463,10 +476,10 @@ function ModuleWindow({ types, disabled, unavailable, where, addAtEnd }: {
         if ((event.target as HTMLDetailsElement).open) next.add(family); else next.delete(family);
         if (next.size !== open.size) setOpen(next);
       }}>
-      <summary><span className="fam-chip"><FamilyIcon family={family} /></span>{FAMILY_LABELS[family]}<span className="family-count">{total}</span></summary>
+      <summary><span className="fam-chip"><FamilyIcon family={family} /></span>{familyLabel(family)}<span className="family-count">{total}</span></summary>
       <ul>
         {modules.map(type => <WindowModule key={type} type={type} explain={!disabled} addAtEnd={addAtEnd} about={setAbout}
-          blocked={disabled ? unavailable ?? 'Unavailable' : addBlocked(types.map(value => ({ type: value })), type)} />)}
+          blocked={disabled ? unavailable ?? t('shaping.unavailable') : blockedText(addBlockedReason(types.map(value => ({ type: value })), type), type)} />)}
       </ul>
     </details>)}
     </div>

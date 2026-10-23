@@ -329,3 +329,22 @@ test('0015 adds an empty generation record and keeps every deck, page, component
   const store = await AccountStore.open(database); database.resources.push(store);
   assert.deepEqual(await store.generationRecords('page'), {});
 });
+
+test('0016 starts every account in English and keeps every deck, page and sign-in (D14)', async t => {
+  const database = await legacyDatabase(t, 'account-language-upgrade', 15);
+  const client = new pg.Client({ connectionString: database.databaseUrl }); await client.connect();
+  t.after(() => client.end());
+  await client.query(`INSERT INTO decks (id, name) VALUES ('deck', 'Bank words');
+    INSERT INTO account VALUES (1, 'deck');
+    INSERT INTO pages (id, deck_id, selected_text, created_at) VALUES ('page', 'deck', 'bank', '2026-10-20T10:00:00.000Z');`);
+  const kept = {};
+  for (const table of ['decks', 'deck_modules', 'credentials', 'login_tokens', 'installations', 'pages', 'components']) kept[table] = await rows(client, table);
+
+  await migrateTo(t, database, 16);
+
+  for (const table of Object.keys(kept)) assert.deepEqual(await rows(client, table), kept[table], table);
+  assert.deepEqual((await client.query('SELECT id, default_deck_id, language FROM account')).rows, [{ id: 1, default_deck_id: 'deck', language: 'en' }]);
+  await assert.rejects(client.query("UPDATE account SET language = 'de'"), /account_language/);
+  const store = await AccountStore.open(database); database.resources.push(store);
+  assert.equal((await store.summary()).language, 'en');
+});
