@@ -10,7 +10,7 @@
 
 - English UI only — simplest; generated content stays multilingual. State whether this holds at 1.0 or is a temporary position.
 
-**Decision (D14, accepted 22 October 2026):** English-only is a development position, not the 1.0 one. English stays the default language preference, and 1.0 ships with the interface localised into the major languages ([D14](../../traceability-map.md#entries); [shared UI](../../../specs/shared-ui.md#interface-language)). Which languages, and the string process, are left to the localisation plan ([K35](../../traceability-map.md#clarifications)).
+**Decision (D14, accepted 22 October 2026):** English-only is a development position, not the 1.0 one. English stays the default language preference, and 1.0 ships with the interface localised into the major languages ([D14](../../traceability-map.md#entries); [shared UI](../../../specs/shared-ui.md#interface-language)). The languages for 1.0 are the six official UN languages, Arabic among them, and the list grows after 1.0 ([K35](../../traceability-map.md#clarifications)); the string process is chosen in the [localisation plan](../../../plans/localisation.md).
 
 ### 70
 
