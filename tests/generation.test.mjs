@@ -780,6 +780,21 @@ test('an Expertise module explains in the account’s language, and its prompt v
   assert.notEqual(french, promptVersion({ instructions: parentInstructions('computer-science', 'word_phrase', []), schema: parentSchema('computer-science', 'word_phrase', []) }));
 });
 
+test('the request OpenCode sends for an Expertise module in Chinese carries the Chinese writing guide and a length in characters (D15)', async () => {
+  const bodies = [];
+  const provider = new OpenCodeProvider({ apiKey: 'test-only', fetchImpl: async (url, init) => {
+    bodies.push(JSON.parse(init.body));
+    return Response.json({ choices: [{ finish_reason: 'stop', message: { role: 'assistant', content: JSON.stringify({ core: { kind: 'word', key: 'cache', explanation: ['缓存（cache）是……'] }, facets: {} }) } }] });
+  } });
+  await provider.generate({ module: { id: 'cs', type: 'computer-science' }, selectedText: 'cache', interpretation: word, facets: [], language: 'zh-Hans' });
+  const system = bodies[0].messages.find(message => message.role === 'system').content;
+  assert.match(system, /at most about 80 Chinese characters each/);
+  assert.match(system, /哈希表（hash table）/);
+  assert.doesNotMatch(system, /at most 50 words|\{\{/);
+  await provider.generate({ module: { id: 'g', type: 'german' }, selectedText: 'bank', interpretation: word, facets: ['article'], language: 'zh-Hans' }).catch(() => {});
+  assert.doesNotMatch(bodies[1].messages.find(message => message.role === 'system').content, /哈希表/, 'a Languages module gets no guide');
+});
+
 test('an Expertise module explains the key in English as one core, its top line without a language (D11)', async (t) => {
   const requests = [];
   const { store, generation, capture } = await fixture(t, {

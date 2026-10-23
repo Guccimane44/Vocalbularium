@@ -2,12 +2,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { interpretationSchema } from '@vocabularium/domain/catalog';
-import { interpretationInstructions, moduleInstructions, moduleSchema } from '@vocabularium/domain/composer';
+import { GUIDE_SECTIONS, interpretationInstructions, moduleInstructions, moduleSchema, writingGuide } from '@vocabularium/domain/composer';
+import { INTERFACE_LANGUAGES } from '@vocabularium/contracts';
 import { applicableFacets, facetsOf, PARENTS } from '@vocabularium/domain/parents';
 
 // Prompt snapshots (D11): the composed instructions and schema for every
 // content module and input type, core only, and each facet's own Retry, plus
-// the interpretation prompt. They are where to read what the model receives,
+// the interpretation prompt, and one Expertise request in each interface
+// language other than English (D15). They are where to read what the model receives,
 // and a prompt change shows in review as a change to these files. Run with
 // UPDATE_PROMPTS=1 to rewrite them after a deliberate change.
 const DIR = new URL('./prompts/', import.meta.url);
@@ -22,6 +24,9 @@ function cases() {
     for (const facet of facets) {
       all[`${parent}.${inputType}.retry-${facet}`] = snapshot(moduleInstructions(parent, inputType, [facet], true), moduleSchema(parent, inputType, [facet], true));
     }
+  }
+  for (const language of INTERFACE_LANGUAGES.filter(language => language !== 'en')) {
+    all[`computer-science.word_phrase.${language}`] = snapshot(moduleInstructions('computer-science', 'word_phrase', [], false, language), moduleSchema('computer-science', 'word_phrase', []));
   }
   return all;
 }
@@ -54,11 +59,49 @@ test('the Expertise modules write in the account’s language; the Languages mod
     const french = moduleInstructions(module, inputType, [], false, 'fr');
     assert.match(french, /Write every part in French, whatever language the selection is in\./);
     assert.match(french, /comprehensive French for a learner/);
-    assert.doesNotMatch(french, /English|\{\{language\}\}/);
+    assert.doesNotMatch(french, /\{\{/);
     assert.equal(moduleInstructions(module, inputType, [], false, 'en'), moduleInstructions(module, inputType, []), 'English stays the default');
   }
   assert.match(moduleInstructions('computer-science', 'word_phrase', [], false, 'zh-Hans'), /in Simplified Chinese/);
   for (const module of ['german', 'chinese']) {
     assert.equal(moduleInstructions(module, 'word_phrase', facetsOf(module), false, 'ar'), moduleInstructions(module, 'word_phrase', facetsOf(module)));
+  }
+});
+
+test('every Expertise request carries the writing guide of its language, and no other family gets one (D15, K39)', () => {
+  const body = language => GUIDE_SECTIONS.slice(0, 4).map(heading => writingGuide(language)[heading]).join(' ');
+  for (const language of INTERFACE_LANGUAGES) for (const module of ['computer-science', 'mathematics']) for (const inputType of ['word_phrase', 'sentence']) {
+    const text = moduleInstructions(module, inputType, [], false, language);
+    assert.ok(text.endsWith(body(language)), `${module} ${inputType} ${language} ends with its guide`);
+    for (const other of INTERFACE_LANGUAGES.filter(other => other !== language)) assert.ok(!text.includes(writingGuide(other).Register), `${language} carries no ${other} guide`);
+  }
+  for (const module of ['german', 'chinese']) for (const language of INTERFACE_LANGUAGES) {
+    const text = moduleInstructions(module, 'word_phrase', facetsOf(module), false, language);
+    for (const each of INTERFACE_LANGUAGES) assert.ok(!text.includes(writingGuide(each).Register), `${module} carries no guide`);
+  }
+});
+
+test('an Expertise length is stated in the unit of its language, never as a word count in a prompt file (D15, K40)', () => {
+  const sentence = language => moduleInstructions('computer-science', 'sentence', [], false, language);
+  assert.match(sentence('en'), /in one to three paragraphs of at most 50 words each\./);
+  assert.match(sentence('fr'), /in one to three paragraphs of at most 50 words each\./);
+  assert.match(sentence('zh-Hans'), /in one to three paragraphs of at most about 80 Chinese characters each\./);
+  for (const language of INTERFACE_LANGUAGES) assert.doesNotMatch(sentence(language), /\{\{|\{\d*\.?\d*n\}/, language);
+  const catalog = new URL('../packages/domain/src/catalog/expertise/', import.meta.url);
+  for (const file of readdirSync(catalog, { recursive: true }).filter(file => String(file).endsWith('.prompt.md'))) {
+    assert.doesNotMatch(readFileSync(new URL(String(file), catalog), 'utf8'), /\b\d+ words\b/, `${file} names a word count`);
+  }
+});
+
+test('every interface language has an Expertise writing guide with its five sections, and its review recorded (D15, K41)', () => {
+  const reviews = JSON.parse(readFileSync(new URL('../extension/locales/reviews.json', import.meta.url), 'utf8'));
+  const folder = new URL('../packages/domain/src/catalog/expertise/writing/', import.meta.url);
+  assert.deepEqual(readdirSync(folder).filter(file => file.endsWith('.md')).map(file => file.slice(0, -3)).sort(), [...INTERFACE_LANGUAGES].sort());
+  for (const language of INTERFACE_LANGUAGES) {
+    const guide = writingGuide(language);
+    for (const heading of GUIDE_SECTIONS) assert.ok(guide[heading], `${language}: ${heading}`);
+    assert.match(guide.Length, /\{\d*\.?\d*n\}/, `${language}: the length unit names n`);
+    const review = reviews[language]?.writingGuide;
+    assert.ok(review?.reviewed && review.reviewer && review.summary, `${language}: the guide's review is recorded`);
   }
 });
