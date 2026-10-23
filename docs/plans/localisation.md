@@ -28,9 +28,9 @@ Counted at 0.8.1, the extension's count by the extraction in increment A:
 | Interface messages of the extension (`extension/locales/en/messages.json`: labels, buttons, statuses, announcements, dialogs, the worker's menu and feedback) | 263 |
 | Catalog texts shown in the interface (module and family names, descriptions, facet names, the core's names; facet abbreviations stay as they are) | 36 |
 | Messages from the API that reach the user (`StoreError` and `apiFailure` texts) | about 58 |
-| Explanations (`explanation.md` in the catalog) | 24 |
+| Explanations (`explanation.md` in the catalog) | 12 |
 
-Each language other than English therefore translates about 355 short strings and 24 short texts.
+Each language other than English therefore translates about 355 short strings and 12 short texts.
 
 ## String process
 
@@ -69,7 +69,7 @@ K35 applied to the traceability map, shared UI, scope and the Q69 answer; this p
 
 ### C. The five translations
 
-- **Interface catalogues** for Arabic, Chinese (Simplified), French, Russian and Spanish, with the names and descriptions of modules and facets (not their abbreviations), and the 24 explanations in each.
+- **Interface catalogues** for Arabic, Chinese (Simplified), French, Russian and Spanish, with the names and descriptions of modules and facets (not their abbreviations), and the 12 explanations in each.
 - **API messages** gain stable keys, translated in each catalogue.
 - **Expertise modules** write in the language preference: the prompt composer receives it as generation input, and the generation record notes it. The Languages modules are unchanged.
 - **Fonts:** the bundled Fraunces and Instrument Sans cover Latin and Cyrillic; Arabic and Chinese use system fonts, as Chinese content already does ([shared UI](../specs/shared-ui.md#visual-identity)).

@@ -1,5 +1,5 @@
 /* Bundled Vocabularium Sage fonts (D05), from Fontsource 5.3.0 under the SIL Open Font License 1.1: see fonts/LICENSE-*.txt. */
-/* Chinese and Japanese use system fonts (see the font stacks in theme.css); nothing is loaded from the network. */
+/* Cyrillic, Arabic, Chinese and Japanese use system fonts (see the font stacks in theme.css); nothing is loaded from the network. */
 @font-face {
   font-family: "Fraunces";
   font-style: normal;

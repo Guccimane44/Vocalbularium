@@ -81,8 +81,8 @@
   --width-window: 320px;
   --width-reading: 760px;
   --width-list: 900px;
-  --font-display: "Fraunces", "Songti SC", "Noto Serif CJK SC", "Source Han Serif SC", "Noto Serif SC", "Hiragino Mincho ProN", Georgia, serif;
-  --font-text: "Instrument Sans", "PingFang SC", "Hiragino Sans", "Noto Sans CJK SC", "Microsoft YaHei", system-ui, sans-serif;
+  --font-display: "Fraunces", Georgia, "Noto Naskh Arabic", "Geeza Pro", "Songti SC", "Noto Serif CJK SC", "Source Han Serif SC", "Noto Serif SC", "Hiragino Mincho ProN", serif;
+  --font-text: "Instrument Sans", "Segoe UI", "Helvetica Neue", Arial, "Noto Sans Arabic", "Geeza Pro", "PingFang SC", "Hiragino Sans", "Noto Sans CJK SC", "Microsoft YaHei", system-ui, sans-serif;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]), :host(:not([data-theme="light"])) {
