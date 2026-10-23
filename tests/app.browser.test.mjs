@@ -2441,6 +2441,21 @@ test('facet tags: abbreviations in order, on the left edge, along the edge to th
     };
   });
   const motions = async facet => (await a.page.evaluate(() => window.tagMotions)).filter(each => each.facet === facet);
+  // Every tag that pops, as it is rendered: a popping tag stands only TAG_POP_MS,
+  // too short to wait for on a slow runner, so it is recorded as it appears.
+  const watchPops = () => a.page.evaluate(() => {
+    window.tagPops = [];
+    const record = node => {
+      if (node.nodeType !== 1) return;
+      for (const tag of [node, ...node.querySelectorAll('.facet-tag')]) {
+        if (tag.matches('.facet-tag[data-leaving]')) window.tagPops.push({ facet: tag.dataset.facet, animation: getComputedStyle(tag).animationName });
+      }
+    };
+    new MutationObserver(records => records.forEach(each => each.type === 'attributes' ? record(each.target) : each.addedNodes.forEach(record)))
+      .observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['data-leaving'] });
+  });
+  const popped = (facet, scope) => waitFor(async () => (await a.page.evaluate(() => window.tagPops))
+    .some(each => each.facet === facet && each.animation === 'bop'), `${facet} popped in ${scope}`);
   // A move along the card's edge: from the start, every point keeps to one side or the other
   // (within the rounded turn) and the move ends in place.
   const points = motion => motion.keyframes.map(frame => frame.match(/^translate\((-?[\d.e-]+)px, (-?[\d.e-]+)px\)$/).slice(1).map(Number));
@@ -2499,8 +2514,9 @@ test('facet tags: abbreviations in order, on the left edge, along the edge to th
   // Removing a tag whose facet has content asks in its section; deleted, the tag pops.
   await card.locator('.facet-tag[data-facet="antonyms"]').hover();
   await a.page.getByRole('button', { name: 'Remove Antonyms from German', exact: true }).click();
+  await watchPops();
   await a.page.getByRole('button', { name: 'Yes, delete Antonyms from German', exact: true }).click();
-  await card.locator('.facet-tag[data-facet="antonyms"][data-leaving]').waitFor();
+  await popped('antonyms', 'the card');
   await card.locator('.facet-tag[data-facet="antonyms"]').waitFor({ state: 'detached' });
   assert.deepEqual((await german()).facets, ['article', 'examples', 'synonyms']);
 
@@ -2553,8 +2569,9 @@ test('facet tags: abbreviations in order, on the left edge, along the edge to th
   await a.page.screenshot({ path: 'artifacts/v0.7.1-facet-tags-deck-settings.png', fullPage: true });
   // Removed there, a tag pops; ticked again in the facet window, it flies in from its row.
   await row.locator('.facet-tag[data-facet="antonyms"]').hover();
+  await watchPops();
   await row.getByRole('button', { name: 'Remove Antonyms from German', exact: true }).click();
-  await row.locator('.facet-tag[data-facet="antonyms"][data-leaving]').waitFor();
+  await popped('antonyms', 'deck settings');
   await row.locator('.facet-tag[data-facet="antonyms"]').waitFor({ state: 'detached' });
   await a.page.evaluate(() => {
     window.tagMotions = [];
@@ -2571,11 +2588,12 @@ test('facet tags: abbreviations in order, on the left edge, along the edge to th
   assert.equal((await motions('antonyms')).at(-1)?.keyframes.length, 3, 'flown in');
   assert.deepEqual(await row.locator('.facet-tag-mark').allTextContents(), ['Ar', 'Ex', 'Sy', 'An']);
   // The last tag pops too, and the tab no longer makes room; a facet added again still flies in.
+  await watchPops();
   for (const name of ['Article', 'Examples', 'Synonyms', 'Antonyms']) {
     await row.locator(`.facet-tag[data-facet="${name.toLowerCase()}"]`).hover();
     await row.getByRole('button', { name: `Remove ${name} from German`, exact: true }).click();
   }
-  await row.locator('.facet-tag[data-facet="antonyms"][data-leaving]').waitFor();
+  await popped('antonyms', 'deck settings, the last tag');
   await row.locator('.facet-tag').first().waitFor({ state: 'detached' });
   assert.equal(await row.getAttribute('data-tagged'), null);
   await tick(await facetWindow(a.page, 'German'), 'Article').click();
