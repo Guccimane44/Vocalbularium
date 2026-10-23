@@ -3514,3 +3514,49 @@ test('0.9.0: the interface in each language: picked from Language, saved to the 
   await a.page.getByRole('heading', { name: 'Your decks', exact: true }).waitFor();
   assert.equal((await store.summary()).language, 'en');
 });
+
+test('0.9.1: deleting a page goes straight to its deck, and an ejected action stays lifted under a pointer at its lower edge', { timeout: 45000 }, async (t) => {
+  const directory = await mkdtemp(join(tmpdir(), 'vocabularium-0-9-1-browser-'));
+  const application = await createTestApplication(t); await application.start();
+  const a = await launch(join(directory, 'a'));
+  t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
+  const store = application.store;
+  await useModules(store, ['german']);
+  const session = { installationId: 'fixture', sessionId: 'fix-0-9-1', epoch: 1 };
+  await store.openSession('fix-0-9-1-session', session);
+  const { pageId } = await store.capture('fix-0-9-1-page', { session, mainKey: 'Glück', snapshot: await store.snapshot() });
+  for (const item of (await store.page(pageId)).components.filter(component => component.attemptId)) {
+    await store.stage(item.attemptId, staged('Freude'));
+    await store.publish(`fix-0-9-1-${item.id}`, { attemptId: item.attemptId, session });
+  }
+  await signIn(a.page);
+  await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
+  await a.page.locator('h1.main-key').waitFor();
+  // Lifting on hover moved the action off a pointer at its lower edge, which
+  // dropped it under the pointer again: it flickered with every move.
+  await cardTab(a.page, 'German').click();
+  const action = a.page.locator('.card-actions[data-open] button').first();
+  await action.waitFor();
+  await new Promise(resolve => setTimeout(resolve, 800));
+  const box = await action.boundingBox();
+  let hovered = '';
+  for (let step = 0; step < 20; step++) {
+    await a.page.mouse.move(box.x + box.width / 2 + step % 2, box.y + box.height - 1);
+    await new Promise(resolve => setTimeout(resolve, 60));
+    hovered += await action.evaluate(button => button.matches(':hover') ? 'H' : '.');
+  }
+  assert.equal(hovered, 'H'.repeat(20), 'the action stays hovered at its lower edge');
+  await a.page.keyboard.press('Escape');
+  // Every heading the view shows from Delete to the deck: never Page unavailable in between.
+  await a.page.evaluate(() => {
+    window.headings = [];
+    new MutationObserver(() => window.headings.push(document.querySelector('#app h1')?.textContent))
+      .observe(document.querySelector('#app'), { childList: true, subtree: true, characterData: true });
+  });
+  await a.page.getByRole('button', { name: 'Delete page', exact: true }).click();
+  await a.page.getByRole('dialog').getByRole('button', { name: 'Delete page', exact: true }).click();
+  await a.page.getByRole('heading', { name: 'My Deck' }).waitFor();
+  await new Promise(resolve => setTimeout(resolve, 500));
+  const headings = [...new Set(await a.page.evaluate(() => window.headings))];
+  assert.ok(!headings.includes('Page unavailable'), `no unavailable page on the way to the deck (${JSON.stringify(headings)})`);
+});

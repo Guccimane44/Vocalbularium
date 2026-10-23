@@ -33,6 +33,10 @@ export function pageViews({ getAccount, renderView, refresh, send, applyState, n
   // No stored draft parses as null.
   try { draft = JSON.parse(/** @type {string} */ (sessionStorage.getItem(DRAFT_KEY))) ?? undefined; } catch { /* No recoverable draft. */ }
   let busy = false;
+  // The page being deleted. Its route is not redrawn meanwhile: the worker's
+  // save records redraw the view, and the page would show as unavailable.
+  /** @type {string | undefined} */
+  let deleting;
   const persist = () => {
     if (draft) sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
     else sessionStorage.removeItem(DRAFT_KEY);
@@ -201,8 +205,9 @@ export function pageViews({ getAccount, renderView, refresh, send, applyState, n
       deletePage: async () => {
         const decision = await dialog({ title: t('page.delete.title'), message: t('page.delete.message'), choices: [t('common.cancel'), t('page.delete')] });
         if (decision.choice !== t('page.delete')) return;
-        try { const next = await send({ type: 'delete-page', payload: { pageId: /** @type {Page} */ (page).id } }); await discard(); await applyState(next); navigate(`deck/${/** @type {DeckDetail} */ (deck).id}`); }
-        catch (error) { showError(error); }
+        deleting = /** @type {Page} */ (page).id;
+        try { const next = await send({ type: 'delete-page', payload: { pageId: deleting } }); await discard(); await applyState(next, false); deleting = undefined; navigate(`deck/${/** @type {DeckDetail} */ (deck).id}`); }
+        catch (error) { deleting = undefined; showError(error); }
       },
       generate: (target, confirmed) => generate(/** @type {Page} */ (page), target, confirmed),
       addModule: (type, position) => shape('add-module', { pageId: /** @type {Page} */ (page).id, type, ...(position ? { position } : {}) }),
@@ -214,5 +219,5 @@ export function pageViews({ getAccount, renderView, refresh, send, applyState, n
     });
   }
   window.addEventListener('beforeunload', event => { if (dirty()) { event.preventDefault(); event.returnValue = ''; } });
-  return { render, leave, dirty, isEditing: () => Boolean(draft), matches, busy: () => busy };
+  return { render, leave, dirty, isEditing: () => Boolean(draft), matches, busy: () => busy, deleting: (/** @type {string} */ pageId) => pageId === deleting };
 }
