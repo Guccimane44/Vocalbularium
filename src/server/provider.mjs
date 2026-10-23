@@ -27,6 +27,19 @@ function requiredParts(value, schema) {
   }
 }
 
+// The one repair: a reply that is not JSON, for a request with a core and
+// facets, parses once a single `}` closes the core before its "facets" (the
+// slip deepseek-v4.1-flash makes in a few percent of Chinese replies). The
+// repaired object still passes every check; anything else stays invalid.
+function parse(content, schema) {
+  try { return JSON.parse(content); }
+  catch (error) {
+    const at = content.search(/,\s*"facets"\s*:(?![\s\S]*,\s*"facets"\s*:)/);
+    if (!schema.properties.core || !schema.properties.facets || at < 0) throw error;
+    return JSON.parse(`${content.slice(0, at)}}${content.slice(at)}`);
+  }
+}
+
 export class Provider {
   // A composed request's result as an object with the request's outer shape.
   async complete(request, signal, sessionId = randomUUID()) {
@@ -43,7 +56,7 @@ export class Provider {
       let value;
       try {
         if (typeof reply.content !== 'string') throw new Error();
-        value = JSON.parse(reply.content);
+        value = parse(reply.content, request.schema);
         if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error();
         if (Object.keys(value).some(key => !Object.hasOwn(request.schema.properties, key))) throw new Error();
         requiredParts(value, request.schema);
