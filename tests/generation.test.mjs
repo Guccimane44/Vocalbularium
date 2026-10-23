@@ -751,6 +751,22 @@ test('provider events carry the prompt version of the request they send (D11)', 
   assert.deepEqual(events.map(event => [event.event, event.promptVersion]), [['provider.request', expected], ['provider.response', expected]]);
 });
 
+test('an Expertise module explains in the account’s language, and its prompt version records which (D14, K36)', async (t) => {
+  const requests = [];
+  const { store, generation, capture } = await fixture(t, {
+    interpret: async () => word,
+    generate: async request => { requests.push(request); return { core: { kind: 'word', key: request.selectedText, explanation: ['La partie visible.'] }, facets: {} }; }
+  }, ['computer-science']);
+  await store.setLanguage('to-french', 'fr');
+  const page = await capture('Frontend'); await finish(store, generation);
+  const card = generated(await store.page(page.id))[0];
+  assert.equal(card.status, 'completed');
+  assert.equal(requests[0].language, 'fr', 'the provider is asked in French');
+  const french = promptVersion({ instructions: parentInstructions('computer-science', 'word_phrase', [], false, 'fr'), schema: parentSchema('computer-science', 'word_phrase', []) });
+  assert.equal((await store.generationRecords(page.id))[card.id].core.prompt, french);
+  assert.notEqual(french, promptVersion({ instructions: parentInstructions('computer-science', 'word_phrase', []), schema: parentSchema('computer-science', 'word_phrase', []) }));
+});
+
 test('an Expertise module explains the key in English as one core, its top line without a language (D11)', async (t) => {
   const requests = [];
   const { store, generation, capture } = await fixture(t, {

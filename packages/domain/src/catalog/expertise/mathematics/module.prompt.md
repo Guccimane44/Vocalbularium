@@ -1,1 +1,1 @@
-Write every part in English, whatever language the selection is in.
+Write every part in {{language}}, whatever language the selection is in.

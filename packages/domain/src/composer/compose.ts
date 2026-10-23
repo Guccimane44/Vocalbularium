@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import type { InputInterpretation, InputType } from '@vocabularium/contracts';
+import type { InputInterpretation, InputType, InterfaceLanguage } from '@vocabularium/contracts';
 import type { CoreValue } from '../catalog/define.js';
 import { contentModule, folderOf } from '../catalog/index.js';
 import { interpretationSchema } from '../catalog/main-key/module.js';
@@ -40,15 +40,22 @@ const catalogFile = (path: string) => read(`../catalog/${path}`);
 export const facetPrompt = (parent: ParentType, facet: FacetType | 'core', inputType: InputType) =>
   catalogFile(`${folderOf(parent)}/facets/${facet}/${FILE[inputType]}.prompt.md`);
 
+// The language a module writes in when its prompts name {{language}}: the
+// account's interface language (D14, K36). The Expertise modules do; the
+// Languages modules write in their own language and name none.
+const LANGUAGE_NAMES: Readonly<Record<InterfaceLanguage, string>> = {
+  en: 'English', ar: 'Arabic', 'zh-Hans': 'Simplified Chinese', fr: 'French', ru: 'Russian', es: 'Spanish'
+};
+
 // The instructions for a module: its core (or, for a facet's own Retry, the
 // core already written), its facets asked for, then the shared rules.
-export function moduleInstructions(parent: ParentType, inputType: InputType, facets: readonly FacetType[], withCore = false): string {
+export function moduleInstructions(parent: ParentType, inputType: InputType, facets: readonly FacetType[], withCore = false, language: InterfaceLanguage = 'en'): string {
   const folder = folderOf(parent);
   const core = withCore ? catalogFile(`${folder}/facets/core/retry.prompt.md`) : facetPrompt(parent, 'core', inputType);
   const sections = facets.map(facet => `- ${facetPrompt(parent, facet, inputType)}`);
   return [core,
     sections.length ? `In "facets", write only these keys, each left out when it does not apply:\n${sections.join('\n')}` : 'Write "facets" as an empty object.',
-    read('./rules.md').replace('{{module}}', catalogFile(`${folder}/module.prompt.md`))].join('\n');
+    read('./rules.md').replace('{{module}}', catalogFile(`${folder}/module.prompt.md`))].join('\n').replaceAll('{{language}}', LANGUAGE_NAMES[language] ?? 'English');
 }
 
 // The JSON schema of the result: the core (unless a facet's own Retry supplies
@@ -61,18 +68,20 @@ export function moduleSchema(parent: ParentType, inputType: InputType, facets: r
 
 // One generation attempt for a module instance: its core and the facets that
 // apply, or with `core`, a facet's own Retry written for that core.
-export function composeModule({ module, selectedText, context, interpretation, facets, core }: {
+export function composeModule({ module, selectedText, context, interpretation, facets, core, language }: {
   module: Readonly<{ id: string; type: string }>;
   selectedText: string;
   context?: string;
   interpretation: InputInterpretation;
   facets: readonly FacetType[];
   core?: CoreValue;
+  // The account's interface language, which the Expertise modules write in.
+  language?: InterfaceLanguage;
 }): Request {
   const parent = module.type as ParentType;
   return {
     name: 'vocabulary_parent_module',
-    instructions: moduleInstructions(parent, interpretation.inputType, facets, Boolean(core)),
+    instructions: moduleInstructions(parent, interpretation.inputType, facets, Boolean(core), language),
     input: { selectedText, ...(context ? { context } : {}), ...(core ? { core } : {}), inputType: interpretation.inputType, instanceId: module.id },
     schema: moduleSchema(parent, interpretation.inputType, facets, Boolean(core)),
     maxTokens: MAX_TOKENS
