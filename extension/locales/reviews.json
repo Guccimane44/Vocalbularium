@@ -1,27 +1,59 @@
 {
+  "en": {
+    "writingGuide": {
+      "reviewed": "2026-10-23",
+      "reviewer": "Claude, a reviewer separate from the drafter (one review and one re-check)",
+      "summary": "Register reworded to a textbook for a learner; double quotation marks; examples hash table and prime. Five sections from the shared template; term examples paired across computer science and mathematics; formulas and symbols kept as they are; stock phrases banned as paragraph openers only."
+    }
+  },
   "ar": {
     "reviewed": "2026-10-23",
     "reviewer": "Claude, a reviewer separate from the drafter (one review and one re-check)",
-    "summary": "Complete and correct in placeholders and its six plural forms. Must-fix items applied: a bidi-mirrored back arrow, number agreement in the diagnostics counts, three word choices; المفتاح الرئيسي and وحدة kept, their alternatives left to the owner."
+    "summary": "Complete and correct in placeholders and its six plural forms. Must-fix items applied: a bidi-mirrored back arrow, number agreement in the diagnostics counts, three word choices; المفتاح الرئيسي and وحدة kept, their alternatives left to the owner.",
+    "writingGuide": {
+      "reviewed": "2026-10-23",
+      "reviewer": "Claude, a reviewer separate from the drafter (one review and one re-check)",
+      "summary": "English commas in the English instructions; parentheses, not brackets; examples جدول التجزئة and القيمة الذاتية; Western digits in prose only. Five sections from the shared template; term examples paired across computer science and mathematics; formulas and symbols kept as they are; stock phrases banned as paragraph openers only."
+    }
   },
   "es": {
     "reviewed": "2026-10-23",
     "reviewer": "Claude, a reviewer separate from the drafter (one review and one re-check)",
-    "summary": "Complete, placeholder-safe and consistent in terminology (mazo, faceta, clave principal) and register. Must-fix items applied: participle agreement in three announcements and the many plural form; 18 polish items taken."
+    "summary": "Complete, placeholder-safe and consistent in terminology (mazo, faceta, clave principal) and register. Must-fix items applied: participle agreement in three announcements and the many plural form; 18 polish items taken.",
+    "writingGuide": {
+      "reviewed": "2026-10-23",
+      "reviewer": "Claude, a reviewer separate from the drafter (one review and one re-check)",
+      "summary": "Examples tabla hash and valor propio; «Piensa en ello como» added. Five sections from the shared template; term examples paired across computer science and mathematics; formulas and symbols kept as they are; stock phrases banned as paragraph openers only."
+    }
   },
   "fr": {
     "reviewed": "2026-10-23",
     "reviewer": "Claude, a reviewer separate from the drafter (one review and one re-check)",
-    "summary": "Complete and accurate, with CLDR plurals and consistent terminology (paquet, facette, clé principale). Must-fix items applied: about 20 strings reworded for elision and agreement around inserted names, typography with narrow no-break spaces."
+    "summary": "Complete and accurate, with CLDR plurals and consistent terminology (paquet, facette, clé principale). Must-fix items applied: about 20 strings reworded for elision and agreement around inserted names, typography with narrow no-break spaces.",
+    "writingGuide": {
+      "reviewed": "2026-10-23",
+      "reviewer": "Claude, a reviewer separate from the drafter (one review and one re-check)",
+      "summary": "Examples corrected to table de hachage and valeur propre (ramasse-miettes named the collector); non-breaking spaces inside « » in the examples; decimal comma in prose. Five sections from the shared template; term examples paired across computer science and mathematics; formulas and symbols kept as they are; stock phrases banned as paragraph openers only."
+    }
   },
   "ru": {
     "reviewed": "2026-10-23",
     "reviewer": "Claude, a reviewer separate from the drafter (one review and one re-check)",
-    "summary": "Complete and technically correct, with all four plural forms. Must-fix items applied: генерация for generation, gender agreement in announcements; раздел adopted for facet and добавление for capture on the reviewer's recommendation."
+    "summary": "Complete and technically correct, with all four plural forms. Must-fix items applied: генерация for generation, gender agreement in announcements; раздел adopted for facet and добавление for capture on the reviewer's recommendation.",
+    "writingGuide": {
+      "reviewed": "2026-10-23",
+      "reviewer": "Claude, a reviewer separate from the drafter (one review and one re-check)",
+      "summary": "Examples хеш-таблица and собственное значение; dash with a non-breaking space before it; decimal comma in prose; «Давайте разберёмся» added. Five sections from the shared template; term examples paired across computer science and mathematics; formulas and symbols kept as they are; stock phrases banned as paragraph openers only."
+    }
   },
   "zh-Hans": {
     "reviewed": "2026-10-23",
     "reviewer": "Claude, a reviewer separate from the drafter (one review and one re-check)",
-    "summary": "Complete with correct placeholders. Must-fix items applied: grammatical gender wording, relative minutes, number spacing, and list joining in code; 子项 adopted for facet and quotes instead of italics in explanations."
+    "summary": "Complete with correct placeholders. Must-fix items applied: grammatical gender wording, relative minutes, number spacing, and list joining in code; 子项 adopted for facet and quotes instead of italics in explanations.",
+    "writingGuide": {
+      "reviewed": "2026-10-23",
+      "reviewer": "Claude, a reviewer separate from the drafter (one review and one re-check)",
+      "summary": "Full-width punctuation list completed with 、？！ and a spacing rule; 换句话说 instead of 打个比方; examples 哈希表 and 特征值. Five sections from the shared template; term examples paired across computer science and mathematics; formulas and symbols kept as they are; stock phrases banned as paragraph openers only."
+    }
   }
 }

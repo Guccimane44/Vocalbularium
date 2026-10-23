@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import type { InputInterpretation, InputType, InterfaceLanguage } from '@vocabularium/contracts';
 import type { CoreValue } from '../catalog/define.js';
-import { contentModule, folderOf } from '../catalog/index.js';
+import { contentModule, familyOf, folderOf } from '../catalog/index.js';
 import { interpretationSchema } from '../catalog/main-key/module.js';
 import { schemaOf } from '../catalog/shape.js';
 import type { JsonSchema } from '../catalog/shape.js';
@@ -47,15 +47,38 @@ const LANGUAGE_NAMES: Readonly<Record<InterfaceLanguage, string>> = {
   en: 'English', ar: 'Arabic', 'zh-Hans': 'Simplified Chinese', fr: 'French', ru: 'Russian', es: 'Spanish'
 };
 
+// The Expertise family's writing guide for a language (D15, K41): five
+// sections in English, with examples in the language. The first four join
+// the request; Length is the unit a {{length:N}} placeholder is restated in.
+export const GUIDE_SECTIONS = ['Register', 'Terms', 'As it is', 'Punctuation and spacing', 'Length'] as const;
+export function writingGuide(language: InterfaceLanguage): Readonly<Record<typeof GUIDE_SECTIONS[number], string>> {
+  const sections = Object.fromEntries(catalogFile(`expertise/writing/${language}.md`).split(/^## /m).slice(1)
+    .map(section => { const [heading, ...body] = section.split('\n'); return [heading.trim(), body.join('\n').trim()]; }));
+  const headings = Object.keys(sections);
+  if (headings.join('|') !== GUIDE_SECTIONS.join('|')) throw new Error(`The ${language} writing guide has the sections ${headings.join(', ')}.`);
+  return sections as Record<typeof GUIDE_SECTIONS[number], string>;
+}
+// A length of N words in the guide's unit: `{n}` is N, `{1.6n}` N times 1.6.
+const lengthIn = (unit: string, words: number) =>
+  unit.replace(/\{(\d+(?:\.\d+)?)?n\}/g, (_, factor: string | undefined) => String(Math.round(words * Number(factor ?? 1))));
+
 // The instructions for a module: its core (or, for a facet's own Retry, the
-// core already written), its facets asked for, then the shared rules.
+// core already written), its facets asked for, then the shared rules and, for
+// an Expertise module, the writing guide of the language it writes in (D15).
 export function moduleInstructions(parent: ParentType, inputType: InputType, facets: readonly FacetType[], withCore = false, language: InterfaceLanguage = 'en'): string {
   const folder = folderOf(parent);
   const core = withCore ? catalogFile(`${folder}/facets/core/retry.prompt.md`) : facetPrompt(parent, 'core', inputType);
   const sections = facets.map(facet => `- ${facetPrompt(parent, facet, inputType)}`);
+  const guide = familyOf(parent) === 'expertise' ? writingGuide(language) : null;
   return [core,
     sections.length ? `In "facets", write only these keys, each left out when it does not apply:\n${sections.join('\n')}` : 'Write "facets" as an empty object.',
-    read('./rules.md').replace('{{module}}', catalogFile(`${folder}/module.prompt.md`))].join('\n').replaceAll('{{language}}', LANGUAGE_NAMES[language] ?? 'English');
+    read('./rules.md').replace('{{module}}', catalogFile(`${folder}/module.prompt.md`)),
+    ...(guide ? [GUIDE_SECTIONS.slice(0, 4).map(heading => guide[heading]).join(' ')] : [])].join('\n')
+    .replaceAll('{{language}}', LANGUAGE_NAMES[language] ?? 'English')
+    .replace(/\{\{length:(\d+)\}\}/g, (_, words: string) => {
+      if (!guide) throw new Error(`${parent} states a length without a writing guide.`);
+      return lengthIn(guide.Length, Number(words));
+    });
 }
 
 // The JSON schema of the result: the core (unless a facet's own Retry supplies
