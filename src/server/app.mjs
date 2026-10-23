@@ -106,7 +106,7 @@ export async function createApplication({ databaseUrl, outbox, accountId = 1, au
       openapi: '3.0.3',
       info: {
         title: 'Vocabularium Account API',
-        version: '0.9.0',
+        version: '0.9.1',
         description: 'Local account, capture, deck, page, and generation-session API.'
       },
       servers: [{ url: 'http://127.0.0.1:4318' }],
