@@ -64,7 +64,7 @@ Capture receipts remain local through confirmed handoff to server pages; pending
 
 ## Release status
 
-Release evidence lives in the tracker issues and PRs, such as [#81](https://github.com/Guccimane44/Vocalbularium/issues/81) for 0.4.0. The owner accepted the earlier hosted MVP on 13 September 2026; its [acceptance record](docs/history/mvp/M5-Acceptance.md) and the retired Render and Windows procedures are kept in [history](docs/history/). `npm run smoke:generation` records a small live provider sample.
+Release evidence lives in the tracker issues and PRs, such as [#81](https://github.com/Guccimane44/Vocalbularium/issues/81) for 0.4.0. The owner accepted the earlier hosted MVP on 13 September 2026; its [acceptance record](docs/history/mvp/M5-Acceptance.md) and the retired Render and Windows procedures are kept in [history](docs/history/). `npm run smoke:generation` records a small live provider sample; `npm run smoke:generation -- computer-science zh-Hans 3` runs one module's golden set with a language preference, three samples per input.
 
 ## Verification
 
