@@ -62,8 +62,8 @@ export class Provider {
   }
   // A parent module (D08) as structured data (D09): its core and the facets
   // that apply, in one call; with a core, a facet's own Retry (0.7.3).
-  async generate({ module, selectedText, context, interpretation, facets, core, sessionId }, signal) {
+  async generate({ module, selectedText, context, interpretation, facets, core, language, sessionId }, signal) {
     if (!isParentType(module.type)) throw new Error('Unsupported generation module.');
-    return this.complete(composeModule({ module, selectedText, context, interpretation, facets: facets ?? [], core }), signal, sessionId);
+    return this.complete(composeModule({ module, selectedText, context, interpretation, facets: facets ?? [], core, language }), signal, sessionId);
   }
 }

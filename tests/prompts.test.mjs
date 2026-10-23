@@ -48,3 +48,17 @@ test('the shared rules are in every composed prompt and in no prompt file of the
     assert.ok(!text.includes(before) && !text.includes(after), `${file} repeats the shared rules`);
   }
 });
+
+test('the Expertise modules write in the account’s language; the Languages modules do not follow it (D14, K36)', () => {
+  for (const module of ['computer-science', 'mathematics']) for (const inputType of ['word_phrase', 'sentence']) {
+    const french = moduleInstructions(module, inputType, [], false, 'fr');
+    assert.match(french, /Write every part in French, whatever language the selection is in\./);
+    assert.match(french, /comprehensive French for a learner/);
+    assert.doesNotMatch(french, /English|\{\{language\}\}/);
+    assert.equal(moduleInstructions(module, inputType, [], false, 'en'), moduleInstructions(module, inputType, []), 'English stays the default');
+  }
+  assert.match(moduleInstructions('computer-science', 'word_phrase', [], false, 'zh-Hans'), /in Simplified Chinese/);
+  for (const module of ['german', 'chinese']) {
+    assert.equal(moduleInstructions(module, 'word_phrase', facetsOf(module), false, 'ar'), moduleInstructions(module, 'word_phrase', facetsOf(module)));
+  }
+});

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { direction, ENGLISH, format, isOffered, offeredLanguages, pseudoMessage, setLanguage, setPseudoLanguage, t } from '../extension/i18n.ts';
+import { apiText, CATALOGUES, direction, ENGLISH, format, LANGUAGES, isOffered, offeredLanguages, pseudoMessage, setLanguage, setPseudoLanguage, t } from '../extension/i18n.ts';
 
 // The interface language (D14): every interface text is a catalogue entry,
 // English is complete, and other catalogues match it.
@@ -10,7 +10,8 @@ const root = new URL('../extension/', import.meta.url).pathname;
 const sources = readdirSync(root, { recursive: true }).map(String)
   .filter(path => /\.(tsx?|js|html)$/.test(path) && !path.startsWith('design/') && !path.startsWith('locales/'))
   .map(path => ({ path, text: readFileSync(join(root, path), 'utf8') }));
-const placeholders = message => [...message.matchAll(/\{(\w+)/g)].map(match => match[1]).sort();
+// A placeholder is a name followed by } or by the comma of its plural.
+const placeholders = message => [...new Set([...message.matchAll(/\{(\w+)\s*[},]/g)].map(match => match[1]))].sort();
 
 test('every key the extension names is in the English catalogue, and every entry is used', () => {
   const named = new Set();
@@ -20,12 +21,12 @@ test('every key the extension names is in the English catalogue, and every entry
   }
   for (const key of named) assert.ok(key in ENGLISH, `${key} is missing from locales/en/messages.json`);
   const quoted = sources.map(source => source.text).join('\n');
-  for (const key of Object.keys(ENGLISH)) assert.ok(quoted.includes(`'${key}'`) || quoted.includes(`"${key}"`), `${key} is never used`);
+  for (const key of Object.keys(ENGLISH).filter(key => !key.startsWith('api.'))) assert.ok(quoted.includes(`'${key}'`) || quoted.includes(`"${key}"`), `${key} is never used`);
 });
 
 test('every catalogue has only English keys, with English placeholders', () => {
   const directory = join(root, 'locales');
-  for (const language of readdirSync(directory)) {
+  for (const language of readdirSync(directory, { withFileTypes: true }).filter(entry => entry.isDirectory()).map(entry => entry.name)) {
     const catalogue = JSON.parse(readFileSync(join(directory, language, 'messages.json'), 'utf8'));
     for (const [key, message] of Object.entries(catalogue)) {
       if (key.startsWith('catalog.')) continue;
@@ -69,12 +70,15 @@ test('messages fill placeholders and choose plural forms by language', () => {
 });
 
 test('only offered languages apply; English is the fallback and the default', () => {
-  assert.deepEqual(offeredLanguages().map(language => language.code), ['en']);
+  assert.deepEqual(offeredLanguages().map(language => language.code), ['en', 'ar', 'zh-Hans', 'fr', 'ru', 'es'], 'each language is offered once its review is recorded');
   assert.equal(isOffered('en'), true);
-  assert.equal(isOffered('fr'), false, 'a language is offered only once its catalogue is complete and reviewed');
+  assert.equal(isOffered('de'), false);
   setLanguage('fr');
-  assert.equal(t('common.cancel'), 'Cancel');
+  assert.equal(t('common.cancel'), 'Annuler');
   assert.equal(t('deck.pageCount', { count: 2 }), '2 pages');
+  assert.equal(t('deck.pageCount', { count: 1 }), '1 page');
+  setLanguage('de');
+  assert.equal(t('common.cancel'), 'Cancel', 'a language not offered shows English');
   assert.throws(() => t(/** @type {any} */ ('no.such.key')), /Unknown message/);
 });
 
@@ -90,8 +94,63 @@ test('pseudo-languages accent and lengthen every message, or run English right t
   setPseudoLanguage('ar-XB');
   assert.equal(t('common.cancel'), 'Cancel');
   assert.equal(direction(), 'rtl');
-  assert.deepEqual(offeredLanguages().map(language => language.code), ['en']);
+  assert.equal(offeredLanguages().length, 6, 'pseudo-languages are never offered');
   setPseudoLanguage(null);
   assert.equal(direction(), 'ltr');
   assert.equal(t('common.cancel'), 'Cancel');
+});
+
+test('every api entry is a message the API or the domain still sends, matched whatever its values', () => {
+  const server = ['../src/', '../packages/domain/src/'].flatMap(folder => readdirSync(new URL(folder, import.meta.url), { recursive: true })
+    .map(String).filter(path => /\.(mjs|ts)$/.test(path) && !path.includes('generated')).map(path => readFileSync(new URL(folder + path, import.meta.url), 'utf8'))).join('\n');
+  for (const [key, message] of Object.entries(ENGLISH).filter(([key]) => key.startsWith('api.'))) {
+    const source = message.replace(/[.*+?^$()|[\]\\]/g, '\\$&').replace(/\{\w+\}/g, '\\$\\{.+?\\}');
+    assert.match(server, new RegExp(source), `${key}: “${message}” is no longer in the API or the domain`);
+  }
+  setLanguage('en');
+  assert.equal(apiText('Choose a deck.'), 'Choose a deck.');
+  assert.equal(apiText('There is already a Context.'), 'There is already a Context.');
+  assert.equal(apiText('Database ownership was lost; restart the API.'), 'Database ownership was lost; restart the API.', 'an operator message stays as it is');
+  setPseudoLanguage('en-XA');
+  assert.equal(apiText('There is already a Context.'), '⟦Théré íš álréádý á Context.·····⟧', 'the module name comes from the API');
+  assert.equal(apiText('Database ownership was lost; restart the API.'), 'Database ownership was lost; restart the API.');
+  setPseudoLanguage(null);
+});
+
+// The catalog's texts a language's catalogue names (D14, K36): module and
+// family names, descriptions, facet names and the core's names, not facet abbreviations.
+const { CATALOG, FAMILY_LABELS } = await import('@vocabularium/domain/page-modules');
+const { PARENTS } = await import('@vocabularium/domain/parents');
+const CATALOG_KEYS = [
+  ...Object.keys(CATALOG).flatMap(type => [`catalog.${type}.label`, `catalog.${type}.description`]),
+  ...Object.keys(FAMILY_LABELS).map(family => `catalog.family.${family}`),
+  ...Object.entries(PARENTS).flatMap(([parent, definition]) => [...Object.keys(definition.facets).map(facet => `catalog.${parent}.${facet}.label`),
+    `catalog.${parent}.core.word_phrase`, `catalog.${parent}.core.sentence`])
+];
+
+test('every language’s catalogue is complete: each English message, each catalog text, and the plural forms its language needs', () => {
+  for (const { code } of LANGUAGES.filter(language => language.code !== 'en')) {
+    const catalogue = CATALOGUES[code];
+    for (const key of [...Object.keys(ENGLISH), ...CATALOG_KEYS]) assert.ok(catalogue[key]?.trim(), `${code}: ${key} is missing`);
+    for (const key of Object.keys(catalogue)) assert.ok(key in ENGLISH || CATALOG_KEYS.includes(key), `${code}: ${key} is not a key`);
+    const needed = new Intl.PluralRules(code).resolvedOptions().pluralCategories;
+    for (const [key, message] of Object.entries(catalogue).filter(([, message]) => message.includes(', plural,'))) {
+      for (const form of needed) assert.match(message, new RegExp(`\\b${form} \\{`), `${code}: ${key} lacks its ${form} form`);
+      for (let count = 0; count < 112; count++) assert.doesNotThrow(() => format(message, { count, finished: 1, total: 2 }, code));
+    }
+  }
+});
+
+test('every explanation is written in every interface language', async () => {
+  const { MODULES, folderOf } = await import('@vocabularium/domain/catalog');
+  const { explanationLanguages } = await import('@vocabularium/domain/explanations');
+  const holders = Object.keys(MODULES).flatMap(module => [[module], ...Object.keys(PARENTS[module]?.facets ?? {}).filter(facet => facet !== 'core').map(facet => [module, facet])]);
+  let explained = 0;
+  for (const [module, facet] of holders) {
+    const languages = explanationLanguages(module, facet);
+    if (!languages.length) continue;
+    explained++;
+    assert.deepEqual(languages.sort(), LANGUAGES.map(language => language.code).sort(), `${folderOf(module)}${facet ? `/${facet}` : ''}`);
+  }
+  assert.equal(explained, 12);
 });

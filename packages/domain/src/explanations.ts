@@ -19,12 +19,19 @@ export const INPUT_TYPES: readonly InputType[] = ['word_phrase', 'sentence'];
 
 const keyOf = (module: string, facet?: string) => isCatalogModule(module) ? `${folderOf(module)}${facet ? `/facets/${facet}` : ''}` : null;
 
-// The explanation's markdown, or none.
-export function explanationOf(module: string, facet?: string): string | undefined {
+// The explanation's markdown in an interface language (D14), in English when
+// that language has none, or none at all.
+export function explanationOf(module: string, facet?: string, language = 'en'): string | undefined {
   const key = keyOf(module, facet);
-  return key ? EXPLANATIONS[key] : undefined;
+  const texts = key ? EXPLANATIONS[key] : undefined;
+  return texts?.[language] ?? texts?.en;
 }
-export const explanationBlocks = (module: string, facet?: string): MdBlock[] => parseMarkdown(explanationOf(module, facet) ?? '');
+// The languages an explanation is written in.
+export function explanationLanguages(module: string, facet?: string): string[] {
+  const key = keyOf(module, facet);
+  return key ? Object.keys(EXPLANATIONS[key] ?? {}) : [];
+}
+export const explanationBlocks = (module: string, facet?: string, language = 'en'): MdBlock[] => parseMarkdown(explanationOf(module, facet, language) ?? '');
 
 // A module's sample for an input type, as its card would show it (D11): input
 // modules their text, a parent what it would return with the given facets, the

@@ -340,6 +340,11 @@ export class AccountStore {
       return { defaultDeckId: deckId };
     });
   }
+  // The account's interface language (D14).
+  async language() {
+    return this.database.transaction(async () =>
+      /** @type {Pick<AccountRow, 'language'>} */ (await this.database.one('SELECT language FROM account WHERE id = $1', [this.accountId])).language);
+  }
   /** @param {string} operationId @param {unknown} language */
   async setLanguage(operationId, language) {
     return await this.command(operationId, 'set-language', { language }, async () => {

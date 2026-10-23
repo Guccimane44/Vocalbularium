@@ -5,6 +5,12 @@
 // before the API answers.
 import type { InterfaceLanguage } from '@vocabularium/contracts';
 import english from './locales/en/messages.json' with { type: 'json' };
+import arabic from './locales/ar/messages.json' with { type: 'json' };
+import chinese from './locales/zh-Hans/messages.json' with { type: 'json' };
+import french from './locales/fr/messages.json' with { type: 'json' };
+import russian from './locales/ru/messages.json' with { type: 'json' };
+import spanish from './locales/es/messages.json' with { type: 'json' };
+import reviews from './locales/reviews.json' with { type: 'json' };
 
 export type MessageKey = keyof typeof english;
 export type MessageValues = Readonly<Record<string, string | number>>;
@@ -21,8 +27,11 @@ export const LANGUAGES: readonly Readonly<{ code: InterfaceLanguage; name: strin
   { code: 'ru', name: 'Русский', direction: 'ltr' },
   { code: 'es', name: 'Español', direction: 'ltr' }
 ];
-// Only languages whose catalogue is complete and reviewed are offered.
-const CATALOGUES: Readonly<Partial<Record<InterfaceLanguage, Catalogue>>> = { en: english };
+export const CATALOGUES: Readonly<Record<InterfaceLanguage, Catalogue>> = { en: english, ar: arabic, 'zh-Hans': chinese, fr: french, ru: russian, es: spanish };
+// A language is offered once its catalogue and explanations are complete (the
+// localisation test checks this) and its separate review is recorded here.
+export type Review = Readonly<{ reviewed: string; reviewer: string; summary: string }>;
+export const REVIEWS: Readonly<Partial<Record<InterfaceLanguage, Review>>> = reviews;
 export const ENGLISH: Readonly<Record<MessageKey, string>> = english;
 
 // Pseudo-languages for testing (increment B), never offered to users and set
@@ -39,7 +48,7 @@ let preference: InterfaceLanguage = 'en';
 let pseudo: PseudoLanguage | null = null;
 const listeners = new Set<() => void>();
 
-export const offeredLanguages = () => LANGUAGES.filter(language => CATALOGUES[language.code]);
+export const offeredLanguages = () => LANGUAGES.filter(language => language.code === 'en' || REVIEWS[language.code]);
 export const isOffered = (value: unknown): value is InterfaceLanguage => offeredLanguages().some(language => language.code === value);
 export const currentLanguage = () => current;
 // The account's preference, whatever pseudo-language is shown.
@@ -112,8 +121,25 @@ export function t(key: MessageKey, values?: MessageValues): string {
 // A catalog text (a module's or facet's name, a description) in the current
 // language, or the catalog's English.
 export const catalogText = (key: string, english: string) => (isPseudo(current) ? undefined : CATALOGUES[current]?.[`catalog.${key}`]) ?? shown(english);
-// A list of names joined as the language joins them ("German, Chinese").
-export const listFormat = (items: readonly string[]) => new Intl.ListFormat(current, { type: 'unit', style: 'short' }).format(items);
+// A message from the API in the current language (D14). The API answers in
+// English; each `api.*` entry of the English catalogue matches one of its
+// messages, its placeholders standing for what the API put there. A message
+// without an entry stays as the API wrote it.
+let apiPatterns: [RegExp, MessageKey, string[]][] | undefined;
+export function apiText(message: string): string {
+  apiPatterns ??= (Object.keys(english) as MessageKey[]).filter(key => key.startsWith('api.')).map(key => {
+    const names: string[] = [];
+    const source = english[key].replace(/[.*+?^$()|[\]\\]/g, '\\$&').replace(/\{(\w+)\}/g, (_, name: string) => { names.push(name); return '(.+?)'; });
+    return [new RegExp(`^${source}$`), key, names];
+  });
+  for (const [pattern, key, names] of apiPatterns) {
+    const match = pattern.exec(message);
+    if (match) return t(key, Object.fromEntries(names.map((name, index) => [name, match[index + 1]])));
+  }
+  return message;
+}
+// A list of names joined as the language joins them ("German and Chinese").
+export const listFormat = (items: readonly string[]) => new Intl.ListFormat(current, { type: 'conjunction', style: 'long' }).format(items);
 export function onLanguageChange(listener: () => void) {
   listeners.add(listener);
   return () => { listeners.delete(listener); };

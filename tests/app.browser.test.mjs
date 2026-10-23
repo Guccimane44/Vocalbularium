@@ -3246,7 +3246,7 @@ test('0.8.0: an Expertise card, leaf green with a graduation cap, explains the k
   await a.page.screenshot({ path: 'artifacts/v0.8.0-expertise-card.png', fullPage: true });
 });
 
-test('0.9.0: Language in the account menu is the account’s preference, English by default, and a language not offered keeps English (D14)', { timeout: 45000 }, async (t) => {
+test('0.9.0: Language in the account menu is the account’s preference, English by default, and another installation’s choice follows (D14)', { timeout: 45000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-language-browser-'));
   const application = await createTestApplication(t); await application.start();
   const a = await launch(join(directory, 'a'));
@@ -3266,9 +3266,9 @@ test('0.9.0: Language in the account menu is the account’s preference, English
   assert.equal(await row.isVisible(), false, 'the list takes the menu’s place');
   const choices = list.locator('.language-choice');
   assert.deepEqual(await choices.evaluateAll(nodes => nodes.map(node => [node.dataset.language, node.getAttribute('aria-pressed'), node.disabled])), [
-    ['en', 'true', false], ['ar', 'false', true], ['zh-Hans', 'false', true], ['fr', 'false', true], ['ru', 'false', true], ['es', 'false', true]
-  ], 'every language listed in its own name; only complete, reviewed languages can be picked');
-  assert.equal(await list.getByRole('button', { name: 'Français Coming soon', exact: true }).isDisabled(), true);
+    ['en', 'true', false], ['ar', 'false', false], ['zh-Hans', 'false', false], ['fr', 'false', false], ['ru', 'false', false], ['es', 'false', false]
+  ], 'every language listed in its own name; each is reviewed, so each can be picked');
+  assert.equal(await list.getByRole('button', { name: 'Français', exact: true }).isDisabled(), false);
   assert.equal(await list.locator('[data-language="ar"] .language-name').getAttribute('dir'), 'rtl');
   assert.equal(await a.page.evaluate(() => document.activeElement?.dataset.language), 'en', 'the focus moves to the first language that can be picked');
   for (const theme of ['light', 'dark']) {
@@ -3288,16 +3288,15 @@ test('0.9.0: Language in the account menu is the account’s preference, English
   assert.equal((await application.store.summary()).language, 'en');
   const rejected = await a.page.evaluate(() => chrome.runtime.sendMessage({ type: 'set-language', language: 'de' }));
   assert.equal(rejected.code, 'invalid');
-  // Another installation chooses a language this build does not offer yet: the interface stays English.
+  // Another installation chooses French: this one follows after its next refresh, without a reload, and keeps it after one.
   await application.store.setLanguage('remote-french', 'fr');
-  await a.page.waitForFunction(async () => (await chrome.storage.local.get('account')).account?.language === 'fr', null, { timeout: 15000 });
-  assert.deepEqual(await documentLanguage(), ['en', 'ltr']);
-  await a.page.getByRole('heading', { name: 'Your decks', exact: true }).waitFor();
-  await accountMenu(a.page);
-  await a.page.getByRole('button', { name: 'Language, English', exact: true }).waitFor();
+  await a.page.getByRole('heading', { name: 'Vos paquets', exact: true }).waitFor({ timeout: 15000 });
+  assert.deepEqual(await documentLanguage(), ['fr', 'ltr']);
+  await a.page.locator('.account-trigger').click();
+  await a.page.getByRole('button', { name: 'Langue, Français', exact: true }).waitFor();
   await a.page.reload();
-  await a.page.getByRole('heading', { name: 'Your decks', exact: true }).waitFor();
-  assert.deepEqual(await documentLanguage(), ['en', 'ltr']);
+  await a.page.getByRole('heading', { name: 'Vos paquets', exact: true }).waitFor();
+  assert.deepEqual(await documentLanguage(), ['fr', 'ltr']);
 });
 
 // Text an interface shows that is not its own: the brand, the user's decks,
@@ -3428,4 +3427,72 @@ test('0.9.0: right to left and the pseudo-languages: every surface mirrors, cont
   // Without a pseudo-language the interface is the account's English again.
   await pseudo(null);
   await a.page.waitForFunction(() => document.documentElement.lang === 'en' && document.documentElement.dir === 'ltr');
+});
+
+test('0.9.0: the interface in each language: picked from Language, saved to the account, with its names, explanations and direction (D14)', { timeout: 120000 }, async (t) => {
+  const directory = await mkdtemp(join(tmpdir(), 'vocabularium-languages-browser-'));
+  const application = await createTestApplication(t); await application.start();
+  const a = await launch(join(directory, 'a'));
+  t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
+  await a.page.setViewportSize({ width: 1280, height: 1000 });
+  const store = application.store;
+  const session = { installationId: 'fixture', sessionId: 'languages', epoch: 1 };
+  await store.openSession('languages-session', session);
+  const { pageId } = await store.capture('languages-capture', { session, mainKey: 'bank', snapshot: await store.snapshot() });
+  const [german] = (await store.page(pageId)).components.filter(item => item.moduleType === 'german');
+  const attempt = await store.attempt(german.attemptId);
+  await store.establishInterpretation(attempt.run_id, { inputType: 'word_phrase' });
+  await store.stage(german.attemptId, staged(BANK));
+  await store.publish('languages-publish', { attemptId: german.attemptId, session });
+  const catalogue = async code => JSON.parse(await readFile(`extension/locales/${code}/messages.json`, 'utf8'));
+  const english = await catalogue('en');
+  await signIn(a.page);
+
+  // Picked from the account menu's Language list, French applies at once, without a reload.
+  const french = await catalogue('fr');
+  await accountMenu(a.page);
+  await a.page.getByRole('button', { name: 'Language, English', exact: true }).click();
+  await a.page.locator('.language-choice[data-language="fr"]').click();
+  await a.page.getByRole('heading', { name: french['dashboard.title'], exact: true }).waitFor();
+  assert.equal((await store.summary()).language, 'fr');
+  assert.deepEqual(await a.page.evaluate(() => [document.documentElement.lang, document.documentElement.dir]), ['fr', 'ltr']);
+
+  for (const code of ['fr', 'es', 'ru', 'zh-Hans', 'ar']) {
+    const messages = await catalogue(code);
+    await store.setLanguage(`language-${code}`, code);
+    await a.page.goto(`chrome-extension://${a.id}/app.html`);
+    await a.page.getByRole('heading', { name: messages['dashboard.title'], exact: true }).waitFor({ timeout: 15000 });
+    assert.deepEqual(await a.page.evaluate(() => [document.documentElement.lang, document.documentElement.dir]), [code, code === 'ar' ? 'rtl' : 'ltr']);
+    await a.page.screenshot({ path: `artifacts/v0.9.0-${code}-dashboard-light.png` });
+    // A page: the module's name, its facets' names, in the language; the facet marks as the catalog gives them.
+    await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
+    const card = a.page.locator('article.component[data-type="german"]');
+    await card.waitFor();
+    assert.equal(await card.locator('.card-tab .tab-label').innerText(), messages['catalog.german.label']);
+    assert.equal(await card.locator('.facet[data-facet="article"] .facet-tab-label').innerText(), messages['catalog.german.article.label']);
+    assert.deepEqual(await card.locator('.facet-tag-mark').allInnerTexts(), ['Ar', 'Ex', 'Sy', 'An']);
+    assert.equal(await a.page.locator('h1.main-key').evaluate(node => getComputedStyle(node).direction), 'ltr', 'a Latin main key keeps its direction');
+    await a.page.screenshot({ path: `artifacts/v0.9.0-${code}-page-light.png` });
+    // About German shows the explanation in the language.
+    const about = a.page.locator('.window-module[data-type="german"] .window-about');
+    await openFamily(about);
+    await about.click();
+    const explanation = await readFile(`packages/domain/src/catalog/languages/german/explanation.${code}.md`, 'utf8');
+    const dialog = a.page.locator('dialog.explanation-dialog');
+    await dialog.waitFor();
+    assert.ok((await dialog.locator('.explanation-text').innerText()).startsWith(explanation.split(/[.。]/)[0].replace(/\*/g, '')), `${code}: the explanation is in the language`);
+    await dialog.screenshot({ path: `artifacts/v0.9.0-${code}-about-light.png` });
+    await a.page.keyboard.press('Escape');
+    assert.notEqual(messages['dashboard.title'], english['dashboard.title']);
+  }
+
+  // Back to English from the list, which names every language in itself, all of them offered.
+  await a.page.goto(`chrome-extension://${a.id}/app.html`);
+  await a.page.locator('.account-trigger').click();
+  await a.page.locator('.language-row').click();
+  assert.deepEqual(await a.page.locator('.language-choice').evaluateAll(nodes => nodes.map(node => [node.dataset.language, node.disabled])),
+    [['en', false], ['ar', false], ['zh-Hans', false], ['fr', false], ['ru', false], ['es', false]]);
+  await a.page.locator('.language-choice[data-language="en"]').click();
+  await a.page.getByRole('heading', { name: 'Your decks', exact: true }).waitFor();
+  assert.equal((await store.summary()).language, 'en');
 });
