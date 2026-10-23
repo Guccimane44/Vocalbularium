@@ -438,6 +438,19 @@ test('OpenCode passes module context and returns the structured result; rejects 
     provider.fetch = async () => Response.json(completion(JSON.stringify(value)));
     await assert.rejects(provider.generate(input), /invalid result/, JSON.stringify(value));
   }
+  // A reply whose core lacks only its closing brace before "facets" is
+  // repaired; any other malformed reply stays invalid.
+  const text = JSON.stringify(output);
+  const slipped = text.replace('},"facets"', ',"facets"');
+  provider.fetch = async () => Response.json(completion(slipped));
+  assert.deepEqual(await provider.generate(input), output);
+  for (const reply of [slipped.slice(0, -1), `${slipped.slice(0, -1)},"kind":"word"}`,
+    text.replace(']},"facets"', '},"facets"'), `${text.slice(0, -1)},"kind":"word"}`, slipped.replace(',"facets"', '"facets"')]) {
+    provider.fetch = async () => Response.json(completion(reply));
+    await assert.rejects(provider.generate(input), /invalid result/, reply);
+  }
+  provider.fetch = async () => Response.json(completion('{"inputType":"word_phrase","facets":{}'));
+  await assert.rejects(provider.interpret('幸福'), /invalid result/);
 });
 
 test('OpenCode authentication and rate failures make no fallback requests and keep upstream details private', async () => {
