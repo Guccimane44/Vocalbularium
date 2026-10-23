@@ -203,6 +203,7 @@ async function render() {
     return;
   }
   const [, routeId] = location.hash.split('/');
+  if (location.hash.startsWith('#page/') && pageUI.deleting(routeId)) return;
   /** @type {DeckDetail | undefined} */
   let detail;
   /** @type {Page | undefined} */
