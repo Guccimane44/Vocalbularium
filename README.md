@@ -1,11 +1,11 @@
 # Vocabularium
 
-A vocabulary capture extension for Chrome, at release 0.9.1. A local Fastify API with PostgreSQL 18 serves one owner-test account; the extension's dashboard, deck settings and page editor use WXT and React.
+A vocabulary capture extension for Chrome, at release 0.10.0. A local Fastify API with PostgreSQL 18 serves one owner-test account; the extension's dashboard, deck settings and page editor use WXT and React.
 
 The product uses deck → page → component. A page holds a main key, optional Context, one component per configured content module, and your own text.
 
 - [Product model](docs/product/model.md): the terms
-- [Current scope](docs/product/scope.md): what 0.9.1 supports, with links to each specification
+- [Current scope](docs/product/scope.md): what 0.10.0 supports, with links to each specification
 - [Vision](docs/product/vision.md): where the product is going
 - [Project workflow](docs/guides/project-workflow.md): how decisions become specifications and releases
 - [Install a candidate package](docs/guides/install.md): load and update the extension in Chrome
