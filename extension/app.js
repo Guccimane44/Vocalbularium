@@ -12,7 +12,6 @@ import { Dashboard } from './dashboard.tsx';
 import { diagnosticSettings } from './diagnostic-settings.js';
 import { initializeShell, renderAccountMenu, renderSidebar, showSignedOutShell } from './shell.js';
 import { initializeLanguage, onLanguageChange, t, translateDocument } from './i18n.ts';
-import { initializeLanguageSetting } from './language-setting.js';
 /** @typedef {import('../types/editor-drafts.js').DeckEditorDraft} DeckEditorDraft */
 /** @import { Root } from 'react-dom/client' */
 /** @import { Page } from '@vocabularium/contracts' */
@@ -102,7 +101,6 @@ function login() {
   };
   section.append(form); app.replaceChildren(section);
 }
-initializeLanguageSetting({ send });
 // A new language redraws the static texts and the view in it.
 onLanguageChange(() => { translateDocument(); if (signedIn) void render(); else login(); });
 const pageUI = pageViews({ getAccount: () => /** @type {ViewAccount} */ (account), send, showError,
@@ -137,7 +135,8 @@ async function render() {
     logOut: async () => {
       try { if (!await pageUI.leave()) return; await send({ type: 'logout' }); location.hash = ''; login(); } catch (error) { showError(error); }
     },
-    diagnostics: async () => { if (await pageUI.leave()) location.hash = 'diagnostics'; }
+    diagnostics: async () => { if (await pageUI.leave()) location.hash = 'diagnostics'; },
+    chooseLanguage: (/** @type {string} */ language) => send({ type: 'set-language', language })
   });
   // A page's deck is known only once the page loads; until then the sidebar
   // keeps the deck of the page shown before, so the mark never blinks off.

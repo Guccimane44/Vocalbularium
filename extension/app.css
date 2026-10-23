@@ -56,8 +56,8 @@ html:not([data-appearance]) body { visibility: hidden; }
 label.toggle { display: flex; align-items: center; gap: 10px; }
 label.toggle input { width: auto; margin: 0; }
 .theme-control select { width: auto; padding: 8px; }
-#theme-error:empty, #language-error:empty { display: none; }
-#theme-error, #language-error { max-width: 230px; margin: 0; font-size: 13px; }
+#theme-error:empty { display: none; }
+#theme-error { max-width: 230px; margin: 0; font-size: 13px; }
 .deck-menu summary::-webkit-details-marker { display: none; }
 h1, h2, .deck .open { overflow-wrap: anywhere; }
 .dialog-actions { flex-wrap: wrap; }

@@ -4,7 +4,7 @@ Proposed: 22 October 2026 (Europe/Berlin). Implements [D14](../architecture/trac
 
 ## Outcome
 
-The user chooses the interface language in the settings, beside **Appearance**: English, العربية, 中文（简体）, Français, Русский or Español. The choice belongs to the account, so every installation connected to it follows. It sets every interface text, the explanations of modules and facets, and the language the Expertise modules write in ([shared UI](../specs/shared-ui.md#interface-language)). In Arabic every surface is laid out right to left; generated content keeps the direction of its own language. English stays the default, and a new account starts in English whatever the browser's language.
+The user chooses the interface language from **Language** in the account menu, below **Appearance**: English, العربية, 中文（简体）, Français, Русский or Español. The choice belongs to the account, so every installation connected to it follows. It sets every interface text, the explanations of modules and facets, and the language the Expertise modules write in ([shared UI](../specs/shared-ui.md#interface-language)). In Arabic every surface is laid out right to left; generated content keeps the direction of its own language. English stays the default, and a new account starts in English whatever the browser's language.
 
 0.9.0 builds on `main` at 0.8.1. One account column is added; decks, pages and components do not change.
 
@@ -55,9 +55,9 @@ K35 applied to the traceability map, shared UI, scope and the Q69 answer; this p
 
 - **Catalogue and lookup** as in the string process, with the English catalogue only. Every interface text in `extension/` moves to it, including `app.html`, `feedback.html`, the context menu, the capture feedback and the worker's messages.
 - **Preference.** Migration `0016` adds `account.language` (`text not null default 'en'`, checked against the six codes). `GET /api/account/summary` returns it; `POST /api/language` sets it as an operation with a receipt, like the default deck. The extension keeps the last known value locally, so the interface starts in it before the API answers.
-- **Settings.** A **Language** select beside **Appearance**, each language named in itself, listing only the languages whose catalogue is complete; in this increment only English. A save failure shows "Language could not be saved. Try again." and keeps the previous value.
+- **Account menu.** A **Language** row below **Appearance** shows the current language and opens the list in the menu's place (owner request, 23 October 2026): all six languages, each named in itself, the current one ticked; one whose catalogue is not complete and reviewed says "Coming soon" and cannot be picked, so in this increment only English can. Picking one saves it and closes the menu; a save failure shows "Language could not be saved. Try again." in the list and keeps the previous value.
 - **Document language.** `<html lang dir>` follows the preference on every extension page.
-- **Tests.** Unit: lookup, placeholders, plurals, fallback, the conformance checks. API: the migration, reading and setting the language, an invalid code rejected, the receipt replayed. Browser E2E: the select saves and survives a reload; the existing suites pass unchanged in English.
+- **Tests.** Unit: lookup, placeholders, plurals, fallback, the conformance checks. API: the migration, reading and setting the language, an invalid code rejected, the receipt replayed. Browser E2E: the Language row opens the list, the unfinished languages cannot be picked, Back returns to the menu, and a language not offered keeps English across a reload; the existing suites pass unchanged in English.
 
 ### B. Right to left and a pseudo-language
 

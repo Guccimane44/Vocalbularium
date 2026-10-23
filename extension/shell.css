@@ -33,7 +33,7 @@
 
 .app-header { max-width: 1160px; margin: 0 auto; padding: 18px 36px; display: flex; align-items: center; gap: 16px; border-bottom: 0; }
 .app-header .header-actions { margin-left: auto; flex-wrap: nowrap; }
-#theme-error:empty, #language-error:empty { display: none; }
+#theme-error:empty { display: none; }
 .app-header .brand { font: 700 24px var(--font-display); }
 body.signed-in .app-header .brand { display: none; }
 .sidebar-toggle { display: none; }
@@ -50,6 +50,22 @@ body.signed-in .app-header .brand { display: none; }
 .account-panel .theme-control { flex-direction: column; align-items: stretch; gap: 4px; padding: 4px 4px 10px; border-bottom: 1px solid var(--line); margin-bottom: 6px; }
 .account-panel .theme-control label { font-size: 13px; color: var(--ink-muted); }
 .menu-action { border: 0; text-align: left; border-radius: var(--radius-md); padding: 8px 10px; }
+/* Language (D14): a row showing the current language, opening the list in the menu. */
+.account-main[hidden], .account-languages[hidden] { display: none; }
+.account-main, .account-languages { display: flex; flex-direction: column; gap: 4px; }
+.language-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.language-row-value { color: var(--ink-muted); }
+.language-row-value::after { content: ' ›'; }
+.language-back { font-weight: 600; padding-bottom: 10px; border-bottom: 1px solid var(--line); border-radius: var(--radius-md) var(--radius-md) 0 0; margin-bottom: 6px; }
+.language-choices { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.language-choice { width: 100%; display: grid; grid-template-columns: 1.2em 1fr auto; align-items: center; gap: 6px; }
+.language-tick { visibility: hidden; color: var(--ink); font-weight: 700; }
+.language-choice[aria-pressed="true"] .language-tick { visibility: visible; }
+.language-choice[aria-pressed="true"] .language-name { font-weight: 600; }
+.language-choice:disabled, .language-choice:disabled:hover { opacity: 1; cursor: default; color: var(--ink-muted); background: transparent; }
+.language-choice .soon { font-size: 12px; color: var(--ink-muted); }
+.language-error:empty { display: none; }
+.language-error { margin: 6px 4px 0; font-size: 13px; }
 
 body.signed-in main { margin-top: 12px; }
 

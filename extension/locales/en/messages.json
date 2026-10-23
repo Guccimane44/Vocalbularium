@@ -261,5 +261,8 @@
   "app.opening": "Opening your vocabulary…",
   "feedback.title": "Capture feedback",
   "common.close": "Close",
-  "worker.openTitle": "Open Vocabularium"
+  "worker.openTitle": "Open Vocabularium",
+  "settings.language.back": "Back to the account menu",
+  "settings.language.comingSoon": "Coming soon",
+  "settings.language.row": "Language, {language}"
 }
