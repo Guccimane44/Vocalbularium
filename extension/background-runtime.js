@@ -8,7 +8,7 @@ import { captureBadge } from './badge.js';
 import { relayFeedbackTheme } from './feedback.js';
 import { isApiFailure } from './api-failure.js';
 import { extensionDiagnostics } from './diagnostics.js';
-import { initializeLanguage, onLanguageChange, setLanguage, t } from './i18n.ts';
+import { apiText, initializeLanguage, onLanguageChange, setLanguage, t } from './i18n.ts';
 /** @import { AccessState, CaptureReceipt, RuntimeMessage, SessionItems, StoredAccount } from '../types/extension.js' */
 
 export function startBackground() {
@@ -130,7 +130,8 @@ export function startBackground() {
       severity: response.ok ? 'info' : 'warn', durationMs: Math.round(performance.now() - started) });
     if (!response.ok) {
       const failure = isApiFailure(result) ? result : { error: t('worker.serverRejected'), code: 'server_error' };
-      throw Object.assign(new Error(failure.error), { code: failure.code, status: response.status, details: failure.details });
+      // The API's English message, in the interface language when the catalogue has it.
+      throw Object.assign(new Error(apiText(failure.error)), { code: failure.code, status: response.status, details: failure.details });
     }
     return result;
   }

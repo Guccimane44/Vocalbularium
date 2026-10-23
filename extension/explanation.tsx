@@ -5,7 +5,7 @@ import type { ModuleFamily } from '@vocabularium/domain/page-modules';
 import type { FacetType, ParentType } from '@vocabularium/domain/parents';
 import { FamilyIcon } from './families.tsx';
 import { Content, Markdown } from './page-view.tsx';
-import { t } from './i18n.ts';
+import { currentLanguage, t } from './i18n.ts';
 import { moduleLabel } from './catalog-text.ts';
 
 // Explanations (D13, 0.8.1): what a module or a facet contributes and when to
@@ -42,7 +42,7 @@ export function ModuleExplanation({ type, close }: { type: string; close: () => 
       <h2 id={titleId}>{label}</h2>
       <button type="button" className="preview-close" aria-label={t('about.close', { name: label })} onClick={done}>×</button>
     </div>
-    <Markdown blocks={explanationBlocks(type)} mainKey="" className="explanation-text" />
+    <Markdown blocks={explanationBlocks(type, undefined, currentLanguage())} mainKey="" className="explanation-text" />
     <div className="explanation-samples">
       {INPUT_TYPES.map(inputType => {
         const rendered = sampleOf(type, inputType);
@@ -62,7 +62,7 @@ export function ModuleExplanation({ type, close }: { type: string; close: () => 
 // and its part of its module's sample, only for the inputs it applies to.
 export function FacetExplanation({ id, parent, facet }: { id: string; parent: ParentType; facet: FacetType }) {
   return <div id={id} className="facet-explanation">
-    <Markdown blocks={explanationBlocks(parent, facet)} mainKey="" className="explanation-text" />
+    <Markdown blocks={explanationBlocks(parent, facet, currentLanguage())} mainKey="" className="explanation-text" />
     {INPUT_TYPES.map(inputType => {
       const blocks = facetSampleOf(parent, facet, inputType);
       return blocks && <div key={inputType} className="explanation-sample">
