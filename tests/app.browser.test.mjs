@@ -3486,6 +3486,24 @@ test('0.9.0: the interface in each language: picked from Language, saved to the 
     assert.notEqual(messages['dashboard.title'], english['dashboard.title']);
   }
 
+  // Arabic in both themes, with forced colours off and on: the page and the Language list stay
+  // outlined and readable, right to left (0.9.0 increment D).
+  await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
+  await a.page.locator('article.component[data-type="german"]').waitFor();
+  await a.page.locator('.account-trigger').click();
+  await a.page.locator('.language-row').click();
+  const panel = a.page.locator('.account-panel');
+  for (const colorScheme of ['light', 'dark']) for (const forcedColors of ['none', 'active']) {
+    await a.page.emulateMedia({ colorScheme, forcedColors });
+    const name = `${colorScheme}${forcedColors === 'active' ? '-forced' : ''}`;
+    const edge = await panel.evaluate(node => { const style = getComputedStyle(node); return { border: style.borderTopStyle, shadow: style.boxShadow }; });
+    assert.ok(forcedColors === 'active' ? edge.border === 'solid' : edge.shadow !== 'none', `${name}: the account menu is outlined (${JSON.stringify(edge)})`);
+    assert.equal(await a.page.evaluate(() => document.documentElement.dir), 'rtl');
+    await a.page.screenshot({ path: `artifacts/v0.9.0-ar-language-${name}.png`, animations: 'disabled' });
+  }
+  await a.page.emulateMedia({ colorScheme: 'light', forcedColors: 'none' });
+  await a.page.keyboard.press('Escape');
+
   // Back to English from the list, which names every language in itself, all of them offered.
   await a.page.goto(`chrome-extension://${a.id}/app.html`);
   await a.page.locator('.account-trigger').click();

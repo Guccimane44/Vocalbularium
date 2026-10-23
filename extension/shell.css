@@ -47,6 +47,8 @@ body.signed-in .app-header .brand { display: none; }
 .account-panel { position: absolute; inset-inline-end: 0; top: calc(100% + 8px); z-index: 20; min-width: 240px; padding: 12px; display: flex; flex-direction: column; gap: 4px;
   background: var(--surface); border-radius: var(--radius-card); box-shadow: 0 0 0 1px var(--line), var(--shadow-lift); }
 .account-panel[hidden] { display: none; }
+/* Forced colours drop the panel's shadow, so it keeps an edge (0.9.0). */
+@media (forced-colors: active) { .account-panel { border: 1px solid CanvasText; } }
 .account-panel .theme-control { flex-direction: column; align-items: stretch; gap: 4px; padding: 4px 4px 10px; border-bottom: 1px solid var(--line); margin-bottom: 6px; }
 .account-panel .theme-control label { font-size: 13px; color: var(--ink-muted); }
 .menu-action { border: 0; text-align: start; border-radius: var(--radius-md); padding: 8px 10px; }
@@ -63,6 +65,8 @@ body.signed-in .app-header .brand { display: none; }
 .language-tick { visibility: hidden; color: var(--ink); font-weight: 700; }
 .language-choice[aria-pressed="true"] .language-tick { visibility: visible; }
 .language-choice[aria-pressed="true"] .language-name { font-weight: 600; }
+/* Each name keeps its own direction but lines up with the list's start. */
+.language-name { justify-self: start; }
 .language-choice:disabled, .language-choice:disabled:hover { opacity: 1; cursor: default; color: var(--ink-muted); background: transparent; }
 .language-choice .soon { font-size: 12px; color: var(--ink-muted); }
 .language-error:empty { display: none; }
