@@ -1,6 +1,6 @@
 # Plan: the Expertise modules written for the interface language (0.10.0)
 
-Proposed: 23 October 2026 (Europe/Berlin). Implements [D15](../architecture/traceability-map.md#entries), accepted by the owner on 23 October 2026, with K39–K43 resolved the same day. Specification: [modules § Writing in the interface language](../specs/modules.md#writing-in-the-interface-language) and the [generation architecture](../architecture/generation.md#prompts). Tracker: [#220](https://github.com/Guccimane44/Vocalbularium/issues/220).
+Proposed: 23 October 2026 (Europe/Berlin). Implemented in release 0.10.0 (increments 0, A, B and C, [#221](https://github.com/Guccimane44/Vocalbularium/pull/221), [#222](https://github.com/Guccimane44/Vocalbularium/pull/222), [#223](https://github.com/Guccimane44/Vocalbularium/pull/223) and [#224](https://github.com/Guccimane44/Vocalbularium/pull/224)); owner acceptance is recorded on the tracker. Implements [D15](../architecture/traceability-map.md#entries), accepted by the owner on 23 October 2026, with K39–K43 resolved the same day. Specification: [modules § Writing in the interface language](../specs/modules.md#writing-in-the-interface-language) and the [generation architecture](../architecture/generation.md#prompts). Tracker: [#220](https://github.com/Guccimane44/Vocalbularium/issues/220).
 
 ## Outcome
 
