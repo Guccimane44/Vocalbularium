@@ -41,7 +41,7 @@ Each language other than English therefore translates about 355 short strings an
 - **The manifest's** name and description stay English (Chrome would choose their language by the browser's, not the account's); the toolbar button's title follows the preference, set by the worker.
 - **Explanations** move to `explanation.<language>.md` beside the English `explanation.md`; a missing translation falls back to English.
 - **Checks.** A conformance test fails when a key used in the code is missing from the English catalogue, when a catalogue has keys English does not, when placeholders differ from English, or when a language offered in the settings is incomplete. A scan fails on a new hard-coded interface text in the extension.
-- **Translation.** Claude drafts every translation; the owner arranges a review by a fluent reader for each language before that language is offered. A language becomes selectable only when its catalogue and explanations are complete and reviewed.
+- **Translation.** Claude drafts every translation, and a separate Claude reviewer checks each language against the English source: meaning, placeholders and plurals, consistent terms, length and, for Arabic, direction. A language becomes selectable only when its catalogue and explanations are complete and that review has passed. The owner checks the languages by hand later, after release (owner direction, 23 October 2026).
 
 ## Increments
 
@@ -72,7 +72,7 @@ K35 applied to the traceability map, shared UI, scope and the Q69 answer; this p
 - **API messages** gain stable keys, translated in each catalogue.
 - **Expertise modules** write in the language preference: the prompt composer receives it as generation input, and the generation record notes it. The Languages modules are unchanged.
 - **Fonts:** the bundled Fraunces and Instrument Sans cover Latin and Cyrillic; Arabic and Chinese use system fonts, as Chinese content already does ([shared UI](../specs/shared-ui.md#visual-identity)).
-- **Review:** each language is offered once its review is done; the PR lists the reviewer per language.
+- **Review:** a Claude reviewer, separate from the drafting, reviews each language; its findings are fixed before the language is offered, and the PR records the review per language. The owner's manual check comes later.
 - **Tests.** Catalogue completeness per language; browser E2E switching to each language and back; an Expertise page generated in French with a mocked provider, checking the prompt's language.
 
 ### D. Verification and delivery (0.9.0)
@@ -92,7 +92,7 @@ K35 applied to the traceability map, shared UI, scope and the Q69 answer; this p
 
 ## Risks
 
-- **Translation quality** in languages the owner does not read: no language is offered before a fluent reader has reviewed it.
+- **Translation quality** in languages the owner does not read: every language passes a separate Claude review before it is offered, and the owner's later manual check can still correct it.
 - **Right-to-left layout** touches every stylesheet and the shared drag-and-drop code; increment B tests it on its own before any translation lands.
 - **Text length:** French, Russian and Spanish run up to a third longer than English; the lengthened pseudo-language finds truncation early.
 - **API messages** stay English until increment C keys them; a message without a key shows English.
