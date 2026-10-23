@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { ENGLISH, format, isOffered, offeredLanguages, setLanguage, t } from '../extension/i18n.ts';
+import { direction, ENGLISH, format, isOffered, offeredLanguages, pseudoMessage, setLanguage, setPseudoLanguage, t } from '../extension/i18n.ts';
 
 // The interface language (D14): every interface text is a catalogue entry,
 // English is complete, and other catalogues match it.
@@ -76,4 +76,22 @@ test('only offered languages apply; English is the fallback and the default', ()
   assert.equal(t('common.cancel'), 'Cancel');
   assert.equal(t('deck.pageCount', { count: 2 }), '2 pages');
   assert.throws(() => t(/** @type {any} */ ('no.such.key')), /Unknown message/);
+});
+
+test('pseudo-languages accent and lengthen every message, or run English right to left, and are never offered', () => {
+  assert.equal(pseudoMessage('Delete {name}?'), '⟦Délété {name}?··⟧');
+  const pages = pseudoMessage('{count, plural, one {# page} other {# pages}}');
+  assert.equal(format(pages, { count: 1 }, 'en'), '⟦1 págé··⟧');
+  assert.equal(format(pages, { count: 3 }, 'en'), '⟦3 págéš··⟧');
+  setPseudoLanguage('en-XA');
+  assert.equal(t('common.cancel'), '⟦Çáñçél··⟧');
+  assert.equal(t('action.deleteNamed', { name: 'German' }), '⟦Délété German··⟧', 'values stay as they are');
+  assert.equal(direction(), 'ltr');
+  setPseudoLanguage('ar-XB');
+  assert.equal(t('common.cancel'), 'Cancel');
+  assert.equal(direction(), 'rtl');
+  assert.deepEqual(offeredLanguages().map(language => language.code), ['en']);
+  setPseudoLanguage(null);
+  assert.equal(direction(), 'ltr');
+  assert.equal(t('common.cancel'), 'Cancel');
 });

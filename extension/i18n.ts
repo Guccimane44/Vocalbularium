@@ -25,13 +25,26 @@ export const LANGUAGES: readonly Readonly<{ code: InterfaceLanguage; name: strin
 const CATALOGUES: Readonly<Partial<Record<InterfaceLanguage, Catalogue>>> = { en: english };
 export const ENGLISH: Readonly<Record<MessageKey, string>> = english;
 
-let current: InterfaceLanguage = 'en';
+// Pseudo-languages for testing (increment B), never offered to users and set
+// only by `pseudoLanguage` in local storage: `en-XA` accents and lengthens
+// every message inside ⟦…⟧, so text written outside the catalogue and labels
+// too narrow for longer languages show; `ar-XB` keeps English and runs right to left.
+export const PSEUDO_LANGUAGES = { 'en-XA': 'ltr', 'ar-XB': 'rtl' } as const;
+type PseudoLanguage = keyof typeof PSEUDO_LANGUAGES;
+const isPseudo = (value: unknown): value is PseudoLanguage => typeof value === 'string' && Object.hasOwn(PSEUDO_LANGUAGES, value);
+
+let current: InterfaceLanguage | PseudoLanguage = 'en';
+// The account's preference, kept while a pseudo-language overrides it.
+let preference: InterfaceLanguage = 'en';
+let pseudo: PseudoLanguage | null = null;
 const listeners = new Set<() => void>();
 
 export const offeredLanguages = () => LANGUAGES.filter(language => CATALOGUES[language.code]);
 export const isOffered = (value: unknown): value is InterfaceLanguage => offeredLanguages().some(language => language.code === value);
 export const currentLanguage = () => current;
-export const direction = () => LANGUAGES.find(language => language.code === current)?.direction ?? 'ltr';
+// The account's preference, whatever pseudo-language is shown.
+export const preferredLanguage = () => preference;
+export const direction = () => isPseudo(current) ? PSEUDO_LANGUAGES[current] : LANGUAGES.find(language => language.code === current)?.direction ?? 'ltr';
 
 // `{name}` is replaced by its value; `{count, plural, one {…} other {…}}`
 // picks the form for the language, `#` standing for the number.
@@ -73,14 +86,32 @@ function pluralForms(body: string) {
   return forms;
 }
 
+const ACCENTS: Readonly<Record<string, string>> = Object.fromEntries([...'aeiouycnszAEIOUYCNSZ'].map((letter, index) => [letter, [...'áéíóúýçñšžÁÉÍÓÚÝÇÑŠŽ'][index]]));
+// A message accented and lengthened by a third, its placeholders and plural
+// keywords kept; each plural form is treated in turn.
+export function pseudoMessage(message: string): string {
+  let out = '', letters = 0;
+  for (let index = 0; index < message.length;) {
+    if (message[index] !== '{') { const letter = message[index++]; letters += /\p{L}/u.test(letter) ? 1 : 0; out += ACCENTS[letter] ?? letter; continue; }
+    const end = closing(message, index);
+    const [name, kind, ...rest] = message.slice(index + 1, end).split(',');
+    out += kind?.trim() === 'plural'
+      ? `{${name},${kind},${Object.entries(pluralForms(rest.join(','))).map(([form, body]) => ` ${form} {${pseudoMessage(body).slice(1, -1)}}`).join('')}}`
+      : message.slice(index, end + 1);
+    index = end + 1;
+  }
+  return `⟦${out}${'·'.repeat(Math.ceil(letters / 3))}⟧`;
+}
+const shown = (message: string) => current === 'en-XA' ? pseudoMessage(message) : message;
+
 export function t(key: MessageKey, values?: MessageValues): string {
-  const message = CATALOGUES[current]?.[key] ?? english[key];
+  const message = (isPseudo(current) ? undefined : CATALOGUES[current]?.[key]) ?? english[key];
   if (message === undefined) throw new Error(`Unknown message: ${key}`);
-  return format(message, values);
+  return format(shown(message), values);
 }
 // A catalog text (a module's or facet's name, a description) in the current
 // language, or the catalog's English.
-export const catalogText = (key: string, english: string) => CATALOGUES[current]?.[`catalog.${key}`] ?? english;
+export const catalogText = (key: string, english: string) => (isPseudo(current) ? undefined : CATALOGUES[current]?.[`catalog.${key}`]) ?? shown(english);
 // A list of names joined as the language joins them ("German, Chinese").
 export const listFormat = (items: readonly string[]) => new Intl.ListFormat(current, { type: 'unit', style: 'short' }).format(items);
 export function onLanguageChange(listener: () => void) {
@@ -88,10 +119,18 @@ export function onLanguageChange(listener: () => void) {
   return () => { listeners.delete(listener); };
 }
 export function setLanguage(value: unknown) {
-  const next = isOffered(value) ? value : 'en';
+  preference = isOffered(value) ? value : 'en';
+  apply();
+}
+export function setPseudoLanguage(value: unknown) {
+  pseudo = isPseudo(value) ? value : null;
+  apply();
+}
+function apply() {
+  const next = pseudo ?? preference;
   if (typeof document !== 'undefined') {
     document.documentElement.lang = next;
-    document.documentElement.dir = LANGUAGES.find(language => language.code === next)?.direction ?? 'ltr';
+    document.documentElement.dir = isPseudo(next) ? PSEUDO_LANGUAGES[next] : LANGUAGES.find(language => language.code === next)?.direction ?? 'ltr';
   }
   if (next === current) return;
   current = next;
@@ -107,13 +146,18 @@ export function translateDocument(root: ParentNode = document) {
   }
 }
 
-type AccountItems = { account?: { language?: unknown } };
+type LanguageItems = { account?: { language?: unknown }; pseudoLanguage?: unknown };
 // Applies the stored preference and follows it as the worker refreshes it.
 export async function initializeLanguage() {
-  try { setLanguage(((await chrome.storage.local.get('account')) as AccountItems).account?.language); }
-  catch { setLanguage('en'); }
+  try {
+    const { account, pseudoLanguage } = (await chrome.storage.local.get(['account', 'pseudoLanguage'])) as LanguageItems;
+    pseudo = isPseudo(pseudoLanguage) ? pseudoLanguage : null;
+    setLanguage(account?.language);
+  } catch { setLanguage('en'); }
   chrome.storage.onChanged.addListener((changes, area) => {
-    if (area === 'local' && changes.account) setLanguage((changes.account.newValue as AccountItems['account'])?.language);
+    if (area !== 'local') return;
+    if (changes.pseudoLanguage) setPseudoLanguage(changes.pseudoLanguage.newValue);
+    if (changes.account) setLanguage((changes.account.newValue as LanguageItems['account'])?.language);
   });
   if (typeof document !== 'undefined') translateDocument();
 }

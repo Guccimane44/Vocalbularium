@@ -72,7 +72,7 @@ function PreviewDialog({ modules, sampleType, choose, close }: {
     </div>
     <p className="muted preview-note">{t('deck.preview.note')}</p>
     <div className="sample-page">
-      <p className="main-key preview" data-type={key.type} data-tier={mainKeyTier(mainKey)}>{mainKey}</p>
+      <p className="main-key preview" dir="auto" data-type={key.type} data-tier={mainKeyTier(mainKey)}>{mainKey}</p>
       {rest.map(module => {
         // A module's sample from the catalog (D11), with the facets it has here.
         const rendered = sampleOf(module.type, sampleType, module.facets ?? []);
@@ -223,7 +223,7 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
     {externalError && <p className="notice error" role="alert">{externalError}</p>}
     <fieldset className="deck-name" disabled={busy}>
       <label htmlFor="deck-name">{t('deck.name')}</label>
-      <input id="deck-name" value={draft.deck.name} onChange={event => {
+      <input id="deck-name" dir="auto" value={draft.deck.name} onChange={event => {
         draft.deck.name = event.target.value;
         refresh();
       }} />

@@ -3299,3 +3299,133 @@ test('0.9.0: Language in the account menu is the account’s preference, English
   await a.page.getByRole('heading', { name: 'Your decks', exact: true }).waitFor();
   assert.deepEqual(await documentLanguage(), ['en', 'ltr']);
 });
+
+// Text an interface shows that is not its own: the brand, the user's decks,
+// keys and content, dates, counts, and the languages named in themselves.
+const NOT_INTERFACE = '.brand, .meaning, .main-key, .entry, .md, .entry-content, .capture-text, .nav-label, .nav-count, .deck h2, .deck-view h1 bdi, .capture-deck, time, .family-count, .language-name, .language-row-value, .facet-tab-mark, .facet-tag-mark, .sample-page, .explanation-samples, .facet-explanation .explanation-sample, input, textarea';
+// Every visible interface text and label that is not a pseudo-language message.
+const unaccented = page => page.evaluate(selector => {
+  const found = [];
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+    const element = node.parentElement;
+    const text = node.textContent.trim();
+    if (!element || !/\p{L}{2}/u.test(text) || element.closest(selector) || !element.checkVisibility()) continue;
+    if (!/[⟦⟧]/.test(text)) found.push(text);
+  }
+  for (const element of document.querySelectorAll('[aria-label], [title], [placeholder]')) {
+    if (element.closest(selector) && !element.matches('input, textarea') || !element.checkVisibility()) continue;
+    for (const name of ['aria-label', 'title', 'placeholder']) {
+      const value = element.getAttribute(name);
+      if (value && /\p{L}{2}/u.test(value) && !/[⟦⟧]/.test(value)) found.push(`${name}=${value}`);
+    }
+  }
+  return [...new Set(found)];
+}, NOT_INTERFACE);
+
+test('0.9.0: right to left and the pseudo-languages: every surface mirrors, content keeps its direction, and no interface text escapes the catalogue (D14)', { timeout: 90000 }, async (t) => {
+  const directory = await mkdtemp(join(tmpdir(), 'vocabularium-rtl-browser-'));
+  const application = await createTestApplication(t); await application.start();
+  const a = await launch(join(directory, 'a'));
+  t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
+  await a.page.setViewportSize({ width: 1280, height: 1000 });
+  const store = application.store;
+  const session = { installationId: 'fixture', sessionId: 'rtl', epoch: 1 };
+  await store.openSession('rtl-session', session);
+  const { pageId } = await store.capture('rtl-capture', { session, mainKey: 'bank', snapshot: await store.snapshot() });
+  const [german] = (await store.page(pageId)).components.filter(item => item.moduleType === 'german');
+  const attempt = await store.attempt(german.attemptId);
+  await store.establishInterpretation(attempt.run_id, { inputType: 'word_phrase' });
+  await store.stage(german.attemptId, staged(BANK));
+  await store.publish('rtl-publish', { attemptId: german.attemptId, session });
+  await signIn(a.page);
+  const pseudo = value => a.page.evaluate(language => language ? chrome.storage.local.set({ pseudoLanguage: language }) : chrome.storage.local.remove('pseudoLanguage'), value);
+  const box = locator => locator.evaluate(node => { const { left, right, top, bottom } = node.getBoundingClientRect(); return { left, right, top, bottom }; });
+  // A card is shot with the row above it, where its tab and question stand.
+  const shoot = async (name, locator) => {
+    for (const theme of ['light', 'dark']) {
+      await a.page.evaluate(value => { document.documentElement.dataset.theme = value; }, theme);
+      const path = `artifacts/v0.9.0-${name}-${theme}.png`;
+      if (!locator) await a.page.screenshot({ path });
+      else { const area = await box(locator); await a.page.screenshot({ path, clip: { x: area.left - 40, y: area.top - 40, width: area.right - area.left + 80, height: Math.min(700, area.bottom - area.top + 80) } }); }
+    }
+    await a.page.evaluate(() => { delete document.documentElement.dataset.theme; });
+  };
+
+  // Right to left (ar-XB): the document and every surface mirror.
+  await pseudo('ar-XB');
+  await a.page.waitForFunction(() => document.documentElement.dir === 'rtl');
+  await a.page.getByRole('heading', { name: 'Your decks', exact: true }).waitFor();
+  const sidebar = await box(a.page.locator('#sidebar')), main = await box(a.page.locator('#app'));
+  assert.ok(sidebar.left > main.left, 'the sidebar stands at the right');
+  await accountMenu(a.page);
+  const trigger = await box(a.page.getByRole('button', { name: 'Account', exact: true })), panel = await box(a.page.locator('.account-panel'));
+  assert.ok(Math.abs(panel.left - trigger.left) < 2, 'the account menu opens towards the reading end, from the trigger’s left edge');
+  await a.page.keyboard.press('Escape');
+  await shoot('rtl-dashboard');
+
+  await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
+  const card = componentArticle(a.page, 'German');
+  await card.waitFor();
+  const cardBox = await box(card), tab = await box(card.locator('.card-tab')), tags = await box(card.locator('.facet-tags'));
+  assert.ok(cardBox.right - tab.right < 40 && tab.left - cardBox.left > 100, 'the card’s tab sits at its right');
+  assert.ok(tags.left > cardBox.right - 12, 'the facet tags stick out of the card’s right edge');
+  assert.equal(await card.locator('.md p, .md ol').first().evaluate(node => getComputedStyle(node).direction), 'ltr', 'German content keeps its own direction');
+  assert.equal(await a.page.locator('h1.main-key').evaluate(node => getComputedStyle(node).direction), 'ltr', 'so does a Latin main key');
+  const windowBox = await box(a.page.locator('.module-window'));
+  assert.ok(windowBox.right < cardBox.left, 'the module window stands at the left of the page');
+  await shoot('rtl-page');
+  // A card's actions spring out from its tab towards the reading end, and Delete asks beside it.
+  await cardTab(a.page, 'German').click();
+  const actions = card.locator('.card-actions');
+  await actions.getByRole('button', { name: 'Delete German', exact: true }).click();
+  await actions.getByText('Are you sure?', { exact: true }).waitFor();
+  const question = await box(actions.locator('.confirm-text')), cancel = await box(actions.getByRole('button', { name: 'Keep German', exact: true }));
+  assert.ok(question.right <= cancel.left + 1, 'the question stands after Cancel in the reading order, at its left');
+  await a.page.waitForTimeout(700);
+  await shoot('rtl-card-question', card);
+  await actions.getByRole('button', { name: 'Keep German', exact: true }).click();
+  await actions.getByRole('button', { name: 'Facets of German', exact: true }).click();
+  const window = a.page.getByRole('group', { name: 'Facets of German', exact: true });
+  await window.waitFor();
+  await a.page.waitForTimeout(300);
+  await shoot('rtl-facet-window', card);
+  await a.page.keyboard.press('Escape');
+  await window.waitFor({ state: 'detached' });
+  // Keyboard reordering still moves a module, the arrows following the reading direction.
+  await a.page.goto(`chrome-extension://${a.id}/app.html#configure/${(await store.snapshot()).id}`);
+  await a.page.getByRole('heading', { name: 'Modules for new pages', exact: true }).waitFor();
+  await shoot('rtl-deck-settings');
+
+  // The accented pseudo-language (en-XA): no visible interface text or label is left in plain English.
+  await pseudo('en-XA');
+  await a.page.waitForFunction(() => document.documentElement.lang === 'en-XA' && document.documentElement.dir === 'ltr');
+  await a.page.goto(`chrome-extension://${a.id}/app.html`);
+  await a.page.locator('.recent').waitFor();
+  assert.deepEqual(await unaccented(a.page), [], 'dashboard');
+  await a.page.locator('.account-trigger').click();
+  await a.page.locator('.account-panel').waitFor();
+  assert.deepEqual(await unaccented(a.page), [], 'account menu');
+  await a.page.locator('.language-row').click();
+  assert.deepEqual(await unaccented(a.page), [], 'language list');
+  await a.page.keyboard.press('Escape');
+  await a.page.locator('.deck .open').first().click();
+  await a.page.locator('.page-row').first().waitFor();
+  assert.deepEqual(await unaccented(a.page), [], 'deck page list');
+  await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
+  await a.page.locator('article.component[data-type="german"]').waitFor();
+  assert.deepEqual(await unaccented(a.page), [], 'page');
+  await a.page.locator('article.component[data-type="german"] .tab-button').click();
+  assert.deepEqual(await unaccented(a.page), [], 'card actions');
+  await shoot('pseudo-page');
+  await a.page.goto(`chrome-extension://${a.id}/app.html#configure/${(await store.snapshot()).id}`);
+  await a.page.locator('.module-window').waitFor();
+  assert.deepEqual(await unaccented(a.page), [], 'deck settings');
+  await a.page.goto(`chrome-extension://${a.id}/app.html#diagnostics`);
+  await a.page.locator('section h1').waitFor();
+  assert.deepEqual(await unaccented(a.page), [], 'diagnostic logs');
+
+  // Without a pseudo-language the interface is the account's English again.
+  await pseudo(null);
+  await a.page.waitForFunction(() => document.documentElement.lang === 'en' && document.documentElement.dir === 'ltr');
+});

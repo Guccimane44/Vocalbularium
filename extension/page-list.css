@@ -2,14 +2,14 @@
 
 .deck-view h1 { display: flex; align-items: baseline; gap: 14px; }
 .deck-mark { width: 14px; height: 22px; align-self: center; }
-.page-head > .head-actions { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.page-head > .head-actions { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; margin-inline-start: auto; }
 .head-actions .deck-menu summary { padding: 10px 12px; border-radius: var(--radius-control); }
 .head-actions .deck-menu summary:hover { background: var(--surface-hover); }
 
 .list-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; margin: 26px 0 8px; }
 .list-toolbar label { margin: 0; font-size: 14px; color: var(--ink-muted); }
 .list-toolbar select { width: auto; max-width: 100%; padding: 8px 10px; }
-.layout-switch { display: inline-flex; margin-left: auto; padding: 3px; gap: 2px; border-radius: var(--radius-control); background: var(--surface-active); }
+.layout-switch { display: inline-flex; margin-inline-start: auto; padding: 3px; gap: 2px; border-radius: var(--radius-control); background: var(--surface-active); }
 .layout-switch button { border: 0; padding: 6px 14px; border-radius: calc(var(--radius-control) - 2px); color: var(--ink-soft); font-weight: 500;
   transition: background var(--dur-instant) ease, color var(--dur-instant) ease; }
 .layout-switch button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 0 0 1px var(--line); }
@@ -45,7 +45,7 @@
   border-radius: var(--radius-md); box-shadow: 0 -1px 0 var(--line); transition: background var(--dur-instant) ease; }
 .page-rows .page-row:first-child { box-shadow: none; }
 .page-row-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.row-open { font-size: 13px; color: var(--ink-muted); opacity: 0; transform: translateX(-4px);
+.row-open { font-size: 13px; color: var(--ink-muted); opacity: 0; transform: translateX(calc(-4px * var(--flip)));
   transition: opacity var(--dur-quick) ease, transform var(--dur-quick) var(--ease-out); }
 .page-row:hover, .page-card:hover { background: var(--surface-hover); }
 .page-row:hover .row-open, .page-row:focus-within .row-open { opacity: 1; transform: none; }
@@ -55,7 +55,7 @@
 
 /* Table */
 .page-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin-top: 8px; }
-.page-table th { text-align: left; padding: 8px 12px; font: 600 12px/16px var(--font-text); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-muted);
+.page-table th { text-align: start; padding: 8px 12px; font: 600 12px/16px var(--font-text); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-muted);
   border-bottom: 1px solid var(--line); }
 .page-table th:nth-child(1) { width: 34%; }
 .page-table th:nth-child(3) { width: 110px; }
@@ -73,7 +73,7 @@
   border-radius: var(--radius-card); background: var(--surface); box-shadow: 0 0 0 1px var(--line);
   transition: transform var(--dur-settle) var(--ease-spring), box-shadow var(--dur-spring) ease, background var(--dur-instant) ease; }
 .page-card:hover { transform: translateY(-2px); box-shadow: 0 0 0 1px var(--line), var(--shadow-lift); }
-.page-card .fam-marks { position: absolute; top: -1px; left: 18px; }
+.page-card .fam-marks { position: absolute; top: -1px; inset-inline-start: 18px; }
 .page-card .fam-marks .fam-mark { width: 16px; height: 5px; border-radius: 0 0 2px 2px; }
 .page-card .entry { -webkit-line-clamp: 4; font-size: 18px; }
 .page-card .entry[data-tier="word"] { font-size: 28px; line-height: 1.15; -webkit-line-clamp: 2; }
@@ -83,7 +83,7 @@
 .load-more { margin-top: 18px; }
 
 @media (max-width: 900px) {
-  .layout-switch { margin-left: 0; }
+  .layout-switch { margin-inline-start: 0; }
   .page-rows .page-row { grid-template-columns: minmax(0, 1fr) auto; }
   .row-open { display: none; }
   .page-table th:nth-child(3), .page-table td:nth-child(3) { display: none; }

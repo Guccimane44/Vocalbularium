@@ -21,7 +21,7 @@ import { FamilyIcon } from './families.tsx';
 import { mainKeyTier } from './main-key.ts';
 import { AT_THE_END, moduleLabel, numbered, ShapingArea, SixDots } from './shaping.tsx';
 import type { RowParts } from './shaping.tsx';
-import { listFormat, t } from './i18n.ts';
+import { direction, listFormat, t } from './i18n.ts';
 
 // Icons for a card's actions, drawn like the family icons: 24px grid, 2.2 stroke.
 const ACTION_ICONS = {
@@ -96,7 +96,7 @@ function TextField({ id, labelText, value, readOnly, multiline = true, error, on
     className: error ? 'field-error' : undefined, onChange: (event: { target: { value: string } }) => onChange(event.target.value) };
   return <div className="component-field">
     <label htmlFor={id}>{labelText}</label>
-    {multiline ? <textarea rows={6} {...props} /> : <input {...props} />}
+    {multiline ? <textarea rows={6} dir="auto" {...props} /> : <input dir="auto" {...props} />}
     {error && <span className="visually-hidden" role="alert">{error}</span>}
   </div>;
 }
@@ -145,12 +145,14 @@ function Inline({ runs, mainKey }: { runs: readonly MdInline[]; mainKey: string 
   })}</>;
 }
 export function Markdown({ blocks, mainKey, className }: { blocks: readonly MdBlock[]; mainKey: string; className?: string }) {
+  // Each block takes the direction of its own text (D14): a German card reads
+  // left to right in a right-to-left interface, an Arabic one the other way.
   return <div className={`md${className ? ` ${className}` : ''}`}>{blocks.map((block, index) => block.type === 'paragraph'
-    ? <p key={index}><Inline runs={block.children} mainKey={mainKey} /></p>
+    ? <p key={index} dir="auto"><Inline runs={block.children} mainKey={mainKey} /></p>
     : block.ordered
-      ? <ol key={index} start={block.start}>{block.items.map((item, at) =>
+      ? <ol key={index} start={block.start} dir="auto">{block.items.map((item, at) =>
         <li key={at} data-number={block.start + at}><span><Inline runs={item} mainKey={mainKey} /></span></li>)}</ol>
-      : <ul key={index}>{block.items.map((item, at) => <li key={at}><Inline runs={item} mainKey={mainKey} /></li>)}</ul>)}</div>;
+      : <ul key={index} dir="auto">{block.items.map((item, at) => <li key={at}><Inline runs={item} mainKey={mainKey} /></li>)}</ul>)}</div>;
 }
 
 // A facet's Edit (0.7.5), Retry and Delete beside its label (0.7.3): Edit
@@ -235,11 +237,11 @@ export function Content({ type, rendered, mainKey, controls }: {
   </h3>;
   const section = (facet: string) => ({ className: 'facet', 'data-facet': facet, tabIndex: -1,
     'data-retrying': controls?.retrying === facet || undefined, 'aria-busy': controls?.retrying === facet || undefined });
-  if (rendered.kind === 'plain') return rendered.text ? <pre>{rendered.text}</pre> : null;
+  if (rendered.kind === 'plain') return rendered.text ? <pre dir="auto">{rendered.text}</pre> : null;
   const { heading, core, facets } = rendered;
   // The core's top line, then its markdown; each facet's markdown in its container (D09).
   return <div className="entry-content">
-    {heading && <p className="entry-heading">
+    {heading && <p className="entry-heading" dir="auto">
       {/* An Expertise core names no language (D11). */}
       {heading.language && <span className="entry-language">{heading.language}</span>}
       <span className="entry-key">{heading.key}</span>
@@ -365,7 +367,7 @@ export function MainKeyTitle({ text }: { text: string }) {
     return () => observer.disconnect();
   }, [text, tier, expanded]);
   return <>
-    <h1 ref={title} className="main-key" data-tier={tier} data-expanded={expanded || undefined}>{text}</h1>
+    <h1 ref={title} className="main-key" dir="auto" data-tier={tier} data-expanded={expanded || undefined}>{text}</h1>
     {overflows && <button className="show-all" aria-expanded={expanded} onClick={() => setExpanded(!expanded)}>{expanded ? t('page.showLess') : t('page.showAll')}</button>}
   </>;
 }
@@ -387,7 +389,7 @@ function ConfirmAction({ kind, title, offset, onConfirm, onCancel }: {
   const questionId = `confirm-${title.replace(/\W+/g, '-')}`;
   const verb = kind === 'delete' ? t('common.delete') : t('common.retry');
   return <div className="card-actions" role="group" aria-label={kind === 'delete' ? t('action.deleteAsk', { name: title }) : t('action.retryAsk', { name: title })} aria-describedby={questionId} data-open data-confirm={kind}
-    style={{ paddingLeft: inset }}>
+    style={{ paddingInlineStart: inset }}>
     <button ref={confirm} style={{ '--i': 0 } as CSSProperties} className="action-confirm" aria-label={kind === 'delete' ? t('action.confirmDelete', { name: title }) : t('action.confirmRetry', { name: title })} onClick={onConfirm}>
       <ActionIcon name={kind} />{verb}</button>
     <button ref={cancel} style={{ '--i': 1 } as CSSProperties} aria-label={t('action.keepNamed', { name: title })} onClick={onCancel}>{t('common.cancel')}</button>
@@ -488,7 +490,7 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
       <button onClick={() => void discardUnavailable()}>{t('common.discardDraft')}</button>
     </>}
   </>;
-  const back = <button className="back" onClick={() => navigate(`deck/${deck.id}`)}>← {deck.name}</button>;
+  const back = <button className="back" onClick={() => navigate(`deck/${deck.id}`)}>{t('page.back', { deck: deck.name })}</button>;
   if (isNew || !page) return <>
     {notice}{back}
     <h1>{t('page.new.title')}</h1>
@@ -519,10 +521,14 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
         if (kind === 'delete') vanish(item);
         else void run(() => generate({ scope: 'component', componentId: item.id }, true));
       }} />;
-    // Where a clicked button stands within the row, transforms aside: offsetLeft counts from the card's head.
+    // Where a clicked button stands within the row from its start, transforms aside:
+    // offsetLeft counts from the card's head; a right-to-left row starts at its right.
     const ask = (kind: 'delete' | 'retry') => (event: { currentTarget: HTMLButtonElement }) => {
-      const button = event.currentTarget;
-      setConfirming({ id: item.id, kind, offset: button.offsetLeft - (button.parentElement?.offsetLeft ?? 0) });
+      const button = event.currentTarget, row = button.parentElement;
+      const offset = direction() === 'rtl'
+        ? (row ? row.offsetLeft + row.offsetWidth : 0) - (button.offsetLeft + button.offsetWidth)
+        : button.offsetLeft - (row?.offsetLeft ?? 0);
+      setConfirming({ id: item.id, kind, offset });
     };
     // A component with nothing in it has nothing to lose: Delete and Retry act at once.
     const hasContent = readContent(item.moduleType, item.content).present;

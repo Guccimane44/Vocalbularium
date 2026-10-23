@@ -264,5 +264,7 @@
   "worker.openTitle": "Open Vocabularium",
   "settings.language.back": "Back to the account menu",
   "settings.language.comingSoon": "Coming soon",
-  "settings.language.row": "Language, {language}"
+  "settings.language.row": "Language, {language}",
+  "page.back": "← {deck}",
+  "settings.language.backLabel": "‹ Language"
 }
