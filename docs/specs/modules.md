@@ -60,8 +60,8 @@ The main key module belongs to no family; it is shown as the page title. Languag
 | --- | --- | --- | --- |
 | `German` | Languages | A word or phrase: an explanation in German, in the layout of the retired `German explanation`. A sentence: its German translation. | Article, Examples, Synonyms, Antonyms |
 | `Chinese` | Languages | A word or phrase: an explanation in Chinese, in the same layout. A sentence: its Chinese translation. Simplified characters. | Examples, Pinyin |
-| `Computer Science` | Expertise | A short explanation of the word, phrase or sentence for a learner, in the language preference, as computer science understands it ([writing in the interface language](#writing-in-the-interface-language)). Provisional (0.8.0). | none yet |
-| `Mathematics` | Expertise | The same, as mathematics understands it. Provisional (0.8.0). | none yet |
+| `Computer Science` | Expertise | A short explanation of the word, phrase or sentence for a learner, in the language preference, as computer science understands it ([writing in the interface language](#writing-in-the-interface-language); [staying with the subject](#staying-with-the-subject)). Its neighbouring fields: mathematics, electronics, linguistics and information science. Provisional (0.8.0). | none yet |
+| `Mathematics` | Expertise | The same, as mathematics understands it. Its neighbouring fields: computer science, physics, statistics, economics and engineering. Provisional (0.8.0). | none yet |
 
 | Facet | Tag | Word or phrase | Sentence |
 | --- | --- | --- | --- |
@@ -95,6 +95,20 @@ The Expertise modules' output reads as written in the interface language, not tr
 - **Length.** A module states a length limit in a form that holds in every language: the guide restates it in the unit the language counts in, such as 50 words in English or French and about 80 characters in Chinese ([K40](../architecture/traceability-map.md#clarifications)).
 - **Review per language.** Expertise generation in a language is checked before that language is offered: each Expertise module's golden set runs in it and is read by a reviewer separate from the drafter, for facts, invented terms and the guide's conventions ([K42](../architecture/traceability-map.md#clarifications)). The six languages offered since 0.9.0 are reviewed in the release that adds the guides and keep following the preference meanwhile; a language added later is offered only once its strings, its guide and its Expertise generation have passed review ([shared UI](shared-ui.md#interface-language)).
 - **Before the guides are built**, a short run of Computer Science in Chinese and French compares a guide written in English with one written in the language; the English guide is adopted unless clearly worse, and otherwise the owner decides ([K43](../architecture/traceability-map.md#clarifications); [prompt test](../history/evidence/writing-guide-prompt-test.md)).
+
+## Staying with the subject
+
+An Expertise module explains a key as its subject understands it and says so plainly when the key is outside it ([D16](../architecture/traceability-map.md#entries); [ranking](../history/evidence/expertise-insight-ranking.md)). Its core takes one of three cases, which the model decides from the key, the Context and the neighbouring fields its prompt names; no separate classification step or stored field is added ([K44](../architecture/traceability-map.md#clarifications)).
+
+- **A key of the subject** is explained as before: what it means, why it matters, and an example.
+- **A neighbouring technical term**, a term of one of the module's neighbouring fields (multi-core or cache in Mathematics), is named as not a concept of the subject and explained in one paragraph within the module's length, in plain terms a learner of the subject understands ([K46](../architecture/traceability-map.md#clarifications)).
+- **An unrelated key**, with no meaning in the subject or a neighbouring field (retinol, or 幸福 in Computer Science), gets one honest sentence saying so, such as "Retinol is not a mathematics concept.", in the interface language; its general meaning is not explained. An established term of the subject built on the word may follow in at most one more sentence (happy numbers for 幸福 in Mathematics). The card is shown like any core, not hidden or left empty, so the user sees that the module ran ([K45](../architecture/traceability-map.md#clarifications)).
+
+In every case:
+
+- **No forced angles.** No answer builds a connection the subject does not routinely make: no formula, law or model of the subject is applied to a term of another field unless the subject's textbooks routinely apply it.
+- **Context and everyday meanings.** The core never restates or explains the Context ([input and applicability](#input-and-applicability)). An everyday meaning is any sense outside the subject, a computing sense in Mathematics included; the core names one only when a supplied Context uses it, in one opening sentence followed by the subject's meaning. Without such a Context it explains only the subject's meaning, and a term's etymology only when the subject's textbooks give it ([K47](../architecture/traceability-map.md#clarifications)).
+- **Verification.** The Computer Science and Mathematics golden sets cover the three cases, including retinol, multi-core and cache in Mathematics, run in every interface language and are read by separate reviewers ([K42](../architecture/traceability-map.md#clarifications)); the owner ranks the cards this changes, blind, against the earlier output, on a page of at most eight cards ([K48](../architecture/traceability-map.md#clarifications)).
 
 ## Input and applicability
 
