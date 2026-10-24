@@ -27,7 +27,18 @@ The unrelated case now asks for one sentence of the form "<the selection> is not
 
 ## Owner's ranking
 
-Pending: [judging page](https://claude.ai/artifact/Cm4GTNv8wqW7Fz7SrD4ZXV), private to the owner. The D16 prompts are adopted if their answers are preferred or tied on most cards and not marked not fine where the baseline was fine; otherwise the owner decides before increment B.
+On the [judging page](https://claude.ai/artifact/Cm4GTNv8wqW7Fz7SrD4ZXV), private to the owner, 24 October 2026. The owner judged the five cards they were confident about and left three untouched as unsure.
+
+| Card | 0.10.0 answers | D16 answers | Ranking |
+| --- | --- | --- | --- |
+| retinol, Mathematics | both not fine | both fine | D16 1st and 2nd |
+| retinol, Computer Science | both not fine | both fine | D16 1st and 2nd |
+| Frontend, Mathematics | one fine, one not fine | both fine | not ranked |
+| 幸福, Mathematics | both fine | both fine | not ranked |
+| grandmother's ring, Mathematics | both fine | both fine | one 0.10.0 answer 1st, the rest unranked |
+| multi-core, cache (Mathematics); 幸福 (Computer Science) | not judged | not judged | not judged |
+
+No D16 answer was marked not fine; 0.10.0 answers were marked not fine five times. On the judged cards, D16 is preferred on two (retinol), at least as good on two (Frontend, 幸福 in Mathematics) and slightly behind on one (the ring, where the two prompts' answers barely differ). The adoption rule was met on every judged card; the three unjudged cards, including multi-core and cache, carry no owner judgement. Two notes held only fragments ("they", "the ").
 
 ## Limits
 
