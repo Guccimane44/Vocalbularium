@@ -40,6 +40,8 @@ On the [judging page](https://claude.ai/artifact/Cm4GTNv8wqW7Fz7SrD4ZXV), privat
 
 No D16 answer was marked not fine; 0.10.0 answers were marked not fine five times. On the judged cards, D16 is preferred on two (retinol), at least as good on two (Frontend, 幸福 in Mathematics) and slightly behind on one (the ring, where the two prompts' answers barely differ). The adoption rule was met on every judged card; the three unjudged cards, including multi-core and cache, carry no owner judgement. Two notes held only fragments ("they", "the ").
 
+**Adopted by the owner on 24 October 2026**, with the three cards unjudged; increment B reviews the D16 prompts in the other five languages.
+
 ## Limits
 
 English only, one model, three samples per input, drafter's reading. Sentences outside the subject are not covered ([plan](../../plans/expertise-subject.md#not-in-this-milestone)).

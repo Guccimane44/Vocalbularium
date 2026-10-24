@@ -59,7 +59,8 @@ for (const { types, inputs } of sets) for (const input of inputs) for (let sampl
 const json = value => `\`\`\`json\n${JSON.stringify(value, null, 2)}\n\`\`\``;
 // The stored markdown, the core then each facet under its label, as the card shows it.
 const markdown = content => ['```markdown', content.core, ...Object.entries(content.facets).flatMap(([facet, text]) => ['', `## ${facet}`, text]), '```'].join('\n');
-const stamp = evidence.date.replace(/[:.]/g, '-');
+// The language and module keep runs started in the same millisecond apart.
+const stamp = `${evidence.date.replace(/[:.]/g, '-')}-${language}${only ? `-${only}` : ''}`;
 await mkdir('.data/golden', { recursive: true });
 await writeFile(`.data/golden/${stamp}.json`, JSON.stringify(evidence, null, 2) + '\n');
 const review = [`# Golden set ${evidence.date}`, '', `Model: ${evidence.model} · Language: ${language}${samples > 1 ? ` · ${samples} samples per input` : ''}`, '',
