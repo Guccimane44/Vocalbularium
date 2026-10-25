@@ -159,8 +159,9 @@ function GalleryCard({ page, navigate, arrived }: { page: ListPage; navigate: Na
 function groups(pages: ListPage[], grouped: boolean) {
   if (!grouped) return [{ label: null, pages }];
   const result: { label: string | null; pages: ListPage[] }[] = [];
+  const now = new Date();
   for (const page of pages) {
-    const label = dateGroup(page.createdAt);
+    const label = dateGroup(page.createdAt, now);
     if (result.at(-1)?.label === label) result.at(-1)!.pages.push(page);
     else result.push({ label, pages: [page] });
   }
