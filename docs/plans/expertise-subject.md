@@ -1,6 +1,6 @@
 # Plan: the Expertise modules stay with the subject (0.11.0)
 
-Proposed: 24 October 2026 (Europe/Berlin). Implements [D16](../architecture/traceability-map.md#entries), accepted by the owner on 24 October 2026, with K44–K48 resolved the same day. Specification: [modules § Staying with the subject](../specs/modules.md#staying-with-the-subject). Evidence: the [blind ranking](../history/evidence/expertise-insight-ranking.md) and the [0.10.0 review](../history/evidence/expertise-writing-review.md). Tracker: [#227](https://github.com/Guccimane44/Vocalbularium/issues/227).
+Proposed: 24 October 2026 (Europe/Berlin). Implemented in release 0.11.0 (increments 0, A and B, [#228](https://github.com/Guccimane44/Vocalbularium/pull/228), [#229](https://github.com/Guccimane44/Vocalbularium/pull/229) and [#230](https://github.com/Guccimane44/Vocalbularium/pull/230)); the owner adopted the prompts after a blind ranking of five of eight cards, and owner acceptance is recorded on the tracker. Implements [D16](../architecture/traceability-map.md#entries), accepted by the owner on 24 October 2026, with K44–K48 resolved the same day. Specification: [modules § Staying with the subject](../specs/modules.md#staying-with-the-subject). Evidence: the [blind ranking](../history/evidence/expertise-insight-ranking.md) and the [0.10.0 review](../history/evidence/expertise-writing-review.md). Tracker: [#227](https://github.com/Guccimane44/Vocalbularium/issues/227).
 
 ## Outcome
 
