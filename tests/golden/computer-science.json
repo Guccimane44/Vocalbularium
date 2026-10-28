@@ -8,8 +8,7 @@
       "key": "Frontend",
       "why": "Core term, the example in D11",
       "expect": {
-        "relevance": "subject",
-        "hasCode": "no"
+        "relevance": "subject"
       }
     },
     {

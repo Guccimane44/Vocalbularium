@@ -54,9 +54,9 @@ This transient popup is separate from the dashboard and from confirmation dialog
 
 ## Input interpretation
 
-With [D17](../architecture/traceability-map.md#entries) (accepted 28 October 2026, not yet built) there is no interpretation shared by the run. Each attempt reads the main key and Context in its own request and records its reading as the core's flags, such as word or sentence for a Languages parent, which its card's header shows ([pages and editing](pages-and-editing.md#required-main-key)). No reading chooses a source language for the page: each parent reads the language from the key and Context. Target languages are defined by the parent modules, not by a fixed language-pair setting for the deck. A failed attempt fails only its own component.
+Since 0.12.0 ([D17](../architecture/traceability-map.md#entries)) there is no interpretation shared by the run. Each attempt reads the main key and Context in its own request and records its reading as the core's flags, such as word or sentence for a Languages parent, which its card's header shows ([pages and editing](pages-and-editing.md#required-main-key)). No reading chooses a source language for the page: each parent reads the language from the key and Context. Target languages are defined by the parent modules, not by a fixed language-pair setting for the deck. A failed attempt fails only its own component.
 
-Until D17 is built, the main key and the saved Context are used to determine whether the input is a word or phrase, or a sentence, once per run; every attempt in the run uses that result, the page shows it under its main key, and if it fails every attempt in the run fails ([D08](../architecture/traceability-map.md#entries)).
+Until 0.12.0 the main key and the saved Context were classified as a word or phrase, or a sentence, once per run, shown under the main key, and a failed classification failed every attempt in the run ([D08](../architecture/traceability-map.md#entries)).
 
 The interpretation and applicability rules are defined in the [Modules specification](modules.md#input-and-applicability).
 
@@ -80,9 +80,9 @@ Generation-status labels describe actual generation attempts. A component that h
 
 Each component attempt has one of these states:
 
-- **Loading:** the component's generation is in progress (until D17 is built, also the run's interpretation).
+- **Loading:** the component's generation is in progress.
 - **Completed:** the instance completed. Publish its output, the core and its applicable facets, as the component's content. A facet that does not apply is left out and does not count as a failure.
-- **Failed:** the instance failed (until D17 is built, also when the run's interpretation failed). Discard any partial output from that attempt and show a failure indicator on the empty component. There is no partial success within a component.
+- **Failed:** the instance failed. Discard any partial output from that attempt and show a failure indicator on the empty component. There is no partial success within a component.
 
 Components fail and complete independently. For example, if a page has two `German` instances and only one succeeds, the successful one is published and the other component fails. A later retry of the failed component generates only that one.
 
@@ -119,14 +119,14 @@ For the whole page:
 - **Cancel** leaves the page unchanged.
 - **Confirm** discards the targeted components' current content and starts a fresh attempt for each. Previous edits and generated output are not preserved or merged into the replacement. If an attempt fails, its component stays empty with a failure indicator; the discarded content is not restored.
 
-Retry uses the page's current saved main key and Context and its content module instances at confirmation time. Each retry generates anew from them: nothing from an earlier attempt is reused, and generated content is never cached ([D17](../architecture/traceability-map.md#entries)); until D17 is built, each retry starts a new run with a fresh interpretation. A retry generates the parent's core and every facet it currently has, including facets added since its last attempt, and never a facet the user deleted.
+Retry uses the page's current saved main key and Context and its content module instances at confirmation time. Each retry generates anew from them: nothing from an earlier attempt is reused, and generated content is never cached ([D17](../architecture/traceability-map.md#entries)). A retry generates the parent's core and every facet it currently has, including facets added since its last attempt, and never a facet the user deleted.
 
 ### Retrying one facet
 
 Since 0.7.3 each facet of a parent component has its own **Retry** beside its **Delete** ([pages and editing](pages-and-editing.md#components-as-cards)); since 0.7.4 its tag, pulled out of an open card's edge, holds one too ([facet tags](pages-and-editing.md#facet-tags)). It regenerates that facet alone: the facet's markdown is replaced with its new JSON formatted as markdown, or added when the facet had none (since 0.7.4), and the core and the other facets stay exactly as they are, edits included. A facet waiting for **Retry** can be generated this way without regenerating the rest.
 
 - **Asking.** Beside its label, a facet with content asks "Are you sure?", with a final **Retry** and **Cancel**; one with nothing in it starts at once. The tag's **Retry** never asks (since 0.7.4). If the facet's content changed after the user answered, the dialog warns: "Retry will replace this facet's content, including your edits to it. The rest of the component will not change."
-- **Input.** The attempt uses the page's saved main key and Context and the component's current core, with its flags, so the facet follows the core it joins; until D17 is built, the page's latest word-or-sentence reading. The provider writes only that facet for the core; anything else it returns is discarded. A facet that does not apply to the core's flags is left out, as in a whole attempt.
+- **Input.** The attempt uses the page's saved main key and Context and the component's current core, with its flags, so the facet follows the core it joins. The provider writes only that facet for the core; anything else it returns is discarded. A facet that does not apply to the core's flags is left out, as in a whole attempt.
 - **While it runs.** The component keeps its content and stays open; the spark runs round the facet's tab (since 0.7.4); a facet without content shows its heading, as it always does since D10's sixth amendment, and gains its text if it comes back with content; the component is locked as during any attempt.
 - **Failure.** A failed or interrupted facet attempt leaves the content and the component's state as they were before it, and the facet says its Retry failed until the component's next attempt (a facet without a section, through its tag). A facet that was waiting still waits.
 - **Availability.** Since 0.7.4 every parent's content is structured, so every facet of a parent with a core can be retried alone ([render contracts](modules.md#render-contracts)).

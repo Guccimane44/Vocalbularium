@@ -21,9 +21,9 @@
       "summary": "Revised in increment C after three rounds of the Expertise generation review: stock openers banned as announcing sentences without replacement phrases, English glosses limited to the selection and one or two specialist terms, the language's term put first. English commas in the English instructions; parentheses, not brackets; examples جدول التجزئة and القيمة الذاتية; Western digits in prose only. Five sections from the shared template; term examples paired across computer science and mathematics; formulas and symbols kept as they are; stock phrases banned as paragraph openers only."
     },
     "expertise": {
-      "reviewed": "2026-10-24",
-      "reviewer": "Claude, a reviewer separate from the drafter (review, then re-checks after each prompt revision)",
-      "summary": "0.11.0 (D16): Computer Science and Mathematics golden sets, 3 samples, five rounds of prompt revision (702 calls each, all languages). Pass in round five: unrelated keys one natural sentence, neighbouring terms one plain paragraph with no link to the subject, Big O kept in Mathematics, in-subject Contexts not mentioned. Left minor: neighbouring terms often open with the English term; two corn-kernel openings restate the Context; one mixed-script word."
+      "reviewed": "2026-10-28",
+      "reviewer": "Claude, a reviewer separate from the drafter (one review per language, then a rerun after the fixes)",
+      "summary": "0.12.0 (D17): both Expertise golden sets, then rerun after the fixes (36 + 39 calls). First review FAIL on two catalog strings (the dative written الجر in the Case explanation; الإعراب as the Declension label), fixed: the dative now حالة القابل (Dativ), Declension تصريف الأسماء, Conjugation تصريف الأفعال, Comparison المقارنة والتفضيل; the guide pins علوم الحاسوب and ترميز O الكبير. Cards pass D16; formulas and code correct, Arabic comments. Rerun: 39/39, flags as expected, no stray formula symbols. Left minor: one-off slips (garbage collection says GC forbids freeing memory; cache without an Arabic term)."
     }
   },
   "es": {
@@ -36,9 +36,9 @@
       "summary": "Revised in increment C after three rounds of the Expertise generation review: stock openers banned as announcing sentences without replacement phrases, English glosses limited to the selection and one or two specialist terms, the language's term put first. Examples tabla hash and valor propio; «Piensa en ello como» added. Five sections from the shared template; term examples paired across computer science and mathematics; formulas and symbols kept as they are; stock phrases banned as paragraph openers only."
     },
     "expertise": {
-      "reviewed": "2026-10-24",
-      "reviewer": "Claude, a reviewer separate from the drafter (review, then re-checks after each prompt revision)",
-      "summary": "0.11.0 (D16): Computer Science and Mathematics golden sets, 3 samples, five rounds of prompt revision (702 calls each, all languages). Pass in round five: unrelated keys one natural sentence, neighbouring terms one plain paragraph with no link to the subject, Big O kept in Mathematics, in-subject Contexts not mentioned. Left minor: one corn-kernel opening restates the Context; lower-case or subjectless neighbouring-term openings; one 60-word paragraph."
+      "reviewed": "2026-10-28",
+      "reviewer": "Claude, a reviewer separate from the drafter (one review per language, then a rerun after the fixes)",
+      "summary": "0.12.0 (D17): both Expertise golden sets, then rerun after the fixes. PASS: D16 holds; formulas and code correct, Spanish comments, only for keys of the subject. Fixed: Formula symbols limited to variables and real notation (all languages); stricter hasCode; the guide says «caché», not «caché (cache)»; Case explanation «no rige caso»; German words in italics in the Comparison explanation. Rerun: 39/39, flags as expected. Left minor: recursion called a function in one card; escaped equals signs in prose; costo/coste mixed."
     }
   },
   "fr": {
@@ -51,9 +51,9 @@
       "summary": "Revised in increment C after three rounds of the Expertise generation review: stock openers banned as announcing sentences without replacement phrases, English glosses limited to the selection and one or two specialist terms, the language's term put first. Examples corrected to table de hachage and valeur propre (ramasse-miettes named the collector); non-breaking spaces inside « » in the examples; decimal comma in prose. Five sections from the shared template; term examples paired across computer science and mathematics; formulas and symbols kept as they are; stock phrases banned as paragraph openers only."
     },
     "expertise": {
-      "reviewed": "2026-10-24",
-      "reviewer": "Claude, a reviewer separate from the drafter (review, then re-checks after each prompt revision)",
-      "summary": "0.11.0 (D16): Computer Science and Mathematics golden sets, 3 samples, five rounds of prompt revision (702 calls each, all languages). Pass in round five: unrelated keys one natural sentence, neighbouring terms one plain paragraph with no link to the subject, Big O kept in Mathematics, in-subject Contexts not mentioned. Left minor: an English expansion of API; the scheduling kernel half-echoes its Context; garbage collection overstated; paragraphs up to 57 words."
+      "reviewed": "2026-10-28",
+      "reviewer": "Claude, a reviewer separate from the drafter (one review per language, then a rerun after the fixes)",
+      "summary": "0.12.0 (D17): both Expertise golden sets, then rerun after the fixes. Content PASS (D16 holds; formulas and code correct, French comments, standard terms); typography FAIL in the model's prose: plain spaces before : ; ? ! and inside « », as already in 0.11.0's output, recorded as a known limit (an automatic insertion after generation would be a separate change). Fixed: the six new explanations use non-breaking spaces like the existing ones; Case explanation «ne régit pas de cas». Rerun: 39/39, flags as expected. Left minor: one-off slips (multi-core inside the guillemets, a missing «et» in ring)."
     }
   },
   "ru": {
@@ -66,9 +66,9 @@
       "summary": "Revised in increment C after three rounds of the Expertise generation review: stock openers banned as announcing sentences without replacement phrases, English glosses limited to the selection and one or two specialist terms, the language's term put first. Examples хеш-таблица and собственное значение; dash with a non-breaking space before it; decimal comma in prose; «Давайте разберёмся» added. Five sections from the shared template; term examples paired across computer science and mathematics; formulas and symbols kept as they are; stock phrases banned as paragraph openers only."
     },
     "expertise": {
-      "reviewed": "2026-10-24",
-      "reviewer": "Claude, a reviewer separate from the drafter (review, then re-checks after each prompt revision)",
-      "summary": "0.11.0 (D16): Computer Science and Mathematics golden sets, 3 samples, five rounds of prompt revision (702 calls each, all languages). Pass in round five: unrelated keys one natural sentence, neighbouring terms one plain paragraph with no link to the subject, Big O kept in Mathematics, in-subject Contexts not mentioned. Left minor: smart pointers called garbage collection; a field defined without commutativity; the key capitalised as «Retinol»."
+      "reviewed": "2026-10-28",
+      "reviewer": "Claude, a reviewer separate from the drafter (one review per language, then a rerun after the fixes)",
+      "summary": "0.12.0 (D17): both Expertise golden sets, then rerun after the fixes. First review FAIL on the Case explanation's grammar («Какой падеж управляет»), fixed to «Каким падежом управляет»; vague wording fixed. Not changed: the unrelated key capitalised at the start of the sentence (Retinol), which the spec's example follows (K45). Cards pass D16; formulas and code correct, Russian comments, «ёлочки» and dashes. Rerun: 39/39, flags as expected, no stray formula symbols. Left minor: factorial base case n == 1; «не рекурсируем»."
     }
   },
   "zh-Hans": {
@@ -81,9 +81,9 @@
       "summary": "Revised in increment C after three rounds of the Expertise generation review: stock openers banned as announcing sentences without replacement phrases, English glosses limited to the selection and one or two specialist terms, the language's term put first. Full-width punctuation list completed with 、？！ and a spacing rule; 换句话说 instead of 打个比方; examples 哈希表 and 特征值. Five sections from the shared template; term examples paired across computer science and mathematics; formulas and symbols kept as they are; stock phrases banned as paragraph openers only."
     },
     "expertise": {
-      "reviewed": "2026-10-24",
-      "reviewer": "Claude, a reviewer separate from the drafter (review, then re-checks after each prompt revision)",
-      "summary": "0.11.0 (D16): Computer Science and Mathematics golden sets, 3 samples, five rounds of prompt revision (702 calls each, all languages). Pass in round five: unrelated keys one natural sentence, neighbouring terms one plain paragraph with no link to the subject, Big O kept in Mathematics, in-subject Contexts not mentioned. Left minor: the corn kernel adds 核函数 and 卷积核; paragraphs up to about 120 characters; an overgeneralised quintic statement."
+      "reviewed": "2026-10-28",
+      "reviewer": "Claude, a reviewer separate from the drafter (one review per language, then a rerun after the fixes)",
+      "summary": "0.12.0 (D17): both Expertise golden sets, then rerun after the fixes. PASS: native Simplified Chinese, no traditional characters; D16 holds; formulas and code correct, Chinese comments. Fixed: Formula symbols limited to variables and real notation; stricter hasCode; labels Case 支配格 and Comparison 比较级与最高级; Formula explanation wording. Rerun: 38/39 (one invalid JSON reply), flags as expected. Left minor: 幸福 in Computer Science adds a gloss in one sample; 竞争条件 vs 竞态条件; 大O without a space."
     }
   }
 }

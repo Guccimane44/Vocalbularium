@@ -80,13 +80,15 @@ function alongTheEdge(from: Spot, corner: Spot): Keyframe[] {
   });
 }
 
-export function FacetTags({ holderId, parent, facets, filled, layout, title, disabled = false, onRetry, retrying, failed, onRemove }: {
+export function FacetTags({ holderId, parent, facets, filled, layout, title, disabled = false, onRetry, retrying, failed, onRemove, ruledOut = [] }: {
   holderId: string; parent: ParentType; facets: readonly string[]; layout: TagLayout; title: string; disabled?: boolean;
   // The facets with content on the card (0.7.3); the others wear a blander
   // tag. Absent where content does not apply, as in deck settings.
   filled?: readonly string[];
   // A pulled-out tag's Retry; absent where a card has no content to keep.
   onRetry?: (facet: FacetType) => void;
+  // Facets the card's flags rule out (D17): their tag has no Retry.
+  ruledOut?: readonly string[];
   // The facet regenerating on its own, or whose own Retry failed (0.7.3).
   retrying?: string; failed?: string;
   onRemove?: (facet: FacetType) => void;
@@ -203,10 +205,10 @@ export function FacetTags({ holderId, parent, facets, filled, layout, title, dis
       style={{ '--i': index } as CSSProperties} aria-hidden={gone || undefined}>
       {/* On a card's edge the tag pulls out to its Retry (0.7.4); elsewhere it
           is no button, so clicking it moves nothing (0.7.3). */}
-      {pulling && !gone ? <button type="button" className="facet-tag-open" aria-label={t('tag.inCard', { name, card: title })} aria-expanded={out}
+      {pulling && !gone && !ruledOut.includes(facet) ? <button type="button" className="facet-tag-open" aria-label={t('tag.inCard', { name, card: title })} aria-expanded={out}
         onClick={() => setPulled(out ? null : facet)}>{mark}</button>
         : <span className="facet-tag-open" role="img" aria-label={name}>{mark}</span>}
-      {pulling && !gone && <button type="button" className="facet-tag-retry" aria-label={t('tag.retryIn', { name: label, card: title })} tabIndex={out ? 0 : -1}
+      {pulling && !gone && !ruledOut.includes(facet) && <button type="button" className="facet-tag-retry" aria-label={t('tag.retryIn', { name: label, card: title })} tabIndex={out ? 0 : -1}
         aria-hidden={!out || undefined} disabled={disabled || retrying === facet}
         onClick={() => { setPulled(null); onRetry!(facet); }}>
         {/* The card's Retry icon (page-view.tsx). */}

@@ -6,7 +6,7 @@ Write natural Modern Standard Arabic, as good Arabic textbook or popular-science
 
 ## Terms
 
-At the first use of the selection's term, and of at most one or two other specialist terms a learner would look up in English sources, give the established Arabic term followed by the English in parentheses, as in جدول التجزئة (hash table) or القيمة الذاتية (eigenvalue); the term itself takes no quotation marks. When the selection is itself the English term, still begin with the Arabic term. Give no English for everyday or school words, such as دالة, نقطة or مستقيم. Keep the English for terms Arabic-speaking specialists use as they are, as in API; names of languages, products and tools stay as they are, as in Python. The parentheses hold the English even when the selection is in another language. Do not invent an Arabic term.
+At the first use of the selection's term, and of at most one or two other specialist terms a learner would look up in English sources, give the established Arabic term followed by the English in parentheses, as in جدول التجزئة (hash table) or القيمة الذاتية (eigenvalue); the term itself takes no quotation marks. When the selection is itself the English term, still begin with the Arabic term. Give no English for everyday or school words, such as دالة, نقطة or مستقيم. Keep the English for terms Arabic-speaking specialists use as they are, as in API; names of languages, products and tools stay as they are, as in Python. The parentheses hold the English even when the selection is in another language. Do not invent an Arabic term. Name the subjects علوم الحاسوب and الرياضيات, and write Big O as ترميز O الكبير, the same in every card.
 
 ## As it is
 

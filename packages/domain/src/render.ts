@@ -1,5 +1,7 @@
 import { contentModule } from './catalog/index.js';
-import { facetsOf, PARENTS } from './parents.js';
+import { facetsOf, PARENTS, ruledOut } from './parents.js';
+import type { RuledOut } from './parents.js';
+import { providerCore } from './content.js';
 import type { FacetType, ParentType } from './parents.js';
 import type { ParentContent } from './content.js';
 import { hasText, parseMarkdown } from './markdown.js';
@@ -19,7 +21,8 @@ export type Rendered =
   | Readonly<{ kind: 'plain'; text: string }>
   // `heading` is the card's top line.
   // `reading` marks a sentence's core, shown as reading text.
-  | Readonly<{ kind: 'parent'; heading: EntryHeading | null; reading: boolean; core: readonly MdBlock[]; facets: readonly RenderedFacet[] }>
+  // `ruledOut` names, for a generated card, each facet its flags rule out and why (D17).
+  | Readonly<{ kind: 'parent'; heading: EntryHeading | null; reading: boolean; core: readonly MdBlock[]; facets: readonly RenderedFacet[]; ruledOut: Readonly<Partial<Record<FacetType, RuledOut>>> }>
   // Context and Text are markdown since 0.7.5 (D10, amended a fourth time).
   | Readonly<{ kind: 'note'; blocks: readonly MdBlock[] }>;
 
@@ -30,10 +33,19 @@ export function renderParent(type: ParentType, content: ParentContent): Rendered
     kind: 'parent',
     heading: headingOf(type, content),
     reading: header.kind === 'sentence',
+    ruledOut: ruledOutOf(type, content),
     core: parseMarkdown(content.core),
     facets: facetsOf(type).filter(facet => hasText(texts[facet]))
       .map(facet => ({ facet, label: PARENTS[type].facets[facet]!.label, body: parseMarkdown(texts[facet]!) }))
   };
+}
+
+// The facets a generated card's flags rule out, and why (D17). A card not
+// generated yet (its core still empty) rules out nothing: it has no flags.
+export function ruledOutOf(type: ParentType, content: ParentContent): Partial<Record<FacetType, RuledOut>> {
+  if (!hasText(content.core)) return {};
+  const core = providerCore(type, content);
+  return Object.fromEntries(facetsOf(type).map(facet => [facet, ruledOut(type, facet, core)]).filter(([, reason]) => reason));
 }
 
 // The top line's labels come from the catalog, one per flag value: the model

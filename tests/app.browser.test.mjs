@@ -3573,6 +3573,13 @@ test('0.12.0: a German verb’s Conjugation is a table on the card, its top line
     [['ich', 'laufe', 'lief', 'bin gelaufen'], ['du', 'läufst', 'liefst', 'bist gelaufen']]);
   assert.equal(await facet.locator('tbody th[scope="row"]').count(), 2, 'each row is labelled by its person');
   await card.screenshot({ path: 'artifacts/v0.12.0-conjugation.png' });
+  // A facet the verb rules out says why and has no Retry, on its heading or its tag (D17).
+  const declension = card.locator('.facet[data-facet="declension"]');
+  assert.equal(await declension.locator('.facet-note[data-note="ruled-out"]').textContent(), 'Not for this kind of word');
+  await declension.hover();
+  assert.equal(await a.page.getByRole('button', { name: 'Retry Declension from German', exact: true }).count(), 0);
+  assert.equal(await card.locator('.facet-tag[data-facet="declension"] .facet-tag-retry').count(), 0);
+  assert.equal(await card.locator('.facet[data-facet="conjugation"] .facet-note[data-note="ruled-out"]').count(), 0, 'Conjugation applies');
 
   // Its own Edit opens the table's source, a row a line; a change shows on the card after Save.
   await facet.hover();
