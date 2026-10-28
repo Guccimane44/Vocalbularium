@@ -39,8 +39,6 @@
   "page.new.title": "A new page.",
   "page.new.contextOptional": "Context (optional)",
   "page.new.contentHint": "Saving does not generate. The page also gets {modules}; after saving, use Retry on each of those components to fill them from the main key.",
-  "page.readAsWord": "Read as a word",
-  "page.readAsSentence": "Read as a sentence",
   "page.showAll": "Show all",
   "page.showLess": "Show less",
   "page.unavailable.title": "Page unavailable",

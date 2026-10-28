@@ -39,8 +39,6 @@
   "page.new.title": "新页面。",
   "page.new.contextOptional": "语境（可选）",
   "page.new.contentHint": "保存不会触发生成。页面还会带上{modules}；保存后，在它们各自的组件上点“重试”，即可根据主词条填写。",
-  "page.readAsWord": "按词语理解",
-  "page.readAsSentence": "按句子理解",
   "page.showAll": "显示全部",
   "page.showLess": "收起",
   "page.unavailable.title": "页面不可用",

@@ -57,11 +57,11 @@ export const pages = pgTable('pages', {
   index('pages_deck_main_key_desc_id').on(table.deck_id, sql`${table.main_key_sort_key} DESC`, sql`${table.id} COLLATE "C" ASC`),
   index('pages_recent_captures').on(sql`${table.created_at} COLLATE "C" DESC`, sql`${table.id} COLLATE "C" ASC`).where(sql`${table.selected_text} IS NOT NULL`)
 ]);
-// One generation run shares one interpretation across its attempts.
+// One generation run: the attempts one request started. Since D17 a run
+// shares no reading of the main key (migration 0017 drops the interpretation).
 export const generationRuns = pgTable('generation_runs', {
   id: text().primaryKey(), page_id: text().notNull().references(() => pages.id, { onDelete: 'cascade' }),
-  interpretation: text(),
-  // Run order, so a page can report its latest interpretation (D08).
+  // Run order.
   ordinal: bigserial({ mode: 'number' }).notNull()
 }, table => [index('generation_runs_page').on(table.page_id)]);
 // Page-owned modules (D02): every component belongs to one of its page's module

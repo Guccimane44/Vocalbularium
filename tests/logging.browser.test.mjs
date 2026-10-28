@@ -26,9 +26,8 @@ test('logging journey: capture correlation, offline worker restart, budgets and 
   assert.equal(JSON.parse(config.match(/^export const API_URL = (.+);/m)[1]), origin, 'Refuse a package pointed at a different API from the disposable fixture');
   await appendFile(join(extension, 'background.js'), '\nglobalThis.captureForTest = handleCapture;\n');
   const provider = new OpenCodeProvider({ apiKey: 'synthetic-browser-key', fetchImpl: async (_url, request) => {
-    const body = JSON.parse(request.body), interpretation = body.messages[0].content.includes('vocabulary_interpretation');
     return Response.json({ choices: [{ finish_reason: 'stop', message: { role: 'assistant',
-      content: JSON.stringify(interpretation ? { inputType: 'word_phrase' } : { core: { kind: 'word', language: 'Chinesisch', key: '幸福', meanings: ['synthetic generation output'] }, facets: {} }) } }] });
+      content: JSON.stringify({ core: { kind: 'word', language: 'Chinesisch', key: '幸福', meanings: ['synthetic generation output'] }, facets: {} }) } }] });
   } });
   let application = await createTestApplication(t, { databaseKey, provider,
     diagnostics: new Diagnostics({ directory: logDirectory }) });

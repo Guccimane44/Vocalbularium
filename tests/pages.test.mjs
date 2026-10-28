@@ -79,10 +79,9 @@ test('component retry confirms first, uses the current main key, and leaves othe
   });
   await assert.rejects(confirmed(store, 'retry-key', { pageId, target: target('component', component(page, 'main-key').id), session }), { code: 'invalid' });
 
-  const interpretations = [];
+  const keys = [];
   const generation = await Generation.create(store, {
-    interpret: async mainKey => { interpretations.push(mainKey); return { inputType: 'word_phrase', sourceLanguage: 'English' }; },
-    generate: async request => resultFor(request, 'regenerated') });
+    generate: async request => { keys.push(request.selectedText); return resultFor(request, 'regenerated'); } });
   t.after(() => generation.close());
   const result = await store.generate('retry', { ...retry, confirmation });
   await generation.start(pageId, result.attemptIds);
@@ -92,7 +91,7 @@ test('component retry confirms first, uses the current main key, and leaves othe
   await store.savePage('other-editable', { pageId, changes: [{ componentId: first.id, content: fieldEdit(first, 'still editable') }] });
   await Promise.all([...generation.tasks.values()].map(item => item.task));
   await store.publish('finish', { attemptId: result.attemptIds[0], session });
-  assert.deepEqual(interpretations, ['edited']);
+  assert.deepEqual(keys, ['edited'], 'one request, from the current main key');
   assert.deepEqual(generated(await store.page(pageId)).map(item => [text(item), item.status]), [['still editable', 'completed'], ['regenerated', 'completed']]);
   // A resubmission replays the confirmed operation, confirmation included.
   assert.deepEqual((await store.generate('retry', { ...retry, confirmation })).attemptIds, result.attemptIds);

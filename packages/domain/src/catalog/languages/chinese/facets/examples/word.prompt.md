@@ -1,1 +1,0 @@
-"examples": one { "sentence": "<a sentence in the selection's language using the selection>", "translation": "<its Chinese translation>" } per meaning, in the meanings' order. When the selection is Chinese, write Chinese sentences and leave out "translation".

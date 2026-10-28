@@ -11,7 +11,8 @@ import { formatContent } from '@vocabularium/domain/content';
 import { resultFor, sentenceResult, text, textBlocks, useModules, wordResult, staged, fieldEdit } from './helpers/pages.mjs';
 const keyOf = page => text(page.components.find(component => component.moduleType === 'main-key'));
 // The bank entry with all four German facets, as structured content (D09).
-const BANK = { core: { kind: 'word', language: 'Englisch', key: 'bank', meanings: ['Ufer'] }, facets: { article: { singular: 'das Ufer', plural: 'die Ufer' },
+// A German noun (D17): its grammatical role lets Article apply.
+const BANK = { core: { kind: 'word', language: 'Englisch', key: 'bank', gramRole: 'noun', meanings: ['Ufer'] }, facets: { article: { singular: 'das Ufer', plural: 'die Ufer' },
     examples: [{ sentence: 'We sat on the bank.', translation: 'Wir saßen am Ufer.' }], synonyms: ['Böschung'], antonyms: ['Strom'] } };
 const modulesOf = page => page.components.filter(component => isContentType(component.moduleType));
 const byKey = async (store, key) => (await store.pages()).find(page => keyOf(page) === key);
@@ -225,18 +226,17 @@ test('capture extension: receipt lifetime, exact duplicate pages, shared outcome
   const testingExtension = join(directory, 'extension');
   await cp(resolve(process.env.VOCABULARIUM_TEST_EXTENSION ?? 'artifacts/extension'), testingExtension, { recursive: true });
   await appendFile(join(testingExtension, 'background.js'), '\nglobalThis.captureForTest = handleCapture;\n');
+  // A held key waits in every module's request until the test releases it.
   const held = new Map();
+  const release = key => { for (const resolve of held.get(key)) resolve(); };
   const provider = {
-    async interpret(text, signal) {
+    // Each parent reads the key and writes its own content in one request, as structured data (D08, D09, D17).
+    async generate({ module, selectedText: text }, signal) {
       if (text.includes('held')) await new Promise((resolve, reject) => {
-        held.set(text, resolve); signal.addEventListener('abort', () => reject(Error('aborted')), { once: true });
+        held.set(text, [...(held.get(text) ?? []), resolve]); signal.addEventListener('abort', () => reject(Error('aborted')), { once: true });
       });
-      if (text === 'fail') throw Error('controlled interpretation failure');
-      return { inputType: text === '我真的很幸福' ? 'sentence' : 'word_phrase', sourceLanguage: 'Chinese' };
-    },
-    // Each parent writes its own content, as structured data (D08, D09).
-    async generate({ module, interpretation }) {
-      if (interpretation.inputType === 'sentence') return sentenceResult(module.type === 'chinese' ? '我真的很幸福。' : 'Ich bin wirklich glücklich.');
+      if (text === 'fail') throw Error('controlled generation failure');
+      if (text === '我真的很幸福') return sentenceResult(module.type === 'chinese' ? '我真的很幸福。' : 'Ich bin wirklich glücklich.', {}, { language: '汉语', key: text });
       return module.type === 'chinese' ? { core: { kind: 'word', language: '汉语', key: '幸福', romanization: 'xìngfú', meanings: ['生活称心如意'] }, facets: {} }
         : wordResult(['Glück'], { examples: [{ sentence: '她很幸福。', translation: 'Sie ist glücklich.' }] }, { language: 'Chinesisch', key: '幸福' });
     }
@@ -284,9 +284,9 @@ test('capture extension: receipt lifetime, exact duplicate pages, shared outcome
   assert.equal(await generatedCard.getByText('===', { exact: false }).count(), 0, 'no literal markup');
   assert.equal(await generatedCard.locator('.badge, .list-status').count(), 0, 'a completed card shows no status');
 
-  step('sentence and failed interpretation');
+  step('sentence and failed generation');
   await captureFrom(a, '我真的很幸福'); await captureFrom(a, 'fail');
-  await waitFor(async () => (await application.store.pages()).find(page => page.selectedText === 'fail')?.status === 'failed', 'failed interpretation persisted');
+  await waitFor(async () => (await application.store.pages()).find(page => page.selectedText === 'fail')?.status === 'failed', 'failed generation persisted');
   const sentencePage = (await application.store.pages()).find(page => page.selectedText === '我真的很幸福');
   // Every parent applies to a sentence as well as a word (D08).
   assert.deepEqual(modulesOf(sentencePage).map(item => [Boolean(text(item)), item.status]), [[true, 'completed'], [true, 'completed']]);
@@ -294,22 +294,22 @@ test('capture extension: receipt lifetime, exact duplicate pages, shared outcome
 
   step('dashboard closure during generation');
   await captureFrom(a, 'held-after-close');
-  await waitFor(() => held.has('held-after-close'), 'dashboard-close interpretation started');
+  await waitFor(() => held.get('held-after-close')?.length === 2, 'dashboard-close requests started');
   await a.page.close();
-  held.get('held-after-close')();
+  release('held-after-close');
   await waitFor(async () => (await application.store.pages()).find(page => page.selectedText === 'held-after-close')?.status === 'completed', 'dashboard closure leaves generation running');
 
   step('browser exit during generation');
   await captureFrom(a, 'held-interrupted');
   const interrupted = (await application.store.pages()).find(page => page.selectedText === 'held-interrupted');
-  await waitFor(() => held.has('held-interrupted'), 'interrupted interpretation started');
+  await waitFor(() => held.get('held-interrupted')?.length === 2, 'interrupted requests started');
   await a.context.close(); contexts.delete(a.context);
-  held.get('held-interrupted')();
+  release('held-interrupted');
   await waitFor(async () => (await application.store.attempt(modulesOf(interrupted)[1].attemptId)).result, 'late provider result staged');
   step('relaunch after browser exit');
   a = await launch(profile, testingExtension); contexts.add(a.context);
   await a.page.getByRole('heading', { name: 'Your decks', exact: true }).waitFor();
-  // Both components waited on the held interpretation, so neither was published before exit.
+  // Both components waited on their held requests, so neither was published before exit.
   assert.deepEqual(modulesOf(await application.store.page(interrupted.id)).map(item => item.status), ['failed', 'failed']);
 
   step('open a reading tab before stopping the server');
@@ -340,8 +340,7 @@ test('capture with Context: the surrounding block follows the deck’s Context m
   await appendFile(join(testingExtension, 'background.js'), '\nglobalThis.captureForTest = handleCapture;\n');
   const interpreted = [];
   const provider = {
-    async interpret(text, signal, sessionId, context) { interpreted.push({ text, context }); return { inputType: 'word_phrase', sourceLanguage: 'Chinese' }; },
-    async generate(request) { return resultFor(request, 'Glück'); }
+    async generate(request) { interpreted.push({ text: request.selectedText, context: request.context }); return resultFor(request, 'Glück'); }
   };
   const application = await createTestApplication(t, { provider });
   await useModules(application.store, ['context', 'german']);
@@ -402,7 +401,6 @@ test('capture motion: the selection flies into the popup, reduced motion skips i
   await cp(resolve(process.env.VOCABULARIUM_TEST_EXTENSION ?? 'artifacts/extension'), testingExtension, { recursive: true });
   await appendFile(join(testingExtension, 'background.js'), '\nglobalThis.captureForTest = handleCapture;\n');
   const application = await createTestApplication(t, { provider: {
-    async interpret() { return { inputType: 'word_phrase', sourceLanguage: 'German' }; },
     async generate(request) { return resultFor(request, 'Glück'); }
   } });
   await application.start();
@@ -460,11 +458,10 @@ test('recent captures: the pending receipt hands off to its account page without
   const heldAccounts = [];
   const application = await createTestApplication(t, {
     provider: {
-      async interpret() {
+      async generate(request) {
         await new Promise(resolve => { releaseGeneration = resolve; });
-        return { inputType: 'word_phrase', sourceLanguage: 'English' };
-      },
-      async generate(request) { return resultFor(request, 'Controlled explanation'); }
+        return resultFor(request, 'Controlled explanation');
+      }
     }
   });
   const handler = application.server.listeners('request')[0];
@@ -1130,7 +1127,6 @@ test('retry UI: exact confirmation asked beside the tab, a first Retry without w
   let release;
   const application = await createTestApplication(t, {
     provider: {
-      interpret: async () => ({ inputType: 'word_phrase', sourceLanguage: 'Chinese' }),
       generate: (_, signal) => new Promise((resolve, reject) => { release = resolve; signal.addEventListener('abort', () => reject(Error('aborted')), { once: true }); })
     }
   });
@@ -1691,7 +1687,6 @@ test('assembled reliability: lost acknowledgments, worker suspension, abrupt ori
   const held = new Map(), calls = new Map(), canceled = new Set();
   const application = await createTestApplication(t, {
     provider: {
-      interpret: async () => ({ inputType: 'word_phrase', sourceLanguage: 'Chinese' }),
       generate: ({ selectedText, module }, signal) => {
         calls.set(selectedText, (calls.get(selectedText) ?? 0) + 1);
         // Only the German parent is held; the Chinese one, first on the page, completes at once.
@@ -1828,7 +1823,6 @@ test('dashboard capture feedback: shared appearance, original lifetime, originat
   `);
   const application = await createTestApplication(t, {
     provider: {
-      async interpret() { return { inputType: 'word_phrase', sourceLanguage: 'English' }; },
       async generate(request) { return resultFor(request, 'Controlled explanation'); }
     }
   });
@@ -1930,7 +1924,6 @@ test('save feedback: successful publication stays quiet in both lists, failures 
   await appendFile(join(extension, 'background.js'), '\nglobalThis.captureForTest = handleCapture;\n');
   const application = await createTestApplication(t, {
     provider: {
-      async interpret() { return { inputType: 'word_phrase', sourceLanguage: 'English' }; },
       async generate(request) { return resultFor(request, 'Controlled explanation'); }
     }
   });
@@ -2063,7 +2056,7 @@ test('upgrade: the first start discards earlier cached content, unsent captures,
   t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
   await signIn(a.page);
   const before = await a.worker.evaluate(async () => (await chrome.storage.local.get(['auth', 'installationId', 'dataVersion'])));
-  assert.equal(before.dataVersion, 3);
+  assert.equal(before.dataVersion, 4);
   // Simulate an extension that last ran the karte/seite version.
   await a.page.evaluate(async () => {
     sessionStorage.setItem('karte-draft', JSON.stringify({ route: '#karte/old', karteId: 'old', texts: { seite: 'old draft' } }));
@@ -2080,7 +2073,7 @@ test('upgrade: the first start discards earlier cached content, unsent captures,
   assert.equal(await a.page.getByText('old capture').count(), 0);
   const after = await a.worker.evaluate(async () => chrome.storage.local.get(null));
   for (const key of ['capture-old', 'save-old']) assert.equal(after[key], undefined, key);
-  assert.deepEqual([after.auth, after.installationId, after.dataVersion], [before.auth, before.installationId, 3]);
+  assert.deepEqual([after.auth, after.installationId, after.dataVersion], [before.auth, before.installationId, 4]);
   assert.ok(Array.isArray(after.account.recentPages));
   assert.equal(await a.page.evaluate(() => sessionStorage.getItem('karte-draft')), null);
   assert.equal(await a.page.evaluate(() => sessionStorage.getItem('page-draft')), null);
@@ -2100,8 +2093,6 @@ test('parents and facets: core only on add, the facet window on the parent, its 
   const german = () => store.page(pageId).then(page => page.components.filter(item => item.moduleType === 'german'));
   const [first] = await german();
   assert.deepEqual(first.facets, ['article', 'examples', 'synonyms', 'antonyms']);
-  const attempt = await store.attempt(first.attemptId);
-  await store.establishInterpretation(attempt.run_id, { inputType: 'word_phrase' });
   await store.stage(first.attemptId, staged(BANK));
   await store.publish('facets-publish', { attemptId: first.attemptId, session });
   const card = name => componentArticle(a.page, name);
@@ -2109,8 +2100,11 @@ test('parents and facets: core only on add, the facet window on the parent, its 
   await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
   await card('German').locator('.facet').first().waitFor();
 
-  // The core, then each facet under its label, and how the key was read.
-  assert.equal(await a.page.locator('.interpretation').textContent(), 'Read as a word');
+  // The core, then each facet under its label. How the key was read is in the
+  // card's top line, in the module's language, and nothing under the title (D17).
+  assert.deepEqual(await card('German').locator('.entry-heading .entry-label').allTextContents(), ['Wort', 'Nomen']);
+  assert.equal(await card('German').locator('.entry-heading .entry-language').textContent(), 'Englisch');
+  assert.equal(await a.page.locator('.page-title .interpretation').count(), 0, 'no reading under the main key');
   assert.deepEqual(await card('German').locator('.facet .facet-tab-label').allTextContents(), ['Article', 'Examples', 'Synonyms', 'Antonyms']);
   assert.equal(await card('German').locator('.entry-core li').textContent(), 'Ufer');
 
@@ -2252,8 +2246,6 @@ test('facet window from the keyboard: Facet among the actions, Space on a tick, 
   const { pageId } = await store.capture('facet-keys-capture', { session, mainKey: 'bank', snapshot: await store.snapshot() });
   const german = () => store.page(pageId).then(page => page.components.find(item => item.moduleType === 'german'));
   const first = await german();
-  const attempt = await store.attempt(first.attemptId);
-  await store.establishInterpretation(attempt.run_id, { inputType: 'word_phrase' });
   await store.stage(first.attemptId, staged(BANK));
   await store.publish('facet-keys-publish', { attemptId: first.attemptId, session });
   const card = name => componentArticle(a.page, name);
@@ -2324,8 +2316,6 @@ test('0.8.1: explanations: About a module in a dialog with its samples, and a fa
   await store.openSession('explanations-session', session);
   const { pageId } = await store.capture('explanations-capture', { session, mainKey: 'bank', snapshot: await store.snapshot() });
   const [german] = (await store.page(pageId)).components.filter(item => item.moduleType === 'german');
-  const attempt = await store.attempt(german.attemptId);
-  await store.establishInterpretation(attempt.run_id, { inputType: 'word_phrase' });
   await store.stage(german.attemptId, staged(BANK));
   await store.publish('explanations-publish', { attemptId: german.attemptId, session });
   const components = async () => (await store.page(pageId)).components.length;
@@ -2422,8 +2412,6 @@ test('facet tags: abbreviations in order, on the left edge, along the edge to th
   const { pageId } = await store.capture('facet-tags-capture', { session, mainKey: 'bank', snapshot: await store.snapshot() });
   const german = () => store.page(pageId).then(page => page.components.find(item => item.moduleType === 'german'));
   const first = await german();
-  const attempt = await store.attempt(first.attemptId);
-  await store.establishInterpretation(attempt.run_id, { inputType: 'word_phrase' });
   await store.stage(first.attemptId, staged(BANK));
   await store.publish('facet-tags-publish', { attemptId: first.attemptId, session });
   await signIn(a.page);
@@ -2588,7 +2576,6 @@ test('0.7.3: a facet’s own Retry beside its Delete, a tag’s remove keeping i
   const calls = [];
   let release;
   const application = await createTestApplication(t, { provider: {
-    interpret: async () => ({ inputType: 'word_phrase' }),
     generate: request => { calls.push(request); return new Promise(resolve => { release = resolve; }); }
   } });
   await application.start();
@@ -2600,9 +2587,9 @@ test('0.7.3: a facet’s own Retry beside its Delete, a tag’s remove keeping i
   await store.openSession('facet-retry-session', session);
   const { pageId } = await store.capture('facet-retry-capture', { session, mainKey: 'bank', snapshot: await store.snapshot() });
   const first = (await store.page(pageId)).components.find(item => item.moduleType === 'german');
-  await store.establishInterpretation((await store.attempt(first.attemptId)).run_id, { inputType: 'word_phrase' });
   // Structured content (D09).
-  const core = { kind: 'word', language: 'Englisch', key: 'bank', meanings: ['Ufer'] };
+  // A noun (D17): Article applies, so its own Retry asks the provider.
+  const core = { kind: 'word', language: 'Englisch', key: 'bank', gramRole: 'noun', meanings: ['Ufer'] };
   await store.stage(first.attemptId, staged({ core, facets: { article: { singular: 'das Ufer', plural: 'die Ufer' },
     examples: [{ sentence: 'We sat on the bank.', translation: 'Wir saßen am Ufer.' }] } }));
   await store.publish('facet-retry-publish', { attemptId: first.attemptId, session });
@@ -2854,7 +2841,7 @@ test('0.7.5: the parent editor in place: names and top line locked, no markdown 
   const part = name => editor.getByRole('textbox', { name: `${name}, German`, exact: true });
 
   // In place, formatted, with no markdown characters, numbers or separators of its own.
-  assert.equal(await editor.locator('.entry-heading').textContent(), 'Englischbank');
+  assert.equal(await editor.locator('.entry-heading').textContent(), 'EnglischbankWortNomen', 'the top line with its labels (D17), not editable');
   assert.deepEqual(await editor.locator('.facet-tab-label').allTextContents(), ['Article', 'Examples', 'Synonyms', 'Antonyms']);
   assert.equal(await part('Meanings').textContent(), 'Ufer');
   assert.equal(await part('Examples').locator('em').textContent(), 'Wir saßen am Ufer.', 'the translation is italic, not *starred*');
@@ -2934,7 +2921,7 @@ test('0.7.5: the parent editor in place: names and top line locked, no markdown 
   assert.equal(saved.core, '1. **Ufer** `x`');
   assert.deepEqual(saved.facets, { examples: '1. We sat on the bank.\n   *Wir saßen am Ufer.*', synonyms: 'Böschung, \\*\\*fest\\*\\* \\=\\=p\\=\\=', antonyms: '1. Strom ==stark==' },
     'typed markdown stored escaped; the emptied Article gone; the empty Antonyms filled');
-  assert.deepEqual(saved.header, { kind: 'word', language: 'Englisch', key: 'bank' }, 'the top line kept');
+  assert.deepEqual(saved.header, { kind: 'word', language: 'Englisch', key: 'bank', gramRole: 'noun' }, 'the top line kept, its flags included');
   // The card shows the formatting, and typed markdown as typed.
   assert.equal(await card.locator('.entry-core strong').textContent(), 'Ufer');
   assert.equal(await card.locator('.facet[data-facet="synonyms"]').locator('.facet-body').textContent(), 'Böschung, **fest** ==p==');
@@ -2959,7 +2946,7 @@ test('0.7.5: the parent editor in place: names and top line locked, no markdown 
   await card.getByRole('button', { name: 'Save', exact: true }).click();
   await card.locator('.live-editor').waitFor({ state: 'detached' });
   assert.equal((await stored()).core, '');
-  assert.equal(await card.locator('.entry-heading').textContent(), 'Englischbank', 'an emptied core shows its top line');
+  assert.equal(await card.locator('.entry-heading').textContent(), 'EnglischbankWortNomen', 'an emptied core shows its top line');
   await a.page.screenshot({ path: 'artifacts/v0.7.4-live-editor-saved.png' });
 });
 
@@ -3232,8 +3219,7 @@ test('0.8.0: an Expertise card, leaf green with a graduation cap, explains the k
   // Generated: the key on the top line, no language, and the explanation in paragraphs.
   const component = (await store.page(pageId)).components.find(item => item.moduleType === 'computer-science');
   const { attemptIds: [attemptId] } = await store.generate('expertise-generate', { pageId, target: { scope: 'component', componentId: component.id }, session });
-  await store.establishInterpretation((await store.attempt(attemptId)).run_id, { inputType: 'word_phrase' });
-  await store.stage(attemptId, staged(formatContent('computer-science', { core: { kind: 'word', key: 'Frontend',
+  await store.stage(attemptId, staged(formatContent('computer-science', { core: { relevance: 'subject', key: 'Frontend',
     explanation: ['The part of a program that people see and touch.', 'Think of a restaurant: the frontend is the dining room.'] }, facets: {} })));
   await store.publish('expertise-publish', { attemptId, session });
   await a.page.reload();
@@ -3333,8 +3319,6 @@ test('0.9.0: right to left and the pseudo-languages: every surface mirrors, cont
   await store.openSession('rtl-session', session);
   const { pageId } = await store.capture('rtl-capture', { session, mainKey: 'bank', snapshot: await store.snapshot() });
   const [german] = (await store.page(pageId)).components.filter(item => item.moduleType === 'german');
-  const attempt = await store.attempt(german.attemptId);
-  await store.establishInterpretation(attempt.run_id, { inputType: 'word_phrase' });
   await store.stage(german.attemptId, staged(BANK));
   await store.publish('rtl-publish', { attemptId: german.attemptId, session });
   await signIn(a.page);
@@ -3440,8 +3424,6 @@ test('0.9.0: the interface in each language: picked from Language, saved to the 
   await store.openSession('languages-session', session);
   const { pageId } = await store.capture('languages-capture', { session, mainKey: 'bank', snapshot: await store.snapshot() });
   const [german] = (await store.page(pageId)).components.filter(item => item.moduleType === 'german');
-  const attempt = await store.attempt(german.attemptId);
-  await store.establishInterpretation(attempt.run_id, { inputType: 'word_phrase' });
   await store.stage(german.attemptId, staged(BANK));
   await store.publish('languages-publish', { attemptId: german.attemptId, session });
   const catalogue = async code => JSON.parse(await readFile(`extension/locales/${code}/messages.json`, 'utf8'));

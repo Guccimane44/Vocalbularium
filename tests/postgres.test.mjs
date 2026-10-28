@@ -114,7 +114,7 @@ test('restart preserves staged output, fails unowned generation, and excludes a 
   await assert.rejects(migrateDatabase(database.databaseUrl), /Stop the API/);
   await store.close();
   store = await AccountStore.open(database);
-  const generation = await Generation.create(store, { interpret: () => assert.fail('must not restart'), generate: () => assert.fail('must not restart') });
+  const generation = await Generation.create(store, { generate: () => assert.fail('must not restart') });
   t.after(() => generation.close());
   assert.deepEqual(generated(await store.page(page.id)).map(item => item.status), ['loading', 'failed']);
   await store.publish('publish-staged', { attemptId: generated(page)[0].attemptId, session });
@@ -161,7 +161,6 @@ test('a lost database connection preserves generated output in the journal for r
   const started = latch(), release = latch();
   let calls = 0;
   let application = await createTestApplication(t, { databaseKey: key, provider: {
-    interpret: async () => ({ inputType: 'word_phrase', sourceLanguage: 'English' }),
     generate: async request => { calls++; started.resolve(); await release.promise; return resultFor(request, 'survives a real database outage'); }
   } });
   t.after(async () => { release.resolve(); await application.close(); await rm(directory, { recursive: true, force: true }); });
@@ -184,7 +183,7 @@ test('a lost database connection preserves generated output in the journal for r
   assert.ok(application.generation.pendingResults.has(attemptId));
   await application.close();
   application = await createTestApplication(t, { databaseKey: key, provider: {
-    interpret: () => assert.fail('restart must not generate'), generate: () => assert.fail('restart must not generate')
+    generate: () => assert.fail('restart must not generate')
   } });
   await application.store.publish('recover-outage', { attemptId, session });
   assert.equal(text(generated(await application.store.page(page.id))[0]), 'survives a real database outage');

@@ -1,1 +1,0 @@
-The selection is a sentence. In "core", write { "kind": "sentence", "translation": "<its Chinese translation>" }. When the selection is already in Chinese, the translation is an explanation of its meaning in Chinese, in one or two plain sentences.

@@ -3,6 +3,7 @@ import pg from 'pg';
 import test, { createTestApplication, createTestDatabase } from './helpers/database.mjs';
 import { legacyDatabase, migrateTo, populateKarteSchema } from './helpers/legacy-database.mjs';
 import { migrateDatabase } from '../scripts/migrate.mjs';
+import { runDataMigrations } from '../src/core/data-migrations.mjs';
 import { Postgres } from '../src/persistence/postgres.ts';
 import { Authentication } from '../src/server/auth.mjs';
 import { AccountStore } from '../src/core/store.mjs';
@@ -191,7 +192,6 @@ test('0010 adds empty facet lists and run order, and keeps every deck, page, run
   const store = await AccountStore.open(database); database.resources.push(store);
   assert.deepEqual((await store.deck('deck')).modules, [{ id: 'key', type: 'main-key' }, { id: 'examples', type: 'german-examples' }],
     'earlier modules keep their shape');
-  assert.equal((await store.page('page')).interpretation, 'word_phrase', 'the page reports its latest interpretation');
 });
 
 test('0011 retires the earlier modules: discards decks and pages, keeps sign-in, and starts My Deck with German and its facets', async t => {
@@ -290,7 +290,8 @@ test('0014 and its one-time conversions turn the main key’s drawn emphasis int
   [parent({ examples: '1. We sat on the Bank.\n   *Wir saßen am Ufer.*' })]);
   const content = async id => (await client.query('SELECT content FROM components WHERE id = $1', [id])).rows[0].content;
 
-  await migrateDatabase(database.databaseUrl);
+  // Up to 0016, then the conversions: 0017 discards every page (D17).
+  await migrateTo(t, database, 16); await runDataMigrations(client);
   assert.equal(await content('german'), parent({ examples: '1. We sat on the ==Bank==.\n   *Wir saßen am Ufer.*' }), 'the main key highlighted where the card drew it');
   assert.equal(await content('key'), '{"version":1,"blocks":[{"type":"paragraph","text":"bank"}]}', 'the main key itself stays');
   assert.equal(await content('context'), '{"version":1,"blocks":[{"type":"paragraph","text":"by the ==bank=="}]}', 'Context becomes markdown, the main key highlighted');
@@ -299,7 +300,7 @@ test('0014 and its one-time conversions turn the main key’s drawn emphasis int
 
   // Once only: a highlight the user removed afterwards stays removed.
   await client.query('UPDATE components SET content = $1 WHERE id = $2', [parent({ examples: '1. We sat on the Bank.' }), 'german']);
-  await migrateDatabase(database.databaseUrl);
+  await runDataMigrations(client);
   assert.equal(await content('german'), parent({ examples: '1. We sat on the Bank.' }));
 });
 
@@ -347,4 +348,44 @@ test('0016 starts every account in English and keeps every deck, page and sign-i
   await assert.rejects(client.query("UPDATE account SET language = 'de'"), /account_language/);
   const store = await AccountStore.open(database); database.resources.push(store);
   assert.equal((await store.summary()).language, 'en');
+});
+
+test('0017 starts afresh for one request per module: discards decks and pages, keeps sign-in and the language, and drops the run’s interpretation (D17, K49)', async t => {
+  const database = await legacyDatabase(t, 'one-request-upgrade', 16);
+  const client = new pg.Client({ connectionString: database.databaseUrl }); await client.connect();
+  t.after(() => client.end());
+  await client.query(`INSERT INTO decks (id, name, colour) VALUES ('deck', 'Bank words', 'roots');
+    INSERT INTO account (id, default_deck_id, language) VALUES (1, 'deck', 'fr');
+    INSERT INTO installations VALUES ('upgrade-installation', 1, 'browser');
+    INSERT INTO credentials VALUES ('admin', 'salt', 'hash', 1);
+    INSERT INTO login_tokens VALUES ('token', 99999999999999, 1);
+    INSERT INTO deck_modules (id, deck_id, position, type, facets) VALUES ('key', 'deck', 0, 'main-key', '{}'), ('german', 'deck', 1, 'german', '{article}');
+    INSERT INTO pages (id, deck_id, selected_text, created_at) VALUES ('page', 'deck', 'bank', '2026-10-27T10:00:00.000Z');
+    INSERT INTO components (page_id, id, module_instance_id, module_type, position, content, status, facets)
+      VALUES ('page', 'key', 'k', 'main-key', 0, '{"version":1,"blocks":[{"type":"paragraph","text":"bank"}]}', NULL, '{}'),
+        ('page', 'german', 'g', 'german', 1, '{"version":1,"blocks":[{"type":"parent","header":{"kind":"sentence"},"core":"x","facets":{}}]}', 'completed', '{article}');
+    INSERT INTO generation_runs (id, page_id, interpretation) VALUES ('run', 'page', '{"inputType":"sentence"}');
+    INSERT INTO receipts (operation_id, fingerprint, result) VALUES ('old-operation', 'f', '{}');`);
+  const kept = {};
+  for (const table of ['credentials', 'login_tokens', 'installations']) kept[table] = await rows(client, table);
+
+  await migrateTo(t, database, 17);
+
+  for (const table of Object.keys(kept)) assert.deepEqual(await rows(client, table), kept[table], table);
+  for (const table of ['pages', 'components', 'generation_runs', 'component_attempts', 'receipts']) {
+    assert.equal((await client.query(`SELECT count(*)::int AS n FROM "${table}"`)).rows[0].n, 0, table);
+  }
+  const decks = (await client.query('SELECT id, name FROM decks')).rows;
+  assert.equal(decks.length, 1); assert.equal(decks[0].name, 'My Deck'); assert.notEqual(decks[0].id, 'deck');
+  assert.deepEqual((await client.query('SELECT default_deck_id, language FROM account')).rows, [{ default_deck_id: decks[0].id, language: 'fr' }]);
+  assert.deepEqual((await client.query('SELECT position, type, facets FROM deck_modules ORDER BY position')).rows, [
+    { position: 0, type: 'main-key', facets: [] }, { position: 1, type: 'context', facets: [] },
+    { position: 2, type: 'german', facets: ['article', 'examples', 'synonyms', 'antonyms'] }]);
+  assert.deepEqual((await client.query("SELECT column_name FROM information_schema.columns WHERE table_name = 'generation_runs' ORDER BY column_name")).rows.map(row => row.column_name),
+    ['id', 'ordinal', 'page_id']);
+
+  const store = await AccountStore.open(database); database.resources.push(store);
+  const session = { installationId: 'upgrade-installation', sessionId: 'browser', epoch: 1 };
+  const { pageId } = await store.capture('capture', { session, mainKey: 'bank', snapshot: await store.snapshot() });
+  assert.equal((await store.page(pageId)).components.find(component => component.moduleType === 'german').status, 'loading');
 });

@@ -37,22 +37,31 @@ async function steady(call) {
   }
 }
 const evidence = { date: new Date().toISOString(), provider: 'OpenCode Go', model: provider.model, language, samples, results: [] };
+// The flags a card's top line records, against the input's expectation (D17,
+// K50): `kind` and a German `gramRole` for Languages, `relevance` for Expertise.
+function flagsOf(header) {
+  return header.kind === 'expertise' ? { relevance: header.relevance } : { kind: header.kind, ...(header.gramRole ? { gramRole: header.gramRole.toLowerCase() } : {}) };
+}
+function unexpected(type, flags, expect = {}) {
+  const wanted = { ...(expect.kind ? { kind: expect.kind } : {}), ...(expect.relevance ? { relevance: expect.relevance } : {}),
+    ...(expect.gramRole?.[type] ? { gramRole: expect.gramRole[type] } : {}) };
+  return Object.entries(wanted).filter(([flag, value]) => flags[flag] !== value).map(([flag, value]) => `${flag}: ${flags[flag] ?? 'none'}, expected ${value}`);
+}
 for (const { types, inputs } of sets) for (const input of inputs) for (let sample = 1; sample <= samples; sample++) {
   const sessionId = randomUUID();
-  let interpretation;
-  try { interpretation = await steady(() => provider.interpret(input.key, undefined, sessionId, input.context)); }
-  catch (error) { evidence.results.push({ ...input, sample, error: `interpretation: ${error.message}` }); continue; }
   for (const type of types) {
     const module = { id: `golden-${type}`, type, facets: facetsOf(type) };
     // Kept so a failed output can be read in the review, not only its error.
     let raw = null;
+    const mismatches = [];
     try {
-      // The model's JSON (D09), and the markdown per facet it is stored as.
-      const content = await generateComponent({ mainKey: input.key, interpretation, module,
+      // One request writes the card (D17): the model's JSON (D09), and the markdown per facet it is stored as.
+      const content = await generateComponent({ mainKey: input.key, module, onMismatch: ({ facet }) => mismatches.push(facet),
         generate: async request => (raw = await steady(() => provider.generate({ ...request, context: input.context, language, sessionId }))) });
-      evidence.results.push({ ...input, sample, parent: type, inputType: interpretation.inputType, json: raw, content, facets: filledFacets(type, content) });
+      const flags = flagsOf(content.header);
+      evidence.results.push({ ...input, sample, parent: type, flags, unexpected: unexpected(type, flags, input.expect), mismatches, json: raw, content, facets: filledFacets(type, content) });
     } catch (error) {
-      evidence.results.push({ ...input, sample, parent: type, inputType: interpretation.inputType, error: error.message, ...(raw ? { content: raw } : {}) });
+      evidence.results.push({ ...input, sample, parent: type, error: error.message, ...(raw ? { content: raw } : {}) });
     }
   }
 }
@@ -65,8 +74,12 @@ await mkdir('.data/golden', { recursive: true });
 await writeFile(`.data/golden/${stamp}.json`, JSON.stringify(evidence, null, 2) + '\n');
 const review = [`# Golden set ${evidence.date}`, '', `Model: ${evidence.model} · Language: ${language}${samples > 1 ? ` · ${samples} samples per input` : ''}`, '',
   ...evidence.results.flatMap(result => [`## ${result.parent ? `${PARENTS[result.parent].label}: ` : ''}${result.key}${samples > 1 ? ` (${result.sample})` : ''}`, '',
-    `${result.why}${result.context ? ` · Context: ${result.context}` : ''}${result.inputType ? ` · read as ${result.inputType}` : ''}`, '',
+    `${result.why}${result.context ? ` · Context: ${result.context}` : ''}${result.flags ? ` · flags ${JSON.stringify(result.flags)}` : ''}`, '',
+    ...(result.unexpected?.length ? [`**Unexpected flags:** ${result.unexpected.join('; ')}`, ''] : []),
+    ...(result.mismatches?.length ? [`**Facets the flags rule out, dropped:** ${result.mismatches.join(', ')}`, ''] : []),
     result.error ? `**Failed:** ${result.error}${result.content ? `\n\n${json(result.content)}` : ''}` : `Facets shown: ${result.facets.join(', ') || 'none'}\n\n${markdown(result.content)}\n\n${json(result.json)}`, ''])].join('\n');
 await writeFile(`.data/golden/${stamp}.md`, review);
 const failed = evidence.results.filter(result => result.error).length;
-console.log(`Golden set finished: ${evidence.results.length - failed} outputs, ${failed} failures. Review .data/golden/${stamp}.md.`);
+const flagged = evidence.results.filter(result => result.unexpected?.length).length;
+const dropped = evidence.results.reduce((sum, result) => sum + (result.mismatches?.length ?? 0), 0);
+console.log(`Golden set finished: ${evidence.results.length - failed} outputs, ${failed} failures, ${flagged} with unexpected flags, ${dropped} facets dropped. Review .data/golden/${stamp}.md.`);

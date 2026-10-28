@@ -45,4 +45,3 @@ export const isContentModule = (id: string): id is ContentModuleId => isCatalogM
 export function contentModule(id: ContentModuleId): ContentModuleDefinition {
   return MODULES[id] as ContentModuleDefinition;
 }
-export { interpretationSchema } from './main-key/module.js';

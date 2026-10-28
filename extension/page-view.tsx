@@ -238,16 +238,18 @@ export function Content({ type, rendered, mainKey, controls }: {
   const section = (facet: string) => ({ className: 'facet', 'data-facet': facet, tabIndex: -1,
     'data-retrying': controls?.retrying === facet || undefined, 'aria-busy': controls?.retrying === facet || undefined });
   if (rendered.kind === 'plain') return rendered.text ? <pre dir="auto">{rendered.text}</pre> : null;
-  const { heading, core, facets } = rendered;
+  const { heading, reading, core, facets } = rendered;
   // The core's top line, then its markdown; each facet's markdown in its container (D09).
   return <div className="entry-content">
     {heading && <p className="entry-heading" dir="auto">
-      {/* An Expertise core names no language (D11). */}
+      {/* An Expertise core names no language (D11) and shows no labels. */}
       {heading.language && <span className="entry-language">{heading.language}</span>}
       <span className="entry-key">{heading.key}</span>
       {heading.pronunciation && <span className="entry-pronunciation">{heading.pronunciation}</span>}
+      {/* Word or sentence, and a German word's grammatical role, in the module's language (D17, K51). */}
+      {heading.labels.map(label => <span key={label} className="entry-label">{label}</span>)}
     </p>}
-    {core.length > 0 && <Markdown blocks={core} mainKey={mainKey} className={heading ? 'entry-core' : 'entry-core reading'} />}
+    {core.length > 0 && <Markdown blocks={core} mainKey={mainKey} className={reading ? 'entry-core reading' : 'entry-core'} />}
     {parent && facetsOf(parent).map(name => {
       const facet = facets.find(each => each.facet === name);
       // The facet open in its own editor (D10) stands in its place.
@@ -342,13 +344,6 @@ function Reveal({ status, title, facet, failedFacet, children }: {
     {children}
     <span className="visually-hidden" role="status">{announcement}</span>
   </div>;
-}
-
-// Under the title, how the latest run read the main key (D08): as a word or
-// as a sentence. It names no language and cannot be changed directly.
-function Interpretation({ value }: { value: Page['interpretation'] }) {
-  if (!value) return null;
-  return <p className="interpretation" data-interpretation={value}>{value === 'sentence' ? t('page.readAsSentence') : t('page.readAsWord')}</p>;
 }
 
 // The page title: the main key in its tier; a passage is cut after six lines.
@@ -667,7 +662,7 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
     {notice}{back}
     <div className="page-header" data-component-id={key.id} data-type="main-key" data-editing={editingId === key.id || undefined}>
       <div className="page-title">
-        {editingId === key.id ? editor(key, t('module.mainKey')) : <><MainKeyTitle text={mainKey} /><Interpretation value={page.interpretation} /></>}
+        {editingId === key.id ? editor(key, t('module.mainKey')) : <MainKeyTitle text={mainKey} />}
       </div>
       <div className="title-actions">
         {editingId !== key.id && <button className="title-edit" aria-label={t('action.editNamed', { name: t('module.mainKey') })} disabled={Boolean(editingId)} onClick={() => begin(key.id)}>{t('common.edit')}</button>}

@@ -1,6 +1,6 @@
 import type { BlockDocument, ParentBlock, ParentHeader } from '@vocabularium/contracts';
 import type { CoreValue } from './catalog/define.js';
-import { contentModule } from './catalog/index.js';
+import { contentModule, familyOf } from './catalog/index.js';
 import type { GeneratedParent } from './generated.js';
 import { hasText, highlightKey } from './markdown.js';
 import { facetsOf, isFacetOf, ordered, PARENTS } from './parents.js';
@@ -88,7 +88,7 @@ export function validateParentContent(parent: ParentType, value: unknown, { face
   if (!isRecord(value)) return fail('The content is not structured.');
   for (const key of Object.keys(value)) if (!['header', 'core', 'facets'].includes(key)) fail(`The content has an unexpected field "${key}".`);
   const header = value.header;
-  if (!isRecord(header) || (header.kind !== 'word' && header.kind !== 'sentence')) return fail("The module's top line is missing.");
+  if (!isRecord(header) || !['word', 'sentence', 'expertise'].includes(header.kind as string)) return fail("The module's top line is missing.");
   const entries = value.facets ?? {};
   if (!isRecord(entries)) return fail('The facets are not structured.');
   const checked: Record<string, string> = {};
@@ -106,10 +106,13 @@ export function validateParentContent(parent: ParentType, value: unknown, { face
 export type ParentDraft = Readonly<{ core: string; facets: ParentFacetTexts }>;
 
 // The content an empty parent is edited from (D10, amended a fourth time): a
-// top line of the page's main key with the language blank, read as a word
-// unless the page's latest reading is a sentence, and nothing else.
-export function blankContent(mainKey: string, reading?: string | null): ParentContent {
-  return { header: reading === 'sentence' ? { kind: 'sentence' } : { kind: 'word', language: '', key: mainKey.trim() }, core: '', facets: {} };
+// top line of the page's main key, and nothing else. A Languages card reads it
+// as a word with the language blank until a Retry writes its own reading (D17);
+// an Expertise card shows the key.
+export function blankContent(mainKey: string, parent?: ParentType): ParentContent {
+  const key = mainKey.trim();
+  const header: ParentHeader = parent && familyOf(parent) === 'expertise' ? { kind: 'expertise', key, relevance: 'subject' } : { kind: 'word', language: '', key };
+  return { header, core: '', facets: {} };
 }
 
 // The editor's draft of stored content: its core and an entry for each facet
