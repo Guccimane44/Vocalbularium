@@ -1,8 +1,8 @@
 // Markdown per facet (D09, amended): the app formats the provider's JSON into
 // markdown as the card looks, and reads a small subset of markdown back for
-// drawing: paragraphs with line breaks, bulleted and numbered lists, bold,
-// italic, inline code and highlight (==text==). Anything else is text. The
-// parser builds a tree for clients to draw; it never produces HTML.
+// drawing: paragraphs with line breaks, bulleted and numbered lists, tables
+// (D17), bold, italic, inline code and highlight (==text==). Anything else is
+// text. The parser builds a tree for clients to draw.
 
 export type MdInline =
   | Readonly<{ type: 'text'; text: string }>
@@ -20,7 +20,9 @@ const FONTS: readonly string[] = ['display', 'mono'];
 export const HIGHLIGHT_COLOURS: readonly HighlightColour[] = ['green', 'blue', 'pink', 'orange'];
 export type MdBlock =
   | Readonly<{ type: 'paragraph'; children: readonly MdInline[] }>
-  | Readonly<{ type: 'list'; ordered: boolean; start: number; items: ReadonlyArray<readonly MdInline[]> }>;
+  | Readonly<{ type: 'list'; ordered: boolean; start: number; items: ReadonlyArray<readonly MdInline[]> }>
+  // A pipe table (D17): its header row, then its rows, each a list of cells.
+  | Readonly<{ type: 'table'; header: ReadonlyArray<readonly MdInline[]>; rows: ReadonlyArray<ReadonlyArray<readonly MdInline[]>> }>;
 
 // --- Formatting -------------------------------------------------------------
 
@@ -35,6 +37,14 @@ export const numbered = (items: readonly string[]) => items.map((item, index) =>
   const marker = `${index + 1}. `;
   return marker + item.split('\n').join(`\n${' '.repeat(marker.length)}`);
 }).join('\n');
+
+// A table (D17): a header row of column names, then one row per label with
+// its cells, every cell literal text. A pipe inside a cell is escaped.
+export function table(columns: readonly string[], rows: ReadonlyArray<Readonly<{ label: string; cells: readonly string[] }>>, corner = ''): string {
+  const cell = (text: string) => escapeMarkdown(text).replace(/\|/g, '\\|').replace(/\n/g, ' ');
+  const line = (cells: readonly string[]) => `| ${cells.map(cell).join(' | ')} |`;
+  return [line([corner, ...columns]), `|${' --- |'.repeat(columns.length + 1)}`, ...rows.map(row => line([row.label, ...row.cells]))].join('\n');
+}
 
 // Each module's facets format themselves with these (catalog, D11).
 
@@ -126,17 +136,47 @@ function findClose(source: string, from: number, mark: string): number {
   return -1;
 }
 
-// Markdown into blocks: paragraphs (lines joined by breaks) and lists, whose
-// items continue on indented lines. Blank lines separate blocks.
+// A table row's cells: split on pipes that are not escaped, outer pipes dropped.
+function cellsOf(line: string): string[] {
+  const cells: string[] = [];
+  let cell = '';
+  for (let index = 0; index < line.length; index++) {
+    const char = line[index]!;
+    if (char === '\\' && index + 1 < line.length) { cell += char + line[index + 1]; index++; continue; }
+    if (char === '|') { cells.push(cell); cell = ''; continue; }
+    cell += char;
+  }
+  cells.push(cell);
+  if (line.trim().startsWith('|')) cells.shift();
+  if (line.trim().endsWith('|') && !line.trim().endsWith('\\|')) cells.pop();
+  return cells.map(each => each.trim());
+}
+const TABLE_ROW = /^\s*\|.*\|\s*$/;
+const TABLE_RULE = /^\s*\|(?:\s*:?-{3,}:?\s*\|)+\s*$/;
+
+// Markdown into blocks: paragraphs (lines joined by breaks), lists, whose
+// items continue on indented lines, and pipe tables, a header row followed by
+// a rule. Blank lines separate blocks.
 export function parseMarkdown(source: string): MdBlock[] {
   const blocks: MdBlock[] = [];
   const lines = source.replace(/\r\n?/g, '\n').split('\n');
   let paragraph: string[] = [];
   let list: { ordered: boolean; start: number; items: string[][] } | null = null;
+  let rows: string[][] | null = null;
   const endParagraph = () => { if (paragraph.length) { blocks.push({ type: 'paragraph', children: parseInline(paragraph.join('\n')) }); paragraph = []; } };
   const endList = () => { if (list) { blocks.push({ type: 'list', ordered: list.ordered, start: list.start, items: list.items.map(item => parseInline(item.join('\n'))) }); list = null; } };
-  for (const raw of lines) {
+  const endTable = () => { if (rows) { const [header, ...body] = rows; blocks.push({ type: 'table', header: header!.map(parseInline), rows: body.map(row => header!.map((_, at) => parseInline(row[at] ?? ''))) }); rows = null; } };
+  for (let at = 0; at < lines.length; at++) {
+    const raw = lines[at]!;
     const line = raw.replace(/\s+$/, '');
+    if (rows) {
+      if (TABLE_ROW.test(line)) { rows.push(cellsOf(line)); continue; }
+      endTable();
+    }
+    if (TABLE_ROW.test(line) && TABLE_RULE.test(lines[at + 1] ?? '')) {
+      endParagraph(); endList();
+      rows = [cellsOf(line)]; at++; continue;
+    }
     if (!line.trim()) { endParagraph(); endList(); continue; }
     const item = ITEM.exec(line);
     if (item) {
@@ -151,7 +191,7 @@ export function parseMarkdown(source: string): MdBlock[] {
     endList();
     paragraph.push(line.trim());
   }
-  endParagraph(); endList();
+  endParagraph(); endList(); endTable();
   return blocks;
 }
 
@@ -160,17 +200,24 @@ export function parseMarkdown(source: string): MdBlock[] {
 export function plainInline(runs: readonly MdInline[]): string {
   return runs.map(run => run.type === 'text' || run.type === 'code' ? run.text : run.type === 'break' ? '\n' : plainInline(run.children)).join('');
 }
+// A table row as one line: its cells apart by a space.
+const plainRow = (cells: ReadonlyArray<readonly MdInline[]>) => cells.map(plainInline).filter(Boolean).join(' ');
 export function plainLines(source: string): string[] {
   return parseMarkdown(source).flatMap(block => block.type === 'list'
-    ? block.items.map(item => plainInline(item).split('\n')[0]!.trim()) : plainInline(block.children).split('\n').map(line => line.trim()))
+    ? block.items.map(item => plainInline(item).split('\n')[0]!.trim())
+    : block.type === 'table' ? [block.header, ...block.rows].map(plainRow)
+      : plainInline(block.children).split('\n').map(line => line.trim()))
     .filter(Boolean);
 }
 // Markdown as plain text: each block's text, list items a line each, blocks
 // apart by a blank line, formatting left out (D10, amended a fourth time:
 // Context is markdown, and generation reads it as plain text).
 export function plainText(source: string): string {
-  return parseMarkdown(source).map(block => block.type === 'list' ? block.items.map(plainInline).join('\n') : plainInline(block.children)).join('\n\n');
+  return parseMarkdown(source).map(block => block.type === 'list' ? block.items.map(plainInline).join('\n')
+    : block.type === 'table' ? [block.header, ...block.rows].map(plainRow).join('\n') : plainInline(block.children)).join('\n\n');
 }
+// Whether a markdown text holds a table, which the editor edits as its source (D17, K54).
+export const hasTable = (source: string | undefined): boolean => Boolean(source && parseMarkdown(source).some(block => block.type === 'table'));
 // Whether a markdown text holds anything to read.
 export const hasText = (source: string | undefined): boolean => Boolean(source && plainLines(source).length);
 
@@ -211,7 +258,9 @@ const paragraph = (runs: readonly MdInline[]): EditorNode => {
 };
 export function toEditorDoc(source: string): EditorNode {
   const blocks = parseMarkdown(source);
+  // A table is edited as its source (D17, K54), never in this editor; read as text, it is a line per row.
   const content = blocks.map((block): EditorNode => block.type === 'paragraph' ? paragraph(block.children)
+    : block.type === 'table' ? paragraph([block.header, ...block.rows].flatMap((row, at) => [...(at ? [{ type: 'break' } as const] : []), { type: 'text' as const, text: plainRow(row) }]))
     : { type: block.ordered ? 'orderedList' : 'bulletList', ...(block.ordered ? { attrs: { start: block.start } } : {}),
       content: block.items.map(item => ({ type: 'listItem', content: [paragraph(item)] })) });
   return { type: 'doc', content: content.length ? content : [{ type: 'paragraph' }] };
@@ -289,21 +338,28 @@ function blockLines(node: EditorNode): string[] {
   }
   return (node.content ?? []).flatMap(blockLines);
 }
-// The main key as a stored highlight (D10, amended a fourth time): every
-// occurrence of `key` in plain text, matched as the card once matched it
-// (ignoring case), gains the default highlight; text in code or already
-// highlighted is left as it is. Written back through the editor's document,
-// so the markdown is what the editor would write.
-export function highlightKey(source: string, key: string): string {
-  const needle = key.trim().toLocaleLowerCase();
-  if (!needle || !source.toLocaleLowerCase().includes(needle)) return source;
+// Whether a match stands as a whole word (D17): a key ending in a letter or
+// digit of a script that spaces its words must not continue into one, so "in"
+// is not marked inside "einer"; a CJK key is marked wherever it occurs.
+const WORDY = /[\p{L}\p{N}]/u;
+const UNSPACED = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}\p{Script=Thai}]/u;
+const wordy = (char: string | undefined) => char !== undefined && WORDY.test(char);
+const spaced = (char: string) => WORDY.test(char) && !UNSPACED.test(char);
+function wholeWord(text: string, at: number, length: number): boolean {
+  const first = text[at]!, last = text[at + length - 1]!;
+  return !(spaced(first) && wordy(text[at - 1])) && !(spaced(last) && wordy(text[at + length]));
+}
+// The key highlighted in inline text: every whole-word occurrence outside code
+// and existing highlights.
+function highlightInline(source: string, needle: string): string {
   const split = (node: EditorNode): EditorNode[] => {
     const marks = node.marks ?? [];
     if (!node.text || marks.some(mark => mark.type === 'code' || mark.type === 'highlight')) return [node];
     const lower = node.text.toLocaleLowerCase();
     const parts: EditorNode[] = [];
     let from = 0;
-    for (let at = lower.indexOf(needle); at >= 0 && lower.length === node.text.length; at = lower.indexOf(needle, from)) {
+    for (let at = lower.indexOf(needle); at >= 0 && lower.length === node.text.length; at = lower.indexOf(needle, at + 1)) {
+      if (at < from || !wholeWord(node.text, at, needle.length)) continue;
       if (at > from) parts.push({ ...node, text: node.text.slice(from, at) });
       parts.push({ ...node, text: node.text.slice(at, at + needle.length), marks: [...marks, { type: 'highlight' }] });
       from = at + needle.length;
@@ -314,6 +370,35 @@ export function highlightKey(source: string, key: string): string {
   const walk = (node: EditorNode): EditorNode => node.content
     ? { ...node, content: node.content.flatMap(child => child.type === 'text' ? split(child) : [walk(child)]) } : node;
   return fromEditorDoc(walk(toEditorDoc(source)));
+}
+// A table's cells are highlighted one by one, so the table keeps its rows
+// and its rule (D17); a pipe the highlighting writes back is escaped again.
+function highlightTableRow(line: string, needle: string): string {
+  return `| ${cellsOf(line).map(cell => cell ? highlightInline(cell, needle).replace(/(?<!\\)\|/g, '\\|') : '').join(' | ')} |`;
+}
+// The main key as a stored highlight (D10, amended a fourth time): every
+// whole-word occurrence of `key` in plain text (D17), ignoring case, gains the
+// default highlight; text in code or already highlighted is left as it is.
+// Written back through the editor's document, so the markdown is what the
+// editor would write; a table is highlighted cell by cell.
+export function highlightKey(source: string, key: string): string {
+  const needle = key.trim().toLocaleLowerCase();
+  if (!needle || !source.toLocaleLowerCase().includes(needle)) return source;
+  if (!hasTable(source)) return highlightInline(source, needle);
+  // Text around tables is highlighted as a whole, each table row by row.
+  const lines = source.replace(/\r\n?/g, '\n').split('\n');
+  const out: string[] = [];
+  let text: string[] = [];
+  const endText = () => { if (text.some(line => line.trim())) out.push(highlightInline(text.join('\n'), needle)); text = []; };
+  for (let at = 0; at < lines.length; at++) {
+    if (!(TABLE_ROW.test(lines[at]!) && TABLE_RULE.test(lines[at + 1] ?? ''))) { text.push(lines[at]!); continue; }
+    endText();
+    out.push(highlightTableRow(lines[at]!, needle), lines[at + 1]!.trim());
+    for (at += 2; at < lines.length && TABLE_ROW.test(lines[at]!); at++) out.push(highlightTableRow(lines[at]!, needle));
+    at--;
+  }
+  endText();
+  return out.join('\n');
 }
 export function fromEditorDoc(doc: EditorNode): string {
   const blocks = (doc.content ?? []).map(blockLines).map(lines => lines.join('\n')).filter(text => text.trim());

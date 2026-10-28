@@ -4,8 +4,7 @@ import Value from 'typebox/value';
 import { DeckConfigurationSchema, FacetAddRequestSchema, PageSchema } from '@vocabularium/contracts';
 import {
   applicableFacets, facetAbbreviation, facetAddBlocked, facetDeleteBlocked, facetsOf, facetTargets, facetUnavailable, isParentType, ordered, PARENTS,
-  validateFacets, withFacet
-} from '@vocabularium/domain/parents';
+  validateFacets, withFacet, facetsFor } from '@vocabularium/domain/parents';
 import { copyModules, validateConfiguration } from '@vocabularium/domain/page-modules';
 import { textBlocks } from '@vocabularium/domain/pages';
 
@@ -13,7 +12,7 @@ import { textBlocks } from '@vocabularium/domain/pages';
 
 test('the catalog is German and Chinese in Languages, with facets in a fixed order, and Computer Science and Mathematics in Expertise (D08, D11)', () => {
   assert.deepEqual(Object.keys(PARENTS), ['german', 'chinese', 'computer-science', 'mathematics']);
-  assert.deepEqual(facetsOf('german'), ['article', 'examples', 'synonyms', 'antonyms']);
+  assert.deepEqual(facetsOf('german'), ['article', 'examples', 'synonyms', 'antonyms', 'conjugation', 'declension', 'comparison', 'case'], 'the grammar facets after the first four (D17)');
   assert.deepEqual(facetsOf('chinese'), ['examples', 'pinyin']);
   for (const parent of ['german', 'chinese']) assert.equal(PARENTS[parent].family, 'translation');
   for (const parent of ['computer-science', 'mathematics']) {
@@ -29,12 +28,19 @@ test('each facet has its own abbreviation for its tag, unique within its parent 
     for (const abbreviation of abbreviations) assert.match(abbreviation, /^\p{Lu}\p{Ll}?$/u, parent);
     assert.equal(new Set(abbreviations).size, abbreviations.length, `${parent} repeats an abbreviation`);
   }
-  assert.deepEqual(facetsOf('german').map(facet => facetAbbreviation('german', facet)), ['Ar', 'Ex', 'Sy', 'An']);
+  assert.deepEqual(facetsOf('german').map(facet => facetAbbreviation('german', facet)), ['Ar', 'Ex', 'Sy', 'An', 'Co', 'De', 'Cm', 'Ca']);
   assert.deepEqual(facetsOf('chinese').map(facet => facetAbbreviation('chinese', facet)), ['Ex', 'Py']);
 });
 
-test('a word gets every facet; a sentence only Examples and Pinyin', () => {
-  assert.deepEqual(applicableFacets('german', facetsOf('german'), 'word_phrase'), ['article', 'examples', 'synonyms', 'antonyms']);
+test('a word gets every facet its flags allow; a sentence only Examples and Pinyin', () => {
+  assert.deepEqual(applicableFacets('german', facetsOf('german'), 'word_phrase'), ['article', 'examples', 'synonyms', 'antonyms', 'conjugation', 'declension', 'comparison', 'case']);
+  // The grammar facets follow the core's grammatical role (D17).
+  const word = gramRole => ({ kind: 'word', language: 'Deutsch', key: 'x', gramRole, meanings: ['y'] });
+  assert.deepEqual(facetsFor('german', facetsOf('german'), word('noun')), ['article', 'examples', 'synonyms', 'antonyms', 'declension']);
+  assert.deepEqual(facetsFor('german', facetsOf('german'), word('verb')), ['examples', 'synonyms', 'antonyms', 'conjugation']);
+  assert.deepEqual(facetsFor('german', facetsOf('german'), word('adjective')), ['examples', 'synonyms', 'antonyms', 'declension', 'comparison']);
+  assert.deepEqual(facetsFor('german', facetsOf('german'), word('Preposition')), ['examples', 'synonyms', 'antonyms', 'case']);
+  assert.deepEqual(facetsFor('german', facetsOf('german'), { kind: 'sentence', language: 'Deutsch', key: 'x.', meanings: ['y'] }), ['examples']);
   assert.deepEqual(applicableFacets('german', facetsOf('german'), 'sentence'), ['examples']);
   assert.deepEqual(applicableFacets('chinese', ['pinyin', 'examples'], 'sentence'), ['examples', 'pinyin'], 'in the parent’s order');
   assert.deepEqual(applicableFacets('german', [], 'sentence'), [], 'the core alone');

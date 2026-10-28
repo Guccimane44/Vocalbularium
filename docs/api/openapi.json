@@ -4095,6 +4095,22 @@
                                               "pinyin": {
                                                 "type": "string",
                                                 "maxLength": 8000
+                                              },
+                                              "conjugation": {
+                                                "type": "string",
+                                                "maxLength": 8000
+                                              },
+                                              "declension": {
+                                                "type": "string",
+                                                "maxLength": 8000
+                                              },
+                                              "comparison": {
+                                                "type": "string",
+                                                "maxLength": 8000
+                                              },
+                                              "case": {
+                                                "type": "string",
+                                                "maxLength": 8000
                                               }
                                             },
                                             "additionalProperties": false
@@ -4544,6 +4560,22 @@
                                                 "maxLength": 8000
                                               },
                                               "pinyin": {
+                                                "type": "string",
+                                                "maxLength": 8000
+                                              },
+                                              "conjugation": {
+                                                "type": "string",
+                                                "maxLength": 8000
+                                              },
+                                              "declension": {
+                                                "type": "string",
+                                                "maxLength": 8000
+                                              },
+                                              "comparison": {
+                                                "type": "string",
+                                                "maxLength": 8000
+                                              },
+                                              "case": {
                                                 "type": "string",
                                                 "maxLength": 8000
                                               }

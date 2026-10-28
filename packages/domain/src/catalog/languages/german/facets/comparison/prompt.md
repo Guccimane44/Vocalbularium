@@ -1,0 +1,1 @@
+"comparison": only when "gramRole" is adjective and it can be compared, such as { "positive": "gut", "comparative": "besser", "superlative": "am besten" }. Leave it out for an adjective without comparison, such as tot.

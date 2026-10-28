@@ -219,6 +219,96 @@
       "expect": {
         "kind": "sentence"
       }
+    },
+    {
+      "key": "sein",
+      "why": "German verb with sein in the perfect and irregular forms: Conjugation",
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        }
+      }
+    },
+    {
+      "key": "gehen",
+      "why": "German strong verb: Conjugation with ging, ist gegangen",
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        }
+      }
+    },
+    {
+      "key": "aufstehen",
+      "why": "German separable verb: Conjugation with stehe auf, stand auf, ist aufgestanden",
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        }
+      }
+    },
+    {
+      "key": "sich freuen",
+      "why": "German reflexive verb: Conjugation with freue mich",
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        }
+      }
+    },
+    {
+      "key": "Junge",
+      "why": "German weak noun (n-declension): Declension with des Jungen",
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "key": "gut",
+      "why": "German adjective with irregular comparison: Comparison gut, besser, am besten; Declension",
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "adjective"
+        }
+      }
+    },
+    {
+      "key": "tot",
+      "why": "German adjective without comparison: Declension, no Comparison",
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "adjective"
+        }
+      }
+    },
+    {
+      "key": "in",
+      "why": "German two-way preposition: Case with Akkusativ for direction and Dativ for place",
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "preposition"
+        }
+      }
+    },
+    {
+      "key": "wegen",
+      "why": "German preposition with the genitive: Case",
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "preposition"
+        }
+      }
     }
   ]
 }

@@ -155,7 +155,7 @@ test('a facet’s sample is its own part of its module’s sample, only for the 
   }
   assert.ok(facetSampleOf('chinese', 'pinyin', 'sentence')?.length);
   // A module's sample shows every facet its sample holds; given facets, only those that apply.
-  assert.deepEqual(sampleOf('german', 'word_phrase').facets.map(each => each.facet), ['article', 'examples', 'synonyms', 'antonyms']);
+  assert.deepEqual(sampleOf('german', 'word_phrase').facets.map(each => each.facet), ['article', 'examples', 'synonyms', 'antonyms', 'declension']);
   assert.deepEqual(sampleOf('german', 'sentence', ['article', 'examples']).facets.map(each => each.facet), ['examples']);
   assert.equal(sampleOf('context', 'word_phrase').kind, 'note');
   assert.equal(sampleOf('text', 'word_phrase'), null, 'Text starts empty');

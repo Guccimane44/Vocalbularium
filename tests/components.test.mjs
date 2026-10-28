@@ -102,3 +102,13 @@ test('block content round-trips plain module text exactly', () => {
   assert.ok(Value.Check(PageSchema, page));
   assert.equal(mainKeyOf(page.components), 'key');
 });
+
+test('facet entries the provider wrote inside the core move to the facets; other strays are still refused (Q50, D17)', async () => {
+  const module = { id: 'g', type: 'german', facets: ['examples', 'synonyms'] };
+  const slipped = { core: { kind: 'word', language: 'Deutsch', key: 'schön', gramRole: 'adjective', meanings: ['hübsch'],
+    examples: [{ sentence: 'Der Garten ist schön.' }], synonyms: ['hübsch'] } };
+  const content = await generateComponent({ mainKey: 'schön', module, generate: async () => slipped });
+  assert.deepEqual(Object.keys(content.facets), ['examples', 'synonyms']);
+  assert.equal(content.facets.synonyms, 'hübsch');
+  await assert.rejects(generateComponent({ mainKey: 'schön', module, generate: async () => ({ core: { ...slipped.core, poem: 'x' }, facets: {} }) }), /unexpected field "poem"/);
+});

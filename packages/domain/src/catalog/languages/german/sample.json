@@ -26,7 +26,43 @@
       ],
       "antonyms": [
         "Unglück"
-      ]
+      ],
+      "declension": {
+        "columns": [
+          "Singular",
+          "Plural"
+        ],
+        "rows": [
+          {
+            "label": "Nominativ",
+            "cells": [
+              "das Glück",
+              "—"
+            ]
+          },
+          {
+            "label": "Genitiv",
+            "cells": [
+              "des Glück(e)s",
+              "—"
+            ]
+          },
+          {
+            "label": "Dativ",
+            "cells": [
+              "dem Glück",
+              "—"
+            ]
+          },
+          {
+            "label": "Akkusativ",
+            "cells": [
+              "das Glück",
+              "—"
+            ]
+          }
+        ]
+      }
     }
   },
   "sentence": {

@@ -37,7 +37,9 @@ export const ParentBlockSchema = Type.Object({
   core: Markdown,
   facets: Type.Object({
     article: Type.Optional(Markdown), examples: Type.Optional(Markdown), synonyms: Type.Optional(Markdown),
-    antonyms: Type.Optional(Markdown), pinyin: Type.Optional(Markdown)
+    antonyms: Type.Optional(Markdown), pinyin: Type.Optional(Markdown),
+    // German grammar facets (D17).
+    conjugation: Type.Optional(Markdown), declension: Type.Optional(Markdown), comparison: Type.Optional(Markdown), case: Type.Optional(Markdown)
   }, { additionalProperties: false })
 }, { additionalProperties: false });
 
