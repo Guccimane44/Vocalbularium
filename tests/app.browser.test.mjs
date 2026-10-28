@@ -3587,3 +3587,50 @@ test('0.12.0: a German verb’s Conjugation is a table on the card, its top line
   const stored = (await store.page(pageId)).components.find(item => item.moduleType === 'german').content.blocks[0].facets.conjugation;
   assert.match(stored, /\| du \| rennst \| liefst \| bist gelaufen \|/);
 });
+
+test('0.12.0: a Formula renders with KaTeX, a broken one shows its LaTeX, and a Code example is highlighted and edited as its source (D17)', { timeout: 45000 }, async (t) => {
+  const directory = await mkdtemp(join(tmpdir(), 'vocabularium-formula-browser-'));
+  const application = await createTestApplication(t); await application.start();
+  const a = await launch(join(directory, 'a'));
+  t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
+  const store = application.store;
+  const session = { installationId: 'fixture', sessionId: 'formula', epoch: 1 };
+  await store.openSession('formula-session', session);
+  await useModules(store, ['mathematics', 'computer-science']);
+  const { pageId } = await store.capture('formula-capture', { session, mainKey: 'eigenvalue', snapshot: await store.snapshot() });
+  const [math, cs] = (await store.page(pageId)).components.filter(item => ['mathematics', 'computer-science'].includes(item.moduleType));
+  await store.stage(math.attemptId, staged(formatContent('mathematics', { core: { relevance: 'subject', hasFormula: 'yes', key: 'eigenvalue', explanation: ['A stretch factor.'] },
+    facets: { formula: { latex: 'A\\mathbf{v} = \\lambda \\mathbf{v}', symbols: [{ symbol: '\\lambda', meaning: 'the eigenvalue' }] } } })));
+  await store.publish('formula-publish', { attemptId: math.attemptId, session });
+  await store.stage(cs.attemptId, staged(formatContent('computer-science', { core: { relevance: 'subject', hasCode: 'yes', key: 'eigenvalue', explanation: ['Computed numerically.'] },
+    facets: { code: { language: 'python', code: 'import numpy as np\n# the eigenvalues of a matrix\nvalues = np.linalg.eigvals([[2, 0], [0, 3]])' } } })));
+  await store.publish('code-publish', { attemptId: cs.attemptId, session });
+  await signIn(a.page);
+  await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
+
+  const formula = componentArticle(a.page, 'Mathematics').locator('.facet[data-facet="formula"]');
+  await formula.locator('.md-math .katex-display').waitFor();
+  assert.ok(await formula.locator('.md-math .katex-mathml math').count() === 1, 'KaTeX writes MathML for assistive technology');
+  assert.equal(await formula.locator('li .md-math-inline .katex').count(), 1, 'the symbol is inline math');
+  assert.match(await formula.locator('li').textContent(), /the eigenvalue/);
+  const fonts = await a.page.evaluate(async () => { await document.fonts.ready; return [...document.fonts].filter(font => font.family.includes('KaTeX') && font.status === 'loaded').length; });
+  assert.ok(fonts > 0, 'KaTeX’s fonts load from the extension');
+
+  const code = componentArticle(a.page, 'Computer Science').locator('.facet[data-facet="code"]');
+  await code.locator('pre.md-code[data-language="python"] .hljs-keyword').first().waitFor();
+  assert.equal(await code.locator('pre.md-code code').textContent(), 'import numpy as np\n# the eigenvalues of a matrix\nvalues = np.linalg.eigvals([[2, 0], [0, 3]])');
+  assert.equal(await code.locator('.hljs-comment').textContent(), '# the eigenvalues of a matrix');
+  await componentArticle(a.page, 'Mathematics').screenshot({ path: 'artifacts/v0.12.0-formula.png' });
+  await componentArticle(a.page, 'Computer Science').screenshot({ path: 'artifacts/v0.12.0-code.png' });
+
+  // A formula KaTeX cannot read shows its source; the Formula's own Edit edits it as source.
+  await formula.hover();
+  await a.page.getByRole('button', { name: 'Edit Formula from Mathematics', exact: true }).click();
+  const source = componentArticle(a.page, 'Mathematics').getByRole('textbox', { name: 'Formula, Mathematics', exact: true });
+  await source.waitFor();
+  assert.equal(await source.evaluate(node => node.tagName), 'TEXTAREA');
+  await source.fill((await source.inputValue()).replace('A\\mathbf{v} = \\lambda \\mathbf{v}', '\\frac{1}{'));
+  await formula.getByRole('button', { name: 'Save', exact: true }).click();
+  await formula.locator('pre.md-math-source').waitFor();
+  assert.equal(await formula.locator('pre.md-math-source').textContent(), '\\frac{1}{');
+});

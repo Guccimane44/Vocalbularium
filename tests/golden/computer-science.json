@@ -8,14 +8,16 @@
       "key": "Frontend",
       "why": "Core term, the example in D11",
       "expect": {
-        "relevance": "subject"
+        "relevance": "subject",
+        "hasCode": "no"
       }
     },
     {
       "key": "recursion",
       "why": "Core concept",
       "expect": {
-        "relevance": "subject"
+        "relevance": "subject",
+        "hasCode": "yes"
       }
     },
     {

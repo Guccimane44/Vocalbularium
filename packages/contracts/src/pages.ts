@@ -29,7 +29,8 @@ export const ParentHeaderSchema = Type.Union([
   // The language is blank on a card written by hand until a Retry fills it (D10, amended a fourth time).
   Type.Object({ kind: Type.Literal('word'), language: Type.String(), key: Filled, romanization: Type.Optional(Filled), gramRole: Type.Optional(Filled) }, { additionalProperties: false }),
   Type.Object({ kind: Type.Literal('sentence'), language: Type.String(), key: Filled, romanization: Type.Optional(Filled) }, { additionalProperties: false }),
-  Type.Object({ kind: Type.Literal('expertise'), key: Filled, relevance: Type.Union([Type.Literal('subject'), Type.Literal('neighbouring'), Type.Literal('unrelated')]) }, { additionalProperties: false })
+  Type.Object({ kind: Type.Literal('expertise'), key: Filled, relevance: Type.Union([Type.Literal('subject'), Type.Literal('neighbouring'), Type.Literal('unrelated')]),
+    hasFormula: Type.Optional(Type.Union([Type.Literal('yes'), Type.Literal('no')])), hasCode: Type.Optional(Type.Union([Type.Literal('yes'), Type.Literal('no')])) }, { additionalProperties: false })
 ]);
 export const ParentBlockSchema = Type.Object({
   type: Type.Literal('parent'),
@@ -39,7 +40,9 @@ export const ParentBlockSchema = Type.Object({
     article: Type.Optional(Markdown), examples: Type.Optional(Markdown), synonyms: Type.Optional(Markdown),
     antonyms: Type.Optional(Markdown), pinyin: Type.Optional(Markdown),
     // German grammar facets (D17).
-    conjugation: Type.Optional(Markdown), declension: Type.Optional(Markdown), comparison: Type.Optional(Markdown), case: Type.Optional(Markdown)
+    conjugation: Type.Optional(Markdown), declension: Type.Optional(Markdown), comparison: Type.Optional(Markdown), case: Type.Optional(Markdown),
+    // Expertise facets (D17).
+    formula: Type.Optional(Markdown), code: Type.Optional(Markdown)
   }, { additionalProperties: false })
 }, { additionalProperties: false });
 

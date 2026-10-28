@@ -355,5 +355,7 @@
   "catalog.computer-science.core.word_phrase": "Объяснение",
   "catalog.computer-science.core.sentence": "Объяснение",
   "catalog.mathematics.core.word_phrase": "Объяснение",
-  "catalog.mathematics.core.sentence": "Объяснение"
+  "catalog.mathematics.core.sentence": "Объяснение",
+  "catalog.mathematics.formula.label": "Формула",
+  "catalog.computer-science.code.label": "Пример кода"
 }

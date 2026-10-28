@@ -4063,6 +4063,38 @@
                                                         ]
                                                       }
                                                     ]
+                                                  },
+                                                  "hasFormula": {
+                                                    "anyOf": [
+                                                      {
+                                                        "type": "string",
+                                                        "enum": [
+                                                          "yes"
+                                                        ]
+                                                      },
+                                                      {
+                                                        "type": "string",
+                                                        "enum": [
+                                                          "no"
+                                                        ]
+                                                      }
+                                                    ]
+                                                  },
+                                                  "hasCode": {
+                                                    "anyOf": [
+                                                      {
+                                                        "type": "string",
+                                                        "enum": [
+                                                          "yes"
+                                                        ]
+                                                      },
+                                                      {
+                                                        "type": "string",
+                                                        "enum": [
+                                                          "no"
+                                                        ]
+                                                      }
+                                                    ]
                                                   }
                                                 },
                                                 "additionalProperties": false
@@ -4109,6 +4141,14 @@
                                                 "maxLength": 8000
                                               },
                                               "case": {
+                                                "type": "string",
+                                                "maxLength": 8000
+                                              },
+                                              "formula": {
+                                                "type": "string",
+                                                "maxLength": 8000
+                                              },
+                                              "code": {
                                                 "type": "string",
                                                 "maxLength": 8000
                                               }
@@ -4530,6 +4570,38 @@
                                                         ]
                                                       }
                                                     ]
+                                                  },
+                                                  "hasFormula": {
+                                                    "anyOf": [
+                                                      {
+                                                        "type": "string",
+                                                        "enum": [
+                                                          "yes"
+                                                        ]
+                                                      },
+                                                      {
+                                                        "type": "string",
+                                                        "enum": [
+                                                          "no"
+                                                        ]
+                                                      }
+                                                    ]
+                                                  },
+                                                  "hasCode": {
+                                                    "anyOf": [
+                                                      {
+                                                        "type": "string",
+                                                        "enum": [
+                                                          "yes"
+                                                        ]
+                                                      },
+                                                      {
+                                                        "type": "string",
+                                                        "enum": [
+                                                          "no"
+                                                        ]
+                                                      }
+                                                    ]
                                                   }
                                                 },
                                                 "additionalProperties": false
@@ -4576,6 +4648,14 @@
                                                 "maxLength": 8000
                                               },
                                               "case": {
+                                                "type": "string",
+                                                "maxLength": 8000
+                                              },
+                                              "formula": {
+                                                "type": "string",
+                                                "maxLength": 8000
+                                              },
+                                              "code": {
                                                 "type": "string",
                                                 "maxLength": 8000
                                               }

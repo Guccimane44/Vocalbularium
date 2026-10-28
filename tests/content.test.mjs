@@ -3,9 +3,10 @@ import assert from 'node:assert/strict';
 import { applyDraft, ContentError, draftOf, filledFacets, formatContent, formatFacet, hasFacetContent, isEmptyContent, parentContentOf, parentDocument, providerCore,
   validateParentContent, withFacetText } from '@vocabularium/domain/content';
 import { GeneratedError, validateGenerated, validateGeneratedFacet } from '@vocabularium/domain/generated';
-import { escapeMarkdown, hasTable, highlightKey, parseMarkdown, plainInline, plainLines, table } from '@vocabularium/domain/markdown';
+import { editsAsSource, escapeMarkdown, hasTable, highlightKey, parseMarkdown, plainInline, plainLines, table } from '@vocabularium/domain/markdown';
 import { blockText } from '@vocabularium/domain/pages';
 import { renderParent } from '@vocabularium/domain/render';
+import { facetsFor } from '@vocabularium/domain/parents';
 
 // Parent content (D09, amended): the provider's JSON checked complete, formatted
 // into markdown per facet as the card looks, read back by a small markdown
@@ -228,4 +229,35 @@ test('the main key is highlighted as a whole word, a CJK key wherever it occurs,
   const highlighted = highlightKey(conjugation, 'gehen');
   assert.equal(highlighted, '|  | Präsens | Perfekt |\n| --- | --- | --- |\n| wir | ==gehen== | sind gegangen |\n| du | gehst \\| a | bist gegangen |');
   assert.deepEqual(parseMarkdown(highlighted)[0].rows.map(row => row.map(plainInline)), [['wir', 'gehen', 'sind gegangen'], ['du', 'gehst | a', 'bist gegangen']]);
+});
+
+test('a formula and code are read from their blocks, stay literal, and are edited as their source (D17)', () => {
+  const formula = formatFacet('mathematics', 'formula', { latex: 'A\\mathbf{v} = \\lambda \\mathbf{v}', symbols: [{ symbol: '\\lambda', meaning: 'the eigenvalue' }] });
+  assert.equal(formula, '$$\nA\\mathbf{v} = \\lambda \\mathbf{v}\n$$\n\n- \\(\\lambda\\) · the eigenvalue');
+  const [math, list] = parseMarkdown(formula);
+  assert.deepEqual(math, { type: 'math', tex: 'A\\mathbf{v} = \\lambda \\mathbf{v}' });
+  assert.deepEqual(list.items[0][0], { type: 'math', tex: '\\lambda' });
+  const code = formatFacet('computer-science', 'code', { language: 'Python', code: 'def f(n):\n    # ``` inside\n    return n' });
+  assert.equal(code, '````python\ndef f(n):\n    # ``` inside\n    return n\n````', 'a fence longer than any backtick run inside');
+  assert.deepEqual(parseMarkdown(code), [{ type: 'code', language: 'python', text: 'def f(n):\n    # ``` inside\n    return n' }]);
+  assert.equal(escapeMarkdown('$$'), '\\$\\$', 'a literal $$ line is no formula');
+  assert.equal(parseMarkdown(escapeMarkdown('$$\nx\n$$'))[0].type, 'paragraph');
+  assert.equal(escapeMarkdown('\\(x\\)'), '\\\\(x\\\\)', 'literal text never becomes math');
+  for (const source of [formula, code, '| a | b |\n| --- | --- |']) assert.equal(editsAsSource(source), true);
+  assert.equal(editsAsSource('1. Ufer'), false);
+  assert.equal(highlightKey(formula, 'eigenvalue'), formula, 'a formula is left as written');
+  assert.deepEqual(plainLines(formula), ['A\\mathbf{v} = \\lambda \\mathbf{v}', '\\lambda · the eigenvalue']);
+});
+
+test('Formula and Code example apply only to a key of the subject whose core says so (D17)', () => {
+  const core = (relevance, flags) => ({ relevance, key: 'x', explanation: ['y'], ...flags });
+  assert.deepEqual(facetsFor('mathematics', ['formula'], core('subject', { hasFormula: 'yes' })), ['formula']);
+  assert.deepEqual(facetsFor('mathematics', ['formula'], core('subject', { hasFormula: 'no' })), []);
+  assert.deepEqual(facetsFor('mathematics', ['formula'], core('neighbouring', { hasFormula: 'yes' })), [], 'never for another field’s term (C27)');
+  assert.deepEqual(facetsFor('computer-science', ['code'], core('subject', { hasCode: 'yes' })), ['code']);
+  assert.deepEqual(facetsFor('computer-science', ['code'], core('unrelated', {})), []);
+  assert.deepEqual(formatContent('mathematics', { core: core('subject', { hasFormula: 'yes' }), facets: {} }).header,
+    { kind: 'expertise', key: 'x', relevance: 'subject', hasFormula: 'yes' }, 'the flag is kept for a facet’s own Retry');
+  assert.deepEqual(formatContent('mathematics', { core: core('unrelated', { hasFormula: 'yes' }), facets: {} }).header,
+    { kind: 'expertise', key: 'x', relevance: 'unrelated' }, 'and dropped outside the subject');
 });

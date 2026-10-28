@@ -38,12 +38,14 @@ async function steady(call) {
 }
 const evidence = { date: new Date().toISOString(), provider: 'OpenCode Go', model: provider.model, language, samples, results: [] };
 // The flags a card's top line records, against the input's expectation (D17,
-// K50): `kind` and a German `gramRole` for Languages, `relevance` for Expertise.
+// K50): `kind` and a German `gramRole` for Languages, `relevance` and `hasFormula` or `hasCode` for Expertise.
 function flagsOf(header) {
-  return header.kind === 'expertise' ? { relevance: header.relevance } : { kind: header.kind, ...(header.gramRole ? { gramRole: header.gramRole.toLowerCase() } : {}) };
+  return header.kind === 'expertise' ? { relevance: header.relevance, ...(header.hasFormula ? { hasFormula: header.hasFormula } : {}), ...(header.hasCode ? { hasCode: header.hasCode } : {}) }
+    : { kind: header.kind, ...(header.gramRole ? { gramRole: header.gramRole.toLowerCase() } : {}) };
 }
 function unexpected(type, flags, expect = {}) {
   const wanted = { ...(expect.kind ? { kind: expect.kind } : {}), ...(expect.relevance ? { relevance: expect.relevance } : {}),
+    ...(expect.hasFormula ? { hasFormula: expect.hasFormula } : {}), ...(expect.hasCode ? { hasCode: expect.hasCode } : {}),
     ...(expect.gramRole?.[type] ? { gramRole: expect.gramRole[type] } : {}) };
   return Object.entries(wanted).filter(([flag, value]) => flags[flag] !== value).map(([flag, value]) => `${flag}: ${flags[flag] ?? 'none'}, expected ${value}`);
 }

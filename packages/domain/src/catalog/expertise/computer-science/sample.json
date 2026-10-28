@@ -2,6 +2,7 @@
   "word_phrase": {
     "core": {
       "relevance": "subject",
+      "hasCode": "no",
       "key": "Frontend",
       "explanation": [
         "The frontend is the part of a program that people see and touch: the screens, buttons and forms in a browser or an app. It shows information and passes what you do on to the backend, the part that stores data and does the heavy work.",

@@ -1,0 +1,1 @@
+"formula": only when "hasFormula" is yes: { "latex": "<the concept's defining formula in LaTeX, without $ delimiters>", "symbols": [{ "symbol": "<one symbol of the formula in LaTeX>", "meaning": "<what it stands for, in {{language}}>" }] }, one item per symbol, in the order they appear.

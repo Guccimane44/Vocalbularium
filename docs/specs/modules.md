@@ -132,8 +132,8 @@ The decisions are the core's **flags**: structured fields the core writes first,
 | German, Chinese | `language` | the key's language, named in the parent's language (*Englisch*, 英语) | The header; the language Examples translate into | Core header |
 | German | `gramRole` | an open label for the grammar word: noun, verb, adjective, adverb, preposition, … ; a word only | Article and Declension for a noun; Conjugation for a verb; Declension and Comparison for an adjective; Case for a preposition | Core header |
 | Computer Science, Mathematics | `relevance` | `subject`, `neighbouring`, `unrelated` | How the core is written ([staying with the subject](#staying-with-the-subject)); Formula and Code example only for `subject` | No |
-| Mathematics | `formula` | yes or no, only when `relevance` is `subject` | Whether Formula applies | No |
-| Computer Science | `code` | yes or no, only when `relevance` is `subject` | Whether Code example applies | No |
+| Mathematics | `hasFormula` | yes or no, only when `relevance` is `subject` | Whether Formula applies | No |
+| Computer Science | `hasCode` | yes or no, only when `relevance` is `subject` | Whether Code example applies | No |
 
 `kind` and `language` describe the key, not a source language chosen for the page: the language of a key is often ambiguous, and each parent reads it from the key and Context, so two parents may read an ambiguous key differently, and two cards on a page may differ in `kind`. A flag does not promise persistent meaning or referent resolution. Chinese has no `gramRole`, because no Chinese facet depends on it.
 
@@ -165,7 +165,7 @@ Since 0.7.4 the provider returns a parent's content as JSON, and the app keeps i
 - **Conjugation**, **Declension:** a table, `{ columns, rows }`, each row `{ label, cells }` (D17).
 - **Comparison:** `{ positive, comparative, superlative }` (D17).
 - **Case:** a list of `{ case, use, example }` (D17).
-- **Formula:** the formula in LaTeX and a list of `{ symbol, meaning }` (D17).
+- **Formula:** `{ latex, symbols }`, the formula in LaTeX and a list of `{ symbol, meaning }`, each symbol in LaTeX (D17). The flags are named `hasFormula` and `hasCode`, so they do not share a name with their facets.
 - **Code example:** `{ language, code }`, the code commented (D17).
 
 **Formatted into markdown** when it is stored:

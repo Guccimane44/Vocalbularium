@@ -355,5 +355,7 @@
   "catalog.computer-science.core.word_phrase": "الشرح",
   "catalog.computer-science.core.sentence": "الشرح",
   "catalog.mathematics.core.word_phrase": "الشرح",
-  "catalog.mathematics.core.sentence": "الشرح"
+  "catalog.mathematics.core.sentence": "الشرح",
+  "catalog.mathematics.formula.label": "الصيغة",
+  "catalog.computer-science.code.label": "مثال برمجي"
 }
