@@ -5,6 +5,7 @@ import { CATALOG, isContentType, isModuleType } from '@vocabularium/domain/page-
 import { blockText, mainKeyOf } from '@vocabularium/domain/pages';
 import { renderContent, renderParent } from '@vocabularium/domain/render';
 import type { Rendered } from '@vocabularium/domain/render';
+import { plainInline } from '@vocabularium/domain/markdown';
 import type { MdBlock, MdInline } from '@vocabularium/domain/markdown';
 import { parentContentOf } from '@vocabularium/domain/content';
 import type { ParentContent } from '@vocabularium/domain/content';
@@ -149,6 +150,14 @@ export function Markdown({ blocks, mainKey, className }: { blocks: readonly MdBl
   // left to right in a right-to-left interface, an Arabic one the other way.
   return <div className={`md${className ? ` ${className}` : ''}`}>{blocks.map((block, index) => block.type === 'paragraph'
     ? <p key={index} dir="auto"><Inline runs={block.children} mainKey={mainKey} /></p>
+    // A table (D17) scrolls inside its container on a narrow card.
+    : block.type === 'table'
+      ? <div key={index} className="md-table" role="region" tabIndex={0} aria-label={block.header.map(plainInline).filter(Boolean).join(', ')}><table dir="auto">
+        <thead><tr>{block.header.map((cell, at) => <th key={at} scope="col"><Inline runs={cell} mainKey={mainKey} /></th>)}</tr></thead>
+        <tbody>{block.rows.map((row, at) => <tr key={at}>{row.map((cell, column) => column === 0
+          ? <th key={column} scope="row"><Inline runs={cell} mainKey={mainKey} /></th>
+          : <td key={column}><Inline runs={cell} mainKey={mainKey} /></td>)}</tr>)}</tbody>
+      </table></div>
     : block.ordered
       ? <ol key={index} start={block.start} dir="auto">{block.items.map((item, at) =>
         <li key={at} data-number={block.start + at}><span><Inline runs={item} mainKey={mainKey} /></span></li>)}</ol>

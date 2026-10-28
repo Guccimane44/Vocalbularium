@@ -9,7 +9,7 @@ import { BulletList, OrderedList } from '@tiptap/extension-list';
 import type { ParentContent } from '@vocabularium/domain/content';
 import { headingOf } from '@vocabularium/domain/render';
 import type { EntryHeading } from '@vocabularium/domain/render';
-import { fromEditorDoc, hasText, toEditorDoc } from '@vocabularium/domain/markdown';
+import { fromEditorDoc, hasTable, hasText, toEditorDoc } from '@vocabularium/domain/markdown';
 import type { EditorNode } from '@vocabularium/domain/markdown';
 import { facetsOf } from '@vocabularium/domain/parents';
 import type { FacetType, ParentType } from '@vocabularium/domain/parents';
@@ -132,7 +132,21 @@ function Toolbar({ editor, label }: { editor: Editor; label: string }) {
 
 // One part: its head (a facet's tab or the core's top line), then its text.
 // The toolbar shows in the head while the focus is anywhere in the part.
-function PartEditor({ value, label, editable, head, onChange, after, autofocus = false, reading = false, ...rest }: {
+// A part that holds a table (D17, K54) is edited as its markdown source, a
+// row a line, in a plain text field; everything else in the formatting editor.
+function PartEditor(props: Parameters<typeof RichEditor>[0]) {
+  return hasTable(props.value) ? <SourceEditor {...props} /> : <RichEditor {...props} />;
+}
+function SourceEditor({ value, label, editable, head, onChange, after, autofocus = false, reading: _, ...rest }: Parameters<typeof RichEditor>[0]) {
+  const [text, setText] = useState(value);
+  return <section {...rest} data-source="">
+    {head(null)}
+    <textarea className="md-source" aria-label={label} dir="ltr" spellCheck={false} readOnly={!editable} autoFocus={autofocus} value={text}
+      rows={Math.min(20, text.split('\n').length + 1)} onChange={event => { setText(event.target.value); onChange(event.target.value); }} />
+    {after}
+  </section>;
+}
+function RichEditor({ value, label, editable, head, onChange, after, autofocus = false, reading = false, ...rest }: {
   value: string; label: string; editable: boolean; head: (toolbar: ReactNode) => ReactNode; onChange: (markdown: string) => void;
   after?: ReactNode; autofocus?: boolean; reading?: boolean; className?: string; 'data-facet'?: string; 'data-unfilled'?: true;
 }) {

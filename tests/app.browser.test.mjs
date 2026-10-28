@@ -2114,8 +2114,9 @@ test('parents and facets: core only on add, the facet window on the parent, its 
 
   // A German parent's facet window lists its four facets in the module's order, the ones it has ticked.
   let facets = await facetWindow(a.page, 'German');
-  assert.deepEqual(await facets.locator('.facet-window-name').allTextContents(), ['Article', 'Examples', 'Synonyms', 'Antonyms']);
-  assert.deepEqual(await facets.getByRole('checkbox').evaluateAll(nodes => nodes.map(node => node.checked)), [true, true, true, true]);
+  assert.deepEqual(await facets.locator('.facet-window-name').allTextContents(), ['Article', 'Examples', 'Synonyms', 'Antonyms', 'Conjugation', 'Declension', 'Comparison', 'Case'],
+    'every facet of German, the grammar facets included (D17)');
+  assert.deepEqual(await facets.getByRole('checkbox').evaluateAll(nodes => nodes.map(node => node.checked)), [true, true, true, true, false, false, false, false], 'the grammar facets are not on a My Deck card (K56)');
   await waitFor(() => tick(facets, 'Article').evaluate(node => node === document.activeElement), 'the first row takes the focus');
 
   // Unticking a facet with content asks in its row; Cancel keeps it.
@@ -2191,7 +2192,7 @@ test('parents and facets: core only on add, the facet window on the parent, its 
     };
   });
   facets = await facetWindow(a.page, 'German 2');
-  assert.deepEqual(await facets.getByRole('checkbox').evaluateAll(nodes => nodes.map(node => node.checked)), [false, false, false, false], 'a core only');
+  assert.deepEqual(await facets.getByRole('checkbox').evaluateAll(nodes => nodes.map(node => node.checked)), Array(8).fill(false), 'a core only');
   await a.page.screenshot({ path: 'artifacts/v0.8.1-facet-window.png', fullPage: true, animations: 'disabled' });
   await tick(facets, 'Synonyms').click();
   await waitFor(async () => (await german())[1].facets.includes('synonyms'), 'Synonyms added to the second German');
@@ -2334,7 +2335,7 @@ test('0.8.1: explanations: About a module in a dialog with its samples, and a fa
   await dialog.waitFor();
   assert.match(await dialog.locator('.explanation-text').innerText(), /Explains the key in German/);
   assert.deepEqual(await dialog.locator('.explanation-sample > h3').allTextContents(), ['For a word: 幸福 · sample', 'For a sentence: 我真的很幸福 · sample']);
-  assert.deepEqual(await dialog.locator('.explanation-sample').first().locator('.facet-tab-label').allTextContents(), ['Article', 'Examples', 'Synonyms', 'Antonyms']);
+  assert.deepEqual(await dialog.locator('.explanation-sample').first().locator('.facet-tab-label').allTextContents(), ['Article', 'Examples', 'Synonyms', 'Antonyms', 'Declension']);
   assert.deepEqual(await dialog.locator('.explanation-sample').nth(1).locator('.facet-tab-label').allTextContents(), ['Examples'], 'only what applies to a sentence');
   await a.page.screenshot({ path: 'artifacts/v0.8.1-about-german.png', animations: 'disabled' });
   // Escape closes it, returns the focus to the link, and adds nothing.
@@ -2376,7 +2377,7 @@ test('0.8.1: explanations: About a module in a dialog with its samples, and a fa
   // Pressed again it folds away; reading changes no tick.
   await info('Examples').click();
   assert.equal(await facets.locator('.facet-explanation').count(), 0);
-  assert.deepEqual(await facets.getByRole('checkbox').evaluateAll(nodes => nodes.map(node => node.checked)), [true, true, true, true]);
+  assert.deepEqual(await facets.getByRole('checkbox').evaluateAll(nodes => nodes.map(node => node.checked)), [true, true, true, true, false, false, false, false], 'the grammar facets are not on a My Deck card (K56)');
 
   // Both themes, with forced colours off and on: the facet window, an open explanation and the
   // About dialog keep their outline and readable text (0.8.1 increment C).
@@ -3541,4 +3542,48 @@ test('0.9.1: deleting a page goes straight to its deck, and an ejected action st
   await new Promise(resolve => setTimeout(resolve, 500));
   const headings = [...new Set(await a.page.evaluate(() => window.headings))];
   assert.ok(!headings.includes('Page unavailable'), `no unavailable page on the way to the deck (${JSON.stringify(headings)})`);
+});
+
+test('0.12.0: a German verb’s Conjugation is a table on the card, its top line says Verb, and its own Edit edits the table as its source (D17)', { timeout: 45000 }, async (t) => {
+  const directory = await mkdtemp(join(tmpdir(), 'vocabularium-grammar-browser-'));
+  const application = await createTestApplication(t); await application.start();
+  const a = await launch(join(directory, 'a'));
+  t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
+  const store = application.store;
+  const session = { installationId: 'fixture', sessionId: 'grammar', epoch: 1 };
+  await store.openSession('grammar-session', session);
+  await useModules(store, ['german']);
+  const { pageId } = await store.capture('grammar-capture', { session, mainKey: 'laufen', snapshot: await store.snapshot() });
+  const german = (await store.page(pageId)).components.find(item => item.moduleType === 'german');
+  const conjugation = { columns: ['Präsens', 'Präteritum', 'Perfekt'], rows: [
+    { label: 'ich', cells: ['laufe', 'lief', 'bin gelaufen'] }, { label: 'du', cells: ['läufst', 'liefst', 'bist gelaufen'] }] };
+  // A verb: Article and Declension would be dropped by the facet check, so the model's are left out here.
+  await store.stage(german.attemptId, staged({ core: { kind: 'word', language: 'Deutsch', key: 'laufen', gramRole: 'verb', meanings: ['sich zu Fuß fortbewegen'] },
+    facets: { examples: [{ sentence: 'Wir laufen.' }], conjugation } }));
+  await store.publish('grammar-publish', { attemptId: german.attemptId, session });
+  await signIn(a.page);
+  await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
+  const card = componentArticle(a.page, 'German');
+  const facet = card.locator('.facet[data-facet="conjugation"]');
+  await facet.locator('table').waitFor();
+
+  assert.deepEqual(await card.locator('.entry-heading .entry-label').allTextContents(), ['Wort', 'Verb']);
+  assert.deepEqual(await facet.locator('thead th').allTextContents(), ['', 'Präsens', 'Präteritum', 'Perfekt']);
+  assert.deepEqual(await facet.locator('tbody tr').evaluateAll(rows => rows.map(row => [...row.cells].map(cell => cell.textContent))),
+    [['ich', 'laufe', 'lief', 'bin gelaufen'], ['du', 'läufst', 'liefst', 'bist gelaufen']]);
+  assert.equal(await facet.locator('tbody th[scope="row"]').count(), 2, 'each row is labelled by its person');
+  await card.screenshot({ path: 'artifacts/v0.12.0-conjugation.png' });
+
+  // Its own Edit opens the table's source, a row a line; a change shows on the card after Save.
+  await facet.hover();
+  await a.page.getByRole('button', { name: 'Edit Conjugation from German', exact: true }).click();
+  const source = card.getByRole('textbox', { name: 'Conjugation, German', exact: true });
+  await source.waitFor();
+  assert.equal(await source.evaluate(node => node.tagName), 'TEXTAREA');
+  assert.match(await source.inputValue(), /^\|  \| Präsens \| Präteritum \| Perfekt \|\n\| --- \|/);
+  await source.fill((await source.inputValue()).replace('läufst', 'rennst'));
+  await facet.getByRole('button', { name: 'Save', exact: true }).click();
+  await waitFor(async () => (await facet.locator('tbody tr').nth(1).locator('td').first().textContent()) === 'rennst', 'the edited table shows');
+  const stored = (await store.page(pageId)).components.find(item => item.moduleType === 'german').content.blocks[0].facets.conjugation;
+  assert.match(stored, /\| du \| rennst \| liefst \| bist gelaufen \|/);
 });

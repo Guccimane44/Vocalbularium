@@ -2,8 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { applyDraft, ContentError, draftOf, filledFacets, formatContent, formatFacet, hasFacetContent, isEmptyContent, parentContentOf, parentDocument, providerCore,
   validateParentContent, withFacetText } from '@vocabularium/domain/content';
-import { GeneratedError, validateGenerated } from '@vocabularium/domain/generated';
-import { escapeMarkdown, parseMarkdown, plainLines } from '@vocabularium/domain/markdown';
+import { GeneratedError, validateGenerated, validateGeneratedFacet } from '@vocabularium/domain/generated';
+import { escapeMarkdown, hasTable, highlightKey, parseMarkdown, plainInline, plainLines, table } from '@vocabularium/domain/markdown';
 import { blockText } from '@vocabularium/domain/pages';
 import { renderParent } from '@vocabularium/domain/render';
 
@@ -191,4 +191,30 @@ test('the live editor’s document converts to and from the markdown subset, rou
     const stored = fromEditorDoc({ type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: literal }] }] });
     assert.deepEqual(parseMarkdown(stored), [{ type: 'paragraph', children: [{ type: 'text', text: literal }] }], `${literal} → ${stored}`);
   }
+});
+
+test('a table is written from cells, read back into its rows, and its pipes stay literal (D17)', () => {
+  const source = table(['Präsens', 'Präteritum'], [{ label: 'ich', cells: ['laufe', 'lief'] }, { label: 'du', cells: ['läufst', 'a|b *c*'] }]);
+  assert.equal(source, '|  | Präsens | Präteritum |\n| --- | --- | --- |\n| ich | laufe | lief |\n| du | läufst | a\\|b \\*c\\* |');
+  const [block] = parseMarkdown(source);
+  assert.equal(block.type, 'table');
+  assert.deepEqual(block.header.map(plainInline), ['', 'Präsens', 'Präteritum']);
+  assert.deepEqual(block.rows.map(row => row.map(plainInline)), [['ich', 'laufe', 'lief'], ['du', 'läufst', 'a|b *c*']]);
+  assert.deepEqual(plainLines(source), ['Präsens Präteritum', 'ich laufe lief', 'du läufst a|b *c*']);
+  assert.equal(hasTable(source), true);
+  assert.equal(hasTable('1. Ufer'), false);
+  assert.equal(parseMarkdown('| a | b |\nnot a rule')[0].type, 'paragraph', 'a pipe line without its rule is text');
+  assert.equal(highlightKey(source, 'laufe').includes('==laufe=='), true, 'the main key is highlighted inside a cell');
+});
+
+test('the German grammar facets format their JSON as the card shows it (D17)', () => {
+  const conjugation = { columns: ['Präsens', 'Präteritum', 'Perfekt'], rows: [{ label: 'ich', cells: ['laufe', 'lief', 'bin gelaufen'] }] };
+  assert.equal(formatFacet('german', 'conjugation', conjugation), '|  | Präsens | Präteritum | Perfekt |\n| --- | --- | --- | --- |\n| ich | laufe | lief | bin gelaufen |');
+  assert.equal(formatFacet('german', 'comparison', { positive: 'gut', comparative: 'besser', superlative: 'am besten' }), 'gut · besser · am besten');
+  assert.equal(formatFacet('german', 'case', [{ case: 'Akkusativ', use: 'Richtung', example: 'Wir gehen in die Stadt.' }, { case: 'Dativ', use: 'Ort', example: 'Wir sind in der Stadt.' }]),
+    '- **Akkusativ** · Richtung: Wir gehen in die Stadt.\n- **Dativ** · Ort: Wir sind in der Stadt.');
+  throws(() => validateGeneratedFacet('german', 'conjugation', { columns: ['Präsens'], rows: [] }), GeneratedError, /rows is empty/);
+  const rendered = renderParent('german', { header: { kind: 'word', language: 'Deutsch', key: 'laufen', gramRole: 'verb' }, core: '1. gehen',
+    facets: { conjugation: formatFacet('german', 'conjugation', conjugation) } });
+  assert.equal(rendered.facets[0].body[0].type, 'table');
 });

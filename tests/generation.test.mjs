@@ -8,11 +8,11 @@ import { Generation } from '../src/server/generation.mjs';
 import { OpenCodeProvider } from '../src/server/opencode.mjs';
 import { moduleInstructions as parentInstructions, moduleSchema as parentSchema, promptVersion } from '@vocabularium/domain/composer';
 import { generateComponents } from '@vocabularium/domain/modules';
+import { facetsOf } from '@vocabularium/domain/parents';
 import { formatContent, withKeyHighlighted } from '@vocabularium/domain/content';
 // Generated content as stored: formatted, with the main key highlighted (D10, amended a fourth time).
 // The prompt version of German's whole attempt on a word (D11); the fake provider names no model.
-const GERMAN_WORD_PROMPT = promptVersion({ instructions: parentInstructions('german', ['article', 'examples', 'synonyms', 'antonyms']),
-  schema: parentSchema('german', ['article', 'examples', 'synonyms', 'antonyms']) });
+const GERMAN_WORD_PROMPT = promptVersion({ instructions: parentInstructions('german', facetsOf('german')), schema: parentSchema('german', facetsOf('german')) });
 const keyed = (value, key = 'bank') => withKeyHighlighted(formatContent('german', value), key);
 import { plainLines } from '@vocabularium/domain/markdown';
 import { isContentType } from '@vocabularium/domain/page-modules';
@@ -580,7 +580,10 @@ test('the result recovery journal survives a failed database write and server re
   await generation.close();
   await store.close();
   store = (await createTestStore(t, databaseKey)); generation = (await Generation.create(store, { generate: async () => assert.fail() }));
-  assert.deepEqual((await store.attempt(attemptId)).result, { ok: true, content: formatContent('german', wordResult('journaled result', {}, { key: '幸福' })), generation: { model: null, prompt: GERMAN_WORD_PROMPT } });
+  // My Deck's German has its four first facets (K56).
+  const four = ['article', 'examples', 'synonyms', 'antonyms'];
+  const prompt = promptVersion({ instructions: parentInstructions('german', four), schema: parentSchema('german', four) });
+  assert.deepEqual((await store.attempt(attemptId)).result, { ok: true, content: formatContent('german', wordResult('journaled result', {}, { key: '幸福' })), generation: { model: null, prompt } });
   await store.publish('recovered', { attemptId, session });
   assert.equal(text(generated(await store.page(pageId))[0]), 'journaled result'); assert.equal(calls, 1);
 });
