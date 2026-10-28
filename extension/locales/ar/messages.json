@@ -39,8 +39,6 @@
   "page.new.title": "صفحة جديدة.",
   "page.new.contextOptional": "السياق (اختياري)",
   "page.new.contentHint": "الحفظ لا يبدأ التوليد. ستحصل الصفحة أيضًا على {modules}؛ بعد الحفظ استخدم «إعادة المحاولة» على كل مكوّن منها لملئه انطلاقًا من المفتاح الرئيسي.",
-  "page.readAsWord": "قُرئ على أنه كلمة",
-  "page.readAsSentence": "قُرئ على أنه جملة",
   "page.showAll": "عرض الكل",
   "page.showLess": "عرض أقل",
   "page.unavailable.title": "الصفحة غير متاحة",

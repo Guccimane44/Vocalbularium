@@ -14,10 +14,15 @@ export const text = component => {
 // Structured provider results (D09) for controlled providers.
 export const wordResult = (meanings, facets = {}, { language = 'Englisch', key = 'key' } = {}) =>
   ({ core: { kind: 'word', language, key, meanings: [].concat(meanings) }, facets });
-export const sentenceResult = (translation, facets = {}) => ({ core: { kind: 'sentence', translation }, facets });
-// The result for the request's input type: `value` as the one meaning of a word, or a sentence's translation.
+// A sentence has the same core as a word (D17): its translation is its one meaning.
+export const sentenceResult = (translation, facets = {}, { language = 'Englisch', key = 'A sentence.' } = {}) =>
+  ({ core: { kind: 'sentence', language, key, meanings: [translation] }, facets });
+// What a controlled provider reads the key as, since each module reads it
+// itself (D17): a key that ends like a sentence is one.
+export const isSentence = key => /[.!?。！？]\s*$/.test(key.trim());
+// The result for the request's key: `value` as the one meaning of a word, or a sentence's translation.
 export const resultFor = (request, value, facets = {}) =>
-  request.interpretation.inputType === 'sentence' ? sentenceResult(value, facets) : wordResult(value, facets, { key: request.selectedText });
+  isSentence(request.selectedText) ? sentenceResult(value, facets, { key: request.selectedText }) : wordResult(value, facets, { key: request.selectedText });
 // Content components: the ones generation produces.
 export const generated = page => page.components.filter(component => isContentType(component.moduleType));
 export const component = (page, moduleType) => page.components.find(candidate => candidate.moduleType === moduleType);

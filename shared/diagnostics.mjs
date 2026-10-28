@@ -9,7 +9,7 @@ const numberFields = ['durationMs', 'queueMs', 'active', 'queued', 'reserved', '
 const contentEvents = new Set(['capture.invoked', 'capture.saved', 'generation.input', 'generation.output', 'provider.request', 'provider.response']);
 export const eventNames = new Set(['process.started', 'process.stopping', 'process.failed', 'database.failed',
   'readiness.failed', 'api.completed', 'capture.invoked', 'capture.saved', 'generation.input', 'generation.output',
-  'generation.work', 'provider.request', 'provider.response', 'recovery.started', 'recovery.completed',
+  'generation.work', 'generation.facet_mismatch', 'provider.request', 'provider.response', 'recovery.started', 'recovery.completed',
   'recovery.failed', 'worker.started', 'worker.failed', 'request.started', 'request.completed',
   'request.failed', 'logging.gap']);
 

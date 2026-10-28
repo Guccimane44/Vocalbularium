@@ -1,24 +1,136 @@
 {
   "note": "Golden set for Computer Science (D11, C8). The owner reviews the outputs before a prompt change merges.",
-  "modules": ["computer-science"],
+  "modules": [
+    "computer-science"
+  ],
   "inputs": [
-    { "key": "Frontend", "why": "Core term, the example in D11" },
-    { "key": "recursion", "why": "Core concept" },
-    { "key": "cache", "why": "Core term with an everyday meaning: the computer science sense only, no everyday meaning" },
-    { "key": "API", "why": "Abbreviation" },
-    { "key": "garbage collection", "why": "Phrase whose words mean something else" },
-    { "key": "race condition", "why": "Phrase" },
-    { "key": "Big O notation", "why": "Phrase shared with mathematics" },
-    { "key": "kernel", "context": "The kernel schedules every process on the machine.", "why": "Context picks the operating-system sense; the core does not restate the Context" },
-    { "key": "kernel", "context": "A corn kernel popped in the pan.", "why": "Context outside the subject: one opening sentence naming that sense, then the computer science meaning (D16)" },
-    { "key": "bug", "why": "Everyday word with a technical meaning: the computer science sense only, no everyday meaning" },
-    { "key": "thread", "why": "Everyday word with a technical meaning: the computer science sense only, no everyday meaning" },
-    { "key": "递归", "why": "Chinese key: explained in English" },
-    { "key": "Schnittstelle", "why": "German key: explained in English" },
-    { "key": "幸福", "why": "Unrelated key: one honest sentence, no explanation of its general meaning (D16)" },
-    { "key": "retinol", "why": "Unrelated key: one honest sentence, no explanation of the vitamin (D16)" },
-    { "key": "The function calls itself until it reaches the base case.", "why": "Sentence" },
-    { "key": "Python is dynamically typed.", "why": "Sentence with a term in it" },
-    { "key": "Der Browser lädt die Seite vom Server.", "why": "German sentence: explained in English" }
+    {
+      "key": "Frontend",
+      "why": "Core term, the example in D11",
+      "expect": {
+        "relevance": "subject"
+      }
+    },
+    {
+      "key": "recursion",
+      "why": "Core concept",
+      "expect": {
+        "relevance": "subject"
+      }
+    },
+    {
+      "key": "cache",
+      "why": "Core term with an everyday meaning: the computer science sense only, no everyday meaning",
+      "expect": {
+        "relevance": "subject"
+      }
+    },
+    {
+      "key": "API",
+      "why": "Abbreviation",
+      "expect": {
+        "relevance": "subject"
+      }
+    },
+    {
+      "key": "garbage collection",
+      "why": "Phrase whose words mean something else",
+      "expect": {
+        "relevance": "subject"
+      }
+    },
+    {
+      "key": "race condition",
+      "why": "Phrase",
+      "expect": {
+        "relevance": "subject"
+      }
+    },
+    {
+      "key": "Big O notation",
+      "why": "Phrase shared with mathematics",
+      "expect": {
+        "relevance": "subject"
+      }
+    },
+    {
+      "key": "kernel",
+      "context": "The kernel schedules every process on the machine.",
+      "why": "Context picks the operating-system sense; the core does not restate the Context",
+      "expect": {
+        "relevance": "subject"
+      }
+    },
+    {
+      "key": "kernel",
+      "context": "A corn kernel popped in the pan.",
+      "why": "Context outside the subject: one opening sentence naming that sense, then the computer science meaning (D16)",
+      "expect": {
+        "relevance": "subject"
+      }
+    },
+    {
+      "key": "bug",
+      "why": "Everyday word with a technical meaning: the computer science sense only, no everyday meaning",
+      "expect": {
+        "relevance": "subject"
+      }
+    },
+    {
+      "key": "thread",
+      "why": "Everyday word with a technical meaning: the computer science sense only, no everyday meaning",
+      "expect": {
+        "relevance": "subject"
+      }
+    },
+    {
+      "key": "递归",
+      "why": "Chinese key: explained in English",
+      "expect": {
+        "relevance": "subject"
+      }
+    },
+    {
+      "key": "Schnittstelle",
+      "why": "German key: explained in English",
+      "expect": {
+        "relevance": "subject"
+      }
+    },
+    {
+      "key": "幸福",
+      "why": "Unrelated key: one honest sentence, no explanation of its general meaning (D16)",
+      "expect": {
+        "relevance": "unrelated"
+      }
+    },
+    {
+      "key": "retinol",
+      "why": "Unrelated key: one honest sentence, no explanation of the vitamin (D16)",
+      "expect": {
+        "relevance": "unrelated"
+      }
+    },
+    {
+      "key": "The function calls itself until it reaches the base case.",
+      "why": "Sentence",
+      "expect": {
+        "relevance": "subject"
+      }
+    },
+    {
+      "key": "Python is dynamically typed.",
+      "why": "Sentence with a term in it",
+      "expect": {
+        "relevance": "subject"
+      }
+    },
+    {
+      "key": "Der Browser lädt die Seite vom Server.",
+      "why": "German sentence: explained in English",
+      "expect": {
+        "relevance": "subject"
+      }
+    }
   ]
 }

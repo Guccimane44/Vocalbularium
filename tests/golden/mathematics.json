@@ -1,27 +1,157 @@
 {
   "note": "Golden set for Mathematics (D11, C8). The owner reviews the outputs before a prompt change merges.",
-  "modules": ["mathematics"],
+  "modules": [
+    "mathematics"
+  ],
   "inputs": [
-    { "key": "eigenvalue", "why": "Core term, the module's sample" },
-    { "key": "derivative", "why": "Core concept" },
-    { "key": "prime number", "why": "Phrase" },
-    { "key": "vector space", "why": "Phrase" },
-    { "key": "proof by induction", "why": "Method" },
-    { "key": "limit", "why": "Everyday word with a technical meaning: the mathematics sense only, no everyday meaning" },
-    { "key": "ring", "context": "Every field is a ring in which each nonzero element has an inverse.", "why": "Context picks the algebra sense; the core does not restate the Context" },
-    { "key": "ring", "context": "She wore her grandmother's ring.", "why": "Context outside the subject: one opening sentence naming that sense, then the mathematics meaning (D16)" },
-    { "key": "field", "why": "Everyday word with a technical meaning: the mathematics sense only, no everyday meaning" },
-    { "key": "group", "why": "Everyday word with a technical meaning: the mathematics sense only, no everyday meaning" },
-    { "key": "Big O notation", "why": "Phrase shared with computer science" },
-    { "key": "导数", "why": "Chinese key: explained in English" },
-    { "key": "Ableitung", "why": "German key: explained in English" },
-    { "key": "Frontend", "why": "Neighbouring technical term (computer science): named as not a mathematics concept, one plain paragraph, no forced formula (D16)" },
-    { "key": "multi-core", "why": "Neighbouring technical term (computer science): named as not a mathematics concept, one plain paragraph, no Amdahl's law (D16)" },
-    { "key": "cache", "why": "Neighbouring technical term (computer science): named as not a mathematics concept, one plain paragraph, no access-time formula (D16)" },
-    { "key": "retinol", "why": "Unrelated key: one honest sentence, no explanation of the vitamin (D16)" },
-    { "key": "幸福", "why": "Unrelated key: one honest sentence; may name happy numbers in one more sentence (D16)" },
-    { "key": "Every continuous function on a closed interval attains its maximum.", "why": "Sentence: a theorem" },
-    { "key": "The derivative of x² is 2x.", "why": "Sentence with notation" },
-    { "key": "Zwei Geraden schneiden sich in höchstens einem Punkt.", "why": "German sentence: explained in English" }
+    {
+      "key": "eigenvalue",
+      "why": "Core term, the module's sample",
+      "expect": {
+        "relevance": "subject"
+      }
+    },
+    {
+      "key": "derivative",
+      "why": "Core concept",
+      "expect": {
+        "relevance": "subject"
+      }
+    },
+    {
+      "key": "prime number",
+      "why": "Phrase",
+      "expect": {
+        "relevance": "subject"
+      }
+    },
+    {
+      "key": "vector space",
+      "why": "Phrase",
+      "expect": {
+        "relevance": "subject"
+      }
+    },
+    {
+      "key": "proof by induction",
+      "why": "Method",
+      "expect": {
+        "relevance": "subject"
+      }
+    },
+    {
+      "key": "limit",
+      "why": "Everyday word with a technical meaning: the mathematics sense only, no everyday meaning",
+      "expect": {
+        "relevance": "subject"
+      }
+    },
+    {
+      "key": "ring",
+      "context": "Every field is a ring in which each nonzero element has an inverse.",
+      "why": "Context picks the algebra sense; the core does not restate the Context",
+      "expect": {
+        "relevance": "subject"
+      }
+    },
+    {
+      "key": "ring",
+      "context": "She wore her grandmother's ring.",
+      "why": "Context outside the subject: one opening sentence naming that sense, then the mathematics meaning (D16)",
+      "expect": {
+        "relevance": "subject"
+      }
+    },
+    {
+      "key": "field",
+      "why": "Everyday word with a technical meaning: the mathematics sense only, no everyday meaning",
+      "expect": {
+        "relevance": "subject"
+      }
+    },
+    {
+      "key": "group",
+      "why": "Everyday word with a technical meaning: the mathematics sense only, no everyday meaning",
+      "expect": {
+        "relevance": "subject"
+      }
+    },
+    {
+      "key": "Big O notation",
+      "why": "Phrase shared with computer science",
+      "expect": {
+        "relevance": "subject"
+      }
+    },
+    {
+      "key": "导数",
+      "why": "Chinese key: explained in English",
+      "expect": {
+        "relevance": "subject"
+      }
+    },
+    {
+      "key": "Ableitung",
+      "why": "German key: explained in English",
+      "expect": {
+        "relevance": "subject"
+      }
+    },
+    {
+      "key": "Frontend",
+      "why": "Neighbouring technical term (computer science): named as not a mathematics concept, one plain paragraph, no forced formula (D16)",
+      "expect": {
+        "relevance": "neighbouring"
+      }
+    },
+    {
+      "key": "multi-core",
+      "why": "Neighbouring technical term (computer science): named as not a mathematics concept, one plain paragraph, no Amdahl's law (D16)",
+      "expect": {
+        "relevance": "neighbouring"
+      }
+    },
+    {
+      "key": "cache",
+      "why": "Neighbouring technical term (computer science): named as not a mathematics concept, one plain paragraph, no access-time formula (D16)",
+      "expect": {
+        "relevance": "neighbouring"
+      }
+    },
+    {
+      "key": "retinol",
+      "why": "Unrelated key: one honest sentence, no explanation of the vitamin (D16)",
+      "expect": {
+        "relevance": "unrelated"
+      }
+    },
+    {
+      "key": "幸福",
+      "why": "Unrelated key: one honest sentence; may name happy numbers in one more sentence (D16)",
+      "expect": {
+        "relevance": "unrelated"
+      }
+    },
+    {
+      "key": "Every continuous function on a closed interval attains its maximum.",
+      "why": "Sentence: a theorem",
+      "expect": {
+        "relevance": "subject"
+      }
+    },
+    {
+      "key": "The derivative of x² is 2x.",
+      "why": "Sentence with notation",
+      "expect": {
+        "relevance": "subject"
+      }
+    },
+    {
+      "key": "Zwei Geraden schneiden sich in höchstens einem Punkt.",
+      "why": "German sentence: explained in English",
+      "expect": {
+        "relevance": "subject"
+      }
+    }
   ]
 }

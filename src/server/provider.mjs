@@ -1,5 +1,4 @@
-import { composeInterpretation, composeModule, promptVersion } from '@vocabularium/domain/composer';
-import { validateInterpretation } from '@vocabularium/domain/modules';
+import { composeModule, promptVersion } from '@vocabularium/domain/composer';
 import { isParentType } from '@vocabularium/domain/parents';
 import { randomUUID } from 'node:crypto';
 
@@ -69,14 +68,10 @@ export class Provider {
       throw error;
     }
   }
-  // The run's reading of the main key; the optional Context only disambiguates.
-  async interpret(selectedText, signal, sessionId, context) {
-    return validateInterpretation(await this.complete(composeInterpretation(selectedText, context), signal, sessionId));
-  }
-  // A parent module (D08) as structured data (D09): its core and the facets
-  // that apply, in one call; with a core, a facet's own Retry (0.7.3).
-  async generate({ module, selectedText, context, interpretation, facets, core, language, sessionId }, signal) {
+  // A parent module (D08) as structured data (D09): its core, its flags first,
+  // and its facets, in one call (D17); with a core, a facet's own Retry (0.7.3).
+  async generate({ module, selectedText, context, facets, core, language, sessionId }, signal) {
     if (!isParentType(module.type)) throw new Error('Unsupported generation module.');
-    return this.complete(composeModule({ module, selectedText, context, interpretation, facets: facets ?? [], core, language }), signal, sessionId);
+    return this.complete(composeModule({ module, selectedText, context, facets: facets ?? [], core, language }), signal, sessionId);
   }
 }

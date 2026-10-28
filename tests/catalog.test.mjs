@@ -11,7 +11,6 @@ import { validateGenerated } from '@vocabularium/domain/generated';
 // formatter or sample.
 const SRC = new URL('../packages/domain/src/catalog/', import.meta.url);
 const INPUT_TYPES = ['word_phrase', 'sentence'];
-const FILE = { word_phrase: 'word', sentence: 'sentence' };
 const promptFiles = dir => existsSync(dir) ? readdirSync(dir).filter(file => file.endsWith('.prompt.md')).sort() : [];
 const content = MODULE_IDS.filter(id => MODULES[id].kind === 'content');
 
@@ -35,7 +34,8 @@ test('input modules are never generated and have no facets or facet prompts', ()
     assert.deepEqual([...module.facets], [], id);
     assert.ok(!existsSync(new URL(`${folderOf(id)}/facets/`, SRC)), `${id} has facet folders`);
   }
-  assert.deepEqual(promptFiles(new URL('main-key/', SRC)), ['interpretation.prompt.md']);
+  // Since D17 no request reads the main key for the run.
+  assert.deepEqual(promptFiles(new URL('main-key/', SRC)), []);
 });
 
 test('each content module has its core first, then facets unique by ID and abbreviation', () => {
@@ -43,7 +43,7 @@ test('each content module has its core first, then facets unique by ID and abbre
     const module = MODULES[id];
     assert.equal(module.source, 'generated', id);
     assert.equal(module.core.id, 'core', id);
-    for (const inputType of INPUT_TYPES) assert.ok(module.core.shapes[inputType], `${id} core for ${inputType}`);
+    assert.ok(module.core.shape, `${id} has one core shape (D17)`);
     const ids = module.facets.map(facet => facet.id);
     assert.ok(!ids.includes('core'), id);
     assert.equal(new Set(ids).size, ids.length, `${id} repeats a facet ID`);
@@ -56,29 +56,31 @@ test('each content module has its core first, then facets unique by ID and abbre
   }
 });
 
-test('each facet has a prompt for exactly the input types it applies to, and nothing else is in the folders', () => {
+test('each facet has one prompt, the core its own and a Retry prompt, and nothing else is in the folders (D17)', () => {
   for (const id of content) {
     const module = MODULES[id];
     const folder = new URL(`${folderOf(id)}/`, SRC);
     assert.deepEqual(promptFiles(folder), ['module.prompt.md'], id);
-    assert.deepEqual(promptFiles(new URL('facets/core/', folder)), ['retry.prompt.md', 'sentence.prompt.md', 'word.prompt.md'], `${id}.core`);
+    assert.deepEqual(promptFiles(new URL('facets/core/', folder)), ['core.prompt.md', 'retry.prompt.md'], `${id}.core`);
     for (const facet of module.facets) {
-      assert.deepEqual(promptFiles(new URL(`facets/${facet.id}/`, folder)), facet.applies.map(type => `${FILE[type]}.prompt.md`).sort(), `${id}.${facet.id}`);
+      assert.deepEqual(promptFiles(new URL(`facets/${facet.id}/`, folder)), [], `${id}.${facet.id} has no prompt per input type`);
+      assert.ok(existsSync(new URL(`facets/${facet.id}/prompt.md`, folder)), `${id}.${facet.id} has its prompt`);
     }
     const folders = readdirSync(new URL('facets/', folder)).sort();
     assert.deepEqual(folders, ['core', ...module.facets.map(facet => facet.id)].sort(), `${id} has a facet folder the module does not list`);
   }
 });
 
-test('the composer builds a request for every module, input type and facet', () => {
-  for (const id of content) for (const inputType of INPUT_TYPES) {
-    const module = MODULES[id];
-    const facets = module.facets.filter(facet => facet.applies.includes(inputType)).map(facet => facet.id);
-    const interpretation = { inputType };
-    const request = composeModule({ module: { id: 'i', type: id }, selectedText: 'x', interpretation, facets });
-    assert.ok(request.instructions && request.schema.properties.core && request.maxTokens > 0, `${id} ${inputType}`);
+test('the composer builds one request for every module with all its facets, and a Retry per facet (D17)', () => {
+  for (const id of content) {
+    const facets = MODULES[id].facets.map(facet => facet.id);
+    const request = composeModule({ module: { id: 'i', type: id }, selectedText: 'x', facets });
+    assert.ok(request.instructions && request.schema.properties.core && request.maxTokens > 0, id);
+    assert.ok(!('inputType' in request.input), `${id} sends no input type`);
+    // The core's flags come first (D17).
+    assert.ok(['kind', 'relevance'].includes(Object.keys(request.schema.properties.core.properties)[0]), `${id} core starts with its flag`);
     for (const facet of facets) {
-      const retry = composeModule({ module: { id: 'i', type: id }, selectedText: 'x', interpretation, facets: [facet], core: { kind: 'word' } });
+      const retry = composeModule({ module: { id: 'i', type: id }, selectedText: 'x', facets: [facet], core: { kind: 'word' } });
       assert.deepEqual(Object.keys(retry.schema.properties), ['facets'], `${id}.${facet} retry`);
     }
   }
@@ -93,7 +95,8 @@ test('each module sample validates against its shapes and formats into markdown'
     }
     for (const inputType of INPUT_TYPES) {
       const checked = validateGenerated(id, sample[inputType]);
-      assert.equal(checked.core.kind, inputType === 'sentence' ? 'sentence' : 'word', `${id} ${inputType}`);
+      // A Languages core says which it read (D17); an Expertise core has no kind.
+      if ('kind' in checked.core) assert.equal(checked.core.kind, inputType === 'sentence' ? 'sentence' : 'word', `${id} ${inputType}`);
       const stored = formatContent(id, checked);
       assert.ok(stored.core, `${id} ${inputType}`);
       for (const facet of Object.keys(checked.facets)) assert.ok(stored.facets[facet], `${id}.${facet} ${inputType}`);

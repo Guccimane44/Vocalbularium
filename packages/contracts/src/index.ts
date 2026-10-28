@@ -3,11 +3,10 @@ import { BrowserSessionSchema, OperationIdSchema } from './base.js';
 
 export { BrowserSessionSchema, OperationIdSchema };
 
+// A word or phrase, or a sentence: the samples a module shows for each, and the
+// kinds of key a facet applies to. Since D17 no request classifies the key for
+// the run; each Languages core says which it read (its `kind`).
 export const InputTypeSchema = Type.Union([Type.Literal('word_phrase'), Type.Literal('sentence')]);
-// The run's reading of the main key (D08); no source language is chosen.
-export const InputInterpretationSchema = Type.Object({
-  inputType: InputTypeSchema
-});
 
 
 // The account's interface language (D14, K35): English is the default.
@@ -89,7 +88,6 @@ export type OperationId = Type.Static<typeof OperationIdSchema>;
 export type InterfaceLanguage = Type.Static<typeof InterfaceLanguageSchema>;
 export type LanguageRequest = Type.Static<typeof LanguageRequestSchema>;
 export type InputType = Type.Static<typeof InputTypeSchema>;
-export type InputInterpretation = Type.Static<typeof InputInterpretationSchema>;
 export type BrowserSession = Type.Static<typeof BrowserSessionSchema>;
 export type ApiFailure = Type.Static<typeof ApiFailureSchema>;
 export type HealthResponse = Type.Static<typeof HealthResponseSchema>;

@@ -1,1 +1,0 @@
-The selection is a sentence. In "core", write { "kind": "sentence", "translation": "<its German translation>" }. When the selection is already in German, the translation is an explanation of its meaning in German, in one or two plain sentences.

@@ -1,0 +1,1 @@
+"article": { "singular": "<article> <noun>", "plural": "die <plural>" } for the grammar word, such as { "singular": "das Ufer", "plural": "die Ufer" }, only when "gramRole" is noun. Leave out "plural" when the noun has none.

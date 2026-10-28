@@ -1,5 +1,4 @@
 import { defineInputModule } from '../define.js';
-import { schemaOf } from '../shape.js';
 import sample from './sample.json' with { type: 'json' };
 
 export default defineInputModule({
@@ -7,6 +6,3 @@ export default defineInputModule({
   instances: 'first-once', source: 'captured', sample, facets: []
 });
 
-// The run's reading of the main key (D08): word or phrase, or sentence. Its
-// prompt is interpretation.prompt.md.
-export const interpretationSchema = schemaOf({ inputType: { type: 'string', enum: ['word_phrase', 'sentence'] } });

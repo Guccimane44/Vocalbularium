@@ -12,13 +12,10 @@ import type { FacetType, ParentType } from './parents.js';
 export { GeneratedError };
 export type GeneratedParent = Readonly<{ core: CoreValue; facets: Readonly<Partial<Record<FacetType, unknown>>> }>;
 
-// The core in the shape its kind names: a word's or a sentence's.
+// The core in its module's one shape (D17), its flags first.
 function core(parent: ParentType, value: unknown): CoreValue {
   if (!isRecord(value)) return fail('The core is missing.');
-  const shapes = contentModule(parent).core.shapes;
-  const shape = value.kind === 'word' ? shapes.word_phrase : value.kind === 'sentence' ? shapes.sentence : null;
-  if (!shape) return fail('The core must be a word or a sentence.');
-  return shape.check(value, 'The core');
+  return contentModule(parent).core.shape.check(value, 'The core') as CoreValue;
 }
 const facetShape = (parent: ParentType, facet: FacetType) => contentModule(parent).facets.find(each => each.id === facet)!.shape;
 

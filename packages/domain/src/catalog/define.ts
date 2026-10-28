@@ -3,8 +3,10 @@ import type { Shape } from './shape.js';
 
 // The module catalog (D11): every module defined once, in its family's folder,
 // owning its facets. A facet's prompts are markdown files beside its
-// definition, named by input type (`word.prompt.md`, `sentence.prompt.md`); the
-// composer reads them. See docs/architecture/generation.md.
+// definition (`prompt.md`; the core's `core.prompt.md` and `retry.prompt.md`); the
+// composer reads them. Since D17 a module writes its card in one request: the
+// core's flags come first and each facet says when it applies. See
+// docs/architecture/generation.md.
 
 export type FamilyDefinition<Id extends string = string> = Readonly<{
   id: Id;
@@ -22,23 +24,33 @@ export type FacetDefinition<Id extends string = string, T = any> = Readonly<{
   // Marks the facet's tag on a card; unique within its module.
   abbreviation: string;
   description: string;
+  // The kinds of key it applies to: a word or phrase, a sentence or both.
   applies: readonly InputType[];
+  // Since D17, a further condition on the core's flags, such as Article only
+  // for a noun; without it, the kinds above decide.
+  when?: (core: CoreValue) => boolean;
   output: OutputType;
   shape: Shape<T>;
   // The checked value as the markdown the card shows.
   format: (value: T) => string;
 }>;
 
-// The core: a module's first facet, always present, with a shape per input
-// type. Its value carries a `kind` naming the input type it was written for.
-export type CoreValue = Readonly<{ kind: 'word' | 'sentence' } & Record<string, unknown>>;
+// The core: a module's first facet, always present, with one shape (D17). Its
+// flags come first: a Languages core's `kind` names whether the key was read as
+// a word or a sentence; an Expertise core has none and counts as a word's.
+export type CoreValue = Readonly<{ kind?: 'word' | 'sentence' } & Record<string, unknown>>;
+// The labels a core's header shows for its flags, in the module's language
+// (D17, K51): word or sentence, and a German word's grammatical role.
+export type HeaderLabels = Readonly<{ word: string; sentence: string; gramRole?: Readonly<Record<string, string>> }>;
 export type CoreDefinition<T extends CoreValue = any> = Readonly<{
   id: 'core';
   label: string;
   // How the editor names the core's text for each input type.
   labels: Readonly<Record<InputType, string>>;
   output: OutputType;
-  shapes: Readonly<Record<InputType, Shape<T>>>;
+  shape: Shape<T>;
+  // The labels of the flags the header shows; none for a module that shows none.
+  headerLabels?: HeaderLabels;
   format: (value: T) => string;
   // The structured top line kept beside the core's markdown.
   header: (value: T) => ParentHeader;

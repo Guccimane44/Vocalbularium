@@ -3984,6 +3984,11 @@
                                                     "type": "string",
                                                     "minLength": 1,
                                                     "maxLength": 2000
+                                                  },
+                                                  "gramRole": {
+                                                    "type": "string",
+                                                    "minLength": 1,
+                                                    "maxLength": 2000
                                                   }
                                                 },
                                                 "additionalProperties": false
@@ -3991,13 +3996,72 @@
                                               {
                                                 "type": "object",
                                                 "required": [
-                                                  "kind"
+                                                  "kind",
+                                                  "language",
+                                                  "key"
                                                 ],
                                                 "properties": {
                                                   "kind": {
                                                     "type": "string",
                                                     "enum": [
                                                       "sentence"
+                                                    ]
+                                                  },
+                                                  "language": {
+                                                    "type": "string"
+                                                  },
+                                                  "key": {
+                                                    "type": "string",
+                                                    "minLength": 1,
+                                                    "maxLength": 2000
+                                                  },
+                                                  "romanization": {
+                                                    "type": "string",
+                                                    "minLength": 1,
+                                                    "maxLength": 2000
+                                                  }
+                                                },
+                                                "additionalProperties": false
+                                              },
+                                              {
+                                                "type": "object",
+                                                "required": [
+                                                  "kind",
+                                                  "key",
+                                                  "relevance"
+                                                ],
+                                                "properties": {
+                                                  "kind": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                      "expertise"
+                                                    ]
+                                                  },
+                                                  "key": {
+                                                    "type": "string",
+                                                    "minLength": 1,
+                                                    "maxLength": 2000
+                                                  },
+                                                  "relevance": {
+                                                    "anyOf": [
+                                                      {
+                                                        "type": "string",
+                                                        "enum": [
+                                                          "subject"
+                                                        ]
+                                                      },
+                                                      {
+                                                        "type": "string",
+                                                        "enum": [
+                                                          "neighbouring"
+                                                        ]
+                                                      },
+                                                      {
+                                                        "type": "string",
+                                                        "enum": [
+                                                          "unrelated"
+                                                        ]
+                                                      }
                                                     ]
                                                   }
                                                 },
@@ -4371,6 +4435,11 @@
                                                     "type": "string",
                                                     "minLength": 1,
                                                     "maxLength": 2000
+                                                  },
+                                                  "gramRole": {
+                                                    "type": "string",
+                                                    "minLength": 1,
+                                                    "maxLength": 2000
                                                   }
                                                 },
                                                 "additionalProperties": false
@@ -4378,13 +4447,72 @@
                                               {
                                                 "type": "object",
                                                 "required": [
-                                                  "kind"
+                                                  "kind",
+                                                  "language",
+                                                  "key"
                                                 ],
                                                 "properties": {
                                                   "kind": {
                                                     "type": "string",
                                                     "enum": [
                                                       "sentence"
+                                                    ]
+                                                  },
+                                                  "language": {
+                                                    "type": "string"
+                                                  },
+                                                  "key": {
+                                                    "type": "string",
+                                                    "minLength": 1,
+                                                    "maxLength": 2000
+                                                  },
+                                                  "romanization": {
+                                                    "type": "string",
+                                                    "minLength": 1,
+                                                    "maxLength": 2000
+                                                  }
+                                                },
+                                                "additionalProperties": false
+                                              },
+                                              {
+                                                "type": "object",
+                                                "required": [
+                                                  "kind",
+                                                  "key",
+                                                  "relevance"
+                                                ],
+                                                "properties": {
+                                                  "kind": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                      "expertise"
+                                                    ]
+                                                  },
+                                                  "key": {
+                                                    "type": "string",
+                                                    "minLength": 1,
+                                                    "maxLength": 2000
+                                                  },
+                                                  "relevance": {
+                                                    "anyOf": [
+                                                      {
+                                                        "type": "string",
+                                                        "enum": [
+                                                          "subject"
+                                                        ]
+                                                      },
+                                                      {
+                                                        "type": "string",
+                                                        "enum": [
+                                                          "neighbouring"
+                                                        ]
+                                                      },
+                                                      {
+                                                        "type": "string",
+                                                        "enum": [
+                                                          "unrelated"
+                                                        ]
+                                                      }
                                                     ]
                                                   }
                                                 },

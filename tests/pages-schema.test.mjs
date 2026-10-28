@@ -67,7 +67,7 @@ test('page/component tables enforce ownership, uniqueness, limits and cascades',
   await assert.rejects(component('thirteenth', 'text', 'i-13', 12), /component_limit/);
   await rejects("UPDATE components SET status = 'done' WHERE id = 'c0'", [], /component_status/);
 
-  await client.query("INSERT INTO generation_runs VALUES ('r', 'p', NULL)");
+  await client.query("INSERT INTO generation_runs (id, page_id) VALUES ('r', 'p')");
   await client.query("INSERT INTO component_attempts (id, page_id, component_id, run_id, installation_id, session_id, epoch, module) VALUES ('a', 'p', 'c0', 'r', 'i', 's', 1, '{}')");
   await rejects("INSERT INTO component_attempts (id, page_id, component_id, run_id, installation_id, session_id, epoch, module) VALUES ('b', 'p', 'nope', 'r', 'i', 's', 1, '{}')", [], /foreign key/);
   await rejects("UPDATE component_attempts SET state = 'queued'", [], /component_attempt_state/);

@@ -9,10 +9,10 @@ import { facetAddBlocked, facetDeleteBlocked, isParentType, withFacet } from '@v
 import { blankContent, hasFacetContent, isEmptyContent, parentContentOf, parentDocument, validateParentContent, withFacetText } from '@vocabularium/domain/content';
 import { sortKey } from './sort-key.mjs';
 import { INTERFACE_LANGUAGES } from '@vocabularium/contracts';
-/** @import { BlockDocument, BrowserSession, CapturePreparationRequest, Component, ComponentDeleteRequest, ComponentMoveRequest, DeckConfiguration, DeckDeleteRequest, FacetChangePayload, InputInterpretation, ModuleAddRequest, ModuleInstance, Page, PageCaptureRequest, PageCreateRequest, PageGenerateRequest, PageSaveRequest, ParentHeader, PublishRequest } from '@vocabularium/contracts' */
+/** @import { BlockDocument, BrowserSession, CapturePreparationRequest, Component, ComponentDeleteRequest, ComponentMoveRequest, DeckConfiguration, DeckDeleteRequest, FacetChangePayload, ModuleAddRequest, ModuleInstance, Page, PageCaptureRequest, PageCreateRequest, PageGenerateRequest, PageSaveRequest, ParentHeader, PublishRequest } from '@vocabularium/contracts' */
 /** @import { ParentContent } from '@vocabularium/domain/content' */
 /** @import { FacetType, ParentType } from '@vocabularium/domain/parents' */
-/** @import { AccountRow, Attempt, AttemptModule, AttemptResult, AttemptRow, ComponentRow, DeckModuleRow, DeckRow, GenerationEntry, GenerationRecord, InstallationRow, PageRow, PageSummaryRow, ReceiptRow, Run, RunRow } from './store-records.js' */
+/** @import { AccountRow, Attempt, AttemptModule, AttemptResult, AttemptRow, ComponentRow, DeckModuleRow, DeckRow, GenerationEntry, GenerationRecord, InstallationRow, PageRow, PageSummaryRow, ReceiptRow } from './store-records.js' */
 /** @typedef {Readonly<{ v: 1; kind: string; sequence: number; key: string | number; id: string }>} Cursor */
 // The generation record after a published attempt (D11): per part with
 // content, the model and prompt version that produced it. A whole attempt
@@ -102,7 +102,7 @@ function blockValue(value, message) {
 function parentEdit(component, value, facet, page) {
   // An empty parent written by hand (D10, amended a fourth time) starts from
   // the blank top line of the page's main key; nothing else can start one.
-  const stored = parentContentOf(component.content) ?? (facet === undefined && page ? blankContent(mainKeyOf(page.components), page.interpretation) : null);
+  const stored = parentContentOf(component.content) ?? (facet === undefined && page ? blankContent(mainKeyOf(page.components), /** @type {ParentType} */ (component.moduleType)) : null);
   if (!(value?.version === 1 && Array.isArray(value.blocks) && value.blocks.length === 1 && value.blocks[0]?.type === 'parent')) {
     fail('invalid', 'Edit this module in its editor.');
   }
@@ -114,8 +114,9 @@ function parentEdit(component, value, facet, page) {
     content = validateParentContent(/** @type {ParentType} */ (component.moduleType), block, { facets: component.facets ?? [] });
     if (facet !== undefined) content = validateParentContent(/** @type {ParentType} */ (component.moduleType), withFacetText(stored, /** @type {FacetType} */ (facet), content.facets[/** @type {FacetType} */ (facet)]), { facets: component.facets ?? [] });
   } catch (error) { fail('invalid', /** @type {Error} */ (error).message); }
-  const line = (/** @type {ParentHeader} */ header) => header.kind === 'word' ? [header.kind, header.language, header.key, header.romanization ?? null] : [header.kind];
-  if (JSON.stringify(line(content.header)) !== JSON.stringify(line(stored.header))) fail('invalid', "The module's top line can not be changed.");
+  // The top line, with its flags (D17), is never edited.
+  const line = (/** @type {ParentHeader} */ header) => JSON.stringify(Object.entries(header).sort(([a], [b]) => a < b ? -1 : 1));
+  if (line(content.header) !== line(stored.header)) fail('invalid', "The module's top line can not be changed.");
   return parentDocument(content);
 }
 /** @param {unknown} value @param {string} message */
@@ -422,11 +423,8 @@ export class AccountStore {
             ...(retry && row.attempt_state === 'failed' ? { failedFacet: retry } : {}),
             content: JSON.parse(row.content), status: row.status, attemptId: row.attempt_id };
         });
-      // The latest run's reading of the main key (D08), shown under the page title.
-      const latest = /** @type {{ interpretation: string } | undefined} */ (await this.database.one(`SELECT interpretation FROM generation_runs
-        WHERE page_id = $1 AND interpretation IS NOT NULL ORDER BY ordinal DESC LIMIT 1`, [id]));
       return { id: page.id, deckId: page.deck_id, selectedText: page.selected_text, createdAt: page.created_at,
-        components, status: pageStatus(components), interpretation: latest ? JSON.parse(latest.interpretation).inputType : null };
+        components, status: pageStatus(components) };
     });
   }
   async pages() {
@@ -496,16 +494,13 @@ export class AccountStore {
       return { snapshot: (await this.snapshot()) };
     });
   }
-  // One run per request: its attempts share one interpretation.
+  // One run per request. Since D17 its attempts share no reading of the main
+  // key: each module reads it in its own request.
   /** @param {string} pageId @param {BrowserSession} session @param {readonly Component[]} targets @param {{ facet?: string | null }} [options] */
   async startRun(pageId, session, targets, { facet } = {}) {
     if (!targets.length) return { runId: null, attemptIds: [] };
     const runId = randomUUID();
-    // A facet's own Retry (0.7.3) keeps the page's latest reading of the main
-    // key, so the facet follows the core it joins.
-    const reading = facet ? /** @type {Pick<RunRow, 'interpretation'> | undefined} */ (await this.database.one(`SELECT interpretation FROM generation_runs
-      WHERE page_id = $1 AND interpretation IS NOT NULL ORDER BY ordinal DESC LIMIT 1`, [pageId])) : null;
-    await this.database.run("INSERT INTO generation_runs (id, page_id, interpretation) VALUES ($1, $2, $3)", [runId, pageId, reading?.interpretation ?? null]);
+    await this.database.run("INSERT INTO generation_runs (id, page_id) VALUES ($1, $2)", [runId, pageId]);
     const attemptIds = [];
     for (const { id: componentId, moduleInstanceId, moduleType, facets, waitingFacets, status } of targets) {
       const attemptId = randomUUID();
@@ -561,25 +556,6 @@ export class AccountStore {
       if (attempt?.module.retry) return this.keepAfterFacetFailure(attempt);
       await this.database.run("UPDATE components SET content = $2, status = 'failed', generation = NULL WHERE attempt_id = $1 AND status = 'loading'", [attemptId, JSON.stringify(textBlocks(''))]);
       await this.database.run("UPDATE component_attempts SET state = 'failed', result = NULL WHERE id = $1 AND state = 'loading'", [attemptId]);
-    });
-  }
-  /** @param {string} id @returns {Promise<Run>} */
-  async run(id) {
-    return this.database.transaction(async () => {
-      const run = /** @type {RunRow | undefined} */ (await this.database.one("SELECT * FROM generation_runs WHERE id = $1", [id]));
-      if (!run) fail('deleted', 'The generation run no longer exists.');
-      return { ...run, interpretation: run.interpretation ? JSON.parse(run.interpretation) : null };
-    });
-  }
-  /** @param {string} runId @param {InputInterpretation} interpretation */
-  async establishInterpretation(runId, interpretation) {
-    return this.database.transaction(async () => {
-      const run = await this.run(runId);
-      if (run.interpretation) return run.interpretation;
-      const active = await this.database.one("SELECT id FROM component_attempts WHERE run_id = $1 AND state = 'loading' LIMIT 1", [runId]);
-      if (!active) fail('stale_attempt', 'No active attempt requires this interpretation.');
-      await this.database.run("UPDATE generation_runs SET interpretation = $1 WHERE id = $2 AND interpretation IS NULL", [JSON.stringify(interpretation), runId]);
-      return interpretation;
     });
   }
   /** @param {BrowserSession} session */
