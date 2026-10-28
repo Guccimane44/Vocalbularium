@@ -307,13 +307,16 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
 .window-module .window-add:not(:disabled):active { transform: scale(.94); }
 .window-module .window-add:disabled { opacity: .45; cursor: default; }
 .window-module-body { padding-inline-end: 30px; }
-/* Below the +, the module's explanation (D13, 0.8.1): a quiet link at the
-   corner, the + standing just above it. */
-.window-module .window-add { bottom: 34px; }
-.window-module .window-about { justify-self: end; margin: 2px -2px 0 0; padding: 2px 4px; border: 0; border-radius: 4px; background: transparent;
-  color: var(--ink-soft); font: 500 12px/1.3 var(--font-text); text-decoration: underline; text-decoration-color: color-mix(in srgb, currentColor 35%, transparent);
-  text-underline-offset: 3px; cursor: pointer; }
-.window-module .window-about:hover { color: var(--fam, var(--ink)); text-decoration-color: currentColor; }
+/* Below the +, the module's explanation (D13, 0.8.1): its ⓘ, a round button
+   the size of the + and in its column (0.12.1). */
+.window-module { min-height: 76px; }
+.window-module .window-add { bottom: 38px; }
+.window-module .window-about { position: absolute; inset-inline-end: 8px; bottom: 8px; display: grid; place-items: center; width: 26px; height: 26px; padding: 0; border: 0;
+  border-radius: 50%; color: var(--ink-soft); background: transparent; box-shadow: inset 0 0 0 1px var(--line); cursor: pointer;
+  transition: background var(--dur-instant) ease, color var(--dur-instant) ease, transform var(--dur-spring) var(--ease-spring); }
+.window-module .window-about svg { width: 16px; height: 16px; }
+.window-module .window-about:hover { color: var(--fam, var(--ink)); background: var(--fam-tint); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fam) 30%, transparent); transform: scale(1.08); }
+.window-module .window-about:active { transform: scale(.94); }
 .window-module .window-about:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
 /* A module's explanation in a dialog: its family mark and name, its
    sentences, then its sample for a word and for a sentence as its card. */
@@ -321,6 +324,7 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
 .explanation-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
 .explanation-head h2 { flex: 1; margin: 0; font: 600 22px/1.2 var(--font-display); }
 .explanation-head .fam-chip { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: var(--radius-control); background: var(--fam); color: var(--on-fam); }
+.explanation-head .facet-chip { font: 700 13px/1 var(--font-text); }
 .explanation-text { font-size: 15px; color: var(--ink); }
 .explanation-samples { display: grid; gap: 20px; margin-top: 18px; }
 .explanation-sample > :is(h3, h4) { margin: 0 0 8px; font: 600 12px/1.3 var(--font-text); letter-spacing: .04em; text-transform: uppercase; color: var(--ink-soft); }
@@ -476,9 +480,13 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
 .facet-actions button { display: inline-grid; place-items: center; width: 26px; height: 26px; padding: 0; border: 0; border-radius: var(--radius-control);
   background: transparent; color: var(--ink-muted); opacity: 0; transition: opacity var(--dur-instant) ease, background var(--dur-instant) ease; }
 .facet:hover .facet-actions button, .facet-actions button:focus-visible { opacity: 1; }
+/* A Retry with nothing to generate stays in its place, unavailable (0.12.1),
+   hidden like the others until the facet is pointed at. */
+.facet-actions button:disabled { opacity: 0; cursor: default; }
+.facet:hover .facet-actions button:disabled, .facet-actions button:disabled:focus-visible { opacity: .4; }
 /* Each part's top line; Context and Text as markdown, edited from their tab. */
 .entry-heading-text { position: relative; }
-.facet-edit:not(:disabled):hover, .facet-retry:not(:disabled):hover { background: var(--fam-tint, var(--fam-notes-tint)); color: var(--fam, var(--fam-notes)); }
+.facet-about-open:hover, .facet-edit:not(:disabled):hover, .facet-retry:not(:disabled):hover { background: var(--fam-tint, var(--fam-notes-tint)); color: var(--fam, var(--fam-notes)); }
 .facet-delete:not(:disabled):hover { background: var(--status-failed-bg); color: var(--status-failed); }
 .facet-actions .action-icon { width: 14px; height: 14px; }
 .facet-confirm { margin-inline-start: auto; display: inline-flex; align-items: center; gap: 6px; letter-spacing: 0; text-transform: none; }

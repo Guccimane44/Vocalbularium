@@ -19,6 +19,7 @@ import type { FieldDraft, PageEditorDraft } from '../types/editor-drafts.js';
 import { FacetTab, FacetTags, FOLD_MS } from './facet-tags.tsx';
 import type { TagLayout } from './facet-tags.tsx';
 import { FacetWindow } from './facet-window.tsx';
+import { FacetExplanationDialog } from './explanation.tsx';
 import { FamilyIcon } from './families.tsx';
 import { mainKeyTier } from './main-key.ts';
 import { AT_THE_END, moduleLabel, numbered, ShapingArea, SixDots } from './shaping.tsx';
@@ -32,6 +33,8 @@ const ACTION_ICONS = {
   delete: <><path d="M4 7h16" /><path d="M9 7V4h6v3" /><path d="M18 7l-1 13H7L6 7" /></>,
   // A bookmark, as a facet's tag is drawn (0.7.1).
   facet: <path d="M7 4h10v16l-5-3.5L7 20z" />,
+  // The ⓘ of the facet window's rows.
+  about: <><circle cx="12" cy="12" r="9.5" /><path d="M12 11v6" /><path d="M12 7.5h.01" /></>,
   fold: <><path d="M7 20l5-5 5 5" /><path d="M7 4l5 5 5-5" /></>,
   unfold: <><path d="M7 15l5 5 5-5" /><path d="M7 9l5-5 5 5" /></>
 } as const;
@@ -175,20 +178,23 @@ export function Markdown({ blocks, mainKey, className }: { blocks: readonly MdBl
 // when the facet has nothing in it, otherwise after "Are you sure?" in the
 // same row, like a card's Retry and Delete. Its tag's remove asks here too
 // (0.7.1). Retry regenerates the facet alone; its parent's core and other
-// facets stay.
+// facets stay. Retry is unavailable where the facet has nothing to generate.
+// About, first, opens the facet's explanation, as its ⓘ in the facet window (0.12.1).
 type FacetAsk = 'delete' | 'retry';
-function FacetActions({ name, hasContent, canRetry, disabled, asking, setAsking, onDelete, onRetry, onEdit }: {
+function FacetActions({ name, hasContent, canRetry, disabled, asking, setAsking, onDelete, onRetry, onEdit, onAbout }: {
   name: string; hasContent: boolean; canRetry: boolean; disabled: boolean; asking: FacetAsk | null; setAsking: (value: FacetAsk | null) => void;
   // The core has no Delete (D10, amended).
-  onDelete?: () => void; onRetry: () => void; onEdit?: () => void;
+  onDelete?: () => void; onRetry: () => void; onEdit?: () => void; onAbout: () => void;
 }) {
   const cancel = useRef<HTMLButtonElement>(null);
   useEffect(() => { if (asking) cancel.current?.focus(); }, [asking]);
   if (!asking) return <span className="facet-actions">
+    <button type="button" className="facet-about-open" aria-label={t('shaping.about', { name })} aria-haspopup="dialog"
+      onClick={onAbout}><ActionIcon name="about" /></button>
     {onEdit && <button type="button" className="facet-edit" aria-label={t('action.editNamed', { name })} disabled={disabled}
       onClick={onEdit}><ActionIcon name="edit" /></button>}
-    {canRetry && <button type="button" className="facet-retry" aria-label={t('action.retryNamed', { name })} disabled={disabled}
-      onClick={() => hasContent ? setAsking('retry') : onRetry()}><ActionIcon name="retry" /></button>}
+    <button type="button" className="facet-retry" aria-label={t('action.retryNamed', { name })} disabled={disabled || !canRetry}
+      onClick={() => hasContent ? setAsking('retry') : onRetry()}><ActionIcon name="retry" /></button>
     {onDelete && <button type="button" className="facet-delete" aria-label={t('action.deleteNamed', { name })} disabled={disabled}
       onClick={() => hasContent ? setAsking('delete') : onDelete()}><ActionIcon name="delete" /></button>}
   </span>;
@@ -224,9 +230,6 @@ export function readContent(type: string, content: Component['content']): { rend
   return { rendered: renderContent(type, text), present: Boolean(text) };
 }
 
-// Why a facet the card rules out shows no Retry (D17).
-const RULED_OUT = { sentence: 'facet.ruledOut.sentence', role: 'facet.ruledOut.role', subject: 'facet.ruledOut.subject', none: 'facet.ruledOut.none' } as const;
-
 // Generated content as its parent's render contract describes (D08): the core,
 // then each facet with content under its tab, in the parent's order. A facet
 // waiting for Retry is only its tag (0.7.4), until its own Retry starts: then
@@ -237,24 +240,25 @@ const RULED_OUT = { sentence: 'facet.ruledOut.sentence', role: 'facet.ruledOut.r
 export function Content({ type, rendered, mainKey, controls }: {
   type: string; rendered: Rendered; mainKey: string; controls?: FacetControls;
 }) {
+  // The facet whose explanation is open from its About.
+  const [about, setAbout] = useState<FacetType | null>(null);
   // Context and Text as markdown (D10, amended a fourth time), edited from their tab.
   if (rendered.kind === 'note') return <Markdown blocks={rendered.blocks} mainKey={mainKey} className="note-body" />;
   const parent = isParentType(type) ? type : null;
   // A facet's own Retry needs content that follows the parent's layout, and a
-  // facet the card's flags rule out has nothing to generate (D17): it shows why instead.
+  // facet the card's flags rule out has nothing to generate (D17): its Retry is unavailable.
   const ruled = rendered.kind === 'parent' ? rendered.ruledOut : {};
   const canRetryFacet = (facet: FacetType) => rendered.kind === 'parent' && !ruled[facet];
   // While the facet generates on its own, the spark runs round its tab (0.7.4).
   const facetHead = (facet: FacetType, hasContent = true) => parent && <h3 className="facet-title">
     <FacetTab parent={parent} facet={facet}><Spark active={controls?.retrying === facet} /></FacetTab>
     {controls?.retrying === facet ? <span className="visually-hidden">{t('status.generatingEllipsis')}</span>
-      : controls?.failed === facet ? <span className="facet-note" data-note="failed">{t('card.retryFailed')}</span>
-      : ruled[facet] && <span className="facet-note" data-note="ruled-out">{t(RULED_OUT[ruled[facet]!])}</span>}
+      : controls?.failed === facet && <span className="facet-note" data-note="failed">{t('card.retryFailed')}</span>}
     {controls && <FacetActions name={t('facet.fromCard', { facet: facetName(parent, facet), card: controls.title })} hasContent={hasContent} canRetry={canRetryFacet(facet)}
       disabled={controls.disabled} asking={controls.asking?.facet === facet ? controls.asking.kind : null}
       setAsking={kind => controls.setAsking(kind ? facet : null, kind ?? undefined)}
       onDelete={() => controls.onDelete(facet)} onRetry={() => controls.onRetry(facet)}
-      onEdit={controls.onEdit && (() => controls.onEdit!(facet))} />}
+      onEdit={controls.onEdit && (() => controls.onEdit!(facet))} onAbout={() => setAbout(facet)} />}
   </h3>;
   const section = (facet: string) => ({ className: 'facet', 'data-facet': facet, tabIndex: -1,
     'data-retrying': controls?.retrying === facet || undefined, 'aria-busy': controls?.retrying === facet || undefined });
@@ -284,6 +288,7 @@ export function Content({ type, rendered, mainKey, controls }: {
       return controls?.retrying === name || controls?.facets?.includes(name)
         ? <section key={name} {...section(name)} data-unfilled data-pending={controls?.retrying === name || undefined}>{facetHead(name, false)}</section> : null;
     })}
+    {parent && about && <FacetExplanationDialog parent={parent} facet={about} close={() => setAbout(null)} />}
   </div>;
 }
 

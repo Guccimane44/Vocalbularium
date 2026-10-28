@@ -395,11 +395,14 @@ function WindowModule({ type, blocked, explain, addAtEnd, about }: {
       <PlusIcon />
     </button>
     {blocked && explain && <p className="window-reason muted">{blocked}</p>}
-    {/* Below the +, what the module does, with a sample, without trying it (D13, 0.8.1). */}
-    <button type="button" className="window-about" aria-haspopup="dialog" onClick={() => about(type)}>{t('shaping.about', { name: label })}</button>
+    {/* Below the +, its ⓘ: what the module does, with a sample, without trying it (D13, 0.8.1; a button since 0.12.1). */}
+    <button type="button" className="window-about" aria-label={t('shaping.about', { name: label })} aria-haspopup="dialog" onClick={() => about(type)}>
+      <InfoIcon />
+    </button>
   </li>;
 }
 
+const InfoIcon = () => <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><circle cx="12" cy="12" r="9.5" /><path d="M12 11v6" /><path d="M12 7.5h.01" /></svg>;
 const PlusIcon = () => <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>;
 
 // A "?" beside a heading whose explanation shows on hover, or on a click or

@@ -43,7 +43,8 @@ export function sampleOf(module: string, inputType: InputType, facets?: readonly
   if (given === undefined) return null;
   if (!isParentType(module)) return renderContent(module, given as string);
   const content = given as GeneratedParent;
-  const kept = applicableFacets(module, facets ?? Object.keys(content.facets), inputType);
+  // A facet the sample holds nothing for, such as Conjugation beside a noun, is left out.
+  const kept = applicableFacets(module, facets ?? Object.keys(content.facets), inputType).filter(facet => facet in content.facets);
   return renderParent(module, formatContent(module, { core: content.core, facets: Object.fromEntries(kept.map(facet => [facet, content.facets[facet]])) }));
 }
 

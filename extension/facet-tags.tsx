@@ -87,7 +87,7 @@ export function FacetTags({ holderId, parent, facets, filled, layout, title, dis
   filled?: readonly string[];
   // A pulled-out tag's Retry; absent where a card has no content to keep.
   onRetry?: (facet: FacetType) => void;
-  // Facets the card's flags rule out (D17): their tag has no Retry.
+  // Facets the card's flags rule out (D17): their tag's Retry is unavailable.
   ruledOut?: readonly string[];
   // The facet regenerating on its own, or whose own Retry failed (0.7.3).
   retrying?: string; failed?: string;
@@ -205,11 +205,11 @@ export function FacetTags({ holderId, parent, facets, filled, layout, title, dis
       style={{ '--i': index } as CSSProperties} aria-hidden={gone || undefined}>
       {/* On a card's edge the tag pulls out to its Retry (0.7.4); elsewhere it
           is no button, so clicking it moves nothing (0.7.3). */}
-      {pulling && !gone && !ruledOut.includes(facet) ? <button type="button" className="facet-tag-open" aria-label={t('tag.inCard', { name, card: title })} aria-expanded={out}
+      {pulling && !gone ? <button type="button" className="facet-tag-open" aria-label={t('tag.inCard', { name, card: title })} aria-expanded={out}
         onClick={() => setPulled(out ? null : facet)}>{mark}</button>
         : <span className="facet-tag-open" role="img" aria-label={name}>{mark}</span>}
-      {pulling && !gone && !ruledOut.includes(facet) && <button type="button" className="facet-tag-retry" aria-label={t('tag.retryIn', { name: label, card: title })} tabIndex={out ? 0 : -1}
-        aria-hidden={!out || undefined} disabled={disabled || retrying === facet}
+      {pulling && !gone && <button type="button" className="facet-tag-retry" aria-label={t('tag.retryIn', { name: label, card: title })} tabIndex={out ? 0 : -1}
+        aria-hidden={!out || undefined} disabled={disabled || retrying === facet || ruledOut.includes(facet)}
         onClick={() => { setPulled(null); onRetry!(facet); }}>
         {/* The card's Retry icon (page-view.tsx). */}
         <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">

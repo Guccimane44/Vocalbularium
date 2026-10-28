@@ -6,7 +6,7 @@ import type { FacetType, ParentType } from '@vocabularium/domain/parents';
 import { FamilyIcon } from './families.tsx';
 import { Content, Markdown } from './page-view.tsx';
 import { currentLanguage, t } from './i18n.ts';
-import { moduleLabel } from './catalog-text.ts';
+import { facetMark, facetName, moduleLabel } from './catalog-text.ts';
 
 // Explanations (D13, 0.8.1): what a module or a facet contributes and when to
 // use it, then its sample for a word and for a sentence, as its card would
@@ -18,25 +18,29 @@ const forWhat = (module: string, inputType: 'word_phrase' | 'sentence') => {
   return key ? t('about.forKey', { what, key }) : what;
 };
 
-// A module's explanation in a dialog, opened from the link below its + in the
-// module window. It never adds the module. Its close button, Escape or a click
-// outside closes it, and the focus returns to the link.
-export function ModuleExplanation({ type, close }: { type: string; close: () => void }) {
+// A dialog shown at once, closed by its close button, Escape or a click
+// outside; closing it first returns the focus to the button that opened it.
+function useExplanationDialog(close: () => void) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     const dialog = ref.current;
     if (dialog && !dialog.open) dialog.showModal();
     return () => dialog?.close();
   }, []);
-  // Closing the dialog first returns the focus to the link that opened it.
   const done = () => { ref.current?.close(); close(); };
+  return { ref, done, onCancel: (event: { preventDefault: () => void }) => { event.preventDefault(); done(); },
+    onClick: (event: { target: EventTarget; currentTarget: EventTarget }) => { if (event.target === event.currentTarget) done(); } };
+}
+
+// A module's explanation in a dialog, opened from the ⓘ below its + in the
+// module window. It never adds the module.
+export function ModuleExplanation({ type, close }: { type: string; close: () => void }) {
+  const { ref, done, onCancel, onClick } = useExplanationDialog(close);
   const entry = isModuleType(type) ? CATALOG[type] : null;
   const family: ModuleFamily = entry?.family ?? 'notes';
   const label = moduleLabel(type);
   const titleId = `about-${type}`;
-  return <dialog ref={ref} className={`explanation-dialog fam-${family}`} aria-labelledby={titleId}
-    onCancel={event => { event.preventDefault(); done(); }}
-    onClick={event => { if (event.target === event.currentTarget) done(); }}>
+  return <dialog ref={ref} className={`explanation-dialog fam-${family}`} aria-labelledby={titleId} onCancel={onCancel} onClick={onClick}>
     <div className="explanation-head">
       <span className="fam-chip"><FamilyIcon family={family} /></span>
       <h2 id={titleId}>{label}</h2>
@@ -71,4 +75,21 @@ export function FacetExplanation({ id, parent, facet }: { id: string; parent: Pa
       </div>;
     })}
   </div>;
+}
+
+// A facet's explanation in a dialog, opened from its About beside its Edit,
+// Retry and Delete on a card (0.12.1): the same as beneath its row in the
+// facet window.
+export function FacetExplanationDialog({ parent, facet, close }: { parent: ParentType; facet: FacetType; close: () => void }) {
+  const { ref, done, onCancel, onClick } = useExplanationDialog(close);
+  const label = facetName(parent, facet);
+  const titleId = `about-${parent}-${facet}`;
+  return <dialog ref={ref} className={`explanation-dialog fam-${CATALOG[parent].family}`} aria-labelledby={titleId} onCancel={onCancel} onClick={onClick}>
+    <div className="explanation-head">
+      <span className="fam-chip facet-chip" aria-hidden="true">{facetMark(parent, facet)}</span>
+      <h2 id={titleId}>{label}</h2>
+      <button type="button" className="preview-close" aria-label={t('about.close', { name: label })} onClick={done}>×</button>
+    </div>
+    <FacetExplanation id={`${titleId}-body`} parent={parent} facet={facet} />
+  </dialog>;
 }
