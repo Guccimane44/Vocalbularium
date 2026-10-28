@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
-import { cp, readFile, writeFile } from 'node:fs/promises';
+import { cp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { promisify } from 'node:util';
 import { hostPermission, serverOrigin } from './extension-origin.mjs';
@@ -19,6 +19,18 @@ for (const file of ['theme.css', 'feedback.css']) {
 for (const file of ['LICENSE-Fraunces.txt', 'LICENSE-InstrumentSans.txt']) {
   await cp(resolve('extension/fonts', file), resolve(output, 'fonts', file));
 }
+// KaTeX's stylesheet lists each font as WOFF2, WOFF and TrueType; Chrome
+// reads WOFF2, so only those ship (D17) and the others leave the stylesheet.
+const assets = resolve(output, 'assets');
+for (const file of await readdir(assets)) {
+  if (/^KaTeX_.*\.(woff|ttf)$/.test(file)) await rm(resolve(assets, file));
+  if (file.endsWith('.css')) {
+    const css = await readFile(resolve(assets, file), 'utf8');
+    const trimmed = css.replace(/,url\(\/assets\/KaTeX_[^)]+\.(?:woff|ttf)\) format\("(?:woff|truetype)"\)/g, '');
+    if (trimmed !== css) await writeFile(resolve(assets, file), trimmed);
+  }
+}
+assert.ok(!(await readdir(assets)).some(file => /\.(woff|ttf)$/.test(file)), 'A font other than WOFF2 is in the extension');
 await writeFile(resolve(output, 'config.js'), `export const API_URL = ${JSON.stringify(serverOrigin)};\n`);
 
 const sourceManifest = JSON.parse(await readFile(resolve('extension/manifest.json'), 'utf8'));
