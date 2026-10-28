@@ -6,6 +6,7 @@ import {
   addBlocked, copyModules, deleteBlocked, DECK_COLOURS, generationTargets, moveBlocked, moved, pageMeaning, validateConfiguration
 } from '@vocabularium/domain/page-modules';
 import { facetAddBlocked, facetDeleteBlocked, isParentType, withFacet } from '@vocabularium/domain/parents';
+import { ruledOutOf } from '@vocabularium/domain/render';
 import { blankContent, hasFacetContent, isEmptyContent, parentContentOf, parentDocument, validateParentContent, withFacetText } from '@vocabularium/domain/content';
 import { sortKey } from './sort-key.mjs';
 import { INTERFACE_LANGUAGES } from '@vocabularium/contracts';
@@ -749,6 +750,11 @@ export class AccountStore {
       // nothing (0.6.3; until then any earlier attempt needed confirmation).
       // A facet's own Retry (0.7.3) replaces only its section.
       const facet = target.scope === 'facet' ? target.facet : null;
+      // A facet the card's flags rule out has nothing to generate (D17): no attempt starts.
+      if (facet && targets.some(component => { const data = parentContentOf(component.content);
+        return data && ruledOutOf(/** @type {ParentType} */ (component.moduleType), data)[/** @type {FacetType} */ (facet)]; })) {
+        fail('invalid', 'This facet does not apply to this card.');
+      }
       // Structured content (D09) is compared as data: a facet's entry, or the whole content.
       const replaced = (/** @type {Component} */ component) => {
         const data = parentContentOf(component.content);

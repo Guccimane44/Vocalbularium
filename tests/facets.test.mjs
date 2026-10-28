@@ -165,3 +165,17 @@ test('a parent’s markdown is saved with its top line locked, its facets only, 
   await assert.rejects(store.savePage('no-core', { pageId, changes: [{ componentId, content: { version: 1, blocks: [{ type: 'parent', header, core: '', facets: {} }] } }] }),
     { code: 'invalid', message: "The module's top line can not be changed." });
 });
+
+test('a facet’s own Retry on a facet the card rules out starts no attempt (D17)', async t => {
+  const store = await fixture(t);
+  await germanDeck(store, ['article', 'examples']);
+  const { pageId } = await store.capture('ruled', { session, mainKey: 'laufen', snapshot: await store.snapshot() });
+  const first = component(await store.page(pageId), 'german');
+  await store.stage(first.attemptId, staged({ core: { kind: 'word', language: 'Deutsch', key: 'laufen', gramRole: 'verb', meanings: ['gehen'] }, facets: {} }));
+  await store.publish('ruled-publish', { attemptId: first.attemptId, session });
+  await assert.rejects(store.generate('ruled-retry', { pageId, target: { scope: 'facet', componentId: first.id, facet: 'article' }, session }),
+    { code: 'invalid', message: 'This facet does not apply to this card.' });
+  assert.equal(component(await store.page(pageId), 'german').status, 'completed', 'nothing started');
+  const { attemptIds } = await store.generate('applies-retry', { pageId, target: { scope: 'facet', componentId: first.id, facet: 'examples' }, session });
+  assert.equal(attemptIds.length, 1, 'a facet that applies still retries');
+});

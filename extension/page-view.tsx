@@ -224,6 +224,9 @@ export function readContent(type: string, content: Component['content']): { rend
   return { rendered: renderContent(type, text), present: Boolean(text) };
 }
 
+// Why a facet the card rules out shows no Retry (D17).
+const RULED_OUT = { sentence: 'facet.ruledOut.sentence', role: 'facet.ruledOut.role', subject: 'facet.ruledOut.subject', none: 'facet.ruledOut.none' } as const;
+
 // Generated content as its parent's render contract describes (D08): the core,
 // then each facet with content under its tab, in the parent's order. A facet
 // waiting for Retry is only its tag (0.7.4), until its own Retry starts: then
@@ -237,14 +240,17 @@ export function Content({ type, rendered, mainKey, controls }: {
   // Context and Text as markdown (D10, amended a fourth time), edited from their tab.
   if (rendered.kind === 'note') return <Markdown blocks={rendered.blocks} mainKey={mainKey} className="note-body" />;
   const parent = isParentType(type) ? type : null;
-  // A facet's own Retry needs content that follows the parent's layout.
-  const canRetry = rendered.kind === 'parent';
+  // A facet's own Retry needs content that follows the parent's layout, and a
+  // facet the card's flags rule out has nothing to generate (D17): it shows why instead.
+  const ruled = rendered.kind === 'parent' ? rendered.ruledOut : {};
+  const canRetryFacet = (facet: FacetType) => rendered.kind === 'parent' && !ruled[facet];
   // While the facet generates on its own, the spark runs round its tab (0.7.4).
   const facetHead = (facet: FacetType, hasContent = true) => parent && <h3 className="facet-title">
     <FacetTab parent={parent} facet={facet}><Spark active={controls?.retrying === facet} /></FacetTab>
     {controls?.retrying === facet ? <span className="visually-hidden">{t('status.generatingEllipsis')}</span>
-      : controls?.failed === facet && <span className="facet-note" data-note="failed">{t('card.retryFailed')}</span>}
-    {controls && <FacetActions name={t('facet.fromCard', { facet: facetName(parent, facet), card: controls.title })} hasContent={hasContent} canRetry={canRetry}
+      : controls?.failed === facet ? <span className="facet-note" data-note="failed">{t('card.retryFailed')}</span>
+      : ruled[facet] && <span className="facet-note" data-note="ruled-out">{t(RULED_OUT[ruled[facet]!])}</span>}
+    {controls && <FacetActions name={t('facet.fromCard', { facet: facetName(parent, facet), card: controls.title })} hasContent={hasContent} canRetry={canRetryFacet(facet)}
       disabled={controls.disabled} asking={controls.asking?.facet === facet ? controls.asking.kind : null}
       setAsking={kind => controls.setAsking(kind ? facet : null, kind ?? undefined)}
       onDelete={() => controls.onDelete(facet)} onRetry={() => controls.onRetry(facet)}
@@ -622,7 +628,7 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
     const fieldDraft = editingId === item.id ? draft?.fields?.[item.id] : undefined;
     const filled = fieldDraft ? Object.entries(fieldDraft.facets).filter(([, text]) => hasText(text)).map(([facet]) => facet)
       : generating || !read.present ? [] : rendered.kind === 'parent' ? rendered.facets.map(each => each.facet) : undefined;
-    const tags = controls ? <FacetTags holderId={item.id} parent={item.moduleType as ParentType} facets={item.facets ?? []} filled={filled}
+    const tags = controls ? <FacetTags holderId={item.id} parent={item.moduleType as ParentType} facets={item.facets ?? []} filled={filled} ruledOut={rendered.kind === 'parent' ? Object.keys(rendered.ruledOut) : []}
       layout={layout} title={title} disabled={controls.disabled}
       // On an open card's edge a tag pulls out to its own Retry, which asks nothing (0.7.4).
       onRetry={layout === 'edge' && rendered.kind === 'parent' && editingId !== item.id ? retryFacet : undefined}

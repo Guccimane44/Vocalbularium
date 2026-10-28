@@ -4,7 +4,7 @@ import Value from 'typebox/value';
 import { DeckConfigurationSchema, FacetAddRequestSchema, PageSchema } from '@vocabularium/contracts';
 import {
   applicableFacets, facetAbbreviation, facetAddBlocked, facetDeleteBlocked, facetsOf, facetTargets, facetUnavailable, isParentType, ordered, PARENTS,
-  validateFacets, withFacet, facetsFor } from '@vocabularium/domain/parents';
+  validateFacets, withFacet, facetsFor, ruledOut } from '@vocabularium/domain/parents';
 import { copyModules, validateConfiguration } from '@vocabularium/domain/page-modules';
 import { textBlocks } from '@vocabularium/domain/pages';
 
@@ -122,3 +122,13 @@ const germanWord = [
   '=== Examples ===', ': [1] We sat on the bank.', ':: Wir saßen am Ufer.', ': [2] The river burst its banks.', ':: Der Fluss trat über die Ufer.',
   '=== Synonyms ===', ': Böschung', ': Uferstreifen'
 ].join('\n');
+
+test('a facet a card rules out names why: a sentence, another kind of word, outside the subject, or a concept without one (D17)', () => {
+  const word = gramRole => ({ kind: 'word', language: 'Deutsch', key: 'x', gramRole, meanings: ['y'] });
+  assert.equal(ruledOut('german', 'declension', word('verb')), 'role');
+  assert.equal(ruledOut('german', 'declension', word('noun')), null);
+  assert.equal(ruledOut('german', 'synonyms', { kind: 'sentence', language: 'Deutsch', key: 'x.', meanings: ['y'] }), 'sentence');
+  assert.equal(ruledOut('mathematics', 'formula', { relevance: 'unrelated', key: 'x', explanation: ['y'] }), 'subject');
+  assert.equal(ruledOut('mathematics', 'formula', { relevance: 'subject', hasFormula: 'no', key: 'x', explanation: ['y'] }), 'none');
+  assert.equal(ruledOut('computer-science', 'code', { relevance: 'subject', hasCode: 'yes', key: 'x', explanation: ['y'] }), null);
+});

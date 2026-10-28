@@ -60,6 +60,18 @@ export function appliesTo(parent: ParentType, facet: FacetType, core: CoreValue)
   const kind: InputType = core.kind === 'sentence' ? 'sentence' : 'word_phrase';
   return definition.applies.includes(kind) && (definition.when?.(core) ?? true);
 }
+// Why a facet does not apply to a written core, or null when it does (D17):
+// a word-only facet on a sentence, a grammar facet for another kind of word,
+// an Expertise facet outside the subject, or a concept that has none.
+export type RuledOut = 'sentence' | 'role' | 'subject' | 'none';
+export function ruledOut(parent: ParentType, facet: FacetType, core: CoreValue): RuledOut | null {
+  if (appliesTo(parent, facet, core)) return null;
+  const definition = contentModule(parent).facets.find(each => each.id === facet);
+  if (!definition) return null;
+  if (!definition.applies.includes(core.kind === 'sentence' ? 'sentence' : 'word_phrase')) return 'sentence';
+  if ('relevance' in core) return core.relevance === 'subject' ? 'none' : 'subject';
+  return 'role';
+}
 // The given facets that apply to a written core, in the parent's order.
 export const facetsFor = (parent: ParentType, facets: readonly string[], core: CoreValue): FacetType[] =>
   ordered(parent, facets).filter(facet => appliesTo(parent, facet, core));
