@@ -1,30 +1,224 @@
 {
   "note": "Golden set for the German and Chinese parent modules (D08, C8). Every input runs through both parents with all their facets; the owner reviews the outputs before a prompt change merges.",
-  "modules": ["german", "chinese"],
+  "modules": [
+    "german",
+    "chinese"
+  ],
   "inputs": [
-    { "key": "bank", "context": "We sat on the bank and watched the river go by.", "why": "English noun; Context picks the river sense" },
-    { "key": "bank", "context": "I need to go to the bank before it closes.", "why": "English noun; Context picks the money sense" },
-    { "key": "run", "why": "English verb: no Article" },
-    { "key": "serendipity", "why": "English noun without a close German or Chinese word" },
-    { "key": "break the ice", "why": "English idiom as a phrase" },
-    { "key": "beautiful", "why": "English adjective: synonyms and antonyms" },
-    { "key": "幸福", "why": "Chinese or Japanese spelling: one language must be chosen" },
-    { "key": "打算", "why": "Chinese verb" },
-    { "key": "一举两得", "why": "Chinese idiom (chengyu)" },
-    { "key": "Ufer", "why": "German noun in the German parent: explained in German, its own article" },
-    { "key": "laufen", "why": "German verb in the German parent" },
-    { "key": "Fernweh", "why": "German noun without an antonym" },
-    { "key": "schön", "why": "German adjective" },
-    { "key": "sobremesa", "why": "Spanish noun" },
-    { "key": "dépaysement", "why": "French noun" },
-    { "key": "木漏れ日", "why": "Japanese noun in the Chinese parent" },
-    { "key": "John Cena", "why": "A name" },
-    { "key": "COVID-19", "why": "A technical term" },
-    { "key": "We sat on the bank and watched the river.", "why": "English sentence" },
-    { "key": "It's raining cats and dogs.", "why": "English idiomatic sentence" },
-    { "key": "我真的很幸福", "why": "Chinese sentence in the Chinese parent: explained in Chinese" },
-    { "key": "Ich habe Fernweh.", "why": "German sentence in the German parent" },
-    { "key": "Der Zug ist schon abgefahren.", "why": "German idiomatic sentence" },
-    { "key": "El que madruga, Dios le ayuda.", "why": "Spanish proverb" }
+    {
+      "key": "bank",
+      "context": "We sat on the bank and watched the river go by.",
+      "why": "English noun; Context picks the river sense",
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "key": "bank",
+      "context": "I need to go to the bank before it closes.",
+      "why": "English noun; Context picks the money sense",
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "key": "run",
+      "why": "English verb: no Article",
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        }
+      }
+    },
+    {
+      "key": "serendipity",
+      "why": "English noun without a close German or Chinese word",
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "key": "break the ice",
+      "why": "English idiom as a phrase",
+      "expect": {
+        "kind": "word"
+      }
+    },
+    {
+      "key": "beautiful",
+      "why": "English adjective: synonyms and antonyms",
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "adjective"
+        }
+      }
+    },
+    {
+      "key": "幸福",
+      "why": "Chinese or Japanese spelling: one language must be chosen",
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "key": "打算",
+      "why": "Chinese verb",
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        }
+      }
+    },
+    {
+      "key": "一举两得",
+      "why": "Chinese idiom (chengyu)",
+      "expect": {
+        "kind": "word"
+      }
+    },
+    {
+      "key": "Ufer",
+      "why": "German noun in the German parent: explained in German, its own article",
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "key": "laufen",
+      "why": "German verb in the German parent",
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        }
+      }
+    },
+    {
+      "key": "Fernweh",
+      "why": "German noun without an antonym",
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "key": "schön",
+      "why": "German adjective",
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "adjective"
+        }
+      }
+    },
+    {
+      "key": "sobremesa",
+      "why": "Spanish noun",
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "key": "dépaysement",
+      "why": "French noun",
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "key": "木漏れ日",
+      "why": "Japanese noun in the Chinese parent",
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "key": "John Cena",
+      "why": "A name",
+      "expect": {
+        "kind": "word"
+      }
+    },
+    {
+      "key": "COVID-19",
+      "why": "A technical term",
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "key": "We sat on the bank and watched the river.",
+      "why": "English sentence",
+      "expect": {
+        "kind": "sentence"
+      }
+    },
+    {
+      "key": "It's raining cats and dogs.",
+      "why": "English idiomatic sentence",
+      "expect": {
+        "kind": "sentence"
+      }
+    },
+    {
+      "key": "我真的很幸福",
+      "why": "Chinese sentence in the Chinese parent: explained in Chinese",
+      "expect": {
+        "kind": "sentence"
+      }
+    },
+    {
+      "key": "Ich habe Fernweh.",
+      "why": "German sentence in the German parent",
+      "expect": {
+        "kind": "sentence"
+      }
+    },
+    {
+      "key": "Der Zug ist schon abgefahren.",
+      "why": "German idiomatic sentence",
+      "expect": {
+        "kind": "sentence"
+      }
+    },
+    {
+      "key": "El que madruga, Dios le ayuda.",
+      "why": "Spanish proverb",
+      "expect": {
+        "kind": "sentence"
+      }
+    }
   ]
 }

@@ -1,6 +1,7 @@
 import type { InputType } from '@vocabularium/contracts';
 import { contentModule, familyOf, isContentModule, MODULE_IDS } from './catalog/index.js';
 import type { ContentModuleId, FacetId, FamilyId } from './catalog/index.js';
+import type { CoreValue } from './catalog/define.js';
 
 // Parent modules with a core and facets (D08). A parent's core applies to every
 // input type; its facets add one kind of content each, in an order the parent
@@ -44,10 +45,24 @@ export function ordered(parent: ParentType, facets: readonly string[]): FacetTyp
   return facetsOf(parent).filter(facet => facets.includes(facet));
 }
 
-// The facets that contribute for this input type, in order; the core always does.
+// The facets that contribute for this kind of key, in order; the core always
+// does. The samples use it; generation asks the core itself (`facetsFor`).
 export function applicableFacets(parent: ParentType, facets: readonly string[], inputType: InputType): FacetType[] {
   return ordered(parent, facets).filter(facet => PARENTS[parent].facets[facet]!.applies.includes(inputType));
 }
+
+// Whether a facet applies to a written core (D17): to the kind of key it read
+// (an Expertise core, which has no kind, counts as a word's) and to the flags
+// the facet's own condition names, such as Article only for a noun.
+export function appliesTo(parent: ParentType, facet: FacetType, core: CoreValue): boolean {
+  const definition = contentModule(parent).facets.find(each => each.id === facet);
+  if (!definition) return false;
+  const kind: InputType = core.kind === 'sentence' ? 'sentence' : 'word_phrase';
+  return definition.applies.includes(kind) && (definition.when?.(core) ?? true);
+}
+// The given facets that apply to a written core, in the parent's order.
+export const facetsFor = (parent: ParentType, facets: readonly string[], core: CoreValue): FacetType[] =>
+  ordered(parent, facets).filter(facet => appliesTo(parent, facet, core));
 
 // A module instance's facets: none for any other module, and for a parent only
 // its own facets, each once, in its order.

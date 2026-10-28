@@ -7,6 +7,8 @@ import Code from '@tiptap/extension-code';
 import Highlight from '@tiptap/extension-highlight';
 import { BulletList, OrderedList } from '@tiptap/extension-list';
 import type { ParentContent } from '@vocabularium/domain/content';
+import { headingOf } from '@vocabularium/domain/render';
+import type { EntryHeading } from '@vocabularium/domain/render';
 import { fromEditorDoc, hasText, toEditorDoc } from '@vocabularium/domain/markdown';
 import type { EditorNode } from '@vocabularium/domain/markdown';
 import { facetsOf } from '@vocabularium/domain/parents';
@@ -179,17 +181,18 @@ export function FacetEditor({ parent, facet, title, fields, locked, persist, red
 }
 
 // The core's top line, never editable, with the toolbar at its end while the
-// core is focused. A sentence has no top line: its toolbar takes a row of its own while it shows.
-function topLine(header: ParentContent['header'] | undefined, toolbar: ReactNode) {
-  return header?.kind === 'word'
+// core is focused; its labels are the card's own (D17). A card without one
+// keeps the toolbar's row, so Save does not move under the pointer.
+function topLine(heading: EntryHeading | null, toolbar: ReactNode) {
+  return heading
     ? <p className="entry-heading">
-      <span className="entry-heading-text" aria-label={t('editor.notEditable', { text: [header.language, header.key, header.romanization].filter(Boolean).join(', ') })}>
-        {header.language && <span className="entry-language">{header.language}</span>}<span className="entry-key">{header.key}</span>
-        {header.romanization && <span className="entry-pronunciation">{header.romanization}</span>}
+      <span className="entry-heading-text" aria-label={t('editor.notEditable', { text: [heading.language, heading.key, heading.pronunciation, ...heading.labels].filter(Boolean).join(', ') })}>
+        {heading.language && <span className="entry-language">{heading.language}</span>}<span className="entry-key">{heading.key}</span>
+        {heading.pronunciation && <span className="entry-pronunciation">{heading.pronunciation}</span>}
+        {heading.labels.map(label => <span key={label} className="entry-label">{label}</span>)}
       </span>
       {toolbar}
     </p>
-    // A sentence's row keeps its place too, so Save does not move under the pointer.
     : <p className="entry-heading entry-heading-tools">{toolbar}</p>;
 }
 
@@ -214,7 +217,7 @@ export function LiveEditor({ parent, title, fields, opened, locked, persist, red
   const partLabel = t('editor.part', { part: coreLabel(parent, header?.kind === 'sentence' ? 'sentence' : 'word_phrase'), card: title });
   return <div className="entry-content live-editor" role="group" aria-label={t('action.editNamed', { name: title })}>
     <PartEditor className="live-core" value={fields.core} editable={!locked} label={partLabel} reading={header?.kind === 'sentence'}
-      onChange={markdown => { fields.core = markdown; changed(); }} head={toolbar => topLine(header, toolbar)} />
+      onChange={markdown => { fields.core = markdown; changed(); }} head={toolbar => topLine(opened ? headingOf(parent, opened) : null, toolbar)} />
     {facetsOf(parent).filter(facet => fields.facets[facet] !== undefined).map((facet: FacetType) =>
       <PartEditor key={facet} className="facet" data-facet={facet} data-unfilled={!hasText(fields.facets[facet]) || undefined}
         value={fields.facets[facet] ?? ''} editable={!locked} label={t('editor.part', { part: facetName(parent, facet), card: title })}

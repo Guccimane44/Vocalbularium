@@ -5,6 +5,7 @@
       "language": "Chinesisch",
       "key": "幸福",
       "romanization": "xìngfú",
+      "gramRole": "noun",
       "meanings": [
         "Glück; Glückseligkeit; Wohlbefinden"
       ]
@@ -31,7 +32,11 @@
   "sentence": {
     "core": {
       "kind": "sentence",
-      "translation": "Ich bin wirklich glücklich."
+      "language": "Chinesisch",
+      "key": "我真的很幸福",
+      "meanings": [
+        "Ich bin wirklich glücklich."
+      ]
     },
     "facets": {
       "examples": [

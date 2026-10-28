@@ -22,10 +22,14 @@ const Filled = Type.String({ minLength: 1, maxLength: 2000 });
 // structured and never edited, then the core and each facet with content as
 // one markdown text. A facet without content has no entry.
 const Markdown = Type.String({ maxLength: 8000 });
+// Since D17 a Languages card's top line carries its own reading: word or
+// sentence, the key's language and, for a German word, its grammatical role;
+// an Expertise card's carries the key and its case, which is not shown.
 export const ParentHeaderSchema = Type.Union([
   // The language is blank on a card written by hand until a Retry fills it (D10, amended a fourth time).
-  Type.Object({ kind: Type.Literal('word'), language: Type.String(), key: Filled, romanization: Type.Optional(Filled) }, { additionalProperties: false }),
-  Type.Object({ kind: Type.Literal('sentence') }, { additionalProperties: false })
+  Type.Object({ kind: Type.Literal('word'), language: Type.String(), key: Filled, romanization: Type.Optional(Filled), gramRole: Type.Optional(Filled) }, { additionalProperties: false }),
+  Type.Object({ kind: Type.Literal('sentence'), language: Type.String(), key: Filled, romanization: Type.Optional(Filled) }, { additionalProperties: false }),
+  Type.Object({ kind: Type.Literal('expertise'), key: Filled, relevance: Type.Union([Type.Literal('subject'), Type.Literal('neighbouring'), Type.Literal('unrelated')]) }, { additionalProperties: false })
 ]);
 export const ParentBlockSchema = Type.Object({
   type: Type.Literal('parent'),
@@ -100,9 +104,7 @@ export const PageSchema = Type.Object({
   createdAt: Type.String({ minLength: 1 }),
   // In page order; the main key is always first.
   components: Type.Array(ComponentSchema, { minItems: 1, maxItems: MAX_MODULES }),
-  status: Type.Union([ComponentStatusSchema, Type.Null()]),
-  // The latest run's reading of the main key (D08); null before any run.
-  interpretation: Type.Optional(Type.Union([Type.Literal('word_phrase'), Type.Literal('sentence'), Type.Null()]))
+  status: Type.Union([ComponentStatusSchema, Type.Null()])
 }, { additionalProperties: false });
 
 const OpenRequest = { additionalProperties: true } as const;

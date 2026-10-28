@@ -39,8 +39,6 @@
   "page.new.title": "Una página nueva.",
   "page.new.contextOptional": "Contexto (opcional)",
   "page.new.contentHint": "Guardar no genera. La página también recibe {modules}; después de guardar, usa Reintentar en cada uno de esos componentes para rellenarlos a partir de la clave principal.",
-  "page.readAsWord": "Leída como palabra",
-  "page.readAsSentence": "Leída como oración",
   "page.showAll": "Mostrar todo",
   "page.showLess": "Mostrar menos",
   "page.unavailable.title": "Página no disponible",

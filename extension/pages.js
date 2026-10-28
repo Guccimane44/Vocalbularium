@@ -58,7 +58,7 @@ export function pageViews({ getAccount, renderView, refresh, send, applyState, n
     if (!component) return;
     draft = { route: identity(route), pageId: page.id, deckId: page.deckId, componentId, base: {}, texts: {} };
     // An empty parent opens with a blank top line of the main key (D10, amended a fourth time).
-    const content = isParentType(component.moduleType) ? parentContentOf(component.content) ?? blankContent(mainKeyOf(page.components), page.interpretation) : null;
+    const content = isParentType(component.moduleType) ? parentContentOf(component.content) ?? blankContent(mainKeyOf(page.components), /** @type {ParentType} */ (component.moduleType)) : null;
     if (content) {
       const fields = draftOf(/** @type {ParentType} */ (component.moduleType), content, component.facets ?? []);
       draft.fields = { [componentId]: fields }; draft.fieldBase = { [componentId]: JSON.stringify(fields) }; draft.fieldStored = { [componentId]: content };

@@ -29,8 +29,8 @@ test('a provider result is checked complete against the parent’s shape and tri
   for (const [value, message] of [
     [{ ...bank, extra: 1 }, /unexpected field "extra"/],
     [{ core: { kind: 'word', language: 'Englisch', key: 'bank', meanings: [] }, facets: {} }, /The meanings is empty/],
-    [{ core: { kind: 'poem' }, facets: {} }, /word or a sentence/],
-    [{ core: { kind: 'sentence' }, facets: {} }, /The translation is missing/],
+    [{ core: { kind: 'poem', language: 'Englisch', key: 'bank', meanings: ['x'] }, facets: {} }, /Word or sentence must be one of "word", "sentence"/],
+    [{ core: { kind: 'sentence', language: 'Englisch', key: 'We sat.' }, facets: {} }, /The meanings is not a list/],
     [{ ...bank, facets: { pinyin: [{ text: 'a', pinyin: 'b' }] } }, /German has no facet "pinyin"/],
     [{ ...bank, facets: { article: { plural: 'die Ufer' } } }, /Article: the singular is missing/],
     [{ ...bank, facets: { examples: [{ translation: 'only' }] } }, /Examples 1: the sentence is missing/],
@@ -51,7 +51,11 @@ test('a result is formatted into markdown as the card looks, every literal chara
   });
   assert.equal(formatFacet('german', 'article', { singular: 'das Fernweh' }), 'das Fernweh');
   assert.equal(formatFacet('chinese', 'pinyin', [{ text: '河岸', pinyin: 'hé’àn' }, { text: '银行', pinyin: 'yínháng' }]), '河岸 hé’àn\n银行 yínháng');
-  assert.deepEqual(formatContent('german', { core: { kind: 'sentence', translation: 'Wir saßen am Ufer.' }, facets: {} }), { header: { kind: 'sentence' }, core: 'Wir saßen am Ufer.', facets: {} });
+  // A sentence has the same core as a word (D17): its translation is its one meaning, shown as text.
+  assert.deepEqual(formatContent('german', { core: { kind: 'sentence', language: 'Englisch', key: 'We sat.', meanings: ['Wir saßen am Ufer.'] }, facets: {} }),
+    { header: { kind: 'sentence', language: 'Englisch', key: 'We sat.' }, core: 'Wir saßen am Ufer.', facets: {} });
+  assert.deepEqual(formatContent('german', { core: { ...bank.core, gramRole: 'noun' }, facets: {} }).header, { kind: 'word', language: 'Englisch', key: 'bank', gramRole: 'noun' },
+    'a German word’s top line keeps its grammatical role');
   // Text the model writes is literal: nothing in it turns into formatting.
   assert.equal(escapeMarkdown('a *b* `c` ==d== \\e'), 'a \\*b\\* \\`c\\` \\=\\=d\\=\\= \\\\e');
   assert.equal(escapeMarkdown('1. not a list\n- nor this'), '1\\. not a list\n\\- nor this');
@@ -105,7 +109,8 @@ test('facet texts are read, replaced and removed one at a time; empty content ha
   assert.equal(isEmptyContent({ header: content.header, core: '', facets: { synonyms: 'Damm' } }), false);
   assert.deepEqual(providerCore('german', content), { kind: 'word', language: 'Englisch', key: 'bank', meanings: ['Ufer eines Flusses', 'Geldinstitut'] },
     'a facet’s own Retry gives the provider the core it follows');
-  assert.deepEqual(providerCore('german', { header: { kind: 'sentence' }, core: 'Wir **saßen** am Ufer.', facets: {} }), { kind: 'sentence', translation: 'Wir saßen am Ufer.' });
+  assert.deepEqual(providerCore('german', { header: { kind: 'sentence', language: 'Englisch', key: 'We sat.' }, core: 'Wir **saßen** am Ufer.', facets: {} }),
+    { kind: 'sentence', language: 'Englisch', key: 'We sat.', meanings: ['Wir saßen am Ufer.'] });
 });
 
 test('stored content is one parent block, has no plain text, and renders its core and facets into containers', () => {
@@ -116,12 +121,19 @@ test('stored content is one parent block, has no plain text, and renders its cor
   assert.equal(blockText(document), '');
   assert.equal(parentContentOf({ version: 1, blocks: [{ type: 'paragraph', text: 'notes' }] }), null);
   const rendered = renderParent('german', content);
-  assert.deepEqual(rendered.heading, { language: 'Englisch', key: 'bank', pronunciation: null });
+  assert.deepEqual(rendered.heading, { language: 'Englisch', key: 'bank', pronunciation: null, labels: ['Wort'] });
+  assert.deepEqual(renderParent('german', { ...content, header: { ...content.header, gramRole: 'verb' } }).heading.labels, ['Wort', 'Verb'],
+    'the labels are the module’s own, in its language (D17, K51)');
+  assert.deepEqual(renderParent('german', { ...content, header: { ...content.header, gramRole: 'particle' } }).heading.labels, ['Wort', 'particle'],
+    'a grammatical role outside the list is shown as written');
   assert.equal(rendered.core[0].type, 'list');
   assert.deepEqual(rendered.facets.map(facet => [facet.facet, facet.label]), [['article', 'Article'], ['examples', 'Examples'], ['synonyms', 'Synonyms']]);
   assert.deepEqual(rendered.facets[0].body, [{ type: 'paragraph', children: [{ type: 'text', text: 'das Ufer · die Ufer' }] }]);
-  const sentence = renderParent('chinese', { header: { kind: 'sentence' }, core: '我们坐在河岸上。', facets: { pinyin: 'wǒmen', examples: '1. 一' } });
-  assert.equal(sentence.heading, null);
+  const sentence = renderParent('chinese', { header: { kind: 'sentence', language: '英语', key: 'We sat on the bank.' }, core: '我们坐在河岸上。', facets: { pinyin: 'wǒmen', examples: '1. 一' } });
+  assert.deepEqual(sentence.heading, { language: '英语', key: 'We sat on the bank.', pronunciation: null, labels: ['句子'] });
+  assert.equal(sentence.reading, true);
+  const expertise = renderParent('mathematics', { header: { kind: 'expertise', key: 'retinol', relevance: 'unrelated' }, core: 'Retinol is not a mathematics concept.', facets: {} });
+  assert.deepEqual(expertise.heading, { language: '', key: 'retinol', pronunciation: null, labels: [] }, 'an Expertise top line shows the key only');
   assert.deepEqual(sentence.facets.map(facet => facet.facet), ['examples', 'pinyin'], 'in the parent’s order, not the data’s');
 });
 

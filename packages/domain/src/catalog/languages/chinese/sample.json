@@ -26,7 +26,11 @@
   "sentence": {
     "core": {
       "kind": "sentence",
-      "translation": "说话人表示自己非常满足、快乐。"
+      "language": "汉语",
+      "key": "我真的很幸福",
+      "meanings": [
+        "说话人表示自己非常满足、快乐。"
+      ]
     },
     "facets": {
       "examples": [

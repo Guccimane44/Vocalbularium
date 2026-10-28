@@ -1,4 +1,4 @@
-import type { DeckColour, InputInterpretation, InterfaceLanguage } from '@vocabularium/contracts';
+import type { DeckColour, InterfaceLanguage } from '@vocabularium/contracts';
 import type { ModuleInstance } from '@vocabularium/domain/modules';
 
 export type DeckRow = Readonly<{ id: string; name: string; view: 'default'; colour: DeckColour | null; ordinal: number }>;
@@ -37,7 +37,7 @@ export type AttemptRow = Readonly<{
   state: 'loading' | 'completed' | 'failed';
   result: string | null;
 }>;
-export type RunRow = Readonly<{ id: string; page_id: string; interpretation: string | null; ordinal: number }>;
+export type RunRow = Readonly<{ id: string; page_id: string; ordinal: number }>;
 export type ReceiptRow = Readonly<{
   sequence: number;
   operation_id: string;
@@ -66,4 +66,3 @@ export type GenerationRecord = Readonly<Record<string, GenerationEntry>>;
 // A provider result staged on its attempt, structured content when it succeeded (D09).
 export type AttemptResult = Readonly<{ ok: boolean; content?: unknown; generation?: GenerationEntry }>;
 export type Attempt = Omit<AttemptRow, 'module' | 'result'> & Readonly<{ module: AttemptModule; result: AttemptResult | null }>;
-export type Run = Omit<RunRow, 'interpretation'> & Readonly<{ interpretation: InputInterpretation | null }>;

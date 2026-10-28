@@ -98,15 +98,14 @@ test('a configuration refuses facets outside a parent, and a new page copies the
   assert.deepEqual(copied[0], { id: 'p0', type: 'main-key' }, 'modules without facets stay as they were');
 });
 
-test('contracts carry facets on instances and components, a page’s interpretation, and facet requests', () => {
+test('contracts carry facets on instances and components, no page interpretation (D17), and facet requests', () => {
   assert.ok(Value.Check(DeckConfigurationSchema, { name: 'My Deck', view: { module: 'default' },
     modules: [{ id: 'k', type: 'main-key' }, { id: 'g', type: 'german', facets: ['article'] }] }));
-  const page = { id: 'p', deckId: 'd', selectedText: 'bank', createdAt: '2026-10-14', status: null, interpretation: 'word_phrase',
+  const page = { id: 'p', deckId: 'd', selectedText: 'bank', createdAt: '2026-10-14', status: null,
     components: [{ id: 'c', moduleInstanceId: 'i', moduleType: 'main-key', content: textBlocks('bank'), status: null, attemptId: null },
       { id: 'g', moduleInstanceId: 'j', moduleType: 'german', facets: ['examples'], content: textBlocks(''), status: null, attemptId: null }] };
   assert.ok(Value.Check(PageSchema, page));
-  assert.ok(Value.Check(PageSchema, { ...page, interpretation: null }));
-  assert.ok(!Value.Check(PageSchema, { ...page, interpretation: 'passage' }));
+  assert.ok(!Value.Check(PageSchema, { ...page, interpretation: 'word_phrase' }), 'a page carries no reading of its main key');
   assert.ok(Value.Check(FacetAddRequestSchema, { operationId: 'op-1', payload: { pageId: 'p', componentId: 'g', parent: 'german', facet: 'article' } }));
   assert.ok(!Value.Check(FacetAddRequestSchema, { operationId: 'op-1', payload: { pageId: 'p', componentId: 'g', facet: 'article' } }), 'the parent type is required');
 });

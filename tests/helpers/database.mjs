@@ -56,7 +56,7 @@ export async function createTestStore(t, databaseKey) {
 export async function createTestApplication(t, { databaseKey, ...options } = {}) {
   const database = await createTestDatabase(t, databaseKey);
   const unavailable = async () => { throw new Error('Controlled provider is unavailable.'); };
-  const application = await createApplication({ provider: { interpret: unavailable, generate: unavailable },
+  const application = await createApplication({ provider: { generate: unavailable },
     ...options, databaseUrl: database.databaseUrl,
     outbox: options.outbox === null ? undefined : databaseKey ? database.outbox : undefined });
   database.resources.push(application);

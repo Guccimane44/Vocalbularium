@@ -46,6 +46,14 @@ export function literal<const T extends string>(value: T, name?: string): Shape<
   };
 }
 
+// One of a few fixed texts, such as a core's `kind` or `relevance` (D17).
+export function oneOf<const T extends string>(values: readonly T[], name?: string): Shape<T> {
+  return {
+    schema: { type: 'string', enum: [...values] }, ...(name ? { name } : {}),
+    check: (given, what) => values.includes(given as T) ? given as T : fail(`${what} must be one of ${values.map(value => `"${value}"`).join(', ')}.`)
+  };
+}
+
 // A field that may be left out; blank counts as left out.
 export function optional<T>(shape: Shape<T>): Shape<T | undefined> {
   return { ...shape, optional: true, check: (value, what) => blank(value) ? undefined : shape.check(value, what) };

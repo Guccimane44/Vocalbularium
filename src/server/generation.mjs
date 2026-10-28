@@ -1,14 +1,14 @@
 // @ts-check
-import { generateComponent, generateFacet, validateInterpretation } from '@vocabularium/domain/modules';
+import { generateComponent, generateFacet } from '@vocabularium/domain/modules';
 import { composeModule, promptVersion } from '@vocabularium/domain/composer';
 import { mainKeyOf, notePlain } from '@vocabularium/domain/pages';
 import { parentContentOf } from '@vocabularium/domain/content';
-/** @import { BrowserSession, Component, InputInterpretation } from '@vocabularium/contracts' */
+/** @import { BrowserSession, Component } from '@vocabularium/contracts' */
 /** @import { GenerateModule } from '@vocabularium/domain/modules' */
 /** @import { AccountStore } from '../core/store.mjs' */
 /** @import { Attempt, AttemptResult } from '../core/store-records.js' */
 // What generation needs of a provider (D11); see Provider in provider.mjs.
-/** @typedef {{ interpret(selectedText: string, signal: AbortSignal, sessionId: string, context?: string): Promise<unknown>, generate(request: Parameters<GenerateModule>[0] & { context?: string, language?: import('@vocabularium/contracts').InterfaceLanguage, sessionId: string }, signal: AbortSignal): Promise<unknown>, model?: string | null }} GenerationProvider */
+/** @typedef {{ generate(request: Parameters<GenerateModule>[0] & { context?: string, language?: import('@vocabularium/contracts').InterfaceLanguage, sessionId: string }, signal: AbortSignal): Promise<unknown>, model?: string | null }} GenerationProvider */
 // An admitted attempt, queued or active.
 /** @typedef {{ attemptId: string, pageId: string, sessionId: string, admittedAt: number, outcome?: string }} Job */
 /** @typedef {{ count: number }} Reservation */
@@ -43,7 +43,6 @@ export class Generation {
     }
     this.store = store; this.provider = provider;
     this.tasks = /** @type {Map<string, { task: Promise<void>, controller: AbortController, pageId: string, sessionId: string }>} */ (new Map());
-    this.interpretations = /** @type {Map<string, { promise: Promise<InputInterpretation>, controller: AbortController }>} */ (new Map());
     this.queue = /** @type {Job[]} */ ([]); this.reservations = /** @type {Set<Reservation>} */ (new Set());
     this.maxActive = maxActive; this.maxQueued = maxQueued;
     this.admitted = 0; this.rejected = 0; this.closed = false;
@@ -87,22 +86,6 @@ export class Generation {
       }
     }
   }
-  // One interpretation per run, shared by every attempt in it.
-  /** @param {GenerationInput} input @param {Attempt} attempt @returns {Promise<InputInterpretation>} */
-  async interpretation(input, attempt) {
-    const current = (await this.store.run(attempt.run_id)).interpretation;
-    if (current) return current;
-    const key = attempt.run_id;
-    if (!this.interpretations.has(key)) {
-      const controller = new AbortController();
-      const promise = this.provider.interpret(input.mainKey, controller.signal, input.pageId, input.context)
-        .then(value => this.store.establishInterpretation(key, validateInterpretation(value)));
-      this.interpretations.set(key, { promise, controller });
-      promise.finally(() => this.interpretations.delete(key)).catch(() => {});
-    }
-    return /** @type {{ promise: Promise<InputInterpretation> }} */ (this.interpretations.get(key)).promise;
-  }
-
   // Reservations keep a confirmed retry's destructive transition and its admission
   // together. They are held across the store transaction and consumed by start().
   // A request is admitted whole or not at all, so it reserves every attempt it starts.
@@ -180,8 +163,6 @@ export class Generation {
       if (!target || controller.signal.aborted) return;
       const input = { pageId, mainKey: mainKeyOf(page.components), context: contextOf(page.components) };
       this.emit({ event: 'generation.input', attemptId, pageId, componentId: attempt.component_id, outcome: 'started', content: { selectedText: input.mainKey } });
-      const interpretation = await this.interpretation(input, attempt);
-      if (controller.signal.aborted) return;
       // The prompt version of the request the provider receives (D11).
       /** @type {string | null} */
       let prompt = null;
@@ -194,8 +175,11 @@ export class Generation {
       };
       // A facet's own Retry (0.7.3) replaces only its section of the content kept meanwhile.
       const output = attempt.module.retry
-        ? await generateFacet({ mainKey: input.mainKey, module: attempt.module, facet: attempt.module.retry, existing: existingContent(target), interpretation, generate })
-        : await generateComponent({ mainKey: input.mainKey, module: attempt.module, interpretation, generate });
+        ? await generateFacet({ mainKey: input.mainKey, module: attempt.module, facet: attempt.module.retry, existing: existingContent(target), generate })
+        // One request writes the card (D17); a facet its core's flags rule out is dropped and counted, never with its text (K53).
+        : await generateComponent({ mainKey: input.mainKey, module: attempt.module, generate,
+          onMismatch: ({ module, facet }) => this.emit({ event: 'generation.facet_mismatch', attemptId, pageId, componentId: attempt.component_id,
+            category: `${module}.${facet}`, severity: 'warn', outcome: 'rejected' }) });
       if (controller.signal.aborted) return;
       // Structured content (D09), journalled and staged as data.
       result = { ok: true, content: output, ...(prompt ? { generation: { model: this.provider.model ?? null, prompt } } : {}) };
@@ -245,7 +229,6 @@ export class Generation {
   async close() {
     this.closed = true;
     const waiting = this.queue.splice(0);
-    for (const { controller } of this.interpretations.values()) controller.abort();
     for (const { controller } of this.tasks.values()) controller.abort();
     for (const job of waiting) await this.store.failAttempt(job.attemptId);
     await Promise.allSettled([...this.tasks.values()].map(({ task }) => task));
@@ -260,9 +243,6 @@ export class Generation {
       return false;
     });
     for (const [id, { controller }] of this.tasks) if (!ids.has(id)) controller.abort();
-    for (const [key, { controller }] of this.interpretations) {
-      if (!active.some(attempt => attempt.run_id === key)) controller.abort();
-    }
     this.pump();
   }
   /** @param {string} attemptId @param {BrowserSession} session */

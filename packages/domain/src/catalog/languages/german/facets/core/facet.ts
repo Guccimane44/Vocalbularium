@@ -1,30 +1,37 @@
-import { defineCore, escapeMarkdown, list, literal, numbered, object, optional, plainLines, text } from '../../../../blocks.js';
+import { defineCore, escapeMarkdown, list, numbered, object, oneOf, optional, plainLines, text } from '../../../../blocks.js';
 
-// A word or phrase: the key's language named in German, the key, an optional
-// romanization and the meanings in German. A sentence: its German translation, or
-// for a sentence already in German, an explanation of its meaning.
-const word = object({
-  kind: literal('word'),
+// One shape for a word and a sentence (D17): `kind` first, then the key's
+// language named in German, the key, an optional romanization, a word's
+// grammatical role, and the meanings in German. A sentence's meanings hold one
+// item: its German translation, or for a German sentence an explanation of its
+// meaning. The grammatical role describes the grammar word the grammar facets
+// describe: the key when it is German, otherwise the German word for its first
+// meaning.
+const shape = object({
+  kind: oneOf(['word', 'sentence'], 'Word or sentence'),
   language: text("The key's language"),
   key: text('The key'),
   romanization: optional(text('The romanization')),
+  gramRole: optional(text('The grammatical role')),
   meanings: list(text(), { name: 'The meanings', each: 'Meaning' })
 }, { own: true });
-const sentence = object({ kind: literal('sentence'), translation: text('The translation') }, { own: true });
-type Core = ReturnType<typeof word.check> | ReturnType<typeof sentence.check>;
 
-export default defineCore<Core>({
-  id: 'core', label: 'Core', labels: { word_phrase: 'Meanings', sentence: 'Translation' }, output: 'text',
-  shapes: { word_phrase: word, sentence },
-  // The meanings as a numbered list; a translation as text.
-  format: core => core.kind === 'word' ? numbered(core.meanings.map(escapeMarkdown)) : escapeMarkdown(core.translation),
-  header: core => core.kind === 'word'
-    ? { kind: 'word', language: core.language, key: core.key, ...(core.romanization ? { romanization: core.romanization } : {}) } : { kind: 'sentence' },
-  // The top line and the core's lines as meanings, or its text as the translation.
+export default defineCore({
+  id: 'core', label: 'Core', labels: { word_phrase: 'Meanings', sentence: 'Translation' }, output: 'text', shape,
+  headerLabels: { word: 'Wort', sentence: 'Satz', gramRole: {
+    noun: 'Nomen', verb: 'Verb', adjective: 'Adjektiv', adverb: 'Adverb', preposition: 'Präposition',
+    pronoun: 'Pronomen', conjunction: 'Konjunktion', article: 'Artikel', numeral: 'Numerale', interjection: 'Interjektion'
+  } },
+  // A word's meanings as a numbered list; a sentence's translation as text.
+  format: core => core.kind === 'word' ? numbered(core.meanings.map(escapeMarkdown)) : escapeMarkdown(core.meanings.join('\n')),
+  header: core => ({ kind: core.kind, language: core.language, key: core.key,
+    ...(core.romanization ? { romanization: core.romanization } : {}),
+    ...(core.kind === 'word' && core.gramRole ? { gramRole: core.gramRole } : {}) }),
+  // The top line and the core's lines as meanings.
   read: ({ header, text: stored }) => {
     const lines = plainLines(stored);
-    return header.kind === 'word'
-      ? { ...header, meanings: lines.length ? lines : ['—'] }
-      : { kind: 'sentence', translation: lines.join('\n') || '—' };
+    const meanings = lines.length ? lines : ['—'];
+    if (header.kind === 'expertise') return { kind: 'word', language: '', key: header.key, meanings };
+    return { ...header, meanings };
   }
 });

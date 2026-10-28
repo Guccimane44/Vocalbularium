@@ -121,23 +121,16 @@ test('a facet added after the last attempt, or deleted and added again, waits fo
   assert.deepEqual((await german()).waitingFacets, [], 'a running attempt generates them');
 });
 
-test('a page reports the latest run’s word-or-sentence reading, and none before a run', async t => {
+test('a page carries no reading of its main key; each card’s top line records its own (D17)', async t => {
   const store = await fixture(t);
   await germanDeck(store);
   const { pageId } = await store.capture('capture', { session, mainKey: 'bank', snapshot: await store.snapshot() });
-  let page = await store.page(pageId);
-  assert.equal(page.interpretation, null);
-  const first = await store.attempt(component(page, 'german').attemptId);
-  await store.establishInterpretation(first.run_id, { inputType: 'word_phrase', sourceLanguage: 'Englisch' });
-  assert.equal((await store.page(pageId)).interpretation, 'word_phrase');
-
-  await store.failAttempt(first.id);
-  await store.savePage('sentence', { pageId, changes: [{ componentId: component(page, 'main-key').id, content: textBlocks('We sat on the bank.') }] });
-  page = await store.page(pageId);
-  const { attemptIds } = await store.generate('retry', { pageId, target: { scope: 'component', componentId: component(page, 'german').id }, session });
-  assert.equal((await store.page(pageId)).interpretation, 'word_phrase', 'until the new run has read the key');
-  await store.establishInterpretation((await store.attempt(attemptIds[0])).run_id, { inputType: 'sentence', sourceLanguage: 'Englisch' });
-  assert.equal((await store.page(pageId)).interpretation, 'sentence');
+  const page = await store.page(pageId);
+  assert.ok(!('interpretation' in page));
+  const first = component(page, 'german');
+  await store.stage(first.attemptId, staged(wordResult(['Ufer'], {}, { key: 'bank' })));
+  await store.publish('reading-publish', { attemptId: first.attemptId, session });
+  assert.equal(component(await store.page(pageId), 'german').content.blocks[0].header.kind, 'word');
 });
 
 test('a parent’s markdown is saved with its top line locked, its facets only, any part empty, and never as plain text (D09)', async t => {
@@ -156,7 +149,7 @@ test('a parent’s markdown is saved with its top line locked, its facets only, 
   assert.deepEqual(await stored(), { version: 1, blocks: [{ type: 'parent', header, core: '', facets: { examples: '1. **Nur** Übersetzung.' } }] });
 
   await assert.rejects(save('header', { header: { ...header, key: 'Bank' }, core: '', facets: {} }), { code: 'invalid', message: "The module's top line can not be changed." });
-  await assert.rejects(save('kind', { header: { kind: 'sentence' }, core: 'x', facets: {} }), { code: 'invalid', message: "The module's top line can not be changed." });
+  await assert.rejects(save('kind', { header: { kind: 'sentence', language: 'Englisch', key: 'bank' }, core: 'x', facets: {} }), { code: 'invalid', message: "The module's top line can not be changed." });
   await assert.rejects(save('stranger', { header, core: '', facets: { synonyms: 'Damm' } }), { code: 'invalid', message: 'German has no Synonyms here.' });
   await assert.rejects(store.savePage('text-over', { pageId, changes: [{ componentId: first.id, content: textBlocks('typed over') }] }),
     { code: 'invalid', message: 'Edit this module in its editor.' });
