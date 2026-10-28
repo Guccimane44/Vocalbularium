@@ -22,7 +22,7 @@ A captured page receives a copy of the default deck's content module instances (
 2. The user right-clicks the selection and chooses **Create a page in “{default deck name}”**.
 3. Vocabularium takes the selected text exactly as selected. When the destination deck has the Context module, it also takes the surrounding block (capped at around 500 characters); otherwise no surrounding text is taken. The web page URL and title are never taken. The Context is defined in [Pages and editing](pages-and-editing.md#context).
 4. It automatically saves a page in the destination deck with the selected text as its main key and the captured Context when present. This page remains accessible if generation later fails; its existence does not mean generation succeeded.
-5. It starts one generation run for the page: one attempt per content module instance the page received from the deck. It determines whether the input is a word or phrase, or a sentence, from the main key and Context, once for the whole run ([input interpretation](#input-interpretation)).
+5. It starts one generation run for the page: one attempt per content module instance the page received from the deck. Each attempt is one request in which its module decides how to read the key and writes its card ([input interpretation](#input-interpretation)).
 6. Each attempt publishes its own component when it completes: the parent's core and its facets that apply. A failed attempt leaves its component empty with a failure indicator; it does not affect the other components.
 7. It automatically saves and synchronizes components and generation outcomes with the account. The user does not need to select **Save**.
 
@@ -54,9 +54,9 @@ This transient popup is separate from the dashboard and from confirmation dialog
 
 ## Input interpretation
 
-The main key and the saved Context are used to determine whether the input is a word or phrase, or a sentence, once per run; every attempt in the run uses that result. Interpretation does not choose a source language: each parent's generation reads the language from the key and Context ([D08](../architecture/traceability-map.md#entries)). Target languages are defined by the parent modules, not by a fixed language-pair setting for the deck. The page shows the result under its main key ([pages and editing](pages-and-editing.md#required-main-key)).
+With [D17](../architecture/traceability-map.md#entries) (accepted 28 October 2026, not yet built) there is no interpretation shared by the run. Each attempt reads the main key and Context in its own request and records its reading as the core's flags, such as word or sentence for a Languages parent, which its card's header shows ([pages and editing](pages-and-editing.md#required-main-key)). No reading chooses a source language for the page: each parent reads the language from the key and Context. Target languages are defined by the parent modules, not by a fixed language-pair setting for the deck. A failed attempt fails only its own component.
 
-If interpretation fails, every attempt in the run fails, because every parent module needs it.
+Until D17 is built, the main key and the saved Context are used to determine whether the input is a word or phrase, or a sentence, once per run; every attempt in the run uses that result, the page shows it under its main key, and if it fails every attempt in the run fails ([D08](../architecture/traceability-map.md#entries)).
 
 The interpretation and applicability rules are defined in the [Modules specification](modules.md#input-and-applicability).
 
@@ -80,9 +80,9 @@ Generation-status labels describe actual generation attempts. A component that h
 
 Each component attempt has one of these states:
 
-- **Loading:** required interpretation or the component's generation is in progress.
+- **Loading:** the component's generation is in progress (until D17 is built, also the run's interpretation).
 - **Completed:** the instance completed. Publish its output, the core and its applicable facets, as the component's content. A facet that does not apply is left out and does not count as a failure.
-- **Failed:** required interpretation or the instance failed. Discard any partial output from that attempt and show a failure indicator on the empty component. There is no partial success within a component.
+- **Failed:** the instance failed (until D17 is built, also when the run's interpretation failed). Discard any partial output from that attempt and show a failure indicator on the empty component. There is no partial success within a component.
 
 Components fail and complete independently. For example, if a page has two `German` instances and only one succeeds, the successful one is published and the other component fails. A later retry of the failed component generates only that one.
 
@@ -119,14 +119,14 @@ For the whole page:
 - **Cancel** leaves the page unchanged.
 - **Confirm** discards the targeted components' current content and starts a fresh attempt for each. Previous edits and generated output are not preserved or merged into the replacement. If an attempt fails, its component stays empty with a failure indicator; the discarded content is not restored.
 
-Retry uses the page's current saved main key and Context and its content module instances at confirmation time. The word-or-sentence classification must correspond to that main key and Context; each retry starts a new run with a fresh interpretation. A retry generates the parent's core and every facet it currently has, including facets added since its last attempt, and never a facet the user deleted.
+Retry uses the page's current saved main key and Context and its content module instances at confirmation time. Each retry generates anew from them: nothing from an earlier attempt is reused, and generated content is never cached ([D17](../architecture/traceability-map.md#entries)); until D17 is built, each retry starts a new run with a fresh interpretation. A retry generates the parent's core and every facet it currently has, including facets added since its last attempt, and never a facet the user deleted.
 
 ### Retrying one facet
 
 Since 0.7.3 each facet of a parent component has its own **Retry** beside its **Delete** ([pages and editing](pages-and-editing.md#components-as-cards)); since 0.7.4 its tag, pulled out of an open card's edge, holds one too ([facet tags](pages-and-editing.md#facet-tags)). It regenerates that facet alone: the facet's markdown is replaced with its new JSON formatted as markdown, or added when the facet had none (since 0.7.4), and the core and the other facets stay exactly as they are, edits included. A facet waiting for **Retry** can be generated this way without regenerating the rest.
 
 - **Asking.** Beside its label, a facet with content asks "Are you sure?", with a final **Retry** and **Cancel**; one with nothing in it starts at once. The tag's **Retry** never asks (since 0.7.4). If the facet's content changed after the user answered, the dialog warns: "Retry will replace this facet's content, including your edits to it. The rest of the component will not change."
-- **Input.** The attempt uses the page's saved main key and Context and the page's latest word-or-sentence reading, without interpreting again, so the facet follows the core it joins. The provider receives the component's current core and writes only that facet for it; anything else it returns is discarded. A facet that does not apply to the reading is left out, as in a whole attempt.
+- **Input.** The attempt uses the page's saved main key and Context and the component's current core, with its flags, so the facet follows the core it joins; until D17 is built, the page's latest word-or-sentence reading. The provider writes only that facet for the core; anything else it returns is discarded. A facet that does not apply to the core's flags is left out, as in a whole attempt.
 - **While it runs.** The component keeps its content and stays open; the spark runs round the facet's tab (since 0.7.4); a facet without content shows its heading, as it always does since D10's sixth amendment, and gains its text if it comes back with content; the component is locked as during any attempt.
 - **Failure.** A failed or interrupted facet attempt leaves the content and the component's state as they were before it, and the facet says its Retry failed until the component's next attempt (a facet without a section, through its tag). A facet that was waiting still waits.
 - **Availability.** Since 0.7.4 every parent's content is structured, so every facet of a parent with a core can be retried alone ([render contracts](modules.md#render-contracts)).
@@ -155,9 +155,9 @@ Account synchronization follows [accounts and synchronization](accounts-and-sync
 
 ## Initial default-deck example
 
-The initial **My Deck** has the main key module, the Context module, and one content module instance: `German`, with all four facets (Article, Examples, Synonyms, Antonyms) ([D08](../architecture/traceability-map.md#entries)). A new deck starts with the same configuration.
+The initial **My Deck** has the main key module, the Context module, and one content module instance: `German`, with Article, Examples, Synonyms and Antonyms ([D08](../architecture/traceability-map.md#entries)). A new deck starts with the same configuration, and so does every account after the D17 upgrade, which discards every deck and page ([scope](../product/scope.md#upgrade-from-earlier-builds)). D17's new German facets are not in it ([K56](../architecture/traceability-map.md#clarifications)).
 
-For the selected input `幸福`, read as a word, the page shows its main key `幸福`, then a `German` component: an explanation in German of the word, then the article of its German translation (`das Glück`), examples with their translations, synonyms, and antonyms, following the [modules specification](modules.md#catalog). The exact generated wording may vary.
+For the selected input `幸福`, read as a word, the page shows its main key `幸福`, then a `German` component, whose header names the key's language and that it is a word, with its grammatical role since D17: an explanation in German of the word, then the article of its German translation (`das Glück`), examples with their translations, synonyms, and antonyms, following the [modules specification](modules.md#catalog). The exact generated wording may vary.
 
 For a selected sentence such as `我真的很幸福`, the `German` component shows the German translation and, from Examples, one similar sentence with its translation; Article, Synonyms, and Antonyms do not apply to a sentence and are not shown. This is an intentional, successfully completed page.
 
