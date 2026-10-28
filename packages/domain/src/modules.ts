@@ -47,6 +47,15 @@ export async function generateComponent(input: {
   if (!isRecord(value)) throw new Error('A module returned no usable content.');
   const stray = Object.keys(value).find(key => key !== 'core' && key !== 'facets');
   if (stray) throw new Error(`A module returned content in an unexpected format: an unexpected field "${stray}".`);
+  // The provider's known slip (Q50): facet entries written inside the core,
+  // as if its closing brace came late. Entries named by the instance's facets
+  // move to "facets"; anything else stays where it is and is refused.
+  if (isRecord(value.core) && facets.some(facet => facet in (value.core as Record<string, unknown>))) {
+    const core = { ...value.core as Record<string, unknown> };
+    const moved = Object.fromEntries(facets.filter(facet => facet in core).map(facet => { const entry = core[facet]; delete core[facet]; return [facet, entry]; }));
+    value.core = core;
+    value.facets = { ...moved, ...(isRecord(value.facets) ? value.facets : {}) };
+  }
   const given = isRecord(value.facets) ? value.facets : {};
   const kept = Object.fromEntries(facets.filter(facet => !emptyEntry(given[facet])).map(facet => [facet, given[facet]]));
   let generated;

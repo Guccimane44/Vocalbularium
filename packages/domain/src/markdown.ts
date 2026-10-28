@@ -338,21 +338,28 @@ function blockLines(node: EditorNode): string[] {
   }
   return (node.content ?? []).flatMap(blockLines);
 }
-// The main key as a stored highlight (D10, amended a fourth time): every
-// occurrence of `key` in plain text, matched as the card once matched it
-// (ignoring case), gains the default highlight; text in code or already
-// highlighted is left as it is. Written back through the editor's document,
-// so the markdown is what the editor would write.
-export function highlightKey(source: string, key: string): string {
-  const needle = key.trim().toLocaleLowerCase();
-  if (!needle || !source.toLocaleLowerCase().includes(needle)) return source;
+// Whether a match stands as a whole word (D17): a key ending in a letter or
+// digit of a script that spaces its words must not continue into one, so "in"
+// is not marked inside "einer"; a CJK key is marked wherever it occurs.
+const WORDY = /[\p{L}\p{N}]/u;
+const UNSPACED = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}\p{Script=Thai}]/u;
+const wordy = (char: string | undefined) => char !== undefined && WORDY.test(char);
+const spaced = (char: string) => WORDY.test(char) && !UNSPACED.test(char);
+function wholeWord(text: string, at: number, length: number): boolean {
+  const first = text[at]!, last = text[at + length - 1]!;
+  return !(spaced(first) && wordy(text[at - 1])) && !(spaced(last) && wordy(text[at + length]));
+}
+// The key highlighted in inline text: every whole-word occurrence outside code
+// and existing highlights.
+function highlightInline(source: string, needle: string): string {
   const split = (node: EditorNode): EditorNode[] => {
     const marks = node.marks ?? [];
     if (!node.text || marks.some(mark => mark.type === 'code' || mark.type === 'highlight')) return [node];
     const lower = node.text.toLocaleLowerCase();
     const parts: EditorNode[] = [];
     let from = 0;
-    for (let at = lower.indexOf(needle); at >= 0 && lower.length === node.text.length; at = lower.indexOf(needle, from)) {
+    for (let at = lower.indexOf(needle); at >= 0 && lower.length === node.text.length; at = lower.indexOf(needle, at + 1)) {
+      if (at < from || !wholeWord(node.text, at, needle.length)) continue;
       if (at > from) parts.push({ ...node, text: node.text.slice(from, at) });
       parts.push({ ...node, text: node.text.slice(at, at + needle.length), marks: [...marks, { type: 'highlight' }] });
       from = at + needle.length;
@@ -363,6 +370,35 @@ export function highlightKey(source: string, key: string): string {
   const walk = (node: EditorNode): EditorNode => node.content
     ? { ...node, content: node.content.flatMap(child => child.type === 'text' ? split(child) : [walk(child)]) } : node;
   return fromEditorDoc(walk(toEditorDoc(source)));
+}
+// A table's cells are highlighted one by one, so the table keeps its rows
+// and its rule (D17); a pipe the highlighting writes back is escaped again.
+function highlightTableRow(line: string, needle: string): string {
+  return `| ${cellsOf(line).map(cell => cell ? highlightInline(cell, needle).replace(/(?<!\\)\|/g, '\\|') : '').join(' | ')} |`;
+}
+// The main key as a stored highlight (D10, amended a fourth time): every
+// whole-word occurrence of `key` in plain text (D17), ignoring case, gains the
+// default highlight; text in code or already highlighted is left as it is.
+// Written back through the editor's document, so the markdown is what the
+// editor would write; a table is highlighted cell by cell.
+export function highlightKey(source: string, key: string): string {
+  const needle = key.trim().toLocaleLowerCase();
+  if (!needle || !source.toLocaleLowerCase().includes(needle)) return source;
+  if (!hasTable(source)) return highlightInline(source, needle);
+  // Text around tables is highlighted as a whole, each table row by row.
+  const lines = source.replace(/\r\n?/g, '\n').split('\n');
+  const out: string[] = [];
+  let text: string[] = [];
+  const endText = () => { if (text.some(line => line.trim())) out.push(highlightInline(text.join('\n'), needle)); text = []; };
+  for (let at = 0; at < lines.length; at++) {
+    if (!(TABLE_ROW.test(lines[at]!) && TABLE_RULE.test(lines[at + 1] ?? ''))) { text.push(lines[at]!); continue; }
+    endText();
+    out.push(highlightTableRow(lines[at]!, needle), lines[at + 1]!.trim());
+    for (at += 2; at < lines.length && TABLE_ROW.test(lines[at]!); at++) out.push(highlightTableRow(lines[at]!, needle));
+    at--;
+  }
+  endText();
+  return out.join('\n');
 }
 export function fromEditorDoc(doc: EditorNode): string {
   const blocks = (doc.content ?? []).map(blockLines).map(lines => lines.join('\n')).filter(text => text.trim());

@@ -180,7 +180,7 @@ test('the live editor’s document converts to and from the markdown subset, rou
   // The main key as a stored highlight (D10, amended a fourth time).
   const { highlightKey } = await import('@vocabularium/domain/markdown');
   assert.equal(highlightKey('1. We sat on the bank.\n   *Wir saßen am Ufer.*', 'bank'), '1. We sat on the ==bank==.\n   *Wir saßen am Ufer.*');
-  assert.equal(highlightKey('Bank and banks', ' bank '), '==Bank== and ==bank==s', 'ignoring case, as the card matched');
+  assert.equal(highlightKey('Bank and banks', ' bank '), '==Bank== and banks', 'ignoring case, a whole word only (D17)');
   assert.equal(highlightKey('`bank` and ==bank==', 'bank'), '`bank` and ==bank==', 'code and existing highlights stay');
   assert.equal(highlightKey(highlightKey('the bank', 'bank'), 'bank'), 'the ==bank==', 'applied twice, the same');
   assert.equal(highlightKey('**bank**', 'bank'), '**==bank==**');
@@ -217,4 +217,15 @@ test('the German grammar facets format their JSON as the card shows it (D17)', (
   const rendered = renderParent('german', { header: { kind: 'word', language: 'Deutsch', key: 'laufen', gramRole: 'verb' }, core: '1. gehen',
     facets: { conjugation: formatFacet('german', 'conjugation', conjugation) } });
   assert.equal(rendered.facets[0].body[0].type, 'table');
+});
+
+test('the main key is highlighted as a whole word, a CJK key wherever it occurs, and a table keeps its rows (D17)', () => {
+  assert.equal(highlightKey('Das Buch liegt in einer Tasche, innen.', 'in'), 'Das Buch liegt ==in== einer Tasche, innen.');
+  assert.equal(highlightKey('Sie ist gelaufen. Laufen!', 'laufen'), 'Sie ist gelaufen. ==Laufen==!');
+  assert.equal(highlightKey('我真的很幸福。', '幸福'), '我真的很==幸福==。');
+  assert.equal(highlightKey('a multi-core chip', 'multi-core'), 'a ==multi-core== chip');
+  const conjugation = table(['Präsens', 'Perfekt'], [{ label: 'wir', cells: ['gehen', 'sind gegangen'] }, { label: 'du', cells: ['gehst | a', 'bist gegangen'] }]);
+  const highlighted = highlightKey(conjugation, 'gehen');
+  assert.equal(highlighted, '|  | Präsens | Perfekt |\n| --- | --- | --- |\n| wir | ==gehen== | sind gegangen |\n| du | gehst \\| a | bist gegangen |');
+  assert.deepEqual(parseMarkdown(highlighted)[0].rows.map(row => row.map(plainInline)), [['wir', 'gehen', 'sind gegangen'], ['du', 'gehst | a', 'bist gegangen']]);
 });
