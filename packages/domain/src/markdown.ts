@@ -1,6 +1,7 @@
 // Markdown per facet (D09, amended): the app formats the provider's JSON into
 // markdown as the card looks, and reads a small subset of markdown back for
-// drawing: paragraphs with line breaks, bulleted and numbered lists, tables
+// drawing: paragraphs with line breaks, bulleted and numbered lists, tables,
+// display math between `$$` lines, inline math `\(…\)` and fenced code blocks
 // (D17), bold, italic, inline code and highlight (==text==). Anything else is
 // text. The parser builds a tree for clients to draw.
 
@@ -8,6 +9,8 @@ export type MdInline =
   | Readonly<{ type: 'text'; text: string }>
   | Readonly<{ type: 'break' }>
   | Readonly<{ type: 'code'; text: string }>
+  // LaTeX, written `\(…\)` (D17).
+  | Readonly<{ type: 'math'; tex: string }>
   | Readonly<{ type: 'strong' | 'em' | 'mark'; children: readonly MdInline[] }>
   // A size and a font on a stretch of text (D10, amended again): `[text]{size=large font=display}`.
   // A highlight colour beside the default yellow (D10, amended a third time): `[text]{highlight=green}`.
@@ -22,7 +25,11 @@ export type MdBlock =
   | Readonly<{ type: 'paragraph'; children: readonly MdInline[] }>
   | Readonly<{ type: 'list'; ordered: boolean; start: number; items: ReadonlyArray<readonly MdInline[]> }>
   // A pipe table (D17): its header row, then its rows, each a list of cells.
-  | Readonly<{ type: 'table'; header: ReadonlyArray<readonly MdInline[]>; rows: ReadonlyArray<ReadonlyArray<readonly MdInline[]>> }>;
+  | Readonly<{ type: 'table'; header: ReadonlyArray<readonly MdInline[]>; rows: ReadonlyArray<ReadonlyArray<readonly MdInline[]>> }>
+  // A formula on its own lines between `$$` (D17), as LaTeX.
+  | Readonly<{ type: 'math'; tex: string }>
+  // A fenced code block (D17): its language, possibly empty, and its text as written.
+  | Readonly<{ type: 'code'; language: string; text: string }>;
 
 // --- Formatting -------------------------------------------------------------
 
@@ -30,7 +37,16 @@ export type MdBlock =
 // line that would start a list does not.
 export function escapeMarkdown(text: string): string {
   return text.replace(/[\\`*_=[]/g, '\\$&').split('\n')
-    .map(line => line.replace(/^(\s*)(\d+)\.(\s)/, '$1$2\\.$3').replace(/^(\s*)([-+])(\s)/, '$1\\$2$3')).join('\n');
+    .map(line => line.replace(/^(\s*)(\d+)\.(\s)/, '$1$2\\.$3').replace(/^(\s*)([-+])(\s)/, '$1\\$2$3').replace(/^(\s*)\$\$(\s*)$/, (_, before: string, after: string) => `${before}\\$\\$${after}`)).join('\n');
+}
+// A formula as display math, its LaTeX on the lines between `$$` (D17).
+export const displayMath = (tex: string) => `$$\n${tex.trim()}\n$$`;
+// Inline math, LaTeX between `\(` and `\)` (D17).
+export const inlineMath = (tex: string) => `\\(${tex.trim().replace(/\\\)/g, '\\ )')}\\)`;
+// A fenced code block (D17): a fence longer than any backtick run in the code.
+export function codeBlock(language: string, code: string): string {
+  const fence = '`'.repeat(Math.max(3, ...[...code.matchAll(/`+/g)].map(run => run[0].length + 1)));
+  return `${fence}${language.trim().replace(/[^\w+#.-]/g, '')}\n${code.replace(/\s+$/, '')}\n${fence}`;
 }
 // A numbered list; an item's further lines indent under it.
 export const numbered = (items: readonly string[]) => items.map((item, index) => {
@@ -61,6 +77,10 @@ export function parseInline(source: string): MdInline[] {
   for (let index = 0; index < source.length;) {
     const rest = source.slice(index);
     const char = source[index]!;
+    if (char === '\\' && source[index + 1] === '(') {
+      const end = source.indexOf('\\)', index + 2);
+      if (end > index + 2) { flush(); out.push({ type: 'math', tex: source.slice(index + 2, end) }); index = end + 2; continue; }
+    }
     if (char === '\\' && index + 1 < source.length) {
       if (source[index + 1] === '\n') { flush(); out.push({ type: 'break' }); index += 2; continue; }
       text += source[index + 1]; index += 2; continue;
@@ -152,6 +172,7 @@ function cellsOf(line: string): string[] {
   return cells.map(each => each.trim());
 }
 const TABLE_ROW = /^\s*\|.*\|\s*$/;
+const FENCE = /^\s{0,3}(`{3,})([\w+#.-]*)\s*$/;
 const TABLE_RULE = /^\s*\|(?:\s*:?-{3,}:?\s*\|)+\s*$/;
 
 // Markdown into blocks: paragraphs (lines joined by breaks), lists, whose
@@ -172,6 +193,24 @@ export function parseMarkdown(source: string): MdBlock[] {
     if (rows) {
       if (TABLE_ROW.test(line)) { rows.push(cellsOf(line)); continue; }
       endTable();
+    }
+    // A fenced code block runs to its closing fence, or to the end; its text stays as written.
+    const fence = FENCE.exec(line);
+    if (fence) {
+      endParagraph(); endList();
+      const close = lines.findIndex((each, after) => after > at && each.trim() === fence[1]);
+      const end = close < 0 ? lines.length : close;
+      blocks.push({ type: 'code', language: fence[2] ?? '', text: lines.slice(at + 1, end).join('\n') });
+      at = end; continue;
+    }
+    // Display math between `$$` lines (D17).
+    if (line.trim() === '$$') {
+      const close = lines.findIndex((each, after) => after > at && each.trim() === '$$');
+      if (close > at + 1) {
+        endParagraph(); endList();
+        blocks.push({ type: 'math', tex: lines.slice(at + 1, close).join('\n').trim() });
+        at = close; continue;
+      }
     }
     if (TABLE_ROW.test(line) && TABLE_RULE.test(lines[at + 1] ?? '')) {
       endParagraph(); endList();
@@ -198,7 +237,7 @@ export function parseMarkdown(source: string): MdBlock[] {
 // The plain text of inline runs, and of a markdown text: one line per list item
 // and per paragraph line, formatting left out.
 export function plainInline(runs: readonly MdInline[]): string {
-  return runs.map(run => run.type === 'text' || run.type === 'code' ? run.text : run.type === 'break' ? '\n' : plainInline(run.children)).join('');
+  return runs.map(run => run.type === 'text' || run.type === 'code' ? run.text : run.type === 'math' ? run.tex : run.type === 'break' ? '\n' : plainInline(run.children)).join('');
 }
 // A table row as one line: its cells apart by a space.
 const plainRow = (cells: ReadonlyArray<readonly MdInline[]>) => cells.map(plainInline).filter(Boolean).join(' ');
@@ -206,6 +245,7 @@ export function plainLines(source: string): string[] {
   return parseMarkdown(source).flatMap(block => block.type === 'list'
     ? block.items.map(item => plainInline(item).split('\n')[0]!.trim())
     : block.type === 'table' ? [block.header, ...block.rows].map(plainRow)
+      : block.type === 'math' ? block.tex.split('\n').map(line => line.trim()) : block.type === 'code' ? block.text.split('\n').map(line => line.trim())
       : plainInline(block.children).split('\n').map(line => line.trim()))
     .filter(Boolean);
 }
@@ -214,10 +254,17 @@ export function plainLines(source: string): string[] {
 // Context is markdown, and generation reads it as plain text).
 export function plainText(source: string): string {
   return parseMarkdown(source).map(block => block.type === 'list' ? block.items.map(plainInline).join('\n')
-    : block.type === 'table' ? [block.header, ...block.rows].map(plainRow).join('\n') : plainInline(block.children)).join('\n\n');
+    : block.type === 'table' ? [block.header, ...block.rows].map(plainRow).join('\n')
+      : block.type === 'math' ? block.tex : block.type === 'code' ? block.text : plainInline(block.children)).join('\n\n');
 }
 // Whether a markdown text holds a table, which the editor edits as its source (D17, K54).
 export const hasTable = (source: string | undefined): boolean => Boolean(source && parseMarkdown(source).some(block => block.type === 'table'));
+// Whether the editor edits a text as its source (D17, K54): it holds a table,
+// a formula or a code block, which the formatting editor cannot show.
+const mathIn = (runs: readonly MdInline[]): boolean => runs.some(run => run.type === 'math' || ('children' in run && mathIn(run.children)));
+export const editsAsSource = (source: string | undefined): boolean => Boolean(source && parseMarkdown(source).some(block =>
+  block.type === 'table' || block.type === 'math' || block.type === 'code'
+  || (block.type === 'paragraph' && mathIn(block.children)) || (block.type === 'list' && block.items.some(mathIn))));
 // Whether a markdown text holds anything to read.
 export const hasText = (source: string | undefined): boolean => Boolean(source && plainLines(source).length);
 
@@ -246,6 +293,8 @@ function inlineNodes(runs: readonly MdInline[], marks: readonly EditorMark[] = [
     if (run.type === 'text') return run.text ? [{ type: 'text', text: run.text, ...(marks.length ? { marks } : {}) }] : [];
     if (run.type === 'break') return [{ type: 'hardBreak' }];
     if (run.type === 'code') return run.text ? [{ type: 'text', text: run.text, marks: [...marks, { type: 'code' }] }] : [];
+    // Math is edited as its source (D17); read here, it is its LaTeX as code.
+    if (run.type === 'math') return run.tex ? [{ type: 'text', text: run.tex, marks: [...marks, { type: 'code' }] }] : [];
     if (run.type === 'span') return inlineNodes(run.children, [...marks,
       ...(run.size ? [{ type: 'size' as const, attrs: { value: run.size } }] : []), ...(run.font ? [{ type: 'font' as const, attrs: { value: run.font } }] : []),
       ...(run.highlight ? [{ type: 'highlight' as const, attrs: { colour: run.highlight } }] : [])]);
@@ -261,6 +310,8 @@ export function toEditorDoc(source: string): EditorNode {
   // A table is edited as its source (D17, K54), never in this editor; read as text, it is a line per row.
   const content = blocks.map((block): EditorNode => block.type === 'paragraph' ? paragraph(block.children)
     : block.type === 'table' ? paragraph([block.header, ...block.rows].flatMap((row, at) => [...(at ? [{ type: 'break' } as const] : []), { type: 'text' as const, text: plainRow(row) }]))
+    : block.type === 'math' ? paragraph([{ type: 'code', text: block.tex }])
+    : block.type === 'code' ? paragraph(block.text.split('\n').flatMap((line, at) => [...(at ? [{ type: 'break' } as const] : []), { type: 'code' as const, text: line }]))
     : { type: block.ordered ? 'orderedList' : 'bulletList', ...(block.ordered ? { attrs: { start: block.start } } : {}),
       content: block.items.map(item => ({ type: 'listItem', content: [paragraph(item)] })) });
   return { type: 'doc', content: content.length ? content : [{ type: 'paragraph' }] };
@@ -384,6 +435,8 @@ function highlightTableRow(line: string, needle: string): string {
 export function highlightKey(source: string, key: string): string {
   const needle = key.trim().toLocaleLowerCase();
   if (!needle || !source.toLocaleLowerCase().includes(needle)) return source;
+  // A formula or code is left as written (D17): the editor's document cannot carry it.
+  if (editsAsSource(source) && !hasTable(source)) return source;
   if (!hasTable(source)) return highlightInline(source, needle);
   // Text around tables is highlighted as a whole, each table row by row.
   const lines = source.replace(/\r\n?/g, '\n').split('\n');

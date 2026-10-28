@@ -6,6 +6,7 @@ import { blockText, mainKeyOf } from '@vocabularium/domain/pages';
 import { renderContent, renderParent } from '@vocabularium/domain/render';
 import type { Rendered } from '@vocabularium/domain/render';
 import { plainInline } from '@vocabularium/domain/markdown';
+import { CodeBlock, MathBlock } from './rich-blocks.tsx';
 import type { MdBlock, MdInline } from '@vocabularium/domain/markdown';
 import { parentContentOf } from '@vocabularium/domain/content';
 import type { ParentContent } from '@vocabularium/domain/content';
@@ -124,8 +125,9 @@ function NewPageEditor({ draft, deck, busy, persist, save, cancel }: Pick<Props,
 }
 
 // One facet's content (D08): examples beside their translations, or its lines.
-// Markdown as the domain reads it (D09, amended): paragraphs, lists, bold,
-// italic, inline code and highlight, drawn as elements, never as HTML. The
+// Markdown as the domain reads it (D09, amended): paragraphs, lists, tables,
+// bold, italic, inline code and highlight, drawn as elements; since D17 a
+// formula is KaTeX's HTML and code highlight.js's. The
 // main key's yellow is a stored highlight like any other (D10, amended a fourth time).
 function Inline({ runs, mainKey }: { runs: readonly MdInline[]; mainKey: string }) {
   return <>{runs.map((run, index) => {
@@ -133,6 +135,7 @@ function Inline({ runs, mainKey }: { runs: readonly MdInline[]; mainKey: string 
     if (run.type === 'text') return <Fragment key={index}>{run.text}</Fragment>;
     if (run.type === 'break') return <br key={index} />;
     if (run.type === 'code') return <code key={index}>{run.text}</code>;
+    if (run.type === 'math') return <MathBlock key={index} tex={run.tex} display={false} />;
     const children = <Inline runs={run.children} mainKey={mainKey} />;
     // A size and a font the user set (D10, amended again).
     if (run.type === 'span') {
@@ -150,6 +153,9 @@ export function Markdown({ blocks, mainKey, className }: { blocks: readonly MdBl
   // left to right in a right-to-left interface, an Arabic one the other way.
   return <div className={`md${className ? ` ${className}` : ''}`}>{blocks.map((block, index) => block.type === 'paragraph'
     ? <p key={index} dir="auto"><Inline runs={block.children} mainKey={mainKey} /></p>
+    // A formula and code (D17).
+    : block.type === 'math' ? <MathBlock key={index} tex={block.tex} display />
+    : block.type === 'code' ? <CodeBlock key={index} language={block.language} text={block.text} />
     // A table (D17) scrolls inside its container on a narrow card.
     : block.type === 'table'
       ? <div key={index} className="md-table" role="region" tabIndex={0} aria-label={block.header.map(plainInline).filter(Boolean).join(', ')}><table dir="auto">

@@ -634,3 +634,13 @@ button.facet-tag-open:hover { background: transparent; }
 .md-table tbody th { font-weight: 600; color: var(--ink-soft); }
 .md-source { width: 100%; box-sizing: border-box; font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; padding: 8px; border-radius: 6px;
   border: 1px solid var(--line-control); background: transparent; color: inherit; resize: vertical; }
+
+/* Formulas and code (D17): KaTeX's own styles come with it; code takes the theme's colours. */
+.md-math { overflow-x: auto; padding: 4px 0; }
+.md-math-source, .md-code { margin: 0; overflow-x: auto; font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; }
+.md-code { padding: 10px 12px; border-radius: 6px; background: color-mix(in srgb, var(--ink) 6%, transparent); }
+.md-code .hljs-keyword, .md-code .hljs-built_in, .md-code .hljs-type { color: var(--fam-expertise, var(--ink)); font-weight: 600; }
+.md-code .hljs-string, .md-code .hljs-number, .md-code .hljs-literal { color: var(--ink-soft); }
+.md-code .hljs-comment { color: var(--ink-muted); font-style: italic; }
+.md-code .hljs-title, .md-code .hljs-function { font-weight: 600; }
+.md pre code { padding: 0; border-radius: 0; background: none; font: inherit; }

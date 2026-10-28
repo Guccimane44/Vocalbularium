@@ -152,5 +152,5 @@ test('every explanation is written in every interface language', async () => {
     explained++;
     assert.deepEqual(languages.sort(), LANGUAGES.map(language => language.code).sort(), `${folderOf(module)}${facet ? `/${facet}` : ''}`);
   }
-  assert.equal(explained, 16, 'German’s four grammar facets included (D17)');
+  assert.equal(explained, 18, 'German’s four grammar facets, Formula and Code example included (D17)');
 });

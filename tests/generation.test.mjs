@@ -764,9 +764,9 @@ test('an Expertise module explains in the account’s language, and its prompt v
   const card = generated(await store.page(page.id))[0];
   assert.equal(card.status, 'completed');
   assert.equal(requests[0].language, 'fr', 'the provider is asked in French');
-  const french = promptVersion({ instructions: parentInstructions('computer-science', [], false, 'fr'), schema: parentSchema('computer-science', []) });
+  const french = promptVersion({ instructions: parentInstructions('computer-science', ['code'], false, 'fr'), schema: parentSchema('computer-science', ['code']) });
   assert.equal((await store.generationRecords(page.id))[card.id].core.prompt, french);
-  assert.notEqual(french, promptVersion({ instructions: parentInstructions('computer-science', []), schema: parentSchema('computer-science', []) }));
+  assert.notEqual(french, promptVersion({ instructions: parentInstructions('computer-science', ['code']), schema: parentSchema('computer-science', ['code']) }));
 });
 
 test('the request OpenCode sends for an Expertise module in Chinese carries the Chinese writing guide and a length in characters (D15)', async () => {
@@ -800,8 +800,8 @@ test('an Expertise module explains the key in English as one core with its case,
   assert.equal(card.status, 'completed');
   assert.deepEqual(card.content.blocks[0], { type: 'parent', header: { kind: 'expertise', key: 'Frontend', relevance: 'subject' },
     core: 'The part of a program people see.\n\nLike a dining room.', facets: {} });
-  assert.deepEqual(requests[0].facets, [], 'a provisional core only');
-  const prompt = promptVersion({ instructions: parentInstructions('computer-science', []), schema: parentSchema('computer-science', []) });
+  assert.deepEqual(requests[0].facets, ['code'], 'its facet asked for; it says when it applies');
+  const prompt = promptVersion({ instructions: parentInstructions('computer-science', ['code']), schema: parentSchema('computer-science', ['code']) });
   assert.deepEqual((await store.generationRecords(page.id))[card.id], { core: { model: 'pinned-model', prompt } });
   assert.match(parentInstructions('computer-science', []), /as computer science understands it/);
   assert.match(parentInstructions('mathematics', []), /Write every part in English/);

@@ -2,13 +2,32 @@
   "word_phrase": {
     "core": {
       "relevance": "subject",
+      "hasFormula": "yes",
       "key": "eigenvalue",
       "explanation": [
         "An eigenvalue is a number that tells you how much a transformation stretches a special direction. For most directions a matrix both turns and stretches a vector, but along an eigenvector it only stretches it, by the eigenvalue.",
         "For example, if a matrix doubles every vector along the x-axis without turning it, then 2 is an eigenvalue."
       ]
     },
-    "facets": {}
+    "facets": {
+      "formula": {
+        "latex": "A\\mathbf{v} = \\lambda \\mathbf{v}",
+        "symbols": [
+          {
+            "symbol": "A",
+            "meaning": "the square matrix"
+          },
+          {
+            "symbol": "\\mathbf{v}",
+            "meaning": "an eigenvector, a vector other than zero"
+          },
+          {
+            "symbol": "\\lambda",
+            "meaning": "the eigenvalue, the factor the vector is stretched by"
+          }
+        ]
+      }
+    }
   },
   "sentence": {
     "core": {

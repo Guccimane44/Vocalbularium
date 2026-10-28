@@ -15,10 +15,10 @@ test('the catalog is German and Chinese in Languages, with facets in a fixed ord
   assert.deepEqual(facetsOf('german'), ['article', 'examples', 'synonyms', 'antonyms', 'conjugation', 'declension', 'comparison', 'case'], 'the grammar facets after the first four (D17)');
   assert.deepEqual(facetsOf('chinese'), ['examples', 'pinyin']);
   for (const parent of ['german', 'chinese']) assert.equal(PARENTS[parent].family, 'translation');
-  for (const parent of ['computer-science', 'mathematics']) {
-    assert.equal(PARENTS[parent].family, 'expertise');
-    assert.deepEqual(facetsOf(parent), [], 'a provisional core only (D11)');
-  }
+  for (const parent of ['computer-science', 'mathematics']) assert.equal(PARENTS[parent].family, 'expertise');
+  // Their first facets came with D17.
+  assert.deepEqual(facetsOf('computer-science'), ['code']);
+  assert.deepEqual(facetsOf('mathematics'), ['formula']);
   assert.ok(isParentType('german') && !isParentType('german-examples') && !isParentType('text'));
 });
 

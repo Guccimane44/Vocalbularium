@@ -9,7 +9,7 @@ import { BulletList, OrderedList } from '@tiptap/extension-list';
 import type { ParentContent } from '@vocabularium/domain/content';
 import { headingOf } from '@vocabularium/domain/render';
 import type { EntryHeading } from '@vocabularium/domain/render';
-import { fromEditorDoc, hasTable, hasText, toEditorDoc } from '@vocabularium/domain/markdown';
+import { editsAsSource, fromEditorDoc, hasText, toEditorDoc } from '@vocabularium/domain/markdown';
 import type { EditorNode } from '@vocabularium/domain/markdown';
 import { facetsOf } from '@vocabularium/domain/parents';
 import type { FacetType, ParentType } from '@vocabularium/domain/parents';
@@ -132,10 +132,10 @@ function Toolbar({ editor, label }: { editor: Editor; label: string }) {
 
 // One part: its head (a facet's tab or the core's top line), then its text.
 // The toolbar shows in the head while the focus is anywhere in the part.
-// A part that holds a table (D17, K54) is edited as its markdown source, a
-// row a line, in a plain text field; everything else in the formatting editor.
+// A part that holds a table, a formula or code (D17, K54) is edited as its
+// markdown source in a plain text field; everything else in the formatting editor.
 function PartEditor(props: Parameters<typeof RichEditor>[0]) {
-  return hasTable(props.value) ? <SourceEditor {...props} /> : <RichEditor {...props} />;
+  return editsAsSource(props.value) ? <SourceEditor {...props} /> : <RichEditor {...props} />;
 }
 function SourceEditor({ value, label, editable, head, onChange, after, autofocus = false, reading: _, ...rest }: Parameters<typeof RichEditor>[0]) {
   const [text, setText] = useState(value);

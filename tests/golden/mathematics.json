@@ -8,21 +8,24 @@
       "key": "eigenvalue",
       "why": "Core term, the module's sample",
       "expect": {
-        "relevance": "subject"
+        "relevance": "subject",
+        "hasFormula": "yes"
       }
     },
     {
       "key": "derivative",
       "why": "Core concept",
       "expect": {
-        "relevance": "subject"
+        "relevance": "subject",
+        "hasFormula": "yes"
       }
     },
     {
       "key": "prime number",
       "why": "Phrase",
       "expect": {
-        "relevance": "subject"
+        "relevance": "subject",
+        "hasFormula": "no"
       }
     },
     {
@@ -43,7 +46,8 @@
       "key": "limit",
       "why": "Everyday word with a technical meaning: the mathematics sense only, no everyday meaning",
       "expect": {
-        "relevance": "subject"
+        "relevance": "subject",
+        "hasFormula": "yes"
       }
     },
     {
