@@ -37,9 +37,9 @@ A main key can be anything from one character to a passage, and the page title's
 | Sentence | up to 200 / 70 | display type that wraps freely |
 | Passage | longer | a reading block cut after six lines, with **Show all** and **Show less** |
 
-The tier changes only the presentation: generation, search, duplicates, and editing always use the full text. Where generation classified the input as a sentence, a shorter key may move up one tier, never down. Editing a passage uses a multi-line field. The main key is shown once, as the title; there is no separate main key card.
+The tier changes only the presentation: generation, search, duplicates, and editing always use the full text. Until [D17](../architecture/traceability-map.md#entries) is built, where generation classified the input as a sentence, a shorter key may move up one tier, never down; with D17 the tier comes from the key's length alone ([K52](../architecture/traceability-map.md#clarifications)). Editing a passage uses a multi-line field. The main key is shown once, as the title; there is no separate main key card.
 
-Once a generation run has interpreted the main key, a small label under the title says whether it was read as a word or as a sentence ([modules](modules.md#input-and-applicability); [D08](../architecture/traceability-map.md#entries)). It explains which core and facets the content cards show. It cannot be changed directly: editing the main key and retrying interprets it again. It names no language.
+With D17 the title has no label under it. Each Languages card says in its core's header whether it read the key as a word or as a sentence, beside the key's language and the key, and on a German word its grammatical role, in the module's language and not editable ([modules](modules.md#render-contracts); [C26](../architecture/traceability-map.md#conflicts)); editing the main key and retrying reads it again. Until D17 is built, once a generation run has interpreted the main key, a small label under the title says whether it was read as a word or as a sentence, names no language and cannot be changed directly ([D08](../architecture/traceability-map.md#entries)).
 
 ## Context
 
