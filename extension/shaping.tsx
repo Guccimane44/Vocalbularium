@@ -13,7 +13,7 @@ import { MAX_MODULES } from '@vocabularium/contracts';
 import { addBlockedReason, CATALOG, FAMILIES, WINDOW_MODULES } from '@vocabularium/domain/page-modules';
 import type { AddBlockedReason } from '@vocabularium/domain/page-modules';
 import type { ModuleFamily, ModuleType } from '@vocabularium/domain/page-modules';
-import { ModuleExplanation } from './explanation.tsx';
+import { AboutSheet, openAbout } from './about-sheet.tsx';
 import { FamilyIcon } from './families.tsx';
 import { direction, t } from './i18n.ts';
 import { familyLabel, moduleDescription, moduleLabel } from './catalog-text.ts';
@@ -376,10 +376,8 @@ function DropEnd({ disabled, active }: { disabled: boolean; active: boolean }) {
   return disabled ? null : <div ref={setNodeRef} className="drop-end" data-over={active || undefined}>{t('shaping.dropEnd')}</div>;
 }
 
-function WindowModule({ type, blocked, explain, addAtEnd, about }: {
+function WindowModule({ type, blocked, explain, addAtEnd }: {
   type: string; blocked: string | null; explain: boolean; addAtEnd: (type: string) => void;
-  // Opens the module's explanation (D13, 0.8.1).
-  about: (type: string) => void;
 }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: WINDOW + type, disabled: Boolean(blocked) });
   const entry = CATALOG[type as ModuleType];
@@ -390,19 +388,18 @@ function WindowModule({ type, blocked, explain, addAtEnd, about }: {
       <strong>{label}</strong>
       <span className="muted">{description}</span>
     </div>
+    {/* Below its description, About opens the module's page (D20, 0.13.0; an ⓘ below the + from 0.8.1). */}
+    <button type="button" className="window-about" aria-haspopup="dialog" onClick={() => openAbout({ kind: 'module', module: type })}>
+      {t('shaping.about', { name: label })}
+    </button>
     {/* Adds the module as the last entry, without dragging (0.6.3). */}
     <button type="button" className="window-add" aria-label={t('shaping.addAtEnd', { name: label })} disabled={Boolean(blocked)} onClick={() => addAtEnd(type)}>
       <PlusIcon />
     </button>
     {blocked && explain && <p className="window-reason muted">{blocked}</p>}
-    {/* Below the +, its ⓘ: what the module does, with a sample, without trying it (D13, 0.8.1; a button since 0.12.1). */}
-    <button type="button" className="window-about" aria-label={t('shaping.about', { name: label })} aria-haspopup="dialog" onClick={() => about(type)}>
-      <InfoIcon />
-    </button>
   </li>;
 }
 
-const InfoIcon = () => <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><circle cx="12" cy="12" r="9.5" /><path d="M12 11v6" /><path d="M12 7.5h.01" /></svg>;
 const PlusIcon = () => <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>;
 
 // A "?" beside a heading whose explanation shows on hover, or on a click or
@@ -451,8 +448,6 @@ function ModuleWindow({ types, disabled, unavailable, where, addAtEnd }: {
 }) {
   const { setNodeRef, isOver, active } = useDroppable({ id: BACK });
   const searchId = useId();
-  // The module whose explanation is open.
-  const [about, setAbout] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const familyOf = (type: ModuleType) => CATALOG[type].family as ModuleFamily;
   const [open, setOpen] = useState(() => new Set(types.filter(type => CATALOG[type as ModuleType]?.family).map(type => familyOf(type as ModuleType))));
@@ -481,12 +476,18 @@ function ModuleWindow({ types, disabled, unavailable, where, addAtEnd }: {
         if (next.size !== open.size) setOpen(next);
       }}>
       <summary><span className="fam-chip"><FamilyIcon family={family} /></span>{familyLabel(family)}<span className="family-count">{total}</span></summary>
+      {/* The family's page, from the top of its group (D20, 0.13.0). */}
+      <button type="button" className="family-about" aria-label={t('about.family', { name: familyLabel(family) })} aria-haspopup="dialog"
+        onClick={() => openAbout({ kind: 'family', family })}>
+        {familyLabel(family)}
+        <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6" /></svg>
+      </button>
       <ul>
-        {modules.map(type => <WindowModule key={type} type={type} explain={!disabled} addAtEnd={addAtEnd} about={setAbout}
+        {modules.map(type => <WindowModule key={type} type={type} explain={!disabled} addAtEnd={addAtEnd}
           blocked={disabled ? unavailable ?? t('shaping.unavailable') : blockedText(addBlockedReason(types.map(value => ({ type: value })), type), type)} />)}
       </ul>
     </details>)}
     </div>
-    {about && <ModuleExplanation type={about} close={() => setAbout(null)} />}
+    <AboutSheet />
   </aside>;
 }
