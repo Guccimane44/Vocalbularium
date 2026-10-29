@@ -1,6 +1,6 @@
 # D20: family, module and facet pages
 
-Proposed on 29 October 2026, for release 0.13.0. The detail of the [traceability map](traceability-map.md#entries)'s D20 entry; its conflicts and clarifications are also listed in the map ([conflicts](traceability-map.md#conflicts), [clarifications](traceability-map.md#clarifications)). Design: the owner's [design canvas](https://claude.ai/artifact/UDLZsTHRdzqAEDYvHQK8dD) (private to the owner), iterated with the owner in chat and canvas comments on 29 October 2026.
+Accepted by the owner in chat on 29 October 2026, with the proposed defaults of its open items, for release 0.13.0. The detail of the [traceability map](traceability-map.md#entries)'s D20 entry; its conflicts and clarifications are also listed in the map ([conflicts](traceability-map.md#conflicts), [clarifications](traceability-map.md#clarifications)). Design: the owner's [design canvas](https://claude.ai/artifact/UDLZsTHRdzqAEDYvHQK8dD) (private to the owner), iterated with the owner in chat and canvas comments on 29 October 2026.
 
 **Reference design.** The owner settled the canvas on 29 October 2026 at version `1793292631-75fb`; it is the reference for the increment's layout and wording. Its source is kept in [d20-design](d20-design/): board 0 the Languages family page (`Family.dc.html`), 1 the German module page (`Main.dc.html`), 2 Article, 3 Conjugation, 4 Mathematics, 5 Text and 6 the entry points, with the shared styles in `sage.css` (the Vocabularium Sage tokens) and the layout in `canvas.json`. The boards render only in the canvas's runtime; read as source, they hold every label, sample and style. Where this text and the boards differ, the boards win; the [open items](#open-items) cover what the boards do not show.
 
@@ -61,4 +61,4 @@ The one-line descriptions in the module window and the facet window; the facet w
 
 ## Open items
 
-Proposed defaults, to be accepted or changed by the owner: conflicts C29–C30 and clarifications K62–K68 in the [map](traceability-map.md).
+Resolved on acceptance with their proposed defaults: conflicts C29–C30 and clarifications K62–K68 in the [map](traceability-map.md).

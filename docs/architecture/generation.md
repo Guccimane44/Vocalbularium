@@ -17,11 +17,11 @@ packages/domain/src/catalog/
 │   ├── family.ts
 │   ├── german/
 │   │   ├── module.ts
-│   │   ├── explanation.md
-│   │   ├── sample.json
+│   │   ├── about.json, about.<language>.json
+│   │   ├── samples/            en.json, ar.json, zh-Hans.json, fr.json, ru.json, es.json
 │   │   └── facets/
 │   │       ├── core/       facet.ts, core.prompt.md, retry.prompt.md, reading.prompt.md
-│   │       ├── article/    facet.ts, explanation.md, prompt.md
+│   │       ├── article/    facet.ts, about.json, about.<language>.json, prompt.md
 │   │       └── …
 │   └── chinese/
 ├── expertise/
@@ -37,9 +37,9 @@ packages/domain/src/catalog/
 ```
 
 - **Writing guides** (`expertise/writing/<language>.md`): the Expertise family's guide for each interface language, named by the language preference's code ([D15](traceability-map.md#entries); [modules](../specs/modules.md#writing-in-the-interface-language)). Each is about 250–400 words of English instructions with short example phrases in the language, never a whole sample answer, in five sections from one shared template: register and stock phrases, terms, what stays as it is, punctuation and spacing, and the length unit. Claude drafts a guide; a separate Claude reviewer checks that its examples are correct and idiomatic, and the review is recorded for its language in `extension/locales/reviews.json`, beside the strings' review ([K41](traceability-map.md#clarifications)).
-- **Family** (`family.ts`): its ID, label, colour tokens and icon. A module takes its family from the folder it sits in. A family gets its folder with its first module: Creative, whose colour and icon are chosen then, and Meaning, Usage, Roots, Connections and Sound, which keep their colours as deck colours until then ([modules](../specs/modules.md#module-families)).
-- **Module** (`module.ts`): its ID, kind (input or content), label, description, how many instances a deck or page allows (the Main key first and exactly once, Context at most one, the others many), where its content comes from (captured, written by the user, or generated), the provider kind it needs, its settings (such as its language and the subject it explains) and its ordered facets. One module has n facets. Input modules have none yet but may gain them. `sample.json` is the content the deck-settings preview shows for a word and for a sentence. Since 0.8.1 `explanation.md` holds its [explanation](../specs/modules.md#explanations) in markdown, shown with its sample from the module window ([D13](traceability-map.md#entries)); every module in the window has one, the Main key none. The package build gathers every `explanation.md` into one generated module (`explanations.generated.ts`, not committed), so the extension bundles the texts without reading files.
-- **Facet** (a folder under `facets/`): `facet.ts` holds its ID, label, abbreviation, the input types it applies to, its output type, its shape and its formatter; `prompt.md` holds its prompt, which says when it applies (D17), and, since 0.8.1, `explanation.md` its explanation, shown in the facet window with its part of the module's sample; the core has none. The **core** is a facet, mandatory and first in every content module, with a shape per input type. With D17 a module has one core shape and one core prompt (`core.prompt.md`); its **flags** are declared on the core, each with its values and whether the header shows it, and are written first in the core's shape; a facet states in its prompt and in `facet.ts` which flag values it applies to, instead of input types ([modules](../specs/modules.md#input-and-applicability)).
+- **Family** (`family.ts`): its ID, label, colour tokens and icon; since 0.13.0 `about.json` holds its family page's text ([D20](traceability-map.md#entries)). A module takes its family from the folder it sits in. A family gets its folder with its first module: Creative, whose colour and icon are chosen then, and Meaning, Usage, Roots, Connections and Sound, which keep their colours as deck colours until then ([modules](../specs/modules.md#module-families)).
+- **Module** (`module.ts`): its ID, kind (input or content), label, description, how many instances a deck or page allows (the Main key first and exactly once, Context at most one, the others many), where its content comes from (captured, written by the user, or generated), the provider kind it needs, its settings (such as its language and the subject it explains) and its ordered facets. One module has n facets. Input modules have none yet but may gain them. Since 0.13.0 `samples/<language>.json` holds its samples in each interface language, the whole card for a word and for a sentence with every facet that applies, shown on its page and in the deck-settings preview; they are generated once by a script, reviewed and regenerated only when a prompt change makes them stale ([D20](traceability-map.md#entries), [K63](traceability-map.md#clarifications)); until then one `sample.json` held the 幸福 sample. Since 0.13.0 `about.json` holds its [page](../specs/modules.md#explanations)'s text as fields (summary, facts, how it works), in English, with `about.<language>.json` beside it for each other interface language ([K62](traceability-map.md#clarifications)); from 0.8.1 `explanation.md` held its explanation in markdown, shown with its sample from the module window ([D13](traceability-map.md#entries)); every module in the window has one, the Main key none. The package build gathers the page texts and samples into one generated module, not committed (`explanations.generated.ts` until 0.13.0), so the extension bundles them without reading files.
+- **Facet** (a folder under `facets/`): `facet.ts` holds its ID, label, abbreviation, the input types it applies to, its output type, its shape and its formatter; `prompt.md` holds its prompt, which says when it applies (D17), and `about.json` its page's text (summary, applies to, describes; since 0.13.0, `explanation.md` from 0.8.1), with its translations beside it; the core has none. A facet that never applies to the module's sample word keeps its own `samples/<language>.json` (Conjugation, Comparison, Case). The **core** is a facet, mandatory and first in every content module, with a shape per input type. With D17 a module has one core shape and one core prompt (`core.prompt.md`); its **flags** are declared on the core, each with its values and whether the header shows it, and are written first in the core's shape; a facet states in its prompt and in `facet.ts` which flag values it applies to, instead of input types ([modules](../specs/modules.md#input-and-applicability)).
 
 Every module owns all its facets; nothing is shared between modules, because modules also include poems, music or pictures. Facets that look alike stay separate: German Examples and Chinese Examples are two complete folders, and a German and a Swedish article are two facets. A change meant for several look-alike facets is made in each. Facet IDs and abbreviations are unique within their module. The domain offers building blocks for writing facets (strings, lists, items, optional fields, markdown helpers), never facets.
 
@@ -106,17 +106,17 @@ A **catalog conformance test** covers every module, every facet and every input 
 
 - each content module's first facet is its core, and each module ID, facet ID and abbreviation is unique where it must be;
 - each facet has one prompt file and the core its `core.prompt.md` and `retry.prompt.md` (D17), and the composer builds one request for every module and a Retry request for every facet;
-- each module's sample validates against its facets' shapes and formats into markdown;
+- each module's samples validate against its facets' shapes and format into markdown;
 - input modules are never generated;
-- every module in the module window and every facet but the core has an explanation that renders as markdown (since 0.8.1);
+- every family with modules, every module in the module window and every facet but the core has its page's text in every interface language, and every content module its samples in every interface language, each validating against its facets' shapes (since 0.13.0; an explanation since 0.8.1);
 - every interface language has an Expertise writing guide with its five sections, and no Expertise prompt names a length limit outside the placeholder ([D15](traceability-map.md#entries)).
 
 Each content module has its own **golden set** under `tests/golden/`, run against the live provider for the owner's review ([C8](traceability-map.md#conflicts)); with D17 each input also states its expected flags (`kind`, `gramRole`, `relevance`), checked automatically ([K50](traceability-map.md#clarifications)). Each Expertise golden set also runs in every interface language and is reviewed before that language is offered, and again when its guide changes ([K42](traceability-map.md#clarifications)).
 
 ## Adding to the catalog
 
-- **A module** is one folder under its family, with its definition, its explanation, its sample, its facets and a golden set.
-- **A facet** is one folder in its module, with its explanation, and an entry in the module's facet order.
+- **A module** is one folder under its family, with its definition, its page's text, its samples, its facets and a golden set.
+- **A facet** is one folder in its module, with its page's text, and an entry in the module's facet order.
 - **A family** is one folder with its definition, and its colour tokens in the design tokens, meeting the contrast tests in both themes.
 - **A provider** is one adapter.
-- **An interface language** brings, besides its strings and explanations, an Expertise writing guide, both reviewed, and the review of the Expertise golden sets in it.
+- **An interface language** brings, besides its strings and the pages' text, the samples in it, an Expertise writing guide, both reviewed, and the review of the Expertise golden sets in it.
