@@ -18,6 +18,8 @@ export type GenerateModule = (request: {
   facets: readonly FacetType[];
   // For a facet's own Retry (0.7.3): the core already there, to follow.
   core?: CoreValue;
+  // For a card's Retry (D19): the core it had, whose reading to keep.
+  previous?: CoreValue;
 }) => Promise<unknown>;
 
 // A facet the provider wrote although the core's flags rule it out (D17, K53):
@@ -39,11 +41,13 @@ export async function generateComponent(input: {
   module: ModuleInstance;
   generate: GenerateModule;
   onMismatch?: (mismatch: FacetMismatch) => void;
+  // For a card's Retry (D19): the core it had, whose reading to keep.
+  previous?: CoreValue;
 }): Promise<ParentContent> {
   const { module } = input;
   if (!isParentType(module.type)) throw new Error('The deck contains an unsupported module.');
   const facets = ordered(module.type, module.facets ?? []);
-  const value = await input.generate({ module, selectedText: input.mainKey, facets });
+  const value = await input.generate({ module, selectedText: input.mainKey, facets, ...(input.previous ? { previous: input.previous } : {}) });
   if (!isRecord(value)) throw new Error('A module returned no usable content.');
   const stray = Object.keys(value).find(key => key !== 'core' && key !== 'facets');
   if (stray) throw new Error(`A module returned content in an unexpected format: an unexpected field "${stray}".`);

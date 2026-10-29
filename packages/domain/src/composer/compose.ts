@@ -64,9 +64,11 @@ const lengthIn = (unit: string, words: number) =>
 // The instructions for a module: its core (or, for a facet's own Retry, the
 // core already written), its facets asked for, then the shared rules and, for
 // an Expertise module, the writing guide of the language it writes in (D15).
-export function moduleInstructions(parent: ParentType, facets: readonly FacetType[], withCore = false, language: InterfaceLanguage = 'en'): string {
+// With `withPrevious`, a card's Retry keeps the reading of the core it had (D19).
+export function moduleInstructions(parent: ParentType, facets: readonly FacetType[], withCore = false, language: InterfaceLanguage = 'en', withPrevious = false): string {
   const folder = folderOf(parent);
-  const core = withCore ? catalogFile(`${folder}/facets/core/retry.prompt.md`) : facetPrompt(parent, 'core');
+  const core = withCore ? catalogFile(`${folder}/facets/core/retry.prompt.md`)
+    : withPrevious ? `${facetPrompt(parent, 'core')}\n${catalogFile(`${folder}/facets/core/reading.prompt.md`)}` : facetPrompt(parent, 'core');
   const sections = facets.map(facet => `- ${facetPrompt(parent, facet)}`);
   const guide = familyOf(parent) === 'expertise' ? writingGuide(language) : null;
   return [core,
@@ -89,21 +91,24 @@ export function moduleSchema(parent: ParentType, facets: readonly FacetType[], w
 }
 
 // One generation attempt for a module instance: its core and the facets that
-// apply, or with `core`, a facet's own Retry written for that core.
-export function composeModule({ module, selectedText, context, facets, core, language }: {
+// apply, or with `core`, a facet's own Retry written for that core. With
+// `previous`, a card's Retry writes the whole card again, keeping its reading (D19).
+export function composeModule({ module, selectedText, context, facets, core, previous, language }: {
   module: Readonly<{ id: string; type: string }>;
   selectedText: string;
   context?: string;
   facets: readonly FacetType[];
   core?: CoreValue;
+  // The core the card had, as saved, when a card's Retry started (D19).
+  previous?: CoreValue;
   // The account's interface language, which the Expertise modules write in.
   language?: InterfaceLanguage;
 }): Request {
   const parent = module.type as ParentType;
   return {
     name: 'vocabulary_parent_module',
-    instructions: moduleInstructions(parent, facets, Boolean(core), language),
-    input: { selectedText, ...(context ? { context } : {}), ...(core ? { core } : {}), instanceId: module.id },
+    instructions: moduleInstructions(parent, facets, Boolean(core), language, Boolean(previous && !core)),
+    input: { selectedText, ...(context ? { context } : {}), ...(core ? { core } : previous ? { previous } : {}), instanceId: module.id },
     schema: moduleSchema(parent, facets, Boolean(core)),
     maxTokens: MAX_TOKENS
   };

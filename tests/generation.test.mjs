@@ -371,7 +371,7 @@ test('OpenCode uses the Go endpoint, selected DeepSeek model, and only selection
     apiKey: 'test-only', fetchImpl: async (url, options) => {
       assert.equal(url, 'https://opencode.ai/zen/go/v1/chat/completions'); body = JSON.parse(options.body);
       assert.equal(options.headers.Authorization, 'Bearer test-only');
-      assert.equal(options.headers['User-Agent'], 'Vocabularium/0.12.1');
+      assert.equal(options.headers['User-Agent'], 'Vocabularium/0.12.2');
       assert.equal(options.headers['x-opencode-session'], 'capture-conversation');
       assert.equal(options.method, 'POST'); assert.ok(options.signal instanceof AbortSignal);
       return Response.json(completion(JSON.stringify(REPLY)));
@@ -687,6 +687,36 @@ test('a facet’s own Retry regenerates that facet’s markdown for the core alr
     { code: 'invalid', message: /Retry the whole module first/ });
 });
 
+test('a card’s Retry, alone or with the page, gives the provider the core it had as saved, edits included; a card without a core gets none (D19)', async (t) => {
+  const requests = [];
+  let failing = true;
+  const { store, generation, capture } = await parentFixture(t, {
+    generate: async request => { requests.push(request); if (failing) throw new Error('provider down'); return BANK; }
+  });
+  const page = await capture('bank'); await finish(store, generation);
+  const german = async () => generated(await store.page(page.id))[0];
+  const retry = async target => {
+    const { attemptIds } = await confirmed(store, randomUUID(), { pageId: page.id, target, session });
+    await generation.start(page.id, attemptIds); await finish(store, generation);
+  };
+  assert.equal(requests[0].previous, undefined, 'the first attempt has no earlier core');
+  // A failed card has no core: its Retry generates as a first attempt does.
+  failing = false;
+  await retry({ scope: 'component', componentId: (await german()).id });
+  assert.equal(requests.at(-1).previous, undefined);
+  // A generated card's Retry gives the core it had, flags first.
+  await retry({ scope: 'component', componentId: (await german()).id });
+  assert.deepEqual(requests.at(-1).previous, BANK.core);
+  assert.equal(requests.at(-1).core, undefined, 'the whole card is written again, not a facet for a given core');
+  assert.deepEqual(requests.at(-1).facets, ['article', 'examples', 'synonyms', 'antonyms']);
+  // The user's edit to the meanings is the reading the next Retry keeps.
+  const current = await german();
+  const block = current.content.blocks[0];
+  await store.savePage(randomUUID(), { pageId: page.id, changes: [{ componentId: current.id, content: { version: 1, blocks: [{ ...block, core: block.core.replace('Ufer', 'Sitzbank') }] } }] });
+  await retry({ scope: 'page' });
+  assert.deepEqual(requests.at(-1).previous, { ...BANK.core, meanings: ['Sitzbank'] }, 'the whole page’s Retry keeps each card’s reading too');
+});
+
 test('OpenCode asks a facet’s own Retry for its facets only, written for the supplied core', async () => {
   const instructions = parentInstructions('german', ['examples'], true);
   assert.match(instructions, /already written and supplied as "core". Return only "facets"/);
@@ -700,6 +730,24 @@ test('OpenCode asks a facet’s own Retry for its facets only, written for the s
   } });
   assert.deepEqual(await provider.generate({ module: { id: 'g', type: 'german', facets: ['examples'] }, selectedText: 'bank',
     facets: ['examples'], core }), { facets: { examples: [{ sentence: 'A bank.' }] } });
+});
+
+test('OpenCode sends a card’s Retry the core it had as "previous", with the reading prompt, and asks for the whole card (D19)', async () => {
+  const instructions = parentInstructions('german', ['examples'], false, 'en', true);
+  assert.match(instructions, /"kind": "<word/);
+  assert.match(instructions, /supplied as "previous"[^\n]*keeping that reading/);
+  assert.deepEqual(Object.keys(parentSchema('german', ['examples']).properties), ['core', 'facets']);
+  const previous = { kind: 'word', language: 'Englisch', key: 'bank', gramRole: 'noun', meanings: ['Sitzbank'] };
+  const provider = new OpenCodeProvider({ apiKey: 'test-only', fetchImpl: async (_, options) => {
+    const [system, user] = JSON.parse(options.body).messages;
+    assert.match(system.content, /supplied as "previous"/);
+    assert.deepEqual(JSON.parse(user.content), { selectedText: 'bank', previous, instanceId: 'g' });
+    return Response.json(completion(JSON.stringify(BANK)));
+  } });
+  assert.deepEqual(await provider.generate({ module: { id: 'g', type: 'german', facets: ['examples'] }, selectedText: 'bank',
+    facets: ['examples'], previous }), BANK);
+  // A first attempt names no earlier reading.
+  assert.doesNotMatch(parentInstructions('german', ['examples']), /"previous"/);
 });
 
 test('each generated part records its model and prompt version; a facet’s own Retry records only that facet, and saves keep the record (D11)', async (t) => {

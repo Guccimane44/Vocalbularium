@@ -3651,3 +3651,39 @@ test('0.12.0: a Formula renders with KaTeX, a broken one shows its LaTeX, and a 
   await formula.locator('pre.md-math-source').waitFor();
   assert.equal(await formula.locator('pre.md-math-source').textContent(), '\\frac{1}{');
 });
+
+test('0.12.2: a card’s Retry gives the model the core it had, with the meanings as the user edited them (D19)', { timeout: 45000 }, async (t) => {
+  const directory = await mkdtemp(join(tmpdir(), 'vocabularium-reading-browser-'));
+  const requests = [];
+  const bench = { core: { kind: 'word', language: 'Deutsch', key: 'Bank', gramRole: 'noun', meanings: ['Sitzbank'] }, facets: {} };
+  const application = await createTestApplication(t, { provider: { generate: async request => { requests.push(request); return bench; } } });
+  await application.start();
+  const a = await launch(join(directory, 'a'));
+  t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
+  const store = application.store;
+  const session = { installationId: 'fixture', sessionId: 'reading', epoch: 1 };
+  await store.openSession('reading-session', session);
+  await useModules(store, ['german']);
+  const { pageId } = await store.capture('reading-capture', { session, mainKey: 'Bank', snapshot: await store.snapshot() });
+  const german = (await store.page(pageId)).components.find(item => item.moduleType === 'german');
+  // The first reading took Bank as a place to keep money.
+  await store.stage(german.attemptId, staged({ core: { kind: 'word', language: 'Deutsch', key: 'Bank', gramRole: 'noun', meanings: ['Geldinstitut'] }, facets: {} }));
+  await store.publish('reading-publish', { attemptId: german.attemptId, session });
+  await signIn(a.page);
+  await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
+  const card = componentArticle(a.page, 'German');
+  await card.locator('.entry-core').waitFor();
+  // The user corrects the reading in the meanings, then retries the card.
+  await (await cardButton(a.page, 'Edit German')).click();
+  const meanings = a.page.getByRole('textbox', { name: 'Meanings, German', exact: true });
+  await meanings.click(); await a.page.keyboard.press('ControlOrMeta+a'); await a.page.keyboard.type('Sitzgelegenheit für mehrere');
+  await a.page.getByRole('button', { name: 'Save', exact: true }).click();
+  await a.page.locator('.component-tools').waitFor({ state: 'detached' });
+  await (await cardButton(a.page, 'Retry German')).click();
+  await a.page.getByRole('button', { name: 'Yes, retry German', exact: true }).click();
+  await waitFor(() => requests.length === 1, 'the Retry reached the provider');
+  assert.deepEqual(requests[0].previous, { kind: 'word', language: 'Deutsch', key: 'Bank', gramRole: 'noun', meanings: ['Sitzgelegenheit für mehrere'] },
+    'the core as saved, with the edited meanings');
+  assert.equal(requests[0].core, undefined);
+  await card.locator('.entry-core', { hasText: 'Sitzbank' }).waitFor();
+});
