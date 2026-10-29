@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Entry points</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="sage.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..800;1,9..144,400..600&amp;family=Instrument+Sans:wght@400..700&amp;display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div class="vs fam-translation" data-theme="{{theme}}" style="width: 1280px; height: 640px; padding: 48px; display: flex; flex-direction: column; gap: 32px;">
+  <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 28px; flex: 1;">
+
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      <span class="eyebrow">From the module window</span>
+      <div class="window" style="padding: 14px; gap: 8px;">
+        <a href="Family.dc.html" style="display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; padding: 4px 8px 4px 4px; border-radius: 8px; text-decoration: none; font: 600 11px/1.3 var(--font-text); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft);">
+          <span class="chip" style="min-width: 20px; height: 20px; border-radius: 6px;" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"><path d="M3.5 5.5h10v7h-5l-3 2.5v-2.5h-2z"></path><path d="M16.5 9.5h4v7h-2v2.5l-3-2.5h-5v-1.5"></path></svg></span>
+          Languages
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+        </a>
+        <div class="wmod" style="background: var(--surface);">
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <b>German</b>
+            <span class="muted" style="font-size: 13px; line-height: 1.4;">Explains a word in German, or translates a sentence into German.</span>
+            <a href="Main.dc.html" style="font-size: 13px; font-weight: 600; color: var(--ink); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--line-control); padding-top: 4px;">About German</a>
+          </div>
+          <button type="button" class="icon-btn" aria-label="Add German at the end" style="border: 1px solid var(--line-control); width: 30px; height: 30px; border-radius: 50%;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+          </button>
+        </div>
+      </div>
+      <p class="caption">The family heading opens the Languages page; “About German” replaces the ⓘ and opens the module page. The trail at the top of every page reaches the family too.</p>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      <span class="eyebrow">From the facet window</span>
+      <div class="window" style="padding: 8px; gap: 0; background: var(--fam-tint); border-color: transparent;">
+        <div style="display: grid; grid-template-columns: 30px 1fr 36px 24px; align-items: center; gap: 8px; padding: 8px 8px;">
+          <span class="chip" style="height: 20px; min-width: 24px; font-size: 10.5px; border-radius: 5px;">Ar</span><b style="font-weight: 600;">Article</b>
+          <a class="icon-btn" href="Article.dc.html" aria-label="About Article" style="width: 32px; height: 32px; background: var(--surface);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></a>
+          <input type="checkbox" checked="" aria-label="Article" style="width: 18px; height: 18px; accent-color: var(--fam);">
+        </div>
+        <div style="display: grid; grid-template-columns: 30px 1fr 36px 24px; align-items: center; gap: 8px; padding: 8px 8px;">
+          <span class="chip" style="height: 20px; min-width: 24px; font-size: 10.5px; border-radius: 5px;">Ex</span><b style="font-weight: 600;">Examples</b>
+          <a class="icon-btn" href="#" aria-label="About Examples" style="width: 32px; height: 32px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></a>
+          <input type="checkbox" checked="" aria-label="Examples" style="width: 18px; height: 18px; accent-color: var(--fam);">
+        </div>
+        <div style="display: grid; grid-template-columns: 30px 1fr 36px 24px; align-items: center; gap: 8px; padding: 8px 8px;">
+          <span class="chip" style="height: 20px; min-width: 24px; font-size: 10.5px; border-radius: 5px; opacity: .7;">Co</span><b style="font-weight: 600;">Conjugation</b>
+          <a class="icon-btn" href="Conjugation.dc.html" aria-label="About Conjugation" style="width: 32px; height: 32px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></a>
+          <input type="checkbox" aria-label="Conjugation" style="width: 18px; height: 18px; accent-color: var(--fam);">
+        </div>
+      </div>
+      <p class="caption">A row's › opens its facet page instead of expanding text inside the small window. The tick stays where it is; adding and removing happen only here.</p>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      <span class="eyebrow">From a card</span>
+      <div class="card" style="gap: 12px;">
+        <div class="fsec"><div style="display: flex; align-items: center; gap: 8px;"><span class="fsec-label"><span class="m">Ar</span>Article</span>
+          <span style="display: inline-flex; gap: 2px; margin-left: auto; font-size: 12.5px; color: var(--ink-soft);">
+            <a href="Article.dc.html" style="padding: 4px 8px; border-radius: 6px; background: var(--surface-hover); text-decoration: none; font-weight: 600; color: var(--ink);">About</a>
+            <span style="padding: 4px 8px;">Edit</span><span style="padding: 4px 8px;">Retry</span><span style="padding: 4px 8px;">Delete</span>
+          </span></div>
+          <div class="fsec-rule"></div><div class="fsec-body" lang="de">die Sprache · die Sprachen</div></div>
+        <div style="display: flex; gap: 6px; flex-wrap: wrap; padding-top: 8px; border-top: 1px dashed var(--line);">
+          <span class="pill">Edit</span><span class="pill">Retry</span><span class="pill">Facet</span><span class="pill">Fold</span><span class="pill pill-on" style="font-weight: 600;">About German</span><span class="pill">Delete</span>
+        </div>
+      </div>
+      <p class="caption">A facet's About (since 0.12.1) opens its facet page. The card's own actions gain “About German”, which opens the module page.</p>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      <span class="eyebrow">From deck settings</span>
+      <div class="window" style="padding: 8px; gap: 0;">
+        <div style="display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; padding: 10px 10px; border-bottom: 1px solid var(--line);">
+          <span style="display: flex; flex-direction: column; gap: 2px;"><b style="font-weight: 600;">German</b><span class="muted" style="font-size: 12.5px;">Article, Examples, Synonyms, Antonyms</span></span>
+          <a class="icon-btn" href="Main.dc.html" aria-label="About German" style="width: 32px; height: 32px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></a>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; padding: 10px 10px;" class="fam-expertise">
+          <span style="display: flex; flex-direction: column; gap: 2px;"><b style="font-weight: 600;">Mathematics</b><span class="muted" style="font-size: 12.5px;">No facets added</span></span>
+          <a class="icon-btn" href="Mathematics.dc.html" aria-label="About Mathematics" style="width: 32px; height: 32px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></a>
+        </div>
+      </div>
+      <p class="caption">The deck's module list opens the same pages. Nothing on them depends on a card or a deck, so they read the same everywhere.</p>
+    </div>
+  </div>
+
+  <div class="hint" style="background: var(--surface); border: 1px solid var(--line);">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" style="flex: none; margin-top: 1px;"><circle cx="12" cy="12" r="9.5"></circle><path d="M12 11v6"></path><path d="M12 7.5h.01"></path></svg>
+    <span>One sheet for family, module and facet pages, linked by the trail at the top: Languages / German / Article. The pages are static, with no add button and nothing taken from the current card. Back returns one step; Escape closes the sheet and returns the focus to what opened it.</span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":1280,"height":640}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { theme: this.props.theme ?? 'light' };
+  }
+}
+</script>
+</body>
+</html>

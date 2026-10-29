@@ -1,0 +1,126 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "Family.dc.html": {
+      "h": 1080,
+      "is_interactive": true,
+      "title": "0 · Family page — Languages",
+      "w": 600,
+      "x": 0,
+      "y": 0
+    },
+    "Main.dc.html": {
+      "h": 1900,
+      "is_interactive": true,
+      "title": "1 · Module page — German, opened from the module window",
+      "w": 1280,
+      "x": 680,
+      "y": 0
+    },
+    "Article.dc.html": {
+      "h": 1440,
+      "is_interactive": true,
+      "title": "2 · Facet page — Article",
+      "w": 600,
+      "x": 2040,
+      "y": 0
+    },
+    "Conjugation.dc.html": {
+      "h": 1360,
+      "is_interactive": true,
+      "title": "3 · Facet page — Conjugation (verb samples)",
+      "w": 600,
+      "x": 2720,
+      "y": 0
+    },
+    "EntryPoints.dc.html": {
+      "h": 640,
+      "title": "6 · Where the pages open from",
+      "w": 1280,
+      "x": 1360,
+      "y": 2900,
+      "is_interactive": true
+    },
+    "Mathematics.dc.html": {
+      "h": 1300,
+      "is_interactive": true,
+      "title": "4 · Module page — Mathematics (Expertise)",
+      "w": 600,
+      "x": 0,
+      "y": 2900
+    },
+    "Text.dc.html": {
+      "h": 720,
+      "title": "5 · Module page — Text (Notes, no sample, no facets)",
+      "w": 600,
+      "x": 680,
+      "y": 2900
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-10-29T12:00:00Z",
+    "v": 1
+  },
+  "designSystems": [
+    {
+      "artifact": "https://claude.ai/artifact/6gmEs5nUHAzKCC4do39u9E",
+      "copiedAt": "2026-10-29T12:00:00Z",
+      "namespace": "vocabulariumsage",
+      "title": "Vocabularium Sage",
+      "version": "1793282056-1887"
+    }
+  ],
+  "launch": {
+    "view": "canvas"
+  },
+  "noteOrder": [
+    "t1",
+    "t2",
+    "q1",
+    "n1"
+  ],
+  "notes": {
+    "n1": {
+      "fill": "green",
+      "text": "Play mode: on boards 1–4 pick the key's language and Word / Sentence. The trail at the top (Languages / German / Article) moves between family, module and facet pages; the facet rows on board 1 open Article and Conjugation. Theme (Sage / Moss night) is a Tweak on every board.",
+      "w": 420,
+      "x": 3400,
+      "y": 700
+    },
+    "q1": {
+      "fill": "green",
+      "text": "Owner's answers (round 2, 29 Oct)\n\n1. Verb facets use their own sibling of “language”: Conjugation uses “speak”, in the same six languages.\n2. Expertise modules keep their subject's own term (eigenvalue).\n3. The sentence: “Languages are the bridges connecting people and the world.”\n4. The family page opens from both the trail and the family's heading in the module window (board 6).",
+      "w": 420,
+      "x": 3400,
+      "y": 0
+    },
+    "t1": {
+      "kind": "title1",
+      "maxW": 3320,
+      "text": "0.13.0 · Family, module and facet pages — draft 2",
+      "w": 240,
+      "x": 0,
+      "y": -320
+    },
+    "t2": {
+      "kind": "title1",
+      "maxW": 2640,
+      "text": "The same template elsewhere, and its entry points",
+      "w": 240,
+      "x": 0,
+      "y": 2580
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "Family.dc.html",
+    "Article.dc.html",
+    "Conjugation.dc.html",
+    "Mathematics.dc.html",
+    "Text.dc.html",
+    "EntryPoints.dc.html"
+  ],
+  "pages": [],
+  "title": "Module & facet pages — 0.13.0 draft"
+}
