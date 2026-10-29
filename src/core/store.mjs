@@ -7,7 +7,8 @@ import {
 } from '@vocabularium/domain/page-modules';
 import { facetAddBlocked, facetDeleteBlocked, isParentType, withFacet } from '@vocabularium/domain/parents';
 import { ruledOutOf } from '@vocabularium/domain/render';
-import { blankContent, hasFacetContent, isEmptyContent, parentContentOf, parentDocument, validateParentContent, withFacetText } from '@vocabularium/domain/content';
+import { blankContent, hasFacetContent, isEmptyContent, parentContentOf, parentDocument, providerCore, validateParentContent, withFacetText } from '@vocabularium/domain/content';
+import { hasText } from '@vocabularium/domain/markdown';
 import { sortKey } from './sort-key.mjs';
 import { INTERFACE_LANGUAGES } from '@vocabularium/contracts';
 /** @import { BlockDocument, BrowserSession, CapturePreparationRequest, Component, ComponentDeleteRequest, ComponentMoveRequest, DeckConfiguration, DeckDeleteRequest, FacetChangePayload, ModuleAddRequest, ModuleInstance, Page, PageCaptureRequest, PageCreateRequest, PageGenerateRequest, PageSaveRequest, ParentHeader, PublishRequest } from '@vocabularium/contracts' */
@@ -19,6 +20,16 @@ import { INTERFACE_LANGUAGES } from '@vocabularium/contracts';
 // content, the model and prompt version that produced it. A whole attempt
 // records the core and each facet it produced; a facet's own Retry only that
 // facet, the others keeping theirs. A result without a record leaves none.
+// The core a card's Retry starts from (D19): the core the card has saved, the
+// user's edits included, without its blank fields, or nothing when it has none.
+/** @param {string} moduleType @param {Component['content']} content @returns {{ previous?: Record<string, unknown> }} */
+function previousOf(moduleType, content) {
+  const data = isParentType(moduleType) ? parentContentOf(content) : null;
+  if (!data || !hasText(data.core)) return {};
+  const core = Object.entries(providerCore(/** @type {ParentType} */ (moduleType), data))
+    .filter(([, value]) => Array.isArray(value) ? value.some(hasText) : typeof value !== 'string' || hasText(value));
+  return core.length ? { previous: Object.fromEntries(core) } : {};
+}
 /** @param {GenerationRecord | null} previous @param {AttemptModule} module @param {ParentContent} content @param {GenerationEntry | undefined} made @returns {GenerationRecord | null} */
 function generationAfter(previous, module, content, made) {
   const entry = made?.prompt ? { model: made.model ?? null, prompt: made.prompt } : null;
@@ -503,7 +514,7 @@ export class AccountStore {
     const runId = randomUUID();
     await this.database.run("INSERT INTO generation_runs (id, page_id) VALUES ($1, $2)", [runId, pageId]);
     const attemptIds = [];
-    for (const { id: componentId, moduleInstanceId, moduleType, facets, waitingFacets, status } of targets) {
+    for (const { id: componentId, moduleInstanceId, moduleType, facets, waitingFacets, status, content } of targets) {
       const attemptId = randomUUID();
       // An attempt generates the facets its parent has when it starts (D08).
       // A facet's own attempt generates that facet alone: afterwards the
@@ -513,7 +524,8 @@ export class AccountStore {
         // A facet's own Retry targets a parent component, which has its facets.
         ? { id: moduleInstanceId, type: moduleType, facets: /** @type {string[]} */ (facets).filter(each => each === facet || !waitingFacets?.includes(each)),
           retry: facet, prior: { status, waiting: Boolean(waitingFacets?.includes(facet)) } }
-        : { id: moduleInstanceId, type: moduleType, ...withFacets(moduleType, facets) };
+        // A card's Retry keeps the reading of the core it had, as saved (D19).
+        : { id: moduleInstanceId, type: moduleType, ...withFacets(moduleType, facets), ...previousOf(moduleType, content) };
       await this.database.run(`INSERT INTO component_attempts
         (id, page_id, component_id, run_id, installation_id, session_id, epoch, module) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
       [attemptId, pageId, componentId, runId, session.installationId, session.sessionId, session.epoch, JSON.stringify(module)]);

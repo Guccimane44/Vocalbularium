@@ -1,0 +1,11 @@
+{
+  "note": "Ambiguous keys without Context for D19 (K61): each card is generated once, then retried five times with its saved core as \"previous\" and five times without. A Retry with \"previous\" keeps the reading; one without may change it.",
+  "inputs": [
+    { "key": "Bank", "modules": ["german", "chinese"], "why": "German noun: a bench or a bank" },
+    { "key": "Schloss", "modules": ["german", "chinese"], "why": "German noun: a castle or a lock" },
+    { "key": "Leiter", "modules": ["german", "chinese"], "why": "German noun: a ladder (die) or a leader (der)" },
+    { "key": "行", "modules": ["german", "chinese"], "why": "Chinese: xíng (to go, all right) or háng (a row, a trade)" },
+    { "key": "Kern", "modules": ["computer-science"], "why": "a kernel (operating system) or a core (processor)" },
+    { "key": "Ring", "modules": ["mathematics"], "why": "an algebraic ring, or not a term of mathematics" }
+  ]
+}

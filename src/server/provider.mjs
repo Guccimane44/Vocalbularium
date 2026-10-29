@@ -69,9 +69,10 @@ export class Provider {
     }
   }
   // A parent module (D08) as structured data (D09): its core, its flags first,
-  // and its facets, in one call (D17); with a core, a facet's own Retry (0.7.3).
-  async generate({ module, selectedText, context, facets, core, language, sessionId }, signal) {
+  // and its facets, in one call (D17); with a core, a facet's own Retry (0.7.3);
+  // with a previous core, a card's Retry that keeps its reading (D19).
+  async generate({ module, selectedText, context, facets, core, previous, language, sessionId }, signal) {
     if (!isParentType(module.type)) throw new Error('Unsupported generation module.');
-    return this.complete(composeModule({ module, selectedText, context, facets: facets ?? [], core, language }), signal, sessionId);
+    return this.complete(composeModule({ module, selectedText, context, facets: facets ?? [], core, previous, language }), signal, sessionId);
   }
 }

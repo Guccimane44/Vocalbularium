@@ -1,6 +1,6 @@
 {
   "name": "vocabularium",
-  "version": "0.12.1",
+  "version": "0.12.2",
   "private": true,
   "type": "module",
   "workspaces": [
@@ -23,6 +23,7 @@
     "typecheck": "npm run build:packages && tsc --noEmit -p tsconfig.json",
     "check": "node scripts/check.mjs && npm run typecheck",
     "smoke:generation": "npm run build:packages && node --env-file-if-exists=.env scripts/golden-set.mjs",
+    "smoke:reading": "npm run build:packages && node --env-file-if-exists=.env scripts/reading-check.mjs",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "node --env-file-if-exists=.env.postgres scripts/migrate.mjs",
     "db:setup": "node scripts/setup-postgres.mjs",

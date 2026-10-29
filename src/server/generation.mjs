@@ -177,7 +177,8 @@ export class Generation {
       const output = attempt.module.retry
         ? await generateFacet({ mainKey: input.mainKey, module: attempt.module, facet: attempt.module.retry, existing: existingContent(target), generate })
         // One request writes the card (D17); a facet its core's flags rule out is dropped and counted, never with its text (K53).
-        : await generateComponent({ mainKey: input.mainKey, module: attempt.module, generate,
+        // A card's Retry keeps the reading of the core it had (D19).
+        : await generateComponent({ mainKey: input.mainKey, module: attempt.module, previous: attempt.module.previous, generate,
           onMismatch: ({ module, facet }) => this.emit({ event: 'generation.facet_mismatch', attemptId, pageId, componentId: attempt.component_id,
             category: `${module}.${facet}`, severity: 'warn', outcome: 'rejected' }) });
       if (controller.signal.aborted) return;

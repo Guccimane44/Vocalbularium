@@ -56,12 +56,12 @@ test('each content module has its core first, then facets unique by ID and abbre
   }
 });
 
-test('each facet has one prompt, the core its own and a Retry prompt, and nothing else is in the folders (D17)', () => {
+test('each facet has one prompt, the core its own, a Retry prompt and a reading prompt, and nothing else is in the folders (D17, D19)', () => {
   for (const id of content) {
     const module = MODULES[id];
     const folder = new URL(`${folderOf(id)}/`, SRC);
     assert.deepEqual(promptFiles(folder), ['module.prompt.md'], id);
-    assert.deepEqual(promptFiles(new URL('facets/core/', folder)), ['core.prompt.md', 'retry.prompt.md'], `${id}.core`);
+    assert.deepEqual(promptFiles(new URL('facets/core/', folder)), ['core.prompt.md', 'reading.prompt.md', 'retry.prompt.md'], `${id}.core`);
     for (const facet of module.facets) {
       assert.deepEqual(promptFiles(new URL(`facets/${facet.id}/`, folder)), [], `${id}.${facet.id} has no prompt per input type`);
       assert.ok(existsSync(new URL(`facets/${facet.id}/prompt.md`, folder)), `${id}.${facet.id} has its prompt`);
