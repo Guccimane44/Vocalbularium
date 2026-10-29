@@ -2219,7 +2219,10 @@ test('parents and facets: core only on add, the facet window on the parent, its 
   await row.getByRole('button', { name: 'Remove Antonyms from German', exact: true }).click();
   await waitFor(async () => await row.locator('.facet-tag').count() === 3, 'the Antonyms tag popped');
   await a.page.getByRole('button', { name: 'Preview', exact: true }).click();
-  assert.deepEqual(await a.page.locator('.preview-dialog .component[data-type="german"] .facet-tab-label').allTextContents(), ['Article', 'Examples', 'Synonyms']);
+  // The preview shows the facets the deck has, as far as the sample holds them (D20: generated samples).
+  const kept = (await catalogSample('languages/german')).word_phrase;
+  assert.deepEqual(await a.page.locator('.preview-dialog .component[data-type="german"] .facet-tab-label').allTextContents(),
+    sampleFacetLabels('german', { facets: Object.fromEntries(Object.entries(kept.facets).filter(([facet]) => ['article', 'examples', 'synonyms'].includes(facet))) }));
   await a.page.getByRole('button', { name: 'Close preview', exact: true }).click();
   // In deck settings the same window changes the draft; with no content to lose, unticking never asks.
   await a.page.getByRole('button', { name: 'Add German at the end', exact: true }).click();
