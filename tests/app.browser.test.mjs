@@ -2329,6 +2329,7 @@ test('0.8.1: explanations: About a module in a dialog with its samples, and a fa
   // Below German's +, About German opens its explanation in a dialog: its sentences, then its
   // sample for a word and for a sentence, drawn as its card.
   const about = a.page.getByRole('button', { name: 'About German', exact: true });
+  await a.page.locator('.window-module[data-type="german"]').screenshot({ path: 'artifacts/v0.12.1-module-about.png' });
   await openFamily(about);
   await about.click();
   const dialog = a.page.getByRole('dialog', { name: 'German', exact: true });
@@ -2607,7 +2608,7 @@ test('0.7.3: a facet’s own Retry beside its Delete, a tag’s remove keeping i
   await examples.hover();
   const retry = a.page.getByRole('button', { name: 'Retry Examples from German 1', exact: true });
   assert.deepEqual(await examples.locator('.facet-actions button').evaluateAll(buttons => buttons.map(button => button.getAttribute('aria-label'))),
-    ['Edit Examples from German 1', 'Retry Examples from German 1', 'Delete Examples from German 1']);
+    ['About Examples from German 1', 'Edit Examples from German 1', 'Retry Examples from German 1', 'Delete Examples from German 1']);
   // Asking, the question stands left of its buttons and Cancel lands under the pointer (0.7.3).
   const underPointer = async (button, confirm) => {
     const box = await button.boundingBox();
@@ -2979,7 +2980,7 @@ test('0.7.5: a facet’s own Edit opens that facet alone in place, with its tool
   // Edit sits beside Retry and Delete, for a facet with content.
   await synonyms.hover();
   assert.deepEqual(await synonyms.locator('.facet-actions button').evaluateAll(buttons => buttons.map(button => button.getAttribute('aria-label'))),
-    ['Edit Synonyms from German', 'Retry Synonyms from German', 'Delete Synonyms from German']);
+    ['About Synonyms from German', 'Edit Synonyms from German', 'Retry Synonyms from German', 'Delete Synonyms from German']);
   await a.page.getByRole('button', { name: 'Edit Synonyms from German', exact: true }).click();
 
   // That facet alone becomes an editor in place, focused, with its toolbar and its Save and Cancel below it.
@@ -3090,7 +3091,7 @@ test('0.7.5: a facet’s own Edit opens that facet alone in place, with its tool
   // Its heading keeps Edit, Retry and Delete; Edit fills it by hand; Delete goes at once, as there is nothing to lose.
   await synonyms.hover();
   assert.deepEqual(await synonyms.locator('.facet-actions button').evaluateAll(buttons => buttons.map(button => button.getAttribute('aria-label'))),
-    ['Edit Synonyms from German', 'Retry Synonyms from German', 'Delete Synonyms from German']);
+    ['About Synonyms from German', 'Edit Synonyms from German', 'Retry Synonyms from German', 'Delete Synonyms from German']);
   await synonyms.screenshot({ path: 'artifacts/v0.7.5-empty-facet.png' });
   await a.page.getByRole('button', { name: 'Edit Synonyms from German', exact: true }).click();
   await text.waitFor();
@@ -3573,13 +3574,22 @@ test('0.12.0: a German verb’s Conjugation is a table on the card, its top line
     [['ich', 'laufe', 'lief', 'bin gelaufen'], ['du', 'läufst', 'liefst', 'bist gelaufen']]);
   assert.equal(await facet.locator('tbody th[scope="row"]').count(), 2, 'each row is labelled by its person');
   await card.screenshot({ path: 'artifacts/v0.12.0-conjugation.png' });
-  // A facet the verb rules out says why and has no Retry, on its heading or its tag (D17).
+  // A facet the verb rules out shows no note; its Retry stays, unavailable, on its heading and its tag (0.12.1).
   const declension = card.locator('.facet[data-facet="declension"]');
-  assert.equal(await declension.locator('.facet-note[data-note="ruled-out"]').textContent(), 'Not for this kind of word');
+  assert.equal(await card.locator('.facet-note[data-note="ruled-out"]').count(), 0);
   await declension.hover();
-  assert.equal(await a.page.getByRole('button', { name: 'Retry Declension from German', exact: true }).count(), 0);
-  assert.equal(await card.locator('.facet-tag[data-facet="declension"] .facet-tag-retry').count(), 0);
-  assert.equal(await card.locator('.facet[data-facet="conjugation"] .facet-note[data-note="ruled-out"]').count(), 0, 'Conjugation applies');
+  assert.equal(await a.page.getByRole('button', { name: 'Retry Declension from German', exact: true }).isDisabled(), true);
+  await card.screenshot({ path: 'artifacts/v0.12.1-retry-unavailable.png', animations: 'disabled' });
+  assert.equal(await card.locator('.facet-tag[data-facet="declension"] .facet-tag-retry').isDisabled(), true);
+  assert.equal(await a.page.getByRole('button', { name: 'Retry Conjugation from German', exact: true }).isDisabled(), false, 'Conjugation applies');
+  // Its About opens the facet's explanation, as its ⓘ in the facet window does (0.12.1).
+  await a.page.getByRole('button', { name: 'About Conjugation from German', exact: true }).click();
+  const conjugationAbout = a.page.getByRole('dialog', { name: 'Conjugation', exact: true });
+  await conjugationAbout.waitFor();
+  await a.page.screenshot({ path: 'artifacts/v0.12.1-facet-about.png', animations: 'disabled' });
+  assert.match(await conjugationAbout.locator('.explanation-text').innerText(), /For verbs only/);
+  await a.page.keyboard.press('Escape');
+  await conjugationAbout.waitFor({ state: 'detached' });
 
   // Its own Edit opens the table's source, a row a line; a change shows on the card after Save.
   await facet.hover();
