@@ -1,10 +1,12 @@
 // Generates the samples the family, module and facet pages show (D20, K63):
 // for each content module and each interface language, the whole card for a
 // word and for a sentence, written by the live provider with the current
-// prompts, and for the German facets that never apply to a noun their own
-// word's card (K65). It writes `samples/<language>.json` in the module's or
-// facet's folder of the catalog, for review before it is committed; nothing
-// generates a sample when a page opens. It spends provider usage.
+// prompts. A German facet that never applies to a noun has its own word's card
+// (K65), as do Synonyms and Antonyms, which *language* has none of, and
+// Declension, an adjective beside the noun (D21). It writes
+// `samples/<language>.json` in the module's or facet's folder of the catalog,
+// for review before it is committed; nothing generates a sample when a page
+// opens. It spends provider usage.
 // Usage: npm run samples -- [module] [language], such as `german fr`.
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
@@ -23,11 +25,16 @@ const read = async path => JSON.parse(await readFile(new URL(path, catalog), 'ut
 // they were met in, in each interface language.
 const keys = Object.fromEntries(await Promise.all(INTERFACE_LANGUAGES.map(async language => [language, await read(`main-key/samples/${language}.json`)])));
 const contexts = Object.fromEntries(await Promise.all(INTERFACE_LANGUAGES.map(async language => [language, await read(`notes/context/samples/${language}.json`)])));
-// A word beside "language" for a facet that never applies to a noun (K65).
+// A word beside "language" for a facet that never applies to a noun (K65), or
+// for one *language* shows nothing representative of (D21): *good*, gut.
+const GOOD = { en: 'good', ar: 'جيد', 'zh-Hans': '好', fr: 'bon', ru: 'хороший', es: 'bueno' };
 const FACET_WORDS = {
   conjugation: { en: 'speak', ar: 'تكلّم', 'zh-Hans': '说话', fr: 'parler', ru: 'говорить', es: 'hablar' },
   comparison: { en: 'clear', ar: 'واضح', 'zh-Hans': '清楚', fr: 'clair', ru: 'ясный', es: 'claro' },
-  case: { en: 'between', ar: 'بين', 'zh-Hans': '之间', fr: 'entre', ru: 'между', es: 'entre' }
+  case: { en: 'between', ar: 'بين', 'zh-Hans': '之间', fr: 'entre', ru: 'между', es: 'entre' },
+  synonyms: GOOD,
+  antonyms: GOOD,
+  declension: GOOD
 };
 // The Expertise modules use a term of their subject, written in the interface
 // language they write in (D21): Mathematics "quadratic equation"; Computer

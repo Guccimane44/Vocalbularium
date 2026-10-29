@@ -196,6 +196,8 @@
   "about.sampleLanguage": "Langue de la clé d’exemple",
   "about.word": "Mot",
   "about.sentence": "Phrase",
+  "about.noun": "Nom",
+  "about.adjective": "Adjectif",
   "about.wordOrSentence": "Mot ou phrase",
   "about.facetHint": "Ajoutez des facettes pour un contenu plus personnalisé.",
   "about.appliesTo": "S’applique aux",

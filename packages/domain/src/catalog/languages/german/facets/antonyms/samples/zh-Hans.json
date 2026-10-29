@@ -1,0 +1,24 @@
+{
+  "word_phrase": {
+    "core": {
+      "kind": "word",
+      "language": "Chinesisch",
+      "key": "好",
+      "romanization": "hǎo",
+      "gramRole": "adjective",
+      "meanings": [
+        "gut",
+        "in Ordnung",
+        "schön",
+        "freundlich"
+      ]
+    },
+    "facets": {
+      "antonyms": [
+        "schlecht",
+        "böse",
+        "übel"
+      ]
+    }
+  }
+}

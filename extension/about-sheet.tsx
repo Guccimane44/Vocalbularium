@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import type { ReactNode } from 'react';
 import type { InputType } from '@vocabularium/contracts';
-import { facetAbout, facetCardOf, familyAbout, moduleAbout, sampleKeyOf, sampleLanguages, sampleOf } from '@vocabularium/domain/about';
+import { facetAbout, facetSamplesOf, familyAbout, moduleAbout, sampleKeyOf, sampleLanguages, sampleOf } from '@vocabularium/domain/about';
 import type { FamilyId } from '@vocabularium/domain/catalog';
 import { CATALOG, isModuleType, WINDOW_MODULES } from '@vocabularium/domain/page-modules';
 import type { ModuleFamily, ModuleType } from '@vocabularium/domain/page-modules';
@@ -168,7 +168,14 @@ function useSample(module: string, facet?: FacetType) {
 // Each language named in itself, as the settings list it (D21).
 const languageName = (code: string) => LANGUAGES.find(language => language.code === code)?.name ?? code;
 
-function SampleControls({ sample, chooseLanguage }: { sample: ReturnType<typeof useSample>; chooseLanguage: boolean }) {
+// The key's language, then the sample's tabs: Word and Sentence, or on a facet
+// page with two words their grammatical roles, such as Noun and Adjective (D21).
+type SampleTab = Readonly<{ id: string; label: string }>;
+const WORD_OR_SENTENCE = (): SampleTab[] => [{ id: 'word_phrase', label: t('about.word') }, { id: 'sentence', label: t('about.sentence') }];
+function SampleControls({ sample, chooseLanguage, tabs = WORD_OR_SENTENCE(), current = sample.inputType, choose = id => sample.setInputType(id as InputType), label = t('about.wordOrSentence') }: {
+  sample: ReturnType<typeof useSample>; chooseLanguage: boolean;
+  tabs?: readonly SampleTab[]; current?: string; choose?: (id: string) => void; label?: string;
+}) {
   return <div className="about-controls">
     {chooseLanguage && <span className="about-select">
       <svg className="about-globe" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M3 12h18" /><path d="M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9s1.3-6.4 3.8-9z" /></svg>
@@ -177,9 +184,8 @@ function SampleControls({ sample, chooseLanguage }: { sample: ReturnType<typeof 
       </select>
       <svg className="about-select-chev" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6 6-6" /></svg>
     </span>}
-    <div className="about-toggle" role="group" aria-label={t('about.wordOrSentence')}>
-      {(['word_phrase', 'sentence'] as const).map(type => <button type="button" key={type} aria-pressed={sample.inputType === type}
-        onClick={() => sample.setInputType(type)}>{t(type === 'word_phrase' ? 'about.word' : 'about.sentence')}</button>)}
+    <div className="about-toggle" role="group" aria-label={label}>
+      {tabs.map(tab => <button type="button" key={tab.id} aria-pressed={current === tab.id} onClick={() => choose(tab.id)}>{tab.label}</button>)}
     </div>
   </div>;
 }
@@ -282,14 +288,27 @@ function FacetPage({ module, facet, go }: { module: ParentType; facet: FacetType
   const about = facetAbout(module, facet, language);
   const label = facetName(module, facet);
   const sample = useSample(module, facet);
-  const key = sampleKeyOf(module, sample.inputType, sample.language, facet) ?? '';
-  // The card the sample sits on, its own or its module's: the core and the
-  // other facets it holds dimmed, this facet's text in full (0.13.1; until
-  // then a separate "Where it sits" followed the sample).
-  const card = facetCardOf(module, facet, sample.inputType, sample.language);
-  const blocks = card?.kind === 'parent' ? card.facets.find(each => each.facet === facet)?.body : undefined;
-  const core = card?.kind === 'parent' ? card.core : [];
-  const shown = card?.kind === 'parent' ? card.facets.map(each => each.facet) : [];
+  // The cards the samples sit on, the module's and the facet's own: the core
+  // and the other facets each holds dimmed, this facet's text in full (0.13.1;
+  // until then a separate "Where it sits" followed the sample, and the key and
+  // the core stood in a flow above it).
+  const samples = facetSamplesOf(module, facet, sample.language);
+  const words = samples.filter(each => each.inputType === 'word_phrase');
+  const [which, setWhich] = useState(0);
+  const roleLabel = (role?: string) => role === 'noun' ? t('about.noun') : role === 'adjective' ? t('about.adjective') : t('about.word');
+  const tabs: SampleTab[] = [...(words.length > 1 ? words.map((each, index) => ({ id: `word-${index}`, label: roleLabel(each.role) })) : [{ id: 'word-0', label: t('about.word') }]),
+    { id: 'sentence', label: t('about.sentence') }];
+  const current = sample.inputType === 'sentence' ? 'sentence' : `word-${Math.min(which, Math.max(words.length - 1, 0))}`;
+  const choose = (id: string) => {
+    if (id === 'sentence') { sample.setInputType('sentence'); return; }
+    sample.setInputType('word_phrase');
+    setWhich(Number(id.slice('word-'.length)));
+  };
+  const chosen = sample.inputType === 'sentence' ? samples.find(each => each.inputType === 'sentence') : words[Math.min(which, words.length - 1)];
+  const key = chosen?.key ?? sampleKeyOf(module, sample.inputType, sample.language, facet) ?? '';
+  const card = chosen?.card;
+  const blocks = card?.facets.find(each => each.facet === facet)?.body;
+  const shown = card?.facets.map(each => each.facet) ?? [];
   const applies = PARENTS[module].facets[facet]?.applies ?? [];
   const family = familyOfModule(module);
   return <>
@@ -300,14 +319,9 @@ function FacetPage({ module, facet, go }: { module: ParentType; facet: FacetType
     </dl>}
     <section className="about-section" aria-labelledby="about-samples">
       <h3 id="about-samples">{t('about.samples')}</h3>
-      <SampleControls sample={sample} chooseLanguage={isLanguages(module)} />
+      <SampleControls sample={sample} chooseLanguage={isLanguages(module)} tabs={tabs} current={current} choose={choose} label={t('about.samples')} />
       <p className={`about-key${sample.inputType === 'sentence' ? ' sentence' : ''}`} dir="auto" lang={sample.language}>{key}</p>
-      {card?.kind === 'parent' && blocks ? <>
-        {sample.inputType === 'word_phrase' && core.length > 0 && <div className="about-flow">
-          <div><span className="about-eyebrow">{t('about.mainKey')}</span><b dir="auto" lang={sample.language}>{key}</b></div>
-          <span className="about-arrow" aria-hidden="true">→</span>
-          <div className="hl"><span className="about-eyebrow">{t('about.moduleCore')}</span><Markdown blocks={core} mainKey="" className="about-flow-core" /></div>
-        </div>}
+      {card && blocks ? <>
         <article className={`component preview about-card about-where fam-${family}`} data-type={module}>
           <div className="card-tab"><FamilyIcon family={family} /><span className="tab-label">{moduleLabel(module)}</span></div>
           <div className="about-dim"><Content type={module} rendered={{ ...card, facets: [] }} mainKey={key} /></div>

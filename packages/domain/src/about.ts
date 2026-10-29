@@ -85,20 +85,29 @@ function keep(module: ParentType, content: GeneratedParent, inputType: InputType
   return { core: content.core, facets: Object.fromEntries(kept.map(facet => [facet, content.facets[facet]])) };
 }
 
-// The card a facet's sample sits on in an interface language, with every facet
-// that card holds: its own sample's when it has one (Conjugation, Comparison,
-// Case: K65), otherwise its module's. Null for an input type the facet does
-// not apply to, or when no sample holds it.
-export function facetCardOf(parent: ParentType, facet: FacetType, inputType: InputType, language = 'en'): Rendered | null {
-  if (!PARENTS[parent].facets[facet]?.applies.includes(inputType)) return null;
-  const own = givenSample(parent, inputType, language, facet) as GeneratedParent | undefined;
-  const rendered = own ? renderParent(parent, formatContent(parent, keep(parent, own, inputType))) : sampleOf(parent, inputType, undefined, language);
-  return rendered?.kind === 'parent' && rendered.facets.some(each => each.facet === facet) ? rendered : null;
+// One sample a facet page offers: the card it sits on, with every facet that
+// card holds, the key it was written for, and the core's grammatical role.
+export type FacetSample = Readonly<{ inputType: InputType; key: string; role?: string; card: Extract<Rendered, { kind: 'parent' }> }>;
+// The samples a facet page offers in an interface language, for the inputs the
+// facet applies to: its module's sample when that holds the facet, then its
+// own when it has one, a word that shows it (K65): Conjugation's *speak*,
+// Synonyms' *good* (D21). Declension has both, a noun and an adjective.
+export function facetSamplesOf(parent: ParentType, facet: FacetType, language = 'en'): FacetSample[] {
+  const applies = PARENTS[parent].facets[facet]?.applies ?? [];
+  return INPUT_TYPES.filter(inputType => applies.includes(inputType)).flatMap(inputType =>
+    [givenSample(parent, inputType, language), givenSample(parent, inputType, language, facet)].flatMap(given => {
+      if (!given || typeof given !== 'object') return [];
+      const card = renderParent(parent, formatContent(parent, keep(parent, given as GeneratedParent, inputType)));
+      if (card.kind !== 'parent' || !card.facets.some(each => each.facet === facet)) return [];
+      const core = (given as GeneratedParent).core as Readonly<Record<string, unknown>>;
+      const key = typeof core.key === 'string' ? core.key : givenSample('main-key', inputType, language) as string | undefined;
+      return [{ inputType, key: key ?? '', role: typeof core.gramRole === 'string' ? core.gramRole : undefined, card }];
+    }));
 }
-// A facet's sample in an interface language: its own text only, from that card.
+// A facet's sample in an interface language: its own text only, from the first card that holds it.
 export function facetSampleOf(parent: ParentType, facet: FacetType, inputType: InputType, language = 'en'): readonly MdBlock[] | null {
-  const card = facetCardOf(parent, facet, inputType, language);
-  return card?.kind === 'parent' ? card.facets.find(each => each.facet === facet)?.body ?? null : null;
+  const sample = facetSamplesOf(parent, facet, language).find(each => each.inputType === inputType);
+  return sample?.card.facets.find(each => each.facet === facet)?.body ?? null;
 }
 
 // What a sample was written for in an interface language: the main key's

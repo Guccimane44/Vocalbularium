@@ -196,6 +196,8 @@
   "about.sampleLanguage": "Language of the sample key",
   "about.word": "Word",
   "about.sentence": "Sentence",
+  "about.noun": "Noun",
+  "about.adjective": "Adjective",
   "about.wordOrSentence": "Word or sentence",
   "about.facetHint": "Add facets for more customised content.",
   "about.appliesTo": "Applies to",

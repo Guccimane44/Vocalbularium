@@ -196,6 +196,8 @@
   "about.sampleLanguage": "لغة مفتاح المثال",
   "about.word": "كلمة",
   "about.sentence": "جملة",
+  "about.noun": "اسم",
+  "about.adjective": "صفة",
   "about.wordOrSentence": "كلمة أم جملة",
   "about.facetHint": "أضف جوانب لمحتوى أكثر تخصيصًا.",
   "about.appliesTo": "ينطبق على",

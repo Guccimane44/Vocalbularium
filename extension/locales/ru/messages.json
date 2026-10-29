@@ -196,6 +196,8 @@
   "about.sampleLanguage": "Язык ключа в примере",
   "about.word": "Слово",
   "about.sentence": "Предложение",
+  "about.noun": "Существительное",
+  "about.adjective": "Прилагательное",
   "about.wordOrSentence": "Слово или предложение",
   "about.facetHint": "Добавьте разделы, чтобы настроить содержимое.",
   "about.appliesTo": "Применяется к",

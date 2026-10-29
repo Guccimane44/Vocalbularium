@@ -1,0 +1,22 @@
+{
+  "word_phrase": {
+    "core": {
+      "kind": "word",
+      "language": "Russisch",
+      "key": "хороший",
+      "romanization": "choroshiy",
+      "gramRole": "adjective",
+      "meanings": [
+        "gut"
+      ]
+    },
+    "facets": {
+      "synonyms": [
+        "prima",
+        "fein",
+        "toll",
+        "ordentlich"
+      ]
+    }
+  }
+}

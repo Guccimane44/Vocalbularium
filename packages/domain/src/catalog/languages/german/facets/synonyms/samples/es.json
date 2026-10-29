@@ -1,0 +1,22 @@
+{
+  "word_phrase": {
+    "core": {
+      "kind": "word",
+      "language": "Spanisch",
+      "key": "bueno",
+      "gramRole": "adjective",
+      "meanings": [
+        "gut",
+        "in Ordnung"
+      ]
+    },
+    "facets": {
+      "synonyms": [
+        "prima",
+        "toll",
+        "ausgezeichnet",
+        "hervorragend"
+      ]
+    }
+  }
+}

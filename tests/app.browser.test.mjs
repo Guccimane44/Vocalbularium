@@ -2386,12 +2386,28 @@ test('0.13.0: family, module and facet pages in one sheet, from the module windo
   assert.equal(await sheet.locator('.about-key').innerText(), 'speak');
   // Its card is its own word's: the core is sprechen, not German's Sprache.
   assert.match(await sheet.locator('.about-where .about-here').innerText(), /habe gesprochen/);
-  assert.match(await sheet.locator('.about-flow .hl').innerText(), /sprechen/);
+  assert.match(await sheet.locator('.about-where .about-dim').first().innerText(), /sprechen/);
   assert.doesNotMatch(await sheet.locator('.about-where .about-dim').first().innerText(), /Sprache/);
+  assert.equal(await sheet.locator('.about-flow').count(), 0, 'no key-to-core flow above the card');
   await a.page.screenshot({ path: 'artifacts/v0.13.1-conjugation-page.png', animations: 'disabled' });
+  // Declension has a noun and an adjective (language, good); Synonyms shows good, gut (D21).
+  await sheet.locator('.about-strip button', { hasText: 'Declension' }).click();
+  await waitFor(async () => await title() === 'Declension', 'Declension’s page');
+  assert.deepEqual(await sheet.locator('.about-toggle button').allTextContents(), ['Noun', 'Adjective', 'Sentence']);
+  assert.equal(await sheet.locator('.about-key').innerText(), 'language');
+  await sheet.getByRole('button', { name: 'Adjective', exact: true }).click();
+  assert.equal(await sheet.locator('.about-key').innerText(), 'good');
+  assert.match(await sheet.locator('.about-where .about-here').innerText(), /ein guter/);
+  await a.page.screenshot({ path: 'artifacts/v0.13.1-declension-page.png', animations: 'disabled' });
+  await sheet.locator('.about-strip button', { hasText: 'Synonyms' }).click();
+  await waitFor(async () => await title() === 'Synonyms', 'Synonyms’ page');
+  assert.deepEqual(await sheet.locator('.about-toggle button').allTextContents(), ['Word', 'Sentence']);
+  assert.equal(await sheet.locator('.about-key').innerText(), 'good');
+  assert.match(await sheet.locator('.about-where .about-dim').first().innerText(), /gut/);
+  assert.ok((await sheet.locator('.about-where .about-here .facet-body').innerText()).trim());
   // Back returns one step; the path's German and Languages open theirs.
   await sheet.getByRole('button', { name: 'Back', exact: true }).click();
-  await waitFor(async () => await title() === 'Article', 'back to Article');
+  await waitFor(async () => await title() === 'Declension', 'back to Declension');
   await sheet.locator('.about-path button', { hasText: 'German' }).click();
   await waitFor(async () => await title() === 'German', 'German from the path');
   await sheet.locator('.about-path button', { hasText: 'Languages' }).click();

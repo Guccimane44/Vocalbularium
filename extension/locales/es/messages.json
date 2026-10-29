@@ -196,6 +196,8 @@
   "about.sampleLanguage": "Idioma de la clave de ejemplo",
   "about.word": "Palabra",
   "about.sentence": "Oración",
+  "about.noun": "Sustantivo",
+  "about.adjective": "Adjetivo",
   "about.wordOrSentence": "Palabra u oración",
   "about.facetHint": "Añade facetas para un contenido más personalizado.",
   "about.appliesTo": "Se aplica a",

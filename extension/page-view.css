@@ -420,13 +420,6 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
 .about-defs dt { font: 600 11px/1.3 var(--font-text); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-muted); }
 .about-defs dd { margin: 0; font-size: 14.5px; line-height: 1.45; }
 .about-applies { display: inline-flex; align-items: center; height: 32px; padding: 0 12px; border-radius: 10px; background: var(--fam-tint); font-weight: 600; }
-.about-flow { display: grid; grid-template-columns: minmax(0, 1fr) 22px minmax(0, 1fr); align-items: stretch; gap: 6px; }
-.about-flow > div { display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
-.about-flow > div.hl { background: var(--fam-tint); border-color: transparent; }
-.about-flow b { font: 700 18px/1.2 var(--font-display); }
-.about-flow-core { font: 600 15px/1.35 var(--font-display); }
-.about-arrow { display: grid; place-items: center; color: var(--ink-muted); }
-:root[dir="rtl"] .about-arrow { transform: scaleX(-1); }
 .about-left-out { display: flex; align-items: flex-start; gap: 10px; margin: 0; padding: 12px 14px; border: 1px dashed var(--line-control); border-radius: 10px; font-size: 14px; line-height: 1.45; color: var(--ink-soft); }
 .about-where.component.preview { display: flex; flex-direction: column; gap: 10px; }
 .about-dim { opacity: .4; }

@@ -5,6 +5,7 @@ import { CATALOG_FAMILIES, folderOf, MODULE_IDS, MODULES } from '@vocabularium/d
 import { composeModule } from '@vocabularium/domain/composer';
 import { formatContent } from '@vocabularium/domain/content';
 import { validateGenerated } from '@vocabularium/domain/generated';
+import { INTERFACE_LANGUAGES } from '@vocabularium/contracts';
 
 // Catalog conformance (D11): every module, facet and input type is complete,
 // so a module or facet added to the catalog cannot miss its prompt, shape,
@@ -161,8 +162,16 @@ test('every family, window module and facet but the core has its page text, and 
   assert.deepEqual(leftovers, [], 'no explanation.md or sample.json remains (D20)');
 });
 
+test('every facet page has at least one sample in every interface language (D21)', async () => {
+  const { facetSamplesOf } = await import('@vocabularium/domain/about');
+  const { PARENTS } = await import('@vocabularium/domain/parents');
+  for (const language of INTERFACE_LANGUAGES)
+    for (const [parent, { facets }] of Object.entries(PARENTS))
+      for (const facet of Object.keys(facets)) assert.ok(facetSamplesOf(parent, facet, language).length, `${parent}/${facet} in ${language}`);
+});
+
 test('a facet’s sample is its own part of a sample in the interface language, only for the inputs it applies to', async () => {
-  const { facetCardOf, facetSampleOf, sampleKeyOf, sampleOf } = await import('@vocabularium/domain/about');
+  const { facetSampleOf, facetSamplesOf, sampleKeyOf, sampleOf } = await import('@vocabularium/domain/about');
   const plain = blocks => JSON.stringify(blocks);
   // Article applies to words only: German's sample word "language" is die Sprache.
   assert.match(plain(facetSampleOf('german', 'article', 'word_phrase')), /die Sprache/);
@@ -179,10 +188,14 @@ test('a facet’s sample is its own part of a sample in the interface language, 
   assert.equal(facetSampleOf('german', 'conjugation', 'sentence'), null);
   assert.equal(sampleKeyOf('german', 'word_phrase', 'ru', 'conjugation'), 'говорить');
   // The card a facet sits on is its own sample's, core and all, or its module's.
-  assert.match(plain(facetCardOf('german', 'conjugation', 'word_phrase').core), /sprechen/);
-  assert.doesNotMatch(plain(facetCardOf('german', 'conjugation', 'word_phrase').core), /Sprache/);
-  assert.deepEqual(facetCardOf('german', 'article', 'word_phrase', 'fr'), sampleOf('german', 'word_phrase', undefined, 'fr'));
-  assert.equal(facetCardOf('german', 'article', 'sentence'), null);
+  const [speak] = facetSamplesOf('german', 'conjugation');
+  assert.match(plain(speak.card.core), /sprechen/);
+  assert.doesNotMatch(plain(speak.card.core), /Sprache/);
+  assert.deepEqual(facetSamplesOf('german', 'article', 'fr').map(each => [each.inputType, each.key]), [['word_phrase', 'langue']]);
+  assert.deepEqual(facetSamplesOf('german', 'article', 'fr')[0].card, sampleOf('german', 'word_phrase', undefined, 'fr'));
+  // Declension has a noun and an adjective; Synonyms and Antonyms show good, gut (D21).
+  assert.deepEqual(facetSamplesOf('german', 'declension').map(each => [each.key, each.role]), [['language', 'noun'], ['good', 'adjective']]);
+  for (const facet of ['synonyms', 'antonyms']) assert.match(plain(facetSamplesOf('german', facet, 'ru')[0].card.core), /gut/, facet);
   // A module's sample shows every facet its sample holds; given facets, only those that apply.
   const facets = sampleOf('german', 'word_phrase').facets.map(each => each.facet);
   assert.ok(facets.includes('article') && !facets.includes('conjugation'), facets.join());
