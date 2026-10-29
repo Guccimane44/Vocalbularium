@@ -218,7 +218,7 @@ function ModulePage({ module, go }: { module: string; go: (next: AboutTarget) =>
   const whole = parent && sampleOf(module, sample.inputType, undefined, sample.language);
   return <>
     <Hero eyebrow={t('about.moduleEyebrow', { family: familyLabel(family) })} chip={<FamilyIcon family={family} />} title={label} lede={about?.summary} />
-    {about && <dl className="about-facts">
+    {about?.facts && about.facts.length > 0 && <dl className="about-facts">
       {about.facts.map((fact, index) => <div key={index}><dt>{fact.label}</dt><dd><b>{fact.value}</b><span>{fact.note}</span></dd></div>)}
     </dl>}
     {coreOnly && <section className="about-section" aria-labelledby="about-looks">

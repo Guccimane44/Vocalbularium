@@ -21,7 +21,8 @@ import type { Rendered } from './render.js';
 export const INPUT_TYPES: readonly InputType[] = ['word_phrase', 'sentence'];
 
 export type FamilyAbout = Readonly<{ summary: string; steps: readonly Readonly<{ title: string; text: string }>[] }>;
-export type ModuleAbout = Readonly<{ summary: string; facts: readonly Readonly<{ label: string; value: string; note: string }>[] }>;
+// Only the Languages modules have facts (D21).
+export type ModuleAbout = Readonly<{ summary: string; facts?: readonly Readonly<{ label: string; value: string; note: string }>[] }>;
 export type FacetAbout = Readonly<{ summary: string; appliesTo: string; describes: string }>;
 
 const familyFolder = (family: FamilyId) => CATALOG_FAMILIES.find(each => each.id === family)?.folder;
@@ -56,7 +57,7 @@ export function aboutBlocks(module: string, facet?: string, language = 'en'): Md
     return about ? parseMarkdown(`${about.summary}\n\n**${about.appliesTo}** · ${about.describes}`) : [];
   }
   const about = moduleAbout(module, language);
-  return about ? parseMarkdown([about.summary, about.facts.map(fact => `- **${fact.label}:** ${fact.value}. ${fact.note}`).join('\n')].join('\n\n')) : [];
+  return about ? parseMarkdown([about.summary, (about.facts ?? []).map(fact => `- **${fact.label}:** ${fact.value}. ${fact.note}`).join('\n')].join('\n\n')) : [];
 }
 
 // A module's or a facet's own sample in an interface language, the provider's

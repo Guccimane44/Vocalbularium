@@ -1,20 +1,3 @@
 {
-  "summary": "La oración o el párrafo alrededor del texto capturado, guardado con la página para que una palabra con varios significados se explique en el sentido en que la encontraste.",
-  "facts": [
-    {
-      "label": "Viene de",
-      "value": "Tu captura",
-      "note": "El texto alrededor de tu selección"
-    },
-    {
-      "label": "Generación",
-      "value": "Lo lee, nunca lo escribe",
-      "note": "Con él elige el significado de la clave"
-    },
-    {
-      "label": "Cuántos",
-      "value": "Uno como máximo",
-      "note": "Por página o por mazo"
-    }
-  ]
+  "summary": "La oración o el párrafo alrededor del texto capturado, guardado con la página para que una palabra con varios significados se explique en el sentido en que la encontraste."
 }

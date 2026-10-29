@@ -41,8 +41,8 @@ The family's name, mark and colour; one sentence on what its modules do; what ev
 
 ### Expertise and Notes module pages
 
-- **An Expertise module** (board 4) has the header, three facts (*Reads: any language*, *Writes:* the interface language, *Best for:* the subject's terms), **See it on a card** with **Word** or **Sentence** on the subject's own term and no language dropdown, a card with the core and the same facet hint, and its facets. It has no How it works.
-- **Text** (board 5) has the header, three facts (*Written by: you*, *Generation: never touches it*, *How many: as many as you like*); no example, generated sample or facets (until 0.13.1 an example note, [D21](traceability-map.md#entries)).
+- **An Expertise module** (board 4) has the header, three facts (*Reads: any language*, *Writes:* the interface language, *Best for:* the subject's terms; dropped in 0.13.1 by [D21](traceability-map.md#entries)), **See it on a card** with **Word** or **Sentence** on the subject's own term and no language dropdown, a card with the core and the same facet hint, and its facets. It has no How it works.
+- **Text** (board 5) has the header, three facts (*Written by: you*, *Generation: never touches it*, *How many: as many as you like*); no example, generated sample or facets. Since 0.13.1 it has the header only ([D21](traceability-map.md#entries)).
 
 The pages say **core** for what the facets are written from. The specifications' term *grammar word* ([modules](../specs/modules.md#catalog)) stays as an internal term and is not shown.
 

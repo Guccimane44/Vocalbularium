@@ -1,20 +1,3 @@
 {
-  "summary": "A space for your own notes: a mnemonic, where you met the word, a correction, anything you want to remember.",
-  "facts": [
-    {
-      "label": "Written by",
-      "value": "You",
-      "note": "It starts empty"
-    },
-    {
-      "label": "Generation",
-      "value": "Never touches it",
-      "note": "Not read, not changed"
-    },
-    {
-      "label": "How many",
-      "value": "As many as you like",
-      "note": "On one page"
-    }
-  ]
+  "summary": "A space for your own notes: a mnemonic, where you met the word, a correction, anything you want to remember."
 }

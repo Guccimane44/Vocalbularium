@@ -149,7 +149,9 @@ test('every family, window module and facet but the core has its page text, and 
   for (const id of MODULE_IDS) {
     if (!WINDOW_MODULES.includes(id)) { assert.equal(moduleAbout(id), undefined, `${id} is not in the window and has no page`); continue; }
     const about = moduleAbout(id);
-    assert.ok(text(about?.summary) && about.facts.length === 3 && about.facts.every(fact => text(fact.label) && text(fact.value) && text(fact.note)), id);
+    // Three facts for a Languages module; the others have none (D21).
+    const facts = folderOf(id).startsWith('languages/') ? 3 : 0;
+    assert.ok(text(about?.summary) && (about.facts ?? []).length === facts && (about.facts ?? []).every(fact => text(fact.label) && text(fact.value) && text(fact.note)), id);
     assert.ok(aboutBlocks(id).length > 0, `${id} renders as markdown`);
     if (MODULES[id].kind !== 'content') continue;
     assert.equal(facetAbout(id, 'core'), undefined, `${id}: the core is explained by its module`);

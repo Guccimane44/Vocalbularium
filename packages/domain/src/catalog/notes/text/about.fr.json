@@ -1,20 +1,3 @@
 {
-  "summary": "Un espace pour vos propres notes : un moyen mnémotechnique, l’endroit où vous avez rencontré le mot, une correction, tout ce que vous voulez retenir.",
-  "facts": [
-    {
-      "label": "Écrit par",
-      "value": "Vous",
-      "note": "Il commence vide"
-    },
-    {
-      "label": "Génération",
-      "value": "N’y touche jamais",
-      "note": "Ni lu, ni modifié"
-    },
-    {
-      "label": "Combien",
-      "value": "Autant que vous voulez",
-      "note": "Sur une même page"
-    }
-  ]
+  "summary": "Un espace pour vos propres notes : un moyen mnémotechnique, l’endroit où vous avez rencontré le mot, une correction, tout ce que vous voulez retenir."
 }

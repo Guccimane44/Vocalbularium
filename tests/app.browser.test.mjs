@@ -2436,10 +2436,11 @@ test('0.13.0: family, module and facet pages in one sheet, from the module windo
   await waitFor(async () => await title() === 'Computer Science', 'Computer Science’s page');
   assert.equal(await sheet.locator('select').count(), 0);
   assert.equal(await sheet.locator('.about-chain').count(), 0);
+  assert.equal(await sheet.locator('.about-facts').count(), 0, 'no Reads, Writes, Best for (D21)');
   assert.match(await sheet.locator('.about-card').innerText(), /Hello, world/);
   await a.page.mouse.click(5, 5);
   await sheet.waitFor({ state: 'detached' });
-  // Text and Context show their facts and no example (D21); Context, already on the page, is reached from the Notes page.
+  // Text and Context show no facts and no example (D21); Context, already on the page, is reached from the Notes page.
   const aboutText = a.page.locator('.window-module[data-type="text"] .window-about');
   await openFamily(aboutText);
   await aboutText.click();
@@ -2450,8 +2451,7 @@ test('0.13.0: family, module and facet pages in one sheet, from the module windo
       await sheet.locator('.about-row', { hasText: 'Context' }).click();
     }
     await waitFor(async () => await title() === name, `${name}’s page`);
-    assert.equal(await sheet.locator('.about-facts > div').count(), 3);
-    assert.equal(await sheet.locator('.about-section, .about-card').count(), 0, `${name} shows no For example`);
+    assert.equal(await sheet.locator('.about-facts, .about-section, .about-card').count(), 0, `${name} shows only its header`);
   }
   await a.page.mouse.click(5, 5);
   await sheet.waitFor({ state: 'detached' });
