@@ -3,28 +3,31 @@
     "core": {
       "relevance": "subject",
       "hasFormula": "yes",
-      "key": "eigenvalue",
+      "key": "一元二次方程",
       "explanation": [
-        "特征值（eigenvalue）是方阵的一种数值特征：若存在非零向量 v，使 A v = λ v 成立，则数 λ 叫作矩阵 A 的特征值，v 叫对应的特征向量。",
-        "矩阵作用在向量上，通常会同时改变它的方向和长度；但沿某些特殊方向，向量仍在原来的直线上，只被拉长、缩短或反向，这些方向就是特征向量，伸缩的倍数即特征值。",
-        "例如对角元为 2 和 3 的二阶对角矩阵，特征值就是 2 和 3，特征向量分别沿两个坐标轴方向。解微分方程、分析振动和做主成分分析时，都要靠特征值看清系统的固有性质。"
+        "一元二次方程（quadratic equation in one variable）只含一个未知数，未知数的最高次数为 2，一般形式是 ax² + bx + c = 0，其中 a、b、c 为常数且 a ≠ 0。",
+        "它的解是使等式成立的 x 值，在实数范围内可能有两个不相等的实数根、两个相等的实数根，或没有实数根；当判别式不小于零时，把系数代入求根公式即可求出。"
       ]
     },
     "facets": {
       "formula": {
-        "latex": "A\\mathbf{v} = \\lambda\\mathbf{v}",
+        "latex": "ax^2+bx+c=0\\ (a\\neq 0)",
         "symbols": [
           {
-            "symbol": "A",
-            "meaning": "方阵（矩阵）"
+            "symbol": "a",
+            "meaning": "二次项系数，规定不为零"
           },
           {
-            "symbol": "\\mathbf{v}",
-            "meaning": "非零的特征向量"
+            "symbol": "x",
+            "meaning": "未知数"
           },
           {
-            "symbol": "\\lambda",
-            "meaning": "特征值，即该向量被伸缩的倍数"
+            "symbol": "b",
+            "meaning": "一次项系数"
+          },
+          {
+            "symbol": "c",
+            "meaning": "常数项"
           }
         ]
       }
@@ -34,10 +37,10 @@
     "core": {
       "relevance": "subject",
       "hasFormula": "no",
-      "key": "Every square matrix has at least one eigenvalue.",
+      "key": "一元二次方程最多有两个实数根。",
       "explanation": [
-        "这句话说，任意方阵都存在一个非零向量，经该矩阵作用后仍在原来的直线上（被拉长、缩短或反向），倍数就是特征值（eigenvalue）。它把“有特征值”等同于方程 Av = λv 有非零解。",
-        "在复数范围内这总成立：特征多项式（characteristic polynomial）必有复根，所以每个方阵至少有一个特征值。若只在实数中讨论，则未必成立，例如旋转 90° 的矩阵没有实特征值。"
+        "这句话断言：任何一个一元二次方程（quadratic equation in one variable）的实数根个数都不会超过两个。它把方程的次数与根的个数联系起来，说明二次方程的解集至多有两个实数。",
+        "从标准形式 ax² + bx + c = 0（a ≠ 0）看，判别式 b² − 4ac 大于零时有两个不同实根，等于零时有两个相等实根，小于零时没有实根，所以实数根最多两个。"
       ]
     },
     "facets": {}

@@ -188,7 +188,9 @@ test('a facet’s sample is its own part of a sample in the interface language, 
   assert.equal(sampleKeyOf('main-key', 'word_phrase', 'zh-Hans'), '语言');
   assert.equal(sampleKeyOf('german', 'word_phrase', 'fr'), 'langue');
   assert.equal(sampleKeyOf('german', 'sentence', 'en'), 'Languages are the bridges connecting people and the world.');
-  assert.equal(sampleKeyOf('computer-science', 'word_phrase', 'es'), 'Frontend');
+  // The Expertise samples are written in the interface language; Hello, world stays English (D21).
+  assert.equal(sampleKeyOf('computer-science', 'word_phrase', 'es'), 'Hello, world');
+  assert.equal(sampleKeyOf('mathematics', 'word_phrase', 'zh-Hans'), '一元二次方程');
   // A language without its own sample would fall back to English; every language has one.
   assert.notDeepEqual(sampleOf('german', 'word_phrase', undefined, 'ar'), sampleOf('german', 'word_phrase', undefined, 'en'));
 });

@@ -308,13 +308,12 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
   font: 600 13px/1.3 var(--font-text); color: var(--ink); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--line-control); }
 .window-module .window-about:hover { text-decoration-color: var(--fam); }
 .window-module .window-about:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
-/* At the top of a family's group, its page (D20). */
-.family-about { display: inline-flex; align-items: center; gap: 4px; margin: 0 0 8px; padding: 4px 8px; border: 0; border-radius: var(--radius-md); background: none; cursor: pointer;
-  font: 600 11px/1.3 var(--font-text); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); }
-.family-about svg { width: 12px; height: 12px; }
-:root[dir="rtl"] .family-about svg, :root[dir="rtl"] .about-chev, :root[dir="rtl"] .about-back svg { transform: scaleX(-1); }
-.family-about:hover { background: var(--fam-tint); color: var(--ink); }
-.family-about:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+/* A group heading's family mark and name open the family's page (D21); the rest folds the group. */
+.family-open { display: inline-flex; align-items: center; gap: inherit; margin: -4px; padding: 4px; border: 0; border-radius: var(--radius-md); background: none;
+  font: inherit; color: inherit; cursor: pointer; }
+.family-open:hover { background: var(--fam-tint); }
+.family-open:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+:root[dir="rtl"] .about-chev, :root[dir="rtl"] .about-back svg { transform: scaleX(-1); }
 
 /* Family, module and facet pages (D20, 0.13.0): one side sheet over the module
    window, linked by a path; the owner's settled canvas is the reference. */

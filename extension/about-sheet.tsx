@@ -165,12 +165,8 @@ function useSample(module: string, facet?: FacetType) {
   const [inputType, setInputType] = useState<InputType>('word_phrase');
   return { language, setLanguage, inputType, setInputType, languages };
 }
-const languageName = (code: string) => {
-  const own = LANGUAGES.find(language => language.code === code)?.name ?? code;
-  let named = own;
-  try { named = new Intl.DisplayNames([currentLanguage()], { type: 'language' }).of(code) ?? own; } catch { /* the code is shown as it is */ }
-  return named === own ? own : `${own} · ${named}`;
-};
+// Each language named in itself, as the settings list it (D21).
+const languageName = (code: string) => LANGUAGES.find(language => language.code === code)?.name ?? code;
 
 function SampleControls({ sample, chooseLanguage }: { sample: ReturnType<typeof useSample>; chooseLanguage: boolean }) {
   return <div className="about-controls">

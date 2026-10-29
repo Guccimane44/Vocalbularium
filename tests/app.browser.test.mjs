@@ -2359,6 +2359,8 @@ test('0.13.0: family, module and facet pages in one sheet, from the module windo
     Object.keys(PARENTS.german.facets).filter(facet => facet in english.word_phrase.facets).map(facet => PARENTS.german.facets[facet].abbreviation));
   await a.page.screenshot({ path: 'artifacts/v0.13.0-module-page.png', animations: 'disabled' });
   // The key's language and a sentence change the sample; only Examples applies to a sentence.
+  // Each language named in itself only (D21).
+  assert.deepEqual(await sheet.locator('select option').allTextContents(), ['العربية', 'English', 'Español', 'Français', 'Русский', '中文（简体）']);
   await sheet.getByLabel('Language of the sample key', { exact: true }).selectOption('ru');
   assert.equal(await sheet.locator('.about-key').innerText(), 'язык');
   await sheet.getByRole('button', { name: 'Sentence', exact: true }).click();
@@ -2397,9 +2399,12 @@ test('0.13.0: family, module and facet pages in one sheet, from the module windo
   assert.equal(await focused(about), true, 'the focus back on About German');
   assert.equal(await components(), before, 'reading a page adds nothing');
 
-  // The family's link at the top of its group opens the family page; the close button closes it.
+  // The family's mark and name in its group's heading open the family page, leaving the group as it was (D21); the close button closes it.
+  const group = a.page.locator('.window-family.fam-translation');
+  const wasOpen = await group.evaluate(node => node.open);
   await a.page.getByRole('button', { name: 'About Languages', exact: true }).click();
   await waitFor(async () => await title() === 'Languages', 'Languages from the window');
+  assert.equal(await group.evaluate(node => node.open), wasOpen, 'opening the page does not fold the group');
   await sheet.getByRole('button', { name: 'Close About Languages', exact: true }).click();
   await sheet.waitFor({ state: 'detached' });
   // An Expertise module's page keeps its own term, with no language dropdown and no How it works; a click outside closes it.
@@ -2409,7 +2414,7 @@ test('0.13.0: family, module and facet pages in one sheet, from the module windo
   await waitFor(async () => await title() === 'Computer Science', 'Computer Science’s page');
   assert.equal(await sheet.locator('select').count(), 0);
   assert.equal(await sheet.locator('.about-chain').count(), 0);
-  assert.match(await sheet.locator('.about-card').innerText(), /Frontend/);
+  assert.match(await sheet.locator('.about-card').innerText(), /Hello, world/);
   await a.page.mouse.click(5, 5);
   await sheet.waitFor({ state: 'detached' });
 

@@ -2,22 +2,29 @@
   "word_phrase": {
     "core": {
       "relevance": "subject",
-      "hasCode": "no",
-      "key": "Frontend",
+      "hasCode": "yes",
+      "key": "Hello, world",
       "explanation": [
-        "Le frontend désigne la partie d’un logiciel ou d’un site avec laquelle l’utilisateur interagit directement : écrans, boutons, formulaires, messages de retour. Dans une application web, il s’exécute pour l’essentiel dans le navigateur, à partir de pages HTML, de styles CSS et de scripts JavaScript.",
-        "Il se définit par opposition au backend, qui tourne sur le serveur et garde les données et la logique métier. Un formulaire de connexion illustre le partage : le frontend recueille la saisie, l’envoie au serveur, puis affiche le message de succès ou d’erreur renvoyé."
+        "« Hello, world » désigne le programme minimal qui affiche ce message ; il sert de premier essai pour vérifier qu’une chaîne de compilation, un éditeur et un environnement d’exécution fonctionnent ensemble.",
+        "En cours, il montre comment écrire une instruction, appeler une fonction d’affichage et produire une sortie ; sa brièveté en fait un test de prise en main, pas un algorithme complet."
       ]
     },
-    "facets": {}
+    "facets": {
+      "code": {
+        "language": "python",
+        "code": "# Affiche le message traditionnel\nprint(\"Hello, world\")"
+      }
+    }
   },
   "sentence": {
     "core": {
       "relevance": "subject",
       "hasCode": "no",
-      "key": "The frontend shows what the backend sends back.",
+      "key": "Le premier programme de tout programmeur affiche « Hello, world ».",
       "explanation": [
-        "La phrase décrit la séparation entre l’interface côté client, le frontend, et la logique côté serveur, le backend. Le frontend affiche les données que le backend renvoie après une requête, souvent via une API. Elle repose sur le modèle requête-réponse et le réseau."
+        "La phrase décrit le programme minimal qui affiche une chaîne de caractères, ici « Hello, world », sur la sortie standard. Elle repose sur les notions de code source, d’exécution et de flux de sortie.",
+        "Ce premier essai vérifie souvent que l’éditeur, le compilateur ou l’interpréteur et l’environnement d’exécution fonctionnent ensemble. Le texte affiché est une chaîne littérale, sans calcul ni entrée.",
+        "L’affirmation selon laquelle il s’agit du premier programme de tout programmeur relève d’une convention pédagogique répandue, pas d’une règle technique."
       ]
     },
     "facets": {}

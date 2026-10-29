@@ -2,23 +2,28 @@
   "word_phrase": {
     "core": {
       "relevance": "subject",
-      "hasCode": "no",
-      "key": "Frontend",
+      "hasCode": "yes",
+      "key": "Hello, world",
       "explanation": [
-        "El frontend es la parte de un sistema de software que interactúa directamente con el usuario: pantallas, controles, formularios y la lógica que responde a sus acciones. En una aplicación web se ejecuta sobre todo en el navegador y se comunica con el backend mediante peticiones.",
-        "Reúne diseño de interacción, HTML, CSS y JavaScript, entre otras tecnologías, para que la interfaz sea comprensible y reactiva. Un ejemplo cotidiano es un carrito de compra: los botones y la actualización del total pertenecen al frontend; el cobro y el inventario, al backend."
+        "«Hola, mundo» (Hello, world) es el programa mínimo que muestra ese saludo en la pantalla. Sirve como primera prueba de que un lenguaje, un compilador o un entorno de desarrollo está instalado y funciona, y suele ser el primer ejemplo al aprender a programar.",
+        "En Python, basta una línea con print(\"Hello, world\") para obtenerlo; las variantes en otros lenguajes cambian la sintaxis, pero no la idea."
       ]
     },
-    "facets": {}
+    "facets": {
+      "code": {
+        "language": "python",
+        "code": "# Primer programa: muestra el saludo en pantalla\nprint(\"Hello, world\")"
+      }
+    }
   },
   "sentence": {
     "core": {
       "relevance": "subject",
-      "hasCode": "no",
-      "key": "The frontend shows what the backend sends back.",
+      "hasCode": "yes",
+      "key": "El primer programa de todo programador imprime «Hello, world».",
       "explanation": [
-        "La frase describe la división de una aplicación en dos partes: el frontend, la interfaz que ve y maneja el usuario, y el backend, donde viven la lógica y los datos en el servidor. El frontend pide algo y presenta la respuesta que el backend devuelve.",
-        "Se apoya en el modelo cliente-servidor: el navegador envía una petición, el servidor la procesa y responde con datos, a menudo en formato JSON, y la interfaz los muestra. Presentación y datos quedan así separados y pueden desarrollarse y cambiar por su cuenta."
+        "La frase describe el programa Hola, mundo (Hello, world) como el primer ejercicio habitual de quien aprende a programar. En términos de computación, reúne un programa mínimo, una cadena de texto y una salida por pantalla.",
+        "Sirve para comprobar que el entorno de desarrollo funciona y que se entiende la sintaxis básica: escribir una instrucción que muestre un mensaje. No es una ley sobre todos los programadores, sino una convención didáctica muy extendida."
       ]
     },
     "facets": {}

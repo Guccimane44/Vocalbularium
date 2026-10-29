@@ -29,11 +29,26 @@ const FACET_WORDS = {
   comparison: { en: 'clear', ar: 'واضح', 'zh-Hans': '清楚', fr: 'clair', ru: 'ясный', es: 'claro' },
   case: { en: 'between', ar: 'بين', 'zh-Hans': '之间', fr: 'entre', ru: 'между', es: 'entre' }
 };
-// The Expertise modules keep their subject's own term; they write in the
-// interface language, so each language has its own card for the same key.
+// The Expertise modules use a term of their subject, written in the interface
+// language they write in (D21): Mathematics "quadratic equation"; Computer
+// Science "Hello, world", which stays English in every language.
 const EXPERTISE = {
-  mathematics: { word_phrase: 'eigenvalue', sentence: 'Every square matrix has at least one eigenvalue.' },
-  'computer-science': { word_phrase: 'Frontend', sentence: 'The frontend shows what the backend sends back.' }
+  mathematics: {
+    en: { word_phrase: 'Quadratic equation', sentence: 'A quadratic equation has at most two real solutions.' },
+    ar: { word_phrase: 'المعادلة التربيعية', sentence: 'للمعادلة التربيعية حلّان حقيقيان على الأكثر.' },
+    'zh-Hans': { word_phrase: '一元二次方程', sentence: '一元二次方程最多有两个实数根。' },
+    fr: { word_phrase: 'Équation du second degré', sentence: 'Une équation du second degré a au plus deux solutions réelles.' },
+    ru: { word_phrase: 'Квадратное уравнение', sentence: 'Квадратное уравнение имеет не более двух действительных корней.' },
+    es: { word_phrase: 'Ecuación de segundo grado', sentence: 'Una ecuación de segundo grado tiene como máximo dos soluciones reales.' }
+  },
+  'computer-science': {
+    en: { word_phrase: 'Hello, world', sentence: 'Every programmer’s first program prints “Hello, world”.' },
+    ar: { word_phrase: 'Hello, world', sentence: 'أول برنامج يكتبه كل مبرمج يطبع «Hello, world».' },
+    'zh-Hans': { word_phrase: 'Hello, world', sentence: '每个程序员的第一个程序都会输出“Hello, world”。' },
+    fr: { word_phrase: 'Hello, world', sentence: 'Le premier programme de tout programmeur affiche « Hello, world ».' },
+    ru: { word_phrase: 'Hello, world', sentence: 'Первая программа любого программиста выводит «Hello, world».' },
+    es: { word_phrase: 'Hello, world', sentence: 'El primer programa de todo programador imprime «Hello, world».' }
+  }
 };
 
 const provider = new OpenCodeProvider();
@@ -76,11 +91,11 @@ for (const language of languages) {
     if (only && only !== 'german' && only !== facet) continue;
     await save(`${folderOf('german')}/facets/${facet}`, language, { word_phrase: await card('german', [facet], words[language], undefined, language) });
   }
-  for (const [type, inputs] of Object.entries(EXPERTISE)) {
+  for (const [type, keys] of Object.entries(EXPERTISE)) {
     if (only && only !== type) continue;
     await save(folderOf(type), language, {
-      word_phrase: await card(type, facetsOf(type), inputs.word_phrase, undefined, language),
-      sentence: await card(type, facetsOf(type), inputs.sentence, undefined, language)
+      word_phrase: await card(type, facetsOf(type), keys[language].word_phrase, undefined, language),
+      sentence: await card(type, facetsOf(type), keys[language].sentence, undefined, language)
     });
   }
 }

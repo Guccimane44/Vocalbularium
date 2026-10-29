@@ -3,27 +3,31 @@
     "core": {
       "relevance": "subject",
       "hasFormula": "yes",
-      "key": "eigenvalue",
+      "key": "Ecuación de segundo grado",
       "explanation": [
-        "Un valor propio (eigenvalue) de una transformación lineal es un escalar λ para el que existe un vector no nulo v que la transformación mantiene sobre su misma recta, estirándolo, encogiéndolo o invirtiéndolo: A v = λ v. Ese vector v recibe el nombre de vector propio (eigenvector).",
-        "Los valores propios permiten descomponer matrices y describir modos de vibración o estabilidad. Por ejemplo, si una transformación duplica la longitud de los vectores de cierta dirección, el valor propio correspondiente a esa dirección es 2."
+        "Una ecuación de segundo grado (quadratic equation) es una igualdad que, tras simplificarla, adopta la forma ax^2 + bx + c = 0 con a distinto de cero. El exponente 2 sobre la incógnita es lo que le da el nombre; si faltara, sería de primer grado.",
+        "Resolverla consiste en hallar los valores de x que cumplen la igualdad. Por ejemplo, x^2 - 5x + 6 = 0 se cumple para x = 2 y para x = 3. Gráficamente, sus soluciones reales son las abscisas de los puntos donde la parábola y = ax^2 + bx + c corta al eje horizontal."
       ]
     },
     "facets": {
       "formula": {
-        "latex": "A\\mathbf{v} = \\lambda \\mathbf{v}",
+        "latex": "ax^2+bx+c=0,\\quad a\\neq 0",
         "symbols": [
           {
-            "symbol": "A",
-            "meaning": "matriz o transformación lineal que actúa sobre los vectores"
+            "symbol": "a",
+            "meaning": "coeficiente del término cuadrático; debe ser distinto de cero"
           },
           {
-            "symbol": "\\mathbf{v}",
-            "meaning": "vector no nulo que la transformación mantiene sobre su misma recta: lo estira, lo encoge o lo invierte"
+            "symbol": "x",
+            "meaning": "incógnita, el valor que se busca"
           },
           {
-            "symbol": "\\lambda",
-            "meaning": "escalar por el que se multiplica el vector propio; es el valor propio"
+            "symbol": "b",
+            "meaning": "coeficiente del término lineal"
+          },
+          {
+            "symbol": "c",
+            "meaning": "término independiente o constante"
           }
         ]
       }
@@ -33,10 +37,9 @@
     "core": {
       "relevance": "subject",
       "hasFormula": "no",
-      "key": "Every square matrix has at least one eigenvalue.",
+      "key": "Una ecuación de segundo grado tiene como máximo dos soluciones reales.",
       "explanation": [
-        "La afirmación sostiene que toda matriz cuadrada tiene al menos un valor propio (eigenvalue): un escalar que deja algún vector no nulo en la misma dirección tras aplicar la matriz. Habla, por tanto, de la existencia de autovalores y de la estructura espectral de una matriz.",
-        "Interpretada sobre los números complejos, es cierta: el polinomio característico siempre tiene alguna raíz compleja. Sobre los números reales no lo es en general; por ejemplo, una rotación del plano distinta de 0° y 180° no deja ninguna dirección real fija."
+        "La afirmación describe una propiedad de las ecuaciones de segundo grado: como están definidas por un polinomio de grado dos, no pueden tener más de dos raíces reales. En otras palabras, al resolverlas pueden aparecer dos soluciones reales, una sola repetida o ninguna, pero nunca tres o más."
       ]
     },
     "facets": {}
