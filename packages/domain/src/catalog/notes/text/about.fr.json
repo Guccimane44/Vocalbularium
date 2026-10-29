@@ -1,5 +1,5 @@
 {
-  "summary": "Un espace pour vos propres notes : un moyen mnémotechnique, l’endroit où vous avez rencontré le mot, une correction, tout ce que vous voulez retenir.",
+  "summary": "Un espace pour vos propres notes : un moyen mnémotechnique, l’endroit où vous avez rencontré le mot, une correction, tout ce que vous voulez retenir.",
   "facts": [
     {
       "label": "Écrit par",
@@ -17,5 +17,5 @@
       "note": "Sur une même page"
     }
   ],
-  "example": "Attention à « **langue** maternelle » : en allemand, c’est *Muttersprache* — Sprache, pas Zunge."
+  "example": "Attention à « **langue** maternelle » : en allemand, c’est *Muttersprache* — Sprache, pas Zunge."
 }

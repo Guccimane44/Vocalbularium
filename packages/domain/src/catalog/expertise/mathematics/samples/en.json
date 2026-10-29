@@ -7,7 +7,7 @@
       "explanation": [
         "An eigenvalue of a square matrix A is a number λ for which some nonzero vector v satisfies Av = λv. The matrix sends that vector, its eigenvector, to a plain multiple of itself, so the vector keeps its line and is only stretched, shrunk or reversed.",
         "Because such a vector keeps its direction, applying the matrix again and again merely multiplies it by λ each time, so long-run growth, oscillation and stability can be read off from the eigenvalues. A diagonal matrix with entries 2 and 3 has eigenvalues 2 and 3.",
-        "Eigenvalues are found by solving det(A − λI) = 0, the characteristic equation, where I is the identity matrix. For the matrix with rows 2, 1 and 1, 2 the eigenvalues are 3 and 1, along the diagonal and the other diagonal."
+        "Eigenvalues are found by solving det(A − λI) = 0, the characteristic equation, where I is the identity matrix. For the matrix with rows 2, 1 and 1, 2 the eigenvalues are 3 and 1, with eigenvectors along the lines y = x and y = −x."
       ]
     },
     "facets": {

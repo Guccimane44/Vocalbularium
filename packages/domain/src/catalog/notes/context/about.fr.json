@@ -9,10 +9,10 @@
     {
       "label": "Génération",
       "value": "Le lit, ne l’écrit jamais",
-      "note": "Il choisit le sens de la clé"
+      "note": "Elle s’en sert pour choisir le sens de la clé"
     },
     {
-      "label": "Combien",
+      "label": "Nombre",
       "value": "Un au plus",
       "note": "Par page ou par paquet"
     }

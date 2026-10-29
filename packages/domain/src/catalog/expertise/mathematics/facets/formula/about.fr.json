@@ -1,5 +1,5 @@
 {
-  "summary": "La formule qui le définit, chaque symbole nommé.",
+  "summary": "La formule qui définit la notion, avec le nom de chaque symbole.",
   "appliesTo": "Notions définies par une formule",
-  "describes": "Une notion mathématique du noyau dont la définition usuelle comporte une formule ; jamais une clé hors des mathématiques."
+  "describes": "Une notion mathématique du noyau dont la définition usuelle comporte une formule ; jamais une clé hors des mathématiques."
 }

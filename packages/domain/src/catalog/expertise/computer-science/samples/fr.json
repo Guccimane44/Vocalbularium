@@ -5,8 +5,8 @@
       "hasCode": "no",
       "key": "Frontend",
       "explanation": [
-        "Le frontend désigne la partie d’un logiciel ou d’un site avec laquelle l’utilisateur interagit directement : écrans, boutons, formulaires, messages de retour. Dans une application web, il s’exécute pour l’essentiel dans le navigateur, à partir de pages HTML, de styles CSS et de scripts JavaScript.",
-        "Il se définit par opposition au backend, qui tourne sur le serveur et garde les données et la logique métier. Un formulaire de connexion illustre le partage : le frontend recueille la saisie, l’envoie au serveur, puis affiche le message de succès ou d’erreur renvoyé."
+        "Le frontend désigne la partie d’un logiciel ou d’un site avec laquelle l’utilisateur interagit directement : écrans, boutons, formulaires, messages de retour. Dans une application web, il s’exécute pour l’essentiel dans le navigateur, à partir de pages HTML, de styles CSS et de scripts JavaScript.",
+        "Il se définit par opposition au backend, qui tourne sur le serveur et garde les données et la logique métier. Un formulaire de connexion illustre le partage : le frontend recueille la saisie, l’envoie au serveur, puis affiche le message de succès ou d’erreur renvoyé."
       ]
     },
     "facets": {}

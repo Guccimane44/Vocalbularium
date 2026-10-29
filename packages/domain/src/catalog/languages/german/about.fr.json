@@ -1,5 +1,5 @@
 {
-  "summary": "Explique votre clé en allemand : les sens d’un mot, la traduction d’une phrase.",
+  "summary": "Explique votre clé en allemand : les sens d’un mot, la traduction d’une phrase.",
   "facts": [
     {
       "label": "Lit",
@@ -12,7 +12,7 @@
       "note": "Quelle que soit la langue dans laquelle vous utilisez Vocabularium"
     },
     {
-      "label": "Clé déjà en allemand ?",
+      "label": "Clé déjà en allemand ?",
       "value": "Expliquée, pas traduite",
       "note": "Un dictionnaire allemand–allemand"
     }

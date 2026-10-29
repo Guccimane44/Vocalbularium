@@ -5,8 +5,8 @@
       "hasFormula": "yes",
       "key": "eigenvalue",
       "explanation": [
-        "Un valor propio (eigenvalue) de una transformación lineal es un escalar λ para el que existe un vector no nulo v cuya dirección no cambia al aplicar la transformación, solo su longitud: A v = λ v. Ese vector v recibe el nombre de vector propio (eigenvector).",
-        "Los valores propios permiten descomponer matrices y describir modos de vibración o estabilidad. Por ejemplo, si una transformación duplica la longitud de los vectores de cierta dirección, el valor propio correspondiente a esa dirección es el doble."
+        "Un valor propio (eigenvalue) de una transformación lineal es un escalar λ para el que existe un vector no nulo v que la transformación mantiene sobre su misma recta, estirándolo, encogiéndolo o invirtiéndolo: A v = λ v. Ese vector v recibe el nombre de vector propio (eigenvector).",
+        "Los valores propios permiten descomponer matrices y describir modos de vibración o estabilidad. Por ejemplo, si una transformación duplica la longitud de los vectores de cierta dirección, el valor propio correspondiente a esa dirección es 2."
       ]
     },
     "facets": {
@@ -19,7 +19,7 @@
           },
           {
             "symbol": "\\mathbf{v}",
-            "meaning": "vector no nulo que solo cambia de longitud, no de dirección, al aplicarle la transformación"
+            "meaning": "vector no nulo que la transformación mantiene sobre su misma recta: lo estira, lo encoge o lo invierte"
           },
           {
             "symbol": "\\lambda",

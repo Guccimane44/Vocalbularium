@@ -35,9 +35,9 @@
       "hasFormula": "no",
       "key": "Every square matrix has at least one eigenvalue.",
       "explanation": [
-        "Prise sur les nombres complexes, cette phrase énonce que toute matrice carrée possède au moins une valeur propre (eigenvalue) : il existe un vecteur non nul que la matrice transforme en un multiple scalaire de lui-même.",
-        "Le résultat repose sur le polynôme caractéristique (characteristic polynomial) : ses racines sont exactement les valeurs propres. Sur les nombres complexes, toute équation polynomiale non constante possède une racine, donc ce polynôme en a au moins une.",
-        "Sur les nombres réels, l’énoncé est faux : une rotation du plan d’un quart de tour n’a aucune valeur propre réelle. Sans préciser le corps, on le comprend donc généralement sur les complexes."
+        "Prise sur les nombres complexes, cette phrase énonce que toute matrice carrée possède au moins une valeur propre (eigenvalue) : il existe un vecteur non nul que la matrice transforme en un multiple scalaire de lui-même.",
+        "Le résultat repose sur le polynôme caractéristique (characteristic polynomial) : ses racines sont exactement les valeurs propres. Sur les nombres complexes, toute équation polynomiale non constante possède une racine, donc ce polynôme en a au moins une.",
+        "Sur les nombres réels, l’énoncé est faux : une rotation du plan d’un quart de tour n’a aucune valeur propre réelle. Sans préciser le corps, on le comprend donc généralement sur les complexes."
       ]
     },
     "facets": {}

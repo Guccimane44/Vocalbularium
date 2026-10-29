@@ -22,8 +22,8 @@
       ],
       "synonyms": [
         "Idiom",
-        "Zunge",
-        "Redeweise"
+        "Landessprache",
+        "Nationalsprache"
       ],
       "declension": {
         "columns": [
@@ -75,8 +75,8 @@
     "facets": {
       "examples": [
         {
-          "sentence": "Les livres sont les fenêtres qui ouvrent les esprits et le cœur.",
-          "translation": "Bücher sind die Fenster, die die Geister und das Herz öffnen."
+          "sentence": "Les livres sont les fenêtres qui ouvrent l’esprit et le cœur.",
+          "translation": "Bücher sind die Fenster, die den Geist und das Herz öffnen."
         }
       ]
     }
