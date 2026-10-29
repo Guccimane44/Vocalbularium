@@ -1,0 +1,22 @@
+{
+  "word_phrase": {
+    "core": {
+      "kind": "word",
+      "language": "Englisch",
+      "key": "good",
+      "gramRole": "adjective",
+      "meanings": [
+        "gut",
+        "von guter Qualität"
+      ]
+    },
+    "facets": {
+      "synonyms": [
+        "fein",
+        "prima",
+        "prächtig",
+        "tüchtig"
+      ]
+    }
+  }
+}

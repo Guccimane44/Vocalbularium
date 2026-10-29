@@ -1,6 +1,6 @@
 # Install Vocabularium in Chrome
 
-A candidate ZIP contains this guide, the `extension` folder, and `package-info.json`, which identifies the package version, server address, and source revision. Release 0.13.0 is a local build: it connects to the Vocabularium API on the **same computer** at `127.0.0.1:4318`.
+A candidate ZIP contains this guide, the `extension` folder, and `package-info.json`, which identifies the package version, server address, and source revision. Release 0.13.1 is a local build: it connects to the Vocabularium API on the **same computer** at `127.0.0.1:4318`.
 
 ## Before installing
 

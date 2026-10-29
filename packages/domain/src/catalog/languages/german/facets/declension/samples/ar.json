@@ -1,0 +1,136 @@
+{
+  "word_phrase": {
+    "core": {
+      "kind": "word",
+      "language": "Arabisch",
+      "key": "جيد",
+      "romanization": "jayyid",
+      "gramRole": "adjective",
+      "meanings": [
+        "gut",
+        "in Ordnung",
+        "von guter Qualität"
+      ]
+    },
+    "facets": {
+      "declension": {
+        "columns": [
+          "Maskulinum",
+          "Femininum",
+          "Neutrum",
+          "Plural"
+        ],
+        "rows": [
+          {
+            "label": "stark Nominativ",
+            "cells": [
+              "guter",
+              "gute",
+              "gutes",
+              "gute"
+            ]
+          },
+          {
+            "label": "stark Genitiv",
+            "cells": [
+              "guten",
+              "guter",
+              "guten",
+              "guter"
+            ]
+          },
+          {
+            "label": "stark Dativ",
+            "cells": [
+              "gutem",
+              "guter",
+              "gutem",
+              "guten"
+            ]
+          },
+          {
+            "label": "stark Akkusativ",
+            "cells": [
+              "guten",
+              "gute",
+              "gutes",
+              "gute"
+            ]
+          },
+          {
+            "label": "schwach Nominativ",
+            "cells": [
+              "der gute",
+              "die gute",
+              "das gute",
+              "die guten"
+            ]
+          },
+          {
+            "label": "schwach Genitiv",
+            "cells": [
+              "des guten",
+              "der guten",
+              "des guten",
+              "der guten"
+            ]
+          },
+          {
+            "label": "schwach Dativ",
+            "cells": [
+              "dem guten",
+              "der guten",
+              "dem guten",
+              "den guten"
+            ]
+          },
+          {
+            "label": "schwach Akkusativ",
+            "cells": [
+              "den guten",
+              "die gute",
+              "das gute",
+              "die guten"
+            ]
+          },
+          {
+            "label": "gemischt Nominativ",
+            "cells": [
+              "ein guter",
+              "eine gute",
+              "ein gutes",
+              "keine guten"
+            ]
+          },
+          {
+            "label": "gemischt Genitiv",
+            "cells": [
+              "eines guten",
+              "einer guten",
+              "eines guten",
+              "keiner guten"
+            ]
+          },
+          {
+            "label": "gemischt Dativ",
+            "cells": [
+              "einem guten",
+              "einer guten",
+              "einem guten",
+              "keinen guten"
+            ]
+          },
+          {
+            "label": "gemischt Akkusativ",
+            "cells": [
+              "einen guten",
+              "eine gute",
+              "ein gutes",
+              "keine guten"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

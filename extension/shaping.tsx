@@ -475,13 +475,11 @@ function ModuleWindow({ types, disabled, unavailable, where, addAtEnd }: {
         if ((event.target as HTMLDetailsElement).open) next.add(family); else next.delete(family);
         if (next.size !== open.size) setOpen(next);
       }}>
-      <summary><span className="fam-chip"><FamilyIcon family={family} /></span>{familyLabel(family)}<span className="family-count">{total}</span></summary>
-      {/* The family's page, from the top of its group (D20, 0.13.0). */}
-      <button type="button" className="family-about" aria-label={t('about.family', { name: familyLabel(family) })} aria-haspopup="dialog"
-        onClick={() => openAbout({ kind: 'family', family })}>
-        {familyLabel(family)}
-        <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6" /></svg>
-      </button>
+      {/* The family's mark and name open its page; the rest of the heading folds the group (D21, 0.13.1). */}
+      <summary><button type="button" className="family-open" aria-label={t('about.family', { name: familyLabel(family) })} aria-haspopup="dialog"
+        onClick={event => { event.preventDefault(); event.stopPropagation(); openAbout({ kind: 'family', family }); }}>
+        <span className="fam-chip"><FamilyIcon family={family} /></span>{familyLabel(family)}
+      </button><span className="family-count">{total}</span></summary>
       <ul>
         {modules.map(type => <WindowModule key={type} type={type} explain={!disabled} addAtEnd={addAtEnd}
           blocked={disabled ? unavailable ?? t('shaping.unavailable') : blockedText(addBlockedReason(types.map(value => ({ type: value })), type), type)} />)}

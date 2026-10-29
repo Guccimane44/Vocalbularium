@@ -196,6 +196,8 @@
   "about.sampleLanguage": "Язык ключа в примере",
   "about.word": "Слово",
   "about.sentence": "Предложение",
+  "about.noun": "Существительное",
+  "about.adjective": "Прилагательное",
   "about.wordOrSentence": "Слово или предложение",
   "about.facetHint": "Добавьте разделы, чтобы настроить содержимое.",
   "about.appliesTo": "Применяется к",
@@ -203,9 +205,7 @@
   "about.samples": "Примеры",
   "about.leftOut": "Опускается. Ядро предложения — это перевод, а не одно слово, поэтому на его карточке раздела «{facet}» не бывает.",
   "about.noSample": "В этом примере для него ничего нет.",
-  "about.whereItSits": "Где он находится",
   "about.facetsOf": "Разделы модуля «{module}»",
-  "about.forExample": "Например",
   "about.facet": "О разделе «{name}»",
   "about.family": "О семействе «{name}»",
   "about.close": "Закрыть описание «{name}»",
@@ -384,5 +384,5 @@
   "catalog.mathematics.core.word_phrase": "Объяснение",
   "catalog.mathematics.core.sentence": "Объяснение",
   "catalog.mathematics.formula.label": "Формула",
-  "catalog.computer-science.code.label": "Пример кода"
+  "catalog.computer-science.code.label": "Python"
 }

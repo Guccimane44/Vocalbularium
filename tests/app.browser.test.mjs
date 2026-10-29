@@ -2359,6 +2359,8 @@ test('0.13.0: family, module and facet pages in one sheet, from the module windo
     Object.keys(PARENTS.german.facets).filter(facet => facet in english.word_phrase.facets).map(facet => PARENTS.german.facets[facet].abbreviation));
   await a.page.screenshot({ path: 'artifacts/v0.13.0-module-page.png', animations: 'disabled' });
   // The key's language and a sentence change the sample; only Examples applies to a sentence.
+  // Each language named in itself only (D21).
+  assert.deepEqual(await sheet.locator('select option').allTextContents(), ['العربية', 'English', 'Español', 'Français', 'Русский', '中文（简体）']);
   await sheet.getByLabel('Language of the sample key', { exact: true }).selectOption('ru');
   assert.equal(await sheet.locator('.about-key').innerText(), 'язык');
   await sheet.getByRole('button', { name: 'Sentence', exact: true }).click();
@@ -2372,18 +2374,40 @@ test('0.13.0: family, module and facet pages in one sheet, from the module windo
   assert.match(await path(), /^Languages\s*\/\s*German\s*\/\s*Article$/);
   assert.equal(await sheet.locator('.about-applies').innerText(), 'Nouns');
   const { singular, plural } = english.word_phrase.facets.article;
-  assert.equal(await sheet.locator('.about-facet-card .facet-body').innerText(), [singular, plural].filter(Boolean).join(' · '));
-  await sheet.locator('.about-where .about-here').waitFor();
+  // The sample sits on its card: the core and the other facets dimmed, Article in full (0.13.1).
+  assert.equal(await sheet.locator('.about-where .about-here .facet-body').innerText(), [singular, plural].filter(Boolean).join(' · '));
+  assert.equal(await sheet.locator('.about-where .about-other').count(), Object.keys(english.word_phrase.facets).length - 1);
+  assert.equal(await sheet.getByRole('heading', { name: 'Where it sits' }).count(), 0);
   await a.page.screenshot({ path: 'artifacts/v0.13.0-facet-page.png', animations: 'disabled' });
   await sheet.getByRole('button', { name: 'Sentence', exact: true }).click();
   assert.match(await sheet.locator('.about-left-out').innerText(), /Left out/);
   await sheet.locator('.about-strip button', { hasText: 'Conjugation' }).click();
   await waitFor(async () => await title() === 'Conjugation', 'Conjugation’s page');
   assert.equal(await sheet.locator('.about-key').innerText(), 'speak');
-  assert.match(await sheet.locator('.about-facet-card').innerText(), /habe gesprochen/);
+  // Its card is its own word's: the core is sprechen, not German's Sprache.
+  assert.match(await sheet.locator('.about-where .about-here').innerText(), /habe gesprochen/);
+  assert.match(await sheet.locator('.about-where .about-dim').first().innerText(), /sprechen/);
+  assert.doesNotMatch(await sheet.locator('.about-where .about-dim').first().innerText(), /Sprache/);
+  assert.equal(await sheet.locator('.about-flow').count(), 0, 'no key-to-core flow above the card');
+  await a.page.screenshot({ path: 'artifacts/v0.13.1-conjugation-page.png', animations: 'disabled' });
+  // Declension has a noun and an adjective (language, good); Synonyms shows good, gut (D21).
+  await sheet.locator('.about-strip button', { hasText: 'Declension' }).click();
+  await waitFor(async () => await title() === 'Declension', 'Declension’s page');
+  assert.deepEqual(await sheet.locator('.about-toggle button').allTextContents(), ['Noun', 'Adjective', 'Sentence']);
+  assert.equal(await sheet.locator('.about-key').innerText(), 'language');
+  await sheet.getByRole('button', { name: 'Adjective', exact: true }).click();
+  assert.equal(await sheet.locator('.about-key').innerText(), 'good');
+  assert.match(await sheet.locator('.about-where .about-here').innerText(), /ein guter/);
+  await a.page.screenshot({ path: 'artifacts/v0.13.1-declension-page.png', animations: 'disabled' });
+  await sheet.locator('.about-strip button', { hasText: 'Synonyms' }).click();
+  await waitFor(async () => await title() === 'Synonyms', 'Synonyms’ page');
+  assert.deepEqual(await sheet.locator('.about-toggle button').allTextContents(), ['Word', 'Sentence']);
+  assert.equal(await sheet.locator('.about-key').innerText(), 'good');
+  assert.match(await sheet.locator('.about-where .about-dim').first().innerText(), /gut/);
+  assert.ok((await sheet.locator('.about-where .about-here .facet-body').innerText()).trim());
   // Back returns one step; the path's German and Languages open theirs.
   await sheet.getByRole('button', { name: 'Back', exact: true }).click();
-  await waitFor(async () => await title() === 'Article', 'back to Article');
+  await waitFor(async () => await title() === 'Declension', 'back to Declension');
   await sheet.locator('.about-path button', { hasText: 'German' }).click();
   await waitFor(async () => await title() === 'German', 'German from the path');
   await sheet.locator('.about-path button', { hasText: 'Languages' }).click();
@@ -2397,9 +2421,12 @@ test('0.13.0: family, module and facet pages in one sheet, from the module windo
   assert.equal(await focused(about), true, 'the focus back on About German');
   assert.equal(await components(), before, 'reading a page adds nothing');
 
-  // The family's link at the top of its group opens the family page; the close button closes it.
+  // The family's mark and name in its group's heading open the family page, leaving the group as it was (D21); the close button closes it.
+  const group = a.page.locator('.window-family.fam-translation');
+  const wasOpen = await group.evaluate(node => node.open);
   await a.page.getByRole('button', { name: 'About Languages', exact: true }).click();
   await waitFor(async () => await title() === 'Languages', 'Languages from the window');
+  assert.equal(await group.evaluate(node => node.open), wasOpen, 'opening the page does not fold the group');
   await sheet.getByRole('button', { name: 'Close About Languages', exact: true }).click();
   await sheet.waitFor({ state: 'detached' });
   // An Expertise module's page keeps its own term, with no language dropdown and no How it works; a click outside closes it.
@@ -2409,7 +2436,24 @@ test('0.13.0: family, module and facet pages in one sheet, from the module windo
   await waitFor(async () => await title() === 'Computer Science', 'Computer Science’s page');
   assert.equal(await sheet.locator('select').count(), 0);
   assert.equal(await sheet.locator('.about-chain').count(), 0);
-  assert.match(await sheet.locator('.about-card').innerText(), /Frontend/);
+  assert.equal(await sheet.locator('.about-facts').count(), 0, 'no Reads, Writes, Best for (D21)');
+  assert.equal(await sheet.locator('.about-row .about-pill').count(), 0, 'no applies-to on an Expertise facet (D21)');
+  assert.match(await sheet.locator('.about-card').innerText(), /Hello, world/);
+  await a.page.mouse.click(5, 5);
+  await sheet.waitFor({ state: 'detached' });
+  // Text and Context show no facts and no example (D21); Context, already on the page, is reached from the Notes page.
+  const aboutText = a.page.locator('.window-module[data-type="text"] .window-about');
+  await openFamily(aboutText);
+  await aboutText.click();
+  for (const name of ['Text', 'Context']) {
+    if (name === 'Context') {
+      await sheet.locator('.about-path button', { hasText: 'Notes' }).click();
+      await waitFor(async () => await title() === 'Notes', 'the Notes page');
+      await sheet.locator('.about-row', { hasText: 'Context' }).click();
+    }
+    await waitFor(async () => await title() === name, `${name}’s page`);
+    assert.equal(await sheet.locator('.about-facts, .about-section, .about-card').count(), 0, `${name} shows only its header`);
+  }
   await a.page.mouse.click(5, 5);
   await sheet.waitFor({ state: 'detached' });
 

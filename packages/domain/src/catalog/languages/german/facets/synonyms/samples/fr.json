@@ -1,0 +1,22 @@
+{
+  "word_phrase": {
+    "core": {
+      "kind": "word",
+      "language": "Französisch",
+      "key": "bon",
+      "gramRole": "adjective",
+      "meanings": [
+        "gut",
+        "richtig"
+      ]
+    },
+    "facets": {
+      "synonyms": [
+        "prima",
+        "toll",
+        "ausgezeichnet",
+        "hervorragend"
+      ]
+    }
+  }
+}

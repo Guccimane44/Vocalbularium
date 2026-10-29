@@ -1,20 +1,3 @@
 {
-  "summary": "Explica un término, una expresión o una oración como lo entiende la informática, con palabras breves y sencillas, a menudo con un pequeño ejemplo.",
-  "facts": [
-    {
-      "label": "Lee",
-      "value": "Cualquier idioma",
-      "note": "Palabras, expresiones y oraciones"
-    },
-    {
-      "label": "Escribe",
-      "value": "Tu idioma",
-      "note": "El idioma en que usas Vocabularium"
-    },
-    {
-      "label": "Ideal para",
-      "value": "Términos informáticos",
-      "note": "frontend, caché, recursión"
-    }
-  ]
+  "summary": "Explica un término, una expresión o una oración como lo entiende la informática, con palabras breves y sencillas, a menudo con un pequeño ejemplo."
 }

@@ -3,27 +3,32 @@
     "core": {
       "relevance": "subject",
       "hasFormula": "yes",
-      "key": "eigenvalue",
+      "key": "Équation du second degré",
       "explanation": [
-        "Une valeur propre (eigenvalue) d’une matrice A ou d’une application linéaire est un scalaire λ pour lequel il existe un vecteur non nul v tel que A v = λ v. Ce vecteur v est un vecteur propre (eigenvector) associé.",
-        "Elle décrit comment une transformation dilate ou contracte certaines directions privilégiées, éventuellement en les renversant. On l’emploie pour diagonaliser, étudier des systèmes dynamiques et résoudre des équations différentielles."
+        "Une équation du second degré est une équation polynomiale dont l’inconnue apparaît au carré. On la ramène toujours à la forme ax² + bx + c = 0, où a, b et c sont des nombres donnés et a n’est pas nul.",
+        "Son discriminant Δ = b² − 4ac indique le nombre de solutions réelles : deux si Δ > 0, une seule si Δ = 0, aucune si Δ < 0. Les solutions s’écrivent alors (−b ± √Δ) / (2a) lorsqu’elles existent.",
+        "Par exemple, x² − 5x + 6 = 0 donne Δ = 25 − 24 = 1, donc deux solutions, x = 2 et x = 3 ; on les retrouve en factorisant (x − 2)(x − 3)."
       ]
     },
     "facets": {
       "formula": {
-        "latex": "A\\mathbf{v} = \\lambda\\mathbf{v}",
+        "latex": "ax^{2}+bx+c=0",
         "symbols": [
           {
-            "symbol": "A",
-            "meaning": "matrice de l’application linéaire dans une base donnée"
+            "symbol": "a",
+            "meaning": "coefficient du terme du second degré, non nul"
           },
           {
-            "symbol": "\\mathbf{v}",
-            "meaning": "vecteur propre non nul sur lequel l’application agit comme une multiplication scalaire"
+            "symbol": "x",
+            "meaning": "inconnue que l’on cherche à déterminer"
           },
           {
-            "symbol": "\\lambda",
-            "meaning": "valeur propre, scalaire par lequel le vecteur propre est multiplié"
+            "symbol": "b",
+            "meaning": "coefficient du terme du premier degré"
+          },
+          {
+            "symbol": "c",
+            "meaning": "terme constant"
           }
         ]
       }
@@ -33,11 +38,10 @@
     "core": {
       "relevance": "subject",
       "hasFormula": "no",
-      "key": "Every square matrix has at least one eigenvalue.",
+      "key": "Une équation du second degré a au plus deux solutions réelles.",
       "explanation": [
-        "Prise sur les nombres complexes, cette phrase énonce que toute matrice carrée possède au moins une valeur propre (eigenvalue) : il existe un vecteur non nul que la matrice transforme en un multiple scalaire de lui-même.",
-        "Le résultat repose sur le polynôme caractéristique (characteristic polynomial) : ses racines sont exactement les valeurs propres. Sur les nombres complexes, toute équation polynomiale non constante possède une racine, donc ce polynôme en a au moins une.",
-        "Sur les nombres réels, l’énoncé est faux : une rotation du plan d’un quart de tour n’a aucune valeur propre réelle. Sans préciser le corps, on le comprend donc généralement sur les complexes."
+        "Une équation du second degré (quadratic equation) s’écrit ax² + bx + c = 0 avec a ≠ 0. La phrase énonce que, dans les nombres réels, elle ne peut pas admettre plus de deux solutions distinctes.",
+        "Sur le graphique de la parabole associée, les solutions réelles sont les abscisses des points d’intersection avec l’axe horizontal ; il y en a au plus deux. Le discriminant permet de compter ces racines : aucune, une double ou deux distinctes."
       ]
     },
     "facets": {}

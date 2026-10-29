@@ -1,0 +1,18 @@
+{
+  "word_phrase": {
+    "core": {
+      "kind": "word",
+      "language": "Spanisch",
+      "key": "bueno",
+      "gramRole": "adjective",
+      "meanings": [
+        "gut"
+      ]
+    },
+    "facets": {
+      "antonyms": [
+        "schlecht"
+      ]
+    }
+  }
+}

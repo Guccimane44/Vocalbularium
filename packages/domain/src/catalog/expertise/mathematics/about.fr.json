@@ -1,20 +1,3 @@
 {
-  "summary": "Explique un terme, une expression ou une phrase comme les mathématiques le comprennent, en mots courts et simples, souvent avec un petit exemple.",
-  "facts": [
-    {
-      "label": "Lit",
-      "value": "Toutes les langues",
-      "note": "Mots, expressions et phrases"
-    },
-    {
-      "label": "Écrit",
-      "value": "Votre langue",
-      "note": "La langue dans laquelle vous utilisez Vocabularium"
-    },
-    {
-      "label": "Idéal pour",
-      "value": "Termes mathématiques",
-      "note": "valeur propre, anneau, corps"
-    }
-  ]
+  "summary": "Explique un terme, une expression ou une phrase comme les mathématiques le comprennent, en mots courts et simples, souvent avec un petit exemple."
 }

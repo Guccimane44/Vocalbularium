@@ -196,6 +196,8 @@
   "about.sampleLanguage": "Idioma de la clave de ejemplo",
   "about.word": "Palabra",
   "about.sentence": "Oración",
+  "about.noun": "Sustantivo",
+  "about.adjective": "Adjetivo",
   "about.wordOrSentence": "Palabra u oración",
   "about.facetHint": "Añade facetas para un contenido más personalizado.",
   "about.appliesTo": "Se aplica a",
@@ -203,9 +205,7 @@
   "about.samples": "Ejemplos",
   "about.leftOut": "Se omite. El núcleo de una oración es una traducción, no una sola palabra, así que su tarjeta nunca muestra {facet}.",
   "about.noSample": "Este ejemplo no tiene nada para ella.",
-  "about.whereItSits": "Dónde se ubica",
   "about.facetsOf": "Facetas de {module}",
-  "about.forExample": "Por ejemplo",
   "about.facet": "Acerca de {name}",
   "about.family": "Acerca de {name}",
   "about.close": "Cerrar Acerca de {name}",
@@ -384,5 +384,5 @@
   "catalog.mathematics.core.word_phrase": "Explicación",
   "catalog.mathematics.core.sentence": "Explicación",
   "catalog.mathematics.formula.label": "Fórmula",
-  "catalog.computer-science.code.label": "Ejemplo de código"
+  "catalog.computer-science.code.label": "Python"
 }

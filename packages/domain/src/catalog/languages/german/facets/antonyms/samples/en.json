@@ -1,0 +1,23 @@
+{
+  "word_phrase": {
+    "core": {
+      "kind": "word",
+      "language": "Englisch",
+      "key": "good",
+      "gramRole": "adjective",
+      "meanings": [
+        "gut",
+        "von hoher Qualität",
+        "angenehm",
+        "geeignet"
+      ]
+    },
+    "facets": {
+      "antonyms": [
+        "schlecht",
+        "böse",
+        "übel"
+      ]
+    }
+  }
+}

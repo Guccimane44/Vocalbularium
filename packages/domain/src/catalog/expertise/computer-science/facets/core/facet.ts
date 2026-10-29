@@ -5,7 +5,7 @@ import { defineCore, escapeMarkdown, list, object, oneOf, optional, plainLines, 
 // unrelated key), then the key and an explanation. The explanation is a list
 // of paragraphs, one string each, which keeps line breaks out of the JSON. The
 // top line shows the key only; the case is kept but not shown. For a key of
-// the subject, `hasCode` says whether the concept is usually shown in code, which lets Code example apply (D17).
+// the subject, `hasCode` says whether the concept is usually shown in code, which lets Python example apply (D17).
 const explanation = list(text(), { name: 'The explanation', each: 'Paragraph' });
 const shape = object({
   relevance: oneOf(['subject', 'neighbouring', 'unrelated'], 'The relevance'),

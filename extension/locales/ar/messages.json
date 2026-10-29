@@ -196,6 +196,8 @@
   "about.sampleLanguage": "لغة مفتاح المثال",
   "about.word": "كلمة",
   "about.sentence": "جملة",
+  "about.noun": "اسم",
+  "about.adjective": "صفة",
   "about.wordOrSentence": "كلمة أم جملة",
   "about.facetHint": "أضف جوانب لمحتوى أكثر تخصيصًا.",
   "about.appliesTo": "ينطبق على",
@@ -203,9 +205,7 @@
   "about.samples": "أمثلة",
   "about.leftOut": "يُسقط. نواة الجملة ترجمة لا كلمة واحدة، فلا تُظهر بطاقتها {facet} أبدًا.",
   "about.noSample": "لا يتضمّن هذا المثال شيئًا له.",
-  "about.whereItSits": "موقعه في البطاقة",
   "about.facetsOf": "جوانب {module}",
-  "about.forExample": "مثال",
   "about.facet": "حول {name}",
   "about.family": "حول {name}",
   "about.close": "إغلاق «حول {name}»",
@@ -384,5 +384,5 @@
   "catalog.mathematics.core.word_phrase": "الشرح",
   "catalog.mathematics.core.sentence": "الشرح",
   "catalog.mathematics.formula.label": "الصيغة",
-  "catalog.computer-science.code.label": "مثال برمجي"
+  "catalog.computer-science.code.label": "Python"
 }

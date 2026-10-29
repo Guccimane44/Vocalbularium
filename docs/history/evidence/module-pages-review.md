@@ -31,3 +31,13 @@ Several Mathematics explanations said an eigenvector's direction never changes, 
 - Of the suggestions, those that removed ambiguity were taken (Expertise "best for" labels in Arabic and Russian; agreement on the Notes family page in French and Spanish; the French Context note); style preferences were left.
 
 The owner reviews a representative set of samples before increment A merges.
+
+## 0.13.1: the new Expertise samples and the Python facet
+
+29 October 2026. [D21](../../architecture/traceability-map.md#entries) replaced the Expertise samples (*quadratic equation* in the interface language, *Hello, world* in English) and Code example with Python. `npm run samples` generated the 12 cards (24 provider calls, no failures); a separate Claude reviewer read them and the Python facet's page text in six languages, and ran every code example (all eight print as expected).
+
+16 problems and 25 suggestions. The problems, all fixed by hand: solutions called the *points* where the parabola meets the axis instead of their abscissas (Arabic, Russian, Spanish); a muddled factor argument in Arabic; an equation called a polynomial in Spanish; "一个" real root where Chinese convention says two equal roots; an ungrammatical symbol meaning in the Russian formula; an English sentence card starting with an "it" without antecedent; `Hello, world!` with an exclamation mark in the Spanish code; a missing "من" and a misattributed test in Arabic; the jargon 必现 in Chinese; and four French spaces of the wrong width. Two suggestions were taken for consistency across languages: no sentence card shows a Python facet, and the Chinese code holds one example.
+
+## 0.13.1: *good* for Synonyms, Antonyms and Declension
+
+29 October 2026. [D21](../../architecture/traceability-map.md#entries) gives every facet page at least one representative sample: German's *language* has no synonyms or antonyms in most languages, so Synonyms and Antonyms use *good* (*gut*), and Declension adds it as an adjective. `npm run samples` generated the 18 cards (18 provider calls, no failures), read and corrected by hand: French *bon* was read as the German noun *Bon* (receipt) on the Synonyms and Antonyms cards, which now take the adjective; four Declension tables gave the weak and mixed forms without their articles and now match the English table; the English synonyms listed *gut* itself; and interjection meanings (*ja*, *na ja*, *okay*, *einverstanden*) were dropped from the cores. A catalog test now requires a sample for every facet in every interface language.

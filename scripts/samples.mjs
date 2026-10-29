@@ -1,10 +1,12 @@
 // Generates the samples the family, module and facet pages show (D20, K63):
 // for each content module and each interface language, the whole card for a
 // word and for a sentence, written by the live provider with the current
-// prompts, and for the German facets that never apply to a noun their own
-// word's card (K65). It writes `samples/<language>.json` in the module's or
-// facet's folder of the catalog, for review before it is committed; nothing
-// generates a sample when a page opens. It spends provider usage.
+// prompts. A German facet that never applies to a noun has its own word's card
+// (K65), as do Synonyms and Antonyms, which *language* has none of, and
+// Declension, an adjective beside the noun (D21). It writes
+// `samples/<language>.json` in the module's or facet's folder of the catalog,
+// for review before it is committed; nothing generates a sample when a page
+// opens. It spends provider usage.
 // Usage: npm run samples -- [module] [language], such as `german fr`.
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
@@ -23,17 +25,37 @@ const read = async path => JSON.parse(await readFile(new URL(path, catalog), 'ut
 // they were met in, in each interface language.
 const keys = Object.fromEntries(await Promise.all(INTERFACE_LANGUAGES.map(async language => [language, await read(`main-key/samples/${language}.json`)])));
 const contexts = Object.fromEntries(await Promise.all(INTERFACE_LANGUAGES.map(async language => [language, await read(`notes/context/samples/${language}.json`)])));
-// A word beside "language" for a facet that never applies to a noun (K65).
+// A word beside "language" for a facet that never applies to a noun (K65), or
+// for one *language* shows nothing representative of (D21): *good*, gut.
+const GOOD = { en: 'good', ar: 'جيد', 'zh-Hans': '好', fr: 'bon', ru: 'хороший', es: 'bueno' };
 const FACET_WORDS = {
   conjugation: { en: 'speak', ar: 'تكلّم', 'zh-Hans': '说话', fr: 'parler', ru: 'говорить', es: 'hablar' },
   comparison: { en: 'clear', ar: 'واضح', 'zh-Hans': '清楚', fr: 'clair', ru: 'ясный', es: 'claro' },
-  case: { en: 'between', ar: 'بين', 'zh-Hans': '之间', fr: 'entre', ru: 'между', es: 'entre' }
+  case: { en: 'between', ar: 'بين', 'zh-Hans': '之间', fr: 'entre', ru: 'между', es: 'entre' },
+  synonyms: GOOD,
+  antonyms: GOOD,
+  declension: GOOD
 };
-// The Expertise modules keep their subject's own term; they write in the
-// interface language, so each language has its own card for the same key.
+// The Expertise modules use a term of their subject, written in the interface
+// language they write in (D21): Mathematics "quadratic equation"; Computer
+// Science "Hello, world", which stays English in every language.
 const EXPERTISE = {
-  mathematics: { word_phrase: 'eigenvalue', sentence: 'Every square matrix has at least one eigenvalue.' },
-  'computer-science': { word_phrase: 'Frontend', sentence: 'The frontend shows what the backend sends back.' }
+  mathematics: {
+    en: { word_phrase: 'Quadratic equation', sentence: 'A quadratic equation has at most two real solutions.' },
+    ar: { word_phrase: 'المعادلة التربيعية', sentence: 'للمعادلة التربيعية حلّان حقيقيان على الأكثر.' },
+    'zh-Hans': { word_phrase: '一元二次方程', sentence: '一元二次方程最多有两个实数根。' },
+    fr: { word_phrase: 'Équation du second degré', sentence: 'Une équation du second degré a au plus deux solutions réelles.' },
+    ru: { word_phrase: 'Квадратное уравнение', sentence: 'Квадратное уравнение имеет не более двух действительных корней.' },
+    es: { word_phrase: 'Ecuación de segundo grado', sentence: 'Una ecuación de segundo grado tiene como máximo dos soluciones reales.' }
+  },
+  'computer-science': {
+    en: { word_phrase: 'Hello, world', sentence: 'Every programmer’s first program prints “Hello, world”.' },
+    ar: { word_phrase: 'Hello, world', sentence: 'أول برنامج يكتبه كل مبرمج يطبع «Hello, world».' },
+    'zh-Hans': { word_phrase: 'Hello, world', sentence: '每个程序员的第一个程序都会输出“Hello, world”。' },
+    fr: { word_phrase: 'Hello, world', sentence: 'Le premier programme de tout programmeur affiche « Hello, world ».' },
+    ru: { word_phrase: 'Hello, world', sentence: 'Первая программа любого программиста выводит «Hello, world».' },
+    es: { word_phrase: 'Hello, world', sentence: 'El primer programa de todo programador imprime «Hello, world».' }
+  }
 };
 
 const provider = new OpenCodeProvider();
@@ -76,11 +98,11 @@ for (const language of languages) {
     if (only && only !== 'german' && only !== facet) continue;
     await save(`${folderOf('german')}/facets/${facet}`, language, { word_phrase: await card('german', [facet], words[language], undefined, language) });
   }
-  for (const [type, inputs] of Object.entries(EXPERTISE)) {
+  for (const [type, keys] of Object.entries(EXPERTISE)) {
     if (only && only !== type) continue;
     await save(folderOf(type), language, {
-      word_phrase: await card(type, facetsOf(type), inputs.word_phrase, undefined, language),
-      sentence: await card(type, facetsOf(type), inputs.sentence, undefined, language)
+      word_phrase: await card(type, facetsOf(type), keys[language].word_phrase, undefined, language),
+      sentence: await card(type, facetsOf(type), keys[language].sentence, undefined, language)
     });
   }
 }

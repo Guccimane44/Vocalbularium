@@ -196,6 +196,8 @@
   "about.sampleLanguage": "示例词条的语言",
   "about.word": "单词",
   "about.sentence": "句子",
+  "about.noun": "名词",
+  "about.adjective": "形容词",
   "about.wordOrSentence": "单词或句子",
   "about.facetHint": "添加子项，获得更多定制内容。",
   "about.appliesTo": "适用于",
@@ -203,9 +205,7 @@
   "about.samples": "示例",
   "about.leftOut": "已略去。句子的核心是译文而不是单个词，所以句子卡片从不显示{facet}。",
   "about.noSample": "这个示例里没有它的内容。",
-  "about.whereItSits": "在卡片上的位置",
   "about.facetsOf": "{module}的子项",
-  "about.forExample": "例如",
   "about.facet": "关于{name}",
   "about.family": "关于{name}",
   "about.close": "关闭“关于{name}”",
@@ -384,5 +384,5 @@
   "catalog.mathematics.core.word_phrase": "解释",
   "catalog.mathematics.core.sentence": "解释",
   "catalog.mathematics.formula.label": "公式",
-  "catalog.computer-science.code.label": "代码示例"
+  "catalog.computer-science.code.label": "Python"
 }

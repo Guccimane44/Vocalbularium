@@ -1,20 +1,3 @@
 {
-  "summary": "The sentence or paragraph around the text you captured, kept with the page so a word with several meanings is explained in the sense you met it in.",
-  "facts": [
-    {
-      "label": "Comes from",
-      "value": "Your capture",
-      "note": "The text around your selection"
-    },
-    {
-      "label": "Generation",
-      "value": "Reads it, never writes it",
-      "note": "It picks the key's meaning"
-    },
-    {
-      "label": "How many",
-      "value": "At most one",
-      "note": "On a page or in a deck"
-    }
-  ]
+  "summary": "The sentence or paragraph around the text you captured, kept with the page so a word with several meanings is explained in the sense you met it in."
 }
