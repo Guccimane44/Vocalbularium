@@ -1,0 +1,23 @@
+{
+  "word_phrase": {
+    "core": {
+      "kind": "word",
+      "language": "Spanisch",
+      "key": "claro",
+      "gramRole": "adjective",
+      "meanings": [
+        "klar",
+        "hell",
+        "offensichtlich",
+        "natürlich"
+      ]
+    },
+    "facets": {
+      "comparison": {
+        "positive": "klar",
+        "comparative": "klarer",
+        "superlative": "am klarsten"
+      }
+    }
+  }
+}

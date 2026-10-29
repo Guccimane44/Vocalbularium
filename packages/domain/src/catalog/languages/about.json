@@ -1,0 +1,17 @@
+{
+  "summary": "Modules that put your key into one language: they explain a word in it, or translate a sentence into it.",
+  "steps": [
+    {
+      "title": "Reads your key in any language",
+      "text": "It finds the key's language in the key itself, and decides whether it is a word or a sentence."
+    },
+    {
+      "title": "Writes the core in its language",
+      "text": "A word's meanings, or a sentence's translation. A key already in that language is explained, not translated."
+    },
+    {
+      "title": "Facets describe its translation",
+      "text": "Not your key. Each module has its own facets, in its own order, and leaves out those that do not apply."
+    }
+  ]
+}

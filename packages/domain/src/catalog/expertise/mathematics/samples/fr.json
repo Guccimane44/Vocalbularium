@@ -1,0 +1,45 @@
+{
+  "word_phrase": {
+    "core": {
+      "relevance": "subject",
+      "hasFormula": "yes",
+      "key": "eigenvalue",
+      "explanation": [
+        "Une valeur propre (eigenvalue) d’une matrice A ou d’une application linéaire est un scalaire λ pour lequel il existe un vecteur non nul v tel que A v = λ v. Ce vecteur v est un vecteur propre (eigenvector) associé.",
+        "Elle décrit comment une transformation dilate ou contracte certaines directions privilégiées, éventuellement en les renversant. On l’emploie pour diagonaliser, étudier des systèmes dynamiques et résoudre des équations différentielles."
+      ]
+    },
+    "facets": {
+      "formula": {
+        "latex": "A\\mathbf{v} = \\lambda\\mathbf{v}",
+        "symbols": [
+          {
+            "symbol": "A",
+            "meaning": "matrice de l’application linéaire dans une base donnée"
+          },
+          {
+            "symbol": "\\mathbf{v}",
+            "meaning": "vecteur propre non nul sur lequel l’application agit comme une multiplication scalaire"
+          },
+          {
+            "symbol": "\\lambda",
+            "meaning": "valeur propre, scalaire par lequel le vecteur propre est multiplié"
+          }
+        ]
+      }
+    }
+  },
+  "sentence": {
+    "core": {
+      "relevance": "subject",
+      "hasFormula": "no",
+      "key": "Every square matrix has at least one eigenvalue.",
+      "explanation": [
+        "Prise sur les nombres complexes, cette phrase énonce que toute matrice carrée possède au moins une valeur propre (eigenvalue) : il existe un vecteur non nul que la matrice transforme en un multiple scalaire de lui-même.",
+        "Le résultat repose sur le polynôme caractéristique (characteristic polynomial) : ses racines sont exactement les valeurs propres. Sur les nombres complexes, toute équation polynomiale non constante possède une racine, donc ce polynôme en a au moins une.",
+        "Sur les nombres réels, l’énoncé est faux : une rotation du plan d’un quart de tour n’a aucune valeur propre réelle. Sans préciser le corps, on le comprend donc généralement sur les complexes."
+      ]
+    },
+    "facets": {}
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "word_phrase": {
+    "core": {
+      "kind": "word",
+      "language": "法语",
+      "key": "langue",
+      "meanings": [
+        "语言"
+      ]
+    },
+    "facets": {
+      "examples": [
+        {
+          "sentence": "Chaque été, elle apprend une nouvelle langue.",
+          "translation": "每年夏天，她学习一门新语言。"
+        }
+      ],
+      "pinyin": [
+        {
+          "text": "语言",
+          "pinyin": "yǔyán"
+        }
+      ]
+    }
+  },
+  "sentence": {
+    "core": {
+      "kind": "sentence",
+      "language": "法语",
+      "key": "Les langues sont les ponts qui relient les gens et le monde.",
+      "meanings": [
+        "语言是连接人们与世界的桥梁。"
+      ]
+    },
+    "facets": {
+      "examples": [
+        {
+          "sentence": "Les livres sont les fenêtres qui ouvrent sur le monde.",
+          "translation": "书籍是通向世界的窗户。"
+        }
+      ],
+      "pinyin": [
+        {
+          "text": "语言是连接人们与世界的桥梁。",
+          "pinyin": "yǔyán shì liánjiē rénmen yǔ shìjiè de qiáoliáng"
+        }
+      ]
+    }
+  }
+}

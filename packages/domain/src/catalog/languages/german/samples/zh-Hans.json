@@ -1,0 +1,86 @@
+{
+  "word_phrase": {
+    "core": {
+      "kind": "word",
+      "language": "Chinesisch",
+      "key": "语言",
+      "romanization": "yǔyán",
+      "gramRole": "noun",
+      "meanings": [
+        "Sprache"
+      ]
+    },
+    "facets": {
+      "article": {
+        "singular": "die Sprache",
+        "plural": "die Sprachen"
+      },
+      "examples": [
+        {
+          "sentence": "语言让不同文化的人能够相互理解。",
+          "translation": "Sprache ermöglicht es Menschen aus verschiedenen Kulturen, einander zu verstehen."
+        }
+      ],
+      "synonyms": [
+        "Sprachsystem",
+        "Idiom",
+        "Verständigungsmittel"
+      ],
+      "declension": {
+        "columns": [
+          "Singular",
+          "Plural"
+        ],
+        "rows": [
+          {
+            "label": "Nominativ",
+            "cells": [
+              "die Sprache",
+              "die Sprachen"
+            ]
+          },
+          {
+            "label": "Genitiv",
+            "cells": [
+              "der Sprache",
+              "der Sprachen"
+            ]
+          },
+          {
+            "label": "Dativ",
+            "cells": [
+              "der Sprache",
+              "den Sprachen"
+            ]
+          },
+          {
+            "label": "Akkusativ",
+            "cells": [
+              "die Sprache",
+              "die Sprachen"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "sentence": {
+    "core": {
+      "kind": "sentence",
+      "language": "Chinesisch",
+      "key": "语言是连接人与世界的桥梁。",
+      "romanization": "Yǔyán shì liánjiē rén yǔ shìjiè de qiáoliáng.",
+      "meanings": [
+        "Sprache ist die Brücke, die Menschen und die Welt verbindet."
+      ]
+    },
+    "facets": {
+      "examples": [
+        {
+          "sentence": "音乐是连接心灵与世界的桥梁。",
+          "translation": "Musik ist die Brücke, die Herzen und die Welt verbindet."
+        }
+      ]
+    }
+  }
+}

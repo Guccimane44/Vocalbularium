@@ -1,0 +1,20 @@
+{
+  "summary": "Explains a term, a phrase or a sentence as computer science understands it, in short, plain words, often with a small example.",
+  "facts": [
+    {
+      "label": "Reads",
+      "value": "Any language",
+      "note": "Words, phrases and sentences"
+    },
+    {
+      "label": "Writes",
+      "value": "Your language",
+      "note": "The language you use Vocabularium in"
+    },
+    {
+      "label": "Best for",
+      "value": "Computing terms",
+      "note": "frontend, cache, recursion"
+    }
+  ]
+}

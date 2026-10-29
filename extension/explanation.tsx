@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { explanationBlocks, facetSampleOf, INPUT_TYPES, sampleKeyOf, sampleOf } from '@vocabularium/domain/explanations';
+import { aboutBlocks, facetSampleOf, INPUT_TYPES, sampleKeyOf, sampleOf } from '@vocabularium/domain/about';
 import { CATALOG, isModuleType } from '@vocabularium/domain/page-modules';
 import type { ModuleFamily } from '@vocabularium/domain/page-modules';
 import type { FacetType, ParentType } from '@vocabularium/domain/parents';
@@ -12,8 +12,8 @@ import { facetMark, facetName, moduleLabel } from './catalog-text.ts';
 // use it, then its sample for a word and for a sentence, as its card would
 // show it, so a user learns it without trying it.
 
-const forWhat = (module: string, inputType: 'word_phrase' | 'sentence') => {
-  const key = sampleKeyOf(module, inputType);
+const forWhat = (module: string, inputType: 'word_phrase' | 'sentence', facet?: string) => {
+  const key = sampleKeyOf(module, inputType, currentLanguage(), facet);
   const what = inputType === 'word_phrase' ? t('about.forWord') : t('about.forSentence');
   return key ? t('about.forKey', { what, key }) : what;
 };
@@ -46,15 +46,15 @@ export function ModuleExplanation({ type, close }: { type: string; close: () => 
       <h2 id={titleId}>{label}</h2>
       <button type="button" className="preview-close" aria-label={t('about.close', { name: label })} onClick={done}>×</button>
     </div>
-    <Markdown blocks={explanationBlocks(type, undefined, currentLanguage())} mainKey="" className="explanation-text" />
+    <Markdown blocks={aboutBlocks(type, undefined, currentLanguage())} mainKey="" className="explanation-text" />
     <div className="explanation-samples">
       {INPUT_TYPES.map(inputType => {
-        const rendered = sampleOf(type, inputType);
+        const rendered = sampleOf(type, inputType, undefined, currentLanguage());
         if (!rendered) return null;
         return <section key={inputType} className="explanation-sample" aria-label={t('about.sampleLabel', { what: forWhat(type, inputType) })}>
           <h3>{forWhat(type, inputType)} <span className="muted">{t('about.sample')}</span></h3>
           <article className={`component preview fam-${family}`} data-type={type}>
-            <Content type={type} rendered={rendered} mainKey={sampleKeyOf(type, inputType) ?? ''} />
+            <Content type={type} rendered={rendered} mainKey={sampleKeyOf(type, inputType, currentLanguage()) ?? ''} />
           </article>
         </section>;
       })}
@@ -66,12 +66,12 @@ export function ModuleExplanation({ type, close }: { type: string; close: () => 
 // and its part of its module's sample, only for the inputs it applies to.
 export function FacetExplanation({ id, parent, facet }: { id: string; parent: ParentType; facet: FacetType }) {
   return <div id={id} className="facet-explanation">
-    <Markdown blocks={explanationBlocks(parent, facet, currentLanguage())} mainKey="" className="explanation-text" />
+    <Markdown blocks={aboutBlocks(parent, facet, currentLanguage())} mainKey="" className="explanation-text" />
     {INPUT_TYPES.map(inputType => {
-      const blocks = facetSampleOf(parent, facet, inputType);
+      const blocks = facetSampleOf(parent, facet, inputType, currentLanguage());
       return blocks && <div key={inputType} className="explanation-sample">
-        <h4>{forWhat(parent, inputType)} <span className="muted">{t('about.sample')}</span></h4>
-        <Markdown blocks={blocks} mainKey={sampleKeyOf(parent, inputType) ?? ''} className="facet-body" />
+        <h4>{forWhat(parent, inputType, facet)} <span className="muted">{t('about.sample')}</span></h4>
+        <Markdown blocks={blocks} mainKey={sampleKeyOf(parent, inputType, currentLanguage(), facet) ?? ''} className="facet-body" />
       </div>;
     })}
   </div>;

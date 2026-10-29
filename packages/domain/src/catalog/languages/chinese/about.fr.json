@@ -1,0 +1,20 @@
+{
+  "summary": "Explique votre clé en chinois : les sens d’un mot, la traduction d’une phrase, en caractères simplifiés.",
+  "facts": [
+    {
+      "label": "Lit",
+      "value": "Toutes les langues",
+      "note": "Mots, expressions et phrases"
+    },
+    {
+      "label": "Écrit",
+      "value": "Le chinois",
+      "note": "En caractères simplifiés, quelle que soit la langue dans laquelle vous utilisez Vocabularium"
+    },
+    {
+      "label": "Clé déjà en chinois ?",
+      "value": "Expliquée, pas traduite",
+      "note": "Un dictionnaire chinois–chinois"
+    }
+  ]
+}

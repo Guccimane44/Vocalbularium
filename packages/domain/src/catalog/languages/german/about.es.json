@@ -1,0 +1,20 @@
+{
+  "summary": "Explica tu clave en alemán: los significados de una palabra, la traducción de una oración.",
+  "facts": [
+    {
+      "label": "Lee",
+      "value": "Cualquier idioma",
+      "note": "Palabras, expresiones y oraciones"
+    },
+    {
+      "label": "Escribe",
+      "value": "Alemán",
+      "note": "Sea cual sea el idioma en que uses Vocabularium"
+    },
+    {
+      "label": "¿La clave ya está en alemán?",
+      "value": "Se explica, no se traduce",
+      "note": "Un diccionario alemán–alemán"
+    }
+  ]
+}

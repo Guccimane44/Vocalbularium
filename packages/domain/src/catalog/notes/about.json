@@ -1,0 +1,17 @@
+{
+  "summary": "Your own input: the Context captured around your key, and the notes you write.",
+  "steps": [
+    {
+      "title": "Captured or written by you",
+      "text": "Context comes with a capture; Text holds what you write."
+    },
+    {
+      "title": "Never generated",
+      "text": "Generation never writes or changes them."
+    },
+    {
+      "title": "Context helps the other modules",
+      "text": "A content module reads the Context to choose the key's meaning; Text is never read."
+    }
+  ]
+}

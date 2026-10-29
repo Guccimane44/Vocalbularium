@@ -1,0 +1,44 @@
+{
+  "word_phrase": {
+    "core": {
+      "relevance": "subject",
+      "hasFormula": "yes",
+      "key": "eigenvalue",
+      "explanation": [
+        "Un valor propio (eigenvalue) de una transformación lineal es un escalar λ para el que existe un vector no nulo v que la transformación mantiene sobre su misma recta, estirándolo, encogiéndolo o invirtiéndolo: A v = λ v. Ese vector v recibe el nombre de vector propio (eigenvector).",
+        "Los valores propios permiten descomponer matrices y describir modos de vibración o estabilidad. Por ejemplo, si una transformación duplica la longitud de los vectores de cierta dirección, el valor propio correspondiente a esa dirección es 2."
+      ]
+    },
+    "facets": {
+      "formula": {
+        "latex": "A\\mathbf{v} = \\lambda \\mathbf{v}",
+        "symbols": [
+          {
+            "symbol": "A",
+            "meaning": "matriz o transformación lineal que actúa sobre los vectores"
+          },
+          {
+            "symbol": "\\mathbf{v}",
+            "meaning": "vector no nulo que la transformación mantiene sobre su misma recta: lo estira, lo encoge o lo invierte"
+          },
+          {
+            "symbol": "\\lambda",
+            "meaning": "escalar por el que se multiplica el vector propio; es el valor propio"
+          }
+        ]
+      }
+    }
+  },
+  "sentence": {
+    "core": {
+      "relevance": "subject",
+      "hasFormula": "no",
+      "key": "Every square matrix has at least one eigenvalue.",
+      "explanation": [
+        "La afirmación sostiene que toda matriz cuadrada tiene al menos un valor propio (eigenvalue): un escalar que deja algún vector no nulo en la misma dirección tras aplicar la matriz. Habla, por tanto, de la existencia de autovalores y de la estructura espectral de una matriz.",
+        "Interpretada sobre los números complejos, es cierta: el polinomio característico siempre tiene alguna raíz compleja. Sobre los números reales no lo es en general; por ejemplo, una rotación del plano distinta de 0° y 180° no deja ninguna dirección real fija."
+      ]
+    },
+    "facets": {}
+  }
+}

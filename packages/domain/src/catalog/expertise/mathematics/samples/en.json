@@ -1,0 +1,45 @@
+{
+  "word_phrase": {
+    "core": {
+      "relevance": "subject",
+      "hasFormula": "yes",
+      "key": "eigenvalue",
+      "explanation": [
+        "An eigenvalue of a square matrix A is a number λ for which some nonzero vector v satisfies Av = λv. The matrix sends that vector, its eigenvector, to a plain multiple of itself, so the vector keeps its line and is only stretched, shrunk or reversed.",
+        "Because such a vector keeps its direction, applying the matrix again and again merely multiplies it by λ each time, so long-run growth, oscillation and stability can be read off from the eigenvalues. A diagonal matrix with entries 2 and 3 has eigenvalues 2 and 3.",
+        "Eigenvalues are found by solving det(A − λI) = 0, the characteristic equation, where I is the identity matrix. For the matrix with rows 2, 1 and 1, 2 the eigenvalues are 3 and 1, with eigenvectors along the lines y = x and y = −x."
+      ]
+    },
+    "facets": {
+      "formula": {
+        "latex": "A v = \\lambda v",
+        "symbols": [
+          {
+            "symbol": "A",
+            "meaning": "the square matrix whose eigenvalue is sought"
+          },
+          {
+            "symbol": "v",
+            "meaning": "an eigenvector, a nonzero vector the matrix only scales"
+          },
+          {
+            "symbol": "\\lambda",
+            "meaning": "the eigenvalue, the number by which that vector is scaled"
+          }
+        ]
+      }
+    }
+  },
+  "sentence": {
+    "core": {
+      "relevance": "subject",
+      "hasFormula": "no",
+      "key": "Every square matrix has at least one eigenvalue.",
+      "explanation": [
+        "The statement says that for any square matrix, a matrix with as many rows as columns, there is a scalar λ and a nonzero vector v satisfying Av = λv; λ is then an eigenvalue.",
+        "It is true over the complex numbers because the characteristic polynomial, a polynomial built from the matrix, has a complex root there. Over the real numbers it can fail: a rotation by a right angle has no real eigenvector."
+      ]
+    },
+    "facets": {}
+  }
+}

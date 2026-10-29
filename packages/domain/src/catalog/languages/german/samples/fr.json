@@ -1,0 +1,84 @@
+{
+  "word_phrase": {
+    "core": {
+      "kind": "word",
+      "language": "Französisch",
+      "key": "langue",
+      "gramRole": "noun",
+      "meanings": [
+        "Sprache als System der Verständigung"
+      ]
+    },
+    "facets": {
+      "article": {
+        "singular": "die Sprache",
+        "plural": "die Sprachen"
+      },
+      "examples": [
+        {
+          "sentence": "Elle apprend une nouvelle langue chaque été.",
+          "translation": "Sie lernt jeden Sommer eine neue Sprache."
+        }
+      ],
+      "synonyms": [
+        "Idiom",
+        "Landessprache",
+        "Nationalsprache"
+      ],
+      "declension": {
+        "columns": [
+          "Singular",
+          "Plural"
+        ],
+        "rows": [
+          {
+            "label": "Nominativ",
+            "cells": [
+              "die Sprache",
+              "die Sprachen"
+            ]
+          },
+          {
+            "label": "Genitiv",
+            "cells": [
+              "der Sprache",
+              "der Sprachen"
+            ]
+          },
+          {
+            "label": "Dativ",
+            "cells": [
+              "der Sprache",
+              "den Sprachen"
+            ]
+          },
+          {
+            "label": "Akkusativ",
+            "cells": [
+              "die Sprache",
+              "die Sprachen"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "sentence": {
+    "core": {
+      "kind": "sentence",
+      "language": "Französisch",
+      "key": "Les langues sont les ponts qui relient les gens et le monde.",
+      "meanings": [
+        "Sprachen sind die Brücken, die die Menschen und die Welt verbinden."
+      ]
+    },
+    "facets": {
+      "examples": [
+        {
+          "sentence": "Les livres sont les fenêtres qui ouvrent l’esprit et le cœur.",
+          "translation": "Bücher sind die Fenster, die den Geist und das Herz öffnen."
+        }
+      ]
+    }
+  }
+}

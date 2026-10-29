@@ -1,0 +1,23 @@
+{
+  "word_phrase": {
+    "core": {
+      "kind": "word",
+      "language": "Arabisch",
+      "key": "واضح",
+      "romanization": "wāḍiḥ",
+      "gramRole": "adjective",
+      "meanings": [
+        "klar",
+        "deutlich",
+        "offensichtlich"
+      ]
+    },
+    "facets": {
+      "comparison": {
+        "positive": "klar",
+        "comparative": "klarer",
+        "superlative": "am klarsten"
+      }
+    }
+  }
+}

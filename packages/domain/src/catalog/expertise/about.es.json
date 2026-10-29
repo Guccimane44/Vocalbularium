@@ -1,0 +1,17 @@
+{
+  "summary": "Módulos que explican tu clave como la entiende una disciplina, en el idioma en que usas Vocabularium.",
+  "steps": [
+    {
+      "title": "Lee tu clave en cualquier idioma",
+      "text": "Un término, una expresión o una oración, en el idioma en que lo encontraste."
+    },
+    {
+      "title": "La explica como la disciplina",
+      "text": "Con palabras breves y sencillas para quien aprende, a menudo con un pequeño ejemplo, en el idioma de la interfaz."
+    },
+    {
+      "title": "Avisa cuando una clave está fuera de la disciplina",
+      "text": "Un término de un campo vecino se nombra como tal y se explica brevemente; una clave sin relación recibe una sola frase honesta."
+    }
+  ]
+}

@@ -8,11 +8,10 @@ import conjugation from './facets/conjugation/facet.js';
 import declension from './facets/declension/facet.js';
 import comparison from './facets/comparison/facet.js';
 import grammaticalCase from './facets/case/facet.js';
-import sample from './sample.json' with { type: 'json' };
 
 export default defineContentModule({
   id: 'german', kind: 'content', label: 'German',
   description: 'Explains a word in German, or translates a sentence into German.',
-  instances: 'many', source: 'generated', sample, provider: 'text',
+  instances: 'many', source: 'generated', provider: 'text',
   core, facets: [article, examples, synonyms, antonyms, conjugation, declension, comparison, grammaticalCase]
 });

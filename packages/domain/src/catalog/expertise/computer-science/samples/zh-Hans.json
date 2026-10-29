@@ -1,0 +1,28 @@
+{
+  "word_phrase": {
+    "core": {
+      "relevance": "subject",
+      "hasCode": "no",
+      "key": "Frontend",
+      "explanation": [
+        "前端（frontend）指软件系统中直接与用户打交道的部分，通常运行在浏览器或移动设备上，负责界面呈现与交互。",
+        "它把后端（backend）提供的数据和服务组织成页面、按钮、表单等可见元素，并把用户操作转成请求。",
+        "做一个网页时，HTML 和 CSS 搭建结构与样式，JavaScript 处理点击和动画，这些工作都属于前端。"
+      ]
+    },
+    "facets": {}
+  },
+  "sentence": {
+    "core": {
+      "relevance": "subject",
+      "hasCode": "no",
+      "key": "The frontend shows what the backend sends back.",
+      "explanation": [
+        "这句话描述前端（frontend）负责呈现，后端（backend）负责提供数据：用户操作触发请求，后端处理后把结果送回，前端再把它显示出来。",
+        "它依赖前后端分工和请求—响应（request-response）模型：前端管界面与交互，后端管业务逻辑与数据，二者通过网络接口交换信息。",
+        "这种说法强调展示层与数据来源的分离，界面显示的内容来自后端返回的响应，而不是前端自己生成的业务数据。"
+      ]
+    },
+    "facets": {}
+  }
+}

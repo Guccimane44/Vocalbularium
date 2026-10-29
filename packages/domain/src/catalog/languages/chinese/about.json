@@ -1,0 +1,20 @@
+{
+  "summary": "Explains your key in Chinese: the meanings of a word, the translation of a sentence, in simplified characters.",
+  "facts": [
+    {
+      "label": "Reads",
+      "value": "Any language",
+      "note": "Words, phrases and sentences"
+    },
+    {
+      "label": "Writes",
+      "value": "Chinese",
+      "note": "Simplified characters, whatever language you use Vocabularium in"
+    },
+    {
+      "label": "Key already Chinese?",
+      "value": "Explained, not translated",
+      "note": "A Chinese–Chinese dictionary"
+    }
+  ]
+}

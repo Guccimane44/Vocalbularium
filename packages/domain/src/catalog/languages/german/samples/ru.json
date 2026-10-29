@@ -1,0 +1,86 @@
+{
+  "word_phrase": {
+    "core": {
+      "kind": "word",
+      "language": "Russisch",
+      "key": "язык",
+      "romanization": "yazyk",
+      "gramRole": "noun",
+      "meanings": [
+        "Sprache",
+        "Zunge"
+      ]
+    },
+    "facets": {
+      "article": {
+        "singular": "die Sprache",
+        "plural": "die Sprachen"
+      },
+      "examples": [
+        {
+          "sentence": "Она учит новый язык каждый год.",
+          "translation": "Sie lernt jedes Jahr eine neue Sprache."
+        },
+        {
+          "sentence": "Он обжёг язык горячим чаем.",
+          "translation": "Er verbrannte sich die Zunge am heißen Tee."
+        }
+      ],
+      "declension": {
+        "columns": [
+          "Singular",
+          "Plural"
+        ],
+        "rows": [
+          {
+            "label": "Nominativ",
+            "cells": [
+              "die Sprache",
+              "die Sprachen"
+            ]
+          },
+          {
+            "label": "Genitiv",
+            "cells": [
+              "der Sprache",
+              "der Sprachen"
+            ]
+          },
+          {
+            "label": "Dativ",
+            "cells": [
+              "der Sprache",
+              "den Sprachen"
+            ]
+          },
+          {
+            "label": "Akkusativ",
+            "cells": [
+              "die Sprache",
+              "die Sprachen"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "sentence": {
+    "core": {
+      "kind": "sentence",
+      "language": "Russisch",
+      "key": "Языки — это мосты, соединяющие людей и мир.",
+      "romanization": "Yazyki — eto mosty, soyedinyayushchiye lyudey i mir.",
+      "meanings": [
+        "Sprachen sind Brücken, die Menschen und die Welt verbinden."
+      ]
+    },
+    "facets": {
+      "examples": [
+        {
+          "sentence": "Книги — это окна, открывающие людям мир.",
+          "translation": "Bücher sind Fenster, die den Menschen die Welt öffnen."
+        }
+      ]
+    }
+  }
+}

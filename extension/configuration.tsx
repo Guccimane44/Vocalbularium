@@ -4,10 +4,9 @@ import type { DeckEditorDraft } from '../types/editor-drafts.js';
 import type { DeckColour, DeckConfiguration } from '@vocabularium/contracts';
 import { isParentType, withFacet } from '@vocabularium/domain/parents';
 import type { FacetType, ParentType } from '@vocabularium/domain/parents';
-import { MODULES } from '@vocabularium/domain/catalog';
 import { addBlocked, CATALOG, DECK_COLOURS, isModuleType } from '@vocabularium/domain/page-modules';
 import type { ModuleFamily } from '@vocabularium/domain/page-modules';
-import { sampleOf } from '@vocabularium/domain/explanations';
+import { sampleKeyOf, sampleOf } from '@vocabularium/domain/about';
 import { deckColour } from './deck-colour.ts';
 import { FacetTags } from './facet-tags.tsx';
 import { FacetWindow } from './facet-window.tsx';
@@ -16,7 +15,7 @@ import { mainKeyTier } from './main-key.ts';
 import { ActionIcon, Content, LandingCard } from './page-view.tsx';
 import { moduleLabel, numbered, ShapingArea } from './shaping.tsx';
 import type { RowParts } from './shaping.tsx';
-import { t } from './i18n.ts';
+import { currentLanguage, t } from './i18n.ts';
 import type { MessageKey } from './i18n.ts';
 
 // A parent added to the deck starts with its core only (D08).
@@ -57,7 +56,9 @@ function PreviewDialog({ modules, sampleType, choose, close }: {
   // Closing the dialog first returns focus to the Preview button that opened it.
   const done = () => { ref.current?.close(); close(); };
   const [key, ...rest] = modules;
-  const mainKey = MODULES['main-key'].sample![sampleType] as string;
+  // The samples in the interface language (D20, C30): "language" and its sentence.
+  const language = currentLanguage();
+  const mainKey = sampleKeyOf('main-key', sampleType, language) ?? '';
   return <dialog ref={ref} className="preview-dialog" aria-labelledby="preview-title"
     onCancel={event => { event.preventDefault(); done(); }}
     onClick={event => { if (event.target === event.currentTarget) done(); }}>
@@ -65,8 +66,8 @@ function PreviewDialog({ modules, sampleType, choose, close }: {
       <h2 id="preview-title">{t('deck.preview')}</h2>
       <label className="visually-hidden" htmlFor="sample-input">{t('deck.preview.sampleInput')}</label>
       <select id="sample-input" value={sampleType} onChange={event => choose(event.target.value as 'word_phrase' | 'sentence')}>
-        <option value="word_phrase">{t('deck.preview.word', { sample: '幸福' })}</option>
-        <option value="sentence">{t('deck.preview.sentence', { sample: '我真的很幸福' })}</option>
+        <option value="word_phrase">{t('deck.preview.word', { sample: sampleKeyOf('main-key', 'word_phrase', language) ?? '' })}</option>
+        <option value="sentence">{t('deck.preview.sentence', { sample: sampleKeyOf('main-key', 'sentence', language) ?? '' })}</option>
       </select>
       <button type="button" className="preview-close" aria-label={t('deck.preview.close')} onClick={done}>×</button>
     </div>
@@ -75,7 +76,7 @@ function PreviewDialog({ modules, sampleType, choose, close }: {
       <p className="main-key preview" dir="auto" data-type={key.type} data-tier={mainKeyTier(mainKey)}>{mainKey}</p>
       {rest.map(module => {
         // A module's sample from the catalog (D11), with the facets it has here.
-        const rendered = sampleOf(module.type, sampleType, module.facets ?? []);
+        const rendered = sampleOf(module.type, sampleType, module.facets ?? [], language);
         const family = familyOf(module.type);
         // Like a page, an empty component (Text) is only its tab.
         return <article className={`component preview fam-${family}`} data-empty={!rendered || undefined} key={module.id} data-type={module.type}>

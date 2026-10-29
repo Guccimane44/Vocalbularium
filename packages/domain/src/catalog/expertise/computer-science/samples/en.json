@@ -1,0 +1,25 @@
+{
+  "word_phrase": {
+    "core": {
+      "relevance": "subject",
+      "hasCode": "no",
+      "key": "Frontend",
+      "explanation": [
+        "Frontend, the part of a software system that users see and interact with, covers the interface and client-side behaviour. In a web application it runs in the browser, renders pages and handles input while sending requests to a backend, the server-side part.",
+        "The frontend turns data and operations into controls, text and feedback people can use. It also enforces interaction details such as form validation and layout, so its design and code directly shape how a system behaves for its users."
+      ]
+    },
+    "facets": {}
+  },
+  "sentence": {
+    "core": {
+      "relevance": "subject",
+      "hasCode": "no",
+      "key": "The frontend shows what the backend sends back.",
+      "explanation": [
+        "It describes a client-server split: the frontend, the part users interact with in a browser or app, displays data produced by the backend, the server-side program that handles logic and storage. The sentence relies on a request-response exchange between them."
+      ]
+    },
+    "facets": {}
+  }
+}

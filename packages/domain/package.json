@@ -44,9 +44,9 @@
       "types": "./dist/composer/compose.d.ts",
       "import": "./dist/composer/compose.js"
     },
-    "./explanations": {
-      "types": "./dist/explanations.d.ts",
-      "import": "./dist/explanations.js"
+    "./about": {
+      "types": "./dist/about.d.ts",
+      "import": "./dist/about.js"
     }
   },
   "dependencies": {

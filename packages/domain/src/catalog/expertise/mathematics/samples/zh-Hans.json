@@ -1,0 +1,45 @@
+{
+  "word_phrase": {
+    "core": {
+      "relevance": "subject",
+      "hasFormula": "yes",
+      "key": "eigenvalue",
+      "explanation": [
+        "特征值（eigenvalue）是方阵的一种数值特征：若存在非零向量 v，使 A v = λ v 成立，则数 λ 叫作矩阵 A 的特征值，v 叫对应的特征向量。",
+        "矩阵作用在向量上，通常会同时改变它的方向和长度；但沿某些特殊方向，向量仍在原来的直线上，只被拉长、缩短或反向，这些方向就是特征向量，伸缩的倍数即特征值。",
+        "例如对角元为 2 和 3 的二阶对角矩阵，特征值就是 2 和 3，特征向量分别沿两个坐标轴方向。解微分方程、分析振动和做主成分分析时，都要靠特征值看清系统的固有性质。"
+      ]
+    },
+    "facets": {
+      "formula": {
+        "latex": "A\\mathbf{v} = \\lambda\\mathbf{v}",
+        "symbols": [
+          {
+            "symbol": "A",
+            "meaning": "方阵（矩阵）"
+          },
+          {
+            "symbol": "\\mathbf{v}",
+            "meaning": "非零的特征向量"
+          },
+          {
+            "symbol": "\\lambda",
+            "meaning": "特征值，即该向量被伸缩的倍数"
+          }
+        ]
+      }
+    }
+  },
+  "sentence": {
+    "core": {
+      "relevance": "subject",
+      "hasFormula": "no",
+      "key": "Every square matrix has at least one eigenvalue.",
+      "explanation": [
+        "这句话说，任意方阵都存在一个非零向量，经该矩阵作用后仍在原来的直线上（被拉长、缩短或反向），倍数就是特征值（eigenvalue）。它把“有特征值”等同于方程 Av = λv 有非零解。",
+        "在复数范围内这总成立：特征多项式（characteristic polynomial）必有复根，所以每个方阵至少有一个特征值。若只在实数中讨论，则未必成立，例如旋转 90° 的矩阵没有实特征值。"
+      ]
+    },
+    "facets": {}
+  }
+}

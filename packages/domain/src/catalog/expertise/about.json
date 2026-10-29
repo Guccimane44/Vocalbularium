@@ -1,0 +1,17 @@
+{
+  "summary": "Modules that explain your key as one subject understands it, in the language you use Vocabularium in.",
+  "steps": [
+    {
+      "title": "Reads your key in any language",
+      "text": "A term, a phrase or a sentence, in whatever language you met it."
+    },
+    {
+      "title": "Explains it as the subject does",
+      "text": "In short, plain words for a learner, often with a small example, written in your interface language."
+    },
+    {
+      "title": "Says when a key is outside the subject",
+      "text": "A neighbouring field's term is named as such and explained briefly; an unrelated key gets one honest sentence."
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "word_phrase": {
+    "core": {
+      "kind": "word",
+      "language": "英语",
+      "key": "language",
+      "meanings": [
+        "语言"
+      ]
+    },
+    "facets": {
+      "examples": [
+        {
+          "sentence": "English is a widely spoken language.",
+          "translation": "英语是一门广泛使用的语言。"
+        }
+      ],
+      "pinyin": [
+        {
+          "text": "语言",
+          "pinyin": "yǔyán"
+        }
+      ]
+    }
+  },
+  "sentence": {
+    "core": {
+      "kind": "sentence",
+      "language": "英语",
+      "key": "Languages are the bridges connecting people and the world.",
+      "meanings": [
+        "语言是连接人与世界的桥梁。"
+      ]
+    },
+    "facets": {
+      "examples": [
+        {
+          "sentence": "Music is the bridge connecting hearts and cultures.",
+          "translation": "音乐是连接心灵与文化的桥梁。"
+        }
+      ],
+      "pinyin": [
+        {
+          "text": "语言是连接人与世界的桥梁。",
+          "pinyin": "Yǔyán shì liánjiē rén yǔ shìjiè de qiáoliáng."
+        }
+      ]
+    }
+  }
+}

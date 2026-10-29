@@ -1,0 +1,30 @@
+{
+  "word_phrase": {
+    "core": {
+      "kind": "word",
+      "language": "Chinesisch",
+      "key": "之间",
+      "romanization": "zhījiān",
+      "gramRole": "preposition",
+      "meanings": [
+        "zwischen (räumlich oder zeitlich)",
+        "unter (mehreren Personen oder Dingen)",
+        "im Zeitraum zwischen"
+      ]
+    },
+    "facets": {
+      "case": [
+        {
+          "case": "Akkusativ",
+          "use": "Richtung oder Bewegung auf ein Ziel hin",
+          "example": "Ich stelle den Stuhl zwischen die Tür und das Fenster."
+        },
+        {
+          "case": "Dativ",
+          "use": "Lage oder Position an einem Ort",
+          "example": "Der Stuhl steht zwischen der Tür und dem Fenster."
+        }
+      ]
+    }
+  }
+}
