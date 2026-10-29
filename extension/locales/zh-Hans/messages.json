@@ -206,7 +206,6 @@
   "about.leftOut": "已略去。句子的核心是译文而不是单个词，所以句子卡片从不显示{facet}。",
   "about.noSample": "这个示例里没有它的内容。",
   "about.facetsOf": "{module}的子项",
-  "about.forExample": "例如",
   "about.facet": "关于{name}",
   "about.family": "关于{name}",
   "about.close": "关闭“关于{name}”",

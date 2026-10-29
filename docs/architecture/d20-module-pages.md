@@ -42,7 +42,7 @@ The family's name, mark and colour; one sentence on what its modules do; what ev
 ### Expertise and Notes module pages
 
 - **An Expertise module** (board 4) has the header, three facts (*Reads: any language*, *Writes:* the interface language, *Best for:* the subject's terms), **See it on a card** with **Word** or **Sentence** on the subject's own term and no language dropdown, a card with the core and the same facet hint, and its facets. It has no How it works.
-- **Text** (board 5) has the header, three facts (*Written by: you*, *Generation: never touches it*, *How many: as many as you like*) and an example note; no generated sample and no facets.
+- **Text** (board 5) has the header, three facts (*Written by: you*, *Generation: never touches it*, *How many: as many as you like*); no example, generated sample or facets (until 0.13.1 an example note, [D21](traceability-map.md#entries)).
 
 The pages say **core** for what the facets are written from. The specifications' term *grammar word* ([modules](../specs/modules.md#catalog)) stays as an internal term and is not shown.
 
@@ -51,7 +51,7 @@ The pages say **core** for what the facets are written from. The specifications'
 - **The Languages modules** use one sample set: the word *language* and the sentence *Languages are the bridges connecting people and the world.*, in each interface language (English, Arabic, Chinese, French, Russian, Spanish), each as its module writes it. The set grows with the interface languages. The 幸福 sample of the early development is retired.
 - **A facet that never applies to a noun** uses a word beside *language* in the same languages: Conjugation uses *speak* (*sprechen*). Comparison and Case get theirs by [K65](traceability-map.md#clarifications).
 - **The Expertise modules** keep their subject's own term (Mathematics *eigenvalue*, Computer Science *Frontend*), as their samples are today.
-- **Text** has no generated sample; **Context** shows its sample text.
+- **Text** has no generated sample; **Context** shows its sample text (until 0.13.1; neither page shows an example since [D21](traceability-map.md#entries)).
 - Samples are stored in the catalog and reviewed before release; they are never generated when a page opens ([K63](traceability-map.md#clarifications)).
 
 ### Unchanged

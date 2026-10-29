@@ -21,7 +21,7 @@ import type { Rendered } from './render.js';
 export const INPUT_TYPES: readonly InputType[] = ['word_phrase', 'sentence'];
 
 export type FamilyAbout = Readonly<{ summary: string; steps: readonly Readonly<{ title: string; text: string }>[] }>;
-export type ModuleAbout = Readonly<{ summary: string; facts: readonly Readonly<{ label: string; value: string; note: string }>[]; example?: string }>;
+export type ModuleAbout = Readonly<{ summary: string; facts: readonly Readonly<{ label: string; value: string; note: string }>[] }>;
 export type FacetAbout = Readonly<{ summary: string; appliesTo: string; describes: string }>;
 
 const familyFolder = (family: FamilyId) => CATALOG_FAMILIES.find(each => each.id === family)?.folder;

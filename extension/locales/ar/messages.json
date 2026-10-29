@@ -206,7 +206,6 @@
   "about.leftOut": "يُسقط. نواة الجملة ترجمة لا كلمة واحدة، فلا تُظهر بطاقتها {facet} أبدًا.",
   "about.noSample": "لا يتضمّن هذا المثال شيئًا له.",
   "about.facetsOf": "جوانب {module}",
-  "about.forExample": "مثال",
   "about.facet": "حول {name}",
   "about.family": "حول {name}",
   "about.close": "إغلاق «حول {name}»",

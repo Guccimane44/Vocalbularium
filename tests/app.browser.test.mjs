@@ -2439,6 +2439,22 @@ test('0.13.0: family, module and facet pages in one sheet, from the module windo
   assert.match(await sheet.locator('.about-card').innerText(), /Hello, world/);
   await a.page.mouse.click(5, 5);
   await sheet.waitFor({ state: 'detached' });
+  // Text and Context show their facts and no example (D21); Context, already on the page, is reached from the Notes page.
+  const aboutText = a.page.locator('.window-module[data-type="text"] .window-about');
+  await openFamily(aboutText);
+  await aboutText.click();
+  for (const name of ['Text', 'Context']) {
+    if (name === 'Context') {
+      await sheet.locator('.about-path button', { hasText: 'Notes' }).click();
+      await waitFor(async () => await title() === 'Notes', 'the Notes page');
+      await sheet.locator('.about-row', { hasText: 'Context' }).click();
+    }
+    await waitFor(async () => await title() === name, `${name}’s page`);
+    assert.equal(await sheet.locator('.about-facts > div').count(), 3);
+    assert.equal(await sheet.locator('.about-section, .about-card').count(), 0, `${name} shows no For example`);
+  }
+  await a.page.mouse.click(5, 5);
+  await sheet.waitFor({ state: 'detached' });
 
   // In the facet window a row's › opens the facet's page over the window, which stays open beneath it.
   const facets = await facetWindow(a.page, 'German');

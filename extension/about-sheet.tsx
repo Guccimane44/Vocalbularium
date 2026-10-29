@@ -216,7 +216,6 @@ function ModulePage({ module, go }: { module: string; go: (next: AboutTarget) =>
   const key = sampleKeyOf(module, sample.inputType, sample.language) ?? '';
   const coreOnly = parent && sampleOf(module, sample.inputType, [], sample.language);
   const whole = parent && sampleOf(module, sample.inputType, undefined, sample.language);
-  const note = !parent && module !== 'text' && sampleOf(module, 'word_phrase', undefined, language);
   return <>
     <Hero eyebrow={t('about.moduleEyebrow', { family: familyLabel(family) })} chip={<FamilyIcon family={family} />} title={label} lede={about?.summary} />
     {about && <dl className="about-facts">
@@ -241,17 +240,6 @@ function ModulePage({ module, go }: { module: string; go: (next: AboutTarget) =>
         </span></li>
       </ol>
     </section>}
-    {note && <section className="about-section">
-      <h3>{t('about.forExample')}</h3>
-      <SampleCard module={module} rendered={note} mainKey={sampleKeyOf('main-key', 'word_phrase', language) ?? ''} />
-    </section>}
-    {about?.example && <section className="about-section">
-      <h3>{t('about.forExample')}</h3>
-      <article className={`component preview about-card fam-${family}`}>
-        <div className="card-tab"><FamilyIcon family={family} /><span className="tab-label">{label}</span></div>
-        <ExampleText text={about.example} />
-      </article>
-    </section>}
     {parent && <section className="about-section" aria-labelledby="about-facets">
       <h3 id="about-facets">{t('about.facets')}</h3>
       <ul className="about-list">
@@ -267,13 +255,6 @@ function ModulePage({ module, go }: { module: string; go: (next: AboutTarget) =>
       </ul>
     </section>}
   </>;
-}
-
-// Text's example note, its bold and italic as markdown.
-function ExampleText({ text }: { text: string }) {
-  const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/).filter(Boolean);
-  return <p className="about-example" dir="auto">{parts.map((part, index) => part.startsWith('**') ? <b key={index}>{part.slice(2, -2)}</b>
-    : part.startsWith('*') ? <i key={index}>{part.slice(1, -1)}</i> : <Fragment key={index}>{part}</Fragment>)}</p>;
 }
 
 function FacetSection({ parent, facet, blocks, mainKey }: { parent: ParentType; facet: FacetType; blocks: Parameters<typeof Markdown>[0]['blocks']; mainKey: string }) {

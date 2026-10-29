@@ -206,7 +206,6 @@
   "about.leftOut": "Laissée de côté. Le noyau d’une phrase est une traduction, pas un mot, donc une carte sur une phrase n’affiche jamais {facet}.",
   "about.noSample": "Cet exemple ne contient rien pour elle.",
   "about.facetsOf": "Facettes de {module}",
-  "about.forExample": "Par exemple",
   "about.facet": "À propos : {name}",
   "about.family": "À propos : {name}",
   "about.close": "Fermer « À propos : {name} »",

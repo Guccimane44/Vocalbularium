@@ -206,7 +206,6 @@
   "about.leftOut": "Se omite. El núcleo de una oración es una traducción, no una sola palabra, así que su tarjeta nunca muestra {facet}.",
   "about.noSample": "Este ejemplo no tiene nada para ella.",
   "about.facetsOf": "Facetas de {module}",
-  "about.forExample": "Por ejemplo",
   "about.facet": "Acerca de {name}",
   "about.family": "Acerca de {name}",
   "about.close": "Cerrar Acerca de {name}",

@@ -424,7 +424,6 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
 .about-where.component.preview { display: flex; flex-direction: column; gap: 10px; }
 .about-dim { opacity: .4; }
 .about-here { margin: 0 -10px; padding: 8px 10px; border-radius: 8px; background: var(--fam-tint); }
-.about-example { margin: 0; font-size: 15.5px; line-height: 1.55; }
 @media (forced-colors: active) {
   .about-chip, .about-mk, .about-strip-current, .about-num { forced-color-adjust: none; background: CanvasText; color: Canvas; }
   .about-sheet { border-inline-start: 1px solid CanvasText; }
