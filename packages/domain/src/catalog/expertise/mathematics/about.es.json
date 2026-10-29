@@ -1,0 +1,20 @@
+{
+  "summary": "Explica un término, una expresión o una oración como lo entienden las matemáticas, con palabras breves y sencillas, a menudo con un pequeño ejemplo.",
+  "facts": [
+    {
+      "label": "Lee",
+      "value": "Cualquier idioma",
+      "note": "Palabras, expresiones y oraciones"
+    },
+    {
+      "label": "Escribe",
+      "value": "Tu idioma",
+      "note": "El idioma en que usas Vocabularium"
+    },
+    {
+      "label": "Ideal para",
+      "value": "Términos matemáticos",
+      "note": "valor propio, anillo, cuerpo"
+    }
+  ]
+}

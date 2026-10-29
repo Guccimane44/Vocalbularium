@@ -1,0 +1,52 @@
+{
+  "word_phrase": {
+    "core": {
+      "kind": "word",
+      "language": "俄语",
+      "key": "язык",
+      "romanization": "yazyk",
+      "meanings": [
+        "语言"
+      ]
+    },
+    "facets": {
+      "examples": [
+        {
+          "sentence": "Она изучает русский язык.",
+          "translation": "她学习俄语。"
+        }
+      ],
+      "pinyin": [
+        {
+          "text": "语言",
+          "pinyin": "yǔyán"
+        }
+      ]
+    }
+  },
+  "sentence": {
+    "core": {
+      "kind": "sentence",
+      "language": "俄语",
+      "key": "Языки — это мосты, соединяющие людей и мир.",
+      "romanization": "Yazyki — eto mosty, soyedinyayushchie lyudey i mir.",
+      "meanings": [
+        "语言是连接人与世界的桥梁。"
+      ]
+    },
+    "facets": {
+      "examples": [
+        {
+          "sentence": "Книги — это окна, открывающие новые миры.",
+          "translation": "书籍是打开新世界的窗户。"
+        }
+      ],
+      "pinyin": [
+        {
+          "text": "语言是连接人与世界的桥梁。",
+          "pinyin": "yǔyán shì liánjiē rén yǔ shìjiè de qiáoliáng"
+        }
+      ]
+    }
+  }
+}

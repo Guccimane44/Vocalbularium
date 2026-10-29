@@ -1,0 +1,20 @@
+{
+  "summary": "Explains your key in German: the meanings of a word, the translation of a sentence.",
+  "facts": [
+    {
+      "label": "Reads",
+      "value": "Any language",
+      "note": "Words, phrases and sentences"
+    },
+    {
+      "label": "Writes",
+      "value": "German",
+      "note": "Whatever language you use Vocabularium in"
+    },
+    {
+      "label": "Key already German?",
+      "value": "Explained, not translated",
+      "note": "A German–German dictionary"
+    }
+  ]
+}

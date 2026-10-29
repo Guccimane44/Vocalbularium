@@ -1,0 +1,73 @@
+{
+  "word_phrase": {
+    "core": {
+      "kind": "word",
+      "language": "Französisch",
+      "key": "parler",
+      "gramRole": "verb",
+      "meanings": [
+        "sprechen",
+        "reden"
+      ]
+    },
+    "facets": {
+      "conjugation": {
+        "columns": [
+          "Präsens",
+          "Präteritum",
+          "Perfekt"
+        ],
+        "rows": [
+          {
+            "label": "ich",
+            "cells": [
+              "spreche",
+              "sprach",
+              "habe gesprochen"
+            ]
+          },
+          {
+            "label": "du",
+            "cells": [
+              "sprichst",
+              "sprachst",
+              "hast gesprochen"
+            ]
+          },
+          {
+            "label": "er/sie/es",
+            "cells": [
+              "spricht",
+              "sprach",
+              "hat gesprochen"
+            ]
+          },
+          {
+            "label": "wir",
+            "cells": [
+              "sprechen",
+              "sprachen",
+              "haben gesprochen"
+            ]
+          },
+          {
+            "label": "ihr",
+            "cells": [
+              "sprecht",
+              "spracht",
+              "habt gesprochen"
+            ]
+          },
+          {
+            "label": "sie/Sie",
+            "cells": [
+              "sprechen",
+              "sprachen",
+              "haben gesprochen"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

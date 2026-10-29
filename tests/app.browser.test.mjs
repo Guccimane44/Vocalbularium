@@ -8,7 +8,12 @@ import { chromium } from 'playwright';
 import { blockText, notePlain } from '@vocabularium/domain/pages';
 import { isContentType } from '@vocabularium/domain/page-modules';
 import { formatContent } from '@vocabularium/domain/content';
+import { PARENTS } from '@vocabularium/domain/parents';
 import { resultFor, sentenceResult, text, textBlocks, useModules, wordResult, staged, fieldEdit } from './helpers/pages.mjs';
+
+// A sample the catalog stores for the pages and the preview (D20), and the English labels of the facets it holds.
+const catalogSample = async (folder, language = 'en') => JSON.parse(await readFile(`packages/domain/src/catalog/${folder}/samples/${language}.json`, 'utf8'));
+const sampleFacetLabels = (parent, card) => Object.keys(PARENTS[parent].facets).filter(facet => facet in card.facets).map(facet => PARENTS[parent].facets[facet].label);
 const keyOf = page => text(page.components.find(component => component.moduleType === 'main-key'));
 // The bank entry with all four German facets, as structured content (D09).
 // A German noun (D17): its grammatical role lets Article apply.
@@ -556,12 +561,13 @@ test('deck UI: draft previews, all modules, the module limit, removal without co
   await preview.waitFor();
   await preview.getByLabel('Sample input', { exact: true }).selectOption('sentence');
   assert.equal(await preview.locator('.preview').count(), 7, 'one preview per module, the main key included');
-  assert.match(await preview.locator('.preview').nth(0).textContent(), /我真的很幸福/);
+  // The samples in the interface language (D20, C30): the bridges sentence.
+  assert.match(await preview.locator('.preview').nth(0).textContent(), /Languages are the bridges connecting people and the world\./);
   // Every parent applies to a sentence: its translation, and the facets that apply (D08).
-  assert.match(await preview.locator('.preview').nth(2).textContent(), /Ich bin wirklich glücklich/);
+  assert.ok((await preview.locator('.preview').nth(2).textContent()).includes((await catalogSample('languages/german')).sentence.core.meanings[0]));
   assert.deepEqual(await preview.locator('.preview').nth(2).locator('.facet-tab-label').allTextContents(), ['Examples'], 'Article, Synonyms and Antonyms are for words');
   assert.equal(await preview.locator('.preview').nth(3).locator('.facet').count(), 0, 'a parent added from the window has its core only');
-  assert.match(await preview.locator('.preview').nth(4).textContent(), /说话人表示自己非常满足/);
+  assert.ok((await preview.locator('.preview').nth(4).textContent()).includes((await catalogSample('languages/chinese')).sentence.core.meanings[0]));
   const previewTypes = () => preview.locator('.sample-page .component').evaluateAll(nodes => nodes.map(node => node.dataset.type));
   const listTypes = () => a.page.locator('.shaping-list .deck-module').evaluateAll(nodes => nodes.slice(1).map(node => node.dataset.type));
   assert.deepEqual(await previewTypes(), await listTypes(), 'the preview follows the list');
@@ -2334,9 +2340,9 @@ test('0.8.1: explanations: About a module in a dialog with its samples, and a fa
   await about.click();
   const dialog = a.page.getByRole('dialog', { name: 'German', exact: true });
   await dialog.waitFor();
-  assert.match(await dialog.locator('.explanation-text').innerText(), /Explains the key in German/);
-  assert.deepEqual(await dialog.locator('.explanation-sample > h3').allTextContents(), ['For a word: 幸福 · sample', 'For a sentence: 我真的很幸福 · sample']);
-  assert.deepEqual(await dialog.locator('.explanation-sample').first().locator('.facet-tab-label').allTextContents(), ['Article', 'Examples', 'Synonyms', 'Antonyms', 'Declension']);
+  assert.match(await dialog.locator('.explanation-text').innerText(), /Explains your key in German/);
+  assert.deepEqual(await dialog.locator('.explanation-sample > h3').allTextContents(), ['For a word: language · sample', 'For a sentence: Languages are the bridges connecting people and the world. · sample']);
+  assert.deepEqual(await dialog.locator('.explanation-sample').first().locator('.facet-tab-label').allTextContents(), sampleFacetLabels('german', (await catalogSample('languages/german')).word_phrase));
   assert.deepEqual(await dialog.locator('.explanation-sample').nth(1).locator('.facet-tab-label').allTextContents(), ['Examples'], 'only what applies to a sentence');
   await a.page.screenshot({ path: 'artifacts/v0.8.1-about-german.png', animations: 'disabled' });
   // Escape closes it, returns the focus to the link, and adds nothing.
@@ -2344,14 +2350,14 @@ test('0.8.1: explanations: About a module in a dialog with its samples, and a fa
   await dialog.waitFor({ state: 'detached' });
   assert.equal(await focused(about), true, 'the focus back on About German');
   assert.equal(await components(), before, 'reading about a module adds nothing');
-  // An Expertise module's sample explains a key of its own; its sentence is not named.
+  // An Expertise module's sample explains a key of its own (D20: its subject's term).
   // Expertise starts closed: the link is found in the window, and its family opened.
   const aboutCs = a.page.locator('.window-module[data-type="computer-science"] .window-about');
   await openFamily(aboutCs);
   await aboutCs.click();
   const csDialog = a.page.getByRole('dialog', { name: 'Computer Science', exact: true });
   await csDialog.waitFor();
-  assert.deepEqual(await csDialog.locator('.explanation-sample > h3').allTextContents(), ['For a word: Frontend · sample', 'For a sentence · sample']);
+  assert.deepEqual(await csDialog.locator('.explanation-sample > h3').allTextContents(), ['For a word: Frontend · sample', 'For a sentence: The frontend shows what the backend sends back. · sample']);
   // The close button, and a click outside, close it too.
   await csDialog.getByRole('button', { name: 'Close About Computer Science', exact: true }).click();
   await csDialog.waitFor({ state: 'detached' });
@@ -2367,14 +2373,15 @@ test('0.8.1: explanations: About a module in a dialog with its samples, and a fa
   await info('Article').click();
   assert.equal(await info('Article').getAttribute('aria-expanded'), 'true');
   const article = facets.locator('.facet-window-row[data-facet="article"] .facet-explanation');
-  assert.match(await article.locator('.explanation-text').innerText(), /For words only/);
-  assert.deepEqual(await article.locator('h4').allTextContents(), ['For a word: 幸福 · sample']);
-  assert.equal(await article.locator('.facet-body').innerText(), 'das Glück');
+  assert.match(await article.locator('.explanation-text').innerText(), /Nouns/);
+  assert.deepEqual(await article.locator('h4').allTextContents(), ['For a word: language · sample']);
+  const { singular, plural } = (await catalogSample('languages/german')).word_phrase.facets.article;
+  assert.equal(await article.locator('.facet-body').innerText(), [singular, plural].filter(Boolean).join(' · '));
   await a.page.screenshot({ path: 'artifacts/v0.8.1-facet-explanation.png', animations: 'disabled' });
   await info('Examples').click();
   await article.waitFor({ state: 'detached' });
   assert.deepEqual(await facets.locator('.facet-window-row[data-facet="examples"] .facet-explanation h4').allTextContents(),
-    ['For a word: 幸福 · sample', 'For a sentence: 我真的很幸福 · sample']);
+    ['For a word: language · sample', 'For a sentence: Languages are the bridges connecting people and the world. · sample']);
   // Pressed again it folds away; reading changes no tick.
   await info('Examples').click();
   assert.equal(await facets.locator('.facet-explanation').count(), 0);
@@ -3461,7 +3468,7 @@ test('0.9.0: the interface in each language: picked from Language, saved to the 
     const about = a.page.locator('.window-module[data-type="german"] .window-about');
     await openFamily(about);
     await about.click();
-    const explanation = await readFile(`packages/domain/src/catalog/languages/german/explanation.${code}.md`, 'utf8');
+    const explanation = JSON.parse(await readFile(`packages/domain/src/catalog/languages/german/about.${code}.json`, 'utf8')).summary;
     const dialog = a.page.locator('dialog.explanation-dialog');
     await dialog.waitFor();
     assert.ok((await dialog.locator('.explanation-text').innerText()).startsWith(explanation.split(/[.。]/)[0].replace(/\*/g, '')), `${code}: the explanation is in the language`);
@@ -3587,7 +3594,7 @@ test('0.12.0: a German verb’s Conjugation is a table on the card, its top line
   const conjugationAbout = a.page.getByRole('dialog', { name: 'Conjugation', exact: true });
   await conjugationAbout.waitFor();
   await a.page.screenshot({ path: 'artifacts/v0.12.1-facet-about.png', animations: 'disabled' });
-  assert.match(await conjugationAbout.locator('.explanation-text').innerText(), /For verbs only/);
+  assert.match(await conjugationAbout.locator('.explanation-text').innerText(), /Verbs/);
   await a.page.keyboard.press('Escape');
   await conjugationAbout.waitFor({ state: 'detached' });
 

@@ -1,0 +1,17 @@
+{
+  "summary": "Des modules qui font passer votre clé dans une langue : ils expliquent un mot dans cette langue, ou y traduisent une phrase.",
+  "steps": [
+    {
+      "title": "Lit votre clé dans n’importe quelle langue",
+      "text": "Il reconnaît la langue de la clé dans la clé elle-même et décide s’il s’agit d’un mot ou d’une phrase."
+    },
+    {
+      "title": "Écrit le noyau dans sa langue",
+      "text": "Les sens d’un mot, ou la traduction d’une phrase. Une clé déjà dans cette langue est expliquée, pas traduite."
+    },
+    {
+      "title": "Les facettes décrivent sa traduction",
+      "text": "Pas votre clé. Chaque module a ses propres facettes, dans son propre ordre, et laisse de côté celles qui ne s’appliquent pas."
+    }
+  ]
+}

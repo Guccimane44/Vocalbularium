@@ -1,0 +1,28 @@
+{
+  "word_phrase": {
+    "core": {
+      "kind": "word",
+      "language": "Spanisch",
+      "key": "entre",
+      "gramRole": "preposition",
+      "meanings": [
+        "zwischen",
+        "unter"
+      ]
+    },
+    "facets": {
+      "case": [
+        {
+          "case": "Akkusativ",
+          "use": "Richtung oder Ziel einer Bewegung",
+          "example": "Er legt das Buch zwischen die Bücher."
+        },
+        {
+          "case": "Dativ",
+          "use": "Position oder Ort",
+          "example": "Das Buch liegt zwischen den Büchern."
+        }
+      ]
+    }
+  }
+}

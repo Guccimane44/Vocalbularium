@@ -1,0 +1,50 @@
+{
+  "word_phrase": {
+    "core": {
+      "kind": "word",
+      "language": "西班牙语",
+      "key": "idioma",
+      "meanings": [
+        "语言"
+      ]
+    },
+    "facets": {
+      "examples": [
+        {
+          "sentence": "El español es un idioma muy hablado.",
+          "translation": "西班牙语是一种使用广泛的语言。"
+        }
+      ],
+      "pinyin": [
+        {
+          "text": "语言",
+          "pinyin": "yǔyán"
+        }
+      ]
+    }
+  },
+  "sentence": {
+    "core": {
+      "kind": "sentence",
+      "language": "西班牙语",
+      "key": "Los idiomas son los puentes que conectan a las personas con el mundo.",
+      "meanings": [
+        "语言是连接人与世界的桥梁。"
+      ]
+    },
+    "facets": {
+      "examples": [
+        {
+          "sentence": "Las lenguas son los puentes que conectan a las comunidades con el mundo.",
+          "translation": "语言是连接各个社区与世界的桥梁。"
+        }
+      ],
+      "pinyin": [
+        {
+          "text": "语言是连接人与世界的桥梁。",
+          "pinyin": "yǔyán shì liánjiē rén yǔ shìjiè de qiáoliáng."
+        }
+      ]
+    }
+  }
+}

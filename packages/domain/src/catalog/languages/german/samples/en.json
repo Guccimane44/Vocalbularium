@@ -1,0 +1,79 @@
+{
+  "word_phrase": {
+    "core": {
+      "kind": "word",
+      "language": "Englisch",
+      "key": "language",
+      "gramRole": "noun",
+      "meanings": [
+        "Sprache"
+      ]
+    },
+    "facets": {
+      "article": {
+        "singular": "die Sprache",
+        "plural": "die Sprachen"
+      },
+      "examples": [
+        {
+          "sentence": "English is a global language.",
+          "translation": "Englisch ist eine Weltsprache."
+        }
+      ],
+      "declension": {
+        "columns": [
+          "Singular",
+          "Plural"
+        ],
+        "rows": [
+          {
+            "label": "Nominativ",
+            "cells": [
+              "die Sprache",
+              "die Sprachen"
+            ]
+          },
+          {
+            "label": "Genitiv",
+            "cells": [
+              "der Sprache",
+              "der Sprachen"
+            ]
+          },
+          {
+            "label": "Dativ",
+            "cells": [
+              "der Sprache",
+              "den Sprachen"
+            ]
+          },
+          {
+            "label": "Akkusativ",
+            "cells": [
+              "die Sprache",
+              "die Sprachen"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "sentence": {
+    "core": {
+      "kind": "sentence",
+      "language": "Englisch",
+      "key": "Languages are the bridges connecting people and the world.",
+      "meanings": [
+        "Sprachen sind die Brücken, die Menschen und die Welt verbinden."
+      ]
+    },
+    "facets": {
+      "examples": [
+        {
+          "sentence": "Stories are the threads connecting generations and cultures.",
+          "translation": "Geschichten sind die Fäden, die Generationen und Kulturen verbinden."
+        }
+      ]
+    }
+  }
+}

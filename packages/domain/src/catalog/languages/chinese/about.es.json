@@ -1,0 +1,20 @@
+{
+  "summary": "Explica tu clave en chino: los significados de una palabra, la traducción de una oración, en caracteres simplificados.",
+  "facts": [
+    {
+      "label": "Lee",
+      "value": "Cualquier idioma",
+      "note": "Palabras, expresiones y oraciones"
+    },
+    {
+      "label": "Escribe",
+      "value": "Chino",
+      "note": "En caracteres simplificados, sea cual sea el idioma en que usas Vocabularium"
+    },
+    {
+      "label": "¿La clave ya está en chino?",
+      "value": "Se explica, no se traduce",
+      "note": "Un diccionario chino–chino"
+    }
+  ]
+}

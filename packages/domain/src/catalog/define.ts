@@ -72,9 +72,6 @@ type ModuleBase<Id extends string> = Readonly<{
   description: string;
   instances: Instances;
   source: Source;
-  // What the deck-settings preview shows for a word and for a sentence:
-  // input modules their text, content modules the provider's JSON.
-  sample?: Readonly<Record<InputType, unknown>>;
 }>;
 export type InputModuleDefinition<Id extends string = string> = ModuleBase<Id> & Readonly<{ kind: 'input'; facets: readonly [] }>;
 export type ContentModuleDefinition<Id extends string = string, F extends readonly FacetDefinition[] = readonly FacetDefinition[]> = ModuleBase<Id> & Readonly<{

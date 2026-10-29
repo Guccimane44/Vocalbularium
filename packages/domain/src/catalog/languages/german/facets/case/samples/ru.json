@@ -1,0 +1,30 @@
+{
+  "word_phrase": {
+    "core": {
+      "kind": "word",
+      "language": "Russisch",
+      "key": "между",
+      "romanization": "meždu",
+      "gramRole": "preposition",
+      "meanings": [
+        "zwischen",
+        "unter",
+        "inmitten"
+      ]
+    },
+    "facets": {
+      "case": [
+        {
+          "case": "Akkusativ",
+          "use": "Richtung oder Ziel",
+          "example": "Die Katze läuft zwischen die Stühle."
+        },
+        {
+          "case": "Dativ",
+          "use": "Lage oder Position",
+          "example": "Die Katze sitzt zwischen den Stühlen."
+        }
+      ]
+    }
+  }
+}

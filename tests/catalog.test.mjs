@@ -86,20 +86,42 @@ test('the composer builds one request for every module with all its facets, and 
   }
 });
 
-test('each module sample validates against its shapes and formats into markdown', () => {
+// Samples (D20, K63): every content module has a word's and a sentence's card
+// in every interface language, and each German facet that never applies to a
+// noun its own word's card (K65); the main key and Context their text.
+const LANGUAGE_CODES = ['en', 'ar', 'es', 'fr', 'ru', 'zh-Hans'];
+const samplesIn = folder => existsSync(new URL(`${folder}/samples/`, SRC)) ? readdirSync(new URL(`${folder}/samples/`, SRC)).map(file => file.replace(/\.json$/, '')).sort() : [];
+const readSample = (folder, language) => JSON.parse(readFileSync(new URL(`${folder}/samples/${language}.json`, SRC), 'utf8'));
+const checkCard = (id, given, inputType, name) => {
+  const checked = validateGenerated(id, given);
+  // A Languages core says which it read (D17); an Expertise core has no kind.
+  if ('kind' in checked.core) assert.equal(checked.core.kind, inputType === 'sentence' ? 'sentence' : 'word', name);
+  const stored = formatContent(id, checked);
+  assert.ok(stored.core, name);
+  for (const facet of Object.keys(checked.facets)) assert.ok(stored.facets[facet], `${name} ${facet}`);
+};
+
+test('every sample is written in every interface language, validates against its shapes and formats into markdown', () => {
   for (const id of MODULE_IDS) {
-    const sample = MODULES[id].sample;
-    if (MODULES[id].kind === 'input') {
-      if (sample) for (const inputType of INPUT_TYPES) assert.equal(typeof sample[inputType], 'string', `${id} ${inputType}`);
-      continue;
+    const folder = folderOf(id);
+    if (id === 'text') { assert.deepEqual(samplesIn(folder), [], 'Text starts empty'); continue; }
+    assert.deepEqual(samplesIn(folder), [...LANGUAGE_CODES].sort(), id);
+    for (const language of LANGUAGE_CODES) {
+      const sample = readSample(folder, language);
+      for (const inputType of INPUT_TYPES) {
+        const name = `${id} ${language} ${inputType}`;
+        if (MODULES[id].kind === 'input') assert.equal(typeof sample[inputType], 'string', name);
+        else checkCard(id, sample[inputType], inputType, name);
+      }
     }
-    for (const inputType of INPUT_TYPES) {
-      const checked = validateGenerated(id, sample[inputType]);
-      // A Languages core says which it read (D17); an Expertise core has no kind.
-      if ('kind' in checked.core) assert.equal(checked.core.kind, inputType === 'sentence' ? 'sentence' : 'word', `${id} ${inputType}`);
-      const stored = formatContent(id, checked);
-      assert.ok(stored.core, `${id} ${inputType}`);
-      for (const facet of Object.keys(checked.facets)) assert.ok(stored.facets[facet], `${id}.${facet} ${inputType}`);
+  }
+  for (const facet of ['conjugation', 'comparison', 'case']) {
+    const folder = `${folderOf('german')}/facets/${facet}`;
+    assert.deepEqual(samplesIn(folder), [...LANGUAGE_CODES].sort(), facet);
+    for (const language of LANGUAGE_CODES) {
+      const sample = readSample(folder, language);
+      checkCard('german', sample.word_phrase, 'word_phrase', `german.${facet} ${language}`);
+      assert.ok(sample.word_phrase.facets[facet], `german.${facet} ${language} holds the facet`);
     }
   }
 });
@@ -112,58 +134,61 @@ test('every content module has a golden set (C8)', () => {
   assert.deepEqual([...new Set(covered)].sort(), [...content].sort());
 });
 
-// Explanations (D13, 0.8.1): every module in the module window and every facet
-// but the core explains itself, and the extension sees exactly the files.
-test('every module in the window and every facet but the core has an explanation that renders as markdown', async () => {
-  const { explanationBlocks, explanationOf } = await import('@vocabularium/domain/explanations');
+// Pages (D20, K62): every family with modules, every module in the module
+// window and every facet but the core has its page's text, and no explanation
+// or single sample file of the earlier releases remains.
+test('every family, window module and facet but the core has its page text, and the earlier files are gone', async () => {
+  const { aboutBlocks, facetAbout, familyAbout, moduleAbout } = await import('@vocabularium/domain/about');
   const { WINDOW_MODULES } = await import('@vocabularium/domain/page-modules');
-  const explained = [];
+  const text = value => typeof value === 'string' && value.trim().length > 0;
+  for (const family of CATALOG_FAMILIES) {
+    const about = familyAbout(family.id);
+    assert.ok(text(about?.summary) && about.steps.length === 3 && about.steps.every(step => text(step.title) && text(step.text)), family.id);
+  }
   for (const id of MODULE_IDS) {
-    const file = new URL(`${folderOf(id)}/explanation.md`, SRC);
-    if (WINDOW_MODULES.includes(id)) {
-      assert.ok(existsSync(file), `${id} has no explanation.md`);
-      explained.push([id, undefined, file]);
-    } else assert.equal(existsSync(file), false, `${id} is not in the window and needs no explanation`);
+    if (!WINDOW_MODULES.includes(id)) { assert.equal(moduleAbout(id), undefined, `${id} is not in the window and has no page`); continue; }
+    const about = moduleAbout(id);
+    assert.ok(text(about?.summary) && about.facts.length === 3 && about.facts.every(fact => text(fact.label) && text(fact.value) && text(fact.note)), id);
+    assert.ok(aboutBlocks(id).length > 0, `${id} renders as markdown`);
     if (MODULES[id].kind !== 'content') continue;
-    assert.equal(existsSync(new URL(`${folderOf(id)}/facets/core/explanation.md`, SRC)), false, `${id}: the core is explained by its module`);
+    assert.equal(facetAbout(id, 'core'), undefined, `${id}: the core is explained by its module`);
     for (const facet of MODULES[id].facets) {
-      const facetFile = new URL(`${folderOf(id)}/facets/${facet.id}/explanation.md`, SRC);
-      assert.ok(existsSync(facetFile), `${id}.${facet.id} has no explanation.md`);
-      explained.push([id, facet.id, facetFile]);
+      const about = facetAbout(id, facet.id);
+      assert.ok(text(about?.summary) && text(about.appliesTo) && text(about.describes), `${id}.${facet.id}`);
     }
   }
-  for (const [id, facet, file] of explained) {
-    const name = facet ? `${id}.${facet}` : id;
-    assert.equal(explanationOf(id, facet), readFileSync(file, 'utf8'), `${name}: the built explanation matches its file`);
-    const blocks = explanationBlocks(id, facet);
-    assert.ok(blocks.length > 0 && blocks.every(block => block.type === 'paragraph' || block.items.length > 0), `${name} renders as markdown`);
-    assert.doesNotMatch(explanationOf(id, facet), /<[a-z]/i, `${name} holds no HTML`);
-  }
+  const leftovers = readdirSync(SRC, { recursive: true }).map(String).filter(path => /(?:^|[\\/])(?:explanation(?:\.[A-Za-z-]+)?\.md|sample\.json)$/.test(path));
+  assert.deepEqual(leftovers, [], 'no explanation.md or sample.json remains (D20)');
 });
 
-test('a facet’s sample is its own part of its module’s sample, only for the inputs it applies to', async () => {
-  const { facetSampleOf, sampleKeyOf, sampleOf } = await import('@vocabularium/domain/explanations');
-  // Article applies to words only: a sample for a word, none for a sentence.
-  assert.deepEqual(facetSampleOf('german', 'article', 'word_phrase'), [{ type: 'paragraph', children: [{ type: 'text', text: 'das Glück' }] }]);
+test('a facet’s sample is its own part of a sample in the interface language, only for the inputs it applies to', async () => {
+  const { facetSampleOf, sampleKeyOf, sampleOf } = await import('@vocabularium/domain/about');
+  const plain = blocks => JSON.stringify(blocks);
+  // Article applies to words only: German's sample word "language" is die Sprache.
+  assert.match(plain(facetSampleOf('german', 'article', 'word_phrase')), /die Sprache/);
   assert.equal(facetSampleOf('german', 'article', 'sentence'), null);
   // Examples applies to both, and each sample holds that facet only.
   for (const inputType of INPUT_TYPES) {
     const blocks = facetSampleOf('german', 'examples', inputType);
     assert.ok(blocks?.length, inputType);
-    const whole = sampleOf('german', inputType);
-    assert.deepEqual(whole.facets.find(each => each.facet === 'examples').body, blocks);
+    assert.deepEqual(sampleOf('german', inputType).facets.find(each => each.facet === 'examples').body, blocks);
   }
   assert.ok(facetSampleOf('chinese', 'pinyin', 'sentence')?.length);
-  // A facet the module's sample holds nothing for has no sample, and its explanation still opens (0.12.1).
-  for (const [parent, facet] of [['german', 'conjugation'], ['german', 'case'], ['german', 'comparison'], ['computer-science', 'code']])
-    for (const inputType of INPUT_TYPES) assert.equal(facetSampleOf(parent, facet, inputType), null, `${parent}.${facet} ${inputType}`);
+  // A facet that never applies to a noun has its own word (K65): Conjugation speak, sprechen.
+  assert.match(plain(facetSampleOf('german', 'conjugation', 'word_phrase')), /spr(e|i)ch/);
+  assert.equal(facetSampleOf('german', 'conjugation', 'sentence'), null);
+  assert.equal(sampleKeyOf('german', 'word_phrase', 'ru', 'conjugation'), 'говорить');
   // A module's sample shows every facet its sample holds; given facets, only those that apply.
-  assert.deepEqual(sampleOf('german', 'word_phrase').facets.map(each => each.facet), ['article', 'examples', 'synonyms', 'antonyms', 'declension']);
+  const facets = sampleOf('german', 'word_phrase').facets.map(each => each.facet);
+  assert.ok(facets.includes('article') && !facets.includes('conjugation'), facets.join());
   assert.deepEqual(sampleOf('german', 'sentence', ['article', 'examples']).facets.map(each => each.facet), ['examples']);
   assert.equal(sampleOf('context', 'word_phrase').kind, 'note');
   assert.equal(sampleOf('text', 'word_phrase'), null, 'Text starts empty');
-  // What a sample was written for: the main key's sample, or an Expertise module's own word.
-  assert.equal(sampleKeyOf('german', 'sentence'), MODULES['main-key'].sample.sentence);
-  assert.equal(sampleKeyOf('computer-science', 'word_phrase'), 'Frontend');
-  assert.equal(sampleKeyOf('computer-science', 'sentence'), undefined);
+  // What a sample was written for, in the interface language.
+  assert.equal(sampleKeyOf('main-key', 'word_phrase', 'zh-Hans'), '语言');
+  assert.equal(sampleKeyOf('german', 'word_phrase', 'fr'), 'langue');
+  assert.equal(sampleKeyOf('german', 'sentence', 'en'), 'Languages are the bridges connecting people and the world.');
+  assert.equal(sampleKeyOf('computer-science', 'word_phrase', 'es'), 'Frontend');
+  // A language without its own sample would fall back to English; every language has one.
+  assert.notDeepEqual(sampleOf('german', 'word_phrase', undefined, 'ar'), sampleOf('german', 'word_phrase', undefined, 'en'));
 });

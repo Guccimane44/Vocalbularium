@@ -1,0 +1,26 @@
+{
+  "word_phrase": {
+    "core": {
+      "relevance": "subject",
+      "hasCode": "no",
+      "key": "Frontend",
+      "explanation": [
+        "El frontend es la parte de un sistema de software que interactúa directamente con el usuario: pantallas, controles, formularios y la lógica que responde a sus acciones. En una aplicación web se ejecuta sobre todo en el navegador y se comunica con el backend mediante peticiones.",
+        "Reúne diseño de interacción, HTML, CSS y JavaScript, entre otras tecnologías, para que la interfaz sea comprensible y reactiva. Un ejemplo cotidiano es un carrito de compra: los botones y la actualización del total pertenecen al frontend; el cobro y el inventario, al backend."
+      ]
+    },
+    "facets": {}
+  },
+  "sentence": {
+    "core": {
+      "relevance": "subject",
+      "hasCode": "no",
+      "key": "The frontend shows what the backend sends back.",
+      "explanation": [
+        "La frase describe la división de una aplicación en dos partes: el frontend, la interfaz que ve y maneja el usuario, y el backend, donde viven la lógica y los datos en el servidor. El frontend pide algo y presenta la respuesta que el backend devuelve.",
+        "Se apoya en el modelo cliente-servidor: el navegador envía una petición, el servidor la procesa y responde con datos, a menudo en formato JSON, y la interfaz los muestra. Presentación y datos quedan así separados y pueden desarrollarse y cambiar por su cuenta."
+      ]
+    },
+    "facets": {}
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "word_phrase": {
+    "core": {
+      "kind": "word",
+      "language": "阿拉伯语",
+      "key": "لغة",
+      "romanization": "lugha",
+      "meanings": [
+        "语言"
+      ]
+    },
+    "facets": {
+      "examples": [
+        {
+          "sentence": "هذه لغة صعبة.",
+          "translation": "这是一门难学的语言。"
+        }
+      ],
+      "pinyin": [
+        {
+          "text": "语言",
+          "pinyin": "yǔyán"
+        }
+      ]
+    }
+  },
+  "sentence": {
+    "core": {
+      "kind": "sentence",
+      "language": "阿拉伯语",
+      "key": "اللغات هي الجسور التي تربط الناس بالعالم.",
+      "romanization": "al-lughāt hiya al-jusūr allatī tarbiṭ al-nās bi-l-ʿālam",
+      "meanings": [
+        "语言是连接人们与世界的桥梁。"
+      ]
+    },
+    "facets": {
+      "examples": [
+        {
+          "sentence": "المكتبات هي الجسور التي تربط القارئ بالمعرفة.",
+          "translation": "图书馆是连接读者与知识的桥梁。"
+        }
+      ],
+      "pinyin": [
+        {
+          "text": "语言是连接人们与世界的桥梁。",
+          "pinyin": "yǔyán shì liánjiē rénmen yǔ shìjiè de qiáoliáng"
+        }
+      ]
+    }
+  }
+}

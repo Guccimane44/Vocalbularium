@@ -1,0 +1,49 @@
+{
+  "word_phrase": {
+    "core": {
+      "kind": "word",
+      "language": "中文",
+      "key": "语言",
+      "romanization": "yǔyán",
+      "meanings": [
+        "人类用来表达意思、交流思想的工具，也指某一民族或国家使用的语种。"
+      ]
+    },
+    "facets": {
+      "examples": [
+        {
+          "sentence": "语言是人类交流思想的重要工具。"
+        }
+      ],
+      "pinyin": [
+        {
+          "text": "语言",
+          "pinyin": "yǔyán"
+        }
+      ]
+    }
+  },
+  "sentence": {
+    "core": {
+      "kind": "sentence",
+      "language": "汉语",
+      "key": "语言是连接人与世界的桥梁。",
+      "meanings": [
+        "语言是人与世界之间沟通的桥梁，能帮助人们认识和连接外部世界。"
+      ]
+    },
+    "facets": {
+      "examples": [
+        {
+          "sentence": "书籍是连接读者与知识世界的桥梁。"
+        }
+      ],
+      "pinyin": [
+        {
+          "text": "语言是连接人与世界的桥梁。",
+          "pinyin": "yǔyán shì liánjiē rén yǔ shìjiè de qiáoliáng"
+        }
+      ]
+    }
+  }
+}

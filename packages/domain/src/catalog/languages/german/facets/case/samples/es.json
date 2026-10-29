@@ -1,0 +1,28 @@
+{
+  "word_phrase": {
+    "core": {
+      "kind": "word",
+      "language": "Französisch",
+      "key": "entre",
+      "gramRole": "preposition",
+      "meanings": [
+        "zwischen",
+        "unter"
+      ]
+    },
+    "facets": {
+      "case": [
+        {
+          "case": "Akkusativ",
+          "use": "Richtung",
+          "example": "Er geht zwischen die Bäume."
+        },
+        {
+          "case": "Dativ",
+          "use": "Ort",
+          "example": "Er steht zwischen den Bäumen."
+        }
+      ]
+    }
+  }
+}

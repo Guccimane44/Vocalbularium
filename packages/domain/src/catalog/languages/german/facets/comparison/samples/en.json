@@ -1,0 +1,23 @@
+{
+  "word_phrase": {
+    "core": {
+      "kind": "word",
+      "language": "Englisch",
+      "key": "clear",
+      "gramRole": "adjective",
+      "meanings": [
+        "klar",
+        "deutlich",
+        "durchsichtig",
+        "offensichtlich"
+      ]
+    },
+    "facets": {
+      "comparison": {
+        "positive": "klar",
+        "comparative": "klarer",
+        "superlative": "am klarsten"
+      }
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "word_phrase": {
+    "core": {
+      "kind": "word",
+      "language": "Chinesisch",
+      "key": "清楚",
+      "romanization": "qīngchu",
+      "gramRole": "adjective",
+      "meanings": [
+        "klar",
+        "deutlich",
+        "verstehen",
+        "Bescheid wissen"
+      ]
+    },
+    "facets": {
+      "comparison": {
+        "positive": "klar",
+        "comparative": "klarer",
+        "superlative": "am klarsten"
+      }
+    }
+  }
+}

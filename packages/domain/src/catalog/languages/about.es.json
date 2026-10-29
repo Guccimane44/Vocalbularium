@@ -1,0 +1,17 @@
+{
+  "summary": "Módulos que llevan tu clave a un idioma: explican una palabra en él o traducen una oración a él.",
+  "steps": [
+    {
+      "title": "Lee tu clave en cualquier idioma",
+      "text": "Reconoce el idioma de la clave en la propia clave y decide si es una palabra o una oración."
+    },
+    {
+      "title": "Escribe el núcleo en su idioma",
+      "text": "Los significados de una palabra o la traducción de una oración. Una clave que ya está en ese idioma se explica, no se traduce."
+    },
+    {
+      "title": "Las facetas describen su traducción",
+      "text": "No tu clave. Cada módulo tiene sus propias facetas, en su propio orden, y omite las que no se aplican."
+    }
+  ]
+}

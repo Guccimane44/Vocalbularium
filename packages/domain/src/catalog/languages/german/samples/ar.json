@@ -1,0 +1,81 @@
+{
+  "word_phrase": {
+    "core": {
+      "kind": "word",
+      "language": "Arabisch",
+      "key": "لغة",
+      "romanization": "lugha",
+      "gramRole": "noun",
+      "meanings": [
+        "Sprache"
+      ]
+    },
+    "facets": {
+      "article": {
+        "singular": "die Sprache",
+        "plural": "die Sprachen"
+      },
+      "examples": [
+        {
+          "sentence": "أريد أن أتعلّم لغةً جديدة هذا العام.",
+          "translation": "Ich möchte dieses Jahr eine neue Sprache lernen."
+        }
+      ],
+      "declension": {
+        "columns": [
+          "Singular",
+          "Plural"
+        ],
+        "rows": [
+          {
+            "label": "Nominativ",
+            "cells": [
+              "die Sprache",
+              "die Sprachen"
+            ]
+          },
+          {
+            "label": "Genitiv",
+            "cells": [
+              "der Sprache",
+              "der Sprachen"
+            ]
+          },
+          {
+            "label": "Dativ",
+            "cells": [
+              "der Sprache",
+              "den Sprachen"
+            ]
+          },
+          {
+            "label": "Akkusativ",
+            "cells": [
+              "die Sprache",
+              "die Sprachen"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "sentence": {
+    "core": {
+      "kind": "sentence",
+      "language": "Arabisch",
+      "key": "اللغات هي الجسور التي تربط الناس بالعالم.",
+      "romanization": "al-lughāt hiya al-jusūr allatī tarabbiṭ al-nās bi-l-ʿālam.",
+      "meanings": [
+        "Sprachen sind die Brücken, die Menschen mit der Welt verbinden."
+      ]
+    },
+    "facets": {
+      "examples": [
+        {
+          "sentence": "الصداقات هي الجسور التي تربط الناس ببعضهم.",
+          "translation": "Freundschaften sind die Brücken, die Menschen miteinander verbinden."
+        }
+      ]
+    }
+  }
+}

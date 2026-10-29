@@ -1,0 +1,83 @@
+{
+  "word_phrase": {
+    "core": {
+      "kind": "word",
+      "language": "Spanisch",
+      "key": "idioma",
+      "gramRole": "noun",
+      "meanings": [
+        "Sprache"
+      ]
+    },
+    "facets": {
+      "article": {
+        "singular": "die Sprache",
+        "plural": "die Sprachen"
+      },
+      "examples": [
+        {
+          "sentence": "Cada verano aprendo un idioma nuevo.",
+          "translation": "Jeden Sommer lerne ich eine neue Sprache."
+        }
+      ],
+      "synonyms": [
+        "Zunge",
+        "Idiom"
+      ],
+      "declension": {
+        "columns": [
+          "Singular",
+          "Plural"
+        ],
+        "rows": [
+          {
+            "label": "Nominativ",
+            "cells": [
+              "die Sprache",
+              "die Sprachen"
+            ]
+          },
+          {
+            "label": "Genitiv",
+            "cells": [
+              "der Sprache",
+              "der Sprachen"
+            ]
+          },
+          {
+            "label": "Dativ",
+            "cells": [
+              "der Sprache",
+              "den Sprachen"
+            ]
+          },
+          {
+            "label": "Akkusativ",
+            "cells": [
+              "die Sprache",
+              "die Sprachen"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "sentence": {
+    "core": {
+      "kind": "sentence",
+      "language": "Spanisch",
+      "key": "Los idiomas son los puentes que conectan a las personas con el mundo.",
+      "meanings": [
+        "Sprachen sind die Brücken, die Menschen mit der Welt verbinden."
+      ]
+    },
+    "facets": {
+      "examples": [
+        {
+          "sentence": "Las palabras son los hilos que unen a los pueblos con su historia.",
+          "translation": "Wörter sind die Fäden, die Völker mit ihrer Geschichte verbinden."
+        }
+      ]
+    }
+  }
+}

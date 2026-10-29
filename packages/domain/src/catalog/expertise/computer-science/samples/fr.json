@@ -1,0 +1,25 @@
+{
+  "word_phrase": {
+    "core": {
+      "relevance": "subject",
+      "hasCode": "no",
+      "key": "Frontend",
+      "explanation": [
+        "Le frontend désigne la partie d’un logiciel ou d’un site avec laquelle l’utilisateur interagit directement : écrans, boutons, formulaires, messages de retour. Dans une application web, il s’exécute pour l’essentiel dans le navigateur, à partir de pages HTML, de styles CSS et de scripts JavaScript.",
+        "Il se définit par opposition au backend, qui tourne sur le serveur et garde les données et la logique métier. Un formulaire de connexion illustre le partage : le frontend recueille la saisie, l’envoie au serveur, puis affiche le message de succès ou d’erreur renvoyé."
+      ]
+    },
+    "facets": {}
+  },
+  "sentence": {
+    "core": {
+      "relevance": "subject",
+      "hasCode": "no",
+      "key": "The frontend shows what the backend sends back.",
+      "explanation": [
+        "La phrase décrit la séparation entre l’interface côté client, le frontend, et la logique côté serveur, le backend. Le frontend affiche les données que le backend renvoie après une requête, souvent via une API. Elle repose sur le modèle requête-réponse et le réseau."
+      ]
+    },
+    "facets": {}
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "word_phrase": {
+    "core": {
+      "kind": "word",
+      "language": "Französisch",
+      "key": "clair",
+      "gramRole": "adjective",
+      "meanings": [
+        "klar",
+        "hell",
+        "deutlich"
+      ]
+    },
+    "facets": {
+      "comparison": {
+        "positive": "klar",
+        "comparative": "klarer",
+        "superlative": "am klarsten"
+      }
+    }
+  }
+}

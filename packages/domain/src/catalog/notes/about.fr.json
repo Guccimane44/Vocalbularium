@@ -1,0 +1,17 @@
+{
+  "summary": "Votre propre saisie : le Contexte capturé autour de votre clé, et les notes que vous écrivez.",
+  "steps": [
+    {
+      "title": "Capturé ou écrit par vous",
+      "text": "Le Contexte arrive avec une capture ; Texte contient ce que vous écrivez."
+    },
+    {
+      "title": "Jamais généré",
+      "text": "La génération ne les écrit ni ne les modifie jamais."
+    },
+    {
+      "title": "Le Contexte aide les autres modules",
+      "text": "Un module de contenu lit le Contexte pour choisir le sens de la clé ; Texte n’est jamais lu."
+    }
+  ]
+}

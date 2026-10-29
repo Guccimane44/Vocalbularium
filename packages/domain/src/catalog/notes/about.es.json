@@ -1,0 +1,17 @@
+{
+  "summary": "Lo que aportas tú: el Contexto capturado alrededor de tu clave y las notas que escribes.",
+  "steps": [
+    {
+      "title": "Capturado o escrito por ti",
+      "text": "El Contexto llega con una captura; Texto guarda lo que escribes."
+    },
+    {
+      "title": "Nunca se genera",
+      "text": "La generación nunca los escribe ni los cambia."
+    },
+    {
+      "title": "El Contexto ayuda a los demás módulos",
+      "text": "Un módulo de contenido lee el Contexto para elegir el significado de la clave; Texto nunca se lee."
+    }
+  ]
+}

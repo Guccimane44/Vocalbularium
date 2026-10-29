@@ -1,0 +1,29 @@
+{
+  "word_phrase": {
+    "core": {
+      "kind": "word",
+      "language": "Englisch",
+      "key": "between",
+      "gramRole": "preposition",
+      "meanings": [
+        "zwischen",
+        "in der Mitte von zwei oder mehr Dingen oder Personen",
+        "im Zeitraum von einem Zeitpunkt bis zu einem anderen"
+      ]
+    },
+    "facets": {
+      "case": [
+        {
+          "case": "Akkusativ",
+          "use": "Richtung oder Bewegung auf eine Position zwischen zwei Bezugspunkten zu",
+          "example": "Sie setzte sich zwischen die Kinder."
+        },
+        {
+          "case": "Dativ",
+          "use": "Position oder Zustand zwischen zwei Bezugspunkten",
+          "example": "Sie saß zwischen den Kindern."
+        }
+      ]
+    }
+  }
+}

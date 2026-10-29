@@ -141,16 +141,18 @@ test('every language’s catalogue is complete: each English message, each catal
   }
 });
 
-test('every explanation is written in every interface language', async () => {
-  const { MODULES, folderOf } = await import('@vocabularium/domain/catalog');
-  const { explanationLanguages } = await import('@vocabularium/domain/explanations');
-  const holders = Object.keys(MODULES).flatMap(module => [[module], ...Object.keys(PARENTS[module]?.facets ?? {}).filter(facet => facet !== 'core').map(facet => [module, facet])]);
-  let explained = 0;
-  for (const [module, facet] of holders) {
-    const languages = explanationLanguages(module, facet);
+test('every page text is written in every interface language', async () => {
+  const { CATALOG_FAMILIES, MODULES, folderOf } = await import('@vocabularium/domain/catalog');
+  const { aboutLanguages } = await import('@vocabularium/domain/about');
+  const holders = [...CATALOG_FAMILIES.map(family => ({ family: family.id })),
+    ...Object.keys(MODULES).flatMap(module => [{ module }, ...Object.keys(PARENTS[module]?.facets ?? {}).filter(facet => facet !== 'core').map(facet => ({ module, facet }))])];
+  let written = 0;
+  for (const holder of holders) {
+    const languages = aboutLanguages(holder);
     if (!languages.length) continue;
-    explained++;
-    assert.deepEqual(languages.sort(), LANGUAGES.map(language => language.code).sort(), `${folderOf(module)}${facet ? `/${facet}` : ''}`);
+    written++;
+    const name = 'family' in holder ? holder.family : `${folderOf(holder.module)}${holder.facet ? `/${holder.facet}` : ''}`;
+    assert.deepEqual(languages.sort(), LANGUAGES.map(language => language.code).sort(), name);
   }
-  assert.equal(explained, 18, 'German’s four grammar facets, Formula and Code example included (D17)');
+  assert.equal(written, 21, 'three families, six window modules and twelve facets (D20)');
 });

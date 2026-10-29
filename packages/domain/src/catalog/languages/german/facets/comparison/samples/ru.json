@@ -1,0 +1,24 @@
+{
+  "word_phrase": {
+    "core": {
+      "kind": "word",
+      "language": "Russisch",
+      "key": "ясный",
+      "romanization": "jasnyj",
+      "gramRole": "adjective",
+      "meanings": [
+        "klar",
+        "hell",
+        "deutlich",
+        "wolkenlos"
+      ]
+    },
+    "facets": {
+      "comparison": {
+        "positive": "klar",
+        "comparative": "klarer",
+        "superlative": "am klarsten"
+      }
+    }
+  }
+}

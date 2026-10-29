@@ -1,0 +1,17 @@
+{
+  "summary": "Des modules qui expliquent votre clé comme une discipline la comprend, dans la langue dans laquelle vous utilisez Vocabularium.",
+  "steps": [
+    {
+      "title": "Lit votre clé dans n’importe quelle langue",
+      "text": "Un terme, une expression ou une phrase, dans la langue où vous l’avez rencontré."
+    },
+    {
+      "title": "L’explique comme la discipline",
+      "text": "En mots courts et simples pour un apprenant, souvent avec un petit exemple, dans la langue de l’interface."
+    },
+    {
+      "title": "Dit quand une clé sort de la discipline",
+      "text": "Un terme d’un domaine voisin est signalé comme tel et expliqué brièvement ; une clé sans rapport reçoit une seule phrase honnête."
+    }
+  ]
+}

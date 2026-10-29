@@ -1,0 +1,21 @@
+{
+  "summary": "Un espacio para tus propias notas: una regla mnemotécnica, dónde encontraste la palabra, una corrección, lo que quieras recordar.",
+  "facts": [
+    {
+      "label": "Escrito por",
+      "value": "Ti",
+      "note": "Empieza vacío"
+    },
+    {
+      "label": "Generación",
+      "value": "Nunca lo toca",
+      "note": "Ni se lee ni se cambia"
+    },
+    {
+      "label": "Cuántos",
+      "value": "Los que quieras",
+      "note": "En una misma página"
+    }
+  ],
+  "example": "Cuidado con «**lengua** materna»: en alemán es *Muttersprache* — Sprache, no Zunge."
+}
