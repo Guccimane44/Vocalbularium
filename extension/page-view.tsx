@@ -18,7 +18,7 @@ import { facetsOf, isFacetOf, isParentType } from '@vocabularium/domain/parents'
 import { facetName } from './catalog-text.ts';
 import type { FacetType, ParentType } from '@vocabularium/domain/parents';
 import type { FieldDraft, PageEditorDraft } from '../types/editor-drafts.js';
-import { FacetTab, FacetTags, FOLD_MS } from './facet-tags.tsx';
+import { FacetTab, FacetTags } from './facet-tags.tsx';
 import type { TagLayout } from './facet-tags.tsx';
 import { FacetWindow } from './facet-window.tsx';
 import { openAbout } from './about-sheet.tsx';
@@ -178,8 +178,7 @@ export function Markdown({ blocks, mainKey, className }: { blocks: readonly MdBl
 // A facet's Edit (0.7.5), Retry and Delete beside its label (0.7.3): Edit
 // opens that facet alone in its editor (D10); Retry and Delete act at once
 // when the facet has nothing in it, otherwise after "Are you sure?" in the
-// same row, like a card's Retry and Delete. Its tag's remove asks here too
-// (0.7.1). Retry regenerates the facet alone; its parent's core and other
+// same row, like a card's Retry and Delete. Retry regenerates the facet alone; its parent's core and other
 // facets stay. Retry is unavailable where the facet has nothing to generate.
 // About, first, opens the facet's page in the pages' sheet, as its › in the facet window
 // does (0.12.1; its page since 0.13.0, D20).
@@ -336,7 +335,7 @@ function ComponentBody({ item, title, editable, draft, locked, persist, redraw, 
 // its content rises into the card line by line, and screen readers hear how
 // the attempt ended.
 // A facet's own Retry (0.7.3) is announced by the facet's name, and only its
-// section lights up, as when its tag shows it.
+// section lights up.
 function Reveal({ status, title, facet, failedFacet, children }: {
   status: string | null; title: string; facet?: { id: string; name: string }; failedFacet?: string; children: ReactNode;
 }) {
@@ -460,20 +459,6 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
   };
   // The facet asking "Are you sure?" before it is deleted, on which card.
   const [askingFacet, setAskingFacet] = useState<{ id: string; facet: FacetType; kind: FacetAsk } | null>(null);
-  // A tag shows its facet's section: the card unfolds first, then the section
-  // scrolls into view and takes the focus (0.7.1).
-  const showFacet = (item: Component, facet: FacetType, then?: () => void) => {
-    const wasFolded = folded.has(item.id);
-    if (wasFolded) fold(item.id, false);
-    setTimeout(() => {
-      const card = document.querySelector<HTMLElement>(`[data-component-id="${CSS.escape(item.id)}"]`);
-      const section = card?.querySelector<HTMLElement>(`.facet[data-facet="${CSS.escape(facet)}"]`) ?? card;
-      const instant = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-      section?.scrollIntoView({ block: 'center', behavior: instant ? 'auto' : 'smooth' });
-      if (section?.classList.contains('facet')) { section.focus({ preventScroll: true }); section.dataset.shown = ''; setTimeout(() => { delete section.dataset.shown; }, 1200); }
-      then?.();
-    }, wasFolded ? FOLD_MS : 0);
-  };
   // The card asking whether to delete, and where its Delete stood in the row.
   const [confirming, setConfirming] = useState<{ id: string; offset: number; kind: 'delete' | 'retry' } | null>(null);
   useEffect(() => { if (opened !== confirming?.id) setConfirming(null); }, [opened]);
@@ -636,16 +621,8 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
     const fieldDraft = editingId === item.id ? draft?.fields?.[item.id] : undefined;
     const filled = fieldDraft ? Object.entries(fieldDraft.facets).filter(([, text]) => hasText(text)).map(([facet]) => facet)
       : generating || !read.present ? [] : rendered.kind === 'parent' ? rendered.facets.map(each => each.facet) : undefined;
-    const tags = controls ? <FacetTags holderId={item.id} parent={item.moduleType as ParentType} facets={item.facets ?? []} filled={filled} ruledOut={rendered.kind === 'parent' ? Object.keys(rendered.ruledOut) : []}
-      layout={layout} title={title} disabled={controls.disabled}
-      // On an open card's edge a tag pulls out to its own Retry, which asks nothing (0.7.4).
-      onRetry={layout === 'edge' && rendered.kind === 'parent' && editingId !== item.id ? retryFacet : undefined}
-      retrying={item.retryingFacet} failed={item.failedFacet}
-      onRemove={facet => {
-        // A facet with content asks first, in its section; one waiting for Retry goes at once.
-        if (hasContent(facet) && layout !== 'hanging') showFacet(item, facet, () => setAskingFacet({ id: item.id, facet, kind: 'delete' }));
-        else removeFacet(facet);
-      }} /> : null;
+    const tags = controls ? <FacetTags holderId={item.id} parent={item.moduleType as ParentType} facets={item.facets ?? []} filled={filled}
+      layout={layout} title={title} retrying={item.retryingFacet} failed={item.failedFacet} /> : null;
     const facetWindow = controls && facetsFor === item.id ? <FacetWindow holderId={item.id} parent={item.moduleType as ParentType} title={title}
       facets={item.facets ?? []} disabled={controls.disabled} hasContent={hasContent}
       onAdd={facet => addFacet(item.id, item.moduleType as ParentType, facet)}

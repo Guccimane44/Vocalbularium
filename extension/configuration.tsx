@@ -133,8 +133,7 @@ function DeckModule({ item, parts, busy, opened, setOpened, choosing, setChoosin
           if (refocus) document.querySelector<HTMLElement>(`[data-module-id="${CSS.escape(item.id)}"] .tab-button`)?.focus();
         }} />}
     </div>
-    {isParentType(item.type) && <FacetTags holderId={item.id} parent={item.type} facets={item.facets ?? []} layout="hanging" title={item.label}
-      disabled={busy} onRemove={onRemoveFacet} />}
+    {isParentType(item.type) && <FacetTags holderId={item.id} parent={item.type} facets={item.facets ?? []} layout="hanging" title={item.label} />}
   </article>;
 }
 

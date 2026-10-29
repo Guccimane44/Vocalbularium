@@ -691,7 +691,8 @@ test('a card’s Retry, alone or with the page, gives the provider the core it h
   const requests = [];
   let failing = true;
   const { store, generation, capture } = await parentFixture(t, {
-    generate: async request => { requests.push(request); if (failing) throw new Error('provider down'); return BANK; }
+    // The core's key is the selection, as the model writes it.
+    generate: async request => { requests.push(request); if (failing) throw new Error('provider down'); return { ...BANK, core: { ...BANK.core, key: request.selectedText } }; }
   });
   const page = await capture('bank'); await finish(store, generation);
   const german = async () => generated(await store.page(page.id))[0];
@@ -715,6 +716,16 @@ test('a card’s Retry, alone or with the page, gives the provider the core it h
   await store.savePage(randomUUID(), { pageId: page.id, changes: [{ componentId: current.id, content: { version: 1, blocks: [{ ...block, core: block.core.replace('Ufer', 'Sitzbank') }] } }] });
   await retry({ scope: 'page' });
   assert.deepEqual(requests.at(-1).previous, { ...BANK.core, meanings: ['Sitzbank'] }, 'the whole page’s Retry keeps each card’s reading too');
+  // A core written for another main key has no reading of this one (0.13.2): with the
+  // main key changed, a card's Retry and the page's generate from the new key alone.
+  const key = (await store.page(page.id)).components.find(component => component.moduleType === 'main-key');
+  await store.savePage(randomUUID(), { pageId: page.id, changes: [{ componentId: key.id, content: textBlocks('Schloss') }] });
+  await retry({ scope: 'component', componentId: (await german()).id });
+  assert.equal(requests.at(-1).selectedText, 'Schloss');
+  assert.equal(requests.at(-1).previous, undefined, 'the old key’s reading is not given');
+  // The card now holds a core for the new key, whose reading the next Retry keeps.
+  await retry({ scope: 'page' });
+  assert.deepEqual(requests.at(-1).previous, { ...BANK.core, key: 'Schloss' });
 });
 
 test('OpenCode asks a facet’s own Retry for its facets only, written for the supplied core', async () => {
