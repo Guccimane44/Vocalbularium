@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Mathematics module page</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="sage.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..800;1,9..144,400..600&amp;family=Instrument+Sans:wght@400..700&amp;display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div class="vs fam-expertise" data-theme="{{theme}}" style="width: 600px; min-height: 1300px;">
+  <section class="sheet" role="dialog" aria-labelledby="title-math" style="min-height: 1300px; box-shadow: none; border-left: 0;">
+    <div class="sheet-bar">
+      <nav class="trail" aria-label="Where you are">
+        <a href="#title-math">Expertise</a>
+        <span class="sep" aria-hidden="true">/</span>
+        <span aria-current="page">Mathematics</span>
+      </nav>
+      <button type="button" class="icon-btn" aria-label="Close Mathematics">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+      </button>
+    </div>
+
+    <div class="sheet-body">
+      <header class="hero">
+        <span class="eyebrow">Module · Expertise</span>
+        <div style="display: flex; align-items: center; gap: 14px;">
+          <span class="chip chip-lg" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M2.5 9.5L12 5l9.5 4.5L12 14z"></path><path d="M6.5 11.5v4.5c3 2.5 8 2.5 11 0v-4.5"></path></svg>
+          </span>
+          <h1 id="title-math">Mathematics</h1>
+        </div>
+        <p class="lede">Explains a term, a phrase or a sentence as mathematics understands it, in short, plain words, often with a small example.</p>
+      </header>
+
+      <div class="facts">
+        <div class="fact"><span>Reads</span><b>Any language</b><span>Words, phrases and sentences</span></div>
+        <div class="fact"><span>Writes</span><b>English</b><span>The language you use Vocabularium in</span></div>
+        <div class="fact"><span>Best for</span><b>Mathematical terms</b><span>eigenvalue, ring, field</span></div>
+      </div>
+
+      <section class="section" aria-labelledby="h-sample">
+        <div class="section-head">
+          <h2 id="h-sample">See it on a card</h2>
+          <div class="seg" role="group" aria-label="Sample">
+            <button type="button" aria-pressed="{{wordPressed}}" onClick="{{pickWord}}">Word <span class="k">eigenvalue</span></button>
+            <button type="button" aria-pressed="{{sentencePressed}}" onClick="{{pickSentence}}">Sentence</button>
+          </div>
+        </div>
+        <sc-if value="{{isWord}}" hint-placeholder-val="{{true}}">
+          <div class="card-wrap">
+            <div class="card-tab">Mathematics</div>
+            <article class="card">
+              <div class="core-line"><span class="key">eigenvalue</span></div>
+              <p style="margin: 0; font-size: 15.5px; line-height: 1.55;">An eigenvalue is a number that tells you how much a transformation stretches a special direction. Along an eigenvector a matrix only stretches a vector, by the eigenvalue.</p>
+              <a class="facet-zone" href="#h-facets">
+                <span class="fz-head"><span class="fz-label"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Facets</span><span class="fz-rule" aria-hidden="true"></span></span>
+                <span class="fz-text">Add facets for more customised content.</span>
+              </a>
+            </article>
+          </div>
+        </sc-if>
+        <sc-if value="{{isSentence}}" hint-placeholder-val="{{false}}">
+          <div class="card-wrap">
+            <div class="card-tab">Mathematics</div>
+            <article class="card">
+              <div class="core-line"><span class="key" style="font-size: 17px;">Every square matrix has at least one eigenvalue.</span></div>
+              <p style="margin: 0; font-size: 15.5px; line-height: 1.55;">For every square matrix there is at least one direction that the matrix only stretches, once complex numbers are allowed. The stretch factor along that direction is an eigenvalue.</p>
+              <a class="facet-zone" href="#h-facets">
+                <span class="fz-head"><span class="fz-label"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Facets</span><span class="fz-rule" aria-hidden="true"></span></span>
+                <span class="fz-text">Add facets for more customised content.</span>
+              </a>
+            </article>
+          </div>
+        </sc-if>
+      </section>
+
+      <section class="section" aria-labelledby="h-facets">
+        <div class="section-head"><h2 id="h-facets">Facets</h2></div>
+        <ul class="flist">
+          <li><a class="frow" href="#h-facets"><span class="chip">Fo</span><span><span class="name">Formula</span><br><span class="desc">The defining formula, with each symbol named</span></span><span class="pill">Concepts with a formula</span><svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></a></li>
+        </ul>
+      </section>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":600,"height":1300}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { sample: 'word' }; }
+  renderVals() {
+    const word = this.state.sample === 'word';
+    return {
+      theme: this.props.theme ?? 'light',
+      isWord: word, isSentence: !word,
+      wordPressed: word ? 'true' : 'false', sentencePressed: word ? 'false' : 'true',
+      pickWord: () => this.setState({ sample: 'word' }),
+      pickSentence: () => this.setState({ sample: 'sentence' })
+    };
+  }
+}
+</script>
+</body>
+</html>

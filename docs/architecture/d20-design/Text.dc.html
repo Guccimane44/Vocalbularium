@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Text module page</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="sage.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..800;1,9..144,400..600&amp;family=Instrument+Sans:wght@400..700&amp;display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div class="vs fam-notes" data-theme="{{theme}}" style="width: 600px; min-height: 720px;">
+  <section class="sheet" role="dialog" aria-labelledby="title-text" style="min-height: 720px; box-shadow: none; border-left: 0;">
+    <div class="sheet-bar">
+      <nav class="trail" aria-label="Where you are">
+        <a href="#title-text">Notes</a>
+        <span class="sep" aria-hidden="true">/</span>
+        <span aria-current="page">Text</span>
+      </nav>
+      <button type="button" class="icon-btn" aria-label="Close Text">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+      </button>
+    </div>
+
+    <div class="sheet-body">
+      <header class="hero">
+        <span class="eyebrow">Module · Notes</span>
+        <div style="display: flex; align-items: center; gap: 14px;">
+          <span class="chip chip-lg" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M4 20l1-4.5L15.5 5a2.1 2.1 0 013 3L8 18.5z"></path><path d="M13.5 7l3 3"></path></svg>
+          </span>
+          <h1 id="title-text">Text</h1>
+        </div>
+        <p class="lede">A space for your own notes: a mnemonic, where you met the word, a correction, anything you want to remember.</p>
+      </header>
+
+      <div class="facts">
+        <div class="fact"><span>Written by</span><b>You</b><span>It starts empty</span></div>
+        <div class="fact"><span>Generation</span><b>Never touches it</b><span>Not read, not changed</span></div>
+        <div class="fact"><span>How many</span><b>As many as you like</b><span>On one page</span></div>
+      </div>
+
+      <section class="section" aria-labelledby="h-sample">
+        <div class="section-head"><h2 id="h-sample">For example</h2></div>
+        <div class="card-wrap" style="padding-left: 0;">
+          <div class="card-tab" style="left: 18px;">Text</div>
+          <article class="card">
+            <p style="margin: 0; font-size: 15.5px; line-height: 1.55;">Careful with “mother <b>tongue</b>”. In German it is Muttersprache: Sprache, not Zunge.</p>
+          </article>
+        </div>
+
+      </section>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["light","dark"],"default":"light"},"$preview":{"width":600,"height":720}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { theme: this.props.theme ?? 'light' };
+  }
+}
+</script>
+</body>
+</html>

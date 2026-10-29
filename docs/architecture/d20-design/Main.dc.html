@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>German module page</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="sage.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..800;1,9..144,400..600&amp;family=Instrument+Sans:wght@400..700&amp;display=swap">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div class="vs fam-translation" data-theme="{{theme}}" style="position: relative; width: 1280px; height: 1900px; overflow: hidden;">
+
+  <!-- The page view behind the sheet -->
+  <div class="app" style="position: absolute; inset: 0;">
+    <nav class="side" aria-label="Decks">
+      <div class="wordmark">Vocabularium<i>.</i></div>
+      <div class="navitem">Home</div>
+      <div class="eyebrow" style="padding: 18px 10px 6px;">Decks</div>
+      <div class="navitem" style="background: var(--surface-active); font-weight: 600;">My Deck</div>
+    </nav>
+    <main style="padding: 40px 36px; display: flex; gap: 32px; align-items: flex-start;">
+      <div style="flex: 1; display: flex; flex-direction: column; gap: 28px;">
+        <div class="muted" style="font-size: 14px; padding-top: 50px;">← My Deck</div>
+        <div class="display" style="font-size: 88px; line-height: 1;">language</div>
+        <div class="card-wrap" style="padding-left: 0;">
+          <div class="card-tab" style="left: 18px;">German</div>
+          <div class="card" style="height: 360px;">
+            <div class="core-line"><span class="lang">Englisch</span><span class="key">language</span><span class="meta">Wort · Nomen</span></div>
+            <div class="meaning"><span class="n">1</span><span>die Sprache — ein System aus Wörtern und Regeln</span></div>
+          </div>
+        </div>
+      </div>
+      <aside class="window" style="width: 320px;">
+        <div class="display" style="font-size: 22px;">Modules</div>
+        <div class="wmod"><b>German</b><span></span><span class="muted" style="font-size: 13px;">Explains a word in German, or translates a sentence into German.</span></div>
+        <div class="wmod"><b>Chinese</b><span></span><span class="muted" style="font-size: 13px;">Explains a word in Chinese, or translates a sentence into Chinese.</span></div>
+      </aside>
+    </main>
+  </div>
+  <div style="position: absolute; inset: 0; background: var(--scrim);"></div>
+
+  <!-- The module page: a sheet sliding out over the module window -->
+  <section class="sheet" role="dialog" aria-labelledby="title-german" style="position: absolute; top: 0; right: 0; bottom: 0; width: 600px; overflow: hidden;">
+    <div class="sheet-bar">
+      <nav class="trail" aria-label="Where you are">
+        <a href="Family.dc.html">Languages</a>
+        <span class="sep" aria-hidden="true">/</span>
+        <span aria-current="page">German</span>
+      </nav>
+      <button type="button" class="icon-btn" aria-label="Close German">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+      </button>
+    </div>
+
+    <div class="sheet-body">
+      <header class="hero">
+        <span class="eyebrow">Module · Languages</span>
+        <div style="display: flex; align-items: center; gap: 14px;">
+          <span class="chip chip-lg" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M3.5 5.5h10v7h-5l-3 2.5v-2.5h-2z"></path><path d="M16.5 9.5h4v7h-2v2.5l-3-2.5h-5v-1.5"></path></svg>
+          </span>
+          <h1 id="title-german">German</h1>
+        </div>
+        <p class="lede">Explains your key in German: the meanings of a word, the translation of a sentence.</p>
+      </header>
+
+      <div class="facts">
+        <div class="fact"><span>Reads</span><b>Any language</b><span>Words, phrases and sentences</span></div>
+        <div class="fact"><span>Writes</span><b>German</b><span>Whatever language you use Vocabularium in</span></div>
+        <div class="fact"><span>Key already German?</span><b>Explained, not translated</b><span>Building a German - German dictionary</span></div>
+      </div>
+
+      <section class="section" aria-labelledby="h-sample">
+        <div class="section-head"><h2 id="h-sample">HOW IT LOOKS</h2></div>
+
+        <div class="keyline">
+          <div class="kl-controls">
+            <span class="kl-select">
+              <svg class="kl-globe" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18"></path><path d="M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9s1.3-6.4 3.8-9z"></path></svg>
+              <select aria-label="Language of the sample key" value="{{langCode}}" onChange="{{pickLang}}">
+                <option value="en">English</option>
+                <option value="ar">العربية · Arabic</option>
+                <option value="zh-Hans">中文 · Chinese</option>
+                <option value="fr">Français · French</option>
+                <option value="ru">Русский · Russian</option>
+                <option value="es">Español · Spanish</option>
+              </select>
+              <svg class="kl-chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
+            </span>
+            <div class="kl-toggle" role="group" aria-label="Word or sentence">
+              <button type="button" aria-pressed="{{wordPressed}}" onClick="{{pickWord}}">Word</button>
+              <button type="button" aria-pressed="{{sentencePressed}}" onClick="{{pickSentence}}">Sentence</button>
+            </div>
+          </div>
+          <sc-if value="{{isWord}}" hint-placeholder-val="{{true}}">
+            <div class="kl-key" lang="{{ex.code}}" dir="{{ex.dir}}">{{ex.word}}</div>
+          </sc-if>
+          <sc-if value="{{isSentence}}" hint-placeholder-val="{{false}}">
+            <div class="kl-key kl-sentence" lang="{{ex.code}}" dir="{{ex.dir}}">{{ex.sentence}}</div>
+          </sc-if>
+        </div>
+
+        <sc-if value="{{isWord}}" hint-placeholder-val="{{true}}">
+          <div class="card-wrap" style="padding-left: 0;">
+            <div class="card-tab" style="left: 18px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 5.5h10v7h-5l-3 2.5v-2.5h-2z"></path><path d="M16.5 9.5h4v7h-2v2.5l-3-2.5h-5v-1.5"></path></svg>
+              German
+            </div>
+            <article class="card" lang="de">
+              <div class="core-line"><span class="lang">{{ex.langDe}}</span><span class="key" lang="{{ex.code}}" dir="{{ex.dir}}">{{ex.word}}</span><sc-if value="{{ex.hasRom}}" hint-placeholder-val="{{false}}"><span class="rom">{{ex.rom}}</span></sc-if><span class="meta">Wort · Nomen</span></div>
+              <div class="meaning"><span class="n">1</span><span>die Sprache — ein System aus Wörtern und Regeln, mit dem Menschen sich verständigen</span></div>
+              <sc-if value="{{ex.hasSecond}}" hint-placeholder-val="{{true}}">
+                <div class="meaning"><span class="n">2</span><span>{{ex.second}}</span></div>
+              </sc-if>
+              <a class="facet-zone" href="#h-facets" lang="en">
+                <span class="fz-head"><span class="fz-label"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Facets</span><span class="fz-rule" aria-hidden="true"></span></span>
+                <span class="fz-text">Add facets for more customised content.</span>
+              </a>
+            </article>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{isSentence}}" hint-placeholder-val="{{false}}">
+          <div class="card-wrap" style="padding-left: 0;">
+            <div class="card-tab" style="left: 18px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 5.5h10v7h-5l-3 2.5v-2.5h-2z"></path><path d="M16.5 9.5h4v7h-2v2.5l-3-2.5h-5v-1.5"></path></svg>
+              German
+            </div>
+            <article class="card" lang="de">
+              <div class="core-line"><span class="lang">{{ex.langDe}}</span><span class="meta">Satz</span></div>
+              <div class="key" lang="{{ex.code}}" dir="{{ex.dir}}" style="font: 700 18px/1.35 var(--font-display);">{{ex.sentence}}</div>
+              <div class="reading">{{ex.sentenceDe}}</div>
+              <a class="facet-zone" href="#h-facets" lang="en">
+                <span class="fz-head"><span class="fz-label"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Facets</span><span class="fz-rule" aria-hidden="true"></span></span>
+                <span class="fz-text">Add facets for more customised content.</span>
+              </a>
+            </article>
+          </div>
+        </sc-if>
+
+        <div class="section-head" style="padding-top: 12px;"><h2 id="h-how">How it works</h2></div>
+        <ol class="chain" aria-labelledby="h-how">
+          <li><span class="ch-label">MAIN KEY</span>
+            <sc-if value="{{isWord}}" hint-placeholder-val="{{true}}"><span class="ch-val" lang="{{ex.code}}" dir="{{ex.dir}}">{{ex.word}}</span></sc-if>
+            <sc-if value="{{isSentence}}" hint-placeholder-val="{{false}}"><span class="ch-val" lang="{{ex.code}}" dir="{{ex.dir}}">{{ex.sentence}}</span></sc-if>
+          </li>
+          <li><span class="ch-label">Read as</span>
+            <sc-if value="{{isWord}}" hint-placeholder-val="{{true}}"><span class="ch-val" lang="de"><span class="flag">Wort</span><span class="flag">Nomen</span></span></sc-if>
+            <sc-if value="{{isSentence}}" hint-placeholder-val="{{false}}"><span class="ch-val" lang="de"><span class="flag">Satz</span></span></sc-if>
+          </li>
+          <li><span class="ch-label">MODULE CORE</span>
+            <sc-if value="{{isWord}}" hint-placeholder-val="{{true}}">
+              <ol class="ch-list" lang="de">
+                <li><span class="n">1</span>die Sprache</li>
+                <sc-if value="{{ex.hasSecond}}" hint-placeholder-val="{{true}}"><li><span class="n">2</span>{{ex.secondHead}}</li></sc-if>
+              </ol>
+            </sc-if>
+            <sc-if value="{{isSentence}}" hint-placeholder-val="{{false}}"><span class="ch-text" lang="de">{{ex.sentenceDe}}</span></sc-if>
+          </li>
+          <li><span class="ch-label">Facets</span>
+            <sc-if value="{{isWord}}" hint-placeholder-val="{{true}}"><span class="ch-val" aria-label="Article, Examples, Synonyms, Antonyms and Declension apply; Conjugation, Comparison and Case are left out"><span class="mk">Ar</span><span class="mk">Ex</span><span class="mk">Sy</span><span class="mk">An</span><span class="mk out">Co</span><span class="mk">De</span><span class="mk out">Cm</span><span class="mk out">Ca</span></span></sc-if>
+            <sc-if value="{{isSentence}}" hint-placeholder-val="{{false}}"><span class="ch-val" aria-label="Only Examples applies"><span class="mk out">Ar</span><span class="mk">Ex</span><span class="mk out">Sy</span><span class="mk out">An</span><span class="mk out">Co</span><span class="mk out">De</span><span class="mk out">Cm</span><span class="mk out">Ca</span></span></sc-if>
+          </li>
+        </ol>
+
+      </section>
+
+      <section class="section" aria-labelledby="h-facets">
+        <div class="section-head">
+          <h2 id="h-facets">Facets</h2>
+
+        </div>
+        <ul class="flist">
+          <li><a class="frow" href="Article.dc.html"><span class="chip">Ar</span><span><span class="name">Article</span><br><span class="desc">The article, gender and plural of a noun</span></span><span class="pill">Nouns</span><svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></a></li>
+          <li><a class="frow" href="#h-facets"><span class="chip">Ex</span><span><span class="name">Examples</span><br><span class="desc">A sentence using the key, with its translation</span></span><span class="pill">Words · sentences</span><svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></a></li>
+          <li><a class="frow" href="#h-facets"><span class="chip">Sy</span><span><span class="name">Synonyms</span><br><span class="desc">German words with the same or a close meaning</span></span><span class="pill">Words</span><svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></a></li>
+          <li><a class="frow" href="#h-facets"><span class="chip">An</span><span><span class="name">Antonyms</span><br><span class="desc">German words with the opposite meaning</span></span><span class="pill">Words</span><svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></a></li>
+          <li><a class="frow" href="Conjugation.dc.html"><span class="chip">Co</span><span><span class="name">Conjugation</span><br><span class="desc">Present, simple past and perfect of a verb</span></span><span class="pill">Verbs</span><svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></a></li>
+          <li><a class="frow" href="#h-facets"><span class="chip">De</span><span><span class="name">Declension</span><br><span class="desc">A noun or adjective through the four cases</span></span><span class="pill">Nouns · adjectives</span><svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></a></li>
+          <li><a class="frow" href="#h-facets"><span class="chip">Cm</span><span><span class="name">Comparison</span><br><span class="desc">Comparative and superlative of an adjective</span></span><span class="pill">Adjectives</span><svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></a></li>
+          <li><a class="frow" href="#h-facets"><span class="chip">Ca</span><span><span class="name">Case</span><br><span class="desc">Which case a preposition takes, and when</span></span><span class="pill">Prepositions</span><svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></a></li>
+        </ul>
+      </section>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;},&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:1900}}">
+// The example set: "language" and one sentence in each interface language (D14).
+// Labels on the card are German, as the module writes them.
+const TONGUE = 'die Zunge — das Organ im Mund, mit dem man schmeckt und spricht';
+const EXAMPLES = [
+  { code: 'en', native: 'English', name: 'English', langDe: 'Englisch', dir: 'ltr', word: 'language', rom: '',
+    second: 'die Ausdrucksweise — wie jemand spricht oder schreibt',
+    sentence: 'Languages are the bridges connecting people and the world.',
+    sentenceDe: 'Sprachen sind die Brücken, die Menschen und die Welt verbinden.' },
+  { code: 'ar', native: 'العربية', name: 'Arabic', langDe: 'Arabisch', dir: 'rtl', word: 'لغة', rom: 'luġa', second: '',
+    sentence: 'اللغات هي الجسور التي تربط الناس بالعالم.',
+    sentenceDe: 'Sprachen sind die Brücken, die die Menschen mit der Welt verbinden.' },
+  { code: 'zh-Hans', native: '中文', name: 'Chinese', langDe: 'Chinesisch', dir: 'ltr', word: '语言', rom: 'yǔyán', second: '',
+    sentence: '语言是连接人与世界的桥梁。',
+    sentenceDe: 'Die Sprache ist die Brücke, die Menschen mit der Welt verbindet.' },
+  { code: 'fr', native: 'Français', name: 'French', langDe: 'Französisch', dir: 'ltr', word: 'langue', rom: '', second: TONGUE,
+    sentence: 'Les langues sont les ponts qui relient les gens et le monde.',
+    sentenceDe: 'Sprachen sind die Brücken, die Menschen und die Welt verbinden.' },
+  { code: 'ru', native: 'Русский', name: 'Russian', langDe: 'Russisch', dir: 'ltr', word: 'язык', rom: 'jazyk', second: TONGUE,
+    sentence: 'Языки — это мосты, соединяющие людей и мир.',
+    sentenceDe: 'Sprachen sind Brücken, die Menschen und die Welt verbinden.' },
+  { code: 'es', native: 'Español', name: 'Spanish', langDe: 'Spanisch', dir: 'ltr', word: 'idioma', rom: '', second: '',
+    sentence: 'Los idiomas son los puentes que conectan a las personas con el mundo.',
+    sentenceDe: 'Sprachen sind die Brücken, die die Menschen mit der Welt verbinden.' }
+];
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { sample: 'word', lang: 'en' }; }
+  renderVals() {
+    const word = this.state.sample === 'word';
+    const ex = EXAMPLES.find(e => e.code === this.state.lang) || EXAMPLES[0];
+    return {
+      theme: this.props.theme ?? 'light',
+      isWord: word, isSentence: !word,
+      wordPressed: word ? 'true' : 'false', sentencePressed: word ? 'false' : 'true',
+      pickWord: () => this.setState({ sample: 'word' }),
+      pickSentence: () => this.setState({ sample: 'sentence' }),
+      langCode: ex.code,
+      pickLang: (event) => this.setState({ lang: event.target.value }),
+      ex: {
+        ...ex,
+        hasRom: !!ex.rom,
+        hasSecond: !!ex.second,
+        secondHead: ex.second.split(' — ')[0]
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

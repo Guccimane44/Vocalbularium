@@ -2,6 +2,8 @@
 
 Proposed on 29 October 2026, for release 0.13.0. The detail of the [traceability map](traceability-map.md#entries)'s D20 entry; its conflicts and clarifications are also listed in the map ([conflicts](traceability-map.md#conflicts), [clarifications](traceability-map.md#clarifications)). Design: the owner's [design canvas](https://claude.ai/artifact/UDLZsTHRdzqAEDYvHQK8dD) (private to the owner), iterated with the owner in chat and canvas comments on 29 October 2026.
 
+**Reference design.** The owner settled the canvas on 29 October 2026 at version `1793292631-75fb`; it is the reference for the increment's layout and wording. Its source is kept in [d20-design](d20-design/): board 0 the Languages family page (`Family.dc.html`), 1 the German module page (`Main.dc.html`), 2 Article, 3 Conjugation, 4 Mathematics, 5 Text and 6 the entry points, with the shared styles in `sage.css` (the Vocabularium Sage tokens) and the layout in `canvas.json`. The boards render only in the canvas's runtime; read as source, they hold every label, sample and style. Where this text and the boards differ, the boards win; the [open items](#open-items) cover what the boards do not show.
+
 ## Decision
 
 **The explanations of D13 become pages: a family page, a module page and a facet page, in one sheet, with samples a user can choose.** The current module dialog and the facet explanation that expands in the facet window are removed, with the dialog D18 opens from a facet's **About**; nothing of their layout is kept. The owner's direction (chat, 29 October 2026): "the current implementation can be thrown away".
@@ -37,6 +39,11 @@ The family's name, mark and colour; one sentence on what its modules do; what ev
 2. **Samples:** the same controls as the module page. For a word: the key, the core's word and the facet's output, in a short flow, then the facet as a card renders it. For an input the facet does not apply to: "Left out", with the reason.
 3. **Where it sits:** a small card with the facet's section highlighted among the others, in the module's order.
 4. **The module's facets:** a strip of all of them, the current one marked.
+
+### Expertise and Notes module pages
+
+- **An Expertise module** (board 4) has the header, three facts (*Reads: any language*, *Writes:* the interface language, *Best for:* the subject's terms), **See it on a card** with **Word** or **Sentence** on the subject's own term and no language dropdown, a card with the core and the same facet hint, and its facets. It has no How it works.
+- **Text** (board 5) has the header, three facts (*Written by: you*, *Generation: never touches it*, *How many: as many as you like*) and an example note; no generated sample and no facets.
 
 The pages say **core** for what the facets are written from. The specifications' term *grammar word* ([modules](../specs/modules.md#catalog)) stays as an internal term and is not shown.
 
