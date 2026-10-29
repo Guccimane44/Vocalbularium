@@ -2437,6 +2437,7 @@ test('0.13.0: family, module and facet pages in one sheet, from the module windo
   assert.equal(await sheet.locator('select').count(), 0);
   assert.equal(await sheet.locator('.about-chain').count(), 0);
   assert.equal(await sheet.locator('.about-facts').count(), 0, 'no Reads, Writes, Best for (D21)');
+  assert.equal(await sheet.locator('.about-row .about-pill').count(), 0, 'no applies-to on an Expertise facet (D21)');
   assert.match(await sheet.locator('.about-card').innerText(), /Hello, world/);
   await a.page.mouse.click(5, 5);
   await sheet.waitFor({ state: 'detached' });

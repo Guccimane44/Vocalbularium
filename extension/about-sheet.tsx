@@ -248,7 +248,8 @@ function ModulePage({ module, go }: { module: string; go: (next: AboutTarget) =>
           return <li key={facet}><button type="button" className="about-row" onClick={() => go({ kind: 'facet', module: parent, facet })}>
             <span className="about-chip small" aria-hidden="true">{facetMark(parent, facet)}</span>
             <span><span className="about-row-name">{facetName(parent, facet)}</span><span className="about-row-desc">{own?.summary}</span></span>
-            <span className="about-pill">{own?.appliesTo}</span>
+            {/* What a facet applies to, on a Languages page only (D21). */}
+            {isLanguages(module) ? <span className="about-pill">{own?.appliesTo}</span> : <span />}
             <Chevron />
           </button></li>;
         })}
