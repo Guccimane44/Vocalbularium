@@ -386,7 +386,7 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
 .about-chain > li:last-child::before { background: var(--fam); }
 .about-chain-label { padding-top: 11px; font: 600 11px/1.3 var(--font-text); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-muted); }
 .about-chain-value { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; min-width: 0; padding: 7px 0; font: 600 18px/1.3 var(--font-display); }
-.about-chain-core { padding: 7px 0; font: 600 17px/1.35 var(--font-display); }
+.about-chain-core { justify-self: start; padding: 7px 0; font: 600 17px/1.35 var(--font-display); }
 .about-flag { display: inline-flex; align-items: center; height: 26px; padding: 0 10px; border-radius: 7px; background: var(--fam-tint); font: 600 13px/1 var(--font-text); }
 .about-mk { display: inline-grid; place-items: center; min-width: 22px; height: 20px; padding: 0 3px; border-radius: 5px; background: var(--fam); color: var(--on-fam); font: 700 10.5px/1 var(--font-text); }
 .about-mk[data-out] { background: transparent; border: 1px dashed var(--line-control); color: var(--ink-muted); }

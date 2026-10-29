@@ -169,7 +169,7 @@ test('Fastify publishes route contracts and request IDs on health responses', as
   assert.deepEqual(await (await fetch(url + '/health/ready')).json(), { ok: true });
 
   const document = await application.openapi();
-  assert.equal(document.info.version, '0.12.2');
+  assert.equal(document.info.version, '0.13.0');
   assert.ok(document.paths['/api/capture'].post.requestBody.content['application/json'].schema.properties.payload);
   assert.deepEqual(document.paths['/api/capture'].post.security, [{ bearerAuth: [] }]);
   assert.deepEqual(document.paths['/api/login'].post.security, []);
