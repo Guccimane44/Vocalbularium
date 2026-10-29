@@ -85,15 +85,20 @@ function keep(module: ParentType, content: GeneratedParent, inputType: InputType
   return { core: content.core, facets: Object.fromEntries(kept.map(facet => [facet, content.facets[facet]])) };
 }
 
-// A facet's sample in an interface language: its own text only, from its own
-// samples when it has them (Conjugation, Comparison, Case: K65), otherwise
-// from its module's. Null for an input type the facet does not apply to, or
-// when no sample holds it.
-export function facetSampleOf(parent: ParentType, facet: FacetType, inputType: InputType, language = 'en'): readonly MdBlock[] | null {
+// The card a facet's sample sits on in an interface language, with every facet
+// that card holds: its own sample's when it has one (Conjugation, Comparison,
+// Case: K65), otherwise its module's. Null for an input type the facet does
+// not apply to, or when no sample holds it.
+export function facetCardOf(parent: ParentType, facet: FacetType, inputType: InputType, language = 'en'): Rendered | null {
   if (!PARENTS[parent].facets[facet]?.applies.includes(inputType)) return null;
   const own = givenSample(parent, inputType, language, facet) as GeneratedParent | undefined;
-  const rendered = own ? renderParent(parent, formatContent(parent, keep(parent, own, inputType, [facet]))) : sampleOf(parent, inputType, [facet], language);
-  return rendered?.kind === 'parent' ? rendered.facets.find(each => each.facet === facet)?.body ?? null : null;
+  const rendered = own ? renderParent(parent, formatContent(parent, keep(parent, own, inputType))) : sampleOf(parent, inputType, undefined, language);
+  return rendered?.kind === 'parent' && rendered.facets.some(each => each.facet === facet) ? rendered : null;
+}
+// A facet's sample in an interface language: its own text only, from that card.
+export function facetSampleOf(parent: ParentType, facet: FacetType, inputType: InputType, language = 'en'): readonly MdBlock[] | null {
+  const card = facetCardOf(parent, facet, inputType, language);
+  return card?.kind === 'parent' ? card.facets.find(each => each.facet === facet)?.body ?? null : null;
 }
 
 // What a sample was written for in an interface language: the main key's

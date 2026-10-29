@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import type { ReactNode } from 'react';
 import type { InputType } from '@vocabularium/contracts';
-import { facetAbout, familyAbout, facetSampleOf, moduleAbout, sampleKeyOf, sampleLanguages, sampleOf } from '@vocabularium/domain/about';
+import { facetAbout, facetCardOf, familyAbout, moduleAbout, sampleKeyOf, sampleLanguages, sampleOf } from '@vocabularium/domain/about';
 import type { FamilyId } from '@vocabularium/domain/catalog';
 import { CATALOG, isModuleType, WINDOW_MODULES } from '@vocabularium/domain/page-modules';
 import type { ModuleFamily, ModuleType } from '@vocabularium/domain/page-modules';
@@ -283,16 +283,15 @@ function FacetPage({ module, facet, go }: { module: ParentType; facet: FacetType
   const label = facetName(module, facet);
   const sample = useSample(module, facet);
   const key = sampleKeyOf(module, sample.inputType, sample.language, facet) ?? '';
-  const blocks = facetSampleOf(module, facet, sample.inputType, sample.language);
-  // The card the facet's word came from: its own sample's, or its module's.
-  const word = facetSampleOf(module, facet, 'word_phrase', sample.language);
-  const wordKey = sampleKeyOf(module, 'word_phrase', sample.language, facet) ?? '';
-  const card = sampleOf(module, 'word_phrase', [facet], sample.language);
+  // The card the sample sits on, its own or its module's: the core and the
+  // other facets it holds dimmed, this facet's text in full (0.13.1; until
+  // then a separate "Where it sits" followed the sample).
+  const card = facetCardOf(module, facet, sample.inputType, sample.language);
+  const blocks = card?.kind === 'parent' ? card.facets.find(each => each.facet === facet)?.body : undefined;
   const core = card?.kind === 'parent' ? card.core : [];
+  const shown = card?.kind === 'parent' ? card.facets.map(each => each.facet) : [];
   const applies = PARENTS[module].facets[facet]?.applies ?? [];
-  // Where it sits: among the facets the module's word sample holds.
-  const whole = sampleOf(module, 'word_phrase', undefined, sample.language);
-  const shown = whole?.kind === 'parent' ? whole.facets.map(each => each.facet) : [];
+  const family = familyOfModule(module);
   return <>
     <Hero eyebrow={t('about.facetEyebrow', { module: moduleLabel(module) })} chip={facetMark(module, facet)} title={label} lede={about?.summary} />
     {about && <dl className="about-defs">
@@ -303,24 +302,22 @@ function FacetPage({ module, facet, go }: { module: ParentType; facet: FacetType
       <h3 id="about-samples">{t('about.samples')}</h3>
       <SampleControls sample={sample} chooseLanguage={isLanguages(module)} />
       <p className={`about-key${sample.inputType === 'sentence' ? ' sentence' : ''}`} dir="auto" lang={sample.language}>{key}</p>
-      {blocks ? <>
+      {card?.kind === 'parent' && blocks ? <>
         {sample.inputType === 'word_phrase' && core.length > 0 && <div className="about-flow">
           <div><span className="about-eyebrow">{t('about.mainKey')}</span><b dir="auto" lang={sample.language}>{key}</b></div>
           <span className="about-arrow" aria-hidden="true">→</span>
           <div className="hl"><span className="about-eyebrow">{t('about.moduleCore')}</span><Markdown blocks={core} mainKey="" className="about-flow-core" /></div>
         </div>}
-        <div className={`about-facet-card fam-${familyOfModule(module)}`}><FacetSection parent={module} facet={facet} blocks={blocks} mainKey={key} /></div>
+        <article className={`component preview about-card about-where fam-${family}`} data-type={module}>
+          <div className="card-tab"><FamilyIcon family={family} /><span className="tab-label">{moduleLabel(module)}</span></div>
+          <div className="about-dim"><Content type={module} rendered={{ ...card, facets: [] }} mainKey={key} /></div>
+          {facetsOf(module).filter(each => shown.includes(each)).map(each => each === facet
+            ? <div key={each} className="about-here"><FacetSection parent={module} facet={facet} blocks={blocks} mainKey={key} /></div>
+            : <div key={each} className="about-dim about-other" aria-hidden="true"><FacetTab parent={module} facet={each} /></div>)}
+        </article>
       </> : <p className="about-left-out"><span className="about-mk" data-out aria-hidden="true">{facetMark(module, facet)}</span>
         {applies.includes(sample.inputType) ? t('about.noSample') : t('about.leftOut', { facet: label })}</p>}
     </section>
-    {word && <section className="about-section" aria-labelledby="about-where">
-      <h3 id="about-where">{t('about.whereItSits')}</h3>
-      <div className={`about-where component preview fam-${familyOfModule(module)}`}>
-        <div className="about-dim"><Markdown blocks={core} mainKey="" className="entry-core" /></div>
-        {facetsOf(module).filter(each => each === facet || shown.includes(each)).map(each => each === facet ? <div key={each} className="about-here"><FacetSection parent={module} facet={facet} blocks={word} mainKey={wordKey} /></div>
-          : <div key={each} className="about-dim about-other" aria-hidden="true"><FacetTab parent={module} facet={each} /></div>)}
-      </div>
-    </section>}
     <nav className="about-section" aria-label={t('about.facetsOf', { module: moduleLabel(module) })}>
       <h3>{t('about.facetsOf', { module: moduleLabel(module) })}</h3>
       <div className="about-strip">

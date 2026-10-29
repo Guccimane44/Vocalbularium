@@ -162,7 +162,7 @@ test('every family, window module and facet but the core has its page text, and 
 });
 
 test('a facet’s sample is its own part of a sample in the interface language, only for the inputs it applies to', async () => {
-  const { facetSampleOf, sampleKeyOf, sampleOf } = await import('@vocabularium/domain/about');
+  const { facetCardOf, facetSampleOf, sampleKeyOf, sampleOf } = await import('@vocabularium/domain/about');
   const plain = blocks => JSON.stringify(blocks);
   // Article applies to words only: German's sample word "language" is die Sprache.
   assert.match(plain(facetSampleOf('german', 'article', 'word_phrase')), /die Sprache/);
@@ -178,6 +178,11 @@ test('a facet’s sample is its own part of a sample in the interface language, 
   assert.match(plain(facetSampleOf('german', 'conjugation', 'word_phrase')), /spr(e|i)ch/);
   assert.equal(facetSampleOf('german', 'conjugation', 'sentence'), null);
   assert.equal(sampleKeyOf('german', 'word_phrase', 'ru', 'conjugation'), 'говорить');
+  // The card a facet sits on is its own sample's, core and all, or its module's.
+  assert.match(plain(facetCardOf('german', 'conjugation', 'word_phrase').core), /sprechen/);
+  assert.doesNotMatch(plain(facetCardOf('german', 'conjugation', 'word_phrase').core), /Sprache/);
+  assert.deepEqual(facetCardOf('german', 'article', 'word_phrase', 'fr'), sampleOf('german', 'word_phrase', undefined, 'fr'));
+  assert.equal(facetCardOf('german', 'article', 'sentence'), null);
   // A module's sample shows every facet its sample holds; given facets, only those that apply.
   const facets = sampleOf('german', 'word_phrase').facets.map(each => each.facet);
   assert.ok(facets.includes('article') && !facets.includes('conjugation'), facets.join());

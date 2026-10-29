@@ -427,9 +427,8 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
 .about-flow-core { font: 600 15px/1.35 var(--font-display); }
 .about-arrow { display: grid; place-items: center; color: var(--ink-muted); }
 :root[dir="rtl"] .about-arrow { transform: scaleX(-1); }
-.about-facet-card { padding: 14px 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--ground); }
 .about-left-out { display: flex; align-items: flex-start; gap: 10px; margin: 0; padding: 12px 14px; border: 1px dashed var(--line-control); border-radius: 10px; font-size: 14px; line-height: 1.45; color: var(--ink-soft); }
-.about-where.component.preview { display: flex; flex-direction: column; gap: 10px; padding: 12px 16px 14px; }
+.about-where.component.preview { display: flex; flex-direction: column; gap: 10px; }
 .about-dim { opacity: .4; }
 .about-here { margin: 0 -10px; padding: 8px 10px; border-radius: 8px; background: var(--fam-tint); }
 .about-example { margin: 0; font-size: 15.5px; line-height: 1.55; }

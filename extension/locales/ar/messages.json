@@ -203,7 +203,6 @@
   "about.samples": "أمثلة",
   "about.leftOut": "يُسقط. نواة الجملة ترجمة لا كلمة واحدة، فلا تُظهر بطاقتها {facet} أبدًا.",
   "about.noSample": "لا يتضمّن هذا المثال شيئًا له.",
-  "about.whereItSits": "موقعه في البطاقة",
   "about.facetsOf": "جوانب {module}",
   "about.forExample": "مثال",
   "about.facet": "حول {name}",

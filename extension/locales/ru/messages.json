@@ -203,7 +203,6 @@
   "about.samples": "Примеры",
   "about.leftOut": "Опускается. Ядро предложения — это перевод, а не одно слово, поэтому на его карточке раздела «{facet}» не бывает.",
   "about.noSample": "В этом примере для него ничего нет.",
-  "about.whereItSits": "Где он находится",
   "about.facetsOf": "Разделы модуля «{module}»",
   "about.forExample": "Например",
   "about.facet": "О разделе «{name}»",

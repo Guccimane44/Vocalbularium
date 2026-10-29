@@ -203,7 +203,6 @@
   "about.samples": "Samples",
   "about.leftOut": "Left out. A sentence's core is a translation, not a single word, so a card on it never shows {facet}.",
   "about.noSample": "This sample holds nothing for it.",
-  "about.whereItSits": "Where it sits",
   "about.facetsOf": "{module} facets",
   "about.forExample": "For example",
   "about.facet": "About {name}",

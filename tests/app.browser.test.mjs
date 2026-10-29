@@ -2374,15 +2374,21 @@ test('0.13.0: family, module and facet pages in one sheet, from the module windo
   assert.match(await path(), /^Languages\s*\/\s*German\s*\/\s*Article$/);
   assert.equal(await sheet.locator('.about-applies').innerText(), 'Nouns');
   const { singular, plural } = english.word_phrase.facets.article;
-  assert.equal(await sheet.locator('.about-facet-card .facet-body').innerText(), [singular, plural].filter(Boolean).join(' · '));
-  await sheet.locator('.about-where .about-here').waitFor();
+  // The sample sits on its card: the core and the other facets dimmed, Article in full (0.13.1).
+  assert.equal(await sheet.locator('.about-where .about-here .facet-body').innerText(), [singular, plural].filter(Boolean).join(' · '));
+  assert.equal(await sheet.locator('.about-where .about-other').count(), Object.keys(english.word_phrase.facets).length - 1);
+  assert.equal(await sheet.getByRole('heading', { name: 'Where it sits' }).count(), 0);
   await a.page.screenshot({ path: 'artifacts/v0.13.0-facet-page.png', animations: 'disabled' });
   await sheet.getByRole('button', { name: 'Sentence', exact: true }).click();
   assert.match(await sheet.locator('.about-left-out').innerText(), /Left out/);
   await sheet.locator('.about-strip button', { hasText: 'Conjugation' }).click();
   await waitFor(async () => await title() === 'Conjugation', 'Conjugation’s page');
   assert.equal(await sheet.locator('.about-key').innerText(), 'speak');
-  assert.match(await sheet.locator('.about-facet-card').innerText(), /habe gesprochen/);
+  // Its card is its own word's: the core is sprechen, not German's Sprache.
+  assert.match(await sheet.locator('.about-where .about-here').innerText(), /habe gesprochen/);
+  assert.match(await sheet.locator('.about-flow .hl').innerText(), /sprechen/);
+  assert.doesNotMatch(await sheet.locator('.about-where .about-dim').first().innerText(), /Sprache/);
+  await a.page.screenshot({ path: 'artifacts/v0.13.1-conjugation-page.png', animations: 'disabled' });
   // Back returns one step; the path's German and Languages open theirs.
   await sheet.getByRole('button', { name: 'Back', exact: true }).click();
   await waitFor(async () => await title() === 'Article', 'back to Article');
