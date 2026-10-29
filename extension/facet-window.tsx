@@ -2,7 +2,7 @@ import { useEffect, useId, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { facetsOf } from '@vocabularium/domain/parents';
 import type { FacetType, ParentType } from '@vocabularium/domain/parents';
-import { FacetExplanation } from './explanation.tsx';
+import { openAbout } from './about-sheet.tsx';
 import { launchFacet } from './facet-tags.tsx';
 import { t } from './i18n.ts';
 import { facetMark, facetName } from './catalog-text.ts';
@@ -15,7 +15,8 @@ import { facetMark, facetName } from './catalog-text.ts';
 // content asks "Are you sure?" in its row first, as its Delete does beside its
 // label. The window stays open for more until Escape, a click outside or
 // another of the card's actions; Escape returns the focus to the card's tab.
-// Each row's ⓘ expands the facet's explanation beneath it, one at a time.
+// Each row's › opens the facet's page in the pages' sheet (D20, 0.13.0; from
+// 0.8.1 an ⓘ expanded its explanation beneath the row).
 export function FacetWindow({ holderId, parent, title, facets, disabled, hasContent, onAdd, onRemove, onClose }: {
   holderId: string; parent: ParentType; title: string; facets: readonly string[]; disabled: boolean;
   // Whether unticking would lose what the facet holds; never in deck settings.
@@ -33,8 +34,6 @@ export function FacetWindow({ holderId, parent, title, facets, disabled, hasCont
   // focus back to once the row shows its tick again.
   const [asking, setAsking] = useState<FacetType | null>(null);
   const [returning, setReturning] = useState<FacetType | null>(null);
-  // The facet whose explanation is open.
-  const [reading, setReading] = useState<FacetType | null>(null);
   const ids = useId();
   // A tick shows at once, before the parent has saved it; what the parent
   // holds takes over as soon as it changes, and a failed add takes it back.
@@ -45,7 +44,11 @@ export function FacetWindow({ holderId, parent, title, facets, disabled, hasCont
   // Opened, the focus goes to the first row.
   useEffect(() => { root.current?.querySelector<HTMLInputElement>('input[type="checkbox"]')?.focus(); }, []);
   useEffect(() => {
-    const outside = (event: PointerEvent) => { if (!root.current?.contains(event.target as Node)) close.current(false); };
+    // The pages' sheet opens over the window, which stays open beneath it.
+    const outside = (event: PointerEvent) => {
+      const target = event.target as Element | null;
+      if (!root.current?.contains(target) && !target?.closest?.('.about-sheet')) close.current(false);
+    };
     document.addEventListener('pointerdown', outside);
     return () => document.removeEventListener('pointerdown', outside);
   }, []);
@@ -83,16 +86,15 @@ export function FacetWindow({ holderId, parent, title, facets, disabled, hasCont
       {facetsOf(parent).map(facet => {
         const label = facetName(parent, facet);
         const on = equipped(facet);
-        const tickId = `${ids}-${facet}`, aboutId = `${ids}-${facet}-about`;
-        return <li key={facet} className="facet-window-row" data-facet={facet} data-equipped={on || undefined} data-reading={reading === facet || undefined}>
+        const tickId = `${ids}-${facet}`;
+        return <li key={facet} className="facet-window-row" data-facet={facet} data-equipped={on || undefined}>
           <label htmlFor={tickId}>
             <span className="facet-tab-mark" aria-hidden="true">{facetMark(parent, facet)}</span>
             <span className="facet-window-name">{label}</span>
           </label>
-          <button type="button" className="facet-about" aria-label={t('shaping.about', { name: label })} aria-expanded={reading === facet}
-            aria-controls={reading === facet ? aboutId : undefined} onClick={() => setReading(reading === facet ? null : facet)}>
-            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-              <circle cx="12" cy="12" r="9.5" /><path d="M12 11v6" /><path d="M12 7.5h.01" /></svg>
+          <button type="button" className="facet-about" aria-label={t('about.facet', { name: label })} aria-haspopup="dialog"
+            onClick={() => openAbout({ kind: 'facet', module: parent, facet })}>
+            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6" /></svg>
           </button>
           {/* While the parent is busy a tick still holds the focus, so it is only marked unavailable. */}
           <input id={tickId} type="checkbox" checked={on} aria-disabled={disabled || undefined} hidden={asking === facet}
@@ -100,7 +102,6 @@ export function FacetWindow({ holderId, parent, title, facets, disabled, hasCont
           {asking === facet && <FacetQuestion name={t('facet.fromCard', { facet: label, card: title })}
             onConfirm={() => { answer(facet); void remove(facet); }}
             onCancel={() => answer(facet)} />}
-          {reading === facet && <FacetExplanation id={aboutId} parent={parent} facet={facet} />}
         </li>;
       })}
     </ul>

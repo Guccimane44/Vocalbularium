@@ -1344,7 +1344,7 @@ test('page view: main key tiers, Show all, rendered and plain content, quiet car
   assert.equal(await examples.locator('.card-actions').count(), 0, 'hovering no longer shows actions');
   await cardTab(a.page, 'German').click();
   // A parent's Facet opens its facet window (D13, 0.8.1).
-  assert.deepEqual(await examples.locator('.card-actions button').allTextContents(), ['Edit', 'Retry', 'Facet', 'Fold', 'Delete']);
+  assert.deepEqual(await examples.locator('.card-actions button').allTextContents(), ['Edit', 'Retry', 'Facet', 'About', 'Fold', 'Delete']);
   assert.equal(await cardTab(a.page, 'German').getAttribute('aria-expanded'), 'true');
   assert.equal(await examples.locator('.card-actions button').first().evaluate(node => getComputedStyle(node).animationName), 'eject', 'the actions eject from the tab');
   await a.page.mouse.click(5, 5);
@@ -2264,19 +2264,19 @@ test('facet window from the keyboard: Facet among the actions, Space on a tick, 
   await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
   await card('German').locator('.facet').first().waitFor();
 
-  // Enter on the tab ejects the actions; Facet stands between Retry and Fold (D13, 0.8.1).
+  // Enter on the tab ejects the actions; Facet stands after Retry (D13, 0.8.1), About before Fold (D20).
   await cardTab(a.page, 'German').focus();
   await a.page.keyboard.press('Enter');
   const actions = card('German').locator('.card-actions button');
   await actions.first().waitFor();
-  assert.deepEqual(await actions.allTextContents(), ['Edit', 'Retry', 'Facet', 'Fold', 'Delete']);
+  assert.deepEqual(await actions.allTextContents(), ['Edit', 'Retry', 'Facet', 'About', 'Fold', 'Delete']);
   await a.page.getByRole('button', { name: 'Facets of German', exact: true }).focus();
   await a.page.keyboard.press('Enter');
   const facets = a.page.getByRole('group', { name: 'Facets of German', exact: true });
   await facets.waitFor();
   await waitFor(() => focused(tick(facets, 'Article')), 'the focus on the first tick');
 
-  // Tab moves through each row's ⓘ, then its tick; Space on a tick with content asks, with the focus on
+  // Tab moves through each row's ›, then its tick; Space on a tick with content asks, with the focus on
   // Cancel; Escape takes back the question and returns the focus to its tick, still ticked.
   await a.page.keyboard.press('Tab');
   assert.equal(await focused(facets.getByRole('button', { name: 'About Examples', exact: true })), true);
@@ -2315,7 +2315,7 @@ test('facet window from the keyboard: Facet among the actions, Space on a tick, 
   await card('German').getByRole('button', { name: 'Cancel', exact: true }).click();
 });
 
-test('0.8.1: explanations: About a module in a dialog with its samples, and a facet’s ⓘ in its window', { timeout: 60000 }, async (t) => {
+test('0.13.0: family, module and facet pages in one sheet, from the module window, a card, the facet window and deck settings (D20)', { timeout: 60000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-explanations-browser-'));
   const application = await createTestApplication(t); await application.start();
   const a = await launch(join(directory, 'a'));
@@ -2335,80 +2335,117 @@ test('0.8.1: explanations: About a module in a dialog with its samples, and a fa
   await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
   await componentArticle(a.page, 'German').waitFor();
 
-  // Below German's +, About German opens its explanation in a dialog: its sentences, then its
-  // sample for a word and for a sentence, drawn as its card.
-  const about = a.page.getByRole('button', { name: 'About German', exact: true });
-  await a.page.locator('.window-module[data-type="german"]').screenshot({ path: 'artifacts/v0.12.1-module-about.png' });
+  // About German, below its description, opens its module page in the sheet over the module window (D20, 0.13.0).
+  const sheet = a.page.locator('dialog.about-sheet');
+  const title = () => sheet.locator('h2').innerText();
+  const path = () => sheet.locator('.about-path').innerText();
+  const about = a.page.locator('.window-module[data-type="german"] .window-about');
   await openFamily(about);
+  assert.equal(await about.innerText(), 'About German');
   await about.click();
-  const dialog = a.page.getByRole('dialog', { name: 'German', exact: true });
-  await dialog.waitFor();
-  assert.match(await dialog.locator('.explanation-text').innerText(), /Explains your key in German/);
-  assert.deepEqual(await dialog.locator('.explanation-sample > h3').allTextContents(), ['For a word: language · sample', 'For a sentence: Languages are the bridges connecting people and the world. · sample']);
-  assert.deepEqual(await dialog.locator('.explanation-sample').first().locator('.facet-tab-label').allTextContents(), sampleFacetLabels('german', (await catalogSample('languages/german')).word_phrase));
-  assert.deepEqual(await dialog.locator('.explanation-sample').nth(1).locator('.facet-tab-label').allTextContents(), ['Examples'], 'only what applies to a sentence');
-  await a.page.screenshot({ path: 'artifacts/v0.8.1-about-german.png', animations: 'disabled' });
-  // Escape closes it, returns the focus to the link, and adds nothing.
+  await sheet.waitFor();
+  assert.equal(await title(), 'German');
+  assert.match(await path(), /^Languages\s*\/\s*German$/);
+  assert.match(await sheet.locator('.about-lede').innerText(), /Explains your key in German/);
+  assert.equal(await sheet.locator('.about-facts > div').count(), 3);
+  // How it looks: the key above a card with its core only, then the hint that facets follow.
+  assert.equal(await sheet.locator('.about-key').innerText(), 'language');
+  assert.equal(await sheet.locator('.about-card .facet').count(), 0, 'the core only');
+  await sheet.locator('.about-card .about-facet-hint').waitFor();
+  // How it works: four lines from the key to the facets.
+  assert.deepEqual(await sheet.locator('.about-chain-label').allTextContents(), ['Main key', 'Read as', 'Module core', 'Facets']);
+  const english = await catalogSample('languages/german');
+  assert.deepEqual(await sheet.locator('.about-chain .about-mk:not([data-out])').allTextContents(),
+    Object.keys(PARENTS.german.facets).filter(facet => facet in english.word_phrase.facets).map(facet => PARENTS.german.facets[facet].abbreviation));
+  await a.page.screenshot({ path: 'artifacts/v0.13.0-module-page.png', animations: 'disabled' });
+  // The key's language and a sentence change the sample; only Examples applies to a sentence.
+  await sheet.getByLabel('Language of the sample key', { exact: true }).selectOption('ru');
+  assert.equal(await sheet.locator('.about-key').innerText(), 'язык');
+  await sheet.getByRole('button', { name: 'Sentence', exact: true }).click();
+  assert.equal(await sheet.locator('.about-key').innerText(), (await catalogSample('main-key', 'ru')).sentence);
+  assert.ok((await sheet.locator('.about-card').innerText()).includes((await catalogSample('languages/german', 'ru')).sentence.core.meanings[0]));
+  assert.deepEqual(await sheet.locator('.about-chain .about-mk:not([data-out])').allTextContents(), ['Ex']);
+
+  // Article among its facets opens its facet page; Conjugation from the strip has its own word.
+  await sheet.locator('.about-row', { hasText: 'Article' }).click();
+  await waitFor(async () => await title() === 'Article', 'Article’s page');
+  assert.match(await path(), /^Languages\s*\/\s*German\s*\/\s*Article$/);
+  assert.equal(await sheet.locator('.about-applies').innerText(), 'Nouns');
+  const { singular, plural } = english.word_phrase.facets.article;
+  assert.equal(await sheet.locator('.about-facet-card .facet-body').innerText(), [singular, plural].filter(Boolean).join(' · '));
+  await sheet.locator('.about-where .about-here').waitFor();
+  await a.page.screenshot({ path: 'artifacts/v0.13.0-facet-page.png', animations: 'disabled' });
+  await sheet.getByRole('button', { name: 'Sentence', exact: true }).click();
+  assert.match(await sheet.locator('.about-left-out').innerText(), /Left out/);
+  await sheet.locator('.about-strip button', { hasText: 'Conjugation' }).click();
+  await waitFor(async () => await title() === 'Conjugation', 'Conjugation’s page');
+  assert.equal(await sheet.locator('.about-key').innerText(), 'speak');
+  assert.match(await sheet.locator('.about-facet-card').innerText(), /habe gesprochen/);
+  // Back returns one step; the path's German and Languages open theirs.
+  await sheet.getByRole('button', { name: 'Back', exact: true }).click();
+  await waitFor(async () => await title() === 'Article', 'back to Article');
+  await sheet.locator('.about-path button', { hasText: 'German' }).click();
+  await waitFor(async () => await title() === 'German', 'German from the path');
+  await sheet.locator('.about-path button', { hasText: 'Languages' }).click();
+  await waitFor(async () => await title() === 'Languages', 'the family page');
+  assert.deepEqual(await sheet.locator('.about-row .about-row-name').allTextContents(), ['German', 'Chinese']);
+  assert.equal(await sheet.locator('.about-steps > li').count(), 3);
+  await a.page.screenshot({ path: 'artifacts/v0.13.0-family-page.png', animations: 'disabled' });
+  // Escape closes the sheet, returns the focus to About German, and adds nothing.
   await a.page.keyboard.press('Escape');
-  await dialog.waitFor({ state: 'detached' });
+  await sheet.waitFor({ state: 'detached' });
   assert.equal(await focused(about), true, 'the focus back on About German');
-  assert.equal(await components(), before, 'reading about a module adds nothing');
-  // An Expertise module's sample explains a key of its own (D20: its subject's term).
-  // Expertise starts closed: the link is found in the window, and its family opened.
+  assert.equal(await components(), before, 'reading a page adds nothing');
+
+  // The family's link at the top of its group opens the family page; the close button closes it.
+  await a.page.getByRole('button', { name: 'About Languages', exact: true }).click();
+  await waitFor(async () => await title() === 'Languages', 'Languages from the window');
+  await sheet.getByRole('button', { name: 'Close About Languages', exact: true }).click();
+  await sheet.waitFor({ state: 'detached' });
+  // An Expertise module's page keeps its own term, with no language dropdown and no How it works; a click outside closes it.
   const aboutCs = a.page.locator('.window-module[data-type="computer-science"] .window-about');
   await openFamily(aboutCs);
   await aboutCs.click();
-  const csDialog = a.page.getByRole('dialog', { name: 'Computer Science', exact: true });
-  await csDialog.waitFor();
-  assert.deepEqual(await csDialog.locator('.explanation-sample > h3').allTextContents(), ['For a word: Frontend · sample', 'For a sentence: The frontend shows what the backend sends back. · sample']);
-  // The close button, and a click outside, close it too.
-  await csDialog.getByRole('button', { name: 'Close About Computer Science', exact: true }).click();
-  await csDialog.waitFor({ state: 'detached' });
-  await aboutCs.click();
-  await csDialog.waitFor();
+  await waitFor(async () => await title() === 'Computer Science', 'Computer Science’s page');
+  assert.equal(await sheet.locator('select').count(), 0);
+  assert.equal(await sheet.locator('.about-chain').count(), 0);
+  assert.match(await sheet.locator('.about-card').innerText(), /Frontend/);
   await a.page.mouse.click(5, 5);
-  await csDialog.waitFor({ state: 'detached' });
+  await sheet.waitFor({ state: 'detached' });
 
-  // In the facet window each row's ⓘ expands its facet's explanation beneath it, one at a time;
-  // Article applies to words only, so it shows a sample for a word alone.
+  // In the facet window a row's › opens the facet's page over the window, which stays open beneath it.
   const facets = await facetWindow(a.page, 'German');
   const info = name => facets.getByRole('button', { name: `About ${name}`, exact: true });
   await info('Article').click();
-  assert.equal(await info('Article').getAttribute('aria-expanded'), 'true');
-  const article = facets.locator('.facet-window-row[data-facet="article"] .facet-explanation');
-  assert.match(await article.locator('.explanation-text').innerText(), /Nouns/);
-  assert.deepEqual(await article.locator('h4').allTextContents(), ['For a word: language · sample']);
-  const { singular, plural } = (await catalogSample('languages/german')).word_phrase.facets.article;
-  assert.equal(await article.locator('.facet-body').innerText(), [singular, plural].filter(Boolean).join(' · '));
-  await a.page.screenshot({ path: 'artifacts/v0.8.1-facet-explanation.png', animations: 'disabled' });
-  await info('Examples').click();
-  await article.waitFor({ state: 'detached' });
-  assert.deepEqual(await facets.locator('.facet-window-row[data-facet="examples"] .facet-explanation h4').allTextContents(),
-    ['For a word: language · sample', 'For a sentence: Languages are the bridges connecting people and the world. · sample']);
-  // Pressed again it folds away; reading changes no tick.
-  await info('Examples').click();
-  assert.equal(await facets.locator('.facet-explanation').count(), 0);
+  await waitFor(async () => await title() === 'Article', 'Article from the facet window');
+  await a.page.keyboard.press('Escape');
+  await sheet.waitFor({ state: 'detached' });
+  assert.equal(await facets.isVisible(), true, 'the facet window stays open');
+  assert.equal(await focused(info('Article')), true, 'the focus back on its ›');
   assert.deepEqual(await facets.getByRole('checkbox').evaluateAll(nodes => nodes.map(node => node.checked)), [true, true, true, true, false, false, false, false], 'the grammar facets are not on a My Deck card (K56)');
+  await a.page.keyboard.press('Escape');
 
-  // Both themes, with forced colours off and on: the facet window, an open explanation and the
-  // About dialog keep their outline and readable text (0.8.1 increment C).
-  await info('Article').click();
+  // The card's own About opens its module page.
+  await cardTab(a.page, 'German').click();
+  await componentArticle(a.page, 'German').locator('.card-actions').getByRole('button', { name: 'About German', exact: true }).click();
+  await waitFor(async () => await title() === 'German', 'German from its card');
+  // Both themes, with forced colours off and on, the sheet keeps its edge and readable text.
   for (const colorScheme of ['light', 'dark']) for (const forcedColors of ['none', 'active']) {
     await a.page.emulateMedia({ colorScheme, forcedColors });
-    const name = `${colorScheme}${forcedColors === 'active' ? '-forced' : ''}`;
-    const window = await facets.evaluate(node => { const style = getComputedStyle(node); return { border: style.borderTopStyle, shadow: style.boxShadow }; });
-    assert.ok(forcedColors === 'active' ? window.border === 'solid' : window.shadow !== 'none', `${name}: the window is outlined (${JSON.stringify(window)})`);
-    await facets.screenshot({ path: `artifacts/v0.8.1-facet-window-${name}.png`, animations: 'disabled' });
+    await a.page.screenshot({ path: `artifacts/v0.13.0-module-page-${colorScheme}${forcedColors === 'active' ? '-forced' : ''}.png`, animations: 'disabled' });
   }
   await a.page.emulateMedia({ colorScheme: 'light', forcedColors: 'none' });
   await a.page.keyboard.press('Escape');
-  await about.click();
-  await dialog.waitFor();
-  for (const colorScheme of ['light', 'dark']) for (const forcedColors of ['none', 'active']) {
-    await a.page.emulateMedia({ colorScheme, forcedColors });
-    await dialog.screenshot({ path: `artifacts/v0.8.1-about-${colorScheme}${forcedColors === 'active' ? '-forced' : ''}.png`, animations: 'disabled' });
-  }
-  await a.page.emulateMedia({ colorScheme: 'light', forcedColors: 'none' });
+  await sheet.waitFor({ state: 'detached' });
+
+  // Deck settings open the same page, About first among a module's actions.
+  const deckId = (await store.page(pageId)).deckId;
+  await a.page.goto(`chrome-extension://${a.id}/app.html#configure/${deckId}`);
+  const row = a.page.locator('.deck-module[data-type="german"]');
+  await row.locator('.tab-button').click();
+  assert.deepEqual(await row.locator('.card-actions button').allTextContents(), ['About', 'Facet', 'Remove']);
+  await row.getByRole('button', { name: 'About German', exact: true }).click();
+  await waitFor(async () => await title() === 'German', 'German from deck settings');
   await a.page.keyboard.press('Escape');
 });
 
@@ -3467,14 +3504,14 @@ test('0.9.0: the interface in each language: picked from Language, saved to the 
     assert.deepEqual(await card.locator('.facet-tag-mark').allInnerTexts(), ['Ar', 'Ex', 'Sy', 'An']);
     assert.equal(await a.page.locator('h1.main-key').evaluate(node => getComputedStyle(node).direction), 'ltr', 'a Latin main key keeps its direction');
     await a.page.screenshot({ path: `artifacts/v0.9.0-${code}-page-light.png` });
-    // About German shows the explanation in the language.
+    // About German opens its page in the language (D20).
     const about = a.page.locator('.window-module[data-type="german"] .window-about');
     await openFamily(about);
     await about.click();
-    const explanation = JSON.parse(await readFile(`packages/domain/src/catalog/languages/german/about.${code}.json`, 'utf8')).summary;
-    const dialog = a.page.locator('dialog.explanation-dialog');
+    const summary = JSON.parse(await readFile(`packages/domain/src/catalog/languages/german/about.${code}.json`, 'utf8')).summary;
+    const dialog = a.page.locator('dialog.about-sheet');
     await dialog.waitFor();
-    assert.ok((await dialog.locator('.explanation-text').innerText()).startsWith(explanation.split(/[.。]/)[0].replace(/\*/g, '')), `${code}: the explanation is in the language`);
+    assert.equal(await dialog.locator('.about-lede').innerText(), summary, `${code}: the page is in the language`);
     await dialog.screenshot({ path: `artifacts/v0.9.0-${code}-about-light.png` });
     await a.page.keyboard.press('Escape');
     assert.notEqual(messages['dashboard.title'], english['dashboard.title']);
@@ -3592,12 +3629,12 @@ test('0.12.0: a German verb’s Conjugation is a table on the card, its top line
   await card.screenshot({ path: 'artifacts/v0.12.1-retry-unavailable.png', animations: 'disabled' });
   assert.equal(await card.locator('.facet-tag[data-facet="declension"] .facet-tag-retry').isDisabled(), true);
   assert.equal(await a.page.getByRole('button', { name: 'Retry Conjugation from German', exact: true }).isDisabled(), false, 'Conjugation applies');
-  // Its About opens the facet's explanation, as its ⓘ in the facet window does (0.12.1).
+  // Its About opens the facet's page, as its › in the facet window does (0.12.1; a page since 0.13.0).
   await a.page.getByRole('button', { name: 'About Conjugation from German', exact: true }).click();
   const conjugationAbout = a.page.getByRole('dialog', { name: 'Conjugation', exact: true });
   await conjugationAbout.waitFor();
   await a.page.screenshot({ path: 'artifacts/v0.12.1-facet-about.png', animations: 'disabled' });
-  assert.match(await conjugationAbout.locator('.explanation-text').innerText(), /Verbs/);
+  assert.equal(await conjugationAbout.locator('.about-applies').innerText(), 'Verbs');
   await a.page.keyboard.press('Escape');
   await conjugationAbout.waitFor({ state: 'detached' });
 

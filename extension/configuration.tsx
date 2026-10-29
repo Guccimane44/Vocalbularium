@@ -9,6 +9,7 @@ import type { ModuleFamily } from '@vocabularium/domain/page-modules';
 import { sampleKeyOf, sampleOf } from '@vocabularium/domain/about';
 import { deckColour } from './deck-colour.ts';
 import { FacetTags } from './facet-tags.tsx';
+import { openAbout } from './about-sheet.tsx';
 import { FacetWindow } from './facet-window.tsx';
 import { FamilyIcon } from './families.tsx';
 import { mainKeyTier } from './main-key.ts';
@@ -117,9 +118,12 @@ function DeckModule({ item, parts, busy, opened, setOpened, choosing, setChoosin
         </button></h2>
       </div>
       {opened && <div id={`actions-${item.id}`} className="card-actions" role="group" aria-label={t('card.actions', { card: item.label })} data-open>
-        {isParentType(item.type) && <button style={{ '--i': 0 } as CSSProperties} aria-label={t('card.facetsOf', { card: item.label })} disabled={busy}
+        {/* About, first, opens the module's page, as from the module window (D20). */}
+        <button style={{ '--i': 0 } as CSSProperties} aria-label={t('shaping.about', { name: item.label })} aria-haspopup="dialog"
+          onClick={() => { setOpened(false); openAbout({ kind: 'module', module: item.type }); }}><ActionIcon name="about" />{t('card.about')}</button>
+        {isParentType(item.type) && <button style={{ '--i': 1 } as CSSProperties} aria-label={t('card.facetsOf', { card: item.label })} disabled={busy}
           onClick={() => { setOpened(false); setChoosing(true); }}><ActionIcon name="facet" />{t('card.facet')}</button>}
-        <button style={{ '--i': isParentType(item.type) ? 1 : 0 } as CSSProperties} className="action-delete" aria-label={t('action.removeNamed', { name: item.label })} disabled={busy}
+        <button style={{ '--i': isParentType(item.type) ? 2 : 1 } as CSSProperties} className="action-delete" aria-label={t('action.removeNamed', { name: item.label })} disabled={busy}
           onClick={() => { setOpened(false); onRemove(); }}><ActionIcon name="delete" />{t('common.remove')}</button>
       </div>}
       {choosing && isParentType(item.type) && <FacetWindow holderId={item.id} parent={item.type} title={item.label} facets={item.facets ?? []}

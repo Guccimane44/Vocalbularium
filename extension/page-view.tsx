@@ -1,7 +1,9 @@
 import { Fragment, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import type { Component, GenerationTarget, ModuleInstance, Page } from '@vocabularium/contracts';
-import { CATALOG, isContentType, isModuleType } from '@vocabularium/domain/page-modules';
+import { CATALOG, isContentType, isModuleType, WINDOW_MODULES } from '@vocabularium/domain/page-modules';
+// A module in the module window has a page (D20); the main key has none.
+const isWindowModule = (type: string) => (WINDOW_MODULES as readonly string[]).includes(type);
 import { blockText, mainKeyOf } from '@vocabularium/domain/pages';
 import { renderContent, renderParent } from '@vocabularium/domain/render';
 import type { Rendered } from '@vocabularium/domain/render';
@@ -19,7 +21,7 @@ import type { FieldDraft, PageEditorDraft } from '../types/editor-drafts.js';
 import { FacetTab, FacetTags, FOLD_MS } from './facet-tags.tsx';
 import type { TagLayout } from './facet-tags.tsx';
 import { FacetWindow } from './facet-window.tsx';
-import { FacetExplanationDialog } from './explanation.tsx';
+import { openAbout } from './about-sheet.tsx';
 import { FamilyIcon } from './families.tsx';
 import { mainKeyTier } from './main-key.ts';
 import { AT_THE_END, moduleLabel, numbered, ShapingArea, SixDots } from './shaping.tsx';
@@ -179,7 +181,8 @@ export function Markdown({ blocks, mainKey, className }: { blocks: readonly MdBl
 // same row, like a card's Retry and Delete. Its tag's remove asks here too
 // (0.7.1). Retry regenerates the facet alone; its parent's core and other
 // facets stay. Retry is unavailable where the facet has nothing to generate.
-// About, first, opens the facet's explanation, as its ⓘ in the facet window (0.12.1).
+// About, first, opens the facet's page in the pages' sheet, as its › in the facet window
+// does (0.12.1; its page since 0.13.0, D20).
 type FacetAsk = 'delete' | 'retry';
 function FacetActions({ name, hasContent, canRetry, disabled, asking, setAsking, onDelete, onRetry, onEdit, onAbout }: {
   name: string; hasContent: boolean; canRetry: boolean; disabled: boolean; asking: FacetAsk | null; setAsking: (value: FacetAsk | null) => void;
@@ -189,7 +192,7 @@ function FacetActions({ name, hasContent, canRetry, disabled, asking, setAsking,
   const cancel = useRef<HTMLButtonElement>(null);
   useEffect(() => { if (asking) cancel.current?.focus(); }, [asking]);
   if (!asking) return <span className="facet-actions">
-    <button type="button" className="facet-about-open" aria-label={t('shaping.about', { name })} aria-haspopup="dialog"
+    <button type="button" className="facet-about-open" aria-label={t('about.facet', { name })} aria-haspopup="dialog"
       onClick={onAbout}><ActionIcon name="about" /></button>
     {onEdit && <button type="button" className="facet-edit" aria-label={t('action.editNamed', { name })} disabled={disabled}
       onClick={onEdit}><ActionIcon name="edit" /></button>}
@@ -240,8 +243,6 @@ export function readContent(type: string, content: Component['content']): { rend
 export function Content({ type, rendered, mainKey, controls }: {
   type: string; rendered: Rendered; mainKey: string; controls?: FacetControls;
 }) {
-  // The facet whose explanation is open from its About.
-  const [about, setAbout] = useState<FacetType | null>(null);
   // Context and Text as markdown (D10, amended a fourth time), edited from their tab.
   if (rendered.kind === 'note') return <Markdown blocks={rendered.blocks} mainKey={mainKey} className="note-body" />;
   const parent = isParentType(type) ? type : null;
@@ -258,7 +259,7 @@ export function Content({ type, rendered, mainKey, controls }: {
       disabled={controls.disabled} asking={controls.asking?.facet === facet ? controls.asking.kind : null}
       setAsking={kind => controls.setAsking(kind ? facet : null, kind ?? undefined)}
       onDelete={() => controls.onDelete(facet)} onRetry={() => controls.onRetry(facet)}
-      onEdit={controls.onEdit && (() => controls.onEdit!(facet))} onAbout={() => setAbout(facet)} />}
+      onEdit={controls.onEdit && (() => controls.onEdit!(facet))} onAbout={() => openAbout({ kind: 'facet', module: parent, facet })} />}
   </h3>;
   const section = (facet: string) => ({ className: 'facet', 'data-facet': facet, tabIndex: -1,
     'data-retrying': controls?.retrying === facet || undefined, 'aria-busy': controls?.retrying === facet || undefined });
@@ -288,7 +289,6 @@ export function Content({ type, rendered, mainKey, controls }: {
       return controls?.retrying === name || controls?.facets?.includes(name)
         ? <section key={name} {...section(name)} data-unfilled data-pending={controls?.retrying === name || undefined}>{facetHead(name, false)}</section> : null;
     })}
-    {parent && about && <FacetExplanationDialog parent={parent} facet={about} close={() => setAbout(null)} />}
   </div>;
 }
 
@@ -572,6 +572,9 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
       {open && isParentType(item.moduleType) && <button style={order()} aria-label={t('card.facetsOf', { card: title })}
         disabled={disabled || working || item.status === 'loading'} onClick={choose(() => setFacetsFor(item.id))}>
         <ActionIcon name="facet" />{t('card.facet')}</button>}
+      {/* About opens the module's page in the pages' sheet (D20, 0.13.0). */}
+      {open && isWindowModule(item.moduleType) && <button style={order()} aria-label={t('shaping.about', { name: title })} aria-haspopup="dialog"
+        onClick={choose(() => openAbout({ kind: 'module', module: item.moduleType }))}><ActionIcon name="about" />{t('card.about')}</button>}
       {open && foldable && <button style={order()} aria-label={t(isFolded ? 'card.unfoldNamed' : 'card.foldNamed', { card: title })} onClick={choose(() => fold(item.id, !isFolded))}>
         <ActionIcon name={isFolded ? 'unfold' : 'fold'} />{isFolded ? t('card.unfold') : t('card.fold')}</button>}
       {open && <button style={order()} className="action-delete" aria-label={t('action.deleteNamed', { name: title })} disabled={disabled || working || item.status === 'loading'}
