@@ -10,7 +10,7 @@ import { flushSync } from 'react-dom';
 import { createRoot } from 'react-dom/client';
 import { Dashboard } from './dashboard.tsx';
 import { diagnosticSettings } from './diagnostic-settings.js';
-import { initializeShell, renderAccountMenu, renderSidebar, showSignedOutShell } from './shell.js';
+import { accountRoot, initializeShell, renderAccountMenu, renderSidebar, showSignedOutShell } from './shell.js';
 import { initializeLanguage, onLanguageChange, t, translateDocument } from './i18n.ts';
 /** @typedef {import('../types/editor-drafts.js').DeckEditorDraft} DeckEditorDraft */
 /** @import { Root } from 'react-dom/client' */
@@ -24,7 +24,6 @@ await initializeTheme();
 initializeShell();
 // Both are in app.html.
 const app = /** @type {HTMLElement} */ (document.querySelector('#app'));
-const actions = /** @type {HTMLElement} */ (document.querySelector('#session-actions'));
 // Set while signed in, which is when the views read it.
 /** @type {ViewAccount | undefined} */
 let account;
@@ -78,7 +77,7 @@ function showError(error) {
   notice.textContent = error.message;
 }
 function login() {
-  signedIn = false; account = undefined; actions.replaceChildren(); showSignedOutShell();
+  signedIn = false; account = undefined; accountRoot().replaceChildren(); showSignedOutShell();
   currentPageDetail = undefined; currentDeckDetail = undefined;
   if (viewRoot) { viewRoot.unmount(); viewRoot = undefined; }
   const section = element('section', undefined, 'login');
@@ -131,7 +130,9 @@ async function render() {
   clearBadge();
   // Render account pages and capture receipts from the same storage snapshot.
   if (local.account) account = viewAccount(local.account);
-  renderAccountMenu(actions, {
+  renderAccountMenu(accountRoot(), {
+    username: /** @type {ViewAccount} */ (account)?.username,
+    server: /** @type {ViewAccount} */ (account)?.server,
     logOut: async () => {
       try { if (!await pageUI.leave()) return; await send({ type: 'logout' }); location.hash = ''; login(); } catch (error) { showError(error); }
     },

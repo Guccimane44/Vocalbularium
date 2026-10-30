@@ -5,7 +5,8 @@ import type { DashboardAccount } from '../extension/dashboard.tsx';
 
 // The account as the worker last read it: the account summary with the
 // default deck's configuration, and the recent captures.
-export type StoredAccount = DashboardAccount & { defaultDeckSnapshot: DeckDetail };
+// The API names its one account since 0.13.3 (D23); an older API sends no name.
+export type StoredAccount = DashboardAccount & { defaultDeckSnapshot: DeckDetail; username?: string; server?: string };
 
 // A selection the worker accepted (capture.js), kept until the server's page
 // list shows its page, and offered for recovery while it is not saved.

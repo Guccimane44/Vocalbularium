@@ -2,7 +2,9 @@ import { deckColour } from './deck-colour.ts';
 import { preferredLanguage, isOffered, LANGUAGES, onLanguageChange, t } from './i18n.ts';
 
 // The signed-in shell (D05): the deck sidebar and the account menu around the
-// views in #app. Plain DOM, like the session controls it replaces.
+// views in #app. Plain DOM, like the session controls it replaces. Since
+// 0.13.3 (D23) the account menu sits at the foot of the sidebar, opening
+// upward, instead of in the header.
 
 const element = (tag, text, className) => {
   const node = document.createElement(tag);
@@ -17,6 +19,9 @@ const sidebar = () => document.querySelector('#sidebar');
 // Appearance moves between the header and the account menu, which logging
 // out discards, so it is kept from the first lookup.
 let kept;
+// The sidebar's foot, holding the account menu; the sidebar is redrawn around it.
+const accountSlot = (() => { const node = document.createElement('div'); node.className = 'sidebar-account'; return node; })();
+export const accountRoot = () => accountSlot;
 const themeControl = () => (kept ??= document.querySelector('#theme-control'));
 const toggle = () => document.querySelector('#sidebar-toggle');
 const narrow = matchMedia('(max-width: 900px)');
@@ -84,7 +89,10 @@ export function renderSidebar({ decks, currentDeckId, newDeck }) {
   }
   const add = element('button', t('nav.newDeck'), 'nav-item nav-add');
   add.type = 'button'; add.onclick = newDeck;
-  nav.replaceChildren(brand, home, heading, list, add);
+  // The decks scroll on their own, so the account menu stays at the foot and can open over the page.
+  const scroll = element('div', undefined, 'sidebar-scroll');
+  scroll.append(brand, home, heading, list, add);
+  nav.replaceChildren(scroll, accountSlot);
 }
 
 export function closeAccountMenu() {
@@ -160,33 +168,74 @@ function languageViews(menu, { chooseLanguage, done }) {
   return { row, list };
 }
 
-// Signed in: one account menu holds appearance, diagnostic logs and log out.
-export function renderAccountMenu(root, { logOut, diagnostics, chooseLanguage }) {
-  // Built once per sign-in, so a periodic rerender never moves a focused control.
-  if (root.querySelector('.account-menu')) return;
+const icon = paths => {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24'); svg.setAttribute('aria-hidden', 'true'); svg.setAttribute('class', 'menu-icon');
+  for (const d of paths) {
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', d); svg.append(path);
+  }
+  return svg;
+};
+const ICONS = {
+  language: ['M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z', 'M3.6 9h16.8M3.6 15h16.8', 'M12 3c2.2 2.4 3.3 5.4 3.3 9s-1.1 6.6-3.3 9c-2.2-2.4-3.3-5.4-3.3-9S9.8 5.4 12 3Z'],
+  diagnostics: ['M3 12h4l2.5-6 5 12 2.5-6H21'],
+  logOut: ['M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3', 'M10 8l-4 4 4 4', 'M6 12h10'],
+  updown: ['M8 9l4-4 4 4', 'M8 15l4 4 4-4']
+};
+const initial = name => (name.trim()[0] ?? '?').toLocaleUpperCase();
+
+// Signed in: one account menu at the foot of the sidebar (D23, 0.13.3). Its
+// trigger shows the account's initial, name and server; the menu opens upward
+// over it with Appearance as three icons on one row, the Language row,
+// Diagnostic logs and Log out, each row with its icon.
+export function renderAccountMenu(root, { username, server, logOut, diagnostics, chooseLanguage }) {
+  // An API older than 0.13.3 sends no name: the trigger then reads Account.
+  const name = username || t('account.menu');
+  // Built once per sign-in, so a periodic rerender never moves a focused control; only the name follows.
+  const built = root.querySelector('.account-menu');
+  if (built) {
+    if (built.dataset.username !== `${preferredLanguage()}:${name}:${server}`) fillIdentity(built, name, Boolean(username), server);
+    return;
+  }
   {
     const menu = element('div', undefined, 'account-menu');
-    const trigger = labelled('button', 'account.menu', 'account-trigger');
+    const trigger = element('button', undefined, 'account-trigger');
     trigger.type = 'button'; trigger.setAttribute('aria-expanded', 'false'); trigger.setAttribute('aria-controls', 'account-panel');
+    const who = element('span', undefined, 'account-who');
+    who.append(element('span', undefined, 'account-name'), element('span', undefined, 'account-server'));
+    trigger.append(element('span', undefined, 'account-avatar'), who, icon(ICONS.updown));
     const panel = element('div', undefined, 'account-panel');
     panel.id = 'account-panel'; panel.hidden = true;
     trigger.onclick = () => {
       const open = panel.hidden;
       panel.hidden = !open; menu.classList.toggle('open', open); trigger.setAttribute('aria-expanded', String(open));
     };
-    const action = (key, run) => {
-      const node = labelled('button', key, 'menu-action');
+    const action = (key, glyph, run) => {
+      const node = element('button', undefined, 'menu-action');
       node.type = 'button';
+      node.append(icon(glyph), labelled('span', key));
       node.onclick = () => { closeAccountMenu(); run(); };
       return node;
     };
     const main = element('div', undefined, 'account-main');
     const { row, list } = languageViews(menu, { chooseLanguage, done: () => { closeAccountMenu(); trigger.focus(); } });
-    main.append(themeControl(), row, action('account.diagnostics', diagnostics), action('account.logOut', logOut));
+    row.prepend(icon(ICONS.language));
+    const rule = element('hr', undefined, 'menu-rule');
+    main.append(themeControl(), row, action('account.diagnostics', ICONS.diagnostics, diagnostics), rule, action('account.logOut', ICONS.logOut, logOut));
     panel.append(main, list);
-    // Choosing an appearance is the menu's action: close it and return focus to its trigger.
-    panel.querySelector('#theme').addEventListener('change', () => { closeAccountMenu(); trigger.focus(); });
-    menu.append(trigger, panel);
+    menu.append(panel, trigger);
+    fillIdentity(menu, name, Boolean(username), server);
     root.replaceChildren(menu);
   }
+}
+
+// The trigger's name and server; the worker, which holds the API origin, names the server.
+function fillIdentity(menu, name, known, server) {
+  menu.dataset.username = `${preferredLanguage()}:${name}:${server}`;
+  menu.querySelector('.account-server').textContent = server ?? '';
+  const avatar = menu.querySelector('.account-avatar');
+  avatar.textContent = initial(name); avatar.setAttribute('aria-hidden', 'true');
+  menu.querySelector('.account-name').textContent = name;
+  menu.querySelector('.account-trigger').setAttribute('aria-label', known ? t('account.menuFor', { name }) : t('account.menu'));
 }

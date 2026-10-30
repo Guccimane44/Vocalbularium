@@ -9,6 +9,7 @@ import {
   PageSaveRequestSchema, PollRequestSchema, PublishRequestSchema, SessionRequestSchema
 } from '@vocabularium/contracts';
 import { apiFailure } from './api-failure.mjs';
+import { ACCOUNT_USERNAME } from './auth.mjs';
 import { isCapturePayload } from './contract-validation.mjs';
 import Type from 'typebox';
 /** @import { FastifyReply } from 'fastify' */
@@ -94,7 +95,7 @@ export function registerRoutes(fastify, { store, authentication, generation }) {
 
   fastify.get('/api/account/summary', {
     schema: routeSchema('Read bounded account and default-deck metadata')
-  }, async () => store.summary());
+  }, async () => ({ ...await store.summary(), username: ACCOUNT_USERNAME }));
 
   fastify.get('/api/decks', {
     schema: { ...routeSchema('Read one page of deck summaries'), querystring: listQuery }

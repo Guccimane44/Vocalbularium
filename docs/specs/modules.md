@@ -33,7 +33,7 @@ A parent and its facets are one component, produced by one generation attempt in
 
 - **Adding a parent.** A parent is added like any module, by dragging it or with its **+**, with its core only.
 - **Adding a facet.** Since 0.8.1 a parent's facets are chosen on the parent itself: **Facet** among its actions, on a page or in deck settings, opens its [facet window](pages-and-editing.md#facet-window), which lists every facet of the parent's module ([D13](../architecture/traceability-map.md#entries)). Until 0.8.1 facets were listed in the module window beneath their parent type and dragged onto a parent of their own type or added with their **+** ([D08](../architecture/traceability-map.md#entries)). An added facet waits, shown as its tag only, until the user's next **Retry** regenerates the whole parent ([capture and generation](capture-and-generation.md#retry)); a parent already generating takes no facet until its attempt finishes.
-- **Deleting a facet.** A facet is deleted from its parent the way a component is deleted from a page ([pages and editing](pages-and-editing.md#components-as-cards)). A deleted facet stays gone: Retry never brings it back, and the user ticks it again in the facet window to restore it.
+- **Deleting a facet.** A facet is deleted from its parent the way a component is deleted from a page ([pages and editing](pages-and-editing.md#components-as-cards)). A deleted facet stays gone: Retry never brings it back, and the user adds it again in the facet window to restore it.
 
 A deck configuration stores each parent instance with its facets, and a new page copies them ([decks and configuration](decks-and-configuration.md#configuration-and-pages)). Facets are not module instances and do not count toward the limit of 12.
 
