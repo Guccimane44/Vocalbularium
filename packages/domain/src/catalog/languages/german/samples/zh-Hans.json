@@ -61,7 +61,10 @@
             ]
           }
         ]
-      }
+      },
+      "pronunciation": [
+        "die Sprache"
+      ]
     }
   },
   "sentence": {
@@ -80,6 +83,9 @@
           "sentence": "音乐是连接心灵与世界的桥梁。",
           "translation": "Musik ist die Brücke, die Herzen und die Welt verbindet."
         }
+      ],
+      "pronunciation": [
+        "Sprache ist die Brücke, die Menschen und die Welt verbindet."
       ]
     }
   }

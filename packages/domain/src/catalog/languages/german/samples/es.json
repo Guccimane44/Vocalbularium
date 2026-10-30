@@ -59,7 +59,10 @@
             ]
           }
         ]
-      }
+      },
+      "pronunciation": [
+        "die Sprache"
+      ]
     }
   },
   "sentence": {
@@ -77,6 +80,9 @@
           "sentence": "Las palabras son los hilos que unen a los pueblos con su historia.",
           "translation": "Wörter sind die Fäden, die Völker mit ihrer Geschichte verbinden."
         }
+      ],
+      "pronunciation": [
+        "Sprachen sind die Brücken, die Menschen mit der Welt verbinden."
       ]
     }
   }

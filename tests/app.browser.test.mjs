@@ -2123,9 +2123,9 @@ test('parents and facets: core only on add, the facet window on the parent, its 
 
   // A German parent's facet window lists its four facets in the module's order, the ones it has ticked.
   let facets = await facetWindow(a.page, 'German');
-  assert.deepEqual(await inOrder(facets, 'name'), ['Article', 'Examples', 'Synonyms', 'Antonyms', 'Conjugation', 'Declension', 'Comparison', 'Case'],
-    'every facet of German, the grammar facets included (D17)');
-  assert.deepEqual(await inOrder(facets, 'equipped'), [true, true, true, true, false, false, false, false], 'the grammar facets are not on a My Deck card (K56)');
+  assert.deepEqual(await inOrder(facets, 'name'), ['Article', 'Examples', 'Synonyms', 'Antonyms', 'Conjugation', 'Declension', 'Comparison', 'Case', 'Pronunciation'],
+    'every facet of German, the grammar facets (D17) and Pronunciation (D24) included');
+  assert.deepEqual(await inOrder(facets, 'equipped'), [true, true, true, true, false, false, false, false, false], 'the grammar facets and Pronunciation are not on a My Deck card (K56)');
   await waitFor(() => tick(facets, 'Article').evaluate(node => node === document.activeElement), 'the first row takes the focus');
   // A card on the surface (D23, 0.13.3): a heading naming the parent, a close, and a line on Retry.
   assert.equal(await facets.getByRole('heading', { level: 3 }).textContent(), 'Facets of German');
@@ -2170,8 +2170,8 @@ test('parents and facets: core only on add, the facet window on the parent, its 
   await waitFor(async () => Boolean(await chinese()), 'Chinese added');
   assert.deepEqual((await chinese()).facets, []);
   facets = await facetWindow(a.page, 'Chinese');
-  assert.deepEqual(await inOrder(facets, 'name'), ['Examples', 'Pinyin'], 'never a German facet');
-  assert.deepEqual(await inOrder(facets, 'equipped'), [false, false]);
+  assert.deepEqual(await inOrder(facets, 'name'), ['Examples', 'Pinyin', 'Pronunciation'], 'never a German facet');
+  assert.deepEqual(await inOrder(facets, 'equipped'), [false, false, false]);
   await tick(facets, 'Pinyin').click();
   await waitFor(async () => (await chinese()).facets.includes('pinyin'), 'Pinyin added to Chinese');
   assert.equal((await german())[0].facets.includes('pinyin'), false);
@@ -2214,7 +2214,7 @@ test('parents and facets: core only on add, the facet window on the parent, its 
     };
   });
   facets = await facetWindow(a.page, 'German 2');
-  assert.deepEqual(await inOrder(facets, 'equipped'), Array(8).fill(false), 'a core only');
+  assert.deepEqual(await inOrder(facets, 'equipped'), Array(9).fill(false), 'a core only');
   await a.page.screenshot({ path: 'artifacts/v0.8.1-facet-window.png', fullPage: true, animations: 'disabled' });
   await tick(facets, 'Synonyms').click();
   await waitFor(async () => (await german())[1].facets.includes('synonyms'), 'Synonyms added to the second German');
@@ -2376,10 +2376,10 @@ test('0.13.0: family, module and facet pages in one sheet, from the module windo
   await sheet.getByRole('button', { name: 'Sentence', exact: true }).click();
   assert.equal(await sheet.locator('.about-key').innerText(), (await catalogSample('main-key', 'ru')).sentence);
   assert.ok((await sheet.locator('.about-card').innerText()).includes((await catalogSample('languages/german', 'ru')).sentence.core.meanings[0]));
-  assert.deepEqual(await sheet.locator('.about-chain .about-mk:not([data-out])').allTextContents(), ['Ex']);
+  assert.deepEqual(await sheet.locator('.about-chain .about-mk:not([data-out])').allTextContents(), ['Ex', 'Pr'], 'a sentence keeps Examples and Pronunciation (D24)');
 
   // Article among its facets opens its facet page; Conjugation from the strip has its own word.
-  await sheet.locator('.about-row', { hasText: 'Article' }).click();
+  await sheet.locator('.about-row').filter({ has: a.page.locator('.about-row-name', { hasText: /^Article$/ }) }).click();
   await waitFor(async () => await title() === 'Article', 'Article’s page');
   assert.match(await path(), /^Languages\s*\/\s*German\s*\/\s*Article$/);
   assert.equal(await sheet.locator('.about-applies').innerText(), 'Nouns');
@@ -2476,7 +2476,7 @@ test('0.13.0: family, module and facet pages in one sheet, from the module windo
   await sheet.waitFor({ state: 'detached' });
   assert.equal(await facets.isVisible(), true, 'the facet window stays open');
   assert.equal(await focused(info('Article')), true, 'the focus back on its ›');
-  assert.deepEqual(await inOrder(facets, 'equipped'), [true, true, true, true, false, false, false, false], 'the grammar facets are not on a My Deck card (K56)');
+  assert.deepEqual(await inOrder(facets, 'equipped'), [true, true, true, true, false, false, false, false, false], 'the grammar facets and Pronunciation are not on a My Deck card (K56)');
   await a.page.keyboard.press('Escape');
 
   // The card's own About opens its module page.
@@ -3895,4 +3895,75 @@ test('0.14.0: a Pronunciation card in Sound speaks the main key: generating, fai
     .then(box => ({ x: box.x - 20, y: box.y - 30, width: box.width + 40, height: box.height + 50 })) });
   assert.deepEqual(heights, [44, 44, 44], 'every state keeps the row\'s height');
   assert.deepEqual((await store.clips(other.pageId)), []);
+});
+
+test('0.14.0: a German card’s Pronunciation facet speaks each line beside its own player; a line fails and retries on its own, and the lines are not edited (D24)', { timeout: 60000 }, async (t) => {
+  const { FakeSpeechProvider } = await import('./helpers/speech.mjs');
+  class WavSpeech extends FakeSpeechProvider {
+    bitRate = 64000;
+    async send(request, signal, reply) { await super.send(request, signal, reply); reply.mime = 'audio/wav'; reply.bytes = silentWav(); }
+  }
+  const speech = new WavSpeech({ fail: { 'das Ufer': 'provider_response' } });
+  const directory = await mkdtemp(join(tmpdir(), 'vocabularium-pronunciation-facet-browser-'));
+  const application = await createTestApplication(t, { speechProvider: speech }); await application.start();
+  const a = await launch(join(directory, 'a'));
+  t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
+  await a.page.setViewportSize({ width: 1280, height: 1000 });
+  const { store, audio } = application;
+  const session = { installationId: 'fixture', sessionId: 'pronunciation-facet', epoch: 1 };
+  await store.openSession('pronunciation-facet-session', session);
+  const [german] = await useModules(store, ['german']);
+  const { pageId } = await store.createPage('pronunciation-facet-page', { deckId: (await store.snapshot()).id, mainKey: 'bank' });
+  const component = (await store.page(pageId)).components.find(item => item.moduleType === 'german');
+  assert.ok(component.facets.includes('pronunciation') && german.facets.includes('pronunciation'), 'German offers Pronunciation, last');
+  const { attemptIds: [attemptId] } = await store.generate('pronunciation-facet-generate', { pageId, target: { scope: 'component', componentId: component.id }, session });
+  await store.stage(attemptId, staged(formatContent('german', { core: { kind: 'word', language: 'Englisch', key: 'bank', gramRole: 'noun', meanings: ['Geldinstitut', 'Ufer eines Flusses'] },
+    facets: { article: { singular: 'die Bank', plural: 'die Banken' }, pronunciation: ['die Bank', 'das Ufer'] } })));
+  const result = await store.publish('pronunciation-facet-publish', { attemptId, session });
+  await audio.afterPublish({ pageId, componentId: component.id, moduleType: 'german', mainKey: 'bank', state: result.state,
+    content: (await store.page(pageId)).components.find(item => item.id === component.id).content });
+
+  await signIn(a.page);
+  await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
+  const card = componentArticle(a.page, 'German');
+  const facet = card.locator('section.facet[data-facet="pronunciation"]');
+  await facet.locator('.clip-player[data-state="failed"]').waitFor();
+  await facet.locator('.clip-player[data-state="ready"]').waitFor();
+  assert.deepEqual(await facet.locator('.spoken-text').allTextContents(), ['die Bank', 'das Ufer']);
+  assert.deepEqual(await facet.locator('.clip-player').evaluateAll(nodes => nodes.map(node => node.dataset.state)), ['ready', 'failed'],
+    'each line has its own clip; one failing leaves the other');
+  assert.equal(await facet.locator('.facet-title .tag-mark, .facet-title').first().textContent().then(text => text.includes('Pronunciation')), true);
+  const shot = async name => a.page.screenshot({ path: `artifacts/v0.14.0-pronunciation-facet-${name}.png`,
+    clip: await card.boundingBox().then(box => ({ x: box.x - 20, y: box.y - 30, width: box.width + 40, height: box.height + 50 })) });
+  await shot('failed');
+
+  // The facet has About, Retry and Delete, and no Edit: its lines must match their audio.
+  await facet.locator('.facet-title').hover();
+  assert.equal(await a.page.getByRole('button', { name: 'Edit Pronunciation from German', exact: true }).count(), 0);
+  assert.equal(await a.page.getByRole('button', { name: 'Retry Pronunciation from German', exact: true }).count(), 1);
+  assert.equal(await a.page.getByRole('button', { name: 'Edit Article from German', exact: true }).count(), 1, 'other facets keep their Edit');
+
+  // The failed line's own Retry speaks it alone again.
+  delete speech.fail['das Ufer'];
+  await a.page.getByRole('button', { name: 'Speak das Ufer again', exact: true }).click();
+  await waitFor(async () => (await facet.locator('.clip-player').evaluateAll(nodes => nodes.map(node => node.dataset.state))).join() === 'ready,ready', 'both lines ready');
+  assert.deepEqual(speech.calls.map(call => `${call.language}:${call.text}`), ['de:die Bank', 'de:das Ufer', 'de:das Ufer']);
+  await shot('light');
+  await a.page.getByRole('button', { name: 'Play das Ufer', exact: true }).click();
+  await facet.locator('.clip-player[data-state="playing"]').waitFor();
+  assert.equal(await facet.locator('.clip-player').first().getAttribute('data-state'), 'ready', 'one clip plays at a time');
+  await facet.locator('.clip-player[data-state="playing"]').waitFor({ state: 'detached', timeout: 5000 });
+
+  // In the card's editor the lines are shown and not editable; saving keeps them.
+  await (await cardButton(a.page, 'Edit German')).click();
+  const part = card.locator('.live-editor .facet[data-facet="pronunciation"] [contenteditable]');
+  await part.waitFor();
+  assert.equal(await part.getAttribute('contenteditable'), 'false');
+  await card.getByRole('button', { name: 'Save', exact: true }).click();
+  await card.locator('.live-editor').waitFor({ state: 'detached' });
+  assert.deepEqual(await facet.locator('.spoken-text').allTextContents(), ['die Bank', 'das Ufer']);
+
+  await chooseAppearance(a.page, 'dark');
+  await shot('dark');
+  await chooseAppearance(a.page, 'light');
 });

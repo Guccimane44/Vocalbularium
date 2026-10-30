@@ -60,7 +60,10 @@
             ]
           }
         ]
-      }
+      },
+      "pronunciation": [
+        "die Sprache"
+      ]
     }
   },
   "sentence": {
@@ -78,6 +81,9 @@
           "sentence": "Les livres sont les fenêtres qui ouvrent l’esprit et le cœur.",
           "translation": "Bücher sind die Fenster, die den Geist und das Herz öffnen."
         }
+      ],
+      "pronunciation": [
+        "Sprachen sind die Brücken, die die Menschen und die Welt verbinden."
       ]
     }
   }

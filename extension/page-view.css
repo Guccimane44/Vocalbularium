@@ -762,3 +762,9 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
 @keyframes clip-spin { to { transform: rotate(360deg); } }
 @keyframes clip-wait { to { background-position: 24px 0; } }
 @media (prefers-reduced-motion: reduce) { .clip-play:disabled svg, .clip-player[data-state="generating"] .clip-fill { animation: none; } }
+
+/* A spoken facet (D24): each line, then its own player row beside it. */
+.spoken-lines { display: grid; gap: 8px; }
+.spoken-line { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; }
+.spoken-text { min-width: 7em; font-size: 16px; line-height: 1.5; }
+.spoken-line .clip-player { flex: 1 1 260px; margin-top: 0; }

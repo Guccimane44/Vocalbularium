@@ -215,7 +215,7 @@ test('capture uses its destination deck and that deck’s current configuration'
   const page = await store.page(pageId);
   assert.equal(page.deckId, snapshot.id);
   assert.deepEqual(generated(page).map(item => item.moduleType), modules.map(module => module.type));
-  assert.deepEqual((await store.attempt(generated(page)[0].attemptId)).module, { id: generated(page)[0].moduleInstanceId, type: 'chinese', facets: ['examples', 'pinyin'] });
+  assert.deepEqual((await store.attempt(generated(page)[0].attemptId)).module, { id: generated(page)[0].moduleInstanceId, type: 'chinese', facets: ['examples', 'pinyin', 'pronunciation'] });
 });
 
 test('deletion prevents stale saves, retries, and generated results from recreating a page', async (t) => {

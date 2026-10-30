@@ -305,8 +305,12 @@ test('a Pronunciation card speaks the saved main key in its language, and nothin
   assert.deepEqual(spokenParts('pronunciation', card('de'), '  Gift\n'), [{ part: 'core', language: 'de', lines: ['Gift'] }],
     'the page\'s main key, never the key as the model wrote it');
   assert.deepEqual(spokenParts('pronunciation', card('other'), 'carpe diem'), []);
-  assert.deepEqual(spokenParts('german', parentDocument(formatContent('german', { core: { kind: 'word', language: 'Englisch', key: 'bank', meanings: ['Ufer'] }, facets: {} })), 'bank'), [],
-    'no German part is spoken until increment 3');
+  const german = facets => parentDocument(formatContent('german', { core: { kind: 'word', language: 'Englisch', key: 'bank', meanings: ['Geldinstitut', 'Ufer'] }, facets }));
+  assert.deepEqual(spokenParts('german', german({}), 'bank'), [], 'a German card without Pronunciation speaks nothing');
+  assert.deepEqual(spokenParts('german', german({ pronunciation: ['die Bank', 'das Ufer'], synonyms: ['Geldhaus'] }), 'bank'),
+    [{ part: 'pronunciation', language: 'de', lines: ['die Bank', 'das Ufer'] }], 'its Pronunciation facet, one clip per line, in German');
+  const chinese = parentDocument(formatContent('chinese', { core: { kind: 'word', language: '英语', key: 'bank', meanings: ['银行', '河岸'] }, facets: { pronunciation: ['银行', '河岸'] } }));
+  assert.deepEqual(spokenParts('chinese', chinese, 'bank'), [{ part: 'pronunciation', language: 'zh', lines: ['银行', '河岸'] }]);
   const { headingOf } = await import('@vocabularium/domain/render');
   const { parentContentOf } = await import('@vocabularium/domain/content');
   assert.equal(headingOf('pronunciation', parentContentOf(card('de')), 'en').language, 'German');

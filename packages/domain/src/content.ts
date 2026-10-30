@@ -126,7 +126,11 @@ export function draftOf(parent: ParentType, content: ParentContent, facets: read
 }
 // A save: the stored top line, with the draft's core and the instance's facets.
 // Save never refuses an empty part.
+// A spoken facet keeps its stored lines whatever the draft says (D24): its
+// lines are not edited, since an edited line would not match its audio.
 export function applyDraft(parent: ParentType, stored: ParentContent, draft: ParentDraft, { facets }: { facets: readonly string[] }): ParentContent {
-  const given = Object.fromEntries(Object.entries(draft.facets).filter(([facet]) => facets.includes(facet) && isFacetOf(parent, facet)));
+  const spoken = (facet: string) => Boolean(contentModule(parent).facets.find(each => each.id === facet)?.spoken);
+  const given = Object.fromEntries(Object.entries(draft.facets).filter(([facet]) => facets.includes(facet) && isFacetOf(parent, facet))
+    .map(([facet, text]) => [facet, spoken(facet) ? (stored.facets as Record<string, string | undefined>)[facet] ?? '' : text]));
   return validateParentContent(parent, { header: stored.header, core: draft.core, facets: given }, { facets });
 }

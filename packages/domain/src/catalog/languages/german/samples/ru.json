@@ -61,7 +61,11 @@
             ]
           }
         ]
-      }
+      },
+      "pronunciation": [
+        "die Sprache",
+        "die Zunge"
+      ]
     }
   },
   "sentence": {
@@ -80,6 +84,9 @@
           "sentence": "Книги — это окна, открывающие людям мир.",
           "translation": "Bücher sind Fenster, die den Menschen die Welt öffnen."
         }
+      ],
+      "pronunciation": [
+        "Sprachen sind Brücken, die Menschen und die Welt verbinden."
       ]
     }
   }

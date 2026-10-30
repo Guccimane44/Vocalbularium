@@ -393,5 +393,7 @@
   "audio.busy": "Demasiado audio a la vez. Inténtalo de nuevo.",
   "audio.notSpoken": "Este idioma aún no se puede pronunciar.",
   "audio.tooLong": "Las claves de más de 500 caracteres no se pronuncian.",
-  "audio.retryNamed": "Pronunciar {text} de nuevo"
+  "audio.retryNamed": "Pronunciar {text} de nuevo",
+  "catalog.german.pronunciation.label": "Pronunciación",
+  "catalog.chinese.pronunciation.label": "Pronunciación"
 }

@@ -46,7 +46,9 @@ export const ParentBlockSchema = Type.Object({
     // German grammar facets (D17).
     conjugation: Type.Optional(Markdown), declension: Type.Optional(Markdown), comparison: Type.Optional(Markdown), case: Type.Optional(Markdown),
     // Expertise facets (D17).
-    formula: Type.Optional(Markdown), code: Type.Optional(Markdown)
+    formula: Type.Optional(Markdown), code: Type.Optional(Markdown),
+    // The Languages modules' spoken facet (D24): the lines to speak.
+    pronunciation: Type.Optional(Markdown)
   }, { additionalProperties: false })
 }, { additionalProperties: false });
 
@@ -62,7 +64,8 @@ export const ComponentStatusSchema = Type.Union([
 export const MAX_MODULES = 12;
 
 // A parent module's facets (D08), in the parent's order. Other modules have none.
-export const FacetListSchema = Type.Array(Type.String({ minLength: 1 }), { maxItems: 8 });
+// German has nine facets since D24's Pronunciation.
+export const FacetListSchema = Type.Array(Type.String({ minLength: 1 }), { maxItems: 12 });
 export const ModuleInstanceSchema = Type.Object({
   id: Type.String({ minLength: 1 }),
   type: Type.String({ minLength: 1 }),

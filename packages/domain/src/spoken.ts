@@ -27,3 +27,9 @@ export function spokenParts(moduleType: string, content: BlockDocument, mainKey:
   }
   return parts;
 }
+
+// Whether a module's facet is spoken (D24): its lines are shown with their
+// players and are not edited, since an edited line would no longer match its audio.
+export function isSpokenFacet(parent: string, facet: string): boolean {
+  return isParentType(parent) && Boolean(contentModule(parent).facets.find(each => each.id === facet)?.spoken);
+}

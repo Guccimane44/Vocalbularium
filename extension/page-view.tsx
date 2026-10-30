@@ -29,6 +29,8 @@ import type { RowParts } from './shaping.tsx';
 import { currentLanguage, direction, listFormat, t } from './i18n.ts';
 import { contentModule } from '@vocabularium/domain/catalog';
 import { ClipPlayer, ClipsProvider, MAX_SPOKEN_LENGTH } from './audio.tsx';
+import { isSpokenFacet } from '@vocabularium/domain/spoken';
+import { plainLines } from '@vocabularium/domain/markdown';
 
 // Icons for a card's actions, drawn like the family icons: 24px grid, 2.2 stroke.
 const ACTION_ICONS = {
@@ -230,15 +232,21 @@ type FacetControls = { title: string; disabled: boolean; onDelete: (facet: Facet
 // Whether a module's core is spoken rather than written (D24): it has no text
 // of its own, so no Edit, and Pronunciation no facets either.
 export const isSpokenModule = (type: string) => isParentType(type) && Boolean(contentModule(type).core.spoken);
-// A spoken core's clip: the card it belongs to and whether its main key can be spoken.
-type SpokenCore = Readonly<{ componentId: string; speakable: boolean; tooLong: boolean }>;
-function spokenCoreOf(item: Component, mainKey: string): SpokenCore | undefined {
-  if (!isSpokenModule(item.moduleType)) return undefined;
+// A completed card's spoken parts (D24): its core, when the module speaks its
+// main key, and whether it can; and each spoken facet's lines, one clip each.
+type Spoken = Readonly<{ componentId: string; core?: Readonly<{ speakable: boolean; tooLong: boolean }>; facets: Readonly<Record<string, readonly string[]>> }>;
+function spokenOf(item: Component, mainKey: string): Spoken | undefined {
+  if (!isParentType(item.moduleType) || item.status !== 'completed') return undefined;
   const data = parentContentOf(item.content);
   if (!data) return undefined;
   const type = item.moduleType as ParentType;
-  const spoken = contentModule(type).core.spoken?.(providerCore(type, data));
-  return { componentId: item.id, speakable: Boolean(spoken), tooLong: mainKey.trim().length > MAX_SPOKEN_LENGTH };
+  const module = contentModule(type);
+  const texts = data.facets as Record<string, string | undefined>;
+  const facets = Object.fromEntries(module.facets.filter(facet => facet.spoken && hasText(texts[facet.id]))
+    .map(facet => [facet.id, plainLines(texts[facet.id]!).map(line => line.trim()).filter(Boolean)]));
+  if (!module.core.spoken && !Object.keys(facets).length) return undefined;
+  const core = module.core.spoken ? { speakable: Boolean(module.core.spoken(providerCore(type, data))), tooLong: mainKey.trim().length > MAX_SPOKEN_LENGTH } : undefined;
+  return { componentId: item.id, ...(core ? { core } : {}), facets };
 }
 
 // A component's content for reading: a parent's structured data (D09), drawn
@@ -259,7 +267,7 @@ export function readContent(type: string, content: Component['content']): { rend
 // one dimmed, without text, and with its Edit, Retry and Delete. Anything
 // else, and the user's own text, is plain text with its line breaks.
 export function Content({ type, rendered, mainKey, controls, spoken }: {
-  type: string; rendered: Rendered; mainKey: string; controls?: FacetControls; spoken?: SpokenCore;
+  type: string; rendered: Rendered; mainKey: string; controls?: FacetControls; spoken?: Spoken;
 }) {
   // Context and Text as markdown (D10, amended a fourth time), edited from their tab.
   if (rendered.kind === 'note') return <Markdown blocks={rendered.blocks} mainKey={mainKey} className="note-body" />;
@@ -277,7 +285,8 @@ export function Content({ type, rendered, mainKey, controls, spoken }: {
       disabled={controls.disabled} asking={controls.asking?.facet === facet ? controls.asking.kind : null}
       setAsking={kind => controls.setAsking(kind ? facet : null, kind ?? undefined)}
       onDelete={() => controls.onDelete(facet)} onRetry={() => controls.onRetry(facet)}
-      onEdit={controls.onEdit && (() => controls.onEdit!(facet))} onAbout={() => openAbout({ kind: 'facet', module: parent, facet })} />}
+      // A spoken facet's lines are not edited (D24).
+      onEdit={controls.onEdit && !isSpokenFacet(parent, facet) ? () => controls.onEdit!(facet) : undefined} onAbout={() => openAbout({ kind: 'facet', module: parent, facet })} />}
   </h3>;
   const section = (facet: string) => ({ className: 'facet', 'data-facet': facet, tabIndex: -1,
     'data-retrying': controls?.retrying === facet || undefined, 'aria-busy': controls?.retrying === facet || undefined });
@@ -294,13 +303,22 @@ export function Content({ type, rendered, mainKey, controls, spoken }: {
       {heading.labels.map(label => <span key={label} className="entry-label">{label}</span>)}
     </p>}
     {/* A spoken core's player, beneath its top line (D24, direction A). */}
-    {spoken && <ClipPlayer componentId={spoken.componentId} part="core" line={0} text={mainKey.trim()}
-      speakable={spoken.speakable} tooLong={spoken.tooLong} onRetryCard={controls?.onRetryCard} />}
+    {spoken?.core && <ClipPlayer componentId={spoken.componentId} part="core" line={0} text={mainKey.trim()}
+      speakable={spoken.core.speakable} tooLong={spoken.core.tooLong} onRetryCard={controls?.onRetryCard} />}
     {core.length > 0 && <Markdown blocks={core} mainKey={mainKey} className={reading ? 'entry-core reading' : 'entry-core'} />}
     {parent && facetsOf(parent).map(name => {
       const facet = facets.find(each => each.facet === name);
       // The facet open in its own editor (D10) stands in its place.
       if (controls?.editing?.facet === name) return <Fragment key={name}>{controls.editing.node}</Fragment>;
+      // A spoken facet (D24): each line beside its own player row.
+      const lines = spoken?.facets[name];
+      if (facet && lines?.length) return <section key={name} {...section(name)}>
+        {facetHead(name)}
+        <div className="facet-body spoken-lines">{lines.map((line, index) => <div className="spoken-line" key={index}>
+          <span className="spoken-text" dir="auto">{line}</span>
+          <ClipPlayer componentId={spoken!.componentId} part={name} line={index} text={line} speakable tooLong={line.length > MAX_SPOKEN_LENGTH} />
+        </div>)}</div>
+      </section>;
       if (facet) return <section key={name} {...section(name)}>
         {facetHead(name)}
         <Markdown blocks={facet.body} mainKey={mainKey} className="facet-body" />
@@ -351,7 +369,7 @@ function ComponentBody({ item, title, editable, draft, locked, persist, redraw, 
   </>;
   const { rendered, present } = readContent(item.moduleType, item.content);
   return present ? <Content type={item.moduleType} rendered={rendered} mainKey={mainKey} controls={controls}
-    spoken={item.status === 'completed' ? spokenCoreOf(item, mainKey) : undefined} /> : null;
+    spoken={spokenOf(item, mainKey)} /> : null;
 }
 
 // Motion (D05): when a component finishes generating while the page is open,

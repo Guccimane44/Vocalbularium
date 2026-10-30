@@ -55,7 +55,10 @@
             ]
           }
         ]
-      }
+      },
+      "pronunciation": [
+        "die Sprache"
+      ]
     }
   },
   "sentence": {
@@ -73,6 +76,9 @@
           "sentence": "Stories are the threads connecting generations and cultures.",
           "translation": "Geschichten sind die Fäden, die Generationen und Kulturen verbinden."
         }
+      ],
+      "pronunciation": [
+        "Sprachen sind die Brücken, die Menschen und die Welt verbinden."
       ]
     }
   }
