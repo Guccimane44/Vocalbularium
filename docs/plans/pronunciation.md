@@ -130,7 +130,7 @@ export class SpeechProvider {
 
 - **Transport:** `POST https://api.elevenlabs.io/v1/text-to-speech/{voice_id}` with `xi-api-key`, body `{ text, model_id, language_code }`, `output_format=mp3_44100_128`.
 - **Model (K69, owner 30 October 2026):** Eleven v4 Turbo, `model_id: "eleven_v4_turbo"`. ElevenLabs' [model documentation](https://elevenlabs.io/docs/models) (checked 30 October 2026) lists it for low latency, with 90+ languages and `language_code` (ISO 639-1) accepted; `SPOKEN_LANGUAGES` is taken from that list.
-- **Configuration:** `SPEECH_PROVIDER=elevenlabs`, `ELEVENLABS_API_KEY`, `ELEVENLABS_MODEL` (`eleven_v4_turbo` by default) and one voice per language, `ELEVENLABS_VOICES` (a JSON map of language code to voice ID with a default). One pinned speech model at a time, beside the one pinned text model (C31).
+- **Configuration:** `SPEECH_PROVIDER=elevenlabs`, `ELEVENLABS_API_KEY`, `ELEVENLABS_MODEL` (`eleven_v4_turbo` by default) and one voice per language, `ELEVENLABS_VOICES` (a JSON map of language code to voice ID with a default). One pinned speech model at a time, beside the one pinned text model (C32).
 - **Shared with text:** the timeout, cancellation, diagnostics events and error codes. A missing key is `provider_unconfigured`, an exhausted quota or plan limit `provider_refused`, any other HTTP error `provider_response`, a reply that is not audio `provider_invalid`. The key joins the diagnostic secrets in `start.mjs`. Diagnostics record the text's length, the language and the voice, never the audio.
 - **No caching** (owner decision 2).
 
@@ -138,7 +138,7 @@ export class SpeechProvider {
 
 - An audio job starts once the text it speaks is saved: the Pronunciation core's flag, or a facet's lines. A card's clips run in parallel, so a new modality adds a branch, not a round (D17).
 - Audio jobs have their own bounded capacity beside the text attempts ([capture and generation](../specs/capture-and-generation.md)), proposed as 4 active and 32 waiting per server (K73).
-- A failed clip shows a failure on its own row with **Retry**; the text around it stays. This relaxes "no partial success within a component" for audio only (C30).
+- A failed clip shows a failure on its own row with **Retry**; the text around it stays. This relaxes "no partial success within a component" for audio only (C31).
 - Leaving the page does not cancel a job; deleting the component or page does, and deletes its audio.
 
 ## Storage and API
@@ -168,4 +168,4 @@ Each increment is one PR against the 0.13.3 base, green in CI before the next st
 
 ## Open items
 
-K69–K77 were answered by the owner on 30 October 2026: Eleven v4 Turbo for K69, the proposed defaults for K70–K77. C30–C32 in the [traceability map](../architecture/traceability-map.md) remain open, each with a proposed resolution.
+K69–K77 were answered by the owner on 30 October 2026: Eleven v4 Turbo for K69, the proposed defaults for K70–K77. C31–C33 in the [traceability map](../architecture/traceability-map.md) were resolved by the owner the same day with their proposed resolutions. No open items remain; the specifications change once D24 is accepted.
