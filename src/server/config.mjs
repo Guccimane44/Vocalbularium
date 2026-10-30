@@ -30,14 +30,18 @@ export function loadConfig(environment = process.env) {
 
   const generationLimit = (name, fallback) => {
     const value = environment[name] ?? String(fallback);
+    const active = name === 'GENERATION_MAX_ACTIVE' || name === 'AUDIO_MAX_ACTIVE';
     if (typeof value !== 'string' || !/^\d+$/.test(value) || !Number.isSafeInteger(Number(value)) ||
-      Number(value) < (name === 'GENERATION_MAX_ACTIVE' ? 1 : 0)) {
-      throw new Error(`Invalid ${name}: expected a non-negative safe integer${name === 'GENERATION_MAX_ACTIVE' ? ' greater than zero' : ''}.`);
+      Number(value) < (active ? 1 : 0)) {
+      throw new Error(`Invalid ${name}: expected a non-negative safe integer${active ? ' greater than zero' : ''}.`);
     }
     return Number(value);
   };
   const generationMaxActive = generationLimit('GENERATION_MAX_ACTIVE', 4);
   const generationMaxQueued = generationLimit('GENERATION_MAX_QUEUED', 16);
+  // Audio jobs (D24, K73): their own bounds beside the text attempts.
+  const audioMaxActive = generationLimit('AUDIO_MAX_ACTIVE', 4);
+  const audioMaxQueued = generationLimit('AUDIO_MAX_QUEUED', 32);
   const diagnosticBudgetBytes = generationLimit('DIAGNOSTIC_BUDGET_BYTES', 256 * 1024 * 1024);
   const diagnosticContent = environment.DIAGNOSTIC_CONTENT ?? 'full';
   if (!['full', 'metadata'].includes(diagnosticContent)) throw new Error('Invalid DIAGNOSTIC_CONTENT: choose full or metadata.');
@@ -51,5 +55,5 @@ export function loadConfig(environment = process.env) {
     throw new Error('The owner-testing API must bind to loopback.');
   }
   return Object.freeze({ host, port, directory: resolve(dataDirectory), logLevel, databaseUrl,
-    generationMaxActive, generationMaxQueued, diagnosticBudgetBytes, diagnosticContent });
+    generationMaxActive, generationMaxQueued, audioMaxActive, audioMaxQueued, diagnosticBudgetBytes, diagnosticContent });
 }

@@ -8,12 +8,13 @@ try {
   config = loadConfig();
   diagnostics = new Diagnostics({ directory: resolve(config.directory, 'diagnostics'),
     budgetBytes: config.diagnosticBudgetBytes, mode: config.diagnosticContent,
-    secrets: [process.env.OPENCODE_API_KEY, process.env.OPENAI_API_KEY,
+    secrets: [process.env.OPENCODE_API_KEY, process.env.OPENAI_API_KEY, process.env.ELEVENLABS_API_KEY,
       decodeURIComponent(new URL(config.databaseUrl).password)].filter(Boolean) });
   application = await createApplication({
     diagnostics, databaseUrl: config.databaseUrl,
     outbox: resolve(config.directory, 'generation-outbox'),
     generationOptions: { maxActive: config.generationMaxActive, maxQueued: config.generationMaxQueued },
+    audioOptions: { maxActive: config.audioMaxActive, maxQueued: config.audioMaxQueued },
     logger: { level: config.logLevel }
   });
   await application.start({ port: config.port, host: config.host });

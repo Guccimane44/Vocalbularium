@@ -6,7 +6,8 @@ import {
   DeckConfigurationSaveRequestSchema, DeckDeleteRequestSchema, FacetAddRequestSchema, FacetDeleteRequestSchema, ModuleAddRequestSchema,
   DefaultDeckRequestSchema, JsonObjectSchema, LanguageRequestSchema, LoginRequestSchema, HealthResponseSchema, LoginResponseSchema,
   PageCaptureRequestSchema, PageCreateRequestSchema, PageDeleteRequestSchema, PageGenerateRequestSchema,
-  PageSaveRequestSchema, PollRequestSchema, PublishRequestSchema, SessionRequestSchema
+  PageSaveRequestSchema, PollRequestSchema, PublishRequestSchema, SessionRequestSchema,
+  ClipListSchema, ClipParamsSchema, ClipRetryResponseSchema
 } from '@vocabularium/contracts';
 import { apiFailure } from './api-failure.mjs';
 import { ACCOUNT_USERNAME } from './auth.mjs';
@@ -18,6 +19,7 @@ import Type from 'typebox';
 /** @import { ApiInstance } from '../../types/fastify.js' */
 /** @import { Authentication } from './auth.mjs' */
 /** @import { Generation } from './generation.mjs' */
+/** @import { Audio } from './audio.mjs' */
 
 const errorResponses = {
   400: ApiFailureSchema,
@@ -56,8 +58,8 @@ async function healthReply(store, reply) {
   }
 }
 
-/** @param {ApiInstance} fastify @param {{ store: AccountStore, authentication: Authentication, generation: Generation }} services */
-export function registerRoutes(fastify, { store, authentication, generation }) {
+/** @param {ApiInstance} fastify @param {{ store: AccountStore, authentication: Authentication, generation: Generation, audio: Audio }} services */
+export function registerRoutes(fastify, { store, authentication, generation, audio }) {
   fastify.get('/health/live', {
     schema: {
       summary: 'Check whether the API process is running', tags: ['health'], security: [],
@@ -201,6 +203,7 @@ export function registerRoutes(fastify, { store, authentication, generation }) {
   }, async request => {
     const result = await store.deleteComponent(request.body.operationId, request.body.payload);
     await generation.cancelObsolete();
+    await audio.cancelObsolete();
     return result;
   });
 
@@ -222,6 +225,7 @@ export function registerRoutes(fastify, { store, authentication, generation }) {
   }, async request => {
     const result = await store.deletePage(request.body.operationId, request.body.payload.pageId);
     await generation.cancelObsolete();
+    await audio.cancelObsolete();
     return result;
   });
 
@@ -268,8 +272,45 @@ export function registerRoutes(fastify, { store, authentication, generation }) {
     sessionValue(body.payload?.session);
     if (typeof body.payload?.attemptId !== 'string') throw new StoreError('invalid', 'A component attempt is required.');
     await generation.saveResult(body.payload.attemptId, body.payload.session);
-    return store.publish(body.operationId, body.payload);
+    const attempt = await store.attempt(body.payload.attemptId).catch(() => null);
+    const result = await store.publish(body.operationId, body.payload);
+    // The published text's audio (D24) never fails the publish it follows.
+    if (!result.replayed && attempt) {
+      try {
+        const component = (await store.page(result.pageId)).components.find(component => component.id === result.componentId);
+        if (component) await audio.afterPublish({ pageId: result.pageId, componentId: result.componentId, moduleType: attempt.module.type,
+          content: component.content, state: result.state, retry: attempt.module.retry });
+      } catch (/** @type {any} */ error) {
+        audio.record('failed', undefined, { errorType: error?.name, errorCode: error?.code });
+      }
+    }
+    return result;
   });
+
+  // Spoken parts' audio (D24): a page's clips, one clip's MP3, and a clip's Retry.
+  fastify.get('/api/pages/:pageId/audio', {
+    schema: { ...routeSchema('Read the audio clips of a page', undefined, { success: ClipListSchema }), params: pageParams }
+  }, async request => {
+    const { pageId } = request.params;
+    const clips = await store.clips(pageId);
+    return { clips: clips.map(clip => ({ componentId: clip.component_id, part: clip.part, line: clip.line, state: clip.state,
+      ...(clip.error ? { errorCode: clip.error } : {}),
+      ...(clip.state === 'ready' ? { durationMs: /** @type {number} */ (clip.duration_ms),
+        url: `/api/pages/${encodeURIComponent(pageId)}/audio/${encodeURIComponent(clip.component_id)}/${encodeURIComponent(clip.part)}/${clip.line}` } : {}) })) };
+  });
+
+  fastify.get('/api/pages/:pageId/audio/:componentId/:part/:line', {
+    schema: { summary: 'Read one audio clip as MP3', tags: ['account'], params: ClipParamsSchema,
+      produces: ['audio/mpeg'], response: errorResponses, security: [{ bearerAuth: [] }] }
+  }, async (request, reply) => {
+    const { mime, bytes } = await store.clipAudio(request.params);
+    // The MP3 itself; the route's schema describes only its failures.
+    return reply.type(mime).header('Cache-Control', 'private, no-store').send(/** @type {any} */ (bytes));
+  });
+
+  fastify.post('/api/pages/:pageId/audio/:componentId/:part/:line/retry', {
+    schema: { ...routeSchema('Speak one audio clip again', JsonObjectSchema, { success: ClipRetryResponseSchema }), params: ClipParamsSchema }
+  }, async request => ({ restarted: await audio.retry(request.params) }));
 }
 
 /** @param {any} session unchecked input */
