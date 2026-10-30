@@ -22,10 +22,13 @@ import { INTERFACE_LANGUAGES } from '@vocabularium/contracts';
 // facet, the others keeping theirs. A result without a record leaves none.
 // The core a card's Retry starts from (D19): the core the card has saved, the
 // user's edits included, without its blank fields, or nothing when it has none.
-/** @param {string} moduleType @param {Component['content']} content @returns {{ previous?: Record<string, unknown> }} */
-function previousOf(moduleType, content) {
+// A core written for another main key has no reading of this one (0.13.2): once
+// the user changes the main key, the card generates as on its first attempt.
+const sameKey = (/** @type {string} */ a, /** @type {string} */ b) => a.trim().normalize('NFC') === b.trim().normalize('NFC');
+/** @param {string} moduleType @param {Component['content']} content @param {string} mainKey @returns {{ previous?: Record<string, unknown> }} */
+function previousOf(moduleType, content, mainKey) {
   const data = isParentType(moduleType) ? parentContentOf(content) : null;
-  if (!data || !hasText(data.core)) return {};
+  if (!data || !hasText(data.core) || !sameKey(data.header.key, mainKey)) return {};
   const core = Object.entries(providerCore(/** @type {ParentType} */ (moduleType), data))
     .filter(([, value]) => Array.isArray(value) ? value.some(hasText) : typeof value !== 'string' || hasText(value));
   return core.length ? { previous: Object.fromEntries(core) } : {};
@@ -508,8 +511,8 @@ export class AccountStore {
   }
   // One run per request. Since D17 its attempts share no reading of the main
   // key: each module reads it in its own request.
-  /** @param {string} pageId @param {BrowserSession} session @param {readonly Component[]} targets @param {{ facet?: string | null }} [options] */
-  async startRun(pageId, session, targets, { facet } = {}) {
+  /** @param {string} pageId @param {BrowserSession} session @param {readonly Component[]} targets @param {{ facet?: string | null, mainKey?: string }} [options] */
+  async startRun(pageId, session, targets, { facet, mainKey = '' } = {}) {
     if (!targets.length) return { runId: null, attemptIds: [] };
     const runId = randomUUID();
     await this.database.run("INSERT INTO generation_runs (id, page_id) VALUES ($1, $2)", [runId, pageId]);
@@ -525,7 +528,7 @@ export class AccountStore {
         ? { id: moduleInstanceId, type: moduleType, facets: /** @type {string[]} */ (facets).filter(each => each === facet || !waitingFacets?.includes(each)),
           retry: facet, prior: { status, waiting: Boolean(waitingFacets?.includes(facet)) } }
         // A card's Retry keeps the reading of the core it had, as saved (D19).
-        : { id: moduleInstanceId, type: moduleType, ...withFacets(moduleType, facets), ...previousOf(moduleType, content) };
+        : { id: moduleInstanceId, type: moduleType, ...withFacets(moduleType, facets), ...previousOf(moduleType, content, mainKey) };
       await this.database.run(`INSERT INTO component_attempts
         (id, page_id, component_id, run_id, installation_id, session_id, epoch, module) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
       [attemptId, pageId, componentId, runId, session.installationId, session.sessionId, session.epoch, JSON.stringify(module)]);
@@ -783,7 +786,7 @@ export class AccountStore {
         }
       }
       admit?.(targets.length);
-      return { pageId, attemptIds: (await this.startRun(pageId, session, targets, { facet })).attemptIds };
+      return { pageId, attemptIds: (await this.startRun(pageId, session, targets, { facet, mainKey: mainKeyOf(page.components) })).attemptIds };
     });
   }
   /** @param {string} operationId @param {string} pageId */

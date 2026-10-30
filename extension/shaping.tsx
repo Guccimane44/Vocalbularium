@@ -351,12 +351,16 @@ function LandingRow({ type, render, saving = false }: { type: string; render: (t
 
 // When the landing card moves, the entries around it slide into their new
 // places, as they do when an entry is reordered (dur-spring-like ease-out).
+// Places are measured from the list's top, so a scroll in between, such as
+// the window bringing an added module into view, moves nothing (0.13.2: the
+// first module added replayed every entry from below by the scroll's length).
 function useMakeRoom(list: { current: HTMLElement | null }, key: string) {
   const tops = useRef(new Map<string, number>());
   const last = useRef(key);
   useLayoutEffect(() => {
     const rows = [...(list.current?.querySelectorAll<HTMLElement>('[data-row-id]') ?? [])];
-    const next = new Map(rows.map(row => [row.dataset.rowId!, row.getBoundingClientRect().top]));
+    const origin = list.current?.getBoundingClientRect().top ?? 0;
+    const next = new Map(rows.map(row => [row.dataset.rowId!, row.getBoundingClientRect().top - origin]));
     const changed = last.current !== key;
     last.current = key;
     const still = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;

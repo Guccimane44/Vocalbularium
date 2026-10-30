@@ -11,9 +11,8 @@ import { formatContent } from '@vocabularium/domain/content';
 import { PARENTS } from '@vocabularium/domain/parents';
 import { resultFor, sentenceResult, text, textBlocks, useModules, wordResult, staged, fieldEdit } from './helpers/pages.mjs';
 
-// A sample the catalog stores for the pages and the preview (D20), and the English labels of the facets it holds.
+// A sample the catalog stores for the pages (D20).
 const catalogSample = async (folder, language = 'en') => JSON.parse(await readFile(`packages/domain/src/catalog/${folder}/samples/${language}.json`, 'utf8'));
-const sampleFacetLabels = (parent, card) => Object.keys(PARENTS[parent].facets).filter(facet => facet in card.facets).map(facet => PARENTS[parent].facets[facet].label);
 const keyOf = page => text(page.components.find(component => component.moduleType === 'main-key'));
 // The bank entry with all four German facets, as structured content (D09).
 // A German noun (D17): its grammatical role lets Article apply.
@@ -554,32 +553,11 @@ test('deck UI: draft previews, all modules, the module limit, removal without co
   assert.equal(await a.page.locator('.window-module[data-type="context"]').getAttribute('aria-disabled'), 'true', 'one Context per deck');
   assert.equal(await a.page.locator('.window-module[data-type="context"] .window-add').isDisabled(), true, 'a blocked module cannot be added');
   await a.page.getByText('There is already a Context.').waitFor();
-  // The preview opens in a dialog from the button above the list, so deck settings keep the list-and-window layout (0.6.3).
-  assert.equal(await a.page.locator('.sample-page').count(), 0, 'no preview beside the list');
-  await a.page.getByRole('button', { name: 'Preview', exact: true }).click();
-  const preview = a.page.getByRole('dialog', { name: 'Preview' });
-  await preview.waitFor();
-  await preview.getByLabel('Sample input', { exact: true }).selectOption('sentence');
-  assert.equal(await preview.locator('.preview').count(), 7, 'one preview per module, the main key included');
-  // The samples in the interface language (D20, C30): the bridges sentence.
-  assert.match(await preview.locator('.preview').nth(0).textContent(), /Languages are the bridges connecting people and the world\./);
-  // Every parent applies to a sentence: its translation, and the facets that apply (D08).
-  assert.ok((await preview.locator('.preview').nth(2).textContent()).includes((await catalogSample('languages/german')).sentence.core.meanings[0]));
-  assert.deepEqual(await preview.locator('.preview').nth(2).locator('.facet-tab-label').allTextContents(), ['Examples'], 'Article, Synonyms and Antonyms are for words');
-  assert.equal(await preview.locator('.preview').nth(3).locator('.facet').count(), 0, 'a parent added from the window has its core only');
-  assert.ok((await preview.locator('.preview').nth(4).textContent()).includes((await catalogSample('languages/chinese')).sentence.core.meanings[0]));
-  const previewTypes = () => preview.locator('.sample-page .component').evaluateAll(nodes => nodes.map(node => node.dataset.type));
+  // Deck settings have no Preview (0.13.2; a dialog from 0.6.3, beside the list before).
+  assert.equal(await a.page.getByRole('button', { name: 'Preview', exact: true }).count(), 0, 'no Preview button');
+  assert.equal(await a.page.locator('.sample-page, .preview-dialog').count(), 0, 'and no preview');
+  await a.page.screenshot({ path: 'artifacts/m3-configuration-list.png' });
   const listTypes = () => a.page.locator('.shaping-list .deck-module').evaluateAll(nodes => nodes.slice(1).map(node => node.dataset.type));
-  assert.deepEqual(await previewTypes(), await listTypes(), 'the preview follows the list');
-  await preview.evaluate(node => Promise.all(node.getAnimations().map(animation => animation.finished)));
-  await a.page.screenshot({ path: 'artifacts/m3-configuration-preview.png' });
-  await a.page.keyboard.press('Escape');
-  await preview.waitFor({ state: 'detached' });
-  assert.equal(await a.page.evaluate(() => document.activeElement.textContent), 'Preview', 'closing returns to the Preview button');
-  await a.page.getByRole('button', { name: 'Preview', exact: true }).click();
-  await preview.locator('.preview-dialog, .sample-page').first().waitFor();
-  await a.page.mouse.click(5, 5);
-  await preview.waitFor({ state: 'detached' });
   // A module's tab is two parts edge to edge, as on a page: the six dots at its left end, then its icon and name.
   const block = a.page.locator('.deck-module[data-type="chinese"]').first();
   await block.scrollIntoViewIfNeeded();
@@ -2208,22 +2186,16 @@ test('parents and facets: core only on add, the facet window on the parent, its 
   assert.ok(flight, 'the tag flies in from its row');
   await a.page.keyboard.press('Escape');
 
-  // Deck settings: a parent hangs its facets' tags below its tab, which can be removed; new pages copy them.
+  // Deck settings: a parent, folded, hangs its facets' tags from its bottom edge; they can be removed, and new pages copy them.
   const deckId = (await store.page(pageId)).deckId;
   await a.page.goto(`chrome-extension://${a.id}/app.html#configure/${deckId}`);
   const row = a.page.locator('.deck-module[data-type="german"]');
   await row.locator('.facet-tag').first().waitFor();
-  assert.equal(await row.locator('.facet-tags').getAttribute('data-layout'), 'hanging');
+  assert.equal(await row.locator('.facet-tags').getAttribute('data-layout'), 'folded');
   assert.deepEqual(await row.locator('.facet-tag-mark').allTextContents(), ['Ar', 'Ex', 'Sy', 'An']);
-  await row.locator('.facet-tag[data-facet="antonyms"]').hover();
-  await row.getByRole('button', { name: 'Remove Antonyms from German', exact: true }).click();
-  await waitFor(async () => await row.locator('.facet-tag').count() === 3, 'the Antonyms tag popped');
-  await a.page.getByRole('button', { name: 'Preview', exact: true }).click();
-  // The preview shows the facets the deck has, as far as the sample holds them (D20: generated samples).
-  const kept = (await catalogSample('languages/german')).word_phrase;
-  assert.deepEqual(await a.page.locator('.preview-dialog .component[data-type="german"] .facet-tab-label').allTextContents(),
-    sampleFacetLabels('german', { facets: Object.fromEntries(Object.entries(kept.facets).filter(([facet]) => ['article', 'examples', 'synonyms'].includes(facet))) }));
-  await a.page.getByRole('button', { name: 'Close preview', exact: true }).click();
+  await tick(await facetWindow(a.page, 'German'), 'Antonyms').click();
+  await a.page.keyboard.press('Escape');
+  await waitFor(async () => await row.locator('.facet-tag:not([data-leaving])').count() === 3, 'the Antonyms tag popped');
   // In deck settings the same window changes the draft; with no content to lose, unticking never asks.
   await a.page.getByRole('button', { name: 'Add German at the end', exact: true }).click();
   const deckGermans = a.page.locator('.deck-module[data-type="german"]');
@@ -2577,9 +2549,13 @@ test('facet tags: abbreviations in order, on the left edge, along the edge to th
   const [, startY] = points(up)[0];
   assert.ok(startY > 100, `they set out from the opened card's bottom edge (${startY}px below their place)`);
 
-  // Removing a tag whose facet has content asks in its section; deleted, the tag pops.
-  await card.locator('.facet-tag[data-facet="antonyms"]').hover();
-  await a.page.getByRole('button', { name: 'Remove Antonyms from German', exact: true }).click();
+  // A tag only shows its facet (0.13.2): nothing on it is a button.
+  assert.equal(await tags.getByRole('button').count(), 0, 'no tag interaction');
+  const antonymsTag = await card.locator('.facet-tag[data-facet="antonyms"]').boundingBox();
+  await a.page.mouse.click(antonymsTag.x + antonymsTag.width / 2, antonymsTag.y + antonymsTag.height / 2);
+  assert.equal(await card.locator('.facet-tag[data-pulled]').count(), 0, 'clicking a tag pulls nothing out');
+  // A facet deleted from its section pops its tag.
+  await a.page.getByRole('button', { name: 'Delete Antonyms from German', exact: true }).click();
   await a.page.getByRole('button', { name: 'Yes, delete Antonyms from German', exact: true }).click();
   await card.locator('.facet-tag[data-facet="antonyms"][data-leaving]').waitFor();
   await card.locator('.facet-tag[data-facet="antonyms"]').waitFor({ state: 'detached' });
@@ -2597,11 +2573,10 @@ test('facet tags: abbreviations in order, on the left edge, along the edge to th
   const landed = await card.locator('.facet-tag[data-facet="antonyms"]').evaluate(node => { node.getAnimations().forEach(each => each.finish()); const box = node.getBoundingClientRect(); return { x: box.left + box.width / 2, y: box.top + box.height / 2 }; });
   assert.ok(Math.abs(landed.x + Number(dx) - (origin.x + origin.width / 2)) < 4 && Math.abs(landed.y + Number(dy) - (origin.y + origin.height / 2)) < 4,
     `it starts out at its row (${flight.keyframes[0]}; landed ${JSON.stringify(landed)}, row ${JSON.stringify(origin)})`);
-  await a.page.keyboard.press('Escape');
   assert.deepEqual(await tags.locator('.facet-tag-mark').allTextContents(), ['Ar', 'Ex', 'Sy', 'An']);
-  // A tag whose facet waits for Retry goes at once.
-  await card.locator('.facet-tag[data-facet="antonyms"]').hover();
-  await a.page.getByRole('button', { name: 'Remove Antonyms from German', exact: true }).click();
+  // Unticked in the facet window, a facet waiting for Retry goes at once.
+  await tick(facets, 'Antonyms').click();
+  await a.page.keyboard.press('Escape');
   await waitFor(async () => !(await german()).facets.includes('antonyms'), 'waiting Antonyms deleted without asking');
 
   // Under reduced motion the tags stand in their places without moving.
@@ -2612,29 +2587,47 @@ test('facet tags: abbreviations in order, on the left edge, along the edge to th
   assert.equal((await a.page.evaluate(() => window.tagMotions)).length, before, 'no tag moved');
   await a.page.emulateMedia({ reducedMotion: 'no-preference' });
 
-  // Deck settings: every module is an empty card, its facets hung below the tab on chains.
+  // Deck settings: every module is a folded card that never unfolds, its facets hanging from the end of its bottom edge (0.13.2; hung below the tab on chains from 0.7.1).
   const deckId = (await store.page(pageId)).deckId;
   await a.page.goto(`chrome-extension://${a.id}/app.html#configure/${deckId}`);
   const row = a.page.locator('.deck-module[data-type="german"]');
   await row.locator('.facet-tag').first().waitFor();
-  assert.equal(await row.getAttribute('data-empty'), 'true');
-  assert.equal(await row.locator('.facet-tags').getAttribute('data-layout'), 'hanging');
+  assert.deepEqual(await a.page.locator('.deck-module').evaluateAll(nodes => nodes.map(node => [node.dataset.type, node.hasAttribute('data-folded'), node.hasAttribute('data-empty')])),
+    [['main-key', true, false], ['context', true, false], ['german', true, false]], 'every module folded, the main key too');
+  assert.equal(await row.locator('.facet-tags').getAttribute('data-layout'), 'folded');
   const hung = await row.evaluate(node => {
-    const tab = node.querySelector('.card-tab').getBoundingClientRect();
-    return [...node.querySelectorAll('.facet-tag')].map(tag => ({ top: tag.getBoundingClientRect().top - tab.bottom, chain: getComputedStyle(tag, '::after').opacity }));
+    const band = node.getBoundingClientRect();
+    return [...node.querySelectorAll('.facet-tag')].map(tag => { const box = tag.getBoundingClientRect(); return { below: box.top - band.bottom, end: band.right - box.right, chain: getComputedStyle(tag, '::after').opacity }; });
   });
-  assert.ok(hung.every(tag => tag.top > 4 && tag.top < 20 && tag.chain === '1'), `below the tab, each on its chain (${JSON.stringify(hung)})`);
-  // The chains hang from a rail that reaches the last one, however many there are.
-  const rail = await row.evaluate(node => {
-    const list = node.querySelector('.facet-tags'), box = list.getBoundingClientRect(), last = [...node.querySelectorAll('.facet-tag')].at(-1).getBoundingClientRect();
-    const style = getComputedStyle(list, '::before');
-    return { right: box.left + parseFloat(style.left) + parseFloat(style.width), chain: last.left + last.width / 2 };
-  });
-  assert.ok(rail.right >= rail.chain, `the rail reaches the last chain (${JSON.stringify(rail)})`);
+  assert.ok(hung.every(tag => Math.abs(tag.below + 6) <= 2 && tag.chain === '0'), `from the band's bottom edge, without chains (${JSON.stringify(hung)})`);
+  assert.ok(hung.at(-1).end > 10 && hung.at(-1).end < 30 && hung[0].end > hung.at(-1).end, `at its end, in order (${JSON.stringify(hung)})`);
+  assert.ok((await row.boundingBox()).height < 30, 'a slim band');
+  // Its tab ejects About, Facet and Remove: no Fold or Unfold.
+  await row.locator('.tab-button').click();
+  assert.deepEqual(await row.locator('.card-actions button').evaluateAll(buttons => buttons.map(button => button.textContent)), ['About', 'Facet', 'Remove']);
+  await row.locator('.tab-button').click();
   await a.page.screenshot({ path: 'artifacts/v0.7.1-facet-tags-deck-settings.png', fullPage: true });
-  // Removed there, a tag pops; ticked again in the facet window, it flies in from its row.
-  await row.locator('.facet-tag[data-facet="antonyms"]').hover();
-  await row.getByRole('button', { name: 'Remove Antonyms from German', exact: true }).click();
+  // No tag is a button there either (0.13.2). Unticked in the facet window, a tag pops; ticked again, it flies in from its row.
+  assert.equal(await row.locator('.facet-tags').getByRole('button').count(), 0, 'no tag interaction');
+  // The six-dot menu opens over the tags hung below the tab, the card lifted under the pointer (0.13.2: it opened beneath them).
+  await row.locator('.menu-button').click();
+  await row.locator('.row-menu-list').waitFor();
+  await row.locator('.card-tab').hover();
+  await a.page.waitForTimeout(400);
+  // Tags let the pointer through, so for the hit test they briefly take it.
+  assert.deepEqual(await row.locator('.row-menu-list [role="menuitem"]').evaluateAll(items => {
+    const hittable = document.head.appendChild(Object.assign(document.createElement('style'), { textContent: '.facet-tags, .facet-tag { pointer-events: auto !important; }' }));
+    const onTop = items.map(item => {
+      const box = item.getBoundingClientRect();
+      return [12, 40, 70].every(x => Boolean(document.elementFromPoint(box.left + x, box.top + box.height / 2)?.closest('.row-menu-list')));
+    });
+    hittable.remove();
+    return onTop;
+  }), [true, true], 'every menu entry is on top');
+  await a.page.keyboard.press('Escape');
+  await row.locator('.row-menu-list').waitFor({ state: 'detached' });
+  await tick(await facetWindow(a.page, 'German'), 'Antonyms').click();
+  await a.page.keyboard.press('Escape');
   await row.locator('.facet-tag[data-facet="antonyms"][data-leaving]').waitFor();
   await row.locator('.facet-tag[data-facet="antonyms"]').waitFor({ state: 'detached' });
   await a.page.evaluate(() => {
@@ -2652,16 +2645,29 @@ test('facet tags: abbreviations in order, on the left edge, along the edge to th
   assert.equal((await motions('antonyms')).at(-1)?.keyframes.length, 3, 'flown in');
   assert.deepEqual(await row.locator('.facet-tag-mark').allTextContents(), ['Ar', 'Ex', 'Sy', 'An']);
   // The last tag pops too, and the tab no longer makes room; a facet added again still flies in.
-  for (const name of ['Article', 'Examples', 'Synonyms', 'Antonyms']) {
-    await row.locator(`.facet-tag[data-facet="${name.toLowerCase()}"]`).hover();
-    await row.getByRole('button', { name: `Remove ${name} from German`, exact: true }).click();
-  }
+  const untick = await facetWindow(a.page, 'German');
+  for (const name of ['Article', 'Examples', 'Synonyms', 'Antonyms']) await tick(untick, name).click();
+  await a.page.keyboard.press('Escape');
   await row.locator('.facet-tag[data-facet="antonyms"][data-leaving]').waitFor();
   await row.locator('.facet-tag').first().waitFor({ state: 'detached' });
   assert.equal(await row.getAttribute('data-tagged'), null);
   await tick(await facetWindow(a.page, 'German'), 'Article').click();
   await row.locator('.facet-tag[data-facet="article"]').waitFor();
   assert.equal((await motions('article')).at(-1)?.keyframes.length, 3, 'flown in, not moved from where it stood before');
+  // Scrolled since the list last drew, the first module added moves no other entry (0.13.2: each replayed from below by the scroll's length).
+  await a.page.setViewportSize({ width: 1280, height: 420 });
+  await a.page.evaluate(() => window.scrollTo(0, 0));
+  await a.page.waitForTimeout(300);
+  await a.page.evaluate(() => window.scrollTo(0, 160));
+  await a.page.waitForTimeout(300);
+  const moved = await a.page.evaluate(() => new Promise(done => {
+    const entries = [...document.querySelectorAll('.shaping-list [data-row-id] > *')];
+    document.querySelector('[aria-label="Add Text at the end"]').click();
+    requestAnimationFrame(() => done(entries.filter(entry => entry.isConnected && entry.getAnimations().some(animation =>
+      animation.effect?.getKeyframes?.().some(frame => /translateY\((?!0px)/.test(frame.transform ?? '')))).length));
+  }));
+  assert.equal(moved, 0, 'no entry replays from below');
+  await a.page.setViewportSize({ width: 1280, height: 1400 });
 });
 
 test('0.7.3: a facet’s own Retry beside its Delete, a tag’s remove keeping its colours, and hung tags lifting with their tab', { timeout: 60000 }, async (t) => {
@@ -2753,22 +2759,6 @@ test('0.7.3: a facet’s own Retry beside its Delete, a tag’s remove keeping i
   assert.equal(await examples.locator('.facet-note').count(), 0);
   await a.page.screenshot({ path: 'artifacts/v0.7.3-facet-retry.png' });
 
-  // A tag's remove keeps the failed colour while it is pointed at, on a card and on an empty one.
-  for (const holder of [card, componentArticle(a.page, 'German 2')]) {
-    const tag = holder.locator('.facet-tag').first();
-    const remove = tag.locator('.facet-tag-remove');
-    await tag.locator('.facet-tag-open').hover();
-    await a.page.waitForTimeout(300);
-    const shown = await remove.evaluate(node => getComputedStyle(node).backgroundColor);
-    await remove.hover();
-    await a.page.waitForTimeout(300);
-    assert.equal(await remove.evaluate(node => getComputedStyle(node).backgroundColor), shown, 'the same colour under the pointer');
-    assert.equal(shown, await a.page.evaluate(() => {
-      const probe = document.body.appendChild(Object.assign(document.createElement('i'), { style: 'background: var(--status-failed)' }));
-      const colour = getComputedStyle(probe).backgroundColor; probe.remove(); return colour;
-    }), 'the failed colour');
-  }
-
   // Hovering an empty card lifts its tab and what hangs below it together.
   const hung = componentArticle(a.page, 'German 2');
   await a.page.mouse.move(5, 5);
@@ -2788,44 +2778,21 @@ test('0.7.3: a facet’s own Retry beside its Delete, a tag’s remove keeping i
   assert.deepEqual(await unfilled(hung), [['synonyms', true]]);
   assert.match(await card.locator('.facet-tag[data-facet="synonyms"]').evaluate(tag => getComputedStyle(tag, '::before').filter), /saturate\(0\.3\)/);
   assert.doesNotMatch(await card.locator('.facet-tag[data-facet="article"]').evaluate(tag => getComputedStyle(tag, '::before').filter), /saturate/);
-  // A hung tag is no button; on an open card's edge every tag is one (0.7.4).
+  // No tag is a button, hung or on an open card's edge (0.13.2; on the edge one pulled out to its Retry from 0.7.4).
   assert.equal(await hung.getByRole('img', { name: 'Synonyms, empty', exact: true }).count(), 1);
   const synonymsTag = card.locator('.facet-tag[data-facet="synonyms"]');
-  const tagButton = card.getByRole('button', { name: 'Synonyms, empty in German 1', exact: true });
-  const tagRetry = card.getByRole('button', { name: 'Retry Synonyms in German 1', exact: true });
-  assert.equal(await tagButton.getAttribute('aria-expanded'), 'false');
-  // Clicked, the tag pulls out to its Retry, and nothing scrolls; a short window, so a scroll would show.
-  await a.page.setViewportSize({ width: 1280, height: 420 });
-  await synonymsTag.scrollIntoViewIfNeeded();
-  await a.page.waitForTimeout(300);
-  const scrolled = await a.page.evaluate(() => window.scrollY);
+  assert.equal(await card.getByRole('img', { name: 'Synonyms, empty', exact: true }).count(), 1);
+  assert.equal(await card.locator('.facet-tags').getByRole('button').count(), 0, 'no tag interaction on the card');
+  assert.equal(await hung.locator('.facet-tags').getByRole('button').count(), 0, 'nor below an empty card');
   const tucked = await synonymsTag.boundingBox();
-  await tagButton.click();
-  await settleIn(synonymsTag);
-  assert.equal(await tagButton.getAttribute('aria-expanded'), 'true');
-  const out = await synonymsTag.boundingBox();
-  assert.ok(tucked.x - out.x > 30, `pulled out of the card (${tucked.x} → ${out.x})`);
-  const ribbon = await tagRetry.boundingBox();
-  const cardLeft = (await card.boundingBox()).x;
-  assert.ok(ribbon.x < cardLeft && Math.abs(ribbon.x + ribbon.width - cardLeft) <= 1, `the ribbon reaches from the tag to the card (${JSON.stringify(ribbon)}, ${cardLeft})`);
-  assert.equal(await a.page.evaluate(() => window.scrollY), scrolled, 'nothing scrolls');
-  await a.page.setViewportSize({ width: 1280, height: 1400 });
-  await synonymsTag.scrollIntoViewIfNeeded();
-  await a.page.screenshot({ path: 'artifacts/v0.7.4-tag-pulled.png', clip: { x: Math.max(0, out.x - 40), y: Math.max(0, out.y - 120), width: 520, height: 300 } });
-  // Escape pushes it back, the focus on the tag; so does a click elsewhere.
-  await a.page.keyboard.press('Escape');
-  await waitFor(async () => await tagButton.getAttribute('aria-expanded') === 'false', 'pushed back by Escape');
-  assert.equal(await a.page.evaluate(() => document.activeElement?.getAttribute('aria-label')), 'Synonyms, empty in German 1');
-  await tagButton.click();
-  await a.page.mouse.click(700, 30);
-  await waitFor(async () => await tagButton.getAttribute('aria-expanded') === 'false', 'pushed back by a click elsewhere');
-  // Its Retry asks nothing: the facet generates at once, its tag breathing, into its place.
-  await tagButton.click();
-  await settleIn(synonymsTag);
-  await tagRetry.click();
+  await a.page.mouse.click(tucked.x + tucked.width / 2, tucked.y + tucked.height / 2);
+  await a.page.waitForTimeout(300);
+  assert.deepEqual(await synonymsTag.boundingBox(), tucked, 'clicking a tag moves nothing');
+  // An empty facet's own Retry, beside its heading, asks nothing: the facet generates at once, its tag breathing.
+  await card.locator('.facet[data-facet="synonyms"]').hover();
+  await card.getByRole('button', { name: 'Retry Synonyms from German 1', exact: true }).click();
   assert.equal(await card.locator('.facet-confirm').count(), 0, 'no "Are you sure?"');
   await waitFor(async () => await synonymsTag.getAttribute('data-retrying') !== null, 'Synonyms generating');
-  assert.equal(await synonymsTag.getAttribute('data-pulled'), null, 'and goes back in');
   // Generating, the empty facet's section stands in its place, its heading only, the spark round its tab (0.7.4).
   const synonyms = card.locator('.facet[data-facet="synonyms"]');
   await synonyms.locator('.facet-tab .spark').waitFor();
@@ -2842,15 +2809,16 @@ test('0.7.3: a facet’s own Retry beside its Delete, a tag’s remove keeping i
     'in its place in the parent’s order');
   assert.equal(await synonymsTag.getAttribute('data-unfilled'), null);
   assert.equal(await synonymsTag.getAttribute('data-retrying'), null);
-  // A tag with content pulls out the same way, and its Retry also asks nothing.
-  await card.getByRole('button', { name: 'Article in German 1', exact: true }).click();
-  await card.getByRole('button', { name: 'Retry Article in German 1', exact: true }).click();
+  // A facet with content asks first, in its row.
+  await card.locator('.facet[data-facet="article"]').hover();
+  await card.getByRole('button', { name: 'Retry Article from German 1', exact: true }).click();
+  await card.getByRole('button', { name: 'Yes, retry Article from German 1', exact: true }).click();
   await waitFor(() => calls.length === 3, 'the Article regenerates at once');
   release({ facets: { article: { singular: 'das Ufer', plural: 'die Ufer' } } });
   await waitFor(async () => await card.locator('.facet-tag[data-facet="article"]').getAttribute('data-retrying') === null, 'Article done');
   // An empty facet that comes back empty: its section shows while it generates, then goes again.
-  await card.getByRole('button', { name: 'Antonyms, empty in German 1', exact: true }).click();
-  await card.getByRole('button', { name: 'Retry Antonyms in German 1', exact: true }).click();
+  await card.locator('.facet[data-facet="antonyms"]').hover();
+  await card.getByRole('button', { name: 'Retry Antonyms from German 1', exact: true }).click();
   await card.locator('.facet[data-facet="antonyms"][data-pending]').waitFor();
   await waitFor(() => calls.length === 4, 'Antonyms requested');
   release({ facets: {} });
@@ -3665,13 +3633,12 @@ test('0.12.0: a German verb’s Conjugation is a table on the card, its top line
     [['ich', 'laufe', 'lief', 'bin gelaufen'], ['du', 'läufst', 'liefst', 'bist gelaufen']]);
   assert.equal(await facet.locator('tbody th[scope="row"]').count(), 2, 'each row is labelled by its person');
   await card.screenshot({ path: 'artifacts/v0.12.0-conjugation.png' });
-  // A facet the verb rules out shows no note; its Retry stays, unavailable, on its heading and its tag (0.12.1).
+  // A facet the verb rules out shows no note; its Retry stays, unavailable, on its heading (0.12.1; its tag has none since 0.13.2).
   const declension = card.locator('.facet[data-facet="declension"]');
   assert.equal(await card.locator('.facet-note[data-note="ruled-out"]').count(), 0);
   await declension.hover();
   assert.equal(await a.page.getByRole('button', { name: 'Retry Declension from German', exact: true }).isDisabled(), true);
   await card.screenshot({ path: 'artifacts/v0.12.1-retry-unavailable.png', animations: 'disabled' });
-  assert.equal(await card.locator('.facet-tag[data-facet="declension"] .facet-tag-retry').isDisabled(), true);
   assert.equal(await a.page.getByRole('button', { name: 'Retry Conjugation from German', exact: true }).isDisabled(), false, 'Conjugation applies');
   // Its About opens the facet's page, as its › in the facet window does (0.12.1; a page since 0.13.0).
   await a.page.getByRole('button', { name: 'About Conjugation from German', exact: true }).click();

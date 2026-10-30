@@ -54,6 +54,9 @@
 /* Each tab is its own layer (it stays above the actions it ejects), so an open
    menu lifts its tab, and its row, above the cards and tabs that follow. */
 .card-tab:has(.row-menu-list), .sortable-row:has(.row-menu-list) { z-index: 6; }
+/* The card's head too, over the facet tags hung below it (0.13.2): lifted
+   on hover, the head is a layer of its own, which held the menu beneath them. */
+.card-head:has(.row-menu-list, .facet-window) { z-index: 2; }
 /* The tag is exactly two buttons, edge to edge: the six dots fill its left end
    and the family icon and label fill the rest, to its right end. Each takes
    the tag's corners on its side, so a hover or press fills its whole part. */
@@ -621,7 +624,7 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
    with a notch at its free end, turned so the notch points away from the
    card; facet-tags.tsx moves the tags between these places. */
 .facet-tags { position: absolute; z-index: 1; margin: 0; padding: 0; list-style: none; pointer-events: none; }
-.facet-tag { position: absolute; width: 24px; height: 30px; pointer-events: auto; --turn: 0deg; }
+.facet-tag { position: absolute; width: 24px; height: 30px; --turn: 0deg; }
 .facet-tag::before { content: ""; position: absolute; left: 50%; top: 50%; width: 24px; height: 30px; translate: -50% -50%; rotate: var(--turn);
   background: var(--fam, var(--fam-notes)); clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 76%, 0 100%);
   filter: drop-shadow(0 1px 1px #0002); transition: rotate var(--tag-travel) cubic-bezier(.45, 0, .25, 1); }
@@ -629,52 +632,16 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
    cuts 24% into the free end: below the mark on a hanging or folded tag, to
    its left on the card's edge. Every tag the same way. */
 .facet-tag-open { position: relative; display: grid; place-items: center; width: 100%; height: 100%; padding: 0 0 7px; border: 0; border-radius: 0;
-  background: transparent; color: var(--on-fam, var(--on-ink)); font: 700 11px/1 var(--font-text); letter-spacing: .02em; cursor: default; }
-button.facet-tag-open { cursor: pointer; }
-button.facet-tag-open:hover { background: transparent; }
-.facet-tag:has(> button.facet-tag-open:hover)::before { filter: drop-shadow(0 2px 3px #0003) brightness(1.08); }
+  background: transparent; color: var(--on-fam, var(--on-ink)); font: 700 11px/1 var(--font-text); letter-spacing: .02em; }
 /* A facet with nothing in it, such as one waiting for Retry or one that does
    not apply, wears a blander tag: its family colour, much less saturated
    (0.7.3). Its mark stays legible. */
 .facet-tag[data-unfilled]::before { filter: drop-shadow(0 1px 1px #0002) saturate(.3) opacity(.75); }
-.facet-tag[data-unfilled]:has(> button.facet-tag-open:hover)::before { filter: drop-shadow(0 2px 3px #0003) saturate(.45) opacity(.85); }
-.facet-tag-open:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
-/* A small round remove on the tag's corner, shown while it is pointed at or focused. */
-.facet-tag-remove { position: absolute; top: -7px; inset-inline-end: -7px; z-index: 1; display: grid; place-items: center; width: 16px; height: 16px; padding: 0; border: 0;
-  border-radius: 50%; color: var(--status-failed-bg); background: var(--status-failed); box-shadow: 0 0 0 2px var(--surface);
-  opacity: 0; transform: scale(.6); transition: opacity var(--dur-instant) ease, transform var(--dur-spring) var(--ease-spring); }
-.facet-tag-remove svg { width: 10px; height: 10px; }
-.facet-tag:hover .facet-tag-remove, .facet-tag:focus-within .facet-tag-remove { opacity: 1; transform: none; }
-/* Pointed at, it keeps its colours and swells a little (0.7.3): the shared
-   button hover painted it the hover colour, dark on a card and pale on an
-   empty one. */
-.facet-tag .facet-tag-remove:not(:disabled):hover { background: var(--status-failed); color: var(--status-failed-bg); transform: scale(1.15); }
-.facet-tag-remove:disabled { display: none; }
-@media (hover: none) { .facet-tag-remove { opacity: 1; transform: none; } }
-
 /* Stuck out of the start edge (the left, or the right in a right-to-left
    language), one under another below the tab, notch outward. */
 .facet-tags[data-layout="edge"] { inset-inline-start: -28px; top: 34px; }
 .facet-tags[data-layout="edge"] .facet-tag { width: 30px; height: 24px; inset-inline-start: 0; top: calc(var(--i) * 30px); --turn: calc(90deg * var(--flip)); }
 .facet-tags[data-layout="edge"] .facet-tag-open { padding: 0; padding-inline-start: 7px; }
-/* Clicked, a tag on the edge pulls out of the card (0.7.4): it slides out
-   further and the ribbon it was tucked in by shows, holding its Retry, in a
-   deeper shade of the family colour, under the tag and up to the card. */
-.facet-tag { transition: translate var(--dur-spring) var(--ease-spring); }
-.facet-tags[data-layout="edge"] .facet-tag[data-pulled] { translate: calc(-34px * var(--flip)) 0; z-index: 2; }
-.facet-tag-retry { display: none; }
-.facet-tags[data-layout="edge"] .facet-tag-retry { position: absolute; z-index: -1; inset-inline-start: 26px; top: 0; display: grid; place-items: center; width: 36px; height: 24px;
-  padding: 0; padding-inline-start: 4px; border: 0; border-radius: 0; color: var(--on-fam, var(--on-ink));
-  background: color-mix(in srgb, var(--fam, var(--fam-notes)) 78%, black); box-shadow: inset calc(6px * var(--flip)) 0 6px -4px #0004;
-  transform: scaleX(0); transform-origin: var(--end); opacity: 0; pointer-events: none; cursor: pointer;
-  transition: transform var(--dur-spring) var(--ease-spring), opacity var(--dur-instant) ease; }
-.facet-tags[data-layout="edge"] .facet-tag[data-pulled] .facet-tag-retry { transform: none; opacity: 1; pointer-events: auto; }
-.facet-tags[data-layout="edge"] .facet-tag[data-unfilled] .facet-tag-retry { filter: saturate(.45); }
-.facet-tag-retry svg { width: 13px; height: 13px; transition: rotate var(--dur-spring) var(--ease-spring); }
-.facet-tag .facet-tag-retry:not(:disabled):hover { background: color-mix(in srgb, var(--fam, var(--fam-notes)) 66%, black); color: var(--on-fam, var(--on-ink)); }
-.facet-tag-retry:not(:disabled):hover svg { rotate: -40deg; }
-.facet-tag-retry:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
-.facet-tag-retry:disabled { cursor: default; opacity: .5; }
 /* Its Retry having failed, a tag wears a small dot in the failed colour. */
 .facet-tag[data-failed] .facet-tag-open { background: radial-gradient(circle at 5px 5px, var(--status-failed) 3px, transparent 3.5px); }
 /* Folded: in a row at the end of the bottom edge, hanging below it. */
@@ -713,7 +680,7 @@ button.facet-tag-open:hover { background: transparent; }
 /* With content, the card is at least as tall as the tags on its left edge. */
 .component[data-tagged="edge"] { min-height: calc(40px + var(--tags, 0) * 30px); }
 /* Leaving, a tag pops where it stands, like a deleted card. */
-.facet-tag[data-leaving] { pointer-events: none; animation: bop 240ms cubic-bezier(.3, 0, .2, 1) forwards; }
+.facet-tag[data-leaving] { animation: bop 240ms cubic-bezier(.3, 0, .2, 1) forwards; }
 /* A facet shown or just generated: a shining frame on its rounded block's
    edges, just inside the card, the size of its focus outline (0.7.4; a ring
    just outside its text until then). */
