@@ -384,5 +384,14 @@
   "catalog.pronunciation.label": "النطق",
   "catalog.pronunciation.description": "ينطق المفتاح الرئيسي بلغته.",
   "catalog.pronunciation.core.word_phrase": "النطق",
-  "catalog.pronunciation.core.sentence": "النطق"
+  "catalog.pronunciation.core.sentence": "النطق",
+  "audio.play": "تشغيل {text}",
+  "audio.pause": "إيقاف {text} مؤقتًا",
+  "audio.generating": "جارٍ إنشاء الصوت…",
+  "audio.failed": "تعذّر على خدمة النطق نطق هذا.",
+  "audio.unconfigured": "النطق غير مُعدّ على الخادم.",
+  "audio.busy": "الكثير من الصوت في وقت واحد. حاول مرة أخرى.",
+  "audio.notSpoken": "لا يمكن نطق هذه اللغة بعد.",
+  "audio.tooLong": "لا تُنطق المفاتيح التي تزيد على 500 حرف.",
+  "audio.retryNamed": "انطق {text} مرة أخرى"
 }

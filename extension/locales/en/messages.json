@@ -338,5 +338,14 @@
   "api.moduleGenerating": "This module is still generating.",
   "api.facetWrongModule": "{facet} can only be added to a {name} module.",
   "api.addModuleFirst": "Add a {name} module first.",
-  "api.modulesGenerating": "The {name} modules are still generating."
+  "api.modulesGenerating": "The {name} modules are still generating.",
+  "audio.play": "Play {text}",
+  "audio.pause": "Pause {text}",
+  "audio.generating": "Making the audio…",
+  "audio.failed": "The speech service could not speak this.",
+  "audio.unconfigured": "Speech is not set up on the server.",
+  "audio.busy": "Too much audio at once. Try again.",
+  "audio.notSpoken": "This language can't be spoken yet.",
+  "audio.tooLong": "Keys over 500 characters aren't spoken.",
+  "audio.retryNamed": "Speak {text} again"
 }

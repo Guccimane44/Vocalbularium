@@ -103,7 +103,8 @@ export function startBackground() {
   async function request(path, body, token) {
     const started = performance.now();
     const diagnosticRoute = path.startsWith('/api/diagnostics/');
-    const meaningful = !diagnosticRoute && path !== '/api/poll' && !['/api/account/summary', '/api/captures/recent'].includes(path);
+    // Polls, the audio list included (D24), are not worth a log line each.
+    const meaningful = !diagnosticRoute && path !== '/api/poll' && !path.endsWith('/audio') && !['/api/account/summary', '/api/captures/recent'].includes(path);
     const metadata = { operationId: body?.operationId, pageId: body?.payload?.pageId,
       componentId: body?.payload?.target?.componentId, attemptId: body?.payload?.attemptId, method: body ? 'POST' : 'GET', route: path.split('?')[0] };
     diagnostics.addSecret(token);
@@ -135,6 +136,20 @@ export function startBackground() {
       throw Object.assign(new Error(apiText(failure.error)), { code: failure.code, status: response.status, details: failure.details });
     }
     return result;
+  }
+
+  // One audio clip (D24): its MP3 as base64, since a message carries no bytes.
+  /** @param {string} path @param {string} [token] @returns {Promise<{ mime: string, data: string }>} */
+  async function requestAudio(path, token) {
+    let response;
+    try {
+      response = await fetch(API_URL + path, { headers: token ? { Authorization: `Bearer ${token}` } : {}, signal: AbortSignal.timeout(10000) });
+    } catch { throw new Error(t('worker.serverUnavailable')); }
+    if (!response.ok) throw Object.assign(new Error(t('worker.serverRejected')), { code: 'audio_unavailable', status: response.status });
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    let binary = '';
+    for (let at = 0; at < bytes.length; at += 0x8000) binary += String.fromCharCode(...bytes.subarray(at, at + 0x8000));
+    return { mime: (response.headers.get('content-type') ?? 'audio/mpeg').split(';')[0], data: btoa(binary) };
   }
 
   async function removeAccess() {
@@ -242,6 +257,12 @@ export function startBackground() {
       if (message.type === 'refresh') return sessionReady ? refreshAccount() : initialize();
       if (message.type === 'deck-detail') return request(`/api/decks/${encodeURIComponent(message.deckId)}`, null, auth.token);
       if (message.type === 'page-detail') return request(`/api/pages/${encodeURIComponent(message.pageId)}`, null, auth.token);
+      // Spoken parts' audio (D24): a page's clips, one clip's MP3, and a clip's Retry.
+      if (message.type === 'page-audio') return request(`/api/pages/${encodeURIComponent(message.pageId)}/audio`, null, auth.token);
+      if (message.type === 'clip-audio' || message.type === 'clip-retry') {
+        const clip = `/api/pages/${encodeURIComponent(message.pageId)}/audio/${encodeURIComponent(message.componentId)}/${encodeURIComponent(message.part)}/${Number(message.line)}`;
+        return message.type === 'clip-audio' ? requestAudio(clip, auth.token) : request(`${clip}/retry`, {}, auth.token);
+      }
       if (message.type === 'deck-page') return request(`/api/decks?cursor=${encodeURIComponent(message.cursor)}`, null, auth.token);
       if (message.type === 'deck-pages') {
         const query = new URLSearchParams({ order: message.order ?? 'newest', limit: String(message.limit ?? 30) });

@@ -384,5 +384,14 @@
   "catalog.pronunciation.label": "Pronunciación",
   "catalog.pronunciation.description": "Pronuncia la clave principal en su propio idioma.",
   "catalog.pronunciation.core.word_phrase": "Pronunciación",
-  "catalog.pronunciation.core.sentence": "Pronunciación"
+  "catalog.pronunciation.core.sentence": "Pronunciación",
+  "audio.play": "Reproducir {text}",
+  "audio.pause": "Pausar {text}",
+  "audio.generating": "Creando el audio…",
+  "audio.failed": "El servicio de voz no pudo pronunciar esto.",
+  "audio.unconfigured": "La voz no está configurada en el servidor.",
+  "audio.busy": "Demasiado audio a la vez. Inténtalo de nuevo.",
+  "audio.notSpoken": "Este idioma aún no se puede pronunciar.",
+  "audio.tooLong": "Las claves de más de 500 caracteres no se pronuncian.",
+  "audio.retryNamed": "Pronunciar {text} de nuevo"
 }

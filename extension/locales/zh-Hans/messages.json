@@ -384,5 +384,14 @@
   "catalog.pronunciation.label": "发音",
   "catalog.pronunciation.description": "用主词条本身的语言朗读它。",
   "catalog.pronunciation.core.word_phrase": "发音",
-  "catalog.pronunciation.core.sentence": "发音"
+  "catalog.pronunciation.core.sentence": "发音",
+  "audio.play": "播放“{text}”",
+  "audio.pause": "暂停“{text}”",
+  "audio.generating": "正在生成音频…",
+  "audio.failed": "语音服务未能读出这段内容。",
+  "audio.unconfigured": "服务器上尚未设置语音。",
+  "audio.busy": "同时生成的音频过多，请重试。",
+  "audio.notSpoken": "这种语言暂时无法朗读。",
+  "audio.tooLong": "超过 500 个字符的词条不会朗读。",
+  "audio.retryNamed": "重新朗读“{text}”"
 }
