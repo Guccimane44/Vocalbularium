@@ -348,3 +348,26 @@ test('a second Pronunciation cannot join a page that has one', async () => {
   assert.equal(addBlockedReason([{ type: 'main-key' }, { type: 'pronunciation' }], 'pronunciation'), 'single');
   assert.equal(addBlockedReason([{ type: 'main-key' }], 'pronunciation'), null);
 });
+
+test('a part\'s own voice comes first, then its language\'s, then the default (D24)', async t => {
+  const { fetchImpl, calls } = stubFetch(() => new Response(Buffer.alloc(1600, 1), { status: 200, headers: { 'content-type': 'audio/mpeg' } }));
+  const provider = new ElevenLabsProvider({ apiKey: 'key', fetchImpl,
+    voices: { default: 'any', de: 'german-voice', 'german.pronunciation': 'native-de', 'chinese.pronunciation': 'native-zh' } });
+  const voice = async request => { await provider.synthesize(request); return calls.at(-1).url.match(/text-to-speech\/([^?]+)/)[1]; };
+  assert.equal(await voice({ text: 'die Bank', language: 'de', part: 'german.pronunciation' }), 'native-de');
+  assert.equal(await voice({ text: '银行', language: 'zh', part: 'chinese.pronunciation' }), 'native-zh');
+  assert.equal(await voice({ text: 'Gift', language: 'de', part: 'pronunciation.core' }), 'german-voice', 'a part without its own voice: its language\'s');
+  assert.equal(await voice({ text: 'gift', language: 'en', part: 'pronunciation.core' }), 'any');
+
+  // The audio job names the part: module type and part.
+  const store = await createTestStore(t);
+  const { page, german } = await germanPage(store);
+  const speech = new FakeSpeechProvider();
+  speech.voices = { default: 'any', 'german.pronunciation': 'native-de' };
+  const audio = await Audio.create(store, speech);
+  t.after(() => audio.close());
+  await audio.speak(page.id, german.id, 'pronunciation', ['die Bank'], 'de');
+  await settled(store, page.id);
+  assert.deepEqual(speech.calls, [{ text: 'die Bank', language: 'de', voice: 'native-de' }]);
+  assert.equal((await store.generationRecords(page.id))[german.id]?.pronunciation, undefined, 'no record without its text attempt');
+});
