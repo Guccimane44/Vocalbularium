@@ -2654,6 +2654,20 @@ test('facet tags: abbreviations in order, on the left edge, along the edge to th
   await tick(await facetWindow(a.page, 'German'), 'Article').click();
   await row.locator('.facet-tag[data-facet="article"]').waitFor();
   assert.equal((await motions('article')).at(-1)?.keyframes.length, 3, 'flown in, not moved from where it stood before');
+  // Scrolled since the list last drew, the first module added moves no other entry (0.13.2: each replayed from below by the scroll's length).
+  await a.page.setViewportSize({ width: 1280, height: 420 });
+  await a.page.evaluate(() => window.scrollTo(0, 0));
+  await a.page.waitForTimeout(300);
+  await a.page.evaluate(() => window.scrollTo(0, 160));
+  await a.page.waitForTimeout(300);
+  const moved = await a.page.evaluate(() => new Promise(done => {
+    const entries = [...document.querySelectorAll('.shaping-list [data-row-id] > *')];
+    document.querySelector('[aria-label="Add Text at the end"]').click();
+    requestAnimationFrame(() => done(entries.filter(entry => entry.isConnected && entry.getAnimations().some(animation =>
+      animation.effect?.getKeyframes?.().some(frame => /translateY\((?!0px)/.test(frame.transform ?? '')))).length));
+  }));
+  assert.equal(moved, 0, 'no entry replays from below');
+  await a.page.setViewportSize({ width: 1280, height: 1400 });
 });
 
 test('0.7.3: a facet’s own Retry beside its Delete, a tag’s remove keeping its colours, and hung tags lifting with their tab', { timeout: 60000 }, async (t) => {
