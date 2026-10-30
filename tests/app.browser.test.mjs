@@ -2186,12 +2186,12 @@ test('parents and facets: core only on add, the facet window on the parent, its 
   assert.ok(flight, 'the tag flies in from its row');
   await a.page.keyboard.press('Escape');
 
-  // Deck settings: a parent hangs its facets' tags below its tab, which can be removed; new pages copy them.
+  // Deck settings: a parent, folded, hangs its facets' tags from its bottom edge; they can be removed, and new pages copy them.
   const deckId = (await store.page(pageId)).deckId;
   await a.page.goto(`chrome-extension://${a.id}/app.html#configure/${deckId}`);
   const row = a.page.locator('.deck-module[data-type="german"]');
   await row.locator('.facet-tag').first().waitFor();
-  assert.equal(await row.locator('.facet-tags').getAttribute('data-layout'), 'hanging');
+  assert.equal(await row.locator('.facet-tags').getAttribute('data-layout'), 'folded');
   assert.deepEqual(await row.locator('.facet-tag-mark').allTextContents(), ['Ar', 'Ex', 'Sy', 'An']);
   await tick(await facetWindow(a.page, 'German'), 'Antonyms').click();
   await a.page.keyboard.press('Escape');
@@ -2587,25 +2587,25 @@ test('facet tags: abbreviations in order, on the left edge, along the edge to th
   assert.equal((await a.page.evaluate(() => window.tagMotions)).length, before, 'no tag moved');
   await a.page.emulateMedia({ reducedMotion: 'no-preference' });
 
-  // Deck settings: every module is an empty card, its facets hung below the tab on chains.
+  // Deck settings: every module is a folded card that never unfolds, its facets hanging from the end of its bottom edge (0.13.2; hung below the tab on chains from 0.7.1).
   const deckId = (await store.page(pageId)).deckId;
   await a.page.goto(`chrome-extension://${a.id}/app.html#configure/${deckId}`);
   const row = a.page.locator('.deck-module[data-type="german"]');
   await row.locator('.facet-tag').first().waitFor();
-  assert.equal(await row.getAttribute('data-empty'), 'true');
-  assert.equal(await row.locator('.facet-tags').getAttribute('data-layout'), 'hanging');
+  assert.deepEqual(await a.page.locator('.deck-module').evaluateAll(nodes => nodes.map(node => [node.dataset.type, node.hasAttribute('data-folded'), node.hasAttribute('data-empty')])),
+    [['main-key', true, false], ['context', true, false], ['german', true, false]], 'every module folded, the main key too');
+  assert.equal(await row.locator('.facet-tags').getAttribute('data-layout'), 'folded');
   const hung = await row.evaluate(node => {
-    const tab = node.querySelector('.card-tab').getBoundingClientRect();
-    return [...node.querySelectorAll('.facet-tag')].map(tag => ({ top: tag.getBoundingClientRect().top - tab.bottom, chain: getComputedStyle(tag, '::after').opacity }));
+    const band = node.getBoundingClientRect();
+    return [...node.querySelectorAll('.facet-tag')].map(tag => { const box = tag.getBoundingClientRect(); return { below: box.top - band.bottom, end: band.right - box.right, chain: getComputedStyle(tag, '::after').opacity }; });
   });
-  assert.ok(hung.every(tag => tag.top > 4 && tag.top < 20 && tag.chain === '1'), `below the tab, each on its chain (${JSON.stringify(hung)})`);
-  // The chains hang from a rail that reaches the last one, however many there are.
-  const rail = await row.evaluate(node => {
-    const list = node.querySelector('.facet-tags'), box = list.getBoundingClientRect(), last = [...node.querySelectorAll('.facet-tag')].at(-1).getBoundingClientRect();
-    const style = getComputedStyle(list, '::before');
-    return { right: box.left + parseFloat(style.left) + parseFloat(style.width), chain: last.left + last.width / 2 };
-  });
-  assert.ok(rail.right >= rail.chain, `the rail reaches the last chain (${JSON.stringify(rail)})`);
+  assert.ok(hung.every(tag => Math.abs(tag.below + 6) <= 2 && tag.chain === '0'), `from the band's bottom edge, without chains (${JSON.stringify(hung)})`);
+  assert.ok(hung.at(-1).end > 10 && hung.at(-1).end < 30 && hung[0].end > hung.at(-1).end, `at its end, in order (${JSON.stringify(hung)})`);
+  assert.ok((await row.boundingBox()).height < 30, 'a slim band');
+  // Its tab ejects About, Facet and Remove: no Fold or Unfold.
+  await row.locator('.tab-button').click();
+  assert.deepEqual(await row.locator('.card-actions button').evaluateAll(buttons => buttons.map(button => button.textContent)), ['About', 'Facet', 'Remove']);
+  await row.locator('.tab-button').click();
   await a.page.screenshot({ path: 'artifacts/v0.7.1-facet-tags-deck-settings.png', fullPage: true });
   // No tag is a button there either (0.13.2). Unticked in the facet window, a tag pops; ticked again, it flies in from its row.
   assert.equal(await row.locator('.facet-tags').getByRole('button').count(), 0, 'no tag interaction');

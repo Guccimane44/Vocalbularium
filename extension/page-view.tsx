@@ -420,9 +420,10 @@ function ConfirmAction({ kind, title, offset, onConfirm, onCancel }: {
 // A module from the window, shown where it would land on the page: built
 // like the empty card it will become, so the card that arrives takes its
 // place unchanged. It is only a picture; the row says what is happening.
-export function LandingCard({ type }: { type: string }) {
+// Folded in deck settings, where every module is a folded card (0.13.2).
+export function LandingCard({ type, folded = false }: { type: string; folded?: boolean }) {
   const family = isModuleType(type) ? CATALOG[type].family ?? 'notes' : 'notes';
-  return <article className={`component fam-${family}`} data-empty data-landing data-type={type} aria-hidden="true">
+  return <article className={`component fam-${family}`} data-empty={!folded || undefined} data-folded={folded || undefined} data-landing data-type={type} aria-hidden="true">
     <div className="card-head"><div className="card-tab">
       <span className="row-menu"><span className="menu-button"><SixDots /></span></span>
       <h2><span className="tab-button"><FamilyIcon family={family} /><span className="tab-label">{moduleLabel(type)}</span></span></h2>

@@ -53,7 +53,8 @@ function DeckModule({ item, parts, busy, opened, setOpened, choosing, setChoosin
 }) {
   const family = familyOf(item.type);
   const tagged = isParentType(item.type) && Boolean(item.facets?.length);
-  return <article className={`component deck-module fam-${family}`} data-empty data-module-id={item.id} data-type={item.type} data-tagged={tagged ? 'hanging' : undefined}>
+  return <article className={`component deck-module fam-${family}`} data-folded data-module-id={item.id} data-type={item.type} data-tagged={tagged ? 'folded' : undefined}
+    style={tagged ? { '--tags': item.facets!.length } as CSSProperties : undefined}>
     <div className="card-head" onKeyDown={(event: ReactKeyboardEvent<HTMLDivElement>) => {
       if (event.key !== 'Escape' || !opened) return;
       setOpened(false);
@@ -83,7 +84,7 @@ function DeckModule({ item, parts, busy, opened, setOpened, choosing, setChoosin
           if (refocus) document.querySelector<HTMLElement>(`[data-module-id="${CSS.escape(item.id)}"] .tab-button`)?.focus();
         }} />}
     </div>
-    {isParentType(item.type) && <FacetTags holderId={item.id} parent={item.type} facets={item.facets ?? []} layout="hanging" title={item.label} />}
+    {isParentType(item.type) && <FacetTags holderId={item.id} parent={item.type} facets={item.facets ?? []} layout="folded" title={item.label} />}
   </article>;
 }
 
@@ -202,12 +203,12 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
           <p className="muted">{t('deck.modules.hint')}</p>
         </div>
         {/* The main key never moves and cannot be removed: a tab with its name only. */}
-        <div className="component deck-module" data-empty data-type={key.type}>
+        <div className="component deck-module" data-folded data-type={key.type}>
           <div className="card-head"><div className="card-tab"><h2><span className="tab-label">{moduleLabel(key.type)}</span></h2></div></div>
         </div>
       </>}
       menuItems={deckModuleMenu()}
-      renderLanding={type => <LandingCard type={type} />}
+      renderLanding={type => <LandingCard type={type} folded />}
       renderItem={(item, parts) => <DeckModule item={item} parts={parts} busy={busy}
         opened={opened === item.id} setOpened={value => setOpened(value ? item.id : null)}
         choosing={choosing === item.id} setChoosing={value => setChoosing(value ? item.id : null)}

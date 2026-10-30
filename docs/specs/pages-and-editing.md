@@ -80,7 +80,7 @@ Since 0.7.1 a parent's card also wears one **tag** per facet it has, shaped like
 
 - A card with content wears its tags stuck out of its left edge, one under another below the tab; the card is at least as tall as its tags.
 - A folded card wears them in a row at the right of its bottom edge, hanging below it.
-- A card that is only its tab, such as one that is generating, hangs them below the tab, each on a short chain from a rail under the tab; with more tags than the tab is wide, the rail reaches past the tab's end. Every module in deck settings is drawn this way ([decks and configuration](decks-and-configuration.md#configuration)). When the card is pointed at, the rail, chains and tags lift with the tab, and while the card generates they stay beneath the tab so the spark running round it is never covered (since 0.7.3).
+- A card that is only its tab, such as one that is generating, hangs them below the tab, each on a short chain from a rail under the tab; with more tags than the tab is wide, the rail reaches past the tab's end. Until 0.13.2 every module in deck settings was drawn this way; since then each is a folded card ([decks and configuration](decks-and-configuration.md#configuration)). When the card is pointed at, the rail, chains and tags lift with the tab, and while the card generates they stay beneath the tab so the spark running round it is never covered (since 0.7.3).
 
 The tags move with the card:
 
