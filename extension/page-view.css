@@ -54,6 +54,9 @@
 /* Each tab is its own layer (it stays above the actions it ejects), so an open
    menu lifts its tab, and its row, above the cards and tabs that follow. */
 .card-tab:has(.row-menu-list), .sortable-row:has(.row-menu-list) { z-index: 6; }
+/* The card's head too, over the facet tags hung below it (0.13.2): lifted
+   on hover, the head is a layer of its own, which held the menu beneath them. */
+.card-head:has(.row-menu-list, .facet-window) { z-index: 2; }
 /* The tag is exactly two buttons, edge to edge: the six dots fill its left end
    and the family icon and label fill the rest, to its right end. Each takes
    the tag's corners on its side, so a hover or press fills its whole part. */

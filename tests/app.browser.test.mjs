@@ -11,9 +11,8 @@ import { formatContent } from '@vocabularium/domain/content';
 import { PARENTS } from '@vocabularium/domain/parents';
 import { resultFor, sentenceResult, text, textBlocks, useModules, wordResult, staged, fieldEdit } from './helpers/pages.mjs';
 
-// A sample the catalog stores for the pages and the preview (D20), and the English labels of the facets it holds.
+// A sample the catalog stores for the pages (D20).
 const catalogSample = async (folder, language = 'en') => JSON.parse(await readFile(`packages/domain/src/catalog/${folder}/samples/${language}.json`, 'utf8'));
-const sampleFacetLabels = (parent, card) => Object.keys(PARENTS[parent].facets).filter(facet => facet in card.facets).map(facet => PARENTS[parent].facets[facet].label);
 const keyOf = page => text(page.components.find(component => component.moduleType === 'main-key'));
 // The bank entry with all four German facets, as structured content (D09).
 // A German noun (D17): its grammatical role lets Article apply.
@@ -554,42 +553,11 @@ test('deck UI: draft previews, all modules, the module limit, removal without co
   assert.equal(await a.page.locator('.window-module[data-type="context"]').getAttribute('aria-disabled'), 'true', 'one Context per deck');
   assert.equal(await a.page.locator('.window-module[data-type="context"] .window-add').isDisabled(), true, 'a blocked module cannot be added');
   await a.page.getByText('There is already a Context.').waitFor();
-  // The preview opens in a dialog from the button above the list, so deck settings keep the list-and-window layout (0.6.3).
-  assert.equal(await a.page.locator('.sample-page').count(), 0, 'no preview beside the list');
-  await a.page.getByRole('button', { name: 'Preview', exact: true }).click();
-  const preview = a.page.getByRole('dialog', { name: 'Preview' });
-  await preview.waitFor();
-  // The title stays on one line, and the sample selector fits the chosen sample, between the title and Close (0.13.2).
-  const previewHead = () => preview.evaluate(node => {
-    const title = node.querySelector('.preview-head h2'), select = node.querySelector('#sample-input').getBoundingClientRect(), close = node.querySelector('.preview-close').getBoundingClientRect();
-    return { lines: Math.round(title.getBoundingClientRect().height / parseFloat(getComputedStyle(title).lineHeight)), select: select.width,
-      fits: select.left >= title.getBoundingClientRect().right && select.right <= close.left };
-  });
-  const wordHead = await previewHead();
-  await preview.getByLabel('Sample input', { exact: true }).selectOption('sentence');
-  const sentenceHead = await previewHead();
-  assert.deepEqual([wordHead.lines, sentenceHead.lines, wordHead.fits, sentenceHead.fits], [1, 1, true, true], JSON.stringify([wordHead, sentenceHead]));
-  assert.ok(wordHead.select < sentenceHead.select, `the selector fits the word, narrower than the sentence (${wordHead.select} < ${sentenceHead.select})`);
-  assert.equal(await preview.locator('.preview').count(), 7, 'one preview per module, the main key included');
-  // The samples in the interface language (D20, C30): the bridges sentence.
-  assert.match(await preview.locator('.preview').nth(0).textContent(), /Languages are the bridges connecting people and the world\./);
-  // Every parent applies to a sentence: its translation, and the facets that apply (D08).
-  assert.ok((await preview.locator('.preview').nth(2).textContent()).includes((await catalogSample('languages/german')).sentence.core.meanings[0]));
-  assert.deepEqual(await preview.locator('.preview').nth(2).locator('.facet-tab-label').allTextContents(), ['Examples'], 'Article, Synonyms and Antonyms are for words');
-  assert.equal(await preview.locator('.preview').nth(3).locator('.facet').count(), 0, 'a parent added from the window has its core only');
-  assert.ok((await preview.locator('.preview').nth(4).textContent()).includes((await catalogSample('languages/chinese')).sentence.core.meanings[0]));
-  const previewTypes = () => preview.locator('.sample-page .component').evaluateAll(nodes => nodes.map(node => node.dataset.type));
+  // Deck settings have no Preview (0.13.2; a dialog from 0.6.3, beside the list before).
+  assert.equal(await a.page.getByRole('button', { name: 'Preview', exact: true }).count(), 0, 'no Preview button');
+  assert.equal(await a.page.locator('.sample-page, .preview-dialog').count(), 0, 'and no preview');
+  await a.page.screenshot({ path: 'artifacts/m3-configuration-list.png' });
   const listTypes = () => a.page.locator('.shaping-list .deck-module').evaluateAll(nodes => nodes.slice(1).map(node => node.dataset.type));
-  assert.deepEqual(await previewTypes(), await listTypes(), 'the preview follows the list');
-  await preview.evaluate(node => Promise.all(node.getAnimations().map(animation => animation.finished)));
-  await a.page.screenshot({ path: 'artifacts/m3-configuration-preview.png' });
-  await a.page.keyboard.press('Escape');
-  await preview.waitFor({ state: 'detached' });
-  assert.equal(await a.page.evaluate(() => document.activeElement.textContent), 'Preview', 'closing returns to the Preview button');
-  await a.page.getByRole('button', { name: 'Preview', exact: true }).click();
-  await preview.locator('.preview-dialog, .sample-page').first().waitFor();
-  await a.page.mouse.click(5, 5);
-  await preview.waitFor({ state: 'detached' });
   // A module's tab is two parts edge to edge, as on a page: the six dots at its left end, then its icon and name.
   const block = a.page.locator('.deck-module[data-type="chinese"]').first();
   await block.scrollIntoViewIfNeeded();
@@ -2228,12 +2196,6 @@ test('parents and facets: core only on add, the facet window on the parent, its 
   await tick(await facetWindow(a.page, 'German'), 'Antonyms').click();
   await a.page.keyboard.press('Escape');
   await waitFor(async () => await row.locator('.facet-tag:not([data-leaving])').count() === 3, 'the Antonyms tag popped');
-  await a.page.getByRole('button', { name: 'Preview', exact: true }).click();
-  // The preview shows the facets the deck has, as far as the sample holds them (D20: generated samples).
-  const kept = (await catalogSample('languages/german')).word_phrase;
-  assert.deepEqual(await a.page.locator('.preview-dialog .component[data-type="german"] .facet-tab-label').allTextContents(),
-    sampleFacetLabels('german', { facets: Object.fromEntries(Object.entries(kept.facets).filter(([facet]) => ['article', 'examples', 'synonyms'].includes(facet))) }));
-  await a.page.getByRole('button', { name: 'Close preview', exact: true }).click();
   // In deck settings the same window changes the draft; with no content to lose, unticking never asks.
   await a.page.getByRole('button', { name: 'Add German at the end', exact: true }).click();
   const deckGermans = a.page.locator('.deck-module[data-type="german"]');
@@ -2647,6 +2609,23 @@ test('facet tags: abbreviations in order, on the left edge, along the edge to th
   await a.page.screenshot({ path: 'artifacts/v0.7.1-facet-tags-deck-settings.png', fullPage: true });
   // No tag is a button there either (0.13.2). Unticked in the facet window, a tag pops; ticked again, it flies in from its row.
   assert.equal(await row.locator('.facet-tags').getByRole('button').count(), 0, 'no tag interaction');
+  // The six-dot menu opens over the tags hung below the tab, the card lifted under the pointer (0.13.2: it opened beneath them).
+  await row.locator('.menu-button').click();
+  await row.locator('.row-menu-list').waitFor();
+  await row.locator('.card-tab').hover();
+  await a.page.waitForTimeout(400);
+  // Tags let the pointer through, so for the hit test they briefly take it.
+  assert.deepEqual(await row.locator('.row-menu-list [role="menuitem"]').evaluateAll(items => {
+    const hittable = document.head.appendChild(Object.assign(document.createElement('style'), { textContent: '.facet-tags, .facet-tag { pointer-events: auto !important; }' }));
+    const onTop = items.map(item => {
+      const box = item.getBoundingClientRect();
+      return [12, 40, 70].every(x => Boolean(document.elementFromPoint(box.left + x, box.top + box.height / 2)?.closest('.row-menu-list')));
+    });
+    hittable.remove();
+    return onTop;
+  }), [true, true], 'every menu entry is on top');
+  await a.page.keyboard.press('Escape');
+  await row.locator('.row-menu-list').waitFor({ state: 'detached' });
   await tick(await facetWindow(a.page, 'German'), 'Antonyms').click();
   await a.page.keyboard.press('Escape');
   await row.locator('.facet-tag[data-facet="antonyms"][data-leaving]').waitFor();

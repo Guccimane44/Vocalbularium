@@ -1,4 +1,4 @@
-import type { DeckConfiguration, InputType, OperationId } from '@vocabularium/contracts';
+import type { DeckConfiguration, OperationId } from '@vocabularium/contracts';
 
 // A parent card's editable parts (D09, amended): the core's markdown and one
 // markdown text per facet the card has, empty ones included.
@@ -47,9 +47,6 @@ export type EditorPendingDeckSave = Readonly<{
 export type DeckEditorDraft = {
   route: string;
   deck: DeckConfiguration;
-  sampleType?: InputType;
-  // The preview dialog is open.
-  previewing?: boolean;
   saving?: boolean;
   pending?: EditorPendingDeckSave;
   error?: string;

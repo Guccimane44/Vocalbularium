@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useRef, useState } from 'react';
+import { useEffect, useReducer, useState } from 'react';
 import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent } from 'react';
 import type { DeckEditorDraft } from '../types/editor-drafts.js';
 import type { DeckColour, DeckConfiguration } from '@vocabularium/contracts';
@@ -6,17 +6,15 @@ import { isParentType, withFacet } from '@vocabularium/domain/parents';
 import type { FacetType, ParentType } from '@vocabularium/domain/parents';
 import { addBlocked, CATALOG, DECK_COLOURS, isModuleType } from '@vocabularium/domain/page-modules';
 import type { ModuleFamily } from '@vocabularium/domain/page-modules';
-import { sampleKeyOf, sampleOf } from '@vocabularium/domain/about';
 import { deckColour } from './deck-colour.ts';
 import { FacetTags } from './facet-tags.tsx';
 import { openAbout } from './about-sheet.tsx';
 import { FacetWindow } from './facet-window.tsx';
 import { FamilyIcon } from './families.tsx';
-import { mainKeyTier } from './main-key.ts';
-import { ActionIcon, Content, LandingCard } from './page-view.tsx';
+import { ActionIcon, LandingCard } from './page-view.tsx';
 import { moduleLabel, numbered, ShapingArea } from './shaping.tsx';
 import type { RowParts } from './shaping.tsx';
-import { currentLanguage, t } from './i18n.ts';
+import { t } from './i18n.ts';
 import type { MessageKey } from './i18n.ts';
 
 // A parent added to the deck starts with its core only (D08).
@@ -40,54 +38,6 @@ const COLOUR_NAMES: Readonly<Record<DeckColour, MessageKey>> = {
 const deckModuleMenu = () => [t('card.menu.duplicate'), t('deck.menu.copyToDeck')];
 
 const familyOf = (type: string): ModuleFamily => (isModuleType(type) && CATALOG[type].family) || 'notes';
-
-// A sample new page built from the configured modules, in a dialog opened from
-// the Preview button above the list (0.6.3): the deck settings keep the
-// same list-and-window layout as a page.
-function PreviewDialog({ modules, sampleType, choose, close }: {
-  modules: DeckConfiguration['modules']; sampleType: 'word_phrase' | 'sentence';
-  choose: (value: 'word_phrase' | 'sentence') => void; close: () => void;
-}) {
-  const ref = useRef<HTMLDialogElement>(null);
-  useEffect(() => {
-    const dialog = ref.current;
-    if (dialog && !dialog.open) dialog.showModal();
-    return () => dialog?.close();
-  }, []);
-  // Closing the dialog first returns focus to the Preview button that opened it.
-  const done = () => { ref.current?.close(); close(); };
-  const [key, ...rest] = modules;
-  // The samples in the interface language (D20, C30): "language" and its sentence.
-  const language = currentLanguage();
-  const mainKey = sampleKeyOf('main-key', sampleType, language) ?? '';
-  return <dialog ref={ref} className="preview-dialog" aria-labelledby="preview-title"
-    onCancel={event => { event.preventDefault(); done(); }}
-    onClick={event => { if (event.target === event.currentTarget) done(); }}>
-    <div className="preview-head">
-      <h2 id="preview-title">{t('deck.preview')}</h2>
-      <label className="visually-hidden" htmlFor="sample-input">{t('deck.preview.sampleInput')}</label>
-      <select id="sample-input" value={sampleType} onChange={event => choose(event.target.value as 'word_phrase' | 'sentence')}>
-        <option value="word_phrase">{t('deck.preview.word', { sample: sampleKeyOf('main-key', 'word_phrase', language) ?? '' })}</option>
-        <option value="sentence">{t('deck.preview.sentence', { sample: sampleKeyOf('main-key', 'sentence', language) ?? '' })}</option>
-      </select>
-      <button type="button" className="preview-close" aria-label={t('deck.preview.close')} onClick={done}>×</button>
-    </div>
-    <p className="muted preview-note">{t('deck.preview.note')}</p>
-    <div className="sample-page">
-      <p className="main-key preview" dir="auto" data-type={key.type} data-tier={mainKeyTier(mainKey)}>{mainKey}</p>
-      {rest.map(module => {
-        // A module's sample from the catalog (D11), with the facets it has here.
-        const rendered = sampleOf(module.type, sampleType, module.facets ?? [], language);
-        const family = familyOf(module.type);
-        // Like a page, an empty component (Text) is only its tab.
-        return <article className={`component preview fam-${family}`} data-empty={!rendered || undefined} key={module.id} data-type={module.type}>
-          <div className="card-tab"><FamilyIcon family={family} /><h3>{moduleLabel(module.type)}</h3></div>
-          {rendered && <Content type={module.type} rendered={rendered} mainKey={mainKey} />}
-        </article>;
-      })}
-    </div>
-  </dialog>;
-}
 
 // In deck settings a module has no component yet, so it is drawn as an empty
 // component is on a page (0.7.1): only its tab, which drags it and, clicked,
@@ -162,7 +112,6 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
   const refresh = () => redraw();
   const modules = draft.deck.modules;
   const busy = Boolean(draft.saving || draft.pending);
-  const sampleType = draft.sampleType ?? 'word_phrase';
   // The main key stays first and cannot move or be removed; everything after it can.
   const [key, ...rest] = modules;
   const items = numbered(rest.map(module => ({ id: module.id, label: moduleLabel(module.type), type: module.type, facets: module.facets })));
@@ -249,10 +198,7 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
       label={t('deck.modules')} where="list" onAdd={add} onMove={(id, index) => { move(id, index); return true; }}
       pinned={<>
         <div className="list-intro">
-          <div className="list-intro-head">
-            <h2>{t('deck.modules')}</h2>
-            <button type="button" className="preview-open" aria-haspopup="dialog" onClick={() => { draft.previewing = true; refresh(); }}>{t('deck.preview')}</button>
-          </div>
+          <h2>{t('deck.modules')}</h2>
           <p className="muted">{t('deck.modules.hint')}</p>
         </div>
         {/* The main key never moves and cannot be removed: a tab with its name only. */}
@@ -268,8 +214,5 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
         onRemove={() => { modules.splice(modules.findIndex(module => module.id === item.id), 1); refresh(); }}
         onAddFacet={facet => isParentType(item.type) && addFacet(item.id, item.type, facet)}
         onRemoveFacet={facet => removeFacet(item.id, facet)} />} />
-    {draft.previewing && <PreviewDialog modules={modules} sampleType={sampleType}
-      choose={value => { draft.sampleType = value; refresh(); }}
-      close={() => { draft.previewing = false; refresh(); }} />}
   </div>;
 }
