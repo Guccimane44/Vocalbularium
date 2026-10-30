@@ -24,13 +24,17 @@ const Filled = Type.String({ minLength: 1, maxLength: 2000 });
 const Markdown = Type.String({ maxLength: 8000 });
 // Since D17 a Languages card's top line carries its own reading: word or
 // sentence, the key's language and, for a German word, its grammatical role;
-// an Expertise card's carries the key and its case, which is not shown.
+// an Expertise card's carries the key and its case, which is not shown; a
+// Pronunciation card's, the key and its language (D24).
 export const ParentHeaderSchema = Type.Union([
   // The language is blank on a card written by hand until a Retry fills it (D10, amended a fourth time).
   Type.Object({ kind: Type.Literal('word'), language: Type.String(), key: Filled, romanization: Type.Optional(Filled), gramRole: Type.Optional(Filled) }, { additionalProperties: false }),
   Type.Object({ kind: Type.Literal('sentence'), language: Type.String(), key: Filled, romanization: Type.Optional(Filled) }, { additionalProperties: false }),
   Type.Object({ kind: Type.Literal('expertise'), key: Filled, relevance: Type.Union([Type.Literal('subject'), Type.Literal('neighbouring'), Type.Literal('unrelated')]),
-    hasFormula: Type.Optional(Type.Union([Type.Literal('yes'), Type.Literal('no')])), hasCode: Type.Optional(Type.Union([Type.Literal('yes'), Type.Literal('no')])) }, { additionalProperties: false })
+    hasFormula: Type.Optional(Type.Union([Type.Literal('yes'), Type.Literal('no')])), hasCode: Type.Optional(Type.Union([Type.Literal('yes'), Type.Literal('no')])) }, { additionalProperties: false }),
+  // A Pronunciation card's (D24): the key's language as an ISO 639-1 code, or
+  // `other`, blank until generated, and the key.
+  Type.Object({ kind: Type.Literal('pronunciation'), language: Type.String({ maxLength: 8 }), key: Filled }, { additionalProperties: false })
 ]);
 export const ParentBlockSchema = Type.Object({
   type: Type.Literal('parent'),

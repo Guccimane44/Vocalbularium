@@ -1,0 +1,17 @@
+{
+  "summary": "Módulos sobre cómo suena tu clave: la pronuncian en voz alta, para que la oigas además de leerla.",
+  "steps": [
+    {
+      "title": "Reconoce el idioma de tu clave",
+      "text": "Por su ortografía, sus palabras y su escritura, y por el Contexto cuando una ortografía encaja en más de un idioma."
+    },
+    {
+      "title": "La pronuncia tal como se guardó",
+      "text": "Tu clave exactamente como la tiene la página, en ese idioma, con una voz natural."
+    },
+    {
+      "title": "Nueva cada vez",
+      "text": "Cada tarjeta y cada reintento se pronuncia de nuevo; un idioma que la voz no sabe hablar se indica, no se adivina."
+    }
+  ]
+}

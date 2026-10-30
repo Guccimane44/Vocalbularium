@@ -23,7 +23,7 @@ export default defineCore({
   read: ({ header, text: stored }) => {
     const lines = plainLines(stored);
     const meanings = lines.length ? lines : ['—'];
-    if (header.kind === 'expertise') return { kind: 'word', language: '', key: header.key, meanings };
+    if (header.kind !== 'word' && header.kind !== 'sentence') return { kind: 'word', language: '', key: header.key, meanings };
     const { gramRole: _, ...rest } = header as typeof header & { gramRole?: string };
     return { ...rest, meanings };
   }

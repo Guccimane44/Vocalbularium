@@ -47,6 +47,10 @@
     "./about": {
       "types": "./dist/about.d.ts",
       "import": "./dist/about.js"
+    },
+    "./spoken": {
+      "types": "./dist/spoken.d.ts",
+      "import": "./dist/spoken.js"
     }
   },
   "dependencies": {

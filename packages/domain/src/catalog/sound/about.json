@@ -1,0 +1,17 @@
+{
+  "summary": "Modules about how your key sounds: they speak it aloud, so you hear it as well as read it.",
+  "steps": [
+    {
+      "title": "Reads your key's language",
+      "text": "From its spelling, words and script, and from the Context when a spelling fits more than one language."
+    },
+    {
+      "title": "Speaks it as saved",
+      "text": "Your key exactly as the page holds it, in that language, by a natural voice."
+    },
+    {
+      "title": "Fresh every time",
+      "text": "Each card and each Retry is spoken anew; a language the voice cannot speak is said so, not guessed."
+    }
+  ]
+}

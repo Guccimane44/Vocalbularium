@@ -380,5 +380,9 @@
   "catalog.mathematics.core.word_phrase": "الشرح",
   "catalog.mathematics.core.sentence": "الشرح",
   "catalog.mathematics.formula.label": "الصيغة",
-  "catalog.computer-science.code.label": "Python"
+  "catalog.computer-science.code.label": "Python",
+  "catalog.pronunciation.label": "النطق",
+  "catalog.pronunciation.description": "ينطق المفتاح الرئيسي بلغته.",
+  "catalog.pronunciation.core.word_phrase": "النطق",
+  "catalog.pronunciation.core.sentence": "النطق"
 }

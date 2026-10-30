@@ -1,0 +1,121 @@
+{
+  "note": "Golden set for Pronunciation (D24, C8): only the language flag is generated, checked automatically; the owner listens to the audio before release.",
+  "modules": [
+    "pronunciation"
+  ],
+  "inputs": [
+    {
+      "key": "Gift",
+      "context": "Das Gift der Schlange wirkt schnell.",
+      "why": "Spelling fits German and English: the German Context decides",
+      "expect": {
+        "language": "de"
+      }
+    },
+    {
+      "key": "gift",
+      "context": "She gave me a gift for my birthday.",
+      "why": "Spelling fits German and English: the English Context decides",
+      "expect": {
+        "language": "en"
+      }
+    },
+    {
+      "key": "Chef",
+      "why": "Spelling fits German, French and English; without Context, any of them is acceptable but must be one"
+    },
+    {
+      "key": "Chef",
+      "context": "Mein Chef hat mir heute freigegeben.",
+      "why": "German Context decides",
+      "expect": {
+        "language": "de"
+      }
+    },
+    {
+      "key": "bank",
+      "why": "English word, the German module's sample",
+      "expect": {
+        "language": "en"
+      }
+    },
+    {
+      "key": "Ufer",
+      "why": "German noun",
+      "expect": {
+        "language": "de"
+      }
+    },
+    {
+      "key": "河岸",
+      "why": "Chinese characters",
+      "expect": {
+        "language": "zh"
+      }
+    },
+    {
+      "key": "幸福",
+      "why": "Chinese characters shared with Japanese kanji; read as Chinese without Context",
+      "expect": {
+        "language": "zh"
+      }
+    },
+    {
+      "key": "ありがとう",
+      "why": "Japanese kana",
+      "expect": {
+        "language": "ja"
+      }
+    },
+    {
+      "key": "Wie geht es dir?",
+      "why": "German sentence",
+      "expect": {
+        "language": "de"
+      }
+    },
+    {
+      "key": "La vie est belle.",
+      "why": "French sentence",
+      "expect": {
+        "language": "fr"
+      }
+    },
+    {
+      "key": "I love Schadenfreude.",
+      "why": "Mixed: most words English",
+      "expect": {
+        "language": "en"
+      }
+    },
+    {
+      "key": "Schadenfreude",
+      "context": "Er konnte seine Schadenfreude kaum verbergen.",
+      "why": "Borrowed word in a German text",
+      "expect": {
+        "language": "de"
+      }
+    },
+    {
+      "key": "carpe diem",
+      "why": "Latin, which the speech model does not speak",
+      "expect": {
+        "language": "other"
+      }
+    },
+    {
+      "key": "Привет, как дела?",
+      "why": "Russian sentence",
+      "expect": {
+        "language": "ru"
+      }
+    },
+    {
+      "key": "مرحبا",
+      "why": "Arabic script",
+      "expect": {
+        "language": "ar"
+      }
+    }
+  ]
+}

@@ -380,5 +380,9 @@
   "catalog.mathematics.core.word_phrase": "Explication",
   "catalog.mathematics.core.sentence": "Explication",
   "catalog.mathematics.formula.label": "Formule",
-  "catalog.computer-science.code.label": "Python"
+  "catalog.computer-science.code.label": "Python",
+  "catalog.pronunciation.label": "Prononciation",
+  "catalog.pronunciation.description": "Prononce la clé principale dans sa propre langue.",
+  "catalog.pronunciation.core.word_phrase": "Prononciation",
+  "catalog.pronunciation.core.sentence": "Prononciation"
 }

@@ -1,0 +1,16 @@
+{
+  "word_phrase": {
+    "core": {
+      "language": "fr",
+      "key": "langue"
+    },
+    "facets": {}
+  },
+  "sentence": {
+    "core": {
+      "language": "fr",
+      "key": "Les langues sont les ponts qui relient les gens et le monde."
+    },
+    "facets": {}
+  }
+}

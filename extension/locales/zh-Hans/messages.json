@@ -380,5 +380,9 @@
   "catalog.mathematics.core.word_phrase": "解释",
   "catalog.mathematics.core.sentence": "解释",
   "catalog.mathematics.formula.label": "公式",
-  "catalog.computer-science.code.label": "Python"
+  "catalog.computer-science.code.label": "Python",
+  "catalog.pronunciation.label": "发音",
+  "catalog.pronunciation.description": "用主词条本身的语言朗读它。",
+  "catalog.pronunciation.core.word_phrase": "发音",
+  "catalog.pronunciation.core.sentence": "发音"
 }

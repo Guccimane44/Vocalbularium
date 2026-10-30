@@ -1,0 +1,16 @@
+{
+  "word_phrase": {
+    "core": {
+      "language": "es",
+      "key": "idioma"
+    },
+    "facets": {}
+  },
+  "sentence": {
+    "core": {
+      "language": "es",
+      "key": "Los idiomas son los puentes que conectan a las personas con el mundo."
+    },
+    "facets": {}
+  }
+}

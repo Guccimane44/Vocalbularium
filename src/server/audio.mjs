@@ -1,12 +1,13 @@
 // @ts-check
+import { spokenParts as catalogSpokenParts } from '@vocabularium/domain/spoken';
 import { createSpeechProvider } from './speech-providers.mjs';
 /** @import { AccountStore } from '../core/store.mjs' */
 /** @import { ClipKey } from '../core/store-records.js' */
 // What audio needs of a speech provider (D24); see SpeechProvider in speech.mjs.
 /** @typedef {{ synthesize(request: { text: string, language: string }, signal: AbortSignal, sessionId?: string): Promise<{ bytes: Buffer, mime: string, durationMs: number, model: string | null, voice: string | null }>, model?: string | null, apiKey?: string, diagnostic?: (event: Record<string, unknown>) => void }} AudioProvider */
-// A spoken part of a component: the text to speak, line by line, and its language.
-/** @typedef {{ part: string, language: string, lines: readonly string[] }} SpokenPart */
-/** @typedef {(moduleType: string, content: unknown) => readonly SpokenPart[]} SpokenParts */
+/** @import { SpokenPart } from '@vocabularium/domain/spoken' */
+// Which parts of a published component are spoken, line by line, and in which language.
+/** @typedef {(moduleType: string, content: any, mainKey: string) => readonly SpokenPart[]} SpokenParts */
 
 const keyOf = (/** @type {ClipKey} */ key) => `${key.pageId}/${key.componentId}/${key.part}/${key.line}`;
 // A line longer than this, such as a main key over 500 characters, is not
@@ -18,14 +19,13 @@ export const MAX_SPOKEN_LENGTH = 500;
 // (C31). A clip succeeds or fails on its own; nothing is cached.
 export class Audio {
   /** @param {AccountStore} store @param {AudioProvider} [provider] @param {{ maxActive?: number, maxQueued?: number, spokenParts?: SpokenParts, emit?: (event: Record<string, unknown>) => void }} [options] */
-  constructor(store, provider = createSpeechProvider(), { maxActive = 4, maxQueued = 32, spokenParts = () => [], emit = () => {} } = {}) {
+  constructor(store, provider = createSpeechProvider(), { maxActive = 4, maxQueued = 32, spokenParts = catalogSpokenParts, emit = () => {} } = {}) {
     if (!Number.isSafeInteger(maxActive) || maxActive < 1 || !Number.isSafeInteger(maxQueued) || maxQueued < 0) {
       throw new Error('Audio limits must be non-negative safe integers with at least one active slot.');
     }
     this.store = store; this.provider = provider;
     this.maxActive = maxActive; this.maxQueued = maxQueued;
-    // Which parts of a module's content are spoken; the catalog supplies it from
-    // increment 2, and until then nothing is.
+    // Which parts of a module's content are spoken: the catalog's spoken core and facets.
     this.spokenParts = spokenParts;
     this.emit = emit; this.closed = false;
     this.tasks = /** @type {Map<string, { task: Promise<void>, controller: AbortController }>} */ (new Map());
@@ -64,15 +64,15 @@ export class Audio {
   // A published attempt's audio (D24). A completed component speaks each of its
   // spoken parts anew, or only the facet a facet's own Retry wrote; a failed one,
   // or a part with nothing to speak, keeps no clips.
-  /** @param {{ pageId: string, componentId: string, moduleType: string, content: unknown, state: string, retry?: string }} published */
-  async afterPublish({ pageId, componentId, moduleType, content, state, retry }) {
+  /** @param {{ pageId: string, componentId: string, moduleType: string, content: unknown, mainKey: string, state: string, retry?: string }} published */
+  async afterPublish({ pageId, componentId, moduleType, content, mainKey, state, retry }) {
     if (this.closed) return;
     if (state !== 'completed') {
       if (!retry) await this.store.dropClips(pageId, componentId);
       await this.cancelObsolete();
       return;
     }
-    const parts = this.spokenParts(moduleType, content).filter(part => !retry || part.part === retry);
+    const parts = this.spokenParts(moduleType, content, mainKey).filter(part => !retry || part.part === retry);
     const spoken = parts.filter(part => part.lines.length && part.lines.every(line => line.length <= MAX_SPOKEN_LENGTH));
     await this.store.dropClips(pageId, componentId, retry ? [retry] : undefined);
     try {

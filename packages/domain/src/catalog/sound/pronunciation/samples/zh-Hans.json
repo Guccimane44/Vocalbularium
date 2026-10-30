@@ -1,0 +1,16 @@
+{
+  "word_phrase": {
+    "core": {
+      "language": "zh",
+      "key": "语言"
+    },
+    "facets": {}
+  },
+  "sentence": {
+    "core": {
+      "language": "zh",
+      "key": "语言是连接人与世界的桥梁。"
+    },
+    "facets": {}
+  }
+}

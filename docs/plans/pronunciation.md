@@ -44,11 +44,12 @@ One flag, `language`: the language the main key is written in, as an ISO 639-1 c
 ```js
 // sound/pronunciation/facets/core/facet.ts
 const shape = object({
-  language: oneOf([...SPOKEN_LANGUAGES, 'other'], "The key's language")
+  language: oneOf([...SPOKEN_LANGUAGES, 'other'], "The key's language"),
+  key: text('The key')
 }, { own: true });
 ```
 
-`SPOKEN_LANGUAGES` is listed in the catalog with the pinned model (K69). No other field: the key is spoken as the page saved it, never as the model rewrote it.
+`SPOKEN_LANGUAGES` is listed in the catalog with the pinned model (K69): the ISO 639-1 codes of Eleven v4 Turbo's languages. The key is echoed for the top line, as every core's is; what is spoken is the page's saved main key, never the key as the model wrote it.
 
 ### Prompts
 
@@ -57,13 +58,13 @@ The text request is still one per module (D17). The composer adds its shared rul
 `module.prompt.md`:
 
 ```text
-Identify the language of the selection. Write nothing about the selection itself.
+Identify the language of the selection, and write no explanation, translation or other text about it.
 ```
 
 `core.prompt.md`:
 
 ```text
-In "core", write { "language": "<the ISO 639-1 code of the one language the selection is written in, such as de, en, fr or zh>" }. Decide from the selection's spelling, words and script; when its spelling fits more than one language, such as Gift or Chef, decide from the Context. When the selection mixes languages, choose the language of most of its words; a borrowed word keeps the language of the text around it only when the Context shows it. Write "other" when the language is not one of the listed codes.
+In "core", write { "language": "<the ISO 639-1 code of the one language the selection is written in, such as de, en, fr or zh>", "key": "<the selection>" }, with "language" first. Decide from the selection's spelling, words and script; when its spelling fits more than one language, such as Gift or Chef, decide from the Context. When the selection mixes languages, choose the language of most of its words; a borrowed word keeps the language of the text around it only when the Context shows it. Write "other" when the language is not one of the listed codes.
 ```
 
 `reading.prompt.md`, for a card's Retry that keeps its reading (D19):

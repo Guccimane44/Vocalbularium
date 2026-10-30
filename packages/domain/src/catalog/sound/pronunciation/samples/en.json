@@ -1,0 +1,16 @@
+{
+  "word_phrase": {
+    "core": {
+      "language": "en",
+      "key": "language"
+    },
+    "facets": {}
+  },
+  "sentence": {
+    "core": {
+      "language": "en",
+      "key": "Languages are the bridges connecting people and the world."
+    },
+    "facets": {}
+  }
+}

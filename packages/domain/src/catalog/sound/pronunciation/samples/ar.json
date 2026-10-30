@@ -1,0 +1,16 @@
+{
+  "word_phrase": {
+    "core": {
+      "language": "ar",
+      "key": "لغة"
+    },
+    "facets": {}
+  },
+  "sentence": {
+    "core": {
+      "language": "ar",
+      "key": "اللغات هي الجسور التي تربط الناس بالعالم."
+    },
+    "facets": {}
+  }
+}

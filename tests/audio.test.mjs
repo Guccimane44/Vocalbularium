@@ -296,3 +296,51 @@ test('0018 adds empty audio storage and keeps every deck, page and component (D2
   const store = await AccountStore.open(database); database.resources.push(store);
   assert.deepEqual(await store.pendingClips(), []);
 });
+
+// Increment 2: the catalog's Pronunciation module (D24).
+test('a Pronunciation card speaks the saved main key in its language, and nothing for other', async () => {
+  const { spokenParts } = await import('@vocabularium/domain/spoken');
+  const { formatContent, parentDocument } = await import('@vocabularium/domain/content');
+  const card = language => parentDocument(formatContent('pronunciation', { core: { language, key: 'GIFT' }, facets: {} }));
+  assert.deepEqual(spokenParts('pronunciation', card('de'), '  Gift\n'), [{ part: 'core', language: 'de', lines: ['Gift'] }],
+    'the page\'s main key, never the key as the model wrote it');
+  assert.deepEqual(spokenParts('pronunciation', card('other'), 'carpe diem'), []);
+  assert.deepEqual(spokenParts('german', parentDocument(formatContent('german', { core: { kind: 'word', language: 'Englisch', key: 'bank', meanings: ['Ufer'] }, facets: {} })), 'bank'), [],
+    'no German part is spoken until increment 3');
+  const { headingOf } = await import('@vocabularium/domain/render');
+  const { parentContentOf } = await import('@vocabularium/domain/content');
+  assert.equal(headingOf('pronunciation', parentContentOf(card('de')), 'en').language, 'German');
+  assert.equal(headingOf('pronunciation', parentContentOf(card('de')), 'de').language, 'Deutsch');
+  assert.equal(headingOf('pronunciation', parentContentOf(card('de')), 'zh-Hans').language, '德语');
+  assert.equal(headingOf('pronunciation', parentContentOf(card('other')), 'en').language, '', 'other names no language');
+});
+
+test('publishing a Pronunciation card through the API speaks the main key', async t => {
+  const { formatContent } = await import('@vocabularium/domain/content');
+  const provider = new FakeSpeechProvider();
+  const application = await createTestApplication(t, { speechProvider: provider });
+  const url = await application.start({ port: 0 });
+  t.after(() => application.close());
+  const { store } = application;
+  await store.openSession('open-audio', session);
+  await useModules(store, ['pronunciation']);
+  const { page } = await capture(store, 'capture-pronunciation', session, ' Gift ', 'Das Gift der Schlange wirkt schnell.');
+  const card = component(page, 'pronunciation');
+  await store.stage(card.attemptId, { ok: true, content: formatContent('pronunciation', { core: { language: 'de', key: 'Gift' }, facets: {} }) });
+  const token = (await (await fetch(url + '/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: 'admin', password: 'admin' }) })).json()).token;
+  const response = await fetch(url + '/api/publish', { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ operationId: 'publish-pronunciation', payload: { attemptId: card.attemptId, session } }) });
+  assert.equal(response.status, 200);
+  assert.deepEqual((await settled(store, page.id)).map(clip => [clip.part, clip.line, clip.state]), [['core', 0, 'ready']]);
+  assert.deepEqual(provider.calls, [{ text: 'Gift', language: 'de', voice: 'fake-voice' }]);
+  const stored = (await store.page(page.id)).components.find(item => item.id === card.id);
+  assert.equal(stored.status, 'completed');
+  assert.deepEqual(stored.content.blocks[0].header, { kind: 'pronunciation', language: 'de', key: 'Gift' });
+  assert.equal(stored.content.blocks[0].core, '', 'the card has no text of its own');
+});
+
+test('a second Pronunciation cannot join a page that has one', async () => {
+  const { addBlockedReason } = await import('@vocabularium/domain/page-modules');
+  assert.equal(addBlockedReason([{ type: 'main-key' }, { type: 'pronunciation' }], 'pronunciation'), 'single');
+  assert.equal(addBlockedReason([{ type: 'main-key' }], 'pronunciation'), null);
+});

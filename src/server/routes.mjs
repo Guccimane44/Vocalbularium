@@ -1,6 +1,7 @@
 // @ts-check
 import { StoreError } from '../core/store.mjs';
 import { isModuleType } from '@vocabularium/domain/page-modules';
+import { mainKeyOf } from '@vocabularium/domain/pages';
 import {
   ApiFailureSchema, CapturePreparationRequestSchema, ComponentDeleteRequestSchema, ComponentMoveRequestSchema,
   DeckConfigurationSaveRequestSchema, DeckDeleteRequestSchema, FacetAddRequestSchema, FacetDeleteRequestSchema, ModuleAddRequestSchema,
@@ -277,9 +278,10 @@ export function registerRoutes(fastify, { store, authentication, generation, aud
     // The published text's audio (D24) never fails the publish it follows.
     if (!result.replayed && attempt) {
       try {
-        const component = (await store.page(result.pageId)).components.find(component => component.id === result.componentId);
+        const page = await store.page(result.pageId);
+        const component = page.components.find(component => component.id === result.componentId);
         if (component) await audio.afterPublish({ pageId: result.pageId, componentId: result.componentId, moduleType: attempt.module.type,
-          content: component.content, state: result.state, retry: attempt.module.retry });
+          content: component.content, mainKey: mainKeyOf(page.components), state: result.state, retry: attempt.module.retry });
       } catch (/** @type {any} */ error) {
         audio.record('failed', undefined, { errorType: error?.name, errorCode: error?.code });
       }

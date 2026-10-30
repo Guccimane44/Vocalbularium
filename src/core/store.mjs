@@ -28,7 +28,9 @@ const sameKey = (/** @type {string} */ a, /** @type {string} */ b) => a.trim().n
 /** @param {string} moduleType @param {Component['content']} content @param {string} mainKey @returns {{ previous?: Record<string, unknown> }} */
 function previousOf(moduleType, content, mainKey) {
   const data = isParentType(moduleType) ? parentContentOf(content) : null;
-  if (!data || !hasText(data.core) || !sameKey(data.header.key, mainKey)) return {};
+  // A Pronunciation card has no text of its own: its reading is its language (D24).
+  const read = data && (hasText(data.core) || (data.header.kind === 'pronunciation' && Boolean(data.header.language)));
+  if (!data || !read || !sameKey(data.header.key, mainKey)) return {};
   const core = Object.entries(providerCore(/** @type {ParentType} */ (moduleType), data))
     .filter(([, value]) => Array.isArray(value) ? value.some(hasText) : typeof value !== 'string' || hasText(value));
   return core.length ? { previous: Object.fromEntries(core) } : {};

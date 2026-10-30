@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
-import { CATALOG_FAMILIES, folderOf, MODULE_IDS, MODULES } from '@vocabularium/domain/catalog';
+import { CATALOG_FAMILIES, contentModule, folderOf, MODULE_IDS, MODULES } from '@vocabularium/domain/catalog';
 import { composeModule } from '@vocabularium/domain/composer';
 import { formatContent } from '@vocabularium/domain/content';
 import { validateGenerated } from '@vocabularium/domain/generated';
@@ -62,7 +62,8 @@ test('each facet has one prompt, the core its own, a Retry prompt and a reading 
     const module = MODULES[id];
     const folder = new URL(`${folderOf(id)}/`, SRC);
     assert.deepEqual(promptFiles(folder), ['module.prompt.md'], id);
-    assert.deepEqual(promptFiles(new URL('facets/core/', folder)), ['core.prompt.md', 'reading.prompt.md', 'retry.prompt.md'], `${id}.core`);
+    // A module without facets has no facet to Retry, so no Retry prompt (D24).
+    assert.deepEqual(promptFiles(new URL('facets/core/', folder)), ['core.prompt.md', 'reading.prompt.md', ...(module.facets.length ? ['retry.prompt.md'] : [])], `${id}.core`);
     for (const facet of module.facets) {
       assert.deepEqual(promptFiles(new URL(`facets/${facet.id}/`, folder)), [], `${id}.${facet.id} has no prompt per input type`);
       assert.ok(existsSync(new URL(`facets/${facet.id}/prompt.md`, folder)), `${id}.${facet.id} has its prompt`);
@@ -79,7 +80,7 @@ test('the composer builds one request for every module with all its facets, and 
     assert.ok(request.instructions && request.schema.properties.core && request.maxTokens > 0, id);
     assert.ok(!('inputType' in request.input), `${id} sends no input type`);
     // The core's flags come first (D17).
-    assert.ok(['kind', 'relevance'].includes(Object.keys(request.schema.properties.core.properties)[0]), `${id} core starts with its flag`);
+    assert.ok(['kind', 'relevance', 'language'].includes(Object.keys(request.schema.properties.core.properties)[0]), `${id} core starts with its flag`);
     for (const facet of facets) {
       const retry = composeModule({ module: { id: 'i', type: id }, selectedText: 'x', facets: [facet], core: { kind: 'word' } });
       assert.deepEqual(Object.keys(retry.schema.properties), ['facets'], `${id}.${facet} retry`);
@@ -98,7 +99,9 @@ const checkCard = (id, given, inputType, name) => {
   // A Languages core says which it read (D17); an Expertise core has no kind.
   if ('kind' in checked.core) assert.equal(checked.core.kind, inputType === 'sentence' ? 'sentence' : 'word', name);
   const stored = formatContent(id, checked);
-  assert.ok(stored.core, name);
+  // A spoken core has no text of its own: its top line and its audio (D24).
+  if (contentModule(id).core.spoken) assert.equal(stored.core, '', name);
+  else assert.ok(stored.core, name);
   for (const facet of Object.keys(checked.facets)) assert.ok(stored.facets[facet], `${name} ${facet}`);
 };
 
