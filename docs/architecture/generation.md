@@ -87,6 +87,14 @@ It declares whether it supports a native JSON schema (`nativeSchema`); otherwise
 
 OpenCode is the only adapter (`src/server/opencode.mjs`). `GENERATION_PROVIDER` chooses the provider (`opencode` by default, `src/server/providers.mjs`) and `OPENCODE_MODEL` its model, one pinned model at a time ([Q46](questionnaire/answers/answers-09-generation-and-llm.md#q46)). Changing either needs its own golden-set review ([C8](traceability-map.md#conflicts)).
 
+### Speech provider
+
+From 0.14.0 ([D24](traceability-map.md#entries)) a second **provider kind** speaks the audio of spoken parts ([modules](../specs/modules.md#audio)). `ProviderKind` in the catalog gains `speech` beside `text`. A `SpeechProvider` (`src/server/speech.mjs`) takes `synthesize({ text, language }, signal, sessionId)` and returns one clip: its bytes, MIME type and duration. It shares the text provider's timeout, cancellation, diagnostics events and error codes. Diagnostics record the text's length, the language and the voice, never the audio.
+
+ElevenLabs is the only speech adapter (`src/server/elevenlabs.mjs`): `POST https://api.elevenlabs.io/v1/text-to-speech/{voice_id}` with `xi-api-key`, the body `{ text, model_id, language_code }`, and `output_format=mp3_44100_128`. `SPEECH_PROVIDER` chooses it (`elevenlabs`), `ELEVENLABS_API_KEY` holds the key, which joins the diagnostic secrets, `ELEVENLABS_MODEL` the pinned model (`eleven_v4_turbo`, Eleven v4 Turbo, which accepts `language_code` in ISO 639-1), and `ELEVENLABS_VOICES` a JSON map from language code to voice ID with a default. There is one pinned model per provider kind ([C32](traceability-map.md#conflicts)); changing the speech model or a voice needs the owner's listening review. The flag values of Pronunciation's `language` are the pinned model's languages, listed in the catalog with it.
+
+An audio job runs per clip after the text it speaks is saved, with its own capacity of 4 active and 32 waiting per server ([capture and generation](../specs/capture-and-generation.md#audio)). Nothing is cached. Clips are stored in `component_audio` (migration `0018`), one row per component, facet and line, holding the MIME type, duration and bytes (`bytea`), deleted with their component. The API serves a clip to the signed-in owner and retries one on request.
+
 ## Generation record
 
 Each generated facet, the core included, records with its component the **model** and the **prompt version** that produced it. The prompt version is a fingerprint (a hash) of the composed request's instructions and schema, so it changes whenever a prompt file, the rules, a writing guide or a shape changes; a guide changes it for its language only. A whole attempt writes the record for the core and every facet it generated; a facet's own Retry rewrites only that facet's record. A migration adds the record empty, so components generated before 0.8.0 have none. The record is evidence for comparing prompts and models and for finding components made with an earlier prompt; the interface does not show it.
@@ -98,6 +106,8 @@ It is stored as JSON in the component's `generation` column (migration `0015`), 
   "examples": { "model": "deepseek-v4.1-flash", "prompt": "b81e44c09d3a7f12" } }
 ```
 
+From 0.14.0 a spoken part's entry adds `speech`, the speech model and voice that spoke it, such as `"pronunciation": { "model": "deepseek-v4.1-flash", "prompt": "…", "speech": { "model": "eleven_v4_turbo", "voice": "<voice id>" } }` ([D24](traceability-map.md#entries)); a clip's own Retry rewrites only `speech`.
+
 The prompt version is the first 16 hex digits of a SHA-256 over the instructions and the schema (`promptVersion` in the composer); provider diagnostics events carry the same value. A whole attempt records only the parts that came back with content, and a whole attempt that fails, or a facet that comes back empty, leaves no entry for it. Manual saves change only the content, never the record.
 
 ## Guards
@@ -105,7 +115,8 @@ The prompt version is the first 16 hex digits of a SHA-256 over the instructions
 A **catalog conformance test** covers every module, every facet and every input type:
 
 - each content module's first facet is its core, and each module ID, facet ID and abbreviation is unique where it must be;
-- each facet has one prompt file and the core its `core.prompt.md` and `retry.prompt.md` (D17), and the composer builds one request for every module and a Retry request for every facet;
+- each facet has one prompt file and the core its `core.prompt.md` and `retry.prompt.md` (D17), and the composer builds one request for every module and a Retry request for every facet; a module without facets, such as Pronunciation, needs no `retry.prompt.md` (D24);
+- each spoken part names its language: Pronunciation's core from its `language` flag, a facet from its parent (`de`, `zh`), and every flag value is a language the pinned speech model speaks or `other`;
 - each module's samples validate against its facets' shapes and format into markdown;
 - input modules are never generated;
 - every family with modules, every module in the module window and every facet but the core has its page's text in every interface language, and every content module its samples in every interface language, each validating against its facets' shapes (since 0.13.0; an explanation since 0.8.1);
@@ -118,5 +129,5 @@ Each content module has its own **golden set** under `tests/golden/`, run agains
 - **A module** is one folder under its family, with its definition, its page's text, its samples, its facets and a golden set.
 - **A facet** is one folder in its module, with its page's text, and an entry in the module's facet order.
 - **A family** is one folder with its definition, and its colour tokens in the design tokens, meeting the contrast tests in both themes.
-- **A provider** is one adapter.
+- **A provider** is one adapter of its kind, text or speech (D24).
 - **An interface language** brings, besides its strings and the pages' text, the samples in it, an Expertise writing guide, both reviewed, and the review of the Expertise golden sets in it.

@@ -1,6 +1,6 @@
 # Plan: pronunciation as the first audio (0.14.0)
 
-Proposed: 30 October 2026 (Europe/Berlin). Implements [D24](../architecture/traceability-map.md#entries), which is `proposed`; the specifications change only once the owner accepts it. Builds on 0.13.3 ([#255](https://github.com/Guccimane44/Vocalbularium/pull/255)). Tracker: [#256](https://github.com/Guccimane44/Vocalbularium/issues/256); decision record in [Notion](https://app.notion.com/p/409bb135020881e79d9aeb6198fb2f5d).
+Proposed: 30 October 2026 (Europe/Berlin). Implements [D24](../architecture/traceability-map.md#entries), accepted by the owner on 30 October 2026 and applied to the specifications ([modules](../specs/modules.md#audio), [capture and generation](../specs/capture-and-generation.md#audio), [pages and editing](../specs/pages-and-editing.md#spoken-parts), [generation architecture](../architecture/generation.md#speech-provider), [scope](../product/scope.md)). Builds on 0.13.3 ([#255](https://github.com/Guccimane44/Vocalbularium/pull/255)). Tracker: [#256](https://github.com/Guccimane44/Vocalbularium/issues/256); decision record in [Notion](https://app.notion.com/p/409bb135020881e79d9aeb6198fb2f5d).
 
 ## Outcome
 
@@ -168,4 +168,4 @@ Each increment is one PR against the 0.13.3 base, green in CI before the next st
 
 ## Open items
 
-K69–K77 were answered by the owner on 30 October 2026: Eleven v4 Turbo for K69, the proposed defaults for K70–K77. C31–C33 in the [traceability map](../architecture/traceability-map.md) were resolved by the owner the same day with their proposed resolutions. No open items remain; the specifications change once D24 is accepted.
+K69–K77 were answered by the owner on 30 October 2026: Eleven v4 Turbo for K69, the proposed defaults for K70–K77. C31–C33 in the [traceability map](../architecture/traceability-map.md) were resolved by the owner the same day with their proposed resolutions. No open items remain.

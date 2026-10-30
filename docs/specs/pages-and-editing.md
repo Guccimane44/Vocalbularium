@@ -74,6 +74,15 @@ The six dots before the family icon open the card's **menu**. Its entries, **Dup
 
 The main key, shown as the page title, has only **Edit**, always shown beside it like **Delete page**, and no lock mark (since 0.6.3; from 0.5.2 Edit appeared on hover and focus, beside a lock mark). There are no page-level edit, generate, or retry controls; **Delete page** sits in the page header.
 
+### Spoken parts
+
+From 0.14.0 ([D24](../architecture/traceability-map.md#entries)) a spoken part shows a **player** for each clip: a play button in the family colour, the clip's duration and a progress line; playing one clip stops any other on the page ([modules](modules.md#audio)).
+
+- **Pronunciation card.** Its top line names the key's language in the interface language and shows the key (*German · Gift*), with one player below it. Its actions are **Retry**, **About**, **Fold** and **Delete**; it has no **Edit** and no **Facet**.
+- **Pronunciation facet.** Each line stands beside its own player, in the facet's place on the card. The facet keeps its **About**, **Retry** and **Delete**, and has no **Edit**.
+- **While a clip generates,** its player shows a loading state of its own; the card's text is already shown. A failed clip shows what failed in place of its player, with its own **Retry** ([capture and generation](capture-and-generation.md#retrying-one-clip)). A part that is not spoken (`other`, an unspoken language, a key over 500 characters) says so in place of the player.
+- **From the keyboard,** a player's button is focusable and plays or pauses with Enter or Space; it is named for assistive technology with the line it speaks.
+
 ### Facet tags
 
 Since 0.7.1 a parent's card also wears one **tag** per facet it has, shaped like a bookmark in the parent's family colour and marked with the facet's abbreviation ([modules](modules.md#catalog)). The tags follow the order the parent type defines, whatever order the facets were added in. Where they sit follows the card:
@@ -137,7 +146,7 @@ Since 0.7.4 a parent card is edited in place: **Edit** turns the core and each f
 
 The editor has no structure of its own: no fields, item numbers or separators beyond what the text holds. It looks as the card will (D10, amended): each part in its card styling, such as a numbered list's numbers in the family colour in their own column, so what the user sees while editing is what the card shows after **Save**. Since the second amendment the Examples are plain text like every other facet, in the same font and size; only the formatting the text holds, such as an italic translation or a size or font the user set, changes how it looks.
 
-- **Shown, not editable:** the module's name in its tab, each facet's name, and the core's top line with the key's language, the key and its romanization.
+- **Shown, not editable:** the module's name in its tab, each facet's name, and the core's top line with the key's language, the key and its romanization; from 0.14.0 also a Pronunciation facet's lines, with their players ([spoken parts](#spoken-parts)).
 - **Editors:** one for the core's meanings or translation, then one per facet the card has, in the parent's order, under its name. A facet without content keeps its place with an empty editor and a dimmed name, to be filled.
 - **Save** never refuses an empty part: the core or any facet may be emptied. A facet left empty has no content: it is not shown on the card and its tag is blander. A core left empty shows only its top line.
 - **While editing,** the card's tags stay and show, as the user types, which facets have text; the facets' **Retry** and **Delete** and the tags' remove wait until **Save** or **Cancel**. Opening the editor moves the focus nowhere. Since 0.7.5 a parent with no content yet can be edited too (D10, amended a fourth time): its editor opens with a top line of the page's main key and the language blank, read as a word unless the page's latest reading is a sentence, and an empty core and facets to fill; **Save** stores what was written with that top line. A later **Retry** fills the language.
@@ -212,6 +221,9 @@ Generation uses the page's own content module instances. Finish editing with **S
 30. A German parent with Article and Examples opens its facet window with **Facet**: Article and Examples stand under **On this card**, Synonyms and Antonyms under **Add** (since 0.13.3; ticked or not before). Adding Synonyms with its **+** adds it at once, moves it to **On this card** and the window stays open; removing Examples, which has content, with its **×** asks "Are you sure?" beneath its row, and **Cancel** keeps it. Escape or the close closes the window and returns the focus to the tab (since 0.8.1; the close since 0.13.3).
 31. On a page whose key is a sentence, a German parent's facet window still lists Article; its **›** opens Article's facet page, whose Applies to reads *Nouns* and whose sample for a sentence reads "Left out" with the reason (since 0.13.0).
 32. **About German** below German in the module window opens German's module page in the sheet, its sample in the interface language. Choosing *Русский · Russian* and **Sentence** shows the Russian sentence above a card with its German translation; Article among its facets opens Article's page, and *German* in the path returns. Escape closes the sheet, returns the focus to the link and adds nothing to the page; the same page opens from a German card's **About German** and from deck settings (since 0.13.0).
+33. A Pronunciation card on a page whose key is `Gift`, with Context from a German text, reads *German · Gift* (in an English interface) and plays the key in German; its text shows before its audio, which fills in when it is ready (since 0.14.0, [D24](../architecture/traceability-map.md#entries)).
+34. A German parent with Pronunciation on the English key `bank` shows a line per meaning, such as *die Bank* and *das Ufer*, each with its own player; failing one clip shows its failure and **Retry** in its place while the other line still plays, and its **Retry** speaks that line again without asking (since 0.14.0).
+35. A Pronunciation card whose key's language the speech model does not speak says so in place of the player, with **Retry**, and is not shown as failed; deleting a card with audio removes its audio (since 0.14.0).
 
 ## Implementation details still to specify
 
