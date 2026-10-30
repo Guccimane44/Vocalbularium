@@ -19,6 +19,7 @@ From chat, 30 October 2026:
 5. **Its card shows audio only**: the key's language in its top line and a player, no IPA.
 6. **A Pronunciation facet** on the Languages modules speaks the translation, the module's core.
 7. **No browser speech** as a first step.
+8. **Eleven v4 Turbo** as the speech model, and the proposed defaults for K70–K77 (storage, what the facet speaks, clips, limits, unsupported languages, key, verification, release).
 
 ## The Pronunciation module
 
@@ -127,8 +128,9 @@ export class SpeechProvider {
 // src/server/elevenlabs.mjs: extends SpeechProvider and implements send(...)
 ```
 
-- **Transport:** `POST https://api.elevenlabs.io/v1/text-to-speech/{voice_id}` with `xi-api-key`, body `{ text, model_id, language_code }`, `output_format=mp3_44100_128`. Which models honour `language_code` is checked against ElevenLabs' current documentation before the model is pinned (K69).
-- **Configuration:** `SPEECH_PROVIDER=elevenlabs`, `ELEVENLABS_API_KEY`, `ELEVENLABS_MODEL` and one voice per language, `ELEVENLABS_VOICES` (a JSON map of language code to voice ID with a default). One pinned speech model at a time, beside the one pinned text model (C31).
+- **Transport:** `POST https://api.elevenlabs.io/v1/text-to-speech/{voice_id}` with `xi-api-key`, body `{ text, model_id, language_code }`, `output_format=mp3_44100_128`.
+- **Model (K69, owner 30 October 2026):** Eleven v4 Turbo, `model_id: "eleven_v4_turbo"`. ElevenLabs' [model documentation](https://elevenlabs.io/docs/models) (checked 30 October 2026) lists it for low latency, with 90+ languages and `language_code` (ISO 639-1) accepted; `SPOKEN_LANGUAGES` is taken from that list.
+- **Configuration:** `SPEECH_PROVIDER=elevenlabs`, `ELEVENLABS_API_KEY`, `ELEVENLABS_MODEL` (`eleven_v4_turbo` by default) and one voice per language, `ELEVENLABS_VOICES` (a JSON map of language code to voice ID with a default). One pinned speech model at a time, beside the one pinned text model (C31).
 - **Shared with text:** the timeout, cancellation, diagnostics events and error codes. A missing key is `provider_unconfigured`, an exhausted quota or plan limit `provider_refused`, any other HTTP error `provider_response`, a reply that is not audio `provider_invalid`. The key joins the diagnostic secrets in `start.mjs`. Diagnostics record the text's length, the language and the voice, never the audio.
 - **No caching** (owner decision 2).
 
@@ -166,4 +168,4 @@ Each increment is one PR against the 0.13.3 base, green in CI before the next st
 
 ## Open items
 
-C30–C32 and K69–K77 in the [traceability map](../architecture/traceability-map.md), each with a proposed default for the owner to accept or change.
+K69–K77 were answered by the owner on 30 October 2026: Eleven v4 Turbo for K69, the proposed defaults for K70–K77. C30–C32 in the [traceability map](../architecture/traceability-map.md) remain open, each with a proposed resolution.
