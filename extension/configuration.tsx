@@ -11,7 +11,7 @@ import { FacetTags } from './facet-tags.tsx';
 import { openAbout } from './about-sheet.tsx';
 import { FacetWindow } from './facet-window.tsx';
 import { FamilyIcon } from './families.tsx';
-import { ActionIcon, LandingCard } from './page-view.tsx';
+import { ActionIcon, LandingCard } from './card-content.tsx';
 import { moduleLabel, numbered, ShapingArea } from './shaping.tsx';
 import type { RowParts } from './shaping.tsx';
 import { t } from './i18n.ts';

@@ -39,7 +39,7 @@ A working-process decision; it gets a Notion decision record (System area) for t
 
 - **Specifications** describe today's behaviour only, `pages-and-editing.md` and `modules.md` first: phrasings of what changed when, and descriptions of retired features, are removed. Decision references stay where a reader needs the rationale, as one link, not as history.
 - **Scope** opens with what is supported; the release-by-release paragraphs go, since the ledger rows and git already carry them. The upgrade notes stay.
-- **Traceability map:** one line per decision (ID, date, one-sentence summary, affected documents, Notion link, status); each entry's full text moves to its own file beside the map, as [D17](../architecture/d17-one-request.md) and [D20](../architecture/d20-module-pages.md) already have.
+- **Traceability map:** one line per decision (ID, date, one-sentence summary, affected documents, Notion link, status); each entry's full text moves to its own file beside the map, as [D17](../architecture/decisions/d17-one-request.md) and [D20](../architecture/decisions/d20-module-pages.md) already have.
 - **Finished plans** move to `docs/history/plans/`; `docs/plans/` holds only live plans.
 - **Scope check:** every capability marked `implemented` is checked against the code.
 

@@ -23,8 +23,8 @@ The commands below already exist. Confirm them against the checkout when using t
 | Account, store, modules, generation, decks, pages | Relevant files in `tests/`; `npm test` for shared logic or a complete backend regression pass |
 | PostgreSQL, migrations, operation ordering, recovery journal | Relevant scenarios in `tests/postgres.test.mjs` and related store/generation tests; use the local guide for backup/restore rehearsals when those operations are in scope |
 | Bounded lists, sorting, read routes, cursors | `tests/reads.test.mjs` and the affected browser list scenarios |
-| Upgrade compatibility | `tests/upgrade.test.mjs`, `tests/extension.test.mjs`, and the upgrade scenario in `tests/app.browser.test.mjs` |
-| Extension interactions or browser lifetime | Relevant scenarios in `tests/app.browser.test.mjs`; `npm run test:browser` for the complete product and foundation browser suite |
+| Upgrade compatibility | `tests/upgrade.test.mjs`, `tests/extension.test.mjs`, and `tests/browser/upgrade.test.mjs` |
+| Extension interactions or browser lifetime | The relevant journey in `tests/browser/`; `npm run test:browser` for the complete product and foundation browser suite |
 | API routes or schemas | `npm run openapi` and commit `docs/api/openapi.json`; CI fails when the committed reference differs |
 | Build/package | `npm run build`, `python3 scripts/package.py`, and verification of the resulting archive; see `$vocabularium-deliver` |
 

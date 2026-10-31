@@ -36,7 +36,7 @@ python3 .agents/skills/vocabularium-deliver/scripts/verify_package.py <candidate
 
 It checks archive integrity and contents, source metadata, clean-build status, version/origin/permission consistency, known test hooks, and the SHA-256 sidecar. It does not extract files, contact services, prove runtime behavior, or discover arbitrary unknown credentials. If `OPENCODE_API_KEY` or `OPENAI_API_KEY` is already in the process environment, it also rejects those exact values in archive contents without printing them. Do not load or reveal a key merely to run this checker.
 
-For a local candidate, test the extracted extension through applicable scenarios in `tests/app.browser.test.mjs` using `VOCABULARIUM_TEST_EXTENSION`; see `$vocabularium-verify` for PostgreSQL fixtures, build hooks, and port requirements. Those scenarios own their local API and disposable database and use controlled generation providers; they do not require or verify the owner's running development account. They expect the local test origin, so do not point them at a remote candidate and treat an origin mismatch as an app regression.
+For a local candidate, test the extracted extension through applicable journeys in `tests/browser/` using `VOCABULARIUM_TEST_EXTENSION`; see `$vocabularium-verify` for PostgreSQL fixtures, build hooks, and port requirements. Those scenarios own their local API and disposable database and use controlled generation providers; they do not require or verify the owner's running development account. They expect the local test origin, so do not point them at a remote candidate and treat an origin mismatch as an app regression.
 
 Inspect CI artifact metadata before delivery: its ZIP targets the local origin.
 
