@@ -54,7 +54,8 @@ export function startBackground() {
       try {
         const summary = await request('/api/account/summary', null, auth.token);
         const recent = await request('/api/captures/recent', null, auth.token);
-        account = { ...summary, recentPages: recent.pages };
+        // The account menu names the server the extension is signed in to (D23).
+        account = { ...summary, recentPages: recent.pages, server: new URL(API_URL).host };
       }
       catch (/** @type {any} */ error) {
         if (version !== accessVersion) return { signedIn: false };

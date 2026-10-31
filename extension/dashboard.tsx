@@ -268,7 +268,6 @@ function DeckGrid({ account, local, navigate, configure, mutate, reportError, lo
       </div>
       <button className="primary" onClick={() => configure('new')}>{t('dashboard.addDeck')}</button>
     </div>
-    <RecentCaptures account={account} local={local} navigate={navigate} mutate={mutate} reportError={reportError} />
     <div className="grid">
       {decks.map(deck => <article className={`deck fam-${deckColour(deck)}`} key={deck.id}>
         <span className="deck-tab" aria-hidden="true" />
@@ -282,7 +281,9 @@ function DeckGrid({ account, local, navigate, configure, mutate, reportError, lo
         </footer>
       </article>)}
     </div>
-    {cursor && <button disabled={loading} onClick={() => void more()}>{t('dashboard.moreDecks')}</button>}
+    {cursor && <button className="load-more-decks" disabled={loading} onClick={() => void more()}>{t('dashboard.moreDecks')}</button>}
+    {/* Since 0.13.3 (D23) the decks come first and the recent captures follow them. */}
+    <RecentCaptures account={account} local={local} navigate={navigate} mutate={mutate} reportError={reportError} />
   </>;
 }
 

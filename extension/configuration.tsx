@@ -77,7 +77,7 @@ function DeckModule({ item, parts, busy, opened, setOpened, choosing, setChoosin
         <button style={{ '--i': isParentType(item.type) ? 2 : 1 } as CSSProperties} className="action-delete" aria-label={t('action.removeNamed', { name: item.label })} disabled={busy}
           onClick={() => { setOpened(false); onRemove(); }}><ActionIcon name="delete" />{t('common.remove')}</button>
       </div>}
-      {choosing && isParentType(item.type) && <FacetWindow holderId={item.id} parent={item.type} title={item.label} facets={item.facets ?? []}
+      {choosing && isParentType(item.type) && <FacetWindow holderId={item.id} parent={item.type} title={item.label} facets={item.facets ?? []} onPage={false}
         disabled={busy} hasContent={() => false} onAdd={onAddFacet} onRemove={onRemoveFacet}
         onClose={refocus => {
           setChoosing(false);

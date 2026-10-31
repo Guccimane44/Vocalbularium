@@ -39,7 +39,14 @@ async function facetWindow(page, label) {
   await window.waitFor();
   return window;
 }
-const tick = (window, facet) => window.getByRole('checkbox', { name: facet, exact: true });
+// Since 0.13.3 (D23) a facet on the card has its Remove and one to add its Add, in two groups;
+// these read the window in the module's order, whichever group a facet stands in.
+const escaped = text => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const tick = (window, facet) => window.getByRole('button', { name: new RegExp(`^(Add|Remove) ${escaped(facet)}$`) });
+const ticked = (window, facet) => tick(window, facet).evaluate(button => button.closest('.facet-window-row').hasAttribute('data-equipped'));
+const inOrder = (window, read) => window.locator('.facet-window-row').evaluateAll((rows, read) => rows
+  .sort((a, b) => Number(a.dataset.index) - Number(b.dataset.index))
+  .map(row => read === 'name' ? row.querySelector('.facet-window-name').textContent : row.hasAttribute('data-equipped')), read);
 // In deck settings a module is an empty card (0.7.1): its tab ejects Remove.
 async function removeFromDeck(page, label, nth = 0) {
   await componentArticle(page, label).nth(nth).locator('.tab-button').click();
@@ -60,15 +67,20 @@ async function launch(profile, extension = resolve(process.env.VOCABULARIUM_TEST
   await page.goto(`chrome-extension://${id}/app.html`);
   return { context, page, id, worker };
 }
-// The account menu holds appearance, diagnostic logs and log out once signed in (D05).
+// The account menu holds appearance, diagnostic logs and log out once signed in (D05);
+// since 0.13.3 its trigger at the sidebar's foot names the account (D23).
+const accountTrigger = page => page.getByRole('button', { name: 'Account: admin', exact: true });
 async function accountMenu(page) {
-  const trigger = page.getByRole('button', { name: 'Account', exact: true });
+  const trigger = accountTrigger(page);
   // From the keyboard: the capture popup can sit over the trigger in the top-right corner.
   if (await trigger.count() && await trigger.getAttribute('aria-expanded') !== 'true') await trigger.press('Enter');
 }
+// Appearance is a segmented control of three radios (D23); the menu stays open, so Escape closes it.
+const APPEARANCES = { system: 'System', light: 'Sage', dark: 'Moss night' };
 async function chooseAppearance(page, value) {
   await accountMenu(page);
-  await page.getByLabel('Appearance', { exact: true }).selectOption(value);
+  await page.getByRole('group', { name: 'Appearance', exact: true }).getByRole('radio', { name: APPEARANCES[value], exact: true }).check();
+  if (await accountTrigger(page).count()) await page.keyboard.press('Escape');
 }
 async function signIn(page) {
   await page.getByLabel('Username', { exact: true }).fill('admin');
@@ -818,6 +830,19 @@ test('page list: quiet states, layouts remembered per deck, sorting, grouping, e
   // Recent captures: nothing for completed work, words for the rest.
   const capture = text => a.page.locator('.capture').filter({ has: a.page.getByText(text, { exact: true }) });
   await capture('completed entry').waitFor();
+  // The decks come first, the recent captures after them (D23, 0.13.3).
+  assert.equal(await a.page.locator('.grid').evaluate(grid => Boolean(grid.compareDocumentPosition(document.querySelector('.recent')) & Node.DOCUMENT_POSITION_FOLLOWING)), true, 'recent captures follow the decks');
+  // The account menu sits at the sidebar's foot; its trigger names the account and its server, and it opens upward (D23).
+  const trigger = accountTrigger(a.page);
+  assert.equal(await trigger.evaluate(node => node.closest('#sidebar') !== null), true, 'the trigger is in the sidebar');
+  assert.equal(await a.page.locator('.app-header .account-trigger').count(), 0, 'not in the header');
+  await accountMenu(a.page);
+  assert.equal(await trigger.locator('.account-name').textContent(), 'admin');
+  assert.equal(await trigger.locator('.account-server').textContent(), new URL(apiOrigin).host, 'the trigger names the server too');
+  assert.deepEqual(await a.page.getByRole('group', { name: 'Appearance', exact: true }).getByRole('radio').evaluateAll(nodes => nodes.map(node => node.labels[0].textContent)), ['System', 'Sage', 'Moss night']);
+  assert.ok((await a.page.locator('.account-panel').boundingBox()).y + (await a.page.locator('.account-panel').boundingBox()).height <= (await trigger.boundingBox()).y, 'the menu opens upward');
+  assert.deepEqual(await a.page.locator('.account-main > .menu-action, .account-main > .language-row').allTextContents(), ['LanguageEnglish', 'Diagnostic logs', 'Log out']);
+  await a.page.keyboard.press('Escape');
   assert.equal(await a.page.locator('.capture .badge, .capture .state-icon').count(), 0);
   assert.equal(await capture('completed entry').locator('.list-status').count(), 0);
   assert.equal(await capture('completed entry').locator('.meaning-line').textContent(), 'erledigter Eintrag');
@@ -2098,10 +2123,18 @@ test('parents and facets: core only on add, the facet window on the parent, its 
 
   // A German parent's facet window lists its four facets in the module's order, the ones it has ticked.
   let facets = await facetWindow(a.page, 'German');
-  assert.deepEqual(await facets.locator('.facet-window-name').allTextContents(), ['Article', 'Examples', 'Synonyms', 'Antonyms', 'Conjugation', 'Declension', 'Comparison', 'Case'],
+  assert.deepEqual(await inOrder(facets, 'name'), ['Article', 'Examples', 'Synonyms', 'Antonyms', 'Conjugation', 'Declension', 'Comparison', 'Case'],
     'every facet of German, the grammar facets included (D17)');
-  assert.deepEqual(await facets.getByRole('checkbox').evaluateAll(nodes => nodes.map(node => node.checked)), [true, true, true, true, false, false, false, false], 'the grammar facets are not on a My Deck card (K56)');
+  assert.deepEqual(await inOrder(facets, 'equipped'), [true, true, true, true, false, false, false, false], 'the grammar facets are not on a My Deck card (K56)');
   await waitFor(() => tick(facets, 'Article').evaluate(node => node === document.activeElement), 'the first row takes the focus');
+  // A card on the surface (D23, 0.13.3): a heading naming the parent, a close, and a line on Retry.
+  assert.equal(await facets.getByRole('heading', { level: 3 }).textContent(), 'Facets of German');
+  assert.equal(await facets.locator('.facet-window-hint').textContent(), 'Added facets fill in on the next Retry.');
+  // Two groups: the facets on the card, each with its Remove, then the others, each with its Add.
+  assert.deepEqual(await facets.locator('.facet-window-group').allTextContents(), ['On this card', 'Add']);
+  assert.deepEqual(await facets.getByRole('list', { name: 'On this card', exact: true }).locator('.facet-toggle').evaluateAll(nodes => nodes.map(node => node.getAttribute('aria-label'))),
+    ['Remove Article', 'Remove Examples', 'Remove Synonyms', 'Remove Antonyms']);
+  assert.equal(await facets.getByRole('list', { name: 'Add', exact: true }).getByRole('button', { name: 'Add Conjugation', exact: true }).count(), 1);
 
   // Unticking a facet with content asks in its row; Cancel keeps it.
   await tick(facets, 'Examples').click();
@@ -2109,7 +2142,7 @@ test('parents and facets: core only on add, the facet window on the parent, its 
   await waitFor(() => keep.evaluate(node => node === document.activeElement), 'Cancel takes the focus');
   await keep.click();
   await waitFor(() => tick(facets, 'Examples').evaluate(node => node === document.activeElement), 'the focus back on its tick');
-  assert.equal(await tick(facets, 'Examples').isChecked(), true);
+  assert.equal(await ticked(facets, 'Examples'), true);
   assert.equal((await german())[0].facets.includes('examples'), true, 'Cancel keeps the facet');
   // Confirmed, it goes, leaving the rest of the content and the module; the window stays open for more.
   await tick(facets, 'Examples').click();
@@ -2118,11 +2151,16 @@ test('parents and facets: core only on add, the facet window on the parent, its 
   await card('German').locator('.facet[data-facet="examples"]').waitFor({ state: 'detached' });
   assert.doesNotMatch(text((await german())[0]), /Examples/);
   assert.equal(await facets.isVisible(), true, 'the window stays open');
-  assert.equal(await tick(facets, 'Examples').isChecked(), false);
+  assert.equal(await ticked(facets, 'Examples'), false);
   // Escape closes it and returns the focus to the card's tab.
   await a.page.keyboard.press('Escape');
   await facets.waitFor({ state: 'detached' });
   assert.equal(await cardTab(a.page, 'German').evaluate(node => node === document.activeElement), true, 'the focus back on the tab');
+  // Its close does the same (D23).
+  facets = await facetWindow(a.page, 'German');
+  await facets.getByRole('button', { name: 'Close', exact: true }).click();
+  await facets.waitFor({ state: 'detached' });
+  assert.equal(await cardTab(a.page, 'German').evaluate(node => node === document.activeElement), true, 'the close returns the focus to the tab');
 
   // A parent added from the window has its core only; its facet window lists its own facets.
   await openFamily(windowModule(a.page, 'chinese'));
@@ -2132,8 +2170,8 @@ test('parents and facets: core only on add, the facet window on the parent, its 
   await waitFor(async () => Boolean(await chinese()), 'Chinese added');
   assert.deepEqual((await chinese()).facets, []);
   facets = await facetWindow(a.page, 'Chinese');
-  assert.deepEqual(await facets.locator('.facet-window-name').allTextContents(), ['Examples', 'Pinyin'], 'never a German facet');
-  assert.deepEqual(await facets.getByRole('checkbox').evaluateAll(nodes => nodes.map(node => node.checked)), [false, false]);
+  assert.deepEqual(await inOrder(facets, 'name'), ['Examples', 'Pinyin'], 'never a German facet');
+  assert.deepEqual(await inOrder(facets, 'equipped'), [false, false]);
   await tick(facets, 'Pinyin').click();
   await waitFor(async () => (await chinese()).facets.includes('pinyin'), 'Pinyin added to Chinese');
   assert.equal((await german())[0].facets.includes('pinyin'), false);
@@ -2176,7 +2214,7 @@ test('parents and facets: core only on add, the facet window on the parent, its 
     };
   });
   facets = await facetWindow(a.page, 'German 2');
-  assert.deepEqual(await facets.getByRole('checkbox').evaluateAll(nodes => nodes.map(node => node.checked)), Array(8).fill(false), 'a core only');
+  assert.deepEqual(await inOrder(facets, 'equipped'), Array(8).fill(false), 'a core only');
   await a.page.screenshot({ path: 'artifacts/v0.8.1-facet-window.png', fullPage: true, animations: 'disabled' });
   await tick(facets, 'Synonyms').click();
   await waitFor(async () => (await german())[1].facets.includes('synonyms'), 'Synonyms added to the second German');
@@ -2260,7 +2298,7 @@ test('facet window from the keyboard: Facet among the actions, Space on a tick, 
   await waitFor(() => focused(facets.getByRole('button', { name: 'Keep Synonyms from German', exact: true })), 'Cancel focused');
   await a.page.keyboard.press('Escape');
   await waitFor(() => focused(tick(facets, 'Synonyms')), 'the focus back on its tick');
-  assert.equal(await tick(facets, 'Synonyms').isChecked(), true);
+  assert.equal(await ticked(facets, 'Synonyms'), true);
   assert.equal(await facets.isVisible(), true, 'the first Escape answers the question only');
   // Asked again, Shift+Tab reaches the final Delete, and Enter removes the facet.
   await a.page.keyboard.press('Space');
@@ -2438,7 +2476,7 @@ test('0.13.0: family, module and facet pages in one sheet, from the module windo
   await sheet.waitFor({ state: 'detached' });
   assert.equal(await facets.isVisible(), true, 'the facet window stays open');
   assert.equal(await focused(info('Article')), true, 'the focus back on its ›');
-  assert.deepEqual(await facets.getByRole('checkbox').evaluateAll(nodes => nodes.map(node => node.checked)), [true, true, true, true, false, false, false, false], 'the grammar facets are not on a My Deck card (K56)');
+  assert.deepEqual(await inOrder(facets, 'equipped'), [true, true, true, true, false, false, false, false], 'the grammar facets are not on a My Deck card (K56)');
   await a.page.keyboard.press('Escape');
 
   // The card's own About opens its module page.
@@ -2563,9 +2601,10 @@ test('facet tags: abbreviations in order, on the left edge, along the edge to th
 
   // Ticked again in the facet window, the tag flies in from its row to its place in the parent's order (D13).
   const facets = await facetWindow(a.page, 'German');
-  await tick(facets, 'Antonyms').click();
-  // Measured after the click, which scrolls its row into view first.
+  // Measured before the click, once its row is in view: the added facet then moves to On this card (D23).
+  await tick(facets, 'Antonyms').scrollIntoViewIfNeeded();
   const origin = await facets.locator('.facet-window-row[data-facet="antonyms"] .facet-tab-mark').boundingBox();
+  await tick(facets, 'Antonyms').click();
   await card.locator('.facet-tag[data-facet="antonyms"]').waitFor();
   const flight = (await motions('antonyms')).at(-1);
   assert.equal(flight.keyframes.length, 3, 'an arc from the row');
@@ -3348,7 +3387,7 @@ test('0.9.0: Language in the account menu is the account’s preference, English
 
 // Text an interface shows that is not its own: the brand, the user's decks,
 // keys and content, dates, counts, and the languages named in themselves.
-const NOT_INTERFACE = '.brand, .meaning, .main-key, .entry, .md, .entry-content, .capture-text, .nav-label, .nav-count, .deck h2, .deck-view h1 bdi, .capture-deck, time, .family-count, .language-name, .language-row-value, .facet-tab-mark, .facet-tag-mark, .sample-page, .explanation-samples, .facet-explanation .explanation-sample, input, textarea';
+const NOT_INTERFACE = '.brand, .meaning, .main-key, .entry, .md, .entry-content, .capture-text, .nav-label, .nav-count, .deck h2, .deck-view h1 bdi, .capture-deck, time, .family-count, .language-name, .language-row-value, .account-name, .account-server, .facet-tab-mark, .facet-tag-mark, .sample-page, .explanation-samples, .facet-explanation .explanation-sample, input, textarea';
 // Every visible interface text and label that is not a pseudo-language message.
 const unaccented = page => page.evaluate(selector => {
   const found = [];
@@ -3403,8 +3442,10 @@ test('0.9.0: right to left and the pseudo-languages: every surface mirrors, cont
   const sidebar = await box(a.page.locator('#sidebar')), main = await box(a.page.locator('#app'));
   assert.ok(sidebar.left > main.left, 'the sidebar stands at the right');
   await accountMenu(a.page);
-  const trigger = await box(a.page.getByRole('button', { name: 'Account', exact: true })), panel = await box(a.page.locator('.account-panel'));
-  assert.ok(Math.abs(panel.left - trigger.left) < 2, 'the account menu opens towards the reading end, from the trigger’s left edge');
+  // Measured once the menu has finished opening.
+  await a.page.locator('.account-panel').evaluate(node => Promise.all(node.getAnimations().map(each => each.finished)));
+  const trigger = await box(accountTrigger(a.page)), panel = await box(a.page.locator('.account-panel'));
+  assert.ok(Math.abs(panel.right - trigger.right) < 2 && Math.abs(panel.left - trigger.left) < 2 && panel.bottom <= trigger.top, `the account menu opens upward over the trigger, as wide as it (D23): ${JSON.stringify({ panel, trigger })}`);
   await a.page.keyboard.press('Escape');
   await shoot('rtl-dashboard');
 

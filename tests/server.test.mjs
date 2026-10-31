@@ -74,6 +74,7 @@ test('the interface language belongs to the account, starts as English and repla
   const { url } = await fixture(t);
   const a = await login(url), b = await login(url);
   assert.equal((await call(url, '/api/account/summary', undefined, a)).data.language, 'en');
+  assert.equal((await call(url, '/api/account/summary', undefined, a)).data.username, 'admin', 'the account menu names the account (D23)');
   const saved = await call(url, '/api/language', { operationId: 'french', language: 'fr' }, a);
   assert.equal(saved.status, 200); assert.equal(saved.data.language, 'fr');
   assert.equal((await call(url, '/api/account/summary', undefined, b)).data.language, 'fr', 'another installation reads the same preference');
@@ -169,7 +170,7 @@ test('Fastify publishes route contracts and request IDs on health responses', as
   assert.deepEqual(await (await fetch(url + '/health/ready')).json(), { ok: true });
 
   const document = await application.openapi();
-  assert.equal(document.info.version, '0.13.2');
+  assert.equal(document.info.version, '0.13.3');
   assert.ok(document.paths['/api/capture'].post.requestBody.content['application/json'].schema.properties.payload);
   assert.deepEqual(document.paths['/api/capture'].post.security, [{ bearerAuth: [] }]);
   assert.deepEqual(document.paths['/api/login'].post.security, []);

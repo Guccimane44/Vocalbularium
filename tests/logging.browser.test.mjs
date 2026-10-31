@@ -90,7 +90,7 @@ test('logging journey: capture correlation, offline worker restart, budgets and 
   assert.equal((await application.store.pages()).length, 1, 'logging recovery never replays the failed product save');
   assert.equal((await worker.evaluate(async () => (await chrome.storage.local.get('save-offline-logging-save'))['save-offline-logging-save'])).state, 'pending');
 
-  await page.getByRole('button', { name: 'Account', exact: true }).click();
+  await page.getByRole('button', { name: 'Account: admin', exact: true }).click();
   await page.getByRole('button', { name: 'Diagnostic logs', exact: true }).click();
   await page.getByRole('heading', { name: 'Diagnostic logs', exact: true }).waitFor();
   await page.getByLabel('Extension buffer budget (MiB)', { exact: true }).fill('0');

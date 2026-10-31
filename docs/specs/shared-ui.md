@@ -31,7 +31,7 @@ A list entry drags by its label: a card by its tab's family icon and label, a de
 
 ## Appearance
 
-The extension has two themes, **Sage** (light) and **Moss night** (dark). By default it follows the operating system's light or dark setting and changes with it. The account menu in the shared header offers **System**, **Sage**, and **Moss night**; the sign-in view offers the same choice. The choice is stored per Chrome installation, separately from account data, and survives logout, closing views, restarting the browser, and updating the extension in place. Other installations can choose differently.
+The extension has two themes, **Sage** (light) and **Moss night** (dark). By default it follows the operating system's light or dark setting and changes with it. The account menu offers **System**, **Sage**, and **Moss night** as three icons side by side, a screen, a sun and a moon, the current one raised, each named in its tooltip and to screen readers (since 0.13.3, [D23](../architecture/traceability-map.md#entries); a dropdown before), and choosing one leaves the menu open; the sign-in view offers the same control in its header. The choice is stored per Chrome installation, separately from account data, and survives logout, closing views, restarting the browser, and updating the extension in place. Other installations can choose differently.
 
 Changing the theme, or the system setting while **System** is chosen, updates every open extension view, dialog, and active capture feedback immediately, without losing drafts, selection, navigation, or dialog state, and without restarting the feedback popup's timer. Browser-owned menus and frames follow Chrome's own appearance.
 
