@@ -1,6 +1,6 @@
 # Install Vocabularium in Chrome
 
-A candidate ZIP contains this guide, the `extension` folder, and `package-info.json`, which identifies the package version, server address, and source revision. Release 0.13.3 is a local build: it connects to the Vocabularium API on the **same computer** at `127.0.0.1:4318`.
+A candidate ZIP contains this guide, the `extension` folder, and `package-info.json`, which identifies the package version, server address, and source revision. Release 0.14.0 is a local build: it connects to the Vocabularium API on the **same computer** at `127.0.0.1:4318`.
 
 ## Before installing
 
@@ -30,6 +30,7 @@ Replace the files in the same permanent extension folder with the new package, t
 - **Cannot sign in:** check the server address in `package-info.json` and that the local API is running (`GET http://127.0.0.1:4318/health/ready`).
 - **No capture menu:** open Vocabularium and sign in; make sure the extension is enabled and some text is selected.
 - **Capture received, but generation failed:** the receipt confirms capture only. Check each component's outcome on the saved page. Generation needs the owner's OpenCode Go key on the server.
+- **A Pronunciation clip failed or never plays:** spoken parts need `ELEVENLABS_API_KEY` and `ELEVENLABS_VOICES` on the server (see `.env.example`); the text of the card appears without them. Use **Retry** on the clip after setting them and restarting the API.
 - **Try saving again:** resubmits the pending save. **Retry** on a component or the whole page starts replacement generation after a warning.
 
 Collect [diagnostic logs](diagnostics.md) if needed. Report the package version, Chrome version and operating system, steps, and visible message in the relevant delivery issue. Do not include API keys.
