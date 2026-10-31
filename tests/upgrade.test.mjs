@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import pg from 'pg';
+import Value from 'typebox/value';
+import { PageSchema } from '@vocabularium/contracts';
 import test, { createTestApplication, createTestDatabase } from './helpers/database.mjs';
 import { legacyDatabase, migrateTo, populateKarteSchema } from './helpers/legacy-database.mjs';
 import { migrateDatabase } from '../scripts/migrate.mjs';
@@ -388,4 +390,35 @@ test('0017 starts afresh for one request per module: discards decks and pages, k
   const session = { installationId: 'upgrade-installation', sessionId: 'browser', epoch: 1 };
   const { pageId } = await store.capture('capture', { session, mainKey: 'bank', snapshot: await store.snapshot() });
   assert.equal((await store.page(pageId)).components.find(component => component.moduleType === 'german').status, 'loading');
+});
+
+test('0.15.0 reads and edits a 0.14.0 database unchanged: stored facets keep their keys, the catalog checks them (D25)', async t => {
+  const database = await legacyDatabase(t, 'module-owned-facets-upgrade', 18);
+  const client = new pg.Client({ connectionString: database.databaseUrl }); await client.connect();
+  t.after(() => client.end());
+  const german = { version: 1, blocks: [{ type: 'parent', header: { kind: 'word', language: 'Englisch', key: 'bank', gramRole: 'noun' }, core: 'Ufer',
+    facets: { article: 'das Ufer', examples: '1. Wir saßen am Ufer.', synonyms: 'Gestade', antonyms: '', declension: 'des Ufers', pronunciation: 'das Ufer' } }] };
+  const chinese = { version: 1, blocks: [{ type: 'parent', header: { kind: 'word', language: '英语', key: 'bank', romanization: 'hé’àn' }, core: '河岸',
+    facets: { examples: '1. 我们坐在河岸上。', pinyin: '河岸 hé’àn', pronunciation: '河岸' } }] };
+  await client.query(`INSERT INTO decks (id, name) VALUES ('deck', 'Bank words');
+    INSERT INTO account (id, default_deck_id, language) VALUES (1, 'deck', 'en');
+    INSERT INTO pages (id, deck_id, selected_text, created_at) VALUES ('page', 'deck', 'bank', '2026-10-31T10:00:00.000Z');
+    INSERT INTO components (page_id, id, module_instance_id, module_type, position, content, status, facets) VALUES
+      ('page', 'key', 'k', 'main-key', 0, '{"version":1,"blocks":[{"type":"paragraph","text":"bank"}]}', NULL, '{}'),
+      ('page', 'german', 'g', 'german', 1, $1, 'completed', '{article,examples,synonyms,antonyms,declension,pronunciation}'),
+      ('page', 'chinese', 'c', 'chinese', 2, $2, 'completed', '{examples,pinyin,pronunciation}');`.replace(/\$1/, `'${JSON.stringify(german)}'`).replace(/\$2/, `'${JSON.stringify(chinese)}'`));
+  const kept = await rows(client, 'components');
+
+  const store = await AccountStore.open(database); database.resources.push(store);
+  const page = await store.page('page');
+  assert.ok(Value.Check(PageSchema, page), 'the 0.14.0 page fits the 0.15.0 contract');
+  assert.deepEqual(page.components.find(component => component.id === 'german').content, german);
+  assert.deepEqual(page.components.find(component => component.id === 'chinese').content, chinese);
+  assert.deepEqual(await rows(client, 'components'), kept, 'reading changes nothing stored');
+
+  await store.deleteFacet('drop-article', { pageId: 'page', componentId: 'german', parent: 'german', facet: 'article' });
+  const edited = (await store.page('page')).components.find(component => component.id === 'german');
+  assert.deepEqual(edited.facets, ['examples', 'synonyms', 'antonyms', 'declension', 'pronunciation']);
+  assert.equal(edited.content.blocks[0].facets.article, undefined);
+  assert.equal(edited.content.blocks[0].facets.declension, 'des Ufers', 'the other facets keep their text');
 });

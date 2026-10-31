@@ -3,19 +3,19 @@
 // sessions and receipts (store-sessions.mjs), decks, pages and components,
 // generation, and audio. This last part adds the account itself and its
 // language, and creating and deleting a deck, which can fall back on the
-// default deck a new account starts with.
+// default deck a new account starts with (defined by the catalog).
 import { Postgres, OWNER_ACCOUNT_ID } from '../persistence/postgres.ts';
 import { randomUUID } from 'node:crypto';
 import { INTERFACE_LANGUAGES } from '@vocabularium/contracts';
+import { DEFAULT_DECK_MODULES } from '@vocabularium/domain/parents';
 /** @import { DeckDeleteRequest } from '@vocabularium/contracts' */
 /** @import { AccountRow, DeckRow } from './store-records.js' */
 import { fail } from './store-common.mjs';
 import { AudioStore } from './store-audio.mjs';
 export { StoreError } from './store-common.mjs';
 
-// A new account's My Deck (D08): the main key, Context, and German with all its facets.
-export const DEFAULT_DECK_MODULES = Object.freeze([{ type: 'main-key' }, { type: 'context' },
-  { type: 'german', facets: ['article', 'examples', 'synonyms', 'antonyms'] }]);
+// A new account's My Deck, from the catalog (D08).
+export { DEFAULT_DECK_MODULES };
 
 export class AccountStore extends AudioStore {
   /** @param {{ databaseUrl?: string, accountId?: number, outbox?: string | null, diagnostic?: (event: Record<string, unknown>) => void }} [options] */

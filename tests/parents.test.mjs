@@ -1,10 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import Value from 'typebox/value';
-import { DeckConfigurationSchema, FacetAddRequestSchema, PageSchema } from '@vocabularium/contracts';
+import { BlockDocumentSchema, DeckConfigurationSchema, FacetAddRequestSchema, PageSchema } from '@vocabularium/contracts';
 import {
   applicableFacets, facetAbbreviation, facetAddBlocked, facetDeleteBlocked, facetsOf, facetTargets, facetUnavailable, isParentType, ordered, PARENTS,
-  validateFacets, withFacet, facetsFor, ruledOut } from '@vocabularium/domain/parents';
+  validateFacets, withFacet, facetsFor, ruledOut, DEFAULT_DECK_MODULES } from '@vocabularium/domain/parents';
+import { validateParentContent } from '@vocabularium/domain/content';
 import { copyModules, validateConfiguration } from '@vocabularium/domain/page-modules';
 import { textBlocks } from '@vocabularium/domain/pages';
 
@@ -117,6 +118,22 @@ test('contracts carry facets on instances and components, no page interpretation
   assert.ok(!Value.Check(PageSchema, { ...page, interpretation: 'word_phrase' }), 'a page carries no reading of its main key');
   assert.ok(Value.Check(FacetAddRequestSchema, { operationId: 'op-1', payload: { pageId: 'p', componentId: 'g', parent: 'german', facet: 'article' } }));
   assert.ok(!Value.Check(FacetAddRequestSchema, { operationId: 'op-1', payload: { pageId: 'p', componentId: 'g', facet: 'article' } }), 'the parent type is required');
+});
+
+test('stored facets are keyed by any facet ID; the catalog, not the contract, decides which a parent has (D25)', () => {
+  const parent = facets => ({ version: 1, blocks: [{ type: 'parent', header: { kind: 'word', language: 'Englisch', key: 'bank' }, core: 'Ufer', facets }] });
+  assert.ok(Value.Check(BlockDocumentSchema, parent({ article: 'das Ufer', pinyin: 'àn' })), 'every facet of 0.14.0 still fits');
+  assert.ok(Value.Check(BlockDocumentSchema, parent({ furigana: 'ぎんこう', 'pitch-accent': '0' })), 'a facet the contract has never named fits');
+  assert.ok(!Value.Check(BlockDocumentSchema, parent({ Article: 'x' })), 'an ID is lower case');
+  assert.ok(!Value.Check(BlockDocumentSchema, parent({ article: 'x'.repeat(8001) })), 'a facet keeps its size limit');
+  assert.ok(!Value.Check(BlockDocumentSchema, parent(Object.fromEntries(Array.from({ length: 13 }, (_, n) => [`f${n}`, 'x'])))), 'at most twelve facets');
+  assert.throws(() => validateParentContent('german', { header: { kind: 'word', language: 'Englisch', key: 'bank' }, core: 'Ufer', facets: { furigana: 'x' } }), /German has no facet "furigana"/);
+});
+
+test('My Deck and a new deck start from the catalog: the main key, Context, and German with its deck facets', () => {
+  assert.deepEqual(DEFAULT_DECK_MODULES.map(module => module.type), ['main-key', 'context', 'german']);
+  assert.deepEqual(DEFAULT_DECK_MODULES[2].facets, ['article', 'examples', 'synonyms', 'antonyms']);
+  assert.deepEqual(DEFAULT_DECK_MODULES[2].facets, ordered('german', DEFAULT_DECK_MODULES[2].facets), 'in German\'s order');
 });
 
 const germanWord = [
