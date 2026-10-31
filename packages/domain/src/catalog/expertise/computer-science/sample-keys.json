@@ -1,0 +1,26 @@
+{
+  "en": {
+    "word_phrase": "Hello, world",
+    "sentence": "Every programmer’s first program prints “Hello, world”."
+  },
+  "ar": {
+    "word_phrase": "Hello, world",
+    "sentence": "أول برنامج يكتبه كل مبرمج يطبع «Hello, world»."
+  },
+  "zh-Hans": {
+    "word_phrase": "Hello, world",
+    "sentence": "每个程序员的第一个程序都会输出“Hello, world”。"
+  },
+  "fr": {
+    "word_phrase": "Hello, world",
+    "sentence": "Le premier programme de tout programmeur affiche « Hello, world »."
+  },
+  "ru": {
+    "word_phrase": "Hello, world",
+    "sentence": "Первая программа любого программиста выводит «Hello, world»."
+  },
+  "es": {
+    "word_phrase": "Hello, world",
+    "sentence": "El primer programa de todo programador imprime «Hello, world»."
+  }
+}

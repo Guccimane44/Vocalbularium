@@ -1,9 +1,6 @@
 {
-  "note": "Golden set for the German and Chinese parent modules (D08, C8). Every input runs through both parents with all their facets; the owner reviews the outputs before a prompt change merges.",
-  "modules": [
-    "german",
-    "chinese"
-  ],
+  "note": "Golden set for every Languages module (D08, C8). Every input runs through each of them with all its facets; the owner reviews the outputs before a prompt change merges.",
+  "family": "translation",
   "inputs": [
     {
       "key": "bank",

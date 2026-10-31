@@ -1,0 +1,15 @@
+{
+  "label": "Allemand",
+  "description": "Explique un mot en allemand, ou traduit une phrase en allemand.",
+  "article.label": "Article",
+  "examples.label": "Exemples",
+  "synonyms.label": "Synonymes",
+  "antonyms.label": "Antonymes",
+  "conjugation.label": "Conjugaison",
+  "declension.label": "Déclinaison",
+  "comparison.label": "Comparaison",
+  "case.label": "Cas",
+  "core.word_phrase": "Sens",
+  "core.sentence": "Traduction",
+  "pronunciation.label": "Prononciation"
+}

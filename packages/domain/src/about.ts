@@ -1,7 +1,7 @@
 import type { InputType } from '@vocabularium/contracts';
 import { CATALOG_FAMILIES, folderOf, isCatalogModule, MODULES } from './catalog/index.js';
-import type { FamilyId } from './catalog/index.js';
-import { ABOUT, SAMPLES } from './catalog/about.generated.js';
+import type { FamilyId, ModuleId } from './catalog/index.js';
+import { ABOUT, NAMES, SAMPLES } from './catalog/about.generated.js';
 import { formatContent } from './content.js';
 import type { GeneratedParent } from './generated.js';
 import { parseMarkdown } from './markdown.js';
@@ -119,4 +119,12 @@ export function sampleKeyOf(module: string, inputType: InputType, language = 'en
   const given = (facet && givenSample(module, inputType, language, facet)) || givenSample(module, inputType, language);
   const own = given && typeof given === 'object' ? (given as GeneratedParent).core.key : undefined;
   return typeof own === 'string' ? own : isCatalogModule(module) && MODULES[module].kind === 'input' ? mainKey : undefined;
+}
+
+// A module's names in an interface language other than English, from the
+// names file beside its definition (D25), keyed as a language's catalogue
+// names them: `catalog.german.label`, `catalog.german.article.label`.
+export function catalogNames(language: string): Record<string, string> {
+  return Object.fromEntries((Object.keys(MODULES) as ModuleId[]).flatMap(id =>
+    Object.entries(NAMES[folderOf(id)]?.[language] ?? {}).map(([key, text]) => [`catalog.${id}.${key}`, text])));
 }

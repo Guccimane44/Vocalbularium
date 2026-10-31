@@ -3,7 +3,11 @@ import assert from 'node:assert/strict';
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { GUIDE_SECTIONS, moduleInstructions, moduleSchema, writingGuide } from '@vocabularium/domain/composer';
 import { INTERFACE_LANGUAGES } from '@vocabularium/contracts';
-import { facetsOf, PARENTS } from '@vocabularium/domain/parents';
+import { facetsOf, parentsIn, PARENTS } from '@vocabularium/domain/parents';
+
+// The families' modules come from the catalog, so a new module is covered as it joins.
+const LANGUAGES = parentsIn('translation');
+const EXPERTISE = parentsIn('expertise');
 
 // Prompt snapshots (D11): the composed instructions and schema for every
 // content module's one request (D17), core only, a card's Retry keeping its
@@ -56,7 +60,7 @@ test('the shared rules are in every composed prompt and in no prompt file of the
 });
 
 test('the Expertise modules write in the account’s language; the Languages modules do not follow it (D14, K36)', () => {
-  for (const module of ['computer-science', 'mathematics']) {
+  for (const module of EXPERTISE) {
     const french = moduleInstructions(module, [], false, 'fr');
     assert.match(french, /Write every part in French, whatever language the selection is in\./);
     assert.match(french, /comprehensive French for a learner/);
@@ -64,19 +68,19 @@ test('the Expertise modules write in the account’s language; the Languages mod
     assert.equal(moduleInstructions(module, [], false, 'en'), moduleInstructions(module, []), 'English stays the default');
   }
   assert.match(moduleInstructions('computer-science', [], false, 'zh-Hans'), /in Simplified Chinese/);
-  for (const module of ['german', 'chinese']) {
+  for (const module of LANGUAGES) {
     assert.equal(moduleInstructions(module, facetsOf(module), false, 'ar'), moduleInstructions(module, facetsOf(module)));
   }
 });
 
 test('every Expertise request carries the writing guide of its language, and no other family gets one (D15, K39)', () => {
   const body = language => GUIDE_SECTIONS.slice(0, 4).map(heading => writingGuide(language)[heading]).join(' ');
-  for (const language of INTERFACE_LANGUAGES) for (const module of ['computer-science', 'mathematics']) {
+  for (const language of INTERFACE_LANGUAGES) for (const module of EXPERTISE) {
     const text = moduleInstructions(module, [], false, language);
     assert.ok(text.endsWith(body(language)), `${module} ${language} ends with its guide`);
     for (const other of INTERFACE_LANGUAGES.filter(other => other !== language)) assert.ok(!text.includes(writingGuide(other).Register), `${language} carries no ${other} guide`);
   }
-  for (const module of ['german', 'chinese']) for (const language of INTERFACE_LANGUAGES) {
+  for (const module of LANGUAGES) for (const language of INTERFACE_LANGUAGES) {
     const text = moduleInstructions(module, facetsOf(module), false, language);
     for (const each of INTERFACE_LANGUAGES) assert.ok(!text.includes(writingGuide(each).Register), `${module} carries no guide`);
   }

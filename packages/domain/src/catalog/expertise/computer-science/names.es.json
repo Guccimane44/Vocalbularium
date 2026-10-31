@@ -1,0 +1,7 @@
+{
+  "label": "Informática",
+  "description": "Explica un término o un concepto tal como lo entiende la informática.",
+  "core.word_phrase": "Explicación",
+  "core.sentence": "Explicación",
+  "code.label": "Python"
+}

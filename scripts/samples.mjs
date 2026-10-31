@@ -12,8 +12,8 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
 import { OpenCodeProvider } from '../src/server/opencode.mjs';
 import { generateComponent } from '@vocabularium/domain/modules';
-import { folderOf } from '@vocabularium/domain/catalog';
-import { facetsOf } from '@vocabularium/domain/parents';
+import { contentModule, folderOf } from '@vocabularium/domain/catalog';
+import { facetsOf, PARENTS } from '@vocabularium/domain/parents';
 import { INTERFACE_LANGUAGES } from '@vocabularium/contracts';
 
 if (!process.env.OPENCODE_API_KEY) throw new Error('Configure OPENCODE_API_KEY in the ignored .env file first.');
@@ -25,38 +25,12 @@ const read = async path => JSON.parse(await readFile(new URL(path, catalog), 'ut
 // they were met in, in each interface language.
 const keys = Object.fromEntries(await Promise.all(INTERFACE_LANGUAGES.map(async language => [language, await read(`main-key/samples/${language}.json`)])));
 const contexts = Object.fromEntries(await Promise.all(INTERFACE_LANGUAGES.map(async language => [language, await read(`notes/context/samples/${language}.json`)])));
-// A word beside "language" for a facet that never applies to a noun (K65), or
-// for one *language* shows nothing representative of (D21): *good*, gut.
-const GOOD = { en: 'good', ar: 'جيد', 'zh-Hans': '好', fr: 'bon', ru: 'хороший', es: 'bueno' };
-const FACET_WORDS = {
-  conjugation: { en: 'speak', ar: 'تكلّم', 'zh-Hans': '说话', fr: 'parler', ru: 'говорить', es: 'hablar' },
-  comparison: { en: 'clear', ar: 'واضح', 'zh-Hans': '清楚', fr: 'clair', ru: 'ясный', es: 'claro' },
-  case: { en: 'between', ar: 'بين', 'zh-Hans': '之间', fr: 'entre', ru: 'между', es: 'entre' },
-  synonyms: GOOD,
-  antonyms: GOOD,
-  declension: GOOD
-};
-// The Expertise modules use a term of their subject, written in the interface
-// language they write in (D21): Mathematics "quadratic equation"; Computer
-// Science "Hello, world", which stays English in every language.
-const EXPERTISE = {
-  mathematics: {
-    en: { word_phrase: 'Quadratic equation', sentence: 'A quadratic equation has at most two real solutions.' },
-    ar: { word_phrase: 'المعادلة التربيعية', sentence: 'للمعادلة التربيعية حلّان حقيقيان على الأكثر.' },
-    'zh-Hans': { word_phrase: '一元二次方程', sentence: '一元二次方程最多有两个实数根。' },
-    fr: { word_phrase: 'Équation du second degré', sentence: 'Une équation du second degré a au plus deux solutions réelles.' },
-    ru: { word_phrase: 'Квадратное уравнение', sentence: 'Квадратное уравнение имеет не более двух действительных корней.' },
-    es: { word_phrase: 'Ecuación de segundo grado', sentence: 'Una ecuación de segundo grado tiene como máximo dos soluciones reales.' }
-  },
-  'computer-science': {
-    en: { word_phrase: 'Hello, world', sentence: 'Every programmer’s first program prints “Hello, world”.' },
-    ar: { word_phrase: 'Hello, world', sentence: 'أول برنامج يكتبه كل مبرمج يطبع «Hello, world».' },
-    'zh-Hans': { word_phrase: 'Hello, world', sentence: '每个程序员的第一个程序都会输出“Hello, world”。' },
-    fr: { word_phrase: 'Hello, world', sentence: 'Le premier programme de tout programmeur affiche « Hello, world ».' },
-    ru: { word_phrase: 'Hello, world', sentence: 'Первая программа любого программиста выводит «Hello, world».' },
-    es: { word_phrase: 'Hello, world', sentence: 'El primer programa de todo programador imprime «Hello, world».' }
-  }
-};
+// A facet with a `sample-key.json` has its own word's card, in each interface
+// language, beside the module's (K65, D21): a German facet that never applies
+// to a noun, or one *language* shows nothing representative of. A module with
+// a `sample-keys.json` uses its own word and sentence (D21), such as an
+// Expertise module's term of its subject; the others use the main key's set.
+const optional = async path => { try { return await read(path); } catch (error) { if (error.code === 'ENOENT') return null; throw error; } };
 
 const provider = new OpenCodeProvider();
 // A transient service error (such as a rate limit) is tried once more after a pause.
@@ -86,23 +60,20 @@ async function save(folder, language, samples) {
 
 const languages = onlyLanguage ? [onlyLanguage] : INTERFACE_LANGUAGES;
 for (const language of languages) {
-  for (const type of ['german', 'chinese']) {
-    if (only && only !== type) continue;
-    // The Languages modules write in their own language; the key's language is the one the set is in.
-    await save(folderOf(type), language, {
-      word_phrase: await card(type, facetsOf(type), keys[language].word_phrase, contexts[language].word_phrase, language),
-      sentence: await card(type, facetsOf(type), keys[language].sentence, contexts[language].sentence, language)
-    });
-  }
-  for (const [facet, words] of Object.entries(FACET_WORDS)) {
-    if (only && only !== 'german' && only !== facet) continue;
-    await save(`${folderOf('german')}/facets/${facet}`, language, { word_phrase: await card('german', [facet], words[language], undefined, language) });
-  }
-  for (const [type, keys] of Object.entries(EXPERTISE)) {
-    if (only && only !== type) continue;
-    await save(folderOf(type), language, {
-      word_phrase: await card(type, facetsOf(type), keys[language].word_phrase, undefined, language),
-      sentence: await card(type, facetsOf(type), keys[language].sentence, undefined, language)
-    });
+  for (const type of Object.keys(PARENTS)) {
+    // A spoken core's samples are its own, written with its module (D24).
+    if (contentModule(type).core.spoken) continue;
+    const own = await optional(`${folderOf(type)}/sample-keys.json`);
+    if (!only || only === type) {
+      // The Languages modules write in their own language; the key's language is the one the set is in.
+      const sample = (inputType, key) => card(type, facetsOf(type), key, own ? undefined : contexts[language][inputType], language);
+      const set = own?.[language] ?? keys[language];
+      await save(folderOf(type), language, { word_phrase: await sample('word_phrase', set.word_phrase), sentence: await sample('sentence', set.sentence) });
+    }
+    for (const facet of facetsOf(type)) {
+      const words = await optional(`${folderOf(type)}/facets/${facet}/sample-key.json`);
+      if (!words || (only && only !== type && only !== facet)) continue;
+      await save(`${folderOf(type)}/facets/${facet}`, language, { word_phrase: await card(type, [facet], words[language], undefined, language) });
+    }
   }
 }

@@ -35,6 +35,8 @@ export const PARENTS: Readonly<Record<ParentType, ParentDefinition>> = Object.fr
 })) as Record<ParentType, ParentDefinition>);
 
 export const isParentType = (type: string): type is ParentType => Object.hasOwn(PARENTS, type);
+// A family's parents in the catalog's order, such as every Languages module.
+export const parentsIn = (family: ParentFamily): ParentType[] => (Object.keys(PARENTS) as ParentType[]).filter(parent => PARENTS[parent].family === family);
 export const facetsOf = (parent: ParentType): FacetType[] => Object.keys(PARENTS[parent].facets) as FacetType[];
 export const isFacetOf = (parent: string, facet: string): facet is FacetType =>
   isParentType(parent) && Object.hasOwn(PARENTS[parent].facets, facet);

@@ -1,0 +1,9 @@
+{
+  "label": "Китайский",
+  "description": "Объясняет слово по-китайски или переводит предложение на китайский.",
+  "examples.label": "Примеры",
+  "pinyin.label": "Пиньинь",
+  "core.word_phrase": "Значения",
+  "core.sentence": "Перевод",
+  "pronunciation.label": "Произношение"
+}

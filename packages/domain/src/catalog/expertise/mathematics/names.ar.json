@@ -1,0 +1,7 @@
+{
+  "label": "الرياضيات",
+  "description": "يشرح مصطلحًا أو مفهومًا كما تفهمه الرياضيات.",
+  "core.word_phrase": "الشرح",
+  "core.sentence": "الشرح",
+  "formula.label": "الصيغة"
+}

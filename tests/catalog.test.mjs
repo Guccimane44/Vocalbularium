@@ -6,6 +6,7 @@ import { composeModule } from '@vocabularium/domain/composer';
 import { formatContent } from '@vocabularium/domain/content';
 import { validateGenerated } from '@vocabularium/domain/generated';
 import { INTERFACE_LANGUAGES } from '@vocabularium/contracts';
+import { parentsIn } from '@vocabularium/domain/parents';
 
 // Catalog conformance (D11): every module, facet and input type is complete,
 // so a module or facet added to the catalog cannot miss its prompt, shape,
@@ -133,8 +134,10 @@ test('every sample is written in every interface language, validates against its
 test('every content module has a golden set (C8)', () => {
   const sets = readdirSync(new URL('./golden/', import.meta.url)).filter(file => file.endsWith('.json'))
     .map(file => JSON.parse(readFileSync(new URL(`./golden/${file}`, import.meta.url), 'utf8')));
-  const covered = sets.flatMap(set => set.modules);
-  for (const set of sets) assert.ok(set.inputs.length > 0 && set.modules.every(id => MODULE_IDS.includes(id)), set.note);
+  // A set names its modules, or a family whose every module it runs through.
+  const modulesOf = set => set.family ? parentsIn(set.family) : set.modules;
+  const covered = sets.flatMap(modulesOf);
+  for (const set of sets) assert.ok(set.inputs.length > 0 && modulesOf(set).length > 0 && modulesOf(set).every(id => MODULE_IDS.includes(id)), set.note);
   assert.deepEqual([...new Set(covered)].sort(), [...content].sort());
 });
 
@@ -216,4 +219,20 @@ test('a facet’s sample is its own part of a sample in the interface language, 
   assert.equal(sampleKeyOf('mathematics', 'word_phrase', 'zh-Hans'), '一元二次方程');
   // A language without its own sample would fall back to English; every language has one.
   assert.notDeepEqual(sampleOf('german', 'word_phrase', undefined, 'ar'), sampleOf('german', 'word_phrase', undefined, 'en'));
+});
+
+// The words the samples are written for live beside their module or facet,
+// so a new language or facet brings its own (D21, K65).
+test('every sample word file names a word, or a word and a sentence, in every interface language', () => {
+  const files = readdirSync(SRC, { recursive: true }).map(String).filter(path => /(?:^|[\\/])sample-keys?\.json$/.test(path));
+  assert.ok(files.length > 0);
+  for (const path of files) {
+    const words = JSON.parse(readFileSync(new URL(path, SRC), 'utf8'));
+    assert.deepEqual(Object.keys(words).sort(), [...INTERFACE_LANGUAGES].sort(), path);
+    for (const language of INTERFACE_LANGUAGES) {
+      const entry = words[language];
+      if (path.endsWith('sample-keys.json')) assert.ok(entry.word_phrase?.trim() && entry.sentence?.trim(), `${path} ${language}`);
+      else assert.ok(typeof entry === 'string' && entry.trim(), `${path} ${language}`);
+    }
+  }
 });
