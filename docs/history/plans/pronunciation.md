@@ -4,7 +4,7 @@ Proposed: 30 October 2026 (Europe/Berlin). Implements [D24](../../architecture/t
 
 ## Outcome
 
-A page can play its main key aloud, and a Languages card can play its translation. A **Pronunciation** module, the first in the Sound family, identifies the language of the page's main key and speaks the key in it. A **Pronunciation** facet on German and Chinese speaks the translation the module's core wrote. Audio comes from ElevenLabs, a second kind of provider beside the text provider. It is the first heavy facet of [D17's direction](../../architecture/d17-one-request.md#heavy-facets-direction): its own job after the text, with its own loading, failure and Retry. The text shows first, and the audio fills in when it is ready.
+A page can play its main key aloud, and a Languages card can play its translation. A **Pronunciation** module, the first in the Sound family, identifies the language of the page's main key and speaks the key in it. A **Pronunciation** facet on German and Chinese speaks the translation the module's core wrote. Audio comes from ElevenLabs, a second kind of provider beside the text provider. It is the first heavy facet of [D17's direction](../../architecture/decisions/d17-one-request.md#heavy-facets-direction): its own job after the text, with its own loading, failure and Retry. The text shows first, and the audio fills in when it is ready.
 
 Not in 0.14.0: pronunciation of Examples or other facets, IPA or other written pronunciation, choosing a voice in the interface, speed control, downloading the audio, and pronunciation in Expertise modules.
 
@@ -39,7 +39,7 @@ export default defineContentModule({
 
 ### Flag
 
-One flag, `language`: the language the main key is written in, as an ISO 639-1 code from the languages the pinned ElevenLabs model speaks, or `other`. It changes two things, as every flag must ([D17](../../architecture/d17-one-request.md#flags-per-module)): the language the audio is synthesized in, and the top line. The top line names the language in the interface language (*German* / *Deutsch* / *德语*), from the code with the browser's `Intl.DisplayNames`, never edited. `other` gives no audio job and the card says the language cannot be pronounced (K74).
+One flag, `language`: the language the main key is written in, as an ISO 639-1 code from the languages the pinned ElevenLabs model speaks, or `other`. It changes two things, as every flag must ([D17](../../architecture/decisions/d17-one-request.md#flags-per-module)): the language the audio is synthesized in, and the top line. The top line names the language in the interface language (*German* / *Deutsch* / *德语*), from the code with the browser's `Intl.DisplayNames`, never edited. `other` gives no audio job and the card says the language cannot be pronounced (K74).
 
 ```js
 // sound/pronunciation/facets/core/facet.ts

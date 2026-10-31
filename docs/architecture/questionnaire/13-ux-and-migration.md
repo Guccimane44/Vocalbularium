@@ -60,7 +60,7 @@ Close with the two decisions that protect everything already built: a UI directi
 
 **Decision:** Sequence the increments after 0.4.x to minimize rework: hosting/tenancy, opt-in interpretation, module expansion + evals, rich rendering, review/SRS, search/scale.
 
-**Context:** The main key, Context, per-component generation and retry, and the default view shipped in 0.4.0–0.4.1; main-key validation, whitespace rules and edits during active generation are still to specify ([pages and editing](../../specs/pages-and-editing.md#implementation-details-still-to-specify)). Building SRS tables before the semantic-object decision, or rich rendering before the editor model, guarantees a second migration.
+**Context:** The main key, Context, per-component generation and retry, and the default view shipped in 0.4.0–0.4.1; main-key validation, whitespace rules and edits during active generation are still to specify ([pages and editing](../../specs/pages-and-editing.md)). Building SRS tables before the semantic-object decision, or rich rendering before the editor model, guarantees a second migration.
 
 **Options:**
 - Contract-first (tenancy + API + statelessness) → data (interpretation + limits) → modules + evals → rendering → review → search.

@@ -4,7 +4,7 @@
 
 This document defines Vocabularium's core concepts and their fundamental relationships. It is a conceptual model, not a database schema or a workflow specification. [Scope](scope.md) identifies current capability limits; [vision](vision.md) describes possible future uses.
 
-The model below is the owner-approved deck → page → component model ([Q72](../architecture/questionnaire/answers/answers-06-data-and-semantics.md#q72), [refactor plan](../history/plans/page-component-refactor.md)), with page-owned modules ([D02](../architecture/traceability-map.md#entries)) and content modules as parent modules with facets ([D08](../architecture/traceability-map.md#entries), release 0.7.0). Release 0.4.0 implements the model and 0.5.0 implements D02. [Current scope](scope.md) lists what is supported. Builds up to v0.3.0+ called pages *kartes* and stored their content in *seites*. [Earlier terms](#earlier-terms) maps the old vocabulary.
+The model below is the deck → page → component model ([Q72](../architecture/questionnaire/answers/answers-06-data-and-semantics.md#q72)), with page-owned modules ([D02](../architecture/decisions/d02.md)) and content modules as parent modules with facets ([D08](../architecture/decisions/d08.md)). [Current scope](scope.md) lists what is supported. [Earlier terms](#earlier-terms) maps the vocabulary of earlier builds.
 
 ## Account
 
@@ -14,7 +14,7 @@ An **account** owns a collection of decks and pages and identifies which saved d
 
 A **deck** is the primary collection of pages, organized for a subject, language, project, source, or other purpose. Every page belongs to exactly one deck.
 
-A **deck configuration** defines the deck's settings: its name, its ordered **module instances** (the compulsory main key module, an optional Context module, and content module instances), and its view. The module instances are the template for new pages: creating a page gives it a copy of them. After that the page owns its modules, and the deck configuration no longer affects it. Changing the configuration changes only pages created afterwards.
+A **deck configuration** defines the deck's settings: its name, its ordered **module instances** (the compulsory main key module, an optional Context module, and content module instances), and its view. The module instances are the template for new pages: creating a page gives it a copy of them. After that the page owns its modules, and the deck configuration does not affect it. Changing the configuration changes only pages created afterwards.
 
 **Deck settings** is the interface for editing the configuration. The [deck configuration specification](../specs/decks-and-configuration.md) owns its rules and limits.
 
@@ -30,15 +30,15 @@ The **main key** is the required, editable text that supplies the page's generat
 
 The main key and the optional Context are the only text inputs for module generation. Module configuration determines what to produce from them. Changing the main key changes the input for subsequent generation, but does not start generation or change existing generated content. Editing another component does not change the main key.
 
-**Captured input** describes the text originally supplied through capture. Capture is an input origin, not a prerequisite for generation. The original selection does not override an edited main key on subsequent generation. Capture may also supply an optional **Context** (the surrounding block, capped): a stored input aid for re-deriving interpretation, not a semantic referent — see the direction note below.
+**Captured input** describes the text originally supplied through capture. Capture is an input origin, not a prerequisite for generation. The original selection does not override an edited main key on subsequent generation. Capture may also supply an optional **Context** (the surrounding block, capped): a stored input aid for reading the key, not a semantic referent — see the direction note below.
 
-An **input interpretation** identifies the input category of the main key used in a generation run: a word or phrase, or a sentence. It selects how each parent module's core and facets work. Interpretation must correspond to that run's input; it cannot reuse a stale classification from an earlier main key. It does not choose a source language: the language of a key is often ambiguous, so each parent module's generation reads it from the key ([D08](../architecture/traceability-map.md#entries)). Earlier releases also chose one source language per run. The [module specification](../specs/modules.md#input-and-applicability) defines the rules.
+A **reading** is how a content module understands the main key in one attempt: whether it is a word or phrase, or a sentence, its language and, where a module needs them, further decisions such as a German word's grammatical role. Each module reads the key in its own request and records the reading as **flags** in its core; no reading is shared by a run, and none is reused from an earlier main key. It does not choose a source language for the page: the language of a key is often ambiguous, so each parent module reads it from the key and Context ([D17](../architecture/decisions/d17.md)). The [module specification](../specs/modules.md#input-and-applicability) defines the rules.
 
 ### Direction: semantic continuity
 
 The vision's persistent semantic object refers to the page as the lasting home for captured material and its useful representations. It does not introduce an additional entity between a deck and its pages, identify every matching text as the same concept, or require a particular storage design.
 
-Preserving a chosen meaning or referent across future module runs is a product direction, not a current guarantee. Current interpretation does not establish a user-correctable, enduring semantic identity. Rules for richer contextual interpretation and semantic corrections remain open. A saved Context helps re-derive interpretation from the original surroundings but does not itself fix a referent. A manually created page has a main key even if it has no interpretation or generation attempt yet.
+Preserving a chosen meaning or referent across future module runs is a product direction, not a current guarantee. A reading does not establish a user-correctable, enduring semantic identity. Rules for richer contextual interpretation and semantic corrections remain open. A saved Context helps read the key from the original surroundings but does not itself fix a referent. A manually created page has a main key even if it has no reading or generation attempt yet.
 
 ## Component
 
@@ -52,9 +52,9 @@ After creation the user shapes the page freely. They can delete any component ex
 
 A component records the page's module instance that owns it. That ownership, not its position, identifies which instance produces or replaces it.
 
-A **Text component** is the user's own writing, owned by a Text module instance. Generation never creates, replaces, or removes it. Text modules replace the earlier manual components, which no module owned.
+A **Text component** is the user's own writing, owned by a Text module instance. Generation never creates, replaces, or removes it.
 
-A component's content is a versioned block document ([Q13](../architecture/questionnaire/answers/answers-03-frontend.md#q13)). Context and Text hold plain text, stored as paragraph blocks. Since D09 a parent module's component holds one typed block: the core's top line, then its core and each facet as markdown ([modules](../specs/modules.md#render-contracts)). A component can be empty; emptiness alone does not indicate a failed generation attempt. Components have no inherent subject or language; their meaning comes from the module that owns them or from what the user writes. A parent module's component holds its core followed by one entry per facet.
+A component's content is a versioned block document ([Q13](../architecture/questionnaire/answers/answers-03-frontend.md#q13)). Context and Text hold markdown. A parent module's component holds one typed block: the core's top line, then its core and each facet as markdown ([modules](../specs/modules.md#render-contracts)). A component can be empty; emptiness alone does not indicate a failed generation attempt. Components have no inherent subject or language; their meaning comes from the module that owns them or from what the user writes. A parent module's component holds its core followed by one entry per facet.
 
 ## Module type, instance, and output
 
@@ -66,15 +66,15 @@ Modules have three kinds:
 
 A **module type** defines one focused way to contribute content, such as displaying the selected text or generating an explanation. Some types use generative AI; others display input directly.
 
-A **parent module** has a required **core**, which applies to every word, phrase, and sentence, and **facets**: optional parts that each add one kind of content to the core, such as an article or examples. Each facet belongs to one parent module type, which fixes the order facets appear in. A facet exists only inside a parent of its type and is not a module instance. Variety comes from more parent types, not from options on a facet ([D08](../architecture/traceability-map.md#entries)). Since 0.8.0 the core is itself a facet, the first of every parent and one that cannot be removed, and a parent owns all its facets: two parents never share one, however alike, such as German and Chinese Examples ([D11](../architecture/traceability-map.md#entries)). Input modules have no facets yet, but may gain them.
+A **parent module** has a required **core**, which applies to every word, phrase, and sentence, and **facets**: optional parts that each add one kind of content to the core, such as an article or examples. Each facet belongs to one parent module type, which fixes the order facets appear in. A facet exists only inside a parent of its type and is not a module instance. Variety comes from more parent types, not from options on a facet. The core is itself a facet, the first of every parent and one that cannot be removed, and a parent owns all its facets: two parents never share one, however alike, such as German and Chinese Examples ([D11](../architecture/decisions/d11.md)). Input modules have no facets yet, but may gain them.
 
 A module's purpose, applicable inputs, supported options, and output behavior are product-defined. The [module specification](../specs/modules.md) describes the current catalog and the design contract for future additions. The **module catalog** defines every module type once, grouped by family, with its facets and their prompts ([generation architecture](../architecture/generation.md#module-catalog)). A module can serve different subjects or languages within its applicability; it need not apply to every input.
 
 A **module instance** is one placement of an input or content module type, with the facets chosen for it, either in a deck configuration, where it is a template for new pages, or on a page, where it owns one component. A deck or page holds at most 12 module instances, counting every module, including the main key, Context, and Text. Text and content module types may have several instances.
 
-**Applicability** means whether a facet is relevant to the input interpretation, such as an article only for a word. A parent's core always applies; a facet that does not apply contributes nothing and is not shown. Instances in one generation run share the input interpretation but evaluate their own facets. Several instances of one parent type generate independently.
+**Applicability** means whether a facet is relevant to the core's reading, such as an article only for a noun. A parent's core always applies; a facet that does not apply contributes nothing and is not shown. Several instances of one parent type generate independently.
 
-**Module output** is the content an instance contributes to its own component: its core and its applicable facets. A content module never changes another component. The user may edit a generated component's text with live formatting, never its top line; the edit lasts until the next retry of that component.
+**Module output** is the content an instance contributes to its own component: its core and its applicable facets. A content module never changes another component. The user may edit a generated component's text in a formatting editor, never its top line; the edit lasts until the next retry of that component.
 
 ## View
 
@@ -82,17 +82,17 @@ A page is data; a **view** is one way to show it, as in a Notion database. View 
 
 The **default view** module shows a page as its ordered component list. It needs no configuration and is always available, so every page has a view even when no other view module is used. It always shows the main key.
 
-Other view modules, such as a **card** view module that recreates the earlier karte design with a configurable layout, are later work. No term is defined for parts of a view; each view module's specification names its own settings.
+Other view modules, such as a **card** view module with a configurable layout, are later work. No term is defined for parts of a view; each view module's specification names its own settings.
 
-A **layout** is how a deck's page list shows its pages: List, Table, or Gallery ([pages and editing](../specs/pages-and-editing.md#page-list)). A layout lists many pages; a view shows one. Layouts are presentation choices remembered on each installation, not modules and not part of the deck configuration ([D05](../architecture/traceability-map.md#entries)).
+A **layout** is how a deck's page list shows its pages: List, Table, or Gallery ([pages and editing](../specs/pages-and-editing.md#page-list)). A layout lists many pages; a view shows one. Layouts are presentation choices remembered on each installation, not modules and not part of the deck configuration.
 
-A **module family** groups module types by what they contribute (Languages, Expertise, Meaning, Usage, Roots, Connections, Sound, Notes; Languages was called Translation until 0.8.0) and gives them their colour and icon ([modules](../specs/modules.md#module-families)). It is a property of the module type; it does not change what a module does.
+A **module family** groups module types by what they contribute (Languages, Expertise, Meaning, Usage, Roots, Connections, Sound, Notes) and gives them their colour and icon ([modules](../specs/modules.md#module-families)). It is a property of the module type; it does not change what a module does.
 
 ## Generation attempt and outcome
 
-A **generation attempt** is one evaluation of one content module instance, core and facets together, for one page. It produces or replaces that instance's component. It associates the target component, the main key and Context values and interpretation used, and the module configuration used.
+A **generation attempt** is one evaluation of one content module instance, core and facets together, for one page. It produces or replaces that instance's component. It associates the target component, the main key and Context values used, the reading it wrote, and the module configuration used.
 
-A **generation run** is one user or capture request that starts one or more attempts on the same page: all content components on capture, or one component on its card's **Generate** or **Retry**. The API also accepts every not-yet-generated component or every content component of a page in one run. Attempts in one run share one input interpretation.
+A **generation run** is one user or capture request that starts one or more attempts on the same page: all content components on capture, or one component on its card's **Retry**. The API also accepts every not-yet-generated component or every content component of a page in one run. Each attempt reads the key on its own.
 
 A **generation outcome** describes an attempt's state or result. Component content, generation outcome, and persistence are distinct: a saved page can have a failed component, a successfully evaluated component can be empty, and manually entered content does not establish generation success.
 
@@ -140,6 +140,6 @@ Use this mapping when reading history, releases, issues, and code that predate t
 | card view page, karte view page | opening a page ("Open page") |
 | card content page, karte content page | page editor |
 | manual component (0.4.x) | Text component, owned by a Text module (0.5.0) |
-| content module type with one modality (`German explanation`, `German explanation + examples`, `Sentence usage`) | parent module with a core and facets ([D08](../architecture/traceability-map.md#entries)); the three types are retired |
+| content module type with one modality (`German explanation`, `German explanation + examples`, `Sentence usage`) | parent module with a core and facets ([D08](../architecture/decisions/d08.md)) |
 
 The 0.3.0+ [terminology plan](../history/plans/v0.3.0-plus-terminology-migration.md) and [compatibility record](../history/architecture/terminology-compatibility.md) describe the earlier migration and are historical.
