@@ -4,7 +4,7 @@ import { createSpeechProvider } from './speech-providers.mjs';
 /** @import { AccountStore } from '../core/store.mjs' */
 /** @import { ClipKey } from '../core/store-records.js' */
 // What audio needs of a speech provider (D24); see SpeechProvider in speech.mjs.
-/** @typedef {{ synthesize(request: { text: string, language: string }, signal: AbortSignal, sessionId?: string): Promise<{ bytes: Buffer, mime: string, durationMs: number, model: string | null, voice: string | null }>, model?: string | null, apiKey?: string, diagnostic?: (event: Record<string, unknown>) => void }} AudioProvider */
+/** @typedef {{ synthesize(request: { text: string, language: string, part?: string }, signal: AbortSignal, sessionId?: string): Promise<{ bytes: Buffer, mime: string, durationMs: number, model: string | null, voice: string | null }>, model?: string | null, apiKey?: string, diagnostic?: (event: Record<string, unknown>) => void }} AudioProvider */
 /** @import { SpokenPart } from '@vocabularium/domain/spoken' */
 // Which parts of a published component are spoken, line by line, and in which language.
 /** @typedef {(moduleType: string, content: any, mainKey: string) => readonly SpokenPart[]} SpokenParts */
@@ -137,7 +137,8 @@ export class Audio {
       if (!clip || controller.signal.aborted) return;
       token = clip.token;
       this.record('started', key);
-      const audio = await this.provider.synthesize({ text: clip.text, language: clip.language }, controller.signal, key.pageId);
+      // The part names its voice, such as `german.pronunciation` (D24).
+      const audio = await this.provider.synthesize({ text: clip.text, language: clip.language, part: `${clip.module_type}.${key.part}` }, controller.signal, key.pageId);
       if (controller.signal.aborted) return;
       if (await this.store.finishClip(key, token, audio)) this.record('ready', key);
     } catch (/** @type {any} */ error) {

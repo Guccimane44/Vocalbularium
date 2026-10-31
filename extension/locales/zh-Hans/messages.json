@@ -393,5 +393,7 @@
   "audio.busy": "同时生成的音频过多，请重试。",
   "audio.notSpoken": "这种语言暂时无法朗读。",
   "audio.tooLong": "超过 500 个字符的词条不会朗读。",
-  "audio.retryNamed": "重新朗读“{text}”"
+  "audio.retryNamed": "重新朗读“{text}”",
+  "catalog.german.pronunciation.label": "发音",
+  "catalog.chinese.pronunciation.label": "发音"
 }

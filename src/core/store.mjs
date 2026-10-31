@@ -837,10 +837,13 @@ export class AccountStore {
   }
   // A waiting clip starts generating; null when it no longer waits. Its token
   // names this version of the clip for finishClip and failClip.
-  /** @param {ClipKey} key @returns {Promise<{ text: string, language: string, token: string } | null>} */
+  // Its module type names the part's voice.
+  /** @param {ClipKey} key @returns {Promise<{ text: string, language: string, token: string, module_type: string } | null>} */
   async claimClip({ pageId, componentId, part, line }) {
-    return this.database.transaction(async () => /** @type {{ text: string, language: string, token: string } | undefined} */ (await this.database.one(
-      "UPDATE component_audio SET state = 'generating' WHERE page_id = $1 AND component_id = $2 AND part = $3 AND line = $4 AND state = 'waiting' RETURNING text, language, token",
+    return this.database.transaction(async () => /** @type {{ text: string, language: string, token: string, module_type: string } | undefined} */ (await this.database.one(
+      `UPDATE component_audio a SET state = 'generating' FROM components c
+        WHERE a.page_id = $1 AND a.component_id = $2 AND a.part = $3 AND a.line = $4 AND a.state = 'waiting' AND c.page_id = a.page_id AND c.id = a.component_id
+        RETURNING a.text, a.language, a.token, c.module_type`,
       [pageId, componentId, part, line])) ?? null);
   }
   // A generating clip's audio, and the speech model and voice in its part's

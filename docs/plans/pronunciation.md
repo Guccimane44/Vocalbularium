@@ -131,7 +131,7 @@ export class SpeechProvider {
 
 - **Transport:** `POST https://api.elevenlabs.io/v1/text-to-speech/{voice_id}` with `xi-api-key`, body `{ text, model_id, language_code }`, `output_format=mp3_44100_128`.
 - **Model (K69, owner 30 October 2026):** Eleven v4 Turbo, `model_id: "eleven_v4_turbo"`. ElevenLabs' [model documentation](https://elevenlabs.io/docs/models) (checked 30 October 2026) lists it for low latency, with 90+ languages and `language_code` (ISO 639-1) accepted; `SPOKEN_LANGUAGES` is taken from that list.
-- **Configuration:** `SPEECH_PROVIDER=elevenlabs`, `ELEVENLABS_API_KEY`, `ELEVENLABS_MODEL` (`eleven_v4_turbo` by default) and one voice per language, `ELEVENLABS_VOICES` (a JSON map of language code to voice ID with a default). One pinned speech model at a time, beside the one pinned text model (C32).
+- **Configuration:** `SPEECH_PROVIDER=elevenlabs`, `ELEVENLABS_API_KEY`, `ELEVENLABS_MODEL` (`eleven_v4_turbo` by default) and one voice per language, `ELEVENLABS_VOICES` (a JSON map of voice IDs, by part such as `german.pronunciation` first, then by language, then `default`). One pinned speech model at a time, beside the one pinned text model (C32).
 - **Shared with text:** the timeout, cancellation, diagnostics events and error codes. A missing key is `provider_unconfigured`, an exhausted quota or plan limit `provider_refused`, any other HTTP error `provider_response`, a reply that is not audio `provider_invalid`. The key joins the diagnostic secrets in `start.mjs`. Diagnostics record the text's length, the language and the voice, never the audio.
 - **No caching** (owner decision 2).
 

@@ -11,15 +11,17 @@ import { failure } from './provider.mjs';
 const TIMEOUT = 60000;
 
 export class SpeechProvider {
-  // The voice for a language: its own, or the default.
-  /** @param {string} language */
-  voiceFor(language) { return this.voices?.[language] ?? this.voices?.default ?? null; }
+  // The voice for a clip: the one named for the part that speaks it, such as
+  // `german.pronunciation`, else the language's own, else the default. So a
+  // module's facet can have a native voice while another part keeps the default.
+  /** @param {string} language @param {string} [part] */
+  voiceFor(language, part) { return (part && this.voices?.[part]) || this.voices?.[language] || this.voices?.default || null; }
   // One clip of `text` spoken in `language` (an ISO 639-1 code): its bytes,
   // MIME type and duration in milliseconds, with the model and voice that spoke it.
-  /** @param {{ text: string, language: string }} request @param {AbortSignal} [signal] @param {string} [sessionId] */
-  async synthesize({ text, language }, signal, sessionId = randomUUID()) {
+  /** @param {{ text: string, language: string, part?: string }} request @param {AbortSignal} [signal] @param {string} [sessionId] */
+  async synthesize({ text, language, part }, signal, sessionId = randomUUID()) {
     const started = performance.now();
-    const voice = this.voiceFor(language);
+    const voice = this.voiceFor(language, part);
     // Diagnostics record the text's length, the language and the voice, never the audio.
     const trace = (event, extra = {}) => {
       try { this.diagnostic?.({ event, phase: 'speech', pageId: sessionId, model: this.model, language, voice, textLength: text.length, ...extra }); }

@@ -393,5 +393,7 @@
   "audio.busy": "Слишком много аудио сразу. Повторите попытку.",
   "audio.notSpoken": "Этот язык пока нельзя озвучить.",
   "audio.tooLong": "Ключи длиннее 500 символов не озвучиваются.",
-  "audio.retryNamed": "Произнести «{text}» снова"
+  "audio.retryNamed": "Произнести «{text}» снова",
+  "catalog.german.pronunciation.label": "Произношение",
+  "catalog.chinese.pronunciation.label": "Произношение"
 }

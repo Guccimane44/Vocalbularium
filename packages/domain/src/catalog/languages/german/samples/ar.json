@@ -56,7 +56,10 @@
             ]
           }
         ]
-      }
+      },
+      "pronunciation": [
+        "die Sprache"
+      ]
     }
   },
   "sentence": {
@@ -75,6 +78,9 @@
           "sentence": "الصداقات هي الجسور التي تربط الناس ببعضهم.",
           "translation": "Freundschaften sind die Brücken, die Menschen miteinander verbinden."
         }
+      ],
+      "pronunciation": [
+        "Sprachen sind die Brücken, die Menschen mit der Welt verbinden."
       ]
     }
   }

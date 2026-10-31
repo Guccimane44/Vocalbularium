@@ -305,8 +305,12 @@ test('a Pronunciation card speaks the saved main key in its language, and nothin
   assert.deepEqual(spokenParts('pronunciation', card('de'), '  Gift\n'), [{ part: 'core', language: 'de', lines: ['Gift'] }],
     'the page\'s main key, never the key as the model wrote it');
   assert.deepEqual(spokenParts('pronunciation', card('other'), 'carpe diem'), []);
-  assert.deepEqual(spokenParts('german', parentDocument(formatContent('german', { core: { kind: 'word', language: 'Englisch', key: 'bank', meanings: ['Ufer'] }, facets: {} })), 'bank'), [],
-    'no German part is spoken until increment 3');
+  const german = facets => parentDocument(formatContent('german', { core: { kind: 'word', language: 'Englisch', key: 'bank', meanings: ['Geldinstitut', 'Ufer'] }, facets }));
+  assert.deepEqual(spokenParts('german', german({}), 'bank'), [], 'a German card without Pronunciation speaks nothing');
+  assert.deepEqual(spokenParts('german', german({ pronunciation: ['die Bank', 'das Ufer'], synonyms: ['Geldhaus'] }), 'bank'),
+    [{ part: 'pronunciation', language: 'de', lines: ['die Bank', 'das Ufer'] }], 'its Pronunciation facet, one clip per line, in German');
+  const chinese = parentDocument(formatContent('chinese', { core: { kind: 'word', language: '英语', key: 'bank', meanings: ['银行', '河岸'] }, facets: { pronunciation: ['银行', '河岸'] } }));
+  assert.deepEqual(spokenParts('chinese', chinese, 'bank'), [{ part: 'pronunciation', language: 'zh', lines: ['银行', '河岸'] }]);
   const { headingOf } = await import('@vocabularium/domain/render');
   const { parentContentOf } = await import('@vocabularium/domain/content');
   assert.equal(headingOf('pronunciation', parentContentOf(card('de')), 'en').language, 'German');
@@ -343,4 +347,27 @@ test('a second Pronunciation cannot join a page that has one', async () => {
   const { addBlockedReason } = await import('@vocabularium/domain/page-modules');
   assert.equal(addBlockedReason([{ type: 'main-key' }, { type: 'pronunciation' }], 'pronunciation'), 'single');
   assert.equal(addBlockedReason([{ type: 'main-key' }], 'pronunciation'), null);
+});
+
+test('a part\'s own voice comes first, then its language\'s, then the default (D24)', async t => {
+  const { fetchImpl, calls } = stubFetch(() => new Response(Buffer.alloc(1600, 1), { status: 200, headers: { 'content-type': 'audio/mpeg' } }));
+  const provider = new ElevenLabsProvider({ apiKey: 'key', fetchImpl,
+    voices: { default: 'any', de: 'german-voice', 'german.pronunciation': 'native-de', 'chinese.pronunciation': 'native-zh' } });
+  const voice = async request => { await provider.synthesize(request); return calls.at(-1).url.match(/text-to-speech\/([^?]+)/)[1]; };
+  assert.equal(await voice({ text: 'die Bank', language: 'de', part: 'german.pronunciation' }), 'native-de');
+  assert.equal(await voice({ text: '银行', language: 'zh', part: 'chinese.pronunciation' }), 'native-zh');
+  assert.equal(await voice({ text: 'Gift', language: 'de', part: 'pronunciation.core' }), 'german-voice', 'a part without its own voice: its language\'s');
+  assert.equal(await voice({ text: 'gift', language: 'en', part: 'pronunciation.core' }), 'any');
+
+  // The audio job names the part: module type and part.
+  const store = await createTestStore(t);
+  const { page, german } = await germanPage(store);
+  const speech = new FakeSpeechProvider();
+  speech.voices = { default: 'any', 'german.pronunciation': 'native-de' };
+  const audio = await Audio.create(store, speech);
+  t.after(() => audio.close());
+  await audio.speak(page.id, german.id, 'pronunciation', ['die Bank'], 'de');
+  await settled(store, page.id);
+  assert.deepEqual(speech.calls, [{ text: 'die Bank', language: 'de', voice: 'native-de' }]);
+  assert.equal((await store.generationRecords(page.id))[german.id]?.pronunciation, undefined, 'no record without its text attempt');
 });

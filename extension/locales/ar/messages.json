@@ -393,5 +393,7 @@
   "audio.busy": "الكثير من الصوت في وقت واحد. حاول مرة أخرى.",
   "audio.notSpoken": "لا يمكن نطق هذه اللغة بعد.",
   "audio.tooLong": "لا تُنطق المفاتيح التي تزيد على 500 حرف.",
-  "audio.retryNamed": "انطق {text} مرة أخرى"
+  "audio.retryNamed": "انطق {text} مرة أخرى",
+  "catalog.german.pronunciation.label": "النطق",
+  "catalog.chinese.pronunciation.label": "النطق"
 }

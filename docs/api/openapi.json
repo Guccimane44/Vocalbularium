@@ -3057,7 +3057,7 @@
                                     "type": "string",
                                     "minLength": 1
                                   },
-                                  "maxItems": 8
+                                  "maxItems": 12
                                 }
                               },
                               "additionalProperties": false
@@ -3401,7 +3401,7 @@
                                     "type": "string",
                                     "minLength": 1
                                   },
-                                  "maxItems": 8
+                                  "maxItems": 12
                                 }
                               },
                               "additionalProperties": false
@@ -4177,6 +4177,10 @@
                                               "code": {
                                                 "type": "string",
                                                 "maxLength": 8000
+                                              },
+                                              "pronunciation": {
+                                                "type": "string",
+                                                "maxLength": 8000
                                               }
                                             },
                                             "additionalProperties": false
@@ -4708,6 +4712,10 @@
                                                 "maxLength": 8000
                                               },
                                               "code": {
+                                                "type": "string",
+                                                "maxLength": 8000
+                                              },
+                                              "pronunciation": {
                                                 "type": "string",
                                                 "maxLength": 8000
                                               }
