@@ -17,6 +17,12 @@
     "packages/domain/src/**/*.ts",
     "src/core/store-records.ts",
     "src/core/store.mjs",
+    "src/core/store-common.mjs",
+    "src/core/store-sessions.mjs",
+    "src/core/store-decks.mjs",
+    "src/core/store-pages.mjs",
+    "src/core/store-generation.mjs",
+    "src/core/store-audio.mjs",
     "src/server/routes.mjs",
     "src/server/generation.mjs",
     "types/editor-drafts.ts",
@@ -32,6 +38,7 @@
     "extension/dashboard.tsx",
     "extension/configuration.tsx",
     "extension/page-view.tsx",
+    "extension/card-content.tsx",
     "src/persistence/**/*.ts",
     "drizzle.config.ts"
   ]
