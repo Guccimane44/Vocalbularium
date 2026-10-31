@@ -1,17 +1,28 @@
 ---
 name: vocabularium-change
-description: "Scope and track incremental Vocabularium changes through specifications, GitHub issues, and PRs. Use when planning or implementing a requested product change, or updating its progress; not for unrelated repositories or a standalone test/package check."
+description: "Take a Vocabularium request in, scope it as an increment, and track it through specifications, GitHub issues, and PRs. Use when planning or implementing a requested product change, or updating its progress; not for unrelated repositories or a standalone test/package check."
 ---
 
 # Vocabularium Change
 
 Turn the requested increment into a reviewable change against the current working product. Paths below are relative to the repository root; locate it from the current checkout, not from a personal filesystem path.
 
+## Take the request in
+
+The owner's requests are often short and casual. Before changing anything, restate the request as an intake and get the owner's confirmation:
+
+- **Before and after:** what the user sees or what the system does now, and what it should do instead, in the product model's terms.
+- **Acceptance criteria:** observable checks, each one something a test, a screenshot or a browser journey can show.
+- **Where it goes:** the files, modules or journeys it touches, from the architecture map in `AGENTS.md`, and whether it is polish within the milestone or a decision with a D-number ([what gets a D-number](../../../docs/guides/project-workflow.md#from-decisions-to-iterations)).
+- **Questions:** only where the request is genuinely ambiguous and a sensible default would risk the wrong result; otherwise state the default you take.
+
+Keep it short. When the owner confirms, the intake's criteria become the issue's or plan's acceptance checklist. A request that already reads as an intake, or a fix whose before and after are evident, needs no separate confirmation.
+
 ## Establish the change
 
-Read `AGENTS.md` and the documents relevant to the requested change. The [product model](../../../docs/product/model.md) defines deck → page → component; use those terms in current issues, PRs and specifications. Karte and seite are earlier terms; they remain only in history, migrations and upgrade fixtures. The [current scope](../../../docs/product/scope.md) distinguishes supported behavior from accepted requirements pending implementation and longer-term deferrals; a requirement in a specification is not evidence that the capability exists. Treat the current implementation as the baseline. A milestone plan selects accepted capabilities from scope; a new product or architecture decision that changes a specification first gets a traceability-map row ([from decisions to iterations](../../../docs/guides/project-workflow.md#from-decisions-to-iterations)).
+Read `AGENTS.md`, whose architecture map says where each kind of change goes and what guards it, and the documents relevant to the requested change. Use the [product model](../../../docs/product/model.md)'s terms in current issues, PRs and specifications. The [current scope](../../../docs/product/scope.md) distinguishes supported behavior from accepted requirements pending implementation and longer-term deferrals; a requirement in a specification is not evidence that the capability exists. Treat the current implementation as the baseline. A milestone plan selects accepted capabilities from scope; a new product or architecture decision that changes a specification first gets a traceability-map row ([from decisions to iterations](../../../docs/guides/project-workflow.md#from-decisions-to-iterations)).
 
-Describe the requested before/after behavior, affected interactions, and observable acceptance criteria. Keep unrelated deferred features out of the increment; an explicit owner request can change earlier scope. Update the relevant specification when behavior intentionally changes. Use [capture and generation](../../../docs/specs/capture-and-generation.md) for capture, completion, interruption, retry, and save recovery, and the [module specification](../../../docs/specs/modules.md) for applicability and generation input. Link to those rules rather than duplicating them.
+Keep unrelated deferred features out of the increment; an explicit owner request can change earlier scope. Update the relevant specification when behavior intentionally changes. Use [capture and generation](../../../docs/specs/capture-and-generation.md) for capture, completion, interruption, retry, and save recovery, and the [module specification](../../../docs/specs/modules.md) for applicability and generation input. Link to those rules rather than duplicating them.
 
 For persistence or operating-environment changes, read the [local PostgreSQL guide](../../../docs/architecture/local-postgresql.md). The supported backend uses PostgreSQL and loopback binding; the earlier Render/SQLite deployment is retired. Preserve applied migrations and add reviewed migrations for new schema changes. Upgrades keep accounts, sign-in, and existing decks and pages unless the owner decides otherwise; [scope](../../../docs/product/scope.md#upgrade-from-earlier-builds) records each release's upgrade behavior.
 

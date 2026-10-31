@@ -20,6 +20,8 @@ Link between records. Keep the complete plan, specification, test output, and pa
 
 Product and architecture decisions reach the product through one path. A routine fix that changes no specification skips it.
 
+**What gets a D-number.** A change to the product model, the architecture or a contract (stored data, an API payload, the catalog's structure) is a decision and takes the path below. Interface polish and refinements within the existing model (wording, layout, motion, a card's or window's look, a fix) do not: they are collected in the milestone's plan as one batch, each item with its acceptance criteria, and the specifications they touch are updated in the same change. When unsure, treat it as polish and say so in the plan; the owner can promote it to a decision ([working-process decision](https://app.notion.com/p/40abb13502088151b599cad650c77bc7), 31 October 2026).
+
 1. **Decide.** A decision can come from the [system-design questionnaire](../architecture/questionnaire/00-overview.md), a direct owner decision, an issue or feature request, or a verification or delivery finding. Record its rationale where it is made: a questionnaire answer, or a Notion decision record linked to its source.
 2. **Enter the traceability map.** The [traceability map](../architecture/traceability-map.md) is the entry gate. Every decision that changes a specification gets a D-number (D01, D02, …), following [adding an entry](../architecture/traceability-map.md#adding-an-entry): its full text (source, decision, affected documents, open items) in its own file under `docs/architecture/decisions/`, and one line in the map with its date, a one-sentence summary, the affected documents, the Notion record and its status. Conflicts and clarifications found against the existing entries get one line each in the map and their full text beside the decisions. A batch of related decisions, such as the questionnaire pass (Q01–Q72), gets one line and keeps its per-decision detail in its own file. Resolve the open items before acceptance.
 3. **Accept.** The owner moves the Notion decision record to `Accepted` with its decision date. A `Proposed` decision does not enter the specifications.
@@ -27,6 +29,17 @@ Product and architecture decisions reach the product through one path. A routine
 5. **Plan an iteration.** A plan in `docs/plans/` selects accepted capabilities from the ledger for one milestone, defines increments and acceptance criteria, and links one GitHub tracker issue. It points to the specification sections instead of restating them. Once its release ships, the plan moves to `docs/history/plans/`; `docs/plans/` holds only live plans.
 6. **Build and verify** each increment with the Change and Verify skills.
 7. **Close the loop.** When a release ships a capability, mark it `implemented` in scope, mark its map line and decision file (or batch rows) `implemented` with the release, and move the Notion decision record to `Implemented`.
+
+## Milestone review
+
+The owner reviews a milestone once, at its end, from one **review packet** posted on its tracker issue:
+
+- screenshots of every screen the milestone changed, in both themes and every interface language, before and after;
+- the golden-set output diffs for every prompt the milestone changed;
+- the test evidence: suites and counts, the journeys exercised, what was mocked;
+- known gaps and anything left unverified.
+
+The owner's feedback comes back as one batch; small corrections join the milestone, larger ones become the next milestone's items. Increments within a milestone merge when their CI is green, without a review of their own unless the plan asks for one.
 
 The next iteration starts again at step 5. Go back to step 1 only for a new or reopened decision. The questionnaire is a one-time pass: reopen it when one of its answers is revisited or a parked area, such as the module brief, starts.
 
