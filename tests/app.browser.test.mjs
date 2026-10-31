@@ -3528,7 +3528,9 @@ test('0.9.0: the interface in each language: picked from Language, saved to the 
   const [german] = (await store.page(pageId)).components.filter(item => item.moduleType === 'german');
   await store.stage(german.attemptId, staged(BANK));
   await store.publish('languages-publish', { attemptId: german.attemptId, session });
-  const catalogue = async code => JSON.parse(await readFile(`extension/locales/${code}/messages.json`, 'utf8'));
+  // A language's messages with its modules' names from the catalog (D25), as the extension merges them.
+  const { catalogNames } = await import('@vocabularium/domain/about');
+  const catalogue = async code => ({ ...JSON.parse(await readFile(`extension/locales/${code}/messages.json`, 'utf8')), ...catalogNames(code) });
   const english = await catalogue('en');
   await signIn(a.page);
 
