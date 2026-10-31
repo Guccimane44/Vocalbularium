@@ -57,7 +57,7 @@ alone decides (D25). The full rules are in the
 | --- | --- | --- |
 | A module, facet or prompt | its catalog folder | `tests/catalog.test.mjs`, `tests/prompts.test.mjs` (`UPDATE_PROMPTS=1` after a deliberate change), `tests/localisation.test.mjs`, golden sets (`npm run smoke:generation`, live) |
 | Stored shape or API | `packages/contracts`, `migrations/`, `src/core/` | `tests/postgres.test.mjs`, `tests/upgrade.test.mjs`, `tests/server.test.mjs` |
-| Generation, Retry, recovery | `src/server/generation.mjs`, `src/core/store-generation.mjs` | `tests/generation.test.mjs`, `tests/browser/reliability.test.mjs` |
+| Generation, Retry, recovery | `src/server/generation.mjs`, `src/core/store-generation.mjs` | `tests/generation.test.mjs`, `tests/generation-recovery.test.mjs`, `tests/opencode.test.mjs`, `tests/browser/reliability.test.mjs` |
 | A page, card or deck interaction | `extension/` | `tests/extension.test.mjs`, the journey files in `tests/browser/` |
 | Interface strings | `extension/locales/` | `tests/localisation.test.mjs`, `tests/browser/localisation.test.mjs` |
 
