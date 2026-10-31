@@ -143,9 +143,9 @@ export class SpeechProvider {
 
 ## Storage and API
 
-- **Migration `0018`** adds `component_audio`: component, facet, line index, MIME type, duration, bytes (`bytea`), created at, deleted with its component. Earlier components have none.
+- **Migration `0018`** adds `component_audio`: component, part (the core or a facet), line index, the text and language to speak, a token naming the clip's current version, its state and error, MIME type, duration, bytes (`bytea`), created at, deleted with its component. Earlier components have none.
 - **The generation record** of an audio facet adds the speech part: `{ "pronunciation": { "model": "deepseek-v4.1-flash", "prompt": "…", "speech": { "model": "<pinned>", "voice": "<voice id>" } } }`.
-- **API:** the component's response lists each clip's state (`waiting`, `generating`, `ready`, `failed` with its error code) and URL; `GET /pages/{id}/components/{id}/audio/{facet}/{line}` returns the MP3 for the signed-in owner; `POST …/audio/{facet}/{line}/retry` starts a clip again. The OpenAPI reference is regenerated.
+- **API:** `GET /api/pages/{pageId}/audio` lists the page's clips, each with its state (`waiting`, `generating`, `ready`, `failed` with its error code) and, when ready, its duration and URL, so the page's own response is unchanged; `GET /api/pages/{pageId}/audio/{componentId}/{part}/{line}` returns the MP3 for the signed-in owner; `POST …/retry` starts a clip again. The OpenAPI reference is regenerated.
 - **Upgrade:** accounts, decks and pages stay; no audio is generated for earlier pages until the user adds the module or facet, or uses Retry.
 
 ## Increments

@@ -91,6 +91,22 @@ export const componentAttempts = pgTable('component_attempts', {
   index('component_attempts_session_state').on(table.installation_id, table.session_id, table.state),
   index('component_attempts_page_state').on(table.page_id, table.state), index('component_attempts_run').on(table.run_id),
   check('component_attempt_state', sql`${table.state} in ('loading', 'completed', 'failed')`)]);
+// Spoken parts' audio (D24, 0.14.0): one clip per spoken line of a component's
+// part (the core or a facet), with its own state, deleted with its component.
+// The text and language are kept so a clip can be spoken again; never cached.
+// The token changes whenever the clip waits anew, so a job started for an
+// earlier version of it cannot store its audio.
+export const componentAudio = pgTable('component_audio', {
+  page_id: text().notNull(), component_id: text().notNull(), part: text().notNull(), line: integer().notNull(),
+  text: text().notNull(), language: text().notNull(), token: text().notNull(), state: text().notNull().default('waiting'), error: text(),
+  mime: text(), duration_ms: integer(), bytes: bytea(), created_at: text().notNull()
+}, table => [primaryKey({ columns: [table.page_id, table.component_id, table.part, table.line] }),
+  foreignKey({ columns: [table.page_id, table.component_id], foreignColumns: [components.page_id, components.id] }).onDelete('cascade'),
+  index('component_audio_state').on(table.state),
+  check('component_audio_line', sql`${table.line} >= 0`),
+  check('component_audio_state', sql`${table.state} in ('waiting', 'generating', 'ready', 'failed')`),
+  // A ready clip has its audio; no other state has any.
+  check('component_audio_ready', sql`(${table.state} = 'ready') = (${table.bytes} IS NOT NULL AND ${table.mime} IS NOT NULL AND ${table.duration_ms} IS NOT NULL)`)]);
 // One-time conversions of stored content (D10, amended a fourth time), each
 // recorded by name once applied, so `npm run db:migrate` runs it only once.
 export const dataMigrations = pgTable('data_migrations', {

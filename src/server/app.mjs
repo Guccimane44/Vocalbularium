@@ -4,6 +4,7 @@ import { randomUUID } from 'node:crypto';
 import { AccountStore, StoreError } from '../core/store.mjs';
 import { Authentication } from './auth.mjs';
 import { Generation } from './generation.mjs';
+import { Audio } from './audio.mjs';
 import { apiFailure } from './api-failure.mjs';
 import { registerRoutes } from './routes.mjs';
 import { Diagnostics, diagnosticContext } from './diagnostics.mjs';
@@ -44,7 +45,7 @@ function requestFailure(error, request) {
   return { status: 500, value: apiFailure('The save could not be completed. Try again.', 'server_error') };
 }
 
-export async function createApplication({ databaseUrl, outbox, accountId = 1, authOptions, provider, generationOptions, diagnostics = new Diagnostics(), logger = false, documentationOnly = false } = {}) {
+export async function createApplication({ databaseUrl, outbox, accountId = 1, authOptions, provider, generationOptions, speechProvider, audioOptions, diagnostics = new Diagnostics(), logger = false, documentationOnly = false } = {}) {
   const emit = event => diagnostics.emit({ ...diagnosticContext.getStore(), ...event });
   let store;
   try { store = documentationOnly ? null : await AccountStore.open({ databaseUrl, outbox, accountId, diagnostic: emit }); }
@@ -53,7 +54,7 @@ export async function createApplication({ databaseUrl, outbox, accountId = 1, au
     await diagnostics.close(); throw error;
   }
   const authentication = documentationOnly ? null : new Authentication(store.database, authOptions);
-  let generation;
+  let generation, audio;
   try {
     await authentication?.initialize();
     generation = documentationOnly ? null : await Generation.create(store, provider, { ...generationOptions, emit,
@@ -62,6 +63,9 @@ export async function createApplication({ databaseUrl, outbox, accountId = 1, au
         outcome: event.event === 'failed' || event.category === 'failed' ? 'failed' : event.event === 'rejected' ? 'rejected' : event.category === 'canceled' ? 'canceled' : ['settled', 'staged'].includes(event.event) ? 'succeeded' : 'started' });
         generationOptions?.diagnostic?.(event); } });
     if (generation) { generation.provider.diagnostic = emit; diagnostics.addSecret(generation.provider.apiKey); }
+    // Spoken parts' audio (D24): its own jobs and limits beside the text attempts.
+    audio = documentationOnly ? null : await Audio.create(store, speechProvider, { ...audioOptions, emit });
+    if (audio) { audio.provider.diagnostic = emit; diagnostics.addSecret(audio.provider.apiKey); }
   } catch (error) {
     emit({ event: 'process.failed', outcome: 'failed', severity: 'error', phase: 'initialize', errorType: error.name, errorCode: error.code });
     await store?.close(); await diagnostics.close(); throw error;
@@ -226,7 +230,7 @@ export async function createApplication({ databaseUrl, outbox, accountId = 1, au
   });
 
   fastify.register(async api => {
-    registerRoutes(api, { store, authentication, generation });
+    registerRoutes(api, { store, authentication, generation, audio });
     registerDiagnosticRoutes(api, diagnostics);
 
     // Keep authenticated POSTs to unknown paths on the same JSON parsing and error path.
@@ -248,6 +252,7 @@ export async function createApplication({ databaseUrl, outbox, accountId = 1, au
     store,
     authentication,
     generation,
+    audio,
     diagnostics,
     server: fastify.server,
     log: fastify.log,
@@ -265,6 +270,7 @@ export async function createApplication({ databaseUrl, outbox, accountId = 1, au
       for (const socket of activeRequests.keys()) release(socket);
       await closed;
       await generation?.close();
+      await audio?.close();
       await store?.close();
       emit({ event: 'process.stopping', outcome: 'succeeded' });
       await diagnostics.close();

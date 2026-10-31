@@ -127,6 +127,13 @@
       "when": 1793149776135,
       "tag": "0017_fresh_start_one_request",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1793372513430,
+      "tag": "0018_speech_audio",
+      "breakpoints": true
     }
   ]
 }

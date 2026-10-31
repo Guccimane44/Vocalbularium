@@ -63,8 +63,13 @@ export type AttemptModule = ModuleInstance & Readonly<{
   previous?: Readonly<Record<string, unknown>>;
 }>;
 // The model and prompt version that produced a part of a component (D11).
-export type GenerationEntry = Readonly<{ model: string | null; prompt: string }>;
+// From 0.14.0 a spoken part's entry adds the speech model and voice that spoke it (D24).
+export type GenerationEntry = Readonly<{ model: string | null; prompt: string; speech?: Readonly<{ model: string | null; voice: string | null }> }>;
 export type GenerationRecord = Readonly<Record<string, GenerationEntry>>;
 // A provider result staged on its attempt, structured content when it succeeded (D09).
 export type AttemptResult = Readonly<{ ok: boolean; content?: unknown; generation?: GenerationEntry }>;
 export type Attempt = Omit<AttemptRow, 'module' | 'result'> & Readonly<{ module: AttemptModule; result: AttemptResult | null }>;
+// One clip of a spoken part (D24), by its component, part and line.
+export type ClipKey = Readonly<{ pageId: string; componentId: string; part: string; line: number }>;
+export type ClipState = 'waiting' | 'generating' | 'ready' | 'failed';
+export type ClipRow = Readonly<{ component_id: string; part: string; line: number; state: ClipState; error: string | null; duration_ms: number | null }>;

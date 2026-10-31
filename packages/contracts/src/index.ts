@@ -102,3 +102,4 @@ export type PollRequest = Type.Static<typeof PollRequestSchema>;
 export type PublishRequest = Type.Static<typeof PublishRequestSchema>;
 
 export * from './pages.js';
+export * from './audio.js';
