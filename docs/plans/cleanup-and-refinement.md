@@ -6,8 +6,8 @@ Approved by the owner on 31 October 2026 (Europe/Berlin). Two milestones before 
 
 The work in flight lands first, so the cleanup starts from one settled `main`:
 
-- **0.13.3** ([#255](https://github.com/Guccimane44/Vocalbularium/pull/255)) and the **0.14.0** increments ([#257](https://github.com/Guccimane44/Vocalbularium/pull/257)–[#260](https://github.com/Guccimane44/Vocalbularium/pull/260)) were merged on 31 October 2026. The 0.14.0 release ([#261](https://github.com/Guccimane44/Vocalbularium/pull/261)) merges after the owner's listening review.
-- **Release trackers** 0.7.0 to 0.13.3 were closed by the owner on 31 October 2026; the 0.14.0 tracker ([#256](https://github.com/Guccimane44/Vocalbularium/issues/256)) closes with its release.
+- **0.13.3** ([#255](https://github.com/Guccimane44/Vocalbularium/pull/255)) and the **0.14.0** increments ([#257](https://github.com/Guccimane44/Vocalbularium/pull/257)–[#260](https://github.com/Guccimane44/Vocalbularium/pull/260)) and the 0.14.0 release ([#261](https://github.com/Guccimane44/Vocalbularium/pull/261)) were merged on 31 October 2026.
+- **Release trackers** 0.7.0 to 0.13.3 were closed by the owner on 31 October 2026; the 0.14.0 tracker ([#256](https://github.com/Guccimane44/Vocalbularium/issues/256)) closed with its release.
 
 ## Starting point
 
