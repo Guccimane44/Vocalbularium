@@ -1,6 +1,6 @@
 # Plan: facets chosen on the parent, and explanations (0.8.1)
 
-Proposed: 22 October 2026 (Europe/Berlin). Implemented in release 0.8.1 (increments A and B, [#204](https://github.com/Guccimane44/Vocalbularium/pull/204) and [#205](https://github.com/Guccimane44/Vocalbularium/pull/205)); owner acceptance is recorded on the tracker. Implements [D13](../architecture/traceability-map.md#entries), accepted by the owner on 22 October 2026 and applied to the specifications in [#202](https://github.com/Guccimane44/Vocalbularium/pull/202), together with [D14](../architecture/traceability-map.md#entries), which this milestone does not build. Tracker: [#203](https://github.com/Guccimane44/Vocalbularium/issues/203); milestone in [Actual Stages](https://app.notion.com/p/401bb1350208813c886dde8014d5ed17).
+Proposed: 22 October 2026 (Europe/Berlin). Implemented in release 0.8.1 (increments A and B, [#204](https://github.com/Guccimane44/Vocalbularium/pull/204) and [#205](https://github.com/Guccimane44/Vocalbularium/pull/205)); owner acceptance is recorded on the tracker. Implements [D13](../../architecture/traceability-map.md#entries), accepted by the owner on 22 October 2026 and applied to the specifications in [#202](https://github.com/Guccimane44/Vocalbularium/pull/202), together with [D14](../../architecture/traceability-map.md#entries), which this milestone does not build. Tracker: [#203](https://github.com/Guccimane44/Vocalbularium/issues/203); milestone in [Actual Stages](https://app.notion.com/p/401bb1350208813c886dde8014d5ed17).
 
 ## Outcome
 
@@ -12,13 +12,13 @@ A parent's facets are chosen on the parent itself: **Facet** among its actions, 
 
 Recorded in D13 on 22 October 2026, with the proposed defaults of K31–K34, and applied to the specifications:
 
-1. **Facet** stands between **Retry** and **Fold** on a parent's card and before **Remove** in deck settings, disabled while the parent generates or its card is edited ([pages and editing](../specs/pages-and-editing.md#components-as-cards)).
-2. **The facet window** is a popover below the tab: one row per facet of the module, the core excepted, in the module's order, with a tick; ticking or unticking applies at once (in deck settings to the draft) and the window stays open; unticking a facet with content asks in its row. Facets that do not apply to the page's key are listed too ([facet window](../specs/pages-and-editing.md#facet-window)).
-3. **The module window** lists no facets, has no facet drag, **+** or search, and no **Already here**; ghost tags are retired ([shared UI](../specs/shared-ui.md#module-window)).
-4. **Explanations:** a markdown file beside each module's and facet's definition in the catalog, in English; the sample is the module's existing `sample.json`, a facet showing its part. A module's opens from **About …** below its **+**, in a dialog; a facet's from an **ⓘ** on its row, expanding beneath it ([explanations](../specs/modules.md#explanations), [generation architecture](../architecture/generation.md#module-catalog)).
+1. **Facet** stands between **Retry** and **Fold** on a parent's card and before **Remove** in deck settings, disabled while the parent generates or its card is edited ([pages and editing](../../specs/pages-and-editing.md#components-as-cards)).
+2. **The facet window** is a popover below the tab: one row per facet of the module, the core excepted, in the module's order, with a tick; ticking or unticking applies at once (in deck settings to the draft) and the window stays open; unticking a facet with content asks in its row. Facets that do not apply to the page's key are listed too ([facet window](../../specs/pages-and-editing.md#facet-window)).
+3. **The module window** lists no facets, has no facet drag, **+** or search, and no **Already here**; ghost tags are retired ([shared UI](../../specs/shared-ui.md#module-window)).
+4. **Explanations:** a markdown file beside each module's and facet's definition in the catalog, in English; the sample is the module's existing `sample.json`, a facet showing its part. A module's opens from **About …** below its **+**, in a dialog; a facet's from an **ⓘ** on its row, expanding beneath it ([explanations](../../specs/modules.md#explanations), [generation architecture](../../architecture/generation.md#module-catalog)).
 5. **Claude drafts the explanation texts; the owner reviews them** before release.
 
-D14 (English first, localised for 1.0) only sets the language of the explanations here; localisation itself is planned in a later release ([K35](../architecture/traceability-map.md#clarifications)).
+D14 (English first, localised for 1.0) only sets the language of the explanations here; localisation itself is planned in a later release ([K35](../../architecture/traceability-map.md#clarifications)).
 
 ## Target model
 
@@ -78,4 +78,4 @@ D13 and D14, the specification updates, this plan and the tracker, in [#202](htt
 
 ## Not in this milestone
 
-Localisation, the language preference and the string process ([D14](../architecture/traceability-map.md#entries), accepted for 1.0, planned later; [K35](../architecture/traceability-map.md#clarifications) open); D12's folded empty cards; facets on input modules; further modules or facets.
+Localisation, the language preference and the string process ([D14](../../architecture/traceability-map.md#entries), accepted for 1.0, planned later; [K35](../../architecture/traceability-map.md#clarifications) open); D12's folded empty cards; facets on input modules; further modules or facets.

@@ -1,6 +1,6 @@
 # Expertise staying with the subject: the English run and the owner's ranking
 
-24 October 2026 (Europe/Berlin). Increment A of the [0.11.0 plan](../../plans/expertise-subject.md), implementing [D16](../../architecture/traceability-map.md#entries). It checks the rewritten Computer Science and Mathematics core prompts in English against their golden sets and against 0.10.0's output, before the review in the other languages.
+24 October 2026 (Europe/Berlin). Increment A of the [0.11.0 plan](../plans/expertise-subject.md), implementing [D16](../../architecture/traceability-map.md#entries). It checks the rewritten Computer Science and Mathematics core prompts in English against their golden sets and against 0.10.0's output, before the review in the other languages.
 
 ## Method
 
@@ -44,4 +44,4 @@ No D16 answer was marked not fine; 0.10.0 answers were marked not fine five time
 
 ## Limits
 
-English only, one model, three samples per input, drafter's reading. Sentences outside the subject are not covered ([plan](../../plans/expertise-subject.md#not-in-this-milestone)).
+English only, one model, three samples per input, drafter's reading. Sentences outside the subject are not covered ([plan](../plans/expertise-subject.md#not-in-this-milestone)).

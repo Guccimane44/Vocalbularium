@@ -1,6 +1,6 @@
 # Expertise staying with the subject: the review in every interface language
 
-24 October 2026 (Europe/Berlin). Increment B of the [0.11.0 plan](../../plans/expertise-subject.md), tracked in [#227](https://github.com/Guccimane44/Vocalbularium/issues/227): the D16 prompts, adopted by the owner after the [English run and ranking](expertise-subject-english.md), reviewed in each interface language ([K42](../../architecture/traceability-map.md#clarifications), [K48](../../architecture/traceability-map.md#clarifications)).
+24 October 2026 (Europe/Berlin). Increment B of the [0.11.0 plan](../plans/expertise-subject.md), tracked in [#227](https://github.com/Guccimane44/Vocalbularium/issues/227): the D16 prompts, adopted by the owner after the [English run and ranking](expertise-subject-english.md), reviewed in each interface language ([K42](../../architecture/traceability-map.md#clarifications), [K48](../../architecture/traceability-map.md#clarifications)).
 
 ## Method
 

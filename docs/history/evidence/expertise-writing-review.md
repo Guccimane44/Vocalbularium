@@ -1,6 +1,6 @@
 # Expertise output reviewed in each interface language (K42)
 
-23 October 2026 (Europe/Berlin). Increment C of the [0.10.0 plan](../../plans/expertise-writing.md), tracked in [#220](https://github.com/Guccimane44/Vocalbularium/issues/220): the review of the Expertise output in each of the six interface languages ([K42](../../architecture/traceability-map.md#clarifications)), run on `main` after increment B ([#223](https://github.com/Guccimane44/Vocalbularium/pull/223)) with the brace repair of [#219](https://github.com/Guccimane44/Vocalbularium/pull/219).
+23 October 2026 (Europe/Berlin). Increment C of the [0.10.0 plan](../plans/expertise-writing.md), tracked in [#220](https://github.com/Guccimane44/Vocalbularium/issues/220): the review of the Expertise output in each of the six interface languages ([K42](../../architecture/traceability-map.md#clarifications)), run on `main` after increment B ([#223](https://github.com/Guccimane44/Vocalbularium/pull/223)) with the brace repair of [#219](https://github.com/Guccimane44/Vocalbularium/pull/219).
 
 ## Method
 
