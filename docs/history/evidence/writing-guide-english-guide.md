@@ -1,6 +1,6 @@
 # Writing guide in English or in the language (K43)
 
-23 October 2026 (Europe/Berlin). Increment A of the [0.10.0 plan](../../plans/expertise-writing.md), tracked in [#220](https://github.com/Guccimane44/Vocalbularium/issues/220). [K43](../../architecture/traceability-map.md#clarifications) asks whether a writing guide written in English, with examples in the language, works as well as the guide the [prompt test](writing-guide-prompt-test.md) used, which was written in the language. The English guide is adopted unless it is clearly worse.
+23 October 2026 (Europe/Berlin). Increment A of the [0.10.0 plan](../plans/expertise-writing.md), tracked in [#220](https://github.com/Guccimane44/Vocalbularium/issues/220). [K43](../../architecture/traceability-map.md#clarifications) asks whether a writing guide written in English, with examples in the language, works as well as the guide the [prompt test](writing-guide-prompt-test.md) used, which was written in the language. The English guide is adopted unless it is clearly worse.
 
 ## Method
 

@@ -1,10 +1,10 @@
 # Plan: pronunciation as the first audio (0.14.0)
 
-Proposed: 30 October 2026 (Europe/Berlin). Implements [D24](../architecture/traceability-map.md#entries), accepted by the owner on 30 October 2026 and applied to the specifications ([modules](../specs/modules.md#audio), [capture and generation](../specs/capture-and-generation.md#audio), [pages and editing](../specs/pages-and-editing.md#spoken-parts), [generation architecture](../architecture/generation.md#speech-provider), [scope](../product/scope.md)). Builds on 0.13.3 ([#255](https://github.com/Guccimane44/Vocalbularium/pull/255)). Tracker: [#256](https://github.com/Guccimane44/Vocalbularium/issues/256); decision record in [Notion](https://app.notion.com/p/409bb135020881e79d9aeb6198fb2f5d).
+Proposed: 30 October 2026 (Europe/Berlin). Implements [D24](../../architecture/traceability-map.md#entries), accepted by the owner on 30 October 2026 and applied to the specifications ([modules](../../specs/modules.md#audio), [capture and generation](../../specs/capture-and-generation.md#audio), [pages and editing](../../specs/pages-and-editing.md#spoken-parts), [generation architecture](../../architecture/generation.md#speech-provider), [scope](../../product/scope.md)). Builds on 0.13.3 ([#255](https://github.com/Guccimane44/Vocalbularium/pull/255)). Tracker: [#256](https://github.com/Guccimane44/Vocalbularium/issues/256); decision record in [Notion](https://app.notion.com/p/409bb135020881e79d9aeb6198fb2f5d).
 
 ## Outcome
 
-A page can play its main key aloud, and a Languages card can play its translation. A **Pronunciation** module, the first in the Sound family, identifies the language of the page's main key and speaks the key in it. A **Pronunciation** facet on German and Chinese speaks the translation the module's core wrote. Audio comes from ElevenLabs, a second kind of provider beside the text provider. It is the first heavy facet of [D17's direction](../architecture/d17-one-request.md#heavy-facets-direction): its own job after the text, with its own loading, failure and Retry. The text shows first, and the audio fills in when it is ready.
+A page can play its main key aloud, and a Languages card can play its translation. A **Pronunciation** module, the first in the Sound family, identifies the language of the page's main key and speaks the key in it. A **Pronunciation** facet on German and Chinese speaks the translation the module's core wrote. Audio comes from ElevenLabs, a second kind of provider beside the text provider. It is the first heavy facet of [D17's direction](../../architecture/decisions/d17-one-request.md#heavy-facets-direction): its own job after the text, with its own loading, failure and Retry. The text shows first, and the audio fills in when it is ready.
 
 Not in 0.14.0: pronunciation of Examples or other facets, IPA or other written pronunciation, choosing a voice in the interface, speed control, downloading the audio, and pronunciation in Expertise modules.
 
@@ -15,7 +15,7 @@ From chat, 30 October 2026:
 1. **ElevenLabs** is the speech provider.
 2. **No caching.** Every attempt synthesizes again, as unique generation already requires; the same key on two pages calls ElevenLabs twice.
 3. **A Pronunciation module** whose core is the pronunciation of the page's main key, with one flag: the key's original language.
-4. **It joins the Sound family**, which the [module specification](../specs/modules.md#module-families) defines for pronunciation and which has its colour tokens (`fam-sound`) already; not Creative, which stays reserved for parents that write something new.
+4. **It joins the Sound family**, which the [module specification](../../specs/modules.md#module-families) defines for pronunciation and which has its colour tokens (`fam-sound`) already; not Creative, which stays reserved for parents that write something new.
 5. **Its card shows audio only**: the key's language in its top line and a player, no IPA.
 6. **A Pronunciation facet** on the Languages modules speaks the translation, the module's core.
 7. **No browser speech** as a first step.
@@ -39,7 +39,7 @@ export default defineContentModule({
 
 ### Flag
 
-One flag, `language`: the language the main key is written in, as an ISO 639-1 code from the languages the pinned ElevenLabs model speaks, or `other`. It changes two things, as every flag must ([D17](../architecture/d17-one-request.md#flags-per-module)): the language the audio is synthesized in, and the top line. The top line names the language in the interface language (*German* / *Deutsch* / *德语*), from the code with the browser's `Intl.DisplayNames`, never edited. `other` gives no audio job and the card says the language cannot be pronounced (K74).
+One flag, `language`: the language the main key is written in, as an ISO 639-1 code from the languages the pinned ElevenLabs model speaks, or `other`. It changes two things, as every flag must ([D17](../../architecture/decisions/d17-one-request.md#flags-per-module)): the language the audio is synthesized in, and the top line. The top line names the language in the interface language (*German* / *Deutsch* / *德语*), from the code with the browser's `Intl.DisplayNames`, never edited. `other` gives no audio job and the card says the language cannot be pronounced (K74).
 
 ```js
 // sound/pronunciation/facets/core/facet.ts
@@ -118,7 +118,7 @@ Each line shows beside its own play button, in the facet's place on the card. A 
 
 ## Speech provider
 
-A second kind of provider, beside the text `Provider` ([generation architecture](../architecture/generation.md#providers)):
+A second kind of provider, beside the text `Provider` ([generation architecture](../../architecture/generation.md#providers)):
 
 ```js
 // src/server/speech.mjs
@@ -138,7 +138,7 @@ export class SpeechProvider {
 ## Jobs and limits
 
 - An audio job starts once the text it speaks is saved: the Pronunciation core's flag, or a facet's lines. A card's clips run in parallel, so a new modality adds a branch, not a round (D17).
-- Audio jobs have their own bounded capacity beside the text attempts ([capture and generation](../specs/capture-and-generation.md)), proposed as 4 active and 32 waiting per server (K73).
+- Audio jobs have their own bounded capacity beside the text attempts ([capture and generation](../../specs/capture-and-generation.md)), proposed as 4 active and 32 waiting per server (K73).
 - A failed clip shows a failure on its own row with **Retry**; the text around it stays. This relaxes "no partial success within a component" for audio only (C31).
 - Leaving the page does not cancel a job; deleting the component or page does, and deletes its audio.
 
@@ -153,7 +153,7 @@ export class SpeechProvider {
 
 Each increment is one PR against the 0.13.3 base, green in CI before the next starts.
 
-0. **Record the decision.** D24, its conflicts and clarifications in the traceability map, this plan, the Notion record as `Proposed` and the tracker. After the owner accepts it, update [modules](../specs/modules.md), [capture and generation](../specs/capture-and-generation.md), [pages and editing](../specs/pages-and-editing.md), [generation architecture](../architecture/generation.md) and [scope](../product/scope.md).
+0. **Record the decision.** D24, its conflicts and clarifications in the traceability map, this plan, the Notion record as `Proposed` and the tracker. After the owner accepts it, update [modules](../../specs/modules.md), [capture and generation](../../specs/capture-and-generation.md), [pages and editing](../../specs/pages-and-editing.md), [generation architecture](../../architecture/generation.md) and [scope](../../product/scope.md).
 1. **Speech provider and audio jobs.** `SpeechProvider`, the ElevenLabs adapter, a controlled fake adapter for tests, migration `0018`, the audio job and its limits, the API and the generation record. No catalog change.
 2. **Pronunciation module.** The Sound family, the module, its prompts and prompt snapshots (`tests/prompts/pronunciation.word_phrase.txt` and the others), page text and samples in every interface language, the player and the card states, and a golden set for the flag.
 3. **Pronunciation facet.** The German and Chinese facets, their prompts and snapshots, page text, samples and per-line players, and their golden sets.
@@ -169,4 +169,4 @@ Each increment is one PR against the 0.13.3 base, green in CI before the next st
 
 ## Open items
 
-K69–K77 were answered by the owner on 30 October 2026: Eleven v4 Turbo for K69, the proposed defaults for K70–K77. C31–C33 in the [traceability map](../architecture/traceability-map.md) were resolved by the owner the same day with their proposed resolutions. No open items remain.
+K69–K77 were answered by the owner on 30 October 2026: Eleven v4 Turbo for K69, the proposed defaults for K70–K77. C31–C33 in the [traceability map](../../architecture/traceability-map.md) were resolved by the owner the same day with their proposed resolutions. No open items remain.

@@ -1,6 +1,6 @@
 # Generation rounds: one request per module, a gate, or a split
 
-27–28 October 2026 (Europe/Berlin). Evidence for [D17](../../architecture/d17-one-request.md). The question: can each content module write its whole card, including the decisions that steer it, in one text request, or does it need a first request that decides (a gate for Expertise relevance, a core round before the facets for Languages)?
+27–28 October 2026 (Europe/Berlin). Evidence for [D17](../../architecture/decisions/d17-one-request.md). The question: can each content module write its whole card, including the decisions that steer it, in one text request, or does it need a first request that decides (a gate for Expertise relevance, a core round before the facets for Languages)?
 
 ## Method
 

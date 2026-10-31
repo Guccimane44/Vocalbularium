@@ -6,7 +6,7 @@ This document is the authoritative source for detailed component completion, fai
 
 ## Status
 
-These rules describe the owner-approved deck → page → component model ([Q72](../architecture/questionnaire/answers/answers-06-data-and-semantics.md#q72)) with page-owned modules ([D02](../architecture/traceability-map.md#entries)). Release 0.4.0 implements the model, 0.4.1 adds capture with Context, and 0.5.0 implements D02 ([current scope](../product/scope.md)). Release 0.6.0 adds the capture flight, toolbar badge, and rendered content of [D05](../architecture/traceability-map.md#entries). Release 0.7.0 adds parent modules with facets and the word-or-sentence interpretation ([D08](../architecture/traceability-map.md#entries)); earlier releases also chose one source language per run, and an inapplicable module completed empty. Builds up to v0.3.0+ followed the [seite-level baseline](../history/v0.3.0-select-and-add.md). [Pages and editing](pages-and-editing.md) owns main key, Context, and component editing; [decks and configuration](decks-and-configuration.md) owns the template new pages start from.
+These rules describe the deck → page → component model ([Q72](../architecture/questionnaire/answers/answers-06-data-and-semantics.md#q72)) with page-owned modules ([D02](../architecture/decisions/d02.md)); [current scope](../product/scope.md) records which parts are implemented. [Pages and editing](pages-and-editing.md) owns main key, Context, and component editing; [decks and configuration](decks-and-configuration.md) owns the template new pages start from.
 
 ## Availability and default deck
 
@@ -32,7 +32,7 @@ Each separate **Create a page in “{default deck name}”** action creates a ne
 
 A generation run keeps the module instances it started with. Later changes to the deck or the page do not change that run. Deleting a page, its destination deck, or a targeted component cancels the affected pending generation; it must not recreate deleted pages, decks, or components.
 
-The saved page appears in the destination deck's page list, including while generation is loading or after it fails. Page lists show each page's main key. Opening a page shows it in the default view, with **Generate** or **Retry** in each content card ([generation actions](#generation-actions)). Component content is rendered as its module's render contract describes ([shared UI](shared-ui.md#text-content)). The extension does not automatically open the new page or move the user away from the web page they are reading.
+The saved page appears in the destination deck's page list, including while generation is loading or after it fails. Page lists show each page's main key. Opening a page shows it in the default view, with **Retry** in each content card ([generation actions](#generation-actions)). Component content is rendered as its module's render contract describes ([shared UI](shared-ui.md#text-content)). The extension does not automatically open the new page or move the user away from the web page they are reading.
 
 Clicking the extension button opens the dashboard in a Chrome tab. The dashboard provides access to recent capture outcomes and their destination decks, including requests that have not yet produced a saved page. A new capture remains visible while its local pending receipt hands off to the saved account page; a delayed account refresh must not briefly remove the row.
 
@@ -40,9 +40,9 @@ Clicking the extension button opens the dashboard in a Chrome tab. The dashboard
 
 When Select and Add accepts the selected text, immediately show a brief popup confirming receipt, such as **Capture received**. This confirms that the request was received, not that generation or account saving has completed. If the capture cannot be accepted, show a failure message instead.
 
-**Capture flight** ([D05](../architecture/traceability-map.md#entries)): on a web page where the selection can be read, the selected text lifts off the page as a small label and flies along a short arc into the popup's position in about half a second; the popup then appears as described here. A label longer than about 44 characters is shortened with an ellipsis; the capture always takes the full selection. The flight never delays the capture, never moves the page or the selection, and is skipped when the system asks for reduced motion, on Chrome-restricted pages, and when the capture fails. It needs no permission beyond those capture already uses.
+**Capture flight:** on a web page where the selection can be read, the selected text lifts off the page as a small label and flies along a short arc into the popup's position in about half a second; the popup then appears as described here. A label longer than about 44 characters is shortened with an ellipsis; the capture always takes the full selection. The flight never delays the capture, never moves the page or the selection, and is skipped when the system asks for reduced motion, on Chrome-restricted pages, and when the capture fails. It needs no permission beyond those capture already uses.
 
-After each accepted capture, the toolbar icon shows a badge with the number of captures since the user last opened the dashboard; opening the dashboard clears it ([K21](../architecture/traceability-map.md#clarifications)).
+After each accepted capture, the toolbar icon shows a badge with the number of captures since the user last opened the dashboard; opening the dashboard clears it.
 
 The same popup appears on ordinary web pages and the originating Vocabularium dashboard, with identical wording, top-right placement relative to the web page, dimensions, styling, close control, and appearance ([shared UI](shared-ui.md#appearance)). It uses the Vocabularium Sage styling and the destination deck's colour. Dashboard capture creates no additional Chrome window and does not change focus or route. Other open dashboards do not receive its feedback. Account rerenders preserve the popup; theme changes update its appearance without restarting its timer. If the originating dashboard closes or navigates away, capture continues without redirecting feedback or opening a window. Chrome-restricted external pages retain the separate feedback-window fallback.
 
@@ -54,11 +54,9 @@ This transient popup is separate from the dashboard and from confirmation dialog
 
 ## Input interpretation
 
-Since 0.12.0 ([D17](../architecture/traceability-map.md#entries)) there is no interpretation shared by the run. Each attempt reads the main key and Context in its own request and records its reading as the core's flags, such as word or sentence for a Languages parent, which its card's header shows ([pages and editing](pages-and-editing.md#required-main-key)). No reading chooses a source language for the page: each parent reads the language from the key and Context. Target languages are defined by the parent modules, not by a fixed language-pair setting for the deck. A failed attempt fails only its own component.
+There is no interpretation shared by the run ([D17](../architecture/decisions/d17.md)). Each attempt reads the main key and Context in its own request and records its reading as the core's flags, such as word or sentence for a Languages parent, which its card's header shows ([pages and editing](pages-and-editing.md#required-main-key)). No reading chooses a source language for the page: each parent reads the language from the key and Context. Target languages are defined by the parent modules, not by a fixed language-pair setting for the deck. A failed attempt fails only its own component.
 
-Until 0.12.0 the main key and the saved Context were classified as a word or phrase, or a sentence, once per run, shown under the main key, and a failed classification failed every attempt in the run ([D08](../architecture/traceability-map.md#entries)).
-
-The interpretation and applicability rules are defined in the [Modules specification](modules.md#input-and-applicability).
+The reading and applicability rules are defined in the [Modules specification](modules.md#input-and-applicability).
 
 ## Generation actions
 
@@ -70,7 +68,7 @@ All generation actions use the page's current main key and saved Context and the
 | **Retry** (in a card), empty component | One content component with nothing in it: one that never generated, failed, or generated nothing | None; nothing is replaced |
 | **Retry** (in a card), with content | One content component that has generated, or that the user wrote into | Always |
 
-Since 0.5.1 ([D04](../architecture/traceability-map.md#entries)) the extension offers generation per card only. The API still accepts generating every not-yet-generated component of a page and retrying a whole page, with the same confirmation rule.
+The extension offers generation per card only. The API also accepts generating every not-yet-generated component of a page and retrying a whole page, with the same confirmation rule.
 
 No action touches an input module's component (main key, Context, Text), and none recreates a component the user deleted. Manual creation and manual edits never start generation.
 
@@ -82,7 +80,7 @@ Each component attempt has one of these states:
 
 - **Loading:** the component's generation is in progress.
 - **Completed:** the instance completed. Publish its output, the core and its applicable facets, as the component's content. A facet that does not apply is left out and does not count as a failure.
-- **Failed:** the instance failed. Discard any partial output from that attempt and show a failure indicator on the empty component. There is no partial success within a component's text; only its audio clips succeed or fail on their own ([audio](#audio), [C31](../architecture/traceability-map.md#conflicts)).
+- **Failed:** the instance failed. Discard any partial output from that attempt and show a failure indicator on the empty component. There is no partial success within a component's text; only its audio clips succeed or fail on their own ([audio](#audio)).
 
 Components fail and complete independently. For example, if a page has two `German` instances and only one succeeds, the successful one is published and the other component fails. A later retry of the failed component generates only that one.
 
@@ -98,7 +96,7 @@ If capacity cannot admit every attempt of a **Retry**, report that generation is
 
 ### Audio
 
-From 0.14.0 a spoken part's audio is generated in jobs of its own, one per **clip**, after the text ([D24](../architecture/traceability-map.md#entries); [modules](modules.md#audio)).
+A spoken part's audio is generated in jobs of its own, one per **clip**, after the text ([modules](modules.md#audio)).
 
 - **Start.** A clip's job starts once the attempt that writes its text has completed: the Pronunciation core's `language`, or a Pronunciation facet's lines. A card's clips run in parallel. The component's attempt state describes its text; the card is **Completed** while its clips are still generating.
 - **States.** Each clip is **waiting**, **generating**, **ready** or **failed**. A failed clip names its error and keeps its own **Retry**; the card's text and its other clips stay. A failed clip does not make the page's overall outcome **Failed**.
@@ -120,9 +118,9 @@ Closing only the capture popup or dashboard tab does not count as closing Chrome
 
 ## Retry
 
-**Retry** is available in the page editor for one content component, for one facet of a parent component ([below](#retrying-one-facet)) or for the whole page. Completed, failed, empty, missing, or manually edited components can be targets. Capture origin does not matter: a manually created page has a main key and can retry like a captured one.
+**Retry** is available in the page editor for one content component and for one facet of a parent component ([below](#retrying-one-facet)); the API also retries a whole page. Completed, failed, empty, missing, or manually edited components can be targets. Capture origin does not matter: a manually created page has a main key and can retry like a captured one.
 
-Before replacing content, always ask. For one component the question is asked beside the card's tab, as for **Delete** ([pages and editing](pages-and-editing.md#components-as-cards)): "Are you sure?" with a final **Retry** and **Cancel** (since 0.6.3). If the content changed after the user answered, for example in another browser, the warning below is shown before anything is replaced:
+Before replacing content, always ask. For one component the question is asked beside the card's tab, as for **Delete** ([pages and editing](pages-and-editing.md#components-as-cards)): "Are you sure?" with a final **Retry** and **Cancel**. If the content changed after the user answered, for example in another browser, the warning below is shown before anything is replaced:
 
 > Retry will replace this component's content, including your edits to it. The main key, Context, and other components will not change.
 
@@ -133,20 +131,19 @@ For the whole page:
 - **Cancel** leaves the page unchanged.
 - **Confirm** discards the targeted components' current content and starts a fresh attempt for each. Previous edits and generated output are not preserved or merged into the replacement. If an attempt fails, its component stays empty with a failure indicator; the discarded content is not restored.
 
-Retry uses the page's current saved main key and Context and its content module instances at confirmation time. Each retry generates anew from them: nothing from an earlier attempt is reused except the card's reading, given as a hint, and generated content is never cached ([D17](../architecture/traceability-map.md#entries); [D19](../architecture/traceability-map.md#entries), from 0.12.2). A retry generates the parent's core and every facet it currently has, including facets added since its last attempt, and never a facet the user deleted.
+Retry uses the page's current saved main key and Context and its content module instances at confirmation time. Each retry generates anew from them: nothing from an earlier attempt is reused except the card's reading, given as a hint, and generated content is never cached. A retry generates the parent's core and every facet it currently has, including facets added since its last attempt, and never a facet the user deleted.
 
-<a id="keeping-the-reading"></a>**Keeping the reading** ([D19](../architecture/traceability-map.md#entries), from 0.12.2). A Retry of a content card that has a core, alone or as part of the whole page's Retry, also gives the model that core as the card has it saved, the user's edits included ([K59](../architecture/traceability-map.md#clarifications), [K60](../architecture/traceability-map.md#clarifications)). The model writes the card again keeping its **reading**, unless the Context clearly contradicts it: for the Languages modules whether the key is a word or a sentence, its language, German's grammatical role and the sense the meanings describe; for the Expertise modules whether the key is in the subject and the concept the explanation describes. Every text, the core's and each facet's, is written anew; only the reading carries over. The meanings (an Expertise card's explanation) decide the reading over the flags, which cannot be edited, so a user changes a reading the card got wrong by editing its meanings and then retrying ([K58](../architecture/traceability-map.md#clarifications)). A card without a core, one that never generated, failed or generated nothing, generates as on its first attempt. So does a card whose core was written for another main key: once the user changes the page's main key, the card's core has no reading of the new key, and its Retry, alone or with the page, reads the new key afresh ([D22](../architecture/traceability-map.md#entries), from 0.13.2; in 0.12.2–0.13.1 it kept the old key's reading). Until 0.12.2 a Retry decided the reading again, and could change it.
+<a id="keeping-the-reading"></a>**Keeping the reading** ([D19](../architecture/decisions/d19.md)). A Retry of a content card that has a core, alone or as part of the whole page's Retry, also gives the model that core as the card has it saved, the user's edits included. The model writes the card again keeping its **reading**, unless the Context clearly contradicts it: for the Languages modules whether the key is a word or a sentence, its language, German's grammatical role and the sense the meanings describe; for the Expertise modules whether the key is in the subject and the concept the explanation describes. Every text, the core's and each facet's, is written anew; only the reading carries over. The meanings (an Expertise card's explanation) decide the reading over the flags, which cannot be edited, so a user changes a reading the card got wrong by editing its meanings and then retrying. A card without a core, one that never generated, failed or generated nothing, generates as on its first attempt. So does a card whose core was written for another main key (its top line's key, trimmed, differs from the main key): its Retry, alone or with the page, reads the new key afresh.
 
 ### Retrying one facet
 
-Since 0.7.3 each facet of a parent component has its own **Retry** beside its **Delete** ([pages and editing](pages-and-editing.md#components-as-cards)); in 0.7.4–0.13.1 its tag, pulled out of an open card's edge, held one too ([facet tags](pages-and-editing.md#facet-tags), [D22](../architecture/traceability-map.md#entries)). It regenerates that facet alone: the facet's markdown is replaced with its new JSON formatted as markdown, or added when the facet had none (since 0.7.4), and the core and the other facets stay exactly as they are, edits included. A facet waiting for **Retry** can be generated this way without regenerating the rest.
+Each facet of a parent component has its own **Retry** beside its label ([pages and editing](pages-and-editing.md#components-as-cards)). It regenerates that facet alone: the facet's markdown is replaced with its new JSON formatted as markdown, or added when the facet had none, and the core and the other facets stay exactly as they are, edits included. A facet waiting for **Retry** can be generated this way without regenerating the rest. Every facet of a parent with a core can be retried alone ([render contracts](modules.md#render-contracts)).
 
-- **Asking.** Beside its label, a facet with content asks "Are you sure?", with a final **Retry** and **Cancel**; one with nothing in it starts at once. (In 0.7.4–0.13.1 the tag's **Retry** never asked.) If the facet's content changed after the user answered, the dialog warns: "Retry will replace this facet's content, including your edits to it. The rest of the component will not change."
+- **Asking.** Beside its label, a facet with content asks "Are you sure?", with a final **Retry** and **Cancel**; one with nothing in it starts at once. If the facet's content changed after the user answered, the dialog warns: "Retry will replace this facet's content, including your edits to it. The rest of the component will not change."
 - **Input.** The attempt uses the page's saved main key and Context and the component's current core, with its flags, so the facet follows the core it joins. The provider writes only that facet for the core; anything else it returns is discarded. A facet that does not apply to the core's flags is left out, as in a whole attempt.
-- **While it runs.** The component keeps its content and stays open; the spark runs round the facet's tab (since 0.7.4); a facet without content shows its heading, as it always does since D10's sixth amendment, and gains its text if it comes back with content; the component is locked as during any attempt.
-- **Failure.** A failed or interrupted facet attempt leaves the content and the component's state as they were before it, and the facet says its Retry failed until the component's next attempt (a facet without a section, through its tag). A facet that was waiting still waits.
-- **Availability.** Since 0.7.4 every parent's content is structured, so every facet of a parent with a core can be retried alone ([render contracts](modules.md#render-contracts)).
-- **Spoken facets** ([D24](../architecture/traceability-map.md#entries)). A Pronunciation facet's **Retry** writes its lines again for the saved core, then speaks every line anew. A whole component's **Retry** does the same for every spoken part it has.
+- **While it runs.** The component keeps its content and stays open; the spark runs round the facet's tab; a facet without content shows its heading and gains its text if it comes back with content; the component is locked as during any attempt.
+- **Failure.** A failed or interrupted facet attempt leaves the content and the component's state as they were before it, and the facet's tag says its Retry failed until the component's next attempt. A facet that was waiting still waits.
+- **Spoken facets.** A Pronunciation facet's **Retry** writes its lines again for the saved core, then speaks every line anew. A whole component's **Retry** does the same for every spoken part it has.
 
 <a id="retrying-one-clip"></a>**Retrying one clip.** A clip has its own **Retry** beside its play button. It speaks that line again and leaves the text and the other clips as they are. It starts at once without asking, since a clip holds no edits.
 
@@ -160,7 +157,7 @@ The generation lock applies across installations. Another installation may alrea
 
 ## Generation record
 
-From 0.8.0 each generated facet of a parent, the core included, records with its component the model and the version of the prompt that produced it ([D11](../architecture/traceability-map.md#entries); [generation architecture](../architecture/generation.md#generation-record)). A whole attempt records them for the core and every facet it generated; a facet's own Retry records them for that facet only, and the other facets keep theirs. A user's edit does not change the record. Components generated before 0.8.0 have none. From 0.14.0 a spoken part's record adds the speech model and voice that spoke it ([D24](../architecture/traceability-map.md#entries)). The interface does not show the record.
+Each generated facet of a parent, the core included, records with its component the model and the version of the prompt that produced it ([generation architecture](../architecture/generation.md#generation-record)). A whole attempt records them for the core and every facet it generated; a facet's own Retry records them for that facet only, and the other facets keep theirs. A user's edit does not change the record. A spoken part's record adds the speech model and voice that spoke it. The interface does not show the record.
 
 ## Saving and synchronization failures
 
@@ -174,9 +171,9 @@ Account synchronization follows [accounts and synchronization](accounts-and-sync
 
 ## Initial default-deck example
 
-The initial **My Deck** has the main key module, the Context module, and one content module instance: `German`, with Article, Examples, Synonyms and Antonyms ([D08](../architecture/traceability-map.md#entries)). A new deck starts with the same configuration, and so does every account after the D17 upgrade, which discards every deck and page ([scope](../product/scope.md#upgrade-from-earlier-builds)). D17's new German facets are not in it ([K56](../architecture/traceability-map.md#clarifications)).
+The initial **My Deck** has the main key module, the Context module, and one content module instance: `German`, with Article, Examples, Synonyms and Antonyms. A new deck starts with the same configuration. German's other facets are not in it.
 
-For the selected input `幸福`, read as a word, the page shows its main key `幸福`, then a `German` component, whose header names the key's language and that it is a word, with its grammatical role since D17: an explanation in German of the word, then the article of its German translation (`das Glück`), examples with their translations, synonyms, and antonyms, following the [modules specification](modules.md#catalog). The exact generated wording may vary.
+For the selected input `幸福`, read as a word, the page shows its main key `幸福`, then a `German` component, whose header names the key's language, that it is a word and its grammatical role: an explanation in German of the word, then the article of its German translation (`das Glück`), examples with their translations, synonyms, and antonyms, following the [modules specification](modules.md#catalog). The exact generated wording may vary.
 
 For a selected sentence such as `我真的很幸福`, the `German` component shows the German translation and, from Examples, one similar sentence with its translation; Article, Synonyms, and Antonyms do not apply to a sentence and are not shown. This is an intentional, successfully completed page.
 

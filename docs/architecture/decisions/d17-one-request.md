@@ -1,14 +1,14 @@
 # D17: one text request per module
 
-Accepted by the owner in chat on 28 October 2026. The detail of the [traceability map](traceability-map.md#entries)'s D17 entry; its clarifications and conflicts are also listed in the map ([conflicts](traceability-map.md#conflicts), [clarifications](traceability-map.md#clarifications)). Evidence: the [generation rounds experiment](../history/evidence/generation-rounds-experiment.md).
+Accepted by the owner in chat on 28 October 2026. The detail of the [traceability map](../traceability-map.md#entries)'s D17 entry; its clarifications and conflicts are also listed in the map ([conflicts](../traceability-map.md#conflicts), [clarifications](../traceability-map.md#clarifications)). Evidence: the [generation rounds experiment](../../history/evidence/generation-rounds-experiment.md).
 
 ## Decision
 
-**Each content module writes its card in one text request, and no request is shared by all modules.** Today every run starts with one shared request that classifies the main key as a word or phrase, or a sentence ([D08](traceability-map.md#entries)), and every content module receives it. That request is removed.
+**Each content module writes its card in one text request, and no request is shared by all modules.** Today every run starts with one shared request that classifies the main key as a word or phrase, or a sentence ([D08](../traceability-map.md#entries)), and every content module receives it. That request is removed.
 
 - **One request per module.** It returns the core, the core's **flags** (the decisions that steer the card) and every text facet of the parent. The flags come first in the core, so the model decides before it writes, and the facets in the same response follow them.
 - **Modules are independent.** No request spans two modules, and one module's failure does not fail another.
-- **No first round.** A module adds a request before its text request only when the answer must change the request itself, such as choosing another provider or model. No module needs one in D17: the [experiment](../history/evidence/generation-rounds-experiment.md) found a separate relevance gate and a separate core round no better than one request, and the core round slower.
+- **No first round.** A module adds a request before its text request only when the answer must change the request itself, such as choosing another provider or model. No module needs one in D17: the [experiment](../../history/evidence/generation-rounds-experiment.md) found a separate relevance gate and a separate core round no better than one request, and the core round slower.
 - **Heavy facets later.** Audio, images and other modalities will run as their own jobs after the text, in parallel ([direction](#heavy-facets-direction)); D17 builds none.
 - **Every generation is unique.** Generated content belongs to its page and run. It is not cached or reused across pages, users or runs; Retry always generates anew.
 
@@ -22,9 +22,9 @@ Accepted by the owner in chat on 28 October 2026. The detail of the [traceabilit
 
 **New facets** ([below](#new-facets)): Conjugation, Declension, Comparison and Case for German, decided by `gramRole`; Formula for Mathematics and Code example for Computer Science, only for keys in the subject.
 
-**A fresh start.** The upgrade discards every deck and page, with their components, generation runs and attempts, because the earlier data was for testing and development (owner, 28 October 2026), as 0.4.0, 0.5.0, 0.7.0 and 0.7.4 did ([scope](../product/scope.md#upgrade-from-earlier-builds)). Accounts, sign-in and the account's language preference stay, and the account starts again with one My Deck holding the main key, Context, and `German` with Article, Examples, Synonyms and Antonyms. No stored component needs to read in the old run-level shape afterwards.
+**A fresh start.** The upgrade discards every deck and page, with their components, generation runs and attempts, because the earlier data was for testing and development (owner, 28 October 2026), as 0.4.0, 0.5.0, 0.7.0 and 0.7.4 did ([scope](../../product/scope.md#upgrade-from-earlier-builds)). Accounts, sign-in and the account's language preference stay, and the account starts again with one My Deck holding the main key, Context, and `German` with Article, Examples, Synonyms and Antonyms. No stored component needs to read in the old run-level shape afterwards.
 
-**Unchanged:** D16's three cases and what each writes; the writing guides ([D15](traceability-map.md#entries)); the composer's shared rules; D08's parent model (one component, Retry regenerates the whole parent, a facet's own Retry only that facet).
+**Unchanged:** D16's three cases and what each writes; the writing guides ([D15](../traceability-map.md#entries)); the composer's shared rules; D08's parent model (one component, Retry regenerates the whole parent, a facet's own Retry only that facet).
 
 **Out of scope:** subfields (dropped by the owner, 27 October 2026), graphs and any heavy facet, each a later decision.
 
@@ -61,7 +61,7 @@ Every flag is part of the module's core, declared in the catalog with its values
 
 ## New facets
 
-Each is a facet of its parent like the existing ones: added on a page or in deck settings, chosen in the facet window, generated in the parent's one request, shown only when it applies, with an explanation in every interface language ([D13](traceability-map.md#entries)).
+Each is a facet of its parent like the existing ones: added on a page or in deck settings, chosen in the facet window, generated in the parent's one request, shown only when it applies, with an explanation in every interface language ([D13](../traceability-map.md#entries)).
 
 | Parent | Facet | Tag | Applies when | Content |
 | --- | --- | --- | --- | --- |
@@ -95,20 +95,20 @@ The German facets describe the grammar word, as Article does. Formula and Code e
 
 | Document | Change |
 | --- | --- |
-| [modules](../specs/modules.md#input-and-applicability) | The run's interpretation is removed; one request per module; flags; the merged Languages core; facets apply by their own prompts; Expertise `relevance`; content module contract inputs; render contracts (Languages core header; Expertise core without word/sentence); unique generation |
-| [modules: catalog](../specs/modules.md#catalog) | The six new facets, their tags, when they apply and their render contracts |
-| [capture and generation](../specs/capture-and-generation.md#input-interpretation) | No run-level interpretation; a module's attempt is its one request; Retry generates anew |
-| [pages and editing](../specs/pages-and-editing.md#required-main-key) | The label under the main key is removed; the title tier comes from length alone; the core header shows its labels, not editable |
-| [shared UI](../specs/shared-ui.md) | Markdown tables, KaTeX formulas and highlighted code in a card |
-| [generation architecture](generation.md) | Flag declarations; one Languages prompt instead of one per input type; one Expertise prompt with `relevance`; the facet check; prompt snapshots; catalog conformance test |
-| [golden sets](../../tests/golden/) | Expected `kind`, `gramRole` and `relevance` per input; the new facets' cases (K55) |
-| [scope](../product/scope.md#upgrade-from-earlier-builds) | The capability rows; the upgrade discards every deck and page and keeps accounts, sign-in and the language preference |
-| [capture and generation](../specs/capture-and-generation.md#initial-default-deck-example) | The fresh My Deck after the upgrade (unchanged modules) |
+| [modules](../../specs/modules.md#input-and-applicability) | The run's interpretation is removed; one request per module; flags; the merged Languages core; facets apply by their own prompts; Expertise `relevance`; content module contract inputs; render contracts (Languages core header; Expertise core without word/sentence); unique generation |
+| [modules: catalog](../../specs/modules.md#catalog) | The six new facets, their tags, when they apply and their render contracts |
+| [capture and generation](../../specs/capture-and-generation.md#input-interpretation) | No run-level interpretation; a module's attempt is its one request; Retry generates anew |
+| [pages and editing](../../specs/pages-and-editing.md#required-main-key) | The label under the main key is removed; the title tier comes from length alone; the core header shows its labels, not editable |
+| [shared UI](../../specs/shared-ui.md) | Markdown tables, KaTeX formulas and highlighted code in a card |
+| [generation architecture](../generation.md) | Flag declarations; one Languages prompt instead of one per input type; one Expertise prompt with `relevance`; the facet check; prompt snapshots; catalog conformance test |
+| [golden sets](../../../tests/golden/) | Expected `kind`, `gramRole` and `relevance` per input; the new facets' cases (K55) |
+| [scope](../../product/scope.md#upgrade-from-earlier-builds) | The capability rows; the upgrade discards every deck and page and keeps accounts, sign-in and the language preference |
+| [capture and generation](../../specs/capture-and-generation.md#initial-default-deck-example) | The fresh My Deck after the upgrade (unchanged modules) |
 
 ## Implementation sketch (for sizing, not part of the decision)
 
 - `packages/domain/src/catalog/define.ts`: flags declared on the core (values, `shown`); one core shape per module; facets' `applies` stated in terms of flags instead of `InputType`.
-- `main-key/interpretation.prompt.md` is removed; `languages/*/facets/core/{word,sentence}.prompt.md` merge into the prompt [as tested](../history/evidence/generation-rounds-experiment.md); `expertise/*/facets/core/{word,sentence}.prompt.md` merge into one prompt with `relevance` first; facet prompts state when they apply.
+- `main-key/interpretation.prompt.md` is removed; `languages/*/facets/core/{word,sentence}.prompt.md` merge into the prompt [as tested](../../history/evidence/generation-rounds-experiment.md); `expertise/*/facets/core/{word,sentence}.prompt.md` merge into one prompt with `relevance` first; facet prompts state when they apply.
 - `src/server/generation.mjs`: `interpretation()` and the per-run sharing are removed; an attempt is its module's one request, then the facet check.
 - Storage: `generation_runs.interpretation` is no longer written; the component's header already stores `kind`, and a German header gains `gramRole`; and the Expertise core stores `relevance`. `Page.interpretation` in the contract and the `Interpretation` label in `extension/page-view.tsx` are removed.
 - `packages/domain/src/render.ts`: the Languages heading shows its labels for a word and a sentence.
@@ -124,7 +124,7 @@ The German facets describe the grammar word, as Article does. Formula and Code e
 | K49 | What does the upgrade keep? | Accounts, sign-in and the language preference. Every deck, page, component, run and attempt is discarded (owner, 28 October 2026); the account starts with a fresh My Deck. Pending saves from earlier builds fail as deleted, so they are finished or discarded before upgrading. |
 | K50 | How is it verified? | Languages and Expertise golden sets in every interface language, with `kind`, `gramRole` and `relevance` checked as expectations and facet-check mismatches counted; the owner reviews representative changed cards against 0.11.0 side by side; a browser E2E test checks the core header labels and their absence under the main key. |
 | K51 | Do the header labels show on every Languages card, and are they translated? Yes: word or sentence on every Languages card, and `gramRole` on a German word, written in the module's language like the rest of the card (*Wort*, *Satz*, *Verb* on German; *词语*, *句子* on Chinese), never in the interface language. The labels are fixed text per module and value, not generated: the model returns the value, the catalog names it (*verb* → *Verb*). A `gramRole` outside the catalog's list is shown as the model wrote it. |
-| K52 | What sets the main key title's size tier without a page-level classification? | The key's length alone; the "a sentence may move up one tier" rule in [pages and editing](../specs/pages-and-editing.md#required-main-key) is dropped. |
+| K52 | What sets the main key title's size tier without a page-level classification? | The key's length alone; the "a sentence may move up one tier" rule in [pages and editing](../../specs/pages-and-editing.md#required-main-key) is dropped. |
 | K53 | What does the facet check do when a facet contradicts the core's flags? | Drops the facet, keeps the rest of the card, and records the mismatch in diagnostics without the generated text. |
 | K54 | How are tables, formulas and code shown and edited? | Rendered on the card and edited as their source text in a facet's own Edit; a formula that fails to render shows its LaTeX source. |
 | K55 | How are the new facets verified? | Golden cases for error-prone forms: *sein*, *gehen*, *aufstehen*, *sich freuen* (Conjugation); *Junge*, *gut* (Declension, Comparison); *tot* (no Comparison); *in*, *wegen* (Case); a concept with and without a standard formula; a CS concept with and without code; in every interface language, reviewed by the owner with K50. |

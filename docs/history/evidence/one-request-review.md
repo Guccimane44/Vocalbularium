@@ -1,6 +1,6 @@
 # 0.12.0 review per language: one request per module and the new facets
 
-28 October 2026 (Europe/Berlin). Increment D of [#234](https://github.com/Guccimane44/Vocalbularium/issues/234), the per-language review of [D17](../../architecture/d17-one-request.md) (K50, K55) before 0.12.0 is offered. The golden-set outputs are kept locally in `.data/golden/` (not committed); each language's result is recorded in `extension/locales/reviews.json`.
+28 October 2026 (Europe/Berlin). Increment D of [#234](https://github.com/Guccimane44/Vocalbularium/issues/234), the per-language review of [D17](../../architecture/decisions/d17-one-request.md) (K50, K55) before 0.12.0 is offered. The golden-set outputs are kept locally in `.data/golden/` (not committed); each language's result is recorded in `extension/locales/reviews.json`.
 
 ## Method
 

@@ -1,6 +1,6 @@
 # 0.13.0 review: page text and samples in every interface language
 
-29 October 2026 (Europe/Berlin). Increment A of [#246](https://github.com/Guccimane44/Vocalbularium/issues/246), the review of [D20](../../architecture/d20-module-pages.md)'s page text (K62) and samples (K63, K65) before the pages' sheet is built.
+29 October 2026 (Europe/Berlin). Increment A of [#246](https://github.com/Guccimane44/Vocalbularium/issues/246), the review of [D20](../../architecture/decisions/d20-module-pages.md)'s page text (K62) and samples (K63, K65) before the pages' sheet is built.
 
 ## Method
 
