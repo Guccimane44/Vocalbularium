@@ -82,7 +82,7 @@ Each component attempt has one of these states:
 
 - **Loading:** the component's generation is in progress.
 - **Completed:** the instance completed. Publish its output, the core and its applicable facets, as the component's content. A facet that does not apply is left out and does not count as a failure.
-- **Failed:** the instance failed. Discard any partial output from that attempt and show a failure indicator on the empty component. There is no partial success within a component.
+- **Failed:** the instance failed. Discard any partial output from that attempt and show a failure indicator on the empty component. There is no partial success within a component's text; only its audio clips succeed or fail on their own ([audio](#audio), [C31](../architecture/traceability-map.md#conflicts)).
 
 Components fail and complete independently. For example, if a page has two `German` instances and only one succeeds, the successful one is published and the other component fails. A later retry of the failed component generates only that one.
 
@@ -96,11 +96,25 @@ The local API admits only a bounded number of active and waiting component attem
 
 If capacity cannot admit every attempt of a **Retry**, report that generation is busy and leave the page's components and states unchanged. The user may start the action again later. The rejected request is not kept as an automatic or **Try saving again** generation request. An admitted retry follows the replacement rules below.
 
+### Audio
+
+From 0.14.0 a spoken part's audio is generated in jobs of its own, one per **clip**, after the text ([D24](../architecture/traceability-map.md#entries); [modules](modules.md#audio)).
+
+- **Start.** A clip's job starts once the attempt that writes its text has completed: the Pronunciation core's `language`, or a Pronunciation facet's lines. A card's clips run in parallel. The component's attempt state describes its text; the card is **Completed** while its clips are still generating.
+- **States.** Each clip is **waiting**, **generating**, **ready** or **failed**. A failed clip names its error and keeps its own **Retry**; the card's text and its other clips stay. A failed clip does not make the page's overall outcome **Failed**.
+- **Capacity.** Audio jobs have their own bounds beside the text attempts: 4 active and 32 waiting per server. A clip that cannot be admitted fails without a provider call and can be retried.
+- **Not spoken.** `other`, a language the pinned model does not speak, and a main key over 500 characters start no job; that is not a failure.
+- **Errors.** As for text: no speech key on the server is `provider_unconfigured`, an exhausted quota or plan limit `provider_refused`, any other HTTP error `provider_response`, a reply that is not audio `provider_invalid`. A clip's **Retry** after the key is set works.
+- **Unique.** Audio is never cached: every attempt and every **Retry** speaks the text anew.
+- **Deleting** a component or page cancels its audio jobs and deletes its audio.
+
 ## Chrome closing during generation
 
 If Chrome closes on the installation that started a generation run, its unfinished attempts are considered failed. Completed and saved components remain intact. A retried component whose attempt was interrupted remains empty and failed under the replacement rule. Closing Chrome on another installation does not fail work initiated elsewhere.
 
 On reopening Chrome, reconcile interrupted attempts as **Failed** and make the page accessible for explicit **Retry**. Do not automatically resume or restart those attempts. Late results from an interrupted attempt must not replace the failed state or the component's content.
+
+Audio jobs follow the same rule: those still waiting or generating when Chrome closes are failed and can be retried.
 
 Closing only the capture popup or dashboard tab does not count as closing Chrome. The three-second popup duration has no effect on generation lifetime.
 
@@ -132,6 +146,9 @@ Since 0.7.3 each facet of a parent component has its own **Retry** beside its **
 - **While it runs.** The component keeps its content and stays open; the spark runs round the facet's tab (since 0.7.4); a facet without content shows its heading, as it always does since D10's sixth amendment, and gains its text if it comes back with content; the component is locked as during any attempt.
 - **Failure.** A failed or interrupted facet attempt leaves the content and the component's state as they were before it, and the facet says its Retry failed until the component's next attempt (a facet without a section, through its tag). A facet that was waiting still waits.
 - **Availability.** Since 0.7.4 every parent's content is structured, so every facet of a parent with a core can be retried alone ([render contracts](modules.md#render-contracts)).
+- **Spoken facets** ([D24](../architecture/traceability-map.md#entries)). A Pronunciation facet's **Retry** writes its lines again for the saved core, then speaks every line anew. A whole component's **Retry** does the same for every spoken part it has.
+
+<a id="retrying-one-clip"></a>**Retrying one clip.** A clip has its own **Retry** beside its play button. It speaks that line again and leaves the text and the other clips as they are. It starts at once without asking, since a clip holds no edits.
 
 The warning describes the content shown when it opened. If a targeted component changes before the user confirms, for example through a save from another installation, Retry warns again with the current content instead of replacing content the user has not seen.
 
@@ -143,7 +160,7 @@ The generation lock applies across installations. Another installation may alrea
 
 ## Generation record
 
-From 0.8.0 each generated facet of a parent, the core included, records with its component the model and the version of the prompt that produced it ([D11](../architecture/traceability-map.md#entries); [generation architecture](../architecture/generation.md#generation-record)). A whole attempt records them for the core and every facet it generated; a facet's own Retry records them for that facet only, and the other facets keep theirs. A user's edit does not change the record. Components generated before 0.8.0 have none. The interface does not show the record.
+From 0.8.0 each generated facet of a parent, the core included, records with its component the model and the version of the prompt that produced it ([D11](../architecture/traceability-map.md#entries); [generation architecture](../architecture/generation.md#generation-record)). A whole attempt records them for the core and every facet it generated; a facet's own Retry records them for that facet only, and the other facets keep theirs. A user's edit does not change the record. Components generated before 0.8.0 have none. From 0.14.0 a spoken part's record adds the speech model and voice that spoke it ([D24](../architecture/traceability-map.md#entries)). The interface does not show the record.
 
 ## Saving and synchronization failures
 
