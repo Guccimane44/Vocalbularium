@@ -154,5 +154,7 @@ test('every page text is written in every interface language', async () => {
     const name = 'family' in holder ? holder.family : `${folderOf(holder.module)}${holder.facet ? `/${holder.facet}` : ''}`;
     assert.deepEqual(languages.sort(), LANGUAGES.map(language => language.code).sort(), name);
   }
-  assert.equal(written, 25, 'four families, seven window modules and fourteen facets (D20, D24)');
+  // Every family with modules, every module in the window and every facet but the core (D20, D24).
+  const { WINDOW_MODULES } = await import('@vocabularium/domain/page-modules');
+  assert.equal(written, CATALOG_FAMILIES.length + WINDOW_MODULES.length + Object.values(PARENTS).reduce((sum, parent) => sum + Object.keys(parent.facets).length, 0));
 });

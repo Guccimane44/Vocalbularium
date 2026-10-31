@@ -1,0 +1,7 @@
+{
+  "label": "计算机科学",
+  "description": "按计算机科学的理解解释术语或概念。",
+  "core.word_phrase": "解释",
+  "core.sentence": "解释",
+  "code.label": "Python"
+}

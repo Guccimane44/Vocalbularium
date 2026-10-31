@@ -1,0 +1,9 @@
+{
+  "label": "中文",
+  "description": "用中文解释词语，或把句子译成中文。",
+  "examples.label": "例句",
+  "pinyin.label": "拼音",
+  "core.word_phrase": "释义",
+  "core.sentence": "翻译",
+  "pronunciation.label": "发音"
+}

@@ -1,0 +1,26 @@
+{
+  "en": {
+    "word_phrase": "Quadratic equation",
+    "sentence": "A quadratic equation has at most two real solutions."
+  },
+  "ar": {
+    "word_phrase": "المعادلة التربيعية",
+    "sentence": "للمعادلة التربيعية حلّان حقيقيان على الأكثر."
+  },
+  "zh-Hans": {
+    "word_phrase": "一元二次方程",
+    "sentence": "一元二次方程最多有两个实数根。"
+  },
+  "fr": {
+    "word_phrase": "Équation du second degré",
+    "sentence": "Une équation du second degré a au plus deux solutions réelles."
+  },
+  "ru": {
+    "word_phrase": "Квадратное уравнение",
+    "sentence": "Квадратное уравнение имеет не более двух действительных корней."
+  },
+  "es": {
+    "word_phrase": "Ecuación de segundo grado",
+    "sentence": "Una ecuación de segundo grado tiene como máximo dos soluciones reales."
+  }
+}

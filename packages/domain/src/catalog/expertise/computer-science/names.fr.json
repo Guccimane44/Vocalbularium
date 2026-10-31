@@ -1,0 +1,7 @@
+{
+  "label": "Informatique",
+  "description": "Explique un terme ou une notion au sens de l’informatique.",
+  "core.word_phrase": "Explication",
+  "core.sentence": "Explication",
+  "code.label": "Python"
+}

@@ -1,0 +1,15 @@
+{
+  "label": "德语",
+  "description": "用德语解释词语，或把句子译成德语。",
+  "article.label": "冠词",
+  "examples.label": "例句",
+  "synonyms.label": "近义词",
+  "antonyms.label": "反义词",
+  "conjugation.label": "变位",
+  "declension.label": "变格",
+  "comparison.label": "比较级与最高级",
+  "case.label": "支配格",
+  "core.word_phrase": "释义",
+  "core.sentence": "翻译",
+  "pronunciation.label": "发音"
+}

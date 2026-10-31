@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import Value from 'typebox/value';
 import { BlockDocumentSchema, DeckConfigurationSchema, FacetAddRequestSchema, PageSchema } from '@vocabularium/contracts';
 import {
-  applicableFacets, facetAbbreviation, facetAddBlocked, facetDeleteBlocked, facetsOf, facetTargets, facetUnavailable, isParentType, ordered, PARENTS,
+  applicableFacets, facetAbbreviation, facetAddBlocked, facetDeleteBlocked, facetsOf, facetTargets, facetUnavailable, isParentType, ordered, parentsIn, PARENTS,
   validateFacets, withFacet, facetsFor, ruledOut, DEFAULT_DECK_MODULES } from '@vocabularium/domain/parents';
 import { validateParentContent } from '@vocabularium/domain/content';
 import { copyModules, validateConfiguration } from '@vocabularium/domain/page-modules';
@@ -12,7 +12,9 @@ import { textBlocks } from '@vocabularium/domain/pages';
 // Parent modules with a core and facets (D08).
 
 test('the catalog is German and Chinese in Languages, with facets in a fixed order, Computer Science and Mathematics in Expertise, and Pronunciation in Sound (D08, D11, D24)', () => {
-  assert.deepEqual(Object.keys(PARENTS), ['german', 'chinese', 'computer-science', 'mathematics', 'pronunciation']);
+  // The Languages modules come first, German and Chinese leading them; a language added later joins after them.
+  assert.deepEqual(parentsIn('translation').slice(0, 2), ['german', 'chinese']);
+  assert.deepEqual(Object.keys(PARENTS), [...parentsIn('translation'), 'computer-science', 'mathematics', 'pronunciation']);
   assert.deepEqual(facetsOf('german'), ['article', 'examples', 'synonyms', 'antonyms', 'conjugation', 'declension', 'comparison', 'case', 'pronunciation'], 'the grammar facets after the first four (D17), then Pronunciation (D24)');
   assert.deepEqual(facetsOf('chinese'), ['examples', 'pinyin', 'pronunciation']);
   for (const parent of ['german', 'chinese']) assert.equal(PARENTS[parent].family, 'translation');

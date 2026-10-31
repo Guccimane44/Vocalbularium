@@ -1,0 +1,15 @@
+{
+  "label": "Немецкий",
+  "description": "Объясняет слово по-немецки или переводит предложение на немецкий.",
+  "article.label": "Артикль",
+  "examples.label": "Примеры",
+  "synonyms.label": "Синонимы",
+  "antonyms.label": "Антонимы",
+  "conjugation.label": "Спряжение",
+  "declension.label": "Склонение",
+  "comparison.label": "Степени сравнения",
+  "case.label": "Падеж",
+  "core.word_phrase": "Значения",
+  "core.sentence": "Перевод",
+  "pronunciation.label": "Произношение"
+}

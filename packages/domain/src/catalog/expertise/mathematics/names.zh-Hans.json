@@ -1,0 +1,7 @@
+{
+  "label": "数学",
+  "description": "按数学的理解解释术语或概念。",
+  "core.word_phrase": "解释",
+  "core.sentence": "解释",
+  "formula.label": "公式"
+}

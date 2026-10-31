@@ -1,0 +1,7 @@
+{
+  "label": "علوم الحاسوب",
+  "description": "يشرح مصطلحًا أو مفهومًا كما تفهمه علوم الحاسوب.",
+  "core.word_phrase": "الشرح",
+  "core.sentence": "الشرح",
+  "code.label": "Python"
+}

@@ -4,6 +4,7 @@
 // which the worker keeps in local storage, so the last known language applies
 // before the API answers.
 import type { InterfaceLanguage } from '@vocabularium/contracts';
+import { catalogNames } from '@vocabularium/domain/about';
 import english from './locales/en/messages.json' with { type: 'json' };
 import arabic from './locales/ar/messages.json' with { type: 'json' };
 import chinese from './locales/zh-Hans/messages.json' with { type: 'json' };
@@ -14,7 +15,7 @@ import reviews from './locales/reviews.json' with { type: 'json' };
 
 export type MessageKey = keyof typeof english;
 export type MessageValues = Readonly<Record<string, string | number>>;
-// A language's catalogue may also name catalog entries (`catalog.german.label`),
+// A language's catalogue also names catalog entries (`catalog.german.label`),
 // whose English is the catalog itself.
 type Catalogue = Readonly<Partial<Record<MessageKey, string>> & Record<string, string>>;
 
@@ -27,7 +28,11 @@ export const LANGUAGES: readonly Readonly<{ code: InterfaceLanguage; name: strin
   { code: 'ru', name: 'Русский', direction: 'ltr' },
   { code: 'es', name: 'Español', direction: 'ltr' }
 ];
-export const CATALOGUES: Readonly<Record<InterfaceLanguage, Catalogue>> = { en: english, ar: arabic, 'zh-Hans': chinese, fr: french, ru: russian, es: spanish };
+// A module's own names come from its catalog folder (D25); the families' and
+// the interface's from the language's messages.
+const withNames = (messages: Catalogue, language: InterfaceLanguage): Catalogue => ({ ...messages, ...catalogNames(language) });
+export const CATALOGUES: Readonly<Record<InterfaceLanguage, Catalogue>> = { en: english, ar: withNames(arabic, 'ar'), 'zh-Hans': withNames(chinese, 'zh-Hans'),
+  fr: withNames(french, 'fr'), ru: withNames(russian, 'ru'), es: withNames(spanish, 'es') };
 // A language is offered once its catalogue and explanations are complete (the
 // localisation test checks this) and its separate review is recorded here,
 // with the reviews of its Expertise writing guide and of the Expertise output

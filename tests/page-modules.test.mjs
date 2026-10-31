@@ -9,6 +9,7 @@ import {
   pageMeaning, validateConfiguration, WINDOW_MODULES
 } from '@vocabularium/domain/page-modules';
 import { textBlocks } from '@vocabularium/domain/pages';
+import { parentsIn } from '@vocabularium/domain/parents';
 
 const instances = (...types) => types.map((type, index) => ({ id: `m${index}`, type }));
 const component = (id, moduleType, attemptId = null, status = null) =>
@@ -20,7 +21,7 @@ const page = () => [
 
 test('the catalog lists input modules first and the window offers everything but the main key', () => {
   assert.deepEqual(Object.keys(CATALOG).slice(0, 3), ['main-key', 'context', 'text']);
-  assert.deepEqual(WINDOW_MODULES, ['context', 'text', 'german', 'chinese', 'computer-science', 'mathematics', 'pronunciation'], 'the earlier content modules are retired (D08); Expertise joins (D11), then Sound (D24)');
+  assert.deepEqual(WINDOW_MODULES, ['context', 'text', ...parentsIn('translation'), 'computer-science', 'mathematics', 'pronunciation'], 'the earlier content modules are retired (D08); every Languages module, then Expertise (D11), then Sound (D24)');
   for (const entry of Object.values(CATALOG)) assert.ok(entry.label && entry.description);
   assert.equal(isContentType('text'), false); assert.equal(isContentType('german'), true);
   assert.equal(isContentType('selected'), false);
@@ -36,7 +37,7 @@ test('every module but the main key belongs to one module family (D05)', () => {
   for (const family of FAMILIES) assert.ok(FAMILY_LABELS[family]);
   assert.equal(CATALOG['main-key'].family, null);
   assert.deepEqual(WINDOW_MODULES.map(type => [type, CATALOG[type].family]), [
-    ['context', 'notes'], ['text', 'notes'], ['german', 'translation'], ['chinese', 'translation'],
+    ['context', 'notes'], ['text', 'notes'], ...parentsIn('translation').map(type => [type, 'translation']),
     ['computer-science', 'expertise'], ['mathematics', 'expertise'], ['pronunciation', 'sound']
   ]);
 });

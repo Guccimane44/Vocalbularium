@@ -1,6 +1,6 @@
 // Runs the content modules' golden sets (D08, D11, C8) against the live
 // provider and writes the outputs for the owner's review. Each file in
-// tests/golden names the modules its inputs run through. It calls OpenCodeProvider
+// tests/golden names the modules, or the family, its inputs run through. It calls OpenCodeProvider
 // directly, without the API, database or extension, and spends provider usage.
 // Usage: npm run smoke:generation -- [module] [language] [samples], such as
 // `computer-science zh-Hans 3`: the language is the preference the Expertise
@@ -9,7 +9,7 @@ import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
 import { OpenCodeProvider } from '../src/server/opencode.mjs';
 import { generateComponent } from '@vocabularium/domain/modules';
-import { facetsOf, PARENTS } from '@vocabularium/domain/parents';
+import { facetsOf, parentsIn, PARENTS } from '@vocabularium/domain/parents';
 import { filledFacets } from '@vocabularium/domain/content';
 import { INTERFACE_LANGUAGES } from '@vocabularium/contracts';
 
@@ -21,8 +21,9 @@ if (!Number.isInteger(samples) || samples < 1) throw new Error('Samples must be 
 const directory = new URL('../tests/golden/', import.meta.url);
 const sets = [];
 for (const file of (await readdir(directory)).filter(name => name.endsWith('.json')).sort()) {
-  const { modules, inputs } = JSON.parse(await readFile(new URL(file, directory), 'utf8'));
-  const types = modules.filter(type => !only || type === only);
+  // A set names its modules, or a family whose every module it runs through.
+  const { modules, family, inputs } = JSON.parse(await readFile(new URL(file, directory), 'utf8'));
+  const types = (family ? parentsIn(family) : modules).filter(type => !only || type === only);
   if (types.length) sets.push({ types, inputs });
 }
 const provider = new OpenCodeProvider();

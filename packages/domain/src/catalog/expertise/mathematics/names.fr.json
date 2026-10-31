@@ -1,0 +1,7 @@
+{
+  "label": "Mathématiques",
+  "description": "Explique un terme ou une notion au sens des mathématiques.",
+  "core.word_phrase": "Explication",
+  "core.sentence": "Explication",
+  "formula.label": "Formule"
+}

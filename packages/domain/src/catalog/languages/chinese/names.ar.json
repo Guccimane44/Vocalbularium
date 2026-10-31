@@ -1,0 +1,9 @@
+{
+  "label": "الصينية",
+  "description": "يشرح كلمة بالصينية، أو يترجم جملة إلى الصينية.",
+  "examples.label": "أمثلة",
+  "pinyin.label": "بينيين",
+  "core.word_phrase": "المعاني",
+  "core.sentence": "الترجمة",
+  "pronunciation.label": "النطق"
+}

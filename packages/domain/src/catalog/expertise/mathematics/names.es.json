@@ -1,0 +1,7 @@
+{
+  "label": "Matemáticas",
+  "description": "Explica un término o un concepto tal como lo entienden las matemáticas.",
+  "core.word_phrase": "Explicación",
+  "core.sentence": "Explicación",
+  "formula.label": "Fórmula"
+}

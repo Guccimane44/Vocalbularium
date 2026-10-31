@@ -1,0 +1,9 @@
+{
+  "label": "Chino",
+  "description": "Explica una palabra en chino o traduce una oración al chino.",
+  "examples.label": "Ejemplos",
+  "pinyin.label": "Pinyin",
+  "core.word_phrase": "Significados",
+  "core.sentence": "Traducción",
+  "pronunciation.label": "Pronunciación"
+}

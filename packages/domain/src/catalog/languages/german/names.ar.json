@@ -1,0 +1,15 @@
+{
+  "label": "الألمانية",
+  "description": "يشرح كلمة بالألمانية، أو يترجم جملة إلى الألمانية.",
+  "article.label": "أداة التعريف",
+  "examples.label": "أمثلة",
+  "synonyms.label": "مرادفات",
+  "antonyms.label": "أضداد",
+  "conjugation.label": "تصريف الأفعال",
+  "declension.label": "تصريف الأسماء",
+  "comparison.label": "المقارنة والتفضيل",
+  "case.label": "الحالة الإعرابية",
+  "core.word_phrase": "المعاني",
+  "core.sentence": "الترجمة",
+  "pronunciation.label": "النطق"
+}
