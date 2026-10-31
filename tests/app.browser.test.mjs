@@ -558,9 +558,9 @@ test('deck UI: draft previews, all modules, the module limit, removal without co
   await addFromWindow(a.page, 'chinese');
   await addFromWindow(a.page, 'chinese');
   assert.equal(await a.page.locator('.deck-module').count(), 7);
-  assert.equal(await a.page.locator('.module-window .window-module').count(), 6, 'the window offers Context, Text, the two Languages parents (D08) and the two Expertise modules (D11)');
+  assert.equal(await a.page.locator('.module-window .window-module').count(), 7, 'the window offers Context, Text, the two Languages parents (D08), the two Expertise modules (D11) and Pronunciation (D24)');
   // Every module has its + (0.6.3; D04 had none); facets are not in the window (D13, 0.8.1).
-  assert.equal(await a.page.locator('.window-module > .window-add').count(), 6, 'every module has its +');
+  assert.equal(await a.page.locator('.window-module > .window-add').count(), 7, 'every module has its +');
   assert.equal(await a.page.locator('.window-facet').count(), 0, 'and no facet is listed');
   assert.equal(await a.page.locator('.window-module[data-type="context"]').getAttribute('aria-disabled'), 'true', 'one Context per deck');
   assert.equal(await a.page.locator('.window-module[data-type="context"] .window-add').isDisabled(), true, 'a blocked module cannot be added');
@@ -1415,8 +1415,8 @@ test('page view: main key tiers, Show all, rendered and plain content, quiet car
   await a.page.keyboard.press('Escape');
   await helpText.waitFor({ state: 'hidden' });
   const families = await window.locator('details').evaluateAll(nodes => nodes.map(node => [node.querySelector('summary').textContent, node.open]));
-  // Translation is called Languages since 0.8.0; Expertise has no module on this page, so it starts closed (D11).
-  assert.deepEqual(families, [['Languages2', true], ['Expertise2', false], ['Notes2', true]]);
+  // Translation is called Languages since 0.8.0; Expertise and Sound have no module on this page, so they start closed (D11, D24).
+  assert.deepEqual(families, [['Languages2', true], ['Expertise2', false], ['Sound1', false], ['Notes2', true]]);
   // A module on the page is not marked in the window (D13, 0.8.1), and the search no longer finds facets.
   assert.equal(await window.getByText('Already here').count(), 0);
   await window.getByLabel('Search modules', { exact: true }).fill('pinyin');
@@ -1426,7 +1426,7 @@ test('page view: main key tiers, Show all, rendered and plain content, quiet car
   await window.getByLabel('Search modules', { exact: true }).fill('nothing like this');
   await window.getByText('No module matches “nothing like this”.').waitFor();
   await window.getByLabel('Search modules', { exact: true }).fill('');
-  assert.equal(await window.locator('.window-module').count(), 6);
+  assert.equal(await window.locator('.window-module').count(), 7);
   await a.page.setViewportSize({ width: 390, height: 800 });
   await a.page.screenshot({ path: 'artifacts/v0.6.0-page-narrow.png', fullPage: true });
   assert.equal(await a.page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
@@ -3785,4 +3785,114 @@ test('0.12.2: a card’s Retry gives the model the core it had, with the meaning
     'the core as saved, with the edited meanings');
   assert.equal(requests[0].core, undefined);
   await card.locator('.entry-core', { hasText: 'Sitzbank' }).waitFor();
+});
+
+// A second of silence as WAV, so the browser can really play a clip (D24).
+function silentWav(seconds = 1, rate = 8000) {
+  const samples = seconds * rate, bytes = Buffer.alloc(44 + samples);
+  bytes.write('RIFF', 0); bytes.writeUInt32LE(36 + samples, 4); bytes.write('WAVEfmt ', 8); bytes.writeUInt32LE(16, 16);
+  bytes.writeUInt16LE(1, 20); bytes.writeUInt16LE(1, 22); bytes.writeUInt32LE(rate, 24); bytes.writeUInt32LE(rate, 28);
+  bytes.writeUInt16LE(1, 32); bytes.writeUInt16LE(8, 34); bytes.write('data', 36); bytes.writeUInt32LE(samples, 40);
+  bytes.fill(128, 44);
+  return bytes;
+}
+
+test('0.14.0: a Pronunciation card in Sound speaks the main key: generating, failed and its Retry, playing, and a language it cannot speak (D24)', { timeout: 60000 }, async (t) => {
+  const { FakeSpeechProvider } = await import('./helpers/speech.mjs');
+  class WavSpeech extends FakeSpeechProvider {
+    bitRate = 64000;
+    async send(request, signal, reply) { await super.send(request, signal, reply); reply.mime = 'audio/wav'; reply.bytes = silentWav(); }
+  }
+  const speech = new WavSpeech({ fail: { Gift: 'provider_refused' } });
+  const directory = await mkdtemp(join(tmpdir(), 'vocabularium-pronunciation-browser-'));
+  const application = await createTestApplication(t, { speechProvider: speech }); await application.start();
+  const a = await launch(join(directory, 'a'));
+  t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
+  await a.page.setViewportSize({ width: 1280, height: 1000 });
+  const { store, audio } = application;
+  const session = { installationId: 'fixture', sessionId: 'pronunciation', epoch: 1 };
+  await store.openSession('pronunciation-session', session);
+  const deckId = (await store.snapshot()).id;
+  const { pageId } = await store.createPage('pronunciation-page', { deckId, mainKey: 'Gift' });
+  await signIn(a.page);
+  await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
+  await a.page.getByRole('heading', { name: 'Gift', exact: true }).first().waitFor();
+
+  // Sound in the module window, with its one module.
+  const sound = a.page.locator('.module-window details').filter({ has: a.page.locator('summary', { hasText: 'Sound' }) });
+  await sound.locator('summary').click();
+  assert.deepEqual(await sound.locator('.window-module').evaluateAll(nodes => nodes.map(node => node.dataset.type)), ['pronunciation']);
+  await a.page.getByRole('button', { name: 'Add Pronunciation at the end', exact: true }).click();
+  const card = componentArticle(a.page, 'Pronunciation');
+  await card.waitFor();
+  assert.match(await card.getAttribute('class'), /fam-sound/);
+
+  // Generated and published: the language named in English, the key, and its clip.
+  const publish = async (id, language, key) => {
+    const component = (await store.page(id)).components.find(item => item.moduleType === 'pronunciation');
+    const { attemptIds: [attemptId] } = await store.generate(`generate-${id}`, { pageId: id, target: { scope: 'component', componentId: component.id }, session });
+    await store.stage(attemptId, staged(formatContent('pronunciation', { core: { language, key }, facets: {} })));
+    const result = await store.publish(`publish-${id}`, { attemptId, session });
+    const page = await store.page(id);
+    await audio.afterPublish({ pageId: id, componentId: component.id, moduleType: 'pronunciation',
+      content: page.components.find(item => item.id === component.id).content, mainKey: key, state: result.state });
+  };
+  await publish(pageId, 'de', 'Gift');
+  await a.page.reload();
+  const player = card.locator('.clip-player');
+  await card.locator('.clip-player[data-state="failed"]').waitFor();
+  assert.equal(await card.locator('.entry-heading .entry-language').textContent(), 'German');
+  assert.equal(await card.locator('.entry-heading .entry-key').textContent(), 'Gift');
+  assert.equal(await player.locator('.clip-note').textContent(), 'The speech service could not speak this.');
+  const heights = [Math.round((await player.boundingBox()).height)];
+  const shot = async name => a.page.screenshot({ path: `artifacts/v0.14.0-pronunciation-${name}.png`,
+    clip: await card.boundingBox().then(box => ({ x: box.x - 20, y: box.y - 30, width: box.width + 40, height: box.height + 50 })) });
+  await shot('failed');
+
+  // A spoken card has no text to edit and no facets: its actions are Retry, About, Fold and Delete.
+  await cardTab(a.page, 'Pronunciation').click();
+  const actions = await a.page.locator(`#actions-${await card.getAttribute('data-component-id')} button`).allTextContents();
+  assert.deepEqual(actions, ['Retry', 'About', 'Fold', 'Delete']);
+  await a.page.keyboard.press('Escape');
+
+  // The clip's own Retry speaks it again; the card's text stays.
+  delete speech.fail.Gift;
+  await a.page.getByRole('button', { name: 'Speak Gift again', exact: true }).click();
+  await card.locator('.clip-player[data-state="ready"]').waitFor();
+  assert.equal(await player.locator('.clip-time').textContent(), '0:01');
+  heights.push(Math.round((await player.boundingBox()).height));
+  await shot('light');
+
+  // Playing: the button pauses and the line fills; it ends back at Play.
+  const play = a.page.getByRole('button', { name: 'Play Gift', exact: true });
+  await play.click();
+  await card.locator('.clip-player[data-state="playing"]').waitFor();
+  assert.equal(await a.page.getByRole('button', { name: 'Pause Gift', exact: true }).getAttribute('aria-pressed'), 'true');
+  await waitFor(async () => (await card.locator('.clip-fill').evaluate(node => parseFloat(node.style.width))) > 0, 'the progress line fills');
+  await shot('playing');
+  await card.locator('.clip-player[data-state="ready"]').waitFor({ timeout: 5000 });
+  assert.equal(speech.calls.length, 2, 'played from the clip, not spoken again');
+
+  // Dark: the same row in Moss night.
+  await chooseAppearance(a.page, 'dark');
+  const colours = await card.locator('.clip-play').evaluate(node => [getComputedStyle(node).backgroundColor, getComputedStyle(node).color]);
+  assert.deepEqual(colours, ['rgb(242, 155, 181)', 'rgb(70, 17, 31)'], 'the Sound pink with its dark label in Moss night');
+  await shot('dark');
+  await chooseAppearance(a.page, 'light');
+
+  // A language the speech model does not speak: the key alone, a note in the row's place, and no clip.
+  const other = await store.createPage('pronunciation-other', { deckId, mainKey: 'carpe diem', initial: [] });
+  await store.addModule('pronunciation-other-add', { pageId: other.pageId, type: 'pronunciation' });
+  await publish(other.pageId, 'other', 'carpe diem');
+  await a.page.goto(`chrome-extension://${a.id}/app.html#page/${other.pageId}`);
+  const unspoken = componentArticle(a.page, 'Pronunciation').locator('.clip-player[data-state="unspoken"]');
+  await unspoken.waitFor();
+  assert.equal(await componentArticle(a.page, 'Pronunciation').locator('.entry-heading .entry-language').count(), 0);
+  assert.equal(await unspoken.locator('.clip-note').textContent(), 'This language can\'t be spoken yet.');
+  assert.equal(await unspoken.getByRole('button', { name: 'Retry', exact: true }).count(), 1);
+  heights.push(Math.round((await unspoken.boundingBox()).height));
+  await a.page.screenshot({ path: 'artifacts/v0.14.0-pronunciation-unspoken.png', clip: await componentArticle(a.page, 'Pronunciation').boundingBox()
+    .then(box => ({ x: box.x - 20, y: box.y - 30, width: box.width + 40, height: box.height + 50 })) });
+  assert.deepEqual(heights, [44, 44, 44], 'every state keeps the row\'s height');
+  assert.deepEqual((await store.clips(other.pageId)), []);
 });

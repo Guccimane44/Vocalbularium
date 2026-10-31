@@ -154,5 +154,5 @@ test('every page text is written in every interface language', async () => {
     const name = 'family' in holder ? holder.family : `${folderOf(holder.module)}${holder.facet ? `/${holder.facet}` : ''}`;
     assert.deepEqual(languages.sort(), LANGUAGES.map(language => language.code).sort(), name);
   }
-  assert.equal(written, 21, 'three families, six window modules and twelve facets (D20)');
+  assert.equal(written, 23, 'four families, seven window modules and twelve facets (D20, D24)');
 });

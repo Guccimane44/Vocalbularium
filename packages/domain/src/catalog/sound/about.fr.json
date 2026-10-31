@@ -1,0 +1,17 @@
+{
+  "summary": "Des modules sur le son de votre clé : ils la prononcent à voix haute, pour que vous l'entendiez autant que vous la lisez.",
+  "steps": [
+    {
+      "title": "Reconnaît la langue de votre clé",
+      "text": "D'après son orthographe, ses mots et son écriture, et d'après le Contexte quand une orthographe convient à plusieurs langues."
+    },
+    {
+      "title": "La prononce telle qu'enregistrée",
+      "text": "Votre clé exactement comme la page la contient, dans cette langue, d'une voix naturelle."
+    },
+    {
+      "title": "Nouvelle à chaque fois",
+      "text": "Chaque carte et chaque nouvel essai est prononcé à neuf ; une langue que la voix ne sait pas parler est signalée, pas devinée."
+    }
+  ]
+}

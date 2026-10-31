@@ -1,0 +1,16 @@
+{
+  "word_phrase": {
+    "core": {
+      "language": "ru",
+      "key": "язык"
+    },
+    "facets": {}
+  },
+  "sentence": {
+    "core": {
+      "language": "ru",
+      "key": "Языки — это мосты, соединяющие людей и мир."
+    },
+    "facets": {}
+  }
+}

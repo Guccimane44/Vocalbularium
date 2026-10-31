@@ -88,7 +88,7 @@ export function validateParentContent(parent: ParentType, value: unknown, { face
   if (!isRecord(value)) return fail('The content is not structured.');
   for (const key of Object.keys(value)) if (!['header', 'core', 'facets'].includes(key)) fail(`The content has an unexpected field "${key}".`);
   const header = value.header;
-  if (!isRecord(header) || !['word', 'sentence', 'expertise'].includes(header.kind as string)) return fail("The module's top line is missing.");
+  if (!isRecord(header) || !['word', 'sentence', 'expertise', 'pronunciation'].includes(header.kind as string)) return fail("The module's top line is missing.");
   const entries = value.facets ?? {};
   if (!isRecord(entries)) return fail('The facets are not structured.');
   const checked: Record<string, string> = {};
@@ -108,10 +108,13 @@ export type ParentDraft = Readonly<{ core: string; facets: ParentFacetTexts }>;
 // The content an empty parent is edited from (D10, amended a fourth time): a
 // top line of the page's main key, and nothing else. A Languages card reads it
 // as a word with the language blank until a Retry writes its own reading (D17);
-// an Expertise card shows the key.
+// an Expertise card shows the key, and a Pronunciation card the key with no
+// language until a Retry reads it (D24).
 export function blankContent(mainKey: string, parent?: ParentType): ParentContent {
   const key = mainKey.trim();
-  const header: ParentHeader = parent && familyOf(parent) === 'expertise' ? { kind: 'expertise', key, relevance: 'subject' } : { kind: 'word', language: '', key };
+  const family = parent ? familyOf(parent) : null;
+  const header: ParentHeader = family === 'expertise' ? { kind: 'expertise', key, relevance: 'subject' }
+    : family === 'sound' ? { kind: 'pronunciation', language: '', key } : { kind: 'word', language: '', key };
   return { header, core: '', facets: {} };
 }
 

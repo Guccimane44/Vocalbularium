@@ -380,5 +380,18 @@
   "catalog.mathematics.core.word_phrase": "Объяснение",
   "catalog.mathematics.core.sentence": "Объяснение",
   "catalog.mathematics.formula.label": "Формула",
-  "catalog.computer-science.code.label": "Python"
+  "catalog.computer-science.code.label": "Python",
+  "catalog.pronunciation.label": "Произношение",
+  "catalog.pronunciation.description": "Произносит главный ключ на его собственном языке.",
+  "catalog.pronunciation.core.word_phrase": "Произношение",
+  "catalog.pronunciation.core.sentence": "Произношение",
+  "audio.play": "Воспроизвести «{text}»",
+  "audio.pause": "Приостановить «{text}»",
+  "audio.generating": "Создаётся аудио…",
+  "audio.failed": "Сервису озвучивания не удалось это произнести.",
+  "audio.unconfigured": "Озвучивание не настроено на сервере.",
+  "audio.busy": "Слишком много аудио сразу. Повторите попытку.",
+  "audio.notSpoken": "Этот язык пока нельзя озвучить.",
+  "audio.tooLong": "Ключи длиннее 500 символов не озвучиваются.",
+  "audio.retryNamed": "Произнести «{text}» снова"
 }

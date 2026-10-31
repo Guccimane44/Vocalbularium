@@ -178,7 +178,7 @@ Since 0.7.4 the provider returns a parent's content as JSON, and the app keeps i
 - **Case:** a list of `{ case, use, example }` (D17).
 - **Formula:** `{ latex, symbols }`, the formula in LaTeX and a list of `{ symbol, meaning }`, each symbol in LaTeX (D17). The flags are named `hasFormula` and `hasCode`, so they do not share a name with their facets.
 - **Python:** `{ language, code }`, `language` always `python`, the code commented (D17, [D21](../architecture/traceability-map.md#entries)).
-- **Core, Pronunciation:** `{ language }` only ([D24](../architecture/traceability-map.md#entries)); the key itself is spoken as saved, never as the model rewrote it.
+- **Core, Pronunciation:** `{ language, key }`, `language` first ([D24](../architecture/traceability-map.md#entries)); the key is echoed for the top line, as every core's is, but what is spoken is the page's saved main key, never the key as the model wrote it.
 - **Pronunciation (facet):** a list of lines to speak, one string each.
 
 **Formatted into markdown** when it is stored:

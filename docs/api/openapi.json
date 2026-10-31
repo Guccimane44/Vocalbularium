@@ -4098,6 +4098,32 @@
                                                   }
                                                 },
                                                 "additionalProperties": false
+                                              },
+                                              {
+                                                "type": "object",
+                                                "required": [
+                                                  "kind",
+                                                  "language",
+                                                  "key"
+                                                ],
+                                                "properties": {
+                                                  "kind": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                      "pronunciation"
+                                                    ]
+                                                  },
+                                                  "language": {
+                                                    "type": "string",
+                                                    "maxLength": 8
+                                                  },
+                                                  "key": {
+                                                    "type": "string",
+                                                    "minLength": 1,
+                                                    "maxLength": 2000
+                                                  }
+                                                },
+                                                "additionalProperties": false
                                               }
                                             ]
                                           },
@@ -4602,6 +4628,32 @@
                                                         ]
                                                       }
                                                     ]
+                                                  }
+                                                },
+                                                "additionalProperties": false
+                                              },
+                                              {
+                                                "type": "object",
+                                                "required": [
+                                                  "kind",
+                                                  "language",
+                                                  "key"
+                                                ],
+                                                "properties": {
+                                                  "kind": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                      "pronunciation"
+                                                    ]
+                                                  },
+                                                  "language": {
+                                                    "type": "string",
+                                                    "maxLength": 8
+                                                  },
+                                                  "key": {
+                                                    "type": "string",
+                                                    "minLength": 1,
+                                                    "maxLength": 2000
                                                   }
                                                 },
                                                 "additionalProperties": false

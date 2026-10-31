@@ -20,7 +20,7 @@ const page = () => [
 
 test('the catalog lists input modules first and the window offers everything but the main key', () => {
   assert.deepEqual(Object.keys(CATALOG).slice(0, 3), ['main-key', 'context', 'text']);
-  assert.deepEqual(WINDOW_MODULES, ['context', 'text', 'german', 'chinese', 'computer-science', 'mathematics'], 'the earlier content modules are retired (D08); Expertise joins (D11)');
+  assert.deepEqual(WINDOW_MODULES, ['context', 'text', 'german', 'chinese', 'computer-science', 'mathematics', 'pronunciation'], 'the earlier content modules are retired (D08); Expertise joins (D11), then Sound (D24)');
   for (const entry of Object.values(CATALOG)) assert.ok(entry.label && entry.description);
   assert.equal(isContentType('text'), false); assert.equal(isContentType('german'), true);
   assert.equal(isContentType('selected'), false);
@@ -37,7 +37,7 @@ test('every module but the main key belongs to one module family (D05)', () => {
   assert.equal(CATALOG['main-key'].family, null);
   assert.deepEqual(WINDOW_MODULES.map(type => [type, CATALOG[type].family]), [
     ['context', 'notes'], ['text', 'notes'], ['german', 'translation'], ['chinese', 'translation'],
-    ['computer-science', 'expertise'], ['mathematics', 'expertise']
+    ['computer-science', 'expertise'], ['mathematics', 'expertise'], ['pronunciation', 'sound']
   ]);
 });
 

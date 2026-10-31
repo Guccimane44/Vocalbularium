@@ -10,8 +10,8 @@ import { textBlocks } from '@vocabularium/domain/pages';
 
 // Parent modules with a core and facets (D08).
 
-test('the catalog is German and Chinese in Languages, with facets in a fixed order, and Computer Science and Mathematics in Expertise (D08, D11)', () => {
-  assert.deepEqual(Object.keys(PARENTS), ['german', 'chinese', 'computer-science', 'mathematics']);
+test('the catalog is German and Chinese in Languages, with facets in a fixed order, Computer Science and Mathematics in Expertise, and Pronunciation in Sound (D08, D11, D24)', () => {
+  assert.deepEqual(Object.keys(PARENTS), ['german', 'chinese', 'computer-science', 'mathematics', 'pronunciation']);
   assert.deepEqual(facetsOf('german'), ['article', 'examples', 'synonyms', 'antonyms', 'conjugation', 'declension', 'comparison', 'case'], 'the grammar facets after the first four (D17)');
   assert.deepEqual(facetsOf('chinese'), ['examples', 'pinyin']);
   for (const parent of ['german', 'chinese']) assert.equal(PARENTS[parent].family, 'translation');
@@ -19,6 +19,9 @@ test('the catalog is German and Chinese in Languages, with facets in a fixed ord
   // Their first facets came with D17.
   assert.deepEqual(facetsOf('computer-science'), ['code']);
   assert.deepEqual(facetsOf('mathematics'), ['formula']);
+  // Pronunciation is a core alone: the main key, spoken (D24).
+  assert.equal(PARENTS.pronunciation.family, 'sound');
+  assert.deepEqual(facetsOf('pronunciation'), []);
   assert.ok(isParentType('german') && !isParentType('german-examples') && !isParentType('text'));
 });
 

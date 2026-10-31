@@ -15,8 +15,12 @@ export type FamilyDefinition<Id extends string = string> = Readonly<{
   folder: string;
 }>;
 
-// What a facet's content is. Only text (markdown) exists in 0.8.0 (K29).
+// What a facet's content is: text (markdown). From 0.14.0 a part may also be
+// spoken (D24): its text stays markdown and its audio is attached beside it.
 export type OutputType = 'text';
+// How a spoken part's audio is made (D24): the language its lines are spoken
+// in, an ISO 639-1 code.
+export type Spoken = Readonly<{ language: string }>;
 
 export type FacetDefinition<Id extends string = string, T = any> = Readonly<{
   id: Id;
@@ -33,6 +37,8 @@ export type FacetDefinition<Id extends string = string, T = any> = Readonly<{
   shape: Shape<T>;
   // The checked value as the markdown the card shows.
   format: (value: T) => string;
+  // A spoken facet (D24): each of its lines is spoken, in this language.
+  spoken?: Spoken;
 }>;
 
 // The core: a module's first facet, always present, with one shape (D17). Its
@@ -56,6 +62,9 @@ export type CoreDefinition<T extends CoreValue = any> = Readonly<{
   header: (value: T) => ParentHeader;
   // The core as the provider reads it for a facet's own Retry, from what is stored.
   read: (stored: Readonly<{ header: ParentHeader; text: string }>) => T;
+  // A spoken core (D24): the page's main key, spoken in the language this
+  // returns for the written core, or not at all for null.
+  spoken?: (value: T) => Spoken | null;
 }>;
 
 export type ModuleKind = 'input' | 'content';
@@ -63,8 +72,9 @@ export type ModuleKind = 'input' | 'content';
 export type Instances = 'first-once' | 'at-most-one' | 'many';
 // Where the module's content comes from.
 export type Source = 'captured' | 'user' | 'generated';
-// What generates it; only text generation exists in 0.8.0 (K29).
-export type ProviderKind = 'text';
+// What generates it: text since 0.8.0 (K29). A spoken part's audio comes from
+// the speech provider afterwards (D24); the module's own request is still text.
+export type ProviderKind = 'text' | 'speech';
 
 type ModuleBase<Id extends string> = Readonly<{
   id: Id;

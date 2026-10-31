@@ -26,12 +26,13 @@ export type Rendered =
   // Context and Text are markdown since 0.7.5 (D10, amended a fourth time).
   | Readonly<{ kind: 'note'; blocks: readonly MdBlock[] }>;
 
-export function renderParent(type: ParentType, content: ParentContent): Rendered {
+// `language` is the interface language, which names a Pronunciation card's language (D24).
+export function renderParent(type: ParentType, content: ParentContent, language = 'en'): Rendered {
   const header = content.header;
   const texts = content.facets as Record<string, string | undefined>;
   return {
     kind: 'parent',
-    heading: headingOf(type, content),
+    heading: headingOf(type, content, language),
     reading: header.kind === 'sentence',
     ruledOut: ruledOutOf(type, content),
     core: parseMarkdown(content.core),
@@ -51,13 +52,26 @@ export function ruledOutOf(type: ParentType, content: ParentContent): Partial<Re
 // The top line's labels come from the catalog, one per flag value: the model
 // writes the value, the module names it (K51). A grammatical role outside the
 // module's list is shown as written.
-export function headingOf(type: ParentType, content: ParentContent): EntryHeading | null {
+// A Pronunciation card names its key's language in the interface language
+// (*German*, *Deutsch*, *德语*), and only the key for `other` (D24).
+export function headingOf(type: ParentType, content: ParentContent, language = 'en'): EntryHeading | null {
   const header = content.header;
   if (header.kind === 'expertise') return { language: '', key: header.key, pronunciation: null, labels: [] };
+  if (header.kind === 'pronunciation') return { language: languageName(header.language, language), key: header.key, pronunciation: null, labels: [] };
   const names = contentModule(type).core.headerLabels;
   const labels = !names || !header.language ? [] : [header.kind === 'sentence' ? names.sentence : names.word,
     ...(header.kind === 'word' && header.gramRole ? [names.gramRole?.[header.gramRole.toLowerCase()] ?? header.gramRole] : [])];
   return { language: header.language, key: header.key, pronunciation: header.romanization ?? null, labels };
+}
+
+// A language's name, from its ISO 639-1 code, in the interface language; blank
+// for `other` or a code the browser cannot name.
+export function languageName(code: string, language = 'en'): string {
+  if (!code || code === 'other') return '';
+  try {
+    const name = new Intl.DisplayNames([language], { type: 'language', fallback: 'none' }).of(code);
+    return name ? name.charAt(0).toLocaleUpperCase(language) + name.slice(1) : '';
+  } catch { return ''; }
 }
 
 // Plain text: the main key (D09: a parent is never text); Context and Text as

@@ -10,7 +10,7 @@ import type { Rendered } from '@vocabularium/domain/render';
 import { plainInline } from '@vocabularium/domain/markdown';
 import { CodeBlock, MathBlock } from './rich-blocks.tsx';
 import type { MdBlock, MdInline } from '@vocabularium/domain/markdown';
-import { parentContentOf } from '@vocabularium/domain/content';
+import { parentContentOf, providerCore } from '@vocabularium/domain/content';
 import type { ParentContent } from '@vocabularium/domain/content';
 import { hasText } from '@vocabularium/domain/markdown';
 import { FacetEditor, LiveEditor, NoteEditor } from './live-editor.tsx';
@@ -26,7 +26,9 @@ import { FamilyIcon } from './families.tsx';
 import { mainKeyTier } from './main-key.ts';
 import { AT_THE_END, moduleLabel, numbered, ShapingArea, SixDots } from './shaping.tsx';
 import type { RowParts } from './shaping.tsx';
-import { direction, listFormat, t } from './i18n.ts';
+import { currentLanguage, direction, listFormat, t } from './i18n.ts';
+import { contentModule } from '@vocabularium/domain/catalog';
+import { ClipPlayer, ClipsProvider, MAX_SPOKEN_LENGTH } from './audio.tsx';
 
 // Icons for a card's actions, drawn like the family icons: 24px grid, 2.2 stroke.
 const ACTION_ICONS = {
@@ -221,13 +223,30 @@ type FacetControls = { title: string; disabled: boolean; onDelete: (facet: Facet
   onEdit?: (facet: FacetType) => void; editing?: { facet: string; node: ReactNode };
 
   asking: { facet: FacetType; kind: FacetAsk } | null; setAsking: (facet: FacetType | null, kind?: FacetAsk) => void;
-  retrying?: string; failed?: string };
+  retrying?: string; failed?: string;
+  // The card's own Retry, which a part that is not spoken offers beside its note (D24).
+  onRetryCard?: () => void };
+
+// Whether a module's core is spoken rather than written (D24): it has no text
+// of its own, so no Edit, and Pronunciation no facets either.
+export const isSpokenModule = (type: string) => isParentType(type) && Boolean(contentModule(type).core.spoken);
+// A spoken core's clip: the card it belongs to and whether its main key can be spoken.
+type SpokenCore = Readonly<{ componentId: string; speakable: boolean; tooLong: boolean }>;
+function spokenCoreOf(item: Component, mainKey: string): SpokenCore | undefined {
+  if (!isSpokenModule(item.moduleType)) return undefined;
+  const data = parentContentOf(item.content);
+  if (!data) return undefined;
+  const type = item.moduleType as ParentType;
+  const spoken = contentModule(type).core.spoken?.(providerCore(type, data));
+  return { componentId: item.id, speakable: Boolean(spoken), tooLong: mainKey.trim().length > MAX_SPOKEN_LENGTH };
+}
 
 // A component's content for reading: a parent's structured data (D09), drawn
 // as its text once was, or plain text; and whether there is any.
 export function readContent(type: string, content: Component['content']): { rendered: Rendered; present: boolean } {
   const data = isParentType(type) ? parentContentOf(content) : null;
-  if (data) return { rendered: renderParent(type as ParentType, data), present: true };
+  // A Pronunciation card names its key's language in the interface language (D24).
+  if (data) return { rendered: renderParent(type as ParentType, data, currentLanguage()), present: true };
   const text = blockText(content);
   return { rendered: renderContent(type, text), present: Boolean(text) };
 }
@@ -239,8 +258,8 @@ export function readContent(type: string, content: Component['content']): { rend
 // D10's sixth amendment every facet the card has shows its heading, an empty
 // one dimmed, without text, and with its Edit, Retry and Delete. Anything
 // else, and the user's own text, is plain text with its line breaks.
-export function Content({ type, rendered, mainKey, controls }: {
-  type: string; rendered: Rendered; mainKey: string; controls?: FacetControls;
+export function Content({ type, rendered, mainKey, controls, spoken }: {
+  type: string; rendered: Rendered; mainKey: string; controls?: FacetControls; spoken?: SpokenCore;
 }) {
   // Context and Text as markdown (D10, amended a fourth time), edited from their tab.
   if (rendered.kind === 'note') return <Markdown blocks={rendered.blocks} mainKey={mainKey} className="note-body" />;
@@ -274,6 +293,9 @@ export function Content({ type, rendered, mainKey, controls }: {
       {/* Word or sentence, and a German word's grammatical role, in the module's language (D17, K51). */}
       {heading.labels.map(label => <span key={label} className="entry-label">{label}</span>)}
     </p>}
+    {/* A spoken core's player, beneath its top line (D24, direction A). */}
+    {spoken && <ClipPlayer componentId={spoken.componentId} part="core" line={0} text={mainKey.trim()}
+      speakable={spoken.speakable} tooLong={spoken.tooLong} onRetryCard={controls?.onRetryCard} />}
     {core.length > 0 && <Markdown blocks={core} mainKey={mainKey} className={reading ? 'entry-core reading' : 'entry-core'} />}
     {parent && facetsOf(parent).map(name => {
       const facet = facets.find(each => each.facet === name);
@@ -328,7 +350,8 @@ function ComponentBody({ item, title, editable, draft, locked, persist, redraw, 
     {item.status === 'loading' && <p className="notice">{t('card.generatingDraft')}</p>}
   </>;
   const { rendered, present } = readContent(item.moduleType, item.content);
-  return present ? <Content type={item.moduleType} rendered={rendered} mainKey={mainKey} controls={controls} /> : null;
+  return present ? <Content type={item.moduleType} rendered={rendered} mainKey={mainKey} controls={controls}
+    spoken={item.status === 'completed' ? spokenCoreOf(item, mainKey) : undefined} /> : null;
 }
 
 // Motion (D05): when a component finishes generating while the page is open,
@@ -547,7 +570,8 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
     const order = () => ({ '--i': index++ }) as CSSProperties;
     return <div id={`actions-${item.id}`} className="card-actions" role="group" aria-label={t('card.actions', { card: title })} data-open={open || undefined}>
       {/* An empty parent can be written by hand too (D10, amended a fourth time). */}
-      {open && <button style={order()} aria-label={t('action.editNamed', { name: title })} disabled={Boolean(editingId) || item.status === 'loading'}
+      {/* A spoken core has no text to edit (D24). */}
+      {open && !isSpokenModule(item.moduleType) && <button style={order()} aria-label={t('action.editNamed', { name: title })} disabled={Boolean(editingId) || item.status === 'loading'}
         onClick={choose(() => { if (isFolded) fold(item.id, false); begin(item.id); })}>
         <ActionIcon name="edit" />{t('common.edit')}</button>}
       {generated && <button style={order()} className={item.status === 'failed' ? 'action-failed' : undefined} aria-label={t('action.retryNamed', { name: title })}
@@ -555,7 +579,7 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
         onClick={hasContent && open ? ask('retry') : choose(() => void run(() => generate({ scope: 'component', componentId: item.id })))}>
         <ActionIcon name="retry" />{t('common.retry')}</button>}
       {/* A parent's facets are chosen in its facet window (D13, 0.8.1). */}
-      {open && isParentType(item.moduleType) && <button style={order()} aria-label={t('card.facetsOf', { card: title })}
+      {open && isParentType(item.moduleType) && facetsOf(item.moduleType).length > 0 && <button style={order()} aria-label={t('card.facetsOf', { card: title })}
         disabled={disabled || working || item.status === 'loading'} onClick={choose(() => setFacetsFor(item.id))}>
         <ActionIcon name="facet" />{t('card.facet')}</button>}
       {/* About opens the module's page in the pages' sheet (D20, 0.13.0). */}
@@ -602,7 +626,8 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
       // A facet edits on its own (D10, 0.7.5), an empty one too (amended a sixth time).
       onEdit: facet => { setAskingFacet(null); begin(item.id, facet); }, facets: item.facets ?? [],
       setAsking: (facet, kind = 'delete') => setAskingFacet(facet ? { id: item.id, facet, kind } : null),
-      retrying: item.retryingFacet, failed: item.failedFacet } : undefined;
+      retrying: item.retryingFacet, failed: item.failedFacet,
+      onRetryCard: () => void run(() => generate({ scope: 'component', componentId: item.id }, true)) } : undefined;
     // While it generates, a card is only its tab, with a spark running round
     // its edge; its content opens once there is some (0.6.3). A facet
     // regenerating on its own keeps the card open (0.7.3).
@@ -676,6 +701,8 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
         <button disabled={busy || Boolean(editingId)} onClick={() => void deletePage()}>{t('page.delete')}</button>
       </div>
     </div>
+    {/* The page's audio clips (D24), read again whenever a card changes. */}
+    <ClipsProvider pageId={page.id} version={page.components.map(item => `${item.id}:${item.status}:${item.attemptId ?? ''}`).join('|')}>
     <ShapingArea items={items} types={page.components.map(item => item.moduleType)} disabled={disabled}
       label={t('page.components')} where="page"
       // The server appends a module sent without a position, after anything added meanwhile.
@@ -684,6 +711,7 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
       menuItems={componentMenu()}
       renderLanding={type => <LandingCard type={type} />}
       renderItem={(item, parts) => card(item.component, item.label, parts)} />
+    </ClipsProvider>
     {lost.map(id => <div key={id}>
       <p className="notice">{t('page.lostComponent')}</p>
       <pre>{draft!.texts[id] ?? draftText(draft!.fields![id]!)}</pre>
