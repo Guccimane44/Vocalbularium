@@ -22,6 +22,9 @@ const Filled = Type.String({ minLength: 1, maxLength: 2000 });
 // structured and never edited, then the core and each facet with content as
 // one markdown text. A facet without content has no entry.
 const Markdown = Type.String({ maxLength: 8000 });
+// A facet's ID, as its module's catalog folder names it.
+const FacetIdSchema = Type.String({ pattern: '^[a-z][a-z0-9-]{0,39}$' });
+const MAX_FACETS = 12;
 // Since D17 a Languages card's top line carries its own reading: word or
 // sentence, the key's language and, for a German word, its grammatical role;
 // an Expertise card's carries the key and its case, which is not shown; a
@@ -40,16 +43,9 @@ export const ParentBlockSchema = Type.Object({
   type: Type.Literal('parent'),
   header: ParentHeaderSchema,
   core: Markdown,
-  facets: Type.Object({
-    article: Type.Optional(Markdown), examples: Type.Optional(Markdown), synonyms: Type.Optional(Markdown),
-    antonyms: Type.Optional(Markdown), pinyin: Type.Optional(Markdown),
-    // German grammar facets (D17).
-    conjugation: Type.Optional(Markdown), declension: Type.Optional(Markdown), comparison: Type.Optional(Markdown), case: Type.Optional(Markdown),
-    // Expertise facets (D17).
-    formula: Type.Optional(Markdown), code: Type.Optional(Markdown),
-    // The Languages modules' spoken facet (D24): the lines to speak.
-    pronunciation: Type.Optional(Markdown)
-  }, { additionalProperties: false })
+  // Keyed by facet ID (D25): the module catalog, not this contract, decides
+  // which facets a parent has.
+  facets: Type.Record(FacetIdSchema, Markdown, { maxProperties: MAX_FACETS, additionalProperties: false })
 }, { additionalProperties: false });
 
 export const BlockDocumentSchema = Type.Object({
@@ -64,8 +60,7 @@ export const ComponentStatusSchema = Type.Union([
 export const MAX_MODULES = 12;
 
 // A parent module's facets (D08), in the parent's order. Other modules have none.
-// German has nine facets since D24's Pronunciation.
-export const FacetListSchema = Type.Array(Type.String({ minLength: 1 }), { maxItems: 12 });
+export const FacetListSchema = Type.Array(Type.String({ minLength: 1 }), { maxItems: MAX_FACETS });
 export const ModuleInstanceSchema = Type.Object({
   id: Type.String({ minLength: 1 }),
   type: Type.String({ minLength: 1 }),

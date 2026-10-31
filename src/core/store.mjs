@@ -5,7 +5,7 @@ import { blockText, mainKeyOf, noteDocument, pageStatus, textBlocks } from '@voc
 import {
   addBlocked, copyModules, deleteBlocked, DECK_COLOURS, generationTargets, moveBlocked, moved, pageMeaning, validateConfiguration
 } from '@vocabularium/domain/page-modules';
-import { facetAddBlocked, facetDeleteBlocked, isParentType, withFacet } from '@vocabularium/domain/parents';
+import { DEFAULT_DECK_MODULES, facetAddBlocked, facetDeleteBlocked, isParentType, withFacet } from '@vocabularium/domain/parents';
 import { ruledOutOf } from '@vocabularium/domain/render';
 import { blankContent, hasFacetContent, isEmptyContent, parentContentOf, parentDocument, providerCore, validateParentContent, withFacetText } from '@vocabularium/domain/content';
 import { hasText } from '@vocabularium/domain/markdown';
@@ -141,9 +141,8 @@ function textValue(value, message) {
   if (typeof value !== 'string') fail('invalid', message);
   return value;
 }
-// A new account's My Deck (D08): the main key, Context, and German with all its facets.
-export const DEFAULT_DECK_MODULES = Object.freeze([{ type: 'main-key' }, { type: 'context' },
-  { type: 'german', facets: ['article', 'examples', 'synonyms', 'antonyms'] }]);
+// A new account's My Deck, from the catalog (D08).
+export { DEFAULT_DECK_MODULES };
 // A parent module carries its facets (D08); other modules keep their earlier shape.
 /** @type {(type: string, facets?: readonly string[] | null) => { facets?: string[] }} */
 const withFacets = (type, facets) => isParentType(type) || facets?.length ? { facets: [...(facets ?? [])] } : {};

@@ -10,6 +10,9 @@ import comparison from './facets/comparison/facet.js';
 import grammaticalCase from './facets/case/facet.js';
 import pronunciation from './facets/pronunciation/facet.js';
 
+// The facets German brings to a new deck.
+export const DECK_FACETS = [article, examples, synonyms, antonyms].map(facet => facet.id);
+
 export default defineContentModule({
   id: 'german', kind: 'content', label: 'German',
   description: 'Explains a word in German, or translates a sentence into German.',
