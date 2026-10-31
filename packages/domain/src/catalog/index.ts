@@ -1,7 +1,7 @@
 import type { ContentModuleDefinition, FamilyDefinition, ModuleDefinition } from './define.js';
 import mainKey from './main-key/module.js';
 import languages from './languages/family.js';
-import german from './languages/german/module.js';
+import german, { DECK_FACETS } from './languages/german/module.js';
 import chinese from './languages/chinese/module.js';
 import expertise from './expertise/family.js';
 import computerScience from './expertise/computer-science/module.js';
@@ -48,3 +48,9 @@ export const isContentModule = (id: string): id is ContentModuleId => isCatalogM
 export function contentModule(id: ContentModuleId): ContentModuleDefinition {
   return MODULES[id] as ContentModuleDefinition;
 }
+
+// A new account's My Deck and a new deck's draft (D08): the main key, Context,
+// and German with the facets its module names for a new deck.
+export const DEFAULT_DECK_MODULES: readonly Readonly<{ type: ModuleId; facets?: readonly string[] }>[] = Object.freeze([
+  { type: mainKey.id }, { type: context.id }, { type: german.id, facets: DECK_FACETS }
+]);

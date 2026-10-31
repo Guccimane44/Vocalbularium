@@ -4133,57 +4133,11 @@
                                           },
                                           "facets": {
                                             "type": "object",
-                                            "properties": {
-                                              "article": {
-                                                "type": "string",
-                                                "maxLength": 8000
-                                              },
-                                              "examples": {
-                                                "type": "string",
-                                                "maxLength": 8000
-                                              },
-                                              "synonyms": {
-                                                "type": "string",
-                                                "maxLength": 8000
-                                              },
-                                              "antonyms": {
-                                                "type": "string",
-                                                "maxLength": 8000
-                                              },
-                                              "pinyin": {
-                                                "type": "string",
-                                                "maxLength": 8000
-                                              },
-                                              "conjugation": {
-                                                "type": "string",
-                                                "maxLength": 8000
-                                              },
-                                              "declension": {
-                                                "type": "string",
-                                                "maxLength": 8000
-                                              },
-                                              "comparison": {
-                                                "type": "string",
-                                                "maxLength": 8000
-                                              },
-                                              "case": {
-                                                "type": "string",
-                                                "maxLength": 8000
-                                              },
-                                              "formula": {
-                                                "type": "string",
-                                                "maxLength": 8000
-                                              },
-                                              "code": {
-                                                "type": "string",
-                                                "maxLength": 8000
-                                              },
-                                              "pronunciation": {
-                                                "type": "string",
-                                                "maxLength": 8000
-                                              }
-                                            },
-                                            "additionalProperties": false
+                                            "maxProperties": 12,
+                                            "additionalProperties": {
+                                              "type": "string",
+                                              "maxLength": 8000
+                                            }
                                           }
                                         },
                                         "additionalProperties": false
@@ -4670,57 +4624,11 @@
                                           },
                                           "facets": {
                                             "type": "object",
-                                            "properties": {
-                                              "article": {
-                                                "type": "string",
-                                                "maxLength": 8000
-                                              },
-                                              "examples": {
-                                                "type": "string",
-                                                "maxLength": 8000
-                                              },
-                                              "synonyms": {
-                                                "type": "string",
-                                                "maxLength": 8000
-                                              },
-                                              "antonyms": {
-                                                "type": "string",
-                                                "maxLength": 8000
-                                              },
-                                              "pinyin": {
-                                                "type": "string",
-                                                "maxLength": 8000
-                                              },
-                                              "conjugation": {
-                                                "type": "string",
-                                                "maxLength": 8000
-                                              },
-                                              "declension": {
-                                                "type": "string",
-                                                "maxLength": 8000
-                                              },
-                                              "comparison": {
-                                                "type": "string",
-                                                "maxLength": 8000
-                                              },
-                                              "case": {
-                                                "type": "string",
-                                                "maxLength": 8000
-                                              },
-                                              "formula": {
-                                                "type": "string",
-                                                "maxLength": 8000
-                                              },
-                                              "code": {
-                                                "type": "string",
-                                                "maxLength": 8000
-                                              },
-                                              "pronunciation": {
-                                                "type": "string",
-                                                "maxLength": 8000
-                                              }
-                                            },
-                                            "additionalProperties": false
+                                            "maxProperties": 12,
+                                            "additionalProperties": {
+                                              "type": "string",
+                                              "maxLength": 8000
+                                            }
                                           }
                                         },
                                         "additionalProperties": false

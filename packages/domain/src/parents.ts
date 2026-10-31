@@ -1,5 +1,6 @@
 import type { InputType } from '@vocabularium/contracts';
 import { contentModule, familyOf, isContentModule, MODULE_IDS } from './catalog/index.js';
+export { DEFAULT_DECK_MODULES } from './catalog/index.js';
 import type { ContentModuleId, FacetId, FamilyId } from './catalog/index.js';
 import type { CoreValue } from './catalog/define.js';
 

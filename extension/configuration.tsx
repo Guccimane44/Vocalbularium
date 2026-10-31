@@ -2,7 +2,7 @@ import { useEffect, useReducer, useState } from 'react';
 import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent } from 'react';
 import type { DeckEditorDraft } from '../types/editor-drafts.js';
 import type { DeckColour, DeckConfiguration } from '@vocabularium/contracts';
-import { isParentType, withFacet } from '@vocabularium/domain/parents';
+import { DEFAULT_DECK_MODULES, isParentType, withFacet } from '@vocabularium/domain/parents';
 import type { FacetType, ParentType } from '@vocabularium/domain/parents';
 import { addBlocked, CATALOG, DECK_COLOURS, isModuleType } from '@vocabularium/domain/page-modules';
 import type { ModuleFamily } from '@vocabularium/domain/page-modules';
@@ -24,7 +24,7 @@ const instance = (type: string, facets?: string[]) => ({ id: crypto.randomUUID()
 export const newDeckDraft = (): DeckConfiguration => ({
   name: '',
   colour: DECK_COLOURS[Math.floor(Math.random() * DECK_COLOURS.length)]!,
-  modules: [instance('main-key'), instance('context'), instance('german', ['article', 'examples', 'synonyms', 'antonyms'])],
+  modules: DEFAULT_DECK_MODULES.map(module => instance(module.type, module.facets && [...module.facets])),
   view: { module: 'default' }
 });
 
