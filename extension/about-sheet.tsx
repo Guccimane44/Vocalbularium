@@ -10,7 +10,7 @@ import type { FacetType, ParentType } from '@vocabularium/domain/parents';
 import type { Rendered } from '@vocabularium/domain/render';
 import { FacetTab } from './facet-tags.tsx';
 import { FamilyIcon } from './families.tsx';
-import { Content, Markdown } from './page-view.tsx';
+import { Content, Markdown } from './card-content.tsx';
 import { currentLanguage, LANGUAGES, t } from './i18n.ts';
 import { facetMark, facetName, familyLabel, moduleDescription, moduleLabel } from './catalog-text.ts';
 
