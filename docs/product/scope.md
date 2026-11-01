@@ -143,6 +143,8 @@ Upgrading from 0.13.2 to 0.13.3 keeps every deck and page; there is no migration
 
 Upgrading from 0.13.3 to 0.14.0 keeps every account, deck and page. Stop the API, back up with `npm run db:backup -- .data/backup-before-0.14.0.dump` (a file it has not written before), run `npm run db:migrate` (migration `0018` adds the table for spoken clips; earlier components have none), set `ELEVENLABS_API_KEY` and `ELEVENLABS_VOICES` in `.env` as `.env.example` shows, start the API with 0.14.0, then replace the extension's files and reload it. No audio is generated for earlier pages until the user adds the Pronunciation module or facet, or uses Retry. Without an ElevenLabs key the text still generates and each clip fails until the key is set.
 
+Upgrading from 0.14.0 to 0.15.0 keeps every account, deck, page and clip; there is no migration and nothing a user sees changes. Restart the API with 0.15.0, then replace the extension's files and reload it. The API's contract now accepts any facet a module declares in the catalog ([D25](../architecture/decisions/d25.md)); a 0.14.0 extension keeps working with it.
+
 ## Current delivery boundary
 
 
