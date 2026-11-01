@@ -1,4 +1,4 @@
-import { defineCore, escapeMarkdown, list, numbered, object, oneOf, optional, plainLines, text } from '../../../../blocks.js';
+import { defineCore, escapeMarkdown, foreignLetters, list, numbered, object, oneOf, optional, plainLines, scriptsOf, text } from '../../../../blocks.js';
 
 // One shape for a word and a sentence (D17): `kind` first, then the key's
 // language named in German, the key, an optional romanization, a word's
@@ -33,5 +33,16 @@ export default defineCore({
     const meanings = lines.length ? lines : ['—'];
     if (header.kind !== 'word' && header.kind !== 'sentence') return { kind: 'word', language: '', key: header.key, meanings };
     return { ...header, meanings };
-  }
+  },
+  checks: [{
+    id: 'german-meanings', description: 'Every meaning is written in German, in the Latin script.',
+    test: core => {
+      for (const meaning of core.meanings) {
+        const scripts = scriptsOf(meaning);
+        const foreign = (scripts.han ?? 0) + (scripts.cyrillic ?? 0) + (scripts.arabic ?? 0);
+        if (!scripts.latin || foreign >= scripts.latin) return `"${meaning}" is not German: ${foreignLetters(meaning, 'latin') || 'no letters'}`;
+      }
+      return null;
+    }
+  }]
 });

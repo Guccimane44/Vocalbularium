@@ -22,6 +22,19 @@ export type OutputType = 'text';
 // in, an ISO 639-1 code.
 export type Spoken = Readonly<{ language: string }>;
 
+// A deterministic check of one generated part (0.16.0): it reads the part as
+// the provider wrote it, after its shape passed, with the card's core beside
+// it, and returns what is wrong, or null. The golden sets and the language gate
+// run every check of a card; nothing runs them when a user generates a page.
+// A check that needs a tool the domain cannot run, such as a Python parser,
+// asks for it through `tools`, and is skipped when the tool is missing.
+export type CheckTools = Readonly<{ pythonParses?: (code: string) => Promise<boolean> }>;
+export type Check<T = any> = Readonly<{
+  id: string;
+  description: string;
+  test: (value: T, card: Readonly<{ core: CoreValue }>, tools: CheckTools) => string | null | undefined | Promise<string | null | undefined>;
+}>;
+
 export type FacetDefinition<Id extends string = string, T = any> = Readonly<{
   id: Id;
   label: string;
@@ -39,6 +52,8 @@ export type FacetDefinition<Id extends string = string, T = any> = Readonly<{
   format: (value: T) => string;
   // A spoken facet (D24): each of its lines is spoken, in this language.
   spoken?: Spoken;
+  // What a well-written part always satisfies (0.16.0).
+  checks?: readonly Check<T>[];
 }>;
 
 // The core: a module's first facet, always present, with one shape (D17). Its
@@ -65,6 +80,8 @@ export type CoreDefinition<T extends CoreValue = any> = Readonly<{
   // A spoken core (D24): the page's main key, spoken in the language this
   // returns for the written core, or not at all for null.
   spoken?: (value: T) => Spoken | null;
+  // What a well-written core always satisfies (0.16.0).
+  checks?: readonly Check<T>[];
 }>;
 
 export type ModuleKind = 'input' | 'content';

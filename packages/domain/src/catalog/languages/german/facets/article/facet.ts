@@ -7,5 +7,10 @@ export default defineFacet({
   // Only for a noun (D17): the core's grammatical role decides.
   when: core => String(core.gramRole ?? '').toLowerCase() === 'noun',
   shape: object({ singular: text('the singular'), plural: optional(text('the plural')) }),
-  format: article => [article.singular, article.plural].filter(Boolean).map(part => escapeMarkdown(part!)).join(' · ')
+  format: article => [article.singular, article.plural].filter(Boolean).map(part => escapeMarkdown(part!)).join(' · '),
+  checks: [{
+    id: 'article-form', description: 'The singular starts with der, die or das; a plural starts with die.',
+    test: article => !/^(der|die|das)\s+\S/.test(article.singular) ? `the singular "${article.singular}" does not start with der, die or das`
+      : article.plural && !/^die\s+\S/.test(article.plural) ? `the plural "${article.plural}" does not start with die` : null
+  }]
 });

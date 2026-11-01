@@ -1,4 +1,4 @@
-import { defineCore, escapeMarkdown, list, numbered, object, oneOf, optional, plainLines, text } from '../../../../blocks.js';
+import { defineCore, hasScript, escapeMarkdown, list, numbered, object, oneOf, optional, plainLines, text } from '../../../../blocks.js';
 
 // One shape for a word and a sentence (D17): `kind` first, then the key's
 // language named in Chinese, the key, an optional romanization and the
@@ -26,5 +26,9 @@ export default defineCore({
     if (header.kind !== 'word' && header.kind !== 'sentence') return { kind: 'word', language: '', key: header.key, meanings };
     const { gramRole: _, ...rest } = header as typeof header & { gramRole?: string };
     return { ...rest, meanings };
-  }
+  },
+  checks: [{
+    id: 'chinese-meanings', description: 'Every meaning is written in Chinese characters.',
+    test: core => core.meanings.map(meaning => hasScript(meaning, 'han') ? null : `"${meaning}" has no Chinese characters`).find(Boolean) ?? null
+  }]
 });

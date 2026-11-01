@@ -11,6 +11,8 @@ import { OpenCodeProvider } from '../src/server/opencode.mjs';
 import { generateComponent } from '@vocabularium/domain/modules';
 import { facetsOf, parentsIn, PARENTS } from '@vocabularium/domain/parents';
 import { filledFacets } from '@vocabularium/domain/content';
+import { checkCard } from '@vocabularium/domain/checks';
+import { checkTools } from './check-tools.mjs';
 import { INTERFACE_LANGUAGES } from '@vocabularium/contracts';
 
 if (!process.env.OPENCODE_API_KEY) throw new Error('Configure OPENCODE_API_KEY in the ignored .env file first.');
@@ -65,7 +67,9 @@ for (const { types, inputs } of sets) for (const input of inputs) for (let sampl
       const content = await generateComponent({ mainKey: input.key, module, onMismatch: ({ facet }) => mismatches.push(facet),
         generate: async request => (raw = await steady(() => provider.generate({ ...request, context: input.context, language, sessionId }))) });
       const flags = flagsOf(content.header);
-      evidence.results.push({ ...input, sample, parent: type, flags, unexpected: unexpected(type, flags, input.expect), mismatches, json: raw, content, facets: filledFacets(type, content) });
+      // The catalog's content checks on the card as the model wrote it (0.16.0).
+      const { failures: checks, skipped } = await checkCard(type, raw, checkTools);
+      evidence.results.push({ ...input, sample, parent: type, flags, unexpected: unexpected(type, flags, input.expect), mismatches, checks, skipped, json: raw, content, facets: filledFacets(type, content) });
     } catch (error) {
       evidence.results.push({ ...input, sample, parent: type, error: error.message, ...(raw ? { content: raw } : {}) });
     }
@@ -83,9 +87,11 @@ const review = [`# Golden set ${evidence.date}`, '', `Model: ${evidence.model} �
     `${result.why}${result.context ? ` · Context: ${result.context}` : ''}${result.flags ? ` · flags ${JSON.stringify(result.flags)}` : ''}`, '',
     ...(result.unexpected?.length ? [`**Unexpected flags:** ${result.unexpected.join('; ')}`, ''] : []),
     ...(result.mismatches?.length ? [`**Facets the flags rule out, dropped:** ${result.mismatches.join(', ')}`, ''] : []),
+    ...(result.checks?.length ? [`**Checks failed:** ${result.checks.map(check => `${check.part}.${check.check}: ${check.message}`).join('; ')}`, ''] : []),
     result.error ? `**Failed:** ${result.error}${result.content ? `\n\n${json(result.content)}` : ''}` : `Facets shown: ${result.facets.join(', ') || 'none'}\n\n${markdown(result.content)}\n\n${json(result.json)}`, ''])].join('\n');
 await writeFile(`.data/golden/${stamp}.md`, review);
 const failed = evidence.results.filter(result => result.error).length;
 const flagged = evidence.results.filter(result => result.unexpected?.length).length;
 const dropped = evidence.results.reduce((sum, result) => sum + (result.mismatches?.length ?? 0), 0);
-console.log(`Golden set finished: ${evidence.results.length - failed} outputs, ${failed} failures, ${flagged} with unexpected flags, ${dropped} facets dropped. Review .data/golden/${stamp}.md.`);
+const checked = evidence.results.filter(result => result.checks?.length).length;
+console.log(`Golden set finished: ${evidence.results.length - failed} outputs, ${failed} failures, ${flagged} with unexpected flags, ${checked} failing a content check, ${dropped} facets dropped. Review .data/golden/${stamp}.md.`);
