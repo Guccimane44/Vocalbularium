@@ -1,6 +1,6 @@
-# Plan: clean up, then refine (0.15.0, 0.16.0)
+# Plan: clean up, then refine (0.15.0, 0.17.0)
 
-Approved by the owner on 31 October 2026 (Europe/Berlin). Two milestones before the language expansion: 0.15.0 makes the repository clean and well-defined without changing what the user sees; 0.16.0 refines the product as it is. The expansion method ("what can a dictionary of this language offer") is specified after 0.16.0.
+Approved by the owner on 31 October 2026 (Europe/Berlin). Two milestones before the language expansion: 0.15.0 makes the repository clean and well-defined without changing what the user sees; 0.17.0 refines the product as it is, after [back pressure](backpressure.md) in 0.16.0. The expansion method ("what can a dictionary of this language offer") is specified after 0.17.0.
 
 ## Before 0.15.0
 
@@ -82,7 +82,9 @@ The full unit and browser suites, CI green, and the first owner review packet in
 7. No source or test file exceeds about 30 KB, and the browser suite runs the same number of tests as before the split.
 8. The current documents total well under half their present 97,000 words, with every relative link resolving.
 
-## 0.16.0: refinement
+## 0.17.0: refinement
+
+Moved from 0.16.0 on 1 November 2026: the owner chose to build [back pressure](backpressure.md) first, so refinement runs with visual diffs, layout rules and content checks in place.
 
 Refines the product as it stands; no new modules or languages. Its scope is set by the owner at the start:
 
