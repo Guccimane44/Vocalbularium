@@ -1,6 +1,6 @@
 # Plan: back pressure (0.16.0)
 
-Draft: 1 November 2026 (Europe/Berlin), not yet approved by the owner. Tracker: to be opened with the plan.
+Approved by the owner on 1 November 2026 (Europe/Berlin). Tracker: [#271](https://github.com/Guccimane44/Vocalbularium/issues/271).
 
 ## Outcome
 
