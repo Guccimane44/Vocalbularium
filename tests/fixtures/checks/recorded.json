@@ -1,0 +1,904 @@
+{
+ "note": "Recorded good outputs (golden runs of 30 October 2026, reviewed), used as the passing cases of the content checks.",
+ "german": [
+  {
+   "key": "bank",
+   "json": {
+    "core": {
+     "kind": "word",
+     "language": "Englisch",
+     "key": "bank",
+     "gramRole": "noun",
+     "meanings": [
+      "Ufer eines Flusses"
+     ]
+    },
+    "facets": {
+     "article": {
+      "singular": "das Ufer",
+      "plural": "die Ufer"
+     },
+     "examples": [
+      {
+       "sentence": "We sat on the bank and watched the river go by.",
+       "translation": "Wir saßen am Ufer und sahen dem Fluss zu."
+      }
+     ],
+     "synonyms": [
+      "Gestade",
+      "Uferrand",
+      "Böschung"
+     ],
+     "declension": {
+      "columns": [
+       "Singular",
+       "Plural"
+      ],
+      "rows": [
+       {
+        "label": "Nominativ",
+        "cells": [
+         "das Ufer",
+         "die Ufer"
+        ]
+       },
+       {
+        "label": "Genitiv",
+        "cells": [
+         "des Ufers",
+         "der Ufer"
+        ]
+       },
+       {
+        "label": "Dativ",
+        "cells": [
+         "dem Ufer",
+         "den Ufern"
+        ]
+       },
+       {
+        "label": "Akkusativ",
+        "cells": [
+         "das Ufer",
+         "die Ufer"
+        ]
+       }
+      ]
+     },
+     "pronunciation": [
+      "das Ufer"
+     ]
+    }
+   }
+  },
+  {
+   "key": "bank",
+   "json": {
+    "core": {
+     "kind": "word",
+     "language": "Englisch",
+     "key": "bank",
+     "gramRole": "noun",
+     "meanings": [
+      "Bank als Geldinstitut, bei der man Geld einzahlt, abhebt oder Kredite aufnimmt"
+     ]
+    },
+    "facets": {
+     "article": {
+      "singular": "die Bank",
+      "plural": "die Banken"
+     },
+     "examples": [
+      {
+       "sentence": "I need to go to the bank before it closes.",
+       "translation": "Ich muss zur Bank gehen, bevor sie schließt."
+      }
+     ],
+     "synonyms": [
+      "Geldinstitut",
+      "Kreditinstitut"
+     ],
+     "declension": {
+      "columns": [
+       "Singular",
+       "Plural"
+      ],
+      "rows": [
+       {
+        "label": "Nominativ",
+        "cells": [
+         "die Bank",
+         "die Banken"
+        ]
+       },
+       {
+        "label": "Genitiv",
+        "cells": [
+         "der Bank",
+         "der Banken"
+        ]
+       },
+       {
+        "label": "Dativ",
+        "cells": [
+         "der Bank",
+         "den Banken"
+        ]
+       },
+       {
+        "label": "Akkusativ",
+        "cells": [
+         "die Bank",
+         "die Banken"
+        ]
+       }
+      ]
+     },
+     "pronunciation": [
+      "die Bank"
+     ]
+    }
+   }
+  },
+  {
+   "key": "run",
+   "json": {
+    "core": {
+     "kind": "word",
+     "language": "Englisch",
+     "key": "run",
+     "gramRole": "verb",
+     "meanings": [
+      "laufen",
+      "rennen",
+      "betreiben"
+     ]
+    },
+    "facets": {
+     "conjugation": {
+      "columns": [
+       "Präsens",
+       "Präteritum",
+       "Perfekt"
+      ],
+      "rows": [
+       {
+        "label": "ich",
+        "cells": [
+         "laufe",
+         "lief",
+         "bin gelaufen"
+        ]
+       },
+       {
+        "label": "du",
+        "cells": [
+         "läufst",
+         "liefst",
+         "bist gelaufen"
+        ]
+       },
+       {
+        "label": "er/sie/es",
+        "cells": [
+         "läuft",
+         "lief",
+         "ist gelaufen"
+        ]
+       },
+       {
+        "label": "wir",
+        "cells": [
+         "laufen",
+         "liefen",
+         "sind gelaufen"
+        ]
+       },
+       {
+        "label": "ihr",
+        "cells": [
+         "lauft",
+         "lief",
+         "seid gelaufen"
+        ]
+       },
+       {
+        "label": "sie/Sie",
+        "cells": [
+         "laufen",
+         "liefen",
+         "sind gelaufen"
+        ]
+       }
+      ]
+     },
+     "examples": [
+      {
+       "sentence": "I run every morning in the park.",
+       "translation": "Ich laufe jeden Morgen im Park."
+      },
+      {
+       "sentence": "She runs fast to catch the bus.",
+       "translation": "Sie rennt schnell, um den Bus zu erwischen."
+      },
+      {
+       "sentence": "He runs a small café in Berlin.",
+       "translation": "Er betreibt ein kleines Café in Berlin."
+      }
+     ],
+     "synonyms": [
+      "laufen",
+      "rennen",
+      "eilen",
+      "sprinten",
+      "flitzen"
+     ],
+     "antonyms": [
+      "gehen",
+      "stehen",
+      "anhalten"
+     ],
+     "pronunciation": [
+      "laufen",
+      "rennen",
+      "betreiben"
+     ]
+    }
+   }
+  },
+  {
+   "key": "serendipity",
+   "json": {
+    "core": {
+     "kind": "word",
+     "language": "Englisch",
+     "key": "serendipity",
+     "gramRole": "noun",
+     "meanings": [
+      "Glücksfall",
+      "glückliche Fügung"
+     ]
+    },
+    "facets": {
+     "article": {
+      "singular": "der Glücksfall",
+      "plural": "die Glücksfälle"
+     },
+     "examples": [
+      {
+       "sentence": "Meeting her was pure serendipity.",
+       "translation": "Sie zu treffen war ein reiner Glücksfall."
+      },
+      {
+       "sentence": "The discovery owed much to serendipity.",
+       "translation": "Die Entdeckung verdankte viel einer glücklichen Fügung."
+      }
+     ],
+     "synonyms": [
+      "Glück",
+      "Zufall",
+      "Fügung",
+      "Glücksumstand"
+     ],
+     "antonyms": [
+      "Pech",
+      "Unglück",
+      "Missgeschick"
+     ],
+     "declension": {
+      "columns": [
+       "Singular",
+       "Plural"
+      ],
+      "rows": [
+       {
+        "label": "Nominativ",
+        "cells": [
+         "der Glücksfall",
+         "die Glücksfälle"
+        ]
+       },
+       {
+        "label": "Genitiv",
+        "cells": [
+         "des Glücksfalls",
+         "der Glücksfälle"
+        ]
+       },
+       {
+        "label": "Dativ",
+        "cells": [
+         "dem Glücksfall",
+         "den Glücksfällen"
+        ]
+       },
+       {
+        "label": "Akkusativ",
+        "cells": [
+         "den Glücksfall",
+         "die Glücksfälle"
+        ]
+       }
+      ]
+     },
+     "pronunciation": [
+      "der Glücksfall",
+      "die glückliche Fügung"
+     ]
+    }
+   }
+  },
+  {
+   "key": "break the ice",
+   "json": {
+    "core": {
+     "kind": "word",
+     "language": "Englisch",
+     "key": "break the ice",
+     "gramRole": "verb",
+     "meanings": [
+      "das Eis brechen, also eine angespannte oder fremde Situation auflockern"
+     ]
+    },
+    "facets": {
+     "pronunciation": [
+      "das Eis brechen"
+     ],
+     "examples": [
+      {
+       "sentence": "She told a funny story to break the ice with her new colleagues.",
+       "translation": "Sie erzählte eine lustige Geschichte, um mit ihren neuen Kollegen das Eis zu brechen."
+      }
+     ],
+     "synonyms": [
+      "auflockern",
+      "entspannen",
+      "lockern"
+     ],
+     "conjugation": {
+      "columns": [
+       "Präsens",
+       "Präteritum",
+       "Perfekt"
+      ],
+      "rows": [
+       {
+        "label": "ich",
+        "cells": [
+         "breche",
+         "brach",
+         "habe gebrochen"
+        ]
+       },
+       {
+        "label": "du",
+        "cells": [
+         "brichst",
+         "brachst",
+         "hast gebrochen"
+        ]
+       },
+       {
+        "label": "er/sie/es",
+        "cells": [
+         "bricht",
+         "brach",
+         "hat gebrochen"
+        ]
+       },
+       {
+        "label": "wir",
+        "cells": [
+         "brechen",
+         "brachen",
+         "haben gebrochen"
+        ]
+       },
+       {
+        "label": "ihr",
+        "cells": [
+         "brecht",
+         "bracht",
+         "habt gebrochen"
+        ]
+       },
+       {
+        "label": "sie/Sie",
+        "cells": [
+         "brechen",
+         "brachen",
+         "haben gebrochen"
+        ]
+       }
+      ]
+     }
+    }
+   }
+  },
+  {
+   "key": "beautiful",
+   "json": {
+    "core": {
+     "kind": "word",
+     "language": "Englisch",
+     "key": "beautiful",
+     "gramRole": "adjective",
+     "meanings": [
+      "schön"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "The garden is beautiful.",
+       "translation": "Der Garten ist schön."
+      }
+     ],
+     "synonyms": [
+      "hübsch",
+      "reizvoll",
+      "ansehnlich",
+      "prächtig"
+     ],
+     "antonyms": [
+      "hässlich",
+      "unschön"
+     ],
+     "declension": {
+      "columns": [
+       "Maskulinum",
+       "Femininum",
+       "Neutrum",
+       "Plural"
+      ],
+      "rows": [
+       {
+        "label": "stark Nominativ",
+        "cells": [
+         "schöner",
+         "schöne",
+         "schönes",
+         "schöne"
+        ]
+       },
+       {
+        "label": "stark Genitiv",
+        "cells": [
+         "schönen",
+         "schöner",
+         "schönen",
+         "schöner"
+        ]
+       },
+       {
+        "label": "stark Dativ",
+        "cells": [
+         "schönem",
+         "schöner",
+         "schönem",
+         "schönen"
+        ]
+       },
+       {
+        "label": "stark Akkusativ",
+        "cells": [
+         "schönen",
+         "schöne",
+         "schönes",
+         "schöne"
+        ]
+       },
+       {
+        "label": "schwach Nominativ",
+        "cells": [
+         "der schöne",
+         "die schöne",
+         "das schöne",
+         "die schönen"
+        ]
+       },
+       {
+        "label": "schwach Genitiv",
+        "cells": [
+         "des schönen",
+         "der schönen",
+         "des schönen",
+         "der schönen"
+        ]
+       },
+       {
+        "label": "schwach Dativ",
+        "cells": [
+         "dem schönen",
+         "der schönen",
+         "dem schönen",
+         "den schönen"
+        ]
+       },
+       {
+        "label": "schwach Akkusativ",
+        "cells": [
+         "den schönen",
+         "die schöne",
+         "das schöne",
+         "die schönen"
+        ]
+       },
+       {
+        "label": "gemischt Nominativ",
+        "cells": [
+         "ein schöner",
+         "eine schöne",
+         "ein schönes",
+         "keine schönen"
+        ]
+       },
+       {
+        "label": "gemischt Genitiv",
+        "cells": [
+         "eines schönen",
+         "einer schönen",
+         "eines schönen",
+         "keiner schönen"
+        ]
+       },
+       {
+        "label": "gemischt Dativ",
+        "cells": [
+         "einem schönen",
+         "einer schönen",
+         "einem schönen",
+         "keinen schönen"
+        ]
+       },
+       {
+        "label": "gemischt Akkusativ",
+        "cells": [
+         "einen schönen",
+         "eine schöne",
+         "ein schönes",
+         "keine schönen"
+        ]
+       }
+      ]
+     },
+     "comparison": {
+      "positive": "schön",
+      "comparative": "schöner",
+      "superlative": "am schönsten"
+     },
+     "pronunciation": [
+      "schön"
+     ]
+    }
+   }
+  },
+  {
+   "key": "We sat on the bank and watched the river.",
+   "json": {
+    "core": {
+     "kind": "sentence",
+     "language": "Englisch",
+     "key": "We sat on the bank and watched the river.",
+     "meanings": [
+      "Wir saßen am Ufer und beobachteten den Fluss."
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "They stood on the bank and watched the boats.",
+       "translation": "Sie standen am Ufer und beobachteten die Boote."
+      }
+     ],
+     "pronunciation": [
+      "Wir saßen am Ufer und beobachteten den Fluss"
+     ]
+    }
+   }
+  },
+  {
+   "key": "in",
+   "json": {
+    "core": {
+     "kind": "word",
+     "language": "Deutsch",
+     "key": "in",
+     "gramRole": "preposition",
+     "meanings": [
+      "räumlich: innerhalb von etwas, bei einer Lage mit Dativ",
+      "räumlich: hinein in etwas, bei einer Richtung mit Akkusativ",
+      "zeitlich: innerhalb eines Zeitraums, zum Beispiel in zwei Wochen"
+     ]
+    },
+    "facets": {
+     "pronunciation": [
+      "in"
+     ],
+     "examples": [
+      {
+       "sentence": "Der Schlüssel liegt in der Tasche."
+      },
+      {
+       "sentence": "Sie geht in die Stadt."
+      },
+      {
+       "sentence": "In zwei Wochen fahre ich nach Berlin."
+      }
+     ],
+     "synonyms": [
+      "innerhalb",
+      "binnen"
+     ],
+     "antonyms": [
+      "außerhalb"
+     ],
+     "case": [
+      {
+       "case": "Dativ",
+       "use": "Lage oder Position, Antwort auf die Frage wo?",
+       "example": "Das Buch liegt in der Schublade."
+      },
+      {
+       "case": "Akkusativ",
+       "use": "Richtung oder Ziel, Antwort auf die Frage wohin?",
+       "example": "Ich lege das Buch in die Schublade."
+      }
+     ]
+    }
+   }
+  }
+ ],
+ "chinese": [
+  {
+   "key": "bank",
+   "json": {
+    "core": {
+     "kind": "word",
+     "language": "英语",
+     "key": "bank",
+     "meanings": [
+      "河岸；堤岸"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "We walked along the bank of the river.",
+       "translation": "我们沿着河岸散步。"
+      }
+     ],
+     "pinyin": [
+      {
+       "text": "河岸",
+       "pinyin": "hé'àn"
+      }
+     ],
+     "pronunciation": [
+      "河岸"
+     ]
+    }
+   }
+  },
+  {
+   "key": "bank",
+   "json": {
+    "core": {
+     "kind": "word",
+     "language": "英语",
+     "key": "bank",
+     "meanings": [
+      "银行"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "I deposited the money in the bank.",
+       "translation": "我把钱存进了银行。"
+      }
+     ],
+     "pinyin": [
+      {
+       "text": "银行",
+       "pinyin": "yínháng"
+      }
+     ],
+     "pronunciation": [
+      "银行"
+     ]
+    }
+   }
+  },
+  {
+   "key": "run",
+   "json": {
+    "core": {
+     "kind": "word",
+     "language": "英语",
+     "key": "run",
+     "meanings": [
+      "跑；奔跑",
+      "经营；管理",
+      "运行；运转",
+      "流动；流淌"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "I run every morning before breakfast.",
+       "translation": "我每天早饭前都跑步。"
+      },
+      {
+       "sentence": "They run a small restaurant downtown.",
+       "translation": "他们在市中心经营一家小餐馆。"
+      },
+      {
+       "sentence": "This software can run on older computers.",
+       "translation": "这个软件可以在较旧的电脑上运行。"
+      },
+      {
+       "sentence": "Let the water run until it is clear.",
+       "translation": "让水一直流到变清为止。"
+      }
+     ],
+     "pinyin": [
+      {
+       "text": "跑",
+       "pinyin": "pǎo"
+      },
+      {
+       "text": "经营",
+       "pinyin": "jīngyíng"
+      },
+      {
+       "text": "运行",
+       "pinyin": "yùnxíng"
+      },
+      {
+       "text": "流动",
+       "pinyin": "liúdòng"
+      }
+     ],
+     "pronunciation": [
+      "跑",
+      "经营",
+      "运行",
+      "流动"
+     ]
+    }
+   }
+  },
+  {
+   "key": "serendipity",
+   "json": {
+    "core": {
+     "kind": "word",
+     "language": "英语",
+     "key": "serendipity",
+     "meanings": [
+      "意外发现美好或珍贵事物的运气；机缘巧合"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "Meeting her by serendipity changed my life.",
+       "translation": "偶然遇见她改变了我的生活，这真是机缘巧合。"
+      }
+     ],
+     "pinyin": [
+      {
+       "text": "机缘巧合",
+       "pinyin": "jīyuán qiǎohé"
+      }
+     ],
+     "pronunciation": [
+      "机缘巧合"
+     ]
+    }
+   }
+  },
+  {
+   "key": "break the ice",
+   "json": {
+    "core": {
+     "kind": "word",
+     "language": "英语",
+     "key": "break the ice",
+     "meanings": [
+      "打破僵局",
+      "缓和气氛"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "He told a joke to break the ice at the meeting.",
+       "translation": "他讲了个笑话来打破会议上的僵局。"
+      },
+      {
+       "sentence": "The teacher used a game to break the ice on the first day of class.",
+       "translation": "老师在第一天上课时用游戏来缓和气氛。"
+      }
+     ],
+     "pinyin": [
+      {
+       "text": "打破僵局",
+       "pinyin": "dǎpò jiāngjú"
+      },
+      {
+       "text": "缓和气氛",
+       "pinyin": "huǎnhé qìfēn"
+      }
+     ],
+     "pronunciation": [
+      "打破僵局",
+      "缓和气氛"
+     ]
+    }
+   }
+  },
+  {
+   "key": "beautiful",
+   "json": {
+    "core": {
+     "kind": "word",
+     "language": "英语",
+     "key": "beautiful",
+     "meanings": [
+      "美丽的；漂亮的"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "The garden is beautiful in spring.",
+       "translation": "春天里这个花园很美。"
+      }
+     ],
+     "pinyin": [
+      {
+       "text": "美丽的",
+       "pinyin": "měilì de"
+      }
+     ],
+     "pronunciation": [
+      "美丽的"
+     ]
+    }
+   }
+  },
+  {
+   "key": "We sat on the bank and watched the river.",
+   "json": {
+    "core": {
+     "kind": "sentence",
+     "language": "英语",
+     "key": "We sat on the bank and watched the river.",
+     "meanings": [
+      "我们坐在河岸上，看着河水。"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "They stood on the bank and watched the boats.",
+       "translation": "他们站在岸边，看着船只。"
+      }
+     ],
+     "pinyin": [
+      {
+       "text": "我们坐在河岸上，看着河水。",
+       "pinyin": "wǒmen zuò zài hé'àn shàng, kànzhe héshuǐ."
+      }
+     ],
+     "pronunciation": [
+      "我们坐在河岸上，看着河水。"
+     ]
+    }
+   }
+  }
+ ]
+}

@@ -1,4 +1,4 @@
-import { defineFacet, escapeMarkdown, list, numbered, object, optional, text } from '../../../../blocks.js';
+import { defineFacet, escapeMarkdown, hasScript, list, numbered, object, optional, text } from '../../../../blocks.js';
 
 // Numbered by position, not tied to meanings; the translation on the next line in italics.
 export default defineFacet({
@@ -6,5 +6,10 @@ export default defineFacet({
   applies: ['word_phrase', 'sentence'], output: 'text',
   shape: list(object({ sentence: text('the sentence'), translation: optional(text('the translation')) })),
   format: examples => numbered(examples.map(example =>
-    [escapeMarkdown(example.sentence), ...(example.translation ? [`*${escapeMarkdown(example.translation)}*`] : [])].join('\n')))
+    [escapeMarkdown(example.sentence), ...(example.translation ? [`*${escapeMarkdown(example.translation)}*`] : [])].join('\n'))),
+  checks: [{
+    id: 'chinese-translation', description: 'Every translation is written in Chinese characters.',
+    test: examples => examples.map(example => example.translation && !hasScript(example.translation, 'han')
+      ? `the translation "${example.translation}" has no Chinese characters` : null).find(Boolean) ?? null
+  }]
 });

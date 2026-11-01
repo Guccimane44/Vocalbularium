@@ -4,6 +4,10 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./checks": {
+      "types": "./dist/checks.d.ts",
+      "import": "./dist/checks.js"
+    },
     "./modules": {
       "types": "./dist/modules.d.ts",
       "import": "./dist/modules.js"

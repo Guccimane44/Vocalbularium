@@ -23,7 +23,7 @@ import and one entry in `catalog/index.ts`. Its folder holds:
 - `module.ts`: ID, kind, label, description, instances, provider kind, its core and ordered facets.
 - `module.prompt.md`: the module's rule inside the shared rules (`composer/rules.md`).
 - `facets/core/`: `facet.ts` (shape, flags, formatter), `core.prompt.md`, `retry.prompt.md` (a facet's own Retry), `reading.prompt.md` (a card's Retry keeping its reading).
-- `facets/<facet>/`: `facet.ts` (label, abbreviation, `applies`, `when`, `spoken`, shape, formatter), `prompt.md`, `about*.json`, and optionally `sample-key.json` and `samples/`.
+- `facets/<facet>/`: `facet.ts` (label, abbreviation, `applies`, `when`, `spoken`, shape, formatter, `checks`), `prompt.md`, `about*.json`, and optionally `sample-key.json` and `samples/`.
 - `about.json` and `about.<language>.json`: its page's text; `names.<language>.json`: its names in the other interface languages; `samples/<language>.json`: its sample cards; optionally `sample-keys.json`.
 
 Every module owns its facets; nothing is shared between modules, so German
@@ -55,7 +55,7 @@ alone decides (D25). The full rules are in the
 
 | Change | Where | Guarded by |
 | --- | --- | --- |
-| A module, facet or prompt | its catalog folder | `tests/catalog.test.mjs`, `tests/prompts.test.mjs` (`UPDATE_PROMPTS=1` after a deliberate change), `tests/localisation.test.mjs`, golden sets (`npm run smoke:generation`, live) |
+| A module, facet or prompt | its catalog folder | `tests/catalog.test.mjs`, `tests/prompts.test.mjs` (`UPDATE_PROMPTS=1` after a deliberate change), `tests/localisation.test.mjs`, `tests/content-checks.test.mjs` (a facet's `checks`), golden sets (`npm run smoke:generation`, live) |
 | Stored shape or API | `packages/contracts`, `migrations/`, `src/core/` | `tests/postgres.test.mjs`, `tests/upgrade.test.mjs`, `tests/server.test.mjs` |
 | Generation, Retry, recovery | `src/server/generation.mjs`, `src/core/store-generation.mjs` | `tests/generation.test.mjs`, `tests/generation-recovery.test.mjs`, `tests/opencode.test.mjs`, `tests/browser/reliability.test.mjs` |
 | A page, card or deck interaction | `extension/` | `tests/extension.test.mjs`, the journey files in `tests/browser/` |
