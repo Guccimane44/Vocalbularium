@@ -63,8 +63,17 @@ export async function launch(profile, extension = resolve(process.env.VOCABULARI
 export const accountTrigger = page => page.getByRole('button', { name: 'Account: admin', exact: true });
 export async function accountMenu(page) {
   const trigger = accountTrigger(page);
+  // Signed in, the trigger is named once the account summary arrives (D23), so
+  // wait for it; signed out, Appearance stands on the sign-in view instead.
+  await trigger.or(page.getByRole('group', { name: 'Appearance', exact: true })).first().waitFor();
+  if (!await trigger.count()) return;
   // From the keyboard: the capture popup can sit over the trigger in the top-right corner.
-  if (await trigger.count() && await trigger.getAttribute('aria-expanded') !== 'true') await trigger.press('Enter');
+  // A card finishing meanwhile can take the focus before Enter lands, so press until it is open.
+  for (let attempt = 0; await trigger.getAttribute('aria-expanded') !== 'true'; attempt++) {
+    if (attempt === 3) throw new Error('The account menu did not open.');
+    await trigger.press('Enter');
+    await page.waitForFunction(() => document.querySelector('.account-trigger')?.getAttribute('aria-expanded') === 'true', null, { timeout: 2000 }).catch(() => {});
+  }
 }
 // Appearance is a segmented control of three radios (D23); the menu stays open, so Escape closes it.
 export const APPEARANCES = { system: 'System', light: 'Sage', dark: 'Moss night' };
