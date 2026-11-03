@@ -1,0 +1,13 @@
+/* The fixtures' shell: a sidebar, a main column with a card and its tab, from the light tokens. */
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { display: flex; min-height: 100vh; background: #eef3ea; color: #1b2419; font: 15px/1.4 system-ui, sans-serif; }
+#sidebar { flex: none; width: 240px; padding: 16px; background: #e2eadb; border-inline-end: 1px solid #d6e0cd; }
+main { flex: 1; min-width: 0; padding: 40px 48px; }
+article.component { position: relative; margin-top: 28px; padding: 24px; background: #f9fbf6; border: 1px solid #d6e0cd; border-radius: 14px; }
+.card-tab { position: absolute; top: -14px; inset-inline-start: 18px; height: 28px; padding: 0 12px; display: inline-flex; align-items: center; background: #0b6b82; color: #ffffff; border-radius: 10px 10px 0 0; }
+button { min-width: 32px; min-height: 32px; padding: 0 12px; background: #f9fbf6; color: #1b2419; border: 1px solid #737f6b; border-radius: 10px; font: inherit; }
+button:focus-visible { outline: 2px solid #1f7a5a; outline-offset: 2px; }
+.truncated { display: block; width: 120px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+a { color: #1f7a5a; }
