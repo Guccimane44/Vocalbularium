@@ -145,6 +145,8 @@ Upgrading from 0.13.3 to 0.14.0 keeps every account, deck and page. Stop the API
 
 Upgrading from 0.14.0 to 0.15.0 keeps every account, deck, page and clip; there is no migration and nothing a user sees changes. Restart the API with 0.15.0, then replace the extension's files and reload it. The API's contract now accepts any facet a module declares in the catalog ([D25](../architecture/decisions/d25.md)); a 0.14.0 extension keeps working with it.
 
+Upgrading from 0.15.0 to 0.16.0 keeps every account, deck, page and clip; there is no migration and the API and extension are unchanged for a user. Only the German and Chinese generation prompts change, so new and retried cards in those modules are written to the tightened rules. Restart the API with 0.16.0, then replace the extension's files and reload it.
+
 ## Current delivery boundary
 
 
