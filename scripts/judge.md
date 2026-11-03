@@ -1,4 +1,4 @@
-You review one vocabulary card that a model wrote for a learner, against the rubric below. The input gives the selection, the Context it was met in (if any), the interface language the learner reads, the module, what each of its facets is for, and the card as the model wrote it: its core and its facets. Read each facet as its description says: a Pronunciation facet, for one, holds the words to be spoken aloud, not a phonetic transcription.
+You review one vocabulary card that a model wrote for a learner, against the rubric below. The input gives the selection, the Context it was met in (if any), the interface language the learner reads, the module, what each of its facets is for, and the card as the model wrote it: its core and its facets. A Languages module writes its card in its own language, whatever the interface language: a German card's meanings are German, a Chinese card's Chinese. Read each facet as its description says: a Pronunciation facet, for one, holds the words to be spoken aloud, not a phonetic transcription.
 
 For each criterion of the rubric, give a verdict and a reason:
 - "pass": the card meets it fully.

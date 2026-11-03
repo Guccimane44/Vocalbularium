@@ -1,5 +1,5 @@
 {
- "note": "The judge's calibration set for chinese (0.16.0): recorded outputs from 2026-10-30T17-37-21-414Z-en-chinese.json that passed review, expected to pass, and copies of them with one seeded fault each, expected to fail. The judge counts only once it agrees on 90% and misses no expected fail.",
+ "note": "The judge's calibration set for chinese (0.16.0): recorded outputs from 2026-10-30T17-37-21-414Z-en-chinese.json that passed review, and from 2026-11-03T19-57-42-053Z-en-chinese.json for sentences and the citation tone of 不, expected to pass, and copies of them with one seeded fault each, expected to fail. The judge counts only once it agrees on 90% and misses no expected fail.",
  "module": "chinese",
  "cards": [
   {
@@ -319,6 +319,119 @@
    }
   },
   {
+   "id": "sentence-1",
+   "key": "We sat on the bank and watched the river.",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-03T19-57-42-053Z-en-chinese.json. A sentence's one example is a new sentence of the same structure, by design.",
+   "card": {
+    "core": {
+     "kind": "sentence",
+     "language": "英语",
+     "key": "We sat on the bank and watched the river.",
+     "meanings": [
+      "我们坐在河岸上，看着河水。"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "We stood on the bridge and watched the boats.",
+       "translation": "我们站在桥上，看着船只。"
+      }
+     ],
+     "pinyin": [
+      {
+       "text": "我们坐在河岸上，看着河水。",
+       "pinyin": "wǒmen zuò zài hé'àn shàng, kànzhe héshuǐ."
+      }
+     ],
+     "pronunciation": [
+      "我们坐在河岸上看着河水"
+     ]
+    }
+   }
+  },
+  {
+   "id": "sentence-2",
+   "key": "Ich habe Fernweh.",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-03T19-57-42-053Z-en-chinese.json. A sentence's one example is a new sentence of the same structure, by design.",
+   "card": {
+    "core": {
+     "kind": "sentence",
+     "language": "德语",
+     "key": "Ich habe Fernweh.",
+     "meanings": [
+      "我渴望去远方；我向往远方。"
+     ],
+     "romanization": ""
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "Ich habe Heimweh.",
+       "translation": "我想家。"
+      }
+     ],
+     "pinyin": [
+      {
+       "text": "我渴望去远方；我向往远方。",
+       "pinyin": "wǒ kěwàng qù yuǎnfāng; wǒ xiàngwǎng yuǎnfāng"
+      }
+     ],
+     "pronunciation": [
+      "我渴望去远方"
+     ]
+    }
+   }
+  },
+  {
+   "id": "citation-tone",
+   "key": "dépaysement",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-03T19-57-42-053Z-en-chinese.json. 不 is written in its citation tone (bù shìyìng), as the standard orthography does.",
+   "card": {
+    "core": {
+     "kind": "word",
+     "language": "法语",
+     "key": "dépaysement",
+     "meanings": [
+      "身处异乡时既新奇又茫然的感觉；异乡感",
+      "转换环境带来的陌生与不适应；离乡背井之感"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "Le dépaysement des premiers jours à Tokyo était grisant.",
+       "translation": "初到东京那几天，身处异乡的新奇与茫然令人兴奋。"
+      },
+      {
+       "sentence": "Après dix ans dans la même ville, il cherchait le dépaysement.",
+       "translation": "在同一座城市待了十年后，他渴望换换环境的新鲜感。"
+      }
+     ],
+     "pinyin": [
+      {
+       "text": "异乡感",
+       "pinyin": "yìxiānggǎn"
+      },
+      {
+       "text": "环境转换带来的不适应",
+       "pinyin": "huánjìng zhuǎnhuàn dàilái de bù shìyìng"
+      }
+     ],
+     "pronunciation": [
+      "异乡感",
+      "环境转换带来的不适应"
+     ]
+    }
+   }
+  },
+  {
    "id": "wrong-sense",
    "key": "bank",
    "context": "We sat on the bank and watched the river go by.",
@@ -489,6 +602,75 @@
      ],
      "pronunciation": [
       "河岸"
+     ]
+    }
+   }
+  },
+  {
+   "id": "sentence-translation",
+   "key": "We sat on the bank and watched the river.",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: the example's translation repeats the selection's meaning (sitting on the river bank) instead of saying what its own sentence says (standing on a bridge, watching boats).",
+   "card": {
+    "core": {
+     "kind": "sentence",
+     "language": "英语",
+     "key": "We sat on the bank and watched the river.",
+     "meanings": [
+      "我们坐在河岸上，看着河水。"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "We stood on the bridge and watched the boats.",
+       "translation": "我们坐在河岸上，看着河水。"
+      }
+     ],
+     "pinyin": [
+      {
+       "text": "我们坐在河岸上，看着河水。",
+       "pinyin": "wǒmen zuò zài hé'àn shàng, kànzhe héshuǐ."
+      }
+     ],
+     "pronunciation": [
+      "我们坐在河岸上看着河水"
+     ]
+    }
+   }
+  },
+  {
+   "id": "sentence-tones",
+   "key": "Ich habe Fernweh.",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: 远方 is yuǎnfāng; the pinyin gives yuānfáng.",
+   "card": {
+    "core": {
+     "kind": "sentence",
+     "language": "德语",
+     "key": "Ich habe Fernweh.",
+     "meanings": [
+      "我渴望去远方；我向往远方。"
+     ],
+     "romanization": ""
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "Ich habe Heimweh.",
+       "translation": "我想家。"
+      }
+     ],
+     "pinyin": [
+      {
+       "text": "我渴望去远方；我向往远方。",
+       "pinyin": "wǒ kěwàng qù yuānfáng; wǒ xiàngwǎng yuānfáng"
+      }
+     ],
+     "pronunciation": [
+      "我渴望去远方"
      ]
     }
    }

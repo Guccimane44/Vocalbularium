@@ -1,1 +1,1 @@
-"antonyms": for a word only, the German antonyms of the translation, one word per item, at most five. Leave it out when there is none.
+"antonyms": for a word only, the German antonyms of the translation, one word or phrase per item, at most five. Each is a true opposite of a meaning, the same part of speech as the translation, not merely a related or contrasting word. Give only opposites a dictionary lists; most nouns have none. Leave it out when there is none.

@@ -37,7 +37,7 @@ async function request(module, criteria, input) {
   const rules = (await readFile(new URL('./judge.md', import.meta.url), 'utf8'))
     .replace('{{rubric}}', criteria.map(criterion => `- ${criterion.id}: ${criterion.text}`).join('\n'));
   const verdict = { type: 'object', properties: { verdict: { type: 'string', enum: VERDICTS }, reason: { type: 'string' } }, required: ['verdict', 'reason'], additionalProperties: false };
-  return { name: 'card_judgement', instructions: rules, maxTokens: 8192, input: { ...input, module: MODULES[module].label,
+  return { name: 'card_judgement', instructions: rules, maxTokens: 16384, input: { ...input, module: MODULES[module].label,
       // What each facet is for, from the catalog, so the judge reads it as intended.
       facets: Object.fromEntries(contentModule(module).facets.map(facet => [facet.id, facet.description])) },
     schema: { type: 'object', properties: Object.fromEntries(criteria.map(criterion => [criterion.id, verdict])), required: criteria.map(criterion => criterion.id), additionalProperties: false } };

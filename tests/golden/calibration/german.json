@@ -1,5 +1,5 @@
 {
- "note": "The judge's calibration set for german (0.16.0): recorded outputs from 2026-10-30T17-25-27-661Z-en-german.json that passed review, expected to pass, and copies of them with one seeded fault each, expected to fail. The judge counts only once it agrees on 90% and misses no expected fail.",
+ "note": "The judge's calibration set for german (0.16.0): recorded outputs that passed review, expected to pass (from 2026-10-30T17-25-27-661Z-en-german.json, and from 2026-11-03T19-57-22-113Z-en-german.json for sentences and a grammar word); copies of them with one seeded fault each, and two recorded defects, expected to fail. The judge counts only once it agrees on 90% and misses no expected fail.",
  "module": "german",
  "cards": [
   {
@@ -73,6 +73,156 @@
      },
      "pronunciation": [
       "das Ufer"
+     ]
+    }
+   }
+  },
+  {
+   "id": "sentence-1",
+   "key": "We sat on the bank and watched the river.",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-03T19-57-22-113Z-en-german.json. A sentence's one example is a new sentence of the same structure, by design.",
+   "card": {
+    "core": {
+     "kind": "sentence",
+     "language": "Englisch",
+     "key": "We sat on the bank and watched the river.",
+     "meanings": [
+      "Wir saßen am Ufer und beobachteten den Fluss."
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "She stood on the bank and watched the boats.",
+       "translation": "Sie stand am Ufer und beobachtete die Boote."
+      }
+     ],
+     "pronunciation": [
+      "Wir saßen am Ufer und beobachteten den Fluss"
+     ]
+    }
+   }
+  },
+  {
+   "id": "sentence-2",
+   "key": "我真的很幸福",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-03T19-57-22-113Z-en-german.json. A sentence's one example is a new sentence of the same structure, by design.",
+   "card": {
+    "core": {
+     "kind": "sentence",
+     "language": "Chinesisch",
+     "key": "我真的很幸福",
+     "romanization": "wǒ zhēn de hěn xìngfú",
+     "meanings": [
+      "Ich bin wirklich sehr glücklich."
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "他真的很幸福。",
+       "translation": "Er ist wirklich sehr glücklich."
+      }
+     ],
+     "pronunciation": [
+      "Ich bin wirklich sehr glücklich"
+     ]
+    }
+   }
+  },
+  {
+   "id": "grammar-word",
+   "key": "一举两得",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-03T19-57-22-113Z-en-german.json. The conjugation is that of the German translation's verb, schlagen, by design.",
+   "card": {
+    "core": {
+     "kind": "word",
+     "language": "Chinesisch",
+     "key": "一举两得",
+     "romanization": "yī jǔ liǎng dé",
+     "gramRole": "verb",
+     "meanings": [
+      "zwei Fliegen mit einer Klappe schlagen",
+      "mit einer einzigen Handlung zwei Vorteile erzielen"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "他这样做一举两得，既省时间又省钱。",
+       "translation": "Indem er das so macht, schlägt er zwei Fliegen mit einer Klappe: Er spart sowohl Zeit als auch Geld."
+      },
+      {
+       "sentence": "这项政策一举两得，既保护环境又促进经济。",
+       "translation": "Diese Maßnahme erzielt mit einer einzigen Handlung zwei Vorteile: Sie schützt die Umwelt und fördert die Wirtschaft."
+      }
+     ],
+     "conjugation": {
+      "columns": [
+       "Präsens",
+       "Präteritum",
+       "Perfekt"
+      ],
+      "rows": [
+       {
+        "label": "ich",
+        "cells": [
+         "schlage",
+         "schlug",
+         "habe geschlagen"
+        ]
+       },
+       {
+        "label": "du",
+        "cells": [
+         "schlägst",
+         "schlugst",
+         "hast geschlagen"
+        ]
+       },
+       {
+        "label": "er/sie/es",
+        "cells": [
+         "schlägt",
+         "schlug",
+         "hat geschlagen"
+        ]
+       },
+       {
+        "label": "wir",
+        "cells": [
+         "schlagen",
+         "schlugen",
+         "haben geschlagen"
+        ]
+       },
+       {
+        "label": "ihr",
+        "cells": [
+         "schlagt",
+         "schlugt",
+         "habt geschlagen"
+        ]
+       },
+       {
+        "label": "sie/Sie",
+        "cells": [
+         "schlagen",
+         "schlugen",
+         "haben geschlagen"
+        ]
+       }
+      ]
+     },
+     "pronunciation": [
+      "zwei Fliegen mit einer Klappe schlagen",
+      "mit einer einzigen Handlung zwei Vorteile erzielen"
      ]
     }
    }
@@ -1187,6 +1337,207 @@
       "laufen",
       "rennen",
       "betreiben"
+     ]
+    }
+   }
+  },
+  {
+   "id": "sentence-translation",
+   "key": "We sat on the bank and watched the river.",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: the example's translation says she sat by the river, not that she stood on the bank and watched the boats.",
+   "card": {
+    "core": {
+     "kind": "sentence",
+     "language": "Englisch",
+     "key": "We sat on the bank and watched the river.",
+     "meanings": [
+      "Wir saßen am Ufer und beobachteten den Fluss."
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "She stood on the bank and watched the boats.",
+       "translation": "Sie saß am Fluss und las ein Buch."
+      }
+     ],
+     "pronunciation": [
+      "Wir saßen am Ufer und beobachteten den Fluss"
+     ]
+    }
+   }
+  },
+  {
+   "id": "phrase-synonyms",
+   "key": "break the ice",
+   "language": "en",
+   "expected": "fail",
+   "why": "Recorded defect: golden run 2026-11-03T19-57-22-113Z-en-german.json. \"zerbrechen\" and \"knacken\" are synonyms of brechen alone, not of \"das Eis brechen\" or \"auflockern\".",
+   "card": {
+    "core": {
+     "kind": "word",
+     "language": "Englisch",
+     "key": "break the ice",
+     "gramRole": "verb",
+     "meanings": [
+      "das Eis brechen",
+      "eine angespannte oder peinliche Situation auflockern"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "He told a joke to break the ice.",
+       "translation": "Er erzählte einen Witz, um das Eis zu brechen."
+      },
+      {
+       "sentence": "A small game helped break the ice between the new colleagues.",
+       "translation": "Ein kleines Spiel half, die angespannte Stimmung unter den neuen Kollegen aufzulockern."
+      }
+     ],
+     "synonyms": [
+      "zerbrechen",
+      "knacken"
+     ],
+     "conjugation": {
+      "columns": [
+       "Präsens",
+       "Präteritum",
+       "Perfekt"
+      ],
+      "rows": [
+       {
+        "label": "ich",
+        "cells": [
+         "breche",
+         "brach",
+         "habe gebrochen"
+        ]
+       },
+       {
+        "label": "du",
+        "cells": [
+         "brichst",
+         "brachst",
+         "hast gebrochen"
+        ]
+       },
+       {
+        "label": "er/sie/es",
+        "cells": [
+         "bricht",
+         "brach",
+         "hat gebrochen"
+        ]
+       },
+       {
+        "label": "wir",
+        "cells": [
+         "brechen",
+         "brachen",
+         "haben gebrochen"
+        ]
+       },
+       {
+        "label": "ihr",
+        "cells": [
+         "brecht",
+         "bracht",
+         "habt gebrochen"
+        ]
+       },
+       {
+        "label": "sie/Sie",
+        "cells": [
+         "brechen",
+         "brachen",
+         "haben gebrochen"
+        ]
+       }
+      ]
+     },
+     "pronunciation": [
+      "das Eis brechen"
+     ]
+    }
+   }
+  },
+  {
+   "id": "false-antonym",
+   "key": "Ufer",
+   "language": "en",
+   "expected": "fail",
+   "why": "Recorded defect: golden run 2026-11-03T19-57-22-113Z-en-german.json. \"Wasser\" is not an opposite of Ufer.",
+   "card": {
+    "core": {
+     "kind": "word",
+     "language": "Deutsch",
+     "key": "Ufer",
+     "gramRole": "noun",
+     "meanings": [
+      "das feste Land am Rand eines Gewässers"
+     ]
+    },
+    "facets": {
+     "article": {
+      "singular": "das Ufer",
+      "plural": "die Ufer"
+     },
+     "examples": [
+      {
+       "sentence": "Wir saßen am Ufer des Sees und schauten auf das Wasser."
+      }
+     ],
+     "synonyms": [
+      "Küste",
+      "Gestade",
+      "Strand",
+      "Böschung"
+     ],
+     "antonyms": [
+      "Wasser",
+      "Flussmitte"
+     ],
+     "declension": {
+      "columns": [
+       "Singular",
+       "Plural"
+      ],
+      "rows": [
+       {
+        "label": "Nominativ",
+        "cells": [
+         "das Ufer",
+         "die Ufer"
+        ]
+       },
+       {
+        "label": "Genitiv",
+        "cells": [
+         "des Ufers",
+         "der Ufer"
+        ]
+       },
+       {
+        "label": "Dativ",
+        "cells": [
+         "dem Ufer",
+         "den Ufern"
+        ]
+       },
+       {
+        "label": "Akkusativ",
+        "cells": [
+         "das Ufer",
+         "die Ufer"
+        ]
+       }
+      ]
+     },
+     "pronunciation": [
+      "das Ufer"
      ]
     }
    }
