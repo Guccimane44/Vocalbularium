@@ -1,3 +1,4 @@
+// @ts-check
 // Deliberate legacy fixtures: applied migrations are part of the upgrade
 // contract, not current product vocabulary.
 import { mkdtemp, mkdir, cp, readFile, writeFile, rm } from 'node:fs/promises';
@@ -7,12 +8,17 @@ import pg from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import { createTestDatabase } from './database.mjs';
+/** @import { TestContext } from 'node:test' */
+/** @import { ClientBase } from 'pg' */
+/** @import { TestDatabase } from './database.mjs' */
 
 // Applies the reviewed migrations up to and including journal index `last`.
+/** @param {TestContext} t @param {TestDatabase} database @param {number} last */
 export async function migrateTo(t, database, last) {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-old-schema-'));
   t.after(() => rm(directory, { recursive: true, force: true }));
   await mkdir(join(directory, 'meta'));
+  /** @type {{ entries: { idx: number, tag: string }[] }} */
   const journal = JSON.parse(await readFile(new URL('../../migrations/meta/_journal.json', import.meta.url), 'utf8'));
   journal.entries = journal.entries.filter(entry => entry.idx <= last);
   await writeFile(join(directory, 'meta/_journal.json'), JSON.stringify(journal));
@@ -21,6 +27,7 @@ export async function migrateTo(t, database, last) {
   try { await migrate(drizzle(client), { migrationsFolder: directory }); }
   finally { await client.end(); }
 }
+/** @param {TestContext} t @param {string} [key] @param {number} [last] */
 export async function legacyDatabase(t, key, last = 1) {
   const database = await createTestDatabase(t, key, { migrate: false });
   await migrateTo(t, database, last);
@@ -29,6 +36,7 @@ export async function legacyDatabase(t, key, last = 1) {
 
 // A small 0.3.0+ (schema 0002) account: two decks, captured and manual kartes,
 // a staged attempt, and receipts. Credentials are left to the caller.
+/** @param {ClientBase} client */
 export async function populateKarteSchema(client) {
   await client.query(`
     INSERT INTO decks (id, name) VALUES ('deck-a', 'My Deck'), ('deck-b', 'Chinese');

@@ -1,19 +1,25 @@
+// @ts-check
 import { failure, Provider } from './provider.mjs';
+/** @import { Request } from '@vocabularium/domain/composer' */
+/** @import { Reply } from './provider.mjs' */
 
 // The OpenCode adapter (D11): transport only. OpenCode has no native JSON
 // schema, so the schema travels inside the instructions.
 export class OpenCodeProvider extends Provider {
   nativeSchema = false;
+  /** @param {{ apiKey?: string, model?: string, fetchImpl?: typeof fetch }} [options] */
   constructor({ apiKey = process.env.OPENCODE_API_KEY, model = process.env.OPENCODE_MODEL ?? 'deepseek-v4.1-flash', fetchImpl = fetch } = {}) {
     super();
     this.apiKey = apiKey; this.model = model; this.fetch = fetchImpl;
   }
+  /** @param {Request} request */
   prompts(request) {
     return [
       { role: 'system', content: `${request.instructions}\nReturn exactly one JSON object for ${request.name}, with no surrounding text or code fences. Match this JSON schema: ${JSON.stringify(request.schema)}` },
       { role: 'user', content: JSON.stringify(request.input) }
     ];
   }
+  /** @param {Request} request @param {unknown} messages @param {AbortSignal} signal @param {string} sessionId @param {Reply} reply */
   async send(request, messages, signal, sessionId, reply) {
     if (!this.apiKey) throw failure('provider_unconfigured', 'Generation is not configured on the server.');
     const response = await this.fetch('https://opencode.ai/zen/go/v1/chat/completions', {

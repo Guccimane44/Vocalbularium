@@ -1,6 +1,9 @@
+// @ts-check
 // Self-contained so Chrome can serialize this same renderer into ordinary webpages.
 // With `flight`, the selected text first lifts off the page and flies into the
 // popup's place (D05); the popup then appears and lasts as long as before.
+// The host's shadow root is open, so `host.shadowRoot` is always there.
+/** @param {string} message @param {boolean} failed @param {unknown} theme @param {string} css @param {string | null} flight @param {string} [closeLabel] */
 export function renderFeedback(message, failed, theme, css, flight, closeLabel = 'Close capture feedback') {
   // This reference lives in the isolated extension world, not page scripts.
   let active = globalThis.vocabulariumFeedback;
@@ -9,7 +12,8 @@ export function renderFeedback(message, failed, theme, css, flight, closeLabel =
     const host = document.createElement('vocabularium-feedback');
     host.style.cssText = 'all:initial;position:fixed;top:18px;right:18px;z-index:2147483647;display:block;';
     host.attachShadow({ mode: 'open' });
-    const style = document.createElement('style'); style.textContent = css; host.shadowRoot.append(style);
+    const style = document.createElement('style'); style.textContent = css; /** @type {ShadowRoot} */ (host.shadowRoot).append(style);
+    /** @param {{ type?: string, theme?: string }} message @param {ChromeMessageSender} sender */
     const listener = (message, sender) => {
       if (sender.id === chrome.runtime.id && message.type === 'feedback-theme') {
         if (message.theme === 'dark' || message.theme === 'light') host.dataset.theme = message.theme; else delete host.dataset.theme;
@@ -29,7 +33,7 @@ export function renderFeedback(message, failed, theme, css, flight, closeLabel =
   const close = document.createElement('button'); close.textContent = '×'; close.setAttribute('aria-label', closeLabel);
   const remove = () => {
     clearTimeout(timer); item.remove();
-    if (!host.shadowRoot.querySelector('.feedback-item')) {
+    if (!/** @type {ShadowRoot} */ (host.shadowRoot).querySelector('.feedback-item')) {
       chrome.runtime.onMessage.removeListener(listener); host.remove();
       if (globalThis.vocabulariumFeedback === active) delete globalThis.vocabulariumFeedback;
     }
@@ -42,10 +46,11 @@ export function renderFeedback(message, failed, theme, css, flight, closeLabel =
   const rect = flight && !failed && !matchMedia('(prefers-reduced-motion: reduce)').matches && selection?.rangeCount
     ? selection.getRangeAt(0).getBoundingClientRect() : null;
   if (rect && rect.width && rect.height && rect.bottom > 0 && rect.top < innerHeight) {
-    const words = flight.replace(/\s+/g, ' ').trim();
+    // A rect is read only for a flight.
+    const words = /** @type {string} */ (flight).replace(/\s+/g, ' ').trim();
     const label = document.createElement('div'); label.className = 'flight-label'; label.setAttribute('aria-hidden', 'true');
     label.textContent = [...words].length > 44 ? [...words].slice(0, 43).join('') + '…' : words;
-    host.shadowRoot.append(label);
+    /** @type {ShadowRoot} */ (host.shadowRoot).append(label);
     const box = label.getBoundingClientRect();
     const from = { x: rect.left + rect.width / 2 - box.width / 2, y: rect.top + rect.height / 2 - box.height / 2 };
     // The popup's left edge, where its mark appears.
@@ -62,7 +67,7 @@ export function renderFeedback(message, failed, theme, css, flight, closeLabel =
     ], { duration, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'forwards' }).finished.then(() => label.remove(), () => label.remove());
   }
   // The popup lands as the label arrives; until then there is nothing to close.
-  const show = () => { if (host.isConnected) host.shadowRoot.append(item); };
+  const show = () => { if (host.isConnected) /** @type {ShadowRoot} */ (host.shadowRoot).append(item); };
   if (duration) setTimeout(show, duration - 80); else show();
   const expiresAt = Date.now() + duration + 3000;
   const timer = setTimeout(remove, duration + 3000);

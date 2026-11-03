@@ -1,11 +1,15 @@
+// @ts-check
 import { randomBytes, scrypt, timingSafeEqual, createHash } from 'node:crypto';
 import { promisify } from 'node:util';
+/** @import { Postgres } from '../persistence/postgres.ts' */
 
+/** @param {string} value */
 const digest = value => createHash('sha256').update(value).digest('hex');
 const scryptAsync = promisify(scrypt);
 // The backend holds one account, signed in as admin; the account menu shows its name (0.13.3, D23).
 export const ACCOUNT_USERNAME = 'admin';
 export class Authentication {
+  /** @param {Pick<Postgres, 'accountId' | 'credential' | 'seedCredential' | 'saveToken' | 'token' | 'revokeToken'>} persistence @param {{ lifetimeMs?: number, clock?: () => number }} [options] */
   constructor(persistence, { lifetimeMs = 7 * 24 * 60 * 60 * 1000, clock = Date.now } = {}) {
     this.persistence = persistence;
     this.lifetimeMs = lifetimeMs;
@@ -18,6 +22,7 @@ export class Authentication {
       await this.persistence.seedCredential(salt, hash.toString('hex'));
     }
   }
+  /** @param {unknown} username @param {unknown} password */
   async login(username, password) {
     if (typeof username !== 'string' || typeof password !== 'string' || username.length > 128 || password.length > 1024) return null;
     const saved = await this.persistence.credential();
@@ -28,10 +33,12 @@ export class Authentication {
     await this.persistence.saveToken(digest(token), expiresAt, this.clock());
     return { token, expiresAt };
   }
+  /** @param {unknown} token */
   async accepts(token) {
     if (typeof token !== 'string' || token.length > 128) return false;
     const row = await this.persistence.token(digest(token));
     return Boolean(row && row.account_id === this.persistence.accountId && row.expires_at > this.clock());
   }
+  /** @param {string} token */
   async logout(token) { await this.persistence.revokeToken(digest(token)); }
 }

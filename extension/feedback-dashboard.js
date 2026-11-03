@@ -1,14 +1,17 @@
+// @ts-check
 import { renderFeedback } from './feedback-view.js';
 import { t } from './i18n.ts';
 
 export async function initializeFeedback() {
   const tab = await chrome.tabs.getCurrent();
+  /** @param {{ type?: string, tabId?: number, message: string, failed: boolean, theme?: string, css: string }} message @param {ChromeMessageSender} sender */
   const listener = (message, sender) => {
     // Only the worker may deliver feedback, and only to the tab that invoked capture.
     if (sender.id !== chrome.runtime.id || sender.url !== chrome.runtime.getURL('background.js') || sender.tab ||
         message.type !== 'dashboard-feedback' || message.tabId !== tab?.id) return;
     renderFeedback(message.message, message.failed, document.documentElement.dataset.theme ?? message.theme, message.css, null, t('feedback.close'));
   };
+  /** @param {Record<string, ChromeStorageChange>} changes @param {string} area */
   const changed = (changes, area) => {
     if (area === 'local' && changes.theme && globalThis.vocabulariumFeedback) {
       const { host } = globalThis.vocabulariumFeedback, theme = changes.theme.newValue;

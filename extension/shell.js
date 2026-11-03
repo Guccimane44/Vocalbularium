@@ -1,11 +1,16 @@
+// @ts-check
 import { deckColour } from './deck-colour.ts';
 import { preferredLanguage, isOffered, LANGUAGES, onLanguageChange, t } from './i18n.ts';
+/** @import { ViewDeck } from '../types/extension.js' */
+/** @import { InterfaceLanguage } from '@vocabularium/contracts' */
+/** @import { MessageKey } from './i18n.ts' */
 
 // The signed-in shell (D05): the deck sidebar and the account menu around the
 // views in #app. Plain DOM, like the session controls it replaces. Since
 // 0.13.3 (D23) the account menu sits at the foot of the sidebar, opening
 // upward, instead of in the header.
 
+/** @template {keyof HTMLElementTagNameMap} K @param {K} tag @param {string} [text] @param {string} [className] */
 const element = (tag, text, className) => {
   const node = document.createElement(tag);
   if (text !== undefined) node.textContent = text;
@@ -14,18 +19,22 @@ const element = (tag, text, className) => {
 };
 
 // An element whose text is a catalogue message, redrawn when the language changes.
+/** @template {keyof HTMLElementTagNameMap} K @param {K} tag @param {MessageKey} key @param {string} [className] */
 const labelled = (tag, key, className) => { const node = element(tag, t(key), className); node.dataset.i18n = key; return node; };
-const sidebar = () => document.querySelector('#sidebar');
+// app.html has the sidebar, its toggle, the header's actions and the appearance control.
+const sidebar = () => /** @type {HTMLElement} */ (document.querySelector('#sidebar'));
 // Appearance moves between the header and the account menu, which logging
 // out discards, so it is kept from the first lookup.
+/** @type {HTMLElement | undefined} */
 let kept;
 // The sidebar's foot, holding the account menu; the sidebar is redrawn around it.
 const accountSlot = (() => { const node = document.createElement('div'); node.className = 'sidebar-account'; return node; })();
 export const accountRoot = () => accountSlot;
-const themeControl = () => (kept ??= document.querySelector('#theme-control'));
-const toggle = () => document.querySelector('#sidebar-toggle');
+const themeControl = () => (kept ??= /** @type {HTMLElement} */ (document.querySelector('#theme-control')));
+const toggle = () => /** @type {HTMLButtonElement} */ (document.querySelector('#sidebar-toggle'));
 const narrow = matchMedia('(max-width: 900px)');
 
+/** @param {boolean} open */
 function setSidebarOpen(open) {
   sidebar()?.classList.toggle('open', open);
   toggle()?.setAttribute('aria-expanded', String(open));
@@ -37,12 +46,13 @@ export function initializeShell() {
     if (event.key !== 'Escape') return;
     if (sidebar().classList.contains('open')) { setSidebarOpen(false); toggle().focus(); }
     const menu = document.querySelector('.account-menu.open');
-    if (menu) { closeAccountMenu(); menu.querySelector('.account-trigger')?.focus(); }
+    if (menu) { closeAccountMenu(); /** @type {HTMLElement | null} */ (menu.querySelector('.account-trigger'))?.focus(); }
   });
   document.addEventListener('pointerdown', event => {
     const menu = document.querySelector('.account-menu.open');
-    if (menu && !menu.contains(event.target)) closeAccountMenu();
-    if (narrow.matches && sidebar().classList.contains('open') && !sidebar().contains(event.target) && !toggle().contains(event.target)) setSidebarOpen(false);
+    const target = /** @type {Node | null} */ (event.target);
+    if (menu && !menu.contains(target)) closeAccountMenu();
+    if (narrow.matches && sidebar().classList.contains('open') && !sidebar().contains(target) && !toggle().contains(target)) setSidebarOpen(false);
   });
   window.addEventListener('hashchange', () => setSidebarOpen(false));
 }
@@ -52,18 +62,21 @@ export function showSignedOutShell() {
   document.body.classList.remove('signed-in');
   sidebar().hidden = true; sidebar().replaceChildren(); order = [];
   toggle().hidden = true; setSidebarOpen(false);
-  document.querySelector('.header-actions').prepend(themeControl());
+  /** @type {HTMLElement} */ (document.querySelector('.header-actions')).prepend(themeControl());
 }
 
 // Views sometimes merge a fetched deck into the account's list; keep the
 // sidebar's order stable across those merges.
+/** @type {string[]} */
 let order = [];
+/** @param {readonly ViewDeck[]} decks */
 function stable(decks) {
   const known = new Set(decks.map(deck => deck.id));
   order = [...order.filter(id => known.has(id)), ...decks.map(deck => deck.id).filter(id => !order.includes(id))];
   return [...decks].sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
 }
 
+/** @param {{ decks: readonly ViewDeck[], currentDeckId: string | null | undefined, newDeck: () => void }} options */
 export function renderSidebar({ decks, currentDeckId, newDeck }) {
   document.body.classList.add('signed-in');
   const nav = sidebar();
@@ -100,23 +113,26 @@ export function closeAccountMenu() {
   if (!menu) return;
   menu.classList.remove('open');
   menu.querySelector('.account-trigger')?.setAttribute('aria-expanded', 'false');
-  const panel = menu.querySelector('.account-panel');
+  const panel = /** @type {HTMLElement | null} */ (menu.querySelector('.account-panel'));
   if (panel) panel.hidden = true;
   showLanguages(menu, false);
 }
 
 // The menu's two views: its main entries, or the language list opened from
 // the Language row (D14).
+/** @param {Element} menu @param {boolean} open */
 function showLanguages(menu, open) {
   menu.querySelector('.account-main')?.toggleAttribute('hidden', open);
   menu.querySelector('.account-languages')?.toggleAttribute('hidden', !open);
 }
 
+/** @type {(() => void) | undefined} */
 let unfollowLanguage;
 // The Language row and its list. Every interface language is listed in its own
 // name; one whose catalogue is not complete and reviewed says Coming soon and
 // cannot be picked. Picking one saves the account's preference; the interface
 // follows once the refreshed account arrives.
+/** @param {Element} menu @param {{ chooseLanguage: (language: InterfaceLanguage) => Promise<unknown>, done: () => void }} options */
 function languageViews(menu, { chooseLanguage, done }) {
   const row = element('button', undefined, 'menu-action language-row');
   row.type = 'button'; row.setAttribute('aria-haspopup', 'true');
@@ -142,7 +158,7 @@ function languageViews(menu, { chooseLanguage, done }) {
       choice.type = 'button'; choice.dataset.language = code;
       const label = element('span', own, 'language-name'); label.lang = code; label.dir = direction;
       choice.append(element('span', '✓', 'language-tick'), label);
-      choice.querySelector('.language-tick').setAttribute('aria-hidden', 'true');
+      /** @type {HTMLElement} */ (choice.querySelector('.language-tick')).setAttribute('aria-hidden', 'true');
       choice.setAttribute('aria-pressed', String(code === preferredLanguage()));
       if (!isOffered(code)) {
         choice.disabled = true;
@@ -163,11 +179,12 @@ function languageViews(menu, { chooseLanguage, done }) {
   // One menu per sign-in: the list of the menu logging out discarded stops following.
   unfollowLanguage?.();
   unfollowLanguage = onLanguageChange(fill);
-  row.onclick = () => { error.textContent = ''; showLanguages(menu, true); choices.querySelector('button:not(:disabled)')?.focus(); };
+  row.onclick = () => { error.textContent = ''; showLanguages(menu, true); /** @type {HTMLButtonElement | null} */ (choices.querySelector('button:not(:disabled)'))?.focus(); };
   back.onclick = () => { showLanguages(menu, false); row.focus(); };
   return { row, list };
 }
 
+/** @param {readonly string[]} paths */
 const icon = paths => {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('viewBox', '0 0 24 24'); svg.setAttribute('aria-hidden', 'true'); svg.setAttribute('class', 'menu-icon');
@@ -183,17 +200,19 @@ const ICONS = {
   logOut: ['M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3', 'M10 8l-4 4 4 4', 'M6 12h10'],
   updown: ['M8 9l4-4 4 4', 'M8 15l4 4 4-4']
 };
+/** @param {string} name */
 const initial = name => (name.trim()[0] ?? '?').toLocaleUpperCase();
 
 // Signed in: one account menu at the foot of the sidebar (D23, 0.13.3). Its
 // trigger shows the account's initial, name and server; the menu opens upward
 // over it with Appearance as three icons on one row, the Language row,
 // Diagnostic logs and Log out, each row with its icon.
+/** @param {HTMLElement} root @param {{ username?: string, server?: string, logOut: () => void, diagnostics: () => void, chooseLanguage: (language: InterfaceLanguage) => Promise<unknown> }} options */
 export function renderAccountMenu(root, { username, server, logOut, diagnostics, chooseLanguage }) {
   // An API older than 0.13.3 sends no name: the trigger then reads Account.
   const name = username || t('account.menu');
   // Built once per sign-in, so a periodic rerender never moves a focused control; only the name follows.
-  const built = root.querySelector('.account-menu');
+  const built = /** @type {HTMLElement | null} */ (root.querySelector('.account-menu'));
   if (built) {
     if (built.dataset.username !== `${preferredLanguage()}:${name}:${server}`) fillIdentity(built, name, Boolean(username), server);
     return;
@@ -208,9 +227,11 @@ export function renderAccountMenu(root, { username, server, logOut, diagnostics,
     const panel = element('div', undefined, 'account-panel');
     panel.id = 'account-panel'; panel.hidden = true;
     trigger.onclick = () => {
-      const open = panel.hidden;
+      // Only this menu sets it, to true or false.
+      const open = /** @type {boolean} */ (panel.hidden);
       panel.hidden = !open; menu.classList.toggle('open', open); trigger.setAttribute('aria-expanded', String(open));
     };
+    /** @param {MessageKey} key @param {readonly string[]} glyph @param {() => void} run */
     const action = (key, glyph, run) => {
       const node = element('button', undefined, 'menu-action');
       node.type = 'button';
@@ -231,11 +252,13 @@ export function renderAccountMenu(root, { username, server, logOut, diagnostics,
 }
 
 // The trigger's name and server; the worker, which holds the API origin, names the server.
+// The menu has each of these parts (renderAccountMenu).
+/** @param {HTMLElement} menu @param {string} name @param {boolean} known @param {string | undefined} server */
 function fillIdentity(menu, name, known, server) {
   menu.dataset.username = `${preferredLanguage()}:${name}:${server}`;
-  menu.querySelector('.account-server').textContent = server ?? '';
-  const avatar = menu.querySelector('.account-avatar');
+  /** @type {HTMLElement} */ (menu.querySelector('.account-server')).textContent = server ?? '';
+  const avatar = /** @type {HTMLElement} */ (menu.querySelector('.account-avatar'));
   avatar.textContent = initial(name); avatar.setAttribute('aria-hidden', 'true');
-  menu.querySelector('.account-name').textContent = name;
-  menu.querySelector('.account-trigger').setAttribute('aria-label', known ? t('account.menuFor', { name }) : t('account.menu'));
+  /** @type {HTMLElement} */ (menu.querySelector('.account-name')).textContent = name;
+  /** @type {HTMLElement} */ (menu.querySelector('.account-trigger')).setAttribute('aria-label', known ? t('account.menuFor', { name }) : t('account.menu'));
 }

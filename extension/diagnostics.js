@@ -1,17 +1,35 @@
+// @ts-check
 import { safeEvent, timeRange, withinRange, MAX_EVENT_BYTES, EXTENSION_LOG_BUDGET } from '../shared/diagnostics.mjs';
 import { t } from './i18n.ts';
+/** @typedef {{ from: string, to: string }} TimeRange */
+// The buffer's state, kept in IndexedDB as 'policy'.
+/** @typedef {{ enabled: boolean, bytes: number, budgetBytes: number, degraded: boolean, reason: string | null, dropped: number, mode: string, cleared?: TimeRange[], reported?: number }} Policy */
+// A buffered event, with its stored size.
+/** @typedef {ReturnType<typeof safeEvent> & { bytes: number }} BufferedEvent */
+// The collector's answer to an upload (Diagnostics.ingest).
+/** @typedef {{ accepted: string[], status?: { mode?: string, degraded?: boolean, reason?: string | null } }} UploadResult */
 
+/** @template T @param {IDBRequest<T>} request @returns {Promise<T>} */
 const requestValue = request => new Promise((resolve, reject) => {
   request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error);
 });
+/** @param {IDBTransaction} tx */
 const done = tx => new Promise((resolve, reject) => {
   tx.oncomplete = resolve; tx.onabort = tx.onerror = () => reject(tx.error ?? new Error('Diagnostic transaction failed.'));
 });
 
 /** @param {{ upload?: (events: Record<string, unknown>[]) => Promise<unknown>, databaseName?: string, budgetBytes?: number }} [options] */
 export function extensionDiagnostics({ upload, databaseName = 'vocabularium-diagnostics-v1', budgetBytes = EXTENSION_LOG_BUDGET } = {}) {
-  let tail = Promise.resolve(), pending = 0, pendingBytes = 0, scheduled, flushing;
+  /** @type {Promise<unknown>} */
+  let tail = Promise.resolve();
+  let pending = 0, pendingBytes = 0;
+  /** @type {ReturnType<typeof setTimeout> | undefined} */
+  let scheduled;
+  /** @type {Promise<void> | undefined} */
+  let flushing;
+  /** @type {Policy} */
   let current = { enabled: true, bytes: 0, budgetBytes, degraded: false, reason: null, dropped: 0, mode: 'full' };
+  /** @type {Set<string>} */
   const secrets = new Set();
   const database = (async () => {
     const request = indexedDB.open(databaseName, 1);
@@ -22,19 +40,24 @@ export function extensionDiagnostics({ upload, databaseName = 'vocabularium-diag
     return requestValue(request);
   })();
   database.catch(() => { current.degraded = true; current.reason = 'storage_unavailable'; });
+  /** @param {string} reason */
   const failure = reason => { current.degraded = true; current.reason = reason; current.dropped++; };
+  /** @template T @param {() => Promise<T>} action @returns {Promise<T>} */
   function ordered(action) {
     const task = tail.then(action); tail = task.catch(() => failure('storage_unavailable')); return task;
   }
+  /** @template T @param {IDBTransactionMode} mode @param {(events: IDBObjectStore, state: IDBObjectStore) => Promise<T>} action @returns {Promise<T>} */
   async function transaction(mode, action) {
     const db = await database, tx = db.transaction(['events', 'state'], mode), complete = done(tx);
     try { const result = await action(tx.objectStore('events'), tx.objectStore('state')); await complete; return result; }
     catch (error) { try { tx.abort(); } catch { /* Already aborted. */ } await complete.catch(() => {}); throw error; }
   }
+  /** @param {IDBObjectStore} store @returns {Promise<Policy & { cleared: TimeRange[] }>} */
   async function readState(store) {
     const saved = await requestValue(store.get('policy'));
     return saved ?? { ...current, cleared: [] };
   }
+  /** @param {Record<string, unknown>} input */
   function record(input) {
     try {
       const event = safeEvent(input, { source: 'extension', mode: current.mode, secrets: [...secrets] });
@@ -67,6 +90,7 @@ export function extensionDiagnostics({ upload, databaseName = 'vocabularium-diag
     if (flushing || !upload) return flushing;
     flushing = ordered(async () => {
       const batch = await transaction('readonly', async events => {
+        /** @type {BufferedEvent[]} */
         const items = await requestValue(events.getAll());
         let bytes = 0;
         return items.sort((a, b) => a.occurredAt.localeCompare(b.occurredAt)).filter(item => {
@@ -75,22 +99,25 @@ export function extensionDiagnostics({ upload, databaseName = 'vocabularium-diag
         }).slice(0, 32);
       });
       if (!batch.length) return;
+      /** @type {UploadResult | undefined} */
       let response;
-      try { response = await upload(batch.map(({ bytes, ...event }) => event)); }
+      try { response = /** @type {UploadResult | undefined} */ (await upload(batch.map(({ bytes, ...event }) => event))); }
       catch { current.degraded = true; current.reason = 'collection_unavailable'; return; }
       if (!response || !Array.isArray(response.accepted)) { current.degraded = true; current.reason = 'collection_unavailable'; return; }
       await transaction('readwrite', async (events, state) => {
-        const policy = await readState(state), accepted = new Set(response.accepted);
+        // Checked above.
+        const result = /** @type {UploadResult} */ (response);
+        const policy = await readState(state), accepted = new Set(result.accepted);
         for (const item of batch) if (accepted.has(item.eventId)) {
           await requestValue(events.delete(item.eventId)); policy.bytes -= item.bytes;
         }
-        policy.mode = response.status?.mode ?? policy.mode;
+        policy.mode = result.status?.mode ?? policy.mode;
         const dropped = policy.dropped;
         const unreported = dropped - (policy.reported ?? 0);
         policy.reported = dropped;
         const localFull = policy.bytes >= policy.budgetBytes;
-        policy.degraded = localFull || (response.status?.degraded ?? false);
-        policy.reason = localFull ? 'budget_full' : response.status?.reason ?? null;
+        policy.degraded = localFull || (result.status?.degraded ?? false);
+        policy.reason = localFull ? 'budget_full' : result.status?.reason ?? null;
         current = policy; await requestValue(state.put(policy, 'policy'));
         if (unreported && !policy.degraded) record({ event: 'logging.gap', severity: 'warn', outcome: 'succeeded', dropped: unreported });
       });
@@ -107,10 +134,13 @@ export function extensionDiagnostics({ upload, databaseName = 'vocabularium-diag
     } catch { /* Failure state is still readable without IndexedDB. */ }
     return { ...current, buffered: pending };
   }
+  /** @param {{ from?: string, to?: string }} [input] */
   async function cleanup(input) {
     const range = timeRange(input);
     return ordered(() => transaction('readwrite', async (events, state) => {
-      const policy = await readState(state), items = await requestValue(events.getAll());
+      const policy = await readState(state);
+      /** @type {BufferedEvent[]} */
+      const items = await requestValue(events.getAll());
       let count = 0;
       for (const item of items) if (withinRange(item.occurredAt, range)) {
         await requestValue(events.delete(item.eventId)); policy.bytes -= item.bytes; count++;
@@ -121,6 +151,7 @@ export function extensionDiagnostics({ upload, databaseName = 'vocabularium-diag
       return { count, range, status: current };
     }));
   }
+  /** @param {{ budgetBytes: number }} settings */
   async function configure({ budgetBytes: value }) {
     if (!Number.isSafeInteger(value) || value < 0 || value > 1024 * 1024 * 1024) throw new Error(t('diagnostics.budgetRange'));
     return ordered(() => transaction('readwrite', async (_events, state) => {
@@ -132,5 +163,5 @@ export function extensionDiagnostics({ upload, databaseName = 'vocabularium-diag
       return { ...policy };
     }));
   }
-  return { record, flush, status, cleanup, configure, addSecret: secret => { if (secret) secrets.add(secret); } };
+  return { record, flush, status, cleanup, configure, addSecret: (/** @type {string | undefined} */ secret) => { if (secret) secrets.add(secret); } };
 }

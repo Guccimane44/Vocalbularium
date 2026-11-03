@@ -1,9 +1,11 @@
+// @ts-check
 import pg from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import { fileURLToPath } from 'node:url';
 import { runDataMigrations } from '../src/core/data-migrations.mjs';
 
+/** @param {string | undefined} databaseUrl */
 export async function migrateDatabase(databaseUrl) {
   if (!databaseUrl) throw new Error('Set MIGRATION_DATABASE_URL for schema migrations.');
   const client = new pg.Client({ connectionString: databaseUrl, connectionTimeoutMillis: 3000, lock_timeout: 3000, statement_timeout: 30_000 });

@@ -328,7 +328,8 @@ export function startBackground() {
   const captures = captureRuntime({ request, initialize, saves, refresh: refreshAccount, removeAccess, diagnostic: diagnostics.record, accepted: badge.added });
   const handleCapture = captures.handleCapture;
   chrome.contextMenus.onClicked.addListener((info, tab) => {
-    if (info.menuItemId === 'capture') void handleCapture(info, tab).catch(captures.recordError);
+    // A selection's click comes with its tab.
+    if (info.menuItemId === 'capture') void handleCapture(info, /** @type {ChromeTab} */ (tab)).catch(captures.recordError);
   });
   chrome.alarms.onAlarm.addListener(alarm => {
     if (alarm.name === 'recover') void captures.poll().catch(captures.recordError);
@@ -341,7 +342,7 @@ export function startBackground() {
     return true;
   });
   chrome.action.onClicked.addListener(() => { void chrome.tabs.create({ url: chrome.runtime.getURL('app.html') }); });
-  chrome.runtime.onInstalled.addListener(() => { void initialize().then(state => state.signedIn && captures.poll()).catch(captures.recordError); });
-  chrome.runtime.onStartup.addListener(() => { void initialize().then(state => state.signedIn && captures.poll()).catch(captures.recordError); });
+  chrome.runtime.onInstalled.addListener(() => { void initialize().then(state => /** @type {unknown} */ (state.signedIn && captures.poll())).catch(captures.recordError); });
+  chrome.runtime.onStartup.addListener(() => { void initialize().then(state => /** @type {unknown} */ (state.signedIn && captures.poll())).catch(captures.recordError); });
   return handleCapture;
 }

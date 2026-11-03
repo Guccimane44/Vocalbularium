@@ -1,18 +1,31 @@
+// @ts-check
 import { mkdir, readdir, readFile, rename, rm, open } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { safeEvent, timeRange, withinRange, MAX_EVENT_BYTES } from '../../shared/diagnostics.mjs';
 
+// A stored event, as safeEvent returns it, with the time the collector received it.
+/** @typedef {Record<string, unknown> & { eventId: string, occurredAt: string, receivedAt?: string, event: string }} DiagnosticEvent */
+/** @typedef {DiagnosticEvent & { receivedAt: string }} StoredEvent */
+/** @typedef {{ from: string, to: string }} TimeRange */
+// What inspection reads by: a time range or its ends, an identity, a count.
+/** @typedef {{ range?: TimeRange, from?: string, to?: string, limit?: unknown, operationId?: string, requestId?: string, pageId?: string, attemptId?: string }} DiagnosticFilter */
+/** @typedef {{ generation: string, cleared: TimeRange[] }} DiagnosticControl */
+/** @typedef {Error & { code?: string }} SystemError */
+
 const defaultBudget = 256 * 1024 * 1024;
 const segmentBytes = 8 * 1024 * 1024;
 /** @type {AsyncLocalStorage<Record<string, unknown>>} */
 export const diagnosticContext = new AsyncLocalStorage();
+/** @param {string} path @param {string} data */
 async function privateWrite(path, data) {
   const handle = await open(path, 'w', 0o600);
   try { await handle.writeFile(data); await handle.sync(); } finally { await handle.close(); }
 }
+/** @param {TimeRange[]} ranges */
 function mergeRanges(ranges) {
+  /** @type {TimeRange[]} */
   const merged = [];
   for (const range of ranges.sort((a, b) => a.from.localeCompare(b.from))) {
     const previous = merged.at(-1);
@@ -23,15 +36,26 @@ function mergeRanges(ranges) {
 }
 
 export class Diagnostics {
+  /** @param {{ directory?: string, budgetBytes?: number, mode?: string, secrets?: unknown[] }} [options] */
   constructor({ directory, budgetBytes = defaultBudget, mode = 'full', secrets = [] } = {}) {
     this.directory = directory; this.budgetBytes = budgetBytes; this.mode = mode;
-    this.secrets = new Set(secrets.filter(Boolean)); this.tail = Promise.resolve();
-    this.control = { generation: randomUUID(), cleared: [] }; this.ids = new Set();
+    /** @type {Promise<unknown>} */
+    this.tail = Promise.resolve();
+    /** @type {Set<string>} */
+    this.secrets = new Set(/** @type {string[]} */ (secrets.filter(Boolean)));
+    /** @type {DiagnosticControl} */
+    this.control = { generation: randomUUID(), cleared: [] };
+    /** @type {Set<string>} */
+    this.ids = new Set();
     this.bytes = 0; this.segment = 0; this.segmentSize = 0; this.pending = 0; this.pendingBytes = 0;
+    /** @type {string | null} */
     this.reason = null; this.dropped = 0; this.closed = false;
     this.initialized = false;
+    /** @type {import('node:fs/promises').FileHandle | null | undefined} */
+    this.lock = undefined;
     this.ready = this.initialize().catch(async () => { this.reason = 'storage_unavailable'; await this.releaseLock(); });
   }
+  /** @param {unknown} secret */
   addSecret(secret) { if (typeof secret === 'string' && secret) this.secrets.add(secret); }
   async initialize() {
     if (!this.directory) { this.initialized = true; return; }
@@ -39,10 +63,10 @@ export class Diagnostics {
     const lockPath = join(this.directory, 'collector.lock');
     try { this.lock = await open(lockPath, 'wx', 0o600); }
     catch (error) {
-      if (error.code !== 'EEXIST') throw error;
+      if (/** @type {SystemError} */ (error).code !== 'EEXIST') throw error;
       const owner = JSON.parse(await readFile(lockPath, 'utf8'));
       try { process.kill(owner.pid, 0); throw new Error('Diagnostic collector already running.'); }
-      catch (probe) { if (probe.code !== 'ESRCH') throw probe; }
+      catch (probe) { if (/** @type {SystemError} */ (probe).code !== 'ESRCH') throw probe; }
       await rm(lockPath); this.lock = await open(lockPath, 'wx', 0o600);
     }
     await this.lock.writeFile(JSON.stringify({ pid: process.pid })); await this.lock.sync();
@@ -51,7 +75,7 @@ export class Diagnostics {
       if (!/^[\da-f-]{36}$/.test(control.generation) || !Array.isArray(control.cleared)) throw new Error('Invalid diagnostic manifest.');
       this.control = { generation: control.generation, cleared: control.cleared.map(timeRange) };
     } catch (error) {
-      if (error.code !== 'ENOENT') throw error;
+      if (/** @type {SystemError} */ (error).code !== 'ENOENT') throw error;
       await this.saveControl(this.control);
     }
     await mkdir(this.generationDirectory(), { recursive: true, mode: 0o700 });
@@ -71,18 +95,21 @@ export class Diagnostics {
     if (this.bytes >= this.budgetBytes) this.reason = 'budget_full';
     this.initialized = true;
   }
-  generationDirectory(generation = this.control.generation) { return join(this.directory, generation); }
+  // Only called once a directory is set.
+  generationDirectory(generation = this.control.generation) { return join(/** @type {string} */ (this.directory), generation); }
   async files() {
     if (!this.directory) return [];
     return (await readdir(this.generationDirectory())).filter(name => /^segment-\d{6}\.ndjson$/.test(name)).sort()
       .map(name => join(this.generationDirectory(), name));
   }
+  /** @param {DiagnosticControl} control */
   async saveControl(control) {
     const data = JSON.stringify(control);
     if (Buffer.byteLength(data) > 64 * 1024) throw new Error('Cleanup history is full.');
-    const path = join(this.directory, 'control.json');
+    const path = join(/** @type {string} */ (this.directory), 'control.json');
     await privateWrite(path + '.tmp', data); await rename(path + '.tmp', path);
   }
+  /** @template T @param {() => T | Promise<T>} action @returns {Promise<T>} */
   ordered(action) {
     const task = this.tail.then(() => this.ready).then(action);
     this.tail = task.catch(() => {}); return task;
@@ -91,6 +118,7 @@ export class Diagnostics {
     return { enabled: Boolean(this.directory), mode: this.mode, bytes: this.bytes, budgetBytes: this.budgetBytes,
       buffered: this.pending, degraded: Boolean(this.reason), reason: this.reason, dropped: this.dropped };
   }
+  /** @param {Record<string, unknown>} input */
   emit(input) {
     if (!this.directory || this.closed) return;
     try {
@@ -104,6 +132,7 @@ export class Diagnostics {
         .finally(() => { this.pending--; this.pendingBytes -= bytes; });
     } catch { this.reason = 'invalid_event'; this.dropped++; }
   }
+  /** @param {DiagnosticEvent} event */
   async append(event) {
     if (!this.initialized) return 'unavailable';
     if (this.control.cleared.some(range => withinRange(event.occurredAt, range))) return 'cleared';
@@ -133,11 +162,13 @@ export class Diagnostics {
     }
     return 'stored';
   }
+  /** @param {unknown} events */
   ingest(events) {
     if (!Array.isArray(events) || events.length > 32) throw new Error('Send at most 32 diagnostic events.');
     // Validate the complete batch before writing; do not accept arbitrary raw log objects.
     const normalized = events.map(event => safeEvent(event, { source: 'extension', mode: this.mode, secrets: [...this.secrets] }));
     return this.ordered(async () => {
+      /** @type {string[]} */
       const accepted = [];
       for (const event of normalized) {
         try { if (['stored', 'duplicate', 'cleared'].includes(await this.append(event))) accepted.push(event.eventId); }
@@ -146,21 +177,26 @@ export class Diagnostics {
       return { accepted, status: this.status() };
     });
   }
+  /** @param {DiagnosticFilter} [filter] */
   async entries(filter = {}) {
     if (!this.initialized) throw new Error('Diagnostic storage is unavailable.');
-    const result = [], seen = new Set();
+    /** @type {StoredEvent[]} */
+    const result = [];
+    const seen = new Set();
     for (const file of await this.files()) {
       for (const line of (await readFile(file, 'utf8')).split('\n').filter(Boolean)) {
+        /** @type {StoredEvent} */
         let event; try { event = JSON.parse(line); } catch { continue; }
         if (seen.has(event.eventId)) continue;
         seen.add(event.eventId);
         if (filter.range && !withinRange(event.occurredAt, filter.range)) continue;
-        if (['operationId', 'requestId', 'pageId', 'attemptId'].some(key => filter[key] && event[key] !== filter[key])) continue;
+        if (/** @type {const} */ (['operationId', 'requestId', 'pageId', 'attemptId']).some(key => filter[key] && event[key] !== filter[key])) continue;
         result.push(event);
       }
     }
     return result.sort((a, b) => a.occurredAt.localeCompare(b.occurredAt) || a.receivedAt.localeCompare(b.receivedAt));
   }
+  /** @param {DiagnosticFilter} [filter] */
   inspect(filter = {}) {
     return this.ordered(async () => {
       const limit = filter.limit === undefined ? 200 : Number(filter.limit);
@@ -170,6 +206,7 @@ export class Diagnostics {
       return { events: events.slice(-limit), status: this.status() };
     });
   }
+  /** @param {{ from?: string, to?: string }} [input] */
   cleanup(input = {}, preview = false) {
     const range = timeRange(input);
     return this.ordered(async () => {
@@ -202,7 +239,7 @@ export class Diagnostics {
   async releaseLock() {
     if (!this.lock) return;
     await this.lock.close(); this.lock = null;
-    await rm(join(this.directory, 'collector.lock'), { force: true });
+    await rm(join(/** @type {string} */ (this.directory), 'collector.lock'), { force: true });
   }
   async close() {
     if (this.closed) return;

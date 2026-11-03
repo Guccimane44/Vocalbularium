@@ -1,14 +1,16 @@
+// @ts-check
 import { readFile, readdir } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 import { timeRange, withinRange } from '../shared/diagnostics.mjs';
 
 const [command = 'status', ...args] = process.argv.slice(2);
 if (!['status', 'inspect', 'preview', 'clear'].includes(command)) throw new Error('Use logs status, inspect, preview, or clear.');
+/** @type {{ offline?: boolean, from?: string, to?: string, operationId?: string, requestId?: string, pageId?: string, attemptId?: string, limit?: string }} */
 const options = {};
 for (let index = 0; index < args.length; index++) {
   const name = args[index];
   if (name === '--offline') { options.offline = true; continue; }
-  const key = { '--from': 'from', '--to': 'to', '--operation-id': 'operationId', '--request-id': 'requestId', '--page-id': 'pageId', '--attempt-id': 'attemptId', '--limit': 'limit' }[name];
+  const key = /** @type {Record<string, 'from' | 'to' | 'operationId' | 'requestId' | 'pageId' | 'attemptId' | 'limit'>} */ ({ '--from': 'from', '--to': 'to', '--operation-id': 'operationId', '--request-id': 'requestId', '--page-id': 'pageId', '--attempt-id': 'attemptId', '--limit': 'limit' })[name];
   if (!key || !args[index + 1]) throw new Error('Unknown or incomplete log filter.');
   options[key] = args[++index];
 }
@@ -22,7 +24,9 @@ if (offline) {
   const control = JSON.parse(await readFile(join(directory, 'control.json'), 'utf8'));
   if (!/^[\da-f-]{36}$/.test(control.generation)) throw new Error('Invalid diagnostic manifest.');
   const files = (await readdir(join(directory, control.generation))).filter(name => /^segment-\d{6}\.ndjson$/.test(name)).sort();
-  const events = [], seen = new Set(); let bytes = 0, incomplete = 0;
+  /** @type {(Record<string, unknown> & { eventId: string, occurredAt: string })[]} */
+  const events = [];
+  const seen = new Set(); let bytes = 0, incomplete = 0;
   for (const file of files) {
     const text = await readFile(join(directory, control.generation, file), 'utf8'); bytes += Buffer.byteLength(text);
     for (const line of text.split('\n').filter(Boolean)) {
@@ -31,7 +35,7 @@ if (offline) {
   }
   const range = filter.from || filter.to ? timeRange(filter) : undefined;
   const matches = events.filter(event => (!range || withinRange(event.occurredAt, range)) &&
-    ['operationId', 'requestId', 'pageId', 'attemptId'].every(key => !filter[key] || event[key] === filter[key]));
+    /** @type {const} */ (['operationId', 'requestId', 'pageId', 'attemptId']).every(key => !filter[key] || event[key] === filter[key]));
   result = command === 'status' ? { offline: true, bytes, incomplete, entries: events.length }
     : { offline: true, events: matches.sort((a, b) => a.occurredAt.localeCompare(b.occurredAt)).slice(-limit) };
 } else {
@@ -39,6 +43,7 @@ if (offline) {
   const endpoint = new URL(origin);
   if (!['http:', 'https:'].includes(endpoint.protocol) || endpoint.username || endpoint.password ||
     !['127.0.0.1', 'localhost', '[::1]'].includes(endpoint.hostname)) throw new Error('Log management requires the local backend origin.');
+  /** @param {string} path @param {unknown} [body] @param {string} [token] */
   async function call(path, body, token) {
     const response = await fetch(origin + path, { method: body ? 'POST' : 'GET',
       headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },

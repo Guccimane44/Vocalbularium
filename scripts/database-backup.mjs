@@ -1,3 +1,4 @@
+// @ts-check
 import { spawnSync } from 'node:child_process';
 import { resolve, join } from 'node:path';
 import { access, writeFile } from 'node:fs/promises';
