@@ -41,6 +41,11 @@ const waitUntil = async (predicate, message, timeout = 15000) => {
   }
 };
 
+// A deck's colour follows its random ID until one is chosen: the new account's deck gets one at once.
+export async function colourHome(store) {
+  const home = await store.deck((await store.snapshot()).id);
+  await store.saveDeck('screens-deck-colour', { deck: { ...home, colour: 'meaning' } });
+}
 // Fills the account and returns the IDs the screens open.
 export async function seed(application, databaseUrl) {
   const { store, audio } = application;

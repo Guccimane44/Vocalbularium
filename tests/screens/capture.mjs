@@ -10,7 +10,7 @@ import { join, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { chromium } from 'playwright';
 import { SCREENS } from './catalogue.mjs';
-import { NOW, SilentSpeech, seed } from './fixtures.mjs';
+import { NOW, SilentSpeech, colourHome, seed } from './fixtures.mjs';
 
 export const LANGUAGES = ['en', 'ar', 'zh-Hans', 'fr', 'ru', 'es'];
 export const THEMES = ['light', 'dark'];
@@ -39,6 +39,7 @@ const fixture = {};
 const database = await createTestDatabase(fixture, 'screens');
 const application = await createTestApplication(fixture, { databaseKey: 'screens', speechProvider: new SilentSpeech() });
 await application.start();
+await colourHome(application.store);
 const profile = await mkdtemp(join(tmpdir(), 'vocabularium-screens-'));
 const context = await chromium.launchPersistentContext(profile, {
   channel: 'chromium', headless: true, viewport: VIEWPORT, deviceScaleFactor: 1, timezoneId: 'UTC', locale: 'en-US',
@@ -119,7 +120,8 @@ async function captureScreen(screen, language, ids) {
     // The pointer rests outside the view, so nothing shows its hover.
     await page.mouse.move(0, 0);
     await page.screenshot({ path: join(out, file), animations: 'disabled', caret: 'hide' });
-    const violations = checkLayout ? await checkLayout(page, { screen: screen.name, theme, language }) : [];
+    const violations = checkLayout ? await checkLayout(page, { screen: screen.name, theme, language })
+      .catch(error => [{ rule: 'rules-crashed', selector: '', message: error.message }]) : [];
     captures.push({ file, screen: screen.name, theme, language, violations });
   }
 }
