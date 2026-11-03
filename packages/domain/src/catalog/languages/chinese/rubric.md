@@ -1,0 +1,4 @@
+- **sense**: The meanings are real senses of the selection; with a Context, the sense the Context uses is among them, first.
+- **chinese**: Every Chinese part is correct, natural Chinese in simplified characters, the word a native speaker would choose.
+- **pinyin**: Each pinyin line gives the standard reading of its characters in this word, syllable by syllable, with the right tones. Check every character with more than one reading (多音字), such as 行 (háng in 银行, xíng in 行走) or 长 (cháng, zhǎng): the wrong one fails.
+- **examples**: Each example uses the selection naturally in its own language, and each translation says the same as its sentence. When the selection is already Chinese, its examples are Chinese and have no translation, by design.

@@ -1,0 +1,1195 @@
+{
+ "note": "The judge's calibration set for german (0.16.0): recorded outputs from 2026-10-30T17-25-27-661Z-en-german.json that passed review, expected to pass, and copies of them with one seeded fault each, expected to fail. The judge counts only once it agrees on 90% and misses no expected fail.",
+ "module": "german",
+ "cards": [
+  {
+   "id": "recorded-1",
+   "key": "bank",
+   "context": "We sat on the bank and watched the river go by.",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-10-30T17-25-27-661Z-en-german.json.",
+   "card": {
+    "core": {
+     "kind": "word",
+     "language": "Englisch",
+     "key": "bank",
+     "gramRole": "noun",
+     "meanings": [
+      "Ufer eines Flusses"
+     ]
+    },
+    "facets": {
+     "article": {
+      "singular": "das Ufer",
+      "plural": "die Ufer"
+     },
+     "examples": [
+      {
+       "sentence": "We sat on the bank and watched the river go by.",
+       "translation": "Wir saßen am Ufer und sahen dem Fluss zu."
+      }
+     ],
+     "synonyms": [
+      "Gestade",
+      "Uferrand",
+      "Böschung"
+     ],
+     "declension": {
+      "columns": [
+       "Singular",
+       "Plural"
+      ],
+      "rows": [
+       {
+        "label": "Nominativ",
+        "cells": [
+         "das Ufer",
+         "die Ufer"
+        ]
+       },
+       {
+        "label": "Genitiv",
+        "cells": [
+         "des Ufers",
+         "der Ufer"
+        ]
+       },
+       {
+        "label": "Dativ",
+        "cells": [
+         "dem Ufer",
+         "den Ufern"
+        ]
+       },
+       {
+        "label": "Akkusativ",
+        "cells": [
+         "das Ufer",
+         "die Ufer"
+        ]
+       }
+      ]
+     },
+     "pronunciation": [
+      "das Ufer"
+     ]
+    }
+   }
+  },
+  {
+   "id": "recorded-defect-run",
+   "key": "run",
+   "language": "en",
+   "expected": "fail",
+   "why": "Recorded defect: the recorded output conjugates ihr in the Präteritum as \"lief\"; it is \"lieft\". The review of 30 October missed it; the judge found it in its first calibration (3 November 2026).",
+   "card": {
+    "core": {
+     "kind": "word",
+     "language": "Englisch",
+     "key": "run",
+     "gramRole": "verb",
+     "meanings": [
+      "laufen",
+      "rennen",
+      "betreiben"
+     ]
+    },
+    "facets": {
+     "conjugation": {
+      "columns": [
+       "Präsens",
+       "Präteritum",
+       "Perfekt"
+      ],
+      "rows": [
+       {
+        "label": "ich",
+        "cells": [
+         "laufe",
+         "lief",
+         "bin gelaufen"
+        ]
+       },
+       {
+        "label": "du",
+        "cells": [
+         "läufst",
+         "liefst",
+         "bist gelaufen"
+        ]
+       },
+       {
+        "label": "er/sie/es",
+        "cells": [
+         "läuft",
+         "lief",
+         "ist gelaufen"
+        ]
+       },
+       {
+        "label": "wir",
+        "cells": [
+         "laufen",
+         "liefen",
+         "sind gelaufen"
+        ]
+       },
+       {
+        "label": "ihr",
+        "cells": [
+         "lauft",
+         "lief",
+         "seid gelaufen"
+        ]
+       },
+       {
+        "label": "sie/Sie",
+        "cells": [
+         "laufen",
+         "liefen",
+         "sind gelaufen"
+        ]
+       }
+      ]
+     },
+     "examples": [
+      {
+       "sentence": "I run every morning in the park.",
+       "translation": "Ich laufe jeden Morgen im Park."
+      },
+      {
+       "sentence": "She runs fast to catch the bus.",
+       "translation": "Sie rennt schnell, um den Bus zu erwischen."
+      },
+      {
+       "sentence": "He runs a small café in Berlin.",
+       "translation": "Er betreibt ein kleines Café in Berlin."
+      }
+     ],
+     "synonyms": [
+      "laufen",
+      "rennen",
+      "eilen",
+      "sprinten",
+      "flitzen"
+     ],
+     "antonyms": [
+      "gehen",
+      "stehen",
+      "anhalten"
+     ],
+     "pronunciation": [
+      "laufen",
+      "rennen",
+      "betreiben"
+     ]
+    }
+   }
+  },
+  {
+   "id": "recorded-3",
+   "key": "serendipity",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-10-30T17-25-27-661Z-en-german.json.",
+   "card": {
+    "core": {
+     "kind": "word",
+     "language": "Englisch",
+     "key": "serendipity",
+     "gramRole": "noun",
+     "meanings": [
+      "Glücksfall",
+      "glückliche Fügung"
+     ]
+    },
+    "facets": {
+     "article": {
+      "singular": "der Glücksfall",
+      "plural": "die Glücksfälle"
+     },
+     "examples": [
+      {
+       "sentence": "Meeting her was pure serendipity.",
+       "translation": "Sie zu treffen war ein reiner Glücksfall."
+      },
+      {
+       "sentence": "The discovery owed much to serendipity.",
+       "translation": "Die Entdeckung verdankte viel einer glücklichen Fügung."
+      }
+     ],
+     "synonyms": [
+      "Glück",
+      "Zufall",
+      "Fügung",
+      "Glücksumstand"
+     ],
+     "antonyms": [
+      "Pech",
+      "Unglück",
+      "Missgeschick"
+     ],
+     "declension": {
+      "columns": [
+       "Singular",
+       "Plural"
+      ],
+      "rows": [
+       {
+        "label": "Nominativ",
+        "cells": [
+         "der Glücksfall",
+         "die Glücksfälle"
+        ]
+       },
+       {
+        "label": "Genitiv",
+        "cells": [
+         "des Glücksfalls",
+         "der Glücksfälle"
+        ]
+       },
+       {
+        "label": "Dativ",
+        "cells": [
+         "dem Glücksfall",
+         "den Glücksfällen"
+        ]
+       },
+       {
+        "label": "Akkusativ",
+        "cells": [
+         "den Glücksfall",
+         "die Glücksfälle"
+        ]
+       }
+      ]
+     },
+     "pronunciation": [
+      "der Glücksfall",
+      "die glückliche Fügung"
+     ]
+    }
+   }
+  },
+  {
+   "id": "recorded-4",
+   "key": "break the ice",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-10-30T17-25-27-661Z-en-german.json.",
+   "card": {
+    "core": {
+     "kind": "word",
+     "language": "Englisch",
+     "key": "break the ice",
+     "gramRole": "verb",
+     "meanings": [
+      "das Eis brechen, also eine angespannte oder fremde Situation auflockern"
+     ]
+    },
+    "facets": {
+     "pronunciation": [
+      "das Eis brechen"
+     ],
+     "examples": [
+      {
+       "sentence": "She told a funny story to break the ice with her new colleagues.",
+       "translation": "Sie erzählte eine lustige Geschichte, um mit ihren neuen Kollegen das Eis zu brechen."
+      }
+     ],
+     "synonyms": [
+      "auflockern",
+      "entspannen",
+      "lockern"
+     ],
+     "conjugation": {
+      "columns": [
+       "Präsens",
+       "Präteritum",
+       "Perfekt"
+      ],
+      "rows": [
+       {
+        "label": "ich",
+        "cells": [
+         "breche",
+         "brach",
+         "habe gebrochen"
+        ]
+       },
+       {
+        "label": "du",
+        "cells": [
+         "brichst",
+         "brachst",
+         "hast gebrochen"
+        ]
+       },
+       {
+        "label": "er/sie/es",
+        "cells": [
+         "bricht",
+         "brach",
+         "hat gebrochen"
+        ]
+       },
+       {
+        "label": "wir",
+        "cells": [
+         "brechen",
+         "brachen",
+         "haben gebrochen"
+        ]
+       },
+       {
+        "label": "ihr",
+        "cells": [
+         "brecht",
+         "bracht",
+         "habt gebrochen"
+        ]
+       },
+       {
+        "label": "sie/Sie",
+        "cells": [
+         "brechen",
+         "brachen",
+         "haben gebrochen"
+        ]
+       }
+      ]
+     }
+    }
+   }
+  },
+  {
+   "id": "recorded-5",
+   "key": "beautiful",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-10-30T17-25-27-661Z-en-german.json.",
+   "card": {
+    "core": {
+     "kind": "word",
+     "language": "Englisch",
+     "key": "beautiful",
+     "gramRole": "adjective",
+     "meanings": [
+      "schön"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "The garden is beautiful.",
+       "translation": "Der Garten ist schön."
+      }
+     ],
+     "synonyms": [
+      "hübsch",
+      "reizvoll",
+      "ansehnlich",
+      "prächtig"
+     ],
+     "antonyms": [
+      "hässlich",
+      "unschön"
+     ],
+     "declension": {
+      "columns": [
+       "Maskulinum",
+       "Femininum",
+       "Neutrum",
+       "Plural"
+      ],
+      "rows": [
+       {
+        "label": "stark Nominativ",
+        "cells": [
+         "schöner",
+         "schöne",
+         "schönes",
+         "schöne"
+        ]
+       },
+       {
+        "label": "stark Genitiv",
+        "cells": [
+         "schönen",
+         "schöner",
+         "schönen",
+         "schöner"
+        ]
+       },
+       {
+        "label": "stark Dativ",
+        "cells": [
+         "schönem",
+         "schöner",
+         "schönem",
+         "schönen"
+        ]
+       },
+       {
+        "label": "stark Akkusativ",
+        "cells": [
+         "schönen",
+         "schöne",
+         "schönes",
+         "schöne"
+        ]
+       },
+       {
+        "label": "schwach Nominativ",
+        "cells": [
+         "der schöne",
+         "die schöne",
+         "das schöne",
+         "die schönen"
+        ]
+       },
+       {
+        "label": "schwach Genitiv",
+        "cells": [
+         "des schönen",
+         "der schönen",
+         "des schönen",
+         "der schönen"
+        ]
+       },
+       {
+        "label": "schwach Dativ",
+        "cells": [
+         "dem schönen",
+         "der schönen",
+         "dem schönen",
+         "den schönen"
+        ]
+       },
+       {
+        "label": "schwach Akkusativ",
+        "cells": [
+         "den schönen",
+         "die schöne",
+         "das schöne",
+         "die schönen"
+        ]
+       },
+       {
+        "label": "gemischt Nominativ",
+        "cells": [
+         "ein schöner",
+         "eine schöne",
+         "ein schönes",
+         "keine schönen"
+        ]
+       },
+       {
+        "label": "gemischt Genitiv",
+        "cells": [
+         "eines schönen",
+         "einer schönen",
+         "eines schönen",
+         "keiner schönen"
+        ]
+       },
+       {
+        "label": "gemischt Dativ",
+        "cells": [
+         "einem schönen",
+         "einer schönen",
+         "einem schönen",
+         "keinen schönen"
+        ]
+       },
+       {
+        "label": "gemischt Akkusativ",
+        "cells": [
+         "einen schönen",
+         "eine schöne",
+         "ein schönes",
+         "keine schönen"
+        ]
+       }
+      ]
+     },
+     "comparison": {
+      "positive": "schön",
+      "comparative": "schöner",
+      "superlative": "am schönsten"
+     },
+     "pronunciation": [
+      "schön"
+     ]
+    }
+   }
+  },
+  {
+   "id": "recorded-6",
+   "key": "幸福",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-10-30T17-25-27-661Z-en-german.json.",
+   "card": {
+    "core": {
+     "kind": "word",
+     "language": "Chinesisch",
+     "key": "幸福",
+     "romanization": "xìngfú",
+     "gramRole": "noun",
+     "meanings": [
+      "Glück",
+      "glücklich"
+     ]
+    },
+    "facets": {
+     "article": {
+      "singular": "das Glück"
+     },
+     "examples": [
+      {
+       "sentence": "健康是一种幸福。",
+       "translation": "Gesundheit ist ein großes Glück."
+      },
+      {
+       "sentence": "她看起来很幸福。",
+       "translation": "Sie sieht glücklich aus."
+      }
+     ],
+     "synonyms": [
+      "Freude",
+      "Glückseligkeit",
+      "Wohlbefinden",
+      "froh",
+      "selig"
+     ],
+     "antonyms": [
+      "Unglück",
+      "Leid",
+      "unglücklich",
+      "traurig"
+     ],
+     "declension": {
+      "columns": [
+       "Singular",
+       "Plural"
+      ],
+      "rows": [
+       {
+        "label": "Nominativ",
+        "cells": [
+         "das Glück",
+         "—"
+        ]
+       },
+       {
+        "label": "Genitiv",
+        "cells": [
+         "des Glücks",
+         "—"
+        ]
+       },
+       {
+        "label": "Dativ",
+        "cells": [
+         "dem Glück",
+         "—"
+        ]
+       },
+       {
+        "label": "Akkusativ",
+        "cells": [
+         "das Glück",
+         "—"
+        ]
+       }
+      ]
+     },
+     "pronunciation": [
+      "das Glück",
+      "glücklich"
+     ]
+    }
+   }
+  },
+  {
+   "id": "recorded-7",
+   "key": "打算",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-10-30T17-25-27-661Z-en-german.json.",
+   "card": {
+    "core": {
+     "kind": "word",
+     "language": "Chinesisch",
+     "key": "打算",
+     "romanization": "dǎsuàn",
+     "gramRole": "verb",
+     "meanings": [
+      "planen"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "我打算明年去德国学习。",
+       "translation": "Ich plane, nächstes Jahr in Deutschland zu studieren."
+      }
+     ],
+     "synonyms": [
+      "beabsichtigen",
+      "vorhaben",
+      "anvisieren",
+      "projektieren"
+     ],
+     "conjugation": {
+      "columns": [
+       "Präsens",
+       "Präteritum",
+       "Perfekt"
+      ],
+      "rows": [
+       {
+        "label": "ich",
+        "cells": [
+         "plane",
+         "plante",
+         "habe geplant"
+        ]
+       },
+       {
+        "label": "du",
+        "cells": [
+         "planst",
+         "plantest",
+         "hast geplant"
+        ]
+       },
+       {
+        "label": "er/sie/es",
+        "cells": [
+         "plant",
+         "plante",
+         "hat geplant"
+        ]
+       },
+       {
+        "label": "wir",
+        "cells": [
+         "planen",
+         "planten",
+         "haben geplant"
+        ]
+       },
+       {
+        "label": "ihr",
+        "cells": [
+         "plant",
+         "plantet",
+         "habt geplant"
+        ]
+       },
+       {
+        "label": "sie/Sie",
+        "cells": [
+         "planen",
+         "planten",
+         "haben geplant"
+        ]
+       }
+      ]
+     },
+     "pronunciation": [
+      "planen"
+     ]
+    }
+   }
+  },
+  {
+   "id": "recorded-8",
+   "key": "Ufer",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-10-30T17-25-27-661Z-en-german.json.",
+   "card": {
+    "core": {
+     "kind": "word",
+     "language": "Deutsch",
+     "key": "Ufer",
+     "gramRole": "noun",
+     "meanings": [
+      "das Land, das an ein Gewässer angrenzt"
+     ]
+    },
+    "facets": {
+     "article": {
+      "singular": "das Ufer",
+      "plural": "die Ufer"
+     },
+     "examples": [
+      {
+       "sentence": "Am Ufer des Flusses stand ein alter Baum."
+      }
+     ],
+     "synonyms": [
+      "Gestade",
+      "Küste",
+      "Strand",
+      "Bord",
+      "Rand"
+     ],
+     "declension": {
+      "columns": [
+       "Singular",
+       "Plural"
+      ],
+      "rows": [
+       {
+        "label": "Nominativ",
+        "cells": [
+         "das Ufer",
+         "die Ufer"
+        ]
+       },
+       {
+        "label": "Genitiv",
+        "cells": [
+         "des Ufers",
+         "der Ufer"
+        ]
+       },
+       {
+        "label": "Dativ",
+        "cells": [
+         "dem Ufer",
+         "den Ufern"
+        ]
+       },
+       {
+        "label": "Akkusativ",
+        "cells": [
+         "das Ufer",
+         "die Ufer"
+        ]
+       }
+      ]
+     },
+     "pronunciation": [
+      "Ufer"
+     ]
+    }
+   }
+  },
+  {
+   "id": "wrong-sense",
+   "key": "bank",
+   "context": "We sat on the bank and watched the river go by.",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: The Context is a river bank; the only meaning is the money sense.",
+   "card": {
+    "core": {
+     "kind": "word",
+     "language": "Englisch",
+     "key": "bank",
+     "gramRole": "noun",
+     "meanings": [
+      "Geldinstitut"
+     ]
+    },
+    "facets": {
+     "article": {
+      "singular": "das Ufer",
+      "plural": "die Ufer"
+     },
+     "examples": [
+      {
+       "sentence": "We sat on the bank and watched the river go by.",
+       "translation": "Wir saßen am Ufer und sahen dem Fluss zu."
+      }
+     ],
+     "synonyms": [
+      "Gestade",
+      "Uferrand",
+      "Böschung"
+     ],
+     "declension": {
+      "columns": [
+       "Singular",
+       "Plural"
+      ],
+      "rows": [
+       {
+        "label": "Nominativ",
+        "cells": [
+         "das Ufer",
+         "die Ufer"
+        ]
+       },
+       {
+        "label": "Genitiv",
+        "cells": [
+         "des Ufers",
+         "der Ufer"
+        ]
+       },
+       {
+        "label": "Dativ",
+        "cells": [
+         "dem Ufer",
+         "den Ufern"
+        ]
+       },
+       {
+        "label": "Akkusativ",
+        "cells": [
+         "das Ufer",
+         "die Ufer"
+        ]
+       }
+      ]
+     },
+     "pronunciation": [
+      "das Ufer"
+     ]
+    }
+   }
+  },
+  {
+   "id": "wrong-gender",
+   "key": "bank",
+   "context": "We sat on the bank and watched the river go by.",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: Ufer is neuter: das Ufer, not der Ufer.",
+   "card": {
+    "core": {
+     "kind": "word",
+     "language": "Englisch",
+     "key": "bank",
+     "gramRole": "noun",
+     "meanings": [
+      "Ufer eines Flusses"
+     ]
+    },
+    "facets": {
+     "article": {
+      "singular": "der Ufer",
+      "plural": "die Ufer"
+     },
+     "examples": [
+      {
+       "sentence": "We sat on the bank and watched the river go by.",
+       "translation": "Wir saßen am Ufer und sahen dem Fluss zu."
+      }
+     ],
+     "synonyms": [
+      "Gestade",
+      "Uferrand",
+      "Böschung"
+     ],
+     "declension": {
+      "columns": [
+       "Singular",
+       "Plural"
+      ],
+      "rows": [
+       {
+        "label": "Nominativ",
+        "cells": [
+         "das Ufer",
+         "die Ufer"
+        ]
+       },
+       {
+        "label": "Genitiv",
+        "cells": [
+         "des Ufers",
+         "der Ufer"
+        ]
+       },
+       {
+        "label": "Dativ",
+        "cells": [
+         "dem Ufer",
+         "den Ufern"
+        ]
+       },
+       {
+        "label": "Akkusativ",
+        "cells": [
+         "das Ufer",
+         "die Ufer"
+        ]
+       }
+      ]
+     },
+     "pronunciation": [
+      "das Ufer"
+     ]
+    }
+   }
+  },
+  {
+   "id": "translation-mismatch",
+   "key": "bank",
+   "context": "We sat on the bank and watched the river go by.",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: The translation says something else than its sentence.",
+   "card": {
+    "core": {
+     "kind": "word",
+     "language": "Englisch",
+     "key": "bank",
+     "gramRole": "noun",
+     "meanings": [
+      "Ufer eines Flusses"
+     ]
+    },
+    "facets": {
+     "article": {
+      "singular": "das Ufer",
+      "plural": "die Ufer"
+     },
+     "examples": [
+      {
+       "sentence": "We sat on the bank and watched the river go by.",
+       "translation": "Ich gehe morgen zur Bank."
+      }
+     ],
+     "synonyms": [
+      "Gestade",
+      "Uferrand",
+      "Böschung"
+     ],
+     "declension": {
+      "columns": [
+       "Singular",
+       "Plural"
+      ],
+      "rows": [
+       {
+        "label": "Nominativ",
+        "cells": [
+         "das Ufer",
+         "die Ufer"
+        ]
+       },
+       {
+        "label": "Genitiv",
+        "cells": [
+         "des Ufers",
+         "der Ufer"
+        ]
+       },
+       {
+        "label": "Dativ",
+        "cells": [
+         "dem Ufer",
+         "den Ufern"
+        ]
+       },
+       {
+        "label": "Akkusativ",
+        "cells": [
+         "das Ufer",
+         "die Ufer"
+        ]
+       }
+      ]
+     },
+     "pronunciation": [
+      "das Ufer"
+     ]
+    }
+   }
+  },
+  {
+   "id": "antonyms-as-synonyms",
+   "key": "bank",
+   "context": "We sat on the bank and watched the river go by.",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: The synonyms are antonyms.",
+   "card": {
+    "core": {
+     "kind": "word",
+     "language": "Englisch",
+     "key": "bank",
+     "gramRole": "noun",
+     "meanings": [
+      "Ufer eines Flusses"
+     ]
+    },
+    "facets": {
+     "article": {
+      "singular": "das Ufer",
+      "plural": "die Ufer"
+     },
+     "examples": [
+      {
+       "sentence": "We sat on the bank and watched the river go by.",
+       "translation": "Wir saßen am Ufer und sahen dem Fluss zu."
+      }
+     ],
+     "synonyms": [
+      "schlecht",
+      "übel"
+     ],
+     "declension": {
+      "columns": [
+       "Singular",
+       "Plural"
+      ],
+      "rows": [
+       {
+        "label": "Nominativ",
+        "cells": [
+         "das Ufer",
+         "die Ufer"
+        ]
+       },
+       {
+        "label": "Genitiv",
+        "cells": [
+         "des Ufers",
+         "der Ufer"
+        ]
+       },
+       {
+        "label": "Dativ",
+        "cells": [
+         "dem Ufer",
+         "den Ufern"
+        ]
+       },
+       {
+        "label": "Akkusativ",
+        "cells": [
+         "das Ufer",
+         "die Ufer"
+        ]
+       }
+      ]
+     },
+     "pronunciation": [
+      "das Ufer"
+     ]
+    }
+   }
+  },
+  {
+   "id": "wrong-forms",
+   "key": "run",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: The ich row repeats the third person: ich spricht.",
+   "card": {
+    "core": {
+     "kind": "word",
+     "language": "Englisch",
+     "key": "run",
+     "gramRole": "verb",
+     "meanings": [
+      "laufen",
+      "rennen",
+      "betreiben"
+     ]
+    },
+    "facets": {
+     "conjugation": {
+      "columns": [
+       "Präsens",
+       "Präteritum",
+       "Perfekt"
+      ],
+      "rows": [
+       {
+        "label": "ich",
+        "cells": [
+         "spricht",
+         "spricht",
+         "spricht"
+        ]
+       },
+       {
+        "label": "du",
+        "cells": [
+         "läufst",
+         "liefst",
+         "bist gelaufen"
+        ]
+       },
+       {
+        "label": "er/sie/es",
+        "cells": [
+         "läuft",
+         "lief",
+         "ist gelaufen"
+        ]
+       },
+       {
+        "label": "wir",
+        "cells": [
+         "laufen",
+         "liefen",
+         "sind gelaufen"
+        ]
+       },
+       {
+        "label": "ihr",
+        "cells": [
+         "lauft",
+         "lief",
+         "seid gelaufen"
+        ]
+       },
+       {
+        "label": "sie/Sie",
+        "cells": [
+         "laufen",
+         "liefen",
+         "sind gelaufen"
+        ]
+       }
+      ]
+     },
+     "examples": [
+      {
+       "sentence": "I run every morning in the park.",
+       "translation": "Ich laufe jeden Morgen im Park."
+      },
+      {
+       "sentence": "She runs fast to catch the bus.",
+       "translation": "Sie rennt schnell, um den Bus zu erwischen."
+      },
+      {
+       "sentence": "He runs a small café in Berlin.",
+       "translation": "Er betreibt ein kleines Café in Berlin."
+      }
+     ],
+     "synonyms": [
+      "laufen",
+      "rennen",
+      "eilen",
+      "sprinten",
+      "flitzen"
+     ],
+     "antonyms": [
+      "gehen",
+      "stehen",
+      "anhalten"
+     ],
+     "pronunciation": [
+      "laufen",
+      "rennen",
+      "betreiben"
+     ]
+    }
+   }
+  }
+ ]
+}

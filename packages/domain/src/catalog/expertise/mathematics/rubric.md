@@ -1,0 +1,5 @@
+- **case**: The case is right for the selection: subject for a concept of mathematics, neighbouring for a technical term of a nearby field, unrelated otherwise.
+- **accuracy**: Every statement is correct in mathematics; nothing is invented or confused with a neighbouring concept.
+- **learner**: The explanation suits a learner in the interface language: intuitive, with a simple example or picture, without padding or stock phrases.
+- **focus**: It stays with the meaning in mathematics, and explains an everyday meaning or the Context only where the case calls for it.
+- **facet**: A Formula, when present, is the concept's standard defining formula, and its symbols are named correctly.

@@ -45,7 +45,13 @@ If a transient infrastructure/timing failure is supported by evidence, retry the
 
 Inspect the smoke scripts and the target's current source/API revision first. The hosted procedures in `docs/history/mvp/M6-Delivery.md` describe the retired Render deployment and are historical context only. Confirm compatibility, the agreed target, and the task/session's existing authorization: live generation spends provider usage. Do not infer that a generic request to run regressions includes live writes.
 
-- `npm run smoke:generation` loads `.env` and runs the parent modules' golden set (`tests/golden/parents.json`) through `OpenCodeProvider` directly, without exercising the API, database, or extension; `npm run smoke:generation -- chinese` runs one parent. It writes `.data/golden/<time>.md` for the owner's review. It is the per-module sample of C8, not an automated quality gate.
+- `npm run smoke:generation` loads `.env` and runs the content modules' golden sets (`tests/golden/`) through `OpenCodeProvider` directly, without exercising the API, database, or extension; `npm run smoke:generation -- chinese` runs one module. It applies the catalog's content checks to every card and writes `.data/golden/<time>.md`.
+- `npm run judge -- <module>` scores the latest golden run of a module against its `rubric.md` with the generator's model; `npm run judge -- --calibrate [module]` scores the calibration set (`tests/golden/calibration/`). The judge's verdicts count for a module only while its latest calibration agrees on at least 90% of the cards and misses no expected fail. A calibration card whose recorded verdict proves wrong is relabelled only with the verifiable reason in its `why`.
+- `npm run gate -- <module>` runs the offline catalog tests, the golden set with its checks, and the calibrated judge, and passes only with no failed card and at most 10% weak ones. It writes `.data/gates/<module>-<time>.md`. Run it when a module's prompts or rubric change, or a language is added; not on every commit.
+
+### The gate loop
+
+To bring a module to a passing gate without the owner: run the gate, read its report, and fix the cause of each failure where it lives: the module's prompt for a wrong card, a facet's check or the rubric only when it is demonstrably wrong (say so in the change), the calibration set only with a verifiable reason. Then run the gate again. Stop and report when the gate passes; after five rounds; or when the same failure repeats unchanged after a fix, which means the cause is not where you looked. Every round's report stays in `.data/gates/`, and the final one goes in the PR.
 
 Keep secrets out of command output and evidence. Use the ignored environment file/backend secret settings; never print the file. Honor existing authorization without repeatedly asking for the same connection. On a live failure, retain the evidence and diagnose before resubmitting operations or making more model calls.
 

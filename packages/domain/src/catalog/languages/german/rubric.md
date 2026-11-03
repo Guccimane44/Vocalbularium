@@ -1,0 +1,4 @@
+- **sense**: The meanings are real senses of the selection; with a Context, the sense the Context uses is among them, first.
+- **german**: Every German part is correct, natural German a learner can trust: spelling, grammar, an article's gender and a plural's form.
+- **facets**: Every facet present is right for this word and gives what its name promises: synonyms and antonyms that fit at least one of the meanings (a near-synonym is at worst weak), the right article, correct conjugation or declension forms.
+- **examples**: Each example uses the selection naturally in its own language, and each translation says the same as its sentence. When the selection is already German, its examples are German and have no translation, by design.
