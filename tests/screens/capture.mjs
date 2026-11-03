@@ -46,6 +46,16 @@ const context = await chromium.launchPersistentContext(profile, {
   args: [`--disable-extensions-except=${extension}`, `--load-extension=${extension}`, '--font-render-hinting=none', '--disable-lcd-text']
 });
 await context.clock.setFixedTime(NOW);
+// Chance repeats too: every document draws the same numbers (a new deck's colour is one).
+await context.addInitScript(() => {
+  let state = 0x9e3779b9;
+  Math.random = () => {
+    state = (state + 0x6d2b79f5) | 0;
+    let value = Math.imul(state ^ (state >>> 15), 1 | state);
+    value = (value + Math.imul(value ^ (value >>> 7), 61 | value)) ^ value;
+    return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+  };
+});
 const worker = context.serviceWorkers()[0] ?? await context.waitForEvent('serviceworker');
 const app = `chrome-extension://${new URL(worker.url()).host}/app.html`;
 const page = await context.newPage();
