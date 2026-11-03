@@ -54,7 +54,7 @@ it was. The account menu shows the API's origin, so both sides of a comparison
 use the same port.
 
 The run fails on a capture error, a layout violation, or a screen whose share
-of changed pixels is over the threshold (0.01 %, `--threshold`). Pixels count as
+of changed pixels is over the threshold (0.001 %, about 13 pixels of a 1280 × 1000 screen; `--threshold`). Pixels count as
 changed past pixelmatch's colour distance 0.1, anti-aliasing left out; a screen
 whose size changed always counts.
 
@@ -76,5 +76,9 @@ runs, so after labelling, re-run it. That report is the review packet's
 screenshots. Baselines come from CI only: fonts differ between macOS and Linux,
 so compare local work with `--base`.
 
-The threshold was tuned on unchanged `main` (two captures of the same revision):
-on Linux they differ by no pixel, so any real change of one card is far above it.
+The threshold was tuned on unchanged `main` (November 2026): in two CI runs on
+Linux and one run on macOS, all 326 captures of the same interface matched pixel for
+pixel once chance was seeded (a new deck's colour is random). Moving one card's
+padding by 8 px changed 0.02 % to 0.2 % of each screen showing that card, and no
+other screen. The CI job takes about 7 minutes when it captures both sides and about
+4 with a kept baseline, in parallel with the PostgreSQL suites.

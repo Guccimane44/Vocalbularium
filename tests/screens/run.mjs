@@ -17,9 +17,10 @@ import { parseArgs, promisify } from 'node:util';
 import { compare } from './compare.mjs';
 
 const exec = promisify(execFile);
-// Over this share of its pixels a screen counts as changed. Tuned on unchanged
-// main in CI, where two captures differ by no pixel at all; see docs/guides/screens.md.
-export const THRESHOLD = 0.0001;
+// Over this share of its pixels (about 13 of a 1280 × 1000 screen) a screen
+// counts as changed. Two captures of unchanged main differ by no pixel at all, on
+// Linux in CI and on macOS; one card's padding moves 0.02 % or more (docs/guides/screens.md).
+export const THRESHOLD = 0.00001;
 
 const { values: options } = parseArgs({ options: {
   base: { type: 'string' }, update: { type: 'boolean' }, baseline: { type: 'string' }, threshold: { type: 'string' },
