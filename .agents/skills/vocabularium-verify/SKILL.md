@@ -26,6 +26,7 @@ The commands below already exist. Confirm them against the checkout when using t
 | Upgrade compatibility | `tests/upgrade.test.mjs`, `tests/extension.test.mjs`, and `tests/browser/upgrade.test.mjs` |
 | Extension interactions or browser lifetime | The relevant journey in `tests/browser/`; `npm run test:browser` for the complete product and foundation browser suite |
 | API routes or schemas | `npm run openapi` and commit `docs/api/openapi.json`; CI fails when the committed reference differs |
+| How any screen looks | `npm run screens -- --base main` and its report; see the [screens guide](../../../docs/guides/screens.md). CI's `screens` job compares with main's baseline |
 | Build/package | `npm run build`, `python3 scripts/package.py`, and verification of the resulting archive; see `$vocabularium-deliver` |
 
 Test the changed behavior first, then broaden when shared invariants, failures, or required CI justify it. For changes spanning UI, storage, or extension/backend boundaries, exercise the affected user journey through the existing browser harness or an appropriate browser smoke check. Unit tests alone do not verify an integrated flow. Local product browser tests use the real extension, API, and disposable PostgreSQL databases with controlled generation providers; identify those substitutes and any uncovered behavior. A browser smoke check is distinct from automated E2E regression coverage.
@@ -56,6 +57,6 @@ Report the revision, changed behavior, commands/scenarios, result, relevant envi
 
 ### Milestone review packet
 
-At the end of a milestone, post one review packet on its tracker issue, as the [project workflow](../../../docs/guides/project-workflow.md#milestone-review) describes: screenshots of every changed screen in both themes and every interface language, before and after (the browser journeys can write them, as `tests/browser/localisation.test.mjs` does under `artifacts/`); golden-set output diffs for every changed prompt, when live runs are authorized; the suites and counts, the journeys exercised and what was mocked; and the known gaps. The owner reviews the milestone from this packet, so make each screenshot's screen, theme and language plain from its name or caption.
+At the end of a milestone, post one review packet on its tracker issue, as the [project workflow](../../../docs/guides/project-workflow.md#milestone-review) describes: screenshots of every changed screen in both themes and every interface language, before and after (the `screens-report` artifact of the PR's CI, or `npm run screens -- --base <ref>`, has them all); golden-set output diffs for every changed prompt, when live runs are authorized; the suites and counts, the journeys exercised and what was mocked; and the known gaps. The owner reviews the milestone from this packet, so make each screenshot's screen, theme and language plain from its name or caption.
 
 Review any new `docs/history/evidence/` artifact before committing it. Prefer synthetic examples without account/session identifiers or credentials. Link the current CI run and describe remaining acceptance in plain language.
