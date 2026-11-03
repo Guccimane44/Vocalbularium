@@ -50,9 +50,25 @@ export function parseColour(value) {
   if (match) return { r: +match[1], g: +match[2], b: +match[3], a: alpha(match[4]) };
   match = text.match(/^color\(srgb\s+([-\d.e]+)\s+([-\d.e]+)\s+([-\d.e]+)(?:\s*\/\s*([\d.]+%?))?\s*\)$/);
   if (match) return { r: match[1] * 255, g: match[2] * 255, b: match[3] * 255, a: alpha(match[4]), mixed: true };
+  // Linux Chromium computes a colour-mix in OKLab to oklab() or oklch().
+  match = text.match(/^ok(lab|lch)\(\s*([-\d.e]+%?)\s+([-\d.e]+)\s+([-\d.e]+)(?:\s*\/\s*([\d.]+%?))?\s*\)$/);
+  if (match) {
+    const lightness = match[2].endsWith('%') ? parseFloat(match[2]) / 100 : +match[2];
+    const [a, b] = match[1] === 'lab' ? [+match[3], +match[4]] : [match[3] * Math.cos(match[4] * Math.PI / 180), match[3] * Math.sin(match[4] * Math.PI / 180)];
+    return { ...oklabToSrgb(lightness, a, b), a: alpha(match[5]), mixed: true };
+  }
   return null;
 }
 const alpha = value => value === undefined ? 1 : value.endsWith('%') ? parseFloat(value) / 100 : +value;
+// OKLab to sRGB 0–255 (Björn Ottosson's matrices), clamped to the gamut.
+function oklabToSrgb(lightness, a, b) {
+  const l = (lightness + 0.3963377774 * a + 0.2158037573 * b) ** 3;
+  const m = (lightness - 0.1055613458 * a - 0.0638541728 * b) ** 3;
+  const s = (lightness - 0.0894841775 * a - 1.2914855480 * b) ** 3;
+  const gamma = linear => 255 * Math.min(1, Math.max(0, linear <= 0.0031308 ? 12.92 * linear : 1.055 * linear ** (1 / 2.4) - 0.055));
+  return { r: gamma(4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s), g: gamma(-1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s),
+    b: gamma(-0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s) };
+}
 
 let tokenColours;
 // Every colour the tokens define, per theme: the colour tokens and the colours
