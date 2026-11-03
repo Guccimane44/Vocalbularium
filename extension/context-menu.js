@@ -18,7 +18,7 @@ export function captureMenu(api = chrome) {
     const error = api.runtime.lastError;
     if (error) reject(new Error(error.message)); else resolve();
   })));
-  return async (/** @type {StoredAccount | undefined} */ account) => {
+  return async (/** @type {StoredAccount | null | undefined} */ account) => {
     const deck = account?.decks.find(deck => deck.id === account.defaultDeckId);
     if (!deck) { await call(done => api.contextMenus.removeAll(done)); title = undefined; return; }
     const next = captureMenuTitle(deck.name);

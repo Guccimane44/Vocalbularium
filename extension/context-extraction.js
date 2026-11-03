@@ -58,14 +58,15 @@ export function surroundingBlock(selectionText, limit) {
 // tab) captures the selection alone rather than delaying or failing capture.
 // A busy page gets CONTEXT_TIMEOUT_MS before capture proceeds without it.
 export const CONTEXT_TIMEOUT_MS = 1000;
-/** @param {ChromeMenuClick} info @param {ChromeTab} tab @param {typeof chrome.scripting} [scripting] */
+// Called for a capture's click, which has its selection and its tab.
+/** @param {ChromeMenuClick & { selectionText: string }} info @param {ChromeTab} tab @param {typeof chrome.scripting} [scripting] */
 export async function captureContext(info, tab, scripting = chrome.scripting) {
   /** @type {ReturnType<typeof setTimeout> | undefined} */
   let timer;
   try {
     const [result] = await Promise.race([
       scripting.executeScript({
-        target: { tabId: tab.id, frameIds: [info.frameId ?? 0] },
+        target: { tabId: /** @type {number} */ (tab.id), frameIds: [info.frameId ?? 0] },
         func: surroundingBlock,
         args: [info.selectionText, CONTEXT_LIMIT]
       }),

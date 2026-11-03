@@ -3,7 +3,7 @@
 // With `flight`, the selected text first lifts off the page and flies into the
 // popup's place (D05); the popup then appears and lasts as long as before.
 // The host's shadow root is open, so `host.shadowRoot` is always there.
-/** @param {string} message @param {boolean} failed @param {string | undefined} theme @param {string} css @param {string | null} flight @param {string} [closeLabel] */
+/** @param {string} message @param {boolean} failed @param {unknown} theme @param {string} css @param {string | null} flight @param {string} [closeLabel] */
 export function renderFeedback(message, failed, theme, css, flight, closeLabel = 'Close capture feedback') {
   // This reference lives in the isolated extension world, not page scripts.
   let active = globalThis.vocabulariumFeedback;
@@ -46,7 +46,8 @@ export function renderFeedback(message, failed, theme, css, flight, closeLabel =
   const rect = flight && !failed && !matchMedia('(prefers-reduced-motion: reduce)').matches && selection?.rangeCount
     ? selection.getRangeAt(0).getBoundingClientRect() : null;
   if (rect && rect.width && rect.height && rect.bottom > 0 && rect.top < innerHeight) {
-    const words = flight.replace(/\s+/g, ' ').trim();
+    // A rect is read only for a flight.
+    const words = /** @type {string} */ (flight).replace(/\s+/g, ' ').trim();
     const label = document.createElement('div'); label.className = 'flight-label'; label.setAttribute('aria-hidden', 'true');
     label.textContent = [...words].length > 44 ? [...words].slice(0, 43).join('') + '…' : words;
     /** @type {ShadowRoot} */ (host.shadowRoot).append(label);

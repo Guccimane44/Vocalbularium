@@ -1,5 +1,6 @@
 import { contentModule, isContentModule } from './catalog/index.js';
 import type { CheckTools, CoreValue } from './catalog/define.js';
+export type { CheckTools };
 import { MissingTool } from './catalog/tools.js';
 export { MissingTool, requireTool } from './catalog/tools.js';
 
