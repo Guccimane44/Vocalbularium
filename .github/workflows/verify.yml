@@ -93,3 +93,124 @@ jobs:
           done
       - run: npx playwright install chromium
       - run: npm run test:browser
+  # Every screen in both themes and all six interface languages (0.16.0 increment A).
+  # A push to main keeps its captures as the baseline; a pull request compares
+  # with the last green main's baseline (or, when none is kept, captures its base
+  # branch too) and fails on a changed screen unless labelled screens-changed.
+  screens:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: read
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_PASSWORD: postgres-ci-only
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s
+          --health-timeout 5s --health-retries 10
+    env:
+      TEST_DATABASE_ADMIN_URL: postgresql://vocabularium_test:test-ci-only@127.0.0.1:5432/postgres
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Create non-superuser fixture role
+        env:
+          PGPASSWORD: postgres-ci-only
+        run: |
+          psql -h 127.0.0.1 -U postgres -d postgres -v ON_ERROR_STOP=1 \
+            -c "CREATE ROLE vocabularium_test LOGIN CREATEDB NOSUPERUSER NOCREATEROLE PASSWORD 'test-ci-only'"
+      - name: Read Playwright version and runner image
+        id: playwright
+        run: |
+          echo "version=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
+          echo "image=$ImageOS-$ImageVersion" >> "$GITHUB_OUTPUT"
+      - name: Restore Playwright system packages
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/playwright-debs
+          key: playwright-debs-${{ steps.playwright.outputs.version }}-${{ steps.playwright.outputs.image }}
+          restore-keys: playwright-debs-${{ steps.playwright.outputs.version }}-
+      - name: Install Playwright system packages
+        run: |
+          echo 'APT::Keep-Downloaded-Packages "true";' | sudo tee /etc/apt/apt.conf.d/99-keep-debs
+          mkdir -p ~/.cache/playwright-debs
+          find ~/.cache/playwright-debs -name '*.deb' -exec sudo cp {} /var/cache/apt/archives/ \;
+          npx playwright install-deps chromium
+          rm -f ~/.cache/playwright-debs/*.deb
+          for deb in /var/cache/apt/archives/*.deb; do
+            [ -e "$deb" ] || continue
+            package=$(dpkg-deb -f "$deb" Package); version=$(dpkg-deb -f "$deb" Version)
+            if [ "$(dpkg-query -W -f='${Version}' "$package" 2>/dev/null)" = "$version" ]; then
+              cp "$deb" ~/.cache/playwright-debs/
+            fi
+          done
+      - run: npx playwright install chromium
+      - name: Download the last green main's baseline
+        id: baseline
+        if: github.event_name == 'pull_request'
+        run: |
+          run=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow verify.yml --branch main --event push --status success \
+            --limit 1 --json databaseId --jq '.[0].databaseId // empty')
+          if [ -n "$run" ] && gh run download "$run" --repo "$GITHUB_REPOSITORY" -n screens-baseline -D .data/screens/baseline; then
+            echo "Comparing with the baseline of run $run."
+            echo "found=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No baseline kept for main: capturing the base branch as well."
+          fi
+      - name: Capture and compare the screens
+        run: |
+          if [ "$GITHUB_EVENT_NAME" != pull_request ]; then
+            npm run screens -- --update --out .data/screens/report || true
+          elif [ "${{ steps.baseline.outputs.found }}" = true ]; then
+            npm run screens -- --out .data/screens/report || true
+          else
+            npm run screens -- --base "origin/$GITHUB_BASE_REF" --out .data/screens/report || true
+          fi
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: screens-report
+          path: |
+            .data/screens/report/index.html
+            .data/screens/report/report.json
+            .data/screens/report/screens
+            .data/screens/report/baseline
+            .data/screens/report/diff
+          if-no-files-found: warn
+          retention-days: 14
+      - uses: actions/upload-artifact@v7
+        if: github.event_name == 'push'
+        with:
+          name: screens-baseline
+          path: .data/screens/baseline
+          if-no-files-found: error
+          retention-days: 90
+      # A capture error or a layout violation always fails; a changed screen
+      # fails unless the pull request carries the label screens-changed, read
+      # when the job runs, so re-running the job after labelling passes it.
+      - name: Check the report
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          labels=""
+          if [ -n "$PR_NUMBER" ]; then labels=$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json labels --jq '[.labels[].name] | join(",")'); fi
+          LABELS="$labels" node -e '
+            const { summary } = JSON.parse(require("fs").readFileSync(".data/screens/report/report.json", "utf8"));
+            console.log(JSON.stringify(summary));
+            const changed = summary.changed + summary.new + summary.removed;
+            if (summary.errors || summary.violations) { console.error("Screens failed to capture or broke a layout rule: see the screens-report artifact."); process.exit(1); }
+            if (process.env.GITHUB_EVENT_NAME === "pull_request" && changed) {
+              if (process.env.LABELS.split(",").includes("screens-changed")) console.log(`${changed} screens changed; labelled screens-changed.`);
+              else { console.error(`${changed} screens changed: review the screens-report artifact, then label the pull request screens-changed and re-run this job.`); process.exit(1); }
+            }'
