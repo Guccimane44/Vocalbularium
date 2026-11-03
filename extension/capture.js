@@ -1,3 +1,4 @@
+// @ts-check
 import { readLocal } from './recovery.js';
 import { showFeedback } from './feedback.js';
 import { captureContext } from './context-extraction.js';

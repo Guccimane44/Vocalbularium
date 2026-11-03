@@ -1,10 +1,13 @@
+// @ts-check
 // Capture with Context: the selection's surrounding block, capped around
 // CONTEXT_LIMIT characters (Pages and editing §Context).
 export const CONTEXT_LIMIT = 500;
 
 // Runs in the captured page through chrome.scripting, so it must stay
 // self-contained. Returns the surrounding text, or null when there is none.
+/** @param {string} selectionText @param {number} limit */
 export function surroundingBlock(selectionText, limit) {
+  /** @param {string} value */
   const squash = value => value.replace(/\s+/g, ' ');
   let before, selected, after;
   const field = document.activeElement;
@@ -16,16 +19,21 @@ export function surroundingBlock(selectionText, limit) {
     if (!selection || !selection.rangeCount) return null;
     const range = selection.getRangeAt(0);
     const blockish = /^(block|list-item|table-cell|table-caption|flex|grid|flow-root)$/;
+    /** @type {Node | null} */
     let block = range.commonAncestorContainer;
     if (block.nodeType !== Node.ELEMENT_NODE) block = block.parentElement;
-    while (block && block !== document.body && !blockish.test(getComputedStyle(block).display)) block = block.parentElement;
+    while (block && block !== document.body && !blockish.test(getComputedStyle(/** @type {Element} */ (block)).display)) block = block.parentElement;
     block ??= document.body;
+    /** @param {[node: Node, offset: number]} from @param {[node: Node, offset: number]} to */
     const part = (from, to) => {
       const piece = document.createRange();
       piece.setStart(...from); piece.setEnd(...to);
       return piece.toString();
     };
-    const start = [block, 0], end = [block, block.childNodes.length];
+    /** @type {[node: Node, offset: number]} */
+    const start = [block, 0];
+    /** @type {[node: Node, offset: number]} */
+    const end = [block, block.childNodes.length];
     [before, selected, after] = [part(start, [range.startContainer, range.startOffset]), range.toString(), part([range.endContainer, range.endOffset], end)];
   }
   const raw = squash(selected);
@@ -50,7 +58,9 @@ export function surroundingBlock(selectionText, limit) {
 // tab) captures the selection alone rather than delaying or failing capture.
 // A busy page gets CONTEXT_TIMEOUT_MS before capture proceeds without it.
 export const CONTEXT_TIMEOUT_MS = 1000;
+/** @param {ChromeMenuClick} info @param {ChromeTab} tab @param {typeof chrome.scripting} [scripting] */
 export async function captureContext(info, tab, scripting = chrome.scripting) {
+  /** @type {ReturnType<typeof setTimeout> | undefined} */
   let timer;
   try {
     const [result] = await Promise.race([

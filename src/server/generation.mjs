@@ -8,7 +8,7 @@ import { parentContentOf } from '@vocabularium/domain/content';
 /** @import { AccountStore } from '../core/store.mjs' */
 /** @import { Attempt, AttemptResult } from '../core/store-records.js' */
 // What generation needs of a provider (D11); see Provider in provider.mjs.
-/** @typedef {{ generate(request: Parameters<GenerateModule>[0] & { context?: string, language?: import('@vocabularium/contracts').InterfaceLanguage, sessionId: string }, signal: AbortSignal): Promise<unknown>, model?: string | null }} GenerationProvider */
+/** @typedef {{ generate(request: Parameters<GenerateModule>[0] & { context?: string, language?: import('@vocabularium/contracts').InterfaceLanguage, sessionId: string }, signal: AbortSignal): Promise<unknown>, model?: string | null, apiKey?: string, diagnostic?: (event: Record<string, unknown>) => void }} GenerationProvider */
 // An admitted attempt, queued or active.
 /** @typedef {{ attemptId: string, pageId: string, sessionId: string, admittedAt: number, outcome?: string }} Job */
 /** @typedef {{ count: number }} Reservation */

@@ -1,3 +1,4 @@
+// @ts-check
 import { startBackground } from '../background-runtime.js';
 import { showFeedback } from '../feedback.js';
 

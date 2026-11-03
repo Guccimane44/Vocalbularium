@@ -1,3 +1,4 @@
+// @ts-check
 import { failure } from '../../src/server/provider.mjs';
 import { SpeechProvider } from '../../src/server/speech.mjs';
 
@@ -6,13 +7,17 @@ import { SpeechProvider } from '../../src/server/speech.mjs';
 // generating until `release(text)` is called.
 export class FakeSpeechProvider extends SpeechProvider {
   bitRate = 128000;
+  /** @param {{ fail?: Record<string, string>, hold?: string[] }} [options] */
   constructor({ fail = {}, hold = [] } = {}) {
     super();
     this.model = 'fake-speech'; this.voices = { default: 'fake-voice' };
-    this.fail = fail; this.held = new Map(hold.map(text => [text, Promise.withResolvers()]));
+    this.fail = fail; this.held = new Map(hold.map(text => [text, /** @type {PromiseWithResolvers<void>} */ (Promise.withResolvers())]));
+    /** @type {{ text: string, language: string, voice: string | null }[]} */
     this.calls = [];
   }
+  /** @param {string} text */
   release(text) { this.held.get(text)?.resolve(); }
+  /** @param {{ text: string, language: string, voice: string | null }} request @param {AbortSignal} signal @param {import('../../src/server/speech.mjs').SpeechReply} reply */
   async send({ text, language, voice }, signal, reply) {
     this.calls.push({ text, language, voice });
     const held = this.held.get(text);

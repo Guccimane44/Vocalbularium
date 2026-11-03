@@ -1,8 +1,11 @@
+// @ts-check
 import { readdir, readFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 import { resolve, extname } from 'node:path';
 
+/** @param {string} directory @returns {Promise<string[]>} */
 async function files(directory) {
+  /** @type {string[]} */
   const result = [];
   for (const entry of await readdir(directory, { withFileTypes: true })) {
     if (['node_modules', '.git', '.data', 'artifacts', '.claude'].includes(entry.name)) continue;

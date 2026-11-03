@@ -1,3 +1,4 @@
+// @ts-check
 import { failure } from './provider.mjs';
 import { SpeechProvider } from './speech.mjs';
 
@@ -30,7 +31,7 @@ export class ElevenLabsProvider extends SpeechProvider {
     super();
     this.apiKey = apiKey; this.model = model; this.voices = voices; this.fetch = fetchImpl;
   }
-  /** @param {{ text: string, language: string, voice: string | null }} request @param {AbortSignal} signal @param {Record<string, any>} reply */
+  /** @param {{ text: string, language: string, voice: string | null }} request @param {AbortSignal} signal @param {import('./speech.mjs').SpeechReply} reply */
   async send({ text, language, voice }, signal, reply) {
     if (!this.apiKey || !voice) throw failure('provider_unconfigured', 'Speech is not configured on the server.');
     const response = await this.fetch(`https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voice)}?output_format=${OUTPUT_FORMAT}`, {

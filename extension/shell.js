@@ -1,3 +1,4 @@
+// @ts-check
 import { deckColour } from './deck-colour.ts';
 import { preferredLanguage, isOffered, LANGUAGES, onLanguageChange, t } from './i18n.ts';
 

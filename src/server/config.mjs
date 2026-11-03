@@ -1,3 +1,4 @@
+// @ts-check
 import { resolve } from 'node:path';
 
 const logLevels = new Set(['trace', 'debug', 'info', 'warn', 'error', 'fatal', 'silent']);
@@ -28,6 +29,7 @@ export function loadConfig(environment = process.env) {
     throw new Error('Invalid LOG_LEVEL: choose trace, debug, info, warn, error, fatal, or silent.');
   }
 
+  /** @param {string} name @param {number} fallback */
   const generationLimit = (name, fallback) => {
     const value = environment[name] ?? String(fallback);
     const active = name === 'GENERATION_MAX_ACTIVE' || name === 'AUDIO_MAX_ACTIVE';
@@ -48,12 +50,14 @@ export function loadConfig(environment = process.env) {
 
   const databaseUrl = environment.DATABASE_URL;
   try {
-    const url = new URL(databaseUrl);
+    // An unset URL throws here as well.
+    const url = new URL(/** @type {string} */ (databaseUrl));
     if (!['postgres:', 'postgresql:'].includes(url.protocol) || !url.hostname || url.pathname.length < 2) throw new Error();
   } catch { throw new Error('Invalid DATABASE_URL: provide a PostgreSQL database connection URL.'); }
   if (!['127.0.0.1', 'localhost', '::1'].includes(host)) {
     throw new Error('The owner-testing API must bind to loopback.');
   }
-  return Object.freeze({ host, port, directory: resolve(dataDirectory), logLevel, databaseUrl,
+  // Checked above: a PostgreSQL URL.
+  return Object.freeze({ host, port, directory: resolve(dataDirectory), logLevel, databaseUrl: /** @type {string} */ (databaseUrl),
     generationMaxActive, generationMaxQueued, audioMaxActive, audioMaxQueued, diagnosticBudgetBytes, diagnosticContent });
 }

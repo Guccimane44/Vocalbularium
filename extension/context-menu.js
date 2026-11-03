@@ -1,18 +1,24 @@
+// @ts-check
 import { t } from './i18n.ts';
+/** @import { StoredAccount } from '../types/extension.js' */
 
+/** @param {string} name */
 export function captureMenuTitle(name) {
   // Chromium replaces every literal %s and has no %% escape. A zero-width
   // separator preserves its appearance without interpolating the selection.
   return t('capture.menu', { deck: name.replaceAll('%s', '%\u200bs') });
 }
 
+/** @param {typeof chrome} [api] */
 export function captureMenu(api = chrome) {
+  /** @type {string | undefined} */
   let title;
-  const call = invoke => new Promise((resolve, reject) => invoke(() => {
+  /** @param {(done: () => void) => void} invoke */
+  const call = invoke => /** @type {Promise<void>} */ (new Promise((resolve, reject) => invoke(() => {
     const error = api.runtime.lastError;
     if (error) reject(new Error(error.message)); else resolve();
-  }));
-  return async account => {
+  })));
+  return async (/** @type {StoredAccount | undefined} */ account) => {
     const deck = account?.decks.find(deck => deck.id === account.defaultDeckId);
     if (!deck) { await call(done => api.contextMenus.removeAll(done)); title = undefined; return; }
     const next = captureMenuTitle(deck.name);

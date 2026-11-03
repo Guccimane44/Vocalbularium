@@ -1,5 +1,7 @@
+// @ts-check
 import { renderFeedback } from './feedback-view.js';
 import { t } from './i18n.ts';
+/** @type {Promise<string> | undefined} */
 let feedbackStyles;
 async function styles() {
   feedbackStyles ??= Promise.all(['theme.css', 'feedback.css'].map(async file => {
@@ -8,17 +10,21 @@ async function styles() {
   })).then(parts => parts.join('\n')).catch(error => { feedbackStyles = undefined; throw error; });
   return feedbackStyles;
 }
+/** @param {unknown} theme */
 export async function relayFeedbackTheme(theme) {
   const session = await chrome.storage.session.get(null);
   const now = Date.now(), tabs = new Set(), expired = [];
-  for (const [key, item] of Object.entries(session)) {
+  for (const [key, value] of Object.entries(session)) {
     if (!key.startsWith('feedback-')) continue;
+    // What showFeedback keeps for each feedback shown.
+    const item = /** @type {{ tabId: number, expiresAt: number }} */ (value);
     if (item.expiresAt > now) tabs.add(item.tabId); else expired.push(key);
   }
   if (expired.length) await chrome.storage.session.remove(expired);
   await Promise.all([...tabs].map(tabId => chrome.tabs.sendMessage(tabId, { type: 'feedback-theme', theme: theme === 'dark' || theme === 'light' ? theme : 'system' }).catch(() => {})));
 }
 // `flight` is the selected text that flies into the popup on an ordinary web page (D05).
+/** @param {number} tabId @param {string} message @param {boolean} [failed] @param {string} [sourceUrl] @param {string} [flight] */
 export async function showFeedback(tabId, message, failed = false, sourceUrl, flight) {
   // The capture-time URL keeps closed/navigated product tabs out of the window fallback.
   if (sourceUrl === undefined) {
@@ -45,7 +51,8 @@ export async function showFeedback(tabId, message, failed = false, sourceUrl, fl
     injected = true;
     // Session metadata lets a newly woken worker find only still-active feedback.
     const key = `feedback-${crypto.randomUUID()}`;
-    const expiresAt = result[0].result;
+    // The injected renderer returns when its feedback expires.
+    const expiresAt = /** @type {number} */ (result[0].result);
     await chrome.storage.session.set({ [key]: { tabId, expiresAt } });
     setTimeout(() => { void chrome.storage.session.remove(key); }, Math.max(0, expiresAt - Date.now()));
     const current = await chrome.storage.local.get('theme');

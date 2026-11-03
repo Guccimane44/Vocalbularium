@@ -1,3 +1,4 @@
+// @ts-check
 // Generates extension/theme.css from extension/design/tokens.json, the
 // repository copy of the Vocabularium Sage design-system tokens (D05).
 // `node scripts/build-theme.mjs --check` fails when theme.css is out of date.
@@ -18,19 +19,29 @@ const FORCED = {
   Highlight: ['focus']
 };
 
+// A token in tokens.json: one value, or one per theme.
+/** @typedef {{ name: string, value: string | Record<string, string> }} Token */
+/** @typedef {[name: string, value: unknown]} Declaration */
+
+/** @param {Token} entry @param {string} theme */
 const value = (entry, theme) => typeof entry.value === 'string' ? entry.value : entry.value[theme] ?? entry.value.light;
+/** @param {Declaration[]} list */
 const declarations = list => list.map(([name, v]) => `  --${name}: ${v};`).join('\n');
 
 export async function buildTheme() {
+  /** @type {Record<string, { tokens?: Token[] } | undefined> & { color: { tokens: Token[] }, type: { families: Record<string, string> } }} */
   const tokens = JSON.parse(await readFile(SOURCE, 'utf8'));
   const colors = tokens.color.tokens;
   const shadows = tokens.shadow?.tokens ?? [];
   // Each family colour again for swatches, which show the colour itself: forced
   // colours leave these copies alone.
   const swatches = colors.filter(entry => /^fam-[a-z]+$/.test(entry.name)).map(entry => ({ ...entry, name: `${entry.name}-swatch` }));
+  /** @param {string} theme @returns {Declaration[]} */
   const themed = theme => [...colors, ...swatches, ...shadows].map(entry => [entry.name, value(entry, theme)]);
+  /** @type {Declaration[]} */
   const fixed = ['spacing', 'radius', 'duration', 'easing', 'layout']
-    .flatMap(family => (tokens[family]?.tokens ?? []).map(entry => [entry.name, entry.value]));
+    .flatMap(family => (tokens[family]?.tokens ?? []).map(entry => /** @type {Declaration} */ ([entry.name, entry.value])));
+  /** @type {Declaration[]} */
   const fonts = Object.entries(tokens.type.families).map(([key, stack]) => [`font-${key}`, stack]);
   const dark = `  color-scheme: dark;\n${declarations(themed('dark'))}`;
   return `/* Vocabularium Sage: generated from extension/design/tokens.json by scripts/build-theme.mjs. Do not edit. */

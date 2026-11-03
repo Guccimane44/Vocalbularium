@@ -1,3 +1,4 @@
+// @ts-check
 import Fastify, { LogController } from 'fastify';
 import swagger from '@fastify/swagger';
 import { randomUUID } from 'node:crypto';
@@ -9,19 +10,29 @@ import { apiFailure } from './api-failure.mjs';
 import { registerRoutes } from './routes.mjs';
 import { Diagnostics, diagnosticContext } from './diagnostics.mjs';
 import { registerDiagnosticRoutes } from './diagnostic-routes.mjs';
+/** @import { FastifyError, FastifyRequest, FastifyServerOptions } from 'fastify' */
+/** @import { Socket } from 'node:net' */
+/** @import { GenerationProvider } from './generation.mjs' */
+/** @import { AudioProvider } from './audio.mjs' */
+/** @import { ApiInstance } from '../../types/fastify.js' */
+// The parts of a mutation's body the diagnostics record; the routes check the rest.
+/** @typedef {{ operationId?: string, payload?: { pageId?: string, attemptId?: string, mainKey?: string, target?: { componentId?: string } } }} MutationBody */
 
 const maxRequestBytes = 1024 * 1024;
 const publicHealthPaths = new Set(['/health', '/health/live', '/health/ready']);
 const invalidJsonCodes = new Set(['FST_ERR_CTP_EMPTY_JSON_BODY', 'FST_ERR_CTP_INVALID_JSON_BODY']);
 
+/** @param {unknown} value */
 function isJsonObject(value) {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
 }
 
+/** @param {FastifyRequest} request */
 function routePath(request) {
   return new URL(request.url, 'http://localhost').pathname;
 }
 
+/** @param {FastifyError} error @param {FastifyRequest} request */
 function requestFailure(error, request) {
   if (error instanceof StoreError) {
     return {
@@ -45,28 +56,43 @@ function requestFailure(error, request) {
   return { status: 500, value: apiFailure('The save could not be completed. Try again.', 'server_error') };
 }
 
+/** @param {{
+  databaseUrl?: string, outbox?: string, accountId?: number, authOptions?: ConstructorParameters<typeof Authentication>[1],
+  provider?: GenerationProvider, generationOptions?: ConstructorParameters<typeof Generation>[2],
+  speechProvider?: AudioProvider, audioOptions?: ConstructorParameters<typeof Audio>[2],
+  diagnostics?: Diagnostics, logger?: FastifyServerOptions['logger'], documentationOnly?: boolean
+}} [options] */
 export async function createApplication({ databaseUrl, outbox, accountId = 1, authOptions, provider, generationOptions, speechProvider, audioOptions, diagnostics = new Diagnostics(), logger = false, documentationOnly = false } = {}) {
+  /** @param {Record<string, unknown>} event */
   const emit = event => diagnostics.emit({ ...diagnosticContext.getStore(), ...event });
+  // A documentation-only application serves no requests, so its parts are
+  // typed as present: only the routes' schemas are read.
+  /** @type {AccountStore} */
   let store;
-  try { store = documentationOnly ? null : await AccountStore.open({ databaseUrl, outbox, accountId, diagnostic: emit }); }
-  catch (error) {
+  try { store = /** @type {AccountStore} */ (documentationOnly ? null : await AccountStore.open({ databaseUrl, outbox, accountId, diagnostic: emit })); }
+  catch (caught) {
+    const error = /** @type {FastifyError} */ (caught);
     emit({ event: 'process.failed', outcome: 'failed', severity: 'error', phase: 'database_initialize', errorType: error.name, errorCode: error.code });
     await diagnostics.close(); throw error;
   }
-  const authentication = documentationOnly ? null : new Authentication(store.database, authOptions);
-  let generation, audio;
+  const authentication = /** @type {Authentication} */ (documentationOnly ? null : new Authentication(store.database, authOptions));
+  /** @type {Generation} */
+  let generation;
+  /** @type {Audio} */
+  let audio;
   try {
     await authentication?.initialize();
-    generation = documentationOnly ? null : await Generation.create(store, provider, { ...generationOptions, emit,
-      diagnostic: event => { emit({ ...event, event: 'generation.work', phase: event.event,
+    generation = /** @type {Generation} */ (documentationOnly ? null : await Generation.create(store, provider, { ...generationOptions, emit,
+      diagnostic: (/** @type {Record<string, unknown>} */ event) => { emit({ ...event, event: 'generation.work', phase: event.event,
         severity: event.event === 'failed' ? 'error' : event.event === 'rejected' ? 'warn' : 'info',
-        outcome: event.event === 'failed' || event.category === 'failed' ? 'failed' : event.event === 'rejected' ? 'rejected' : event.category === 'canceled' ? 'canceled' : ['settled', 'staged'].includes(event.event) ? 'succeeded' : 'started' });
-        generationOptions?.diagnostic?.(event); } });
+        outcome: event.event === 'failed' || event.category === 'failed' ? 'failed' : event.event === 'rejected' ? 'rejected' : event.category === 'canceled' ? 'canceled' : ['settled', 'staged'].includes(/** @type {string} */ (event.event)) ? 'succeeded' : 'started' });
+        generationOptions?.diagnostic?.(event); } }));
     if (generation) { generation.provider.diagnostic = emit; diagnostics.addSecret(generation.provider.apiKey); }
     // Spoken parts' audio (D24): its own jobs and limits beside the text attempts.
-    audio = documentationOnly ? null : await Audio.create(store, speechProvider, { ...audioOptions, emit });
+    audio = /** @type {Audio} */ (documentationOnly ? null : await Audio.create(store, speechProvider, { ...audioOptions, emit }));
     if (audio) { audio.provider.diagnostic = emit; diagnostics.addSecret(audio.provider.apiKey); }
-  } catch (error) {
+  } catch (caught) {
+    const error = /** @type {FastifyError} */ (caught);
     emit({ event: 'process.failed', outcome: 'failed', severity: 'error', phase: 'initialize', errorType: error.name, errorCode: error.code });
     await store?.close(); await diagnostics.close(); throw error;
   }
@@ -84,8 +110,10 @@ export async function createApplication({ databaseUrl, outbox, accountId = 1, au
   // time), and a response still in flight keeps its keep-alive connection for
   // keepAliveTimeout (72 s). Once closing, end each connection that has no
   // active request; in-flight requests still complete.
+  /** @type {Map<Socket, number>} */
   const activeRequests = new Map();
   let closing = false;
+  /** @param {Socket} socket */
   const release = socket => { if (closing && !activeRequests.get(socket)) socket.destroy(); };
   fastify.server.on('connection', socket => {
     activeRequests.set(socket, 0);
@@ -97,7 +125,7 @@ export async function createApplication({ databaseUrl, outbox, accountId = 1, au
     activeRequests.set(socket, (activeRequests.get(socket) ?? 0) + 1);
     response.on('close', () => {
       if (!activeRequests.has(socket)) return;
-      activeRequests.set(socket, activeRequests.get(socket) - 1);
+      activeRequests.set(socket, /** @type {number} */ (activeRequests.get(socket)) - 1);
       setImmediate(() => release(socket));
     });
   });
@@ -170,7 +198,7 @@ export async function createApplication({ databaseUrl, outbox, accountId = 1, au
         if (!await authentication.accepts(request.authToken)) {
           return reply.code(401).send(apiFailure('Sign in to continue.', 'unauthorized'));
         }
-        return diagnosticContext.run({ requestId: request.id, operationId: request.body?.operationId }, () => handler.call(this, request, reply));
+        return diagnosticContext.run({ requestId: request.id, operationId: /** @type {MutationBody | undefined} */ (request.body)?.operationId }, () => handler.call(this, request, reply));
       });
     };
   });
@@ -179,7 +207,8 @@ export async function createApplication({ databaseUrl, outbox, accountId = 1, au
     reply.header('X-Request-Id', request.id);
     if (reply.statusCode !== 204) reply.header('Cache-Control', 'no-store');
     if (!request.routeOptions?.url?.startsWith('/api/diagnostics/') && request.method !== 'OPTIONS') {
-      let result; try { result = JSON.parse(payload); } catch { /* Metadata only. */ }
+      /** @type {Record<string, unknown> | undefined} */
+      let result; try { result = JSON.parse(/** @type {string} */ (payload)); } catch { /* Metadata only. */ }
       diagnostics.addSecret(result?.token);
       request.diagnosticResult = { code: result?.code, pageId: result?.pageId, sequence: result?.sequence, replayed: result?.replayed };
     }
@@ -188,24 +217,27 @@ export async function createApplication({ databaseUrl, outbox, accountId = 1, au
 
   fastify.addHook('onResponse', async (request, reply) => {
     const route = request.routeOptions?.url ?? 'unmatched';
-    const status = reply.statusCode, result = request.diagnosticResult ?? {}, payload = request.body?.payload;
+    const body = /** @type {MutationBody | undefined} */ (request.body);
+    const status = reply.statusCode, payload = body?.payload;
+    /** @type {{ code?: unknown, pageId?: unknown, sequence?: unknown, replayed?: unknown }} */
+    const result = request.diagnosticResult ?? {};
     // Idle polling and routine health/list refreshes create no successful entries.
     if (route.startsWith('/api/diagnostics/') || request.method === 'OPTIONS' ||
       (status < 400 && (route === '/api/poll' || route.startsWith('/health') ||
         ['/api/account', '/api/account/summary', '/api/captures/recent', '/api/decks'].includes(route)))) return;
-    emit({ event: 'api.completed', requestId: request.id, operationId: request.body?.operationId,
-      pageId: result.pageId ?? payload?.pageId ?? request.params?.pageId, componentId: payload?.target?.componentId, attemptId: payload?.attemptId,
+    emit({ event: 'api.completed', requestId: request.id, operationId: body?.operationId,
+      pageId: result.pageId ?? payload?.pageId ?? /** @type {{ pageId?: string } | undefined} */ (request.params)?.pageId, componentId: payload?.target?.componentId, attemptId: payload?.attemptId,
       method: request.method, route, status, sequence: result.sequence, errorCode: result.code,
       severity: status >= 500 ? 'error' : status >= 400 ? 'warn' : 'info',
       outcome: status >= 400 ? 'failed' : result.replayed ? 'replayed' : 'succeeded',
-      durationMs: Math.round(performance.now() - request.diagnosticStarted) });
+      durationMs: Math.round(performance.now() - /** @type {number} */ (request.diagnosticStarted)) });
     if (route === '/api/capture' && status === 200) emit({ event: 'capture.saved', requestId: request.id,
-      operationId: request.body?.operationId, pageId: result.pageId, outcome: result.replayed ? 'replayed' : 'succeeded',
+      operationId: body?.operationId, pageId: result.pageId, outcome: result.replayed ? 'replayed' : 'succeeded',
       content: { selectedText: payload?.mainKey } });
     if (route.startsWith('/health') && status === 503) emit({ event: 'readiness.failed', outcome: 'failed', severity: 'error' });
   });
 
-  fastify.setErrorHandler((error, request, reply) => {
+  fastify.setErrorHandler((/** @type {FastifyError} */ error, request, reply) => {
     const failure = requestFailure(error, request);
     if (failure.status === 500) {
       request.log.error({
@@ -229,7 +261,7 @@ export async function createApplication({ databaseUrl, outbox, accountId = 1, au
     return reply.code(404).send(apiFailure('This page is unavailable.', 'not_found'));
   });
 
-  fastify.register(async api => {
+  fastify.register(async (/** @type {ApiInstance} */ api) => {
     registerRoutes(api, { store, authentication, generation, audio });
     registerDiagnosticRoutes(api, diagnostics);
 

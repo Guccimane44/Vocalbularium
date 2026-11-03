@@ -1,3 +1,4 @@
+// @ts-check
 import { currentLanguage, t } from './i18n.ts';
 
 export async function diagnosticSettings({ send, root, navigate }) {

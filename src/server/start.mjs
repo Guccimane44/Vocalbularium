@@ -1,9 +1,16 @@
+// @ts-check
 import { resolve } from 'node:path';
 import { createApplication } from './app.mjs';
 import { loadConfig } from './config.mjs';
 import { Diagnostics } from './diagnostics.mjs';
+/** @typedef {Error & { code?: string }} StartError */
 
-let config, application, diagnostics;
+/** @type {ReturnType<typeof loadConfig> | undefined} */
+let config;
+/** @type {Awaited<ReturnType<typeof createApplication>> | undefined} */
+let application;
+/** @type {Diagnostics | undefined} */
+let diagnostics;
 try {
   config = loadConfig();
   diagnostics = new Diagnostics({ directory: resolve(config.directory, 'diagnostics'),
@@ -18,7 +25,8 @@ try {
     logger: { level: config.logLevel }
   });
   await application.start({ port: config.port, host: config.host });
-} catch (error) {
+} catch (caught) {
+  const error = /** @type {StartError} */ (caught);
   diagnostics ??= new Diagnostics({ directory: resolve('.data', 'diagnostics') });
   diagnostics.emit({ event: 'process.failed', severity: 'error', outcome: 'failed',
     phase: config ? 'startup' : 'configuration', errorType: error.name, errorCode: error.code });
@@ -33,7 +41,7 @@ if (application && !process.exitCode) {
   for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, () => {
     if (stopping) return;
     stopping = true;
-    void application.close().catch(async error => {
+    void application.close().catch(async (/** @type {StartError} */ error) => {
       diagnostics.emit({ event: 'process.failed', severity: 'error', outcome: 'failed',
         phase: 'shutdown', errorType: error.name, errorCode: error.code });
       await diagnostics.close(); process.exitCode = 1;

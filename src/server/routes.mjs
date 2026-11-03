@@ -123,7 +123,8 @@ export function registerRoutes(fastify, { store, authentication, generation, aud
   fastify.post('/api/logout', {
     schema: routeSchema('End the current account session', JsonObjectSchema)
   }, async request => {
-    await authentication.logout(request.authToken);
+    // Set for every signed-in request.
+    await authentication.logout(/** @type {string} */ (request.authToken));
     return { ok: true };
   });
 

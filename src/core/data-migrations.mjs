@@ -1,11 +1,16 @@
+// @ts-check
 import { blockText } from '@vocabularium/domain/pages';
 import { escapeMarkdown, highlightKey } from '@vocabularium/domain/markdown';
 import { parentContentOf, parentDocument, withKeyHighlighted } from '@vocabularium/domain/content';
 import { isParentType } from '@vocabularium/domain/parents';
+/** @import { ClientBase } from 'pg' */
+// A data migration: its recorded name, and the conversion it runs.
+/** @typedef {{ name: string, run(client: ClientBase): Promise<void> }} DataMigration */
 
 // One-time conversions of stored content (D10, amended a fourth time), run by
 // `npm run db:migrate` after the schema migrations, each in a transaction and
 // recorded in data_migrations so it runs only once.
+/** @type {DataMigration[]} */
 export const DATA_MIGRATIONS = [
   // The main key's emphasis, drawn by the card until 0.7.5, becomes a stored
   // highlight in every parent's core and facets, so the card reads as before.
@@ -28,13 +33,14 @@ export const DATA_MIGRATIONS = [
     for (const row of rows) {
       const document = JSON.parse(row.content);
       const mainKey = row.module_type === 'context' ? blockText(JSON.parse(row.key)) : '';
-      const blocks = document.blocks.map(block => block.type === 'paragraph' ? { ...block, text: highlightKey(escapeMarkdown(block.text), mainKey) } : block);
+      const blocks = document.blocks.map((/** @type {{ type: string, text: string }} */ block) => block.type === 'paragraph' ? { ...block, text: highlightKey(escapeMarkdown(block.text), mainKey) } : block);
       const content = JSON.stringify({ ...document, blocks });
       if (content !== row.content) await client.query('UPDATE components SET content = $1 WHERE page_id = $2 AND id = $3', [content, row.page_id, row.id]);
     }
   } }
 ];
 
+/** @param {ClientBase} client @param {readonly DataMigration[]} [migrations] */
 export async function runDataMigrations(client, migrations = DATA_MIGRATIONS) {
   for (const migration of migrations) {
     await client.query('BEGIN');

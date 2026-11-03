@@ -1,3 +1,4 @@
+// @ts-check
 import { safeEvent, timeRange, withinRange, MAX_EVENT_BYTES, EXTENSION_LOG_BUDGET } from '../shared/diagnostics.mjs';
 import { t } from './i18n.ts';
 

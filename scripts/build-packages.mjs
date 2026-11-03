@@ -1,3 +1,4 @@
+// @ts-check
 import { spawnSync } from 'node:child_process';
 import { cpSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { relative, resolve } from 'node:path';
@@ -8,13 +9,17 @@ import { relative, resolve } from 'node:path';
 // generated module, keyed by their folder in the catalog, which the domain
 // compiles with the rest.
 const catalog = resolve('packages/domain/src/catalog');
+/** @param {string} path */
 const folderOf = path => relative(catalog, resolve(catalog, path, '..')).split('\\').join('/');
 // English is `about.json`; each other interface language (D14) is
 // `about.<language>.json` beside it. Samples are `samples/<language>.json`.
 // A module's names in each other interface language, its own and its core's
 // and facets', are `names.<language>.json` beside its definition (D25).
+/** @type {Record<string, Record<string, unknown>>} */
 const about = {};
+/** @type {Record<string, Record<string, unknown>>} */
 const samples = {};
+/** @type {Record<string, Record<string, unknown>>} */
 const names = {};
 for (const path of readdirSync(catalog, { recursive: true }).map(String).sort()) {
   const page = /(?:^|[\\/])about(?:\.([A-Za-z-]+))?\.json$/.exec(path);

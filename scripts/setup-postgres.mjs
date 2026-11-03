@@ -1,3 +1,4 @@
+// @ts-check
 import pg from 'pg';
 import { randomBytes } from 'node:crypto';
 import { readFile, writeFile } from 'node:fs/promises';
@@ -10,9 +11,10 @@ const target = new URL(adminUrl);
 if (!['127.0.0.1', 'localhost', '[::1]'].includes(target.hostname) || target.pathname !== '/postgres') {
   throw new Error('Local setup requires the loopback postgres maintenance database.');
 }
+/** @type {Record<string, string | undefined> | undefined} */
 let saved;
 try { saved = parseEnv(await readFile('.env.postgres', 'utf8')); }
-catch (error) { if (error.code !== 'ENOENT') throw error; }
+catch (error) { if (/** @type {NodeJS.ErrnoException} */ (error).code !== 'ENOENT') throw error; }
 const roles = ['vocabularium_migrator', 'vocabularium_app', 'vocabularium_test'];
 const keys = ['MIGRATION_DATABASE_URL', 'DATABASE_URL', 'TEST_DATABASE_ADMIN_URL'];
 const urls = Object.fromEntries(keys.map((key, index) => {
