@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { once } from 'node:events';
 import { text, useModules, wordResult, staged } from '../helpers/pages.mjs';
-import { keyOf, modulesOf, componentArticle, cardTab, cardButton, launch, signIn, waitFor, pageReady, addFromWindow, drag } from './helpers.mjs';
+import { keyOf, modulesOf, componentArticle, cardTab, cardButton, launch, signIn, waitFor, pageReady, chooseDeletePage, addFromWindow, drag } from './helpers.mjs';
 
 test('manual page UI: per-card actions, drafts, leave choices, sorting, failed-save recovery, and deletion', { timeout: 45000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-manual-browser-'));
@@ -84,6 +84,19 @@ test('manual page UI: per-card actions, drafts, leave choices, sorting, failed-s
   assert.equal(await header.getByRole('img').count(), 0, 'no lock mark');
   await a.page.mouse.move(5, 5);
   assert.equal(await header.getByRole('button', { name: 'Edit Main key', exact: true }).evaluate(node => getComputedStyle(node).opacity), '1', 'Edit is visible without hovering');
+  // 0.16.1: the pencil is an icon right after the key; Delete page lives only in the ⋯ menu, which Escape closes back onto its button.
+  const pencil = header.getByRole('button', { name: 'Edit Main key', exact: true });
+  assert.equal((await pencil.innerText()).trim(), '', 'the pencil has no visible text');
+  const titleBox = await a.page.getByRole('heading', { level: 1 }).boundingBox(), pencilBox = await pencil.boundingBox();
+  assert.ok(pencilBox.x - (titleBox.x + titleBox.width) < 16, 'the pencil sits right after the key');
+  assert.equal(await header.getByRole('button', { name: 'Delete page', exact: true }).count(), 0, 'no Delete page button outside the menu');
+  const pageActions = header.getByRole('button', { name: 'Page actions', exact: true });
+  await pageActions.click();
+  assert.equal(await pageActions.getAttribute('aria-expanded'), 'true');
+  await waitFor(async () => await a.page.getByRole('menuitem', { name: 'Delete page', exact: true }).evaluate(node => node === document.activeElement), 'Delete page focused');
+  await a.page.keyboard.press('Escape');
+  assert.equal(await a.page.getByRole('menu').count(), 0, 'Escape closes the menu');
+  assert.equal(await pageActions.evaluate(node => node === document.activeElement), true, 'the focus back on ⋯');
   assert.equal(await a.page.getByRole('heading', { level: 1 }).textContent(), 'zebra');
   assert.equal(await a.page.locator('article.component[data-type="main-key"]').count(), 0, 'no separate main key card');
   for (const missing of ['Drag Main key', 'Delete Main key', 'Retry Main key', 'Generate Main key']) {
@@ -148,10 +161,10 @@ test('manual page UI: per-card actions, drafts, leave choices, sorting, failed-s
   await a.page.getByLabel('Sort pages', { exact: true }).selectOption('za');
   await waitFor(async () => JSON.stringify(await a.page.locator('.page-rows .entry').allTextContents()) === JSON.stringify(['alpha', 'aardvark']), 'descending page list loaded');
   await a.page.getByRole('link', { name: 'alpha', exact: true }).click();
-  await a.page.getByRole('button', { name: 'Delete page', exact: true }).click();
+  await chooseDeletePage(a.page);
   await a.page.getByRole('dialog').getByRole('button', { name: 'Cancel', exact: true }).click();
   assert.equal((await application.store.pages()).length, 2);
-  await a.page.getByRole('button', { name: 'Delete page', exact: true }).click();
+  await chooseDeletePage(a.page);
   await a.page.getByRole('dialog').getByRole('button', { name: 'Delete page', exact: true }).click();
   await a.page.getByRole('link', { name: 'aardvark', exact: true }).waitFor();
   assert.equal((await application.store.pages()).length, 1);
@@ -268,7 +281,7 @@ test('0.9.1: deleting a page goes straight to its deck, and an ejected action st
     new MutationObserver(() => window.headings.push(document.querySelector('#app h1')?.textContent))
       .observe(document.querySelector('#app'), { childList: true, subtree: true, characterData: true });
   });
-  await a.page.getByRole('button', { name: 'Delete page', exact: true }).click();
+  await chooseDeletePage(a.page);
   await a.page.getByRole('dialog').getByRole('button', { name: 'Delete page', exact: true }).click();
   await a.page.getByRole('heading', { name: 'My Deck' }).waitFor();
   await new Promise(resolve => setTimeout(resolve, 500));

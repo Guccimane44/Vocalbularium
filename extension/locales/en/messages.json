@@ -48,6 +48,7 @@
   "page.unavailable.body": "This page or deck has been deleted.",
   "page.unavailable.draft": "Your unsaved text is still here. Copy anything you want to keep before discarding it.",
   "page.delete": "Delete page",
+  "page.actions": "Page actions",
   "page.components": "Components",
   "page.lostComponent": "The component you were editing no longer exists. Its unsaved text is preserved below.",
   "save.waiting": "A change is waiting to be saved to your account.",

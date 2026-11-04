@@ -48,6 +48,7 @@
   "page.unavailable.body": "Cette page ou ce paquet a été supprimé.",
   "page.unavailable.draft": "Votre texte non enregistré est toujours là. Copiez ce que vous voulez garder avant de l’abandonner.",
   "page.delete": "Supprimer la page",
+  "page.actions": "Actions de la page",
   "page.components": "Composants",
   "page.lostComponent": "Le composant que vous modifiiez n’existe plus. Son texte non enregistré est conservé ci-dessous.",
   "save.waiting": "Une modification attend d’être enregistrée dans votre compte.",
