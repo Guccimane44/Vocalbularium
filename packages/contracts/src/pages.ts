@@ -59,7 +59,8 @@ export const ComponentStatusSchema = Type.Union([
 // Every module counts: main key, Context, Text, and content modules.
 export const MAX_MODULES = 12;
 
-// A parent module's facets (D08), in the parent's order. Other modules have none.
+// A parent module's facets (D08): in a deck, in the parent's order; on a page,
+// in the card's own order, which the user may change (D26). Other modules have none.
 export const FacetListSchema = Type.Array(Type.String({ minLength: 1 }), { maxItems: MAX_FACETS });
 export const ModuleInstanceSchema = Type.Object({
   id: Type.String({ minLength: 1 }),
@@ -187,6 +188,15 @@ export const FacetChangePayloadSchema = Type.Object({
   parent: Type.String({ minLength: 1 }),
   facet: Type.String({ minLength: 1 })
 }, OpenRequest);
+// A facet moves among its card's facets (D26); the position counts from 0.
+export const FacetMovePayloadSchema = Type.Object({
+  pageId: Type.String({ minLength: 1 }),
+  componentId: Type.String({ minLength: 1 }),
+  parent: Type.String({ minLength: 1 }),
+  facet: Type.String({ minLength: 1 }),
+  position: Type.Integer({ minimum: 0, maximum: MAX_FACETS - 1 })
+}, OpenRequest);
+export const FacetMoveRequestSchema = Type.Object({ operationId: OperationIdSchema, payload: FacetMovePayloadSchema }, OpenRequest);
 export const FacetAddRequestSchema = Type.Object({ operationId: OperationIdSchema, payload: FacetChangePayloadSchema }, OpenRequest);
 export const FacetDeleteRequestSchema = Type.Object({ operationId: OperationIdSchema, payload: FacetChangePayloadSchema }, OpenRequest);
 export const ModuleAddRequestSchema = Type.Object({ operationId: OperationIdSchema, payload: ModuleAddPayloadSchema }, OpenRequest);
@@ -230,6 +240,7 @@ export type ComponentDeleteRequest = Type.Static<typeof ComponentDeleteRequestSc
 export type ComponentMoveRequest = Type.Static<typeof ComponentMoveRequestSchema>;
 export type FacetChangePayload = Type.Static<typeof FacetChangePayloadSchema>;
 export type FacetAddRequest = Type.Static<typeof FacetAddRequestSchema>;
+export type FacetMoveRequest = Type.Static<typeof FacetMoveRequestSchema>;
 export type FacetDeleteRequest = Type.Static<typeof FacetDeleteRequestSchema>;
 export type BlockDocument = Type.Static<typeof BlockDocumentSchema>;
 export type ParagraphBlock = Type.Static<typeof ParagraphBlockSchema>;

@@ -57,6 +57,7 @@ type Props = {
   deleteComponent: (component: Component) => Promise<boolean | void>;
   addFacet: (componentId: string, parent: ParentType, facet: FacetType) => Promise<boolean>;
   deleteFacet: (componentId: string, parent: ParentType, facet: FacetType) => Promise<boolean>;
+  moveFacet: (componentId: string, parent: ParentType, facet: FacetType, position: number) => Promise<boolean>;
 };
 
 // `error` is shown inside the empty field, in place of its text, until the
@@ -165,7 +166,7 @@ function readFolded(key: string | null): ReadonlySet<string> {
 }
 
 export function PageView({ page, deck, draft, isNew, editing, busy, error, pendingSaves, retryPendingSave,
-  navigate, begin, persist, redraw, save, cancel, discardUnavailable, deletePage, generate, addModule, moveComponent, deleteComponent, addFacet, deleteFacet }: Props) {
+  navigate, begin, persist, redraw, save, cancel, discardUnavailable, deletePage, generate, addModule, moveComponent, deleteComponent, addFacet, deleteFacet, moveFacet }: Props) {
   const [working, setWorking] = useState(false);
   // The card whose tab has ejected its actions; one at a time.
   const [opened, setOpened] = useState<string | null>(null);
@@ -328,6 +329,8 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
       onDelete: removeFacet, onRetry: retryFacet, asking: askingFacet?.id === item.id ? askingFacet : null,
       // A facet edits on its own (D10, 0.7.5), an empty one too (amended a sixth time).
       onEdit: facet => { setAskingFacet(null); begin(item.id, facet); }, facets: item.facets ?? [],
+      // A facet's heading drags it among the card's facets (D26).
+      onMoveFacet: (facet, position) => moveFacet(item.id, item.moduleType as ParentType, facet, position),
       setAsking: (facet, kind = 'delete') => setAskingFacet(facet ? { id: item.id, facet, kind } : null),
       retrying: item.retryingFacet, failed: item.failedFacet,
       onRetryCard: () => void run(() => generate({ scope: 'component', componentId: item.id }, true)) } : undefined;

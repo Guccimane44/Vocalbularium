@@ -4,10 +4,10 @@
 import { randomUUID } from 'node:crypto';
 import { blockText, mainKeyOf, pageStatus, textBlocks } from '@vocabularium/domain/pages';
 import { addBlocked, copyModules, deleteBlocked, moveBlocked, moved, pageMeaning } from '@vocabularium/domain/page-modules';
-import { facetAddBlocked, facetDeleteBlocked, isParentType, withFacet } from '@vocabularium/domain/parents';
+import { facetAddBlocked, facetDeleteBlocked, facetMoveBlocked, isParentType, movedFacet } from '@vocabularium/domain/parents';
 import { blankContent, parentContentOf, parentDocument, validateParentContent, withFacetText } from '@vocabularium/domain/content';
 import { sortKey } from './sort-key.mjs';
-/** @import { BlockDocument, Component, ComponentDeleteRequest, ComponentMoveRequest, FacetChangePayload, ModuleAddRequest, ModuleInstance, Page, PageCreateRequest, PageSaveRequest, ParentHeader } from '@vocabularium/contracts' */
+/** @import { BlockDocument, Component, ComponentDeleteRequest, ComponentMoveRequest, FacetChangePayload, FacetMoveRequest, ModuleAddRequest, ModuleInstance, Page, PageCreateRequest, PageSaveRequest, ParentHeader } from '@vocabularium/contracts' */
 /** @import { FacetType, ParentType } from '@vocabularium/domain/parents' */
 /** @import { Attempt, AttemptModule, AttemptRow, ComponentRow, PageRow, PageSummaryRow } from './store-records.js' */
 import { fail, encodeCursor, decodeCursor, pageLimit, withFacets } from './store-common.mjs';
@@ -254,7 +254,8 @@ export class PageStore extends DeckStore {
       if (blocked) fail(component ? 'invalid' : 'deleted', blocked);
       // Not blocked: the facet belongs to the parent, the component's type.
       await this.database.run("UPDATE components SET facets = $1 WHERE page_id = $2 AND id = $3",
-        [withFacet(/** @type {ParentType} */ (parent), component.facets ?? [], /** @type {FacetType} */ (facet)), pageId, componentId]);
+        // A card's order is its own (D26): an added facet comes last.
+        [[...(component.facets ?? []), facet], pageId, componentId]);
       return { pageId, componentId };
     });
   }
@@ -281,6 +282,20 @@ export class PageStore extends DeckStore {
         const module = { ...attempt.module, facets: (attempt.module.facets ?? []).filter(item => item !== facet) };
         await this.database.run("UPDATE component_attempts SET module = $1 WHERE id = $2", [JSON.stringify(module), component.attemptId]);
       }
+      return { pageId, componentId };
+    });
+  }
+  // A facet moves among its card's facets (D26). Only the order changes: the
+  // content, the attempt and generation stay as they are.
+  /** @param {string} operationId @param {FacetMoveRequest['payload']} payload */
+  async moveFacet(operationId, { pageId, componentId, parent, facet, position }) {
+    return await this.command(operationId, 'move-facet', { pageId, componentId, parent, facet, position }, async () => {
+      const page = await this.page(pageId);
+      const component = page.components.find(item => item.id === componentId);
+      const blocked = facetMoveBlocked(component && { id: component.id, type: component.moduleType, facets: component.facets, status: component.status }, parent, facet, position);
+      if (blocked) fail(component ? 'invalid' : 'deleted', blocked);
+      await this.database.run("UPDATE components SET facets = $1 WHERE page_id = $2 AND id = $3",
+        [movedFacet(/** @type {Component} */ (component).facets ?? [], facet, position), pageId, componentId]);
       return { pageId, componentId };
     });
   }

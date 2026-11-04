@@ -47,6 +47,10 @@ export const SCREENS = [
       await card(page, 'german').locator('.card-actions button').nth(2).click();
       await page.locator('.facet-window').waitFor();
     } },
+  // A facet's grip focused on German's complete card, showing in the card's margin (D26).
+  // Focus rather than hover: the capture moves the pointer out of the view.
+  { name: 'facet-grip', phase: 'full', route: ({ pages }) => `page/${pages['german-complete']}`, ready: page => card(page, 'german').waitFor(),
+    show: page => card(page, 'german').locator('.facet').nth(1).locator('.facet-grip').focus() },
   { name: 'module-window', phase: 'full', route: ({ pages }) => `page/${pages.new}`, ready: page => page.locator('.module-window').waitFor(),
     show: page => page.locator('.module-window details').evaluateAll(groups => { for (const group of groups) group.open = true; }) },
   { name: 'family-page', phase: 'full', route: ({ pages }) => `page/${pages.new}`, ready: page => page.locator('.module-window').waitFor(),

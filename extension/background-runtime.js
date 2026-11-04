@@ -285,7 +285,7 @@ export function startBackground() {
       /** @type {Record<string, string>} */
       const paths = { 'save-deck': '/api/deck/save', 'delete-deck': '/api/deck/delete', 'create-page': '/api/page/create', 'save-page': '/api/page/save', 'delete-page': '/api/page/delete', 'generate-page': '/api/page/generate',
         'add-module': '/api/page/modules/add', 'delete-component': '/api/page/components/delete', 'move-component': '/api/page/components/move',
-        'add-facet': '/api/page/facets/add', 'delete-facet': '/api/page/facets/delete' };
+        'add-facet': '/api/page/facets/add', 'delete-facet': '/api/page/facets/delete', 'move-facet': '/api/page/facets/move' };
       if (paths[message.type]) {
         if (message.type === 'generate-page') {
           const { session } = /** @type {SessionItems} */ (await chrome.storage.session.get('session'));

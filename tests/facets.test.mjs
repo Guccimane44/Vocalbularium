@@ -51,7 +51,7 @@ test('a parent added to a page has its core only; facets join only a parent of t
   await store.addFacet('article', { pageId, componentId: german, parent: 'german', facet: 'article' });
   page = await store.page(pageId);
   assert.deepEqual(page.components.find(item => item.id === chinese).facets, ['pinyin'], 'a replay adds nothing');
-  assert.deepEqual(component(page, 'german').facets, ['article', 'examples'], 'in the parent’s order');
+  assert.deepEqual(component(page, 'german').facets, ['examples', 'article'], 'an added facet comes last on its card (D26)');
 
   await assert.rejects(store.addFacet('wrong-parent', { pageId, componentId: chinese, parent: 'german', facet: 'examples' }),
     { code: 'invalid', message: 'Examples can only be added to a German module.' });
@@ -114,7 +114,7 @@ test('a facet added after the last attempt, or deleted and added again, waits fo
   assert.deepEqual((await german()).waitingFacets, ['synonyms']);
   await store.deleteFacet('drop-examples', { pageId, componentId: first.id, parent: 'german', facet: 'examples' });
   await store.addFacet('examples-again', { pageId, componentId: first.id, parent: 'german', facet: 'examples' });
-  assert.deepEqual((await german()).waitingFacets, ['examples', 'synonyms']);
+  assert.deepEqual((await german()).waitingFacets, ['synonyms', 'examples'], 'in the card’s order (D26)');
   const { attemptIds } = await store.generate('retry', { pageId, target: { scope: 'component', componentId: first.id }, session,
     confirmation: store.confirmationDigest([await german()]) });
   assert.deepEqual((await store.attempt(attemptIds[0])).module.facets, ['article', 'examples', 'synonyms']);
@@ -178,4 +178,34 @@ test('a facet’s own Retry on a facet the card rules out starts no attempt (D17
   assert.equal(component(await store.page(pageId), 'german').status, 'completed', 'nothing started');
   const { attemptIds } = await store.generate('applies-retry', { pageId, target: { scope: 'facet', componentId: first.id, facet: 'examples' }, session });
   assert.equal(attemptIds.length, 1, 'a facet that applies still retries');
+});
+
+// D26: a card's facets move among themselves; only the order changes, and generation still asks in the parent's order.
+test('a facet moves among its card’s facets, once per operation, and generation keeps the parent’s order', async t => {
+  const store = await fixture(t);
+  await germanDeck(store, ['article', 'examples', 'synonyms']);
+  const { pageId } = await store.capture('capture', { session, mainKey: 'bank', snapshot: await store.snapshot() });
+  const first = component(await store.page(pageId), 'german');
+  await store.stage(first.attemptId, staged(wordResult(['Ufer'], { examples: [{ sentence: 'Bank.', translation: 'Ufer.' }] })));
+  await store.publish('publish', { attemptId: first.attemptId, session });
+  const before = component(await store.page(pageId), 'german').content;
+  const move = { pageId, componentId: first.id, parent: 'german', facet: 'synonyms', position: 0 };
+  assert.equal((await store.moveFacet('move-synonyms', move)).componentId, first.id);
+  assert.deepEqual(component(await store.page(pageId), 'german').facets, ['synonyms', 'article', 'examples']);
+  await store.moveFacet('move-article', { ...move, facet: 'article', position: 2 });
+  assert.deepEqual(component(await store.page(pageId), 'german').facets, ['synonyms', 'examples', 'article']);
+  await store.moveFacet('move-examples', { ...move, facet: 'examples', position: 0 });
+  // A replay returns its first result and moves nothing again; its ID cannot carry another move.
+  await store.moveFacet('move-synonyms', move);
+  assert.deepEqual(component(await store.page(pageId), 'german').facets, ['examples', 'synonyms', 'article'], 'a replay moves nothing');
+  await assert.rejects(store.moveFacet('move-synonyms', { ...move, position: 2 }), { code: 'operation_reused' });
+  assert.deepEqual(component(await store.page(pageId), 'german').content, before, 'the content is unchanged');
+  await assert.rejects(store.moveFacet('gone', { ...move, facet: 'antonyms' }), { code: 'invalid', message: 'This facet is no longer there.' });
+  await assert.rejects(store.moveFacet('far', { ...move, position: 3 }), { code: 'invalid', message: 'Choose a position among the card’s facets.' });
+  await assert.rejects(store.moveFacet('missing', { ...move, componentId: 'nope' }), { code: 'deleted', message: 'This module no longer exists.' });
+  // The card's Retry asks for the facets in the parent's order.
+  const { attemptIds } = await store.generate('retry', { pageId, target: { scope: 'component', componentId: first.id }, session,
+    confirmation: store.confirmationDigest([component(await store.page(pageId), 'german')]) });
+  assert.deepEqual((await store.attempt(attemptIds[0])).module.facets, ['article', 'examples', 'synonyms']);
+  assert.deepEqual(component(await store.page(pageId), 'german').facets, ['examples', 'synonyms', 'article'], 'Retry keeps the card’s order');
 });

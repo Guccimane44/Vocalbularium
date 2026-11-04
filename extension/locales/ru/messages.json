@@ -10,6 +10,7 @@
   "action.editNamed": "Изменить: {name}",
   "action.retryNamed": "Повторить: {name}",
   "action.deleteNamed": "Удалить: {name}",
+  "action.moveNamed": "Переместить {name}",
   "action.deleteAsk": "Удалить: {name}?",
   "action.retryAsk": "Повторить: {name}?",
   "action.confirmDelete": "Да, удалить «{name}»",

@@ -11,7 +11,7 @@ import { headingOf } from '@vocabularium/domain/render';
 import type { EntryHeading } from '@vocabularium/domain/render';
 import { editsAsSource, fromEditorDoc, hasText, toEditorDoc } from '@vocabularium/domain/markdown';
 import type { EditorNode } from '@vocabularium/domain/markdown';
-import { facetsOf } from '@vocabularium/domain/parents';
+import { inOrder } from '@vocabularium/domain/parents';
 import { isSpokenFacet } from '@vocabularium/domain/spoken';
 import type { FacetType, ParentType } from '@vocabularium/domain/parents';
 import type { FieldDraft } from '../types/editor-drafts.js';
@@ -233,7 +233,7 @@ export function LiveEditor({ parent, title, fields, opened, locked, persist, red
   return <div className="entry-content live-editor" role="group" aria-label={t('action.editNamed', { name: title })}>
     <PartEditor className="live-core" value={fields.core} editable={!locked} label={partLabel} reading={header?.kind === 'sentence'}
       onChange={markdown => { fields.core = markdown; changed(); }} head={toolbar => topLine(opened ? headingOf(parent, opened) : null, toolbar)} />
-    {facetsOf(parent).filter(facet => fields.facets[facet] !== undefined).map((facet: FacetType) =>
+    {inOrder(parent, Object.keys(fields.facets)).map((facet: FacetType) =>
       <PartEditor key={facet} className="facet" data-facet={facet} data-unfilled={!hasText(fields.facets[facet]) || undefined}
         // A spoken facet's lines are shown, not edited: they must match their audio (D24).
         value={fields.facets[facet] ?? ''} editable={!locked && !isSpokenFacet(parent, facet)} label={t('editor.part', { part: facetName(parent, facet), card: title })}

@@ -101,19 +101,19 @@ test('parents and facets: core only on add, the facet window on the parent, its 
   await a.page.locator('.page-header').click();
   await facets.waitFor({ state: 'detached' });
 
-  // Ticked again on German, Examples joins in the parent's order and waits for Retry.
+  // Ticked again on German, Examples joins last, as the card's order is its own (D26), and waits for Retry.
   facets = await facetWindow(a.page, 'German');
   await tick(facets, 'Examples').click();
   await waitFor(async () => (await german())[0].facets.includes('examples'), 'Examples added back');
-  assert.deepEqual((await german())[0].facets, ['article', 'examples', 'synonyms', 'antonyms'], 'in the parent’s order');
+  assert.deepEqual((await german())[0].facets, ['article', 'synonyms', 'antonyms', 'examples'], 'last on its card (D26)');
   await a.page.keyboard.press('Escape');
   // A re-added facet waits in its slot: its heading only, dimmed, with no text (D10, amended a sixth time).
   await waitFor(async () => await card('German').locator('.facet-tag[data-facet="examples"][data-unfilled]').count() === 1, 'its bland tag');
   assert.notEqual(await card('German').locator('.facet[data-facet="examples"]').getAttribute('data-unfilled'), null, 'its heading, dimmed');
   assert.equal(await card('German').locator('.facet[data-facet="examples"] .facet-body').count(), 0, 'and no text');
   assert.deepEqual(await card('German').locator('.facet').evaluateAll(sections => sections.map(each => each.dataset.facet)),
-    ['article', 'examples', 'synonyms', 'antonyms']);
-  assert.deepEqual(await card('German').locator('.facet-tag .facet-tag-mark').allTextContents(), ['Ar', 'Ex', 'Sy', 'An']);
+    ['article', 'synonyms', 'antonyms', 'examples']);
+  assert.deepEqual(await card('German').locator('.facet-tag .facet-tag-mark').allTextContents(), ['Ar', 'Sy', 'An', 'Ex']);
   await a.page.screenshot({ path: 'artifacts/v0.7.0-facets-page.png', fullPage: true });
 
   // Two German parents each choose their own facets: ticked on German 2, Synonyms goes there alone
