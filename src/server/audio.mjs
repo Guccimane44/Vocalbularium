@@ -48,7 +48,9 @@ export class Audio {
   record(event, key, extra = {}) {
     // Whitelist fields: the spoken text and the audio never enter operational events.
     try {
-      this.emit({ event: 'audio.work', phase: event, ...(key ? { pageId: key.pageId, componentId: key.componentId, category: `${key.part}.${key.line}` } : {}),
+      this.emit({ event: 'audio.work', phase: event,
+        outcome: event === 'failed' || event === 'interrupted' ? 'failed' : event === 'rejected' ? 'rejected' : event === 'canceled' ? 'canceled' : ['ready', 'settled'].includes(event) ? 'succeeded' : 'started',
+        severity: event === 'failed' || event === 'interrupted' ? 'warn' : 'info', ...(key ? { pageId: key.pageId, componentId: key.componentId, category: `${key.part}.${key.line}` } : {}),
         active: this.tasks.size, queued: this.queue.length, ...extra });
     } catch { /* Diagnostics cannot fail a clip. */ }
   }
@@ -56,7 +58,7 @@ export class Audio {
   category(error, controller) {
     if (controller.signal.aborted || error?.name === 'AbortError') return 'canceled';
     if (error?.name === 'TimeoutError') return 'timeout';
-    if (['provider_unconfigured', 'provider_response', 'provider_invalid', 'provider_refused'].includes(error?.code)) return error.code;
+    if (['provider_unconfigured', 'provider_response', 'provider_invalid', 'provider_refused', 'provider_busy'].includes(error?.code)) return error.code;
     if (error?.name === 'TypeError') return 'provider_transport';
     return 'speech_failure';
   }
@@ -122,7 +124,7 @@ export class Audio {
       const entry = { controller, task: Promise.resolve() };
       entry.task = this.store.background(() => this.execute(key, controller)).finally(() => {
         if (this.tasks.get(id) === entry) this.tasks.delete(id);
-        this.record('settled', key, { durationMs: Math.round(performance.now() - started), outcome: controller.signal.aborted ? 'canceled' : 'finished' });
+        this.record('settled', key, { durationMs: Math.round(performance.now() - started), outcome: controller.signal.aborted ? 'canceled' : 'succeeded' });
         this.pump();
       });
       this.tasks.set(id, entry);

@@ -67,13 +67,37 @@ test('ElevenLabs maps every failure to the shared error codes', async () => {
   assert.equal(await failing(new Response(''), { apiKey: undefined }), 'provider_unconfigured');
   assert.equal(await failing(new Response(''), { voices: {} }), 'provider_unconfigured', 'no voice for the language');
   assert.equal(await failing(new Response('{"detail":{"status":"quota_exceeded"}}', { status: 401 })), 'provider_refused');
-  assert.equal(await failing(new Response('', { status: 429 })), 'provider_refused');
+  assert.equal(await failing(new Response('{"detail":{"status":"quota_exceeded"}}', { status: 429 })), 'provider_refused', 'out of quota');
+  assert.equal(await failing(new Response('{"detail":{"status":"too_many_concurrent_requests"}}', { status: 429, headers: { 'retry-after': '0.01' } })), 'provider_busy', 'still busy after its retries');
   assert.equal(await failing(new Response('', { status: 402 })), 'provider_refused');
   assert.equal(await failing(new Response('{"detail":"invalid key"}', { status: 401 })), 'provider_response');
   assert.equal(await failing(new Response('', { status: 500 })), 'provider_response');
   assert.equal(await failing(new Response('{"ok":true}', { status: 200, headers: { 'content-type': 'application/json' } })), 'provider_invalid');
   assert.equal(await failing(new Response(new Uint8Array(), { status: 200, headers: { 'content-type': 'audio/mpeg' } })), 'provider_invalid');
   assert.deepEqual(parseVoices('{"de":"a","default":"b"}'), { de: 'a', default: 'b' });
+});
+
+test('ElevenLabs asks again when it is busy, after the pause it names, and not when the quota is out', async () => {
+  const mp3 = () => new Response(new Uint8Array(16000), { status: 200, headers: { 'content-type': 'audio/mpeg' } });
+  const busy = () => new Response('{"detail":{"status":"too_many_concurrent_requests"}}', { status: 429, headers: { 'retry-after': '0.05' } });
+  let replies = [busy(), busy(), mp3()];
+  const { calls, fetchImpl } = stubFetch(() => replies.shift());
+  const provider = new ElevenLabsProvider({ apiKey: 'key', voices: { default: 'v' }, fetchImpl });
+  const events = [];
+  provider.diagnostic = event => events.push(event);
+  assert.equal((await provider.synthesize({ text: 'Bank', language: 'de' })).durationMs, 1000);
+  assert.equal(calls.length, 3, 'two busy replies, then the clip');
+  assert.deepEqual(events.filter(event => event.event === 'speech.response').map(event => [event.outcome, event.status, event.errorCode]),
+    [['failed', 429, 'provider_busy'], ['failed', 429, 'provider_busy'], ['succeeded', 200, undefined]]);
+  replies = [new Response('{"detail":{"status":"quota_exceeded"}}', { status: 429 })];
+  calls.length = 0;
+  await assert.rejects(provider.synthesize({ text: 'Bank', language: 'de' }), error => error.code === 'provider_refused');
+  assert.equal(calls.length, 1, 'a refusal is not asked again');
+  const controller = new AbortController();
+  replies = [new Response('', { status: 429, headers: { 'retry-after': '5' } })];
+  const waiting = provider.synthesize({ text: 'Bank', language: 'de' }, controller.signal);
+  setTimeout(() => controller.abort(), 20);
+  await assert.rejects(waiting, 'canceling the clip ends its pause');
   assert.throws(() => parseVoices('[1]'), /ELEVENLABS_VOICES/);
   assert.throws(() => parseVoices('{"de":""}'), /ELEVENLABS_VOICES/);
 });
