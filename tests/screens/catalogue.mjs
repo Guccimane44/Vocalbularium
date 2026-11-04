@@ -35,7 +35,7 @@ export const SCREENS = [
       await page.locator('.language-choice').first().waitFor();
     } },
   { name: 'deck', phase: 'full', route: ({ deckId }) => `deck/${deckId}`, ready: page => page.locator('.page-row').first().waitFor() },
-  { name: 'deck-empty', phase: 'full', route: ({ emptyDeckId }) => `deck/${emptyDeckId}`, ready: page => page.locator('#app h1').first().waitFor() },
+  { name: 'deck-empty', phase: 'full', route: ({ emptyDeckId }) => `deck/${emptyDeckId}`, ready: page => page.locator('#app .empty').first().waitFor() },
   { name: 'deck-settings', phase: 'full', route: ({ deckId }) => `configure/${deckId}`, ready: page => page.locator('.module-window').waitFor() },
   { name: 'deck-new', phase: 'full', route: () => 'configure/new', ready: page => page.locator('.module-window').waitFor() },
   ...pageScreens,
@@ -74,5 +74,14 @@ export const SCREENS = [
       await sheet(page).locator('.about-row').first().click();
       await sheet(page).locator('.about-applies').waitFor();
     } },
-  { name: 'diagnostics', phase: 'full', route: () => 'diagnostics', ready: page => page.locator('section h1').waitFor() }
+  // The status line's used sizes (the first and third figures in every language) are what the
+  // run logged so far, which differs from run to run: they are zeroed, the budgets kept.
+  { name: 'diagnostics', phase: 'full', route: () => 'diagnostics', ready: page => page.locator('section h1').waitFor(),
+    settle: async page => {
+      await page.waitForFunction(() => /\p{Nd}/u.test(document.querySelector('section p[role="status"]')?.textContent ?? ''));
+      await page.locator('section p[role="status"]').first().evaluate(node => {
+      let index = 0;
+        node.textContent = node.textContent.replace(/\p{Nd}+(?:[.,٫]\p{Nd}+)?/gu, figure => index++ % 2 === 0 ? figure.replace(/\p{Nd}/gu, digit => /[٠-٩]/.test(digit) ? '٠' : '0') : figure);
+      });
+    } }
 ];
