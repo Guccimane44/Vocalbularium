@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
-import { ordered } from '@vocabularium/domain/parents';
+import { inOrder } from '@vocabularium/domain/parents';
 import type { FacetType, ParentType } from '@vocabularium/domain/parents';
 import { t } from './i18n.ts';
 import { facetMark, facetName } from './catalog-text.ts';
@@ -89,7 +89,8 @@ export function FacetTags({ holderId, parent, facets, filled, layout, title, ret
   // The facet regenerating on its own, or whose own Retry failed (0.7.3).
   retrying?: string; failed?: string;
 }) {
-  const shown = ordered(parent, facets);
+  // In the card's own order (D26).
+  const shown = inOrder(parent, facets);
   const key = shown.join('|');
   // Tags popping away, each where it stood.
   const [leaving, setLeaving] = useState<ReadonlyArray<{ facet: FacetType; index: number }>>([]);

@@ -4,7 +4,7 @@ import Value from 'typebox/value';
 import { BlockDocumentSchema, DeckConfigurationSchema, FacetAddRequestSchema, PageSchema } from '@vocabularium/contracts';
 import {
   applicableFacets, facetAbbreviation, facetAddBlocked, facetDeleteBlocked, facetsOf, facetTargets, facetUnavailable, isParentType, ordered, parentsIn, PARENTS,
-  validateFacets, withFacet, facetsFor, ruledOut, DEFAULT_DECK_MODULES } from '@vocabularium/domain/parents';
+  validateFacets, withFacet, facetsFor, ruledOut, DEFAULT_DECK_MODULES, inOrder, movedFacet, facetMoveBlocked } from '@vocabularium/domain/parents';
 import { validateParentContent } from '@vocabularium/domain/content';
 import { copyModules, validateConfiguration } from '@vocabularium/domain/page-modules';
 import { textBlocks } from '@vocabularium/domain/pages';
@@ -153,4 +153,20 @@ test('a facet a card rules out names why: a sentence, another kind of word, outs
   assert.equal(ruledOut('mathematics', 'formula', { relevance: 'unrelated', key: 'x', explanation: ['y'] }), 'subject');
   assert.equal(ruledOut('mathematics', 'formula', { relevance: 'subject', hasFormula: 'no', key: 'x', explanation: ['y'] }), 'none');
   assert.equal(ruledOut('computer-science', 'code', { relevance: 'subject', hasCode: 'yes', key: 'x', explanation: ['y'] }), null);
+});
+
+// A card's own facet order (D26).
+test('a card keeps its facets in its own order; a move places one facet among them', () => {
+  assert.deepEqual(inOrder('german', ['examples', 'article', 'examples', 'pinyin', 'synonyms']), ['examples', 'article', 'synonyms'], 'its order, each once, only its facets');
+  assert.deepEqual(ordered('german', ['examples', 'article']), ['article', 'examples'], 'the parent’s order is unchanged');
+  assert.deepEqual(movedFacet(['article', 'examples', 'synonyms'], 'synonyms', 0), ['synonyms', 'article', 'examples']);
+  assert.deepEqual(movedFacet(['article', 'examples', 'synonyms'], 'article', 2), ['examples', 'synonyms', 'article']);
+  assert.deepEqual(movedFacet(['article', 'examples'], 'article', 0), ['article', 'examples'], 'in place');
+  const holder = { id: 'g', type: 'german', facets: ['article', 'examples'] };
+  assert.equal(facetMoveBlocked(holder, 'german', 'examples', 0), null);
+  assert.equal(facetMoveBlocked(undefined, 'german', 'examples', 0), 'This module no longer exists.');
+  assert.equal(facetMoveBlocked(holder, 'german', 'synonyms', 0), 'This facet is no longer there.');
+  assert.equal(facetMoveBlocked(holder, 'chinese', 'examples', 0), 'This facet is no longer there.');
+  assert.equal(facetMoveBlocked(holder, 'german', 'examples', 2), 'Choose a position among the card’s facets.');
+  assert.throws(() => validateFacets('german', ['examples', 'article']), /Facets follow the order of German/, 'a deck keeps the parent’s order');
 });

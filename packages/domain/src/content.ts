@@ -3,7 +3,7 @@ import type { CoreValue } from './catalog/define.js';
 import { contentModule, familyOf } from './catalog/index.js';
 import type { GeneratedParent } from './generated.js';
 import { hasText, highlightKey } from './markdown.js';
-import { facetsOf, isFacetOf, ordered, PARENTS } from './parents.js';
+import { inOrder, isFacetOf, ordered, PARENTS } from './parents.js';
 import type { FacetType, ParentType } from './parents.js';
 
 // A parent module's stored content (D09, amended): the core's top line, kept
@@ -121,7 +121,8 @@ export function blankContent(mainKey: string, parent?: ParentType): ParentConten
 // The editor's draft of stored content: its core and an entry for each facet
 // the component has, empty for a facet without content so it can be filled.
 export function draftOf(parent: ParentType, content: ParentContent, facets: readonly string[]): { core: string; facets: Record<string, string> } {
-  return { core: content.core, facets: Object.fromEntries(facetsOf(parent).filter(facet => facets.includes(facet))
+  // In the card's own order (D26).
+  return { core: content.core, facets: Object.fromEntries(inOrder(parent, facets)
     .map(facet => [facet, (content.facets as Record<string, string | undefined>)[facet] ?? ''])) };
 }
 // A save: the stored top line, with the draft's core and the instance's facets.

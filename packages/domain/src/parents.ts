@@ -48,6 +48,26 @@ export function ordered(parent: ParentType, facets: readonly string[]): FacetTyp
   return facetsOf(parent).filter(facet => facets.includes(facet));
 }
 
+// A card's facets in its own order (D26): the given list's facets of this
+// parent, each once, as the user arranged them. Generation, the samples and
+// deck settings keep the parent's order (`ordered`).
+export function inOrder(parent: ParentType, facets: readonly string[]): FacetType[] {
+  const seen = new Set<string>();
+  return facets.filter((facet): facet is FacetType => isFacetOf(parent, facet) && !seen.has(facet) && Boolean(seen.add(facet)));
+}
+// A card's facets with one moved to a position among them, counted from 0 (D26).
+export function movedFacet(facets: readonly string[], facet: string, position: number): string[] {
+  const rest = facets.filter(each => each !== facet);
+  return [...rest.slice(0, position), facet, ...rest.slice(position)];
+}
+// Why a facet cannot move to this position on this card, or null (D26).
+export function facetMoveBlocked(holder: FacetHolder | undefined, parent: string, facet: string, position: number): string | null {
+  if (!holder) return 'This module no longer exists.';
+  if (holder.type !== parent || !(holder.facets ?? []).includes(facet)) return 'This facet is no longer there.';
+  if (!Number.isInteger(position) || position < 0 || position >= (holder.facets ?? []).length) return 'Choose a position among the card’s facets.';
+  return null;
+}
+
 // The facets that contribute for this kind of key, in order; the core always
 // does. The samples use it; generation asks the core itself (`facetsFor`).
 export function applicableFacets(parent: ParentType, facets: readonly string[], inputType: InputType): FacetType[] {

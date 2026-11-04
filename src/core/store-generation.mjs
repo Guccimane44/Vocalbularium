@@ -4,7 +4,7 @@
 import { randomUUID } from 'node:crypto';
 import { blockText, mainKeyOf, noteDocument, textBlocks } from '@vocabularium/domain/pages';
 import { generationTargets } from '@vocabularium/domain/page-modules';
-import { isParentType } from '@vocabularium/domain/parents';
+import { isParentType, ordered } from '@vocabularium/domain/parents';
 import { ruledOutOf } from '@vocabularium/domain/render';
 import { hasFacetContent, isEmptyContent, parentContentOf, parentDocument, providerCore, validateParentContent } from '@vocabularium/domain/content';
 import { hasText } from '@vocabularium/domain/markdown';
@@ -92,12 +92,15 @@ export class GenerationStore extends PageStore {
       // A facet's own attempt generates that facet alone: afterwards the
       // content holds what it held before, and that facet. It keeps the
       // content meanwhile, and how to put the component back if it fails.
+      // An attempt asks for the facets in the parent's order whatever the card's
+      // own order (D26): the request, and so the prompt, never depend on it.
+      const asked = isParentType(moduleType) ? ordered(moduleType, facets ?? []) : facets;
       const module = facet
         // A facet's own Retry targets a parent component, which has its facets.
-        ? { id: moduleInstanceId, type: moduleType, facets: /** @type {string[]} */ (facets).filter(each => each === facet || !waitingFacets?.includes(each)),
+        ? { id: moduleInstanceId, type: moduleType, facets: /** @type {string[]} */ (asked).filter(each => each === facet || !waitingFacets?.includes(each)),
           retry: facet, prior: { status, waiting: Boolean(waitingFacets?.includes(facet)) } }
         // A card's Retry keeps the reading of the core it had, as saved (D19).
-        : { id: moduleInstanceId, type: moduleType, ...withFacets(moduleType, facets), ...previousOf(moduleType, content, mainKey) };
+        : { id: moduleInstanceId, type: moduleType, ...withFacets(moduleType, asked), ...previousOf(moduleType, content, mainKey) };
       await this.database.run(`INSERT INTO component_attempts
         (id, page_id, component_id, run_id, installation_id, session_id, epoch, module) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
       [attemptId, pageId, componentId, runId, session.installationId, session.sessionId, session.epoch, JSON.stringify(module)]);

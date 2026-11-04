@@ -3,7 +3,7 @@ import { StoreError } from '../core/store.mjs';
 import { isModuleType } from '@vocabularium/domain/page-modules';
 import { mainKeyOf } from '@vocabularium/domain/pages';
 import {
-  ApiFailureSchema, CapturePreparationRequestSchema, ComponentDeleteRequestSchema, ComponentMoveRequestSchema,
+  ApiFailureSchema, CapturePreparationRequestSchema, ComponentDeleteRequestSchema, ComponentMoveRequestSchema, FacetMoveRequestSchema,
   DeckConfigurationSaveRequestSchema, DeckDeleteRequestSchema, FacetAddRequestSchema, FacetDeleteRequestSchema, ModuleAddRequestSchema,
   DefaultDeckRequestSchema, JsonObjectSchema, LanguageRequestSchema, LoginRequestSchema, HealthResponseSchema, LoginResponseSchema,
   PageCaptureRequestSchema, PageCreateRequestSchema, PageDeleteRequestSchema, PageGenerateRequestSchema,
@@ -217,6 +217,11 @@ export function registerRoutes(fastify, { store, authentication, generation, aud
   fastify.post('/api/page/facets/delete', {
     schema: routeSchema('Delete a facet from a parent module on one page', FacetDeleteRequestSchema)
   }, async request => store.deleteFacet(request.body.operationId, request.body.payload));
+
+  // A facet moves among its card's facets (D26).
+  fastify.post('/api/page/facets/move', {
+    schema: routeSchema('Move a facet among the facets of its card', FacetMoveRequestSchema)
+  }, async request => store.moveFacet(request.body.operationId, request.body.payload));
 
   fastify.post('/api/page/components/move', {
     schema: routeSchema('Move a component on its page', ComponentMoveRequestSchema)

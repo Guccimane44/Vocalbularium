@@ -10,6 +10,7 @@
   "action.editNamed": "编辑{name}",
   "action.retryNamed": "重试{name}",
   "action.deleteNamed": "删除{name}",
+  "action.moveNamed": "移动{name}",
   "action.deleteAsk": "删除{name}？",
   "action.retryAsk": "重试{name}？",
   "action.confirmDelete": "确定删除{name}",

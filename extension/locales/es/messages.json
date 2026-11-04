@@ -10,6 +10,7 @@
   "action.editNamed": "Editar {name}",
   "action.retryNamed": "Reintentar {name}",
   "action.deleteNamed": "Eliminar {name}",
+  "action.moveNamed": "Mover {name}",
   "action.deleteAsk": "¿Eliminar {name}?",
   "action.retryAsk": "¿Reintentar {name}?",
   "action.confirmDelete": "Sí, eliminar {name}",

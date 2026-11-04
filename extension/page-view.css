@@ -597,6 +597,19 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
 .facet-tab-mark { display: inline-grid; place-items: center; min-width: 18px; height: 14px; padding: 0 3px; border-radius: 3px;
   background: var(--fam, var(--fam-notes)); color: var(--on-fam, var(--on-ink)); font: 700 9px/1 var(--font-text); letter-spacing: .02em; }
 .facet-title > :not(.facet-tab) { align-self: center; margin-block: -2px; }
+/* A facet's grip (D26) sits in the card's margin beside its tab, so nothing
+   moves when it shows: on hover or focus of the facet, always on touch. */
+.facet-title { position: relative; }
+.facet-title > .facet-grip { position: absolute; inset-inline-start: calc(-1 * var(--card-pad-x, 26px) + 2px); bottom: -1px; margin: 0;
+  display: grid; place-items: center; width: 24px; height: 24px; padding: 0; border: 0; border-radius: var(--radius-sm, 6px);
+  background: transparent; color: var(--ink-muted); cursor: grab; touch-action: none; opacity: 0; transition: opacity var(--dur-quick, 150ms) ease; }
+.facet:is(:hover, :focus-within, [data-dragging]) .facet-grip { opacity: 1; }
+.facet-grip:hover { background: var(--surface-hover); color: var(--ink); }
+.facet-grip:focus-visible { opacity: 1; outline: 2px solid var(--focus); outline-offset: -2px; }
+.facet[data-dragging] { position: relative; z-index: 3; background: var(--surface); box-shadow: var(--shadow-drag); cursor: grabbing; }
+.facet[data-dragging] .facet-grip { cursor: grabbing; }
+@media (hover: none) { .facet-grip { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .facet-grip { transition: none; } }
 /* While the facet generates on its own, the spark runs round its tab, in the
    family colour so it shows on the pale tint. */
 .facet-tab .spark { --spark-light: var(--fam, var(--fam-notes)); --spark-glow: color-mix(in srgb, var(--fam, var(--fam-notes)) 45%, transparent); }

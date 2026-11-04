@@ -10,6 +10,7 @@
   "action.editNamed": "تعديل {name}",
   "action.retryNamed": "إعادة توليد {name}",
   "action.deleteNamed": "حذف {name}",
+  "action.moveNamed": "نقل {name}",
   "action.deleteAsk": "حذف {name}؟",
   "action.retryAsk": "إعادة توليد {name}؟",
   "action.confirmDelete": "نعم، احذف {name}",
