@@ -130,7 +130,7 @@ Each content module has its own **golden set** under `tests/golden/`, run agains
 
 ## Adding to the catalog
 
-- **A module** is one folder under its family, with its definition, its page's text and names in every interface language, its samples, its facets and a golden set, registered with one import and one entry in `catalog/index.ts`. Its prompt snapshots are generated with `UPDATE_PROMPTS=1 node --test tests/prompts.test.mjs`. A Languages module is covered by the family's golden set (`tests/golden/parents.json`), and every test that walks a family finds it there ([D25](decisions/d25.md)).
+- **A module** is one folder under its family, with its definition, its page's text and names in every interface language, its samples, its facets and a golden set, registered with one import and one entry in `catalog/index.ts`. Its prompt snapshots are generated with `UPDATE_PROMPTS=1 node --test tests/prompts.test.mjs`. A Languages module is covered by the family's golden set (`tests/golden/parents.json`), and every test that walks a family finds it there ([D25](decisions/d25.md)). It also brings a `rubric.md` beside its `module.prompt.md` and its cards in the judge's calibration set (`tests/golden/calibration/`), and joins when `npm run gate -- <module>` passes.
 - **A facet** is one folder in its module, with its page's text, and an entry in the module's facet order.
 - **A family** is one folder with its definition, and its colour tokens in the design tokens, meeting the contrast tests in both themes.
 - **A provider** is one adapter of its kind, text or speech.

@@ -7,10 +7,10 @@ import { failure, Provider } from './provider.mjs';
 // schema, so the schema travels inside the instructions.
 export class OpenCodeProvider extends Provider {
   nativeSchema = false;
-  /** @param {{ apiKey?: string, model?: string, fetchImpl?: typeof fetch }} [options] */
-  constructor({ apiKey = process.env.OPENCODE_API_KEY, model = process.env.OPENCODE_MODEL ?? 'deepseek-v4.1-flash', fetchImpl = fetch } = {}) {
+  /** @param {{ apiKey?: string, model?: string, fetchImpl?: typeof fetch, timeout?: number }} [options] */
+  constructor({ apiKey = process.env.OPENCODE_API_KEY, model = process.env.OPENCODE_MODEL ?? 'deepseek-v4.1-flash', fetchImpl = fetch, timeout } = {}) {
     super();
-    this.apiKey = apiKey; this.model = model; this.fetch = fetchImpl;
+    this.apiKey = apiKey; this.model = model; this.fetch = fetchImpl; this.timeout = timeout;
   }
   /** @param {Request} request */
   prompts(request) {

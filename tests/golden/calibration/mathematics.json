@@ -1,0 +1,386 @@
+{
+ "note": "The judge's calibration set for mathematics (0.16.0): recorded outputs from 2026-10-28T14-28-36-895Z-en-mathematics.json that passed review, expected to pass, and copies of them with one seeded fault each, expected to fail. The judge counts only once it agrees on 90% and misses no expected fail.",
+ "module": "mathematics",
+ "cards": [
+  {
+   "id": "recorded-1",
+   "key": "eigenvalue",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-10-28T14-28-36-895Z-en-mathematics.json.",
+   "card": {
+    "core": {
+     "relevance": "subject",
+     "hasFormula": "yes",
+     "key": "eigenvalue",
+     "explanation": [
+      "An eigenvalue of a square matrix is a scalar for which some non-zero vector is only stretched or flipped by the matrix, not turned to a different direction. It gives the factor by which the matrix scales that vector. For example, if a matrix doubles a particular vector, then 2 is an eigenvalue."
+     ]
+    },
+    "facets": {
+     "formula": {
+      "latex": "A\\mathbf{v} = \\lambda \\mathbf{v}",
+      "symbols": [
+       {
+        "symbol": "A",
+        "meaning": "a square matrix"
+       },
+       {
+        "symbol": "\\mathbf{v}",
+        "meaning": "a non-zero vector on which the matrix acts; an eigenvector"
+       },
+       {
+        "symbol": "\\lambda",
+        "meaning": "the scalar eigenvalue, the factor by which that vector is scaled"
+       }
+      ]
+     }
+    }
+   }
+  },
+  {
+   "id": "recorded-2",
+   "key": "derivative",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-10-28T14-28-36-895Z-en-mathematics.json.",
+   "card": {
+    "core": {
+     "relevance": "subject",
+     "hasFormula": "yes",
+     "key": "derivative",
+     "explanation": [
+      "In mathematics, the derivative of a function measures how quickly its output changes as its input changes. At a point it is the slope of the tangent line to the graph, obtained as the limit of average rates over ever smaller intervals.",
+      "For example, the derivative of x² is 2x, so at x = 3 the slope is 6. Derivatives are central to calculus, describing velocity, growth and optimisation, and the definition uses a limit of a difference quotient."
+     ]
+    },
+    "facets": {
+     "formula": {
+      "latex": "f'(x) = \\lim_{h \\to 0} \\frac{f(x+h)-f(x)}{h}",
+      "symbols": [
+       {
+        "symbol": "f'",
+        "meaning": "the derivative of the function f"
+       },
+       {
+        "symbol": "x",
+        "meaning": "the input value at which the derivative is evaluated"
+       },
+       {
+        "symbol": "\\lim_{h \\to 0}",
+        "meaning": "the limit as the change in input tends to zero"
+       },
+       {
+        "symbol": "h",
+        "meaning": "a small change in the input"
+       }
+      ]
+     }
+    }
+   }
+  },
+  {
+   "id": "recorded-3",
+   "key": "prime number",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-10-28T14-28-36-895Z-en-mathematics.json.",
+   "card": {
+    "core": {
+     "relevance": "subject",
+     "hasFormula": "no",
+     "key": "prime number",
+     "explanation": [
+      "A prime number is a whole number greater than 1 whose only positive divisors are 1 and itself. The first few are 2, 3, 5, 7 and 11; 4 is not prime because 2 divides it.",
+      "Every whole number greater than 1 is either prime or a product of primes, and that factorisation is unique apart from order. This makes primes the multiplicative building blocks of the whole numbers."
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "recorded-4",
+   "key": "vector space",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-10-28T14-28-36-895Z-en-mathematics.json.",
+   "card": {
+    "core": {
+     "relevance": "subject",
+     "hasFormula": "no",
+     "key": "vector space",
+     "explanation": [
+      "A vector space is a collection of objects called vectors that can be added together and multiplied by numbers from a field, a number system such as the real numbers, with the results staying in the collection.",
+      "The operations obey rules: addition is associative and commutative, has a zero vector and opposites, and scalar multiplication is compatible with addition and with multiplication of scalars. Coordinate pairs in the plane form the standard example, and the abstraction lets geometry and algebra share arguments across many settings."
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "recorded-5",
+   "key": "proof by induction",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-10-28T14-28-36-895Z-en-mathematics.json.",
+   "card": {
+    "core": {
+     "relevance": "subject",
+     "hasFormula": "no",
+     "key": "proof by induction",
+     "explanation": [
+      "A proof by induction is a way to prove a statement for every natural number by first proving it for the starting number and then showing that whenever it holds for one number it must hold for the next. It turns an infinite check into two finite tasks.",
+      "The starting case is the base case; the step from one number to the next is the induction step. Together they cover all natural numbers, like a row of dominoes falling: the first falls, and each fall knocks down the next.",
+      "For example, to prove 1 + 2 + ⋯ + n = n(n + 1)/2, check n = 1 and show that adding n + 1 to both sides gives the formula for n + 1."
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "recorded-6",
+   "key": "limit",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-10-28T14-28-36-895Z-en-mathematics.json.",
+   "card": {
+    "core": {
+     "relevance": "subject",
+     "hasFormula": "yes",
+     "key": "limit",
+     "explanation": [
+      "A limit describes the value that a quantity approaches as its input approaches a chosen point, even if the quantity is not defined at that point. It underpins continuity, differentiation and integration.",
+      "For a function f, saying its limit at a is L means f(x) can be made as close to L as desired by taking x sufficiently close to a, without requiring x to equal a. The epsilon-delta definition, using a small positive tolerance, makes this precise.",
+      "For example, x² gets arbitrarily close to 4 as x approaches 2, so the limit is 4. Near 0 from the positive side, 1/x grows without bound, so it has no finite two-sided limit there."
+     ]
+    },
+    "facets": {
+     "formula": {
+      "latex": "\\lim_{x \\to a} f(x)=L \\iff \\forall \\varepsilon>0\\ \\exists \\delta>0\\ \\forall x\\,(0<|x-a|<\\delta \\Rightarrow |f(x)-L|<\\varepsilon)",
+      "symbols": [
+       {
+        "symbol": "\\lim_{x \\to a} f(x)",
+        "meaning": "the limit of the function f as the input x approaches a"
+       },
+       {
+        "symbol": "L",
+        "meaning": "the value that the function is claimed to approach"
+       },
+       {
+        "symbol": "\\varepsilon",
+        "meaning": "a positive tolerance for how close the function values must be to L"
+       },
+       {
+        "symbol": "\\delta",
+        "meaning": "a positive distance from a that keeps the function values within that tolerance"
+       },
+       {
+        "symbol": "x",
+        "meaning": "the input variable of the function"
+       },
+       {
+        "symbol": "a",
+        "meaning": "the point that the input approaches"
+       },
+       {
+        "symbol": "f(x)",
+        "meaning": "the function value at the input x"
+       }
+      ]
+     }
+    }
+   }
+  },
+  {
+   "id": "recorded-7",
+   "key": "ring",
+   "context": "Every field is a ring in which each nonzero element has an inverse.",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-10-28T14-28-36-895Z-en-mathematics.json.",
+   "card": {
+    "core": {
+     "relevance": "subject",
+     "hasFormula": "no",
+     "key": "ring",
+     "explanation": [
+      "A ring is a set with two operations, usually called addition and multiplication, that follow rules like ordinary arithmetic: addition forms an abelian group, meaning it is commutative and reversible, multiplication is associative, and multiplication distributes over addition. The integers with ordinary addition and multiplication are the standard example.",
+      "Rings provide a common setting for whole numbers, polynomials and matrices, so theorems proved from the ring axioms apply to all of them. Conventions differ on whether multiplication must have an identity element."
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "recorded-8",
+   "key": "field",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-10-28T14-28-36-895Z-en-mathematics.json.",
+   "card": {
+    "core": {
+     "relevance": "subject",
+     "hasFormula": "no",
+     "key": "field",
+     "explanation": [
+      "A field is a set with two operations, addition and multiplication, that behave like the ordinary arithmetic of rational or real numbers: both are associative and commutative, multiplication distributes over addition, and every nonzero element has a multiplicative inverse.",
+      "The rational numbers, real numbers, complex numbers and finite fields, fields with finitely many elements, are examples. Fields provide the settings for linear algebra, polynomial equations and much of number theory."
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "wrong-formula",
+   "key": "eigenvalue",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: The defining formula is Av = λv, not λ + v.",
+   "card": {
+    "core": {
+     "relevance": "subject",
+     "hasFormula": "yes",
+     "key": "eigenvalue",
+     "explanation": [
+      "An eigenvalue of a square matrix is a scalar for which some non-zero vector is only stretched or flipped by the matrix, not turned to a different direction. It gives the factor by which the matrix scales that vector. For example, if a matrix doubles a particular vector, then 2 is an eigenvalue."
+     ]
+    },
+    "facets": {
+     "formula": {
+      "latex": "A\\mathbf{v} = \\lambda + \\mathbf{v}",
+      "symbols": [
+       {
+        "symbol": "A",
+        "meaning": "a square matrix"
+       },
+       {
+        "symbol": "\\mathbf{v}",
+        "meaning": "a non-zero vector on which the matrix acts; an eigenvector"
+       },
+       {
+        "symbol": "\\lambda",
+        "meaning": "the scalar eigenvalue, the factor by which that vector is scaled"
+       }
+      ]
+     }
+    }
+   }
+  },
+  {
+   "id": "factual-error",
+   "key": "derivative",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: The derivative is a rate of change, not an area, and the derivative of x² is 2x.",
+   "card": {
+    "core": {
+     "relevance": "subject",
+     "hasFormula": "yes",
+     "key": "derivative",
+     "explanation": [
+      "The derivative of a function gives its area under the curve; for example, the derivative of x² is x."
+     ]
+    },
+    "facets": {
+     "formula": {
+      "latex": "f'(x) = \\lim_{h \\to 0} \\frac{f(x+h)-f(x)}{h}",
+      "symbols": [
+       {
+        "symbol": "f'",
+        "meaning": "the derivative of the function f"
+       },
+       {
+        "symbol": "x",
+        "meaning": "the input value at which the derivative is evaluated"
+       },
+       {
+        "symbol": "\\lim_{h \\to 0}",
+        "meaning": "the limit as the change in input tends to zero"
+       },
+       {
+        "symbol": "h",
+        "meaning": "a small change in the input"
+       }
+      ]
+     }
+    }
+   }
+  },
+  {
+   "id": "factual-error-prime",
+   "key": "prime number",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: A prime has exactly two divisors; 9 and 25 are not prime.",
+   "card": {
+    "core": {
+     "relevance": "subject",
+     "hasFormula": "no",
+     "key": "prime number",
+     "explanation": [
+      "A prime number is a whole number with exactly three divisors, such as 9 or 25."
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "unrelated-as-subject",
+   "key": "retinol",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: Retinol is unrelated to mathematics, yet explained as a subject concept.",
+   "card": {
+    "core": {
+     "relevance": "subject",
+     "hasFormula": "no",
+     "key": "retinol",
+     "explanation": [
+      "Retinol is a theorem about the roots of polynomials of degree five."
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "wrong-language",
+   "key": "derivative",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: The interface language is English, but the explanation is German.",
+   "card": {
+    "core": {
+     "relevance": "subject",
+     "hasFormula": "yes",
+     "key": "derivative",
+     "explanation": [
+      "Die Ableitung einer Funktion beschreibt, wie schnell sich ihr Wert ändert."
+     ]
+    },
+    "facets": {
+     "formula": {
+      "latex": "f'(x) = \\lim_{h \\to 0} \\frac{f(x+h)-f(x)}{h}",
+      "symbols": [
+       {
+        "symbol": "f'",
+        "meaning": "the derivative of the function f"
+       },
+       {
+        "symbol": "x",
+        "meaning": "the input value at which the derivative is evaluated"
+       },
+       {
+        "symbol": "\\lim_{h \\to 0}",
+        "meaning": "the limit as the change in input tends to zero"
+       },
+       {
+        "symbol": "h",
+        "meaning": "a small change in the input"
+       }
+      ]
+     }
+    }
+   }
+  }
+ ]
+}

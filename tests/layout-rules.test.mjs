@@ -8,7 +8,11 @@ test('0.16.0: a computed colour comes from the tokens at any opacity, or from a 
   assert.deepEqual(parseColour('rgb(27, 36, 25)'), { r: 27, g: 36, b: 25, a: 1 });
   assert.deepEqual(parseColour('rgba(27, 36, 25, 0.18)'), { r: 27, g: 36, b: 25, a: 0.18 });
   assert.equal(parseColour('#f1db864d').a.toFixed(2), '0.30');
-  assert.equal(parseColour('oklch(0.5 0.1 120)'), null);
+  // Linux Chromium computes a colour-mix in OKLab to oklab() or oklch().
+  assert.equal(parseColour('oklab(0 0 0 / 0)').a, 0, 'a transparent OKLab shadow');
+  assert.deepEqual(Object.values(parseColour('oklab(1 0 0)')).slice(0, 3).map(Math.round), [255, 255, 255]);
+  assert.deepEqual(Object.values(parseColour('oklch(0.6279 0.2577 29.23)')).slice(0, 3).map(Math.round), [255, 0, 0], 'sRGB red');
+  assert.equal(parseColour('lab(50 0 0)'), null);
   // ink, and ink at 18%, in Sage; not in Moss night.
   assert.ok(fromTokens(parseColour('rgba(27, 36, 25, 0.18)'), light));
   assert.equal(fromTokens(parseColour('rgba(27, 36, 25, 0.18)'), dark), false);

@@ -14,6 +14,7 @@ import { randomUUID } from 'node:crypto';
 // What an adapter adds to Provider, and the server sets on it for diagnostics.
 /** @typedef {{
   model?: string | null,
+  timeout?: number,
   diagnostic?: (event: Record<string, unknown>) => void,
   prompts(request: Request): unknown,
   send(request: Request, prompts: unknown, signal: AbortSignal, sessionId: string, reply: Reply): Promise<void>
@@ -75,7 +76,7 @@ export class Provider {
     /** @type {Reply} */
     const reply = {};
     try {
-      await adapter.send(request, prompts, AbortSignal.any([AbortSignal.timeout(TIMEOUT), ...(signal ? [signal] : [])]), sessionId, reply);
+      await adapter.send(request, prompts, AbortSignal.any([AbortSignal.timeout(adapter.timeout ?? TIMEOUT), ...(signal ? [signal] : [])]), sessionId, reply);
       /** @type {Record<string, unknown>} */
       let value;
       try {

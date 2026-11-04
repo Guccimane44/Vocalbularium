@@ -11,7 +11,7 @@
     "node": ">=24.0.0 <25"
   },
   "scripts": {
-    "test": "node --env-file-if-exists=.env.postgres --test tests/diagnostics.test.mjs tests/logging.test.mjs tests/postgres.test.mjs tests/pages-schema.test.mjs tests/foundation.test.mjs tests/server.test.mjs tests/generation.test.mjs tests/generation-recovery.test.mjs tests/opencode.test.mjs tests/components.test.mjs tests/page-modules.test.mjs tests/render.test.mjs tests/content.test.mjs tests/parents.test.mjs tests/catalog.test.mjs tests/prompts.test.mjs tests/contrast.test.mjs tests/decks.test.mjs tests/pages.test.mjs tests/facets.test.mjs tests/extension.test.mjs tests/reads.test.mjs tests/upgrade.test.mjs tests/localisation.test.mjs tests/audio.test.mjs tests/content-checks.test.mjs tests/layout-rules.test.mjs",
+    "test": "node --env-file-if-exists=.env.postgres --test tests/diagnostics.test.mjs tests/logging.test.mjs tests/postgres.test.mjs tests/pages-schema.test.mjs tests/foundation.test.mjs tests/server.test.mjs tests/generation.test.mjs tests/generation-recovery.test.mjs tests/opencode.test.mjs tests/components.test.mjs tests/page-modules.test.mjs tests/render.test.mjs tests/content.test.mjs tests/parents.test.mjs tests/catalog.test.mjs tests/prompts.test.mjs tests/contrast.test.mjs tests/decks.test.mjs tests/pages.test.mjs tests/facets.test.mjs tests/extension.test.mjs tests/reads.test.mjs tests/upgrade.test.mjs tests/localisation.test.mjs tests/audio.test.mjs tests/content-checks.test.mjs tests/layout-rules.test.mjs tests/judge.test.mjs",
     "test:browser": "node --env-file-if-exists=.env.postgres --test --test-concurrency=1 tests/browser/*.test.mjs tests/logging.browser.test.mjs",
     "screens": "node --env-file-if-exists=.env.postgres tests/screens/run.mjs",
     "start": "npm run build:packages && node --env-file-if-exists=.env --env-file-if-exists=.env.postgres src/server/start.mjs",
@@ -24,6 +24,8 @@
     "typecheck": "npm run build:packages && tsc --noEmit -p tsconfig.json",
     "check": "node scripts/check.mjs && npm run typecheck",
     "smoke:generation": "npm run build:packages && node --env-file-if-exists=.env scripts/golden-set.mjs",
+    "judge": "npm run build:packages && node --env-file-if-exists=.env scripts/judge.mjs",
+    "gate": "npm run build:packages && node --env-file-if-exists=.env scripts/gate.mjs",
     "samples": "npm run build:packages && node --env-file-if-exists=.env scripts/samples.mjs",
     "smoke:reading": "npm run build:packages && node --env-file-if-exists=.env scripts/reading-check.mjs",
     "db:generate": "drizzle-kit generate",

@@ -1,6 +1,7 @@
 // Reading pinyin for the Chinese checks (0.16.0): Hanyu Pinyin with tone
 // marks, its syllables run together within a word ("wǒmen"), separated by a
-// space, a hyphen or an apostrophe ("hé'àn"). A syllable is an initial and a
+// space, a hyphen or an apostrophe ("hé'àn"), and punctuation, such as the
+// ellipsis of a frame ("zài……lǐmiàn"). A syllable is an initial and a
 // final the standard spelling allows; neutral-tone syllables carry no mark.
 
 const TONED: Readonly<Record<string, string>> = Object.fromEntries([
@@ -30,7 +31,7 @@ export function readPinyin(pinyin: string): PinyinReading {
   if (/[1-5]/.test(pinyin)) return { error: 'tone numbers instead of tone marks' };
   const syllables: string[] = [];
   const marks: number[] = [];
-  for (const word of pinyin.normalize('NFC').toLowerCase().split(/[\s\-'’‘·,.;:!?，。、；：！？“”"()（）]+/u).filter(Boolean)) {
+  for (const word of pinyin.normalize('NFC').toLowerCase().split(/[\s\-'’‘·,.;:!?，。、；：！？“”"()（）…—–]+/u).filter(Boolean)) {
     const plain = [...word].map(char => TONED[char] ?? char).join('').replace(/v/g, 'ü');
     const marked = [...word].map(char => (TONED[char] ? 1 : 0));
     if (/[^a-zü]/.test(plain)) return { error: `"${word}" has letters pinyin does not use` };

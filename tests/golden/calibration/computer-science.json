@@ -1,0 +1,269 @@
+{
+ "note": "The judge's calibration set for computer-science (0.16.0): recorded outputs from 2026-10-28T14-26-34-981Z-en-computer-science.json that passed review, expected to pass, and copies of them with one seeded fault each, expected to fail. The judge counts only once it agrees on 90% and misses no expected fail.",
+ "module": "computer-science",
+ "cards": [
+  {
+   "id": "recorded-1",
+   "key": "Frontend",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-10-28T14-26-34-981Z-en-computer-science.json.",
+   "card": {
+    "core": {
+     "relevance": "subject",
+     "hasCode": "no",
+     "key": "Frontend",
+     "explanation": [
+      "In computing, the frontend is the part of a system that the user sees and works with directly: the screens, forms, buttons and the code that runs them in a browser or app. It sends requests to the backend, the part that stores data and does the main processing.",
+      "A shopping site shows this split: the frontend draws the product page and handles clicks, while the backend checks stock and records the order. Frontend work therefore centres on layout, interaction and how quickly a page responds."
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "recorded-2",
+   "key": "recursion",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-10-28T14-26-34-981Z-en-computer-science.json.",
+   "card": {
+    "core": {
+     "relevance": "subject",
+     "hasCode": "yes",
+     "key": "recursion",
+     "explanation": [
+      "Recursion is a way of defining or solving something in terms of smaller instances of itself; in programming, a function calls itself on a simpler input until it reaches a base case, a stopping condition that needs no further call.",
+      "Each call keeps its own state, and the calls unwind as results return. A factorial, n! = n × (n − 1)! with 0! = 1, or walking a tree by recursing into child nodes, shows the pattern."
+     ]
+    },
+    "facets": {
+     "code": {
+      "language": "python",
+      "code": "def factorial(n):\n    if n == 0:\n        return 1\n    return n * factorial(n - 1)\n\nprint(factorial(5))  # 120"
+     }
+    }
+   }
+  },
+  {
+   "id": "recorded-3",
+   "key": "API",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-10-28T14-26-34-981Z-en-computer-science.json.",
+   "card": {
+    "core": {
+     "relevance": "subject",
+     "hasCode": "no",
+     "key": "API",
+     "explanation": [
+      "An API, short for application programming interface, is a set of rules and operations through which one program asks another for services without knowing its internal workings. A library may expose functions that read a file or send a network request; the API fixes their names, inputs and outputs."
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "recorded-4",
+   "key": "garbage collection",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-10-28T14-26-34-981Z-en-computer-science.json.",
+   "card": {
+    "core": {
+     "relevance": "subject",
+     "hasCode": "no",
+     "key": "garbage collection",
+     "explanation": [
+      "Garbage collection is automatic memory management in which a runtime finds objects that a program can no longer reach and reclaims their storage for reuse.",
+      "It frees programmers from releasing each block by hand and helps prevent leaks, where unused memory stays reserved, and use-after-free errors. A collector typically starts from roots such as global variables and active call frames, marks reachable objects, then reclaims the rest."
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "recorded-5",
+   "key": "race condition",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-10-28T14-26-34-981Z-en-computer-science.json.",
+   "card": {
+    "core": {
+     "relevance": "subject",
+     "hasCode": "yes",
+     "key": "race condition",
+     "explanation": [
+      "A race condition is a concurrency fault in which two or more threads or processes access shared data at the same time and the result depends on the order in which they run. That order is not controlled, so a program can fail unpredictably.",
+      "A common example is two threads incrementing the same counter: both read the old value before either writes the new one, so one increment is lost. Correct code prevents this with a lock or other synchronisation, which makes the read and write one indivisible operation."
+     ]
+    },
+    "facets": {
+     "code": {
+      "language": "python",
+      "code": "import threading\ncounter = 0\n\ndef increment():\n    global counter\n    for _ in range(100000):\n        value = counter   # both threads may read the same value\n        counter = value + 1\n\nthreads = [threading.Thread(target=increment) for _ in range(2)]\nfor t in threads: t.start()\nfor t in threads: t.join()\nprint(counter)  # may be less than 200000"
+     }
+    }
+   }
+  },
+  {
+   "id": "recorded-6",
+   "key": "Big O notation",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-10-28T14-26-34-981Z-en-computer-science.json.",
+   "card": {
+    "core": {
+     "relevance": "subject",
+     "hasCode": "no",
+     "key": "Big O notation",
+     "explanation": [
+      "Big O notation describes an upper bound on how a function grows as its input n becomes large. In computer science it classifies algorithms by running time or memory use, ignoring constant factors and smaller terms: O(n²) means cost grows no faster than a multiple of n².",
+      "Formally, f(n) is O(g(n)) when |f(n)| ≤ C·g(n) for some constant C and all sufficiently large n. For example, an algorithm that compares every pair of n items does about n² comparisons, so its time is O(n²)."
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "recorded-7",
+   "key": "kernel",
+   "context": "The kernel schedules every process on the machine.",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-10-28T14-26-34-981Z-en-computer-science.json.",
+   "card": {
+    "core": {
+     "relevance": "subject",
+     "hasCode": "no",
+     "key": "kernel",
+     "explanation": [
+      "A kernel is the central part of an operating system that stays in memory and controls access to the processor, memory and devices. It runs with privileged rights, so ordinary programs must ask it to perform restricted operations through system calls.",
+      "A kernel decides which process runs next, isolates programs from one another, and handles interrupts, which are signals from hardware that need immediate attention. In a monolithic kernel these services share one address space; in a microkernel some run as separate user-level servers."
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "recorded-8",
+   "key": "bug",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-10-28T14-26-34-981Z-en-computer-science.json.",
+   "card": {
+    "core": {
+     "relevance": "subject",
+     "hasCode": "no",
+     "key": "bug",
+     "explanation": [
+      "A bug is a fault in a program or system that makes it produce a wrong result, crash or behave in an unintended way. It can come from a mistaken instruction, a wrong assumption about input, or a mismatch between parts of the software.",
+      "An off-by-one error in a loop that runs once too often is a common small bug. Finding and fixing bugs is called debugging; testing, code review and careful reasoning about a program's states help expose them."
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "unrelated-as-subject",
+   "key": "retinol",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: Retinol is a form of vitamin A, unrelated to computer science, yet explained as a subject concept.",
+   "card": {
+    "core": {
+     "relevance": "subject",
+     "hasCode": "no",
+     "key": "retinol",
+     "explanation": [
+      "Retinol is a caching strategy in which a server keeps recently used results in memory so that repeated requests return faster."
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "factual-error",
+   "key": "recursion",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: A base case is not optional; without one the recursion does not stop.",
+   "card": {
+    "core": {
+     "relevance": "subject",
+     "hasCode": "yes",
+     "key": "recursion",
+     "explanation": [
+      "Recursion is when a function calls itself; a base case is optional, because the computer stops the calls on its own once the answer is found."
+     ]
+    },
+    "facets": {
+     "code": {
+      "language": "python",
+      "code": "def factorial(n):\n    if n == 0:\n        return 1\n    return n * factorial(n - 1)\n\nprint(factorial(5))  # 120"
+     }
+    }
+   }
+  },
+  {
+   "id": "factual-error-api",
+   "key": "API",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: An API is an interface, not a database.",
+   "card": {
+    "core": {
+     "relevance": "subject",
+     "hasCode": "no",
+     "key": "API",
+     "explanation": [
+      "An API is a kind of database that stores the data of a program in tables."
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "code-not-the-concept",
+   "key": "recursion",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: The example is a loop, not recursion, though its comment says recursion.",
+   "card": {
+    "core": {
+     "relevance": "subject",
+     "hasCode": "yes",
+     "key": "recursion",
+     "explanation": [
+      "Recursion is a way of defining or solving something in terms of smaller instances of itself; in programming, a function calls itself on a simpler input until it reaches a base case, a stopping condition that needs no further call.",
+      "Each call keeps its own state, and the calls unwind as results return. A factorial, n! = n × (n − 1)! with 0! = 1, or walking a tree by recursing into child nodes, shows the pattern."
+     ]
+    },
+    "facets": {
+     "code": {
+      "language": "python",
+      "code": "# Recursion\ntotal = 1\nfor i in range(1, 6):\n    total *= i\nprint(total)"
+     }
+    }
+   }
+  },
+  {
+   "id": "off-subject",
+   "key": "Frontend",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: Explains an everyday meaning instead of the computer science one.",
+   "card": {
+    "core": {
+     "relevance": "subject",
+     "hasCode": "no",
+     "key": "Frontend",
+     "explanation": [
+      "A frontend is the front side of a building that faces the street, often with the main entrance and windows."
+     ]
+    },
+    "facets": {}
+   }
+  }
+ ]
+}
