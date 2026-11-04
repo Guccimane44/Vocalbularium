@@ -69,7 +69,7 @@ test('a new page copies the deck modules under its own instance IDs', () => {
 test('adding respects the limit, a single Context, and never adds a main key', () => {
   assert.equal(addBlocked(instances('main-key'), 'text'), null);
   assert.equal(addBlocked(instances('main-key'), 'context'), null);
-  assert.match(addBlocked(instances('main-key', 'context'), 'context'), /already a Context/);
+  assert.match(addBlocked(instances('main-key', 'context'), 'context'), /Only one Context module per page/);
   assert.match(addBlocked(instances('main-key'), 'main-key'), /cannot be added/);
   assert.match(addBlocked(instances('main-key'), 'selected'), /cannot be added/);
   assert.match(addBlocked(instances('main-key', ...Array(11).fill('text')), 'text'), /At most 12/);

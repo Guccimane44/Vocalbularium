@@ -44,7 +44,7 @@ test('deck UI: draft previews, all modules, the module limit, removal without co
   assert.equal(await a.page.locator('.window-facet').count(), 0, 'and no facet is listed');
   assert.equal(await a.page.locator('.window-module[data-type="context"]').getAttribute('aria-disabled'), 'true', 'one Context per deck');
   assert.equal(await a.page.locator('.window-module[data-type="context"] .window-add').isDisabled(), true, 'a blocked module cannot be added');
-  await a.page.getByText('There is already a Context.').waitFor();
+  await a.page.getByText('Only one Context module per page.').waitFor();
   // Deck settings have no Preview (0.13.2; a dialog from 0.6.3, beside the list before).
   assert.equal(await a.page.getByRole('button', { name: 'Preview', exact: true }).count(), 0, 'no Preview button');
   assert.equal(await a.page.locator('.sample-page, .preview-dialog').count(), 0, 'and no preview');

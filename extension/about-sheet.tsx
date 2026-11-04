@@ -43,6 +43,9 @@ const familyOfModule = (module: string) => (isModuleType(module) ? CATALOG[modul
 const familyModules = (family: ModuleFamily) => WINDOW_MODULES.filter(type => CATALOG[type].family === family);
 const familiesWithModules = () => [...new Set(WINDOW_MODULES.map(type => CATALOG[type].family as ModuleFamily))];
 const isLanguages = (module: string) => familyOfModule(module) === 'translation';
+// An Expertise module explains a term, so its pages show the word sample alone,
+// without a Word or Sentence choice (0.16.1).
+const isWordOnly = (module: string) => familyOfModule(module) === 'expertise';
 const nameOf = (target: AboutTarget) => target.kind === 'family' ? familyLabel(target.family)
   : target.kind === 'module' ? moduleLabel(target.module) : facetName(target.module, target.facet);
 const familyOfTarget = (target: AboutTarget) => target.kind === 'family' ? target.family : familyOfModule(target.module);
@@ -223,7 +226,7 @@ function ModulePage({ module, go }: { module: string; go: (next: AboutTarget) =>
     </dl>}
     {coreOnly && <section className="about-section" aria-labelledby="about-looks">
       <h3 id="about-looks">{t(isLanguages(module) ? 'about.howItLooks' : 'about.seeOnCard')}</h3>
-      <SampleControls sample={sample} chooseLanguage={isLanguages(module)} />
+      {!isWordOnly(module) && <SampleControls sample={sample} chooseLanguage={isLanguages(module)} />}
       {isLanguages(module) && <p className={`about-key${sample.inputType === 'sentence' ? ' sentence' : ''}`} dir="auto" lang={sample.language}>{key}</p>}
       <SampleCard module={module} rendered={coreOnly} mainKey={key}><FacetHint /></SampleCard>
     </section>}
@@ -279,7 +282,7 @@ function FacetPage({ module, facet, go }: { module: ParentType; facet: FacetType
   const [which, setWhich] = useState(0);
   const roleLabel = (role?: string) => role === 'noun' ? t('about.noun') : role === 'adjective' ? t('about.adjective') : t('about.word');
   const tabs: SampleTab[] = [...(words.length > 1 ? words.map((each, index) => ({ id: `word-${index}`, label: roleLabel(each.role) })) : [{ id: 'word-0', label: t('about.word') }]),
-    { id: 'sentence', label: t('about.sentence') }];
+    ...(isWordOnly(module) ? [] : [{ id: 'sentence', label: t('about.sentence') }])];
   const current = sample.inputType === 'sentence' ? 'sentence' : `word-${Math.min(which, Math.max(words.length - 1, 0))}`;
   const choose = (id: string) => {
     if (id === 'sentence') { sample.setInputType('sentence'); return; }
@@ -301,7 +304,7 @@ function FacetPage({ module, facet, go }: { module: ParentType; facet: FacetType
     </dl>}
     <section className="about-section" aria-labelledby="about-samples">
       <h3 id="about-samples">{t('about.samples')}</h3>
-      <SampleControls sample={sample} chooseLanguage={isLanguages(module)} tabs={tabs} current={current} choose={choose} label={t('about.samples')} />
+      {(tabs.length > 1 || isLanguages(module)) && <SampleControls sample={sample} chooseLanguage={isLanguages(module)} tabs={tabs} current={current} choose={choose} label={t('about.samples')} />}
       <p className={`about-key${sample.inputType === 'sentence' ? ' sentence' : ''}`} dir="auto" lang={sample.language}>{key}</p>
       {card && blocks ? <>
         <article className={`component preview about-card about-where fam-${family}`} data-type={module}>

@@ -135,6 +135,11 @@ test('0.13.0: family, module and facet pages in one sheet, from the module windo
   assert.equal(await sheet.locator('.about-facts').count(), 0, 'no Reads, Writes, Best for (D21)');
   assert.equal(await sheet.locator('.about-row .about-pill').count(), 0, 'no applies-to on an Expertise facet (D21)');
   assert.match(await sheet.locator('.about-card').innerText(), /Hello, world/);
+  // An Expertise term is a word: no Word or Sentence choice, on its module page or its facets' (0.16.1).
+  assert.equal(await sheet.locator('.about-toggle').count(), 0, 'no Word or Sentence on an Expertise module page');
+  await sheet.locator('.about-row').first().click();
+  await sheet.locator('.about-samples, #about-samples').first().waitFor();
+  assert.equal(await sheet.locator('.about-toggle').count(), 0, 'no Word or Sentence on an Expertise facet page');
   await a.page.mouse.click(5, 5);
   await sheet.waitFor({ state: 'detached' });
   // Text and Context show no facts and no example (D21); Context, already on the page, is reached from the Notes page.
