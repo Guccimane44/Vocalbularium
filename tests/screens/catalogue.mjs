@@ -35,7 +35,7 @@ export const SCREENS = [
       await page.locator('.language-choice').first().waitFor();
     } },
   { name: 'deck', phase: 'full', route: ({ deckId }) => `deck/${deckId}`, ready: page => page.locator('.page-row').first().waitFor() },
-  { name: 'deck-empty', phase: 'full', route: ({ emptyDeckId }) => `deck/${emptyDeckId}`, ready: page => page.locator('#app h1').first().waitFor() },
+  { name: 'deck-empty', phase: 'full', route: ({ emptyDeckId }) => `deck/${emptyDeckId}`, ready: page => page.locator('#app .empty').first().waitFor() },
   { name: 'deck-settings', phase: 'full', route: ({ deckId }) => `configure/${deckId}`, ready: page => page.locator('.module-window').waitFor() },
   { name: 'deck-new', phase: 'full', route: () => 'configure/new', ready: page => page.locator('.module-window').waitFor() },
   ...pageScreens,
