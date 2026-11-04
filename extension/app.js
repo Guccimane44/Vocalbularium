@@ -81,7 +81,7 @@ function login() {
   currentPageDetail = undefined; currentDeckDetail = undefined;
   if (viewRoot) { viewRoot.unmount(); viewRoot = undefined; }
   const section = element('section', undefined, 'login');
-  section.append(element('p', t('login.eyebrow'), 'eyebrow'), element('h1', t('login.title')), element('p', t('login.body'), 'muted'));
+  section.append(element('h1', t('login.title')), element('p', t('login.body'), 'muted'));
   const form = element('form');
   for (const [id, text, type] of [['username', t('login.username'), 'text'], ['password', t('login.password'), 'password']]) {
     const label = element('label', text); label.htmlFor = id;

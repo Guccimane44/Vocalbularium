@@ -51,6 +51,9 @@ export const SCREENS = [
   // Focus rather than hover: the capture moves the pointer out of the view.
   { name: 'facet-grip', phase: 'full', route: ({ pages }) => `page/${pages['german-complete']}`, ready: page => card(page, 'german').waitFor(),
     show: page => card(page, 'german').locator('.facet').nth(1).locator('.facet-grip').focus() },
+  // The page's ⋯ menu open, holding Delete page (0.16.1).
+  { name: 'page-menu', phase: 'full', route: ({ pages }) => `page/${pages['german-complete']}`, ready: page => card(page, 'german').waitFor(),
+    show: async page => { await page.locator('.page-menu-trigger').click(); await page.locator('.page-menu-choices').waitFor(); } },
   { name: 'module-window', phase: 'full', route: ({ pages }) => `page/${pages.new}`, ready: page => page.locator('.module-window').waitFor(),
     show: page => page.locator('.module-window details').evaluateAll(groups => { for (const group of groups) group.open = true; }) },
   { name: 'family-page', phase: 'full', route: ({ pages }) => `page/${pages.new}`, ready: page => page.locator('.module-window').waitFor(),

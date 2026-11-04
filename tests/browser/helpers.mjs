@@ -121,7 +121,12 @@ export async function captureFrom(browser, text) {
   }, { text, origin: apiOrigin });
 }
 // A page view has loaded once its header action is there (D04: no page-level Edit page).
-export const pageReady = page => page.getByRole('button', { name: 'Delete page', exact: true }).waitFor();
+export const pageReady = page => page.getByRole('button', { name: 'Page actions', exact: true }).waitFor();
+// Delete page sits in the page's ⋯ menu (0.16.1).
+export async function chooseDeletePage(page) {
+  await page.getByRole('button', { name: 'Page actions', exact: true }).click();
+  await page.getByRole('menuitem', { name: 'Delete page', exact: true }).click();
+}
 export const windowModule = (page, type) => page.locator(`.window-module[data-type="${type}"] .window-module-body`);
 // Adds a module from the window by dragging it to the end of the list, the way a pointer user does.
 // Opens the module window's family group holding this module, when it is collapsed.
