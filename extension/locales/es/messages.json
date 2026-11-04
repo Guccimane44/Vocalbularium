@@ -48,6 +48,7 @@
   "page.unavailable.body": "Esta página o este mazo se ha eliminado.",
   "page.unavailable.draft": "Tu texto sin guardar sigue aquí. Copia lo que quieras conservar antes de descartarlo.",
   "page.delete": "Eliminar la página",
+  "page.actions": "Acciones de la página",
   "page.components": "Componentes",
   "page.lostComponent": "El componente que estabas editando ya no existe. Su texto sin guardar se conserva abajo.",
   "save.waiting": "Hay un cambio pendiente de guardar en tu cuenta.",

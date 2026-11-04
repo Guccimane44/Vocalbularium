@@ -48,6 +48,7 @@
   "page.unavailable.body": "此页面或卡组已被删除。",
   "page.unavailable.draft": "你未保存的文本还在这里。放弃之前，请复制想保留的内容。",
   "page.delete": "删除页面",
+  "page.actions": "页面操作",
   "page.components": "组件",
   "page.lostComponent": "你正在编辑的组件已不存在。它未保存的文本保留在下方。",
   "save.waiting": "有一项更改正在等待保存到你的账户。",

@@ -47,6 +47,9 @@ export const SCREENS = [
       await card(page, 'german').locator('.card-actions button').nth(2).click();
       await page.locator('.facet-window').waitFor();
     } },
+  // The page's ⋯ menu open, holding Delete page (0.16.1).
+  { name: 'page-menu', phase: 'full', route: ({ pages }) => `page/${pages['german-complete']}`, ready: page => card(page, 'german').waitFor(),
+    show: async page => { await page.locator('.page-menu-trigger').click(); await page.locator('.page-menu-choices').waitFor(); } },
   { name: 'module-window', phase: 'full', route: ({ pages }) => `page/${pages.new}`, ready: page => page.locator('.module-window').waitFor(),
     show: page => page.locator('.module-window details').evaluateAll(groups => { for (const group of groups) group.open = true; }) },
   { name: 'family-page', phase: 'full', route: ({ pages }) => `page/${pages.new}`, ready: page => page.locator('.module-window').waitFor(),

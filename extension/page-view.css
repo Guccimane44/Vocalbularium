@@ -18,6 +18,25 @@
 .show-all { border: 0; padding: 4px 0; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; background: none; }
 .show-all:hover { background: none; color: var(--ink-soft); }
 .title-actions { display: flex; align-items: center; gap: 6px; flex: none; margin-top: 14px; }
+/* 0.16.1: the pencil sits right after the key, centred on its first line; ⋯ ends the row. */
+.title-line { display: flex; align-items: flex-start; gap: 6px; }
+.title-text { flex: 0 1 auto; min-width: 0; }
+.icon-button { flex: none; display: grid; place-items: center; width: 36px; height: 36px; padding: 0; border: 0; border-radius: var(--radius-control); background: transparent; color: var(--ink-muted);
+  transition: background-color var(--dur-instant, 120ms) ease, color var(--dur-instant, 120ms) ease; }
+.icon-button:hover:not(:disabled), .icon-button[aria-expanded="true"] { background: var(--surface-hover); color: var(--ink); }
+.icon-button[aria-expanded="true"] { background: var(--surface-active); }
+.icon-button svg { width: 18px; height: 18px; }
+.title-edit { margin-top: 21px; }
+.title-line:has([data-tier="phrase"]) .title-edit { margin-top: 13px; }
+.title-line:has([data-tier="sentence"]) .title-edit { margin-top: 8px; }
+.title-line:has([data-tier="passage"]) .title-edit { margin-top: 4px; }
+.page-menu { position: relative; }
+.page-menu-trigger { width: 40px; height: 40px; color: var(--ink); }
+.page-menu-trigger svg { width: 20px; height: 20px; }
+.page-menu-choices { position: absolute; top: 46px; inset-inline-end: 0; z-index: 5; display: grid; min-width: 196px; padding: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-control); box-shadow: var(--shadow-lift, 0 18px 36px -20px rgba(27,36,25,.35)); }
+.page-menu-choices .menu-danger { display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 12px; border: 0; border-radius: var(--radius-md, 8px); font-size: 15px; font-weight: 500; text-align: start; color: var(--status-failed); }
+.page-menu-choices .menu-danger:hover, .page-menu-choices .menu-danger:focus-visible { background: var(--status-failed-bg); }
+.menu-danger svg { width: 17px; height: 17px; flex: none; }
 .page-header[data-editing] .page-title { padding-top: 6px; }
 
 /* Cards: an index tab on the top edge in the family colour, with its name. */
@@ -455,8 +474,7 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
   .main-key[data-tier="word"] { font-size: 48px; }
   .main-key[data-tier="phrase"] { font-size: 34px; }
   .main-key[data-tier="sentence"] { font-size: 24px; }
-  .page-header { flex-wrap: wrap; }
-  .title-actions { margin-top: 0; }
+  .title-edit { margin-top: 14px; }
   .component { padding: 24px 18px 0; --card-pad-x: 18px; --card-pad-bottom: 16px; }
 }
 @media (forced-colors: active) {

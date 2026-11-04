@@ -157,6 +157,37 @@ export function MainKeyTitle({ text }: { text: string }) {
   </>;
 }
 
+const PencilIcon = () => <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round"><path d="M4 20h4L19 9l-4-4L4 16v4z" /><path d="M14 6l4 4" /></svg>;
+const TrashIcon = () => <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" /></svg>;
+const DotsIcon = () => <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><circle cx="5" cy="12" r="1.9" /><circle cx="12" cy="12" r="1.9" /><circle cx="19" cy="12" r="1.9" /></svg>;
+
+// The page's ⋯ menu (0.16.1): Delete page, in the failed colour, opening the
+// existing confirmation. It closes on Escape, a click outside or the focus leaving it.
+function PageMenu({ disabled, onDelete }: { disabled: boolean; onDelete: () => void }) {
+  const [open, setOpen] = useState(false);
+  const root = useRef<HTMLDivElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const first = useRef<HTMLButtonElement>(null);
+  useEffect(() => { if (disabled) setOpen(false); }, [disabled]);
+  useEffect(() => {
+    if (!open) return;
+    first.current?.focus();
+    const outside = (event: PointerEvent) => { if (!root.current?.contains(event.target as Node)) setOpen(false); };
+    document.addEventListener('pointerdown', outside);
+    return () => document.removeEventListener('pointerdown', outside);
+  }, [open]);
+  const close = () => { setOpen(false); trigger.current?.focus(); };
+  return <div className="page-menu" ref={root}
+    onKeyDown={event => { if (event.key === 'Escape' && open) { event.preventDefault(); event.stopPropagation(); close(); } }}
+    onBlur={event => { if (open && !root.current?.contains(event.relatedTarget as Node | null)) setOpen(false); }}>
+    <button ref={trigger} className="icon-button page-menu-trigger" aria-label={t('page.actions')} title={t('page.actions')}
+      aria-haspopup="menu" aria-expanded={open} disabled={disabled} onClick={() => setOpen(!open)}><DotsIcon /></button>
+    {open && <div className="page-menu-choices" role="menu" aria-label={t('page.actions')}>
+      <button ref={first} role="menuitem" className="menu-danger" onClick={() => { close(); onDelete(); }}><TrashIcon />{t('page.delete')}</button>
+    </div>}
+  </div>;
+}
+
 function readFolded(key: string | null): ReadonlySet<string> {
   try {
     const saved: unknown = key ? JSON.parse(localStorage.getItem(key) ?? '[]') : [];
@@ -397,11 +428,15 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
     {notice}{back}
     <div className="page-header" data-component-id={key.id} data-type="main-key" data-editing={editingId === key.id || undefined}>
       <div className="page-title">
-        {editingId === key.id ? editor(key, t('module.mainKey')) : <MainKeyTitle text={mainKey} />}
+        {/* 0.16.1: a quiet pencil right after the key edits it, and a ⋯ menu at the row's end holds Delete page. */}
+        {editingId === key.id ? editor(key, t('module.mainKey')) : <div className="title-line">
+          <div className="title-text"><MainKeyTitle text={mainKey} /></div>
+          <button className="icon-button title-edit" aria-label={t('action.editNamed', { name: t('module.mainKey') })} title={t('action.editNamed', { name: t('module.mainKey') })}
+            disabled={Boolean(editingId)} onClick={() => begin(key.id)}><PencilIcon /></button>
+        </div>}
       </div>
       <div className="title-actions">
-        {editingId !== key.id && <button className="title-edit" aria-label={t('action.editNamed', { name: t('module.mainKey') })} disabled={Boolean(editingId)} onClick={() => begin(key.id)}>{t('common.edit')}</button>}
-        <button disabled={busy || Boolean(editingId)} onClick={() => void deletePage()}>{t('page.delete')}</button>
+        <PageMenu disabled={busy || Boolean(editingId)} onDelete={() => void deletePage()} />
       </div>
     </div>
     {/* The page's audio clips (D24), read again whenever a card changes. */}
