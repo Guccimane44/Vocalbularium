@@ -39,6 +39,8 @@ button:disabled { opacity: .5; cursor: default; }
 .notice { border: 1px solid var(--fam-roots); color: var(--fam-roots); background: var(--fam-roots-tint); border-radius: 10px; padding: 15px 18px; margin: 22px 0; }
 .error { color: var(--status-failed); }
 .empty { padding: 48px 24px; border: 1px dashed var(--line-control); border-radius: 12px; margin-top: 30px; text-align: center; }
+/* A deck's list while its first batch loads: blank, then a quiet line if it takes long (0.16.1). */
+.list-loading { min-height: 20px; margin: 30px 0 0; color: var(--ink-muted); font-size: 14px; }
 pre { font: inherit; white-space: pre-wrap; overflow-wrap: anywhere; }
 .section-title { margin-top: 50px; }
 .page-components { display: grid; gap: 16px; margin: 24px 0; }

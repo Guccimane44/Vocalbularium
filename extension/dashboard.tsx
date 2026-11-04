@@ -130,6 +130,9 @@ function DeckMenu({ deck, account, replacementDecks, replacementCursor, loadDeck
   </details>;
 }
 
+// How long a deck's first batch may take before the list says it is loading.
+const SLOW_LOAD_MS = 300;
+
 function storedLayout(deckId: string): Layout {
   try { const value = localStorage.getItem(`layout-${deckId}`); return isLayout(value) ? value : 'list'; }
   catch { return 'list'; }
@@ -141,13 +144,25 @@ function DeckList({ deck, account, navigate, configure, mutate, reportError, loa
   const [pages, setPages] = useState<DashboardPage[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  // Whether the deck's first batch has arrived, and whether it is taking long
+  // enough to say so (0.16.1). Until then the list's place stays blank: the
+  // dashed box of an empty deck, drawn for a moment on the way back from a
+  // page, read as an error. A reload (another order, an account refresh) keeps
+  // the list on screen until its new batch replaces it. A deck's list is keyed
+  // by the deck, so another deck starts afresh.
+  const [loaded, setLoaded] = useState(false);
+  const [slow, setSlow] = useState(false);
+  useEffect(() => {
+    if (loaded) return;
+    const timer = setTimeout(() => setSlow(true), SLOW_LOAD_MS);
+    return () => clearTimeout(timer);
+  }, [loaded]);
   useEffect(() => {
     let active = true;
-    setPages([]);
     setLoading(true);
     void loadPages(deck.id, order).then(batch => {
-      if (active) { setPages(batch.pages); setCursor(batch.nextCursor); setLoading(false); }
-    }).catch(error => { if (active) { setLoading(false); reportError(error); } });
+      if (active) { setPages(batch.pages); setCursor(batch.nextCursor); setLoading(false); setLoaded(true); }
+    }).catch(error => { if (active) { setLoading(false); setLoaded(true); reportError(error); } });
     return () => { active = false; };
   }, [deck.id, order, account.sequence, loadPages, reportError]);
   async function more() {
@@ -185,8 +200,9 @@ function DeckList({ deck, account, navigate, configure, mutate, reportError, loa
       </select>
       <LayoutSwitch layout={layout} choose={choose} />
     </div>
-    {!pages.length ? <div className="empty">{loading ? t('deck.loadingPages') : t('deck.noPages')}</div> :
-      <PageList pages={pages} layout={layout} order={order} navigate={navigate} />}
+    {pages.length ? <PageList pages={pages} layout={layout} order={order} navigate={navigate} />
+      : !loaded ? <p className="list-loading" role="status">{slow ? t('deck.loadingPages') : ''}</p>
+      : <div className="empty">{t('deck.noPages')}</div>}
     {cursor && <button className="load-more" disabled={loading} onClick={() => void more()}>{t('deck.morePages')}</button>}
   </div>;
 }
