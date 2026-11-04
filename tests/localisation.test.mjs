@@ -109,10 +109,10 @@ test('every api entry is a message the API or the domain still sends, matched wh
   }
   setLanguage('en');
   assert.equal(apiText('Choose a deck.'), 'Choose a deck.');
-  assert.equal(apiText('There is already a Context.'), 'There is already a Context.');
+  assert.equal(apiText('Only one Context module per page.'), 'Only one Context module per page.');
   assert.equal(apiText('Database ownership was lost; restart the API.'), 'Database ownership was lost; restart the API.', 'an operator message stays as it is');
   setPseudoLanguage('en-XA');
-  assert.equal(apiText('There is already a Context.'), '⟦Théré íš álréádý á Context.·····⟧', 'the module name comes from the API');
+  assert.equal(apiText('Only one Context module per page.'), '⟦Óñlý óñé Context módúlé pér págé.·······⟧', 'the module name comes from the API');
   assert.equal(apiText('Database ownership was lost; restart the API.'), 'Database ownership was lost; restart the API.');
   setPseudoLanguage(null);
 });

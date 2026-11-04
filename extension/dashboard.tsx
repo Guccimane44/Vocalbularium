@@ -264,7 +264,6 @@ function DeckGrid({ account, local, navigate, configure, mutate, reportError, lo
     <div className="page-head">
       <div>
         <h1>{t('dashboard.title')}</h1>
-        <p className="muted">{t('dashboard.subtitle')}</p>
       </div>
       <button className="primary" onClick={() => configure('new')}>{t('dashboard.addDeck')}</button>
     </div>

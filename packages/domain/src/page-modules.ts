@@ -53,7 +53,7 @@ export function addBlocked(modules: readonly { type: string }[], type: string): 
   const reason = addBlockedReason(modules, type);
   if (reason === 'unavailable') return 'This module cannot be added.';
   if (reason === 'limit') return `At most ${MAX_MODULES} modules, including the main key.`;
-  if (reason === 'single') return `There is already a ${CATALOG[type as ModuleType].label}.`;
+  if (reason === 'single') return `Only one ${CATALOG[type as ModuleType].label} module per page.`;
   return null;
 }
 
