@@ -22,6 +22,18 @@ import { failure } from './provider.mjs';
 /** @typedef {Error & { code?: string }} SpeechError */
 
 const TIMEOUT = 60000;
+// A busy reply is tried again, at most this often, after the pause the service
+// asks for or a growing one, never longer than the cap.
+const BUSY_RETRIES = 2;
+const BUSY_PAUSE = 1500;
+const BUSY_PAUSE_CAP = 10000;
+/** @param {number} ms @param {AbortSignal} [signal] */
+const pause = (ms, signal) => new Promise((resolve, reject) => {
+  if (signal?.aborted) return reject(signal.reason);
+  const timer = setTimeout(() => { signal?.removeEventListener('abort', stop); resolve(undefined); }, ms);
+  const stop = () => { clearTimeout(timer); reject(signal?.reason); };
+  signal?.addEventListener('abort', stop, { once: true });
+});
 
 export class SpeechProvider {
   // The voice for a clip: the one named for the part that speaks it, such as
@@ -33,9 +45,21 @@ export class SpeechProvider {
     return (part && voices?.[part]) || voices?.[language] || voices?.default || null;
   }
   // One clip of `text` spoken in `language` (an ISO 639-1 code): its bytes,
-  // MIME type and duration in milliseconds, with the model and voice that spoke it.
+  // MIME type and duration in milliseconds, with the model and voice that spoke
+  // it. A busy service is asked again after a pause.
   /** @param {{ text: string, language: string, part?: string }} request @param {AbortSignal} [signal] @param {string} [sessionId] */
-  async synthesize({ text, language, part }, signal, sessionId = randomUUID()) {
+  async synthesize(request, signal, sessionId = randomUUID()) {
+    for (let attempt = 0; ; attempt++) {
+      try { return await this.attempt(request, signal, sessionId); }
+      catch (caught) {
+        const error = /** @type {SpeechError & { retryAfterMs?: number }} */ (caught);
+        if (error.code !== 'provider_busy' || attempt >= BUSY_RETRIES) throw error;
+        await pause(Math.min(error.retryAfterMs ?? BUSY_PAUSE * 2 ** attempt, BUSY_PAUSE_CAP), signal);
+      }
+    }
+  }
+  /** @param {{ text: string, language: string, part?: string }} request @param {AbortSignal} [signal] @param {string} [sessionId] */
+  async attempt({ text, language, part }, signal, sessionId = randomUUID()) {
     const adapter = /** @type {SpeechProvider & SpeechAdapter} */ (/** @type {unknown} */ (this));
     const started = performance.now();
     const voice = this.voiceFor(language, part);

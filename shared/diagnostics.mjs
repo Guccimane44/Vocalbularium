@@ -4,15 +4,15 @@ export const DIAGNOSTIC_VERSION = 1;
 export const MAX_EVENT_BYTES = 4 * 1024 * 1024;
 export const EXTENSION_LOG_BUDGET = 16 * 1024 * 1024;
 const textFields = ['operationId', 'requestId', 'pageId', 'componentId', 'attemptId', 'installationId',
-  'sessionId', 'route', 'method', 'category', 'errorType', 'errorCode', 'model', 'phase', 'promptVersion'];
+  'sessionId', 'route', 'method', 'category', 'errorType', 'errorCode', 'model', 'phase', 'promptVersion', 'language', 'voice'];
 const numberFields = ['durationMs', 'queueMs', 'active', 'queued', 'reserved', 'admitted', 'rejected',
-  'status', 'sequence', 'maxTokens', 'dropped'];
+  'status', 'sequence', 'maxTokens', 'dropped', 'textLength', 'bytes'];
 const contentEvents = new Set(['capture.invoked', 'capture.saved', 'generation.input', 'generation.output', 'provider.request', 'provider.response']);
 export const eventNames = new Set(['process.started', 'process.stopping', 'process.failed', 'database.failed',
   'readiness.failed', 'api.completed', 'capture.invoked', 'capture.saved', 'generation.input', 'generation.output',
   'generation.work', 'generation.facet_mismatch', 'provider.request', 'provider.response', 'recovery.started', 'recovery.completed',
   'recovery.failed', 'worker.started', 'worker.failed', 'request.started', 'request.completed',
-  'request.failed', 'logging.gap']);
+  'request.failed', 'logging.gap', 'speech.request', 'speech.response', 'audio.work']);
 
 // An event as a caller or the extension sent it, untrusted until checked here.
 /** @typedef {Record<string, unknown>} RawEvent */

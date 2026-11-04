@@ -41,8 +41,10 @@ export function loadConfig(environment = process.env) {
   };
   const generationMaxActive = generationLimit('GENERATION_MAX_ACTIVE', 4);
   const generationMaxQueued = generationLimit('GENERATION_MAX_QUEUED', 16);
-  // Audio jobs (D24, K73): their own bounds beside the text attempts.
-  const audioMaxActive = generationLimit('AUDIO_MAX_ACTIVE', 4);
+  // Audio jobs (D24, K73): their own bounds beside the text attempts. At most
+  // two speech calls at once by default, within the lower ElevenLabs plans'
+  // limit on concurrent requests; raise it to the account's plan.
+  const audioMaxActive = generationLimit('AUDIO_MAX_ACTIVE', 2);
   const audioMaxQueued = generationLimit('AUDIO_MAX_QUEUED', 32);
   const diagnosticBudgetBytes = generationLimit('DIAGNOSTIC_BUDGET_BYTES', 256 * 1024 * 1024);
   const diagnosticContent = environment.DIAGNOSTIC_CONTENT ?? 'full';

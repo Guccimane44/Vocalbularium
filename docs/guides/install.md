@@ -30,7 +30,7 @@ Replace the files in the same permanent extension folder with the new package, t
 - **Cannot sign in:** check the server address in `package-info.json` and that the local API is running (`GET http://127.0.0.1:4318/health/ready`).
 - **No capture menu:** open Vocabularium and sign in; make sure the extension is enabled and some text is selected.
 - **Capture received, but generation failed:** the receipt confirms capture only. Check each component's outcome on the saved page. Generation needs the owner's OpenCode Go key on the server.
-- **A Pronunciation clip failed or never plays:** spoken parts need `ELEVENLABS_API_KEY` and `ELEVENLABS_VOICES` on the server (see `.env.example`); the text of the card appears without them. Use **Retry** on the clip after setting them and restarting the API.
+- **A Pronunciation clip failed or never plays:** spoken parts need `ELEVENLABS_API_KEY` and `ELEVENLABS_VOICES` on the server (see `.env.example`); the text of the card appears without them. Use **Retry** on the clip after setting them and restarting the API. When several clips of one card fail with *Too much audio at once*, the server sends more speech calls at a time than the ElevenLabs plan allows: set `AUDIO_MAX_ACTIVE` to the plan's concurrency limit (2 by default) and restart the API.
 - **Try saving again:** resubmits the pending save. **Retry** on a component or the whole page starts replacement generation after a warning.
 
 Collect [diagnostic logs](diagnostics.md) if needed. Report the package version, Chrome version and operating system, steps, and visible message in the relevant delivery issue. Do not include API keys.

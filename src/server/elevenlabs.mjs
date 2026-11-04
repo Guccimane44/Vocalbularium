@@ -10,7 +10,14 @@ export const OUTPUT_FORMAT = 'mp3_44100_128';
 // A reply that says the account's quota or plan does not allow the request.
 /** @param {number} status @param {string} body */
 function refused(status, body) {
-  return status === 402 || status === 429 || (status === 401 && /quota|limit|payment/i.test(body));
+  return status === 402 || (status === 429 && /quota/i.test(body)) || (status === 401 && /quota|limit|payment/i.test(body));
+}
+// A 429 that is not about quota says the service is busy: too many requests at
+// once for the plan, or the system itself; the same request may succeed later.
+/** @param {Response} response */
+function busy(response) {
+  const seconds = Number(response.headers.get('retry-after'));
+  return Object.assign(failure('provider_busy', 'The speech service is busy.'), Number.isFinite(seconds) && seconds > 0 ? { retryAfterMs: seconds * 1000 } : {});
 }
 
 /** @param {string | undefined} value */
@@ -44,6 +51,7 @@ export class ElevenLabsProvider extends SpeechProvider {
     if (!response.ok) {
       const body = await response.text().catch(() => '');
       if (refused(response.status, body)) throw failure('provider_refused', 'The speech service did not allow this request.');
+      if (response.status === 429) throw busy(response);
       throw failure('provider_response', 'The speech service could not complete this request.');
     }
     reply.mime = (response.headers.get('content-type') ?? '').split(';')[0].trim();

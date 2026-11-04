@@ -23,6 +23,11 @@ test('logs retain full content, exclude credentials and manual text, and support
   assert.equal(safeEvent(sample(), { mode: 'metadata' }).content, undefined);
   assert.equal(safeEvent(sample({ event: 'api.completed' })).content, undefined);
 });
+test('speech calls and audio jobs are logged with their status, never their text', () => {
+  const speech = safeEvent({ event: 'speech.response', outcome: 'failed', status: 429, errorCode: 'provider_busy', language: 'zh', voice: 'v', textLength: 2, text: '打算' });
+  assert.deepEqual([speech.status, speech.errorCode, speech.language, speech.textLength, speech.text], [429, 'provider_busy', 'zh', 2, undefined]);
+  assert.equal(safeEvent({ event: 'audio.work', phase: 'failed', outcome: 'failed', errorCode: 'provider_busy' }).phase, 'failed');
+});
 test('acknowledged events survive restart; redelivery does not duplicate them', async t => {
   const store = await fixture(t), event = sample();
   assert.deepEqual((await store.ingest([event])).accepted, [event.eventId]);
