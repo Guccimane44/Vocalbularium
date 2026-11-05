@@ -8,6 +8,9 @@ import { currentLanguage, t } from './i18n.ts';
 /** @param {{ send: (message: Record<string, unknown>) => Promise<unknown>, root: HTMLElement, navigate: (hash: string) => void }} options */
 export async function diagnosticSettings({ send, root, navigate }) {
   const section = document.createElement('section');
+  // Every view below Home leads back up (0.16.2).
+  const back = document.createElement('button'); back.type = 'button'; back.className = 'back';
+  back.textContent = t('page.back', { deck: t('nav.home') }); back.addEventListener('click', () => navigate(''));
   const title = document.createElement('h1'); title.textContent = t('account.diagnostics');
   const description = document.createElement('p');
   description.textContent = t('diagnostics.description');
@@ -67,7 +70,6 @@ export async function diagnosticSettings({ send, root, navigate }) {
     const choice = await dialog({ title: t('diagnostics.clearBuffer.title'), message: t('diagnostics.clearBuffer.message'), choices: [t('common.cancel'), t('diagnostics.clearBuffer.confirm')] });
     if (choice.choice === t('diagnostics.clearBuffer.confirm')) { await send({ type: 'diagnostics-local-cleanup', range: range() }); await refresh(); }
   });
-  make(t('diagnostics.back'), () => navigate(''));
-  form.append(buttons); section.append(title, description, status, form, notice); root.replaceChildren(section);
+  form.append(buttons); section.append(back, title, description, status, form, notice); root.replaceChildren(section);
   await refresh();
 }

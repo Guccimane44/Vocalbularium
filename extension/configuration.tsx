@@ -92,7 +92,8 @@ type Props = {
   draft: DeckEditorDraft;
   send: (message: Record<string, unknown>) => Promise<unknown>;
   onSaved: (next: unknown) => Promise<void>;
-  onCancel: () => void;
+  // Leaves the settings, discarding the draft, for `to` (Home when absent).
+  onCancel: (to?: string) => void;
   externalError?: string;
 };
 
@@ -112,6 +113,8 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
   }, [opened]);
   const refresh = () => redraw();
   const modules = draft.deck.modules;
+  // The deck's name as saved, for its title and back link while the draft renames it.
+  const [savedName] = useState(draft.deck.name);
   const busy = Boolean(draft.saving || draft.pending);
   // The main key stays first and cannot move or be removed; everything after it can.
   const [key, ...rest] = modules;
@@ -156,20 +159,27 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
     }
   }
 
+  const leave = async (to?: string) => {
+    if (draft.pending) await chrome.storage.local.remove('save-' + draft.pending.operationId);
+    onCancel(to);
+  };
   const actions = <div className="head-actions">
-    <button onClick={async () => {
-      if (draft.pending) await chrome.storage.local.remove('save-' + draft.pending.operationId);
-      onCancel();
-    }}>{t('common.cancel')}</button>
+    <button onClick={() => void leave()}>{t('common.cancel')}</button>
     <button className="primary" disabled={Boolean(draft.saving)} onClick={() => void saveDraft()}>
       {draft.pending ? t('common.trySavingAgain') : t('common.save')}
     </button>
   </div>;
+  // Back to the deck, or Home for a new one (0.16.2); it leaves as Cancel does.
+  const back = draft.deck.id
+    ? <button className="back" onClick={() => void leave(`deck/${draft.deck.id}`)}>{t('page.back', { deck: savedName })}</button>
+    : <button className="back" onClick={() => void leave()}>{t('page.back', { deck: t('nav.home') })}</button>;
   return <div className="deck-settings">
+    {back}
     <div className="page-head">
       <div>
         <p className="eyebrow">{t('deck.settings')}</p>
-        <h1>{draft.deck.id ? t('deck.settings.title') : t('deck.settings.newTitle')}</h1>
+        {/* The deck's name as the title, a new deck called so (0.16.2; until then a slogan). */}
+        <h1><bdi>{draft.deck.id ? savedName : t('deck.settings.newTitle')}</bdi></h1>
       </div>
       {actions}
     </div>
