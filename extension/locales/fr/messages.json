@@ -124,6 +124,8 @@
   "dashboard.title": "Vos paquets",
   "dashboard.addDeck": "Nouveau paquet",
   "deck.default": "Par défaut",
+  "deck.families": "Familles de modules : {families}",
+  "deck.isDefault": "Paquet par défaut",
   "dashboard.moreDecks": "Charger plus de paquets",
   "layout.list": "Liste",
   "layout.table": "Tableau",

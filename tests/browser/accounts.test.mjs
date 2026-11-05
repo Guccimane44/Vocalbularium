@@ -36,7 +36,6 @@ test('account extension: login, two installations, reopening, server failure, an
   await a.page.reload();
   await a.page.getByRole('heading', { name: 'Second deck', exact: true }).waitFor();
   await application.close();
-  await a.page.getByLabel('Options for Second deck').click();
   await a.page.locator('article').filter({ hasText: 'Second deck' }).getByRole('button', { name: 'Set as default', exact: true }).click();
   await a.page.getByRole('button', { name: 'Try saving again', exact: true }).waitFor();
   application = (await createTestApplication(t, { databaseKey })); await application.start();

@@ -124,6 +124,8 @@
   "dashboard.title": "Tus mazos",
   "dashboard.addDeck": "Mazo nuevo",
   "deck.default": "Predeterminado",
+  "deck.families": "Familias de módulos: {families}",
+  "deck.isDefault": "Mazo predeterminado",
   "dashboard.moreDecks": "Cargar más mazos",
   "layout.list": "Lista",
   "layout.table": "Tabla",

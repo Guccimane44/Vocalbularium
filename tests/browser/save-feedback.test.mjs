@@ -218,7 +218,6 @@ test('save feedback: worker loss exposes an interrupted save and replays its ori
   const original = (await application.store.snapshot()).id;
   const second = await application.store.createDeck('Second deck');
   a = await launch(join(directory, 'profile')); await signIn(a.page);
-  await a.page.getByLabel('Options for Second deck').click();
   await a.page.locator('article').filter({ hasText: 'Second deck' }).getByRole('button', { name: 'Set as default', exact: true }).click();
   await waitFor(() => release, 'server committed the save but acknowledgment is held');
   assert.equal((await application.store.account()).defaultDeckId, second.id);

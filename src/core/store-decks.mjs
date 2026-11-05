@@ -1,11 +1,15 @@
 // @ts-check
 // Decks: their configuration, the default deck's snapshot, and the deck list.
 import { randomUUID } from 'node:crypto';
-import { DECK_COLOURS, validateConfiguration } from '@vocabularium/domain/page-modules';
+import { CATALOG, DECK_COLOURS, FAMILIES, isModuleType, validateConfiguration } from '@vocabularium/domain/page-modules';
 /** @import { DeckConfiguration } from '@vocabularium/contracts' */
 /** @import { AccountRow, DeckModuleRow, DeckRow } from './store-records.js' */
 import { fail, encodeCursor, decodeCursor, pageLimit, withFacets } from './store-common.mjs';
 import { SessionStore } from './store-sessions.mjs';
+
+// The module families of a deck's module types, in the catalog's order; the main key has none.
+/** @param {readonly string[]} types */
+const familiesOf = types => FAMILIES.filter(family => types.some(type => isModuleType(type) && CATALOG[type].family === family));
 
 export class DeckStore extends SessionStore {
   /** @param {string} id */
@@ -32,15 +36,18 @@ export class DeckStore extends SessionStore {
       const sequence = await this.readSequence();
       const after = decodeCursor(cursor, 'decks', sequence);
       if (after && (!Number.isSafeInteger(after.key) || /** @type {number} */ (after.key) < 0)) fail('invalid', 'The list cursor is invalid.');
-      const rows = /** @type {(Pick<DeckRow, 'id' | 'name' | 'colour' | 'ordinal'> & { module_count: number, page_count: number })[]} */ (await this.database.all(`WITH bounded AS MATERIALIZED (
+      const rows = /** @type {(Pick<DeckRow, 'id' | 'name' | 'colour' | 'ordinal'> & { module_count: number, page_count: number, types: string[] })[]} */ (await this.database.all(`WITH bounded AS MATERIALIZED (
         SELECT id, name, colour, ordinal FROM decks WHERE ordinal > $1 ORDER BY ordinal LIMIT $2
       ) SELECT b.id, b.name, b.colour, b.ordinal,
         (SELECT COUNT(*) FROM deck_modules WHERE deck_id = b.id) AS module_count,
+        (SELECT COALESCE(array_agg(DISTINCT type), '{}') FROM deck_modules WHERE deck_id = b.id) AS types,
         (SELECT COUNT(*) FROM pages WHERE deck_id = b.id) AS page_count
         FROM bounded b ORDER BY b.ordinal`, [after?.key ?? 0, size + 1]));
       const visible = rows.slice(0, size);
       return {
-        decks: visible.map(row => ({ id: row.id, name: row.name, colour: row.colour, moduleCount: Number(row.module_count), pageCount: Number(row.page_count) })),
+        // The module families a deck's configuration uses, in the catalog's order (0.16.2): its card shows them.
+        decks: visible.map(row => ({ id: row.id, name: row.name, colour: row.colour, moduleCount: Number(row.module_count), pageCount: Number(row.page_count),
+          families: familiesOf(row.types ?? []) })),
         nextCursor: rows.length > size ? encodeCursor({ v: 1, kind: 'decks', sequence, key: /** @type {Pick<DeckRow, 'id' | 'ordinal'>} */ (visible.at(-1)).ordinal, id: /** @type {Pick<DeckRow, 'id' | 'ordinal'>} */ (visible.at(-1)).id }) : null,
         sequence
       };

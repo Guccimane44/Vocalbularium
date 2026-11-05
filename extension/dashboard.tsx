@@ -1,12 +1,14 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { dialog } from './dialog.ts';
 import { SORT_ORDERS } from './sorting.ts';
 import { deckColour } from './deck-colour.ts';
 import { mainKeyTier } from './main-key.ts';
 import { GeneratingStatus, isLayout, LayoutSwitch, MeaningLine, PageList, SavingStatus, useArrivals } from './page-list.tsx';
 import type { Layout, ListPage } from './page-list.tsx';
-import { currentLanguage, t } from './i18n.ts';
+import { currentLanguage, listFormat, t } from './i18n.ts';
+import { familyLabel } from './catalog-text.ts';
+import type { ModuleFamily } from '@vocabularium/domain/page-modules';
 import { ButtonIcon } from './button-icon.tsx';
 
 // A page summary: list rows show the main key, the first meaning and the
@@ -24,7 +26,8 @@ export type DashboardAccount = {
   sequence: number;
 };
 
-type DashboardDeck = { id: string; name: string; colour?: string | null; moduleCount: number; pageCount: number };
+// `families`: the module families its configuration uses, in the catalog's order (0.16.2).
+type DashboardDeck = { id: string; name: string; colour?: string | null; moduleCount: number; pageCount: number; families?: readonly string[] };
 type PageBatch = { pages: DashboardPage[]; nextCursor: string | null };
 type DeckBatch = { decks: DashboardDeck[]; nextCursor: string | null };
 
@@ -89,18 +92,20 @@ function PendingSaveNotices({ local, mutate, reportError }: Pick<DashboardProps,
   </div>)}</>;
 }
 
-function DeckMenu({ deck, account, replacementDecks, replacementCursor, loadDecks, configure, mutate, reportError }:
+// A deck's actions as symbols (0.16.2, the accepted canvas; until then a ⋯
+// menu): Set as default, a star filled on the default deck; Configure deck, a
+// gear; Delete deck, a trash that asks first. On a deck's own page, Add page
+// manually leads them as the one primary symbol. Each symbol is named, and
+// keeps its name as a tooltip.
+function DeckActions({ deck, account, replacementDecks, replacementCursor, loadDecks, configure, mutate, reportError, where, addPage }:
   Pick<DashboardProps, 'account' | 'loadDecks' | 'configure' | 'mutate' | 'reportError'> &
-  { deck: DashboardDeck; replacementDecks: DashboardDeck[]; replacementCursor: string | null }) {
-  const menu = useRef<HTMLDetailsElement>(null);
-  const summary = useRef<HTMLElement>(null);
-  const close = () => { if (menu.current) menu.current.open = false; summary.current?.focus(); };
-  const action = (run: () => Promise<void> | void) => async () => {
-    close();
+  { deck: DashboardDeck; replacementDecks: DashboardDeck[]; replacementCursor: string | null; where: 'card' | 'head'; addPage?: () => void }) {
+  const act = (run: () => Promise<void> | void) => async () => {
     try { await run(); } catch (error) { reportError(error); }
   };
-  const deleteDeck = action(async () => {
-    const replacements = deck.id === account.defaultDeckId ? replacementDecks.filter(item => item.id !== deck.id) : [];
+  const isDefault = deck.id === account.defaultDeckId;
+  const deleteDeck = act(async () => {
+    const replacements = isDefault ? replacementDecks.filter(item => item.id !== deck.id) : [];
     const decision = await dialog({
       title: t('deck.delete.title'),
       message: t(replacementDecks.length === 1 && !replacementCursor ? 'deck.delete.lastMessage' : 'deck.delete.message', { name: deck.name }),
@@ -117,18 +122,24 @@ function DeckMenu({ deck, account, replacementDecks, replacementCursor, loadDeck
     if (decision.choice !== t('deck.delete')) return;
     await mutate({ type: 'delete-deck', payload: { deckId: deck.id, replacementId: decision.value } });
   });
-  return <details className="deck-menu" ref={menu}
-    onKeyDown={event => {
-      if (event.key === 'Escape' && menu.current?.open) { event.preventDefault(); event.stopPropagation(); close(); }
-    }}
-    onBlur={event => { if (!menu.current?.contains(event.relatedTarget)) menu.current!.open = false; }}>
-    <summary ref={summary} aria-label={t('deck.optionsFor', { name: deck.name })} data-deck-options={deck.id}>•••</summary>
-    <div className="menu-choices">
-      <button disabled={deck.id === account.defaultDeckId} onClick={action(() => mutate({ type: 'set-default', deckId: deck.id }))}>{t('deck.setDefault')}</button>
-      <button onClick={action(() => configure(deck.id))}>{t('deck.configure')}</button>
-      <button onClick={deleteDeck}>{t('deck.delete')}</button>
-    </div>
-  </details>;
+  // The focus comes back to the symbol it left once the view redraws (`focusedMenu`).
+  const key = (kind: string) => `${deck.id}:${kind}`;
+  const symbols = <>
+    {isDefault
+      ? <span className="deck-star is-default" title={t('deck.isDefault')}><ButtonIcon name="star" />
+        {where === 'card' ? t('deck.default') : <span className="visually-hidden">{t('deck.isDefault')}</span>}</span>
+      : <button type="button" className="deck-symbol deck-star" aria-label={t('deck.setDefault')} title={t('deck.setDefault')} data-deck-options={key('default')}
+        onClick={act(() => mutate({ type: 'set-default', deckId: deck.id }))}><ButtonIcon name="star" /></button>}
+    <button type="button" className="deck-symbol deck-configure" aria-label={t('deck.configure')} title={t('deck.configure')} data-deck-options={key('configure')}
+      onClick={act(() => configure(deck.id))}><ButtonIcon name="gear" /></button>
+    <button type="button" className="deck-symbol deck-delete" aria-label={t('deck.delete')} title={t('deck.delete')} data-deck-options={key('delete')}
+      onClick={() => void deleteDeck()}><ButtonIcon name="trash" /></button>
+  </>;
+  return <div className={`deck-actions deck-actions-${where}`} role="group" aria-label={t('deck.optionsFor', { name: deck.name })}>
+    {where === 'head' ? <span className="deck-symbols">{symbols}</span> : symbols}
+    {addPage && <button type="button" className="primary deck-add-page" aria-label={t('deck.addPage')} title={t('deck.addPage')} data-deck-options={key('add-page')}
+      onClick={addPage}><ButtonIcon name="pagePlus" /></button>}
+  </div>;
 }
 
 // How long a deck's first batch may take before the list says it is loading.
@@ -192,8 +203,8 @@ function DeckList({ deck, account, navigate, configure, mutate, reportError, loa
         <p className="muted">{t('deck.pageCount', { count: deck.pageCount })}</p>
       </div>
       <div className="head-actions">
-        <DeckMenu deck={deck} account={account} replacementDecks={account.decks} replacementCursor={account.nextCursor ?? null} loadDecks={loadDecks} configure={configure} mutate={mutate} reportError={reportError} />
-        <button className="primary" onClick={() => navigate(`new-page/${deck.id}`)}>{t('deck.addPage')}</button>
+        <DeckActions where="head" deck={deck} account={account} replacementDecks={account.decks} replacementCursor={account.nextCursor ?? null} loadDecks={loadDecks}
+          configure={configure} mutate={mutate} reportError={reportError} addPage={() => navigate(`new-page/${deck.id}`)} />
       </div>
     </div>
     <div className="list-toolbar">
@@ -287,17 +298,25 @@ function DeckGrid({ account, local, navigate, configure, mutate, reportError, lo
       <button className="primary" onClick={() => configure('new')}><ButtonIcon name="plus" />{t('dashboard.addDeck')}</button>
     </div>
     <div className="grid">
-      {decks.map(deck => <article className={`deck fam-${deckColour(deck)}`} key={deck.id}>
-        <span className="deck-tab" aria-hidden="true" />
-        <button className="open" onClick={() => navigate(`deck/${deck.id}`)}>
-          <h2 dir="auto">{deck.name}</h2>
-          <p className="muted">{t('deck.pageCount', { count: deck.pageCount })} · {t('deck.moduleCount', { count: deck.moduleCount })}</p>
-        </button>
-        <footer>
-          {deck.id === account.defaultDeckId && <span className="default-label">{t('deck.default')}</span>}
-          <DeckMenu deck={deck} account={account} replacementDecks={decks} replacementCursor={cursor} loadDecks={loadDecks} configure={configure} mutate={mutate} reportError={reportError} />
-        </footer>
-      </article>)}
+      {/* A deck as a card (0.16.2, the accepted canvas, A1): behind its top edge a
+          little module card per family its modules come from, which rise and lean
+          apart while the deck is pointed at or focused; its actions as symbols. */}
+      {decks.map(deck => <div className={`deck-slot fam-${deckColour(deck)}`} key={deck.id}>
+        {(deck.families?.length ?? 0) > 0 && <span className="deck-families" role="img"
+          aria-label={t('deck.families', { families: listFormat((deck.families ?? []).map(family => familyLabel(family as ModuleFamily))) })}>
+          {(deck.families ?? []).map((family, index) => <span key={family} className={`deck-family fam-${family}`} style={{ '--i': index } as CSSProperties} />)}
+        </span>}
+        <article className="deck">
+          <button className="open" onClick={() => navigate(`deck/${deck.id}`)}>
+            <h2 dir="auto">{deck.name}</h2>
+            <p className="muted">{t('deck.pageCount', { count: deck.pageCount })} · {t('deck.moduleCount', { count: deck.moduleCount })}</p>
+          </button>
+          <footer>
+            <DeckActions where="card" deck={deck} account={account} replacementDecks={decks} replacementCursor={cursor} loadDecks={loadDecks}
+              configure={configure} mutate={mutate} reportError={reportError} />
+          </footer>
+        </article>
+      </div>)}
     </div>
     {cursor && <button className="load-more-decks" disabled={loading} onClick={() => void more()}>{t('dashboard.moreDecks')}</button>}
     {/* Since 0.13.3 (D23) the decks come first and the recent captures follow them. */}
@@ -306,13 +325,6 @@ function DeckGrid({ account, local, navigate, configure, mutate, reportError, lo
 }
 
 export function Dashboard({ account, local, deckId, focusedMenu, showPendingSaves, error, navigate, configure, mutate, reportError, loadPages, loadDecks }: DashboardProps) {
-  useEffect(() => {
-    const closeOutside = (event: PointerEvent) => {
-      for (const menu of document.querySelectorAll<HTMLDetailsElement>('.deck-menu[open]')) if (!menu.contains(event.target as Node)) menu.open = false;
-    };
-    document.addEventListener('pointerdown', closeOutside);
-    return () => document.removeEventListener('pointerdown', closeOutside);
-  }, []);
   useLayoutEffect(() => {
     if (focusedMenu) [...document.querySelectorAll<HTMLElement>('[data-deck-options]')].find(node => node.dataset.deckOptions === focusedMenu)?.focus();
   }, [account, deckId, focusedMenu]);

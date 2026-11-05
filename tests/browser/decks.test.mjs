@@ -79,8 +79,7 @@ test('deck UI: draft previews, all modules, the module limit, removal without co
     ['main-key', 'context', 'german', 'german', 'chinese', 'chinese', 'chinese']);
   assert.equal(created.colour, 'sound');
   await a.page.locator('.nav-item.fam-sound').filter({ hasText: 'Everyday Chinese' }).waitFor();
-  await a.page.locator('article.deck.fam-sound').filter({ hasText: 'Everyday Chinese' }).waitFor();
-  await a.page.getByLabel('Options for Everyday Chinese').click();
+  await a.page.locator('.deck-slot.fam-sound article.deck').filter({ hasText: 'Everyday Chinese' }).waitFor();
   await a.page.locator('article.deck').filter({ hasText: 'Everyday Chinese' }).getByRole('button', { name: 'Set as default', exact: true }).click();
   await a.page.locator('article.deck').filter({ hasText: 'Everyday Chinese' }).getByText('Default', { exact: true }).waitFor();
   assert.equal((await application.store.snapshot()).id, created.id);
@@ -93,7 +92,6 @@ test('deck UI: draft previews, all modules, the module limit, removal without co
     await application.store.publish(`fixture-${item.id}`, { attemptId: item.attemptId, session });
   }
   const before = (await application.store.page(pageId)).components.map(item => [item.moduleType, text(item)]);
-  await a.page.getByLabel('Options for Everyday Chinese').click();
   await a.page.locator('article.deck').filter({ hasText: 'Everyday Chinese' }).getByRole('button', { name: 'Configure deck', exact: true }).click();
   // Two Germans in deck settings are numbered in their tabs (0.7.2).
   await componentArticle(a.page, 'German 2').waitFor();
@@ -112,7 +110,6 @@ test('deck UI: draft previews, all modules, the module limit, removal without co
   await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
   await componentArticle(a.page, 'German 1').getByText('Saved explanation').waitFor();
   await a.page.goto(`chrome-extension://${a.id}/app.html`);
-  await a.page.getByLabel('Options for Everyday Chinese').click();
   await a.page.locator('article.deck').filter({ hasText: 'Everyday Chinese' }).getByRole('button', { name: 'Delete deck', exact: true }).click();
   await a.page.getByRole('dialog').getByRole('button', { name: 'Delete deck', exact: true }).click();
   await a.page.getByRole('heading', { name: 'Everyday Chinese', exact: true }).waitFor({ state: 'detached' });
@@ -133,35 +130,31 @@ test('deck menus: page-list actions, Escape, cancellation, replacement and sole-
   await a.page.reload();
   await a.page.getByRole('heading', { name: 'Second deck', exact: true }).click();
   await a.page.getByRole('button', { name: 'Add page manually', exact: true }).waitFor();
-  const trigger = a.page.getByLabel('Options for Second deck', { exact: true });
-  await trigger.focus(); await a.page.keyboard.press('Enter');
-  await a.page.getByRole('button', { name: 'Set as default', exact: true }).waitFor();
-  await a.page.keyboard.press('Escape');
-  assert.equal(await a.page.locator('.deck-menu[open]').count(), 0);
-  assert.equal(await trigger.evaluate(node => node === document.activeElement), true);
-  await trigger.click();
-  await a.page.getByRole('button', { name: 'Configure deck', exact: true }).click();
+  // A deck's page holds its actions as symbols, named, with no ⋯ menu (0.16.2).
+  const head = a.page.getByRole('group', { name: 'Options for Second deck', exact: true });
+  assert.deepEqual(await head.getByRole('button').evaluateAll(buttons => buttons.map(button => [button.getAttribute('aria-label'), button.title])),
+    [['Set as default', 'Set as default'], ['Configure deck', 'Configure deck'], ['Delete deck', 'Delete deck'], ['Add page manually', 'Add page manually']]);
+  assert.equal(await a.page.locator('details.deck-menu').count(), 0, 'no ⋯ menu');
+  await head.getByRole('button', { name: 'Configure deck', exact: true }).click();
   await a.page.getByLabel('Deck name', { exact: true }).waitFor();
   await a.page.getByRole('button', { name: 'Cancel', exact: true }).click();
   await a.page.getByRole('heading', { name: 'Second deck', exact: true }).click();
   await a.page.getByRole('button', { name: 'Add page manually', exact: true }).waitFor();
   await application.close();
-  await trigger.click();
-  await a.page.getByRole('button', { name: 'Set as default', exact: true }).click();
+  await head.getByRole('button', { name: 'Set as default', exact: true }).click();
   await a.page.getByRole('button', { name: 'Try saving again', exact: true }).waitFor();
-  assert.equal(await a.page.locator('.deck-menu[open]').count(), 0);
   application = (await createTestApplication(t, { databaseKey })); await application.start();
   await a.page.getByRole('button', { name: 'Try saving again', exact: true }).click();
   await waitFor(async () => (await application.store.account()).defaultDeckId === second.id, 'page-list default saved');
-  await waitFor(() => a.page.getByRole('button', { name: 'Set as default', exact: true, includeHidden: true }).isDisabled(), 'current default disabled');
-  await trigger.click();
-  await a.page.getByRole('button', { name: 'Delete deck', exact: true }).click();
-  assert.equal(await a.page.locator('.deck-menu[open]').count(), 0);
+  // The default deck's star is filled and is no longer a button.
+  await waitFor(async () => await head.locator('.deck-star.is-default').count() === 1, 'the default deck’s filled star');
+  assert.equal(await head.getByRole('button', { name: 'Set as default', exact: true }).count(), 0);
+  const trash = head.getByRole('button', { name: 'Delete deck', exact: true });
+  await trash.click();
   await a.page.getByRole('dialog').getByRole('button', { name: 'Cancel', exact: true }).click();
   assert.match(a.page.url(), /#deck\//);
-  assert.equal(await trigger.evaluate(node => node === document.activeElement), true);
-  await trigger.click();
-  await a.page.getByRole('button', { name: 'Delete deck', exact: true }).click();
+  await waitFor(() => trash.evaluate(node => node === document.activeElement), 'the focus back on the trash');
+  await trash.click();
   assert.equal(await a.page.getByRole('dialog').getByLabel('New default deck').inputValue(), (await application.store.account()).decks.find(deck => deck.id !== second.id).id);
   await a.page.getByRole('dialog').getByRole('button', { name: 'Delete deck', exact: true }).click();
   await a.page.getByRole('heading', { name: 'Your decks', exact: true }).waitFor();
@@ -169,8 +162,7 @@ test('deck menus: page-list actions, Escape, cancellation, replacement and sole-
   await a.page.getByRole('heading', { name: 'My Deck', exact: true }).click();
   await a.page.getByRole('button', { name: 'Add page manually', exact: true }).waitFor();
   const original = (await application.store.snapshot()).id;
-  await a.page.getByLabel('Options for My Deck').click();
-  await a.page.getByRole('button', { name: 'Delete deck', exact: true }).click();
+  await a.page.getByRole('group', { name: 'Options for My Deck', exact: true }).getByRole('button', { name: 'Delete deck', exact: true }).click();
   await a.page.getByRole('dialog').getByText(/A new empty My Deck will replace it/).waitFor();
   await a.page.getByRole('dialog').getByRole('button', { name: 'Delete deck', exact: true }).click();
   await a.page.getByRole('heading', { name: 'Your decks', exact: true }).waitFor();
@@ -186,8 +178,7 @@ test('default-deck deletion can choose a replacement beyond the first deck page'
   const a = await launch(join(directory, 'a'));
   t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
   await signIn(a.page);
-  await a.page.getByLabel('Options for My Deck').click();
-  await a.page.getByRole('button', { name: 'Delete deck', exact: true }).click();
+  await a.page.getByRole('group', { name: 'Options for My Deck', exact: true }).getByRole('button', { name: 'Delete deck', exact: true }).click();
   const modal = a.page.getByRole('dialog');
   assert.equal(await modal.getByLabel('New default deck').locator('option').count(), 39);
   await modal.getByRole('button', { name: 'Load more decks' }).click();

@@ -54,6 +54,15 @@ test('a deck keeps the colour chosen in its settings; a save without one keeps t
   await assert.rejects(save(store, { ...withoutColour, colour: 'teal' }), { code: 'invalid' });
 });
 
+test('a deck summary names the module families its configuration uses, in the catalog’s order (0.16.2)', async (t) => {
+  const store = await fixture(t);
+  const families = async id => (await store.listDecks()).decks.find(deck => deck.id === id).families;
+  const { deckId } = await save(store, { name: 'Mixed', modules: withKey('pronunciation', 'text', 'mathematics', 'german', 'chinese'), view });
+  assert.deepEqual(await families(deckId), ['translation', 'expertise', 'sound', 'notes'], 'each once, in the catalog’s order');
+  const { deckId: bare } = await save(store, { name: 'Bare', modules: withKey(), view });
+  assert.deepEqual(await families(bare), [], 'the main key has no family');
+});
+
 test('a new page copies the deck modules; later deck changes never reach it', async (t) => {
   const store = await fixture(t), pageId = await capture(store, 'Wir sind 幸福.');
   let page = await store.page(pageId);
