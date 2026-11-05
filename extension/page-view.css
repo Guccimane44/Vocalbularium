@@ -535,7 +535,7 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
 .facet[data-unfilled] .facet-tab { opacity: .55; }
 .live-core .md-editor:not(.reading) { font-size: 16px; }
 .live-core { display: grid; gap: 4px; }
-.live-editor .entry-heading { align-items: center; min-height: 24px; }
+.live-editor .entry-heading, .core-editing .entry-heading { align-items: center; min-height: 24px; }
 /* A facet edited on its own (D10): its Save and Cancel right below its text. */
 .facet-editing .component-tools { margin-top: 2px; }
 .entry-heading-text { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
@@ -624,6 +624,9 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
 .facet-actions button { display: inline-grid; place-items: center; width: 26px; height: 26px; padding: 0; border: 0; border-radius: var(--radius-control);
   background: transparent; color: var(--ink-muted); opacity: 0; transition: opacity var(--dur-instant) ease, background var(--dur-instant) ease; }
 .facet:hover .facet-actions button, .facet-actions button:focus-visible { opacity: 1; }
+/* The core's own Edit (0.16.2) at the end of its top line, shown while the top line or the core text is pointed at. */
+.entry-content > .entry-heading:hover .core-actions button, .entry-content:has(> .entry-core:hover) .core-actions button { opacity: 1; }
+.core-actions { align-self: center; margin-block: -4px; }
 /* A Retry with nothing to generate stays in its place, unavailable (0.12.1),
    hidden like the others until the facet is pointed at. */
 .facet-actions button:disabled { opacity: 0; cursor: default; }

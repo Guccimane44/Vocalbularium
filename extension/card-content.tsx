@@ -19,7 +19,7 @@ import type { MdBlock, MdInline } from '@vocabularium/domain/markdown';
 import { parentContentOf, providerCore } from '@vocabularium/domain/content';
 import { hasText } from '@vocabularium/domain/markdown';
 import { facetsOf, inOrder, isParentType } from '@vocabularium/domain/parents';
-import { facetName } from './catalog-text.ts';
+import { coreLabel, facetName } from './catalog-text.ts';
 import type { FacetType, ParentType } from '@vocabularium/domain/parents';
 import { FacetTab } from './facet-tags.tsx';
 import { openAbout } from './about-sheet.tsx';
@@ -148,6 +148,8 @@ function FacetActions({ name, hasContent, canRetry, disabled, asking, setAsking,
 
 // What a parent card's facets need to be retried or deleted, the facet asking
 // "Are you sure?", and the facet regenerating on its own or whose Retry failed.
+// The part `editing` names when the core is open in its own editor (0.16.2).
+export const CORE_PART = '@core';
 export type FacetControls = { title: string; disabled: boolean; onDelete: (facet: FacetType) => void; onRetry: (facet: FacetType) => void;
   // The card's facets, each shown with its heading (D10, amended a sixth time).
   facets?: readonly string[];
@@ -158,6 +160,8 @@ export type FacetControls = { title: string; disabled: boolean; onDelete: (facet
   retrying?: string; failed?: string;
   // The card's own Retry, which a part that is not spoken offers beside its note (D24).
   onRetryCard?: () => void;
+  // The core's own Edit (0.16.2), as a facet's; absent where the core is spoken.
+  onEditCore?: () => void;
   // A facet moved among the card's facets, to a position counted from 0 (D26); false when the save failed.
   onMoveFacet?: (facet: FacetType, position: number) => Promise<boolean> };
 
@@ -254,20 +258,27 @@ export function Content({ type, rendered, mainKey, controls, spoken }: {
   // A card's facets reorder by their grips, except while a part is open in its editor.
   const sortable = Boolean(parent && controls?.onMoveFacet && controls.facets && controls.facets.length > 1 && !controls.editing);
 
+  // The core open in its own editor (0.16.2) stands in place of its top line and text.
+  const coreEditing = controls?.editing?.facet === CORE_PART ? controls.editing.node : null;
+  const coreName = controls && parent && t('facet.fromCard', { facet: coreLabel(parent, reading ? 'sentence' : 'word_phrase'), card: controls.title });
   // The core's top line, then its markdown; each facet's markdown in its container (D09).
   return <div className="entry-content">
-    {heading && <p className="entry-heading" dir="auto">
+    {coreEditing}
+    {!coreEditing && heading && <p className="entry-heading" dir="auto">
       {/* An Expertise core names no language (D11) and shows no labels. */}
       {heading.language && <span className="entry-language">{heading.language}</span>}
       <span className="entry-key">{heading.key}</span>
       {heading.pronunciation && <span className="entry-pronunciation">{heading.pronunciation}</span>}
       {/* Word or sentence, and a German word's grammatical role, in the module's language (D17, K51). */}
       {heading.labels.map(label => <span key={label} className="entry-label">{label}</span>)}
+      {/* The core's own Edit (0.16.2), at the end of its top line, shown as a facet's actions are. */}
+      {controls?.onEditCore && <span className="facet-actions core-actions"><button type="button" className="facet-edit" aria-label={t('action.editNamed', { name: coreName ?? '' })}
+        disabled={controls.disabled} onClick={controls.onEditCore}><ActionIcon name="edit" /></button></span>}
     </p>}
     {/* A spoken core's player, beneath its top line (D24, direction A). */}
-    {spoken?.core && <ClipPlayer componentId={spoken.componentId} part="core" line={0} text={mainKey.trim()}
+    {!coreEditing && spoken?.core && <ClipPlayer componentId={spoken.componentId} part="core" line={0} text={mainKey.trim()}
       speakable={spoken.core.speakable} tooLong={spoken.core.tooLong} onRetryCard={controls?.onRetryCard} />}
-    {core.length > 0 && <Markdown blocks={core} mainKey={mainKey} className={reading ? 'entry-core reading' : 'entry-core'} />}
+    {!coreEditing && core.length > 0 && <Markdown blocks={core} mainKey={mainKey} className={reading ? 'entry-core reading' : 'entry-core'} />}
     {parent && (sortable ? <FacetSorter parent={parent} title={controls!.title} facets={inOrder(parent, controls!.facets!)} disabled={controls!.disabled}
       onMove={controls!.onMoveFacet!}>
       {(shown: readonly FacetType[]) => inOrder(parent, [...shown, ...facetsOf(parent)]).map(name => shown.includes(name)

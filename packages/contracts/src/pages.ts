@@ -151,7 +151,10 @@ export const ComponentChangeSchema = Type.Object({
   content: BlockDocumentSchema,
   // A facet edited on its own (D10, 0.7.5): only that facet's text is taken
   // from `content`, over the component as stored.
-  facet: Type.Optional(Type.String({ minLength: 1 }))
+  facet: Type.Optional(Type.String({ minLength: 1 })),
+  // The core edited on its own (0.16.2, D10 amended): only the core's text is
+  // taken from `content`, over the component as stored.
+  core: Type.Optional(Type.Literal(true))
 }, OpenRequest);
 export const PageSavePayloadSchema = Type.Object({
   pageId: Type.String({ minLength: 1 }),
