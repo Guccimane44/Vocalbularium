@@ -4642,6 +4642,12 @@
                             "facet": {
                               "type": "string",
                               "minLength": 1
+                            },
+                            "core": {
+                              "type": "boolean",
+                              "enum": [
+                                true
+                              ]
                             }
                           },
                           "additionalProperties": true

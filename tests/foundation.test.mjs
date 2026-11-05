@@ -169,6 +169,30 @@ test('a facet saved on its own takes only that facet over the stored content (D1
     { code: 'invalid', message: 'This facet is no longer there.' });
 });
 
+test('the core saved on its own takes only the core over the stored content (0.16.2)', async (t) => {
+  const store = await fixture(t);
+  const { pageId, page } = await capture(store);
+  await complete(store, page, a);
+  const [p1] = generated(await store.page(pageId));
+  const facet = p1.facets[0];
+  // Another installation edits a facet meanwhile.
+  const elsewhere = fieldEdit(p1, 'ignored');
+  elsewhere.blocks[0] = { ...elsewhere.blocks[0], facets: { [facet]: 'elsewhere' } };
+  await store.savePage('facet-elsewhere', { pageId, changes: [{ componentId: p1.id, content: elsewhere, facet }] });
+  // This one saves the core from the content it opened, whose facet is stale.
+  await store.savePage('core-only', { pageId, changes: [{ componentId: p1.id, content: fieldEdit(p1, 'mine'), core: true }] });
+  const saved = generated(await store.page(pageId))[0];
+  assert.equal(text(saved), 'mine');
+  assert.equal(saved.content.blocks[0].facets[facet], 'elsewhere', 'the facet edited elsewhere stays');
+  await assert.rejects(store.savePage('both', { pageId, changes: [{ componentId: p1.id, content: fieldEdit(p1, 'x'), core: true, facet }] }),
+    { code: 'invalid', message: 'Edit the core or one facet, not both.' });
+  // A Context or Text has no core of its own.
+  const note = (await store.page(pageId)).components.find(item => item.moduleType === 'context');
+  assert.ok(note, 'the page has its Context');
+  await assert.rejects(store.savePage('note-core', { pageId, changes: [{ componentId: note.id, content: textBlocks('x'), core: true }] }),
+    { code: 'invalid', message: 'Only a parent module has facets.' });
+});
+
 test('an empty parent is written by hand from the blank top line of the page’s main key (D10, amended a fourth time)', async (t) => {
   const store = await fixture(t);
   const { pageId } = await capture(store, 'manual-parent', a, 'bank');

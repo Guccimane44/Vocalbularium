@@ -30,6 +30,8 @@ export type PageEditorDraft = {
   // A facet edited on its own (D10, 0.7.5): only it is open, and Save writes
   // only its text into the component's latest content.
   facet?: string;
+  // The core edited on its own (0.16.2): only it is open, and Save writes only its text.
+  core?: boolean;
   mainKey?: string;
   inputs?: Record<string, string>;
   pending?: EditorPendingPageSave;

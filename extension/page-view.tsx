@@ -7,7 +7,7 @@ import { mainKeyOf } from '@vocabularium/domain/pages';
 import { parentContentOf } from '@vocabularium/domain/content';
 import type { ParentContent } from '@vocabularium/domain/content';
 import { hasText } from '@vocabularium/domain/markdown';
-import { FacetEditor, LiveEditor, NoteEditor } from './live-editor.tsx';
+import { CoreEditor, FacetEditor, LiveEditor, NoteEditor } from './live-editor.tsx';
 import { facetsOf, isFacetOf, isParentType } from '@vocabularium/domain/parents';
 import { facetName } from './catalog-text.ts';
 import type { FacetType, ParentType } from '@vocabularium/domain/parents';
@@ -22,7 +22,7 @@ import { AT_THE_END, moduleLabel, numbered, ShapingArea } from './shaping.tsx';
 import type { RowParts } from './shaping.tsx';
 import { direction, listFormat, t } from './i18n.ts';
 import { ClipsProvider } from './audio.tsx';
-import { ActionIcon, Spark, Content, readContent, isSpokenModule, spokenOf, Reveal, ConfirmAction, LandingCard } from './card-content.tsx';
+import { ActionIcon, CORE_PART, Spark, Content, readContent, isSpokenModule, spokenOf, Reveal, ConfirmAction, LandingCard } from './card-content.tsx';
 import type { FacetAsk, FacetControls } from './card-content.tsx';
 // A module in the module window has a page (D20); the main key has none.
 const isWindowModule = (type: string) => (WINDOW_MODULES as readonly string[]).includes(type);
@@ -46,6 +46,7 @@ type Props = {
   retryPendingSave: (operationId: string) => Promise<void>;
   navigate: (hash: string) => void;
   begin: (componentId: string, facet?: string) => void;
+  beginCore: (componentId: string) => void;
   persist: () => void;
   redraw: () => void;
   save: () => Promise<boolean>;
@@ -107,6 +108,16 @@ function ComponentBody({ item, title, editable, draft, locked, persist, redraw, 
   // A parent in its live editor (D09), drawn from the content it opened with:
   // the card may be regenerating meanwhile.
   const fields = draft?.fields?.[item.id];
+  // The core open on its own (0.16.2): the card as it reads, the core in its editor with its Save and Cancel.
+  if (editable && fields && draft?.core && isParentType(item.moduleType)) {
+    const { rendered } = readContent(item.moduleType, item.content);
+    const node = <CoreEditor key={CORE_PART} parent={item.moduleType} title={title} fields={fields} redraw={redraw} persist={persist}
+      opened={(draft.fieldStored?.[item.id] as ParentContent | undefined) ?? parentContentOf(item.content)} locked={locked || item.status === 'loading'}>
+      {item.status === 'loading' && <p className="notice">{t('card.generatingDraft')}</p>}
+      {tools}
+    </CoreEditor>;
+    return <Content type={item.moduleType} rendered={rendered} mainKey={mainKey} controls={controls && { ...controls, editing: { facet: CORE_PART, node } }} />;
+  }
   // One facet open on its own (D10): the card as it reads, that facet in its editor with its Save and Cancel.
   if (editable && fields && draft?.facet && isParentType(item.moduleType)) {
     const { rendered } = readContent(item.moduleType, item.content);
@@ -198,7 +209,7 @@ function readFolded(key: string | null): ReadonlySet<string> {
 }
 
 export function PageView({ page, deck, draft, isNew, editing, busy, error, pendingSaves, retryPendingSave,
-  navigate, begin, persist, redraw, save, cancel, discardUnavailable, deletePage, generate, addModule, moveComponent, deleteComponent, addFacet, deleteFacet, moveFacet }: Props) {
+  navigate, begin, beginCore, persist, redraw, save, cancel, discardUnavailable, deletePage, generate, addModule, moveComponent, deleteComponent, addFacet, deleteFacet, moveFacet }: Props) {
   const [working, setWorking] = useState(false);
   // The card whose tab has ejected its actions; one at a time.
   const [opened, setOpened] = useState<string | null>(null);
@@ -337,8 +348,8 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
       </div>
       {draft.error && <p className="notice error" role="alert">{draft.error}</p>}
     </>;
-    // A facet open on its own keeps its Save and Cancel below it (D10).
-    if (draft.facet) return <ComponentBody item={item} title={title} editable draft={draft} locked={locked} persist={persist} redraw={redraw}
+    // A facet, or the core (0.16.2), open on its own keeps its Save and Cancel below it (D10).
+    if (draft.facet || draft.core) return <ComponentBody item={item} title={title} editable draft={draft} locked={locked} persist={persist} redraw={redraw}
       mainKey={mainKey} controls={controls} tools={tools} />;
     return <>
       <ComponentBody item={item} title={title} editable draft={draft} locked={locked} persist={persist} redraw={redraw} mainKey={mainKey} />
@@ -361,6 +372,8 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
       onDelete: removeFacet, onRetry: retryFacet, asking: askingFacet?.id === item.id ? askingFacet : null,
       // A facet edits on its own (D10, 0.7.5), an empty one too (amended a sixth time).
       onEdit: facet => { setAskingFacet(null); begin(item.id, facet); }, facets: item.facets ?? [],
+      // The core's own Edit (0.16.2), on a card that generated and whose core is written, not spoken.
+      ...(read.present && !isSpokenModule(item.moduleType) ? { onEditCore: () => { setAskingFacet(null); beginCore(item.id); } } : {}),
       // A facet's heading drags it among the card's facets (D26).
       onMoveFacet: (facet, position) => moveFacet(item.id, item.moduleType as ParentType, facet, position),
       setAsking: (facet, kind = 'delete') => setAskingFacet(facet ? { id: item.id, facet, kind } : null),
