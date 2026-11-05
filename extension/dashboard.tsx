@@ -184,6 +184,8 @@ function DeckList({ deck, account, navigate, configure, mutate, reportError, loa
     setLayout(value);
   };
   return <div className={`deck-view fam-${deckColour(deck)}`}>
+    {/* Every view below Home leads back up (0.16.2). */}
+    <button className="back" onClick={() => navigate('')}>{t('page.back', { deck: t('nav.home') })}</button>
     <div className="page-head">
       <div>
         <h1><span className="fam-mark deck-mark" aria-hidden="true" /><bdi>{deck.name}</bdi></h1>
