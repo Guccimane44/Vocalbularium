@@ -1,4 +1,5 @@
 import { t } from './i18n.ts';
+import { buttonIcon } from './button-icons.ts';
 
 type ChoiceOption = { value: string; label: string };
 type ChoiceSelect = {
@@ -8,8 +9,10 @@ type ChoiceSelect = {
   loadMore?: (cursor: string) => Promise<{ options: ChoiceOption[]; nextCursor: string | null }>;
 };
 
-export function dialog({ title, message, choices, select }: {
+export function dialog({ title, message, choices, select, danger = false }: {
   title: string; message: string; choices: string[]; select?: ChoiceSelect;
+  // The last choice deletes something (0.16.2): it is drawn in the failed colour.
+  danger?: boolean;
 }): Promise<{ choice: string; value?: string }> {
   return new Promise(resolve => {
     const modal = document.createElement('dialog');
@@ -50,6 +53,8 @@ export function dialog({ title, message, choices, select }: {
     const actions = document.createElement('div'); actions.className = 'dialog-actions';
     for (const choice of choices) {
       const button = document.createElement('button'); button.textContent = choice; button.onclick = () => finish(choice);
+      // The last choice is the one the dialog asks about (0.16.2): primary, or danger for a deletion.
+      if (choice === choices.at(-1) && choices.length > 1) { button.className = danger ? 'danger' : 'primary'; if (danger) button.prepend(buttonIcon('trash')); }
       if (choice === choices.at(-1) && input) { confirm = button; button.disabled = !input.options.length; }
       actions.append(button);
     }

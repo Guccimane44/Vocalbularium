@@ -13,12 +13,12 @@ test('deck UI: draft previews, all modules, the module limit, removal without co
   const a = await launch(join(directory, 'a'));
   t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
   await signIn(a.page);
-  await a.page.getByRole('button', { name: 'Add new deck', exact: true }).click();
+  await a.page.getByRole('button', { name: 'New deck', exact: true }).click();
   await a.page.getByLabel('Deck name', { exact: true }).fill('Discard this draft');
   await a.page.getByRole('button', { name: 'Cancel', exact: true }).click();
   assert.equal((await application.store.account()).decks.length, 1);
 
-  await a.page.getByRole('button', { name: 'Add new deck', exact: true }).click();
+  await a.page.getByRole('button', { name: 'New deck', exact: true }).click();
   await a.page.getByLabel('Deck name', { exact: true }).fill('Everyday Chinese');
   // A new deck has a colour, one of the six, which the user can change (D06).
   assert.equal(await a.page.getByRole('group', { name: 'Deck colour' }).getByRole('radio').count(), 6);

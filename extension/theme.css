@@ -23,6 +23,9 @@
   --status-busy: #5a3d96;
   --status-failed: #a0301c;
   --status-failed-bg: #fbe9e4;
+  --ledge-primary: #0b100a;
+  --ledge-secondary: #c3cfb8;
+  --ledge-danger: #6a1d10;
   --fam-translation: #0b6b82;
   --on-fam-translation: #ffffff;
   --fam-translation-tint: #e0eff2;
@@ -108,6 +111,9 @@
     --status-busy: #cdbdf5;
     --status-failed: #ff9c86;
     --status-failed-bg: #3a201b;
+    --ledge-primary: #8f9a8a;
+    --ledge-secondary: #0d100c;
+    --ledge-danger: #b4604f;
     --fam-translation: #6fcde0;
     --on-fam-translation: #062a33;
     --fam-translation-tint: #18282c;
@@ -167,6 +173,9 @@
   --status-busy: #cdbdf5;
   --status-failed: #ff9c86;
   --status-failed-bg: #3a201b;
+  --ledge-primary: #8f9a8a;
+  --ledge-secondary: #0d100c;
+  --ledge-danger: #b4604f;
   --fam-translation: #6fcde0;
   --on-fam-translation: #062a33;
   --fam-translation-tint: #18282c;

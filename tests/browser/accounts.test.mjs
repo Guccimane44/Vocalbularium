@@ -196,7 +196,7 @@ test('appearance: all open views, drafts, dialogs, feedback lifetime, logout and
   await a.context.close();
   a = await launch(join(directory, 'a'), testingExtension);
   await hasTheme(a.page, 'dark'); await signIn(a.page); await hasTheme(a.page, 'dark');
-  await a.page.getByRole('button', { name: 'Add new deck', exact: true }).click();
+  await a.page.getByRole('button', { name: 'New deck', exact: true }).click();
   await a.page.getByLabel('Deck name', { exact: true }).fill('Unsaved configuration');
   await addFromWindow(a.page, 'chinese');
   for (const appearance of ['dark', 'light']) {

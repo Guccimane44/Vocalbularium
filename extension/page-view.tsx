@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { ButtonIcon } from './button-icon.tsx';
 import type { CSSProperties, ReactNode } from 'react';
 import type { Component, GenerationTarget, ModuleInstance, Page } from '@vocabularium/contracts';
 import { CATALOG, isContentType, isModuleType, WINDOW_MODULES } from '@vocabularium/domain/page-modules';
@@ -90,7 +91,7 @@ function NewPageEditor({ draft, deck, busy, persist, save, cancel }: Pick<Props,
     {content.length > 0 && <p className="muted">{t('page.new.contentHint', { modules: listFormat(content.map(module => moduleLabel(module.type))) })}</p>}
     <div className="dialog-actions">
       <button disabled={busy} onClick={() => void cancel()}>{t('common.cancel')}</button>
-      <button className="primary" disabled={busy} onClick={() => void save()}>{draft.pending ? t('common.trySavingAgain') : t('common.save')}</button>
+      <button className="primary" disabled={busy} onClick={() => void save()}>{!draft.pending && <ButtonIcon name="check" />}{draft.pending ? t('common.trySavingAgain') : t('common.save')}</button>
     </div>
     {draft.error && <p className="notice error" role="alert">{draft.error}</p>}
   </section>;
@@ -332,7 +333,7 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
     const tools = <>
       <div className="component-tools">
         <button disabled={busy} onClick={() => void cancel()}>{t('common.cancel')}</button>
-        <button className="primary" disabled={busy} onClick={() => void save()}>{draft.pending ? t('common.trySavingAgain') : t('common.save')}</button>
+        <button className="primary" disabled={busy} onClick={() => void save()}>{!draft.pending && <ButtonIcon name="check" />}{draft.pending ? t('common.trySavingAgain') : t('common.save')}</button>
       </div>
       {draft.error && <p className="notice error" role="alert">{draft.error}</p>}
     </>;

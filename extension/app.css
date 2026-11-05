@@ -29,10 +29,33 @@ input:focus, textarea:focus, select:focus { outline: 2px solid var(--focus); out
 button { font: inherit; font-size: 14px; cursor: pointer; border-radius: 8px; padding: 10px 18px; border: 1px solid var(--line-control); background: transparent; color: inherit; }
 button:hover { background: var(--surface-hover); }
 button:disabled { opacity: .5; cursor: default; }
-.primary { background: var(--ink); color: var(--on-ink); border-color: var(--ink); }
-.primary:hover { background: var(--ink-soft); }
-@media (forced-colors: active) { .primary, .primary:hover { background: ButtonFace; border-color: ButtonFace; } }
-.login .primary { width: 100%; margin-top: 26px; }
+/* Buttons with character (0.16.2, the accepted canvas): a keycap that sits on
+   a 2 px ledge and presses down onto it. Primary is ink, secondary is paper
+   with an outline, quiet has no frame, danger is the failed colour; icons
+   lead where they help. Other buttons (icons, tabs, menus) keep the plain style. */
+:is(.primary, .secondary, .quiet, .danger, .dialog-actions button, .component-tools button) {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 40px; padding: 0 16px; border-radius: 12px;
+  font-size: 14px; font-weight: 600; line-height: 1.2;
+  transition: transform var(--dur-instant, 120ms) ease, box-shadow var(--dur-instant, 120ms) ease, background-color var(--dur-instant, 120ms) ease; }
+:is(.primary, .secondary, .quiet, .danger, .dialog-actions button, .component-tools button) svg { width: 16px; height: 16px; flex: none; }
+.primary { border: 0; background: var(--ink); color: var(--on-ink); box-shadow: 0 2px 0 var(--ledge-primary); }
+.primary:hover:not(:disabled) { background: var(--ink-soft); }
+:is(.secondary, .dialog-actions button:not(.primary, .danger)) { border: 1px solid var(--line-control); background: var(--surface); color: var(--ink); box-shadow: 0 2px 0 var(--ledge-secondary); }
+:is(.secondary, .dialog-actions button:not(.primary, .danger)):hover:not(:disabled) { background: var(--surface-hover); }
+:is(.quiet, .component-tools button:not(.primary)) { border: 0; background: transparent; color: var(--ink-soft); box-shadow: none; padding: 0 14px; }
+:is(.quiet, .component-tools button:not(.primary)):hover:not(:disabled) { background: var(--surface-hover); color: var(--ink); }
+.danger { border: 0; background: var(--status-failed); color: var(--status-failed-bg); box-shadow: 0 2px 0 var(--ledge-danger); }
+.danger:hover:not(:disabled) { filter: brightness(1.08); }
+/* Pressed: the cap goes down onto its ledge. */
+:is(.primary, .secondary, .danger, .dialog-actions button):active:not(:disabled) { transform: translateY(2px); box-shadow: none; }
+:is(.quiet, .component-tools button:not(.primary)):active:not(:disabled) { background: var(--surface-active); }
+/* In a card's editor the keys are a size smaller: Cancel, then Save. */
+.component-tools :is(button, .primary) { min-height: 34px; border-radius: 10px; padding: 0 13px; }
+@media (prefers-reduced-motion: reduce) { :is(.primary, .secondary, .danger, .dialog-actions button):active:not(:disabled) { transform: none; } }
+@media (forced-colors: active) { .primary, .primary:hover, .danger, .danger:hover { background: ButtonFace; border: 1px solid ButtonText; color: ButtonText; } }
+.login .primary { width: 100%; min-height: 46px; margin-top: 26px; font-size: 15px; }
+/* An arrow points the way the text reads. */
+:root[dir="rtl"] .icon-arrow { transform: scaleX(-1); }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 22px; margin-top: 36px; }
 .deck .open { width: 100%; text-align: start; border: 0; padding: 0; background: none; }
 .deck footer { margin-top: 25px; display: flex; justify-content: space-between; align-items: center; }
@@ -81,7 +104,6 @@ h1, h2, .deck .open { overflow-wrap: anywhere; }
 .window-module button { padding: 5px 10px; font-size: 13px; }
 .window-reason { grid-column: 1 / -1; margin: 0; font-size: 12px; }
 .component-tools { display: flex; gap: 6px; }
-.component-tools button { padding: 4px 9px; font-size: 13px; }
 .sortable-row { position: relative; }
 .sortable-row[data-dragging] { z-index: 2; }
 .sortable-row[data-dragging] > * { box-shadow: 0 8px 24px #0002; }

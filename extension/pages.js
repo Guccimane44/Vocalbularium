@@ -203,7 +203,7 @@ export function pageViews({ getAccount, renderView, refresh, send, applyState, n
       cancel: async () => { await discard(); if (isNew) navigate(`deck/${/** @type {DeckDetail} */ (deck).id}`); else void refresh(); },
       discardUnavailable: async () => { await discard(); navigate(''); },
       deletePage: async () => {
-        const decision = await dialog({ title: t('page.delete.title'), message: t('page.delete.message'), choices: [t('common.cancel'), t('page.delete')] });
+        const decision = await dialog({ title: t('page.delete.title'), message: t('page.delete.message'), choices: [t('common.cancel'), t('page.delete')], danger: true });
         if (decision.choice !== t('page.delete')) return;
         deleting = /** @type {Page} */ (page).id;
         try { const next = await send({ type: 'delete-page', payload: { pageId: deleting } }); await discard(); await applyState(next, false); deleting = undefined; navigate(`deck/${/** @type {DeckDetail} */ (deck).id}`); }
