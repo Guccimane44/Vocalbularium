@@ -152,6 +152,8 @@ Upgrading from 0.15.0 to 0.16.0 keeps every account, deck, page and clip; there 
 
 Upgrading from 0.16.0 to 0.16.1 keeps every account, deck, page and clip; there is no migration. Restart the API with 0.16.1, then replace the extension's files and reload it: the API gains `POST /api/page/facets/move` ([D26](../architecture/decisions/d26.md)), which a 0.16.0 extension never calls, and every card keeps the facet order it had until its owner rearranges it. What a user sees change: the dashboard's subtitle and the sign-in eyebrow are gone, Expertise pages show a word sample only, a second single-instance module reads "Only one {name} module per page.", the page title has a pencil and a ⋯ menu for Delete page, and a card's facets can be dragged into a new order.
 
+Upgrading from 0.16.1 to 0.16.2 keeps every account, deck, page and clip; there is no migration. Restart the API with 0.16.2, then replace the extension's files and reload it: the API gains `POST /api/deck/move` ([D27](../architecture/decisions/d27.md)), a save may name a parent's core alone (`core: true`, D10 amended), and deck summaries name their module families; a 0.16.1 extension uses none of them. Decks keep their current order until their owner moves one. What a user sees change: a trail from Home on every view below it; a parent card's core has its own Edit; buttons are keycaps with leading icons ("+ New deck"); a deck's card shows its module families as little cards rising on hover, its actions (and those on its page) as symbols instead of ⋯; decks drag into a new order on Home and in the sidebar.
+
 ## Current delivery boundary
 
 
