@@ -60,9 +60,9 @@
       }
     },
     {
-      "key": "serendipity",
-      "context": "Meeting her at the station was pure serendipity.",
-      "why": "English noun with one sense: the Context does not narrow it, so no meaning in this Context (D29)",
+      "key": "refrigerator",
+      "context": "Put the milk back in the refrigerator.",
+      "why": "English noun with one sense: the Context does not narrow it, so no meaning in this Context (D29); replaces serendipity, which has two senses",
       "expect": {
         "kind": "word",
         "contextual": false,
