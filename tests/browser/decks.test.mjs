@@ -104,6 +104,8 @@ test('deck UI: draft previews, all modules, the module limit, removal without co
   assert.equal(await a.page.locator('.window-module[aria-disabled="false"]').count(), 0, 'the window is closed at twelve modules');
   await a.page.getByText('At most 12 modules, including the main key.').first().waitFor();
   await a.page.getByRole('button', { name: 'Save', exact: true }).click();
+  // Deck settings carry the deck's name as their title (0.16.2): wait for Home itself.
+  await a.page.getByRole('heading', { name: 'Your decks', exact: true }).waitFor();
   await a.page.getByRole('heading', { name: 'Everyday Chinese', exact: true }).waitFor();
   assert.equal(await a.page.getByRole('dialog').count(), 0, 'changing the deck needs no content-loss confirmation');
   assert.deepEqual((await application.store.page(pageId)).components.map(item => [item.moduleType, text(item)]), before, 'deck changes never reach an existing page');

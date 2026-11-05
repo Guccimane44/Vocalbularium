@@ -175,7 +175,7 @@ async function render() {
         account = /** @type {AccessState} */ (next).account; signedIn = /** @type {AccessState} */ (next).signedIn; configuration = undefined;
         location.hash = ''; await render();
       },
-      onCancel: () => { configuration = undefined; location.hash = ''; }
+      onCancel: (/** @type {string | undefined} */ to) => { configuration = undefined; location.hash = to ?? ''; }
     })));
     return;
   }
