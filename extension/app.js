@@ -11,7 +11,7 @@ import { flushSync } from 'react-dom';
 import { createRoot } from 'react-dom/client';
 import { Dashboard } from './dashboard.tsx';
 import { diagnosticSettings } from './diagnostic-settings.js';
-import { accountRoot, initializeShell, renderAccountMenu, renderSidebar, showSignedOutShell } from './shell.js';
+import { accountRoot, initializeShell, keepSidebarOrder, renderAccountMenu, renderSidebar, showSignedOutShell } from './shell.js';
 import { initializeLanguage, onLanguageChange, t, translateDocument } from './i18n.ts';
 /** @typedef {import('../types/editor-drafts.js').DeckEditorDraft} DeckEditorDraft */
 /** @import { Root } from 'react-dom/client' */
@@ -119,6 +119,36 @@ const clearBadge = () => {
 };
 document.addEventListener('visibilitychange', clearBadge);
 
+// A deck moves among the account's decks (D27), from Home or the sidebar.
+// While the move is saved, every redraw shows the decks in the new order: a
+// redraw reads the account from storage, which still holds the old one, and
+// would otherwise put the deck back for a moment (the flicker of 0.16.2's
+// first build). The account comes back in its new order, which the sidebar
+// takes as its own; a failed move shows the old order again.
+/** @type {string[] | null} */
+let pendingOrder = null;
+/** @template {{ id: string }} T @param {readonly T[]} decks @param {readonly string[]} ids */
+const arranged = (decks, ids) => [...decks].sort((a, b) => (ids.indexOf(a.id) + 1 || Infinity) - (ids.indexOf(b.id) + 1 || Infinity));
+/** @param {string} deckId @param {number} position */
+async function moveDeck(deckId, position) {
+  const before = /** @type {ViewAccount} */ (account).decks.map(deck => deck.id);
+  const ids = before.filter(id => id !== deckId);
+  ids.splice(position, 0, deckId);
+  pendingOrder = ids;
+  keepSidebarOrder(ids);
+  await render();
+  try {
+    const next = await send({ type: 'move-deck', deckId, position });
+    pendingOrder = null;
+    account = next.account; signedIn = next.signedIn;
+    keepSidebarOrder(/** @type {ViewAccount} */ (account).decks.map(deck => deck.id));
+  } catch (error) {
+    pendingOrder = null;
+    keepSidebarOrder(before);
+    throw error;
+  } finally { await render(); }
+}
+
 async function render() {
   const focusedMenu = /** @type {HTMLElement | null} */ (document.activeElement)?.dataset.deckOptions;
   // An input or a text area when it has `selectionStart`.
@@ -131,6 +161,8 @@ async function render() {
   clearBadge();
   // Render account pages and capture receipts from the same storage snapshot.
   if (local.account) account = viewAccount(local.account);
+  // A deck move still being saved (D27) keeps its order on screen.
+  if (pendingOrder && account) account = { ...account, decks: arranged(account.decks, pendingOrder) };
   renderAccountMenu(accountRoot(), {
     username: /** @type {ViewAccount} */ (account)?.username,
     server: /** @type {ViewAccount} */ (account)?.server,
@@ -150,7 +182,11 @@ async function render() {
   // From here the view is signed in, with its account.
   const sidebar = (/** @type {string | null} */ currentDeckId) => {
     markedDeck = currentDeckId;
-    renderSidebar({ decks: /** @type {ViewAccount} */ (account).decks, currentDeckId, newDeck: () => { configuration = undefined; location.hash = 'configure/new'; } });
+    renderSidebar({ decks: /** @type {ViewAccount} */ (account).decks, currentDeckId, newDeck: () => { configuration = undefined; location.hash = 'configure/new'; },
+      // A deck dragged in the sidebar moves on Home too (D27).
+      moveDeck: async (deckId, position) => {
+        try { await moveDeck(deckId, position); return true; } catch (error) { showError(error); await render(); return false; }
+      } });
   };
   sidebar(routeDeck);
   if (location.hash === '#diagnostics') {
@@ -197,6 +233,7 @@ async function render() {
       navigate: hash => { location.hash = hash; },
       configure: id => { configuration = undefined; location.hash = `configure/${id}`; },
       mutate: async command => {
+        if (command.type === 'move-deck') { await moveDeck(/** @type {string} */ (command.deckId), /** @type {number} */ (command.position)); return; }
         const next = await send(command);
         account = next.account; signedIn = next.signedIn; await render();
       },

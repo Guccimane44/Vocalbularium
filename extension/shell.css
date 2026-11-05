@@ -137,13 +137,14 @@ body.signed-in main { margin-top: 12px; }
 .deck { position: relative; z-index: 1; padding: 26px 24px 16px; border: 0; border-radius: var(--radius-card); background: var(--surface);
   box-shadow: inset 0 3px 0 var(--fam, var(--fam-notes)), 0 0 0 1px var(--line); min-height: 0;
   transition: transform var(--dur-settle) var(--ease-spring), box-shadow var(--dur-spring) ease; }
-.deck-slot:is(:hover, :focus-within) .deck { transform: translateY(-4px); box-shadow: inset 0 3px 0 var(--fam, var(--fam-notes)), 0 0 0 1px var(--line), var(--shadow-lift); }
-.deck-slot:focus-within { z-index: 5; }
+.deck-slot:is(:hover, :has(:focus-visible)) .deck { transform: translateY(-4px); box-shadow: inset 0 3px 0 var(--fam, var(--fam-notes)), 0 0 0 1px var(--line), var(--shadow-lift); }
+.deck-slot:has(:focus-visible) { z-index: 5; }
 .deck h2 { font: 600 24px/1.2 var(--font-display); margin: 0 0 6px; }
 /* The deck's module families (0.16.2, the accepted canvas, A1): a little module
    card per family, its colour along the top and as a small index tab,
    overlapping in a row behind the deck's top edge with the first in front.
-   Pointed at or focused, the deck lifts and they rise to their own heights,
+   Pointed at or focused from the keyboard (a pointer's press focuses the card
+   too, and must not leave it lifted after a drag), the deck lifts and they rise to their own heights,
    leaning apart, one after another, as the 0.6.0 sheets were meant to. */
 .deck-families { position: absolute; top: -30px; inset-inline-start: 20px; z-index: 0; width: 210px; height: 46px; pointer-events: none; }
 .deck-family { position: absolute; top: 0; inset-inline-start: calc(var(--i) * 46px); z-index: calc(10 - var(--i)); width: 62px; height: 46px; border-radius: 8px;
@@ -154,8 +155,14 @@ body.signed-in main { margin-top: 12px; }
 .deck-family:nth-child(4n + 2) { --rise: -12px; --lean: 3deg; }
 .deck-family:nth-child(4n + 3) { --rise: -8px; --lean: -3deg; }
 .deck-family:nth-child(4n) { --rise: -14px; --lean: 4deg; }
-.deck-slot:is(:hover, :focus-within) .deck-family { transform: translateY(var(--rise)) rotate(var(--lean)); }
+.deck-slot:is(:hover, :has(:focus-visible)) .deck-family { transform: translateY(var(--rise)) rotate(var(--lean)); }
 @media (prefers-reduced-motion: reduce) { .deck, .deck-family { transition: none; } }
+/* A deck being dragged into a new place (D27): its card, or its sidebar row, lifts above the others. */
+.deck-slot[data-dragging] { z-index: 10; }
+.deck-slot[data-dragging] .deck { transform: translateY(-4px) rotate(-1.5deg); box-shadow: inset 0 3px 0 var(--fam, var(--fam-notes)), 0 0 0 1px var(--line), var(--shadow-drag); }
+.nav-decks li { position: relative; touch-action: none; }
+.nav-decks li[data-dragging] { z-index: 2; }
+.nav-decks li[data-dragging] .nav-item { background: var(--surface); box-shadow: var(--shadow-drag); cursor: grabbing; }
 /* A deck's actions as symbols (0.16.2): on its card a row along the bottom,
    on its page a quiet group, then Add page manually. */
 .deck-actions { display: flex; align-items: center; gap: 2px; }

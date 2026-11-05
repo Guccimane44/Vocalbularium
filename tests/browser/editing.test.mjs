@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { once } from 'node:events';
 import { text, useModules, wordResult, staged } from '../helpers/pages.mjs';
-import { keyOf, modulesOf, componentArticle, cardTab, cardButton, launch, signIn, waitFor, pageReady, chooseDeletePage, addFromWindow, drag } from './helpers.mjs';
+import { keyOf, modulesOf, componentArticle, cardTab, cardButton, launch, signIn, waitFor, pageReady, chooseDeletePage, addFromWindow, drag, crumb } from './helpers.mjs';
 
 test('manual page UI: per-card actions, drafts, leave choices, sorting, failed-save recovery, and deletion', { timeout: 45000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-manual-browser-'));
@@ -19,10 +19,10 @@ test('manual page UI: per-card actions, drafts, leave choices, sorting, failed-s
   await a.page.getByRole('button', { name: 'Add page manually', exact: true }).click();
   await a.page.getByLabel('Main key', { exact: true }).fill('zebra');
   await a.page.getByLabel('Context (optional)', { exact: true }).fill('zoo animal');
-  await a.page.getByRole('button', { name: '← My Deck', exact: true }).click();
+  await crumb(a.page, 'My Deck').click();
   await a.page.getByRole('dialog').getByRole('button', { name: 'Continue editing', exact: true }).click();
   assert.equal(await a.page.getByLabel('Main key', { exact: true }).inputValue(), 'zebra');
-  await a.page.getByRole('button', { name: '← My Deck', exact: true }).click();
+  await crumb(a.page, 'My Deck').click();
   await a.page.getByRole('dialog').getByRole('button', { name: 'Save', exact: true }).click();
   await a.page.getByRole('link', { name: 'zebra', exact: true }).click();
   // A never-generated component offers Retry too, which starts it at once (0.6.3; earlier Generate).
@@ -113,7 +113,7 @@ test('manual page UI: per-card actions, drafts, leave choices, sorting, failed-s
   assert.equal(await a.page.locator('.module-window .notice').count(), 0, 'no notice while editing (0.5.2)');
   assert.equal(await (await cardButton(a.page, 'Edit Text')).isDisabled(), true, 'one card at a time');
   await mainKeyField.fill('discard this');
-  await a.page.getByRole('button', { name: '← My Deck', exact: true }).click();
+  await crumb(a.page, 'My Deck').click();
   await a.page.getByRole('dialog').getByRole('button', { name: 'Discard', exact: true }).click();
   assert.equal(keyOf(await application.store.page(created.id)), 'zebra');
   await a.page.getByRole('link', { name: 'zebra', exact: true }).click();
@@ -142,7 +142,7 @@ test('manual page UI: per-card actions, drafts, leave choices, sorting, failed-s
   const saved = await application.store.page(created.id);
   assert.deepEqual(saved.components.map(item => [item.moduleType, text(item)]), [['main-key', 'alpha'], ['text', 'saved own text'], ['german', '']]);
   assert.equal(saved.createdAt, created.createdAt);
-  await a.page.getByRole('button', { name: '← My Deck', exact: true }).click();
+  await crumb(a.page, 'My Deck').click();
   await a.page.getByRole('button', { name: 'Add page manually', exact: true }).click();
   await a.page.getByRole('button', { name: 'Save', exact: true }).click();
   // An empty main key says so inside its field, not in a notice below it (0.6.3).
@@ -155,7 +155,7 @@ test('manual page UI: per-card actions, drafts, leave choices, sorting, failed-s
   await newKey.fill('aardvark');
   await a.page.getByRole('button', { name: /^(Save|Try saving again)$/ }).click();
   await pageReady(a.page);
-  await a.page.getByRole('button', { name: '← My Deck', exact: true }).click();
+  await crumb(a.page, 'My Deck').click();
   await a.page.getByLabel('Sort pages', { exact: true }).selectOption('az');
   await waitFor(async () => JSON.stringify(await a.page.locator('.page-rows .entry').allTextContents()) === JSON.stringify(['aardvark', 'alpha']), 'ascending page list loaded');
   await a.page.getByLabel('Sort pages', { exact: true }).selectOption('za');

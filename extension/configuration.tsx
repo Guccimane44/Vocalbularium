@@ -1,5 +1,7 @@
 import { useEffect, useReducer, useState } from 'react';
 import { ButtonIcon } from './button-icon.tsx';
+import { Crumbs } from './crumbs.tsx';
+import { home } from './crumb-text.ts';
 import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent } from 'react';
 import type { DeckEditorDraft } from '../types/editor-drafts.js';
 import type { DeckColour, DeckConfiguration } from '@vocabularium/contracts';
@@ -170,15 +172,15 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
       {!draft.pending && <ButtonIcon name="check" />}{draft.pending ? t('common.trySavingAgain') : t('common.save')}
     </button>
   </div>;
-  // Back to the deck, or Home for a new one (0.16.2); it leaves as Cancel does.
-  const back = draft.deck.id
-    ? <button className="back" onClick={() => void leave(`deck/${draft.deck.id}`)}>{t('page.back', { deck: savedName })}</button>
-    : <button className="back" onClick={() => void leave()}>{t('page.back', { deck: t('nav.home') })}</button>;
+  // The trail from Home (0.16.2): its crumbs leave as Cancel does. Settings are
+  // reached from Home and from the deck's page alike, and the trail is the same.
+  const crumbs = draft.deck.id
+    ? [home(() => void leave()), { label: savedName, go: () => void leave(`deck/${draft.deck.id}`), own: true }, { label: t('deck.settings') }]
+    : [home(() => void leave()), { label: t('deck.settings.newTitle') }];
   return <div className="deck-settings">
-    {back}
+    <Crumbs crumbs={crumbs} />
     <div className="page-head">
       <div>
-        <p className="eyebrow">{t('deck.settings')}</p>
         {/* The deck's name as the title, a new deck called so (0.16.2; until then a slogan). */}
         <h1><bdi>{draft.deck.id ? savedName : t('deck.settings.newTitle')}</bdi></h1>
       </div>

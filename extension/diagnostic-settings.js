@@ -1,5 +1,6 @@
 // @ts-check
 import { currentLanguage, t } from './i18n.ts';
+import { crumbsElement, home } from './crumb-text.ts';
 // The worker's diagnostics replies (background-runtime.js) as this view reads them.
 /** @typedef {{ bytes: number, budgetBytes: number, mode: string, degraded?: boolean, reason?: string | null }} BufferStatus */
 /** @typedef {{ local: BufferStatus, backend?: BufferStatus | null }} DiagnosticsStatus */
@@ -8,9 +9,8 @@ import { currentLanguage, t } from './i18n.ts';
 /** @param {{ send: (message: Record<string, unknown>) => Promise<unknown>, root: HTMLElement, navigate: (hash: string) => void }} options */
 export async function diagnosticSettings({ send, root, navigate }) {
   const section = document.createElement('section');
-  // Every view below Home leads back up (0.16.2).
-  const back = document.createElement('button'); back.type = 'button'; back.className = 'back';
-  back.textContent = t('page.back', { deck: t('nav.home') }); back.addEventListener('click', () => navigate(''));
+  // Every view below Home shows its trail from Home (0.16.2).
+  const back = crumbsElement([home(() => navigate('')), { label: t('account.diagnostics') }]);
   const title = document.createElement('h1'); title.textContent = t('account.diagnostics');
   const description = document.createElement('p');
   description.textContent = t('diagnostics.description');

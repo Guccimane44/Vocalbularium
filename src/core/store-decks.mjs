@@ -61,6 +61,24 @@ export class DeckStore extends SessionStore {
       return { defaultDeckId: deckId };
     });
   }
+  // Decks keep the order their owner gives them (D27): a deck moves to a
+  // position among them, counted from 0, and the others keep their order.
+  // The decks' ordinals are dealt out again in the new order.
+  /** @param {string} operationId @param {{ deckId: string, position: number }} payload */
+  async moveDeck(operationId, { deckId, position }) {
+    return await this.command(operationId, 'move-deck', { deckId, position }, async () => {
+      const rows = /** @type {Pick<DeckRow, 'id' | 'ordinal'>[]} */ (await this.database.all('SELECT id, ordinal FROM decks ORDER BY ordinal'));
+      const from = rows.findIndex(row => row.id === deckId);
+      if (from < 0) fail('deleted', 'This deck no longer exists.');
+      if (!Number.isInteger(position) || position < 0 || position >= rows.length) fail('invalid', 'Choose a place among your decks.');
+      const ids = rows.map(row => row.id);
+      ids.splice(from, 1); ids.splice(position, 0, deckId);
+      for (const [index, id] of ids.entries()) {
+        if (rows[index].id !== id) await this.database.run('UPDATE decks SET ordinal = $1 WHERE id = $2', [Number(rows[index].ordinal), id]);
+      }
+      return { deckId, position };
+    });
+  }
   // The configuration is only the template for new pages; saving it never
   // changes an existing page.
   /** @param {string} operationId @param {{ deck?: DeckConfiguration }} payload */

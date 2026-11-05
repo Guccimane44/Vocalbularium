@@ -1,5 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ButtonIcon } from './button-icon.tsx';
+import { Crumbs } from './crumbs.tsx';
+import { home } from './crumb-text.ts';
 import type { CSSProperties, ReactNode } from 'react';
 import type { Component, GenerationTarget, ModuleInstance, Page } from '@vocabularium/contracts';
 import { CATALOG, isContentType, isModuleType, WINDOW_MODULES } from '@vocabularium/domain/page-modules';
@@ -267,7 +269,9 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
       <button onClick={() => void discardUnavailable()}>{t('common.discardDraft')}</button>
     </>}
   </>;
-  const back = <button className="back" onClick={() => navigate(`deck/${deck.id}`)}>{t('page.back', { deck: deck.name })}</button>;
+  // The trail from Home (0.16.2): the page named by its main key, cut to the crumbs' limit.
+  const back = <Crumbs crumbs={[home(() => navigate('')), { label: deck.name, go: () => navigate(`deck/${deck.id}`), own: true },
+    isNew || !page ? { label: t('nav.newPage') } : { label: mainKeyOf(page.components), own: true }]} />;
   if (isNew || !page) return <>
     {notice}{back}
     <h1>{t('page.new.title')}</h1>

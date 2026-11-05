@@ -63,6 +63,29 @@ test('a deck summary names the module families its configuration uses, in the ca
   assert.deepEqual(await families(bare), [], 'the main key has no family');
 });
 
+test('decks keep the order their owner gives them; a move is idempotent and its place checked (D27)', async (t) => {
+  const store = await fixture(t);
+  const first = (await store.snapshot()).id;
+  const { deckId: second } = await save(store, { name: 'Second', modules: withKey(), view });
+  const { deckId: third } = await save(store, { name: 'Third', modules: withKey(), view });
+  const order = async () => (await store.listDecks()).decks.map(deck => deck.id);
+  assert.deepEqual(await order(), [first, second, third], 'creation order at first');
+  assert.equal((await store.moveDeck('move-third', { deckId: third, position: 0 })).position, 0);
+  assert.deepEqual(await order(), [third, first, second]);
+  await store.moveDeck('move-first', { deckId: first, position: 2 });
+  assert.deepEqual(await order(), [third, second, first]);
+  // A replay moves nothing again; its ID cannot carry another move.
+  await store.moveDeck('move-third', { deckId: third, position: 0 });
+  assert.deepEqual(await order(), [third, second, first], 'a replay moves nothing');
+  await assert.rejects(store.moveDeck('move-third', { deckId: third, position: 1 }), { code: 'operation_reused' });
+  await assert.rejects(store.moveDeck('far', { deckId: second, position: 3 }), { code: 'invalid', message: 'Choose a place among your decks.' });
+  await assert.rejects(store.moveDeck('gone', { deckId: 'no-such-deck', position: 0 }), { code: 'deleted' });
+  // The deck list's pages follow the order.
+  const page = await store.listDecks({ limit: 2 });
+  assert.deepEqual(page.decks.map(deck => deck.id), [third, second]);
+  assert.deepEqual((await store.listDecks({ cursor: page.nextCursor, limit: 2 })).decks.map(deck => deck.id), [first]);
+});
+
 test('a new page copies the deck modules; later deck changes never reach it', async (t) => {
   const store = await fixture(t), pageId = await capture(store, 'Wir sind 幸福.');
   let page = await store.page(pageId);

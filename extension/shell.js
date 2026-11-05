@@ -76,8 +76,12 @@ function stable(decks) {
   return [...decks].sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
 }
 
-/** @param {{ decks: readonly ViewDeck[], currentDeckId: string | null | undefined, newDeck: () => void }} options */
-export function renderSidebar({ decks, currentDeckId, newDeck }) {
+// After a deck is moved (D27), the sidebar takes the account's new order as its own.
+/** @param {readonly string[]} ids */
+export function keepSidebarOrder(ids) { order = [...ids]; }
+
+/** @param {{ decks: readonly ViewDeck[], currentDeckId: string | null | undefined, newDeck: () => void, moveDeck?: (deckId: string, position: number) => Promise<boolean> }} options */
+export function renderSidebar({ decks, currentDeckId, newDeck, moveDeck }) {
   document.body.classList.add('signed-in');
   const nav = sidebar();
   nav.hidden = false; toggle().hidden = false;
@@ -92,6 +96,7 @@ export function renderSidebar({ decks, currentDeckId, newDeck }) {
     const item = element('li');
     const link = element('a', undefined, `nav-item fam-${deckColour(deck)}`);
     link.href = `#deck/${encodeURIComponent(deck.id)}`;
+    link.draggable = false; link.dataset.deckId = deck.id;
     if (deck.id === currentDeckId) link.setAttribute('aria-current', 'page');
     const mark = element('span', undefined, 'fam-mark'); mark.setAttribute('aria-hidden', 'true');
     const count = element('span', String(deck.pageCount ?? 0), 'nav-count');
@@ -105,7 +110,112 @@ export function renderSidebar({ decks, currentDeckId, newDeck }) {
   // The decks scroll on their own, so the account menu stays at the foot and can open over the page.
   const scroll = element('div', undefined, 'sidebar-scroll');
   scroll.append(brand, home, heading, list, add);
-  nav.replaceChildren(scroll, accountSlot);
+  const announcer = element('p', undefined, 'visually-hidden'); announcer.setAttribute('role', 'status'); announcer.setAttribute('aria-live', 'assertive');
+  nav.replaceChildren(scroll, accountSlot, announcer);
+  if (moveDeck) sortableDecks(list, announcer, moveDeck);
+}
+
+// The sidebar's decks reorder by dragging a row (D27, 0.16.2), as the deck
+// cards on Home do: a pointer that moves more than a few pixels picks the row
+// up (a shorter move is a click that opens the deck), the other rows make room,
+// and letting go saves the place. From the keyboard, Space picks the focused
+// deck up, the arrow keys move it, Space drops it and Escape puts it back,
+// each step announced. A failed save puts the rows back as they were.
+/** @param {HTMLElement} list @param {HTMLElement} announcer @param {(deckId: string, position: number) => Promise<boolean>} moveDeck */
+function sortableDecks(list, announcer, moveDeck) {
+  const rows = () => /** @type {HTMLLIElement[]} */ ([...list.children]);
+  const nameOf = (/** @type {HTMLElement} */ row) => row.querySelector('.nav-label')?.textContent ?? '';
+  const say = (/** @type {string} */ text) => { announcer.textContent = text; };
+  // Puts a row back at the place it was picked up from.
+  const putBack = (/** @type {HTMLLIElement} */ row, /** @type {number} */ from) => list.insertBefore(row, rows().filter(other => other !== row)[from] ?? null);
+  /** @param {HTMLLIElement} row @param {number} from */
+  const save = async (row, from) => {
+    const to = rows().indexOf(row);
+    if (to === from) { say(t('shaping.notMoved', { name: nameOf(row) })); return; }
+    say(t('shaping.dropped', { name: nameOf(row) }));
+    const id = /** @type {HTMLElement} */ (row.querySelector('[data-deck-id]')).dataset.deckId ?? '';
+    if (!(await moveDeck(id, to))) putBack(row, from);
+  };
+  // The pointer.
+  /** @type {{ row: HTMLLIElement, from: number, x: number, y: number, dragging: boolean, pointer: number } | null} */
+  let press = null;
+  let swallowClick = false;
+  list.addEventListener('pointerdown', event => {
+    const row = /** @type {HTMLElement} */ (event.target).closest('li');
+    if (!row || event.button !== 0) return;
+    press = { row: /** @type {HTMLLIElement} */ (row), from: rows().indexOf(/** @type {HTMLLIElement} */ (row)), x: event.clientX, y: event.clientY, dragging: false, pointer: event.pointerId };
+  });
+  list.addEventListener('pointermove', event => {
+    if (!press || event.pointerId !== press.pointer) return;
+    const dy = event.clientY - press.y;
+    if (!press.dragging) {
+      if (Math.hypot(event.clientX - press.x, dy) < 6) return;
+      press.dragging = true; press.row.dataset.dragging = '';
+      list.setPointerCapture(event.pointerId);
+      say(t('shaping.pickedUp', { name: nameOf(press.row) }));
+    }
+    // The row follows the pointer; it changes place when its middle passes a neighbour's middle.
+    const row = press.row;
+    const shift = event.clientY - press.y;
+    const natural = row.getBoundingClientRect().top - Number(row.dataset.shift ?? 0);
+    const middle = natural + row.offsetHeight / 2 + shift;
+    const others = rows().filter(other => other !== row);
+    const before = others.find(other => { const box = other.getBoundingClientRect(); return middle < box.top + box.height / 2; }) ?? null;
+    if (before !== row.nextElementSibling) {
+      list.insertBefore(row, before);
+      // Its place moved under the pointer: the pointer's start moves with it.
+      press.y += row.getBoundingClientRect().top - Number(row.dataset.shift ?? 0) - natural;
+    }
+    row.dataset.shift = String(event.clientY - press.y);
+    row.style.transform = `translateY(${event.clientY - press.y}px)`;
+  });
+  const end = async (/** @type {PointerEvent} */ event) => {
+    if (!press || event.pointerId !== press.pointer) return;
+    const { row, from, dragging } = press; press = null;
+    if (!dragging) return;
+    swallowClick = true; setTimeout(() => { swallowClick = false; });
+    row.style.transform = ''; delete row.dataset.dragging; delete row.dataset.shift;
+    if (event.type === 'pointercancel') { putBack(row, from); say(t('shaping.cancelled', { name: nameOf(row) })); return; }
+    await save(row, from);
+  };
+  list.addEventListener('pointerup', end); list.addEventListener('pointercancel', end);
+  // A drag is not a click: the deck stays closed.
+  list.addEventListener('click', event => { if (swallowClick) { event.preventDefault(); event.stopPropagation(); } }, true);
+  // The keyboard.
+  /** @type {{ row: HTMLLIElement, from: number } | null} */
+  let held = null;
+  list.addEventListener('keydown', event => {
+    const link = /** @type {HTMLElement} */ (event.target).closest('[data-deck-id]');
+    const row = /** @type {HTMLLIElement | null} */ (link?.closest('li') ?? null);
+    if (!row || !link) return;
+    if (event.code === 'Space') {
+      event.preventDefault();
+      if (!held) { held = { row, from: rows().indexOf(row) }; row.dataset.dragging = ''; say(t('shaping.pickedUp', { name: nameOf(row) })); return; }
+      const { from } = held; held = null; delete row.dataset.dragging; void save(row, from); return;
+    }
+    if (!held) return;
+    if (event.key === 'Escape') {
+      event.preventDefault(); event.stopPropagation();
+      const { from } = held; held = null; delete row.dataset.dragging;
+      putBack(row, from);
+      /** @type {HTMLElement} */ (row.querySelector('[data-deck-id]')).focus();
+      say(t('shaping.cancelled', { name: nameOf(row) }));
+      return;
+    }
+    if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') return;
+    event.preventDefault();
+    const index = rows().indexOf(row);
+    const to = Math.max(0, Math.min(rows().length - 1, index + (event.key === 'ArrowUp' ? -1 : 1)));
+    if (to === index) return;
+    list.insertBefore(row, event.key === 'ArrowUp' ? rows()[to] : rows()[to].nextElementSibling);
+    /** @type {HTMLElement} */ (row.querySelector('[data-deck-id]')).focus();
+    say(t('shaping.overPosition', { name: nameOf(row), position: to + 1 }));
+  });
+  // Leaving the list lets a held deck go where it is; moving a row in the
+  // list blurs it for a moment, so the focus is looked at a tick later.
+  list.addEventListener('focusout', () => {
+    setTimeout(() => { if (held && !list.contains(document.activeElement)) { delete held.row.dataset.dragging; held = null; } });
+  });
 }
 
 export function closeAccountMenu() {

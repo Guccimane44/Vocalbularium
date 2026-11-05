@@ -121,6 +121,8 @@ export async function captureFrom(browser, text) {
   }, { text, origin: apiOrigin });
 }
 // A page view has loaded once its header action is there (D04: no page-level Edit page).
+// A crumb in a view's trail from Home (0.16.2), by its text.
+export const crumb = (page, name) => page.getByRole('navigation', { name: 'Where you are', exact: true }).getByRole('link', { name, exact: true });
 export const pageReady = page => page.getByRole('button', { name: 'Page actions', exact: true }).waitFor();
 // Delete page sits in the page's ⋯ menu (0.16.1).
 export async function chooseDeletePage(page) {

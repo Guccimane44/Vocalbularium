@@ -5,7 +5,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { sentenceResult, text, textBlocks, useModules, wordResult, staged } from '../helpers/pages.mjs';
-import { keyOf, modulesOf, apiOrigin, launch, accountTrigger, accountMenu, chooseAppearance, signIn, waitFor, pageReady } from './helpers.mjs';
+import { keyOf, modulesOf, apiOrigin, launch, accountTrigger, accountMenu, chooseAppearance, signIn, waitFor, pageReady, crumb } from './helpers.mjs';
 
 test('page list: quiet states, layouts remembered per deck, sorting, grouping, every pointer target, text selection and keyboard navigation', { timeout: 60000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-rows-browser-'));
@@ -157,7 +157,7 @@ test('page list: quiet states, layouts remembered per deck, sorting, grouping, e
     } else { await completed.getByRole('link').focus(); await a.page.keyboard.press('Enter'); }
     await pageReady(a.page);
     assert.ok(a.page.url().endsWith(`#page/${ids.completed}`), target);
-    await a.page.getByRole('button', { name: '← My Deck', exact: true }).click();
+    await crumb(a.page, 'My Deck').click();
     await row('completed').waitFor();
   }
   await row('completed').getByRole('link').evaluate(node => {

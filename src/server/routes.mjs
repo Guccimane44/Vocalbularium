@@ -5,7 +5,7 @@ import { mainKeyOf } from '@vocabularium/domain/pages';
 import {
   ApiFailureSchema, CapturePreparationRequestSchema, ComponentDeleteRequestSchema, ComponentMoveRequestSchema, FacetMoveRequestSchema,
   DeckConfigurationSaveRequestSchema, DeckDeleteRequestSchema, FacetAddRequestSchema, FacetDeleteRequestSchema, ModuleAddRequestSchema,
-  DefaultDeckRequestSchema, JsonObjectSchema, LanguageRequestSchema, LoginRequestSchema, HealthResponseSchema, LoginResponseSchema,
+  DefaultDeckRequestSchema, DeckMoveRequestSchema, JsonObjectSchema, LanguageRequestSchema, LoginRequestSchema, HealthResponseSchema, LoginResponseSchema,
   PageCaptureRequestSchema, PageCreateRequestSchema, PageDeleteRequestSchema, PageGenerateRequestSchema,
   PageSaveRequestSchema, PollRequestSchema, PublishRequestSchema, SessionRequestSchema,
   ClipListSchema, ClipParamsSchema, ClipRetryResponseSchema
@@ -137,6 +137,11 @@ export function registerRoutes(fastify, { store, authentication, generation, aud
     await generation.cancelObsolete();
     return result;
   });
+
+  // A deck moves among the account's decks (D27).
+  fastify.post('/api/deck/move', {
+    schema: routeSchema('Move a deck among the account decks', DeckMoveRequestSchema)
+  }, async request => store.moveDeck(request.body.operationId, { deckId: request.body.deckId, position: request.body.position }));
 
   fastify.post('/api/default-deck', {
     schema: routeSchema('Set the account default deck', DefaultDeckRequestSchema)

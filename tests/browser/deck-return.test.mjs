@@ -7,7 +7,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { staged } from '../helpers/pages.mjs';
-import { BANK, componentArticle, launch, signIn } from './helpers.mjs';
+import { BANK, componentArticle, crumb, launch, signIn } from './helpers.mjs';
 
 test('deck return: the way back from a page and a re-sort draw no empty or loading box over the list', { timeout: 60000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-deck-return-browser-'));
@@ -36,7 +36,7 @@ test('deck return: the way back from a page and a re-sort draw no empty or loadi
     await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
     await componentArticle(a.page, 'German').waitFor();
     await watch();
-    if (way === 'back link') await a.page.locator('.back').click(); else await a.page.goBack();
+    if (way === 'back link') await crumb(a.page, 'My Deck').click(); else await a.page.goBack();
     await a.page.locator('.page-row').first().waitFor();
     await new Promise(resolve => setTimeout(resolve, 400));
     assert.deepEqual((await drawn()).filter(text => text.endsWith('…') || text.startsWith('empty')), [], `${way}: no empty or loading box over the list`);

@@ -54,6 +54,12 @@ export const DefaultDeckRequestSchema = Type.Object({
   operationId: OperationIdSchema,
   deckId: Type.String()
 }, OpenRequest);
+// A deck moves to a place among the account's decks (D27); the position counts from 0.
+export const DeckMoveRequestSchema = Type.Object({
+  operationId: OperationIdSchema,
+  deckId: Type.String({ minLength: 1 }),
+  position: Type.Integer({ minimum: 0 })
+}, OpenRequest);
 export const LanguageRequestSchema = Type.Object({
   operationId: OperationIdSchema,
   language: Type.String()
@@ -98,6 +104,7 @@ export type LoginRequest = Type.Static<typeof LoginRequestSchema>;
 export type SessionRequest = Type.Static<typeof SessionRequestSchema>;
 export type CapturePreparationRequest = Type.Static<typeof CapturePreparationRequestSchema>;
 export type DeckDeleteRequest = Type.Static<typeof DeckDeleteRequestSchema>;
+export type DeckMoveRequest = Type.Static<typeof DeckMoveRequestSchema>;
 export type PollRequest = Type.Static<typeof PollRequestSchema>;
 export type PublishRequest = Type.Static<typeof PublishRequestSchema>;
 
