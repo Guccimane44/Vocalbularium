@@ -1,5 +1,6 @@
 // @ts-check
 import { readLocal } from './recovery.js';
+import { buttonIcon } from './button-icons.ts';
 import { initializeFeedback } from './feedback-dashboard.js';
 import { initializeTheme } from './theme.js';
 import { pageViews } from './pages.js';
@@ -89,7 +90,7 @@ function login() {
     input.autocomplete = id === 'username' ? 'username' : 'current-password';
     form.append(label, input);
   }
-  const submit = element('button', t('login.submit'), 'primary'); submit.type = 'submit'; form.append(submit);
+  const submit = element('button', t('login.submit'), 'primary'); submit.type = 'submit'; submit.append(buttonIcon('arrow')); form.append(submit);
   form.onsubmit = async event => {
     event.preventDefault(); submit.disabled = true;
     try {

@@ -60,14 +60,14 @@ export async function diagnosticSettings({ send, root, navigate }) {
   });
   make(t('diagnostics.clear'), async () => {
     const { dialog } = await import('./dialog.ts');
-    const choice = await dialog({ title: t('diagnostics.clear.title'), message: t('diagnostics.clear.message'), choices: [t('common.cancel'), t('diagnostics.clear.confirm')] });
+    const choice = await dialog({ title: t('diagnostics.clear.title'), message: t('diagnostics.clear.message'), choices: [t('common.cancel'), t('diagnostics.clear.confirm')], danger: true });
     if (choice.choice !== t('diagnostics.clear.confirm')) return;
     const value = /** @type {DiagnosticsCleanup} */ (await send({ type: 'diagnostics-cleanup', range: range() }));
     await refresh(); notice.textContent = t('diagnostics.cleared', { backend: value.backend.count, local: value.local.count });
   });
   make(t('diagnostics.clearBuffer'), async () => {
     const { dialog } = await import('./dialog.ts');
-    const choice = await dialog({ title: t('diagnostics.clearBuffer.title'), message: t('diagnostics.clearBuffer.message'), choices: [t('common.cancel'), t('diagnostics.clearBuffer.confirm')] });
+    const choice = await dialog({ title: t('diagnostics.clearBuffer.title'), message: t('diagnostics.clearBuffer.message'), choices: [t('common.cancel'), t('diagnostics.clearBuffer.confirm')], danger: true });
     if (choice.choice === t('diagnostics.clearBuffer.confirm')) { await send({ type: 'diagnostics-local-cleanup', range: range() }); await refresh(); }
   });
   form.append(buttons); section.append(back, title, description, status, form, notice); root.replaceChildren(section);

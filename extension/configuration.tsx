@@ -1,4 +1,5 @@
 import { useEffect, useReducer, useState } from 'react';
+import { ButtonIcon } from './button-icon.tsx';
 import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent } from 'react';
 import type { DeckEditorDraft } from '../types/editor-drafts.js';
 import type { DeckColour, DeckConfiguration } from '@vocabularium/contracts';
@@ -164,9 +165,9 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
     onCancel(to);
   };
   const actions = <div className="head-actions">
-    <button onClick={() => void leave()}>{t('common.cancel')}</button>
+    <button className="quiet" onClick={() => void leave()}>{t('common.cancel')}</button>
     <button className="primary" disabled={Boolean(draft.saving)} onClick={() => void saveDraft()}>
-      {draft.pending ? t('common.trySavingAgain') : t('common.save')}
+      {!draft.pending && <ButtonIcon name="check" />}{draft.pending ? t('common.trySavingAgain') : t('common.save')}
     </button>
   </div>;
   // Back to the deck, or Home for a new one (0.16.2); it leaves as Cancel does.

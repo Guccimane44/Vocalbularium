@@ -7,6 +7,7 @@ import { mainKeyTier } from './main-key.ts';
 import { GeneratingStatus, isLayout, LayoutSwitch, MeaningLine, PageList, SavingStatus, useArrivals } from './page-list.tsx';
 import type { Layout, ListPage } from './page-list.tsx';
 import { currentLanguage, t } from './i18n.ts';
+import { ButtonIcon } from './button-icon.tsx';
 
 // A page summary: list rows show the main key, the first meaning and the
 // filled modules, never the page's content.
@@ -103,7 +104,7 @@ function DeckMenu({ deck, account, replacementDecks, replacementCursor, loadDeck
     const decision = await dialog({
       title: t('deck.delete.title'),
       message: t(replacementDecks.length === 1 && !replacementCursor ? 'deck.delete.lastMessage' : 'deck.delete.message', { name: deck.name }),
-      choices: [t('common.cancel'), t('deck.delete')],
+      choices: [t('common.cancel'), t('deck.delete')], danger: true,
       select: replacements.length || replacementCursor ? {
         label: t('deck.delete.newDefault'), options: replacements.map(item => ({ value: item.id, label: item.name })),
         cursor: replacementCursor,
@@ -283,7 +284,7 @@ function DeckGrid({ account, local, navigate, configure, mutate, reportError, lo
       <div>
         <h1>{t('dashboard.title')}</h1>
       </div>
-      <button className="primary" onClick={() => configure('new')}>{t('dashboard.addDeck')}</button>
+      <button className="primary" onClick={() => configure('new')}><ButtonIcon name="plus" />{t('dashboard.addDeck')}</button>
     </div>
     <div className="grid">
       {decks.map(deck => <article className={`deck fam-${deckColour(deck)}`} key={deck.id}>
