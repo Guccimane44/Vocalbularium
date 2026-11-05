@@ -4,8 +4,16 @@
 .visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 
 /* Title */
-.back { border: 0; padding: 6px 10px 6px 0; color: var(--ink-soft); }
-.back:hover { background: none; color: var(--ink); }
+/* A view's trail from Home (0.16.2, once a back link): Home › the deck › the
+   view, every crumb but the last a link; a crumb's text is cut to a limit. */
+.crumbs ol { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 0; margin: 0; padding: 6px 0; list-style: none; font-size: 15px; color: var(--ink-muted); }
+.crumbs li { display: inline-flex; align-items: center; min-width: 0; }
+.crumbs li + li::before { content: '›'; margin-inline: 8px; color: var(--ink-muted); }
+:root[dir="rtl"] .crumbs li + li::before { content: '‹'; }
+.crumbs :is(a, span) { max-width: 34ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.crumbs a { color: var(--ink-soft); text-decoration: none; border-radius: 4px; }
+.crumbs a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+.crumbs [aria-current] { color: var(--ink); font-weight: 600; }
 .page-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px 20px; margin-bottom: 8px; }
 .page-title { flex: 1 1 auto; min-width: 0; }
 .main-key { margin: 6px 0 10px; overflow-wrap: anywhere; white-space: pre-wrap; text-wrap: balance; }

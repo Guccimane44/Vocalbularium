@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { blockText } from '@vocabularium/domain/pages';
 import { text } from '../helpers/pages.mjs';
-import { keyOf, apiOrigin, launch, accountMenu, chooseAppearance, signIn, addFromWindow } from './helpers.mjs';
+import { keyOf, apiOrigin, launch, accountMenu, chooseAppearance, signIn, addFromWindow, crumb } from './helpers.mjs';
 
 test('account extension: login, two installations, reopening, server failure, and logout', { timeout: 45000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-account-browser-'));
@@ -152,7 +152,7 @@ test('appearance: all open views, drafts, dialogs, feedback lifetime, logout and
   await theme(other, 'light'); await hasTheme(a.page, 'light');
   assert.equal(await editor.inputValue(), 'Keep this unsaved draft');
   assert.deepEqual(await editor.evaluate(node => [node.selectionStart, node.selectionEnd]), [5, 9]);
-  await a.page.getByRole('button', { name: '← My Deck', exact: true }).click();
+  await crumb(a.page, 'My Deck').click();
   await a.page.getByRole('dialog').waitFor();
   await theme(other, 'dark'); await hasTheme(a.page, 'dark');
   await a.page.getByRole('dialog').screenshot({ path: 'artifacts/v0.2.0-dialog-dark.png' });

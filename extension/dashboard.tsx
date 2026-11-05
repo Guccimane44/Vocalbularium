@@ -14,6 +14,8 @@ import { currentLanguage, listFormat, t } from './i18n.ts';
 import { familyLabel } from './catalog-text.ts';
 import type { ModuleFamily } from '@vocabularium/domain/page-modules';
 import { ButtonIcon } from './button-icon.tsx';
+import { Crumbs } from './crumbs.tsx';
+import { home } from './crumb-text.ts';
 
 // A page summary: list rows show the main key, the first meaning and the
 // filled modules, never the page's content.
@@ -252,8 +254,8 @@ function DeckList({ deck, account, navigate, configure, mutate, reportError, loa
     setLayout(value);
   };
   return <div className={`deck-view fam-${deckColour(deck)}`}>
-    {/* Every view below Home leads back up (0.16.2). */}
-    <button className="back" onClick={() => navigate('')}>{t('page.back', { deck: t('nav.home') })}</button>
+    {/* Every view below Home shows its trail from Home (0.16.2). */}
+    <Crumbs crumbs={[home(() => navigate('')), { label: deck.name, own: true }]} />
     <div className="page-head">
       <div>
         <h1><span className="fam-mark deck-mark" aria-hidden="true" /><bdi>{deck.name}</bdi></h1>

@@ -9,7 +9,7 @@ import { BANK, componentArticle, cardTab, launch, accountTrigger, accountMenu, s
 
 // Text an interface shows that is not its own: the brand, the user's decks,
 // keys and content, dates, counts, and the languages named in themselves.
-const NOT_INTERFACE = '.brand, .meaning, .main-key, .entry, .md, .entry-content, .capture-text, .nav-label, .nav-count, .deck h2, .deck-view h1 bdi, .deck-settings h1 bdi, .capture-deck, time, .family-count, .language-name, .language-row-value, .account-name, .account-server, .facet-tab-mark, .facet-tag-mark, .sample-page, .explanation-samples, .facet-explanation .explanation-sample, input, textarea';
+const NOT_INTERFACE = '.brand, .meaning, .main-key, .entry, .md, .entry-content, .capture-text, .nav-label, .nav-count, .deck h2, .deck-view h1 bdi, .deck-settings h1 bdi, .crumb-own, .capture-deck, time, .family-count, .language-name, .language-row-value, .account-name, .account-server, .facet-tab-mark, .facet-tag-mark, .sample-page, .explanation-samples, .facet-explanation .explanation-sample, input, textarea';
 // Every visible interface text and label that is not a pseudo-language message.
 const unaccented = page => page.evaluate(selector => {
   const found = [];
