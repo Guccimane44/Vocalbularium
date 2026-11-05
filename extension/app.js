@@ -119,14 +119,34 @@ const clearBadge = () => {
 };
 document.addEventListener('visibilitychange', clearBadge);
 
-// A deck moves among the account's decks (D27), from Home or the sidebar: the
-// account comes back in its new order, which the sidebar takes as its own.
+// A deck moves among the account's decks (D27), from Home or the sidebar.
+// While the move is saved, every redraw shows the decks in the new order: a
+// redraw reads the account from storage, which still holds the old one, and
+// would otherwise put the deck back for a moment (the flicker of 0.16.2's
+// first build). The account comes back in its new order, which the sidebar
+// takes as its own; a failed move shows the old order again.
+/** @type {string[] | null} */
+let pendingOrder = null;
+/** @template {{ id: string }} T @param {readonly T[]} decks @param {readonly string[]} ids */
+const arranged = (decks, ids) => [...decks].sort((a, b) => (ids.indexOf(a.id) + 1 || Infinity) - (ids.indexOf(b.id) + 1 || Infinity));
 /** @param {string} deckId @param {number} position */
 async function moveDeck(deckId, position) {
-  const next = await send({ type: 'move-deck', deckId, position });
-  account = next.account; signedIn = next.signedIn;
-  keepSidebarOrder(/** @type {ViewAccount} */ (account).decks.map(deck => deck.id));
+  const before = /** @type {ViewAccount} */ (account).decks.map(deck => deck.id);
+  const ids = before.filter(id => id !== deckId);
+  ids.splice(position, 0, deckId);
+  pendingOrder = ids;
+  keepSidebarOrder(ids);
   await render();
+  try {
+    const next = await send({ type: 'move-deck', deckId, position });
+    pendingOrder = null;
+    account = next.account; signedIn = next.signedIn;
+    keepSidebarOrder(/** @type {ViewAccount} */ (account).decks.map(deck => deck.id));
+  } catch (error) {
+    pendingOrder = null;
+    keepSidebarOrder(before);
+    throw error;
+  } finally { await render(); }
 }
 
 async function render() {
@@ -141,6 +161,8 @@ async function render() {
   clearBadge();
   // Render account pages and capture receipts from the same storage snapshot.
   if (local.account) account = viewAccount(local.account);
+  // A deck move still being saved (D27) keeps its order on screen.
+  if (pendingOrder && account) account = { ...account, decks: arranged(account.decks, pendingOrder) };
   renderAccountMenu(accountRoot(), {
     username: /** @type {ViewAccount} */ (account)?.username,
     server: /** @type {ViewAccount} */ (account)?.server,

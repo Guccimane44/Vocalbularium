@@ -35,6 +35,12 @@ test('deck order: drag a card on Home, move a sidebar row by keyboard and by poi
   await waitFor(async () => JSON.stringify(await saved()) === JSON.stringify(['Third', 'My Deck', 'Second']), 'the card move saved');
   await waitFor(async () => JSON.stringify(await sidebar()) === JSON.stringify(['Third', 'My Deck', 'Second']), 'the sidebar follows');
   assert.match(new URL(a.page.url()).hash, /^#?$/, 'a drag opens no deck');
+  // The dropped card settles once the pointer leaves it: not lifted, its families back behind its edge (0.16.2's first build stayed up).
+  await a.page.mouse.move(5, 900);
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  const settled = await a.page.locator('.deck-slot').filter({ has: a.page.getByRole('heading', { name: 'Third', exact: true }) }).evaluate(slot =>
+    [getComputedStyle(slot.querySelector('.deck')).transform, new DOMMatrix(getComputedStyle(slot.querySelector('.deck-family')).transform).f]);
+  assert.deepEqual(settled, ['none', 22], 'the dropped card settles');
 
   // Sidebar, keyboard: Space picks Second up, Arrow Up twice, Space drops it.
   const row = name => a.page.locator('.nav-decks a').filter({ hasText: name });
@@ -53,7 +59,12 @@ test('deck order: drag a card on Home, move a sidebar row by keyboard and by poi
   assert.deepEqual(await sidebar(), ['Second', 'Third', 'My Deck'], 'Escape moves nothing');
   assert.deepEqual(await saved(), ['Second', 'Third', 'My Deck']);
 
-  // Sidebar, pointer: My Deck dragged above Second.
+  // Sidebar, pointer: My Deck dragged above Second. Every order the sidebar shows is recorded: it changes once, never back and forth while the move is saved.
+  await a.page.evaluate(() => {
+    window.orders = [];
+    const look = () => { const order = [...document.querySelectorAll('.nav-decks .nav-label')].map(node => node.textContent).join(','); if (window.orders.at(-1) !== order) window.orders.push(order); };
+    new MutationObserver(look).observe(document.querySelector('#sidebar'), { subtree: true, childList: true }); look();
+  });
   const top = await row('Second').boundingBox(), mine = await row('My Deck').boundingBox();
   await a.page.mouse.move(mine.x + 40, mine.y + mine.height / 2);
   await a.page.mouse.down();
@@ -61,6 +72,11 @@ test('deck order: drag a card on Home, move a sidebar row by keyboard and by poi
   await a.page.mouse.move(mine.x + 40, top.y + 4, { steps: 12 });
   await a.page.mouse.up();
   await waitFor(async () => JSON.stringify(await saved()) === JSON.stringify(['My Deck', 'Second', 'Third']), 'the sidebar drag saved');
+  await new Promise(resolve => setTimeout(resolve, 600));
+  // The row passes its neighbours while dragged; no order shown before comes back (0.16.2's first build put the old order back for a moment).
+  const orders = await a.page.evaluate(() => window.orders);
+  assert.equal(orders.at(-1), 'My Deck,Second,Third');
+  assert.equal(new Set(orders).size, orders.length, `the sidebar does not flicker: ${orders.join(' → ')}`);
   assert.match(new URL(a.page.url()).hash, /^#?$/, 'the dragged row opens no deck');
 
   // The order is the account's: it stays after a reload.
