@@ -124,6 +124,8 @@
   "dashboard.title": "你的卡组",
   "dashboard.addDeck": "新建卡组",
   "deck.default": "默认",
+  "deck.families": "模块家族：{families}",
+  "deck.isDefault": "默认卡组",
   "dashboard.moreDecks": "加载更多卡组",
   "layout.list": "列表",
   "layout.table": "表格",

@@ -124,6 +124,8 @@
   "dashboard.title": "Ваши колоды",
   "dashboard.addDeck": "Новая колода",
   "deck.default": "По умолчанию",
+  "deck.families": "Семейства модулей: {families}",
+  "deck.isDefault": "Колода по умолчанию",
   "dashboard.moreDecks": "Загрузить ещё колоды",
   "layout.list": "Список",
   "layout.table": "Таблица",

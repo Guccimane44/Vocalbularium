@@ -124,6 +124,8 @@
   "dashboard.title": "رزمك",
   "dashboard.addDeck": "رزمة جديدة",
   "deck.default": "افتراضية",
+  "deck.families": "عائلات الوحدات: {families}",
+  "deck.isDefault": "الرزمة الافتراضية",
   "dashboard.moreDecks": "تحميل المزيد من الرزم",
   "layout.list": "قائمة",
   "layout.table": "جدول",

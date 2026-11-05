@@ -133,16 +133,48 @@ body.signed-in main { margin-top: 12px; }
 .capture-recovery { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin-top: 4px; font-size: 14px; }
 
 .grid { margin-top: 28px; }
-.deck { position: relative; padding: 26px 24px 20px; border: 0; border-radius: var(--radius-card); background: var(--surface);
-  box-shadow: inset 0 3px 0 var(--fam, var(--fam-notes)), 0 0 0 1px var(--line); min-height: 0; margin-top: 18px;
+.deck-slot { position: relative; margin-top: 30px; }
+.deck { position: relative; z-index: 1; padding: 26px 24px 16px; border: 0; border-radius: var(--radius-card); background: var(--surface);
+  box-shadow: inset 0 3px 0 var(--fam, var(--fam-notes)), 0 0 0 1px var(--line); min-height: 0;
   transition: transform var(--dur-settle) var(--ease-spring), box-shadow var(--dur-spring) ease; }
-.deck:hover { transform: translateY(-3px); box-shadow: inset 0 3px 0 var(--fam, var(--fam-notes)), 0 0 0 1px var(--line), var(--shadow-lift); }
-.deck:focus-within, .deck:has(.deck-menu[open]) { z-index: 5; }
-.deck-tab { position: absolute; top: -18px; inset-inline-start: 18px; width: 72px; height: 18px; border-radius: var(--radius-control) var(--radius-control) 0 0;
-  background: var(--fam, var(--fam-notes)); transition: transform var(--dur-spring) var(--ease-spring); }
-.deck:hover .deck-tab { transform: translateY(-3px); }
+.deck-slot:is(:hover, :focus-within) .deck { transform: translateY(-4px); box-shadow: inset 0 3px 0 var(--fam, var(--fam-notes)), 0 0 0 1px var(--line), var(--shadow-lift); }
+.deck-slot:focus-within { z-index: 5; }
 .deck h2 { font: 600 24px/1.2 var(--font-display); margin: 0 0 6px; }
-.default-label { font: 600 12px/1 var(--font-text); padding: 5px 8px; border-radius: var(--radius-sm); background: var(--fam-tint, var(--surface-active)); color: var(--ink); }
+/* The deck's module families (0.16.2, the accepted canvas, A1): a little module
+   card per family, its colour along the top and as a small index tab,
+   overlapping in a row behind the deck's top edge with the first in front.
+   Pointed at or focused, the deck lifts and they rise to their own heights,
+   leaning apart, one after another, as the 0.6.0 sheets were meant to. */
+.deck-families { position: absolute; top: -30px; inset-inline-start: 20px; z-index: 0; width: 210px; height: 46px; pointer-events: none; }
+.deck-family { position: absolute; top: 0; inset-inline-start: calc(var(--i) * 46px); z-index: calc(10 - var(--i)); width: 62px; height: 46px; border-radius: 8px;
+  background: var(--surface); box-shadow: inset 0 3px 0 var(--fam), 0 0 0 1px var(--line), var(--shadow-drag);
+  transform-origin: 50% 100%; transform: translateY(22px); transition: transform 550ms cubic-bezier(.34, 1.9, .5, 1); transition-delay: calc(var(--i) * 60ms); }
+.deck-family::before { content: ''; position: absolute; top: -7px; inset-inline-start: 8px; width: 24px; height: 12px; border-radius: 5px 5px 5px 1px; background: var(--fam); }
+.deck-family:nth-child(4n + 1) { --rise: -6px; --lean: -5deg; }
+.deck-family:nth-child(4n + 2) { --rise: -12px; --lean: 3deg; }
+.deck-family:nth-child(4n + 3) { --rise: -8px; --lean: -3deg; }
+.deck-family:nth-child(4n) { --rise: -14px; --lean: 4deg; }
+.deck-slot:is(:hover, :focus-within) .deck-family { transform: translateY(var(--rise)) rotate(var(--lean)); }
+@media (prefers-reduced-motion: reduce) { .deck, .deck-family { transition: none; } }
+/* A deck's actions as symbols (0.16.2): on its card a row along the bottom,
+   on its page a quiet group, then Add page manually. */
+.deck-actions { display: flex; align-items: center; gap: 2px; }
+.deck-actions-card { margin-inline: -12px; }
+.deck-actions-card .deck-configure { margin-inline-start: auto; }
+.deck-symbol { display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 0; border-radius: var(--radius-control);
+  background: transparent; color: var(--ink-muted); transition: background-color var(--dur-instant) ease, color var(--dur-instant) ease; }
+.deck-symbol svg, .deck-star svg { width: 17px; height: 17px; }
+.deck-symbol:hover { background: var(--surface-hover); color: var(--ink); }
+.deck-delete:hover, .deck-delete:focus-visible { background: var(--status-failed-bg); color: var(--status-failed); }
+.deck-star.is-default { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 9px 0 7px; border-radius: var(--radius-control);
+  background: var(--surface-active); color: var(--ink); font: 600 12px/1 var(--font-text); }
+.deck-star.is-default svg { fill: currentColor; }
+.deck-actions-head { gap: 10px; }
+.deck-symbols { display: flex; align-items: center; gap: 2px; padding: 3px; border-radius: 13px; background: var(--surface); box-shadow: 0 0 0 1px var(--line); }
+.deck-symbols .deck-symbol, .deck-symbols .deck-star.is-default { width: 38px; height: 38px; padding: 0; justify-content: center; }
+.deck-symbols svg { width: 18px; height: 18px; }
+.deck-add-page { width: 46px; min-height: 46px; padding: 0; border-radius: 13px; }
+.deck-actions .deck-add-page svg { width: 20px; height: 20px; }
 
 @media (max-width: 900px) {
   .sidebar { position: fixed; inset-inline-start: 0; top: 0; bottom: 0; z-index: 30; transform: translateX(calc(-100% * var(--flip))); visibility: hidden;

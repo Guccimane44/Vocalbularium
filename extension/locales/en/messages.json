@@ -124,6 +124,8 @@
   "dashboard.title": "Your decks",
   "dashboard.addDeck": "New deck",
   "deck.default": "Default",
+  "deck.families": "Module families: {families}",
+  "deck.isDefault": "Default deck",
   "dashboard.moreDecks": "Load more decks",
   "layout.list": "List",
   "layout.table": "Table",

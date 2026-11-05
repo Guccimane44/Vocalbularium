@@ -36,8 +36,7 @@ test('buttons: New deck, deck settings’ Cancel and Save, and a deletion’s di
   await cancel.click();
 
   // Deleting a deck asks with a secondary Cancel and a danger Delete with its trash.
-  await a.page.getByLabel('Options for My Deck', { exact: true }).click();
-  await a.page.getByRole('button', { name: 'Delete deck', exact: true }).click();
+  await a.page.getByRole('group', { name: 'Options for My Deck', exact: true }).getByRole('button', { name: 'Delete deck', exact: true }).click();
   const dialog = a.page.getByRole('dialog');
   assert.deepEqual(await look(dialog.getByRole('button', { name: 'Cancel', exact: true })), { className: '', icon: null, ledge: true, radius: '12px' });
   assert.deepEqual(await look(dialog.getByRole('button', { name: 'Delete deck', exact: true })), { className: 'danger', icon: 'button-icon icon-trash', ledge: true, radius: '12px' });
