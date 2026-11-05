@@ -11,7 +11,7 @@ import { flushSync } from 'react-dom';
 import { createRoot } from 'react-dom/client';
 import { Dashboard } from './dashboard.tsx';
 import { diagnosticSettings } from './diagnostic-settings.js';
-import { accountRoot, initializeShell, renderAccountMenu, renderSidebar, showSignedOutShell } from './shell.js';
+import { accountRoot, initializeShell, keepSidebarOrder, renderAccountMenu, renderSidebar, showSignedOutShell } from './shell.js';
 import { initializeLanguage, onLanguageChange, t, translateDocument } from './i18n.ts';
 /** @typedef {import('../types/editor-drafts.js').DeckEditorDraft} DeckEditorDraft */
 /** @import { Root } from 'react-dom/client' */
@@ -119,6 +119,16 @@ const clearBadge = () => {
 };
 document.addEventListener('visibilitychange', clearBadge);
 
+// A deck moves among the account's decks (D27), from Home or the sidebar: the
+// account comes back in its new order, which the sidebar takes as its own.
+/** @param {string} deckId @param {number} position */
+async function moveDeck(deckId, position) {
+  const next = await send({ type: 'move-deck', deckId, position });
+  account = next.account; signedIn = next.signedIn;
+  keepSidebarOrder(/** @type {ViewAccount} */ (account).decks.map(deck => deck.id));
+  await render();
+}
+
 async function render() {
   const focusedMenu = /** @type {HTMLElement | null} */ (document.activeElement)?.dataset.deckOptions;
   // An input or a text area when it has `selectionStart`.
@@ -150,7 +160,11 @@ async function render() {
   // From here the view is signed in, with its account.
   const sidebar = (/** @type {string | null} */ currentDeckId) => {
     markedDeck = currentDeckId;
-    renderSidebar({ decks: /** @type {ViewAccount} */ (account).decks, currentDeckId, newDeck: () => { configuration = undefined; location.hash = 'configure/new'; } });
+    renderSidebar({ decks: /** @type {ViewAccount} */ (account).decks, currentDeckId, newDeck: () => { configuration = undefined; location.hash = 'configure/new'; },
+      // A deck dragged in the sidebar moves on Home too (D27).
+      moveDeck: async (deckId, position) => {
+        try { await moveDeck(deckId, position); return true; } catch (error) { showError(error); await render(); return false; }
+      } });
   };
   sidebar(routeDeck);
   if (location.hash === '#diagnostics') {
@@ -197,6 +211,7 @@ async function render() {
       navigate: hash => { location.hash = hash; },
       configure: id => { configuration = undefined; location.hash = `configure/${id}`; },
       mutate: async command => {
+        if (command.type === 'move-deck') { await moveDeck(/** @type {string} */ (command.deckId), /** @type {number} */ (command.position)); return; }
         const next = await send(command);
         account = next.account; signedIn = next.signedIn; await render();
       },

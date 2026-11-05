@@ -269,6 +269,13 @@ export function startBackground() {
         if (message.cursor) query.set('cursor', message.cursor);
         return request(`/api/decks/${encodeURIComponent(message.deckId)}/pages?${query}`, null, auth.token);
       }
+      // A deck moves among the account's decks (D27); a refused move restores the order shown.
+      if (message.type === 'move-deck') {
+        const operationId = message.operationId ?? crypto.randomUUID();
+        const pending = { operationId, path: '/api/deck/move', payload: { operationId, deckId: message.deckId, position: message.position } };
+        const saved = await saves.perform(pending, auth.token, ['invalid', 'deleted']);
+        return refreshAfterMutation(saved);
+      }
       if (message.type === 'set-default') {
         const operationId = message.operationId ?? crypto.randomUUID();
         const pending = { operationId, path: '/api/default-deck', payload: { operationId, deckId: message.deckId } };

@@ -156,6 +156,12 @@ body.signed-in main { margin-top: 12px; }
 .deck-family:nth-child(4n) { --rise: -14px; --lean: 4deg; }
 .deck-slot:is(:hover, :focus-within) .deck-family { transform: translateY(var(--rise)) rotate(var(--lean)); }
 @media (prefers-reduced-motion: reduce) { .deck, .deck-family { transition: none; } }
+/* A deck being dragged into a new place (D27): its card, or its sidebar row, lifts above the others. */
+.deck-slot[data-dragging] { z-index: 10; }
+.deck-slot[data-dragging] .deck { transform: translateY(-4px) rotate(-1.5deg); box-shadow: inset 0 3px 0 var(--fam, var(--fam-notes)), 0 0 0 1px var(--line), var(--shadow-drag); }
+.nav-decks li { position: relative; touch-action: none; }
+.nav-decks li[data-dragging] { z-index: 2; }
+.nav-decks li[data-dragging] .nav-item { background: var(--surface); box-shadow: var(--shadow-drag); cursor: grabbing; }
 /* A deck's actions as symbols (0.16.2): on its card a row along the bottom,
    on its page a quiet group, then Add page manually. */
 .deck-actions { display: flex; align-items: center; gap: 2px; }

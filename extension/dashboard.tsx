@@ -1,5 +1,9 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import type { CSSProperties, ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import type { CSSProperties, KeyboardEvent, ReactNode } from 'react';
+import { closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import type { Announcements, DragEndEvent } from '@dnd-kit/core';
+import { arrayMove, rectSortingStrategy, SortableContext, sortableKeyboardCoordinates, useSortable } from '@dnd-kit/sortable';
+import { CSS as DndCSS } from '@dnd-kit/utilities';
 import { dialog } from './dialog.ts';
 import { SORT_ORDERS } from './sorting.ts';
 import { deckColour } from './deck-colour.ts';
@@ -150,6 +154,59 @@ function storedLayout(deckId: string): Layout {
   catch { return 'list'; }
 }
 
+// The decks on Home reorder by dragging a card's body (D27, 0.16.2): a pointer
+// that moves more than a few pixels picks it up (a shorter move is a click that
+// opens the deck), and from the keyboard Space picks it up, the arrow keys move
+// it, Space drops it and Escape puts it back, as modules move on a page. The
+// order shown changes at once on a drop and returns if the save fails.
+type DeckDrag = Record<string, unknown> & { ref: (node: HTMLElement | null) => void };
+const DECK_KEYS = { start: ['Space'], cancel: ['Escape'], end: ['Space'] };
+function SortableDecks({ decks, label, mutate, reportError, children }: {
+  decks: DashboardDeck[]; label: string; mutate: DashboardProps['mutate']; reportError: DashboardProps['reportError'];
+  children: (deck: DashboardDeck, drag: DeckDrag) => ReactNode;
+}) {
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates, keyboardCodes: DECK_KEYS }));
+  const ids = decks.map(deck => deck.id);
+  const key = ids.join('|');
+  const [order, setOrder] = useState(ids);
+  useEffect(() => { setOrder(ids); }, [key]);
+  const byId = new Map(decks.map(deck => [deck.id, deck]));
+  const shown = (order.length === ids.length && ids.every(id => order.includes(id)) ? order : ids).map(id => byId.get(id)!);
+  const shownKey = shown.map(deck => deck.id).join('|');
+  const sortableIds = useMemo(() => shownKey ? shownKey.split('|') : [], [shownKey]);
+  const name = (id: string | number) => byId.get(String(id))?.name ?? '';
+  const announcements: Announcements = {
+    onDragStart: ({ active }) => t('shaping.pickedUp', { name: name(active.id) }),
+    onDragOver: ({ active, over }) => over ? t('shaping.overPosition', { name: name(active.id), position: sortableIds.indexOf(String(over.id)) + 1 }) : t('shaping.notMoved', { name: name(active.id) }),
+    onDragEnd: ({ active, over }) => t(over ? 'shaping.dropped' : 'shaping.notMoved', { name: name(active.id) }),
+    onDragCancel: ({ active }) => t('shaping.cancelled', { name: name(active.id) })
+  };
+  async function end({ active, over }: DragEndEvent) {
+    if (!over) return;
+    const from = sortableIds.indexOf(String(active.id)), to = sortableIds.indexOf(String(over.id));
+    if (from < 0 || to < 0 || from === to) return;
+    setOrder(arrayMove(sortableIds, from, to));
+    try { await mutate({ type: 'move-deck', deckId: String(active.id), position: to }); }
+    catch (error) { setOrder(ids); reportError(error); }
+  }
+  return <DndContext sensors={sensors} collisionDetection={closestCenter} accessibility={{ announcements, container: document.body }} onDragEnd={end}>
+    <SortableContext items={sortableIds} strategy={rectSortingStrategy}>
+      <div className="grid" aria-label={label}>
+        {shown.map(deck => <SortableDeck key={deck.id} deck={deck}>{drag => children(deck, drag)}</SortableDeck>)}
+      </div>
+    </SortableContext>
+  </DndContext>;
+}
+function SortableDeck({ deck, children }: { deck: DashboardDeck; children: (drag: DeckDrag) => ReactNode }) {
+  const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id: deck.id });
+  // Space picks up and drops on keydown; its keyup would also click the card open.
+  const drag: DeckDrag = { ref: setActivatorNodeRef, ...attributes, ...listeners,
+    onKeyUp: (event: KeyboardEvent) => { if (event.code === 'Space') event.preventDefault(); } };
+  return <div ref={setNodeRef} className={`deck-slot fam-${deckColour(deck)}`} data-dragging={isDragging || undefined}
+    style={{ transform: DndCSS.Translate.toString(transform), transition }}>{children(drag)}</div>;
+}
+
 function DeckList({ deck, account, navigate, configure, mutate, reportError, loadPages, loadDecks }: Omit<DashboardProps, 'local' | 'deckId' | 'focusedMenu' | 'showPendingSaves' | 'error'> & { deck: DashboardDeck }) {
   const [order, setOrder] = useState(() => localStorage.getItem(`sort-${deck.id}`) ?? 'newest');
   const [layout, setLayout] = useState(() => storedLayout(deck.id));
@@ -297,27 +354,28 @@ function DeckGrid({ account, local, navigate, configure, mutate, reportError, lo
       </div>
       <button className="primary" onClick={() => configure('new')}><ButtonIcon name="plus" />{t('dashboard.addDeck')}</button>
     </div>
-    <div className="grid">
-      {/* A deck as a card (0.16.2, the accepted canvas, A1): behind its top edge a
-          little module card per family its modules come from, which rise and lean
-          apart while the deck is pointed at or focused; its actions as symbols. */}
-      {decks.map(deck => <div className={`deck-slot fam-${deckColour(deck)}`} key={deck.id}>
-        {(deck.families?.length ?? 0) > 0 && <span className="deck-families" role="img"
-          aria-label={t('deck.families', { families: listFormat((deck.families ?? []).map(family => familyLabel(family as ModuleFamily))) })}>
-          {(deck.families ?? []).map((family, index) => <span key={family} className={`deck-family fam-${family}`} style={{ '--i': index } as CSSProperties} />)}
-        </span>}
-        <article className="deck">
-          <button className="open" onClick={() => navigate(`deck/${deck.id}`)}>
-            <h2 dir="auto">{deck.name}</h2>
-            <p className="muted">{t('deck.pageCount', { count: deck.pageCount })} · {t('deck.moduleCount', { count: deck.moduleCount })}</p>
-          </button>
-          <footer>
-            <DeckActions where="card" deck={deck} account={account} replacementDecks={decks} replacementCursor={cursor} loadDecks={loadDecks}
-              configure={configure} mutate={mutate} reportError={reportError} />
-          </footer>
-        </article>
-      </div>)}
-    </div>
+    {/* Decks reorder by dragging their cards (D27); the sidebar follows. */}
+      <SortableDecks decks={decks} label={t('nav.decks')} mutate={mutate} reportError={reportError}>
+        {(deck, drag) => <>
+          {/* A deck as a card (0.16.2, the accepted canvas, A1): behind its top edge a
+              little module card per family its modules come from, which rise and lean
+              apart while the deck is pointed at or focused; its actions as symbols. */}
+          {(deck.families?.length ?? 0) > 0 && <span className="deck-families" role="img"
+            aria-label={t('deck.families', { families: listFormat((deck.families ?? []).map(family => familyLabel(family as ModuleFamily))) })}>
+            {(deck.families ?? []).map((family, index) => <span key={family} className={`deck-family fam-${family}`} style={{ '--i': index } as CSSProperties} />)}
+          </span>}
+          <article className="deck">
+            <button className="open" {...drag} onClick={() => navigate(`deck/${deck.id}`)}>
+              <h2 dir="auto">{deck.name}</h2>
+              <p className="muted">{t('deck.pageCount', { count: deck.pageCount })} · {t('deck.moduleCount', { count: deck.moduleCount })}</p>
+            </button>
+            <footer>
+              <DeckActions where="card" deck={deck} account={account} replacementDecks={decks} replacementCursor={cursor} loadDecks={loadDecks}
+                configure={configure} mutate={mutate} reportError={reportError} />
+            </footer>
+          </article>
+        </>}
+      </SortableDecks>
     {cursor && <button className="load-more-decks" disabled={loading} onClick={() => void more()}>{t('dashboard.moreDecks')}</button>}
     {/* Since 0.13.3 (D23) the decks come first and the recent captures follow them. */}
     <RecentCaptures account={account} local={local} navigate={navigate} mutate={mutate} reportError={reportError} />
