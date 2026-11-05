@@ -195,6 +195,18 @@ export function FacetEditor({ parent, facet, title, fields, locked, persist, red
     head={toolbar => <h3 className="facet-title"><FacetTab parent={parent} facet={facet} />{toolbar}</h3>} after={children} />;
 }
 
+// The core edited on its own (0.16.2), as a facet is: its top line, never
+// editable, with the toolbar at its end, its text, then its Save and Cancel.
+export function CoreEditor({ parent, title, fields, opened, locked, persist, redraw, children }: {
+  parent: ParentType; title: string; fields: FieldDraft; opened: ParentContent | null; locked: boolean; persist: () => void; redraw: () => void; children: ReactNode;
+}) {
+  const changed = useTyped(fields, persist, redraw);
+  const header = opened?.header;
+  return <PartEditor className="live-core core-editing" value={fields.core} editable={!locked} autofocus reading={header?.kind === 'sentence'}
+    label={t('editor.part', { part: coreLabel(parent, header?.kind === 'sentence' ? 'sentence' : 'word_phrase'), card: title })}
+    onChange={markdown => { fields.core = markdown; changed(); }} head={toolbar => topLine(opened ? headingOf(parent, opened) : null, toolbar)} after={children} />;
+}
+
 // The core's top line, never editable, with the toolbar at its end while the
 // core is focused; its labels are the card's own (D17). A card without one
 // keeps the toolbar's row, so Save does not move under the pointer.

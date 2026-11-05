@@ -52,8 +52,8 @@ export function pageViews({ getAccount, renderView, refresh, send, applyState, n
   // Editing is one card at a time (D04): the draft holds that component's
   // text, or for a parent (D09), its core's and facets' markdown; with a
   // facet (D10), only that facet is open.
-  /** @param {Page} page @param {string} route @param {string} componentId @param {string} [facet] */
-  function begin(page, route, componentId, facet) {
+  /** @param {Page} page @param {string} route @param {string} componentId @param {string} [facet] @param {boolean} [core] */
+  function begin(page, route, componentId, facet, core = false) {
     const component = page.components.find(item => item.id === componentId);
     if (!component) return;
     draft = { route: identity(route), pageId: page.id, deckId: page.deckId, componentId, base: {}, texts: {} };
@@ -63,6 +63,8 @@ export function pageViews({ getAccount, renderView, refresh, send, applyState, n
       const fields = draftOf(/** @type {ParentType} */ (component.moduleType), content, component.facets ?? []);
       draft.fields = { [componentId]: fields }; draft.fieldBase = { [componentId]: JSON.stringify(fields) }; draft.fieldStored = { [componentId]: content };
       if (facet && fields.facets[facet] !== undefined) draft.facet = facet;
+      // The core on its own (0.16.2), as a facet is.
+      else if (core && parentContentOf(component.content)) draft.core = true;
     } else draft.base[componentId] = draft.texts[componentId] = blockText(component.content);
     persist();
   }
@@ -89,7 +91,8 @@ export function pageViews({ getAccount, renderView, refresh, send, applyState, n
       if (!component || !stored) throw Object.assign(new Error(t('page.draft.moduleGone')), { code: 'deleted' });
       const content = parentDocument(applyDraft(/** @type {ParentType} */ (component.moduleType), stored, /** @type {NonNullable<PageEditorDraft['fields']>} */ (/** @type {PageEditorDraft} */ (draft).fields)[componentId], { facets: component.facets ?? [] }));
       // A facet edited on its own (D10): the server takes only that facet, over what it has stored.
-      return { componentId, content, ...(/** @type {PageEditorDraft} */ (draft).facet ? { facet: /** @type {PageEditorDraft} */ (draft).facet } : {}) };
+      const open = /** @type {PageEditorDraft} */ (draft);
+      return { componentId, content, ...(open.facet ? { facet: open.facet } : open.core ? { core: /** @type {true} */ (true) } : {}) };
     });
     return { pageId: /** @type {PageEditorDraft} */ (draft).pageId, changes: [...changed().map(componentId => ({ componentId, content: textBlocks(/** @type {PageEditorDraft} */ (draft).texts[componentId]) })), ...fieldChanges] };
   }
@@ -199,6 +202,7 @@ export function pageViews({ getAccount, renderView, refresh, send, applyState, n
         catch (error) { showError(error); }
       },
       begin: (componentId, facet) => { begin(/** @type {Page} */ (page), hash, componentId, facet); void refresh(); },
+      beginCore: componentId => { begin(/** @type {Page} */ (page), hash, componentId, undefined, true); void refresh(); },
       save: () => save(page),
       cancel: async () => { await discard(); if (isNew) navigate(`deck/${/** @type {DeckDetail} */ (deck).id}`); else void refresh(); },
       discardUnavailable: async () => { await discard(); navigate(''); },

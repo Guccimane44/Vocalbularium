@@ -45,12 +45,14 @@ function blockValue(value, message) {
 // component's facets only; any text may be empty. A parent is never saved as
 // plain text, and one that never generated has no top line to edit.
 // With a facet (D10), only that facet's text is taken, over the stored
-// content, so an edit of the rest elsewhere meanwhile stays.
-/** @param {Component} component @param {any} value unchecked input @param {string | undefined} facet @param {Page} page */
-function parentEdit(component, value, facet, page) {
+// content, so an edit of the rest elsewhere meanwhile stays; with the core
+// (0.16.2), only the core's text is.
+/** @param {Component} component @param {any} value unchecked input @param {string | undefined} facet @param {Page} page @param {boolean} [core] */
+function parentEdit(component, value, facet, page, core = false) {
   // An empty parent written by hand (D10, amended a fourth time) starts from
   // the blank top line of the page's main key; nothing else can start one.
-  const stored = parentContentOf(component.content) ?? (facet === undefined && page ? blankContent(mainKeyOf(page.components), /** @type {ParentType} */ (component.moduleType)) : null);
+  if (core && facet !== undefined) fail('invalid', 'Edit the core or one facet, not both.');
+  const stored = parentContentOf(component.content) ?? (facet === undefined && !core && page ? blankContent(mainKeyOf(page.components), /** @type {ParentType} */ (component.moduleType)) : null);
   if (!(value?.version === 1 && Array.isArray(value.blocks) && value.blocks.length === 1 && value.blocks[0]?.type === 'parent')) {
     fail('invalid', 'Edit this module in its editor.');
   }
@@ -61,6 +63,7 @@ function parentEdit(component, value, facet, page) {
   try {
     content = validateParentContent(/** @type {ParentType} */ (component.moduleType), block, { facets: component.facets ?? [] });
     if (facet !== undefined) content = validateParentContent(/** @type {ParentType} */ (component.moduleType), withFacetText(stored, /** @type {FacetType} */ (facet), content.facets[/** @type {FacetType} */ (facet)]), { facets: component.facets ?? [] });
+    if (core) content = validateParentContent(/** @type {ParentType} */ (component.moduleType), { ...stored, core: content.core }, { facets: component.facets ?? [] });
   } catch (error) { fail('invalid', /** @type {Error} */ (error).message); }
   // The top line, with its flags (D17), is never edited.
   const line = (/** @type {ParentHeader} */ header) => JSON.stringify(Object.entries(header).sort(([a], [b]) => a < b ? -1 : 1));
@@ -199,8 +202,8 @@ export class PageStore extends DeckStore {
         const component = page.components.find(component => component.id === change.componentId);
         if (!component) fail('deleted', 'A changed component no longer exists.');
         if (component.status === 'loading') fail('generating', 'A component is still generating. Your drafts are preserved.');
-        const content = isParentType(component.moduleType) ? parentEdit(component, change.content, change.facet, page)
-          : change.facet === undefined ? blockValue(change.content, 'Component content must be a text document.') : fail('invalid', 'Only a parent module has facets.');
+        const content = isParentType(component.moduleType) ? parentEdit(component, change.content, change.facet, page, change.core === true)
+          : change.facet === undefined && change.core === undefined ? blockValue(change.content, 'Component content must be a text document.') : fail('invalid', 'Only a parent module has facets.');
         if (component.moduleType === 'main-key' && !blockText(content).trim()) fail('invalid', 'Main key can not be empty.');
         updates.push({ component, content });
       }
