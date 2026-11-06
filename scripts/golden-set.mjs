@@ -42,18 +42,21 @@ async function steady(call) {
 const evidence = { date: new Date().toISOString(), provider: 'OpenCode Go', model: provider.model, language, samples, results: [] };
 // The flags a card's top line records, against the input's expectation (D17,
 // K50): `kind` and a German `gramRole` for Languages, `relevance` and `hasFormula` or `hasCode` for Expertise,
-// `language` for Pronunciation (D24).
+// `language` for Pronunciation (D24); and whether a Languages card gave a meaning in
+// this Context (D29).
 function flagsOf(header) {
   if (header.kind === 'pronunciation') return { language: header.language };
   return header.kind === 'expertise' ? { relevance: header.relevance, ...(header.hasFormula ? { hasFormula: header.hasFormula } : {}), ...(header.hasCode ? { hasCode: header.hasCode } : {}) }
     : { kind: header.kind, ...(header.gramRole ? { gramRole: header.gramRole.toLowerCase() } : {}) };
 }
-function unexpected(type, flags, expect = {}) {
+function unexpected(type, flags, expect = {}, context) {
   const wanted = { ...(expect.kind ? { kind: expect.kind } : {}), ...(expect.relevance ? { relevance: expect.relevance } : {}),
     ...(expect.hasFormula ? { hasFormula: expect.hasFormula } : {}), ...(expect.hasCode ? { hasCode: expect.hasCode } : {}),
     ...(expect.language ? { language: expect.language } : {}),
-    ...(expect.gramRole?.[type] ? { gramRole: expect.gramRole[type] } : {}) };
-  return Object.entries(wanted).filter(([flag, value]) => flags[flag] !== value).map(([flag, value]) => `${flag}: ${flags[flag] ?? 'none'}, expected ${value}`);
+    ...(expect.gramRole?.[type] ? { gramRole: expect.gramRole[type] } : {}),
+    // A Languages word's meaning in this Context (D29): never without a Context.
+    ...('contextual' in flags ? { contextual: expect.contextual ?? (context ? undefined : false) } : {}) };
+  return Object.entries(wanted).filter(([flag, value]) => value !== undefined && flags[flag] !== value).map(([flag, value]) => `${flag}: ${flags[flag] ?? 'none'}, expected ${value}`);
 }
 for (const { types, inputs } of sets) for (const input of inputs) for (let sample = 1; sample <= samples; sample++) {
   const sessionId = randomUUID();
@@ -66,10 +69,10 @@ for (const { types, inputs } of sets) for (const input of inputs) for (let sampl
       // One request writes the card (D17): the model's JSON (D09), and the markdown per facet it is stored as.
       const content = await generateComponent({ mainKey: input.key, module, onMismatch: ({ facet }) => mismatches.push(facet),
         generate: async request => (raw = await steady(() => provider.generate({ ...request, context: input.context, language, sessionId }))) });
-      const flags = flagsOf(content.header);
+      const flags = { ...flagsOf(content.header), ...(content.header.kind === 'word' || content.header.kind === 'sentence' ? { contextual: Boolean(raw?.core?.contextual) } : {}) };
       // The catalog's content checks on the card as the model wrote it (0.16.0).
       const { failures: checks, skipped } = await checkCard(type, raw, checkTools);
-      evidence.results.push({ ...input, sample, parent: type, flags, unexpected: unexpected(type, flags, input.expect), mismatches, checks, skipped, json: raw, content, facets: filledFacets(type, content) });
+      evidence.results.push({ ...input, sample, parent: type, flags, unexpected: unexpected(type, flags, input.expect, input.context), mismatches, checks, skipped, json: raw, content, facets: filledFacets(type, content) });
     } catch (error) {
       evidence.results.push({ ...input, sample, parent: type, error: error.message, ...(raw ? { content: raw } : {}) });
     }

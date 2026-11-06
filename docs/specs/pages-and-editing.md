@@ -164,7 +164,7 @@ The editor has no structure of its own: no fields, item numbers or separators be
 
 A facet's **Edit** turns that facet alone into an editor in place, under its tab, with the toolbar and its own **Save** and **Cancel** below it; the core and the other facets stay as they are, read-only. A facet without content has its own **Edit** too, which opens its empty editor to fill. It counts as editing the card: the card's **Edit**, the other facets' actions and the other cards wait ([editing a component](#editing-a-component)). **Save** writes only that facet's text into the component, over its content as the server has it, so an edit of the rest from another installation meanwhile stays; emptying it removes the facet's content, as in the card's editor. Drafts, the leave warning, save recovery and a save during generation work as for a card.
 
-The core has its own **Edit** too (0.16.2), at the end of its top line, shown while the core is pointed at or focused. It works as a facet's: the core alone becomes an editor in place under its top line, which stays locked, with the toolbar and its own **Save** and **Cancel**, and Save writes only the core's text over the content as the server has it. A spoken core (Pronunciation) has no Edit.
+The core has its own **Edit** too (0.16.2), at the end of its top line, shown while the core is pointed at or focused. It works as a facet's: the core alone becomes an editor in place under its top line, which stays locked, with the toolbar and its own **Save** and **Cancel**, and Save writes only the core's text over the content as the server has it. A spoken core (Pronunciation) has no Edit. Beside the Edit, the core has its own **Retry** (0.16.3), which writes the core again for the reading the card has ([retrying the core](capture-and-generation.md#retrying-the-core)).
 
 A facet's **About**, first among its actions, opens the facet's [page](modules.md#explanations) in the pages' sheet, as the facet window's **›** does; Escape returns the focus to it.
 
@@ -196,7 +196,7 @@ After creation, captured and manually created pages behave the same.
 
 Editing the main key changes the input for subsequent generation. It does not run modules, remove existing generated or manually written content, or change prior generation outcomes. Editing another component does not redefine the main key.
 
-The user must explicitly request generation again to produce content from the updated key. The action uses the main key and saved Context at the time of the request, with interpretation appropriate to them. It must not use the original captured selection or an earlier key's interpretation ([keeping the reading](capture-and-generation.md#keeping-the-reading)). Content that remains from earlier attempts can therefore describe a different input from the current key.
+The user must explicitly request generation again to produce content from the updated key. The action uses the main key and saved Context at the time of the request, with interpretation appropriate to them. It must not use the original captured selection or an earlier key's interpretation ([a Retry starts over](capture-and-generation.md#keeping-the-reading)). Content that remains from earlier attempts can therefore describe a different input from the current key.
 
 Generation uses the page's own content module instances. Finish editing with **Save** or **Cancel** before starting a generation or a retry.
 

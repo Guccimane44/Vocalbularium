@@ -30,6 +30,8 @@ Newest first.
 
 | ID | Opened | Decision | Affected docs | Notion | Status |
 | --- | --- | --- | --- | --- | --- |
+| [D29](decisions/d29.md) | 2026-11-05 | A Languages core gives the meaning in this Context first, under its module's label, and always the key's original meaning; the context meaning is its own optional field. | [modules](../specs/modules.md), [generation](generation.md), [scope](../product/scope.md) | [Notion](https://app.notion.com/p/40fbb135020881278756f8f867b5c883) | implemented (0.16.3) |
+| [D28](decisions/d28.md) | 2026-11-05 | A card's Retry, alone or with the page, starts over with no previous core; a new Retry on the core rewrites it alone, keeping the reading and its flags (amends D19, D22). | [capture and generation](../specs/capture-and-generation.md#retry), [generation](generation.md), [pages and editing](../specs/pages-and-editing.md), [scope](../product/scope.md) | [Notion](https://app.notion.com/p/40fbb1350208815a9c0ee4a8b5435e54) | implemented (0.16.3) |
 | [D25](decisions/d25.md) | 2026-10-31 | Stored facets are keyed by any facet ID and the catalog alone decides a module's facets; the default deck, a module's localised names and the samples' words come from the catalog, so a new language needs no change to shared code. | [generation architecture](generation.md), [shared UI](../specs/shared-ui.md) | [Notion](https://app.notion.com/p/40abb1350208819fbc89c3924da4c957) | implemented (0.15.0) |
 | [D26](decisions/d26.md) | 2026-11-04 | A card's facets keep the card's own order, which the user changes by dragging; tags and editor follow it, an added facet comes last, decks and generation keep the parent's order. | [pages and editing](../specs/pages-and-editing.md#facet-tags), [modules](../specs/modules.md#render-contracts) | pending | implemented (0.16.1) |
 | [D27](decisions/d27.md) | 2026-11-05 | Decks keep their owner's order, changed by dragging a deck's card on Home or its row in the sidebar; either list follows, and a move is one idempotent mutation. | [decks and configuration](../specs/decks-and-configuration.md#navigation) | pending | implemented (0.16.2) |
@@ -65,12 +67,13 @@ Contradictions between entries, or between an entry and the specs; all are resol
 
 | ID | Conflict and resolution |
 | --- | --- |
+| [C34](decisions/conflicts.md#c34) | A card's Retry that starts over versus D19's kept reading — RESOLVED (D28: the card's Retry starts over, the core's Retry keeps the reading) |
 | [C33](decisions/conflicts.md#c33) | Every facet is markdown versus audio — RESOLVED (D24: text stays markdown, audio attached) |
 | [C32](decisions/conflicts.md#c32) | One pinned model versus a speech provider — RESOLVED (D24: one pinned model per provider kind) |
 | [C31](decisions/conflicts.md#c31) | No partial success within a component versus audio that fills in later — RESOLVED (D24: per-clip success for audio only) |
 | [C29](decisions/conflicts.md#c29) | Explanations in a dialog and beneath a facet-window row versus pages in one sheet — RESOLVED (D20: pages in one sheet) |
 | [C30](decisions/conflicts.md#c30) | The deck-settings preview's sample versus the retired 幸福 sample — RESOLVED (D20: the new samples in the interface language) |
-| [C28](decisions/conflicts.md#c28) | A Retry that keeps the card's reading versus D17's "nothing from an earlier attempt is reused" — RESOLVED (D19: the reading is a hint, never the text) |
+| [C28](decisions/conflicts.md#c28) | A Retry that keeps the card's reading versus D17's "nothing from an earlier attempt is reused" — RESOLVED (D19: the reading is a hint, never the text); reopened by D28, see C34 |
 | [C27](decisions/conflicts.md#c27) | A Formula facet versus D16's rejected formula control flow — RESOLVED (D17: an opt-in facet for subject keys) |
 | [C26](decisions/conflicts.md#c26) | One interpretation per run versus a classification per Languages card — RESOLVED (D17: per card, in its header) |
 | [C25](decisions/conflicts.md#c25) | A module already on the page marked in the window versus no mark — RESOLVED (D13: no mark) |

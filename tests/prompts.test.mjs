@@ -10,8 +10,8 @@ const LANGUAGES = parentsIn('translation');
 const EXPERTISE = parentsIn('expertise');
 
 // Prompt snapshots (D11): the composed instructions and schema for every
-// content module's one request (D17), core only, a card's Retry keeping its
-// reading (D19), and each facet's own Retry,
+// content module's one request (D17), core only, the reading prompt the core's
+// Retry keeps its reading with (D28), and each facet's own Retry,
 // and one Expertise request in each interface language other than English (D15). They are where to read what the model receives,
 // and a prompt change shows in review as a change to these files. Run with
 // UPDATE_PROMPTS=1 to rewrite them after a deliberate change.
@@ -24,8 +24,8 @@ function cases() {
     const facets = facetsOf(parent);
     all[parent] = snapshot(moduleInstructions(parent, facets), moduleSchema(parent, facets));
     all[`${parent}.core-only`] = snapshot(moduleInstructions(parent, []), moduleSchema(parent, []));
-    // A card's Retry that keeps the reading of the core it had (D19).
-    all[`${parent}.reading`] = snapshot(moduleInstructions(parent, facets, false, 'en', true), moduleSchema(parent, facets));
+    // The reading prompt, for the core's Retry that keeps the reading of the core it had (D28).
+    all[`${parent}.reading`] = snapshot(moduleInstructions(parent, [], false, 'en', true), moduleSchema(parent, []));
     for (const facet of facets) {
       all[`${parent}.retry-${facet}`] = snapshot(moduleInstructions(parent, [facet], true), moduleSchema(parent, [facet], true));
     }

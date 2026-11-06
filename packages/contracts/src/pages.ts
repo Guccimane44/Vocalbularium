@@ -215,7 +215,9 @@ export const GenerationTargetSchema = Type.Union([
   Type.Object({ scope: Type.Literal('page') }, OpenRequest),
   Type.Object({ scope: Type.Literal('component'), componentId: Type.String({ minLength: 1 }) }, OpenRequest),
   // One facet of a parent component (0.7.3): its section alone, the rest kept.
-  Type.Object({ scope: Type.Literal('facet'), componentId: Type.String({ minLength: 1 }), facet: Type.String({ minLength: 1 }) }, OpenRequest)
+  Type.Object({ scope: Type.Literal('facet'), componentId: Type.String({ minLength: 1 }), facet: Type.String({ minLength: 1 }) }, OpenRequest),
+  // A parent component's core alone (D28, 0.16.3): its reading and flags kept, every facet as it is.
+  Type.Object({ scope: Type.Literal('core'), componentId: Type.String({ minLength: 1 }) }, OpenRequest)
 ]);
 export const PageGeneratePayloadSchema = Type.Object({
   pageId: Type.String({ minLength: 1 }),

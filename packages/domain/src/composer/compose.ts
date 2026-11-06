@@ -64,7 +64,7 @@ const lengthIn = (unit: string, words: number) =>
 // The instructions for a module: its core (or, for a facet's own Retry, the
 // core already written), its facets asked for, then the shared rules and, for
 // an Expertise module, the writing guide of the language it writes in (D15).
-// With `withPrevious`, a card's Retry keeps the reading of the core it had (D19).
+// With `withPrevious`, the core's Retry keeps the reading of the core it had (D28).
 export function moduleInstructions(parent: ParentType, facets: readonly FacetType[], withCore = false, language: InterfaceLanguage = 'en', withPrevious = false): string {
   const folder = folderOf(parent);
   const core = withCore ? catalogFile(`${folder}/facets/core/retry.prompt.md`)
@@ -92,14 +92,15 @@ export function moduleSchema(parent: ParentType, facets: readonly FacetType[], w
 
 // One generation attempt for a module instance: its core and the facets that
 // apply, or with `core`, a facet's own Retry written for that core. With
-// `previous`, a card's Retry writes the whole card again, keeping its reading (D19).
+// `previous`, the core's Retry writes the core again, keeping its reading (D28).
+// A card's Retry sends neither: it composes as a first attempt.
 export function composeModule({ module, selectedText, context, facets, core, previous, language }: {
   module: Readonly<{ id: string; type: string }>;
   selectedText: string;
   context?: string;
   facets: readonly FacetType[];
   core?: CoreValue;
-  // The core the card had, as saved, when a card's Retry started (D19).
+  // The core the card had, as saved, for the core's Retry (D28).
   previous?: CoreValue;
   // The account's interface language, which the Expertise modules write in.
   language?: InterfaceLanguage;

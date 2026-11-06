@@ -134,7 +134,7 @@ test('OpenCode asks a parent for its core, its flags first, and the facets asked
   const schema = parentSchema('german', ['article', 'examples']);
   assert.deepEqual(Object.keys(schema.properties), ['core', 'facets']);
   assert.deepEqual(schema.properties.core.required, ['kind', 'language', 'key', 'meanings']);
-  assert.deepEqual(Object.keys(schema.properties.core.properties), ['kind', 'language', 'key', 'romanization', 'gramRole', 'meanings'], 'the flags come first');
+  assert.deepEqual(Object.keys(schema.properties.core.properties), ['kind', 'language', 'key', 'romanization', 'gramRole', 'contextual', 'meanings'], 'the flags come first, then the meaning in this Context before the meanings (D29)');
   assert.deepEqual(Object.keys(schema.properties.facets.properties), ['article', 'examples']);
   assert.deepEqual(schema.properties.facets.required, [], 'every facet may be left out');
   assert.deepEqual(parentSchema('chinese', ['pinyin']).properties.core.required, ['kind', 'language', 'key', 'meanings']);
@@ -165,21 +165,22 @@ test('OpenCode asks a facet’s own Retry for its facets only, written for the s
     facets: ['examples'], core }), { facets: { examples: [{ sentence: 'A bank.' }] } });
 });
 
-test('OpenCode sends a card’s Retry the core it had as "previous", with the reading prompt, and asks for the whole card (D19)', async () => {
-  const instructions = parentInstructions('german', ['examples'], false, 'en', true);
+test('OpenCode sends the core’s Retry the core it had as "previous", with the reading prompt, and asks for the core alone (D28)', async () => {
+  const instructions = parentInstructions('german', [], false, 'en', true);
   assert.match(instructions, /"kind": "<word/);
-  assert.match(instructions, /supplied as "previous"[^\n]*keeping that reading/);
-  assert.deepEqual(Object.keys(parentSchema('german', ['examples']).properties), ['core', 'facets']);
+  assert.match(instructions, /supplied as "previous"[^\n]*keep that reading[^\n]*Copy "kind", "language", "key", "romanization" and "gramRole" from "previous" exactly as given/);
+  // The schema asks for no facet, as a module without facets does.
+  assert.deepEqual(parentSchema('german', []).properties.facets?.properties ?? {}, {}, 'the schema asks for the core alone');
   const previous = { kind: 'word', language: 'Englisch', key: 'bank', gramRole: 'noun', meanings: ['Sitzbank'] };
   const provider = new OpenCodeProvider({ apiKey: 'test-only', fetchImpl: async (_, options) => {
     const [system, user] = JSON.parse(options.body).messages;
     assert.match(system.content, /supplied as "previous"/);
     assert.deepEqual(JSON.parse(user.content), { selectedText: 'bank', previous, instanceId: 'g' });
-    return Response.json(completion(JSON.stringify(BANK)));
+    return Response.json(completion(JSON.stringify({ core: BANK.core, facets: {} })));
   } });
-  assert.deepEqual(await provider.generate({ module: { id: 'g', type: 'german', facets: ['examples'] }, selectedText: 'bank',
-    facets: ['examples'], previous }), BANK);
-  // A first attempt names no earlier reading.
+  assert.deepEqual(await provider.generate({ module: { id: 'g', type: 'german', facets: [] }, selectedText: 'bank',
+    facets: [], previous }), { core: BANK.core, facets: {} });
+  // A first attempt, and so a card's Retry, names no earlier reading.
   assert.doesNotMatch(parentInstructions('german', ['examples']), /"previous"/);
 });
 

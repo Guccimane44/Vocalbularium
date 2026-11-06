@@ -1,11 +1,11 @@
 import type { CoreValue } from './catalog/define.js';
 import { appliesTo, facetsFor, isFacetOf, isParentType, ordered } from './parents.js';
 import type { FacetType, ParentType } from './parents.js';
-import { formatContent, formatFacet, providerCore, withFacetText, withKeyHighlighted } from './content.js';
+import { formatContent, formatCore, formatFacet, providerCore, withFacetText, withKeyHighlighted } from './content.js';
+import { contentModule } from './catalog/index.js';
 import type { ParentContent } from './content.js';
 import { emptyEntry, validateGenerated, validateGeneratedFacet } from './generated.js';
-import { highlightKey } from './markdown.js';
-import { contentModule } from './catalog/index.js';
+import { hasText, highlightKey } from './markdown.js';
 
 // Content modules are parent modules (D08); the earlier types retired in 0.7.0.
 export type ModuleInstance = Readonly<{ id: string; type: ParentType; facets?: readonly string[] }>;
@@ -19,7 +19,7 @@ export type GenerateModule = (request: {
   facets: readonly FacetType[];
   // For a facet's own Retry (0.7.3): the core already there, to follow.
   core?: CoreValue;
-  // For a card's Retry (D19): the core it had, whose reading to keep.
+  // For the core's Retry (D28): the core it had, whose reading to keep.
   previous?: CoreValue;
 }) => Promise<unknown>;
 
@@ -28,9 +28,17 @@ export type GenerateModule = (request: {
 export type FacetMismatch = Readonly<{ module: ParentType; facet: FacetType }>;
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
-// A value with nothing in it: null, empty or blank text, an empty list or object.
+// The owner's decision of 6 November 2026, amending D09/D17's strict core
+// ("B: ignore blank extras"): a field the core's shape does not name, left
+// blank (null, empty or blank text, {} or []), is dropped as if absent, such
+// as "contextual_note": "" or "facets": {}. One with a value still fails.
 const blankExtra = (value: unknown) => value === null || value === undefined || (typeof value === 'string' && !value.trim())
   || (Array.isArray(value) && !value.length) || (isRecord(value) && !Object.keys(value).length);
+function withoutBlankExtras(type: ParentType, core: unknown): unknown {
+  if (!isRecord(core)) return core;
+  const named = Object.keys(contentModule(type).core.shape.schema.properties as Record<string, unknown>);
+  return Object.fromEntries(Object.entries(core).filter(([key, entry]) => named.includes(key) || !blankExtra(entry)));
+}
 
 // Generates one parent module instance's component from the main key, in one
 // request (D17). A parent always applies: it writes its core, with its flags
@@ -45,13 +53,11 @@ export async function generateComponent(input: {
   module: ModuleInstance;
   generate: GenerateModule;
   onMismatch?: (mismatch: FacetMismatch) => void;
-  // For a card's Retry (D19): the core it had, whose reading to keep.
-  previous?: CoreValue;
 }): Promise<ParentContent> {
   const { module } = input;
   if (!isParentType(module.type)) throw new Error('The deck contains an unsupported module.');
   const facets = ordered(module.type, module.facets ?? []);
-  const value = await input.generate({ module, selectedText: input.mainKey, facets, ...(input.previous ? { previous: input.previous } : {}) });
+  const value = await input.generate({ module, selectedText: input.mainKey, facets });
   if (!isRecord(value)) throw new Error('A module returned no usable content.');
   const stray = Object.keys(value).find(key => key !== 'core' && key !== 'facets');
   if (stray) throw new Error(`A module returned content in an unexpected format: an unexpected field "${stray}".`);
@@ -64,14 +70,7 @@ export async function generateComponent(input: {
     value.core = core;
     value.facets = { ...moved, ...(isRecord(value.facets) ? value.facets : {}) };
   }
-  // The owner's decision of 6 November 2026, amending D09/D17's strict core
-  // ("B: ignore blank extras"): a field the core's shape does not name, left
-  // blank (null, empty text, {} or []), is dropped as if absent, such as
-  // "contextual_note": "" or "facets": {}. One with a value still fails.
-  if (isRecord(value.core)) {
-    const named = Object.keys(contentModule(module.type).core.shape.schema.properties as Record<string, unknown>);
-    value.core = Object.fromEntries(Object.entries(value.core).filter(([key, entry]) => named.includes(key) || !blankExtra(entry)));
-  }
+  value.core = withoutBlankExtras(module.type, value.core);
   const given = isRecord(value.facets) ? value.facets : {};
   const kept = Object.fromEntries(facets.filter(facet => !emptyEntry(given[facet])).map(facet => [facet, given[facet]]));
   let generated;
@@ -111,6 +110,44 @@ export async function generateFacet(input: {
   try { checked = validateGeneratedFacet(module.type, facet, entry); }
   catch (error) { throw new Error(`A module returned content in an unexpected format: ${(error as Error).message}`); }
   return withFacetText(existing, facet, highlightKey(formatFacet(module.type, facet, checked), input.mainKey));
+}
+
+// Whether a card's core can be retried on its own (D28): the card has a written
+// core, for the page's current main key (its top line's key, trimmed), and its
+// module does not speak it (Pronunciation).
+const sameKey = (a: string, b: string) => a.trim().normalize('NFC') === b.trim().normalize('NFC');
+export function offersCoreRetry(type: string, content: ParentContent | null, mainKey: string): boolean {
+  if (!isParentType(type) || !content || contentModule(type).core.spoken) return false;
+  return hasText(content.core) && sameKey(content.header.key ?? '', mainKey);
+}
+
+// The core's own Retry (D28): the core written again for the reading of the one
+// already in `existing`, given as "previous". Its flags, and the fields its top
+// line shows, stay as they were, whatever the provider writes for them, so the
+// top line and every facet stay in step; only the text is new. Throws when
+// generation fails or the result does not have the core's shape.
+export async function generateCore(input: {
+  mainKey: string;
+  module: ModuleInstance;
+  existing: ParentContent;
+  generate: GenerateModule;
+}): Promise<ParentContent> {
+  const { module, existing } = input;
+  if (!isParentType(module.type)) throw new Error('The deck contains an unsupported module.');
+  const previous = providerCore(module.type, existing);
+  const value = await input.generate({ module, selectedText: input.mainKey, facets: [], previous });
+  if (!isRecord(value)) throw new Error('A module returned no usable content.');
+  const stray = Object.keys(value).find(key => key !== 'core' && key !== 'facets');
+  if (stray) throw new Error(`A module returned content in an unexpected format: an unexpected field "${stray}".`);
+  // The flags are the fields the top line is made from, as "previous" has them.
+  const shown = new Set(Object.keys(contentModule(module.type).core.header(previous)));
+  const flags = Object.fromEntries(Object.entries(previous).filter(([field]) => shown.has(field)));
+  const core = withoutBlankExtras(module.type, value.core);
+  const written = isRecord(core) ? Object.fromEntries(Object.entries(core).filter(([field]) => !shown.has(field))) : core;
+  let generated;
+  try { generated = validateGenerated(module.type, { core: isRecord(written) ? { ...written, ...flags } : written }, { facets: [] }); }
+  catch (error) { throw new Error(`A module returned content in an unexpected format: ${(error as Error).message}`); }
+  return { header: existing.header, core: highlightKey(formatCore(module.type, generated.core), input.mainKey), facets: existing.facets };
 }
 
 export type ComponentOutcome = Readonly<

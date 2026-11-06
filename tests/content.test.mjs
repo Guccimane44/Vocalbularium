@@ -273,3 +273,48 @@ test('Formula and Code example apply only to a key of the subject whose core say
   assert.deepEqual(formatContent('mathematics', { core: core('unrelated', { hasFormula: 'yes' }), facets: {} }).header,
     { kind: 'expertise', key: 'x', relevance: 'unrelated' }, 'and dropped outside the subject');
 });
+
+test('a Languages core gives its meaning in this Context first, under the module’s label, and reads it back (D29)', () => {
+  const breadcrumb = { kind: 'word', language: 'Englisch', key: 'breadcrumb', gramRole: 'noun',
+    contextual: 'Navigationspfad in einer Benutzeroberfläche, der die Position innerhalb einer Website anzeigt', meanings: ['Brotkrümel; kleines Stück Brot'] };
+  const german = formatContent('german', { core: breadcrumb, facets: {} });
+  assert.equal(german.core, '1. (in diesem Zusammenhang) Navigationspfad in einer Benutzeroberfläche, der die Position innerhalb einer Website anzeigt\n2. Brotkrümel; kleines Stück Brot');
+  assert.deepEqual(german.header, { kind: 'word', language: 'Englisch', key: 'breadcrumb', gramRole: 'noun' }, 'the top line names no meaning');
+  assert.deepEqual(providerCore('german', german), breadcrumb, 'a facet’s Retry gets the meaning in this Context back');
+  // The key highlighted, as stored, reads back the same.
+  assert.deepEqual(providerCore('german', { ...german, core: highlightKey(german.core, 'Brotkrümel') }), breadcrumb);
+
+  const chinese = formatContent('chinese', { core: { kind: 'word', language: '英语', key: 'breadcrumb', contextual: '网页导航路径', meanings: ['面包屑'] }, facets: {} });
+  assert.equal(chinese.core, '1. （在此语境中）网页导航路径\n2. 面包屑');
+  assert.deepEqual(providerCore('chinese', chinese), { kind: 'word', language: '英语', key: 'breadcrumb', contextual: '网页导航路径', meanings: ['面包屑'] });
+
+  // Without one, the core reads as before; a sentence never has one.
+  const plain = formatContent('german', { core: { kind: 'word', language: 'Englisch', key: 'bank', meanings: ['Ufer eines Flusses', 'Geldinstitut'] }, facets: {} });
+  assert.equal(plain.core, '1. Ufer eines Flusses\n2. Geldinstitut');
+  assert.equal(providerCore('german', plain).contextual, undefined);
+  const sentence = formatContent('german', { core: { kind: 'sentence', language: 'Englisch', key: 'Hi.', contextual: 'Hallo', meanings: ['Hallo.'] }, facets: {} });
+  assert.equal(sentence.core, 'Hallo.');
+});
+
+test('an edit that deletes the label, or leaves only the labelled line, turns it into an ordinary meaning (D29)', () => {
+  const header = { kind: 'word', language: 'Englisch', key: 'breadcrumb', gramRole: 'noun' };
+  assert.deepEqual(providerCore('german', { header, core: '1. Navigationspfad\n2. Brotkrümel', facets: {} }),
+    { ...header, meanings: ['Navigationspfad', 'Brotkrümel'] });
+  assert.deepEqual(providerCore('german', { header, core: '1. (in diesem Zusammenhang) Navigationspfad', facets: {} }),
+    { ...header, meanings: ['Navigationspfad'] });
+  // A label the user moved below the first line is dropped from that meaning.
+  assert.deepEqual(providerCore('german', { header, core: '1. Brotkrümel\n2. (in diesem Zusammenhang) Navigationspfad', facets: {} }),
+    { ...header, meanings: ['Brotkrümel', 'Navigationspfad'] });
+});
+
+test('the core’s own Retry is offered on a written core for the current main key, never on a spoken one (D28)', async () => {
+  const { offersCoreRetry } = await import('@vocabularium/domain/modules');
+  const written = { header: { kind: 'word', language: 'Englisch', key: 'bank' }, core: '1. Ufer', facets: {} };
+  assert.equal(offersCoreRetry('german', written, 'bank'), true);
+  assert.equal(offersCoreRetry('german', written, ' bank '), true, 'the keys are compared trimmed');
+  assert.equal(offersCoreRetry('german', written, 'Schloss'), false, 'a core written for another main key');
+  assert.equal(offersCoreRetry('german', { ...written, core: '' }, 'bank'), false, 'a card without a core');
+  assert.equal(offersCoreRetry('german', null, 'bank'), false, 'a card that never generated or failed');
+  assert.equal(offersCoreRetry('pronunciation', { header: { kind: 'pronunciation', language: 'en', key: 'bank' }, core: 'bank', facets: {} }, 'bank'), false, 'a spoken core');
+  assert.equal(offersCoreRetry('text', written, 'bank'), false);
+});

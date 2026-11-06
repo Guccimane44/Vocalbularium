@@ -1,1 +1,1 @@
-Write the Chinese parts in Chinese. Write Chinese in simplified characters only. Write the Chinese a native speaker would say: short, plain and idiomatic, not a word-for-word rendering of the source.
+Write the Chinese parts in Chinese. A word's meanings are "contextual", when the core has it, then "meanings", in that order. Write Chinese in simplified characters only. Write the Chinese a native speaker would say: short, plain and idiomatic, not a word-for-word rendering of the source.
