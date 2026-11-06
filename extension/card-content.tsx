@@ -87,10 +87,10 @@ function Inline({ runs, mainKey }: { runs: readonly MdInline[]; mainKey: string 
       : <mark key={index} className="md-highlight">{children}</mark>;
   })}</>;
 }
-export function Markdown({ blocks, mainKey, className }: { blocks: readonly MdBlock[]; mainKey: string; className?: string }) {
+export function Markdown({ blocks, mainKey, className, retrying }: { blocks: readonly MdBlock[]; mainKey: string; className?: string; retrying?: boolean }) {
   // Each block takes the direction of its own text (D14): a German card reads
   // left to right in a right-to-left interface, an Arabic one the other way.
-  return <div className={`md${className ? ` ${className}` : ''}`}>{blocks.map((block, index) => block.type === 'paragraph'
+  return <div className={`md${className ? ` ${className}` : ''}`} data-retrying={retrying || undefined} aria-busy={retrying || undefined}>{blocks.map((block, index) => block.type === 'paragraph'
     ? <p key={index} dir="auto"><Inline runs={block.children} mainKey={mainKey} /></p>
     // A formula and code (D17).
     : block.type === 'math' ? <MathBlock key={index} tex={block.tex} display />
@@ -122,8 +122,6 @@ function FacetActions({ name, hasContent, canRetry, disabled, asking, setAsking,
   // The core has no Delete (D10, amended).
   onDelete?: () => void; onRetry: () => void; onEdit?: () => void; onAbout: () => void;
 }) {
-  const cancel = useRef<HTMLButtonElement>(null);
-  useEffect(() => { if (asking) cancel.current?.focus(); }, [asking]);
   if (!asking) return <span className="facet-actions">
     <button type="button" className="facet-about-open" aria-label={t('about.facet', { name })} aria-haspopup="dialog"
       onClick={onAbout}><ActionIcon name="about" /></button>
@@ -134,8 +132,16 @@ function FacetActions({ name, hasContent, canRetry, disabled, asking, setAsking,
     {onDelete && <button type="button" className="facet-delete" aria-label={t('action.deleteNamed', { name })} disabled={disabled}
       onClick={() => hasContent ? setAsking('delete') : onDelete()}><ActionIcon name="delete" /></button>}
   </span>;
-  // The card's question mirrored (0.7.3): it springs out leftwards from the
-  // row's end, and Cancel comes last, under the pointer that asked.
+  return <PartConfirm name={name} asking={asking} setAsking={setAsking} onDelete={onDelete} onRetry={onRetry} />;
+}
+// A part's question (0.7.3), a facet's or the core's (D28): the card's question
+// mirrored, springing out leftwards from the row's end, Cancel last, under the
+// pointer that asked.
+function PartConfirm({ name, asking, setAsking, onDelete, onRetry }: {
+  name: string; asking: FacetAsk; setAsking: (value: FacetAsk | null) => void; onDelete?: () => void; onRetry: () => void;
+}) {
+  const cancel = useRef<HTMLButtonElement>(null);
+  useEffect(() => { cancel.current?.focus(); }, []);
   const verb = asking === 'delete' ? t('common.delete') : t('common.retry');
   return <span className="facet-confirm" data-confirm={asking} role="group" aria-label={asking === 'delete' ? t('action.deleteAsk', { name }) : t('action.retryAsk', { name })}
     onKeyDown={event => { if (event.key === 'Escape') { event.stopPropagation(); setAsking(null); } }}>
@@ -150,6 +156,8 @@ function FacetActions({ name, hasContent, canRetry, disabled, asking, setAsking,
 // "Are you sure?", and the facet regenerating on its own or whose Retry failed.
 // The part `editing` names when the core is open in its own editor (0.16.2).
 export const CORE_PART = '@core';
+// The part the server names when the core regenerates on its own (D28).
+export const CORE_RETRY = 'core';
 export type FacetControls = { title: string; disabled: boolean; onDelete: (facet: FacetType) => void; onRetry: (facet: FacetType) => void;
   // The card's facets, each shown with its heading (D10, amended a sixth time).
   facets?: readonly string[];
@@ -162,6 +170,8 @@ export type FacetControls = { title: string; disabled: boolean; onDelete: (facet
   onRetryCard?: () => void;
   // The core's own Edit (0.16.2), as a facet's; absent where the core is spoken.
   onEditCore?: () => void;
+  // The core's own Retry (D28), beside its Edit; absent where it is not offered.
+  onRetryCore?: () => void;
   // A facet moved among the card's facets, to a position counted from 0 (D26); false when the save failed.
   onMoveFacet?: (facet: FacetType, position: number) => Promise<boolean> };
 
@@ -260,6 +270,8 @@ export function Content({ type, rendered, mainKey, controls, spoken }: {
 
   // The core open in its own editor (0.16.2) stands in place of its top line and text.
   const coreEditing = controls?.editing?.facet === CORE_PART ? controls.editing.node : null;
+  const coreRetrying = controls?.retrying === CORE_RETRY;
+  const coreAsking = (controls?.asking?.facet as string | undefined) === CORE_PART && controls?.asking?.kind === 'retry' && Boolean(controls?.onRetryCore);
   const coreName = controls && parent && t('facet.fromCard', { facet: coreLabel(parent, reading ? 'sentence' : 'word_phrase'), card: controls.title });
   // The core's top line, then its markdown; each facet's markdown in its container (D09).
   return <div className="entry-content">
@@ -271,14 +283,25 @@ export function Content({ type, rendered, mainKey, controls, spoken }: {
       {heading.pronunciation && <span className="entry-pronunciation">{heading.pronunciation}</span>}
       {/* Word or sentence, and a German word's grammatical role, in the module's language (D17, K51). */}
       {heading.labels.map(label => <span key={label} className="entry-label">{label}</span>)}
-      {/* The core's own Edit (0.16.2), at the end of its top line, shown as a facet's actions are. */}
-      {controls?.onEditCore && <span className="facet-actions core-actions"><button type="button" className="facet-edit" aria-label={t('action.editNamed', { name: coreName ?? '' })}
-        disabled={controls.disabled} onClick={controls.onEditCore}><ActionIcon name="edit" /></button></span>}
+      {/* The core's own Edit (0.16.2) and Retry (D28), at the end of its top line, shown as a facet's actions are;
+          Retry asks first, as a facet's does, and both are hidden while the core regenerates. */}
+      {controls && coreAsking ? <PartConfirm name={coreName ?? ''} asking="retry" setAsking={value => controls.setAsking(value ? CORE_PART as FacetType : null, 'retry')}
+        onRetry={controls.onRetryCore!} />
+        : controls && !coreRetrying && (controls.onEditCore || controls.onRetryCore) && <span className="facet-actions core-actions">
+        {controls.onEditCore && <button type="button" className="facet-edit" aria-label={t('action.editNamed', { name: coreName ?? '' })}
+          disabled={controls.disabled} onClick={controls.onEditCore}><ActionIcon name="edit" /></button>}
+        {controls.onRetryCore && <button type="button" className="facet-retry" aria-label={t('action.retryNamed', { name: coreName ?? '' })}
+          disabled={controls.disabled} onClick={() => controls.setAsking(CORE_PART as FacetType, 'retry')}><ActionIcon name="retry" /></button>}
+      </span>}
+      {controls?.failed === CORE_RETRY && <span className="facet-note" data-note="failed">{t('card.retryFailed')}</span>}
     </p>}
     {/* A spoken core's player, beneath its top line (D24, direction A). */}
     {!coreEditing && spoken?.core && <ClipPlayer componentId={spoken.componentId} part="core" line={0} text={mainKey.trim()}
       speakable={spoken.core.speakable} tooLong={spoken.core.tooLong} onRetryCard={controls?.onRetryCard} />}
-    {!coreEditing && core.length > 0 && <Markdown blocks={core} mainKey={mainKey} className={reading ? 'entry-core reading' : 'entry-core'} />}
+    {/* While the core regenerates on its own (D28), its text dims inside a ring in the family colour. */}
+    {!coreEditing && core.length > 0 && <Markdown blocks={core} mainKey={mainKey} className={reading ? 'entry-core reading' : 'entry-core'}
+      retrying={coreRetrying} />}
+    {coreRetrying && <span className="visually-hidden">{t('status.generatingEllipsis')}</span>}
     {parent && (sortable ? <FacetSorter parent={parent} title={controls!.title} facets={inOrder(parent, controls!.facets!)} disabled={controls!.disabled}
       onMove={controls!.onMoveFacet!}>
       {(shown: readonly FacetType[]) => inOrder(parent, [...shown, ...facetsOf(parent)]).map(name => shown.includes(name)

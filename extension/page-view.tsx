@@ -7,11 +7,12 @@ import type { Component, GenerationTarget, ModuleInstance, Page } from '@vocabul
 import { CATALOG, isContentType, isModuleType, WINDOW_MODULES } from '@vocabularium/domain/page-modules';
 import { mainKeyOf } from '@vocabularium/domain/pages';
 import { parentContentOf } from '@vocabularium/domain/content';
+import { offersCoreRetry } from '@vocabularium/domain/modules';
 import type { ParentContent } from '@vocabularium/domain/content';
 import { hasText } from '@vocabularium/domain/markdown';
 import { CoreEditor, FacetEditor, LiveEditor, NoteEditor } from './live-editor.tsx';
 import { facetsOf, isFacetOf, isParentType } from '@vocabularium/domain/parents';
-import { facetName } from './catalog-text.ts';
+import { coreLabel, facetName } from './catalog-text.ts';
 import type { FacetType, ParentType } from '@vocabularium/domain/parents';
 import type { FieldDraft, PageEditorDraft } from '../types/editor-drafts.js';
 import { FacetTags } from './facet-tags.tsx';
@@ -24,7 +25,7 @@ import { AT_THE_END, moduleLabel, numbered, ShapingArea } from './shaping.tsx';
 import type { RowParts } from './shaping.tsx';
 import { direction, listFormat, t } from './i18n.ts';
 import { ClipsProvider } from './audio.tsx';
-import { ActionIcon, CORE_PART, Spark, Content, readContent, isSpokenModule, spokenOf, Reveal, ConfirmAction, LandingCard } from './card-content.tsx';
+import { ActionIcon, CORE_PART, CORE_RETRY, Spark, Content, readContent, isSpokenModule, spokenOf, Reveal, ConfirmAction, LandingCard } from './card-content.tsx';
 import type { FacetAsk, FacetControls } from './card-content.tsx';
 // A module in the module window has a page (D20); the main key has none.
 const isWindowModule = (type: string) => (WINDOW_MODULES as readonly string[]).includes(type);
@@ -378,6 +379,9 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
       onEdit: facet => { setAskingFacet(null); begin(item.id, facet); }, facets: item.facets ?? [],
       // The core's own Edit (0.16.2), on a card that generated and whose core is written, not spoken.
       ...(read.present && !isSpokenModule(item.moduleType) ? { onEditCore: () => { setAskingFacet(null); beginCore(item.id); } } : {}),
+      // The core's own Retry (D28), on a written core for the current main key; confirmed in its row.
+      ...(offersCoreRetry(item.moduleType, parentContentOf(item.content), mainKey)
+        ? { onRetryCore: () => void run(() => generate({ scope: 'core', componentId: item.id }, true)) } : {}),
       // A facet's heading drags it among the card's facets (D26).
       onMoveFacet: (facet, position) => moveFacet(item.id, item.moduleType as ParentType, facet, position),
       setAsking: (facet, kind = 'delete') => setAskingFacet(facet ? { id: item.id, facet, kind } : null),
@@ -439,7 +443,8 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
         {item.status === 'failed' && <p className="card-status"><span className="list-status" data-status="failed">{t('status.generationFailed')}</span></p>}
         {editor(item, title, controls) || <Reveal status={item.status} title={title} failedFacet={item.failedFacet}
           facet={item.retryingFacet && isParentType(item.moduleType) && isFacetOf(item.moduleType, item.retryingFacet)
-            ? { id: item.retryingFacet, name: facetName(item.moduleType, item.retryingFacet) } : undefined}><ComponentBody item={item} title={title} editable={false} draft={draft} locked={locked} redraw={redraw} persist={persist} mainKey={mainKey} controls={controls} /></Reveal>}
+            ? { id: item.retryingFacet, name: facetName(item.moduleType, item.retryingFacet) }
+            : item.retryingFacet === CORE_RETRY && isParentType(item.moduleType) ? { id: CORE_RETRY, name: coreLabel(item.moduleType, parentContentOf(item.content)?.header.kind === 'sentence' ? 'sentence' : 'word_phrase') } : undefined}><ComponentBody item={item} title={title} editable={false} draft={draft} locked={locked} redraw={redraw} persist={persist} mainKey={mainKey} controls={controls} /></Reveal>}
       </div></div>}
       {tags}
     </article>;

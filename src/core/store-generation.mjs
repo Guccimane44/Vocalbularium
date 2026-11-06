@@ -6,6 +6,7 @@ import { blockText, noteDocument, textBlocks } from '@vocabularium/domain/pages'
 import { generationTargets } from '@vocabularium/domain/page-modules';
 import { isParentType, ordered } from '@vocabularium/domain/parents';
 import { ruledOutOf } from '@vocabularium/domain/render';
+import { hasText } from '@vocabularium/domain/markdown';
 import { hasFacetContent, isEmptyContent, parentContentOf, parentDocument, validateParentContent } from '@vocabularium/domain/content';
 /** @import { BrowserSession, CapturePreparationRequest, Component, PageCaptureRequest, PageGenerateRequest, PublishRequest } from '@vocabularium/contracts' */
 /** @import { ParentContent } from '@vocabularium/domain/content' */
@@ -17,13 +18,15 @@ import { PageStore } from './store-pages.mjs';
 // The generation record after a published attempt (D11): per part with
 // content, the model and prompt version that produced it. A whole attempt
 // records the core and each facet it produced; a facet's own Retry only that
-// facet, the others keeping theirs. A result without a record leaves none.
+// facet, the others keeping theirs, and the core's own Retry only the core. A result without a record leaves none.
 /** @param {GenerationRecord | null} previous @param {AttemptModule} module @param {ParentContent} content @param {GenerationEntry | undefined} made @returns {GenerationRecord | null} */
 function generationAfter(previous, module, content, made) {
   const entry = made?.prompt ? { model: made.model ?? null, prompt: made.prompt } : null;
   if (!module.retry) return entry ? Object.fromEntries(['core', ...Object.keys(content.facets)].map(part => [part, entry])) : null;
   const record = { ...(previous ?? {}) };
-  if (entry && hasFacetContent(content, module.retry)) record[module.retry] = entry;
+  // The core's own Retry (D28) records the core alone.
+  const written = module.retry === 'core' ? hasText(content.core) : hasFacetContent(content, module.retry);
+  if (entry && written) record[module.retry] = entry;
   else delete record[module.retry];
   return Object.keys(record).length ? record : null;
 }
@@ -79,7 +82,11 @@ export class GenerationStore extends PageStore {
       // An attempt asks for the facets in the parent's order whatever the card's
       // own order (D26): the request, and so the prompt, never depend on it.
       const asked = isParentType(moduleType) ? ordered(moduleType, facets ?? []) : facets;
-      const module = facet
+      const module = facet === 'core'
+        // The core's own Retry (D28) writes the core alone; the facets stay as they are.
+        // Its facets are those the card had generated, so none starts waiting.
+        ? { id: moduleInstanceId, type: moduleType, facets: /** @type {string[]} */ (asked).filter(each => !waitingFacets?.includes(each)), retry: facet, prior: { status, waiting: false } }
+        : facet
         // A facet's own Retry targets a parent component, which has its facets.
         ? { id: moduleInstanceId, type: moduleType, facets: /** @type {string[]} */ (asked).filter(each => each === facet || !waitingFacets?.includes(each)),
           retry: facet, prior: { status, waiting: Boolean(waitingFacets?.includes(facet)) } }
@@ -185,7 +192,7 @@ export class GenerationStore extends PageStore {
     return await this.command(operationId, 'generate', { pageId, target, session, confirmation }, async () => {
       await this.requireSession(session);
       const page = await this.page(pageId);
-      if (!target || !['missing', 'page', 'component', 'facet'].includes(target.scope)) fail('invalid', 'Choose what to generate.');
+      if (!target || !['missing', 'page', 'component', 'facet', 'core'].includes(target.scope)) fail('invalid', 'Choose what to generate.');
       let targets;
       try { targets = generationTargets(target, page.components); }
       catch (error) { fail('invalid', /** @type {Error} */ (error).message); }
@@ -193,16 +200,17 @@ export class GenerationStore extends PageStore {
       // Replacing content needs confirmation. A component with nothing in it has
       // nothing to replace, whether it never generated, failed, or generated
       // nothing (0.6.3; until then any earlier attempt needed confirmation).
-      // A facet's own Retry (0.7.3) replaces only its section.
-      const facet = target.scope === 'facet' ? target.facet : null;
+      // A facet's own Retry (0.7.3) replaces only its section, the core's (D28) only the core.
+      const facet = target.scope === 'facet' ? target.facet : target.scope === 'core' ? 'core' : null;
       // A facet the card's flags rule out has nothing to generate (D17): no attempt starts.
-      if (facet && targets.some(component => { const data = parentContentOf(component.content);
+      if (target.scope === 'facet' && targets.some(component => { const data = parentContentOf(component.content);
         return data && ruledOutOf(/** @type {ParentType} */ (component.moduleType), data)[/** @type {FacetType} */ (facet)]; })) {
         fail('invalid', 'This facet does not apply to this card.');
       }
       // Structured content (D09) is compared as data: a facet's entry, or the whole content.
       const replaced = (/** @type {Component} */ component) => {
         const data = parentContentOf(component.content);
+        if (facet === 'core') return data && hasText(data.core) ? data.core : null;
         if (facet) return data && hasFacetContent(data, facet) ? data.facets[/** @type {FacetType} */ (facet)] : null;
         // Structured content emptied of everything has nothing to replace (0.6.3).
         return data ? (isEmptyContent(data) ? null : data) : (blockText(component.content) || null);

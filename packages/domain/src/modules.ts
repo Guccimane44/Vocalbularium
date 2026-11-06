@@ -1,10 +1,11 @@
 import type { CoreValue } from './catalog/define.js';
 import { appliesTo, facetsFor, isFacetOf, isParentType, ordered } from './parents.js';
 import type { FacetType, ParentType } from './parents.js';
-import { formatContent, formatFacet, providerCore, withFacetText, withKeyHighlighted } from './content.js';
+import { formatContent, formatCore, formatFacet, providerCore, withFacetText, withKeyHighlighted } from './content.js';
+import { contentModule } from './catalog/index.js';
 import type { ParentContent } from './content.js';
 import { emptyEntry, validateGenerated, validateGeneratedFacet } from './generated.js';
-import { highlightKey } from './markdown.js';
+import { hasText, highlightKey } from './markdown.js';
 
 // Content modules are parent modules (D08); the earlier types retired in 0.7.0.
 export type ModuleInstance = Readonly<{ id: string; type: ParentType; facets?: readonly string[] }>;
@@ -97,6 +98,43 @@ export async function generateFacet(input: {
   try { checked = validateGeneratedFacet(module.type, facet, entry); }
   catch (error) { throw new Error(`A module returned content in an unexpected format: ${(error as Error).message}`); }
   return withFacetText(existing, facet, highlightKey(formatFacet(module.type, facet, checked), input.mainKey));
+}
+
+// Whether a card's core can be retried on its own (D28): the card has a written
+// core, for the page's current main key (its top line's key, trimmed), and its
+// module does not speak it (Pronunciation).
+const sameKey = (a: string, b: string) => a.trim().normalize('NFC') === b.trim().normalize('NFC');
+export function offersCoreRetry(type: string, content: ParentContent | null, mainKey: string): boolean {
+  if (!isParentType(type) || !content || contentModule(type).core.spoken) return false;
+  return hasText(content.core) && sameKey(content.header.key ?? '', mainKey);
+}
+
+// The core's own Retry (D28): the core written again for the reading of the one
+// already in `existing`, given as "previous". Its flags, and the fields its top
+// line shows, stay as they were, whatever the provider writes for them, so the
+// top line and every facet stay in step; only the text is new. Throws when
+// generation fails or the result does not have the core's shape.
+export async function generateCore(input: {
+  mainKey: string;
+  module: ModuleInstance;
+  existing: ParentContent;
+  generate: GenerateModule;
+}): Promise<ParentContent> {
+  const { module, existing } = input;
+  if (!isParentType(module.type)) throw new Error('The deck contains an unsupported module.');
+  const previous = providerCore(module.type, existing);
+  const value = await input.generate({ module, selectedText: input.mainKey, facets: [], previous });
+  if (!isRecord(value)) throw new Error('A module returned no usable content.');
+  const stray = Object.keys(value).find(key => key !== 'core' && key !== 'facets');
+  if (stray) throw new Error(`A module returned content in an unexpected format: an unexpected field "${stray}".`);
+  // The flags are the fields the top line is made from, as "previous" has them.
+  const shown = new Set(Object.keys(contentModule(module.type).core.header(previous)));
+  const flags = Object.fromEntries(Object.entries(previous).filter(([field]) => shown.has(field)));
+  const written = isRecord(value.core) ? Object.fromEntries(Object.entries(value.core).filter(([field]) => !shown.has(field))) : value.core;
+  let generated;
+  try { generated = validateGenerated(module.type, { core: isRecord(written) ? { ...written, ...flags } : written }, { facets: [] }); }
+  catch (error) { throw new Error(`A module returned content in an unexpected format: ${(error as Error).message}`); }
+  return { header: existing.header, core: highlightKey(formatCore(module.type, generated.core), input.mainKey), facets: existing.facets };
 }
 
 export type ComponentOutcome = Readonly<

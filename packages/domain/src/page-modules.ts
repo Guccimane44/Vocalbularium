@@ -6,6 +6,8 @@ import type { Instances } from './catalog/define.js';
 import { isParentType, validateFacets } from './parents.js';
 import { parentContentOf } from './content.js';
 import { plainLines } from './markdown.js';
+import { offersCoreRetry } from './modules.js';
+import { mainKeyOf } from './pages.js';
 import type { ParentType } from './parents.js';
 
 // Page-owned modules (D02). Shared by the backend and the extension so both
@@ -123,6 +125,16 @@ export function generationTargets(target: GenerationTarget | { scope: 'capture' 
       if (!component) throw new Error('This component no longer exists.');
       if (!isParentType(component.moduleType) || !component.facets?.includes(target.facet)) throw new Error('This facet is no longer there.');
       if (!parentContentOf(component.content)) throw new Error('Retry the whole module first: it has no content yet.');
+      return [component];
+    }
+    // The core's own Retry (D28) needs a written core for the current main key,
+    // which a module that speaks its core (Pronunciation) does not have.
+    case 'core': {
+      const component = components.find(item => item.id === target.componentId);
+      if (!component) throw new Error('This component no longer exists.');
+      if (!offersCoreRetry(component.moduleType, parentContentOf(component.content), mainKeyOf(components))) {
+        throw new Error('Retry the whole module: its core cannot be retried on its own.');
+      }
       return [component];
     }
   }
