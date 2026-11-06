@@ -165,7 +165,7 @@ test('OpenCode asks a facet’s own Retry for its facets only, written for the s
     facets: ['examples'], core }), { facets: { examples: [{ sentence: 'A bank.' }] } });
 });
 
-test('OpenCode sends a card’s Retry the core it had as "previous", with the reading prompt, and asks for the whole card (D19)', async () => {
+test('OpenCode sends a core it is given as "previous" with the reading prompt, for the core’s Retry (D28; a card’s Retry sends none)', async () => {
   const instructions = parentInstructions('german', ['examples'], false, 'en', true);
   assert.match(instructions, /"kind": "<word/);
   assert.match(instructions, /supplied as "previous"[^\n]*keeping that reading/);

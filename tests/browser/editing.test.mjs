@@ -289,7 +289,7 @@ test('0.9.1: deleting a page goes straight to its deck, and an ejected action st
   assert.ok(!headings.includes('Page unavailable'), `no unavailable page on the way to the deck (${JSON.stringify(headings)})`);
 });
 
-test('0.12.2: a card’s Retry gives the model the core it had, with the meanings as the user edited them (D19)', { timeout: 45000 }, async (t) => {
+test('0.16.3: a card’s Retry starts over: after an edit to the meanings, it sends the model no core (D28; kept the reading from 0.12.2, D19)', { timeout: 45000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-reading-browser-'));
   const requests = [];
   const bench = { core: { kind: 'word', language: 'Deutsch', key: 'Bank', gramRole: 'noun', meanings: ['Sitzbank'] }, facets: {} };
@@ -310,7 +310,7 @@ test('0.12.2: a card’s Retry gives the model the core it had, with the meaning
   await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
   const card = componentArticle(a.page, 'German');
   await card.locator('.entry-core').waitFor();
-  // The user corrects the reading in the meanings, then retries the card.
+  // The user edits the meanings, then retries the card.
   await (await cardButton(a.page, 'Edit German')).click();
   const meanings = a.page.getByRole('textbox', { name: 'Meanings, German', exact: true });
   await meanings.click(); await a.page.keyboard.press('ControlOrMeta+a'); await a.page.keyboard.type('Sitzgelegenheit für mehrere');
@@ -319,8 +319,8 @@ test('0.12.2: a card’s Retry gives the model the core it had, with the meaning
   await (await cardButton(a.page, 'Retry German')).click();
   await a.page.getByRole('button', { name: 'Yes, retry German', exact: true }).click();
   await waitFor(() => requests.length === 1, 'the Retry reached the provider');
-  assert.deepEqual(requests[0].previous, { kind: 'word', language: 'Deutsch', key: 'Bank', gramRole: 'noun', meanings: ['Sitzgelegenheit für mehrere'] },
-    'the core as saved, with the edited meanings');
+  assert.equal(requests[0].previous, undefined, 'nothing from the card, the edited meanings included');
   assert.equal(requests[0].core, undefined);
+  assert.equal(requests[0].selectedText, 'Bank');
   await card.locator('.entry-core', { hasText: 'Sitzbank' }).waitFor();
 });
