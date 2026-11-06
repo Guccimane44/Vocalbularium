@@ -59,6 +59,21 @@ test('the shared rules are in every composed prompt and in no prompt file of the
   }
 });
 
+test('every request that writes a core says the core holds only its own fields, beside the facets', () => {
+  // The core's shape is strict (D17), so a stray field fails the whole card; the
+  // 0.16.3 gates saw "facets" nested in the core and notes such as "contextual_note".
+  const rule = 'Write "core" and "facets" side by side in the result. "core" holds only the fields shown for it: no facet, no "facets", and no note or other field of your own.';
+  for (const parent of Object.keys(PARENTS)) {
+    const facets = facetsOf(parent);
+    for (const text of [moduleInstructions(parent, facets), moduleInstructions(parent, []), moduleInstructions(parent, facets, false, 'en', true)]) {
+      assert.equal(text.split(rule).length, 2, `${parent} states the rule once`);
+      assert.ok(text.indexOf(rule) < text.indexOf('"facets"', text.indexOf(rule) + rule.length), `${parent} states it before the facets`);
+    }
+    // A facet's own Retry is given the core and writes only "facets".
+    for (const facet of facets) assert.ok(!moduleInstructions(parent, [facet], true).includes(rule), `${parent} ${facet} Retry`);
+  }
+});
+
 test('the Expertise modules write in the account’s language; the Languages modules do not follow it (D14, K36)', () => {
   for (const module of EXPERTISE) {
     const french = moduleInstructions(module, [], false, 'fr');

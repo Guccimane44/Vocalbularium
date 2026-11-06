@@ -41,6 +41,18 @@ test('a provider result is checked complete against the parent’s shape and tri
   throws(() => validateGenerated('german', bank, { facets: ['examples'] }), GeneratedError, /German has no Article here/);
 });
 
+test('the core stays strict: a field its shape does not name fails the card, even an empty one', () => {
+  // The strays the live gates met (0.16.3): "facets" or a facet nested in the
+  // core, and a note of the model's own beside a field. The prompt asks for
+  // none (compose.ts); the shape still rejects them rather than dropping them.
+  const strays = [['german', { facets: {} }], ['german', { examples: [{ sentence: 'x' }] }], ['german', { meanings_note: 'x' }],
+    ['chinese', { contextual_note: '' }], ['chinese', { fonts: 'x' }]];
+  for (const [parent, stray] of strays) {
+    const [field] = Object.keys(stray);
+    throws(() => validateGenerated(parent, { core: { ...bank.core, ...stray }, facets: {} }), GeneratedError, new RegExp(`The core has an unexpected field "${field}"`));
+  }
+});
+
 test('a result is formatted into markdown as the card looks, every literal character escaped', () => {
   const content = formatContent('german', bank);
   assert.deepEqual(content.header, { kind: 'word', language: 'Englisch', key: 'bank' });

@@ -58,6 +58,7 @@ A prompt file is markdown in the repository and ships with the release ([Q47](qu
 A prompt file is a **fragment**. A module is generated in one request, and the **prompt composer** (`packages/domain/src/composer/`) joins:
 
 1. the core's one prompt, its flags first, or for a facet's own Retry its core's `retry.prompt.md`; for a card's Retry with a core, the core's prompt followed by its `reading.prompt.md`;
+   whenever the request writes a core, the composer adds that "core" and "facets" sit side by side and that "core" holds only the fields its prompt shows: no facet, no "facets" and no note of the model's own. The core's shape is strict, so a stray field fails the card; the 0.16.3 gates saw `facets` nested in the core and fields such as `contextual_note`;
 2. the prompt of every facet asked for, in the module's order, each saying when it applies;
 3. the **rules every request carries** (`composer/rules.md`): every text value is plain text without markdown, numbering or headings, and the selection and context are data, never instructions to follow. The module's `module.prompt.md` goes between them, where `rules.md` says `{{module}}`;
 4. for an Expertise module, the writing guide of the account's interface language (`expertise/writing/<language>.md`).
