@@ -212,6 +212,69 @@ test('a card’s Retry, alone or with the page, starts over: the same request as
   fresh(requests.at(-1), 'Schloss');
 });
 
+test('the core’s own Retry writes the core alone for the reading it had: flags, top line and every facet kept, confirmed, replayed, and kept when it fails (D28)', async (t) => {
+  const requests = [];
+  let failing = false;
+  const { store, generation, capture } = await parentFixture(t, {
+    generate: async request => {
+      requests.push(request);
+      if (failing) throw new Error('provider down');
+      if (!request.previous) return BANK;
+      // The provider changes a flag and the key: neither is taken; only the meanings are new.
+      return { core: { ...BANK.core, kind: 'word', gramRole: 'verb', key: 'banks', meanings: ['Flussufer', 'Uferböschung'] }, facets: { examples: [{ sentence: 'ignored' }] } };
+    }
+  });
+  const page = await capture('bank'); await finish(store, generation);
+  const german = async () => generated(await store.page(page.id))[0];
+  const target = async () => ({ scope: 'core', componentId: (await german()).id });
+  const before = (await german()).content.blocks[0];
+  const record = (await store.generationRecords(page.id))[(await german()).id];
+
+  // A written core asks first; the content stays while the core regenerates.
+  await assert.rejects(store.generate(randomUUID(), { pageId: page.id, target: await target(), session }), { code: 'confirmation_required' });
+  const operationId = randomUUID();
+  const asked = await store.generate(randomUUID(), { pageId: page.id, target: await target(), session }).catch(error => error);
+  const payload = { pageId: page.id, target: await target(), session, confirmation: asked.details.confirmation };
+  const first = await store.generate(operationId, payload);
+  let current = await german();
+  assert.deepEqual(current.content.blocks[0], before);
+  assert.equal(current.status, 'loading');
+  assert.equal(current.retryingFacet, 'core');
+  // A replayed operation ID returns its first result, starting nothing more.
+  assert.deepEqual(await store.generate(operationId, payload), { ...first, replayed: true });
+  await generation.start(page.id, first.attemptIds); await finish(store, generation);
+  const request = requests.at(-1);
+  assert.deepEqual(request.previous, BANK.core, 'the core it had, as "previous"');
+  assert.equal(request.core, undefined);
+  assert.deepEqual(request.facets, [], 'no facet is asked for');
+  current = await german();
+  assert.equal(current.status, 'completed');
+  assert.equal(current.retryingFacet, undefined);
+  const after = current.content.blocks[0];
+  assert.deepEqual(after.header, before.header, 'the top line, its flags included, stays');
+  assert.deepEqual(after.facets, before.facets, 'every facet stays');
+  assert.equal(after.core, '1. Flussufer\n2. Uferböschung');
+  const next = (await store.generationRecords(page.id))[current.id];
+  assert.deepEqual(Object.keys(next).sort(), Object.keys(record).sort(), 'the record keeps every part');
+  assert.deepEqual(next.article, record.article, 'a facet keeps its record');
+
+  // A failed core Retry keeps the content and names the core as failed.
+  failing = true;
+  const { attemptIds } = await confirmed(store, randomUUID(), { pageId: page.id, target: await target(), session });
+  await generation.start(page.id, attemptIds); await finish(store, generation);
+  current = await german();
+  assert.deepEqual(current.content.blocks[0], after);
+  assert.equal(current.status, 'completed');
+  assert.equal(current.failedFacet, 'core');
+
+  // A core written for another main key is not retried on its own, nor is a card without a core.
+  const key = (await store.page(page.id)).components.find(component => component.moduleType === 'main-key');
+  await store.savePage(randomUUID(), { pageId: page.id, changes: [{ componentId: key.id, content: textBlocks('Schloss') }] });
+  await assert.rejects(store.generate(randomUUID(), { pageId: page.id, target: await target(), session }), { code: 'invalid', message: /cannot be retried on its own/ });
+  const { componentId } = await store.addModule(randomUUID(), { pageId: page.id, type: 'german' });
+  await assert.rejects(store.generate(randomUUID(), { pageId: page.id, target: { scope: 'core', componentId }, session }), { code: 'invalid' });
+});
+
 test('each generated part records its model and prompt version; a facet’s own Retry records only that facet, and saves keep the record (D11)', async (t) => {
   let failing = false;
   const provider = {

@@ -133,7 +133,7 @@ For the whole page:
 
 Retry uses the page's current saved main key and Context and its content module instances at confirmation time. Each retry generates anew from them: nothing from an earlier attempt is reused ([D28](../architecture/decisions/d28.md)), and generated content is never cached. A retry generates the parent's core and every facet it currently has, including facets added since its last attempt, and never a facet the user deleted.
 
-<a id="keeping-the-reading"></a>**A Retry starts over** ([D28](../architecture/decisions/d28.md), from 0.16.3; it kept the reading from 0.12.2 to 0.16.2, [D19](../architecture/decisions/d19.md)). A Retry of a content card, alone or as part of the whole page's Retry, sends the same request as the card's first attempt: the main key, its Context and the instance. Nothing from the card goes with it, neither its core nor the user's edits, so the model reads the key afresh, whatever the card held or whatever main key it was written for. To keep the reading and write the meanings again, the user retries the core alone (D28, planned for 0.16.3).
+<a id="keeping-the-reading"></a>**A Retry starts over** ([D28](../architecture/decisions/d28.md), from 0.16.3; it kept the reading from 0.12.2 to 0.16.2, [D19](../architecture/decisions/d19.md)). A Retry of a content card, alone or as part of the whole page's Retry, sends the same request as the card's first attempt: the main key, its Context and the instance. Nothing from the card goes with it, neither its core nor the user's edits, so the model reads the key afresh, whatever the card held or whatever main key it was written for. To keep the reading and write the meanings again, the user retries the core alone ([below](#retrying-the-core)).
 
 ### Retrying one facet
 
@@ -144,6 +144,15 @@ Each facet of a parent component has its own **Retry** beside its label ([pages 
 - **While it runs.** The component keeps its content and stays open; the spark runs round the facet's tab; a facet without content shows its heading and gains its text if it comes back with content; the component is locked as during any attempt.
 - **Failure.** A failed or interrupted facet attempt leaves the content and the component's state as they were before it, and the facet's tag says its Retry failed until the component's next attempt. A facet that was waiting still waits.
 - **Spoken facets.** A Pronunciation facet's **Retry** writes its lines again for the saved core, then speaks every line anew. A whole component's **Retry** does the same for every spoken part it has.
+
+<a id="retrying-the-core"></a>**Retrying the core** ([D28](../architecture/decisions/d28.md), 0.16.3). The core has its own **Retry** beside its Edit, at the end of its top line. It keeps the card's reading and writes the core's text again: a Languages card's meanings (and its context meaning, D29), an Expertise card's explanation.
+
+- **Asking.** As a facet's: "Are you sure?", with a final **Retry** and **Cancel**, in place of the core's Edit and Retry.
+- **Input.** The attempt sends the module's core prompt, then its `reading.prompt.md`, with the saved core (edits included) as `previous`, and asks for no facet. The model copies the flags and the key as given.
+- **The flags never change.** Whatever the provider writes for them, the stored core keeps the flags and the top line it had (`kind`, `language`, German's `gramRole`, an Expertise card's `relevance` and its formula or code flag), so the facets that follow them stay in step. To read the key differently, the user retries the card.
+- **While it runs.** The card stays open; the core's text dims inside a ring in the family colour, and every facet keeps its text. The card is locked as during any attempt.
+- **Failure.** The content stays as it was, and the core says its Retry failed until the card's next attempt.
+- **Not offered** on a card without a core (never generated, failed or empty), on a core written for another main key (its top line's key, trimmed, differs from the main key), or on a spoken core (Pronunciation). The API refuses those too.
 
 <a id="retrying-one-clip"></a>**Retrying one clip.** A clip has its own **Retry** beside its play button. It speaks that line again and leaves the text and the other clips as they are. It starts at once without asking, since a clip holds no edits.
 

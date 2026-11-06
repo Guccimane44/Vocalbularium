@@ -6865,6 +6865,26 @@
                               }
                             },
                             "additionalProperties": true
+                          },
+                          {
+                            "type": "object",
+                            "required": [
+                              "scope",
+                              "componentId"
+                            ],
+                            "properties": {
+                              "scope": {
+                                "type": "string",
+                                "enum": [
+                                  "core"
+                                ]
+                              },
+                              "componentId": {
+                                "type": "string",
+                                "minLength": 1
+                              }
+                            },
+                            "additionalProperties": true
                           }
                         ]
                       },

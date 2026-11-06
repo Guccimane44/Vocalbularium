@@ -1,5 +1,5 @@
 // @ts-check
-import { generateComponent, generateFacet } from '@vocabularium/domain/modules';
+import { generateComponent, generateCore, generateFacet } from '@vocabularium/domain/modules';
 import { composeModule, promptVersion } from '@vocabularium/domain/composer';
 import { mainKeyOf, notePlain } from '@vocabularium/domain/pages';
 import { parentContentOf } from '@vocabularium/domain/content';
@@ -174,7 +174,10 @@ export class Generation {
         return this.provider.generate({ ...request, context: input.context, language, sessionId: pageId }, controller.signal);
       };
       // A facet's own Retry (0.7.3) replaces only its section of the content kept meanwhile.
-      const output = attempt.module.retry
+      // The core's own Retry (D28) writes the core alone, keeping its reading and flags.
+      const output = attempt.module.retry === 'core'
+        ? await generateCore({ mainKey: input.mainKey, module: attempt.module, existing: existingContent(target), generate })
+        : attempt.module.retry
         ? await generateFacet({ mainKey: input.mainKey, module: attempt.module, facet: attempt.module.retry, existing: existingContent(target), generate })
         // One request writes the card (D17); a facet its core's flags rule out is dropped and counted, never with its text (K53).
         // A card's Retry starts over (D28): nothing from the card goes with it.

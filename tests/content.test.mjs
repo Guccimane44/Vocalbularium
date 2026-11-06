@@ -294,3 +294,15 @@ test('an edit that deletes the label, or leaves only the labelled line, turns it
   assert.deepEqual(providerCore('german', { header, core: '1. Brotkrümel\n2. (in diesem Zusammenhang) Navigationspfad', facets: {} }),
     { ...header, meanings: ['Brotkrümel', 'Navigationspfad'] });
 });
+
+test('the core’s own Retry is offered on a written core for the current main key, never on a spoken one (D28)', async () => {
+  const { offersCoreRetry } = await import('@vocabularium/domain/modules');
+  const written = { header: { kind: 'word', language: 'Englisch', key: 'bank' }, core: '1. Ufer', facets: {} };
+  assert.equal(offersCoreRetry('german', written, 'bank'), true);
+  assert.equal(offersCoreRetry('german', written, ' bank '), true, 'the keys are compared trimmed');
+  assert.equal(offersCoreRetry('german', written, 'Schloss'), false, 'a core written for another main key');
+  assert.equal(offersCoreRetry('german', { ...written, core: '' }, 'bank'), false, 'a card without a core');
+  assert.equal(offersCoreRetry('german', null, 'bank'), false, 'a card that never generated or failed');
+  assert.equal(offersCoreRetry('pronunciation', { header: { kind: 'pronunciation', language: 'en', key: 'bank' }, core: 'bank', facets: {} }, 'bank'), false, 'a spoken core');
+  assert.equal(offersCoreRetry('text', written, 'bank'), false);
+});

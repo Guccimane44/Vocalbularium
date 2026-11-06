@@ -5,7 +5,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { once } from 'node:events';
-import { text, useModules, wordResult, staged } from '../helpers/pages.mjs';
+import { text, textBlocks, useModules, wordResult, staged } from '../helpers/pages.mjs';
 import { keyOf, modulesOf, componentArticle, cardTab, cardButton, launch, signIn, waitFor, pageReady, chooseDeletePage, addFromWindow, drag, crumb } from './helpers.mjs';
 
 test('manual page UI: per-card actions, drafts, leave choices, sorting, failed-save recovery, and deletion', { timeout: 45000 }, async (t) => {
@@ -323,4 +323,58 @@ test('0.16.3: a card’s Retry starts over: after an edit to the meanings, it se
   assert.equal(requests[0].core, undefined);
   assert.equal(requests[0].selectedText, 'Bank');
   await card.locator('.entry-core', { hasText: 'Sitzbank' }).waitFor();
+});
+
+test('0.16.3: the core’s Retry rewrites the meanings for the reading the card has, every facet as it was; it is not offered for another main key (D28)', { timeout: 45000 }, async (t) => {
+  const directory = await mkdtemp(join(tmpdir(), 'vocabularium-core-retry-'));
+  const requests = [];
+  let release;
+  const held = new Promise(resolve => { release = resolve; });
+  const application = await createTestApplication(t, { provider: { generate: async request => {
+    requests.push(request);
+    await held;
+    return { core: { kind: 'word', language: 'Englisch', key: 'bank', gramRole: 'verb', meanings: ['Flussufer', 'Böschung'] }, facets: {} };
+  } } });
+  await application.start();
+  const a = await launch(join(directory, 'a'));
+  t.after(async () => { release(); await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
+  const store = application.store;
+  const session = { installationId: 'fixture', sessionId: 'core-retry', epoch: 1 };
+  await store.openSession('core-retry-session', session);
+  await useModules(store, ['german']);
+  const { pageId } = await store.capture('core-retry-capture', { session, mainKey: 'bank', snapshot: await store.snapshot() });
+  const german = (await store.page(pageId)).components.find(item => item.moduleType === 'german');
+  const first = { core: { kind: 'word', language: 'Englisch', key: 'bank', gramRole: 'noun', meanings: ['Ufer'] },
+    facets: { article: { singular: 'das Ufer', plural: 'die Ufer' } } };
+  await store.stage(german.attemptId, staged(first));
+  await store.publish('core-retry-publish', { attemptId: german.attemptId, session });
+  await signIn(a.page);
+  await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
+  const card = componentArticle(a.page, 'German');
+  await card.locator('.entry-core').waitFor();
+  const article = await card.locator('.facet[data-facet="article"]').innerText();
+
+  // Beside the core's Edit, its Retry asks first, as a facet's does.
+  await card.locator('.entry-heading').hover();
+  await a.page.getByRole('button', { name: 'Retry Meanings from German', exact: true }).click();
+  await a.page.getByRole('button', { name: 'Yes, retry Meanings from German', exact: true }).click();
+  await waitFor(() => requests.length === 1, 'the core’s Retry reached the provider');
+  assert.deepEqual(requests[0].previous, first.core, 'the core it had, as "previous"');
+  assert.deepEqual(requests[0].facets, [], 'no facet is asked for');
+  // While it runs, the meanings dim in their ring and the facets keep their text.
+  await card.locator('.entry-core[data-retrying]').waitFor();
+  assert.equal(await card.locator('.facet[data-facet="article"]').innerText(), article);
+  release();
+  await card.locator('.entry-core:not([data-retrying])', { hasText: 'Flussufer' }).waitFor();
+  assert.equal(await card.locator('.facet[data-facet="article"]').innerText(), article, 'every facet as it was');
+  assert.match(await card.locator('.entry-heading').innerText(), /Nomen/, 'the flags stay: still a noun');
+
+  // After the main key changes, the core was written for another key: only the card's Retry is offered.
+  const key = (await store.page(pageId)).components.find(item => item.moduleType === 'main-key');
+  await store.savePage('core-retry-key', { pageId, changes: [{ componentId: key.id, content: textBlocks('Schloss') }] });
+  await a.page.reload();
+  await card.locator('.entry-core').waitFor();
+  await card.locator('.entry-heading').hover();
+  await a.page.getByRole('button', { name: 'Edit Meanings from German', exact: true }).waitFor();
+  assert.equal(await a.page.getByRole('button', { name: 'Retry Meanings from German', exact: true }).count(), 0);
 });

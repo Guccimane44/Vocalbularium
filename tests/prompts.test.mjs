@@ -25,7 +25,7 @@ function cases() {
     all[parent] = snapshot(moduleInstructions(parent, facets), moduleSchema(parent, facets));
     all[`${parent}.core-only`] = snapshot(moduleInstructions(parent, []), moduleSchema(parent, []));
     // The reading prompt, for the core's Retry that keeps the reading of the core it had (D28).
-    all[`${parent}.reading`] = snapshot(moduleInstructions(parent, facets, false, 'en', true), moduleSchema(parent, facets));
+    all[`${parent}.reading`] = snapshot(moduleInstructions(parent, [], false, 'en', true), moduleSchema(parent, []));
     for (const facet of facets) {
       all[`${parent}.retry-${facet}`] = snapshot(moduleInstructions(parent, [facet], true), moduleSchema(parent, [facet], true));
     }

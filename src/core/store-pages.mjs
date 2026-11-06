@@ -85,7 +85,8 @@ export class PageStore extends DeckStore {
           const generated = module ? module.facets ?? [] : null;
           const waiting = generated && isParentType(row.module_type) ? row.facets.filter(facet => !generated.includes(facet)) : [];
           // A facet's own Retry (0.7.3): the facet it regenerates, or the one whose Retry failed.
-          const retry = module?.retry && row.facets?.includes(module.retry) ? module.retry : null;
+          // The core's own Retry (D28) names the core.
+          const retry = module?.retry && (module.retry === 'core' || row.facets?.includes(module.retry)) ? module.retry : null;
           return { id: row.id, moduleInstanceId: row.module_instance_id, moduleType: row.module_type,
             ...withFacets(row.module_type, row.facets), ...(isParentType(row.module_type) ? { waitingFacets: waiting } : {}),
             ...(retry && row.status === 'loading' ? { retryingFacet: retry } : {}),
