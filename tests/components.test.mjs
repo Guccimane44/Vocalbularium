@@ -112,3 +112,20 @@ test('facet entries the provider wrote inside the core move to the facets; other
   assert.equal(content.facets.synonyms, 'hübsch');
   await assert.rejects(generateComponent({ mainKey: 'schön', module, generate: async () => ({ core: { ...slipped.core, poem: 'x' }, facets: {} }) }), /unexpected field "poem"/);
 });
+
+test('a blank field the core does not name is dropped; one with a value still fails the card (owner, 6 November 2026)', async () => {
+  // The strays the 0.16.3 gates met were mostly empty: "facets": {}, "contextual_note": "", "meaningsNote": null.
+  const module = { id: 'g', type: 'german', facets: ['synonyms'] };
+  const core = { kind: 'word', language: 'Englisch', key: 'serendipity', gramRole: 'noun', meanings: ['glücklicher Zufall'] };
+  const blank = { facets: {}, contextual_note: '', meaningsNote: null, gramRoleNote: '  ', fonts: [] };
+  const content = await generateComponent({ mainKey: 'serendipity', module, generate: async () => ({ core: { ...core, ...blank }, facets: { synonyms: ['Zufallsfund'] } }) });
+  assert.deepEqual(content.header, { kind: 'word', language: 'Englisch', key: 'serendipity', gramRole: 'noun' });
+  assert.equal(content.facets.synonyms, 'Zufallsfund');
+  for (const stray of [{ is_sentence: 'true' }, { kind_note: 'a noun' }, { facets: { synonyms: ['Zufallsfund'] } }, { notes: [''] }, { extra: 0 }, { extra: false }]) {
+    const [field] = Object.keys(stray);
+    await assert.rejects(generateComponent({ mainKey: 'serendipity', module, generate: async () => ({ core: { ...core, ...stray }, facets: {} }) }),
+      new RegExp(`The core has an unexpected field "${field}"`), field);
+  }
+  // A named field left blank is still checked by its shape: a missing key fails.
+  await assert.rejects(generateComponent({ mainKey: 'serendipity', module, generate: async () => ({ core: { ...core, key: '' }, facets: {} }) }), /key is missing|The key/);
+});

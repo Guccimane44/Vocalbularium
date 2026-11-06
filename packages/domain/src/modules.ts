@@ -5,6 +5,7 @@ import { formatContent, formatFacet, providerCore, withFacetText, withKeyHighlig
 import type { ParentContent } from './content.js';
 import { emptyEntry, validateGenerated, validateGeneratedFacet } from './generated.js';
 import { highlightKey } from './markdown.js';
+import { contentModule } from './catalog/index.js';
 
 // Content modules are parent modules (D08); the earlier types retired in 0.7.0.
 export type ModuleInstance = Readonly<{ id: string; type: ParentType; facets?: readonly string[] }>;
@@ -27,6 +28,9 @@ export type GenerateModule = (request: {
 export type FacetMismatch = Readonly<{ module: ParentType; facet: FacetType }>;
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
+// A value with nothing in it: null, empty or blank text, an empty list or object.
+const blankExtra = (value: unknown) => value === null || value === undefined || (typeof value === 'string' && !value.trim())
+  || (Array.isArray(value) && !value.length) || (isRecord(value) && !Object.keys(value).length);
 
 // Generates one parent module instance's component from the main key, in one
 // request (D17). A parent always applies: it writes its core, with its flags
@@ -59,6 +63,14 @@ export async function generateComponent(input: {
     const moved = Object.fromEntries(facets.filter(facet => facet in core).map(facet => { const entry = core[facet]; delete core[facet]; return [facet, entry]; }));
     value.core = core;
     value.facets = { ...moved, ...(isRecord(value.facets) ? value.facets : {}) };
+  }
+  // The owner's decision of 6 November 2026, amending D09/D17's strict core
+  // ("B: ignore blank extras"): a field the core's shape does not name, left
+  // blank (null, empty text, {} or []), is dropped as if absent, such as
+  // "contextual_note": "" or "facets": {}. One with a value still fails.
+  if (isRecord(value.core)) {
+    const named = Object.keys(contentModule(module.type).core.shape.schema.properties as Record<string, unknown>);
+    value.core = Object.fromEntries(Object.entries(value.core).filter(([key, entry]) => named.includes(key) || !blankExtra(entry)));
   }
   const given = isRecord(value.facets) ? value.facets : {};
   const kept = Object.fromEntries(facets.filter(facet => !emptyEntry(given[facet])).map(facet => [facet, given[facet]]));

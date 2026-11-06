@@ -41,10 +41,10 @@ test('a provider result is checked complete against the parent’s shape and tri
   throws(() => validateGenerated('german', bank, { facets: ['examples'] }), GeneratedError, /German has no Article here/);
 });
 
-test('the core stays strict: a field its shape does not name fails the card, even an empty one', () => {
-  // The strays the live gates met (0.16.3): "facets" or a facet nested in the
-  // core, and a note of the model's own beside a field. The prompt asks for
-  // none (compose.ts); the shape still rejects them rather than dropping them.
+test('the core’s shape stays strict: a field it does not name fails, even an empty one', () => {
+  // The strays the live gates met (0.16.3). Generation drops a blank one before
+  // this check (modules.ts, the owner's decision of 6 November 2026); the shape
+  // itself still rejects every field it does not name.
   const strays = [['german', { facets: {} }], ['german', { examples: [{ sentence: 'x' }] }], ['german', { meanings_note: 'x' }],
     ['chinese', { contextual_note: '' }], ['chinese', { fonts: 'x' }]];
   for (const [parent, stray] of strays) {

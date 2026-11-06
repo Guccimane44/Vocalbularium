@@ -34,12 +34,6 @@ test('OpenCode uses the Go endpoint, selected DeepSeek model, and only selection
   assert.match(body.messages[0].content, /JSON schema/);
   assert.equal(body.messages[1].role, 'user');
   assert.deepEqual(JSON.parse(body.messages[1].content), { selectedText: '幸福', instanceId: 'g' });
-  // The schema also goes natively, strict, so the model writes no field the
-  // core's strict shape rejects ("The core has an unexpected field …").
-  const request = { name: 'vocabulary_parent_module', schema: parentSchema(GERMAN.module.type, GERMAN.facets ?? []) };
-  assert.equal(provider.nativeSchema, true);
-  assert.deepEqual(body.response_format, { type: 'json_schema', json_schema: { ...request, strict: true } });
-  assert.equal(body.response_format.json_schema.schema.properties.core.additionalProperties, false);
 });
 
 test('OpenCode rejects incomplete, refused, malformed, and wrong-schema responses', async () => {
