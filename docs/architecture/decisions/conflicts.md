@@ -4,6 +4,10 @@ Full text of the [traceability map](../traceability-map.md#conflicts)'s conflict
 
 Contradictions between entries, or between an entry and the specs. Numbering continues across entries; new conflicts go on top. C1–C14 came from the questionnaire pass and are all resolved: each records the original contradiction and the decision, and the affected answers were updated to match.
 
+<a id="c34"></a>
+**C34. A card's Retry that starts over versus D19's kept reading — RESOLVED (D28: the card's Retry starts over, the core's Retry keeps the reading).** [D19](../traceability-map.md#entries) makes a card's Retry, alone or with the page, keep the card's reading, and resolved [C28](#c28) by reusing that reading as a hint. D28 makes the card's Retry start over.
+*Resolution* (owner, 5 November 2026, approving the [0.16.3 plan](../../plans/0.16.3-retry-and-context.md)): the card's and the page's Retry reuse nothing from an earlier attempt, as D17 said before D19. Only the new core Retry, and a facet's own Retry, send the saved core. The spec sentence becomes "a card's Retry reuses nothing from an earlier attempt; the core's and a facet's Retry write against the core as saved".
+
 <a id="c33"></a>
 **C33. Every facet is markdown versus audio — RESOLVED (D24: text stays markdown, audio attached).** [D09](../traceability-map.md#entries) stores each facet as markdown, and [modules](../../specs/modules.md) has only text outputs. *Resolution* (owner, 30 October 2026): a facet's text stays markdown (the Pronunciation facet's lines; the Pronunciation core's top line); audio is an attachment to its component, one clip per line, in its own table, and resolves K29 for audio only. Images and notation stay deferred.
 

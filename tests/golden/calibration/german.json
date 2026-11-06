@@ -1,5 +1,5 @@
 {
- "note": "The judge's calibration set for german (0.16.0): recorded outputs that passed review, expected to pass (from 2026-10-30T17-25-27-661Z-en-german.json, and from 2026-11-03T19-57-22-113Z-en-german.json for sentences and a grammar word); copies of them with one seeded fault each, and two recorded defects, expected to fail. The judge counts only once it agrees on 90% and misses no expected fail.",
+ "note": "The judge's calibration set for german (0.16.0): recorded outputs that passed review, expected to pass (from 2026-10-30T17-25-27-661Z-en-german.json, and from 2026-11-03T19-57-22-113Z-en-german.json for sentences and a grammar word); copies of them with one seeded fault each, and two recorded defects, expected to fail. The judge counts only once it agrees on 90% and misses no expected fail. Since D29 (5 November 2026) the cards with a Context give the Context's sense as \"contextual\", and \"context-only\" is the earlier recorded card, expected to fail.",
  "module": "german",
  "cards": [
   {
@@ -8,15 +8,16 @@
    "context": "We sat on the bank and watched the river go by.",
    "language": "en",
    "expected": "pass",
-   "why": "Recorded output, golden run 2026-10-30T17-25-27-661Z-en-german.json.",
+   "why": "Recorded output, golden run 2026-10-30T17-25-27-661Z-en-german.json. Adapted for D29 (5 November 2026): the Context's sense moved to \"contextual\", and the other sense added to \"meanings\" with its example and pronunciation.",
    "card": {
     "core": {
      "kind": "word",
      "language": "Englisch",
      "key": "bank",
      "gramRole": "noun",
+     "contextual": "Ufer eines Flusses",
      "meanings": [
-      "Ufer eines Flusses"
+      "Geldinstitut"
      ]
     },
     "facets": {
@@ -28,6 +29,10 @@
       {
        "sentence": "We sat on the bank and watched the river go by.",
        "translation": "Wir saßen am Ufer und sahen dem Fluss zu."
+      },
+      {
+       "sentence": "I need to go to the bank before it closes.",
+       "translation": "Ich muss zur Bank, bevor sie schließt."
       }
      ],
      "synonyms": [
@@ -72,7 +77,8 @@
       ]
      },
      "pronunciation": [
-      "das Ufer"
+      "das Ufer",
+      "die Bank"
      ]
     }
    }
@@ -223,6 +229,81 @@
      "pronunciation": [
       "zwei Fliegen mit einer Klappe schlagen",
       "mit einer einzigen Handlung zwei Vorteile erzielen"
+     ]
+    }
+   }
+  },
+  {
+   "id": "context-only",
+   "key": "bank",
+   "context": "We sat on the bank and watched the river go by.",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: The recorded card from before D29, which gives only the sense the Context uses: no \"contextual\", and the word's other, most common meaning is missing.",
+   "card": {
+    "core": {
+     "kind": "word",
+     "language": "Englisch",
+     "key": "bank",
+     "gramRole": "noun",
+     "meanings": [
+      "Ufer eines Flusses"
+     ]
+    },
+    "facets": {
+     "article": {
+      "singular": "das Ufer",
+      "plural": "die Ufer"
+     },
+     "examples": [
+      {
+       "sentence": "We sat on the bank and watched the river go by.",
+       "translation": "Wir saßen am Ufer und sahen dem Fluss zu."
+      }
+     ],
+     "synonyms": [
+      "Gestade",
+      "Uferrand",
+      "Böschung"
+     ],
+     "declension": {
+      "columns": [
+       "Singular",
+       "Plural"
+      ],
+      "rows": [
+       {
+        "label": "Nominativ",
+        "cells": [
+         "das Ufer",
+         "die Ufer"
+        ]
+       },
+       {
+        "label": "Genitiv",
+        "cells": [
+         "des Ufers",
+         "der Ufer"
+        ]
+       },
+       {
+        "label": "Dativ",
+        "cells": [
+         "dem Ufer",
+         "den Ufern"
+        ]
+       },
+       {
+        "label": "Akkusativ",
+        "cells": [
+         "das Ufer",
+         "die Ufer"
+        ]
+       }
+      ]
+     },
+     "pronunciation": [
+      "das Ufer"
      ]
     }
    }
@@ -1013,15 +1094,16 @@
    "context": "We sat on the bank and watched the river go by.",
    "language": "en",
    "expected": "fail",
-   "why": "Seeded fault: Ufer is neuter: das Ufer, not der Ufer.",
+   "why": "Seeded fault: Ufer is neuter: das Ufer, not der Ufer. Adapted for D29 (5 November 2026): the Context's sense moved to \"contextual\", and the other sense added to \"meanings\" with its example and pronunciation.",
    "card": {
     "core": {
      "kind": "word",
      "language": "Englisch",
      "key": "bank",
      "gramRole": "noun",
+     "contextual": "Ufer eines Flusses",
      "meanings": [
-      "Ufer eines Flusses"
+      "Geldinstitut"
      ]
     },
     "facets": {
@@ -1033,6 +1115,10 @@
       {
        "sentence": "We sat on the bank and watched the river go by.",
        "translation": "Wir saßen am Ufer und sahen dem Fluss zu."
+      },
+      {
+       "sentence": "I need to go to the bank before it closes.",
+       "translation": "Ich muss zur Bank, bevor sie schließt."
       }
      ],
      "synonyms": [
@@ -1077,7 +1163,8 @@
       ]
      },
      "pronunciation": [
-      "das Ufer"
+      "das Ufer",
+      "die Bank"
      ]
     }
    }
@@ -1088,15 +1175,16 @@
    "context": "We sat on the bank and watched the river go by.",
    "language": "en",
    "expected": "fail",
-   "why": "Seeded fault: The translation says something else than its sentence.",
+   "why": "Seeded fault: The translation says something else than its sentence. Adapted for D29 (5 November 2026): the Context's sense moved to \"contextual\", and the other sense added to \"meanings\" with its example and pronunciation.",
    "card": {
     "core": {
      "kind": "word",
      "language": "Englisch",
      "key": "bank",
      "gramRole": "noun",
+     "contextual": "Ufer eines Flusses",
      "meanings": [
-      "Ufer eines Flusses"
+      "Geldinstitut"
      ]
     },
     "facets": {
@@ -1108,6 +1196,10 @@
       {
        "sentence": "We sat on the bank and watched the river go by.",
        "translation": "Ich gehe morgen zur Bank."
+      },
+      {
+       "sentence": "I need to go to the bank before it closes.",
+       "translation": "Ich muss zur Bank, bevor sie schließt."
       }
      ],
      "synonyms": [
@@ -1152,7 +1244,8 @@
       ]
      },
      "pronunciation": [
-      "das Ufer"
+      "das Ufer",
+      "die Bank"
      ]
     }
    }
@@ -1163,15 +1256,16 @@
    "context": "We sat on the bank and watched the river go by.",
    "language": "en",
    "expected": "fail",
-   "why": "Seeded fault: The synonyms are antonyms.",
+   "why": "Seeded fault: The synonyms are antonyms. Adapted for D29 (5 November 2026): the Context's sense moved to \"contextual\", and the other sense added to \"meanings\" with its example and pronunciation.",
    "card": {
     "core": {
      "kind": "word",
      "language": "Englisch",
      "key": "bank",
      "gramRole": "noun",
+     "contextual": "Ufer eines Flusses",
      "meanings": [
-      "Ufer eines Flusses"
+      "Geldinstitut"
      ]
     },
     "facets": {
@@ -1183,6 +1277,10 @@
       {
        "sentence": "We sat on the bank and watched the river go by.",
        "translation": "Wir saßen am Ufer und sahen dem Fluss zu."
+      },
+      {
+       "sentence": "I need to go to the bank before it closes.",
+       "translation": "Ich muss zur Bank, bevor sie schließt."
       }
      ],
      "synonyms": [
@@ -1226,7 +1324,8 @@
       ]
      },
      "pronunciation": [
-      "das Ufer"
+      "das Ufer",
+      "die Bank"
      ]
     }
    }

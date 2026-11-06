@@ -5,20 +5,67 @@
     {
       "key": "bank",
       "context": "We sat on the bank and watched the river go by.",
-      "why": "English noun; Context picks the river sense",
+      "why": "English noun; Context picks the river sense; the other sense stays among the meanings (D29)",
       "expect": {
         "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        },
+        "contextual": true
+      }
+    },
+    {
+      "key": "bank",
+      "context": "I need to go to the bank before it closes.",
+      "why": "English noun; Context picks the money sense; the other sense stays among the meanings (D29)",
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        },
+        "contextual": true
+      }
+    },
+    {
+      "key": "breadcrumb",
+      "context": "==breadcrumb== ui",
+      "why": "English noun; the Context selects the interface sense, and the original meaning (a crumb of bread) is still given (D29, the owner's example)",
+      "expect": {
+        "kind": "word",
+        "contextual": true,
         "gramRole": {
           "german": "noun"
         }
       }
     },
     {
-      "key": "bank",
-      "context": "I need to go to the bank before it closes.",
-      "why": "English noun; Context picks the money sense",
+      "key": "Schloss",
+      "context": "Ich habe das Schloss an der Haustür ausgetauscht.",
+      "why": "German noun; the Context selects the lock, the castle stays among the meanings (D29)",
       "expect": {
         "kind": "word",
+        "contextual": true,
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "key": "行",
+      "context": "他在这一行干了二十年，是真正的专家。",
+      "why": "Chinese 行 read háng, a line of work; its original meaning, to walk (xíng), is still given (D29)",
+      "expect": {
+        "kind": "word",
+        "contextual": true
+      }
+    },
+    {
+      "key": "refrigerator",
+      "context": "Put the milk back in the refrigerator.",
+      "why": "English noun with one sense: the Context does not narrow it, so no meaning in this Context (D29); replaces serendipity, which has two senses",
+      "expect": {
+        "kind": "word",
+        "contextual": false,
         "gramRole": {
           "german": "noun"
         }

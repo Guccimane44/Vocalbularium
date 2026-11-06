@@ -134,7 +134,7 @@ test('OpenCode asks a parent for its core, its flags first, and the facets asked
   const schema = parentSchema('german', ['article', 'examples']);
   assert.deepEqual(Object.keys(schema.properties), ['core', 'facets']);
   assert.deepEqual(schema.properties.core.required, ['kind', 'language', 'key', 'meanings']);
-  assert.deepEqual(Object.keys(schema.properties.core.properties), ['kind', 'language', 'key', 'romanization', 'gramRole', 'meanings'], 'the flags come first');
+  assert.deepEqual(Object.keys(schema.properties.core.properties), ['kind', 'language', 'key', 'romanization', 'gramRole', 'contextual', 'meanings'], 'the flags come first, then the meaning in this Context before the meanings (D29)');
   assert.deepEqual(Object.keys(schema.properties.facets.properties), ['article', 'examples']);
   assert.deepEqual(schema.properties.facets.required, [], 'every facet may be left out');
   assert.deepEqual(parentSchema('chinese', ['pinyin']).properties.core.required, ['kind', 'language', 'key', 'meanings']);

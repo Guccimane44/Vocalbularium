@@ -1,5 +1,5 @@
 {
- "note": "The judge's calibration set for chinese (0.16.0): recorded outputs from 2026-10-30T17-37-21-414Z-en-chinese.json that passed review, and from 2026-11-03T19-57-42-053Z-en-chinese.json for sentences and the citation tone of 不, expected to pass, and copies of them with one seeded fault each, expected to fail. The judge counts only once it agrees on 90% and misses no expected fail.",
+ "note": "The judge's calibration set for chinese (0.16.0): recorded outputs from 2026-10-30T17-37-21-414Z-en-chinese.json that passed review, and from 2026-11-03T19-57-42-053Z-en-chinese.json for sentences and the citation tone of 不, expected to pass, and copies of them with one seeded fault each, expected to fail. The judge counts only once it agrees on 90% and misses no expected fail. Since D29 (5 November 2026) the cards with a Context give the Context's sense as \"contextual\", and \"context-only\" is the earlier recorded card, expected to fail.",
  "module": "chinese",
  "cards": [
   {
@@ -8,14 +8,15 @@
    "context": "We sat on the bank and watched the river go by.",
    "language": "en",
    "expected": "pass",
-   "why": "Recorded output, golden run 2026-10-30T17-37-21-414Z-en-chinese.json.",
+   "why": "Recorded output, golden run 2026-10-30T17-37-21-414Z-en-chinese.json. Adapted for D29 (5 November 2026): the Context's sense moved to \"contextual\", and the other sense added to \"meanings\" with its example, pinyin and pronunciation.",
    "card": {
     "core": {
      "kind": "word",
      "language": "英语",
      "key": "bank",
+     "contextual": "河岸；堤岸",
      "meanings": [
-      "河岸；堤岸"
+      "银行"
      ]
     },
     "facets": {
@@ -23,16 +24,25 @@
       {
        "sentence": "We walked along the bank of the river.",
        "translation": "我们沿着河岸散步。"
+      },
+      {
+       "sentence": "I need to go to the bank before it closes.",
+       "translation": "我得在银行关门前去一趟。"
       }
      ],
      "pinyin": [
       {
        "text": "河岸",
        "pinyin": "hé'àn"
+      },
+      {
+       "text": "银行",
+       "pinyin": "yínháng"
       }
      ],
      "pronunciation": [
-      "河岸"
+      "河岸",
+      "银行"
      ]
     }
    }
@@ -432,6 +442,41 @@
    }
   },
   {
+   "id": "context-only",
+   "key": "bank",
+   "context": "We sat on the bank and watched the river go by.",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: The recorded card from before D29, which gives only the sense the Context uses: no \"contextual\", and the word's other, most common meaning is missing.",
+   "card": {
+    "core": {
+     "kind": "word",
+     "language": "英语",
+     "key": "bank",
+     "meanings": [
+      "河岸；堤岸"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "We walked along the bank of the river.",
+       "translation": "我们沿着河岸散步。"
+      }
+     ],
+     "pinyin": [
+      {
+       "text": "河岸",
+       "pinyin": "hé'àn"
+      }
+     ],
+     "pronunciation": [
+      "河岸"
+     ]
+    }
+   }
+  },
+  {
    "id": "wrong-sense",
    "key": "bank",
    "context": "We sat on the bank and watched the river go by.",
@@ -472,14 +517,15 @@
    "context": "We sat on the bank and watched the river go by.",
    "language": "en",
    "expected": "fail",
-   "why": "Seeded fault: 河岸 is hé’àn; the tones are wrong though the syllables are valid.",
+   "why": "Seeded fault: 河岸 is hé’àn; the tones are wrong though the syllables are valid. Adapted for D29 (5 November 2026): the Context's sense moved to \"contextual\", and the other sense added to \"meanings\" with its example, pinyin and pronunciation.",
    "card": {
     "core": {
      "kind": "word",
      "language": "英语",
      "key": "bank",
+     "contextual": "河岸；堤岸",
      "meanings": [
-      "河岸；堤岸"
+      "银行"
      ]
     },
     "facets": {
@@ -487,16 +533,25 @@
       {
        "sentence": "We walked along the bank of the river.",
        "translation": "我们沿着河岸散步。"
+      },
+      {
+       "sentence": "I need to go to the bank before it closes.",
+       "translation": "我得在银行关门前去一趟。"
       }
      ],
      "pinyin": [
       {
        "text": "河岸",
        "pinyin": "hē’ǎn"
+      },
+      {
+       "text": "银行",
+       "pinyin": "yínháng"
       }
      ],
      "pronunciation": [
-      "河岸"
+      "河岸",
+      "银行"
      ]
     }
    }
@@ -577,14 +632,15 @@
    "context": "We sat on the bank and watched the river go by.",
    "language": "en",
    "expected": "fail",
-   "why": "Seeded fault: The translation says something else than its sentence.",
+   "why": "Seeded fault: The translation says something else than its sentence. Adapted for D29 (5 November 2026): the Context's sense moved to \"contextual\", and the other sense added to \"meanings\" with its example, pinyin and pronunciation.",
    "card": {
     "core": {
      "kind": "word",
      "language": "英语",
      "key": "bank",
+     "contextual": "河岸；堤岸",
      "meanings": [
-      "河岸；堤岸"
+      "银行"
      ]
     },
     "facets": {
@@ -592,16 +648,25 @@
       {
        "sentence": "We sat on the bank and watched the river go by.",
        "translation": "我明天去银行取钱。"
+      },
+      {
+       "sentence": "I need to go to the bank before it closes.",
+       "translation": "我得在银行关门前去一趟。"
       }
      ],
      "pinyin": [
       {
        "text": "河岸",
        "pinyin": "hé'àn"
+      },
+      {
+       "text": "银行",
+       "pinyin": "yínháng"
       }
      ],
      "pronunciation": [
-      "河岸"
+      "河岸",
+      "银行"
      ]
     }
    }
