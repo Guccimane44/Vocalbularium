@@ -3,10 +3,14 @@ import { failure, Provider } from './provider.mjs';
 /** @import { Request } from '@vocabularium/domain/composer' */
 /** @import { Reply } from './provider.mjs' */
 
-// The OpenCode adapter (D11): transport only. OpenCode has no native JSON
-// schema, so the schema travels inside the instructions.
+// The OpenCode adapter (D11): transport only. The Go endpoint takes the
+// schema natively as a strict `response_format`, which keeps the model to the
+// schema's fields: prompted alone, deepseek-v4.1-flash wrote fields the strict
+// core rejects in about 1–3% of cards, such as "facets" nested in the core or
+// "contextual_note" (0.16.3 gates). The schema also stays in the instructions,
+// as the golden sets measured it.
 export class OpenCodeProvider extends Provider {
-  nativeSchema = false;
+  nativeSchema = true;
   /** @param {{ apiKey?: string, model?: string, fetchImpl?: typeof fetch, timeout?: number }} [options] */
   constructor({ apiKey = process.env.OPENCODE_API_KEY, model = process.env.OPENCODE_MODEL ?? 'deepseek-v4.1-flash', fetchImpl = fetch, timeout } = {}) {
     super();
@@ -27,7 +31,8 @@ export class OpenCodeProvider extends Provider {
         Authorization: `Bearer ${this.apiKey}`, 'Content-Type': 'application/json',
         'User-Agent': 'Vocabularium/0.13.1', 'x-opencode-session': sessionId
       },
-      body: JSON.stringify({ model: this.model, stream: false, max_tokens: request.maxTokens, messages }),
+      body: JSON.stringify({ model: this.model, stream: false, max_tokens: request.maxTokens, messages,
+        response_format: { type: 'json_schema', json_schema: { name: request.name, strict: true, schema: request.schema } } }),
       signal
     });
     reply.status = response.status;

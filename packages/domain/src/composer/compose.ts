@@ -61,11 +61,6 @@ export function writingGuide(language: InterfaceLanguage): Readonly<Record<typeo
 const lengthIn = (unit: string, words: number) =>
   unit.replace(/\{(\d+(?:\.\d+)?)?n\}/g, (_, factor: string | undefined) => String(Math.round(words * Number(factor ?? 1))));
 
-// The core's shape is strict: a field it does not name fails the card. Without
-// this sentence the model nested "facets" or a facet inside the core, or added
-// a note of its own beside a field, such as "contextual_note" (0.16.3 gates).
-const CORE_ONLY = 'Write "core" and "facets" side by side in the result. "core" holds only the fields shown for it: no facet, no "facets", and no note or other field of your own.';
-
 // The instructions for a module: its core (or, for a facet's own Retry, the
 // core already written), its facets asked for, then the shared rules and, for
 // an Expertise module, the writing guide of the language it writes in (D15).
@@ -77,7 +72,6 @@ export function moduleInstructions(parent: ParentType, facets: readonly FacetTyp
   const sections = facets.map(facet => `- ${facetPrompt(parent, facet)}`);
   const guide = familyOf(parent) === 'expertise' ? writingGuide(language) : null;
   return [core,
-    ...(withCore ? [] : [CORE_ONLY]),
     sections.length ? `In "facets", write only these keys, each left out when it does not apply:\n${sections.join('\n')}` : 'Write "facets" as an empty object.',
     read('./rules.md').replace('{{module}}', catalogFile(`${folder}/module.prompt.md`)),
     ...(guide ? [GUIDE_SECTIONS.slice(0, 4).map(heading => guide[heading]).join(' ')] : [])].join('\n')
