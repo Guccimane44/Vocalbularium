@@ -28,6 +28,17 @@ export type GenerateModule = (request: {
 export type FacetMismatch = Readonly<{ module: ParentType; facet: FacetType }>;
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
+// The owner's decision of 6 November 2026, amending D09/D17's strict core
+// ("B: ignore blank extras"): a field the core's shape does not name, left
+// blank (null, empty or blank text, {} or []), is dropped as if absent, such
+// as "contextual_note": "" or "facets": {}. One with a value still fails.
+const blankExtra = (value: unknown) => value === null || value === undefined || (typeof value === 'string' && !value.trim())
+  || (Array.isArray(value) && !value.length) || (isRecord(value) && !Object.keys(value).length);
+function withoutBlankExtras(type: ParentType, core: unknown): unknown {
+  if (!isRecord(core)) return core;
+  const named = Object.keys(contentModule(type).core.shape.schema.properties as Record<string, unknown>);
+  return Object.fromEntries(Object.entries(core).filter(([key, entry]) => named.includes(key) || !blankExtra(entry)));
+}
 
 // Generates one parent module instance's component from the main key, in one
 // request (D17). A parent always applies: it writes its core, with its flags
@@ -59,6 +70,7 @@ export async function generateComponent(input: {
     value.core = core;
     value.facets = { ...moved, ...(isRecord(value.facets) ? value.facets : {}) };
   }
+  value.core = withoutBlankExtras(module.type, value.core);
   const given = isRecord(value.facets) ? value.facets : {};
   const kept = Object.fromEntries(facets.filter(facet => !emptyEntry(given[facet])).map(facet => [facet, given[facet]]));
   let generated;
@@ -130,7 +142,8 @@ export async function generateCore(input: {
   // The flags are the fields the top line is made from, as "previous" has them.
   const shown = new Set(Object.keys(contentModule(module.type).core.header(previous)));
   const flags = Object.fromEntries(Object.entries(previous).filter(([field]) => shown.has(field)));
-  const written = isRecord(value.core) ? Object.fromEntries(Object.entries(value.core).filter(([field]) => !shown.has(field))) : value.core;
+  const core = withoutBlankExtras(module.type, value.core);
+  const written = isRecord(core) ? Object.fromEntries(Object.entries(core).filter(([field]) => !shown.has(field))) : core;
   let generated;
   try { generated = validateGenerated(module.type, { core: isRecord(written) ? { ...written, ...flags } : written }, { facets: [] }); }
   catch (error) { throw new Error(`A module returned content in an unexpected format: ${(error as Error).message}`); }

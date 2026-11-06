@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { generateComponent, generateComponents } from '@vocabularium/domain/modules';
+import { generateComponent, generateComponents, generateCore } from '@vocabularium/domain/modules';
 import { formatContent, withKeyHighlighted } from '@vocabularium/domain/content';
 import { blockText, mainKeyOf, pageStatus, textBlocks, validateView, VIEW_MODULES } from '@vocabularium/domain/pages';
 import { PageSchema } from '@vocabularium/contracts';
@@ -111,4 +111,26 @@ test('facet entries the provider wrote inside the core move to the facets; other
   assert.deepEqual(Object.keys(content.facets), ['examples', 'synonyms']);
   assert.equal(content.facets.synonyms, 'hübsch');
   await assert.rejects(generateComponent({ mainKey: 'schön', module, generate: async () => ({ core: { ...slipped.core, poem: 'x' }, facets: {} }) }), /unexpected field "poem"/);
+});
+
+test('a blank field the core does not name is dropped; one with a value still fails the card (owner, 6 November 2026)', async () => {
+  // The strays the 0.16.3 gates met were mostly empty: "facets": {}, "contextual_note": "", "meaningsNote": null.
+  const module = { id: 'g', type: 'german', facets: ['synonyms'] };
+  const core = { kind: 'word', language: 'Englisch', key: 'serendipity', gramRole: 'noun', meanings: ['glücklicher Zufall'] };
+  const blank = { facets: {}, contextual_note: '', meaningsNote: null, gramRoleNote: '  ', fonts: [] };
+  const content = await generateComponent({ mainKey: 'serendipity', module, generate: async () => ({ core: { ...core, ...blank }, facets: { synonyms: ['Zufallsfund'] } }) });
+  assert.deepEqual(content.header, { kind: 'word', language: 'Englisch', key: 'serendipity', gramRole: 'noun' });
+  assert.equal(content.facets.synonyms, 'Zufallsfund');
+  for (const stray of [{ is_sentence: 'true' }, { kind_note: 'a noun' }, { facets: { synonyms: ['Zufallsfund'] } }, { notes: [''] }, { extra: 0 }, { extra: false }]) {
+    const [field] = Object.keys(stray);
+    await assert.rejects(generateComponent({ mainKey: 'serendipity', module, generate: async () => ({ core: { ...core, ...stray }, facets: {} }) }),
+      new RegExp(`The core has an unexpected field "${field}"`), field);
+  }
+  // The core's own Retry (D28) drops a blank stray the same way, and refuses one with a value.
+  const existing = await generateComponent({ mainKey: 'serendipity', module, generate: async () => ({ core, facets: {} }) });
+  const again = await generateCore({ mainKey: 'serendipity', module, existing, generate: async () => ({ core: { ...core, meanings: ['Glücksfund'], ...blank }, facets: {} }) });
+  assert.match(again.core, /Glücksfund/);
+  await assert.rejects(generateCore({ mainKey: 'serendipity', module, existing, generate: async () => ({ core: { ...core, kind_note: 'a noun' }, facets: {} }) }), /unexpected field "kind_note"/);
+  // A named field left blank is still checked by its shape: a missing key fails.
+  await assert.rejects(generateComponent({ mainKey: 'serendipity', module, generate: async () => ({ core: { ...core, key: '' }, facets: {} }) }), /key is missing|The key/);
 });
