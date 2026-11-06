@@ -171,7 +171,7 @@ test('a facet’s own Retry regenerates that facet’s markdown for the core alr
     { code: 'invalid', message: /Retry the whole module first/ });
 });
 
-test('a card’s Retry, alone or with the page, gives the provider the core it had as saved, edits included; a card without a core gets none (D19)', async (t) => {
+test('a card’s Retry, alone or with the page, starts over: the same request as a first attempt, nothing from the card, edits or not (D28)', async (t) => {
   const requests = [];
   let failing = true;
   const { store, generation, capture } = await parentFixture(t, {
@@ -184,32 +184,32 @@ test('a card’s Retry, alone or with the page, gives the provider the core it h
     const { attemptIds } = await confirmed(store, randomUUID(), { pageId: page.id, target, session });
     await generation.start(page.id, attemptIds); await finish(store, generation);
   };
-  assert.equal(requests[0].previous, undefined, 'the first attempt has no earlier core');
-  // A failed card has no core: its Retry generates as a first attempt does.
+  const first = requests[0];
+  assert.equal(first.previous, undefined, 'the first attempt has no earlier core');
+  const fresh = (request, selectedText = 'bank') => {
+    assert.equal(request.previous, undefined, 'nothing from the card goes with it');
+    assert.equal(request.core, undefined, 'the whole card is written again, not a facet for a given core');
+    assert.equal(request.selectedText, selectedText);
+    assert.deepEqual(request.facets, first.facets);
+    assert.deepEqual(request.module, first.module);
+  };
+  // A failed card's Retry, then a generated card's.
   failing = false;
   await retry({ scope: 'component', componentId: (await german()).id });
-  assert.equal(requests.at(-1).previous, undefined);
-  // A generated card's Retry gives the core it had, flags first.
+  fresh(requests.at(-1));
   await retry({ scope: 'component', componentId: (await german()).id });
-  assert.deepEqual(requests.at(-1).previous, BANK.core);
-  assert.equal(requests.at(-1).core, undefined, 'the whole card is written again, not a facet for a given core');
-  assert.deepEqual(requests.at(-1).facets, ['article', 'examples', 'synonyms', 'antonyms']);
-  // The user's edit to the meanings is the reading the next Retry keeps.
+  fresh(requests.at(-1));
+  // The user's edit to the meanings no longer steers it, nor the page's Retry.
   const current = await german();
   const block = current.content.blocks[0];
   await store.savePage(randomUUID(), { pageId: page.id, changes: [{ componentId: current.id, content: { version: 1, blocks: [{ ...block, core: block.core.replace('Ufer', 'Sitzbank') }] } }] });
   await retry({ scope: 'page' });
-  assert.deepEqual(requests.at(-1).previous, { ...BANK.core, meanings: ['Sitzbank'] }, 'the whole page’s Retry keeps each card’s reading too');
-  // A core written for another main key has no reading of this one (0.13.2): with the
-  // main key changed, a card's Retry and the page's generate from the new key alone.
+  fresh(requests.at(-1));
+  // A changed main key is read as on a first attempt, like any key.
   const key = (await store.page(page.id)).components.find(component => component.moduleType === 'main-key');
   await store.savePage(randomUUID(), { pageId: page.id, changes: [{ componentId: key.id, content: textBlocks('Schloss') }] });
   await retry({ scope: 'component', componentId: (await german()).id });
-  assert.equal(requests.at(-1).selectedText, 'Schloss');
-  assert.equal(requests.at(-1).previous, undefined, 'the old key’s reading is not given');
-  // The card now holds a core for the new key, whose reading the next Retry keeps.
-  await retry({ scope: 'page' });
-  assert.deepEqual(requests.at(-1).previous, { ...BANK.core, key: 'Schloss' });
+  fresh(requests.at(-1), 'Schloss');
 });
 
 test('each generated part records its model and prompt version; a facet’s own Retry records only that facet, and saves keep the record (D11)', async (t) => {

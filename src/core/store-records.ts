@@ -55,12 +55,12 @@ export type PageSummaryRow = PageRow & Readonly<{
 
 // The module an attempt generates (D08): the parent instance and the facets it
 // had when the attempt started. A facet's own Retry (0.7.3) also records that
-// facet and how to put the component back if it fails; a card's Retry, the
-// core it had, whose reading to keep (D19).
+// facet and how to put the component back if it fails. A card's Retry starts
+// over (D28); an attempt recorded before 0.16.3 may still name a `previous`,
+// which is ignored.
 export type AttemptModule = ModuleInstance & Readonly<{
   retry?: string;
   prior?: Readonly<{ status: ComponentStatus; waiting: boolean }>;
-  previous?: Readonly<Record<string, unknown>>;
 }>;
 // The model and prompt version that produced a part of a component (D11).
 // From 0.14.0 a spoken part's entry adds the speech model and voice that spoke it (D24).

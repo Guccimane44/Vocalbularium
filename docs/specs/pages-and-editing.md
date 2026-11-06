@@ -196,7 +196,7 @@ After creation, captured and manually created pages behave the same.
 
 Editing the main key changes the input for subsequent generation. It does not run modules, remove existing generated or manually written content, or change prior generation outcomes. Editing another component does not redefine the main key.
 
-The user must explicitly request generation again to produce content from the updated key. The action uses the main key and saved Context at the time of the request, with interpretation appropriate to them. It must not use the original captured selection or an earlier key's interpretation ([keeping the reading](capture-and-generation.md#keeping-the-reading)). Content that remains from earlier attempts can therefore describe a different input from the current key.
+The user must explicitly request generation again to produce content from the updated key. The action uses the main key and saved Context at the time of the request, with interpretation appropriate to them. It must not use the original captured selection or an earlier key's interpretation ([a Retry starts over](capture-and-generation.md#keeping-the-reading)). Content that remains from earlier attempts can therefore describe a different input from the current key.
 
 Generation uses the page's own content module instances. Finish editing with **Save** or **Cancel** before starting a generation or a retry.
 
