@@ -177,8 +177,10 @@ test('parents and facets: core only on add, the facet window on the parent, its 
 
   // The cap (0.16.4): German offers exactly MAX_FACETS, so a parent picking every
   // one reaches 12, its window has nothing more to add, and the deck saves it.
+  // Saved, the settings leave for the deck; open them again once they have.
+  await a.page.waitForFunction(() => !location.hash.startsWith('#configure/'));
   await a.page.goto(`chrome-extension://${a.id}/app.html#configure/${deckId}`);
-  await deckGermans.nth(1).waitFor();
+  await waitFor(async () => await deckGermans.count() === 2, 'deck settings open again');
   facets = await facetWindow(a.page, 'German 2');
   const offered = await inOrder(facets, 'name');
   assert.equal(offered.length, 12);
