@@ -1820,7 +1820,7 @@
       "key": "window",
       "language": "en",
       "expected": "fail",
-      "why": "Recorded output, golden run 2026-11-07T15-25-47-457Z-en-german.json (0.16.4). Recorded defect: Etymology traces English window (Old Norse vindauga), not the grammar word Fenster (Latin fenestra). The prompt now names the grammar word as German and gives язык → Sprache as its case.",
+      "why": "Recorded defect: Etymology traces English window (Old Norse vindauga), not the grammar word Fenster (Latin fenestra). The prompt now names the grammar word as German and gives язык → Sprache as its case. From recorded output, golden run 2026-11-07T15-25-47-457Z-en-german.json (0.16.4).",
       "card": {
         "core": {
           "kind": "word",
