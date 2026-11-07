@@ -1,0 +1,17 @@
+{
+  "summary": "Modules that write something new from your key: a poem or a joke, in the key's own language.",
+  "steps": [
+    {
+      "title": "Reads your key's language",
+      "text": "From its spelling, words and script, and from the Context when a spelling fits more than one language."
+    },
+    {
+      "title": "Writes in that language",
+      "text": "A haiku or a joke as a native speaker would write it, built on your key, never a translation."
+    },
+    {
+      "title": "New every time",
+      "text": "Each card and each Retry writes a fresh one; nothing is kept from an earlier attempt."
+    }
+  ]
+}

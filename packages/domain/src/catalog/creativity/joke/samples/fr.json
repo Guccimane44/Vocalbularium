@@ -1,0 +1,24 @@
+{
+  "word_phrase": {
+    "core": {
+      "language": "fr",
+      "key": "langue",
+      "joke": [
+        "— Combien de langues parles-tu ?",
+        "— Une seule, mais je la tire très bien."
+      ]
+    },
+    "facets": {}
+  },
+  "sentence": {
+    "core": {
+      "language": "fr",
+      "key": "Les langues sont les ponts qui relient les gens et le monde.",
+      "joke": [
+        "On dit que les langues sont des ponts entre les gens.",
+        "Le mien vers l'allemand est encore en travaux."
+      ]
+    },
+    "facets": {}
+  }
+}

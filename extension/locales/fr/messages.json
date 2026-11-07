@@ -348,6 +348,7 @@
   "catalog.family.notes": "Notes",
   "catalog.family.translation": "Langues",
   "catalog.family.expertise": "Expertise",
+  "catalog.family.creativity": "Créativité",
   "audio.play": "Lire {text}",
   "audio.pause": "Mettre {text} en pause",
   "audio.generating": "Création de l'audio…",

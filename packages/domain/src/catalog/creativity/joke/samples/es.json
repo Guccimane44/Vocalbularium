@@ -1,0 +1,24 @@
+{
+  "word_phrase": {
+    "core": {
+      "language": "es",
+      "key": "idioma",
+      "joke": [
+        "—¿Cuántos idiomas hablas?",
+        "—Tres: español, inglés y el que habla mi madre cuando ve mi habitación."
+      ]
+    },
+    "facets": {}
+  },
+  "sentence": {
+    "core": {
+      "language": "es",
+      "key": "Los idiomas son los puentes que conectan a las personas con el mundo.",
+      "joke": [
+        "Dicen que los idiomas son puentes entre las personas.",
+        "Por eso mi inglés tiene un cartel de «cerrado por obras»."
+      ]
+    },
+    "facets": {}
+  }
+}

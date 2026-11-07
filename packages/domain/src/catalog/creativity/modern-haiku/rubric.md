@@ -1,0 +1,5 @@
+- **form**: Three short free lines, together well under twenty words, with no rhyme and no title.
+- **image**: It is built on one concrete image or moment of everyday life now, seen or heard, not a stated feeling, a lesson or the selection's definition.
+- **turn**: A second image or a small surprise set beside the first turns it; three lines that only describe one thing are weak.
+- **key**: It is about the selection or built on it, recognisably, in the meaning the Context shows.
+- **language**: It is written in the selection's language, in plain words of today as a native poet of it would write, with no explanation or translation; a haiku in another language fails.

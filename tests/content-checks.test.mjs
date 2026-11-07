@@ -92,3 +92,53 @@ test('every check has a unique ID within its part and says what it checks; every
   }
   for (const type of parentsIn('translation')) assert.ok(contentModule(type).core.checks?.length, `${type} has no core check`);
 });
+
+// Creativity (D30): written in the key's language and script; a haiku in three
+// lines, 5-7-5 characters in Chinese and morae in Japanese, counted on its
+// kana reading; a modern haiku and a joke short.
+test('Creativity: three lines, the Chinese and Japanese counts, the script of the key’s language, and short', async () => {
+  const haiku = (language, lines, reading) => ({ core: { language, key: 'x', haiku: lines, ...(reading ? { reading } : {}) }, facets: {} });
+  const autumn = ['autumn river mist —', 'two strangers on the old bridge', 'trading their hellos'];
+  assert.deepEqual(await failures('traditional-haiku', haiku('en', autumn)), []);
+  assert.deepEqual(await failures('traditional-haiku', haiku('en', autumn.slice(0, 2))), ['core.three-lines']);
+  assert.deepEqual(await failures('traditional-haiku', haiku('de', ['Herbstwind —', 'zwei Fremde auf der Brücke', '你好'])), ['core.script']);
+  assert.deepEqual(await failures('traditional-haiku', haiku('zh', ['春雨落屋檐，', '祖母乡音轻轻唤', '我已难开言。'])), [], 'punctuation is not counted');
+  assert.deepEqual(await failures('traditional-haiku', haiku('zh', ['春雨落屋檐下', '祖母乡音轻轻唤', '我已难开言'])), ['core.chinese-count']);
+  const sakura = ['さまざまの', '事思ひ出す', '桜かな'];
+  assert.deepEqual(await failures('traditional-haiku', haiku('ja', sakura, ['さまざまの', 'ことおもいだす', 'さくらかな'])), []);
+  // Small kana join the kana before them; the small tsu, ん and ー count one.
+  assert.deepEqual(await failures('traditional-haiku', haiku('ja', ['古池や', '蛙飛び込む', '水の音'], ['ふるいけや', 'かわずとびこむ', 'みずのおと'])), []);
+  // きょう is two morae, しゅっぱつのベル seven: っ, ん and ー count one each.
+  const bell = (second) => haiku('ja', ['きょうの空', second, 'さんぽみち'], ['きょうのそら', second, 'さんぽみち']);
+  assert.deepEqual(await failures('traditional-haiku', bell('しゅっぱつのベル')), []);
+  assert.deepEqual(await failures('traditional-haiku', bell('しゅっぱつのベルー')), ['core.japanese-count']);
+  assert.deepEqual(await failures('traditional-haiku', haiku('ja', sakura)), ['core.japanese-count'], 'a Japanese haiku gives its reading');
+  assert.deepEqual(await failures('traditional-haiku', haiku('ja', sakura, sakura)), ['core.japanese-count'], 'the reading is kana');
+  assert.deepEqual(await failures('traditional-haiku', haiku('ja', sakura, ['さまざまの', 'ことおもいだすよ', 'さくらかな'])), ['core.japanese-count']);
+  assert.deepEqual(await failures('traditional-haiku', haiku('other', ['a', 'b', 'c'])), [], 'a language without a known script is not checked');
+
+  const modern = (language, lines) => ({ core: { language, key: 'x', haiku: lines }, facets: {} });
+  assert.deepEqual(await failures('modern-haiku', modern('en', ['night bus', 'two strangers share one map', 'in different languages'])), []);
+  assert.deepEqual(await failures('modern-haiku', modern('en', ['night bus', 'two strangers'])), ['core.three-lines']);
+  assert.deepEqual(await failures('modern-haiku', modern('en', ['night bus', 'two strangers share one map in the rain while the driver hums an old song', 'and the city slides by in every language they never learned'])), ['core.short']);
+  assert.deepEqual(await failures('modern-haiku', modern('zh', ['夜班公交', '两个陌生人，一张地图', '两种语言'])), []);
+  assert.deepEqual(await failures('modern-haiku', modern('zh', ['深夜的最后一班公交车上', '两个素不相识的陌生人共看一张地图', '说着两种完全不同的语言'])), ['core.short']);
+  assert.deepEqual(await failures('modern-haiku', modern('ru', ['ночной автобус', 'two strangers', 'на двух языках'])), ['core.script']);
+
+  const joke = (language, lines) => ({ core: { language, key: 'x', joke: lines }, facets: {} });
+  assert.deepEqual(await failures('joke', joke('fr', ['— Combien de langues parles-tu ?', '— Une seule, mais je la tire très bien.'])), []);
+  assert.deepEqual(await failures('joke', joke('fr', Array(7).fill('Et puis…'))), ['core.short']);
+  assert.deepEqual(await failures('joke', joke('en', ['Why?', 'x'.repeat(401)])), ['core.short']);
+  assert.deepEqual(await failures('joke', joke('zh', ['老师：你会几种语言？', 'Student: three.'])), ['core.script']);
+});
+
+test('Creativity: every module’s samples pass its checks', async () => {
+  const { readdirSync } = await import('node:fs');
+  for (const module of parentsIn('creativity')) {
+    const folder = new URL(`../packages/domain/src/catalog/creativity/${module}/samples/`, import.meta.url);
+    for (const file of readdirSync(folder)) {
+      const samples = JSON.parse(readFileSync(new URL(file, folder), 'utf8'));
+      for (const [inputType, card] of Object.entries(samples)) assert.deepEqual(await failures(module, card), [], `${module} ${file} ${inputType}`);
+    }
+  }
+});
