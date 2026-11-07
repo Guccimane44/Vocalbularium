@@ -95,6 +95,10 @@ test('English: the meanings and translations are English, the other variant’s 
     assert.deepEqual(await failures(type, with_(card, 'synonyms', ['hue', other])), [`synonyms.${type.slice(8)}-spelling`]);
     assert.deepEqual(await failures(type, with_(card, 'simple-translation', [`it is ${otherWord}`, 'paint'])), [`simple-translation.${type.slice(8)}-spelling`]);
     assert.deepEqual(await failures(type, with_(card, 'simple-translation', [`it is ${ownWord}`, 'paint'])), []);
+    // A doubled or single l before a suffix: travelled and cancelled are British, traveled and canceled American.
+    const [ownL, otherL] = type === 'english-british' ? ['cancelled', 'canceled'] : ['canceled', 'cancelled'];
+    assert.deepEqual(await failures(type, with_(card, 'simple-translation', [`the trip was ${ownL}`, 'paint'])), [], ownL);
+    assert.deepEqual(await failures(type, with_(card, 'simple-translation', [`the trip was ${otherL}`, 'paint'])), [`simple-translation.${type.slice(8)}-spelling`], otherL);
     // The key's own words, in either spelling, are allowed.
     const keyed = { ...card, core: { ...card.core, language: 'English', key: other, meanings: [`the spelling of ${own} in the other variant`] }, facets: { 'grammar-teacher': [`${other} is spelled ${own} here.`] } };
     assert.deepEqual(await failures(type, keyed), [], `${type} names the key ${other}`);

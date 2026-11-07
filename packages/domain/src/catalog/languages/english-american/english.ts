@@ -34,7 +34,7 @@ const ISE = same('e', 'es', 'ed', 'ing', 'ation', 'ations', 'er', 'ers');
 const ise = (...stems: string[]) => stems.flatMap(stem => forms(`${stem}is`, `${stem}iz`, ISE));
 const yse = (...stems: string[]) => stems.flatMap(stem => forms(`${stem}ys`, `${stem}yz`, same('e', 'ed', 'ing', 'er', 'ers')));
 const ence = (...stems: string[]) => stems.flatMap(stem => forms(`${stem}ce`, `${stem}se`, same('', 's', 'less')));
-const ll = (...stems: string[]) => stems.flatMap(stem => forms(`${stem}l`, stem, same('led', 'ling', 'ler', 'lers')));
+const ll = (...stems: string[]) => stems.flatMap(stem => forms(`${stem}l`, stem, same('ed', 'ing', 'er', 'ers')));
 const PAIRS: readonly (readonly [british: string, american: string])[] = [
   ...our('col', 'fav', 'hon', 'lab', 'neighb', 'behavi', 'flav', 'hum', 'harb', 'rum', 'vap', 'sav', 'endeav', 'arm', 'od', 'parl',
     'cand', 'clam', 'tum', 'val', 'ferv', 'rig', 'splend', 'ard'),
