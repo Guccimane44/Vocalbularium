@@ -263,11 +263,11 @@
    }
   },
   {
-   "id": "recorded-6",
+   "id": "defect-2",
    "key": "Wohnung",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-11-07T15-55-02-455Z-en-english-american.json.",
+   "expected": "fail",
+   "why": "Recorded defect: German im zweiten Stock is two floors above the ground floor, the third floor in American English, but the translation says the second floor (found by the judge's calibration of 7 November 2026). Golden run 2026-11-07T15-55-02-455Z-en-english-american.json.",
    "card": {
     "core": {
      "kind": "word",
