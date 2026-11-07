@@ -982,8 +982,8 @@
    "key": "行",
    "context": "他在这一行干了二十年，是真正的专家。",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-11-07T15-35-50-441Z-en-chinese.json: Etymology, Simple translation and Grammar teacher (0.16.4).",
+   "expected": "fail",
+   "why": "Recorded defect: Grammar teacher explains 了 and 是……的 in the Context's sentence instead of 行 itself, and Simple translation calls 银行 a shop; recorded output, golden run 2026-11-07T15-35-50-441Z-en-chinese.json, relabelled after review (0.16.4).",
    "card": {
     "core": {
      "kind": "word",
@@ -1100,7 +1100,7 @@
    "key": "经济",
    "language": "en",
    "expected": "fail",
-   "why": "Seeded fault: the simple translation uses words far above HSK 3 (宏观, 国民经济, 资源配置), so it is not simple.",
+   "why": "Seeded fault: the simple translation is no simpler than the core: it keeps 宏观, 国民经济 and 资源配置, words far above HSK 3.",
    "card": {
     "core": {
      "kind": "word",
