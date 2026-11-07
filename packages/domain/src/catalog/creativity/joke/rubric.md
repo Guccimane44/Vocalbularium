@@ -2,4 +2,5 @@
 - **funny**: A native speaker would smile: it has a real punchline or twist, not a statement dressed as a joke; a flat or forced one is weak.
 - **wordplay**: A pun or other wordplay, when it has one, works in the joke's own language, not only in a translation; a story joke without wordplay passes this.
 - **clean**: It is clean and makes no group of people (a nation, a religion, a gender, a profession or any other) its target; anything else fails.
-- **language**: It is told in the selection's language, natural to a native speaker, short, with no title or explanation of the joke; a joke in another language fails.
+- **told**: It is told, not explained: no explanation, translation or note about the joke before or after it; any such line fails.
+- **language**: It is told in the selection's language, natural to a native speaker, and short; a joke in another language fails.
