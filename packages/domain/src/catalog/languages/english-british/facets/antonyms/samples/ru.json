@@ -1,0 +1,19 @@
+{
+  "word_phrase": {
+    "core": {
+      "kind": "word",
+      "language": "Russian",
+      "key": "хороший",
+      "romanization": "khoroshiy",
+      "meanings": [
+        "good, of a high standard"
+      ]
+    },
+    "facets": {
+      "antonyms": [
+        "bad",
+        "poor"
+      ]
+    }
+  }
+}

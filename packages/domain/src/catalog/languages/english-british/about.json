@@ -1,0 +1,20 @@
+{
+  "summary": "Explains your key in British English: the meanings of a word, the translation of a sentence, in British spelling.",
+  "facts": [
+    {
+      "label": "Reads",
+      "value": "Any language",
+      "note": "Words, phrases and sentences"
+    },
+    {
+      "label": "Writes",
+      "value": "British English",
+      "note": "British spelling and words, whatever language you use Vocabularium in"
+    },
+    {
+      "label": "Key already English?",
+      "value": "Explained, not translated",
+      "note": "An English–English dictionary"
+    }
+  ]
+}

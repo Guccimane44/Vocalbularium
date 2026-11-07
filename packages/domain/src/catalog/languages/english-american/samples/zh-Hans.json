@@ -1,0 +1,62 @@
+{
+  "word_phrase": {
+    "core": {
+      "kind": "word",
+      "language": "Chinese",
+      "key": "语言",
+      "romanization": "yǔyán",
+      "meanings": [
+        "language, a system of words people use to communicate"
+      ]
+    },
+    "facets": {
+      "examples": [
+        {
+          "sentence": "语言是人类交流思想的重要工具。",
+          "translation": "Language is an important tool for people to share their thoughts."
+        }
+      ],
+      "synonyms": [
+        "tongue"
+      ],
+      "pronunciation": [
+        "language"
+      ],
+      "etymology": {
+        "origins": [
+          "Latin",
+          "Old French"
+        ],
+        "text": "From Old French langage, from langue 'tongue', which comes from Latin lingua; it came into Middle English around 1300."
+      },
+      "simple-translation": [
+        "the words people use to talk and write"
+      ]
+    }
+  },
+  "sentence": {
+    "core": {
+      "kind": "sentence",
+      "language": "Chinese",
+      "key": "语言是连接人与世界的桥梁。",
+      "romanization": "Yǔyán shì liánjiē rén yǔ shìjiè de qiáoliáng.",
+      "meanings": [
+        "Language is the bridge that connects people and the world."
+      ]
+    },
+    "facets": {
+      "examples": [
+        {
+          "sentence": "书籍是连接读者与知识世界的桥梁。",
+          "translation": "Books are the bridge that connects readers to the world of knowledge."
+        }
+      ],
+      "pronunciation": [
+        "Language is the bridge that connects people and the world."
+      ],
+      "simple-translation": [
+        "Languages help people understand each other and the world."
+      ]
+    }
+  }
+}

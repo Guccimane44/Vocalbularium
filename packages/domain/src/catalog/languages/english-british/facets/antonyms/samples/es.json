@@ -1,0 +1,18 @@
+{
+  "word_phrase": {
+    "core": {
+      "kind": "word",
+      "language": "Spanish",
+      "key": "bueno",
+      "meanings": [
+        "good, of a high standard"
+      ]
+    },
+    "facets": {
+      "antonyms": [
+        "bad",
+        "poor"
+      ]
+    }
+  }
+}

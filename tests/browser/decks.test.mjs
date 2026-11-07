@@ -38,9 +38,9 @@ test('deck UI: draft previews, all modules, the module limit, removal without co
   await addFromWindow(a.page, 'chinese');
   await addFromWindow(a.page, 'chinese');
   assert.equal(await a.page.locator('.deck-module').count(), 7);
-  assert.equal(await a.page.locator('.module-window .window-module').count(), 7, 'the window offers Context, Text, the two Languages parents (D08), the two Expertise modules (D11) and Pronunciation (D24)');
+  assert.equal(await a.page.locator('.module-window .window-module').count(), 9, 'the window offers Context, Text, the four Languages parents (D08; both English since 0.16.4), the two Expertise modules (D11) and Pronunciation (D24)');
   // Every module has its + (0.6.3; D04 had none); facets are not in the window (D13, 0.8.1).
-  assert.equal(await a.page.locator('.window-module > .window-add').count(), 7, 'every module has its +');
+  assert.equal(await a.page.locator('.window-module > .window-add').count(), 9, 'every module has its +');
   assert.equal(await a.page.locator('.window-facet').count(), 0, 'and no facet is listed');
   assert.equal(await a.page.locator('.window-module[data-type="context"]').getAttribute('aria-disabled'), 'true', 'one Context per deck');
   assert.equal(await a.page.locator('.window-module[data-type="context"] .window-add').isDisabled(), true, 'a blocked module cannot be added');

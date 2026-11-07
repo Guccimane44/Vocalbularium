@@ -1,0 +1,13 @@
+{
+  "label": "Английский (британский)",
+  "description": "Объясняет слово на британском английском или переводит предложение на британский английский.",
+  "examples.label": "Примеры",
+  "synonyms.label": "Синонимы",
+  "antonyms.label": "Антонимы",
+  "pronunciation.label": "Произношение",
+  "etymology.label": "Этимология",
+  "simple-translation.label": "Простой перевод",
+  "grammar-teacher.label": "Учитель грамматики",
+  "core.word_phrase": "Значения",
+  "core.sentence": "Перевод"
+}

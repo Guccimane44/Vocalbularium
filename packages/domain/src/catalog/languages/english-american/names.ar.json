@@ -1,0 +1,13 @@
+{
+  "label": "الإنجليزية (الأمريكية)",
+  "description": "يشرح كلمة بالإنجليزية الأمريكية، أو يترجم جملة إلى الإنجليزية الأمريكية.",
+  "examples.label": "أمثلة",
+  "synonyms.label": "مرادفات",
+  "antonyms.label": "أضداد",
+  "pronunciation.label": "النطق",
+  "etymology.label": "أصل الكلمة",
+  "simple-translation.label": "ترجمة مبسطة",
+  "grammar-teacher.label": "معلم القواعد",
+  "core.word_phrase": "المعاني",
+  "core.sentence": "الترجمة"
+}

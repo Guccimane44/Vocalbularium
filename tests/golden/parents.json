@@ -353,6 +353,70 @@
           "german": "preposition"
         }
       }
+    },
+    {
+      "key": "colour",
+      "why": "English noun in British spelling (0.16.4): English (American) explains it and may say it is the British spelling, its own text spelled color; Grammar teacher applies",
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "key": "color",
+      "why": "English noun in American spelling (0.16.4): English (British) explains it and may say it is the American spelling, its own text spelled colour; Grammar teacher applies",
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "key": "apartment",
+      "why": "American English word (0.16.4): English (British) gives flat as its own word and may say apartment is American",
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "key": "Wohnung",
+      "why": "German noun, a foreign key for the English modules (0.16.4): flat in British English, apartment in American; no Grammar teacher",
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "key": "get up",
+      "why": "English phrasal verb (0.16.4): Grammar teacher on the particle and, in American English, gotten; Etymology of an English key",
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        }
+      }
+    },
+    {
+      "key": "Have you got a pen?",
+      "why": "English sentence with have got (0.16.4): Grammar teacher notes the British possessive have got and the American Do you have",
+      "expect": {
+        "kind": "sentence"
+      }
+    },
+    {
+      "key": "The team are playing well tonight.",
+      "why": "English sentence with a collective noun and a plural verb (0.16.4): usual in British English, The team is in American English",
+      "expect": {
+        "kind": "sentence"
+      }
     }
   ]
 }

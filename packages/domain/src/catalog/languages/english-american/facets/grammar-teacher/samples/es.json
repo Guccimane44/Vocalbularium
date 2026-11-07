@@ -1,0 +1,19 @@
+{
+  "word_phrase": {
+    "core": {
+      "kind": "word",
+      "language": "English",
+      "key": "good",
+      "meanings": [
+        "of a high standard or quality",
+        "morally right; kind"
+      ]
+    },
+    "facets": {
+      "grammar-teacher": [
+        "An adjective with an irregular comparison: good, better, best.",
+        "In standard English it is not an adverb: she sings well, not she sings good."
+      ]
+    }
+  }
+}
