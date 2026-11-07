@@ -1,0 +1,6 @@
+{
+  "label": "传统俳句",
+  "description": "用主词条的语言，写一首关于它的传统俳句。",
+  "core.word_phrase": "俳句",
+  "core.sentence": "俳句"
+}

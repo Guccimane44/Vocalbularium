@@ -1,0 +1,284 @@
+{
+ "note": "The judge's calibration set for traditional-haiku (0.16.4): recorded outputs from 2026-11-07T15-45-19-301Z-en-traditional-haiku.json that passed review, expected to pass, and copies of them with one seeded fault each, expected to fail. The judge counts only once it agrees on 90% and misses no expected fail.",
+ "module": "traditional-haiku",
+ "cards": [
+  {
+   "id": "recorded-1",
+   "key": "autumn",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-07T15-45-19-301Z-en-traditional-haiku.json, reviewed.",
+   "card": {
+    "core": {
+     "language": "en",
+     "key": "autumn",
+     "haiku": [
+      "Red maple leaf falls",
+      "a squirrel buries a nut —",
+      "cold wind through the pines"
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "recorded-2",
+   "key": "bank",
+   "context": "We had a picnic on the bank of the river.",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-07T15-45-19-301Z-en-traditional-haiku.json, reviewed.",
+   "card": {
+    "core": {
+     "language": "en",
+     "key": "bank",
+     "haiku": [
+      "Willow shade at noon —",
+      "picnic on the river bank",
+      "ants cross the blanket"
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "recorded-3",
+   "key": "The train was late again this morning.",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-07T15-45-19-301Z-en-traditional-haiku.json, reviewed.",
+   "card": {
+    "core": {
+     "language": "en",
+     "key": "The train was late again this morning.",
+     "haiku": [
+      "Frost on the platform —",
+      "the late train's yellow headlight",
+      "swallowed by the fog"
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "recorded-4",
+   "key": "Feierabend",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-07T15-45-19-301Z-en-traditional-haiku.json, reviewed.",
+   "card": {
+    "core": {
+     "language": "de",
+     "key": "Feierabend",
+     "haiku": [
+      "Eine Amsel singt",
+      "über dem leeren Schreibtisch –",
+      "Sommerabend kühl"
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "recorded-5",
+   "key": "地铁",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-07T15-45-19-301Z-en-traditional-haiku.json, reviewed.",
+   "card": {
+    "core": {
+     "language": "zh",
+     "key": "地铁",
+     "haiku": [
+      "地铁口外秋——",
+      "银杏叶落满台阶",
+      "风穿地下道"
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "recorded-6",
+   "key": "桜",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-07T15-45-19-301Z-en-traditional-haiku.json, reviewed.",
+   "card": {
+    "core": {
+     "language": "ja",
+     "key": "桜",
+     "haiku": [
+      "桜かな",
+      "風にひとひら",
+      "水の輪に"
+     ],
+     "reading": [
+      "さくらかな",
+      "かぜにひとひら",
+      "みずのわに"
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "recorded-7",
+   "key": "おにぎり",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-07T15-45-19-301Z-en-traditional-haiku.json, reviewed.",
+   "card": {
+    "core": {
+     "language": "ja",
+     "key": "おにぎり",
+     "haiku": [
+      "花冷えや",
+      "おにぎり握る",
+      "母の手よ"
+     ],
+     "reading": [
+      "はなびえや",
+      "おにぎりにぎる",
+      "ははのてよ"
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "recorded-8",
+   "key": "дождь",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-07T15-45-19-301Z-en-traditional-haiku.json, reviewed.",
+   "card": {
+    "core": {
+     "language": "ru",
+     "key": "дождь",
+     "haiku": [
+      "Осенний дождик —",
+      "на стекле дрожит капля,",
+      "и лист кружится."
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "seeded-1",
+   "key": "autumn",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: written in German for an English key.",
+   "card": {
+    "core": {
+     "language": "en",
+     "key": "autumn",
+     "haiku": [
+      "Roter Ahorn fällt —",
+      "ein Eichhörnchen vergräbt Nüsse",
+      "kalter Wind im Wald"
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "seeded-2",
+   "key": "autumn",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: a statement about the season, no image and nowhere near 5-7-5.",
+   "card": {
+    "core": {
+     "language": "en",
+     "key": "autumn",
+     "haiku": [
+      "Autumn is a beautiful season that makes everyone feel a little sad",
+      "because things end",
+      "and we must learn to let go"
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "seeded-3",
+   "key": "Schmetterling",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: nothing to do with the key, a butterfly.",
+   "card": {
+    "core": {
+     "language": "de",
+     "key": "Schmetterling",
+     "haiku": [
+      "Frost auf dem Bahnsteig –",
+      "der späte Zug kommt nicht an",
+      "Nebel schluckt das Gleis"
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "seeded-4",
+   "key": "bank",
+   "context": "We had a picnic on the bank of the river.",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: the money sense, though the Context is a river bank.",
+   "card": {
+    "core": {
+     "language": "en",
+     "key": "bank",
+     "haiku": [
+      "Winter queue at noon —",
+      "the bank clerk counts out my cash",
+      "snow on the counter"
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "seeded-5",
+   "key": "月亮",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: a 汉俳 of 6-7-5 characters.",
+   "card": {
+    "core": {
+     "language": "zh",
+     "key": "月亮",
+     "haiku": [
+      "秋月照着空庭",
+      "桂影轻摇风露白",
+      "蟋蟀两三声"
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "seeded-6",
+   "key": "дождь",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: a translation and an explanation added as lines.",
+   "card": {
+    "core": {
+     "language": "ru",
+     "key": "дождь",
+     "haiku": [
+      "Осенний дождик —",
+      "на стекле дрожит капля, / и лист кружится.",
+      "(Autumn rain: a drop trembles on the glass and a leaf whirls. This haiku is about rain.)"
+     ]
+    },
+    "facets": {}
+   }
+  }
+ ]
+}

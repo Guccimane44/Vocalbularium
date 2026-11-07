@@ -1,0 +1,24 @@
+{
+  "word_phrase": {
+    "core": {
+      "language": "en",
+      "key": "language",
+      "joke": [
+        "My parrot speaks five languages.",
+        "Sadly, the one he uses most is my bad language."
+      ]
+    },
+    "facets": {}
+  },
+  "sentence": {
+    "core": {
+      "language": "en",
+      "key": "Languages are the bridges connecting people and the world.",
+      "joke": [
+        "They say languages are bridges between people.",
+        "That explains why my French always collapses halfway across."
+      ]
+    },
+    "facets": {}
+  }
+}

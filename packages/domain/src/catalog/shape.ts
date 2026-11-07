@@ -54,6 +54,18 @@ export function oneOf<const T extends string>(values: readonly T[], name?: strin
   };
 }
 
+// A language as an ISO 639-1 code, or `other` (D24, D30): two lowercase
+// letters, written in lowercase whatever case the provider gave.
+export function languageCode(name?: string): Shape<string> {
+  return {
+    schema: { type: 'string' }, ...(name ? { name } : {}),
+    check: (value, what) => {
+      const code = typeof value === 'string' ? value.trim().toLowerCase() : '';
+      return /^([a-z]{2}|other)$/.test(code) ? code : fail(`${what} must be an ISO 639-1 code or "other".`);
+    }
+  };
+}
+
 // A field that may be left out; blank counts as left out.
 export function optional<T>(shape: Shape<T>): Shape<T | undefined> {
   return { ...shape, optional: true, check: (value, what) => blank(value) ? undefined : shape.check(value, what) };

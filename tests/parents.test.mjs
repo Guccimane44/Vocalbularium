@@ -11,10 +11,10 @@ import { textBlocks } from '@vocabularium/domain/pages';
 
 // Parent modules with a core and facets (D08).
 
-test('the catalog is German and Chinese in Languages, with facets in a fixed order, Computer Science and Mathematics in Expertise, and Pronunciation in Sound (D08, D11, D24)', () => {
+test('the catalog is German and Chinese in Languages, with facets in a fixed order, Computer Science and Mathematics in Expertise, Pronunciation in Sound, and the two Haiku and Joke in Creativity (D08, D11, D24, D30)', () => {
   // The Languages modules come first, German and Chinese leading them; a language added later joins after them.
   assert.deepEqual(parentsIn('translation').slice(0, 2), ['german', 'chinese']);
-  assert.deepEqual(Object.keys(PARENTS), [...parentsIn('translation'), 'computer-science', 'mathematics', 'pronunciation']);
+  assert.deepEqual(Object.keys(PARENTS), [...parentsIn('translation'), 'computer-science', 'mathematics', 'pronunciation', 'traditional-haiku', 'modern-haiku', 'joke']);
   assert.deepEqual(facetsOf('german'), ['article', 'examples', 'synonyms', 'antonyms', 'conjugation', 'declension', 'comparison', 'case', 'pronunciation'], 'the grammar facets after the first four (D17), then Pronunciation (D24)');
   assert.deepEqual(facetsOf('chinese'), ['examples', 'pinyin', 'pronunciation']);
   for (const parent of ['german', 'chinese']) assert.equal(PARENTS[parent].family, 'translation');

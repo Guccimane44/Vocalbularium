@@ -1,0 +1,270 @@
+{
+ "note": "The judge's calibration set for joke (0.16.4): recorded outputs from 2026-11-07T15-50-16-702Z-en-joke.json that passed review, expected to pass, and copies of them with one seeded fault each, expected to fail. The judge counts only once it agrees on 90% and misses no expected fail.",
+ "module": "joke",
+ "cards": [
+  {
+   "id": "recorded-1",
+   "key": "autumn",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-07T15-50-16-702Z-en-joke.json, reviewed.",
+   "card": {
+    "core": {
+     "language": "en",
+     "key": "autumn",
+     "joke": [
+      "I love autumn.",
+      "Really? What do you like about it?",
+      "Everything — I fall for it every single year."
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "recorded-2",
+   "key": "bank",
+   "context": "We had a picnic on the bank of the river.",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-07T15-50-16-702Z-en-joke.json, reviewed.",
+   "card": {
+    "core": {
+     "language": "en",
+     "key": "bank",
+     "joke": [
+      "Why do rivers never go broke?",
+      "They always have two banks.",
+      "And when money runs low, they just go with the flow."
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "recorded-3",
+   "key": "The train was late again this morning.",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-07T15-50-16-702Z-en-joke.json, reviewed.",
+   "card": {
+    "core": {
+     "language": "en",
+     "key": "The train was late again this morning.",
+     "joke": [
+      "The train was late again this morning.",
+      "Maybe it was still in training."
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "recorded-4",
+   "key": "Schmetterling",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-07T15-50-16-702Z-en-joke.json, reviewed.",
+   "card": {
+    "core": {
+     "language": "de",
+     "key": "Schmetterling",
+     "joke": [
+      "Was macht ein Schmetterling im Boxring?",
+      "Er schmettert."
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "recorded-5",
+   "key": "Ich habe meinen Schlüssel vergessen.",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-07T15-50-16-702Z-en-joke.json, reviewed.",
+   "card": {
+    "core": {
+     "language": "de",
+     "key": "Ich habe meinen Schlüssel vergessen.",
+     "joke": [
+      "Ich habe meinen Schlüssel vergessen.",
+      "Dann nimm doch den Notenschlüssel.",
+      "Der passt nicht ins Schloss.",
+      "Kein Wunder – der ist für die Oper."
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "recorded-6",
+   "key": "月亮",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-07T15-50-16-702Z-en-joke.json, reviewed.",
+   "card": {
+    "core": {
+     "language": "zh",
+     "key": "月亮",
+     "joke": [
+      "月亮，你怎么瘦成这样了？",
+      "月初嘛，钱包和脸一起瘦。",
+      "那怎么又圆回来了？",
+      "月底发工资，吃饱了。"
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "recorded-7",
+   "key": "地铁",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-07T15-50-16-702Z-en-joke.json, reviewed.",
+   "card": {
+    "core": {
+     "language": "zh",
+     "key": "地铁",
+     "joke": [
+      "早高峰地铁里，一个人喊：“别挤了，我都坐过三站了！”",
+      "旁边的人说：“那算啥，我还没上车，包已经到公司了。”"
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "recorded-defect-1",
+   "key": "café",
+   "context": "On se retrouve au café ce soir ?",
+   "language": "en",
+   "expected": "fail",
+   "why": "Recorded defect: the joke is about coffee, the drink, though the Context means the café as a place to meet.",
+   "card": {
+    "core": {
+     "language": "fr",
+     "key": "café",
+     "joke": [
+      "Pourquoi le café est-il toujours stressé ?",
+      "Parce qu'il est pressé."
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "seeded-1",
+   "key": "autumn",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: told in German for an English key.",
+   "card": {
+    "core": {
+     "language": "en",
+     "key": "autumn",
+     "joke": [
+      "Ich liebe den Herbst.",
+      "Was magst du daran?",
+      "Alles – ich falle jedes Jahr darauf herein."
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "seeded-2",
+   "key": "bank",
+   "context": "We had a picnic on the bank of the river.",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: its target is a profession, bankers.",
+   "card": {
+    "core": {
+     "language": "en",
+     "key": "bank",
+     "joke": [
+      "Why do bankers never picnic on the river bank?",
+      "Because they can't stand anything they can't charge interest on — they're all greedy crooks."
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "seeded-3",
+   "key": "Schmetterling",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: nothing to do with the key, a butterfly.",
+   "card": {
+    "core": {
+     "language": "de",
+     "key": "Schmetterling",
+     "joke": [
+      "Treffen sich zwei Jäger.",
+      "Beide tot."
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "seeded-4",
+   "key": "café",
+   "context": "On se retrouve au café ce soir ?",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: the joke is explained after its punchline.",
+   "card": {
+    "core": {
+     "language": "fr",
+     "key": "café",
+     "joke": [
+      "Pourquoi le café est-il toujours stressé ?",
+      "Parce qu'il est pressé.",
+      "(C'est un jeu de mots : « pressé » veut dire à la fois pressé comme un citron et pressé par le temps.)"
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "seeded-5",
+   "key": "月亮",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: a plain statement with no punchline.",
+   "card": {
+    "core": {
+     "language": "zh",
+     "key": "月亮",
+     "joke": [
+      "月亮是地球唯一的天然卫星。",
+      "它绕地球一周大约需要二十七天。"
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "seeded-6",
+   "key": "The train was late again this morning.",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: a pun that only works in German, told in English.",
+   "card": {
+    "core": {
+     "language": "en",
+     "key": "The train was late again this morning.",
+     "joke": [
+      "The train was late again this morning.",
+      "The conductor said it was a Zugzwang."
+     ]
+    },
+    "facets": {}
+   }
+  }
+ ]
+}

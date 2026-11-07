@@ -32,6 +32,9 @@
   --fam-expertise: #466e12;
   --on-fam-expertise: #ffffff;
   --fam-expertise-tint: #e9f1da;
+  --fam-creativity: #4048a8;
+  --on-fam-creativity: #ffffff;
+  --fam-creativity-tint: #e8e9f7;
   --fam-meaning: #2c5aa0;
   --on-fam-meaning: #ffffff;
   --fam-meaning-tint: #e6eef9;
@@ -52,6 +55,7 @@
   --fam-notes-tint: #e5ebdf;
   --fam-translation-swatch: #0b6b82;
   --fam-expertise-swatch: #466e12;
+  --fam-creativity-swatch: #4048a8;
   --fam-meaning-swatch: #2c5aa0;
   --fam-usage-swatch: #1f7a5a;
   --fam-roots-swatch: #9a5a0b;
@@ -120,6 +124,9 @@
     --fam-expertise: #a9d46f;
     --on-fam-expertise: #1c2a08;
     --fam-expertise-tint: #212a17;
+    --fam-creativity: #aab1f4;
+    --on-fam-creativity: #151a4a;
+    --fam-creativity-tint: #20223a;
     --fam-meaning: #8db4f2;
     --on-fam-meaning: #0e1f3d;
     --fam-meaning-tint: #1d2636;
@@ -140,6 +147,7 @@
     --fam-notes-tint: #232a20;
     --fam-translation-swatch: #6fcde0;
     --fam-expertise-swatch: #a9d46f;
+    --fam-creativity-swatch: #aab1f4;
     --fam-meaning-swatch: #8db4f2;
     --fam-usage-swatch: #7dd3ae;
     --fam-roots-swatch: #f0b663;
@@ -182,6 +190,9 @@
   --fam-expertise: #a9d46f;
   --on-fam-expertise: #1c2a08;
   --fam-expertise-tint: #212a17;
+  --fam-creativity: #aab1f4;
+  --on-fam-creativity: #151a4a;
+  --fam-creativity-tint: #20223a;
   --fam-meaning: #8db4f2;
   --on-fam-meaning: #0e1f3d;
   --fam-meaning-tint: #1d2636;
@@ -202,6 +213,7 @@
   --fam-notes-tint: #232a20;
   --fam-translation-swatch: #6fcde0;
   --fam-expertise-swatch: #a9d46f;
+  --fam-creativity-swatch: #aab1f4;
   --fam-meaning-swatch: #8db4f2;
   --fam-usage-swatch: #7dd3ae;
   --fam-roots-swatch: #f0b663;
@@ -235,6 +247,7 @@
     --status-failed-bg: Canvas;
     --fam-translation-tint: Canvas;
     --fam-expertise-tint: Canvas;
+    --fam-creativity-tint: Canvas;
     --fam-meaning-tint: Canvas;
     --fam-usage-tint: Canvas;
     --fam-roots-tint: Canvas;
@@ -250,6 +263,7 @@
     --status-failed: CanvasText;
     --fam-translation: CanvasText;
     --fam-expertise: CanvasText;
+    --fam-creativity: CanvasText;
     --fam-meaning: CanvasText;
     --fam-usage: CanvasText;
     --fam-roots: CanvasText;
@@ -260,6 +274,7 @@
     --on-ink: ButtonText;
     --on-fam-translation: ButtonText;
     --on-fam-expertise: ButtonText;
+    --on-fam-creativity: ButtonText;
     --on-fam-meaning: ButtonText;
     --on-fam-usage: ButtonText;
     --on-fam-roots: ButtonText;
