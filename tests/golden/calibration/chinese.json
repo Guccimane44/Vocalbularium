@@ -944,8 +944,8 @@
    "id": "facets-5",
    "key": "The committee postponed the decision indefinitely.",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-11-07T15-35-50-441Z-en-chinese.json: Etymology, Simple translation and Grammar teacher (0.16.4).",
+   "expected": "fail",
+   "why": "Recorded defect: the simple translation says 大家 (everyone) put the decision off, not the committee; recorded output, golden run 2026-11-07T15-35-50-441Z-en-chinese.json, relabelled after review (0.16.4).",
    "card": {
     "core": {
      "kind": "sentence",
