@@ -31,8 +31,10 @@ const FOLDERS = { german: 'languages/german', chinese: 'languages/chinese', 'com
 const sample = async type => JSON.parse(await readFile(`packages/domain/src/catalog/${FOLDERS[type]}/samples/en.json`, 'utf8')).word_phrase;
 
 // The pages a screen opens, by the module group they show and their state.
-export const GROUPS = { german: ['german'], chinese: ['chinese'], expertise: ['mathematics', 'computer-science'], pronunciation: ['pronunciation'],
-  creativity: ['traditional-haiku', 'modern-haiku', 'joke'] };
+// A group whose modules the checkout's catalog lacks, such as a base
+// capture of a release before them, is left out there and shows as new.
+export const GROUPS = Object.fromEntries(Object.entries({ german: ['german'], chinese: ['chinese'], expertise: ['mathematics', 'computer-science'], pronunciation: ['pronunciation'],
+  creativity: ['traditional-haiku', 'modern-haiku', 'joke'] }).filter(([, types]) => types.every(isParentType)));
 export const STATES = ['complete', 'loading', 'failed'];
 
 const waitUntil = async (predicate, message, timeout = 15000) => {
