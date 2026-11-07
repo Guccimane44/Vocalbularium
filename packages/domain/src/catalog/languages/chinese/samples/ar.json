@@ -5,25 +5,67 @@
       "language": "阿拉伯语",
       "key": "لغة",
       "romanization": "lugha",
+      "contextual": "语言（人们交流用的符号系统）",
       "meanings": [
-        "语言"
+        "方言",
+        "专业术语",
+        "语言风格"
       ]
     },
     "facets": {
       "examples": [
         {
-          "sentence": "هذه لغة صعبة.",
-          "translation": "这是一门难学的语言。"
+          "sentence": "أتعلّم لغة جديدة كل عام.",
+          "translation": "我每年学一门新语言。"
+        },
+        {
+          "sentence": "تختلف لغة أهل الجنوب عن لغة أهل الشمال.",
+          "translation": "南方人的方言和北方人的方言不一样。"
+        },
+        {
+          "sentence": "يستخدم الأطباء لغة خاصة لا يفهمها المرضى.",
+          "translation": "医生使用病人听不懂的专门术语。"
+        },
+        {
+          "sentence": "لغة هذا الكتاب صعبة.",
+          "translation": "这本书的语言风格很难懂。"
         }
       ],
       "pinyin": [
         {
           "text": "语言",
           "pinyin": "yǔyán"
+        },
+        {
+          "text": "方言",
+          "pinyin": "fāngyán"
+        },
+        {
+          "text": "专业术语",
+          "pinyin": "zhuānyè shùyǔ"
+        },
+        {
+          "text": "语言风格",
+          "pinyin": "yǔyán fēnggé"
         }
       ],
       "pronunciation": [
-        "语言"
+        "语言",
+        "方言",
+        "专业术语",
+        "语言风格"
+      ],
+      "etymology": {
+        "origins": [
+          "古汉语"
+        ],
+        "text": "这里说的是中文词“语言”：由“语”和“言”两个古汉语中表示说话、话语的字并列组成，后来用来指人们交流所用的整套符号。"
+      },
+      "simple-translation": [
+        "人说的话，像中文、英文。",
+        "一个地方的人说的话。",
+        "工作里常说、别人可能不懂的话。",
+        "说话或写文章的样子。"
       ]
     }
   },
@@ -32,26 +74,29 @@
       "kind": "sentence",
       "language": "阿拉伯语",
       "key": "اللغات هي الجسور التي تربط الناس بالعالم.",
-      "romanization": "al-lughāt hiya al-jusūr allatī tarbiṭ al-nās bi-l-ʿālam",
+      "romanization": "al-lughāt hiya al-jusūr allatī tarabbuṭ al-nās bi-l-ʿālam",
       "meanings": [
-        "语言是连接人们与世界的桥梁。"
+        "语言是连接人与世界的桥梁。"
       ]
     },
     "facets": {
       "examples": [
         {
-          "sentence": "المكتبات هي الجسور التي تربط القارئ بالمعرفة.",
-          "translation": "图书馆是连接读者与知识的桥梁。"
+          "sentence": "الكلمات هي الجسور التي تربط الثقافات.",
+          "translation": "词语是连接各种文化的桥梁。"
         }
       ],
       "pinyin": [
         {
-          "text": "语言是连接人们与世界的桥梁。",
-          "pinyin": "yǔyán shì liánjiē rénmen yǔ shìjiè de qiáoliáng"
+          "text": "语言是连接人与世界的桥梁。",
+          "pinyin": "yǔyán shì liánjiē rén yǔ shìjiè de qiáoliáng"
         }
       ],
       "pronunciation": [
-        "语言是连接人们与世界的桥梁。"
+        "语言是连接人与世界的桥梁。"
+      ],
+      "simple-translation": [
+        "语言像桥，把人和世界连在一起。"
       ]
     }
   }

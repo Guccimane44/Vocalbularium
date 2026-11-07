@@ -4,25 +4,56 @@
       "kind": "word",
       "language": "英语",
       "key": "language",
+      "contextual": "语言（英语、汉语等人们用来交流的语言）",
       "meanings": [
-        "语言"
+        "措辞；用词方式",
+        "（计算机等的）语言；一套符号和规则"
       ]
     },
     "facets": {
       "examples": [
         {
-          "sentence": "English is a widely spoken language.",
-          "translation": "英语是一门广泛使用的语言。"
+          "sentence": "She speaks three languages fluently.",
+          "translation": "她能流利地说三种语言。"
+        },
+        {
+          "sentence": "The language of the poem is simple and direct.",
+          "translation": "这首诗的措辞简单直接。"
+        },
+        {
+          "sentence": "Python is a popular programming language.",
+          "translation": "Python 是一种很流行的编程语言。"
         }
       ],
       "pinyin": [
         {
           "text": "语言",
           "pinyin": "yǔyán"
+        },
+        {
+          "text": "措辞",
+          "pinyin": "cuòcí"
+        },
+        {
+          "text": "计算机语言",
+          "pinyin": "jìsuànjī yǔyán"
         }
       ],
       "pronunciation": [
-        "语言"
+        "语言",
+        "措辞",
+        "计算机语言"
+      ],
+      "etymology": {
+        "origins": [
+          "古汉语"
+        ],
+        "text": "这里说的是汉语词“语言”。“语”和“言”在古汉语里都指说话、谈论，后来两个字合成一个词，指人们交流用的符号系统。"
+      },
+      "simple-translation": [
+        "人说的话，比如英语、汉语",
+        "说话时选用的词",
+        "电脑用的语言"
       ]
     }
   },
@@ -38,8 +69,8 @@
     "facets": {
       "examples": [
         {
-          "sentence": "Music is the bridge connecting hearts and cultures.",
-          "translation": "音乐是连接心灵与文化的桥梁。"
+          "sentence": "Books are the bridges connecting children and the world.",
+          "translation": "书是连接孩子和世界的桥梁。"
         }
       ],
       "pinyin": [
@@ -50,6 +81,9 @@
       ],
       "pronunciation": [
         "语言是连接人与世界的桥梁。"
+      ],
+      "simple-translation": [
+        "语言像桥，把人和世界连在一起。"
       ]
     }
   }

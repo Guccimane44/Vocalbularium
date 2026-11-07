@@ -5,25 +5,45 @@
       "language": "俄语",
       "key": "язык",
       "romanization": "yazyk",
+      "contextual": "语言",
       "meanings": [
-        "语言"
+        "舌头；舌"
       ]
     },
     "facets": {
       "examples": [
         {
-          "sentence": "Она изучает русский язык.",
-          "translation": "她学习俄语。"
+          "sentence": "Английский язык очень распространён.",
+          "translation": "英语是一门很通用的语言。"
+        },
+        {
+          "sentence": "Врач попросил мальчика показать язык.",
+          "translation": "医生让男孩把舌头伸出来看看。"
         }
       ],
       "pinyin": [
         {
           "text": "语言",
           "pinyin": "yǔyán"
+        },
+        {
+          "text": "舌头",
+          "pinyin": "shétou"
         }
       ],
       "pronunciation": [
-        "语言"
+        "语言",
+        "舌头"
+      ],
+      "etymology": {
+        "origins": [
+          "古汉语"
+        ],
+        "text": "汉语的“语言”由“语”和“言”合成。古汉语中“语”指说话、谈论，“言”指说出来的话，后来合为一词，指人们用来交流的声音和符号系统。"
+      },
+      "simple-translation": [
+        "人说的话，用来和别人交流",
+        "嘴里能尝味道、帮助说话的东西"
       ]
     }
   },
@@ -32,7 +52,6 @@
       "kind": "sentence",
       "language": "俄语",
       "key": "Языки — это мосты, соединяющие людей и мир.",
-      "romanization": "Yazyki — eto mosty, soyedinyayushchiye lyudey i mir.",
       "meanings": [
         "语言是连接人与世界的桥梁。"
       ]
@@ -40,18 +59,21 @@
     "facets": {
       "examples": [
         {
-          "sentence": "Книги — это окна, открывающие новые миры.",
-          "translation": "书籍是打开新世界的窗户。"
+          "sentence": "Книги — это двери, открывающие новые миры.",
+          "translation": "书是打开新世界的大门。"
         }
       ],
       "pinyin": [
         {
           "text": "语言是连接人与世界的桥梁。",
-          "pinyin": "yǔyán shì liánjiē rén yǔ shìjiè de qiáoliáng"
+          "pinyin": "yǔyán shì liánjiē rén yǔ shìjiè de qiáoliáng."
         }
       ],
       "pronunciation": [
         "语言是连接人与世界的桥梁。"
+      ],
+      "simple-translation": [
+        "语言让人和人、人和世界连在一起。"
       ]
     }
   }

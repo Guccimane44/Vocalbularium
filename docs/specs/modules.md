@@ -61,7 +61,7 @@ The main key module belongs to no family; it is shown as the page title. Languag
 | Parent module | Family | Core | Facets, in order |
 | --- | --- | --- | --- |
 | `German` | Languages | A word or phrase: an explanation in German, its meanings numbered, the one in this Context first ([the meaning in this Context](#context-meaning)). A sentence: its German translation, or for a German sentence an explanation of its meaning, with its figurative meaning when it is idiomatic. | Article, Examples, Synonyms, Antonyms, Conjugation, Declension, Comparison, Case, Pronunciation |
-| `Chinese` | Languages | A word or phrase: an explanation in Chinese, in the same layout. A sentence: its Chinese translation, or for a Chinese sentence an explanation of its meaning. Simplified characters. | Examples, Pinyin, Pronunciation |
+| `Chinese` | Languages | A word or phrase: an explanation in Chinese, in the same layout. A sentence: its Chinese translation, or for a Chinese sentence an explanation of its meaning. Simplified characters. | Examples, Pinyin, Pronunciation, Etymology, Simple translation, Grammar teacher |
 | `Pronunciation` | Sound | The page's main key, spoken in its own language as the page saved it; at most one per page, and a main key of up to 500 characters. The card has no text of its own. | — |
 | `Computer Science` | Expertise | A short explanation of the word, phrase or sentence for a learner, in the language preference, as computer science understands it ([writing in the interface language](#writing-in-the-interface-language); [staying with the subject](#staying-with-the-subject)). Its neighbouring fields: mathematics, electronics, linguistics and information science. Provisional. | Python |
 | `Mathematics` | Expertise | The same, as mathematics understands it. Its neighbouring fields: computer science, physics, statistics, economics and engineering. Provisional. | Formula |
@@ -78,6 +78,9 @@ The main key module belongs to no family; it is shown as the page title. Languag
 | Case (German) | Ca | a word whose `gramRole` is preposition | The case or cases it governs, each with a short example |
 | Pinyin (Chinese) | Py | always | The pinyin of the Chinese translation |
 | Pronunciation (German, Chinese) | Pr | always | The translation, spoken: a word's word or phrase for each meaning in the parent's language, a German noun with its article in the nominative singular (*das Ufer*), repeats left out; a sentence's translation; a key already in the parent's language, the key itself. Chinese in Simplified Hanzi, never Pinyin. Each line is one clip |
+| Etymology (Chinese) | Et | a word | Where the Chinese word comes from: a header *源自：* written by the module, the origins named in Chinese and joined by ` · ` (*古汉语 · 梵语*), then a short history. It describes the key when it is Chinese, otherwise the Chinese word for its first meaning, the meaning in this Context first; a loanword names the language it came from. Left out when the dictionaries give none |
+| Simple translation (Chinese) | Si | always | The core's meanings again in simple Chinese, in words of HSK levels 1–3, one line per meaning in the core's order, the meaning in this Context first; a sentence's one simple translation, or for a Chinese sentence a simple explanation |
+| Grammar teacher (Chinese) | Gr | the core's `language` is 中文, 汉语 or 普通话 | One to five short notes in Chinese on the key's grammar: its measure word, aspect particles, word order, 把 and 被, complements |
 | Formula (Mathematics) | Fo | `relevance` is `subject` and the concept's standard definition includes a formula | The defining formula, each symbol named in the interface language |
 | Python (Computer Science) | Py | `relevance` is `subject` and the concept is usually shown in code | One short, commented Python example of the concept |
 
@@ -135,7 +138,7 @@ Each content module decides for itself how to read the main key, in the same req
 | Module | Flag | Values | Drives | Shown |
 | --- | --- | --- | --- | --- |
 | German, Chinese | `kind` | `word`, `sentence` | Which facets apply: Article, Synonyms, Antonyms and the German grammar facets for a word only; Examples and Pinyin for both | Core header |
-| German, Chinese | `language` | the key's language, named in the parent's language (*Englisch*, 英语) | The header; the language Examples translate into | Core header |
+| German, Chinese | `language` | the key's language, named in the parent's language (*Englisch*, 英语) | The header; the language Examples translate into; Chinese Grammar teacher applies only to a key named 中文, 汉语 or 普通话 | Core header |
 | German | `gramRole` | an open label for the grammar word: noun, verb, adjective, adverb, preposition, … ; a word only | Article and Declension for a noun; Conjugation for a verb; Declension and Comparison for an adjective; Case for a preposition | Core header |
 | Computer Science, Mathematics | `relevance` | `subject`, `neighbouring`, `unrelated` | How the core is written ([staying with the subject](#staying-with-the-subject)); Formula and Python only for `subject` | No |
 | Mathematics | `hasFormula` | yes or no, only when `relevance` is `subject` | Whether Formula applies | No |
