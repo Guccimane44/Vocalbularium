@@ -170,3 +170,14 @@ test('a card keeps its facets in its own order; a move places one facet among th
   assert.equal(facetMoveBlocked(holder, 'german', 'examples', 2), 'Choose a position among the card’s facets.');
   assert.throws(() => validateFacets('german', ['examples', 'article']), /Facets follow the order of German/, 'a deck keeps the parent’s order');
 });
+
+// D30: a Creativity card's top line, and Chemistry's flag in an Expertise one.
+test('the top line takes a Creativity card and an Expertise card with hasEquation (D30)', () => {
+  const block = header => ({ version: 1, blocks: [{ type: 'parent', header, core: 'x', facets: {} }] });
+  assert.ok(Value.Check(BlockDocumentSchema, block({ kind: 'creativity', language: 'ja', key: '古池' })));
+  assert.ok(Value.Check(BlockDocumentSchema, block({ kind: 'creativity', language: '', key: 'pond' })), 'blank until generated');
+  assert.ok(!Value.Check(BlockDocumentSchema, block({ kind: 'creativity', language: 'en', key: 'pond', relevance: 'subject' })), 'no field it does not name');
+  assert.ok(Value.Check(BlockDocumentSchema, block({ kind: 'expertise', key: 'combustion', relevance: 'subject', hasEquation: 'yes' })));
+  assert.ok(Value.Check(BlockDocumentSchema, block({ kind: 'expertise', key: 'pH', relevance: 'subject', hasFormula: 'yes' })), 'an older card still fits');
+  assert.ok(!Value.Check(BlockDocumentSchema, block({ kind: 'expertise', key: 'combustion', relevance: 'subject', hasEquation: 'maybe' })));
+});

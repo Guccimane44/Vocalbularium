@@ -53,11 +53,12 @@ export function ruledOutOf(type: ParentType, content: ParentContent): Partial<Re
 // writes the value, the module names it (K51). A grammatical role outside the
 // module's list is shown as written.
 // A Pronunciation card names its key's language in the interface language
-// (*German*, *Deutsch*, *德语*), and only the key for `other` (D24).
+// (*German*, *Deutsch*, *德语*), and only the key for `other` (D24); so does a
+// Creativity card, for the language it writes in (D30).
 export function headingOf(type: ParentType, content: ParentContent, language = 'en'): EntryHeading | null {
   const header = content.header;
   if (header.kind === 'expertise') return { language: '', key: header.key, pronunciation: null, labels: [] };
-  if (header.kind === 'pronunciation') return { language: languageName(header.language, language), key: header.key, pronunciation: null, labels: [] };
+  if (header.kind === 'pronunciation' || header.kind === 'creativity') return { language: languageName(header.language, language), key: header.key, pronunciation: null, labels: [] };
   const names = contentModule(type).core.headerLabels;
   const labels = !names || !header.language ? [] : [header.kind === 'sentence' ? names.sentence : names.word,
     ...(header.kind === 'word' && header.gramRole ? [names.gramRole?.[header.gramRole.toLowerCase()] ?? header.gramRole] : [])];

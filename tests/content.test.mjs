@@ -5,7 +5,7 @@ import { applyDraft, ContentError, draftOf, filledFacets, formatContent, formatF
 import { GeneratedError, validateGenerated, validateGeneratedFacet } from '@vocabularium/domain/generated';
 import { editsAsSource, escapeMarkdown, hasTable, highlightKey, parseMarkdown, plainInline, plainLines, table } from '@vocabularium/domain/markdown';
 import { blockText } from '@vocabularium/domain/pages';
-import { renderParent } from '@vocabularium/domain/render';
+import { headingOf, renderParent } from '@vocabularium/domain/render';
 import { facetsFor } from '@vocabularium/domain/parents';
 
 // Parent content (D09, amended): the provider's JSON checked complete, formatted
@@ -148,6 +148,10 @@ test('stored content is one parent block, has no plain text, and renders its cor
   const expertise = renderParent('mathematics', { header: { kind: 'expertise', key: 'retinol', relevance: 'unrelated' }, core: 'Retinol is not a mathematics concept.', facets: {} });
   assert.deepEqual(expertise.heading, { language: '', key: 'retinol', pronunciation: null, labels: [] }, 'an Expertise top line shows the key only');
   assert.deepEqual(sentence.facets.map(facet => facet.facet), ['examples', 'pinyin'], 'in the parent’s order, not the data’s');
+  const creativity = { header: { kind: 'creativity', language: 'ja', key: '古池' }, core: '古池や', facets: {} };
+  assert.equal(validateParentContent('mathematics', creativity).header.kind, 'creativity', 'a Creativity top line is a top line (D30)');
+  assert.deepEqual(headingOf('mathematics', creativity, 'en'), { language: 'Japanese', key: '古池', pronunciation: null, labels: [] },
+    'a Creativity top line names the language it writes in, in the interface language (D30)');
 });
 
 test('the live editor’s document converts to and from the markdown subset, round-tripping what generation writes (D09)', async () => {

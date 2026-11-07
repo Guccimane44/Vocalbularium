@@ -88,7 +88,7 @@ export function validateParentContent(parent: ParentType, value: unknown, { face
   if (!isRecord(value)) return fail('The content is not structured.');
   for (const key of Object.keys(value)) if (!['header', 'core', 'facets'].includes(key)) fail(`The content has an unexpected field "${key}".`);
   const header = value.header;
-  if (!isRecord(header) || !['word', 'sentence', 'expertise', 'pronunciation'].includes(header.kind as string)) return fail("The module's top line is missing.");
+  if (!isRecord(header) || !['word', 'sentence', 'expertise', 'pronunciation', 'creativity'].includes(header.kind as string)) return fail("The module's top line is missing.");
   const entries = value.facets ?? {};
   if (!isRecord(entries)) return fail('The facets are not structured.');
   const checked: Record<string, string> = {};

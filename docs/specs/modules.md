@@ -52,9 +52,10 @@ Every input and content module belongs to one **module family**, which gives it 
 | Roots | sprouting stem | etymology, character parts, word history |
 | Connections | linked nodes | related words, synonyms, comparisons, concepts |
 | Sound | sound bars | pronunciation, audio, tones, stress |
+| Creativity | chosen on the 0.16.4 canvas | something new written from the key in its language: a haiku, a joke ([D30](../architecture/decisions/d30.md)) |
 | Notes | pencil | the user's own input: Context and Text |
 
-The main key module belongs to no family; it is shown as the page title. Languages is a family of its own because a translation's facets span Meaning, Usage, Connections, and Sound; Expertise is one because it explains a key as one field understands it, whatever language the key is in. Families with no module yet (Meaning, Usage, Roots, Connections) stay defined so that future modules have a place; they add no module to the catalog. Sound's module is Pronunciation, coloured with the `fam-sound` tokens. A Creative family, for parents that write something new from the key such as a poem, is added with its first parent. Languages is coloured petrol and Expertise leaf green; deck colours are the six colours of Meaning, Usage, Roots, Connections, Sound and Notes ([decks and configuration](decks-and-configuration.md#navigation)).
+The main key module belongs to no family; it is shown as the page title. Languages is a family of its own because a translation's facets span Meaning, Usage, Connections, and Sound; Expertise is one because it explains a key as one field understands it, whatever language the key is in. Families with no module yet (Meaning, Usage, Roots, Connections) stay defined so that future modules have a place; they add no module to the catalog. Sound's module is Pronunciation, coloured with the `fam-sound` tokens. Creativity ([D30](../architecture/decisions/d30.md)) holds parents that write something new from the key, such as a haiku or a joke, in the key's language; its colour and icon are chosen with its first parents. Languages is coloured petrol and Expertise leaf green; deck colours are the six colours of Meaning, Usage, Roots, Connections, Sound and Notes ([decks and configuration](decks-and-configuration.md#navigation)).
 
 ## Catalog
 
@@ -105,7 +106,7 @@ The one-line descriptions in the module window and the facet window stay beside 
 
 ## Writing in the interface language
 
-The Expertise modules' output reads as written in the interface language, not translated into it ([D15](../architecture/decisions/d15.md)). The Languages modules, which write in their own language, and the Creative family, whose language requirements will differ, are not affected; a later family gets this only by its own decision.
+The Expertise modules' output reads as written in the interface language, not translated into it ([D15](../architecture/decisions/d15.md)). The Languages modules, which write in their own language, and the Creativity family, which writes in the key's language ([D30](../architecture/decisions/d30.md)), are not affected; a later family gets this only by its own decision.
 
 - **A writing guide per language.** Every interface language has a short writing guide for the Expertise family, written in English with short example phrases in that language. It covers five things: the register (a clear explanation for a learner, written as the language is natively written) and the stock phrases to avoid; how a technical term is written at first use, the established term with the English in brackets, keeping the English where no translation is current, so an invented term shows; what stays as it is (code, formulas and symbols, identifiers, commands and the selection); the language's punctuation and spacing; and the unit a length limit is counted in. Every Expertise request carries the guide of the interface language; no module repeats it.
 - **English prompts only.** The Expertise modules' prompts and the rules every request carries stay in English in every language; no module has a translated prompt. A translated prompt would need a new decision with evidence for its language.
