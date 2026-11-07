@@ -16,13 +16,13 @@
       },
       "examples": [
         {
-          "sentence": "Cada verano aprendo un idioma nuevo.",
-          "translation": "Jeden Sommer lerne ich eine neue Sprache."
+          "sentence": "El español es un idioma muy hablado.",
+          "translation": "Spanisch ist eine viel gesprochene Sprache."
         }
       ],
       "synonyms": [
-        "Landessprache",
-        "Idiom"
+        "Idiom",
+        "Zunge"
       ],
       "declension": {
         "columns": [
@@ -62,6 +62,15 @@
       },
       "pronunciation": [
         "die Sprache"
+      ],
+      "etymology": {
+        "origins": [
+          "Althochdeutsch"
+        ],
+        "text": "Aus althochdeutsch sprāhha, das zu sprechen gehört; im Mittelhochdeutschen hieß es sprāche. Ursprünglich meinte es das Sprechen und die Art zu sprechen, später die Sprache eines Volkes."
+      },
+      "simple-translation": [
+        "die Wörter und Sätze, mit denen Menschen sprechen und schreiben"
       ]
     }
   },
@@ -71,18 +80,21 @@
       "language": "Spanisch",
       "key": "Los idiomas son los puentes que conectan a las personas con el mundo.",
       "meanings": [
-        "Sprachen sind die Brücken, die Menschen mit der Welt verbinden."
+        "Sprachen sind die Brücken, die die Menschen mit der Welt verbinden."
       ]
     },
     "facets": {
       "examples": [
         {
-          "sentence": "Las palabras son los hilos que unen a los pueblos con su historia.",
-          "translation": "Wörter sind die Fäden, die Völker mit ihrer Geschichte verbinden."
+          "sentence": "Las palabras son los hilos que unen a los amigos con la comunidad.",
+          "translation": "Wörter sind die Fäden, die die Freunde mit der Gemeinschaft verbinden."
         }
       ],
       "pronunciation": [
-        "Sprachen sind die Brücken, die Menschen mit der Welt verbinden."
+        "Sprachen sind die Brücken, die die Menschen mit der Welt verbinden"
+      ],
+      "simple-translation": [
+        "Sprachen helfen den Menschen, mit anderen und mit der Welt in Kontakt zu kommen. Sie sind wie Brücken zwischen den Menschen."
       ]
     }
   }

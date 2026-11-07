@@ -24,7 +24,8 @@ const Filled = Type.String({ minLength: 1, maxLength: 2000 });
 const Markdown = Type.String({ maxLength: 8000 });
 // A facet's ID, as its module's catalog folder names it.
 const FacetIdSchema = Type.String({ pattern: '^[a-z][a-z0-9-]{0,39}$' });
-const MAX_FACETS = 12;
+// The most facets a parent holds; the facet window stops a pick beyond it (0.16.4).
+export const MAX_FACETS = 12;
 // Since D17 a Languages card's top line carries its own reading: word or
 // sentence, the key's language and, for a German word, its grammatical role;
 // an Expertise card's carries the key and its case, which is not shown; a

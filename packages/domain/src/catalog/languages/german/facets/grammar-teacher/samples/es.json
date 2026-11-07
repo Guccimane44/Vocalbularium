@@ -1,0 +1,22 @@
+{
+  "word_phrase": {
+    "core": {
+      "kind": "word",
+      "language": "Deutsch",
+      "key": "aufstehen",
+      "gramRole": "verb",
+      "meanings": [
+        "sich aus einer liegenden oder sitzenden Haltung aufrichten und auf die Füße stellen",
+        "das Bett verlassen",
+        "sich gegen etwas oder jemanden erheben"
+      ]
+    },
+    "facets": {
+      "grammar-teacher": [
+        "Trennbares Verb: Im Hauptsatz steht die Vorsilbe „auf“ am Satzende, z. B. „Ich stehe um sieben Uhr auf.“",
+        "Das Perfekt wird mit „sein“ gebildet: „Ich bin früh aufgestanden.“",
+        "Es ist ein starkes Verb: Präteritum „stand auf“, Partizip II „aufgestanden“."
+      ]
+    }
+  }
+}

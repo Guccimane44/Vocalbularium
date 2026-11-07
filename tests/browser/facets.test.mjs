@@ -45,9 +45,9 @@ test('parents and facets: core only on add, the facet window on the parent, its 
 
   // A German parent's facet window lists its four facets in the module's order, the ones it has ticked.
   let facets = await facetWindow(a.page, 'German');
-  assert.deepEqual(await inOrder(facets, 'name'), ['Article', 'Examples', 'Synonyms', 'Antonyms', 'Conjugation', 'Declension', 'Comparison', 'Case', 'Pronunciation'],
-    'every facet of German, the grammar facets (D17) and Pronunciation (D24) included');
-  assert.deepEqual(await inOrder(facets, 'equipped'), [true, true, true, true, false, false, false, false, false], 'the grammar facets and Pronunciation are not on a My Deck card (K56)');
+  assert.deepEqual(await inOrder(facets, 'name'), ['Article', 'Examples', 'Synonyms', 'Antonyms', 'Conjugation', 'Declension', 'Comparison', 'Case', 'Pronunciation', 'Etymology', 'Simple translation', 'Grammar teacher'],
+    'every facet of German, the grammar facets (D17), Pronunciation (D24) and the 0.16.4 facets included');
+  assert.deepEqual(await inOrder(facets, 'equipped'), [true, true, true, true, false, false, false, false, false, false, false, false], 'the grammar facets and Pronunciation are not on a My Deck card (K56)');
   await waitFor(() => tick(facets, 'Article').evaluate(node => node === document.activeElement), 'the first row takes the focus');
   // A card on the surface (D23, 0.13.3): a heading naming the parent, a close, and a line on Retry.
   assert.equal(await facets.getByRole('heading', { level: 3 }).textContent(), 'Facets of German');
@@ -136,7 +136,7 @@ test('parents and facets: core only on add, the facet window on the parent, its 
     };
   });
   facets = await facetWindow(a.page, 'German 2');
-  assert.deepEqual(await inOrder(facets, 'equipped'), Array(9).fill(false), 'a core only');
+  assert.deepEqual(await inOrder(facets, 'equipped'), Array(12).fill(false), 'a core only');
   await a.page.screenshot({ path: 'artifacts/v0.8.1-facet-window.png', fullPage: true, animations: 'disabled' });
   await tick(facets, 'Synonyms').click();
   await waitFor(async () => (await german())[1].facets.includes('synonyms'), 'Synonyms added to the second German');
@@ -174,6 +174,24 @@ test('parents and facets: core only on add, the facet window on the parent, its 
   await waitFor(async () => (await store.deck(deckId)).modules.filter(module => module.type === 'german').length === 2, 'deck saved');
   assert.deepEqual((await store.deck(deckId)).modules.filter(module => module.type === 'german').map(module => module.facets),
     [['article', 'examples', 'synonyms'], ['antonyms']]);
+
+  // The cap (0.16.4): German offers exactly MAX_FACETS, so a parent picking every
+  // one reaches 12, its window has nothing more to add, and the deck saves it.
+  await a.page.goto(`chrome-extension://${a.id}/app.html#configure/${deckId}`);
+  await deckGermans.nth(1).waitFor();
+  facets = await facetWindow(a.page, 'German 2');
+  const offered = await inOrder(facets, 'name');
+  assert.equal(offered.length, 12);
+  for (const name of offered.filter(name => name !== 'Antonyms')) {
+    await tick(facets, name).click();
+    await waitFor(async () => await ticked(facets, name), `${name} ticked`);
+  }
+  assert.deepEqual(await inOrder(facets, 'equipped'), Array(12).fill(true), 'all twelve on the card');
+  assert.deepEqual(await facets.locator('.facet-window-group').allTextContents(), ['On this card'], 'nothing left to add');
+  assert.equal(await facets.locator('.facet-window-limit').count(), 0, 'no reason without a facet to refuse');
+  await a.page.keyboard.press('Escape');
+  await a.page.getByRole('button', { name: 'Save', exact: true }).click();
+  await waitFor(async () => (await store.deck(deckId)).modules.filter(module => module.type === 'german')[1].facets.length === 12, 'twelve facets saved');
 });
 
 test('facet window from the keyboard: Facet among the actions, Space on a tick, the question and Escape, and back to the tab', { timeout: 60000 }, async (t) => {
