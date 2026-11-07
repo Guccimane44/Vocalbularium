@@ -1738,9 +1738,10 @@
           ],
           "etymology": {
             "origins": [
-              "Chinesisch"
+              "Latein",
+              "Französisch"
             ],
-            "text": "Aus chinesisch dǎsuàn „rechnen, schlagen“ im 19. Jahrhundert ins Deutsche entlehnt und zu planen eingedeutscht."
+            "text": "Über französisch plan „Grundriss, Entwurf“ geht es auf lateinisch planum „Fläche, Ebene“ zurück. Von dem so entstandenen deutschen Substantiv Plan wurde im 18. Jahrhundert das Verb planen für „einen Plan machen, beabsichtigen“ abgeleitet."
           },
           "simple-translation": [
             "sich überlegen, was man in Zukunft machen will",
@@ -1777,7 +1778,7 @@
             "Ich möchte gerne weit weg reisen."
           ],
           "grammar-teacher": [
-            "„Fernweh“ ist ein weibliches Nomen: die Fernweh.",
+            "„Fernweh“ ist ein zusammengesetztes Nomen aus „fern“ und „Weh“; es ist sächlich: das Fernweh.",
             "„Fernweh“ wird hier ohne Artikel gebraucht und hat keinen Plural.",
             "„habe“ ist die ich-Form von „haben“ und steht im Hauptsatz an zweiter Stelle; „Fernweh“ ist das Akkusativobjekt."
           ]
@@ -1810,7 +1811,7 @@
             "Der Ausschuss verschob die Entscheidung auf unbestimmte Zeit."
           ],
           "simple-translation": [
-            "Die Gruppe hat heute die Entscheidung getroffen."
+            "Die Gruppe hat die Entscheidung auf später verschoben und keinen Termin dafür genannt."
           ]
         }
       }
