@@ -52,10 +52,10 @@ Every input and content module belongs to one **module family**, which gives it 
 | Roots | sprouting stem | etymology, character parts, word history |
 | Connections | linked nodes | related words, synonyms, comparisons, concepts |
 | Sound | sound bars | pronunciation, audio, tones, stress |
-| Creativity | chosen on the 0.16.4 canvas | something new written from the key in its language: a haiku, a joke ([D30](../architecture/decisions/d30.md)) |
+| Creativity | a sparkle | something new written from the key in its language: a haiku, a joke ([D30](../architecture/decisions/d30.md)) |
 | Notes | pencil | the user's own input: Context and Text |
 
-The main key module belongs to no family; it is shown as the page title. Languages is a family of its own because a translation's facets span Meaning, Usage, Connections, and Sound; Expertise is one because it explains a key as one field understands it, whatever language the key is in. Families with no module yet (Meaning, Usage, Roots, Connections) stay defined so that future modules have a place; they add no module to the catalog. Sound's module is Pronunciation, coloured with the `fam-sound` tokens. Creativity ([D30](../architecture/decisions/d30.md)) holds parents that write something new from the key, such as a haiku or a joke, in the key's language; its colour and icon are chosen with its first parents. Languages is coloured petrol and Expertise leaf green; deck colours are the six colours of Meaning, Usage, Roots, Connections, Sound and Notes ([decks and configuration](decks-and-configuration.md#navigation)).
+The main key module belongs to no family; it is shown as the page title. Languages is a family of its own because a translation's facets span Meaning, Usage, Connections, and Sound; Expertise is one because it explains a key as one field understands it, whatever language the key is in. Families with no module yet (Meaning, Usage, Roots, Connections) stay defined so that future modules have a place; they add no module to the catalog. Sound's module is Pronunciation, coloured with the `fam-sound` tokens. Creativity ([D30](../architecture/decisions/d30.md)) holds parents that write something new from the key, such as a haiku or a joke, in the key's language; it is coloured indigo. Languages is coloured petrol and Expertise leaf green; deck colours are the six colours of Meaning, Usage, Roots, Connections, Sound and Notes ([decks and configuration](decks-and-configuration.md#navigation)).
 
 ## Catalog
 
