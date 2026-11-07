@@ -11,5 +11,8 @@
   "case.label": "Cas",
   "core.word_phrase": "Sens",
   "core.sentence": "Traduction",
-  "pronunciation.label": "Prononciation"
+  "pronunciation.label": "Prononciation",
+  "etymology.label": "Étymologie",
+  "simple-translation.label": "Traduction simple",
+  "grammar-teacher.label": "Professeur de grammaire"
 }

@@ -4,10 +4,10 @@
       "kind": "word",
       "language": "Russisch",
       "key": "язык",
-      "romanization": "yazyk",
+      "romanization": "jazyk",
       "gramRole": "noun",
+      "contextual": "Sprache",
       "meanings": [
-        "Sprache",
         "Zunge"
       ]
     },
@@ -18,12 +18,12 @@
       },
       "examples": [
         {
-          "sentence": "Она учит новый язык каждый год.",
-          "translation": "Sie lernt jedes Jahr eine neue Sprache."
+          "sentence": "Каждое лето она учит новый язык.",
+          "translation": "Jeden Sommer lernt sie eine neue Sprache."
         },
         {
           "sentence": "Он обжёг язык горячим чаем.",
-          "translation": "Er verbrannte sich die Zunge am heißen Tee."
+          "translation": "Er verbrannte sich die Zunge mit heißem Tee."
         }
       ],
       "declension": {
@@ -65,6 +65,17 @@
       "pronunciation": [
         "die Sprache",
         "die Zunge"
+      ],
+      "etymology": {
+        "origins": [
+          "Althochdeutsch",
+          "Mittelhochdeutsch"
+        ],
+        "text": "Aus althochdeutsch sprāhha und mittelhochdeutsch sprāche, verwandt mit sprechen; die Grundbedeutung war „Rede, das Sprechen“. Daraus entwickelte sich die heutige Bedeutung „Sprache“ als System der Verständigung."
+      },
+      "simple-translation": [
+        "die Wörter, mit denen Menschen sprechen",
+        "das weiche Ding im Mund, mit dem man spricht und schmeckt"
       ]
     }
   },
@@ -73,7 +84,6 @@
       "kind": "sentence",
       "language": "Russisch",
       "key": "Языки — это мосты, соединяющие людей и мир.",
-      "romanization": "Yazyki — eto mosty, soyedinyayushchiye lyudey i mir.",
       "meanings": [
         "Sprachen sind Brücken, die Menschen und die Welt verbinden."
       ]
@@ -81,12 +91,15 @@
     "facets": {
       "examples": [
         {
-          "sentence": "Книги — это окна, открывающие людям мир.",
-          "translation": "Bücher sind Fenster, die den Menschen die Welt öffnen."
+          "sentence": "Книги — это двери, открывающие новые миры.",
+          "translation": "Bücher sind Türen, die neue Welten öffnen."
         }
       ],
       "pronunciation": [
-        "Sprachen sind Brücken, die Menschen und die Welt verbinden."
+        "Sprachen sind Brücken die Menschen und die Welt verbinden"
+      ],
+      "simple-translation": [
+        "Sprachen sind wie Brücken. Sie verbinden Menschen und die Welt."
       ]
     }
   }

@@ -31,6 +31,7 @@
   "card.facetsHint": "Las facetas añadidas se completan en el próximo Reintentar.",
   "card.facetsOn": "En esta tarjeta",
   "card.facetsAdd": "Añadir",
+  "card.facetsFull": "Una tarjeta tiene como máximo {count} facetas. Quita una para añadir otra.",
   "card.facet": "Faceta",
   "card.fold": "Plegar",
   "card.unfold": "Desplegar",

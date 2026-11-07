@@ -353,6 +353,50 @@
           "german": "preposition"
         }
       }
+    },
+    {
+      "key": "window",
+      "why": "English noun, a foreign key: Etymology describes Fenster (Latin fenestra, well known); Grammar teacher left out (0.16.4)",
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "key": "Fenster",
+      "why": "German noun, a German key: Etymology of the key itself (Latin fenestra, well known) and Grammar teacher's notes (0.16.4)",
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "key": "Tollpatsch",
+      "why": "German noun with an obscure etymology (Hungarian talpas, via soldiers' slang), Grammar teacher for a German key (0.16.4)",
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "key": "The committee postponed the decision indefinitely.",
+      "why": "English sentence of formal words: Simple translation says it in A2 German (0.16.4)",
+      "expect": {
+        "kind": "sentence"
+      }
+    },
+    {
+      "key": "Wenn ich Zeit hätte, würde ich mitkommen.",
+      "why": "German sentence: Simple translation explains it simply, Grammar teacher notes the Konjunktiv II, the verb-final clause and the separable mitkommen (0.16.4)",
+      "expect": {
+        "kind": "sentence"
+      }
     }
   ]
 }

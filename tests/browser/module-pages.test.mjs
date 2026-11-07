@@ -62,7 +62,8 @@ test('0.13.0: family, module and facet pages in one sheet, from the module windo
   await sheet.getByRole('button', { name: 'Sentence', exact: true }).click();
   assert.equal(await sheet.locator('.about-key').innerText(), (await catalogSample('main-key', 'ru')).sentence);
   assert.ok((await sheet.locator('.about-card').innerText()).includes((await catalogSample('languages/german', 'ru')).sentence.core.meanings[0]));
-  assert.deepEqual(await sheet.locator('.about-chain .about-mk:not([data-out])').allTextContents(), ['Ex', 'Pr'], 'a sentence keeps Examples and Pronunciation (D24)');
+  assert.deepEqual(await sheet.locator('.about-chain .about-mk:not([data-out])').allTextContents(), ['Ex', 'Pr', 'Si'],
+    'a foreign sentence keeps Examples, Pronunciation (D24) and Simple translation; Grammar teacher only for German (0.16.4)');
 
   // Article among its facets opens its facet page; Conjugation from the strip has its own word.
   await sheet.locator('.about-row').filter({ has: a.page.locator('.about-row-name', { hasText: /^Article$/ }) }).click();
@@ -167,7 +168,7 @@ test('0.13.0: family, module and facet pages in one sheet, from the module windo
   await sheet.waitFor({ state: 'detached' });
   assert.equal(await facets.isVisible(), true, 'the facet window stays open');
   assert.equal(await focused(info('Article')), true, 'the focus back on its ›');
-  assert.deepEqual(await inOrder(facets, 'equipped'), [true, true, true, true, false, false, false, false, false], 'the grammar facets and Pronunciation are not on a My Deck card (K56)');
+  assert.deepEqual(await inOrder(facets, 'equipped'), [true, true, true, true, ...Array(8).fill(false)], 'the grammar facets, Pronunciation and the 0.16.4 facets are not on a My Deck card (K56)');
   await a.page.keyboard.press('Escape');
 
   // The card's own About opens its module page.

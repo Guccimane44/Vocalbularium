@@ -17,14 +17,9 @@
       },
       "examples": [
         {
-          "sentence": "语言让不同文化的人能够相互理解。",
-          "translation": "Sprache ermöglicht es Menschen aus verschiedenen Kulturen, einander zu verstehen."
+          "sentence": "语言是人与人交流的重要工具。",
+          "translation": "Sprache ist ein wichtiges Werkzeug für die Verständigung zwischen Menschen."
         }
-      ],
-      "synonyms": [
-        "Sprachsystem",
-        "Idiom",
-        "Verständigungsmittel"
       ],
       "declension": {
         "columns": [
@@ -64,6 +59,16 @@
       },
       "pronunciation": [
         "die Sprache"
+      ],
+      "etymology": {
+        "origins": [
+          "Althochdeutsch",
+          "Mittelhochdeutsch"
+        ],
+        "text": "Aus althochdeutsch sprāhha und mittelhochdeutsch sprāche, die mit dem Verb sprechen verwandt sind. Ursprünglich bezeichnete das Wort das Sprechen und die Rede, daraus entwickelte sich die heutige Bedeutung als System der Verständigung."
+      },
+      "simple-translation": [
+        "die Sprache, mit der Menschen miteinander reden und schreiben"
       ]
     }
   },
@@ -80,12 +85,15 @@
     "facets": {
       "examples": [
         {
-          "sentence": "音乐是连接心灵与世界的桥梁。",
-          "translation": "Musik ist die Brücke, die Herzen und die Welt verbindet."
+          "sentence": "沟通是连接不同文化的桥梁。",
+          "translation": "Kommunikation ist die Brücke, die verschiedene Kulturen verbindet."
         }
       ],
       "pronunciation": [
-        "Sprache ist die Brücke, die Menschen und die Welt verbindet."
+        "Sprache ist die Brücke, die Menschen und die Welt verbindet"
+      ],
+      "simple-translation": [
+        "Sprache verbindet Menschen mit der Welt."
       ]
     }
   }
