@@ -84,6 +84,8 @@ test('Chinese: Etymology names its origins in Chinese once each, Simple translat
   assert.deepEqual(await failures('chinese', ety({ text: '源自：英语。' })), ['etymology.etymology-text'], 'the label in the text');
   assert.deepEqual(await failures('chinese', ety({ text: '咖'.repeat(201) })), ['etymology.etymology-text'], 'too long');
   assert.deepEqual(await failures('chinese', ety({ origins: ['古漢語'] })), ['etymology.simplified'], 'traditional characters');
+  assert.deepEqual(await failures('chinese', ety({ text: '日本用汉字造出「銀行」翻译 bank，后来传入中文。' })), [], 'a source form quoted in 「」');
+  assert.deepEqual(await failures('chinese', ety({ text: '日本用漢字造出銀行。' })), ['etymology.simplified'], 'unquoted');
   assert.deepEqual(await failures('chinese', with_(word, 'simple-translation', ['一种喝的东西'])), ['simple-translation.one-line-per-meaning']);
   assert.deepEqual(await failures('chinese', with_({ ...word, core: { ...word.core, contextual: '咖啡店' } }, 'simple-translation', ['卖咖啡的店', ...word.facets['simple-translation']])), []);
   assert.deepEqual(await failures('chinese', with_(word, 'simple-translation', ['coffee', '豆子'])), ['simple-translation.chinese-lines']);

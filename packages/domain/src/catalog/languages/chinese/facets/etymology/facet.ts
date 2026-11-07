@@ -30,7 +30,7 @@ export default defineFacet({
       : [...value.text].length > MAX_TEXT ? `the history has ${[...value.text].length} characters, more than ${MAX_TEXT}`
       : /^\s*源自[:：]/.test(value.text) ? 'the history writes the label itself' : null
   }, {
-    id: 'simplified', description: 'The origins and the history are written in simplified characters.',
-    test: value => { const found = traditionalIn([...value.origins, value.text].join('')); return found ? `traditional characters: ${found}` : null; }
+    id: 'simplified', description: 'The origins and the history are written in simplified characters, but for a source form quoted in 「」, such as Japanese 「銀行」.',
+    test: value => { const found = traditionalIn([...value.origins, value.text.replace(/「[^」]*」/g, '')].join('')); return found ? `traditional characters: ${found}` : null; }
   }]
 });
