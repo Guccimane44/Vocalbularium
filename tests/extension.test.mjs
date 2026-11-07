@@ -298,3 +298,16 @@ test('save receipts: rejected edits discard only the existing non-retryable vali
   await assert.rejects(saves.perform({ operationId: 'edit', path: '/api/deck/save', payload: {} }, 'token', ['invalid']), /Choose supported modules/);
   assert.equal(local.data['save-edit'], undefined);
 });
+
+// D30: Chemistry's Equation is written in mhchem; the card's renderer loads it
+// beside KaTeX, so \ce{} renders rather than falling back to its source.
+test('KaTeX with mhchem renders a \\ce{} reaction, and the card renderer loads mhchem', async () => {
+  const { default: katex } = await import('katex');
+  assert.throws(() => katex.renderToString('\\ce{2H2 + O2 -> 2H2O}', { throwOnError: true, displayMode: true }), /ce/, 'without mhchem, \\ce is unknown');
+  await import('katex/contrib/mhchem');
+  const html = katex.renderToString('\\ce{2H2 + O2 -> 2H2O}', { throwOnError: true, displayMode: true, output: 'htmlAndMathml' });
+  assert.match(html, /katex-display/);
+  assert.match(html, /→|\\rightarrow|<mo[^>]*>→/);
+  const { readFile } = await import('node:fs/promises');
+  assert.match(await readFile(new URL('../extension/rich-blocks.tsx', import.meta.url), 'utf8'), /^import 'katex\/contrib\/mhchem';$/m);
+});

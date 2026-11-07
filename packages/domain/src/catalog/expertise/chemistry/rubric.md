@@ -1,0 +1,5 @@
+- **case**: The case is right for the selection: subject for a concept of chemistry, neighbouring for a technical term of a nearby field, unrelated otherwise.
+- **accuracy**: Every statement is correct in chemistry; nothing is invented or confused with a neighbouring concept.
+- **learner**: The explanation is written in the interface language for a learner, without padding or stock phrases; a selection in another language may be quoted as given. A word or phrase of the subject is explained intuitively, with a simple example; a sentence by what it states and the ideas it relies on; a neighbouring term in one brief, plain paragraph, which needs no example; an unrelated key by only the sentence saying so.
+- **focus**: It stays with the meaning in chemistry, with no everyday meaning. When a Context uses the selection in a sense outside chemistry, one opening sentence naming that sense is called for; otherwise the Context is not restated.
+- **facet**: An Equation, when present, is the concept's standard formula or a correctly balanced equation for it, and its species are named correctly.

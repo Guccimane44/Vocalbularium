@@ -1,0 +1,1 @@
+This core was written before and is supplied as "previous": that is how the selection was read. Write the core again and keep that reading. Copy "relevance", "hasEquation" and "key" from "previous" exactly as given, leaving out any it leaves out. Explain the same concept that its "explanation" describes. Write the "explanation" anew; do not copy it.

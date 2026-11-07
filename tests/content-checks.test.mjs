@@ -81,6 +81,23 @@ test('Expertise: a formula names symbols, never numbers or relations; a code exa
   assert.deepEqual([outcome.failures, outcome.skipped], [[], ['code.python']], 'without a Python parser the check is skipped, not failed');
 });
 
+test('Chemistry: an Equation is mhchem, a simple reaction is balanced, and its species are substances (D30)', async () => {
+  const equation = (latex, species = [{ symbol: '\\ce{H2O}', name: 'water' }]) => ({ core: { relevance: 'subject', hasEquation: 'yes' }, facets: { equation: { latex, species } } });
+  assert.deepEqual(await failures('chemistry', equation('\\ce{2H2 + O2 -> 2H2O}')), []);
+  assert.deepEqual(await failures('chemistry', equation('\\ce{CH4 + 2O2 -> CO2 + 2H2O}')), []);
+  assert.deepEqual(await failures('chemistry', equation('\\ce{N2 + 3H2 <=> 2NH3}')), [], 'an equilibrium');
+  assert.deepEqual(await failures('chemistry', equation('\\ce{NaCl}')), [], 'a formula, no reaction');
+  assert.deepEqual(await failures('chemistry', equation('2H2 + O2 -> 2H2O')), ['equation.mhchem']);
+  assert.deepEqual(await failures('chemistry', equation('\\ce{H2 + O2 -> H2O}')), ['equation.balanced']);
+  assert.deepEqual(await failures('chemistry', equation('\\ce{CH4 + O2 -> CO2 + 2H2O}')), ['equation.balanced']);
+  assert.deepEqual(await failures('chemistry', equation('\\ce{H+ + OH- -> H2O}')), [], 'charges are not counted');
+  assert.deepEqual(await failures('chemistry', equation('\\ce{Ca(OH)2 + 2HCl -> CaCl2 + 2H2O}')), [], 'a group in parentheses is not counted');
+  assert.deepEqual(await failures('chemistry', equation('\\ce{2H2(g) + O2(g) -> 2H2O(l)}')), [], 'states are not counted');
+  for (const symbol of ['\\ce{->}', '+', '2', '\\ce{2H2O}', '\\ce{H2 + O2}']) {
+    assert.deepEqual(await failures('chemistry', equation('\\ce{2H2 + O2 -> 2H2O}', [{ symbol, name: 'x' }])), ['equation.species-only'], symbol);
+  }
+});
+
 test('every check has a unique ID within its part and says what it checks; every Languages module checks its core', () => {
   for (const type of Object.keys(RECORDED).filter(key => key !== 'note').concat(parentsIn('expertise'))) {
     const module = contentModule(type);

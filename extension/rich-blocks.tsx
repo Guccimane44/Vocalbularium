@@ -1,7 +1,9 @@
 // Formulas and code on a card (D17, K54): KaTeX renders LaTeX and
 // highlight.js colours code, both bundled with the extension. A formula KaTeX
-// cannot read shows its LaTeX source instead.
+// cannot read shows its LaTeX source instead. mhchem adds \ce{} for
+// Chemistry's Equation (D30), registering itself on the same KaTeX.
 import katex from 'katex';
+import 'katex/contrib/mhchem';
 import hljs from 'highlight.js/lib/core';
 import bash from 'highlight.js/lib/languages/bash';
 import c from 'highlight.js/lib/languages/c';

@@ -1,0 +1,7 @@
+{
+  "label": "Química",
+  "description": "Explica un término o un concepto tal como lo entiende la química.",
+  "core.word_phrase": "Explicación",
+  "core.sentence": "Explicación",
+  "equation.label": "Ecuación"
+}

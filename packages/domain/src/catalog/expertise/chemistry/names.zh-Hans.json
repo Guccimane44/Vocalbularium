@@ -1,0 +1,7 @@
+{
+  "label": "化学",
+  "description": "按化学的理解解释术语或概念。",
+  "core.word_phrase": "解释",
+  "core.sentence": "解释",
+  "equation.label": "方程式"
+}
