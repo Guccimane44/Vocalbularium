@@ -1,0 +1,48 @@
+{
+  "word_phrase": {
+    "core": {
+      "relevance": "subject",
+      "hasEquation": "yes",
+      "key": "中和反应",
+      "explanation": [
+        "中和反应（neutralization reaction）是酸与碱作用生成盐和水的反应，本质是酸中的氢离子与碱中的氢氧根离子结合成水。",
+        "例如盐酸与氢氧化钠反应，生成氯化钠和水。这类反应在实验室和生活中常见，可用于调节溶液的酸碱性。"
+      ]
+    },
+    "facets": {
+      "equation": {
+        "latex": "\\ce{HCl + NaOH -> NaCl + H2O}",
+        "species": [
+          {
+            "symbol": "\\ce{HCl}",
+            "name": "盐酸"
+          },
+          {
+            "symbol": "\\ce{NaOH}",
+            "name": "氢氧化钠"
+          },
+          {
+            "symbol": "\\ce{NaCl}",
+            "name": "氯化钠"
+          },
+          {
+            "symbol": "\\ce{H2O}",
+            "name": "水"
+          }
+        ]
+      }
+    }
+  },
+  "sentence": {
+    "core": {
+      "relevance": "subject",
+      "hasEquation": "no",
+      "key": "酸和碱反应生成盐和水。",
+      "explanation": [
+        "这句话描述中和反应（neutralization reaction）：酸提供氢离子，碱提供氢氧根离子，两者结合成水，其余部分组成盐。",
+        "例如盐酸与氢氧化钠反应生成氯化钠和水；过程中常放热，溶液的酸性或碱性逐渐减弱。"
+      ]
+    },
+    "facets": {}
+  }
+}

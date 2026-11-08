@@ -66,6 +66,7 @@ The main key module belongs to no family; it is shown as the page title. Languag
 | `Pronunciation` | Sound | The page's main key, spoken in its own language as the page saved it; at most one per page, and a main key of up to 500 characters. The card has no text of its own. | — |
 | `Computer Science` | Expertise | A short explanation of the word, phrase or sentence for a learner, in the language preference, as computer science understands it ([writing in the interface language](#writing-in-the-interface-language); [staying with the subject](#staying-with-the-subject)). Its neighbouring fields: mathematics, electronics, linguistics and information science. Provisional. | Python |
 | `Mathematics` | Expertise | The same, as mathematics understands it. Its neighbouring fields: computer science, physics, statistics, economics and engineering. Provisional. | Formula |
+| `Chemistry` | Expertise | The same, as chemistry understands it. Its neighbouring fields: physics, biology, materials science, medicine and pharmacology (D30). | Equation |
 | `Traditional Haiku` | Creativity | A classical haiku about the key, in the key's language: three lines of 5-7-5 (syllables, morae in Japanese, characters in a Chinese 汉俳), a season word, a cut between two images, a concrete moment in nature linked to the key ([D30](../architecture/decisions/d30.md)). | — |
 | `Modern Haiku` | Creativity | A modern haiku about the key, in the key's language: three short free lines, one concrete image of everyday life with a turn, no season word required, no rhyme or title. | — |
 | `Joke` | Creativity | A short joke about the key, in the key's language: a pun where the language allows one, otherwise a short story joke; set-up and punchline on lines of their own. Clean, and never about a group of people. | — |
@@ -89,9 +90,10 @@ The main key module belongs to no family; it is shown as the page title. Languag
 | Simple translation (Chinese) | Si | always | The core's meanings again in simple Chinese, in simple words a beginner knows (owner, 8 November 2026: no fixed HSK level), one line per meaning in the core's order, the meaning in this Context first; a sentence's one simple translation, or for a Chinese sentence a simple explanation |
 | Grammar teacher (Chinese) | Gr | the core's `language` is 中文, 汉语 or 普通话 | One to five short notes in Chinese on the key's grammar: its measure word, aspect particles, word order, 把 and 被, complements |
 | Formula (Mathematics) | Fo | `relevance` is `subject` and the concept's standard definition includes a formula | The defining formula, each symbol named in the interface language |
+| Equation (Chemistry) | Eq | `relevance` is `subject` and `hasEquation` is yes: the concept is defined or best shown by a chemical formula or a reaction equation | The formula or balanced equation in mhchem notation, each substance named in the interface language |
 | Python (Computer Science) | Py | `relevance` is `subject` and the concept is usually shown in code | One short, commented Python example of the concept |
 
-A facet applies by its own prompt, stated in terms of its core's [flags](#input-and-applicability), and is left out otherwise. The German grammar facets (Article, Conjugation, Declension, Comparison, Case) describe one **grammar word**: the main key when it is German, otherwise the German word for its first meaning, the meaning in this Context first; the grammar word never narrows the meanings or the other facets. Formula and Python never apply to a neighbouring or unrelated key, so they cannot apply a subject's formula to another field's term ([staying with the subject](#staying-with-the-subject)), and they are never constructed for a concept that has none. Conjugation, Declension, Comparison, Case, Etymology, Simple translation, Grammar teacher, Formula and Python are not in the default deck; users add them from the facet window.
+A facet applies by its own prompt, stated in terms of its core's [flags](#input-and-applicability), and is left out otherwise. The German grammar facets (Article, Conjugation, Declension, Comparison, Case) describe one **grammar word**: the main key when it is German, otherwise the German word for its first meaning, the meaning in this Context first; the grammar word never narrows the meanings or the other facets. Formula, Python and Equation never apply to a neighbouring or unrelated key, so they cannot apply a subject's formula to another field's term ([staying with the subject](#staying-with-the-subject)), and they are never constructed for a concept that has none. Conjugation, Declension, Comparison, Case, Etymology, Simple translation, Grammar teacher, Formula, Python and Equation are not in the default deck; users add them from the facet window.
 
 Each facet type has an abbreviation that marks its [tag](pages-and-editing.md#facet-tags) on a card. No two facets of one parent share an abbreviation; facets of different parents may.
 
@@ -147,8 +149,9 @@ Each content module decides for itself how to read the main key, in the same req
 | German, Chinese | `kind` | `word`, `sentence` | Which facets apply: Article, Synonyms, Antonyms and the German grammar facets for a word only; Examples and Pinyin for both | Core header |
 | German, Chinese | `language` | the key's language, named in the parent's language (*Englisch*, 英语) | The header; the language Examples translate into; Chinese Grammar teacher applies only to a key named 中文, 汉语 or 普通话 | Core header |
 | German | `gramRole` | an open label for the grammar word: noun, verb, adjective, adverb, preposition, … ; a word only | Article and Declension for a noun; Conjugation for a verb; Declension and Comparison for an adjective; Case for a preposition | Core header |
-| Computer Science, Mathematics | `relevance` | `subject`, `neighbouring`, `unrelated` | How the core is written ([staying with the subject](#staying-with-the-subject)); Formula and Python only for `subject` | No |
+| Computer Science, Mathematics, Chemistry | `relevance` | `subject`, `neighbouring`, `unrelated` | How the core is written ([staying with the subject](#staying-with-the-subject)); Formula, Python and Equation only for `subject` | No |
 | Mathematics | `hasFormula` | yes or no, only when `relevance` is `subject` | Whether Formula applies | No |
+| Chemistry | `hasEquation` | yes or no, only when `relevance` is `subject` | Whether Equation applies (D30) | No |
 | Computer Science | `hasCode` | yes or no, only when `relevance` is `subject` | Whether Python applies | No |
 | Pronunciation | `language` | the main key's ISO 639-1 code, from the languages the pinned speech model speaks, or `other` | The language the key is spoken in; `other` starts no audio | Core header, named in the interface language (*German*, *Deutsch*, *德语*) |
 | Traditional Haiku, Modern Haiku, Joke | `language` | the main key's ISO 639-1 code, or `other` | The language the card is written in | Core header, named in the interface language |
@@ -186,7 +189,8 @@ The provider returns a parent's content as JSON, and the app keeps it as **markd
 - **Conjugation**, **Declension:** a table, `{ columns, rows }`, each row `{ label, cells }`.
 - **Comparison:** `{ positive, comparative, superlative }`.
 - **Case:** a list of `{ case, use, example }`.
-- **Formula:** `{ latex, symbols }`, the formula in LaTeX and a list of `{ symbol, meaning }`, each symbol in LaTeX. The flags are named `hasFormula` and `hasCode`, so they do not share a name with their facets.
+- **Formula:** `{ latex, symbols }`, the formula in LaTeX and a list of `{ symbol, meaning }`, each symbol in LaTeX. The flags are named `hasFormula`, `hasCode` and `hasEquation`, so they do not share a name with their facets.
+- **Equation:** `{ latex, species }`, the formula or balanced equation in mhchem notation inside `\ce{}` (`\ce{2H2 + O2 -> 2H2O}`) and a list of `{ symbol, name }`, each substance once, in `\ce{}` and without its coefficient. Its checks: the LaTeX uses `\ce{}`; a simple reaction, without charges, states or groups, has the same count of each element on both sides; a species is never an arrow, a plus sign or a coefficient.
 - **Python:** `{ language, code }`, `language` always `python`, the code commented.
 - **Pronunciation (facet):** a list of lines to speak, one string each.
 
@@ -207,6 +211,7 @@ The provider returns a parent's content as JSON, and the app keeps it as **markd
 | Comparison | one line, `gut · besser · am besten` |
 | Case | a bulleted list, each item the case with its use and example |
 | Formula | the formula as display math, then the symbols as a bulleted list |
+| Equation | the formula or equation as display math, rendered with KaTeX's mhchem, then the substances as a bulleted list |
 | Python | a fenced Python code block |
 | Pronunciation (facet) | a line each, the text to speak |
 

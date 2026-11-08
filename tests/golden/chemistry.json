@@ -1,0 +1,169 @@
+{
+  "note": "Golden set for Chemistry (D11, D30, C8). The owner reviews the outputs before a prompt change merges.",
+  "modules": [
+    "chemistry"
+  ],
+  "inputs": [
+    {
+      "key": "Neutralisation",
+      "why": "Core term, the module's sample: a reaction with an equation",
+      "expect": {
+        "relevance": "subject",
+        "hasEquation": "yes"
+      }
+    },
+    {
+      "key": "combustion of methane",
+      "why": "Named reaction: a balanced equation",
+      "expect": {
+        "relevance": "subject",
+        "hasEquation": "yes"
+      }
+    },
+    {
+      "key": "electrolysis of water",
+      "why": "Named reaction: a balanced equation",
+      "expect": {
+        "relevance": "subject",
+        "hasEquation": "yes"
+      }
+    },
+    {
+      "key": "sodium chloride",
+      "why": "Substance: its formula",
+      "expect": {
+        "relevance": "subject",
+        "hasEquation": "yes"
+      }
+    },
+    {
+      "key": "electronegativity",
+      "why": "Concept without a formula or equation: no Equation",
+      "expect": {
+        "relevance": "subject",
+        "hasEquation": "no"
+      }
+    },
+    {
+      "key": "chirality",
+      "why": "Concept without an equation: no Equation",
+      "expect": {
+        "relevance": "subject",
+        "hasEquation": "no"
+      }
+    },
+    {
+      "key": "Le Chatelier's principle",
+      "why": "Law stated in words: no equation constructed",
+      "expect": {
+        "relevance": "subject"
+      }
+    },
+    {
+      "key": "mole",
+      "why": "Quantity of chemistry: the chemistry sense, no animal",
+      "expect": {
+        "relevance": "subject"
+      }
+    },
+    {
+      "key": "solution",
+      "why": "Everyday word with a technical meaning: the chemistry sense only",
+      "expect": {
+        "relevance": "subject"
+      }
+    },
+    {
+      "key": "bond",
+      "why": "Everyday word with a technical meaning: the chemistry sense only",
+      "expect": {
+        "relevance": "subject"
+      }
+    },
+    {
+      "key": "bond",
+      "context": "A covalent bond forms when two atoms share a pair of electrons.",
+      "why": "Context picks the chemistry sense; the core does not restate the Context",
+      "expect": {
+        "relevance": "subject"
+      }
+    },
+    {
+      "key": "bond",
+      "context": "The government issued a ten-year bond to fund the new railway.",
+      "why": "Context outside the subject (finance): one opening sentence naming that sense, then the chemistry meaning (D16)",
+      "expect": {
+        "relevance": "subject"
+      }
+    },
+    {
+      "key": "Water boils at 100 °C at sea level.",
+      "why": "Sentence: what it states in chemistry terms",
+      "expect": {
+        "relevance": "subject"
+      }
+    },
+    {
+      "key": "When hydrogen burns in oxygen, water is formed.",
+      "why": "Sentence describing a reaction: its equation",
+      "expect": {
+        "relevance": "subject",
+        "hasEquation": "yes"
+      }
+    },
+    {
+      "key": "氧化还原反应",
+      "why": "Chinese key: explained in English",
+      "expect": {
+        "relevance": "subject"
+      }
+    },
+    {
+      "key": "Katalysator",
+      "why": "German key: explained in English",
+      "expect": {
+        "relevance": "subject"
+      }
+    },
+    {
+      "key": "photon",
+      "why": "Neighbouring technical term (physics): named as not a chemistry concept, one plain paragraph (D16)",
+      "expect": {
+        "relevance": "neighbouring"
+      }
+    },
+    {
+      "key": "mitosis",
+      "why": "Neighbouring technical term (biology): one plain paragraph, no chemistry",
+      "expect": {
+        "relevance": "neighbouring"
+      }
+    },
+    {
+      "key": "half-life",
+      "why": "Shared with physics and pharmacology; chemistry defines it for reaction kinetics",
+      "expect": {}
+    },
+    {
+      "key": "Frontend",
+      "why": "Unrelated key: one honest sentence, no explanation (D16)",
+      "expect": {
+        "relevance": "unrelated"
+      }
+    },
+    {
+      "key": "prime number",
+      "why": "Unrelated key (mathematics): one honest sentence, no forced chemistry",
+      "expect": {
+        "relevance": "unrelated"
+      }
+    },
+    {
+      "key": "幸福",
+      "why": "Unrelated non-English key: one honest sentence in English",
+      "expect": {
+        "relevance": "unrelated"
+      }
+    }
+  ]
+}

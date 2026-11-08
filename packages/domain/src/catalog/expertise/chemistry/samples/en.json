@@ -1,0 +1,66 @@
+{
+  "word_phrase": {
+    "core": {
+      "relevance": "subject",
+      "hasEquation": "yes",
+      "key": "Neutralisation",
+      "explanation": [
+        "Neutralisation is a reaction in which an acid and a base cancel each other's chemical character, producing a salt and water. In aqueous solution it is the joining of hydrogen ions, H⁺, with hydroxide ions, OH⁻, to form water.",
+        "Hydrochloric acid reacting with sodium hydroxide, for example, gives sodium chloride and water; this controls acidity in many laboratory and industrial processes."
+      ]
+    },
+    "facets": {
+      "equation": {
+        "latex": "\\ce{H+ + OH- -> H2O}",
+        "species": [
+          {
+            "symbol": "\\ce{H+}",
+            "name": "hydrogen ion"
+          },
+          {
+            "symbol": "\\ce{OH-}",
+            "name": "hydroxide ion"
+          },
+          {
+            "symbol": "\\ce{H2O}",
+            "name": "water"
+          }
+        ]
+      }
+    }
+  },
+  "sentence": {
+    "core": {
+      "relevance": "subject",
+      "hasEquation": "yes",
+      "key": "An acid and a base react to form a salt and water.",
+      "explanation": [
+        "The sentence describes neutralisation, the reaction in which an acid and a base cancel each other's characteristic properties. In water, acids donate hydrogen ions (H⁺), while bases accept them or release hydroxide ions (OH⁻); the two combine to form water.",
+        "The remaining ions form a salt, an ionic compound made of a positive ion from the base and a negative ion from the acid. For example, hydrochloric acid reacting with sodium hydroxide gives sodium chloride and water."
+      ]
+    },
+    "facets": {
+      "equation": {
+        "latex": "\\ce{HCl + NaOH -> NaCl + H2O}",
+        "species": [
+          {
+            "symbol": "\\ce{HCl}",
+            "name": "hydrochloric acid"
+          },
+          {
+            "symbol": "\\ce{NaOH}",
+            "name": "sodium hydroxide"
+          },
+          {
+            "symbol": "\\ce{NaCl}",
+            "name": "sodium chloride"
+          },
+          {
+            "symbol": "\\ce{H2O}",
+            "name": "water"
+          }
+        ]
+      }
+    }
+  }
+}

@@ -14,15 +14,16 @@ import { textBlocks } from '@vocabularium/domain/pages';
 test('the catalog is German and Chinese in Languages, with facets in a fixed order, Computer Science and Mathematics in Expertise, Pronunciation in Sound, and the two Haiku and Joke in Creativity (D08, D11, D24, D30)', () => {
   // The Languages modules come first, German and Chinese leading them; a language added later joins after them.
   assert.deepEqual(parentsIn('translation').slice(0, 2), ['german', 'chinese']);
-  assert.deepEqual(Object.keys(PARENTS), [...parentsIn('translation'), 'computer-science', 'mathematics', 'pronunciation', 'traditional-haiku', 'modern-haiku', 'joke']);
+  assert.deepEqual(Object.keys(PARENTS), [...parentsIn('translation'), 'computer-science', 'mathematics', 'chemistry', 'pronunciation', 'traditional-haiku', 'modern-haiku', 'joke']);
   assert.deepEqual(facetsOf('german'), ['article', 'examples', 'synonyms', 'antonyms', 'conjugation', 'declension', 'comparison', 'case', 'pronunciation', 'etymology', 'simple-translation', 'grammar-teacher'],
     'the grammar facets after the first four (D17), then Pronunciation (D24), then Etymology, Simple translation and Grammar teacher (0.16.4)');
   assert.deepEqual(facetsOf('chinese'), ['examples', 'pinyin', 'pronunciation', 'etymology', 'simple-translation', 'grammar-teacher'], 'Etymology, Simple translation and Grammar teacher after Pronunciation (0.16.4)');
   for (const parent of ['german', 'chinese']) assert.equal(PARENTS[parent].family, 'translation');
-  for (const parent of ['computer-science', 'mathematics']) assert.equal(PARENTS[parent].family, 'expertise');
+  for (const parent of ['computer-science', 'mathematics', 'chemistry']) assert.equal(PARENTS[parent].family, 'expertise');
   // Their first facets came with D17.
   assert.deepEqual(facetsOf('computer-science'), ['code']);
   assert.deepEqual(facetsOf('mathematics'), ['formula']);
+  assert.deepEqual(facetsOf('chemistry'), ['equation']);
   // Pronunciation is a core alone: the main key, spoken (D24).
   assert.equal(PARENTS.pronunciation.family, 'sound');
   assert.deepEqual(facetsOf('pronunciation'), []);
@@ -157,6 +158,8 @@ test('a facet a card rules out names why: a sentence, another kind of word, outs
   assert.equal(ruledOut('mathematics', 'formula', { relevance: 'unrelated', key: 'x', explanation: ['y'] }), 'subject');
   assert.equal(ruledOut('mathematics', 'formula', { relevance: 'subject', hasFormula: 'no', key: 'x', explanation: ['y'] }), 'none');
   assert.equal(ruledOut('computer-science', 'code', { relevance: 'subject', hasCode: 'yes', key: 'x', explanation: ['y'] }), null);
+  assert.equal(ruledOut('chemistry', 'equation', { relevance: 'subject', hasEquation: 'no', key: 'x', explanation: ['y'] }), 'none');
+  assert.equal(ruledOut('chemistry', 'equation', { relevance: 'neighbouring', key: 'x', explanation: ['y'] }), 'subject');
 });
 
 // A card's own facet order (D26).

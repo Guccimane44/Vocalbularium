@@ -22,11 +22,11 @@ test('0.8.0: an Expertise card, leaf green with a graduation cap, explains the k
   await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
   await a.page.getByRole('heading', { name: 'Frontend', exact: true }).first().waitFor();
 
-  // The module window groups Computer Science and Mathematics under Expertise, with its mark.
+  // The module window groups Computer Science, Mathematics and Chemistry under Expertise, with its mark.
   const window = a.page.locator('.module-window');
   const expertise = window.locator('details').filter({ has: a.page.locator('summary', { hasText: 'Expertise' }) });
   await expertise.locator('summary').click();
-  assert.deepEqual(await expertise.locator('.window-module').evaluateAll(nodes => nodes.map(node => node.dataset.type)), ['computer-science', 'mathematics']);
+  assert.deepEqual(await expertise.locator('.window-module').evaluateAll(nodes => nodes.map(node => node.dataset.type)), ['computer-science', 'mathematics', 'chemistry']);
   assert.equal(await expertise.locator('summary .fam-icon path').count(), 3, 'the graduation cap');
   await a.page.getByRole('button', { name: 'Add Computer Science at the end', exact: true }).click();
   const card = componentArticle(a.page, 'Computer Science');
@@ -153,6 +153,35 @@ test('0.12.0: a Formula renders with KaTeX, a broken one shows its LaTeX, and a 
   await formula.getByRole('button', { name: 'Save', exact: true }).click();
   await formula.locator('pre.md-math-source').waitFor();
   assert.equal(await formula.locator('pre.md-math-source').textContent(), '\\frac{1}{');
+});
+
+test('0.16.4: a Chemistry Equation renders its \\ce{} reaction with KaTeX’s mhchem, and names each substance (D30)', { timeout: 45000 }, async (t) => {
+  const directory = await mkdtemp(join(tmpdir(), 'vocabularium-equation-browser-'));
+  const application = await createTestApplication(t); await application.start();
+  const a = await launch(join(directory, 'a'));
+  t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
+  const store = application.store;
+  const session = { installationId: 'fixture', sessionId: 'equation', epoch: 1 };
+  await store.openSession('equation-session', session);
+  await useModules(store, ['chemistry']);
+  const { pageId } = await store.capture('equation-capture', { session, mainKey: 'combustion of hydrogen', snapshot: await store.snapshot() });
+  const chemistry = (await store.page(pageId)).components.find(item => item.moduleType === 'chemistry');
+  await store.stage(chemistry.attemptId, staged(formatContent('chemistry', { core: { relevance: 'subject', hasEquation: 'yes', key: 'combustion of hydrogen', explanation: ['Hydrogen burns in oxygen to form water.'] },
+    facets: { equation: { latex: '\\ce{2H2 + O2 -> 2H2O}', species: [{ symbol: '\\ce{H2}', name: 'hydrogen' }, { symbol: '\\ce{O2}', name: 'oxygen' }, { symbol: '\\ce{H2O}', name: 'water' }] } } })));
+  await store.publish('equation-publish', { attemptId: chemistry.attemptId, session });
+  assert.equal((await store.page(pageId)).components.find(item => item.moduleType === 'chemistry').content.blocks[0].header.hasEquation, 'yes', 'the flag is kept in the top line');
+  await signIn(a.page);
+  await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
+
+  const equation = componentArticle(a.page, 'Chemistry').locator('.facet[data-facet="equation"]');
+  await equation.locator('.md-math .katex-display').waitFor();
+  assert.equal(await equation.locator('.md-math-source').count(), 0, 'mhchem reads \\ce{}: no LaTeX source shown');
+  assert.match(await equation.locator('.md-math .katex-mathml annotation').textContent(), /\\ce\{2H2 \+ O2 -> 2H2O\}/);
+  assert.ok(await equation.locator('.md-math .katex-mathml mo', { hasText: '→' }).count() === 1, 'the reaction arrow is drawn');
+  assert.ok(!(await equation.locator('.md-math .katex-html').textContent()).includes('ce'), 'no \\ce macro left as text');
+  assert.equal(await equation.locator('li .md-math-inline .katex').count(), 3, 'each substance is inline math');
+  assert.match(await equation.locator('li').nth(2).textContent(), /water/);
+  await componentArticle(a.page, 'Chemistry').screenshot({ path: 'artifacts/v0.16.4-equation.png' });
 });
 
 test('0.16.4: a Creativity card, indigo with a sparkle, shows its haiku a line each in its key’s language, under a top line naming that language (D30)', { timeout: 60000 }, async (t) => {
