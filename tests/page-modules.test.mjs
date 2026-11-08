@@ -21,16 +21,17 @@ const page = () => [
 
 test('the catalog lists input modules first and the window offers everything but the main key', () => {
   assert.deepEqual(Object.keys(CATALOG).slice(0, 3), ['main-key', 'context', 'text']);
-  assert.deepEqual(WINDOW_MODULES, ['context', 'text', ...parentsIn('translation'), 'computer-science', 'mathematics', 'chemistry', 'pronunciation'], 'the earlier content modules are retired (D08); every Languages module, then Expertise (D11), then Sound (D24)');
+  assert.deepEqual(WINDOW_MODULES, ['context', 'text', ...parentsIn('translation'), 'computer-science', 'mathematics', 'chemistry', 'pronunciation', 'traditional-haiku', 'modern-haiku', 'joke'], 'the earlier content modules are retired (D08); every Languages module, then Expertise (D11), then Sound (D24), then Creativity (D30)');
   for (const entry of Object.values(CATALOG)) assert.ok(entry.label && entry.description);
   assert.equal(isContentType('text'), false); assert.equal(isContentType('german'), true);
   assert.equal(isContentType('selected'), false);
 });
 
 test('every module but the main key belongs to one module family (D05)', () => {
-  assert.deepEqual([...FAMILIES], ['translation', 'expertise', 'meaning', 'usage', 'roots', 'connections', 'sound', 'notes'], 'Translation joins for the parents (D08), Expertise for its subjects (D11)');
+  assert.deepEqual([...FAMILIES], ['translation', 'expertise', 'creativity', 'meaning', 'usage', 'roots', 'connections', 'sound', 'notes'], 'Translation joins for the parents (D08), Expertise for its subjects (D11), Creativity for what is written from the key (D30)');
   assert.equal(FAMILY_LABELS.translation, 'Languages', 'Translation is called Languages since 0.8.0 (D11)');
   assert.equal(FAMILY_LABELS.expertise, 'Expertise');
+  assert.equal(FAMILY_LABELS.creativity, 'Creativity');
   assert.deepEqual([...DECK_COLOURS], ['meaning', 'usage', 'roots', 'connections', 'sound', 'notes'], 'deck colours stay the six earlier ones');
   assert.equal(CATALOG.german.family, 'translation');
   assert.equal(CATALOG.chinese.kind, 'content');
@@ -38,7 +39,8 @@ test('every module but the main key belongs to one module family (D05)', () => {
   assert.equal(CATALOG['main-key'].family, null);
   assert.deepEqual(WINDOW_MODULES.map(type => [type, CATALOG[type].family]), [
     ['context', 'notes'], ['text', 'notes'], ...parentsIn('translation').map(type => [type, 'translation']),
-    ['computer-science', 'expertise'], ['mathematics', 'expertise'], ['chemistry', 'expertise'], ['pronunciation', 'sound']
+    ['computer-science', 'expertise'], ['mathematics', 'expertise'], ['chemistry', 'expertise'], ['pronunciation', 'sound'],
+    ...['traditional-haiku', 'modern-haiku', 'joke'].map(type => [type, 'creativity'])
   ]);
 });
 

@@ -1,0 +1,6 @@
+{
+  "label": "Chiste",
+  "description": "Cuenta un chiste breve sobre la clave principal en su idioma.",
+  "core.word_phrase": "Chiste",
+  "core.sentence": "Chiste"
+}

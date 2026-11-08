@@ -9,6 +9,10 @@ import mathematics from './expertise/mathematics/module.js';
 import chemistry from './expertise/chemistry/module.js';
 import sound from './sound/family.js';
 import pronunciation from './sound/pronunciation/module.js';
+import creativity from './creativity/family.js';
+import traditionalHaiku from './creativity/traditional-haiku/module.js';
+import modernHaiku from './creativity/modern-haiku/module.js';
+import joke from './creativity/joke/module.js';
 import notes from './notes/family.js';
 import context from './notes/context/module.js';
 import text from './notes/text/module.js';
@@ -24,7 +28,10 @@ const ENTRIES = [
   { module: computerScience, family: expertise },
   { module: mathematics, family: expertise },
   { module: chemistry, family: expertise },
-  { module: pronunciation, family: sound }
+  { module: pronunciation, family: sound },
+  { module: traditionalHaiku, family: creativity },
+  { module: modernHaiku, family: creativity },
+  { module: joke, family: creativity }
 ] as const satisfies readonly { module: ModuleDefinition; family: FamilyDefinition | null }[];
 
 type Entry = typeof ENTRIES[number];

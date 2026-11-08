@@ -1,0 +1,26 @@
+{
+  "word_phrase": {
+    "core": {
+      "language": "en",
+      "key": "language",
+      "haiku": [
+        "spring rain on the eaves —",
+        "grandmother's words in a tongue",
+        "I no longer speak"
+      ]
+    },
+    "facets": {}
+  },
+  "sentence": {
+    "core": {
+      "language": "en",
+      "key": "Languages are the bridges connecting people and the world.",
+      "haiku": [
+        "autumn river mist —",
+        "two strangers on the old bridge",
+        "trading their hellos"
+      ]
+    },
+    "facets": {}
+  }
+}

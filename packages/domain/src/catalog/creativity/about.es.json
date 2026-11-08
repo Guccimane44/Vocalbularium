@@ -1,0 +1,17 @@
+{
+  "summary": "Módulos que escriben algo nuevo a partir de tu clave: un poema o un chiste, en el idioma de la propia clave.",
+  "steps": [
+    {
+      "title": "Reconoce el idioma de tu clave",
+      "text": "Por su ortografía, sus palabras y su escritura, y por el contexto cuando una grafía encaja en más de un idioma."
+    },
+    {
+      "title": "Escribe en ese idioma",
+      "text": "Un haiku o un chiste como lo escribiría un hablante nativo, construido sobre tu clave, nunca una traducción."
+    },
+    {
+      "title": "Nuevo cada vez",
+      "text": "Cada tarjeta y cada reintento escriben uno nuevo; no se conserva nada de un intento anterior."
+    }
+  ]
+}
