@@ -1,5 +1,5 @@
 {
- "note": "Recorded good outputs (golden runs of 30 October 2026, reviewed), used as the passing cases of the content checks.",
+ "note": "Recorded good outputs (golden runs of 30 October 2026, reviewed), used as the passing cases of the content checks; the English (British) and English (American) cards from the golden run of 7 November 2026, reviewed.",
  "german": [
   {
    "key": "bank",
@@ -896,6 +896,593 @@
      ],
      "pronunciation": [
       "我们坐在河岸上，看着河水。"
+     ]
+    }
+   }
+  }
+ ],
+ "english-british": [
+  {
+   "key": "bank",
+   "context": "We sat on the bank and watched the river go by.",
+   "json": {
+    "core": {
+     "kind": "word",
+     "language": "English",
+     "key": "bank",
+     "contextual": "the land along the side of a river",
+     "meanings": [
+      "a business that keeps people's money safe and lends it out",
+      "a long raised pile of earth, sand or snow",
+      "a row of similar things grouped together, such as a set of switches"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "We walked along the bank and watched the swans."
+      },
+      {
+       "sentence": "She went to the bank to pay in a cheque."
+      },
+      {
+       "sentence": "The cottage stands behind a bank of earth."
+      },
+      {
+       "sentence": "He sat in front of a bank of monitors."
+      }
+     ],
+     "synonyms": [
+      "riverbank",
+      "waterside",
+      "mound"
+     ],
+     "pronunciation": [
+      "riverbank",
+      "bank"
+     ],
+     "etymology": {
+      "origins": [
+       "Old Norse",
+       "Middle English"
+      ],
+      "text": "From Old Norse bakki, meaning a ridge or the raised land beside a river, which came into Middle English as banke, a ledge or mound of earth. The sense of the ground along a river has barely changed since."
+     },
+     "simple-translation": [
+      "the land along the side of a river",
+      "a place where people keep their money and borrow money",
+      "a long pile of earth or sand",
+      "a row of machines or switches together"
+     ],
+     "grammar-teacher": [
+      "Bank is a countable noun, so it takes a or the and has a plural, banks.",
+      "We say on the bank of a river or by the river, never in the bank for the land.",
+      "Bank on something is a phrasal verb meaning to rely on it, as in don't bank on the weather.",
+      "A bank holiday is a British public holiday; American English has no such term."
+     ]
+    }
+   }
+  },
+  {
+   "key": "serendipity",
+   "json": {
+    "core": {
+     "kind": "word",
+     "language": "English",
+     "key": "serendipity",
+     "meanings": [
+      "the occurrence of events by chance in a happy or beneficial way",
+      "the faculty of making fortunate discoveries by accident"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "Meeting her at the station was pure serendipity."
+      },
+      {
+       "sentence": "His gift for serendipity led him to the missing manuscript."
+      }
+     ],
+     "synonyms": [
+      "chance",
+      "fluke",
+      "happy chance",
+      "fortuity"
+     ],
+     "antonyms": [
+      "misfortune",
+      "mischance"
+     ],
+     "pronunciation": [
+      "serendipity"
+     ],
+     "etymology": {
+      "origins": [
+       "Sanskrit",
+       "Arabic",
+       "English"
+      ],
+      "text": "Coined in 1754 by Horace Walpole after The Three Princes of Serendip, a fairy tale whose heroes made happy discoveries by accident. Serendip is an old name for Sri Lanka, taken from Arabic Sarandib and ultimately from Sanskrit Simhaladvipa, 'the island of the Sinhalese'."
+     },
+     "simple-translation": [
+      "when good things happen by chance and help you",
+      "the luck of finding good things without looking for them"
+     ],
+     "grammar-teacher": [
+      "An uncountable noun: say a moment of serendipity, not a serendipity or serendipities.",
+      "It takes no article when used generally: Serendipity played a part in the discovery.",
+      "The adjective is serendipitous and the adverb serendipitously."
+     ]
+    }
+   }
+  },
+  {
+   "key": "Schloss",
+   "context": "Ich habe das Schloss an der Haustür ausgetauscht.",
+   "json": {
+    "core": {
+     "kind": "word",
+     "language": "German",
+     "key": "Schloss",
+     "contextual": "a device on a door that keeps it shut and is opened with a key",
+     "meanings": [
+      "a large grand building that was the home of a ruler or noble family, such as a castle or palace"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "Das Schloss an der Haustür ist kaputt.",
+       "translation": "The lock on the front door is broken."
+      },
+      {
+       "sentence": "Das Schloss steht auf einem Hügel.",
+       "translation": "The castle stands on a hill."
+      }
+     ],
+     "pronunciation": [
+      "lock",
+      "castle or palace"
+     ],
+     "etymology": {
+      "origins": [
+       "Proto-Germanic",
+       "Old English"
+      ],
+      "text": "From a Proto-Germanic word for a fastening, which became Old English loc, meaning a bolt or barrier. The word has been used for a device fastened to a door since the Old English period."
+     },
+     "simple-translation": [
+      "the part on a door that keeps it shut and that you open with a key",
+      "a large building where a king, queen or rich family lived"
+     ]
+    }
+   }
+  },
+  {
+   "key": "get up",
+   "json": {
+    "core": {
+     "kind": "word",
+     "language": "English",
+     "key": "get up",
+     "meanings": [
+      "to get out of bed after sleeping",
+      "to stand up after sitting or lying down",
+      "to organise or arrange something",
+      "to dress yourself in a special or elaborate way",
+      "to become stronger, especially of the wind"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "I usually get up at seven o'clock."
+      },
+      {
+       "sentence": "Everyone got up when the judge came in."
+      },
+      {
+       "sentence": "They got up a petition to save the library."
+      },
+      {
+       "sentence": "She got herself up in a bright red coat and hat."
+      },
+      {
+       "sentence": "The wind got up in the afternoon."
+      }
+     ],
+     "synonyms": [
+      "rise",
+      "stand up",
+      "organise",
+      "dress up",
+      "strengthen"
+     ],
+     "antonyms": [
+      "sit down",
+      "lie down",
+      "die down"
+     ],
+     "pronunciation": [
+      "get up"
+     ],
+     "simple-translation": [
+      "to get out of bed after you wake up",
+      "to stand up",
+      "to plan and arrange something",
+      "to put on special clothes",
+      "to become stronger"
+     ],
+     "grammar-teacher": [
+      "Get up is a phrasal verb; in the sense of leaving bed it takes no object, as in I get up at seven.",
+      "The past tense and past participle are got up; British English uses got, not gotten: I got up early and I have got up already.",
+      "Use at with clock times: get up at seven, not get up in seven.",
+      "When it means organise, it can take an object after up: they got up a petition.",
+      "When it means dress, it usually takes a reflexive pronoun: she got herself up in a costume."
+     ]
+    }
+   }
+  },
+  {
+   "key": "Wohnung",
+   "json": {
+    "core": {
+     "kind": "word",
+     "language": "German",
+     "key": "Wohnung",
+     "meanings": [
+      "a flat; a set of rooms for living in, usually on one floor of a building",
+      "a place where someone lives; a dwelling"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "Wir haben eine neue Wohnung mit drei Zimmern gefunden.",
+       "translation": "We have found a new flat with three rooms."
+      },
+      {
+       "sentence": "Er hat keine feste Wohnung.",
+       "translation": "He has no fixed abode."
+      }
+     ],
+     "pronunciation": [
+      "flat",
+      "dwelling"
+     ],
+     "etymology": {
+      "origins": [
+       "Old English",
+       "Scots"
+      ],
+      "text": "From Old English flett, meaning 'floor' or 'dwelling', which survived in Scots as flat, 'floor of a house'. English took up the Scots word in the 18th century for a set of rooms on one floor."
+     },
+     "simple-translation": [
+      "a set of rooms to live in, usually on one floor",
+      "a place where someone lives"
+     ]
+    }
+   }
+  },
+  {
+   "key": "The team are playing well tonight.",
+   "json": {
+    "core": {
+     "kind": "sentence",
+     "language": "English",
+     "key": "The team are playing well tonight.",
+     "meanings": [
+      "The group of players is performing well in this evening's match; in British English a collective noun such as team can take a plural verb when the members are thought of individually."
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "The band are recording a new album this week."
+      }
+     ],
+     "pronunciation": [
+      "The team are playing well tonight"
+     ],
+     "simple-translation": [
+      "The players are playing well this evening."
+     ],
+     "grammar-teacher": [
+      "Team is a collective noun: British English often uses a plural verb, as in the team are playing, when thinking of the members separately; American English usually says the team is playing.",
+      "The present continuous are playing describes something happening now, and it goes naturally with tonight.",
+      "The adverb well describes the verb playing; good would describe a noun instead."
+     ]
+    }
+   }
+  }
+ ],
+ "english-american": [
+  {
+   "key": "bank",
+   "context": "I need to go to the bank before it closes.",
+   "json": {
+    "core": {
+     "kind": "word",
+     "language": "English",
+     "key": "bank",
+     "contextual": "a financial institution where people keep money, cash checks, and take out loans",
+     "meanings": [
+      "the land along the side of a river",
+      "a long raised pile or mass of clouds, snow, or earth",
+      "a row or group of similar things, such as machines or seats",
+      "a place where something is stored for later use, such as blood or food"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "She went to the bank to get some money."
+      },
+      {
+       "sentence": "We sat on the bank and watched the river."
+      },
+      {
+       "sentence": "A bank of dark clouds gathered before the storm."
+      },
+      {
+       "sentence": "He checked the bank of lights on the control panel."
+      },
+      {
+       "sentence": "The hospital opened a blood bank for emergencies."
+      }
+     ],
+     "pronunciation": [
+      "bank",
+      "riverbank"
+     ],
+     "etymology": {
+      "origins": [
+       "Old High German",
+       "Old Italian",
+       "Middle French",
+       "Middle English"
+      ],
+      "text": "From Old High German bank, meaning 'bench' or 'counter,' which became Old Italian banca, a moneychanger's table. It passed through Middle French banque into Middle English as banke, and the financial sense developed from the table where money was exchanged."
+     },
+     "simple-translation": [
+      "a place where people keep money and can borrow money",
+      "the land next to a river",
+      "a large pile of clouds, snow, or earth",
+      "a row of machines or seats that are alike",
+      "a place where something is kept for later use, like blood or food"
+     ],
+     "grammar-teacher": [
+      "Bank is a countable noun: one bank, two banks.",
+      "In the financial sense it usually takes the: I need to go to the bank.",
+      "The plural is regular: banks.",
+      "As a verb, bank takes on to mean rely on: I bank on your help."
+     ]
+    }
+   }
+  },
+  {
+   "key": "breadcrumb",
+   "context": "==breadcrumb== ui",
+   "json": {
+    "core": {
+     "kind": "word",
+     "language": "English",
+     "key": "breadcrumb",
+     "contextual": "a trail of links showing where a page sits on a website",
+     "meanings": [
+      "a small crumb of bread"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "The breadcrumb at the top of the page shows that this article is under Help > Account."
+      },
+      {
+       "sentence": "She swept every breadcrumb off the table."
+      }
+     ],
+     "synonyms": [
+      "crumb"
+     ],
+     "pronunciation": [
+      "breadcrumb"
+     ],
+     "etymology": {
+      "origins": [
+       "Old English"
+      ],
+      "text": "From bread and crumb, both going back to Old English: bread is from brēad, and crumb is from cruma, meaning a small piece. The compound names a small piece of bread, and its use for a trail of links on a website likens that trail to a path of crumbs."
+     },
+     "simple-translation": [
+      "a line of links that shows where you are on a website",
+      "a very small piece of bread"
+     ],
+     "grammar-teacher": [
+      "It is a countable noun: one breadcrumb, two breadcrumbs.",
+      "In the website sense, it often appears in the plural, as in the breadcrumbs at the top of the page.",
+      "It can be used before another noun in the website sense, as in breadcrumb trail or breadcrumb navigation."
+     ]
+    }
+   }
+  },
+  {
+   "key": "apartment",
+   "json": {
+    "core": {
+     "kind": "word",
+     "language": "English",
+     "key": "apartment",
+     "meanings": [
+      "a home in a building that has several separate homes in it",
+      "a set of connected rooms used as a place to live, especially in a large house"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "They rented a small apartment near the park."
+      },
+      {
+       "sentence": "The family lives in a private apartment on the second floor of the palace."
+      }
+     ],
+     "synonyms": [
+      "suite",
+      "quarters",
+      "rooms"
+     ],
+     "pronunciation": [
+      "apartment"
+     ],
+     "etymology": {
+      "origins": [
+       "Latin",
+       "Italian",
+       "French"
+      ],
+      "text": "From Latin ad, 'to', and pars, 'part', through Italian appartare, 'to separate', and appartamento, 'a set of rooms set apart'. French took it as appartement, and English borrowed the word in the 1600s for a set of rooms used as a dwelling."
+     },
+     "simple-translation": [
+      "a home in a building with other homes",
+      "a group of rooms where someone lives"
+     ],
+     "grammar-teacher": [
+      "Apartment is a countable noun, so use an article or a plural: an apartment, two apartments.",
+      "It is the American word for what British English calls a flat.",
+      "Use in with the building or the rooms and on with the floor: she lives in an apartment on the fourth floor."
+     ]
+    }
+   }
+  },
+  {
+   "key": "Wohnung",
+   "json": {
+    "core": {
+     "kind": "word",
+     "language": "German",
+     "key": "Wohnung",
+     "meanings": [
+      "apartment"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "Ihre Wohnung liegt im zweiten Stock.",
+       "translation": "Her apartment is on the second floor."
+      }
+     ],
+     "pronunciation": [
+      "apartment"
+     ],
+     "etymology": {
+      "origins": [
+       "Latin",
+       "Italian",
+       "French"
+      ],
+      "text": "From French appartement, from Italian appartamento, from appartare 'to separate', from a parte 'apart'; the root is Latin ad 'to' and partem 'part'. It first meant a set of rooms for one person or family, and later came to mean a self-contained housing unit."
+     },
+     "simple-translation": [
+      "a home in a building, usually with a kitchen and a bathroom"
+     ]
+    }
+   }
+  },
+  {
+   "key": "color",
+   "json": {
+    "core": {
+     "kind": "word",
+     "language": "English",
+     "key": "color",
+     "meanings": [
+      "the visible quality of an object that makes it look red, blue, green, etc.",
+      "a substance such as paint or dye that gives something this quality",
+      "the shade of a person's skin, especially the face",
+      "interest or liveliness that makes something more appealing",
+      "to give something color or change its color",
+      "to influence or affect something"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "The color of the leaves turns red and gold in the fall."
+      },
+      {
+       "sentence": "He added a few drops of color to the white paint."
+      },
+      {
+       "sentence": "The cold air put color in her cheeks."
+      },
+      {
+       "sentence": "Her stories add color to the history of the town."
+      },
+      {
+       "sentence": "The child wants to color the drawing with crayons."
+      },
+      {
+       "sentence": "Feelings can color how we remember events."
+      }
+     ],
+     "pronunciation": [
+      "color"
+     ],
+     "etymology": {
+      "origins": [
+       "Latin",
+       "Anglo-French",
+       "Middle English"
+      ],
+      "text": "From Latin color, meaning 'color or hue,' which passed through Anglo-French colour into Middle English as colour. American English later dropped the u to spell it color."
+     },
+     "simple-translation": [
+      "the way something looks when light hits it, such as red or blue",
+      "paint or dye used to make something a certain color",
+      "the skin tone of a person's face",
+      "something that makes a thing more interesting or lively",
+      "to put color on something or make it a different color",
+      "to change how someone thinks about something"
+     ],
+     "grammar-teacher": [
+      "Color is often uncountable when it means the general quality of light, but it is countable when it means a particular shade, as in a bright color.",
+      "The verb color takes an object: color the drawing.",
+      "American English spells it color; British English spells it with a u.",
+      "The past tense and participle are colored, and the -ing form is coloring."
+     ]
+    }
+   }
+  },
+  {
+   "key": "The team are playing well tonight.",
+   "json": {
+    "core": {
+     "kind": "sentence",
+     "language": "English",
+     "key": "The team are playing well tonight.",
+     "meanings": [
+      "The group of players is performing well in tonight's game. British English treats team as a plural, so it takes are, while American English would usually say the team is playing well tonight."
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "The crowd are cheering loudly tonight."
+      }
+     ],
+     "pronunciation": [
+      "The team are playing well tonight"
+     ],
+     "simple-translation": [
+      "The group of players is doing well in tonight's game."
+     ],
+     "grammar-teacher": [
+      "British English treats team as plural, so it takes are; American English uses a singular verb: the team is playing well tonight.",
+      "The present continuous are playing describes something happening right now, and tonight tells you when.",
+      "In American English, collective nouns like team, group, and family usually take a singular verb and the pronoun it: the team is playing well, and it hopes to win."
      ]
     }
    }

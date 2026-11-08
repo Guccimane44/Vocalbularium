@@ -1,0 +1,1036 @@
+{
+ "note": "The judge's calibration set for english-british (0.16.4): recorded outputs from 2026-11-07T15-28-47-553Z-en-english-british.json that passed review, expected to pass; recorded defects, expected to fail; and copies of recorded outputs with one seeded fault each, expected to fail. The judge counts only once it agrees on 90% and misses no expected fail.",
+ "module": "english-british",
+ "cards": [
+  {
+   "id": "recorded-1",
+   "key": "bank",
+   "context": "We sat on the bank and watched the river go by.",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-07T15-28-47-553Z-en-english-british.json.",
+   "card": {
+    "core": {
+     "kind": "word",
+     "language": "English",
+     "key": "bank",
+     "contextual": "the land along the side of a river",
+     "meanings": [
+      "a business that keeps people's money safe and lends it out",
+      "a long raised pile of earth, sand or snow",
+      "a row of similar things grouped together, such as a set of switches"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "We walked along the bank and watched the swans."
+      },
+      {
+       "sentence": "She went to the bank to pay in a cheque."
+      },
+      {
+       "sentence": "The cottage stands behind a bank of earth."
+      },
+      {
+       "sentence": "He sat in front of a bank of monitors."
+      }
+     ],
+     "synonyms": [
+      "riverbank",
+      "waterside",
+      "mound"
+     ],
+     "pronunciation": [
+      "riverbank",
+      "bank"
+     ],
+     "etymology": {
+      "origins": [
+       "Old Norse",
+       "Middle English"
+      ],
+      "text": "From Old Norse bakki, meaning a ridge or the raised land beside a river, which came into Middle English as banke, a ledge or mound of earth. The sense of the ground along a river has barely changed since."
+     },
+     "simple-translation": [
+      "the land along the side of a river",
+      "a place where people keep their money and borrow money",
+      "a long pile of earth or sand",
+      "a row of machines or switches together"
+     ],
+     "grammar-teacher": [
+      "Bank is a countable noun, so it takes a or the and has a plural, banks.",
+      "We say on the bank of a river or by the river, never in the bank for the land.",
+      "Bank on something is a phrasal verb meaning to rely on it, as in don't bank on the weather.",
+      "A bank holiday is a British public holiday; American English has no such term."
+     ]
+    }
+   }
+  },
+  {
+   "id": "recorded-2",
+   "key": "refrigerator",
+   "context": "Put the milk back in the refrigerator.",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-07T15-28-47-553Z-en-english-british.json.",
+   "card": {
+    "core": {
+     "kind": "word",
+     "language": "English",
+     "key": "refrigerator",
+     "meanings": [
+      "a large electrical appliance for keeping food and drink cold; a fridge"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "We keep the milk in the refrigerator."
+      }
+     ],
+     "synonyms": [
+      "fridge"
+     ],
+     "pronunciation": [
+      "refrigerator"
+     ],
+     "etymology": {
+      "origins": [
+       "Latin"
+      ],
+      "text": "From Latin refrigerare, meaning 'to make cool', formed from re- and frigus, 'cold'. It came into English in the early 17th century as a word for something that cools, and later came to mean a machine or cupboard for keeping food cold."
+     },
+     "simple-translation": [
+      "a machine that keeps food and drink cold"
+     ],
+     "grammar-teacher": [
+      "It is a countable noun: a refrigerator, two refrigerators.",
+      "In everyday British English, people usually say fridge instead.",
+      "Use in with it for putting food inside: put the milk in the refrigerator."
+     ]
+    }
+   }
+  },
+  {
+   "id": "recorded-3",
+   "key": "serendipity",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-07T15-28-47-553Z-en-english-british.json.",
+   "card": {
+    "core": {
+     "kind": "word",
+     "language": "English",
+     "key": "serendipity",
+     "meanings": [
+      "the occurrence of events by chance in a happy or beneficial way",
+      "the faculty of making fortunate discoveries by accident"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "Meeting her at the station was pure serendipity."
+      },
+      {
+       "sentence": "His gift for serendipity led him to the missing manuscript."
+      }
+     ],
+     "synonyms": [
+      "chance",
+      "fluke",
+      "happy chance",
+      "fortuity"
+     ],
+     "antonyms": [
+      "misfortune",
+      "mischance"
+     ],
+     "pronunciation": [
+      "serendipity"
+     ],
+     "etymology": {
+      "origins": [
+       "Sanskrit",
+       "Arabic",
+       "English"
+      ],
+      "text": "Coined in 1754 by Horace Walpole after The Three Princes of Serendip, a fairy tale whose heroes made happy discoveries by accident. Serendip is an old name for Sri Lanka, taken from Arabic Sarandib and ultimately from Sanskrit Simhaladvipa, 'the island of the Sinhalese'."
+     },
+     "simple-translation": [
+      "when good things happen by chance and help you",
+      "the luck of finding good things without looking for them"
+     ],
+     "grammar-teacher": [
+      "An uncountable noun: say a moment of serendipity, not a serendipity or serendipities.",
+      "It takes no article when used generally: Serendipity played a part in the discovery.",
+      "The adjective is serendipitous and the adverb serendipitously."
+     ]
+    }
+   }
+  },
+  {
+   "id": "recorded-4",
+   "key": "Schloss",
+   "context": "Ich habe das Schloss an der Haustür ausgetauscht.",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-07T15-28-47-553Z-en-english-british.json.",
+   "card": {
+    "core": {
+     "kind": "word",
+     "language": "German",
+     "key": "Schloss",
+     "contextual": "a device on a door that keeps it shut and is opened with a key",
+     "meanings": [
+      "a large grand building that was the home of a ruler or noble family, such as a castle or palace"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "Das Schloss an der Haustür ist kaputt.",
+       "translation": "The lock on the front door is broken."
+      },
+      {
+       "sentence": "Das Schloss steht auf einem Hügel.",
+       "translation": "The castle stands on a hill."
+      }
+     ],
+     "pronunciation": [
+      "lock",
+      "castle or palace"
+     ],
+     "etymology": {
+      "origins": [
+       "Proto-Germanic",
+       "Old English"
+      ],
+      "text": "From a Proto-Germanic word for a fastening, which became Old English loc, meaning a bolt or barrier. The word has been used for a device fastened to a door since the Old English period."
+     },
+     "simple-translation": [
+      "the part on a door that keeps it shut and that you open with a key",
+      "a large building where a king, queen or rich family lived"
+     ]
+    }
+   }
+  },
+  {
+   "id": "recorded-5",
+   "key": "行",
+   "context": "他在这一行干了二十年，是真正的专家。",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-07T15-28-47-553Z-en-english-british.json.",
+   "card": {
+    "core": {
+     "kind": "word",
+     "language": "Chinese",
+     "key": "行",
+     "romanization": "háng",
+     "contextual": "a person's trade or profession; a line of work",
+     "meanings": [
+      "a row or line"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "他在这一行干了三十年，经验很丰富。",
+       "translation": "He has worked in this trade for thirty years and has a lot of experience."
+      },
+      {
+       "sentence": "孩子们排成一行等待老师。",
+       "translation": "The children stood in a row waiting for the teacher."
+      }
+     ],
+     "synonyms": [
+      "occupation",
+      "profession",
+      "business"
+     ],
+     "pronunciation": [
+      "trade",
+      "line"
+     ],
+     "etymology": {
+      "origins": [
+       "Old Saxon",
+       "Middle Low German",
+       "Middle English"
+      ],
+      "text": "From Middle Low German trade, meaning 'track' or 'course', probably from Old Saxon trada, 'spoor', borrowed into late Middle English as trade, 'path or course of action'. By the sixteenth century it had come to mean a way of earning a living, and later commerce."
+     },
+     "simple-translation": [
+      "a job or type of work",
+      "a row or line of things"
+     ]
+    }
+   }
+  },
+  {
+   "id": "recorded-6",
+   "key": "apartment",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-07T15-28-47-553Z-en-english-british.json.",
+   "card": {
+    "core": {
+     "kind": "word",
+     "language": "English",
+     "key": "apartment",
+     "meanings": [
+      "a set of rooms for living in, usually on one floor of a building; the American word for a flat",
+      "a suite of rooms in a large house, especially one used by a particular person or family"
+     ],
+     "contextual": null
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "They live in a small apartment near the station."
+      },
+      {
+       "sentence": "The family's private apartments are on the upper floor."
+      }
+     ],
+     "synonyms": [
+      "flat",
+      "suite"
+     ],
+     "pronunciation": [
+      "apartment"
+     ],
+     "etymology": {
+      "origins": [
+       "Latin",
+       "Italian",
+       "French"
+      ],
+      "text": "From French appartement, from Italian appartamento, from appartare, 'to separate', based on Latin ad partem, 'to one side'. It entered English in the 17th century for a set of rooms, and later became the usual word for a flat in North America."
+     },
+     "simple-translation": [
+      "a flat; the American word for a flat",
+      "a set of rooms in a big house"
+     ],
+     "grammar-teacher": [
+      "A countable noun: one apartment, two apartments.",
+      "In British English the usual word for a home on one floor is flat; apartment is the American word or is used for a suite of rooms.",
+      "It takes in: in an apartment, not on an apartment.",
+      "In British English, a building of flats is a block of flats, not an apartment building."
+     ]
+    }
+   }
+  },
+  {
+   "id": "recorded-7",
+   "key": "Wohnung",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-07T15-28-47-553Z-en-english-british.json.",
+   "card": {
+    "core": {
+     "kind": "word",
+     "language": "German",
+     "key": "Wohnung",
+     "meanings": [
+      "a flat; a set of rooms for living in, usually on one floor of a building",
+      "a place where someone lives; a dwelling"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "Wir haben eine neue Wohnung mit drei Zimmern gefunden.",
+       "translation": "We have found a new flat with three rooms."
+      },
+      {
+       "sentence": "Er hat keine feste Wohnung.",
+       "translation": "He has no fixed abode."
+      }
+     ],
+     "pronunciation": [
+      "flat",
+      "dwelling"
+     ],
+     "etymology": {
+      "origins": [
+       "Old English",
+       "Scots"
+      ],
+      "text": "From Old English flett, meaning 'floor' or 'dwelling', which survived in Scots as flat, 'floor of a house'. English took up the Scots word in the 18th century for a set of rooms on one floor."
+     },
+     "simple-translation": [
+      "a set of rooms to live in, usually on one floor",
+      "a place where someone lives"
+     ]
+    }
+   }
+  },
+  {
+   "id": "recorded-8",
+   "key": "get up",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-07T15-28-47-553Z-en-english-british.json.",
+   "card": {
+    "core": {
+     "kind": "word",
+     "language": "English",
+     "key": "get up",
+     "meanings": [
+      "to get out of bed after sleeping",
+      "to stand up after sitting or lying down",
+      "to organise or arrange something",
+      "to dress yourself in a special or elaborate way",
+      "to become stronger, especially of the wind"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "I usually get up at seven o'clock."
+      },
+      {
+       "sentence": "Everyone got up when the judge came in."
+      },
+      {
+       "sentence": "They got up a petition to save the library."
+      },
+      {
+       "sentence": "She got herself up in a bright red coat and hat."
+      },
+      {
+       "sentence": "The wind got up in the afternoon."
+      }
+     ],
+     "synonyms": [
+      "rise",
+      "stand up",
+      "organise",
+      "dress up",
+      "strengthen"
+     ],
+     "antonyms": [
+      "sit down",
+      "lie down",
+      "die down"
+     ],
+     "pronunciation": [
+      "get up"
+     ],
+     "simple-translation": [
+      "to get out of bed after you wake up",
+      "to stand up",
+      "to plan and arrange something",
+      "to put on special clothes",
+      "to become stronger"
+     ],
+     "grammar-teacher": [
+      "Get up is a phrasal verb; in the sense of leaving bed it takes no object, as in I get up at seven.",
+      "The past tense and past participle are got up; British English uses got, not gotten: I got up early and I have got up already.",
+      "Use at with clock times: get up at seven, not get up in seven.",
+      "When it means organise, it can take an object after up: they got up a petition.",
+      "When it means dress, it usually takes a reflexive pronoun: she got herself up in a costume."
+     ]
+    }
+   }
+  },
+  {
+   "id": "recorded-9",
+   "key": "Have you got a pen?",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-07T15-28-47-553Z-en-english-british.json.",
+   "card": {
+    "core": {
+     "kind": "sentence",
+     "language": "English",
+     "key": "Have you got a pen?",
+     "meanings": [
+      "A question asking whether the person you are speaking to has a pen with them."
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "Have you got a spare pen?"
+      }
+     ],
+     "pronunciation": [
+      "Have you got a pen"
+     ],
+     "simple-translation": [
+      "Do you have a pen?"
+     ],
+     "grammar-teacher": [
+      "Have you got is a common British way to ask about possession in the present.",
+      "In the question, have comes before you; do not add do: say Have you got a pen?, not Do you have got a pen?",
+      "Got is the past participle of get; British English uses got rather than gotten here.",
+      "American English more often uses Do you have a pen? for this question."
+     ]
+    }
+   }
+  },
+  {
+   "id": "recorded-10",
+   "key": "The team are playing well tonight.",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-07T15-28-47-553Z-en-english-british.json.",
+   "card": {
+    "core": {
+     "kind": "sentence",
+     "language": "English",
+     "key": "The team are playing well tonight.",
+     "meanings": [
+      "The group of players is performing well in this evening's match; in British English a collective noun such as team can take a plural verb when the members are thought of individually."
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "The band are recording a new album this week."
+      }
+     ],
+     "pronunciation": [
+      "The team are playing well tonight"
+     ],
+     "simple-translation": [
+      "The players are playing well this evening."
+     ],
+     "grammar-teacher": [
+      "Team is a collective noun: British English often uses a plural verb, as in the team are playing, when thinking of the members separately; American English usually says the team is playing.",
+      "The present continuous are playing describes something happening now, and it goes naturally with tonight.",
+      "The adverb well describes the verb playing; good would describe a noun instead."
+     ]
+    }
+   }
+  },
+  {
+   "id": "recorded-11",
+   "key": "Der Zug ist schon abgefahren.",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-07T15-28-47-553Z-en-english-british.json.",
+   "card": {
+    "core": {
+     "kind": "sentence",
+     "language": "German",
+     "key": "Der Zug ist schon abgefahren.",
+     "meanings": [
+      "The train has already left."
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "Der Bus ist schon abgefahren.",
+       "translation": "The bus has already left."
+      }
+     ],
+     "pronunciation": [
+      "The train has already left"
+     ],
+     "simple-translation": [
+      "The train has already gone."
+     ]
+    }
+   }
+  },
+  {
+   "id": "defect-1",
+   "key": "bank",
+   "context": "I need to go to the bank before it closes.",
+   "language": "en",
+   "expected": "fail",
+   "why": "Recorded defect: the examples of an English key repeat each sentence as its \"translation\" (content check examples.english-key-untranslated). Golden run 2026-11-07T15-28-47-553Z-en-english-british.json.",
+   "card": {
+    "core": {
+     "kind": "word",
+     "language": "English",
+     "key": "bank",
+     "contextual": "a place where people keep their money and can pay it in or borrow more",
+     "meanings": [
+      "the land along the side of a river",
+      "a long raised heap or slope of earth",
+      "a row of similar things, such as switches or seats",
+      "a supply of something kept for later use, such as blood or data"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "I went to the bank to pay in a cheque.",
+       "translation": "I went to the bank to pay in a cheque."
+      },
+      {
+       "sentence": "We sat on the bank and watched the river go by.",
+       "translation": "We sat on the bank and watched the river go by."
+      },
+      {
+       "sentence": "A steep bank of earth rose behind the cottage.",
+       "translation": "A steep bank of earth rose behind the cottage."
+      },
+      {
+       "sentence": "He switched off the whole bank of lights.",
+       "translation": "He switched off the whole bank of lights."
+      },
+      {
+       "sentence": "The hospital keeps a blood bank for emergencies.",
+       "translation": "The hospital keeps a blood bank for emergencies."
+      }
+     ],
+     "synonyms": [
+      "depository",
+      "embankment",
+      "shore"
+     ],
+     "pronunciation": [
+      "bank",
+      "riverbank",
+      "embankment",
+      "row",
+      "store"
+     ],
+     "etymology": {
+      "origins": [
+       "Old Norse",
+       "Germanic",
+       "Italian",
+       "French",
+       "Middle English"
+      ],
+      "text": "The money sense comes from Old Italian banca, a moneychanger's bench, from a Germanic root meaning 'bench'; it reached English through French banque as banke. The sense of ground beside a river came separately from Old Norse bakki, 'ridge, bank of a river'. Both words fell together in Middle English as bank."
+     },
+     "simple-translation": [
+      "a place where you keep your money and can take it out or borrow more",
+      "the land along the side of a river",
+      "a long heap of earth",
+      "a row of things such as switches or seats",
+      "a supply of something kept for when it is needed"
+     ],
+     "grammar-teacher": [
+      "Bank is a countable noun: a bank, two banks, the bank on the corner.",
+      "Use at or in for place: I'll meet you at the bank; she works in a bank.",
+      "British English says pay in a cheque or pay a cheque into the bank, where American English says deposit a cheque.",
+      "Bank is also a verb meaning to put money into a bank: I banked the cheque this morning."
+     ]
+    }
+   }
+  },
+  {
+   "id": "defect-2",
+   "key": "wegen",
+   "language": "en",
+   "expected": "fail",
+   "why": "Recorded defect: the etymology describes the German word wegen, not an English word; because of has no single English word, so Etymology should be left out. Golden run 2026-11-07T15-28-47-553Z-en-english-british.json.",
+   "card": {
+    "core": {
+     "kind": "word",
+     "language": "German",
+     "key": "wegen",
+     "meanings": [
+      "because of",
+      "as regards"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "Wegen des Regens bleiben wir heute zu Hause.",
+       "translation": "Because of the rain, we're staying at home today."
+      },
+      {
+       "sentence": "Wegen der Adresse fragen Sie bitte am Empfang.",
+       "translation": "As regards the address, please ask at reception."
+      }
+     ],
+     "synonyms": [
+      "owing to",
+      "on account of",
+      "due to"
+     ],
+     "pronunciation": [
+      "because of",
+      "as regards"
+     ],
+     "etymology": {
+      "origins": [
+       "Old High German",
+       "Middle High German",
+       "German"
+      ],
+      "text": "From Old High German wegan, 'to move, to weigh', which also gave the German noun Weg, 'way'. The preposition developed from the idea of a thing's weight or pull, giving the sense 'by reason of'. It takes the genitive case, as in wegen des Regens."
+     },
+     "simple-translation": [
+      "as a result of something",
+      "about something; used to say which thing you mean"
+     ]
+    }
+   }
+  },
+  {
+   "id": "context-only",
+   "key": "bank",
+   "context": "We sat on the bank and watched the river go by.",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: the Context's sense is put among the meanings without \"contextual\".",
+   "card": {
+    "core": {
+     "kind": "word",
+     "language": "English",
+     "key": "bank",
+     "meanings": [
+      "the land along the side of a river",
+      "a business that keeps people's money safe and lends it out",
+      "a long raised pile of earth, sand or snow",
+      "a row of similar things grouped together, such as a set of switches"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "We walked along the bank and watched the swans."
+      },
+      {
+       "sentence": "She went to the bank to pay in a cheque."
+      },
+      {
+       "sentence": "The cottage stands behind a bank of earth."
+      },
+      {
+       "sentence": "He sat in front of a bank of monitors."
+      }
+     ],
+     "synonyms": [
+      "riverbank",
+      "waterside",
+      "mound"
+     ],
+     "pronunciation": [
+      "riverbank",
+      "bank"
+     ],
+     "etymology": {
+      "origins": [
+       "Old Norse",
+       "Middle English"
+      ],
+      "text": "From Old Norse bakki, meaning a ridge or the raised land beside a river, which came into Middle English as banke, a ledge or mound of earth. The sense of the ground along a river has barely changed since."
+     },
+     "simple-translation": [
+      "the land along the side of a river",
+      "a place where people keep their money and borrow money",
+      "a long pile of earth or sand",
+      "a row of machines or switches together"
+     ],
+     "grammar-teacher": [
+      "Bank is a countable noun, so it takes a or the and has a plural, banks.",
+      "We say on the bank of a river or by the river, never in the bank for the land.",
+      "Bank on something is a phrasal verb meaning to rely on it, as in don't bank on the weather.",
+      "A bank holiday is a British public holiday; American English has no such term."
+     ]
+    }
+   }
+  },
+  {
+   "id": "wrong-etymology",
+   "key": "serendipity",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: an invented etymology: the word was coined by Horace Walpole, not by Charles Dickens from Latin.",
+   "card": {
+    "core": {
+     "kind": "word",
+     "language": "English",
+     "key": "serendipity",
+     "meanings": [
+      "the occurrence of events by chance in a happy or beneficial way",
+      "the faculty of making fortunate discoveries by accident"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "Meeting her at the station was pure serendipity."
+      },
+      {
+       "sentence": "His gift for serendipity led him to the missing manuscript."
+      }
+     ],
+     "synonyms": [
+      "chance",
+      "fluke",
+      "happy chance",
+      "fortuity"
+     ],
+     "antonyms": [
+      "misfortune",
+      "mischance"
+     ],
+     "pronunciation": [
+      "serendipity"
+     ],
+     "etymology": {
+      "origins": [
+       "Latin"
+      ],
+      "text": "Coined by Charles Dickens in 1843 from Latin serenus, 'calm', and dies, 'day', for a calm and lucky day."
+     },
+     "simple-translation": [
+      "when good things happen by chance and help you",
+      "the luck of finding good things without looking for them"
+     ],
+     "grammar-teacher": [
+      "An uncountable noun: say a moment of serendipity, not a serendipity or serendipities.",
+      "It takes no article when used generally: Serendipity played a part in the discovery.",
+      "The adjective is serendipitous and the adverb serendipitously."
+     ]
+    }
+   }
+  },
+  {
+   "id": "wrong-sense",
+   "key": "Schloss",
+   "context": "Ich habe das Schloss an der Haustür ausgetauscht.",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: the Context's sense is wrong: in the Context Schloss is the lock on the door, not a key.",
+   "card": {
+    "core": {
+     "kind": "word",
+     "language": "German",
+     "key": "Schloss",
+     "contextual": "a small metal tool used to open a door",
+     "meanings": [
+      "a large grand building that was the home of a ruler or noble family, such as a castle or palace"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "Das Schloss an der Haustür ist kaputt.",
+       "translation": "The lock on the front door is broken."
+      },
+      {
+       "sentence": "Das Schloss steht auf einem Hügel.",
+       "translation": "The castle stands on a hill."
+      }
+     ],
+     "pronunciation": [
+      "key",
+      "castle or palace"
+     ],
+     "etymology": {
+      "origins": [
+       "Proto-Germanic",
+       "Old English"
+      ],
+      "text": "From a Proto-Germanic word for a fastening, which became Old English loc, meaning a bolt or barrier. The word has been used for a device fastened to a door since the Old English period."
+     },
+     "simple-translation": [
+      "a small metal thing you use to open a door",
+      "a large building where a king, queen or rich family lived"
+     ]
+    }
+   }
+  },
+  {
+   "id": "american-word",
+   "key": "Wohnung",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: the card's own British English uses the American word apartment for flat.",
+   "card": {
+    "core": {
+     "kind": "word",
+     "language": "German",
+     "key": "Wohnung",
+     "meanings": [
+      "an apartment; a set of rooms for living in, usually on one floor of a building",
+      "a place where someone lives; a dwelling"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "Wir haben eine neue Wohnung mit drei Zimmern gefunden.",
+       "translation": "We have found a new apartment with three rooms."
+      },
+      {
+       "sentence": "Er hat keine feste Wohnung.",
+       "translation": "He has no fixed abode."
+      }
+     ],
+     "pronunciation": [
+      "apartment",
+      "dwelling"
+     ],
+     "etymology": {
+      "origins": [
+       "Old English",
+       "Scots"
+      ],
+      "text": "From Old English flett, meaning 'floor' or 'dwelling', which survived in Scots as flat, 'floor of a house'. English took up the Scots word in the 18th century for a set of rooms on one floor."
+     },
+     "simple-translation": [
+      "a set of rooms to live in, usually on one floor",
+      "a place where someone lives"
+     ]
+    }
+   }
+  },
+  {
+   "id": "wrong-grammar",
+   "key": "get up",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: Grammar teacher states a wrong rule: British English uses got, not gotten, as the participle.",
+   "card": {
+    "core": {
+     "kind": "word",
+     "language": "English",
+     "key": "get up",
+     "meanings": [
+      "to get out of bed after sleeping",
+      "to stand up after sitting or lying down",
+      "to organise or arrange something",
+      "to dress yourself in a special or elaborate way",
+      "to become stronger, especially of the wind"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "I usually get up at seven o'clock."
+      },
+      {
+       "sentence": "Everyone got up when the judge came in."
+      },
+      {
+       "sentence": "They got up a petition to save the library."
+      },
+      {
+       "sentence": "She got herself up in a bright red coat and hat."
+      },
+      {
+       "sentence": "The wind got up in the afternoon."
+      }
+     ],
+     "synonyms": [
+      "rise",
+      "stand up",
+      "organise",
+      "dress up",
+      "strengthen"
+     ],
+     "antonyms": [
+      "sit down",
+      "lie down",
+      "die down"
+     ],
+     "pronunciation": [
+      "get up"
+     ],
+     "simple-translation": [
+      "to get out of bed after you wake up",
+      "to stand up",
+      "to plan and arrange something",
+      "to put on special clothes",
+      "to become stronger"
+     ],
+     "grammar-teacher": [
+      "Get up is a phrasal verb; in the sense of leaving bed it takes no object, as in I get up at seven.",
+      "The past tense is got up and the past participle is gotten up in British English: I have gotten up already.",
+      "Use at with clock times: get up at seven, not get up in seven.",
+      "When it means organise, it can take an object after up: they got up a petition.",
+      "When it means dress, it usually takes a reflexive pronoun: she got herself up in a costume."
+     ]
+    }
+   }
+  },
+  {
+   "id": "wrong-simple",
+   "key": "The team are playing well tonight.",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: the simple translation changes the meaning: the team is playing well, not losing.",
+   "card": {
+    "core": {
+     "kind": "sentence",
+     "language": "English",
+     "key": "The team are playing well tonight.",
+     "meanings": [
+      "The group of players is performing well in this evening's match; in British English a collective noun such as team can take a plural verb when the members are thought of individually."
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "The band are recording a new album this week."
+      }
+     ],
+     "pronunciation": [
+      "The team are playing well tonight"
+     ],
+     "simple-translation": [
+      "The players lost the game tonight."
+     ],
+     "grammar-teacher": [
+      "Team is a collective noun: British English often uses a plural verb, as in the team are playing, when thinking of the members separately; American English usually says the team is playing.",
+      "The present continuous are playing describes something happening now, and it goes naturally with tonight.",
+      "The adverb well describes the verb playing; good would describe a noun instead."
+     ]
+    }
+   }
+  },
+  {
+   "id": "american-spelling",
+   "key": "refrigerator",
+   "context": "Put the milk back in the refrigerator.",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: the card's own text uses the American spelling gray (content check core.british-spelling).",
+   "card": {
+    "core": {
+     "kind": "word",
+     "language": "English",
+     "key": "refrigerator",
+     "meanings": [
+      "a large electrical appliance, often white or gray, for keeping food and drink cold; a fridge"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "We keep the milk in the refrigerator."
+      }
+     ],
+     "synonyms": [
+      "fridge"
+     ],
+     "pronunciation": [
+      "refrigerator"
+     ],
+     "etymology": {
+      "origins": [
+       "Latin"
+      ],
+      "text": "From Latin refrigerare, meaning 'to make cool', formed from re- and frigus, 'cold'. It came into English in the early 17th century as a word for something that cools, and later came to mean a machine or cupboard for keeping food cold."
+     },
+     "simple-translation": [
+      "a machine that keeps food and drink cold"
+     ],
+     "grammar-teacher": [
+      "It is a countable noun: a refrigerator, two refrigerators.",
+      "In everyday British English, people usually say fridge instead.",
+      "Use in with it for putting food inside: put the milk in the refrigerator."
+     ]
+    }
+   }
+  }
+ ]
+}

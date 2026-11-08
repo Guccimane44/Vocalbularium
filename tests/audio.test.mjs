@@ -383,6 +383,15 @@ test('a part\'s own voice comes first, then its language\'s, then the default (D
   assert.equal(await voice({ text: 'Gift', language: 'de', part: 'pronunciation.core' }), 'german-voice', 'a part without its own voice: its language\'s');
   assert.equal(await voice({ text: 'gift', language: 'en', part: 'pronunciation.core' }), 'any');
 
+  // Both English modules speak as en (0.16.4): each part names its own accent.
+  const english = new ElevenLabsProvider({ apiKey: 'key', fetchImpl,
+    voices: { default: 'any', en: 'english-voice', 'english-british.pronunciation': 'british', 'english-american.pronunciation': 'american' } });
+  const accent = async request => { await english.synthesize(request); return calls.at(-1).url.match(/text-to-speech\/([^?]+)/)[1]; };
+  assert.equal(await accent({ text: 'colour', language: 'en', part: 'english-british.pronunciation' }), 'british');
+  assert.equal(await accent({ text: 'color', language: 'en', part: 'english-american.pronunciation' }), 'american');
+  assert.equal(await accent({ text: 'colour', language: 'en', part: 'pronunciation.core' }), 'english-voice', 'the Pronunciation module keeps the language\'s voice');
+  assert.equal(JSON.parse(calls.at(-2).init.body).language_code, 'en', 'the American voice still speaks en');
+
   // The audio job names the part: module type and part.
   const store = await createTestStore(t);
   const { page, german } = await germanPage(store);

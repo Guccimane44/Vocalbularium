@@ -1,0 +1,20 @@
+{
+  "word_phrase": {
+    "core": {
+      "kind": "word",
+      "language": "English",
+      "key": "good",
+      "meanings": [
+        "of a high standard or quality",
+        "morally right; kind"
+      ]
+    },
+    "facets": {
+      "antonyms": [
+        "bad",
+        "poor",
+        "evil"
+      ]
+    }
+  }
+}

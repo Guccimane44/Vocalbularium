@@ -1,0 +1,20 @@
+{
+  "summary": "Explains your key in American English: the meanings of a word, the translation of a sentence, in American spelling.",
+  "facts": [
+    {
+      "label": "Reads",
+      "value": "Any language",
+      "note": "Words, phrases and sentences"
+    },
+    {
+      "label": "Writes",
+      "value": "American English",
+      "note": "American spelling and words, whatever language you use Vocabularium in"
+    },
+    {
+      "label": "Key already English?",
+      "value": "Explained, not translated",
+      "note": "An English–English dictionary"
+    }
+  ]
+}
