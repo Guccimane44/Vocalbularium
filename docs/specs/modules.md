@@ -66,6 +66,9 @@ The main key module belongs to no family; it is shown as the page title. Languag
 | `Pronunciation` | Sound | The page's main key, spoken in its own language as the page saved it; at most one per page, and a main key of up to 500 characters. The card has no text of its own. | — |
 | `Computer Science` | Expertise | A short explanation of the word, phrase or sentence for a learner, in the language preference, as computer science understands it ([writing in the interface language](#writing-in-the-interface-language); [staying with the subject](#staying-with-the-subject)). Its neighbouring fields: mathematics, electronics, linguistics and information science. Provisional. | Python |
 | `Mathematics` | Expertise | The same, as mathematics understands it. Its neighbouring fields: computer science, physics, statistics, economics and engineering. Provisional. | Formula |
+| `Traditional Haiku` | Creativity | A classical haiku about the key, in the key's language: three lines of 5-7-5 (syllables, morae in Japanese, characters in a Chinese 汉俳), a season word, a cut between two images, a concrete moment in nature linked to the key ([D30](../architecture/decisions/d30.md)). | — |
+| `Modern Haiku` | Creativity | A modern haiku about the key, in the key's language: three short free lines, one concrete image of everyday life with a turn, no season word required, no rhyme or title. | — |
+| `Joke` | Creativity | A short joke about the key, in the key's language: a pun where the language allows one, otherwise a short story joke; set-up and punchline on lines of their own. Clean, and never about a group of people. | — |
 
 | Facet | Tag | Applies when | Content |
 | --- | --- | --- | --- |
@@ -148,6 +151,7 @@ Each content module decides for itself how to read the main key, in the same req
 | Mathematics | `hasFormula` | yes or no, only when `relevance` is `subject` | Whether Formula applies | No |
 | Computer Science | `hasCode` | yes or no, only when `relevance` is `subject` | Whether Python applies | No |
 | Pronunciation | `language` | the main key's ISO 639-1 code, from the languages the pinned speech model speaks, or `other` | The language the key is spoken in; `other` starts no audio | Core header, named in the interface language (*German*, *Deutsch*, *德语*) |
+| Traditional Haiku, Modern Haiku, Joke | `language` | the main key's ISO 639-1 code, or `other` | The language the card is written in | Core header, named in the interface language |
 
 `kind` and `language` describe the key, not a source language chosen for the page: the language of a key is often ambiguous, and each parent reads it from the key and Context, so two parents may read an ambiguous key differently, and two cards on a page may differ in `kind`. A flag does not promise persistent meaning or referent resolution. Chinese has no `gramRole`, because no Chinese facet depends on it. Pronunciation's `language` is a code rather than a name, since it is passed to the speech provider; it is read from the key's spelling, words and script, and from the Context when the spelling fits more than one language (*Gift*, *Chef*).
 
@@ -174,6 +178,7 @@ The provider returns a parent's content as JSON, and the app keeps it as **markd
 - **Core, Languages:** one shape for a word and a sentence: `kind` first, the key's `language`, the `key`, an optional `romanization`, for German a word's `gramRole`, a word's optional `contextual` (its meaning in this Context, [D29](../architecture/decisions/d29.md)), and `meanings`, a list in the parent's language with at least one item; a sentence's holds one item, its translation or explanation.
 - **Core, Expertise:** `relevance` first, the key and an explanation. The explanation is a list of one to three paragraphs, one string each, so no line break has to travel inside a JSON string. Its top line shows the key only.
 - **Core, Pronunciation:** `{ language, key }`, `language` first; the key is echoed for the top line, as every core's is, but what is spoken is the page's saved main key, never the key as the model wrote it.
+- **Core, Creativity:** `language` first, an ISO 639-1 code or `other`, then the key and the lines: a haiku's `haiku` (three lines; a Japanese Traditional Haiku also its `reading` in kana, checked for its morae and neither shown nor stored), a joke's `joke` ([D30](../architecture/decisions/d30.md)).
 - **Article:** `{ singular, plural }`, the plural optional, such as `das Ufer` and `die Ufer`.
 - **Examples:** a list of `{ sentence, translation }`, the translation optional, not tied to meanings.
 - **Synonyms**, **Antonyms:** lists of words.
@@ -193,6 +198,7 @@ The provider returns a parent's content as JSON, and the app keeps it as **markd
 | Core, sentence | the translation as text |
 | Core, Expertise | the explanation as text, in paragraphs |
 | Core, Pronunciation | none; the card shows its top line and the player |
+| Core, Creativity | one paragraph, a line each |
 | Article | one line, `das Ufer · die Ufer` (the singular alone without a plural) |
 | Examples | a numbered list, each item the sentence with its translation on the next line in italics |
 | Synonyms, Antonyms | one line, the words separated by commas |
@@ -204,7 +210,7 @@ The provider returns a parent's content as JSON, and the app keeps it as **markd
 | Python | a fenced Python code block |
 | Pronunciation (facet) | a line each, the text to speak |
 
-**The top line.** The core's top line stays structured: shown as a heading and never edited. A Languages top line shows the key's language, the key and its romanization, word or sentence and, on a German word, its `gramRole`. Its labels are written in the module's language, like the rest of the card (*Englisch · run · Wort · Verb*; *英语 · run · 词语*), never in the interface language: the model returns the flag's value and the catalog names it, and a `gramRole` outside the catalog's list is shown as the model wrote it. An Expertise top line shows the key only. A Pronunciation top line shows the key's language, named in the interface language, and the key (*German · Gift*); for `other` it shows the key alone.
+**The top line.** The core's top line stays structured: shown as a heading and never edited. A Languages top line shows the key's language, the key and its romanization, word or sentence and, on a German word, its `gramRole`. Its labels are written in the module's language, like the rest of the card (*Englisch · run · Wort · Verb*; *英语 · run · 词语*), never in the interface language: the model returns the flag's value and the catalog names it, and a `gramRole` outside the catalog's list is shown as the model wrote it. An Expertise top line shows the key only. A Pronunciation top line shows the key's language, named in the interface language, and the key (*German · Gift*); for `other` it shows the key alone. A Creativity top line shows the language it writes in, the key's, named in the interface language, and the key, the same way.
 
 **Supported markdown:** bold, italic, bulleted and numbered lists, inline code and highlight (`==text==`); a text size and a font on a stretch of text, written as a bracketed span, `[text]{size=small}`, `[text]{size=large font=display}` (sizes `small` and `large`, fonts `display` and `mono`; normal size and the text font need no span); a highlight colour, `[text]{highlight=green}` (`green`, `blue`, `pink`, `orange`; the default yellow is written `==text==`); tables; display math in LaTeX (`$$…$$`, rendered with KaTeX; a formula that fails to render shows its source); and fenced code blocks with syntax highlighting, edited as their source text in a facet's own Edit. Anything else is shown as typed. The markdown is internal to storage: the editor never shows it, and characters the user types are stored escaped, so they show as typed ([D10](../architecture/decisions/d10.md)).
 

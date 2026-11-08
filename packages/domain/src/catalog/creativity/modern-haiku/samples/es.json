@@ -1,0 +1,26 @@
+{
+  "word_phrase": {
+    "core": {
+      "language": "es",
+      "key": "idioma",
+      "haiku": [
+        "traductor del móvil",
+        "el anciano y yo",
+        "reímos del mismo error"
+      ]
+    },
+    "facets": {}
+  },
+  "sentence": {
+    "core": {
+      "language": "es",
+      "key": "Los idiomas son los puentes que conectan a las personas con el mundo.",
+      "haiku": [
+        "autobús nocturno",
+        "dos desconocidos, un mapa",
+        "en dos idiomas"
+      ]
+    },
+    "facets": {}
+  }
+}

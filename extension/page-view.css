@@ -517,6 +517,8 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
 .md .md-highlight-pink, .md.md-editor mark[data-colour="pink"] { background: var(--highlight-pink); }
 .md .md-highlight-orange, .md.md-editor mark[data-colour="orange"] { background: var(--highlight-orange); }
 .md.reading { font: 400 19px/1.55 var(--font-display); }
+/* A haiku reads as a poem (D30), as on the canvas: the display serif, italic where its script has an italic face. */
+.component:is([data-type="traditional-haiku"], [data-type="modern-haiku"]) .md.entry-core { font: italic 500 19px/1.6 var(--font-display); font-synthesis: none; }
 /* The Examples are plain text like every other facet (D10, amended again). */
 
 /* The live editor (D09, amended): each part edits in place, in its reading

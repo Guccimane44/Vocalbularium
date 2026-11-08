@@ -21,9 +21,9 @@ there is no account to give a language.
 | `sign-in` | signed out |
 | `dashboard-empty` | a new account, no pages |
 | `dashboard`, `account-menu`, `language-list` | the filled account; the menu and its Language list open |
-| `deck`, `deck-empty` | My Deck's 13 pages; Reading list without pages |
+| `deck`, `deck-empty` | My Deck's 16 pages; Reading list without pages |
 | `deck-settings`, `deck-new` | My Deck's settings; a new deck |
-| `page-<group>-<state>` | German, Chinese, Expertise (Mathematics and Computer Science) and Pronunciation cards, each `complete`, `loading` and `failed` |
+| `page-<group>-<state>` | German, Chinese, Expertise (Mathematics and Computer Science), Pronunciation and Creativity (Traditional Haiku, Modern Haiku and Joke) cards, each `complete`, `loading` and `failed` |
 | `page-menu` | German's complete page with its ⋯ menu open |
 | `facet-grip` | German's complete page with a facet's grip focused |
 | `page-new` | a page made by hand, its cards waiting for Generate |

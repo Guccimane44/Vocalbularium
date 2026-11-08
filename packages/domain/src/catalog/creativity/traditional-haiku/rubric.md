@@ -1,0 +1,6 @@
+- **form**: Three lines in the classical 5-7-5 count of the haiku's language: syllables in English and other languages counted in syllables, morae in Japanese, characters in a Chinese 汉俳; one line off by a single syllable is weak, a clearly different count fails.
+- **season**: It holds a season word (kigo) or a clear image of one season.
+- **cut**: A cut, a pause, a dash or a kireji, sets two images side by side.
+- **image**: It shows a concrete moment, seen or heard, rather than stating a feeling, a lesson or the selection's definition.
+- **key**: It is about the selection or built on it, recognisably, in the meaning the Context shows.
+- **language**: It is written in the selection's language, as a native poet of it would write, with no title, explanation or translation; a haiku in another language fails.

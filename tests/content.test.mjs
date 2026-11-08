@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { applyDraft, ContentError, draftOf, filledFacets, formatContent, formatFacet, hasFacetContent, isEmptyContent, parentContentOf, parentDocument, providerCore,
+import { applyDraft, blankContent, ContentError, draftOf, filledFacets, formatContent, formatFacet, hasFacetContent, isEmptyContent, parentContentOf, parentDocument, providerCore,
   validateParentContent, withFacetText } from '@vocabularium/domain/content';
 import { GeneratedError, validateGenerated, validateGeneratedFacet } from '@vocabularium/domain/generated';
 import { editsAsSource, escapeMarkdown, hasTable, highlightKey, parseMarkdown, plainInline, plainLines, table } from '@vocabularium/domain/markdown';
@@ -149,9 +149,24 @@ test('stored content is one parent block, has no plain text, and renders its cor
   assert.deepEqual(expertise.heading, { language: '', key: 'retinol', pronunciation: null, labels: [] }, 'an Expertise top line shows the key only');
   assert.deepEqual(sentence.facets.map(facet => facet.facet), ['examples', 'pinyin'], 'in the parent’s order, not the data’s');
   const creativity = { header: { kind: 'creativity', language: 'ja', key: '古池' }, core: '古池や', facets: {} };
-  assert.equal(validateParentContent('mathematics', creativity).header.kind, 'creativity', 'a Creativity top line is a top line (D30)');
-  assert.deepEqual(headingOf('mathematics', creativity, 'en'), { language: 'Japanese', key: '古池', pronunciation: null, labels: [] },
+  assert.equal(validateParentContent('traditional-haiku', creativity).header.kind, 'creativity', 'a Creativity top line is a top line (D30)');
+  assert.deepEqual(headingOf('traditional-haiku', creativity, 'en'), { language: 'Japanese', key: '古池', pronunciation: null, labels: [] },
     'a Creativity top line names the language it writes in, in the interface language (D30)');
+});
+
+test('a Creativity card keeps its language and key in the top line, its lines in the core, and reads them back (D30)', () => {
+  for (const module of ['traditional-haiku', 'modern-haiku', 'joke']) {
+    assert.deepEqual(blankContent(' Herbst ', module).header, { kind: 'creativity', language: '', key: 'Herbst' }, `${module}: blank until generated`);
+    const field = module === 'joke' ? 'joke' : 'haiku';
+    const lines = ['- Herbstwind —', 'zwei *Fremde* auf der Brücke', 'grüßen sich leise'];
+    const stored = formatContent(module, validateGenerated(module, { core: { language: 'DE', key: 'Herbst', [field]: lines }, facets: {} }));
+    assert.deepEqual(stored.header, { kind: 'creativity', language: 'de', key: 'Herbst' }, `${module}: the code in lowercase`);
+    assert.equal(parseMarkdown(stored.core).length, 1, `${module}: one paragraph, a line each`);
+    assert.deepEqual(plainLines(stored.core), lines, `${module}: literal text, a list marker escaped`);
+    assert.deepEqual(providerCore(module, stored), { language: 'de', key: 'Herbst', [field]: lines }, `${module}: read back for the core's Retry`);
+    assert.equal(providerCore(module, blankContent('Herbst', module)).language, 'other', `${module}: a blank language reads as other`);
+    assert.throws(() => validateGenerated(module, { core: { language: 'German', key: 'Herbst', [field]: lines }, facets: {} }), GeneratedError, `${module}: a code, not a name`);
+  }
 });
 
 test('the live editor’s document converts to and from the markdown subset, round-tripping what generation writes (D09)', async () => {

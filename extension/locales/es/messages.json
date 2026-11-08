@@ -349,6 +349,7 @@
   "catalog.family.notes": "Notas",
   "catalog.family.translation": "Idiomas",
   "catalog.family.expertise": "Especialidades",
+  "catalog.family.creativity": "Creatividad",
   "audio.play": "Reproducir {text}",
   "audio.pause": "Pausar {text}",
   "audio.generating": "Creando el audio…",

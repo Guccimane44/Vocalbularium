@@ -14,8 +14,8 @@ const scored = verdicts => ({ complete: async request => {
   return Object.fromEntries(Object.entries(verdicts).map(([id, verdict]) => [id, { verdict, reason: verdict === 'pass' ? 'fine' : `${id} is off` }]));
 } });
 
-test('every Languages and Expertise module has a rubric of named criteria', async () => {
-  for (const module of [...parentsIn('translation'), ...parentsIn('expertise')]) {
+test('every Languages, Expertise and Creativity module has a rubric of named criteria', async () => {
+  for (const module of [...parentsIn('translation'), ...parentsIn('expertise'), ...parentsIn('creativity')]) {
     const criteria = await rubricOf(module);
     assert.ok(criteria.length >= 3, module);
     assert.equal(new Set(criteria.map(criterion => criterion.id)).size, criteria.length, `${module} repeats a criterion`);
@@ -40,7 +40,7 @@ test('a card fails on any failed criterion or content check, is weak on a weak o
 test('the calibration set covers every module with a rubric, with recorded passes that pass the content checks and seeded fails', async () => {
   const directory = new URL('./golden/calibration/', import.meta.url);
   const sets = readdirSync(directory).filter(file => file.endsWith('.json')).map(file => JSON.parse(readFileSync(new URL(file, directory), 'utf8')));
-  assert.deepEqual(sets.map(set => set.module).sort(), [...parentsIn('translation'), ...parentsIn('expertise')].sort());
+  assert.deepEqual(sets.map(set => set.module).sort(), [...parentsIn('translation'), ...parentsIn('expertise'), ...parentsIn('creativity')].sort());
   for (const set of sets) {
     const pass = set.cards.filter(card => card.expected === 'pass');
     const fail = set.cards.filter(card => card.expected === 'fail');

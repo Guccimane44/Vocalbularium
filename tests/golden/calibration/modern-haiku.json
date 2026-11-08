@@ -1,0 +1,295 @@
+{
+ "note": "The judge's calibration set for modern-haiku (0.16.4): recorded outputs from 2026-11-07T15-50-16-702Z-en-modern-haiku.json that passed review, expected to pass, and copies of them with one seeded fault each, expected to fail. The judge counts only once it agrees on 90% and misses no expected fail.",
+ "module": "modern-haiku",
+ "cards": [
+  {
+   "id": "recorded-1",
+   "key": "autumn",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-07T15-50-16-702Z-en-modern-haiku.json, reviewed.",
+   "card": {
+    "core": {
+     "language": "en",
+     "key": "autumn",
+     "haiku": [
+      "wet leaves on the step",
+      "the mail truck coughs twice",
+      "and backs away"
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "recorded-2",
+   "key": "bank",
+   "context": "We had a picnic on the bank of the river.",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-07T15-50-16-702Z-en-modern-haiku.json, reviewed.",
+   "card": {
+    "core": {
+     "language": "en",
+     "key": "bank",
+     "haiku": [
+      "we spread the picnic",
+      "on the river bank",
+      "a heron steps closer"
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "recorded-3",
+   "key": "The train was late again this morning.",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-07T15-50-16-702Z-en-modern-haiku.json, reviewed.",
+   "card": {
+    "core": {
+     "language": "en",
+     "key": "The train was late again this morning.",
+     "haiku": [
+      "the train is late again",
+      "the same two strangers",
+      "nod at the same time"
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "recorded-4",
+   "key": "Schmetterling",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-07T15-50-16-702Z-en-modern-haiku.json, reviewed.",
+   "card": {
+    "core": {
+     "language": "de",
+     "key": "Schmetterling",
+     "haiku": [
+      "Auf dem Bahnsteig",
+      "tanzt ein Schmetterling um die Uhr",
+      "der Zug hat Verspätung"
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "recorded-5",
+   "key": "月亮",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-07T15-50-16-702Z-en-modern-haiku.json, reviewed.",
+   "card": {
+    "core": {
+     "language": "zh",
+     "key": "月亮",
+     "haiku": [
+      "楼下快递堆着",
+      "月亮卡在晾衣绳",
+      "隔壁在收伞"
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "recorded-6",
+   "key": "地铁",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-07T15-50-16-702Z-en-modern-haiku.json, reviewed.",
+   "card": {
+    "core": {
+     "language": "zh",
+     "key": "地铁",
+     "haiku": [
+      "地铁进站",
+      "风掀起早餐袋",
+      "有人先笑"
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "recorded-7",
+   "key": "おにぎり",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-07T15-50-16-702Z-en-modern-haiku.json, reviewed.",
+   "card": {
+    "core": {
+     "language": "ja",
+     "key": "おにぎり",
+     "haiku": [
+      "おにぎりを",
+      "ポケットに入れて",
+      "雪が降る"
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "recorded-8",
+   "key": "café",
+   "context": "On se retrouve au café ce soir ?",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-07T15-50-16-702Z-en-modern-haiku.json, reviewed.",
+   "card": {
+    "core": {
+     "language": "fr",
+     "key": "café",
+     "haiku": [
+      "deux tasses fument",
+      "la porte claque au passage",
+      "ton rire entre"
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "recorded-9",
+   "key": "дождь",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-07T15-50-16-702Z-en-modern-haiku.json, reviewed.",
+   "card": {
+    "core": {
+     "language": "ru",
+     "key": "дождь",
+     "haiku": [
+      "дождь по стеклу",
+      "в приложении такси",
+      "зелёная точка"
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "seeded-1",
+   "key": "autumn",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: written in French for an English key.",
+   "card": {
+    "core": {
+     "language": "en",
+     "key": "autumn",
+     "haiku": [
+      "feuilles mouillées sur la marche",
+      "le camion du courrier tousse deux fois",
+      "et recule"
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "seeded-2",
+   "key": "bank",
+   "context": "We had a picnic on the bank of the river.",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: a rhyming title-like statement, no concrete image.",
+   "card": {
+    "core": {
+     "language": "en",
+     "key": "bank",
+     "haiku": [
+      "A Day by the River Bank",
+      "life is a journey, we must not hurry",
+      "be happy and never worry"
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "seeded-3",
+   "key": "Schmetterling",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: nothing to do with the key, a butterfly.",
+   "card": {
+    "core": {
+     "language": "de",
+     "key": "Schmetterling",
+     "haiku": [
+      "Der Laptop klappt zu",
+      "auf dem Herd zischt der Wasserkessel",
+      "draußen fährt der Bus ohne mich"
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "seeded-4",
+   "key": "地铁",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: a translation into English added as lines.",
+   "card": {
+    "core": {
+     "language": "zh",
+     "key": "地铁",
+     "haiku": [
+      "地铁进站",
+      "风掀起早餐袋 / 有人先笑",
+      "The subway arrives, the wind lifts a breakfast bag, someone laughs first."
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "seeded-5",
+   "key": "дождь",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: a stated feeling and lesson instead of an image.",
+   "card": {
+    "core": {
+     "language": "ru",
+     "key": "дождь",
+     "haiku": [
+      "дождь — это грусть",
+      "он учит нас терпению",
+      "и любви к жизни"
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "seeded-6",
+   "key": "café",
+   "context": "On se retrouve au café ce soir ?",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: the Context's French café read as Spanish.",
+   "card": {
+    "core": {
+     "language": "es",
+     "key": "café",
+     "haiku": [
+      "dos tazas humean",
+      "la puerta golpea al pasar",
+      "entra tu risa"
+     ]
+    },
+    "facets": {}
+   }
+  }
+ ]
+}

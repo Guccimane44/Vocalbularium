@@ -349,6 +349,7 @@
   "catalog.family.notes": "الملاحظات",
   "catalog.family.translation": "اللغات",
   "catalog.family.expertise": "التخصصات",
+  "catalog.family.creativity": "الإبداع",
   "audio.play": "تشغيل {text}",
   "audio.pause": "إيقاف {text} مؤقتًا",
   "audio.generating": "جارٍ إنشاء الصوت…",
