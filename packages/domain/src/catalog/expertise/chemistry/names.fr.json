@@ -1,0 +1,7 @@
+{
+  "label": "Chimie",
+  "description": "Explique un terme ou une notion au sens de la chimie.",
+  "core.word_phrase": "Explication",
+  "core.sentence": "Explication",
+  "equation.label": "Équation"
+}

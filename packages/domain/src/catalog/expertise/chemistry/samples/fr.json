@@ -1,0 +1,66 @@
+{
+  "word_phrase": {
+    "core": {
+      "relevance": "subject",
+      "hasEquation": "yes",
+      "key": "Neutralisation",
+      "explanation": [
+        "La neutralisation (neutralization) désigne la réaction entre un acide et une base : l’acide cède un proton à la base et il se forme un sel et de l’eau. Elle explique pourquoi une solution acide perd son acidité lorsqu’on y verse une base.",
+        "Ainsi, l’acide chlorhydrique et la soude donnent du chlorure de sodium et de l’eau. Le dosage acido-basique s’appuie sur cette réaction pour déterminer la concentration inconnue d’un acide ou d’une base."
+      ]
+    },
+    "facets": {
+      "equation": {
+        "latex": "\\ce{HCl + NaOH -> NaCl + H2O}",
+        "species": [
+          {
+            "symbol": "\\ce{HCl}",
+            "name": "chlorure d’hydrogène"
+          },
+          {
+            "symbol": "\\ce{NaOH}",
+            "name": "hydroxyde de sodium"
+          },
+          {
+            "symbol": "\\ce{NaCl}",
+            "name": "chlorure de sodium"
+          },
+          {
+            "symbol": "\\ce{H2O}",
+            "name": "eau"
+          }
+        ]
+      }
+    }
+  },
+  "sentence": {
+    "core": {
+      "relevance": "subject",
+      "hasEquation": "yes",
+      "key": "Un acide et une base réagissent pour former un sel et de l’eau.",
+      "explanation": [
+        "La phrase décrit une réaction de neutralisation acido-basique. Un acide cède un proton à une base, qui le capte ; il se forme un sel, composé ionique, et de l’eau. L’acide chlorhydrique et la soude donnent ainsi du chlorure de sodium et de l’eau.",
+        "L’équation ionique (ionic equation) H+ + OH− → H2O en résume le cœur. Les autres ions restent en solution et constituent le sel."
+      ]
+    },
+    "facets": {
+      "equation": {
+        "latex": "\\ce{H+ + OH- -> H2O}",
+        "species": [
+          {
+            "symbol": "\\ce{H+}",
+            "name": "ion hydrogène"
+          },
+          {
+            "symbol": "\\ce{OH-}",
+            "name": "ion hydroxyde"
+          },
+          {
+            "symbol": "\\ce{H2O}",
+            "name": "eau"
+          }
+        ]
+      }
+    }
+  }
+}

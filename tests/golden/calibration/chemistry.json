@@ -1,0 +1,431 @@
+{
+ "note": "The judge's calibration set for chemistry (0.16.4): recorded outputs from 2026-11-07T19-42-22-889Z-en-chemistry.json that passed review, expected to pass, and copies of them with one seeded fault each, expected to fail. The judge counts only once it agrees on 90% and misses no expected fail.",
+ "module": "chemistry",
+ "cards": [
+  {
+   "id": "recorded-1",
+   "key": "combustion of methane",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-07T19-42-22-889Z-en-chemistry.json.",
+   "card": {
+    "core": {
+     "relevance": "subject",
+     "hasEquation": "yes",
+     "key": "combustion of methane",
+     "explanation": [
+      "The combustion of methane is the reaction in which methane, the main compound in natural gas, burns in oxygen to form carbon dioxide and water. When oxygen is plentiful the reaction is complete and releases much heat, which makes natural gas useful for heating, cooking and generating electricity."
+     ]
+    },
+    "facets": {
+     "equation": {
+      "latex": "\\ce{CH4 + 2O2 -> CO2 + 2H2O}",
+      "species": [
+       {
+        "symbol": "\\ce{CH4}",
+        "name": "methane"
+       },
+       {
+        "symbol": "\\ce{O2}",
+        "name": "oxygen"
+       },
+       {
+        "symbol": "\\ce{CO2}",
+        "name": "carbon dioxide"
+       },
+       {
+        "symbol": "\\ce{H2O}",
+        "name": "water"
+       }
+      ]
+     }
+    }
+   }
+  },
+  {
+   "id": "recorded-2",
+   "key": "sodium chloride",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-07T19-42-22-889Z-en-chemistry.json.",
+   "card": {
+    "core": {
+     "relevance": "subject",
+     "hasEquation": "yes",
+     "key": "sodium chloride",
+     "explanation": [
+      "Sodium chloride is an ionic compound of sodium and chlorine with the formula NaCl: sodium ions (Na⁺), positively charged, and chloride ions (Cl⁻), negatively charged, pack into a crystal lattice.",
+      "It is table salt and forms when sodium metal reacts with chlorine gas; in water it dissolves into moving ions, so the solution conducts electricity."
+     ]
+    },
+    "facets": {
+     "equation": {
+      "latex": "\\ce{NaCl}",
+      "species": [
+       {
+        "symbol": "\\ce{NaCl}",
+        "name": "sodium chloride"
+       }
+      ]
+     }
+    }
+   }
+  },
+  {
+   "id": "recorded-3",
+   "key": "electrolysis of water",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-07T19-42-22-889Z-en-chemistry.json.",
+   "card": {
+    "core": {
+     "relevance": "subject",
+     "hasEquation": "yes",
+     "key": "electrolysis of water",
+     "explanation": [
+      "Electrolysis of water is the use of an electric current to break liquid water into hydrogen and oxygen gases. At the cathode, the electrode where reduction (gain of electrons) occurs, water forms hydrogen; at the anode, where oxidation (loss of electrons) occurs, it forms oxygen.",
+      "The overall equation is 2H₂O(l) → 2H₂(g) + O₂(g), so the gases appear in a 2:1 volume ratio. This reaction can store electrical energy as hydrogen fuel and supply oxygen for life support in spacecraft or submarines."
+     ]
+    },
+    "facets": {
+     "equation": {
+      "latex": "\\ce{2H2O(l) -> 2H2(g) + O2(g)}",
+      "species": [
+       {
+        "symbol": "\\ce{H2O}",
+        "name": "water"
+       },
+       {
+        "symbol": "\\ce{H2}",
+        "name": "hydrogen"
+       },
+       {
+        "symbol": "\\ce{O2}",
+        "name": "oxygen"
+       }
+      ]
+     }
+    }
+   }
+  },
+  {
+   "id": "recorded-4",
+   "key": "electronegativity",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-07T19-42-22-889Z-en-chemistry.json.",
+   "card": {
+    "core": {
+     "relevance": "subject",
+     "hasEquation": "no",
+     "key": "electronegativity",
+     "explanation": [
+      "Electronegativity is the tendency of an atom in a chemical bond to attract the shared electrons towards itself. It is a property of an atom in a molecule rather than of an isolated atom, and values are compared on scales such as the Pauling scale, a numerical ranking.",
+      "A large difference in electronegativity makes a bond polar or ionic, while a small difference gives a nonpolar or covalent bond. In hydrogen chloride, chlorine is more electronegative than hydrogen, so the shared electrons lie closer to chlorine and the bond has a partial negative charge at chlorine."
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "recorded-5",
+   "key": "chirality",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-07T19-42-22-889Z-en-chemistry.json.",
+   "card": {
+    "core": {
+     "relevance": "subject",
+     "hasEquation": "no",
+     "key": "chirality",
+     "explanation": [
+      "Chirality is the handedness of a molecule: its mirror image cannot be laid on top of it by rotation alone, just as a left hand cannot be turned into a right hand. Such a molecule and its mirror image are enantiomers, a pair of non-superimposable stereoisomers.",
+      "Chirality usually arises at a carbon atom bonded to four different groups, but other arrangements can produce it too. The two enantiomers of lactic acid, for example, differ only in the spatial arrangement of their atoms and often behave differently in living systems."
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "recorded-6",
+   "key": "mole",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-07T19-42-22-889Z-en-chemistry.json.",
+   "card": {
+    "core": {
+     "relevance": "subject",
+     "hasEquation": "no",
+     "key": "mole",
+     "explanation": [
+      "The mole is the SI unit of amount of substance. One mole contains Avogadro's number of entities, 6.022 × 10²³, which may be atoms, molecules, ions or other particles.",
+      "It lets chemists count particles by weighing or measuring a sample: 18 g of water is one mole of water molecules and contains about 6.022 × 10²³ molecules."
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "recorded-7",
+   "key": "bond",
+   "context": "A covalent bond forms when two atoms share a pair of electrons.",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-07T19-42-22-889Z-en-chemistry.json.",
+   "card": {
+    "core": {
+     "relevance": "subject",
+     "hasEquation": "no",
+     "key": "bond",
+     "explanation": [
+      "A bond is the attraction that holds atoms or ions together in a substance. It forms because the joined arrangement is lower in energy than separated particles. Bonds determine a substance's identity, shape, stability and reactivity, and range from ionic attractions to covalent electron sharing to metallic delocalisation.",
+      "Sodium chloride is held together by ionic bonds between Na⁺ and Cl⁻ ions; hydrogen gas by a covalent bond, the sharing of an electron pair between two hydrogen atoms."
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "recorded-8",
+   "key": "When hydrogen burns in oxygen, water is formed.",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-07T19-42-22-889Z-en-chemistry.json.",
+   "card": {
+    "core": {
+     "relevance": "subject",
+     "hasEquation": "yes",
+     "key": "When hydrogen burns in oxygen, water is formed.",
+     "explanation": [
+      "It states a chemical reaction: hydrogen gas combines with oxygen gas in burning, a rapid reaction with oxygen that releases energy, to form water. The starting substances are elements, and the product is a compound.",
+      "Two molecules of hydrogen react with one molecule of oxygen to give two molecules of water. Hydrogen–hydrogen and oxygen–oxygen bonds break, oxygen–hydrogen bonds form, and all atoms are conserved."
+     ]
+    },
+    "facets": {
+     "equation": {
+      "latex": "\\ce{2H2 + O2 -> 2H2O}",
+      "species": [
+       {
+        "symbol": "\\ce{H2}",
+        "name": "hydrogen"
+       },
+       {
+        "symbol": "\\ce{O2}",
+        "name": "oxygen"
+       },
+       {
+        "symbol": "\\ce{H2O}",
+        "name": "water"
+       }
+      ]
+     }
+    }
+   }
+  },
+  {
+   "id": "recorded-9",
+   "key": "photon",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-07T19-42-22-889Z-en-chemistry.json.",
+   "card": {
+    "core": {
+     "relevance": "neighbouring",
+     "key": "photon",
+     "explanation": [
+      "Photon is not a chemistry concept. In physics, it is the indivisible packet, or quantum, of electromagnetic radiation, carrying an amount of energy proportional to the radiation's frequency; visible light consists of photons."
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "recorded-10",
+   "key": "Frontend",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-07T19-42-22-889Z-en-chemistry.json.",
+   "card": {
+    "core": {
+     "relevance": "unrelated",
+     "key": "Frontend",
+     "explanation": [
+      "Frontend is not a chemistry concept."
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "wrong-product",
+   "key": "combustion of methane",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: Complete combustion of methane gives carbon dioxide, not carbon monoxide, and the equation is no longer balanced in oxygen.",
+   "card": {
+    "core": {
+     "relevance": "subject",
+     "hasEquation": "yes",
+     "key": "combustion of methane",
+     "explanation": [
+      "The combustion of methane is the reaction in which methane, the main compound in natural gas, burns in oxygen to form carbon dioxide and water. When oxygen is plentiful the reaction is complete and releases much heat, which makes natural gas useful for heating, cooking and generating electricity."
+     ]
+    },
+    "facets": {
+     "equation": {
+      "latex": "\\ce{CH4 + 2O2 -> CO + 2H2O}",
+      "species": [
+       {
+        "symbol": "\\ce{CH4}",
+        "name": "methane"
+       },
+       {
+        "symbol": "\\ce{O2}",
+        "name": "oxygen"
+       },
+       {
+        "symbol": "\\ce{CO}",
+        "name": "carbon monoxide"
+       },
+       {
+        "symbol": "\\ce{H2O}",
+        "name": "water"
+       }
+      ]
+     }
+    }
+   }
+  },
+  {
+   "id": "wrong-species-name",
+   "key": "sodium chloride",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: NaCl is sodium chloride; sodium chlorate is NaClO3.",
+   "card": {
+    "core": {
+     "relevance": "subject",
+     "hasEquation": "yes",
+     "key": "sodium chloride",
+     "explanation": [
+      "Sodium chloride is an ionic compound of sodium and chlorine with the formula NaCl: sodium ions (Na⁺), positively charged, and chloride ions (Cl⁻), negatively charged, pack into a crystal lattice.",
+      "It is table salt and forms when sodium metal reacts with chlorine gas; in water it dissolves into moving ions, so the solution conducts electricity."
+     ]
+    },
+    "facets": {
+     "equation": {
+      "latex": "\\ce{NaCl}",
+      "species": [
+       {
+        "symbol": "\\ce{NaCl}",
+        "name": "sodium chlorate"
+       }
+      ]
+     }
+    }
+   }
+  },
+  {
+   "id": "factual-error",
+   "key": "electronegativity",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: A large difference makes a bond polar or ionic, and chlorine, not hydrogen, is the more electronegative atom.",
+   "card": {
+    "core": {
+     "relevance": "subject",
+     "hasEquation": "no",
+     "key": "electronegativity",
+     "explanation": [
+      "Electronegativity is the tendency of an atom in a chemical bond to attract the shared electrons towards itself. It is a property of an atom in a molecule rather than of an isolated atom, and values are compared on scales such as the Pauling scale, a numerical ranking.",
+      "A large difference in electronegativity makes a bond nonpolar, while a small difference gives an ionic bond. In hydrogen chloride, hydrogen is more electronegative than chlorine, so the shared electrons lie closer to hydrogen."
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "invented-equation",
+   "key": "chirality",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: Chirality is a property of shape and has no equation; one was constructed, and its species is named after the concept.",
+   "card": {
+    "core": {
+     "relevance": "subject",
+     "hasEquation": "yes",
+     "key": "chirality",
+     "explanation": [
+      "Chirality is the handedness of a molecule: its mirror image cannot be laid on top of it by rotation alone, just as a left hand cannot be turned into a right hand. Such a molecule and its mirror image are enantiomers, a pair of non-superimposable stereoisomers.",
+      "Chirality usually arises at a carbon atom bonded to four different groups, but other arrangements can produce it too. The two enantiomers of lactic acid, for example, differ only in the spatial arrangement of their atoms and often behave differently in living systems."
+     ]
+    },
+    "facets": {
+     "equation": {
+      "latex": "\\ce{C4H8 -> C4H8}",
+      "species": [
+       {
+        "symbol": "\\ce{C4H8}",
+        "name": "chirality"
+       }
+      ]
+     }
+    }
+   }
+  },
+  {
+   "id": "unrelated-as-subject",
+   "key": "Frontend",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: Frontend is unrelated to chemistry, yet explained as a chemistry concept.",
+   "card": {
+    "core": {
+     "relevance": "subject",
+     "hasEquation": "no",
+     "key": "Frontend",
+     "explanation": [
+      "In chemistry, the frontend is the reactive front of a substance where a reaction begins, such as the leading edge of a flame moving through methane and oxygen."
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "wrong-language",
+   "key": "mole",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: The interface language is English, but the explanation is German.",
+   "card": {
+    "core": {
+     "relevance": "subject",
+     "hasEquation": "no",
+     "key": "mole",
+     "explanation": [
+      "Das Mol ist die SI-Einheit der Stoffmenge. Ein Mol enthält 6,022 × 10²³ Teilchen, etwa Atome, Moleküle oder Ionen.",
+      "18 g Wasser sind ein Mol Wassermoleküle."
+     ]
+    },
+    "facets": {}
+   }
+  },
+  {
+   "id": "neighbouring-as-subject",
+   "key": "photon",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: A photon is a physics term, not a chemistry concept or a particle of an element, and photons do not combine with carbon dioxide.",
+   "card": {
+    "core": {
+     "relevance": "subject",
+     "key": "photon",
+     "explanation": [
+      "A photon is a chemistry concept: it is the smallest particle of an element, and in photosynthesis photons combine with carbon dioxide to form glucose."
+     ]
+    },
+    "facets": {}
+   }
+  }
+ ]
+}
