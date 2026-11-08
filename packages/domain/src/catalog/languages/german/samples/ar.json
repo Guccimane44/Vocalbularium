@@ -6,8 +6,10 @@
       "key": "لغة",
       "romanization": "lugha",
       "gramRole": "noun",
+      "contextual": "Sprache",
       "meanings": [
-        "Sprache"
+        "Dialekt",
+        "Fachsprache"
       ]
     },
     "facets": {
@@ -17,9 +19,22 @@
       },
       "examples": [
         {
-          "sentence": "أريد أن أتعلّم لغةً جديدة هذا العام.",
-          "translation": "Ich möchte dieses Jahr eine neue Sprache lernen."
+          "sentence": "أتعلم كل صيف لغة جديدة.",
+          "translation": "Ich lerne jeden Sommer eine neue Sprache."
+        },
+        {
+          "sentence": "كانت لغة قريش من أفصح اللغات.",
+          "translation": "Der Dialekt der Quraysch war einer der eloquentesten Dialekte."
+        },
+        {
+          "sentence": "لغة الطب صعبة على المبتدئين.",
+          "translation": "Die Fachsprache der Medizin ist für Anfänger schwierig."
         }
+      ],
+      "synonyms": [
+        "Idiom",
+        "Mundart",
+        "Terminologie"
       ],
       "declension": {
         "columns": [
@@ -58,7 +73,21 @@
         ]
       },
       "pronunciation": [
-        "die Sprache"
+        "die Sprache",
+        "der Dialekt",
+        "die Fachsprache"
+      ],
+      "etymology": {
+        "origins": [
+          "Althochdeutsch",
+          "Mittelhochdeutsch"
+        ],
+        "text": "Das althochdeutsche sprāhha und das mittelhochdeutsche sprāche bedeuteten „Rede“ und gehören zu sprechen. Aus „das Sprechen“ wurde die Bezeichnung für das System der Verständigung."
+      },
+      "simple-translation": [
+        "die Wörter und Regeln, mit denen Menschen sprechen und sich verstehen",
+        "eine Art zu sprechen, die in einer Gegend üblich ist",
+        "die besonderen Wörter, die man in einem Fach benutzt"
       ]
     }
   },
@@ -67,7 +96,7 @@
       "kind": "sentence",
       "language": "Arabisch",
       "key": "اللغات هي الجسور التي تربط الناس بالعالم.",
-      "romanization": "al-lughāt hiya al-jusūr allatī tarbiṭ an-nās bi-l-ʿālam.",
+      "romanization": "al-lughāt hiya al-jusūr allatī tarabbiṭu al-nās bi-al-ʿālam",
       "meanings": [
         "Sprachen sind die Brücken, die Menschen mit der Welt verbinden."
       ]
@@ -75,12 +104,15 @@
     "facets": {
       "examples": [
         {
-          "sentence": "الصداقات هي الجسور التي تربط الناس ببعضهم.",
-          "translation": "Freundschaften sind die Brücken, die Menschen miteinander verbinden."
+          "sentence": "الكتب هي الجسور التي تربط الناس بالمعرفة.",
+          "translation": "Bücher sind die Brücken, die Menschen mit dem Wissen verbinden."
         }
       ],
       "pronunciation": [
         "Sprachen sind die Brücken, die Menschen mit der Welt verbinden."
+      ],
+      "simple-translation": [
+        "Sprachen sind wie Brücken: Sie verbinden Menschen mit der Welt."
       ]
     }
   }

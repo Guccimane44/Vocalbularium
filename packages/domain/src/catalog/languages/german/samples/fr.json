@@ -5,8 +5,9 @@
       "language": "Französisch",
       "key": "langue",
       "gramRole": "noun",
+      "contextual": "Sprache als System von Wörtern, das eine Gemeinschaft benutzt",
       "meanings": [
-        "Sprache als System der Verständigung"
+        "Zunge als Organ im Mund"
       ]
     },
     "facets": {
@@ -16,14 +17,13 @@
       },
       "examples": [
         {
-          "sentence": "Elle apprend une nouvelle langue chaque été.",
-          "translation": "Sie lernt jeden Sommer eine neue Sprache."
+          "sentence": "Chaque été, elle apprend une nouvelle langue.",
+          "translation": "Jeden Sommer lernt sie eine neue Sprache."
+        },
+        {
+          "sentence": "Il s'est brûlé la langue avec le café chaud.",
+          "translation": "Er hat sich die Zunge mit dem heißen Kaffee verbrannt."
         }
-      ],
-      "synonyms": [
-        "Idiom",
-        "Landessprache",
-        "Nationalsprache"
       ],
       "declension": {
         "columns": [
@@ -62,7 +62,20 @@
         ]
       },
       "pronunciation": [
-        "die Sprache"
+        "die Sprache",
+        "die Zunge"
+      ],
+      "etymology": {
+        "origins": [
+          "Germanisch",
+          "Althochdeutsch",
+          "Mittelhochdeutsch"
+        ],
+        "text": "Aus germanisch spēkijō, im Althochdeutschen als sprāhha „Rede, Sprache“ belegt, im Mittelhochdeutschen dann sprāche. Das Wort gehört zur Sippe von sprechen und bezeichnet seit dem Althochdeutschen die Fähigkeit und das System des Sprechens."
+      },
+      "simple-translation": [
+        "Das System von Wörtern, mit dem Menschen sprechen und schreiben, zum Beispiel Deutsch oder Französisch.",
+        "Das Organ im Mund, mit dem man schmeckt und spricht."
       ]
     }
   },
@@ -72,18 +85,21 @@
       "language": "Französisch",
       "key": "Les langues sont les ponts qui relient les gens et le monde.",
       "meanings": [
-        "Sprachen sind die Brücken, die die Menschen und die Welt verbinden."
+        "Sprachen sind die Brücken, die Menschen und die Welt verbinden."
       ]
     },
     "facets": {
       "examples": [
         {
-          "sentence": "Les livres sont les fenêtres qui ouvrent l’esprit et le cœur.",
-          "translation": "Bücher sind die Fenster, die den Geist und das Herz öffnen."
+          "sentence": "Les livres sont les ponts qui relient les cultures et les peuples.",
+          "translation": "Bücher sind die Brücken, die Kulturen und Völker verbinden."
         }
       ],
       "pronunciation": [
-        "Sprachen sind die Brücken, die die Menschen und die Welt verbinden."
+        "Sprachen sind die Brücken, die Menschen und die Welt verbinden."
+      ],
+      "simple-translation": [
+        "Sprachen sind wie Brücken: Sie verbinden Menschen und die Welt."
       ]
     }
   }

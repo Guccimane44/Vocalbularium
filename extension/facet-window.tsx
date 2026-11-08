@@ -6,6 +6,7 @@ import { openAbout } from './about-sheet.tsx';
 import { launchFacet } from './facet-tags.tsx';
 import { t } from './i18n.ts';
 import { facetMark, facetName } from './catalog-text.ts';
+import { facetsFull, MAX_FACETS } from './facet-limit.ts';
 
 // A parent's facet window (D13, 0.8.1), opened by Facet among the parent's
 // actions, on a page and in deck settings. It lists every facet of the
@@ -20,6 +21,8 @@ import { facetMark, facetName } from './catalog-text.ts';
 // it is a card on the surface with a heading naming the parent and a close,
 // and two groups in the module's order: the facets on the card, each with a
 // remove, and the others to add, each with a +; a facet moves between them.
+// Since 0.16.4 a parent holding MAX_FACETS facets has its others disabled,
+// with the reason beneath the group's name.
 export function FacetWindow({ holderId, parent, title, facets, disabled, onPage = true, hasContent, onAdd, onRemove, onClose }: {
   holderId: string; parent: ParentType; title: string; facets: readonly string[]; disabled: boolean;
   // On a page an added facet waits for Retry, which the heading says; deck settings hold no content.
@@ -75,6 +78,7 @@ export function FacetWindow({ holderId, parent, title, facets, disabled, onPage 
       if (hasContent(facet)) setAsking(facet); else void remove(facet);
       return;
     }
+    if (full) return;
     setWanted(current => ({ ...current, [facet]: true }));
     setReturning(facet);
     launchFacet(holderId, facet, root.current?.querySelector(`[data-facet="${facet}"] .facet-tab-mark`)?.getBoundingClientRect());
@@ -84,7 +88,9 @@ export function FacetWindow({ holderId, parent, title, facets, disabled, onPage 
     }
   }
   const headingId = `${ids}-heading`;
+  const limitId = `${ids}-limit`;
   const all = facetsOf(parent);
+  const full = facetsFull(all.filter(equipped).length);
   const row = (facet: FacetType, on: boolean) => {
     const label = facetName(parent, facet);
     return <li key={facet} className="facet-window-row" data-facet={facet} data-index={all.indexOf(facet)} data-equipped={on || undefined} data-asking={asking === facet || undefined}>
@@ -95,7 +101,8 @@ export function FacetWindow({ holderId, parent, title, facets, disabled, onPage 
         <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6" /></svg>
       </button>
       {/* While the parent is busy the button still holds the focus, so it is only marked unavailable. */}
-      <button type="button" className="facet-toggle" hidden={asking === facet} aria-disabled={disabled || undefined}
+      <button type="button" className="facet-toggle" hidden={asking === facet} aria-disabled={disabled || (full && !on) || undefined}
+        aria-describedby={full && !on ? limitId : undefined}
         aria-label={t(on ? 'action.removeNamed' : 'action.addNamed', { name: label })} onClick={() => void toggle(facet)}>
         <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">{on ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M12 5v14M5 12h14" />}</svg>
       </button>
@@ -106,6 +113,7 @@ export function FacetWindow({ holderId, parent, title, facets, disabled, onPage 
   };
   const group = (key: 'on' | 'add', members: FacetType[]) => members.length > 0 && <>
     <p className="facet-window-group" id={`${ids}-${key}`}>{t(key === 'on' ? 'card.facetsOn' : 'card.facetsAdd')}</p>
+    {key === 'add' && full && <p className="facet-window-limit" id={limitId}>{t('card.facetsFull', { count: MAX_FACETS })}</p>}
     <ul aria-labelledby={`${ids}-${key}`}>{members.map(facet => row(facet, key === 'on'))}</ul>
   </>;
   return <div ref={root} className="facet-window" role="group" aria-labelledby={headingId}

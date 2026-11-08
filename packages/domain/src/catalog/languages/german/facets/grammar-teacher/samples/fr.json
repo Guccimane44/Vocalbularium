@@ -1,0 +1,24 @@
+{
+  "word_phrase": {
+    "core": {
+      "kind": "word",
+      "language": "Deutsch",
+      "key": "aufstehen",
+      "gramRole": "verb",
+      "meanings": [
+        "sich aus dem Bett erheben",
+        "sich aus einer sitzenden oder liegenden Position aufrichten",
+        "sich erheben, um gegen etwas zu protestieren"
+      ]
+    },
+    "facets": {
+      "grammar-teacher": [
+        "Trennbares Verb: Im Hauptsatz steht „auf“ am Satzende, z. B. „Ich stehe um sieben Uhr auf.“",
+        "Das Perfekt wird mit „sein“ gebildet: „Ich bin früh aufgestanden.“",
+        "Das Partizip II lautet „aufgestanden“.",
+        "Es ist ein starkes Verb: stehen, stand, gestanden; bei „aufstehen“ bleibt diese Form erhalten.",
+        "Im Nebensatz bleibt das Verb zusammen: „..., weil ich früh aufstehe.“"
+      ]
+    }
+  }
+}
