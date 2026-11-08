@@ -109,6 +109,9 @@ test('English: the meanings and translations are English, the other variant’s 
     const english = { ...keyed, facets: { examples: [{ sentence: `The ${other} of the sky is ${otherWord === 'organized' ? 'gray' : 'grey'}.` }] } };
     assert.deepEqual(await failures(type, english), [`examples.${type.slice(8)}-spelling`]);
     assert.deepEqual(await failures(type, { ...keyed, facets: { examples: [{ sentence: `I like this ${other}.`, translation: `I like this ${other}.` }] } }), ['examples.english-key-untranslated']);
+    // An English key is spoken itself, never its meanings.
+    assert.deepEqual(await failures(type, { ...keyed, facets: { pronunciation: [other] } }), []);
+    assert.deepEqual(await failures(type, { ...keyed, facets: { pronunciation: ['hue', 'shade'] } }), ['pronunciation.english-key-spoken']);
     // The label is the module's.
     assert.deepEqual(await failures(type, { ...card, core: { ...card.core, contextual: '(in this context) paint', meanings: [`the ${own} of something`] }, facets: {} }), ['core.context-meaning']);
     assert.deepEqual(await failures(type, with_(card, 'pronunciation', ['in this context paint'])), ['pronunciation.no-context-label']);
