@@ -69,6 +69,47 @@ test('Chinese: the meanings and translations are in characters, and the pinyin i
   assert.deepEqual(await failures('chinese', with_(chinese, 'pinyin', [{ text: '西安', pinyin: 'Xī’ān' }])), [], 'capitals and an apostrophe');
 });
 
+// The facets of 0.16.4: Etymology, Simple translation and Grammar teacher.
+test('Chinese: Etymology names its origins in Chinese once each, Simple translation has a line per meaning, Grammar teacher a few simplified points', async () => {
+  const word = { core: { kind: 'word', language: '中文', key: '咖啡', meanings: ['一种用咖啡豆做的饮料', '咖啡豆'] }, facets: {
+    etymology: { origins: ['阿拉伯语', '土耳其语', '英语'], text: '“咖啡”是音译词，来自英语 coffee，最早可追溯到阿拉伯语。' },
+    'simple-translation': ['一种黑色的、有点苦的喝的东西', '用来做咖啡的小东西'],
+    'grammar-teacher': ['名词，量词常用“杯”：一杯咖啡。', '可以作定语：咖啡店、咖啡色。'] } };
+  assert.deepEqual(await failures('chinese', word), []);
+  const ety = value => with_(word, 'etymology', { ...word.facets.etymology, ...value });
+  assert.deepEqual(await failures('chinese', ety({ origins: ['英语', '英语'] })), ['etymology.chinese-origins'], 'named twice');
+  assert.deepEqual(await failures('chinese', ety({ origins: ['English'] })), ['etymology.chinese-origins'], 'not in Chinese');
+  assert.deepEqual(await failures('chinese', ety({ origins: ['阿拉伯语 · 英语'] })), ['etymology.chinese-origins'], 'joined by the model');
+  assert.deepEqual(await failures('chinese', ety({ origins: ['源自英语'] })), ['etymology.chinese-origins'], 'the label');
+  assert.deepEqual(await failures('chinese', ety({ text: '源自：英语。' })), ['etymology.etymology-text'], 'the label in the text');
+  assert.deepEqual(await failures('chinese', ety({ text: '咖'.repeat(201) })), ['etymology.etymology-text'], 'too long');
+  assert.deepEqual(await failures('chinese', ety({ origins: ['古漢語'] })), ['etymology.simplified'], 'traditional characters');
+  assert.deepEqual(await failures('chinese', ety({ text: '日本用汉字造出「銀行」翻译 bank，后来传入中文。' })), [], 'a source form quoted in 「」');
+  assert.deepEqual(await failures('chinese', ety({ text: '日本用漢字造出銀行。' })), ['etymology.simplified'], 'unquoted');
+  assert.deepEqual(await failures('chinese', with_(word, 'simple-translation', ['一种喝的东西'])), ['simple-translation.one-line-per-meaning']);
+  assert.deepEqual(await failures('chinese', with_({ ...word, core: { ...word.core, contextual: '咖啡店' } }, 'simple-translation', ['卖咖啡的店', ...word.facets['simple-translation']])), []);
+  assert.deepEqual(await failures('chinese', with_(word, 'simple-translation', ['coffee', '小东西'])), ['simple-translation.chinese-lines']);
+  assert.deepEqual(await failures('chinese', with_(word, 'simple-translation', ['一種喝的東西', '小东西'])), ['simple-translation.chinese-lines'], 'traditional');
+  assert.deepEqual(await failures('chinese', with_(word, 'grammar-teacher', Array(6).fill('名词。'))), ['grammar-teacher.grammar-points'], 'too many');
+  assert.deepEqual(await failures('chinese', with_(word, 'grammar-teacher', ['名詞，量詞用“杯”。'])), ['grammar-teacher.grammar-points'], 'traditional');
+  const sentence = { core: { kind: 'sentence', language: '英语', key: 'The committee postponed the decision.', meanings: ['委员会推迟了这项决定。'] }, facets: { 'simple-translation': ['开会的人说：这件事以后再决定。'] } };
+  assert.deepEqual(await failures('chinese', sentence), []);
+  assert.deepEqual(await failures('chinese', with_(sentence, 'simple-translation', ['开会的人', '以后再决定'])), ['simple-translation.one-line-per-meaning']);
+  assert.deepEqual(await failures('chinese', with_(sentence, 'simple-translation', ['委员会推迟了这项决定'])), ['simple-translation.simpler-than-core'], 'the core again');
+  // Etymology's header is the module's, the origins joined by a middle dot.
+  const { formatContent } = await import('@vocabularium/domain/content');
+  assert.match(formatContent('chinese', word).facets.etymology, /^源自：阿拉伯语 · 土耳其语 · 英语\n\n/);
+});
+
+test('Chinese Grammar teacher applies only when the core names the key Chinese, by each of its names (0.16.4)', async () => {
+  const { appliesTo } = await import('@vocabularium/domain/parents');
+  for (const language of ['中文', '汉语', '普通话', ' 中文 ']) for (const kind of ['word', 'sentence'])
+    assert.ok(appliesTo('chinese', 'grammar-teacher', { kind, language, key: '把', meanings: ['x'] }), `${language} ${kind}`);
+  for (const language of ['英语', '日语', '粤语', '', undefined])
+    assert.ok(!appliesTo('chinese', 'grammar-teacher', { kind: 'word', language, key: 'x', meanings: ['x'] }), String(language));
+  assert.ok(!appliesTo('chinese', 'etymology', { kind: 'sentence', language: '中文', key: '我把书放好了。', meanings: ['x'] }), 'Etymology is for words');
+});
+
 test('Expertise: a formula names symbols, never numbers or relations; a code example is Python that parses', async () => {
   const formula = symbols => ({ core: { relevance: 'subject', hasFormula: 'yes' }, facets: { formula: { latex: 'ax^2 + bx + c = 0', symbols } } });
   assert.deepEqual(await failures('mathematics', formula([{ symbol: 'a', meaning: 'the coefficient' }, { symbol: '\\cdot', meaning: 'the group operation' }])), []);

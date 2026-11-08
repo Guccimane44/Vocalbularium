@@ -115,7 +115,9 @@ async function main() {
     const criteria = await rubricOf(first);
     for (const result of run.results.filter((/** @type {any} */ each) => each.parent === first)) {
       if (!result.json?.core) { results.push({ module: first, key: result.key, verdict: 'fail', checks: [], scores: [], error: result.error ?? 'no card' }); continue; }
-      results.push({ module: first, key: result.key, ...await judgeSafely(provider, first, criteria, { selection: result.key, context: result.context, language: run.language, card: result.json }) });
+      // Only the facets the card shows: one its flags rule out was dropped and never reaches the user (D17).
+      const card = { ...result.json, facets: Object.fromEntries(Object.entries(result.json.facets ?? {}).filter(([facet]) => !result.facets || result.facets.includes(facet))) };
+      results.push({ module: first, key: result.key, ...await judgeSafely(provider, first, criteria, { selection: result.key, context: result.context, language: run.language, card }) });
     }
   }
   const stamp = `${date.replace(/[:.]/g, '-')}${first === '--calibrate' ? '-calibration' : `-${first}`}`;

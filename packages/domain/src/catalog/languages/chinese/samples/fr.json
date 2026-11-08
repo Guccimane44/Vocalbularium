@@ -4,25 +4,36 @@
       "kind": "word",
       "language": "法语",
       "key": "langue",
+      "contextual": "语言",
       "meanings": [
-        "语言"
+        "舌头"
       ]
     },
     "facets": {
       "examples": [
         {
-          "sentence": "Chaque été, elle apprend une nouvelle langue.",
-          "translation": "每年夏天，她学习一门新语言。"
+          "sentence": "Le médecin lui a demandé de tirer la langue.",
+          "translation": "医生让他把舌头伸出来。"
         }
       ],
       "pinyin": [
         {
-          "text": "语言",
-          "pinyin": "yǔyán"
+          "text": "舌头",
+          "pinyin": "shétou"
         }
       ],
       "pronunciation": [
-        "语言"
+        "舌头"
+      ],
+      "etymology": {
+        "origins": [
+          "古汉语"
+        ],
+        "text": "「语」本指谈论、说话，「言」指说出的话。二字连用，表示人们所说的话，古汉语中已有这个词。"
+      },
+      "simple-translation": [
+        "人说的话，像汉语、英语",
+        "口里能动的部分，用来吃东西和说话"
       ]
     }
   },
@@ -32,24 +43,27 @@
       "language": "法语",
       "key": "Les langues sont les ponts qui relient les gens et le monde.",
       "meanings": [
-        "语言是连接人们与世界的桥梁。"
+        "语言是连接人与世界的桥梁。"
       ]
     },
     "facets": {
       "examples": [
         {
-          "sentence": "Les livres sont les fenêtres qui ouvrent sur le monde.",
-          "translation": "书籍是通向世界的窗户。"
+          "sentence": "Les livres sont les fenêtres qui ouvrent l’esprit et le monde.",
+          "translation": "书籍是打开心灵与世界的窗户。"
         }
       ],
       "pinyin": [
         {
-          "text": "语言是连接人们与世界的桥梁。",
-          "pinyin": "yǔyán shì liánjiē rénmen yǔ shìjiè de qiáoliáng"
+          "text": "语言是连接人与世界的桥梁。",
+          "pinyin": "yǔyán shì liánjiē rén yǔ shìjiè de qiáoliáng"
         }
       ],
       "pronunciation": [
-        "语言是连接人们与世界的桥梁。"
+        "语言是连接人与世界的桥梁。"
+      ],
+      "simple-translation": [
+        "说话，就像把人和世界放在一起的东西。"
       ]
     }
   }
