@@ -95,6 +95,7 @@ test('Chinese: Etymology names its origins in Chinese once each, Simple translat
   const sentence = { core: { kind: 'sentence', language: '英语', key: 'The committee postponed the decision.', meanings: ['委员会推迟了这项决定。'] }, facets: { 'simple-translation': ['开会的人说：这件事以后再决定。'] } };
   assert.deepEqual(await failures('chinese', sentence), []);
   assert.deepEqual(await failures('chinese', with_(sentence, 'simple-translation', ['开会的人', '以后再决定'])), ['simple-translation.one-line-per-meaning']);
+  assert.deepEqual(await failures('chinese', with_(sentence, 'simple-translation', ['委员会推迟了这项决定'])), ['simple-translation.simpler-than-core'], 'the core again');
   // Etymology's header is the module's, the origins joined by a middle dot.
   const { formatContent } = await import('@vocabularium/domain/content');
   assert.match(formatContent('chinese', word).facets.etymology, /^源自：阿拉伯语 · 土耳其语 · 英语\n\n/);

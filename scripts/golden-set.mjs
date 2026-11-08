@@ -74,8 +74,10 @@ for (const { types, inputs } of sets) for (const input of inputs) for (let sampl
       const content = await generateComponent({ mainKey: input.key, module, onMismatch: ({ facet }) => mismatches.push(facet),
         generate: async request => (raw = await steady(() => provider.generate({ ...request, context: input.context, language, sessionId }))) });
       const flags = { ...flagsOf(content.header), ...(content.header.kind === 'word' || content.header.kind === 'sentence' ? { contextual: Boolean(raw?.core?.contextual) } : {}) };
-      // The catalog's content checks on the card as the model wrote it (0.16.0).
-      const { failures: checks, skipped } = await checkCard(type, raw, checkTools);
+      // The catalog's content checks on the card as the model wrote it (0.16.0), its
+      // dropped facets aside: a facet its flags rule out never reaches the user (D17).
+      const shown = filledFacets(type, content);
+      const { failures: checks, skipped } = await checkCard(type, { ...raw, facets: Object.fromEntries(Object.entries(raw.facets ?? {}).filter(([facet]) => shown.includes(facet))) }, checkTools);
       evidence.results.push({ ...input, sample, parent: type, flags, unexpected: unexpected(type, flags, input.expect, input.context, filledFacets(type, content)), mismatches, checks, skipped, json: raw, content, facets: filledFacets(type, content) });
     } catch (error) {
       evidence.results.push({ ...input, sample, parent: type, error: error.message, ...(raw ? { content: raw } : {}) });

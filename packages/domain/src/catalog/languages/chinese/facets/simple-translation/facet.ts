@@ -18,6 +18,14 @@ export default defineFacet({
       return lines.length === expected ? null : `${lines.length} lines for ${expected} ${core.kind === 'sentence' ? 'sentence' : 'meanings'}`;
     }
   }, {
+    id: 'simpler-than-core', description: "No line repeats the core's own wording of its meaning.",
+    test: (lines, { core }) => {
+      const meanings = [...(typeof core.contextual === 'string' ? [core.contextual] : []), ...(Array.isArray(core.meanings) ? core.meanings.map(String) : [])];
+      const plain = (text: string) => text.replace(/[\s\p{P}]/gu, '');
+      const same = lines.find((line, at) => meanings[at] !== undefined && plain(line) === plain(meanings[at]!));
+      return same ? `"${same}" repeats the core` : null;
+    }
+  }, {
     id: 'chinese-lines', description: 'Every line is written in Chinese characters, in simplified characters, without the label of a meaning in this Context.',
     test: lines => lines.map(line => !hasScript(line, 'han') ? `"${line}" has no Chinese characters`
       : traditionalIn(line) ? `"${line}" has traditional characters: ${traditionalIn(line)}`
