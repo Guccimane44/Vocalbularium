@@ -209,3 +209,18 @@ test('a facet moves among its card’s facets, once per operation, and generatio
   assert.deepEqual((await store.attempt(attemptIds[0])).module.facets, ['article', 'examples', 'synonyms']);
   assert.deepEqual(component(await store.page(pageId), 'german').facets, ['examples', 'synonyms', 'article'], 'Retry keeps the card’s order');
 });
+
+// The facet window's cap (0.16.4): a parent holding MAX_FACETS facets has the
+// rest disabled, and the contract refuses a thirteenth.
+test('a parent holds at most twelve facets: the window stops at the contract’s limit', async () => {
+  const { facetsFull, MAX_FACETS } = await import('../extension/facet-limit.ts');
+  const { FacetListSchema } = await import('@vocabularium/contracts');
+  const { default: Value } = await import('typebox/value');
+  assert.equal(MAX_FACETS, 12);
+  assert.equal(facetsFull(11), false, 'an eleventh leaves room for a twelfth');
+  assert.equal(facetsFull(12), true, 'the twelfth fills the card');
+  assert.equal(facetsFull(3, 3), true, 'at any limit');
+  const names = Array.from({ length: 13 }, (_, index) => `facet-${index}`);
+  assert.equal(Value.Check(FacetListSchema, names.slice(0, 12)), true);
+  assert.equal(Value.Check(FacetListSchema, names), false, 'a thirteenth is refused');
+});

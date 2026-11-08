@@ -11,5 +11,8 @@
   "case.label": "支配格",
   "core.word_phrase": "释义",
   "core.sentence": "翻译",
-  "pronunciation.label": "发音"
+  "pronunciation.label": "发音",
+  "etymology.label": "词源",
+  "simple-translation.label": "简明翻译",
+  "grammar-teacher.label": "语法老师"
 }

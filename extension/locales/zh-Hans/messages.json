@@ -31,6 +31,7 @@
   "card.facetsHint": "添加的子项会在下次“重试”时填充。",
   "card.facetsOn": "在此卡片上",
   "card.facetsAdd": "添加",
+  "card.facetsFull": "一张卡片最多有 {count} 个子项。移除一个才能添加另一个。",
   "card.facet": "子项",
   "card.fold": "折叠",
   "card.unfold": "展开",

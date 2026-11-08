@@ -11,5 +11,8 @@
   "case.label": "الحالة الإعرابية",
   "core.word_phrase": "المعاني",
   "core.sentence": "الترجمة",
-  "pronunciation.label": "النطق"
+  "pronunciation.label": "النطق",
+  "etymology.label": "أصل الكلمة",
+  "simple-translation.label": "ترجمة مبسطة",
+  "grammar-teacher.label": "معلم القواعد"
 }

@@ -16,8 +16,8 @@
       },
       "examples": [
         {
-          "sentence": "English is a global language.",
-          "translation": "Englisch ist eine Weltsprache."
+          "sentence": "English is a Germanic language.",
+          "translation": "Englisch ist eine germanische Sprache."
         }
       ],
       "declension": {
@@ -58,6 +58,15 @@
       },
       "pronunciation": [
         "die Sprache"
+      ],
+      "etymology": {
+        "origins": [
+          "Althochdeutsch"
+        ],
+        "text": "Aus althochdeutsch sprāhha „Rede, Sprache“, einer Ableitung von sprechen. Die Bedeutung „System der Verständigung“ hat sich aus der Bedeutung „Rede“ entwickelt."
+      },
+      "simple-translation": [
+        "die Sprache, die Menschen sprechen, wie Deutsch oder Englisch"
       ]
     }
   },
@@ -73,12 +82,15 @@
     "facets": {
       "examples": [
         {
-          "sentence": "Stories are the threads connecting generations and cultures.",
-          "translation": "Geschichten sind die Fäden, die Generationen und Kulturen verbinden."
+          "sentence": "Books are the windows opening minds and cultures.",
+          "translation": "Bücher sind die Fenster, die Köpfe und Kulturen öffnen."
         }
       ],
       "pronunciation": [
-        "Sprachen sind die Brücken, die Menschen und die Welt verbinden."
+        "Sprachen sind die Brücken die Menschen und die Welt verbinden"
+      ],
+      "simple-translation": [
+        "Sprachen helfen den Menschen, mit anderen Menschen und mit der ganzen Welt in Kontakt zu kommen."
       ]
     }
   }

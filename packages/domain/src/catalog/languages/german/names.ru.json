@@ -11,5 +11,8 @@
   "case.label": "Падеж",
   "core.word_phrase": "Значения",
   "core.sentence": "Перевод",
-  "pronunciation.label": "Произношение"
+  "pronunciation.label": "Произношение",
+  "etymology.label": "Этимология",
+  "simple-translation.label": "Простой перевод",
+  "grammar-teacher.label": "Учитель грамматики"
 }

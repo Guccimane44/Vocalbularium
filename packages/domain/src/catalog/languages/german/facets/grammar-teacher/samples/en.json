@@ -1,0 +1,22 @@
+{
+  "word_phrase": {
+    "core": {
+      "kind": "word",
+      "language": "Deutsch",
+      "key": "aufstehen",
+      "gramRole": "verb",
+      "meanings": [
+        "sich aus dem Bett erheben",
+        "sich von einem Platz erheben und stehen",
+        "geöffnet sein, besonders von Türen oder Fenstern"
+      ]
+    },
+    "facets": {
+      "grammar-teacher": [
+        "Trennbares Verb: Im Hauptsatz steht „auf“ am Satzende: Ich stehe um sieben Uhr auf.",
+        "Das Perfekt wird mit „sein“ gebildet: Ich bin früh aufgestanden.",
+        "Die Präteritumform ist „stand auf“, das Partizip II lautet „aufgestanden“."
+      ]
+    }
+  }
+}
