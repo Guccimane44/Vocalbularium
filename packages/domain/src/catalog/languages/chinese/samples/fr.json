@@ -12,37 +12,28 @@
     "facets": {
       "examples": [
         {
-          "sentence": "Elle parle trois langues couramment.",
-          "translation": "她能流利地说三种语言。"
-        },
-        {
           "sentence": "Le médecin lui a demandé de tirer la langue.",
-          "translation": "医生让她把舌头伸出来。"
+          "translation": "医生让他把舌头伸出来。"
         }
       ],
       "pinyin": [
-        {
-          "text": "语言",
-          "pinyin": "yǔyán"
-        },
         {
           "text": "舌头",
           "pinyin": "shétou"
         }
       ],
       "pronunciation": [
-        "语言",
         "舌头"
       ],
       "etymology": {
         "origins": [
           "古汉语"
         ],
-        "text": "这里说的是汉语词“语言”：由“语”（说话）和“言”（话语）合成，先秦文献中已连用，泛指人们所说的话，后来也指某个民族或国家使用的整套话。"
+        "text": "「语」本指谈论、说话，「言」指说出的话。二字连用，表示人们所说的话，古汉语中已有这个词。"
       },
       "simple-translation": [
-        "人说的话，比如汉语、英语",
-        "嘴里能动的那个东西，用来吃饭和说话"
+        "人说的话，像汉语、英语",
+        "口里能动的部分，用来吃东西和说话"
       ]
     }
   },
@@ -58,21 +49,21 @@
     "facets": {
       "examples": [
         {
-          "sentence": "Les mots sont des ponts entre les cœurs.",
-          "translation": "词语是心灵之间的桥梁。"
+          "sentence": "Les livres sont les fenêtres qui ouvrent l’esprit et le monde.",
+          "translation": "书籍是打开心灵与世界的窗户。"
         }
       ],
       "pinyin": [
         {
           "text": "语言是连接人与世界的桥梁。",
-          "pinyin": "Yǔyán shì liánjiē rén yǔ shìjiè de qiáoliáng."
+          "pinyin": "yǔyán shì liánjiē rén yǔ shìjiè de qiáoliáng"
         }
       ],
       "pronunciation": [
         "语言是连接人与世界的桥梁。"
       ],
       "simple-translation": [
-        "语言就像桥，把人和世界连在一起。"
+        "说话，就像把人和世界放在一起的东西。"
       ]
     }
   }

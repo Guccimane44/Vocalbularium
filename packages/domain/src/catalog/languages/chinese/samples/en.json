@@ -4,25 +4,20 @@
       "kind": "word",
       "language": "英语",
       "key": "language",
-      "contextual": "语言（英语、汉语等人们用来交流的语言）",
       "meanings": [
-        "措辞；用词方式",
-        "（计算机等的）语言；一套符号和规则"
+        "语言",
+        "措辞；表达方式"
       ]
     },
     "facets": {
       "examples": [
         {
-          "sentence": "She speaks three languages fluently.",
-          "translation": "她能流利地说三种语言。"
+          "sentence": "Chinese is a difficult language to learn.",
+          "translation": "汉语是一门难学的语言。"
         },
         {
-          "sentence": "The language of the poem is simple and direct.",
-          "translation": "这首诗的措辞简单直接。"
-        },
-        {
-          "sentence": "Python is a popular programming language.",
-          "translation": "Python 是一种很流行的编程语言。"
+          "sentence": "Please watch your language in front of the children.",
+          "translation": "在孩子面前请注意你的措辞。"
         }
       ],
       "pinyin": [
@@ -33,27 +28,21 @@
         {
           "text": "措辞",
           "pinyin": "cuòcí"
-        },
-        {
-          "text": "计算机语言",
-          "pinyin": "jìsuànjī yǔyán"
         }
       ],
       "pronunciation": [
         "语言",
-        "措辞",
-        "计算机语言"
+        "措辞"
       ],
       "etymology": {
         "origins": [
           "古汉语"
         ],
-        "text": "这里说的是汉语词“语言”。“语”和“言”在古汉语里都指说话、谈论，后来两个字合成一个词，指人们交流用的符号系统。"
+        "text": "「语言」由「语」和「言」两字组成。古汉语中「语」指说话、谈论，「言」指说出来的话，两字连用指人们所说的话，后来成为表示语言系统的常用词。"
       },
       "simple-translation": [
-        "人说的话，比如英语、汉语",
-        "说话时选用的词",
-        "电脑用的语言"
+        "人们说的话",
+        "说话的方法"
       ]
     }
   },
@@ -69,8 +58,8 @@
     "facets": {
       "examples": [
         {
-          "sentence": "Books are the bridges connecting children and the world.",
-          "translation": "书是连接孩子和世界的桥梁。"
+          "sentence": "Books are the bridges connecting the past and the present.",
+          "translation": "书是连接过去和现在的桥梁。"
         }
       ],
       "pinyin": [
@@ -83,7 +72,7 @@
         "语言是连接人与世界的桥梁。"
       ],
       "simple-translation": [
-        "语言像桥，把人和世界连在一起。"
+        "语言像桥一样，把人和世界连在一起。"
       ]
     }
   }
