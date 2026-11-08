@@ -1,0 +1,6 @@
+{
+  "label": "笑话",
+  "description": "用主词条的语言，讲一个关于它的简短笑话。",
+  "core.word_phrase": "笑话",
+  "core.sentence": "笑话"
+}

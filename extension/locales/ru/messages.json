@@ -348,6 +348,7 @@
   "catalog.family.notes": "Заметки",
   "catalog.family.translation": "Языки",
   "catalog.family.expertise": "Предметные области",
+  "catalog.family.creativity": "Творчество",
   "audio.play": "Воспроизвести «{text}»",
   "audio.pause": "Приостановить «{text}»",
   "audio.generating": "Создаётся аудио…",

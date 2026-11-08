@@ -1,0 +1,26 @@
+{
+  "word_phrase": {
+    "core": {
+      "language": "fr",
+      "key": "langue",
+      "haiku": [
+        "traducteur du téléphone",
+        "le vieil homme et moi",
+        "on rit de la même erreur"
+      ]
+    },
+    "facets": {}
+  },
+  "sentence": {
+    "core": {
+      "language": "fr",
+      "key": "Les langues sont les ponts qui relient les gens et le monde.",
+      "haiku": [
+        "bus de nuit",
+        "deux inconnus, une carte",
+        "en deux langues"
+      ]
+    },
+    "facets": {}
+  }
+}

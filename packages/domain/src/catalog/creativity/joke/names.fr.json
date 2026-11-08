@@ -1,0 +1,6 @@
+{
+  "label": "Blague",
+  "description": "Raconte une courte blague sur la clé principale, dans sa langue.",
+  "core.word_phrase": "Blague",
+  "core.sentence": "Blague"
+}

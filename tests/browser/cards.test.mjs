@@ -154,3 +154,46 @@ test('0.12.0: a Formula renders with KaTeX, a broken one shows its LaTeX, and a 
   await formula.locator('pre.md-math-source').waitFor();
   assert.equal(await formula.locator('pre.md-math-source').textContent(), '\\frac{1}{');
 });
+
+test('0.16.4: a Creativity card, indigo with a sparkle, shows its haiku a line each in its key’s language, under a top line naming that language (D30)', { timeout: 60000 }, async (t) => {
+  const directory = await mkdtemp(join(tmpdir(), 'vocabularium-creativity-browser-'));
+  const application = await createTestApplication(t); await application.start();
+  const a = await launch(join(directory, 'a'));
+  t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
+  await a.page.setViewportSize({ width: 1280, height: 1200 });
+  const store = application.store;
+  const session = { installationId: 'fixture', sessionId: 'creativity', epoch: 1 };
+  await store.openSession('creativity-session', session);
+  const { pageId } = await store.createPage('creativity-page', { deckId: (await store.snapshot()).id, mainKey: 'Herbst' });
+  await signIn(a.page);
+  await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
+  await a.page.getByRole('heading', { name: 'Herbst', exact: true }).first().waitFor();
+
+  // The module window groups the two Haiku and Joke under Creativity, with its sparkle.
+  const window = a.page.locator('.module-window');
+  const creativity = window.locator('details').filter({ has: a.page.locator('summary', { hasText: 'Creativity' }) });
+  await creativity.locator('summary').click();
+  assert.deepEqual(await creativity.locator('.window-module').evaluateAll(nodes => nodes.map(node => node.dataset.type)), ['traditional-haiku', 'modern-haiku', 'joke']);
+  assert.deepEqual(await creativity.locator('summary .fam-icon path').evaluateAll(paths => paths.map(path => path.getAttribute('d'))),
+    ['M12 3.5l1.9 5.6 5.6 1.9-5.6 1.9L12 18.5l-1.9-5.6-5.6-1.9 5.6-1.9z', 'M19 15.5v5', 'M16.5 18h5'], 'the sparkle');
+  await a.page.getByRole('button', { name: 'Add Traditional Haiku at the end', exact: true }).click();
+  const card = componentArticle(a.page, 'Traditional Haiku');
+  await card.waitFor();
+  assert.match(await card.getAttribute('class'), /fam-creativity/);
+
+  // Generated: the key's language named in the interface language, the key, and the haiku a line each.
+  const component = (await store.page(pageId)).components.find(item => item.moduleType === 'traditional-haiku');
+  const { attemptIds: [attemptId] } = await store.generate('creativity-generate', { pageId, target: { scope: 'component', componentId: component.id }, session });
+  const haiku = ['Herbstwind am Tor —', 'ein Blatt bleibt auf der Schwelle', 'kalter Regen fällt'];
+  await store.stage(attemptId, staged(formatContent('traditional-haiku', { core: { language: 'de', key: 'Herbst', haiku }, facets: {} })));
+  await store.publish('creativity-publish', { attemptId, session });
+  await a.page.reload();
+  await card.locator('.entry-core').waitFor();
+  assert.equal(await card.locator('.entry-heading .entry-key').textContent(), 'Herbst');
+  assert.equal(await card.locator('.entry-heading .entry-language').textContent(), 'German');
+  assert.equal(await card.locator('.entry-core p').count(), 1, 'one paragraph');
+  assert.equal(await card.locator('.entry-core p').innerText(), haiku.join('\n'), 'a line each');
+  assert.equal(await card.locator('.entry-core').evaluate(node => getComputedStyle(node).fontStyle), 'italic', 'read as a poem');
+  const colours = await card.locator('.card-tab').first().evaluate(node => [getComputedStyle(node).backgroundColor, getComputedStyle(node).color]);
+  assert.deepEqual(colours, ['rgb(64, 72, 168)', 'rgb(255, 255, 255)'], 'indigo with a white label in the light theme');
+});

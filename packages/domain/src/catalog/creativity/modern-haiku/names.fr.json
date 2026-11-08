@@ -1,0 +1,6 @@
+{
+  "label": "Haïku moderne",
+  "description": "Écrit un haïku moderne et libre sur la clé principale, dans sa langue.",
+  "core.word_phrase": "Haïku",
+  "core.sentence": "Haïku"
+}

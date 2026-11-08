@@ -108,13 +108,14 @@ export type ParentDraft = Readonly<{ core: string; facets: ParentFacetTexts }>;
 // The content an empty parent is edited from (D10, amended a fourth time): a
 // top line of the page's main key, and nothing else. A Languages card reads it
 // as a word with the language blank until a Retry writes its own reading (D17);
-// an Expertise card shows the key, and a Pronunciation card the key with no
-// language until a Retry reads it (D24).
+// an Expertise card shows the key, and a Pronunciation or Creativity card the
+// key with no language until a Retry reads it (D24, D30).
 export function blankContent(mainKey: string, parent?: ParentType): ParentContent {
   const key = mainKey.trim();
   const family = parent ? familyOf(parent) : null;
   const header: ParentHeader = family === 'expertise' ? { kind: 'expertise', key, relevance: 'subject' }
-    : family === 'sound' ? { kind: 'pronunciation', language: '', key } : { kind: 'word', language: '', key };
+    : family === 'sound' ? { kind: 'pronunciation', language: '', key }
+      : family === 'creativity' ? { kind: 'creativity', language: '', key } : { kind: 'word', language: '', key };
   return { header, core: '', facets: {} };
 }
 
