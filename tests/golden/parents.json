@@ -73,11 +73,16 @@
     },
     {
       "key": "run",
-      "why": "English verb: no Article",
+      "why": "English verb: no Article; not Chinese, so no Chinese Grammar teacher (0.16.4)",
       "expect": {
         "kind": "word",
         "gramRole": {
           "german": "verb"
+        },
+        "facets": {
+          "chinese": {
+            "grammar-teacher": false
+          }
         }
       }
     },
@@ -120,11 +125,16 @@
     },
     {
       "key": "打算",
-      "why": "Chinese verb",
+      "why": "Chinese verb; Chinese, so Chinese Grammar teacher (0.16.4)",
       "expect": {
         "kind": "word",
         "gramRole": {
           "german": "verb"
+        },
+        "facets": {
+          "chinese": {
+            "grammar-teacher": true
+          }
         }
       }
     },
@@ -224,9 +234,14 @@
     },
     {
       "key": "We sat on the bank and watched the river.",
-      "why": "English sentence",
+      "why": "English sentence; not Chinese, so no Chinese Grammar teacher (0.16.4)",
       "expect": {
-        "kind": "sentence"
+        "kind": "sentence",
+        "facets": {
+          "chinese": {
+            "grammar-teacher": false
+          }
+        }
       }
     },
     {
@@ -238,9 +253,14 @@
     },
     {
       "key": "我真的很幸福",
-      "why": "Chinese sentence in the Chinese parent: explained in Chinese",
+      "why": "Chinese sentence in the Chinese parent: explained in Chinese; Chinese, so Chinese Grammar teacher (0.16.4)",
       "expect": {
-        "kind": "sentence"
+        "kind": "sentence",
+        "facets": {
+          "chinese": {
+            "grammar-teacher": true
+          }
+        }
       }
     },
     {
@@ -355,6 +375,87 @@
       }
     },
     {
+      "key": "把",
+      "why": "Chinese word with much to teach: Grammar teacher on the 把 sentence and 把 as a measure word; Etymology of its characters (0.16.4)",
+      "expect": {
+        "kind": "word",
+        "facets": {
+          "chinese": {
+            "grammar-teacher": true
+          }
+        }
+      }
+    },
+    {
+      "key": "咖啡",
+      "why": "Chinese loanword: Etymology names the language it came from; Grammar teacher on its measure word (0.16.4)",
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        },
+        "facets": {
+          "chinese": {
+            "grammar-teacher": true
+          }
+        }
+      }
+    },
+    {
+      "key": "经济",
+      "why": "Chinese word borrowed back from Japanese: a less known Etymology (0.16.4)",
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        },
+        "facets": {
+          "chinese": {
+            "grammar-teacher": true
+          }
+        }
+      }
+    },
+    {
+      "key": "tea",
+      "why": "English noun: Etymology of the Chinese word 茶, not of tea; no Chinese Grammar teacher (0.16.4)",
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        },
+        "facets": {
+          "chinese": {
+            "grammar-teacher": false
+          }
+        }
+      }
+    },
+    {
+      "key": "The committee postponed the decision indefinitely.",
+      "why": "English sentence with hard words: Simple translation in easy words; no Chinese Grammar teacher (0.16.4)",
+      "expect": {
+        "kind": "sentence",
+        "facets": {
+          "chinese": {
+            "grammar-teacher": false
+          }
+        }
+      }
+    },
+    {
+      "key": "我把书放在桌子上了。",
+      "why": "Chinese sentence: Simple translation explains it simply; Grammar teacher on 把, the result complement and 了 (0.16.4)",
+      "expect": {
+        "kind": "sentence",
+        "facets": {
+          "chinese": {
+            "grammar-teacher": true
+          }
+        }
+      }
+    },
+    {
       "key": "window",
       "why": "English noun, a foreign key: Etymology describes Fenster (Latin fenestra, well known); Grammar teacher left out (0.16.4)",
       "expect": {
@@ -382,13 +483,6 @@
         "gramRole": {
           "german": "noun"
         }
-      }
-    },
-    {
-      "key": "The committee postponed the decision indefinitely.",
-      "why": "English sentence of formal words: Simple translation says it in A2 German (0.16.4)",
-      "expect": {
-        "kind": "sentence"
       }
     },
     {

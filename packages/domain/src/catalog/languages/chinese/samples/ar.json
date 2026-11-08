@@ -5,25 +5,56 @@
       "language": "阿拉伯语",
       "key": "لغة",
       "romanization": "lugha",
+      "contextual": "语言",
       "meanings": [
-        "语言"
+        "方言",
+        "术语；专门用语"
       ]
     },
     "facets": {
       "examples": [
         {
-          "sentence": "هذه لغة صعبة.",
-          "translation": "这是一门难学的语言。"
+          "sentence": "أَتَعَلَّمُ اللُّغَةَ العَرَبِيَّةَ في المَدْرَسَةِ.",
+          "translation": "我在学校学阿拉伯语。"
+        },
+        {
+          "sentence": "لِكُلِّ مَنْطِقَةٍ لُغَةٌ خاصَّةٌ.",
+          "translation": "每个地区都有自己的一种方言。"
+        },
+        {
+          "sentence": "يَسْتَخْدِمُ الأَطِبَّاءُ لُغَةً خاصَّةً.",
+          "translation": "医生们使用专门的术语。"
         }
       ],
       "pinyin": [
         {
           "text": "语言",
           "pinyin": "yǔyán"
+        },
+        {
+          "text": "方言",
+          "pinyin": "fāngyán"
+        },
+        {
+          "text": "术语",
+          "pinyin": "shùyǔ"
         }
       ],
       "pronunciation": [
-        "语言"
+        "语言",
+        "方言",
+        "术语"
+      ],
+      "etymology": {
+        "origins": [
+          "古汉语"
+        ],
+        "text": "这里说的是中文词「语言」。「语」和「言」在古汉语里都指说话、言辞，后来连成一个词，指人们交流用的声音和符号系统。"
+      },
+      "simple-translation": [
+        "说话用的东西",
+        "一个地方的人说的话",
+        "一种工作里常用的话"
       ]
     }
   },
@@ -32,26 +63,29 @@
       "kind": "sentence",
       "language": "阿拉伯语",
       "key": "اللغات هي الجسور التي تربط الناس بالعالم.",
-      "romanization": "al-lughāt hiya al-jusūr allatī tarbiṭ al-nās bi-l-ʿālam",
+      "romanization": "al-lughāt hiya al-jusūr allatī tarbiṭu al-nās bi-al-ʿālam",
       "meanings": [
-        "语言是连接人们与世界的桥梁。"
+        "语言是连接人与世界的桥梁。"
       ]
     },
     "facets": {
       "examples": [
         {
-          "sentence": "المكتبات هي الجسور التي تربط القارئ بالمعرفة.",
-          "translation": "图书馆是连接读者与知识的桥梁。"
+          "sentence": "الصداقة هي الجسر الذي يربط القلوب.",
+          "translation": "友谊是连接心灵的桥梁。"
         }
       ],
       "pinyin": [
         {
-          "text": "语言是连接人们与世界的桥梁。",
-          "pinyin": "yǔyán shì liánjiē rénmen yǔ shìjiè de qiáoliáng"
+          "text": "语言是连接人与世界的桥梁。",
+          "pinyin": "yǔyán shì liánjiē rén yǔ shìjiè de qiáoliáng"
         }
       ],
       "pronunciation": [
-        "语言是连接人们与世界的桥梁。"
+        "语言是连接人与世界的桥梁"
+      ],
+      "simple-translation": [
+        "不同的话能把人和世界接在一起。"
       ]
     }
   }
