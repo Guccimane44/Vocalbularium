@@ -1,0 +1,26 @@
+{
+  "word_phrase": {
+    "core": {
+      "language": "en",
+      "key": "language",
+      "haiku": [
+        "phone translator",
+        "the old man and I",
+        "laughing at the same mistake"
+      ]
+    },
+    "facets": {}
+  },
+  "sentence": {
+    "core": {
+      "language": "en",
+      "key": "Languages are the bridges connecting people and the world.",
+      "haiku": [
+        "night bus",
+        "two strangers share one map",
+        "in different languages"
+      ]
+    },
+    "facets": {}
+  }
+}

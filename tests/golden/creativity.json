@@ -1,0 +1,18 @@
+{
+  "note": "Golden set for the Creativity family (D30, C8): each input through Traditional Haiku, Modern Haiku and Joke. The language flag is checked automatically, the form by the content checks (three lines; 5-7-5 characters in Chinese and morae in Japanese), the rest by the calibrated judge against each module's rubric.",
+  "family": "creativity",
+  "inputs": [
+    { "key": "autumn", "why": "English word with a season of its own", "expect": { "language": "en" } },
+    { "key": "bank", "context": "We had a picnic on the bank of the river.", "why": "English word whose Context picks the river sense, not money", "expect": { "language": "en" } },
+    { "key": "The train was late again this morning.", "why": "English sentence: the card is built on what it says", "expect": { "language": "en" } },
+    { "key": "Schmetterling", "why": "German noun", "expect": { "language": "de" } },
+    { "key": "Feierabend", "why": "German word with no one-word English equivalent", "expect": { "language": "de" } },
+    { "key": "Ich habe meinen Schlüssel vergessen.", "why": "German sentence", "expect": { "language": "de" } },
+    { "key": "月亮", "why": "Chinese word: a 汉俳 of 5-7-5 characters", "expect": { "language": "zh" } },
+    { "key": "地铁", "why": "Chinese word of today's life", "expect": { "language": "zh" } },
+    { "key": "桜", "why": "Japanese kanji form (Chinese writes 樱): 5-7-5 morae, counted on the kana reading", "expect": { "language": "ja" } },
+    { "key": "おにぎり", "why": "Japanese word in kana", "expect": { "language": "ja" } },
+    { "key": "café", "context": "On se retrouve au café ce soir ?", "why": "Spelling fits French, Spanish and others: the French Context decides", "expect": { "language": "fr" } },
+    { "key": "дождь", "why": "Russian word", "expect": { "language": "ru" } }
+  ]
+}

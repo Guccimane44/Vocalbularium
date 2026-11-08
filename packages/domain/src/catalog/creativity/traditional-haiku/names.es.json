@@ -1,0 +1,6 @@
+{
+  "label": "Haiku tradicional",
+  "description": "Escribe un haiku clásico sobre la clave principal en su idioma.",
+  "core.word_phrase": "Haiku",
+  "core.sentence": "Haiku"
+}

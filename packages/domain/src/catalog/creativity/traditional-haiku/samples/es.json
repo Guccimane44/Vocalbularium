@@ -1,0 +1,26 @@
+{
+  "word_phrase": {
+    "core": {
+      "language": "es",
+      "key": "idioma",
+      "haiku": [
+        "lluvia de marzo —",
+        "palabras de la abuela",
+        "que ya no hablo"
+      ]
+    },
+    "facets": {}
+  },
+  "sentence": {
+    "core": {
+      "language": "es",
+      "key": "Los idiomas son los puentes que conectan a las personas con el mundo.",
+      "haiku": [
+        "niebla en el río —",
+        "dos extraños en el puente",
+        "se dicen hola"
+      ]
+    },
+    "facets": {}
+  }
+}

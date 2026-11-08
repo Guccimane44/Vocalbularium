@@ -12,10 +12,10 @@ const TARGET = resolve('extension/theme.css');
 // theme. Its selectors repeat each theme block's, so coming last they win.
 const FORCED = {
   Canvas: ['ground', 'sidebar', 'surface', 'surface-hover', 'surface-active', 'highlight', 'highlight-green', 'highlight-blue', 'highlight-pink', 'highlight-orange', 'status-failed-bg',
-    'fam-translation-tint', 'fam-expertise-tint', 'fam-meaning-tint', 'fam-usage-tint', 'fam-roots-tint', 'fam-connections-tint', 'fam-sound-tint', 'fam-notes-tint'],
+    'fam-translation-tint', 'fam-expertise-tint', 'fam-creativity-tint', 'fam-meaning-tint', 'fam-usage-tint', 'fam-roots-tint', 'fam-connections-tint', 'fam-sound-tint', 'fam-notes-tint'],
   CanvasText: ['ink', 'ink-soft', 'ink-muted', 'line', 'mark', 'status-busy', 'status-failed',
-    'fam-translation', 'fam-expertise', 'fam-meaning', 'fam-usage', 'fam-roots', 'fam-connections', 'fam-sound', 'fam-notes'],
-  ButtonText: ['line-control', 'on-ink', 'on-fam-translation', 'on-fam-expertise', 'on-fam-meaning', 'on-fam-usage', 'on-fam-roots', 'on-fam-connections', 'on-fam-sound', 'on-fam-notes'],
+    'fam-translation', 'fam-expertise', 'fam-creativity', 'fam-meaning', 'fam-usage', 'fam-roots', 'fam-connections', 'fam-sound', 'fam-notes'],
+  ButtonText: ['line-control', 'on-ink', 'on-fam-translation', 'on-fam-expertise', 'on-fam-creativity', 'on-fam-meaning', 'on-fam-usage', 'on-fam-roots', 'on-fam-connections', 'on-fam-sound', 'on-fam-notes'],
   Highlight: ['focus']
 };
 

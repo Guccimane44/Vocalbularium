@@ -348,6 +348,7 @@
   "catalog.family.notes": "笔记",
   "catalog.family.translation": "语言",
   "catalog.family.expertise": "专业领域",
+  "catalog.family.creativity": "创意",
   "audio.play": "播放“{text}”",
   "audio.pause": "暂停“{text}”",
   "audio.generating": "正在生成音频…",

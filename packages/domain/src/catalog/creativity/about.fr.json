@@ -1,0 +1,17 @@
+{
+  "summary": "Des modules qui écrivent quelque chose de neuf à partir de votre clé : un poème ou une blague, dans la langue même de la clé.",
+  "steps": [
+    {
+      "title": "Reconnaît la langue de votre clé",
+      "text": "D'après son orthographe, ses mots et son écriture, et d'après le contexte quand une graphie convient à plusieurs langues."
+    },
+    {
+      "title": "Écrit dans cette langue",
+      "text": "Un haïku ou une blague comme l'écrirait un locuteur natif, bâti sur votre clé, jamais une traduction."
+    },
+    {
+      "title": "Nouveau à chaque fois",
+      "text": "Chaque carte et chaque nouvel essai en écrivent un nouveau ; rien n'est repris d'une tentative précédente."
+    }
+  ]
+}

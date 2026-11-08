@@ -1,0 +1,26 @@
+{
+  "word_phrase": {
+    "core": {
+      "language": "fr",
+      "key": "langue",
+      "haiku": [
+        "averse de mars —",
+        "les mots de ma grand-mère",
+        "langue que j'oublie"
+      ]
+    },
+    "facets": {}
+  },
+  "sentence": {
+    "core": {
+      "language": "fr",
+      "key": "Les langues sont les ponts qui relient les gens et le monde.",
+      "haiku": [
+        "brume sur le fleuve —",
+        "deux inconnus sur le pont",
+        "un bonjour s'échange"
+      ]
+    },
+    "facets": {}
+  }
+}
