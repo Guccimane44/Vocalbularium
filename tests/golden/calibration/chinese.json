@@ -1063,7 +1063,7 @@
    "key": "经济",
    "language": "en",
    "expected": "fail",
-   "why": "Seeded fault: the simple translation is no simpler than the core: it keeps 宏观, 国民经济 and 资源配置, words far above HSK 3.",
+   "why": "Seeded fault: the simple translation is no simpler than the core: it keeps 宏观, 国民经济 and 资源配置, words no beginner knows.",
    "card": {
     "core": {
      "kind": "word",

@@ -89,9 +89,7 @@ test('Chinese: Etymology names its origins in Chinese once each, Simple translat
   assert.deepEqual(await failures('chinese', with_(word, 'simple-translation', ['一种喝的东西'])), ['simple-translation.one-line-per-meaning']);
   assert.deepEqual(await failures('chinese', with_({ ...word, core: { ...word.core, contextual: '咖啡店' } }, 'simple-translation', ['卖咖啡的店', ...word.facets['simple-translation']])), []);
   assert.deepEqual(await failures('chinese', with_(word, 'simple-translation', ['coffee', '小东西'])), ['simple-translation.chinese-lines']);
-  assert.deepEqual(await failures('chinese', with_(word, 'simple-translation', ['一種喝的東西', '小东西'])), ['simple-translation.hsk-1-3', 'simple-translation.chinese-lines'], 'traditional, so also outside HSK');
-  assert.deepEqual(await failures('chinese', with_(word, 'simple-translation', ['一种饮料', '用来做咖啡的小东西'])), ['simple-translation.hsk-1-3'], '饮料 is above HSK 3');
-  assert.deepEqual(await failures('chinese', with_(word, 'simple-translation', ['“星巴克”卖的一种喝的东西', '用来做咖啡的小东西'])), [], 'a quoted name');
+  assert.deepEqual(await failures('chinese', with_(word, 'simple-translation', ['一種喝的東西', '小东西'])), ['simple-translation.chinese-lines'], 'traditional');
   assert.deepEqual(await failures('chinese', with_(word, 'grammar-teacher', Array(6).fill('名词。'))), ['grammar-teacher.grammar-points'], 'too many');
   assert.deepEqual(await failures('chinese', with_(word, 'grammar-teacher', ['名詞，量詞用“杯”。'])), ['grammar-teacher.grammar-points'], 'traditional');
   const sentence = { core: { kind: 'sentence', language: '英语', key: 'The committee postponed the decision.', meanings: ['委员会推迟了这项决定。'] }, facets: { 'simple-translation': ['开会的人说：这件事以后再决定。'] } };
