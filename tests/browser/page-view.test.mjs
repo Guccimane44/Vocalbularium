@@ -137,7 +137,7 @@ test('page view: main key tiers, Show all, rendered and plain content, quiet car
   await helpText.waitFor({ state: 'hidden' });
   const families = await window.locator('details').evaluateAll(nodes => nodes.map(node => [node.querySelector('summary').textContent, node.open]));
   // Translation is called Languages since 0.8.0; Expertise, Creativity and Sound have no module on this page, so they start closed (D11, D24, D30).
-  assert.deepEqual(families, [['Languages2', true], ['Expertise2', false], ['Creativity3', false], ['Sound1', false], ['Notes2', true]]);
+  assert.deepEqual(families, [['Languages2', true], ['Expertise3', false], ['Creativity3', false], ['Sound1', false], ['Notes2', true]]);
   // A module on the page is not marked in the window (D13, 0.8.1), and the search no longer finds facets.
   assert.equal(await window.getByText('Already here').count(), 0);
   await window.getByLabel('Search modules', { exact: true }).fill('pinyin');
@@ -147,7 +147,7 @@ test('page view: main key tiers, Show all, rendered and plain content, quiet car
   await window.getByLabel('Search modules', { exact: true }).fill('nothing like this');
   await window.getByText('No module matches “nothing like this”.').waitFor();
   await window.getByLabel('Search modules', { exact: true }).fill('');
-  assert.equal(await window.locator('.window-module').count(), 10);
+  assert.equal(await window.locator('.window-module').count(), 11);
   await a.page.setViewportSize({ width: 390, height: 800 });
   await a.page.screenshot({ path: 'artifacts/v0.6.0-page-narrow.png', fullPage: true });
   assert.equal(await a.page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);

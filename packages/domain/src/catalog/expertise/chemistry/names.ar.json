@@ -1,0 +1,7 @@
+{
+  "label": "الكيمياء",
+  "description": "يشرح مصطلحًا أو مفهومًا كما تفهمه الكيمياء.",
+  "core.word_phrase": "الشرح",
+  "core.sentence": "الشرح",
+  "equation.label": "المعادلة"
+}

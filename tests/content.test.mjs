@@ -291,6 +291,16 @@ test('Formula and Code example apply only to a key of the subject whose core say
     { kind: 'expertise', key: 'x', relevance: 'subject', hasFormula: 'yes' }, 'the flag is kept for a facet’s own Retry');
   assert.deepEqual(formatContent('mathematics', { core: core('unrelated', { hasFormula: 'yes' }), facets: {} }).header,
     { kind: 'expertise', key: 'x', relevance: 'unrelated' }, 'and dropped outside the subject');
+  assert.deepEqual(facetsFor('chemistry', ['equation'], core('subject', { hasEquation: 'yes' })), ['equation']);
+  assert.deepEqual(facetsFor('chemistry', ['equation'], core('subject', { hasEquation: 'no' })), []);
+  assert.deepEqual(facetsFor('chemistry', ['equation'], core('neighbouring', { hasEquation: 'yes' })), [], 'never for another field’s term (D30)');
+  assert.deepEqual(formatContent('chemistry', { core: core('subject', { hasEquation: 'yes' }), facets: {} }).header,
+    { kind: 'expertise', key: 'x', relevance: 'subject', hasEquation: 'yes' }, 'Chemistry keeps its flag for Equation’s own Retry (D30)');
+  assert.deepEqual(formatContent('chemistry', { core: core('unrelated', { hasEquation: 'yes' }), facets: {} }).header,
+    { kind: 'expertise', key: 'x', relevance: 'unrelated' });
+  const equation = formatFacet('chemistry', 'equation', { latex: '\\ce{2H2 + O2 -> 2H2O}', species: [{ symbol: '\\ce{H2O}', name: 'water' }] });
+  assert.equal(equation, '$$\n\\ce{2H2 + O2 -> 2H2O}\n$$\n\n- \\(\\ce{H2O}\\) · water');
+  assert.deepEqual(parseMarkdown(equation)[0], { type: 'math', tex: '\\ce{2H2 + O2 -> 2H2O}' }, 'display math the renderer reads with mhchem');
 });
 
 test('a Languages core gives its meaning in this Context first, under the module’s label, and reads it back (D29)', () => {

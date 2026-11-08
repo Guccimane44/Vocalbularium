@@ -1,0 +1,26 @@
+{
+  "en": {
+    "word_phrase": "Neutralisation",
+    "sentence": "An acid and a base react to form a salt and water."
+  },
+  "ar": {
+    "word_phrase": "التعادل",
+    "sentence": "يتفاعل الحمض مع القاعدة فيكوّنان ملحًا وماءً."
+  },
+  "zh-Hans": {
+    "word_phrase": "中和反应",
+    "sentence": "酸和碱反应生成盐和水。"
+  },
+  "fr": {
+    "word_phrase": "Neutralisation",
+    "sentence": "Un acide et une base réagissent pour former un sel et de l’eau."
+  },
+  "ru": {
+    "word_phrase": "Нейтрализация",
+    "sentence": "Кислота и основание реагируют с образованием соли и воды."
+  },
+  "es": {
+    "word_phrase": "Neutralización",
+    "sentence": "Un ácido y una base reaccionan para formar una sal y agua."
+  }
+}

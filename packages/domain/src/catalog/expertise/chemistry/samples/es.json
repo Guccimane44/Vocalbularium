@@ -1,0 +1,48 @@
+{
+  "word_phrase": {
+    "core": {
+      "relevance": "subject",
+      "hasEquation": "yes",
+      "key": "Neutralización",
+      "explanation": [
+        "La neutralización es la reacción entre un ácido y una base que produce una sal y agua. En ella se combinan los iones hidrógeno del ácido con los iones hidróxido de la base para formar agua, y los iones restantes quedan como sal.",
+        "El ácido clorhídrico y el hidróxido de sodio dan cloruro de sodio y agua. Cuando el ácido y la base están en la proporción justa, la disolución deja de ser ácida o básica y se acerca al pH neutro; por eso se emplea en valoraciones y en antiácidos."
+      ]
+    },
+    "facets": {
+      "equation": {
+        "latex": "\\ce{HCl(aq) + NaOH(aq) -> NaCl(aq) + H2O(l)}",
+        "species": [
+          {
+            "symbol": "\\ce{HCl}",
+            "name": "ácido clorhídrico"
+          },
+          {
+            "symbol": "\\ce{NaOH}",
+            "name": "hidróxido de sodio"
+          },
+          {
+            "symbol": "\\ce{NaCl}",
+            "name": "cloruro de sodio"
+          },
+          {
+            "symbol": "\\ce{H2O}",
+            "name": "agua"
+          }
+        ]
+      }
+    }
+  },
+  "sentence": {
+    "core": {
+      "relevance": "subject",
+      "hasEquation": "no",
+      "key": "Un ácido y una base reaccionan para formar una sal y agua.",
+      "explanation": [
+        "La frase describe una neutralización (neutralization): un ácido y una base reaccionan y originan una sal y agua. El ácido aporta iones hidrógeno (H⁺) y la base aporta iones hidróxido (OH⁻) o equivalentes que los aceptan.",
+        "Así se explica, por ejemplo, que el ácido clorhídrico y el hidróxido de sodio den cloruro de sodio y agua. La sal resultante no es necesariamente la sal de mesa; depende de qué ácido y qué base reaccionen."
+      ]
+    },
+    "facets": {}
+  }
+}

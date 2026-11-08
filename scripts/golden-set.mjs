@@ -41,19 +41,19 @@ async function steady(call) {
 }
 const evidence = { date: new Date().toISOString(), provider: 'OpenCode Go', model: provider.model, language, samples, results: [] };
 // The flags a card's top line records, against the input's expectation (D17,
-// K50): `kind` and a German `gramRole` for Languages, `relevance` and `hasFormula` or `hasCode` for Expertise,
+// K50): `kind` and a German `gramRole` for Languages, `relevance` and `hasFormula`, `hasCode` or `hasEquation` for Expertise,
 // `language` for Pronunciation and Creativity (D24, D30); and whether a Languages card gave a meaning in
 // this Context (D29).
 function flagsOf(header) {
   if (header.kind === 'pronunciation' || header.kind === 'creativity') return { language: header.language };
-  return header.kind === 'expertise' ? { relevance: header.relevance, ...(header.hasFormula ? { hasFormula: header.hasFormula } : {}), ...(header.hasCode ? { hasCode: header.hasCode } : {}) }
+  return header.kind === 'expertise' ? { relevance: header.relevance, ...(header.hasFormula ? { hasFormula: header.hasFormula } : {}), ...(header.hasCode ? { hasCode: header.hasCode } : {}), ...(header.hasEquation ? { hasEquation: header.hasEquation } : {}) }
     : { kind: header.kind, ...(header.gramRole ? { gramRole: header.gramRole.toLowerCase() } : {}) };
 }
 // And, where the input names them, whether a facet is shown on a module's card,
 // such as Chinese Grammar teacher only for a Chinese key (0.16.4).
 function unexpected(type, flags, expect = {}, context, shown = []) {
   const wanted = { ...(expect.kind ? { kind: expect.kind } : {}), ...(expect.relevance ? { relevance: expect.relevance } : {}),
-    ...(expect.hasFormula ? { hasFormula: expect.hasFormula } : {}), ...(expect.hasCode ? { hasCode: expect.hasCode } : {}),
+    ...(expect.hasFormula ? { hasFormula: expect.hasFormula } : {}), ...(expect.hasCode ? { hasCode: expect.hasCode } : {}), ...(expect.hasEquation ? { hasEquation: expect.hasEquation } : {}),
     ...(expect.language ? { language: expect.language } : {}),
     ...(expect.gramRole?.[type] ? { gramRole: expect.gramRole[type] } : {}),
     // A Languages word's meaning in this Context (D29): never without a Context.

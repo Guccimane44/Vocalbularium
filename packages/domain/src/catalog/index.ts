@@ -6,6 +6,7 @@ import chinese from './languages/chinese/module.js';
 import expertise from './expertise/family.js';
 import computerScience from './expertise/computer-science/module.js';
 import mathematics from './expertise/mathematics/module.js';
+import chemistry from './expertise/chemistry/module.js';
 import sound from './sound/family.js';
 import pronunciation from './sound/pronunciation/module.js';
 import creativity from './creativity/family.js';
@@ -26,6 +27,7 @@ const ENTRIES = [
   { module: chinese, family: languages },
   { module: computerScience, family: expertise },
   { module: mathematics, family: expertise },
+  { module: chemistry, family: expertise },
   { module: pronunciation, family: sound },
   { module: traditionalHaiku, family: creativity },
   { module: modernHaiku, family: creativity },
