@@ -29,7 +29,9 @@ import { randomUUID } from 'node:crypto';
 
 /** @param {string} code @param {string} message */
 export const failure = (code, message) => Object.assign(new Error(message), { code });
-const TIMEOUT = 60000;
+// A card with every facet takes 40–60 s with deepseek-v4.1-flash (0.16.4),
+// so a request has three minutes; generation runs off the request path.
+const TIMEOUT = 180000;
 
 // Every required part is there: a text part non-empty (and one of its enum,
 // if any), an object part an object. Prompted JSON is no schema guarantee.
