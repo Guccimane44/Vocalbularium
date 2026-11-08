@@ -92,8 +92,8 @@ test('parents and facets: core only on add, the facet window on the parent, its 
   await waitFor(async () => Boolean(await chinese()), 'Chinese added');
   assert.deepEqual((await chinese()).facets, []);
   facets = await facetWindow(a.page, 'Chinese');
-  assert.deepEqual(await inOrder(facets, 'name'), ['Examples', 'Pinyin', 'Pronunciation'], 'never a German facet');
-  assert.deepEqual(await inOrder(facets, 'equipped'), [false, false, false]);
+  assert.deepEqual(await inOrder(facets, 'name'), ['Examples', 'Pinyin', 'Pronunciation', 'Etymology', 'Simple translation', 'Grammar teacher'], 'never a German facet');
+  assert.deepEqual(await inOrder(facets, 'equipped'), [false, false, false, false, false, false]);
   await tick(facets, 'Pinyin').click();
   await waitFor(async () => (await chinese()).facets.includes('pinyin'), 'Pinyin added to Chinese');
   assert.equal((await german())[0].facets.includes('pinyin'), false);

@@ -11,8 +11,8 @@
     "facets": {
       "examples": [
         {
-          "sentence": "El español es un idioma muy hablado.",
-          "translation": "西班牙语是一种使用广泛的语言。"
+          "sentence": "El español es un idioma que se habla en muchos países.",
+          "translation": "西班牙语是很多国家使用的语言。"
         }
       ],
       "pinyin": [
@@ -23,6 +23,15 @@
       ],
       "pronunciation": [
         "语言"
+      ],
+      "etymology": {
+        "origins": [
+          "古汉语"
+        ],
+        "text": "「语」和「言」在古汉语里都能单用，指说的话；后来两个字合成「语言」，泛指人们用来交流的话。"
+      },
+      "simple-translation": [
+        "人说的话，像汉语、英语"
       ]
     }
   },
@@ -38,18 +47,21 @@
     "facets": {
       "examples": [
         {
-          "sentence": "Las lenguas son los puentes que conectan a las comunidades con el mundo.",
-          "translation": "语言是连接各个社区与世界的桥梁。"
+          "sentence": "Las palabras son los hilos que conectan a las personas con su cultura.",
+          "translation": "词语是连接人们与其文化的线。"
         }
       ],
       "pinyin": [
         {
           "text": "语言是连接人与世界的桥梁。",
-          "pinyin": "yǔyán shì liánjiē rén yǔ shìjiè de qiáoliáng."
+          "pinyin": "Yǔyán shì liánjiē rén yǔ shìjiè de qiáoliáng."
         }
       ],
       "pronunciation": [
-        "语言是连接人与世界的桥梁。"
+        "语言是连接人与世界的桥梁"
+      ],
+      "simple-translation": [
+        "语言像路，把人跟世界连起来。"
       ]
     }
   }
