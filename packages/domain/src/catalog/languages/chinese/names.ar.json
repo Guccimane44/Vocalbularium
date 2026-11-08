@@ -5,5 +5,8 @@
   "pinyin.label": "بينيين",
   "core.word_phrase": "المعاني",
   "core.sentence": "الترجمة",
-  "pronunciation.label": "النطق"
+  "pronunciation.label": "النطق",
+  "etymology.label": "أصل الكلمة",
+  "simple-translation.label": "ترجمة بسيطة",
+  "grammar-teacher.label": "معلّم القواعد"
 }

@@ -49,14 +49,18 @@ function flagsOf(header) {
   return header.kind === 'expertise' ? { relevance: header.relevance, ...(header.hasFormula ? { hasFormula: header.hasFormula } : {}), ...(header.hasCode ? { hasCode: header.hasCode } : {}), ...(header.hasEquation ? { hasEquation: header.hasEquation } : {}) }
     : { kind: header.kind, ...(header.gramRole ? { gramRole: header.gramRole.toLowerCase() } : {}) };
 }
-function unexpected(type, flags, expect = {}, context) {
+// And, where the input names them, whether a facet is shown on a module's card,
+// such as Chinese Grammar teacher only for a Chinese key (0.16.4).
+function unexpected(type, flags, expect = {}, context, shown = []) {
   const wanted = { ...(expect.kind ? { kind: expect.kind } : {}), ...(expect.relevance ? { relevance: expect.relevance } : {}),
     ...(expect.hasFormula ? { hasFormula: expect.hasFormula } : {}), ...(expect.hasCode ? { hasCode: expect.hasCode } : {}), ...(expect.hasEquation ? { hasEquation: expect.hasEquation } : {}),
     ...(expect.language ? { language: expect.language } : {}),
     ...(expect.gramRole?.[type] ? { gramRole: expect.gramRole[type] } : {}),
     // A Languages word's meaning in this Context (D29): never without a Context.
     ...('contextual' in flags ? { contextual: expect.contextual ?? (context ? undefined : false) } : {}) };
-  return Object.entries(wanted).filter(([flag, value]) => value !== undefined && flags[flag] !== value).map(([flag, value]) => `${flag}: ${flags[flag] ?? 'none'}, expected ${value}`);
+  const facets = Object.entries(expect.facets?.[type] ?? {}).filter(([facet, wantedShown]) => shown.includes(facet) !== wantedShown)
+    .map(([facet, wantedShown]) => `${facet}: ${wantedShown ? 'not shown, expected shown' : 'shown, expected left out'}`);
+  return [...Object.entries(wanted).filter(([flag, value]) => value !== undefined && flags[flag] !== value).map(([flag, value]) => `${flag}: ${flags[flag] ?? 'none'}, expected ${value}`), ...facets];
 }
 for (const { types, inputs } of sets) for (const input of inputs) for (let sample = 1; sample <= samples; sample++) {
   const sessionId = randomUUID();
@@ -70,9 +74,11 @@ for (const { types, inputs } of sets) for (const input of inputs) for (let sampl
       const content = await generateComponent({ mainKey: input.key, module, onMismatch: ({ facet }) => mismatches.push(facet),
         generate: async request => (raw = await steady(() => provider.generate({ ...request, context: input.context, language, sessionId }))) });
       const flags = { ...flagsOf(content.header), ...(content.header.kind === 'word' || content.header.kind === 'sentence' ? { contextual: Boolean(raw?.core?.contextual) } : {}) };
-      // The catalog's content checks on the card as the model wrote it (0.16.0).
-      const { failures: checks, skipped } = await checkCard(type, raw, checkTools);
-      evidence.results.push({ ...input, sample, parent: type, flags, unexpected: unexpected(type, flags, input.expect, input.context), mismatches, checks, skipped, json: raw, content, facets: filledFacets(type, content) });
+      // The catalog's content checks on the card as the model wrote it (0.16.0), its
+      // dropped facets aside: a facet its flags rule out never reaches the user (D17).
+      const shown = filledFacets(type, content);
+      const { failures: checks, skipped } = await checkCard(type, { ...raw, facets: Object.fromEntries(Object.entries(raw.facets ?? {}).filter(([facet]) => shown.includes(facet))) }, checkTools);
+      evidence.results.push({ ...input, sample, parent: type, flags, unexpected: unexpected(type, flags, input.expect, input.context, filledFacets(type, content)), mismatches, checks, skipped, json: raw, content, facets: filledFacets(type, content) });
     } catch (error) {
       evidence.results.push({ ...input, sample, parent: type, error: error.message, ...(raw ? { content: raw } : {}) });
     }

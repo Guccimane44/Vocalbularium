@@ -5,5 +5,8 @@
   "pinyin.label": "拼音",
   "core.word_phrase": "释义",
   "core.sentence": "翻译",
-  "pronunciation.label": "发音"
+  "pronunciation.label": "发音",
+  "etymology.label": "词源",
+  "simple-translation.label": "简单翻译",
+  "grammar-teacher.label": "语法老师"
 }

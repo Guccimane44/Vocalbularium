@@ -1,5 +1,5 @@
 {
- "note": "The judge's calibration set for chinese (0.16.0): recorded outputs from 2026-10-30T17-37-21-414Z-en-chinese.json that passed review, and from 2026-11-03T19-57-42-053Z-en-chinese.json for sentences and the citation tone of 不, expected to pass, and copies of them with one seeded fault each, expected to fail. The judge counts only once it agrees on 90% and misses no expected fail. Since D29 (5 November 2026) the cards with a Context give the Context's sense as \"contextual\", and \"context-only\" is the earlier recorded card, expected to fail.",
+ "note": "The judge's calibration set for chinese (0.16.0): recorded outputs from 2026-10-30T17-37-21-414Z-en-chinese.json that passed review, and from 2026-11-03T19-57-42-053Z-en-chinese.json for sentences and the citation tone of 不, expected to pass, and copies of them with one seeded fault each, expected to fail. The judge counts only once it agrees on 90% and misses no expected fail. Since D29 (5 November 2026) the cards with a Context give the Context's sense as \"contextual\", and \"context-only\" is the earlier recorded card, expected to fail. Since 0.16.4 (7 November 2026), recorded cards from 2026-11-07T15-35-50-441Z-en-chinese.json with Etymology, Simple translation and Grammar teacher, expected to pass, and seeded faults in those facets, expected to fail.",
  "module": "chinese",
  "cards": [
   {
@@ -736,6 +736,511 @@
      ],
      "pronunciation": [
       "我渴望去远方"
+     ]
+    }
+   }
+  },
+  {
+   "id": "facets-1",
+   "key": "咖啡",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-07T15-35-50-441Z-en-chinese.json: Etymology, Simple translation and Grammar teacher (0.16.4).",
+   "card": {
+    "core": {
+     "kind": "word",
+     "language": "中文",
+     "key": "咖啡",
+     "romanization": "kāfēi",
+     "meanings": [
+      "用咖啡豆制成的饮料，味苦，有提神作用"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "我每天早上都要喝一杯咖啡。"
+      }
+     ],
+     "pinyin": [
+      {
+       "text": "咖啡",
+       "pinyin": "kāfēi"
+      }
+     ],
+     "pronunciation": [
+      "咖啡"
+     ],
+     "etymology": {
+      "origins": [
+       "阿拉伯语",
+       "英语"
+      ],
+      "text": "咖啡是音译外来词，来自英语 coffee，最早可追溯到阿拉伯语 qahwa，指用咖啡豆制成的饮料。"
+     },
+     "simple-translation": [
+      "一种喝的东西，很多人早上喝。"
+     ],
+     "grammar-teacher": [
+      "咖啡是名词，可以受数量词修饰，常说一杯咖啡、一种咖啡。",
+      "咖啡可以作主语和宾语，如咖啡很香、我喜欢喝咖啡。",
+      "咖啡也能放在别的名词前表示相关事物，如咖啡豆、咖啡店。"
+     ]
+    }
+   }
+  },
+  {
+   "id": "facets-2",
+   "key": "经济",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-07T15-35-50-441Z-en-chinese.json: Etymology, Simple translation and Grammar teacher (0.16.4).",
+   "card": {
+    "core": {
+     "kind": "word",
+     "language": "中文",
+     "key": "经济",
+     "romanization": "jīngjì",
+     "meanings": [
+      "社会物质生产、分配、交换和消费的活动，也指一个国家或地区的国民经济",
+      "个人或家庭的收支状况；生活费用方面的状况",
+      "花费较少而效果好；实惠、节省"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "改革开放以来，中国的经济快速发展。"
+      },
+      {
+       "sentence": "他家的经济状况最近有些紧张。"
+      },
+      {
+       "sentence": "这家旅馆经济实惠，很受游客欢迎。"
+      }
+     ],
+     "pinyin": [
+      {
+       "text": "经济",
+       "pinyin": "jīngjì"
+      }
+     ],
+     "pronunciation": [
+      "经济"
+     ],
+     "etymology": {
+      "origins": [
+       "古汉语",
+       "日语"
+      ],
+      "text": "“经济”本于古汉语“经世济民”一类说法，指治理国家、使百姓受益。明治时期日本用“経済”意译英语 economy，赋予它现代“economy”的含义。清末民初，这个词又作为日语借词回到中文，成为现代常用词。"
+     },
+     "simple-translation": [
+      "一个国家或地方有多少钱，人们怎样工作和买东西。",
+      "一个人或一个家里的钱够不够用。",
+      "花钱少，东西又好。"
+     ],
+     "grammar-teacher": [
+      "“经济”常作名词，表示社会生产、买卖和花钱等活动，可以作主语或宾语，如“经济发展很快”“发展经济”。",
+      "表示“节省、划算”时，“经济”作形容词，常和“实惠”连用，如“经济实惠”。",
+      "“经济”是双音节词，中间一般不能插入其他成分，不能说“经了济”。"
+     ]
+    }
+   }
+  },
+  {
+   "id": "facets-3",
+   "key": "我把书放在桌子上了。",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-07T15-35-50-441Z-en-chinese.json: Etymology, Simple translation and Grammar teacher (0.16.4).",
+   "card": {
+    "core": {
+     "kind": "sentence",
+     "language": "中文",
+     "key": "我把书放在桌子上了。",
+     "meanings": [
+      "我把书放到桌子上了，书现在在桌子上。"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "我把钥匙放在包里了。"
+      }
+     ],
+     "pinyin": [
+      {
+       "text": "我把书放在桌子上了。",
+       "pinyin": "wǒ bǎ shū fàng zài zhuōzi shàng le"
+      }
+     ],
+     "pronunciation": [
+      "我把书放在桌子上了"
+     ],
+     "simple-translation": [
+      "书现在在桌子上，是我放的。"
+     ],
+     "grammar-teacher": [
+      "这是“把”字句，基本格式是“主语 + 把 + 宾语 + 动词 + 在 + 地点 + 了”，用来说明怎么处理某物。",
+      "句末的“了”表示动作完成或情况变化，这里说明书已经被放到桌子上。",
+      "“放在桌子上”是“动词 + 在 + 地点”的结构，表示动作完成后东西所在的位置。",
+      "“书”是“把”的宾语，放在“把”的后面；“桌子”是地点，前面用“在”。"
+     ]
+    }
+   }
+  },
+  {
+   "id": "facets-4",
+   "key": "一举两得",
+   "language": "en",
+   "expected": "pass",
+   "why": "Recorded output, golden run 2026-11-07T15-35-50-441Z-en-chinese.json: Etymology, Simple translation and Grammar teacher (0.16.4).",
+   "card": {
+    "core": {
+     "kind": "word",
+     "language": "中文",
+     "key": "一举两得",
+     "romanization": "yī jǔ liǎng dé",
+     "meanings": [
+      "做一件事同时得到两方面的好处"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "这次出差既谈成了生意，又看望了老同学，真是一举两得。"
+      }
+     ],
+     "pinyin": [
+      {
+       "text": "做一件事同时得到两方面的好处",
+       "pinyin": "zuò yī jiàn shì tóngshí dédào liǎng fāngmiàn de hǎochù"
+      }
+     ],
+     "pronunciation": [
+      "做一件事同时得到两方面的好处"
+     ],
+     "etymology": {
+      "origins": [
+       "古汉语"
+      ],
+      "text": "由“一”“举”“两”“得”四字组成，“举”指举动、行动，“得”指收获。字面意思是一次举动得到两份收获，后来固定为成语，泛指做一件事而得到两方面的好处。"
+     },
+     "simple-translation": [
+      "做一件事，得到两个好处。"
+     ],
+     "grammar-teacher": [
+      "“一举两得”是四字成语，常作谓语，如“这样做一举两得”。",
+      "也可以作定语，后面加“的”，如“这是一举两得的办法”。",
+      "成语里的“一”和“两”前后对举，表示数量上的对比。",
+      "“举”在这里是“行动、做事”的意思，不是“举起”。",
+      "成语一般不带宾语，也不受“很”修饰。"
+     ]
+    }
+   }
+  },
+  {
+   "id": "facets-6",
+   "key": "行",
+   "context": "他在这一行干了二十年，是真正的专家。",
+   "language": "en",
+   "expected": "fail",
+   "why": "Recorded defect: Grammar teacher explains 了 and 是……的 in the Context's sentence instead of 行 itself, and Simple translation calls 银行 a shop; recorded output, golden run 2026-11-07T15-35-50-441Z-en-chinese.json, relabelled after review (0.16.4).",
+   "card": {
+    "core": {
+     "kind": "word",
+     "language": "中文",
+     "key": "行",
+     "romanization": "háng",
+     "contextual": "行业；行当",
+     "meanings": [
+      "行列；人或物排成的一排",
+      "商店；商号，如银行、车行"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "我哥哥在电脑这一行工作了十年。"
+      },
+      {
+       "sentence": "同学们排成两行走进教室。"
+      },
+      {
+       "sentence": "街角那家车行卖自行车和电动车。"
+      }
+     ],
+     "pinyin": [
+      {
+       "text": "行业",
+       "pinyin": "hángyè"
+      },
+      {
+       "text": "行列",
+       "pinyin": "hángliè"
+      },
+      {
+       "text": "商店",
+       "pinyin": "shāngdiàn"
+      }
+     ],
+     "pronunciation": [
+      "行业",
+      "行列",
+      "商店"
+     ],
+     "etymology": {
+      "origins": [
+       "古汉语"
+      ],
+      "text": "“行”的甲骨文字形像四通八达的路口，本义是道路。后来由道路引申为排列成的一条，即“行列”，再引申指同类人聚在一起做的事，就是“行业”。"
+     },
+     "simple-translation": [
+      "一种工作，比如做饭、卖东西",
+      "许多人或东西排在一起，像一条线",
+      "卖东西的地方，比如银行、车行"
+     ],
+     "grammar-teacher": [
+      "“行”是多音字，这里读háng，意思是行业，不读xíng。",
+      "“这一行”里的“行”是名词，前面用“这一”来指代某一种行业。",
+      "“干了二十年”中的“了”表示动作已经完成，后面的时间说明做了多久。",
+      "“是真正的专家”用“是……的”结构表示判断，语气肯定。"
+     ]
+    }
+   }
+  },
+  {
+   "id": "invented-etymology",
+   "key": "咖啡",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: the etymology is invented: 咖啡 is a loanword, not a native word of 古汉语.",
+   "card": {
+    "core": {
+     "kind": "word",
+     "language": "中文",
+     "key": "咖啡",
+     "romanization": "kāfēi",
+     "meanings": [
+      "用咖啡豆制成的饮料，味苦，有提神作用"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "我每天早上都要喝一杯咖啡。"
+      }
+     ],
+     "pinyin": [
+      {
+       "text": "咖啡",
+       "pinyin": "kāfēi"
+      }
+     ],
+     "pronunciation": [
+      "咖啡"
+     ],
+     "etymology": {
+      "origins": [
+       "古汉语"
+      ],
+      "text": "“咖”本指一种苦味的草，“啡”指黑色的汁，古人把这种黑色的苦汁叫作咖啡。"
+     },
+     "simple-translation": [
+      "一种喝的东西，很多人早上喝。"
+     ],
+     "grammar-teacher": [
+      "咖啡是名词，可以受数量词修饰，常说一杯咖啡、一种咖啡。",
+      "咖啡可以作主语和宾语，如咖啡很香、我喜欢喝咖啡。",
+      "咖啡也能放在别的名词前表示相关事物，如咖啡豆、咖啡店。"
+     ]
+    }
+   }
+  },
+  {
+   "id": "hard-simple-translation",
+   "key": "经济",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: the simple translation is no simpler than the core: it keeps 宏观, 国民经济 and 资源配置, words no beginner knows.",
+   "card": {
+    "core": {
+     "kind": "word",
+     "language": "中文",
+     "key": "经济",
+     "romanization": "jīngjì",
+     "meanings": [
+      "社会物质生产、分配、交换和消费的活动，也指一个国家或地区的国民经济",
+      "个人或家庭的收支状况；生活费用方面的状况",
+      "花费较少而效果好；实惠、节省"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "改革开放以来，中国的经济快速发展。"
+      },
+      {
+       "sentence": "他家的经济状况最近有些紧张。"
+      },
+      {
+       "sentence": "这家旅馆经济实惠，很受游客欢迎。"
+      }
+     ],
+     "pinyin": [
+      {
+       "text": "经济",
+       "pinyin": "jīngjì"
+      }
+     ],
+     "pronunciation": [
+      "经济"
+     ],
+     "etymology": {
+      "origins": [
+       "古汉语",
+       "日语"
+      ],
+      "text": "“经济”本于古汉语“经世济民”一类说法，指治理国家、使百姓受益。明治时期日本用“経済”意译英语 economy，赋予它现代“economy”的含义。清末民初，这个词又作为日语借词回到中文，成为现代常用词。"
+     },
+     "simple-translation": [
+      "社会宏观层面的生产、分配、交换与消费等国民经济活动的总称",
+      "个人或家庭的财务状况与收支水平",
+      "以较少的资源配置获取较高效益"
+     ],
+     "grammar-teacher": [
+      "“经济”常作名词，表示社会生产、买卖和花钱等活动，可以作主语或宾语，如“经济发展很快”“发展经济”。",
+      "表示“节省、划算”时，“经济”作形容词，常和“实惠”连用，如“经济实惠”。",
+      "“经济”是双音节词，中间一般不能插入其他成分，不能说“经了济”。"
+     ]
+    }
+   }
+  },
+  {
+   "id": "simple-translation-sense",
+   "key": "The committee postponed the decision indefinitely.",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: the simple translation says the committee made the decision, the opposite of postponing it.",
+   "card": {
+    "core": {
+     "kind": "sentence",
+     "language": "英语",
+     "key": "The committee postponed the decision indefinitely.",
+     "meanings": [
+      "委员会无限期推迟了这项决定。"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "The company suspended the project indefinitely.",
+       "translation": "公司无限期暂停了这个项目。"
+      }
+     ],
+     "pinyin": [
+      {
+       "text": "委员会无限期推迟了这项决定。",
+       "pinyin": "Wěiyuánhuì wúxiànqī tuīchí le zhè xiàng juédìng."
+      }
+     ],
+     "pronunciation": [
+      "委员会无限期推迟了这项决定。"
+     ],
+     "simple-translation": [
+      "开会的人今天就把这件事决定好了。"
+     ]
+    }
+   }
+  },
+  {
+   "id": "wrong-measure-word",
+   "key": "咖啡",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: Grammar teacher gives a wrong measure word: coffee is 一杯咖啡, never 一只咖啡.",
+   "card": {
+    "core": {
+     "kind": "word",
+     "language": "中文",
+     "key": "咖啡",
+     "romanization": "kāfēi",
+     "meanings": [
+      "用咖啡豆制成的饮料，味苦，有提神作用"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "我每天早上都要喝一杯咖啡。"
+      }
+     ],
+     "pinyin": [
+      {
+       "text": "咖啡",
+       "pinyin": "kāfēi"
+      }
+     ],
+     "pronunciation": [
+      "咖啡"
+     ],
+     "etymology": {
+      "origins": [
+       "阿拉伯语",
+       "英语"
+      ],
+      "text": "咖啡是音译外来词，来自英语 coffee，最早可追溯到阿拉伯语 qahwa，指用咖啡豆制成的饮料。"
+     },
+     "simple-translation": [
+      "一种喝的东西，很多人早上喝。"
+     ],
+     "grammar-teacher": [
+      "咖啡是名词，量词用“只”，如“一只咖啡”“两只咖啡”。",
+      "咖啡可以作主语和宾语，如咖啡很香、我喜欢喝咖啡。",
+      "咖啡也能放在别的名词前表示相关事物，如咖啡豆、咖啡店。"
+     ]
+    }
+   }
+  },
+  {
+   "id": "wrong-aspect",
+   "key": "我把书放在桌子上了。",
+   "language": "en",
+   "expected": "fail",
+   "why": "Seeded fault: Grammar teacher says 了 marks the future, but here it marks a completed action.",
+   "card": {
+    "core": {
+     "kind": "sentence",
+     "language": "中文",
+     "key": "我把书放在桌子上了。",
+     "meanings": [
+      "我把书放到桌子上了，书现在在桌子上。"
+     ]
+    },
+    "facets": {
+     "examples": [
+      {
+       "sentence": "我把钥匙放在包里了。"
+      }
+     ],
+     "pinyin": [
+      {
+       "text": "我把书放在桌子上了。",
+       "pinyin": "wǒ bǎ shū fàng zài zhuōzi shàng le"
+      }
+     ],
+     "pronunciation": [
+      "我把书放在桌子上了"
+     ],
+     "simple-translation": [
+      "书现在在桌子上，是我放的。"
+     ],
+     "grammar-teacher": [
+      "这是“把”字句，基本格式是“主语 + 把 + 宾语 + 动词 + 在 + 地点 + 了”，用来说明怎么处理某物。",
+      "句末的“了”表示动作将要发生，意思是我马上要把书放到桌子上。",
+      "“放在桌子上”是“动词 + 在 + 地点”的结构，表示动作完成后东西所在的位置。",
+      "“书”是“把”的宾语，放在“把”的后面；“桌子”是地点，前面用“在”。"
      ]
     }
    }

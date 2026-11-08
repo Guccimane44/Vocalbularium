@@ -5,5 +5,8 @@
   "pinyin.label": "Pinyin",
   "core.word_phrase": "Significados",
   "core.sentence": "Traducción",
-  "pronunciation.label": "Pronunciación"
+  "pronunciation.label": "Pronunciación",
+  "etymology.label": "Etimología",
+  "simple-translation.label": "Traducción sencilla",
+  "grammar-teacher.label": "Profesor de gramática"
 }

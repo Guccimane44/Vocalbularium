@@ -16,7 +16,7 @@ test('the catalog is German and Chinese in Languages, with facets in a fixed ord
   assert.deepEqual(parentsIn('translation').slice(0, 2), ['german', 'chinese']);
   assert.deepEqual(Object.keys(PARENTS), [...parentsIn('translation'), 'computer-science', 'mathematics', 'chemistry', 'pronunciation']);
   assert.deepEqual(facetsOf('german'), ['article', 'examples', 'synonyms', 'antonyms', 'conjugation', 'declension', 'comparison', 'case', 'pronunciation'], 'the grammar facets after the first four (D17), then Pronunciation (D24)');
-  assert.deepEqual(facetsOf('chinese'), ['examples', 'pinyin', 'pronunciation']);
+  assert.deepEqual(facetsOf('chinese'), ['examples', 'pinyin', 'pronunciation', 'etymology', 'simple-translation', 'grammar-teacher'], 'Etymology, Simple translation and Grammar teacher after Pronunciation (0.16.4)');
   for (const parent of ['german', 'chinese']) assert.equal(PARENTS[parent].family, 'translation');
   for (const parent of ['computer-science', 'mathematics', 'chemistry']) assert.equal(PARENTS[parent].family, 'expertise');
   // Their first facets came with D17.
@@ -36,7 +36,7 @@ test('each facet has its own abbreviation for its tag, unique within its parent 
     assert.equal(new Set(abbreviations).size, abbreviations.length, `${parent} repeats an abbreviation`);
   }
   assert.deepEqual(facetsOf('german').map(facet => facetAbbreviation('german', facet)), ['Ar', 'Ex', 'Sy', 'An', 'Co', 'De', 'Cm', 'Ca', 'Pr']);
-  assert.deepEqual(facetsOf('chinese').map(facet => facetAbbreviation('chinese', facet)), ['Ex', 'Py', 'Pr']);
+  assert.deepEqual(facetsOf('chinese').map(facet => facetAbbreviation('chinese', facet)), ['Ex', 'Py', 'Pr', 'Et', 'Si', 'Gr']);
 });
 
 test('a word gets every facet its flags allow; a sentence only Examples, Pinyin and Pronunciation', () => {
