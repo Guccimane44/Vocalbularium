@@ -64,7 +64,7 @@ No migration, live generation or browser check is needed, because nothing stored
 ## Answers from the owner (10 November)
 
 1. **Facet `output`:** delete it together with the core's.
-2. **`romanization`:** not needed in the heading; the Pinyin facet gives the reading. Recorded in D31 as part 2, built separately; its open items are listed there.
+2. **`romanization`:** not needed in the heading; the Pinyin facet gives the reading. Recorded in D31 as part 2, built separately. Asked whether keys in other scripts (a Chinese key on a German card, a Japanese or Russian key on any card) may lose their reading too: "Yes, drop it everywhere." The upgrade and the timing are still open in D31.
 3. **Plan files:** copied to `claude/catalog-dead-fields` and committed separately from the code change. Also copied, because the plans link to them: the headers and flags map, the Wiktionary plan and its evidence note.
 
 The owner also asked that this cleanup be recorded as D31.
