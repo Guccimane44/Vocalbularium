@@ -39,8 +39,6 @@ Fields with similar names that are in use and stay: `core.labels` (the editor's 
 
 The flags, the header, `ParentHeaderSchema`, the prompts and anything in `src/`. Defining the flags is the next plan.
 
-Dropping `romanization` from the Languages top line, which the owner decided with this plan (D31, part 2), is a separate change: it alters the stored top line, the API contract, four prompts and what the card shows, so it needs its own plan, an upgrade path and a golden-set run.
-
 One thing is lost: today `source` is the only place that says Context is captured and Text is written by the user. Nothing reads it. If a dictionary source comes back in step 3, the handoff argues it belongs on a facet, not a module, so it would be a new field in any case.
 
 ## Checks
@@ -64,7 +62,7 @@ No migration, live generation or browser check is needed, because nothing stored
 ## Answers from the owner (10 November)
 
 1. **Facet `output`:** delete it together with the core's.
-2. **`romanization`:** not needed in the heading; the Pinyin facet gives the reading. Recorded in D31 as part 2, built separately. Asked whether keys in other scripts (a Chinese key on a German card, a Japanese or Russian key on any card) may lose their reading too: "Yes, drop it everywhere." The upgrade and the timing are still open in D31.
+2. **`romanization`:** first "not needed in the heading; the Pinyin facet will do the job", then withdrawn the same day: "dropping romanization is a bad idea. dont do it." It stays as it is.
 3. **Plan files:** copied to `claude/catalog-dead-fields` and committed separately from the code change. Also copied, because the plans link to them: the headers and flags map, the Wiktionary plan and its evidence note.
 
 The owner also asked that this cleanup be recorded as D31.
