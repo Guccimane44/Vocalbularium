@@ -11,6 +11,6 @@ import grammarTeacher from './facets/grammar-teacher/facet.js';
 export default defineContentModule({
   id: 'chinese', kind: 'content', label: 'Chinese',
   description: 'Explains a word in Chinese, or translates a sentence into Chinese.',
-  instances: 'many', source: 'generated', provider: 'text',
+  instances: 'many',
   core, facets: [examples, pinyin, pronunciation, etymology, simpleTranslation, grammarTeacher]
 });

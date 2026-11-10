@@ -7,7 +7,7 @@ import { traditionalIn } from '../../simplified.js';
 // them to the meanings; a single line is plain text.
 export default defineFacet({
   id: 'simple-translation', label: 'Simple translation', abbreviation: 'Si', description: 'The meanings again, in simple Chinese.',
-  applies: ['word_phrase', 'sentence'], output: 'text',
+  applies: ['word_phrase', 'sentence'],
   shape: list(text('the line'), { name: 'the lines', each: 'Line' }),
   format: lines => lines.length > 1 ? numbered(lines.map(escapeMarkdown)) : escapeMarkdown(lines[0] ?? ''),
   checks: [{

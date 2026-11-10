@@ -32,7 +32,6 @@ test('families and modules each have their folder, and module IDs are unique', (
 test('input modules are never generated and have no facets or facet prompts', () => {
   for (const id of MODULE_IDS.filter(each => MODULES[each].kind === 'input')) {
     const module = MODULES[id];
-    assert.notEqual(module.source, 'generated', id);
     assert.deepEqual([...module.facets], [], id);
     assert.ok(!existsSync(new URL(`${folderOf(id)}/facets/`, SRC)), `${id} has facet folders`);
   }
@@ -43,7 +42,6 @@ test('input modules are never generated and have no facets or facet prompts', ()
 test('each content module has its core first, then facets unique by ID and abbreviation', () => {
   for (const id of content) {
     const module = MODULES[id];
-    assert.equal(module.source, 'generated', id);
     assert.equal(module.core.id, 'core', id);
     assert.ok(module.core.shape, `${id} has one core shape (D17)`);
     const ids = module.facets.map(facet => facet.id);
@@ -53,7 +51,6 @@ test('each content module has its core first, then facets unique by ID and abbre
     assert.equal(new Set(abbreviations).size, abbreviations.length, `${id} repeats an abbreviation`);
     for (const facet of module.facets) {
       assert.ok(facet.label && facet.abbreviation && facet.description && facet.applies.length, `${id}.${facet.id}`);
-      assert.equal(facet.output, 'text');
     }
   }
 });

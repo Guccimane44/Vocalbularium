@@ -13,6 +13,6 @@ import grammarTeacher from './facets/grammar-teacher/facet.js';
 export default defineContentModule({
   id: 'english-british', kind: 'content', label: 'English (British)',
   description: 'Explains a word in British English, or translates a sentence into British English.',
-  instances: 'many', source: 'generated', provider: 'text',
+  instances: 'many',
   core, facets: [examples, synonyms, antonyms, pronunciation, etymology, simpleTranslation, grammarTeacher]
 });

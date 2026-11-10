@@ -14,7 +14,7 @@ const isGerman = (value: string) => {
 
 export default defineFacet({
   id: 'etymology', label: 'Etymology', abbreviation: 'Et', description: 'Where the German word comes from.',
-  applies: ['word_phrase'], output: 'text',
+  applies: ['word_phrase'],
   shape: object({ origins: list(text('the origin'), { name: 'the origins', each: 'Origin' }), text: text('the etymology') }),
   format: value => `${LABEL} ${value.origins.map(origin => escapeMarkdown(origin.trim())).join(' · ')}\n\n${escapeMarkdown(value.text.trim())}`,
   checks: [{

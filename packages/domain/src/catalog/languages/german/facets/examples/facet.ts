@@ -3,7 +3,7 @@ import { defineFacet, escapeMarkdown, foreignLetters, list, numbered, object, op
 // Numbered by position, not tied to meanings; the translation on the next line in italics.
 export default defineFacet({
   id: 'examples', label: 'Examples', abbreviation: 'Ex', description: 'Example sentences with their translations.',
-  applies: ['word_phrase', 'sentence'], output: 'text',
+  applies: ['word_phrase', 'sentence'],
   shape: list(object({ sentence: text('the sentence'), translation: optional(text('the translation')) })),
   format: examples => numbered(examples.map(example =>
     [escapeMarkdown(example.sentence), ...(example.translation ? [`*${escapeMarkdown(example.translation)}*`] : [])].join('\n'))),

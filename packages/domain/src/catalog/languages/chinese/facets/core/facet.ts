@@ -22,7 +22,7 @@ const shape = object({
 const CONTEXT_LABEL = '（在此语境中）';
 
 export default defineCore({
-  id: 'core', label: 'Core', labels: { word_phrase: 'Meanings', sentence: 'Translation' }, output: 'text', shape,
+  id: 'core', labels: { word_phrase: 'Meanings', sentence: 'Translation' }, shape,
   headerLabels: { word: '词语', sentence: '句子' },
   // A word's meanings as a numbered list, its meaning in this Context first
   // under the label; a sentence's translation as text.

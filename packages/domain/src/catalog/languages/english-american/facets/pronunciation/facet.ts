@@ -7,7 +7,7 @@ import { keyIsEnglish, britishSpelling } from '../../english.js';
 // voice named for this part, `english-american.pronunciation`.
 export default defineFacet({
   id: 'pronunciation', label: 'Pronunciation', abbreviation: 'Pr', description: 'The English translation, spoken in an American voice.',
-  applies: ['word_phrase', 'sentence'], output: 'text', spoken: { language: 'en' },
+  applies: ['word_phrase', 'sentence'], spoken: { language: 'en' },
   shape: list(text('the English to speak')),
   format: lines => lines.map(escapeMarkdown).join('\n'),
   checks: [{

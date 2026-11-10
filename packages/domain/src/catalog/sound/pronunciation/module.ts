@@ -6,6 +6,6 @@ import core from './facets/core/facet.js';
 export default defineContentModule({
   id: 'pronunciation', kind: 'content', label: 'Pronunciation',
   description: 'Speaks the main key in its own language.',
-  instances: 'at-most-one', source: 'generated', provider: 'text',
+  instances: 'at-most-one',
   core, facets: []
 });

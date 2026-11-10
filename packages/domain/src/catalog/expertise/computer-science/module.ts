@@ -6,6 +6,6 @@ import code from './facets/code/facet.js';
 export default defineContentModule({
   id: 'computer-science', kind: 'content', label: 'Computer Science',
   description: 'Explains a term or concept as computer science understands it.',
-  instances: 'many', source: 'generated', provider: 'text',
+  instances: 'many',
   core, facets: [code]
 });

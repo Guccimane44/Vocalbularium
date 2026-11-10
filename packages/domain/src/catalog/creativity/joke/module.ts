@@ -6,6 +6,6 @@ import core from './facets/core/facet.js';
 export default defineContentModule({
   id: 'joke', kind: 'content', label: 'Joke',
   description: 'Tells a short joke about the main key in its language.',
-  instances: 'many', source: 'generated', provider: 'text',
+  instances: 'many',
   core, facets: []
 });

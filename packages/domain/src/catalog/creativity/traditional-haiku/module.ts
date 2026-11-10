@@ -6,6 +6,6 @@ import core from './facets/core/facet.js';
 export default defineContentModule({
   id: 'traditional-haiku', kind: 'content', label: 'Traditional Haiku',
   description: 'Writes a classical haiku about the main key in its language.',
-  instances: 'many', source: 'generated', provider: 'text',
+  instances: 'many',
   core, facets: []
 });

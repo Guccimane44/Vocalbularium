@@ -4,7 +4,7 @@ import { americanSpelling } from '../../english.js';
 // One line, the words separated by commas.
 export default defineFacet({
   id: 'synonyms', label: 'Synonyms', abbreviation: 'Sy', description: 'English words with the same meaning.',
-  applies: ['word_phrase'], output: 'text',
+  applies: ['word_phrase'],
   shape: list(text()),
   format: words => words.map(escapeMarkdown).join(', '),
   checks: [{

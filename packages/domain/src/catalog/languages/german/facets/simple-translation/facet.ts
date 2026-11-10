@@ -11,7 +11,7 @@ const isGerman = (value: string) => {
 
 export default defineFacet({
   id: 'simple-translation', label: 'Simple translation', abbreviation: 'Si', description: 'The meanings again, in simple German.',
-  applies: ['word_phrase', 'sentence'], output: 'text',
+  applies: ['word_phrase', 'sentence'],
   shape: list(text('the simple line'), { name: 'the lines', each: 'Line' }),
   format: lines => lines.length === 1 ? escapeMarkdown(lines[0]!.trim()) : numbered(lines.map(line => escapeMarkdown(line.trim()))),
   checks: [{

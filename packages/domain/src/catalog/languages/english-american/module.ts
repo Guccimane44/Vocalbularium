@@ -14,6 +14,6 @@ import grammarTeacher from './facets/grammar-teacher/facet.js';
 export default defineContentModule({
   id: 'english-american', kind: 'content', label: 'English (American)',
   description: 'Explains a word in American English, or translates a sentence into American English.',
-  instances: 'many', source: 'generated', provider: 'text',
+  instances: 'many',
   core, facets: [examples, synonyms, antonyms, pronunciation, etymology, simpleTranslation, grammarTeacher]
 });
