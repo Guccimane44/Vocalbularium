@@ -7,10 +7,12 @@ import { failure, Provider } from './provider.mjs';
 // schema, so the schema travels inside the instructions.
 export class OpenCodeProvider extends Provider {
   nativeSchema = false;
-  /** @param {{ apiKey?: string, model?: string, fetchImpl?: typeof fetch, timeout?: number }} [options] */
-  constructor({ apiKey = process.env.OPENCODE_API_KEY, model = process.env.OPENCODE_MODEL ?? 'deepseek-v4.1-flash', fetchImpl = fetch, timeout } = {}) {
+  // `reasoning` sets the model's reasoning effort (`none` turns its thinking
+  // off; `low` to `max`); left out, the model's own default, as the product uses.
+  /** @param {{ apiKey?: string, model?: string, fetchImpl?: typeof fetch, timeout?: number, reasoning?: string }} [options] */
+  constructor({ apiKey = process.env.OPENCODE_API_KEY, model = process.env.OPENCODE_MODEL ?? 'deepseek-v4.1-flash', fetchImpl = fetch, timeout, reasoning } = {}) {
     super();
-    this.apiKey = apiKey; this.model = model; this.fetch = fetchImpl; this.timeout = timeout;
+    this.apiKey = apiKey; this.model = model; this.fetch = fetchImpl; this.timeout = timeout; this.reasoning = reasoning;
   }
   /** @param {Request} request */
   prompts(request) {
@@ -27,7 +29,7 @@ export class OpenCodeProvider extends Provider {
         Authorization: `Bearer ${this.apiKey}`, 'Content-Type': 'application/json',
         'User-Agent': 'Vocabularium/0.13.1', 'x-opencode-session': sessionId
       },
-      body: JSON.stringify({ model: this.model, stream: false, max_tokens: request.maxTokens, messages }),
+      body: JSON.stringify({ model: this.model, stream: false, max_tokens: request.maxTokens, messages, ...(this.reasoning ? { reasoning_effort: this.reasoning } : {}) }),
       signal
     });
     reply.status = response.status;
