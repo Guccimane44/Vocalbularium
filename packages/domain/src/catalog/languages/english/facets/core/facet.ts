@@ -3,7 +3,7 @@ import { isEnglish } from '../../english.js';
 
 // One shape for a word and a sentence (D17), as Chinese's: `kind` first, then
 // the key's language named in English, the key, an optional romanization and
-// the meanings in English, British or American (D31). A sentence's meanings
+// the meanings in English, British or American (D34). A sentence's meanings
 // hold one item: its translation, or for an English sentence an explanation of
 // its meaning. A
 // word's `contextual` (D29) is its meaning in this Context, when the Context

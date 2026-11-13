@@ -383,7 +383,7 @@ test('a part\'s own voice comes first, then its language\'s, then the default (D
   assert.equal(await voice({ text: 'Gift', language: 'de', part: 'pronunciation.core' }), 'german-voice', 'a part without its own voice: its language\'s');
   assert.equal(await voice({ text: 'gift', language: 'en', part: 'pronunciation.core' }), 'any');
 
-  // English speaks as en (D31): with the en voice, or one named for its part.
+  // English speaks as en (D34): with the en voice, or one named for its part.
   const english = new ElevenLabsProvider({ apiKey: 'key', fetchImpl, voices: { default: 'any', en: 'english-voice', 'english.pronunciation': 'own' } });
   const accent = async request => { await english.synthesize(request); return calls.at(-1).url.match(/text-to-speech\/([^?]+)/)[1]; };
   assert.equal(await accent({ text: 'colour', language: 'en', part: 'english.pronunciation' }), 'own');

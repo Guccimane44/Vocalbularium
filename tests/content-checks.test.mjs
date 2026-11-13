@@ -69,7 +69,7 @@ test('Chinese: the meanings and translations are in characters, and the pinyin i
   assert.deepEqual(await failures('chinese', with_(chinese, 'pinyin', [{ text: '西安', pinyin: 'Xī’ān' }])), [], 'capitals and an apostrophe');
 });
 
-// English (D31): one module that takes British, American or mixed English as
+// English (D34): one module that takes British, American or mixed English as
 // the model writes it. Its checks are about the key and the language, never
 // the variety.
 const englishCard = {

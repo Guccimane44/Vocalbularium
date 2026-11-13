@@ -423,7 +423,7 @@ test('0.15.0 reads and edits a 0.14.0 database unchanged: stored facets keep the
   assert.equal(edited.content.blocks[0].facets.declension, 'des Ufers', 'the other facets keep their text');
 });
 
-test('0019 turns English (British) and English (American) into English, keeping every deck, page, card, clip and attempt as written (D31)', async t => {
+test('0019 turns English (British) and English (American) into English, keeping every deck, page, card, clip and attempt as written (D34)', async t => {
   const database = await legacyDatabase(t, 'one-english-upgrade', 18);
   const client = new pg.Client({ connectionString: database.databaseUrl }); await client.connect();
   t.after(() => client.end());

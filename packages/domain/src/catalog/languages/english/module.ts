@@ -8,7 +8,7 @@ import etymology from './facets/etymology/facet.js';
 import simpleTranslation from './facets/simple-translation/facet.js';
 import grammarTeacher from './facets/grammar-teacher/facet.js';
 
-// English, British or American as the model writes it (D31): one module in
+// English, British or American as the model writes it (D34): one module in
 // place of English (British) and English (American), built from the American
 // one. Not in the default deck.
 export default defineContentModule({

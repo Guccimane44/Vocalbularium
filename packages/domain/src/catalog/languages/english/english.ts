@@ -2,7 +2,7 @@ import type { CoreValue } from '../../define.js';
 import { scriptsOf } from '../../scripts.js';
 
 // What the English module's checks share (0.16.4): whether a text is English
-// and whether the key is. No check tells British from American English (D31).
+// and whether the key is. No check tells British from American English (D34).
 
 // English in the Latin script: more Latin letters than letters of the other
 // scripts the checks know. Greek or runic letters in an etymology count for neither.

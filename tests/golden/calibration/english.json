@@ -1,5 +1,5 @@
 {
- "note": "The judge's calibration set for english (D31): the English (British) and English (American) sets of 0.16.4 merged, their recorded outputs from 2026-11-07T15-28-47-553Z-en-english-british.json and 2026-11-07T15-55-02-455Z-en-english-american.json, without the cards that only tested a variety (a British or American spelling or word, and the American floor count). Recorded outputs that passed review are expected to pass; recorded defects and copies with one seeded fault each are expected to fail. The judge counts only once it agrees on 90% and misses no expected fail.",
+ "note": "The judge's calibration set for english (D34): the English (British) and English (American) sets of 0.16.4 merged, their recorded outputs from 2026-11-07T15-28-47-553Z-en-english-british.json and 2026-11-07T15-55-02-455Z-en-english-american.json, without the cards that only tested a variety (a British or American spelling or word, and the American floor count). Recorded outputs that passed review are expected to pass; recorded defects and copies with one seeded fault each are expected to fail. The judge counts only once it agrees on 90% and misses no expected fail.",
  "module": "english",
  "cards": [
   {

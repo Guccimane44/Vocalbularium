@@ -266,7 +266,7 @@ test('the silver set picks golden inputs on modules their golden file runs, a te
   for (const module of Object.values(sets).flatMap(set => set.family ? parentsIn(set.family) : set.modules)) assert.ok(picks.some(pick => pick.module === module), `${module} has a pick`);
 });
 
-test('English tells no variety apart: no request, check or module text names British or American English (D31)', () => {
+test('English tells no variety apart: no request, check or module text names British or American English (D34)', () => {
   const english = contentModule('english');
   const facets = english.facets.map(facet => facet.id);
   const requests = [

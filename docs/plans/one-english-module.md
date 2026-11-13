@@ -20,7 +20,7 @@ This plan replaces `english-british` and `english-american` (both added in 0.16.
   Only one of them was measured in M2 and M3.
 - **The two modules differ only in their variety.** The difference is the variety rule in `module.prompt.md`, the spelling lists in `english.ts` and the checks built on them, and the variety words in prompts, samples and about pages.
 
-**This changes a rule in the specs.** [`docs/specs/modules.md`](../specs/modules.md#catalog) says variety comes from more parent types, such as a German and a Spanish translation. For languages that stays true. Varieties of one language are not told apart at all. This needs a decision record of its own, D31.
+**This changes a rule in the specs.** [`docs/specs/modules.md`](../specs/modules.md#catalog) says variety comes from more parent types, such as a German and a Spanish translation. For languages that stays true. Varieties of one language are not told apart at all. This needs a decision record of its own, D34.
 
 ## The module
 
@@ -68,7 +68,7 @@ One English voice. `ELEVENLABS_VOICES` loses its two module entries (`english-br
 | Storage | Migration `0019`: `deck_modules.type` and `components.module_type` change from `english-british` and `english-american` to `english`. Decks, pages, cards and audio all stay. Audio is stored per part (`core`, a facet), not per module, so it needs no change |
 | Extension | `catalog/about.generated.ts` regenerated. `tests/browser/module-pages.test.mjs` lists *English* once. The two `tests/screens/rules/allowlist.mjs` selectors on `data-type="english-…"` follow the new ID |
 | Audio | `tests/audio.test.mjs`: the two per-module voice cases go. `.env.example` and `docs/guides/install.md` lose the British and American voice entries |
-| Docs | `docs/specs/modules.md` (catalog row, flag table), `docs/product/scope.md` (modules row, the upgrade), D31, and `maps/` where they name the two modules |
+| Docs | `docs/specs/modules.md` (catalog row, flag table), `docs/product/scope.md` (modules row, the upgrade), D34, and `maps/` where they name the two modules |
 | API | No contract change. The module list comes from the catalog, so `docs/api/openapi.json` should not change; `npm run openapi` confirms it |
 
 ## Upgrade

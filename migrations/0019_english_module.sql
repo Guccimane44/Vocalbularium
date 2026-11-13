@@ -1,4 +1,4 @@
--- One English module (D31): English (British) and English (American) become
+-- One English module (D34): English (British) and English (American) become
 -- English. Decks, pages, cards and their audio stay as written; only the module
 -- type changes, in the deck's modules, the page's components and any attempt.
 UPDATE "deck_modules" SET "type" = 'english' WHERE "type" IN ('english-british', 'english-american');--> statement-breakpoint
