@@ -494,7 +494,7 @@
     },
     {
       "key": "colour",
-      "why": "English noun in British spelling (0.16.4): English (American) explains it and may say it is the British spelling, its own text spelled color; Grammar teacher applies",
+      "why": "English noun in British spelling (0.16.4): English explains it in any proper English, British or American (D31), and speaks it as colour; Grammar teacher applies",
       "expect": {
         "kind": "word",
         "gramRole": {
@@ -504,7 +504,7 @@
     },
     {
       "key": "color",
-      "why": "English noun in American spelling (0.16.4): English (British) explains it and may say it is the American spelling, its own text spelled colour; Grammar teacher applies",
+      "why": "English noun in American spelling (0.16.4): English explains it in any proper English, British or American (D31), and speaks it as color; Grammar teacher applies",
       "expect": {
         "kind": "word",
         "gramRole": {
@@ -514,7 +514,7 @@
     },
     {
       "key": "apartment",
-      "why": "American English word (0.16.4): English (British) gives flat as its own word and may say apartment is American",
+      "why": "American English word (0.16.4): English explains it in any proper English (D31)",
       "expect": {
         "kind": "word",
         "gramRole": {

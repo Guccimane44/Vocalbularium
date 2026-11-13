@@ -1,0 +1,1 @@
+A word's meanings are "contextual", when the core has it, then "meanings", in that order. Write the English a native speaker would say: short, plain and idiomatic, not a word-for-word rendering of the source.

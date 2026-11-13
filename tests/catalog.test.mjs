@@ -265,3 +265,20 @@ test('the silver set picks golden inputs on modules their golden file runs, a te
   assert.ok(Math.abs(picks.length - cards / 10) <= 2, `${picks.length} picks for ${cards} golden cards`);
   for (const module of Object.values(sets).flatMap(set => set.family ? parentsIn(set.family) : set.modules)) assert.ok(picks.some(pick => pick.module === module), `${module} has a pick`);
 });
+
+test('English tells no variety apart: no request, check or module text names British or American English (D31)', () => {
+  const english = contentModule('english');
+  const facets = english.facets.map(facet => facet.id);
+  const requests = [
+    composeModule({ module: { id: 'i', type: 'english' }, selectedText: 'x', facets }),
+    composeModule({ module: { id: 'i', type: 'english' }, selectedText: 'x', facets: [] }),
+    composeModule({ module: { id: 'i', type: 'english' }, selectedText: 'x', facets: [], previous: { kind: 'word', language: 'English', key: 'x', meanings: ['y'] } }),
+    ...facets.map(facet => composeModule({ module: { id: 'i', type: 'english' }, selectedText: 'x', facets: [facet], core: { kind: 'word' } }))
+  ];
+  for (const request of requests) assert.doesNotMatch(request.instructions, /american|british/i);
+  for (const facet of [english.core, ...english.facets]) {
+    for (const check of facet.checks ?? []) assert.doesNotMatch(`${check.id} ${check.description}`, /american|british/i, `${facet.id}.${check.id}`);
+  }
+  assert.doesNotMatch(`${english.label} ${english.description}`, /american|british/i);
+  assert.deepEqual(MODULE_IDS.filter(id => id.startsWith('english')), ['english']);
+});

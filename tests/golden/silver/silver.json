@@ -1,11 +1,11 @@
 {
-  "about": "The silver set: a tenth of the golden set's cards (33 of 329), one or more from every content module and each kind of hard case (a Context that picks a sense, a sentence, a foreign key, an unrelated key, a German verb's forms, a Chinese grammar word). Each pick names a golden input by its set, key and Context, and the one module it runs on; the input's expectation comes from the golden file, so the two never drift apart. It is for quick comparisons, such as the reasoning experiment (npm run silver), not for a module's gate.",
+  "about": "The silver set: a tenth of the golden set's cards (28 of 275), one or more from every content module and each kind of hard case (a Context that picks a sense, a sentence, a foreign key, an unrelated key, a German verb's forms, a Chinese grammar word). Each pick names a golden input by its set, key and Context, and the one module it runs on; the input's expectation comes from the golden file, so the two never drift apart. It is for quick comparisons, such as the reasoning experiment (npm run silver), not for a module's gate.",
   "picks": [
     {
       "set": "parents",
       "key": "bank",
       "context": "We sat on the bank and watched the river go by.",
-      "module": "english-british"
+      "module": "english"
     },
     {
       "set": "parents",
@@ -22,7 +22,7 @@
     {
       "set": "parents",
       "key": "run",
-      "module": "english-american"
+      "module": "english"
     },
     {
       "set": "parents",
@@ -46,13 +46,8 @@
     },
     {
       "set": "parents",
-      "key": "dépaysement",
-      "module": "english-british"
-    },
-    {
-      "set": "parents",
       "key": "John Cena",
-      "module": "english-american"
+      "module": "english"
     },
     {
       "set": "parents",
@@ -81,33 +76,13 @@
     },
     {
       "set": "parents",
-      "key": "tea",
-      "module": "english-british"
-    },
-    {
-      "set": "parents",
-      "key": "The committee postponed the decision indefinitely.",
-      "module": "english-american"
-    },
-    {
-      "set": "parents",
-      "key": "Tollpatsch",
-      "module": "english-american"
-    },
-    {
-      "set": "parents",
       "key": "colour",
-      "module": "english-american"
-    },
-    {
-      "set": "parents",
-      "key": "apartment",
-      "module": "english-british"
+      "module": "english"
     },
     {
       "set": "parents",
       "key": "Have you got a pen?",
-      "module": "english-british"
+      "module": "english"
     },
     {
       "set": "creativity",

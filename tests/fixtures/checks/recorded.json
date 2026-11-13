@@ -1,5 +1,5 @@
 {
- "note": "Recorded good outputs (golden runs of 30 October 2026, reviewed), used as the passing cases of the content checks; the English (British) and English (American) cards from the golden run of 7 November 2026, reviewed.",
+ "note": "Recorded good outputs (golden runs of 30 October 2026, reviewed), used as the passing cases of the content checks; the English cards (recorded by English (British) and English (American), merged into English by D31) from the golden run of 7 November 2026, reviewed.",
  "german": [
   {
    "key": "bank",
@@ -901,7 +901,7 @@
    }
   }
  ],
- "english-british": [
+ "english": [
   {
    "key": "bank",
    "context": "We sat on the bank and watched the river go by.",
@@ -1195,9 +1195,7 @@
      ]
     }
    }
-  }
- ],
- "english-american": [
+  },
   {
    "key": "bank",
    "context": "I need to go to the bank before it closes.",

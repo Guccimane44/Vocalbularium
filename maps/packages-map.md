@@ -111,9 +111,8 @@ packages/
             │   │                      pronunciation, simple translation, synonyms
             │   ├── chinese/           parts: core, etymology, examples, grammar teacher, pinyin,
             │   │                      pronunciation, simple translation
-            │   ├── english-british/   parts: core, antonyms, etymology, examples, grammar teacher,
-            │   │                      pronunciation, simple translation, synonyms
-            │   └── english-american/  parts: the same as British English
+            │   └── english/           parts: core, antonyms, etymology, examples, grammar teacher,
+            │                          pronunciation, simple translation, synonyms
             │
             ├── expertise/          family: explaining a term from a subject
             │   ├── family.ts, about*.json

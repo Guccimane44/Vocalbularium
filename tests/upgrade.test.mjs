@@ -422,3 +422,45 @@ test('0.15.0 reads and edits a 0.14.0 database unchanged: stored facets keep the
   assert.equal(edited.content.blocks[0].facets.article, undefined);
   assert.equal(edited.content.blocks[0].facets.declension, 'des Ufers', 'the other facets keep their text');
 });
+
+test('0019 turns English (British) and English (American) into English, keeping every deck, page, card, clip and attempt as written (D31)', async t => {
+  const database = await legacyDatabase(t, 'one-english-upgrade', 18);
+  const client = new pg.Client({ connectionString: database.databaseUrl }); await client.connect();
+  t.after(() => client.end());
+  const card = (key, core) => JSON.stringify({ version: 1, blocks: [{ type: 'parent', header: { kind: 'word', language: 'English', key }, core, facets: { pronunciation: key } }] });
+  await client.query(`INSERT INTO decks (id, name) VALUES ('deck', 'Colours');
+    INSERT INTO account (id, default_deck_id, language) VALUES (1, 'deck', 'en');
+    INSERT INTO installations VALUES ('upgrade-installation', 1, 'browser');
+    INSERT INTO deck_modules (id, deck_id, position, type, facets) VALUES ('key', 'deck', 0, 'main-key', '{}'),
+      ('british', 'deck', 1, 'english-british', '{pronunciation}'), ('american', 'deck', 2, 'english-american', '{pronunciation}'), ('german', 'deck', 3, 'german', '{}');
+    INSERT INTO pages (id, deck_id, selected_text, created_at) VALUES ('page', 'deck', 'colour', '2026-11-11T10:00:00.000Z');
+    INSERT INTO generation_runs (id, page_id) VALUES ('run', 'page');`);
+  await client.query(`INSERT INTO components (page_id, id, module_instance_id, module_type, position, content, status, facets) VALUES
+    ('page', 'key', 'key', 'main-key', 0, '{"version":1,"blocks":[{"type":"paragraph","text":"colour"}]}', NULL, '{}'),
+    ('page', 'british', 'british', 'english-british', 1, $1, 'completed', '{pronunciation}'),
+    ('page', 'american', 'american', 'english-american', 2, $2, 'completed', '{pronunciation}')`,
+  [card('colour', '1. the colour of something'), card('colour', '1. the British spelling of color')]);
+  await client.query(`INSERT INTO component_audio (page_id, component_id, part, line, text, language, token, created_at)
+    VALUES ('page', 'british', 'pronunciation', 0, 'colour', 'en', 'tok', '2026-11-11T10:00:00.000Z');
+    INSERT INTO component_attempts (id, page_id, component_id, run_id, installation_id, session_id, epoch, module, state)
+    VALUES ('attempt', 'page', 'american', 'run', 'upgrade-installation', 'browser', 1, '{"id":"american","type":"english-american","facets":["pronunciation"]}', 'completed');`);
+  const kept = {};
+  for (const table of ['account', 'decks', 'installations', 'pages', 'component_audio']) kept[table] = await rows(client, table);
+  const content = async () => (await client.query('SELECT id, content, facets FROM components ORDER BY position')).rows;
+  const before = await content();
+
+  await migrateTo(t, database, 19);
+
+  for (const table of Object.keys(kept)) assert.deepEqual(await rows(client, table), kept[table], table);
+  assert.deepEqual(await content(), before, 'the cards keep their text and facets as written');
+  assert.deepEqual((await client.query('SELECT id, type FROM deck_modules ORDER BY position')).rows,
+    [{ id: 'key', type: 'main-key' }, { id: 'british', type: 'english' }, { id: 'american', type: 'english' }, { id: 'german', type: 'german' }]);
+  assert.deepEqual((await client.query('SELECT id, module_type FROM components ORDER BY position')).rows,
+    [{ id: 'key', module_type: 'main-key' }, { id: 'british', module_type: 'english' }, { id: 'american', module_type: 'english' }]);
+  assert.deepEqual(JSON.parse((await client.query('SELECT module FROM component_attempts')).rows[0].module), { id: 'american', type: 'english', facets: ['pronunciation'] });
+
+  const store = await AccountStore.open(database); database.resources.push(store);
+  const page = await store.page('page');
+  assert.ok(Value.Check(PageSchema, page), 'the upgraded page fits the contract');
+  assert.deepEqual(page.components.filter(component => component.moduleType === 'english').map(component => component.id), ['british', 'american']);
+});

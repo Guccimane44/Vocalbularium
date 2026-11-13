@@ -69,66 +69,49 @@ test('Chinese: the meanings and translations are in characters, and the pinyin i
   assert.deepEqual(await failures('chinese', with_(chinese, 'pinyin', [{ text: '西安', pinyin: 'Xī’ān' }])), [], 'capitals and an apostrophe');
 });
 
-// The English modules (0.16.4): a British card and an American one, each
-// flagging the other variant's common spellings in its own text.
-const ENGLISH = [
-  { type: 'english-british', own: 'colour', other: 'color', ownWord: 'organised', otherWord: 'organized' },
-  { type: 'english-american', own: 'color', other: 'colour', ownWord: 'organized', otherWord: 'organised' }
-].filter(variant => isContentModule(variant.type));
-const englishCard = own => ({
-  core: { kind: 'word', language: 'German', key: 'Farbe', meanings: [`the ${own} of something`, 'paint'] },
+// English (D31): one module that takes British, American or mixed English as
+// the model writes it. Its checks are about the key and the language, never
+// the variety.
+const englishCard = {
+  core: { kind: 'word', language: 'German', key: 'Farbe', meanings: ['the colour of something', 'paint'] },
   facets: {
-    examples: [{ sentence: 'Welche Farbe hat dein Auto?', translation: `What ${own} is your car?` }, { sentence: 'Die Farbe ist noch nass.', translation: 'The paint is still wet.' }],
-    synonyms: ['hue', 'shade'], pronunciation: [own, 'paint'],
-    etymology: { origins: ['Old English'], text: `From Latin color, through Old French colour.` },
-    'simple-translation': [`what ${own} a thing is, like red or blue`, 'what you put on a wall to change its look']
+    examples: [{ sentence: 'Welche Farbe hat dein Auto?', translation: 'What color is your car?' }, { sentence: 'Die Farbe ist noch nass.', translation: 'The paint is still wet.' }],
+    synonyms: ['hue', 'shade'], pronunciation: ['colour', 'paint'],
+    etymology: { origins: ['Old English'], text: 'From Latin color, through Old French colour.' },
+    'simple-translation': ['what color a thing is, like red or grey', 'what you put on a wall to change its look']
   }
-});
+};
 
-test('English: the meanings and translations are English, the other variant’s spellings are flagged except in the key, and Grammar teacher needs an English key', async () => {
+test('English: the meanings and translations are English in any variety, an English key is spoken and kept as selected, and Grammar teacher needs an English key', async () => {
   const { appliesTo } = await import('@vocabularium/domain/parents');
-  for (const { type, own, other, ownWord, otherWord } of ENGLISH) {
-    const card = englishCard(own);
-    assert.deepEqual(await failures(type, card), [], type);
-    assert.deepEqual(await failures(type, { ...card, core: { ...card.core, meanings: ['颜色', 'paint'] } }), ['core.english-meanings']);
-    assert.deepEqual(await failures(type, { ...card, core: { ...card.core, meanings: [`the ${other} of something`, 'paint'] } }), [`core.${type.slice(8)}-spelling`]);
-    assert.deepEqual(await failures(type, with_(card, 'synonyms', ['hue', other])), [`synonyms.${type.slice(8)}-spelling`]);
-    assert.deepEqual(await failures(type, with_(card, 'simple-translation', [`it is ${otherWord}`, 'paint'])), [`simple-translation.${type.slice(8)}-spelling`]);
-    assert.deepEqual(await failures(type, with_(card, 'simple-translation', [`it is ${ownWord}`, 'paint'])), []);
-    // A doubled or single l before a suffix: travelled and cancelled are British, traveled and canceled American.
-    const [ownL, otherL] = type === 'english-british' ? ['cancelled', 'canceled'] : ['canceled', 'cancelled'];
-    assert.deepEqual(await failures(type, with_(card, 'simple-translation', [`the trip was ${ownL}`, 'paint'])), [], ownL);
-    assert.deepEqual(await failures(type, with_(card, 'simple-translation', [`the trip was ${otherL}`, 'paint'])), [`simple-translation.${type.slice(8)}-spelling`], otherL);
-    // The key's own words, in either spelling, are allowed.
-    const keyed = { ...card, core: { ...card.core, language: 'English', key: other, meanings: [`the spelling of ${own} in the other variant`] }, facets: { 'grammar-teacher': [`${other} is spelled ${own} here.`] } };
-    assert.deepEqual(await failures(type, keyed), [], `${type} names the key ${other}`);
-    assert.deepEqual(await failures(type, { ...keyed, facets: { 'grammar-teacher': [`Its forms are ${other}s and ${other}ed; ${own}ed elsewhere.`] } }), [], 'and its forms');
-    // A foreign example sentence is never checked for spelling; an English one is.
-    const spanish = with_(card, 'examples', [{ sentence: 'Tiene buen humor.', translation: 'He is in a good mood.' }]);
-    assert.deepEqual(await failures(type, spanish), []);
-    const english = { ...keyed, facets: { examples: [{ sentence: `The ${other} of the sky is ${otherWord === 'organized' ? 'gray' : 'grey'}.` }] } };
-    assert.deepEqual(await failures(type, english), [`examples.${type.slice(8)}-spelling`]);
-    assert.deepEqual(await failures(type, { ...keyed, facets: { examples: [{ sentence: `I like this ${other}.`, translation: `I like this ${other}.` }] } }), ['examples.english-key-untranslated']);
-    // An English key is spoken itself, never its meanings.
-    assert.deepEqual(await failures(type, { ...keyed, facets: { pronunciation: [other] } }), []);
-    assert.deepEqual(await failures(type, { ...keyed, facets: { pronunciation: ['hue', 'shade'] } }), ['pronunciation.english-key-spoken']);
-    // The label is the module's.
-    assert.deepEqual(await failures(type, { ...card, core: { ...card.core, contextual: '(in this context) paint', meanings: [`the ${own} of something`] }, facets: {} }), ['core.context-meaning']);
-    assert.deepEqual(await failures(type, with_(card, 'pronunciation', ['in this context paint'])), ['pronunciation.no-context-label']);
-    // Etymology: distinct English names without the dot, no label.
-    for (const [etymology, check] of [[{ origins: ['Latin · Old French'], text: 'From Latin.' }, 'origins'], [{ origins: ['Latin', 'latin'], text: 'From Latin.' }, 'origins'],
-      [{ origins: ['Latin'], text: 'Inherited from: Latin.' }, 'no-label'], [{ origins: ['Latin'], text: 'x'.repeat(601) }, 'english-text'], [{ origins: ['拉丁语'], text: 'From Latin.' }, 'origins']]) {
-      assert.deepEqual(await failures(type, with_(card, 'etymology', etymology)), [`etymology.${check}`], JSON.stringify(etymology));
-    }
-    // Simple translation: one line per meaning, the one in this Context included.
-    assert.deepEqual(await failures(type, with_(card, 'simple-translation', [`what ${own} a thing is`])), ['simple-translation.line-per-meaning']);
-    // Grammar teacher: only for an English key, by the core's language.
-    for (const language of ['English', 'British English', 'American English', ' english ']) assert.ok(appliesTo(type, 'grammar-teacher', { kind: 'word', language }), language);
-    for (const language of ['German', 'Englisch', '英语', '']) assert.ok(!appliesTo(type, 'grammar-teacher', { kind: 'word', language }), language);
-    assert.ok(appliesTo(type, 'grammar-teacher', { kind: 'sentence', language: 'English' }));
-    assert.deepEqual(await failures(type, { ...keyed, facets: { 'grammar-teacher': ['One.', 'Two.', 'Three.', 'Four.', 'Five.', 'Six.'] } }), ['grammar-teacher.points']);
+  const type = 'english', card = englishCard;
+  assert.deepEqual(await failures(type, card), [], 'British and American spellings mixed on one card pass');
+  assert.deepEqual(await failures(type, { ...card, core: { ...card.core, meanings: ['颜色', 'paint'] } }), ['core.english-meanings']);
+  for (const word of ['organised', 'organized', 'cancelled', 'canceled', 'gray', 'grey']) {
+    assert.deepEqual(await failures(type, with_(card, 'simple-translation', [`it is ${word}`, 'paint'])), [], word);
   }
-  assert.ok(ENGLISH.length >= 1);
+  // An English key: its examples untranslated, and spoken itself, never its meanings.
+  const keyed = { ...card, core: { ...card.core, language: 'English', key: 'colour', meanings: ['the colour of something'] }, facets: { 'grammar-teacher': ['Colour is a noun and a verb.'] } };
+  assert.deepEqual(await failures(type, keyed), []);
+  assert.deepEqual(await failures(type, { ...keyed, facets: { examples: [{ sentence: 'I like this colour.', translation: 'I like this color.' }] } }), ['examples.english-key-untranslated']);
+  assert.deepEqual(await failures(type, { ...keyed, facets: { pronunciation: ['colour'] } }), []);
+  assert.deepEqual(await failures(type, { ...keyed, facets: { pronunciation: ['color'] } }), ['pronunciation.english-key-spoken'], 'the key as selected, not another spelling of it');
+  assert.deepEqual(await failures(type, { ...keyed, facets: { pronunciation: ['hue', 'shade'] } }), ['pronunciation.english-key-spoken']);
+  // The label is the module's.
+  assert.deepEqual(await failures(type, { ...card, core: { ...card.core, contextual: '(in this context) paint', meanings: ['the colour of something'] }, facets: {} }), ['core.context-meaning']);
+  assert.deepEqual(await failures(type, with_(card, 'pronunciation', ['in this context paint'])), ['pronunciation.no-context-label']);
+  // Etymology: distinct English names without the dot, no label.
+  for (const [etymology, check] of [[{ origins: ['Latin · Old French'], text: 'From Latin.' }, 'origins'], [{ origins: ['Latin', 'latin'], text: 'From Latin.' }, 'origins'],
+    [{ origins: ['Latin'], text: 'Inherited from: Latin.' }, 'no-label'], [{ origins: ['Latin'], text: 'x'.repeat(601) }, 'english-text'], [{ origins: ['拉丁语'], text: 'From Latin.' }, 'origins']]) {
+    assert.deepEqual(await failures(type, with_(card, 'etymology', etymology)), [`etymology.${check}`], JSON.stringify(etymology));
+  }
+  // Simple translation: one line per meaning, the one in this Context included.
+  assert.deepEqual(await failures(type, with_(card, 'simple-translation', ['what colour a thing is'])), ['simple-translation.line-per-meaning']);
+  // Grammar teacher: only for an English key, by the core's language.
+  for (const language of ['English', 'British English', 'American English', ' english ']) assert.ok(appliesTo(type, 'grammar-teacher', { kind: 'word', language }), language);
+  for (const language of ['German', 'Englisch', '英语', '']) assert.ok(!appliesTo(type, 'grammar-teacher', { kind: 'word', language }), language);
+  assert.ok(appliesTo(type, 'grammar-teacher', { kind: 'sentence', language: 'English' }));
+  assert.deepEqual(await failures(type, { ...keyed, facets: { 'grammar-teacher': ['One.', 'Two.', 'Three.', 'Four.', 'Five.', 'Six.'] } }), ['grammar-teacher.points']);
 });
 
 // The facets of 0.16.4: Etymology, Simple translation and Grammar teacher.
