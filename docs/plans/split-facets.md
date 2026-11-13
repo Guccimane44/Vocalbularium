@@ -84,7 +84,7 @@ Each measurement gets its own short plan for approval, a runner kept locally und
 | --- | --- | --- | --- |
 | **M1** | Token split per module ([plan](m1-token-split.md), [results](../history/evidence/m1-token-split.md)) | Today's single request, with every facet, on a test set built for M1 (`tests/golden/token-split/`): the tokens of the shared prompt, the core's rules, each facet's prompt, and each part of the output | Text provider only, as today |
 | **M2** | Core-then-parallel against one request ([plan](m2-core-then-parallel.md), [results](../history/evidence/m2-core-then-parallel.md)) | For every golden-set input of the Languages modules (Expertise and Mathematics follow only if Languages passes): today's single request, then the split (the core alone, then each facet that applies as its own request, given the key, the Context, the core's flags and meanings, and that facet's prompt, all at once). One card at a time, several runs each, the same model and settings. Recorded: time to the core, time to the last facet, facets missing or failing their checks, golden-set and gate scores | Text provider only, as today |
-| **M3** | Average cost per facet, the core included | Each part's input and output tokens at the provider's prices, averaged over the runs: from M1 for today's single request, and directly from each split request in M2. The two together show what the split adds per card and where | No (M1's and M2's runs) |
+| **M3** | Average cost per facet, the core included ([plan](m3-cost-per-facet.md), [results](../history/evidence/m3-cost-per-facet.md)) | Each part's input and output tokens at the provider's prices, averaged over the runs: from M1 for today's single request, and directly from each split request in M2. The two together show what the split adds per card and where | No (M1's and M2's runs) |
 
 M1 runs first: its token split tells M2 how large each facet request will be. M3 needs both.
 
@@ -120,6 +120,8 @@ The split needs this, because the server has to know from the core's flags which
 ## Later: German lookup
 
 Deferred until the owner designs it after Phase 1. A lookup takes chosen parts of a Wiktionary entry, not the whole entry. With the split, a lookup would simply replace one facet's request with a check against a local import, and the rest of the card is unchanged. The label review's notes on the German set (*Beamte*, *Deutsche*, rarer variants) are input to that design.
+
+Now planned in [M4](m4-dictionary-reading.md), after a [coverage check of the German Wiktionary](../history/evidence/m4-german-wiktionary-coverage.md).
 
 ## Verification
 
