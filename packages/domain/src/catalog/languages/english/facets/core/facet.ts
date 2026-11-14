@@ -8,13 +8,17 @@ import { isEnglish } from '../../english.js';
 // its meaning. A
 // word's `contextual` (D29) is its meaning in this Context, when the Context
 // selects one; the meanings then hold the key's other senses, its original
-// meaning always among them or in `contextual`. No English facet depends on a
-// grammatical role, so the core has none.
+// meaning always among them or in `contextual`. A word's `gramRole` and
+// `formsWord` (D35) are the part of speech and dictionary form of the English
+// word Forms describes; the card doesn't show them, so a core read back from
+// storage has neither.
 const shape = object({
   kind: oneOf(['word', 'sentence'], 'Word or sentence'),
   language: text("The key's language"),
   key: text('The key'),
   romanization: optional(text('The romanization')),
+  gramRole: optional(oneOf(['noun', 'verb', 'adjective', 'adverb', 'other'], 'The part of speech')),
+  formsWord: optional(text('The English word in its dictionary form')),
   contextual: optional(text('The meaning in this Context')),
   meanings: list(text(), { name: 'The meanings', each: 'Meaning' })
 }, { own: true });
@@ -54,6 +58,10 @@ export default defineCore({
       }
       return null;
     }
+  }, {
+    id: 'forms-word', description: 'A sentence names no part of speech or forms word; a word\'s forms word is English.',
+    test: core => core.kind === 'sentence' ? (core.gramRole || core.formsWord ? 'a sentence has a part of speech or a forms word' : null)
+      : core.formsWord !== undefined && !isEnglish(core.formsWord) ? `"${core.formsWord}" is not English: ${foreignLetters(core.formsWord, 'latin') || 'no letters'}` : null
   }, {
     id: 'context-meaning', description: 'A meaning in this Context belongs to a word, is not repeated among the meanings, and no meaning writes the label itself.',
     test: core => {

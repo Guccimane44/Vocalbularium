@@ -114,6 +114,43 @@ test('English: the meanings and translations are English in any variety, an Engl
   assert.deepEqual(await failures(type, { ...keyed, facets: { 'grammar-teacher': ['One.', 'Two.', 'Three.', 'Four.', 'Five.', 'Six.'] } }), ['grammar-teacher.points']);
 });
 
+// English Forms (D35): the English word's plural, comparison or verb forms, a
+// line or a verb's table of one row, for the word the core names.
+test('English Forms: the forms of the core\'s word and part of speech only, a line or a verb table, offered when the stored card no longer names its part of speech', async () => {
+  const { appliesTo } = await import('@vocabularium/domain/parents');
+  const { formatFacet } = await import('@vocabularium/domain/content');
+  const type = 'english';
+  const word = (key, gramRole, formsWord, forms) => ({ core: { kind: 'word', language: 'English', key, gramRole, formsWord, meanings: ['a sense'] }, facets: { forms } });
+  const mice = { word: 'mouse', plural: 'mice' };
+  const go = { word: 'go', thirdPerson: 'goes', past: 'went', pastParticiple: 'gone', ing: 'going' };
+  assert.deepEqual(await failures(type, word('mice', 'noun', 'mouse', mice)), []);
+  assert.deepEqual(await failures(type, word('went', 'verb', 'go', go)), []);
+  assert.deepEqual(await failures(type, word('Haus', 'noun', 'house', { word: 'house', plural: 'houses' })), []);
+  assert.deepEqual(await failures(type, word('travel', 'verb', 'travel', { ...go, word: 'travel', thirdPerson: 'travels', past: 'travelled / traveled', pastParticiple: 'travelled / traveled', ing: 'travelling / traveling' })), [], 'two spellings share a slot');
+  assert.deepEqual(await failures(type, word('information', 'noun', 'information', { word: 'information', number: 'uncountable' })), []);
+  assert.deepEqual(await failures(type, word('can', 'verb', 'can', { word: 'can', past: 'could' })), [], 'a modal shows only what it has');
+  // What fails.
+  assert.deepEqual(await failures(type, word('went', 'verb', 'go', { ...go, word: 'went' })), ['forms.forms-word']);
+  assert.deepEqual(await failures(type, word('mice', 'noun', 'mouse', { ...mice, comparative: 'micer' })), ['forms.one-part-of-speech']);
+  assert.deepEqual(await failures(type, word('mice', 'verb', 'mouse', mice)), ['forms.one-part-of-speech'], 'noun forms for a verb');
+  assert.deepEqual(await failures(type, word('mice', 'noun', 'mouse', { ...mice, number: 'uncountable' })), ['forms.one-part-of-speech']);
+  assert.deepEqual(await failures(type, word('mice', 'noun', 'mouse', { word: 'mouse' })), ['forms.one-part-of-speech'], 'no forms');
+  assert.deepEqual(await failures(type, word('far', 'adjective', 'far', { word: 'far', comparative: 'farther / further / farer', superlative: 'farthest' })), ['forms.forms']);
+  assert.deepEqual(await failures(type, word('far', 'adjective', 'far', { word: 'far', comparative: 'further / further', superlative: 'farthest' })), ['forms.forms']);
+  assert.deepEqual(await failures(type, word('far', 'adjective', 'far', { word: 'far', comparative: 'farther / ', superlative: 'farthest' })), ['forms.forms']);
+  assert.deepEqual(await failures(type, { core: { kind: 'sentence', language: 'English', key: 'It rains.', gramRole: 'verb', meanings: ['x'] }, facets: {} }), ['core.forms-word']);
+  // The layouts: one line, or a table of one row for a verb.
+  assert.equal(formatFacet(type, 'forms', mice), 'mouse · mice');
+  assert.equal(formatFacet(type, 'forms', { word: 'good', comparative: 'better', superlative: 'best' }), 'good · better · best');
+  assert.equal(formatFacet(type, 'forms', { word: 'scissors', number: 'plural only' }), 'scissors · plural only');
+  assert.equal(formatFacet(type, 'forms', { word: 'can', past: 'could' }), 'can · could');
+  assert.equal(formatFacet(type, 'forms', go), '| Base | Third person | Past | Past participle | -ing form |\n| --- | --- | --- | --- | --- |\n| go | goes | went | gone | going |');
+  // When it applies: a noun, verb, adjective or adverb; any word whose part of speech the stored card no longer has.
+  for (const gramRole of ['noun', 'verb', 'adjective', 'adverb', undefined]) assert.ok(appliesTo(type, 'forms', { kind: 'word', language: 'English', gramRole }), String(gramRole));
+  assert.ok(!appliesTo(type, 'forms', { kind: 'word', language: 'English', gramRole: 'other' }));
+  assert.ok(!appliesTo(type, 'forms', { kind: 'sentence', language: 'English' }));
+});
+
 // The facets of 0.16.4: Etymology, Simple translation and Grammar teacher.
 test('Chinese: Etymology names its origins in Chinese once each, Simple translation has a line per meaning, Grammar teacher a few simplified points', async () => {
   const word = { core: { kind: 'word', language: '中文', key: '咖啡', meanings: ['一种用咖啡豆做的饮料', '咖啡豆'] }, facets: {

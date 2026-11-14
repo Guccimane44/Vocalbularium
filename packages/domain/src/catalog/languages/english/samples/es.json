@@ -4,6 +4,8 @@
       "kind": "word",
       "language": "Spanish",
       "key": "idioma",
+      "gramRole": "noun",
+      "formsWord": "language",
       "meanings": [
         "language, a system of words people use to communicate"
       ]
@@ -30,7 +32,11 @@
       },
       "simple-translation": [
         "the words people use to talk and write"
-      ]
+      ],
+      "forms": {
+        "word": "language",
+        "plural": "languages"
+      }
     }
   },
   "sentence": {
