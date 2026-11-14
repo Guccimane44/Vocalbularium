@@ -1,8 +1,9 @@
 // @ts-check
 // Judges generated cards against their module's rubric (0.16.0): the rubric
 // beside each module's prompt in the catalog, scored per criterion as pass,
-// weak or fail by the generator's own model, after the catalog's content
-// checks. Its verdicts count only once it agrees with the calibration set.
+// weak or fail by JUDGE_MODEL, or the generator's own model when that is not
+// set (M7), after the catalog's content checks. Its verdicts count only once
+// it agrees with the calibration set made with the same model.
 // It spends provider usage.
 // Usage: npm run judge -- <module> [golden run .json]   judge a golden run (the latest for the module by default)
 //        npm run judge -- --calibrate [module]           score the calibration set and report agreement
@@ -12,6 +13,7 @@ import { OpenCodeProvider } from '../src/server/opencode.mjs';
 import { contentModule, folderOf, isContentModule, MODULES } from '@vocabularium/domain/catalog';
 import { checkCard } from '@vocabularium/domain/checks';
 import { checkTools } from './check-tools.mjs';
+import { judgeModel, meter } from './meter.mjs';
 
 /** @typedef {{ id: string, text: string }} Criterion */
 /** @typedef {{ selection: string, context?: string, language: string, card: { core: any, facets?: Record<string, unknown> } }} JudgeInput */
@@ -85,7 +87,8 @@ async function main() {
   if (!process.env.OPENCODE_API_KEY) throw new Error('Configure OPENCODE_API_KEY in the ignored .env file first.');
   const [first, second] = process.argv.slice(2);
   // Judging a card with many facets reasons longer than generating it.
-  const provider = new OpenCodeProvider({ timeout: 180000 });
+  const provider = new OpenCodeProvider({ timeout: 180000, model: judgeModel(process.env) });
+  const cost = meter(provider);
   const date = new Date().toISOString();
   // Judged cards beside what the calibration file or golden run, untyped JSON, says of them.
   /** @type {any[]} */
@@ -122,9 +125,9 @@ async function main() {
   }
   const stamp = `${date.replace(/[:.]/g, '-')}${first === '--calibrate' ? '-calibration' : `-${first}`}`;
   await mkdir('.data/judge', { recursive: true });
-  await writeFile(`.data/judge/${stamp}.json`, JSON.stringify({ date, model: provider.model, title, results }, null, 2) + '\n');
+  await writeFile(`.data/judge/${stamp}.json`, JSON.stringify({ date, model: provider.model, cost: cost.spent(), title, results }, null, 2) + '\n');
   const count = (/** @type {string} */ verdict) => results.filter(result => result.verdict === verdict).length;
-  const lines = [`# ${title}`, '', `${date} · model ${provider.model} · ${results.length} cards: ${count('pass')} pass, ${count('weak')} weak, ${count('fail')} fail${count('error') ? `, ${count('error')} not scored` : ''}`, ''];
+  const lines = [`# ${title}`, '', `${date} · model ${provider.model} · ${results.length} cards: ${count('pass')} pass, ${count('weak')} weak, ${count('fail')} fail${count('error') ? `, ${count('error')} not scored` : ''} · ${Math.round(cost.spent() * 1e6)} µ$`, ''];
   if (first === '--calibrate') {
     const agreed = results.filter(result => result.agrees).length;
     const missed = results.filter(result => result.expected === 'fail' && result.verdict !== 'fail');
