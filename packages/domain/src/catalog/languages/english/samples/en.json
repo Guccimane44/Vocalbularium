@@ -4,6 +4,8 @@
       "kind": "word",
       "language": "English",
       "key": "language",
+      "gramRole": "noun",
+      "formsWord": "language",
       "meanings": [
         "a system of words and grammar that people use to communicate",
         "the words and style used by a particular group or in a particular field"
@@ -38,7 +40,11 @@
       "grammar-teacher": [
         "Countable when it means one particular language, as in two languages, but uncountable when it means speech in general, as in the power of language.",
         "It takes in before the name of a language: written in English, never written on English."
-      ]
+      ],
+      "forms": {
+        "word": "language",
+        "plural": "languages"
+      }
     }
   },
   "sentence": {
