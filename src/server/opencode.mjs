@@ -3,6 +3,9 @@ import { failure, Provider } from './provider.mjs';
 /** @import { Request } from '@vocabularium/domain/composer' */
 /** @import { Reply } from './provider.mjs' */
 
+// The one pinned model (D11), unless OPENCODE_MODEL names another.
+export const DEFAULT_MODEL = 'deepseek-v4.1-flash';
+
 // The OpenCode adapter (D11): transport only. OpenCode has no native JSON
 // schema, so the schema travels inside the instructions.
 export class OpenCodeProvider extends Provider {
@@ -10,7 +13,7 @@ export class OpenCodeProvider extends Provider {
   // `reasoning` sets the model's reasoning effort (`none` turns its thinking
   // off; `low` to `max`); left out, the model's own default, as the product uses.
   /** @param {{ apiKey?: string, model?: string, fetchImpl?: typeof fetch, timeout?: number, reasoning?: string }} [options] */
-  constructor({ apiKey = process.env.OPENCODE_API_KEY, model = process.env.OPENCODE_MODEL ?? 'deepseek-v4.1-flash', fetchImpl = fetch, timeout, reasoning } = {}) {
+  constructor({ apiKey = process.env.OPENCODE_API_KEY, model = process.env.OPENCODE_MODEL ?? DEFAULT_MODEL, fetchImpl = fetch, timeout, reasoning } = {}) {
     super();
     this.apiKey = apiKey; this.model = model; this.fetch = fetchImpl; this.timeout = timeout; this.reasoning = reasoning;
   }

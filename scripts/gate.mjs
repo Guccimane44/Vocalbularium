@@ -8,6 +8,8 @@
 import { spawnSync } from 'node:child_process';
 import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { isContentModule } from '@vocabularium/domain/catalog';
+import { judgeModel } from './meter.mjs';
+import { DEFAULT_MODEL } from '../src/server/opencode.mjs';
 
 // The thresholds a module must meet (0.16.0 plan): no failed card, and at
 // most this share of weak ones.
@@ -18,10 +20,13 @@ const OFFLINE = ['tests/catalog.test.mjs', 'tests/prompts.test.mjs', 'tests/loca
 const [module] = process.argv.slice(2);
 if (!module || !isContentModule(module)) throw new Error('Name a content module, such as german.');
 const started = new Date().toISOString();
+// The generator's model and the judge's, which can differ (M7): the judge's
+// calibration was made with one model and counts only for it.
+const models = { generator: process.env.OPENCODE_MODEL || DEFAULT_MODEL, judge: judgeModel(process.env) || DEFAULT_MODEL };
 /** @type {{ step: string, passed: boolean, summary: string, details?: string[] }[]} */
 const steps = [];
 /** @param {string} command @param {string[]} args */
-const run = (command, args) => spawnSync(command, args, { encoding: 'utf8', env: process.env, maxBuffer: 64 * 1024 * 1024 });
+const run = (command, args) => spawnSync(command, args, { encoding: 'utf8', env: { ...process.env, JUDGE_MODEL: models.judge }, maxBuffer: 64 * 1024 * 1024 });
 /** @param {string} directory @param {(name: string) => boolean} keep */
 const latest = async (directory, keep) => (await readdir(directory).catch(() => [])).filter(keep).sort().pop();
 
@@ -48,8 +53,11 @@ let golden;
     const errors = results.filter(result => result.error);
     const flags = results.filter(result => result.unexpected?.length);
     const checks = results.filter(result => result.checks?.length);
+    const made = results.filter(result => !result.error && typeof result.ms === 'number');
+    const times = made.map(result => result.ms).sort((a, b) => a - b);
+    const spend = made.length ? `; mean cost ${Math.round(1e6 * made.reduce((sum, result) => sum + result.cost, 0) / made.length)} µ$, median time ${((times[Math.floor((times.length - 1) / 2)] ?? 0) / 1000).toFixed(1)} s` : '';
     steps.push({ step: 'Golden set', passed: !errors.length && !flags.length && !checks.length,
-      summary: `${results.length} cards: ${errors.length} failed to generate, ${flags.length} with unexpected flags, ${checks.length} failing a content check (${file})`,
+      summary: `${results.length} cards: ${errors.length} failed to generate, ${flags.length} with unexpected flags, ${checks.length} failing a content check${spend} (${file})`,
       details: [...errors.map(result => `${result.key}: ${result.error}`), ...flags.map(result => `${result.key}: ${result.unexpected.join('; ')}`),
         ...checks.map(result => `${result.key}: ${result.checks.map((/** @type {any} */ check) => `${check.part}.${check.check}: ${check.message}`).join('; ')}`)] });
   }
@@ -61,13 +69,15 @@ let golden;
   /** @type {any[]} untyped JSON written by the judge */
   let calibrated = [];
   for (const name of (await readdir('.data/judge').catch(() => [])).filter(name => name.endsWith('-calibration.json')).sort().reverse()) {
-    calibrated = JSON.parse(await readFile(`.data/judge/${name}`, 'utf8')).results.filter((/** @type {any} */ result) => result.module === module);
+    const calibration = JSON.parse(await readFile(`.data/judge/${name}`, 'utf8'));
+    if (calibration.model !== models.judge) continue;
+    calibrated = calibration.results.filter((/** @type {any} */ result) => result.module === module);
     if (calibrated.length) break;
   }
   const agreement = calibrated.length ? calibrated.filter(result => result.agrees).length / calibrated.length : 0;
   const missed = calibrated.filter(result => result.expected === 'fail' && result.verdict !== 'fail').length;
   if (!calibrated.length || agreement < CALIBRATION.agreement || missed) {
-    steps.push({ step: 'Judge', passed: false, summary: `not calibrated for ${module}: run npm run judge -- --calibrate ${module} (latest: ${calibrated.length ? `${Math.round(100 * agreement)}% agreement, ${missed} fails missed` : 'none'})` });
+    steps.push({ step: 'Judge', passed: false, summary: `not calibrated for ${module} with ${models.judge}: run JUDGE_MODEL=${models.judge} npm run judge -- --calibrate ${module} (latest: ${calibrated.length ? `${Math.round(100 * agreement)}% agreement, ${missed} fails missed` : 'none'})` });
   } else if (!golden) {
     steps.push({ step: 'Judge', passed: false, summary: 'skipped: the golden set did not run' });
   } else {
@@ -84,7 +94,7 @@ let golden;
 }
 
 const passed = steps.every(step => step.passed);
-const report = [`# Gate: ${module} · ${passed ? 'passed' : 'failed'}`, '', `${started}`, '',
+const report = [`# Gate: ${module} · ${passed ? 'passed' : 'failed'}`, '', `${started} · model ${models.generator} · judge ${models.judge}`, '',
   ...steps.flatMap(step => [`## ${step.passed ? '✓' : '✗'} ${step.step}`, '', step.summary, '', ...(step.details?.length ? [...step.details.map(line => `- ${line}`), ''] : [])])].join('\n');
 await mkdir('.data/gates', { recursive: true });
 const path = `.data/gates/${module}-${started.replace(/[:.]/g, '-')}.md`;

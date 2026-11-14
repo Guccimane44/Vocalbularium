@@ -10,6 +10,7 @@ import { randomUUID } from 'node:crypto';
 import { OpenCodeProvider } from '../src/server/opencode.mjs';
 import { parentsIn, PARENTS } from '@vocabularium/domain/parents';
 import { runCard } from './golden-card.mjs';
+import { meter } from './meter.mjs';
 import { INTERFACE_LANGUAGES } from '@vocabularium/contracts';
 
 if (!process.env.OPENCODE_API_KEY) throw new Error('Configure OPENCODE_API_KEY in the ignored .env file first.');
@@ -26,10 +27,16 @@ for (const file of (await readdir(directory)).filter(name => name.endsWith('.jso
   if (types.length) sets.push({ types, inputs });
 }
 const provider = new OpenCodeProvider();
+const cost = meter(provider);
 const evidence = { date: new Date().toISOString(), provider: 'OpenCode Go', model: provider.model, language, samples, results: [] };
 for (const { types, inputs } of sets) for (const input of inputs) for (let sample = 1; sample <= samples; sample++) {
   const sessionId = randomUUID();
-  for (const type of types) evidence.results.push(await runCard({ provider, input, type, language, sample, sessionId }));
+  for (const type of types) {
+    // Each card's cost, from the service's count, and its time, retries included (M7).
+    const [before, started] = [cost.spent(), performance.now()];
+    const result = await runCard({ provider, input, type, language, sample, sessionId });
+    evidence.results.push({ ...result, cost: cost.spent() - before, ms: Math.round(performance.now() - started) });
+  }
 }
 const json = value => `\`\`\`json\n${JSON.stringify(value, null, 2)}\n\`\`\``;
 // The stored markdown, the core then each facet under its label, as the card shows it.
