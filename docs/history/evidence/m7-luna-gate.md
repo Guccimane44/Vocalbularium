@@ -12,6 +12,7 @@ The plan asked for a DeepSeek baseline for German only. Chinese and English were
 - **Expertise and Creativity: nearly clean.** No failed card in Computer Science, Mathematics, Chemistry or Joke, and one in Modern Haiku (*autumn*, two lines that rhyme); Traditional Haiku had 4 invalid replies, all `"reading": []` for a non-Japanese haiku, and none after [PR 310](https://github.com/Guccimane44/Vocalbularium/pull/310) reads an empty optional list as left out. Pronunciation has no rubric, so only its golden set and checks ran: no error, no failing check.
 - **Cost and time:** Luna is 5 to 6 times cheaper and 4 to 6 times faster than DeepSeek on the three language modules: 288–392 µ$ and 5–9 s a card against 1,423–2,222 µ$ and 22–36 s.
 - **Against the bar** (per module, no more failed cards, failing checks or invalid replies than same-day DeepSeek, within the judge's noise): **German passes; Chinese and English do not.** The gaps (11 against 3, 9 against 4) are larger than the judge's noise, and the reasons are specific, checkable errors rather than taste.
+- **After the prompt fixes** ([PR 311](https://github.com/Guccimane44/Vocalbularium/pull/311), [below](#after-m7-forms-and-the-prompt-fixes)): Luna's English Pronunciation fault is gone and its Chinese failing checks fell to 0, but both modules still trail DeepSeek (English 6 judge fails against 3, Chinese 7 against 3). The bar still isn't met.
 
 | Module | Model | Cards | Invalid replies | Failing checks | Judge: pass / weak / fail / unscored | Mean cost | Median time |
 | --- | --- | ---: | ---: | ---: | --- | ---: | ---: |
@@ -38,14 +39,34 @@ The DeepSeek judge was calibrated the same day for the five modules it had no ca
 
 ## Spend
 
-About $1.80 in all: $1.39 for the runs above (judge $1.02, generation $0.38), about $0.15 for the five calibrations, and about $0.30 for the Traditional Haiku rerun and two English gates with the Forms facet (D35, reported with it).
+About $2.98 in all: $1.39 for the runs above (judge $1.02, generation $0.38), about $0.15 for the five calibrations, about $0.30 for the Traditional Haiku rerun and the first two English gates with the Forms facet, $0.39 for the last two Forms gates (judge $0.26, generation $0.13), and $0.79 for the four prompt-fix gates (judge $0.57, generation $0.22).
 
 ## Limits
 
 - One sample per input, one day. The judge disagreed with itself on about 4 inputs in 10 in M5; a difference of one or two fails means nothing, a difference of eight probably does.
 - The judge was calibrated on DeepSeek's cards; whether it judges Luna's style fairly is unknown. The owner's reading of the deck is the second measure.
 - Luna's default reasoning only; M6 found `high` no better on German.
-- No prompt was tuned for Luna. The English Pronunciation fault looks like one a prompt or check can fix; that is a separate change.
+- The runs above used prompts not tuned for Luna. The prompt fixes came after, in [PR 311](https://github.com/Guccimane44/Vocalbularium/pull/311), and were gated once on each model.
+
+## After M7: Forms and the prompt fixes
+
+Run the same day, with the same judge, no dictionary and one sample, from the branches of [PR 309](https://github.com/Guccimane44/Vocalbularium/pull/309) (English Forms, D35) and [PR 311](https://github.com/Guccimane44/Vocalbularium/pull/311) (prompt fixes). The English runs include Forms, so they compare with M7's English runs only roughly; none of their fails is about Forms.
+
+| Module | Model | Prompts | Invalid replies | Failing checks | Judge: pass / weak / fail / unscored | Mean cost | Median time |
+| --- | --- | --- | ---: | ---: | --- | ---: | ---: |
+| English | Luna | M7, with Forms | 2 | 9 | 34 / 4 / 12 / 4 | 289 µ$ | 5.8 s |
+| English | DeepSeek | M7, with Forms | 2 | 0 | 48 / 3 / 3 / 0 | 2,111 µ$ | 36.8 s |
+| English | Luna | PR 311 | 3 | 2 | 41 / 4 / 9 / 0 | 280 µ$ | 4.8 s |
+| English | DeepSeek | PR 311 | 3 | 0 | 47 / 1 / 6 / 0 | 2,112 µ$ | 40.6 s |
+| Chinese | Luna | PR 311, first version | 1 | 0 | 38 / 6 / 8 / 2 | 280 µ$ | 4.5 s |
+| Chinese | DeepSeek | PR 311, first version | 1 | 1 | 38 / 10 / 6 / 0 | 1,420 µ$ | 19.9 s |
+
+As above, an invalid reply also counts as a failed card.
+
+- **Forms:** Luna gave Forms on 33 of 54 cards and DeepSeek on 32; sentences, names and idioms were left without. Two earlier Luna runs each found one Forms fault, fixed in the prompt before this run: *bank* with a river Context named *riverbank* as Forms' word, and 幸福 came back as *happiness* alone.
+- **English, PR 311:** no card speaks its meanings instead of an English key (four in M7); one English key's examples still carry a translation (*tea*). Luna's six judge fails are spread out: two grammar-teacher notes on the present progressive, an etymology (*happiness*), an example translation (一行人), a simple translation with fewer lines than meanings, and *tea*. DeepSeek keeps three judge fails, as in M7 (two etymologies and *aufstehen* given a sun-rising sense), with no failing check. All six invalid replies across the two runs are unparsable, cut-off or empty replies, the kind DeepSeek also had in M7's German run.
+- **Chinese, PR 311's first version:** on Luna, failing checks fell from 3 to 0 and judge fails from 11 to 7; the repeated-core simple translations and the headword-only pinyin were gone. On DeepSeek it was worse than M7: 5 judge fails against 3, and 10 weak against 7. Four of DeepSeek's five fails were simple translations made stilted by a new rule to reword a line that matched the core (*Junge* as 年纪还小的男性孩子, 我把书放在桌子上了 rewritten with 让); Luna showed the same pattern. That rule was reverted before PR 311 merged, so its simple-translation prompt is M7's; the pinyin and etymology rules stayed, and no DeepSeek fail came from them. Chinese wasn't gated again after the revert.
+- **Against the bar:** still not met for English (Luna 6 judge fails against DeepSeek's 3) or Chinese (7 against 3 on the first version, before the revert).
 
 ## Per module
 
@@ -271,3 +292,137 @@ Gate **failed** (judge deepseek-v4.1-flash). 12 cards; 0 failed to generate; 0 f
 - **Weak**, Schmetterling: funny weak: The pun is forced and 'die Flügel vorn hat' is a contrived punchline.
 - **Weak**, Feierabend: funny weak: The answer 'Weil er jeden Arbeitstag in ein Fest verwandelt' is a flat etymological gloss rather than a real punchline.
 
+#### english · gpt-6-luna · M7 prompts, with Forms
+
+Gate **failed** (judge deepseek-v4.1-flash). 54 cards; 2 failed to generate; 9 failing a content check; 1 with unexpected flags. Mean cost 289 µ$, median time 5.8 s (words 330 µ$, 7.1 s; sentences 136 µ$, 3.0 s). Judge: 34 pass, 4 weak, 12 fail, 4 not scored.
+
+- **Error**, in: The operation was aborted due to timeout
+- **Error**, Fenster: The operation was aborted due to timeout
+- **Check**, bank: examples.english-key-untranslated: an example of an English key has a translation
+- **Check**, breadcrumb: simple-translation.line-per-meaning: 1 lines for 2 meanings
+- **Check**, Schloss: simple-translation.line-per-meaning: 2 lines for 3 meanings
+- **Check**, refrigerator: core.context-meaning: "an appliance used to keep food and drinks cold" is repeated among the meanings; simple-translation.line-per-meaning: 1 lines for 2 meanings
+- **Check**, beautiful: examples.english-key-untranslated: an example of an English key has a translation
+- **Check**, It's raining cats and dogs.: pronunciation.english-key-spoken: an English key speaks itself, not ["It is raining very heavily"]
+- **Check**, gut: examples.english-key-untranslated: an example of an English key has a translation
+- **Check**, tea: examples.english-key-untranslated: an example of an English key has a translation
+- **Check**, Have you got a pen?: pronunciation.english-key-spoken: an English key speaks itself, not ["Do you have a pen?"]
+- **Flags**, refrigerator: contextual: true, expected false
+- **Fail**, bank: check examples.english-key-untranslated: an example of an English key has a translation · examples weak: The English examples "We sat on the bank..." and "A bank of clouds..." include translations, though an English selection's examples should have none.
+- **Fail**, breadcrumb: check simple-translation.line-per-meaning: 1 lines for 2 meanings
+- **Fail**, Schloss: check simple-translation.line-per-meaning: 2 lines for 3 meanings
+- **Fail**, refrigerator: check core.context-meaning: "an appliance used to keep food and drinks cold" is repeated among the meanings · check simple-translation.line-per-meaning: 1 lines for 2 meanings · sense weak: The Context does not narrow the single common sense, yet a "contextual" is given that merely repeats the same wording as "meanings". · facets weak: Etymology is slightly off: dictionaries derive "refrigerator" from Latin refrigerator, not from English "refrigerate" plus "-or".
+- **Fail**, beautiful: check examples.english-key-untranslated: an example of an English key has a translation · examples weak: The English examples include redundant English “translations” instead of no translation.
+- **Fail**, Ufer: facets fail: The etymology gives 'Old English scor'; the standard Old English form is *scora (Middle English schore).
+- **Fail**, It's raining cats and dogs.: check pronunciation.english-key-spoken: an English key speaks itself, not ["It is raining very heavily"] · facets fail: The pronunciation entry 'It is raining very heavily' gives the meaning, not the selection 'It's raining cats and dogs.' to be spoken.
+- **Fail**, gut: check examples.english-key-untranslated: an example of an English key has a translation · examples weak: The English examples carry redundant English translations such as 'The doctor examined his gut.' even though an English selection's examples should have none.
+- **Fail**, in: error: The operation was aborted due to timeout
+- **Fail**, tea: check examples.english-key-untranslated: an example of an English key has a translation · examples weak: The English examples carry a 'translation' that merely repeats the sentence, though an English selection's examples should have none.
+- **Fail**, Fenster: error: The operation was aborted due to timeout
+- **Fail**, Have you got a pen?: check pronunciation.english-key-spoken: an English key speaks itself, not ["Do you have a pen?"] · facets fail: Pronunciation gives "Do you have a pen?" instead of the selection "Have you got a pen?".
+- **Weak**, 幸福: sense weak: The meanings give only the noun 'happiness', while the example uses 幸福 as the adjective 'happy'. · facets weak: The simple translation 'the feeling of being happy and well' does not match 'well-being and contentment'.
+- **Weak**, El que madruga, Dios le ayuda.: facets weak: The simple translation "People who get up early are more likely to do well" drops "God helps" and turns the claim into a likelihood.
+- **Weak**, sein: facets weak: The simple translation's 'particular state' is not simple A2-level wording.
+- **Weak**, apartment: facets weak: The etymology glosses Italian appartamento as separate place, but it means apartment.
+- **Not scored**, serendipity: error: The operation was aborted due to timeout
+- **Not scored**, laufen: error: The operation was aborted due to timeout
+- **Not scored**, 我真的很幸福: error: The operation was aborted due to timeout
+- **Not scored**, aufstehen: error: The operation was aborted due to timeout
+
+#### english · deepseek-v4.1-flash · M7 prompts, with Forms
+
+Gate **failed** (judge deepseek-v4.1-flash). 54 cards; 2 failed to generate; 0 failing a content check; 0 with unexpected flags. Mean cost 2,111 µ$, median time 36.8 s (words 2,448 µ$, 41.9 s; sentences 853 µ$, 12.1 s). Judge: 48 pass, 3 weak, 3 fail.
+
+- **Error**, in: Generation returned an invalid result.
+- **Error**, get up: Generation returned an incomplete result.
+- **Fail**, Schloss: facets fail: The etymology's 'Proto-Germanic lukam' is not the standard reconstruction (usually *luką).
+- **Fail**, in: error: Generation returned an invalid result.
+- **Fail**, get up: error: Generation returned an incomplete result.
+- **Weak**, aufstehen: facets weak: The simple translation 'to fight against the government' narrows 'to rise up against something' to government.
+- **Weak**, 经济: facets weak: The synonyms 'economic system' and 'economic science' are explanatory phrases rather than exact synonyms.
+- **Weak**, Wohnung: facets weak: 'unit' is only a near-synonym for 'apartment'.
+
+#### english · gpt-6-luna · PR 311
+
+Gate **failed** (judge deepseek-v4.1-flash). 54 cards; 3 failed to generate; 2 failing a content check; 0 with unexpected flags. Mean cost 280 µ$, median time 4.8 s (words 322 µ$, 5.3 s; sentences 130 µ$, 2.5 s). Judge: 41 pass, 4 weak, 9 fail.
+
+- **Error**, refrigerator: A module returned content in an unexpected format: The meanings is empty.
+- **Error**, beautiful: Generation returned an invalid result.
+- **Error**, color: Generation returned an invalid result.
+- **Check**, bank: simple-translation.line-per-meaning: 1 lines for 2 meanings
+- **Check**, tea: examples.english-key-untranslated: an example of an English key has a translation
+- **Fail**, bank: check simple-translation.line-per-meaning: 1 lines for 2 meanings
+- **Fail**, 行: examples fail: “一行人” means “a group of people,” so the translation “A row of people” is wrong.
+- **Fail**, refrigerator: error: A module returned content in an unexpected format: The meanings is empty.
+- **Fail**, beautiful: error: Generation returned an invalid result.
+- **Fail**, 幸福: english weak: 'a happy and good state of life' is awkward, nonstandard English · facets fail: 'Middle English happinesse' is a false origin; happiness is from happy + -ness, first recorded in the 16th century
+- **Fail**, It's raining cats and dogs.: facets fail: The notes “The present progressive is formed with is...” and “Cats and dogs is an idiom meaning very heavily” are inaccurate.
+- **Fail**, tea: check examples.english-key-untranslated: an example of an English key has a translation · examples weak: The English examples redundantly repeat each sentence as its own translation.
+- **Fail**, color: error: Generation returned an invalid result.
+- **Fail**, The team are playing well tonight.: facets fail: The grammar note says "The present progressive is formed with are plus ...", wrongly implying "are" is the general auxiliary.
+- **Weak**, dépaysement: english weak: 'A lost or strange feeling' is awkward; 'a feeling of being lost or strange' would be natural.
+- **Weak**, gehen: english weak: The phrase 'Its past tense went came' is ungrammatical; it needs commas or quotation marks around 'went'.
+- **Weak**, colour: english weak: The phrase 'especially as seen through light' is unnatural; 'as seen in light' would be natural.
+- **Weak**, Wohnung: facets weak: The origins list "French, Italian" is not oldest first; Italian comes before French.
+
+#### english · deepseek-v4.1-flash · PR 311
+
+Gate **failed** (judge deepseek-v4.1-flash). 54 cards; 3 failed to generate; 0 failing a content check; 0 with unexpected flags. Mean cost 2,112 µ$, median time 40.6 s (words 2,450 µ$, 42.1 s; sentences 881 µ$, 13.4 s). Judge: 47 pass, 1 weak, 6 fail.
+
+- **Error**, laufen: Generation returned an incomplete result.
+- **Error**, sein: Generation returned an incomplete result.
+- **Error**, sich freuen: Generation returned an incomplete result.
+- **Fail**, Schloss: facets fail: The etymology gives the wrong Proto-Germanic form 'lukan' for the noun 'lock' (the dictionary form is *luką or *lukam).
+- **Fail**, 行: facets fail: The etymology says the occupation sense developed in 'the early 1400s', which is wrong; dictionaries date it to the 1540s.
+- **Fail**, laufen: error: Generation returned an incomplete result.
+- **Fail**, sein: error: Generation returned an incomplete result.
+- **Fail**, aufstehen: sense fail: The meaning 'to rise (of the sun)' is not a sense of 'aufstehen'; German uses 'aufgehen' for the sun. · facets fail: The simple-translation entry 'to come up in the sky, like the sun in the morning' repeats the false sun sense. · examples fail: The example 'Die Sonne steht im Sommer früh auf' is unidiomatic; the sun 'geht ... auf', not 'steht ... auf'.
+- **Fail**, sich freuen: error: Generation returned an incomplete result.
+- **Weak**, John Cena: facets weak: The simple-translation says "famous" and drops "professional" from "American professional wrestler and actor".
+
+#### chinese · gpt-6-luna · PR 311, first version
+
+Gate **failed** (judge deepseek-v4.1-flash). 54 cards; 1 failed to generate; 0 failing a content check; 1 with unexpected flags. Mean cost 280 µ$, median time 4.5 s (words 308 µ$, 4.8 s; sentences 174 µ$, 3.5 s). Judge: 38 pass, 6 weak, 8 fail, 2 not scored.
+
+- **Error**, in: Generation returned an invalid result.
+- **Flags**, 咖啡: grammar-teacher: not shown, expected shown
+- **Fail**, run: chinese weak: The line '水从一个地方往另一个地方走' is unnatural for water; a native speaker would say 流. · simple-translation fail: The line '让机器或程序开始工作' means 'make the machine/program start working', not that it is running.
+- **Fail**, laufen: etymology fail: The claim “本义是急走” is wrong; dictionaries give the original sense of 跑 as 兽用脚刨地.
+- **Fail**, 木漏れ日: pinyin fail: The pinyin gives 间隙 as jiān xì; it should be jiàn xì.
+- **Fail**, tot: etymology fail: The origins ["英语"] and text describe tot, not the Chinese word 小孩子.
+- **Fail**, in: error: Generation returned an invalid result.
+- **Fail**, 我把书放在桌子上了。: chinese weak: “我让书到了桌面上” is unnatural Chinese, though the rest is fine. · simple-translation fail: “我让书到了桌面上” is unnatural and no simpler than the core “我把书放到了桌子上。”
+- **Fail**, Fenster: simple-translation fail: “墙上可以透光、通风的开口。” is a definition and no simpler than the core “窗户”.
+- **Fail**, colour: examples fail: The second translation “在颜料里加一点颜料” says adding paint/pigment to paint/pigment, not adding colour to the paint.
+- **Weak**, Der Zug ist schon abgefahren.: simple-translation weak: “这趟列车” is more formal than the core’s “火车”, and “早就” adds a ‘long ago’ nuance.
+- **Weak**, El que madruga, Dios le ayuda.: simple-translation weak: The added '也更容易做好事情' goes beyond the proverb's meaning.
+- **Weak**, gut: examples weak: The third example uses 'guts' rather than 'gut' and translates 'speak up' loosely as '挺身而出'.
+- **Weak**, wegen: simple-translation weak: 说明一件事的原因 defines the preposition's function rather than restating 因为/由于 in simpler words.
+- **Weak**, window: chinese weak: “机会或时期的窗口” is unnatural; a native would say “窗口期” or “机会之窗”.
+- **Weak**, apartment: chinese weak: “住家房间” is not a natural Chinese phrase; “住房” or “居住的房间” would be better. · simple-translation weak: “住家房间” is awkward and not beginner-simple.
+- **Not scored**, 打算: error: The operation was aborted due to timeout
+- **Not scored**, 把: error: The operation was aborted due to timeout
+
+#### chinese · deepseek-v4.1-flash · PR 311, first version
+
+Gate **failed** (judge deepseek-v4.1-flash). 54 cards; 1 failed to generate; 1 failing a content check; 1 with unexpected flags. Mean cost 1,420 µ$, median time 19.9 s (words 1,589 µ$, 20.8 s; sentences 773 µ$, 9.9 s). Judge: 38 pass, 10 weak, 6 fail.
+
+- **Error**, sein: Generation returned an incomplete result.
+- **Check**, refrigerator: core.context-meaning: "冰箱" is repeated among the meanings; simple-translation.one-line-per-meaning: 1 lines for 2 meanings
+- **Flags**, refrigerator: contextual: true, expected false
+- **Fail**, bank: chinese fail: 「医院里放血的地方」 means a bloodletting place, not a place storing blood. · simple-translation fail: 「医院里放血的地方」 says a bloodletting place, not a blood bank.
+- **Fail**, refrigerator: check core.context-meaning: "冰箱" is repeated among the meanings · check simple-translation.one-line-per-meaning: 1 lines for 2 meanings · sense weak: “contextual: 冰箱” duplicates the only meaning for a one-sense word in a sentence context.
+- **Fail**, laufen: simple-translation fail: The 上映 line says 电视上播出, but 上映 means cinema release, not TV broadcast.
+- **Fail**, sein: error: Generation returned an incomplete result.
+- **Fail**, Junge: chinese weak: “男性孩子” is not the natural Chinese a native speaker would choose. · simple-translation fail: “年纪还小的男性孩子” uses formal “男性” and is no simpler than 男孩.
+- **Fail**, 我把书放在桌子上了。: simple-translation fail: The line 书已经让我拿到桌面上放好了 uses passive 让 and 拿到…放好, so it is no simpler than the core.
+- **Weak**, Schloss: pinyin weak: The pinyin list omits 宫殿 (gōngdiàn).
+- **Weak**, serendipity: chinese weak: 青霉素的发现是偶然发现珍奇事物的著名例子 is awkward, with 发现 repeated and 珍奇事物 odd for penicillin.
+- **Weak**, 一举两得: chinese weak: 「说明判断时」 is an unnatural collocation; 表示判断时 would be the natural wording.
+- **Weak**, Ufer: sense weak: Ufer alone means 'shore'; '彼岸' belongs to das andere Ufer, not Ufer by itself.
+- **Weak**, sobremesa: examples weak: “La sobremesa fue un helado de chocolate” is an unnatural way to use the dessert sense.
+- **Weak**, 木漏れ日: simple-translation weak: 落在地上 adds a location the core meaning does not specify.
+- **Weak**, It's raining cats and dogs.: chinese weak: 天上下的雨特别大 is awkward; a native would say 雨下得特别大.
+- **Weak**, El que madruga, Dios le ayuda.: examples weak: “才能学到东西” adds “only then can learn things” rather than plainly saying “learns”.
+- **Weak**, tea: chinese weak: ‘这种茶叶长在山里’ is unnatural; a native would say 茶树长在山里 or 茶叶产自山区.
+- **Weak**, The committee postponed the decision indefinitely.: simple-translation weak: 委员会说 adds a “said” not in the English sentence.
