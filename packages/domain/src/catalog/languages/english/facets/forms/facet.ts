@@ -39,7 +39,7 @@ const MAX_FORMS = 2;
 
 export default defineFacet({
   id: 'forms', label: 'Forms', abbreviation: 'Fo', description: 'How the English word changes: a plural, a comparison or a verb\'s forms.',
-  applies: ['word_phrase'], output: 'text',
+  applies: ['word_phrase'],
   // A card read back from storage has no `gramRole` (D35): Forms is offered,
   // and the model decides from the card whether the word inflects.
   when: core => !role(core) || ROLES.includes(role(core)),

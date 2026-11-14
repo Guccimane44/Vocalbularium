@@ -6,7 +6,7 @@ import { defineFacet, displayMath, escapeMarkdown, inlineMath, list, object, tex
 // one; never constructed for one that has none.
 export default defineFacet({
   id: 'equation', label: 'Equation', abbreviation: 'Eq', description: 'The chemical formula or balanced reaction equation of a chemistry concept, with its substances named.',
-  applies: ['word_phrase', 'sentence'], output: 'text',
+  applies: ['word_phrase', 'sentence'],
   when: core => core.relevance === 'subject' && core.hasEquation === 'yes',
   shape: object({ latex: text('the equation'), species: list(object({ symbol: text('the substance'), name: text('the name') }), { name: 'the species', each: 'Substance' }) }),
   format: value => [displayMath(value.latex), value.species.map(item => `- ${inlineMath(item.symbol)} · ${escapeMarkdown(item.name)}`).join('\n')].join('\n\n'),

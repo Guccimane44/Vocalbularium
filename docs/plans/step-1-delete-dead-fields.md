@@ -1,6 +1,6 @@
 # Plan: step 1, delete the dead catalog fields
 
-Drafted 10 November 2026 for the owner's review. Status: **draft, not approved**. No code has changed.
+Drafted 10 November 2026 for the owner's review. Status: **draft; the owner answered its questions on 10 November**. No code has changed. Recorded as [D31](../architecture/decisions/d31.md) (proposed).
 
 This is the first of the owner's three steps (clean up; move flags to Jev; look up instead of generate). It narrows and checks the step 1 section of [catalog-cleanup-and-flag-design.md](catalog-cleanup-and-flag-design.md) against the code. Background is in the [headers and flags map](../../maps/headers-and-flags-map.md) and the [handoff](headers-flags-classifier-handoff.md).
 
@@ -37,7 +37,7 @@ Fields with similar names that are in use and stay: `core.labels` (the editor's 
 
 ## What it does not touch
 
-The flags, the header, `ParentHeaderSchema`, `romanization`, the prompts and anything in `src/`. Defining the flags is the next plan.
+The flags, the header, `ParentHeaderSchema`, the prompts and anything in `src/`. Defining the flags is the next plan.
 
 One thing is lost: today `source` is the only place that says Context is captured and Text is written by the user. Nothing reads it. If a dictionary source comes back in step 3, the handoff argues it belongs on a facet, not a module, so it would be a new field in any case.
 
@@ -59,8 +59,10 @@ No migration, live generation or browser check is needed, because nothing stored
 - A fresh branch from `main` (for example `claude/catalog-dead-fields`), in its own worktree. This branch, `claude/silver-set-reasoning`, has unrelated uncommitted edits to `tests/catalog.test.mjs` (15 added lines) and others, and they must not mix.
 - One commit, one PR, when you ask for it. Notion needs no update: no decision changes.
 
-## Questions for you
+## Answers from the owner (10 November)
 
-1. **Facet `output`.** You named `output` on the core. The facet's `output` is the same field with the same single value. Delete both? (Assumed yes.)
-2. **`romanization` and Pinyin.** You gave this as an example of the schema being tangled. It is not a dead field: `romanization` is the reading of the key under the heading, Pinyin is the reading of the Chinese text in the card, and they repeat each other only when the key is Chinese. Changing it changes what the card shows and the Chinese prompt, so I would leave it out of step 1 and settle it with the flags. Agree?
-3. **The untracked plan files** (the handoff, the plans, the held-out sets) sit on this branch. Copy them to the new branch, commit them separately, or leave them here for now?
+1. **Facet `output`:** delete it together with the core's.
+2. **`romanization`:** first "not needed in the heading; the Pinyin facet will do the job", then withdrawn the same day: "dropping romanization is a bad idea. dont do it." It stays as it is.
+3. **Plan files:** copied to `claude/catalog-dead-fields` and committed separately from the code change. Also copied, because the plans link to them: the headers and flags map, the Wiktionary plan and its evidence note.
+
+The owner also asked that this cleanup be recorded as D31.

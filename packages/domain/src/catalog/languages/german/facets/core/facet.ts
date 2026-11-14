@@ -29,7 +29,7 @@ const isGerman = (meaning: string) => {
 };
 
 export default defineCore({
-  id: 'core', label: 'Core', labels: { word_phrase: 'Meanings', sentence: 'Translation' }, output: 'text', shape,
+  id: 'core', labels: { word_phrase: 'Meanings', sentence: 'Translation' }, shape,
   headerLabels: { word: 'Wort', sentence: 'Satz', gramRole: {
     noun: 'Nomen', verb: 'Verb', adjective: 'Adjektiv', adverb: 'Adverb', preposition: 'Präposition',
     pronoun: 'Pronomen', conjunction: 'Konjunktion', article: 'Artikel', numeral: 'Numerale', interjection: 'Interjektion'

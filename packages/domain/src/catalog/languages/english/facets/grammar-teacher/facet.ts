@@ -9,7 +9,7 @@ const MAX_POINT = 240;
 
 export default defineFacet({
   id: 'grammar-teacher', label: 'Grammar teacher', abbreviation: 'Gr', description: 'A teacher\'s notes on an English key\'s grammar, in English.',
-  applies: ['word_phrase', 'sentence'], output: 'text',
+  applies: ['word_phrase', 'sentence'],
   when: keyIsEnglish,
   shape: list(text('the point'), { name: 'the points', each: 'Point' }),
   format: points => points.map(point => `- ${escapeMarkdown(point.trim())}`).join('\n'),

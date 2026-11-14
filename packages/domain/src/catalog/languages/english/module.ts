@@ -15,6 +15,6 @@ import forms from './facets/forms/facet.js';
 export default defineContentModule({
   id: 'english', kind: 'content', label: 'English',
   description: 'Explains a word in English, or translates a sentence into English.',
-  instances: 'many', source: 'generated', provider: 'text',
+  instances: 'many',
   core, facets: [examples, synonyms, antonyms, pronunciation, etymology, simpleTranslation, grammarTeacher, forms]
 });

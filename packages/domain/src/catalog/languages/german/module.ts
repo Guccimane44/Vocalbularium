@@ -19,6 +19,6 @@ export const DECK_FACETS = [article, examples, synonyms, antonyms].map(facet => 
 export default defineContentModule({
   id: 'german', kind: 'content', label: 'German',
   description: 'Explains a word in German, or translates a sentence into German.',
-  instances: 'many', source: 'generated', provider: 'text',
+  instances: 'many',
   core, facets: [article, examples, synonyms, antonyms, conjugation, declension, comparison, grammaticalCase, pronunciation, etymology, simpleTranslation, grammarTeacher]
 });
