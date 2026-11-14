@@ -109,7 +109,7 @@ test('0.13.0: family, module and facet pages in one sheet, from the module windo
   await waitFor(async () => await title() === 'German', 'German from the path');
   await sheet.locator('.about-path button', { hasText: 'Languages' }).click();
   await waitFor(async () => await title() === 'Languages', 'the family page');
-  assert.deepEqual(await sheet.locator('.about-row .about-row-name').allTextContents(), ['German', 'Chinese', 'English (British)', 'English (American)']);
+  assert.deepEqual(await sheet.locator('.about-row .about-row-name').allTextContents(), ['German', 'Chinese', 'English']);
   assert.equal(await sheet.locator('.about-steps > li').count(), 3);
   await a.page.screenshot({ path: 'artifacts/v0.13.0-family-page.png', animations: 'disabled' });
   // Escape closes the sheet, returns the focus to About German, and adds nothing.

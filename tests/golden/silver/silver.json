@@ -1,0 +1,151 @@
+{
+  "about": "The silver set: a tenth of the golden set's cards (28 of 275), one or more from every content module and each kind of hard case (a Context that picks a sense, a sentence, a foreign key, an unrelated key, a German verb's forms, a Chinese grammar word). Each pick names a golden input by its set, key and Context, and the one module it runs on; the input's expectation comes from the golden file, so the two never drift apart. It is for quick comparisons, such as the reasoning experiment (npm run silver), not for a module's gate.",
+  "picks": [
+    {
+      "set": "parents",
+      "key": "bank",
+      "context": "We sat on the bank and watched the river go by.",
+      "module": "english"
+    },
+    {
+      "set": "parents",
+      "key": "Schloss",
+      "context": "Ich habe das Schloss an der Haustür ausgetauscht.",
+      "module": "german"
+    },
+    {
+      "set": "parents",
+      "key": "行",
+      "context": "他在这一行干了二十年，是真正的专家。",
+      "module": "chinese"
+    },
+    {
+      "set": "parents",
+      "key": "run",
+      "module": "english"
+    },
+    {
+      "set": "parents",
+      "key": "break the ice",
+      "module": "german"
+    },
+    {
+      "set": "parents",
+      "key": "幸福",
+      "module": "chinese"
+    },
+    {
+      "set": "parents",
+      "key": "打算",
+      "module": "chinese"
+    },
+    {
+      "set": "parents",
+      "key": "laufen",
+      "module": "german"
+    },
+    {
+      "set": "parents",
+      "key": "John Cena",
+      "module": "english"
+    },
+    {
+      "set": "parents",
+      "key": "我真的很幸福",
+      "module": "chinese"
+    },
+    {
+      "set": "parents",
+      "key": "Der Zug ist schon abgefahren.",
+      "module": "german"
+    },
+    {
+      "set": "parents",
+      "key": "gehen",
+      "module": "german"
+    },
+    {
+      "set": "parents",
+      "key": "in",
+      "module": "german"
+    },
+    {
+      "set": "parents",
+      "key": "把",
+      "module": "chinese"
+    },
+    {
+      "set": "parents",
+      "key": "colour",
+      "module": "english"
+    },
+    {
+      "set": "parents",
+      "key": "Have you got a pen?",
+      "module": "english"
+    },
+    {
+      "set": "creativity",
+      "key": "autumn",
+      "module": "modern-haiku"
+    },
+    {
+      "set": "creativity",
+      "key": "Feierabend",
+      "module": "joke"
+    },
+    {
+      "set": "creativity",
+      "key": "月亮",
+      "module": "traditional-haiku"
+    },
+    {
+      "set": "creativity",
+      "key": "café",
+      "context": "On se retrouve au café ce soir ?",
+      "module": "joke"
+    },
+    {
+      "set": "chemistry",
+      "key": "combustion of methane",
+      "module": "chemistry"
+    },
+    {
+      "set": "chemistry",
+      "key": "bond",
+      "context": "The government issued a ten-year bond to fund the new railway.",
+      "module": "chemistry"
+    },
+    {
+      "set": "computer-science",
+      "key": "recursion",
+      "module": "computer-science"
+    },
+    {
+      "set": "computer-science",
+      "key": "幸福",
+      "module": "computer-science"
+    },
+    {
+      "set": "mathematics",
+      "key": "eigenvalue",
+      "module": "mathematics"
+    },
+    {
+      "set": "mathematics",
+      "key": "The derivative of x² is 2x.",
+      "module": "mathematics"
+    },
+    {
+      "set": "pronunciation",
+      "key": "Gift",
+      "context": "Das Gift der Schlange wirkt schnell.",
+      "module": "pronunciation"
+    },
+    {
+      "set": "pronunciation",
+      "key": "河岸",
+      "module": "pronunciation"
+    }
+  ]
+}

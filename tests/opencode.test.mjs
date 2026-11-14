@@ -30,10 +30,20 @@ test('OpenCode uses the Go endpoint, selected DeepSeek model, and only selection
   });
   assert.deepEqual(await provider.generate({ ...GERMAN, sessionId: 'capture-conversation' }), REPLY);
   assert.equal(body.model, 'deepseek-v4.1-flash'); assert.equal(body.stream, false);
+  assert.equal('reasoning_effort' in body, false, 'the model keeps its own reasoning effort unless one is set');
   assert.equal(body.messages.length, 2); assert.equal(body.messages[0].role, 'system');
   assert.match(body.messages[0].content, /JSON schema/);
   assert.equal(body.messages[1].role, 'user');
   assert.deepEqual(JSON.parse(body.messages[1].content), { selectedText: '幸福', instanceId: 'g' });
+});
+
+test('OpenCode sends a reasoning effort only when one is set (the silver set\'s experiment)', async () => {
+  const bodies = [];
+  for (const reasoning of [undefined, 'none', 'low']) {
+    const provider = new OpenCodeProvider({ apiKey: 'test-only', reasoning, fetchImpl: async (_url, options) => { bodies.push(JSON.parse(options.body)); return Response.json(completion(JSON.stringify(REPLY))); } });
+    await provider.generate({ ...GERMAN, sessionId: 'reasoning' });
+  }
+  assert.deepEqual(bodies.map(body => body.reasoning_effort), [undefined, 'none', 'low']);
 });
 
 test('OpenCode rejects incomplete, refused, malformed, and wrong-schema responses', async () => {

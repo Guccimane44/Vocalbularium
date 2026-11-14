@@ -36,5 +36,5 @@
     "src/persistence/**/*.ts",
     "drizzle.config.ts"
   ],
-  "exclude": ["scripts/golden-set.mjs", "scripts/samples.mjs"]
+  "exclude": ["scripts/golden-set.mjs", "scripts/golden-card.mjs", "scripts/samples.mjs"]
 }

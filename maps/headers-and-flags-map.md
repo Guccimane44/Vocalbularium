@@ -40,8 +40,7 @@ Current modules:
 | Text | Notes | input | many | user | — |
 | German | Languages | content | many | generated | `word` / `sentence` |
 | Chinese | Languages | content | many | generated | `word` / `sentence` |
-| English (American) | Languages | content | many | generated | `word` / `sentence` |
-| English (British) | Languages | content | many | generated | `word` / `sentence` |
+| English | Languages | content | many | generated | `word` / `sentence` |
 | Computer Science | Expertise | content | many | generated | `expertise` |
 | Mathematics | Expertise | content | many | generated | `expertise` |
 | Chemistry | Expertise | content | many | generated | `expertise` |
@@ -111,7 +110,7 @@ A facet applies when two tests pass, both in `appliesTo()` (`packages/domain/src
 | German | Case | word | `gramRole` = preposition |
 | German | Grammar Teacher | word, sentence | `language` is "deutsch" |
 | Chinese | Grammar Teacher | word, sentence | `language` is 中文, 汉语 or 普通话 |
-| English (American), English (British) | Grammar Teacher | word, sentence | `language` is english, british english or american english |
+| English | Grammar Teacher | word, sentence | `language` is english, british english or american english |
 | Computer Science | Code | word, sentence | `relevance` = subject and `hasCode` = yes |
 | Mathematics | Formula | word, sentence | `relevance` = subject and `hasFormula` = yes |
 | Chemistry | Equation | word, sentence | `relevance` = subject and `hasEquation` = yes |

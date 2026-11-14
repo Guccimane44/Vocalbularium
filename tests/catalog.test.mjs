@@ -61,7 +61,8 @@ test('each facet has one prompt, the core its own, a Retry prompt and a reading 
     const folder = new URL(`${folderOf(id)}/`, SRC);
     assert.deepEqual(promptFiles(folder), ['module.prompt.md'], id);
     // A module without facets has no facet to Retry, so no Retry prompt (D24).
-    assert.deepEqual(promptFiles(new URL('facets/core/', folder)), ['core.prompt.md', 'reading.prompt.md', ...(module.facets.length ? ['retry.prompt.md'] : [])], `${id}.core`);
+    // What the facets rely on from the core may sit in its own file (facets.prompt.md).
+    assert.deepEqual(promptFiles(new URL('facets/core/', folder)).filter(file => file !== 'facets.prompt.md'), ['core.prompt.md', 'reading.prompt.md', ...(module.facets.length ? ['retry.prompt.md'] : [])], `${id}.core`);
     for (const facet of module.facets) {
       assert.deepEqual(promptFiles(new URL(`facets/${facet.id}/`, folder)), [], `${id}.${facet.id} has no prompt per input type`);
       assert.ok(existsSync(new URL(`facets/${facet.id}/prompt.md`, folder)), `${id}.${facet.id} has its prompt`);
@@ -82,6 +83,19 @@ test('the composer builds one request for every module with all its facets, and 
     for (const facet of facets) {
       const retry = composeModule({ module: { id: 'i', type: id }, selectedText: 'x', facets: [facet], core: { kind: 'word' } });
       assert.deepEqual(Object.keys(retry.schema.properties), ['facets'], `${id}.${facet} retry`);
+    }
+  }
+});
+
+test('what the facets rely on from the core reaches every request that writes a facet, with the core or alone', () => {
+  for (const id of content) {
+    const file = new URL(`${folderOf(id)}/facets/core/facets.prompt.md`, SRC);
+    if (!existsSync(file)) continue;
+    const text = readFileSync(file, 'utf8').trim();
+    const facets = MODULES[id].facets.map(facet => facet.id);
+    assert.ok(composeModule({ module: { id: 'i', type: id }, selectedText: 'x', facets }).instructions.includes(text), `${id} with its core`);
+    for (const facet of facets) {
+      assert.ok(composeModule({ module: { id: 'i', type: id }, selectedText: 'x', facets: [facet], core: { kind: 'word' } }).instructions.includes(text), `${id}.${facet} alone`);
     }
   }
 });
@@ -232,4 +246,36 @@ test('every sample word file names a word, or a word and a sentence, in every in
       else assert.ok(typeof entry === 'string' && entry.trim(), `${path} ${language}`);
     }
   }
+});
+
+test('the silver set picks golden inputs on modules their golden file runs, a tenth of the golden set', () => {
+  const golden = new URL('golden/', import.meta.url);
+  const sets = Object.fromEntries(readdirSync(golden).filter(name => name.endsWith('.json')).map(name => [name.slice(0, -5), JSON.parse(readFileSync(new URL(name, golden), 'utf8'))]));
+  const cards = Object.values(sets).reduce((sum, set) => sum + set.inputs.length * (set.family ? parentsIn(set.family) : set.modules).length, 0);
+  const { picks } = JSON.parse(readFileSync(new URL('silver/silver.json', golden), 'utf8'));
+  for (const pick of picks) {
+    const set = sets[pick.set];
+    assert.ok(set?.inputs.some(input => input.key === pick.key && (input.context ?? null) === (pick.context ?? null)), `${pick.key} is in tests/golden/${pick.set}.json`);
+    assert.ok((set.family ? parentsIn(set.family) : set.modules).includes(pick.module), `${pick.set} runs ${pick.module}`);
+  }
+  assert.equal(new Set(picks.map(pick => `${pick.set}|${pick.key}|${pick.context}|${pick.module}`)).size, picks.length, 'no pick twice');
+  assert.ok(Math.abs(picks.length - cards / 10) <= 2, `${picks.length} picks for ${cards} golden cards`);
+  for (const module of Object.values(sets).flatMap(set => set.family ? parentsIn(set.family) : set.modules)) assert.ok(picks.some(pick => pick.module === module), `${module} has a pick`);
+});
+
+test('English tells no variety apart: no request, check or module text names British or American English (D34)', () => {
+  const english = contentModule('english');
+  const facets = english.facets.map(facet => facet.id);
+  const requests = [
+    composeModule({ module: { id: 'i', type: 'english' }, selectedText: 'x', facets }),
+    composeModule({ module: { id: 'i', type: 'english' }, selectedText: 'x', facets: [] }),
+    composeModule({ module: { id: 'i', type: 'english' }, selectedText: 'x', facets: [], previous: { kind: 'word', language: 'English', key: 'x', meanings: ['y'] } }),
+    ...facets.map(facet => composeModule({ module: { id: 'i', type: 'english' }, selectedText: 'x', facets: [facet], core: { kind: 'word' } }))
+  ];
+  for (const request of requests) assert.doesNotMatch(request.instructions, /american|british/i);
+  for (const facet of [english.core, ...english.facets]) {
+    for (const check of facet.checks ?? []) assert.doesNotMatch(`${check.id} ${check.description}`, /american|british/i, `${facet.id}.${check.id}`);
+  }
+  assert.doesNotMatch(`${english.label} ${english.description}`, /american|british/i);
+  assert.deepEqual(MODULE_IDS.filter(id => id.startsWith('english')), ['english']);
 });

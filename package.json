@@ -24,6 +24,7 @@
     "typecheck": "npm run build:packages && tsc --noEmit -p tsconfig.json",
     "check": "node scripts/check.mjs && npm run typecheck",
     "smoke:generation": "npm run build:packages && node --env-file-if-exists=.env scripts/golden-set.mjs",
+    "silver": "npm run build:packages && node --env-file-if-exists=.env scripts/silver-set.mjs",
     "judge": "npm run build:packages && node --env-file-if-exists=.env scripts/judge.mjs",
     "gate": "npm run build:packages && node --env-file-if-exists=.env scripts/gate.mjs",
     "samples": "npm run build:packages && node --env-file-if-exists=.env scripts/samples.mjs",
