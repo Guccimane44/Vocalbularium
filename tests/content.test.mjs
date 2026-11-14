@@ -27,6 +27,11 @@ test('a provider result is checked complete against the parent’s shape and tri
   assert.deepEqual(validateGenerated('german', { core: { kind: 'word', language: ' Englisch ', key: 'bank', romanization: '  ', meanings: [' Ufer '] },
     facets: { article: { singular: 'das Ufer', plural: '' } } }),
   { core: { kind: 'word', language: 'Englisch', key: 'bank', meanings: ['Ufer'] }, facets: { article: { singular: 'das Ufer' } } });
+  // An optional list with nothing in it is left out, as a blank text is (M7);
+  // a required one is still an error.
+  const haiku = { language: 'de', key: 'Schmetterling', haiku: ['Im Frühlingswind tanzt', 'ein Falter über den Bach', 'Knospen beben leis'] };
+  for (const reading of [[], [''], ['  ', '']]) assert.deepEqual(validateGenerated('traditional-haiku', { core: { ...haiku, reading }, facets: {} }), { core: haiku, facets: {} }, JSON.stringify(reading));
+  throws(() => validateGenerated('traditional-haiku', { core: { ...haiku, reading: ['よみ', ''] }, facets: {} }), GeneratedError, /Reading line 2 is missing/);
   for (const [value, message] of [
     [{ ...bank, extra: 1 }, /unexpected field "extra"/],
     [{ core: { kind: 'word', language: 'Englisch', key: 'bank', meanings: [] }, facets: {} }, /The meanings is empty/],

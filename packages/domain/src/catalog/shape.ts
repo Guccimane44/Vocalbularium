@@ -66,9 +66,12 @@ export function languageCode(name?: string): Shape<string> {
   };
 }
 
-// A field that may be left out; blank counts as left out.
+// A field that may be left out; blank counts as left out, and so does a list
+// with nothing in it, such as the [] or [""] a model writes for a field its
+// prompt says to leave out (M7: GPT-6 Luna on a haiku's Japanese reading).
+const nothing = (value: unknown) => blank(value) || (Array.isArray(value) && value.every(blank));
 export function optional<T>(shape: Shape<T>): Shape<T | undefined> {
-  return { ...shape, optional: true, check: (value, what) => blank(value) ? undefined : shape.check(value, what) };
+  return { ...shape, optional: true, check: (value, what) => nothing(value) ? undefined : shape.check(value, what) };
 }
 
 // A list of one to MAX_ITEMS items. Items are named "<what> 1", "<what> 2", …,
