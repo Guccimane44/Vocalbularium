@@ -1,0 +1,13 @@
+{
+  "label": "Anglais",
+  "description": "Explique un mot en anglais, ou traduit une phrase en anglais.",
+  "examples.label": "Exemples",
+  "synonyms.label": "Synonymes",
+  "antonyms.label": "Antonymes",
+  "pronunciation.label": "Prononciation",
+  "etymology.label": "Étymologie",
+  "simple-translation.label": "Traduction simple",
+  "grammar-teacher.label": "Professeur de grammaire",
+  "core.word_phrase": "Sens",
+  "core.sentence": "Traduction"
+}

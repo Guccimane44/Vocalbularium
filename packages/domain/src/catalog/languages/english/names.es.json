@@ -1,0 +1,13 @@
+{
+  "label": "Inglés",
+  "description": "Explica una palabra en inglés, o traduce una oración al inglés.",
+  "examples.label": "Ejemplos",
+  "synonyms.label": "Sinónimos",
+  "antonyms.label": "Antónimos",
+  "pronunciation.label": "Pronunciación",
+  "etymology.label": "Etimología",
+  "simple-translation.label": "Traducción sencilla",
+  "grammar-teacher.label": "Profesor de gramática",
+  "core.word_phrase": "Significados",
+  "core.sentence": "Traducción"
+}

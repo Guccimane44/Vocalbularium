@@ -3,8 +3,7 @@ import mainKey from './main-key/module.js';
 import languages from './languages/family.js';
 import german, { DECK_FACETS } from './languages/german/module.js';
 import chinese from './languages/chinese/module.js';
-import englishBritish from './languages/english-british/module.js';
-import englishAmerican from './languages/english-american/module.js';
+import english from './languages/english/module.js';
 import expertise from './expertise/family.js';
 import computerScience from './expertise/computer-science/module.js';
 import mathematics from './expertise/mathematics/module.js';
@@ -27,8 +26,7 @@ const ENTRIES = [
   { module: text, family: notes },
   { module: german, family: languages },
   { module: chinese, family: languages },
-  { module: englishBritish, family: languages },
-  { module: englishAmerican, family: languages },
+  { module: english, family: languages },
   { module: computerScience, family: expertise },
   { module: mathematics, family: expertise },
   { module: chemistry, family: expertise },
