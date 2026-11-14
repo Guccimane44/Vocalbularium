@@ -30,6 +30,7 @@ Newest first.
 
 | ID | Opened | Decision | Affected docs | Notion | Status |
 | --- | --- | --- | --- | --- | --- |
+| [D35](decisions/d35.md) | 2026-11-13 | English gains a Forms facet: a word's plural, comparison or verb forms, regular words included, for the English word the card describes; the core gains `formsWord` and `gramRole`, which the top line doesn't show. | [modules](../specs/modules.md), [scope](../product/scope.md) | pending | accepted |
 | [D34](decisions/d34.md) | 2026-11-12 | One English module in place of English (British) and English (American); it tells no variety apart, and any proper English passes. | [modules](../specs/modules.md), [scope](../product/scope.md), `migrations/0019_english_module.sql` | pending | accepted; implemented (0.16.5) |
 | [D31](decisions/d31.md) | 2026-11-10 | Remove the catalog fields nothing reads: module `provider` and `source`, core `label`, core and facet `output`. | [generation](generation.md) | [Notion](https://app.notion.com/p/414bb1350208816cb073db0a841c1e76) | proposed |
 | [D30](decisions/d30.md) | 2026-11-07 | A Creativity family for parents that write something new from the key, in the key's language, with its own top-line kind; the Expertise top line gains Chemistry's `hasEquation` flag. | [modules](../specs/modules.md), [generation](generation.md), [scope](../product/scope.md) | [Notion](https://app.notion.com/p/411bb135020881ec864ae54d3f47a447) | accepted; contract implemented (0.16.4) |

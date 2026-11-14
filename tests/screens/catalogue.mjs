@@ -17,7 +17,7 @@ const pageScreens = Object.keys(GROUPS).flatMap(group => STATES.map(state => ({
   name: `page-${group}-${state}`, phase: 'full', route: ({ pages }) => `page/${pages[`${group}-${state}`]}`,
   ready: page => card(page, GROUPS[group][0]).waitFor(),
   // A spoken card has loaded once its players have their length.
-  settle: state === 'complete' && ['german', 'pronunciation'].includes(group)
+  settle: state === 'complete' && ['german', 'english', 'pronunciation'].includes(group)
     ? page => page.locator('.clip-player:not([data-state="ready"])').waitFor({ state: 'detached' }) : undefined
 })));
 
