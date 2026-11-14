@@ -5,6 +5,8 @@ import { judgeCard, rubricOf } from '../scripts/judge.mjs';
 import { parentsIn } from '@vocabularium/domain/parents';
 import { checkCard } from '@vocabularium/domain/checks';
 import { checkTools } from '../scripts/check-tools.mjs';
+import { costOf, judgeModel, meter } from '../scripts/meter.mjs';
+import { OpenCodeProvider } from '../src/server/opencode.mjs';
 
 // The judge (0.16.0): a rubric beside each module's prompt, scored by the
 // provider; tested here offline, with a provider that answers as told.
@@ -49,4 +51,30 @@ test('the calibration set covers every module with a rubric, with recorded passe
     for (const card of pass) assert.deepEqual((await checkCard(set.module, card.card, checkTools)).failures, [], `${set.module} ${card.id}`);
     for (const card of fail) assert.ok(/^(Seeded fault|Recorded defect): /.test(card.why), `${set.module} ${card.id} says what is wrong`);
   }
+});
+
+// M7: the judge keeps the model its calibration was made with while the generator changes.
+test('the judge uses JUDGE_MODEL, else the generator\'s model, else the default', () => {
+  assert.equal(judgeModel({ JUDGE_MODEL: 'deepseek-v4.1-flash', OPENCODE_MODEL: 'gpt-6-luna' }), 'deepseek-v4.1-flash');
+  assert.equal(judgeModel({ OPENCODE_MODEL: 'gpt-6-luna' }), 'gpt-6-luna');
+  assert.equal(judgeModel({ JUDGE_MODEL: '', OPENCODE_MODEL: 'gpt-6-luna' }), 'gpt-6-luna', 'an empty setting is no setting');
+  assert.equal(judgeModel({}), undefined);
+  const saved = process.env.OPENCODE_MODEL;
+  try {
+    process.env.OPENCODE_MODEL = 'gpt-6-luna';
+    assert.equal(new OpenCodeProvider({ model: judgeModel({ JUDGE_MODEL: 'deepseek-v4.1-flash', OPENCODE_MODEL: 'gpt-6-luna' }) }).model, 'deepseek-v4.1-flash');
+    assert.equal(new OpenCodeProvider({ model: judgeModel({}) }).model, 'gpt-6-luna', 'unset, the provider falls back to OPENCODE_MODEL');
+  } finally { if (saved === undefined) delete process.env.OPENCODE_MODEL; else process.env.OPENCODE_MODEL = saved; }
+});
+
+test('the meter adds up the service\'s list cost of every reply, failed ones included', async () => {
+  const replies = [{ usage: { opencode: { list_cost: 0.0004 } }, choices: [{ finish_reason: 'stop', message: { role: 'assistant', content: '{}' } }] }, { error: 'busy' }];
+  const fetchImpl = async () => { const body = replies.shift(); return new Response(JSON.stringify(body), { status: body.error ? 503 : 200 }); };
+  const provider = new OpenCodeProvider({ apiKey: 'test', model: 'gpt-6-luna', fetchImpl });
+  const cost = meter(provider);
+  await provider.send({ maxTokens: 10 }, [], AbortSignal.timeout(1000), 'session', {});
+  await assert.rejects(provider.send({ maxTokens: 10 }, [], AbortSignal.timeout(1000), 'session', {}));
+  assert.equal(cost.spent(), 0.0004);
+  assert.equal(costOf('not json'), 0);
+  assert.equal(costOf(undefined), 0);
 });
