@@ -29,8 +29,9 @@ import { randomUUID } from 'node:crypto';
 
 /** @param {string} code @param {string} message */
 export const failure = (code, message) => Object.assign(new Error(message), { code });
-// A card with every facet takes 40–60 s with deepseek-v4.1-flash (0.16.4),
-// so a request has three minutes; generation runs off the request path.
+// A card with every facet took 40–60 s with deepseek-v4.1-flash (0.16.4) and
+// takes about 8 s with claude-haiku-5-5 (M8, 0.16.5). A request keeps three
+// minutes for the slow cases; generation runs off the request path.
 const TIMEOUT = 180000;
 
 // Every required part is there: a text part non-empty (and one of its enum,
@@ -50,7 +51,8 @@ function requiredParts(value, schema) {
 
 // The one repair: a reply that is not JSON, for a request with a core and
 // facets, parses once a single `}` closes the core before its "facets" (the
-// slip deepseek-v4.1-flash makes in a few percent of Chinese replies). The
+// slip deepseek-v4.1-flash made in a few percent of Chinese replies; kept for
+// any model that makes it). The
 // repaired object still passes every check; anything else stays invalid.
 /** @param {string} content @param {ObjectSchema} schema @returns {unknown} */
 function parse(content, schema) {
