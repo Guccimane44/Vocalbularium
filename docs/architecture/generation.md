@@ -106,11 +106,11 @@ Each generated facet, the core included, records with its component the **model*
 It is stored as JSON in the component's `generation` column (migration `0015`), keyed by part, and read with `store.generationRecords(pageId)`:
 
 ```json
-{ "core": { "model": "deepseek-v4.1-flash", "prompt": "3f9a0c1e8b27d455" },
-  "examples": { "model": "deepseek-v4.1-flash", "prompt": "b81e44c09d3a7f12" } }
+{ "core": { "model": "claude-haiku-5-5", "prompt": "3f9a0c1e8b27d455" },
+  "examples": { "model": "claude-haiku-5-5", "prompt": "b81e44c09d3a7f12" } }
 ```
 
-A spoken part's entry adds `speech`, the speech model and voice that spoke it, such as `"pronunciation": { "model": "deepseek-v4.1-flash", "prompt": "…", "speech": { "model": "eleven_v4_turbo", "voice": "<voice id>" } }`; a clip's own Retry rewrites only `speech`.
+A spoken part's entry adds `speech`, the speech model and voice that spoke it, such as `"pronunciation": { "model": "claude-haiku-5-5", "prompt": "…", "speech": { "model": "eleven_v4_turbo", "voice": "<voice id>" } }`; a clip's own Retry rewrites only `speech`.
 
 The prompt version is the first 16 hex digits of a SHA-256 over the instructions and the schema (`promptVersion` in the composer); provider diagnostics events carry the same value. A whole attempt records only the parts that came back with content, and a whole attempt that fails, or a facet that comes back empty, leaves no entry for it. Manual saves change only the content, never the record.
 

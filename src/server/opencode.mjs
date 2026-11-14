@@ -4,7 +4,7 @@ import { failure, Provider } from './provider.mjs';
 /** @import { Reply } from './provider.mjs' */
 
 // The one pinned model (D11), unless OPENCODE_MODEL names another.
-export const DEFAULT_MODEL = 'deepseek-v4.1-flash';
+export const DEFAULT_MODEL = 'claude-haiku-5-5';
 
 // The OpenCode adapter (D11): transport only. OpenCode has no native JSON
 // schema, so the schema travels inside the instructions.
