@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import type { InterfaceLanguage } from '@vocabularium/contracts';
 import type { CoreValue } from '../catalog/define.js';
 import { contentModule, familyOf, folderOf } from '../catalog/index.js';
@@ -35,6 +35,8 @@ function read(path: string): string {
   return text;
 }
 const catalogFile = (path: string) => read(`../catalog/${path}`);
+// A module's optional prompt file, or '' when it has none.
+const optionalCatalogFile = (path: string) => existsSync(new URL(`../catalog/${path}`, import.meta.url)) ? catalogFile(path) : '';
 // A facet's one prompt, which says when it applies, or the core's (D17).
 export const facetPrompt = (parent: ParentType, facet: FacetType | 'core') =>
   catalogFile(`${folderOf(parent)}/facets/${facet}/${facet === 'core' ? 'core.prompt.md' : 'prompt.md'}`);
@@ -65,10 +67,15 @@ const lengthIn = (unit: string, words: number) =>
 // core already written), its facets asked for, then the shared rules and, for
 // an Expertise module, the writing guide of the language it writes in (D15).
 // With `withPrevious`, the core's Retry keeps the reading of the core it had (D28).
+// What the facets rely on from the core (`facets.prompt.md`, optional) follows
+// the core's prompt, or the Retry prompt when a facet is written alone, so a
+// facet request carries it without the core's whole prompt.
 export function moduleInstructions(parent: ParentType, facets: readonly FacetType[], withCore = false, language: InterfaceLanguage = 'en', withPrevious = false): string {
   const folder = folderOf(parent);
-  const core = withCore ? catalogFile(`${folder}/facets/core/retry.prompt.md`)
-    : withPrevious ? `${facetPrompt(parent, 'core')}\n${catalogFile(`${folder}/facets/core/reading.prompt.md`)}` : facetPrompt(parent, 'core');
+  const forFacets = optionalCatalogFile(`${folder}/facets/core/facets.prompt.md`);
+  const withFacets = (text: string) => forFacets ? `${text} ${forFacets}` : text;
+  const core = withCore ? withFacets(catalogFile(`${folder}/facets/core/retry.prompt.md`))
+    : withPrevious ? `${withFacets(facetPrompt(parent, 'core'))}\n${catalogFile(`${folder}/facets/core/reading.prompt.md`)}` : withFacets(facetPrompt(parent, 'core'));
   const sections = facets.map(facet => `- ${facetPrompt(parent, facet)}`);
   const guide = familyOf(parent) === 'expertise' ? writingGuide(language) : null;
   return [core,

@@ -1,0 +1,1 @@
+The grammar word is one German word: the selection itself when it is German, otherwise the German word for its first meaning, "contextual" first. Only "gramRole" and the grammar facets describe the grammar word; it never limits "meanings" or the other facets, which follow every meaning.
