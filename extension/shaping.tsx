@@ -224,7 +224,10 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
     if (fromWindow(active)) {
       if (target === null) return;
       setAdding({ type: windowType(active), index: target });
-      if (await onAdd(windowType(active), target) === false) setAdding(null);
+      // Dropped after the last entry, it goes at the end as the window's +
+      // does: the list shown may still hold an entry just deleted, and a
+      // position counted from it would be past the page's end.
+      if (await onAdd(windowType(active), target === shown.length ? AT_THE_END : target) === false) setAdding(null);
       return;
     }
     const from = order.indexOf(String(active.id));
