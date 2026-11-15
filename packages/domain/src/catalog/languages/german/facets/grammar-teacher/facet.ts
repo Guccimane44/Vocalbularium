@@ -14,7 +14,7 @@ export const GERMAN_NAMES = ['deutsch'];
 
 export default defineFacet({
   id: 'grammar-teacher', label: 'Grammar teacher', abbreviation: 'Gr', description: 'A teacher\'s notes on a German key\'s grammar.',
-  applies: ['word_phrase', 'sentence'], output: 'text',
+  applies: ['word_phrase', 'sentence'],
   when: core => GERMAN_NAMES.includes(String(core.language ?? '').trim().toLowerCase()),
   shape: list(text('the point'), { name: 'the points', each: 'Point' }),
   format: points => points.map(point => `- ${escapeMarkdown(point.trim())}`).join('\n'),

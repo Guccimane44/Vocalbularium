@@ -11,7 +11,7 @@ const shape = object({
 }, { own: true });
 
 export default defineCore({
-  id: 'core', label: 'Core', labels: { word_phrase: 'Pronunciation', sentence: 'Pronunciation' }, output: 'text', shape,
+  id: 'core', labels: { word_phrase: 'Pronunciation', sentence: 'Pronunciation' }, shape,
   format: () => '',
   header: core => ({ kind: 'pronunciation', language: core.language, key: core.key }),
   read: ({ header }) => {

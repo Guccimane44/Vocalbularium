@@ -6,7 +6,7 @@ import { keyIsEnglish } from '../../english.js';
 // the `en` voice, or one named for `english.pronunciation`.
 export default defineFacet({
   id: 'pronunciation', label: 'Pronunciation', abbreviation: 'Pr', description: 'The English translation, spoken.',
-  applies: ['word_phrase', 'sentence'], output: 'text', spoken: { language: 'en' },
+  applies: ['word_phrase', 'sentence'], spoken: { language: 'en' },
   shape: list(text('the English to speak')),
   format: lines => lines.map(escapeMarkdown).join('\n'),
   checks: [{

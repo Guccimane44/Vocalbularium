@@ -11,7 +11,7 @@ const MAX_POINT = 80;
 
 export default defineFacet({
   id: 'grammar-teacher', label: 'Grammar teacher', abbreviation: 'Gr', description: "A teacher's notes on a Chinese key's grammar.",
-  applies: ['word_phrase', 'sentence'], output: 'text',
+  applies: ['word_phrase', 'sentence'],
   when: core => CHINESE_NAMES.includes(String(core.language ?? '').trim()),
   shape: list(text('the point'), { name: 'the points', each: 'Point' }),
   format: points => points.map(point => `- ${escapeMarkdown(point)}`).join('\n'),

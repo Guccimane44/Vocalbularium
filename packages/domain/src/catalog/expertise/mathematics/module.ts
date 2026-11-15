@@ -6,6 +6,6 @@ import formula from './facets/formula/facet.js';
 export default defineContentModule({
   id: 'mathematics', kind: 'content', label: 'Mathematics',
   description: 'Explains a term or concept as mathematics understands it.',
-  instances: 'many', source: 'generated', provider: 'text',
+  instances: 'many',
   core, facets: [formula]
 });

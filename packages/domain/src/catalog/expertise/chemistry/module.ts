@@ -7,6 +7,6 @@ import equation from './facets/equation/facet.js';
 export default defineContentModule({
   id: 'chemistry', kind: 'content', label: 'Chemistry',
   description: 'Explains a term or concept as chemistry understands it.',
-  instances: 'many', source: 'generated', provider: 'text',
+  instances: 'many',
   core, facets: [equation]
 });

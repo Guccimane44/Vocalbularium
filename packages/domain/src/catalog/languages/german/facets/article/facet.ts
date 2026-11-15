@@ -3,7 +3,7 @@ import { defineFacet, escapeMarkdown, object, optional, text } from '../../../..
 // One line, "das Ufer · die Ufer"; the singular alone without a plural.
 export default defineFacet({
   id: 'article', label: 'Article', abbreviation: 'Ar', description: 'The German article, gender and plural of a noun.',
-  applies: ['word_phrase'], output: 'text',
+  applies: ['word_phrase'],
   // Only for a noun (D17): the core's grammatical role decides.
   when: core => String(core.gramRole ?? '').toLowerCase() === 'noun',
   shape: object({ singular: text('the singular'), plural: optional(text('the plural')) }),

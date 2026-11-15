@@ -42,7 +42,7 @@ const checks: readonly Check<Haiku>[] = [
 ];
 
 export default defineCore<Haiku>({
-  id: 'core', label: 'Core', labels: { word_phrase: 'Haiku', sentence: 'Haiku' }, output: 'text', shape,
+  id: 'core', labels: { word_phrase: 'Haiku', sentence: 'Haiku' }, shape,
   // One line each, in one paragraph.
   format: core => core.haiku.map(escapeMarkdown).join('\n'),
   header: core => ({ kind: 'creativity', language: core.language, key: core.key }),

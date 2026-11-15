@@ -20,7 +20,7 @@ extension and the server import their `dist/`.
 `packages/domain/src/catalog/<family>/<module>/`, and is registered with one
 import and one entry in `catalog/index.ts`. Its folder holds:
 
-- `module.ts`: ID, kind, label, description, instances, provider kind, its core and ordered facets.
+- `module.ts`: ID, kind, label, description, instances, its core and ordered facets.
 - `module.prompt.md`: the module's rule inside the shared rules (`composer/rules.md`); `rubric.md`: what the judge scores its cards on.
 - `facets/core/`: `facet.ts` (shape, flags, formatter), `core.prompt.md`, `retry.prompt.md` (a facet's own Retry), `reading.prompt.md` (a card's Retry keeping its reading).
 - `facets/<facet>/`: `facet.ts` (label, abbreviation, `applies`, `when`, `spoken`, shape, formatter, `checks`), `prompt.md`, `about*.json`, and optionally `sample-key.json` and `samples/`.

@@ -10,7 +10,7 @@ const MAX_TEXT = 200;
 
 export default defineFacet({
   id: 'etymology', label: 'Etymology', abbreviation: 'Et', description: 'Where the Chinese word comes from.',
-  applies: ['word_phrase'], output: 'text',
+  applies: ['word_phrase'],
   shape: object({ origins: list(text('the origin'), { name: 'the origins', each: 'Origin' }), text: text('the history') }),
   format: value => `${LABEL}${value.origins.map(origin => escapeMarkdown(origin.trim())).join(' · ')}\n\n${escapeMarkdown(value.text)}`,
   checks: [{
