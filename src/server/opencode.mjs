@@ -1,10 +1,14 @@
 // @ts-check
+import { readFileSync } from 'node:fs';
 import { failure, Provider } from './provider.mjs';
 /** @import { Request } from '@vocabularium/domain/composer' */
 /** @import { Reply } from './provider.mjs' */
 
 // The one pinned model (D11), unless OPENCODE_MODEL names another.
 export const DEFAULT_MODEL = 'claude-haiku-5-5';
+
+// Requests name the app and its release, read once from package.json.
+export const USER_AGENT = `Vocabularium/${JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8')).version}`;
 
 // The OpenCode adapter (D11): transport only. OpenCode has no native JSON
 // schema, so the schema travels inside the instructions.
@@ -30,7 +34,7 @@ export class OpenCodeProvider extends Provider {
     const response = await this.fetch('https://opencode.ai/zen/go/v1/chat/completions', {
       method: 'POST', headers: {
         Authorization: `Bearer ${this.apiKey}`, 'Content-Type': 'application/json',
-        'User-Agent': 'Vocabularium/0.13.1', 'x-opencode-session': sessionId
+        'User-Agent': USER_AGENT, 'x-opencode-session': sessionId
       },
       body: JSON.stringify({ model: this.model, stream: false, max_tokens: request.maxTokens, messages, ...(this.reasoning ? { reasoning_effort: this.reasoning } : {}) }),
       signal
