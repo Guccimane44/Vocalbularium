@@ -31,6 +31,15 @@ test('dashboard capture feedback: shared appearance, original lifetime, originat
   await application.start();
   step(5);
   const a = await launch(join(directory, 'profile'), testingExtension);
+  a.page.on('console', message => console.log(`[console] ${message.type()} ${message.text()}`));
+  a.page.on('pageerror', error => console.log(`[pageerror] ${error.message}`));
+  setTimeout(async () => {
+    try {
+      console.log(`[diag] url ${a.page.url()}`);
+      console.log(`[diag] text ${JSON.stringify((await a.page.locator('body').innerText({ timeout: 2000 })).slice(0, 600))}`);
+      console.log(`[diag] health ${await fetch(apiOrigin + '/health').then(r => r.status + ' ' + r.statusText, e => 'error ' + e.message)}`);
+    } catch (error) { console.log(`[diag] failed ${error.message}`); }
+  }, 12000).unref();
   step(6);
   t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
   await signIn(a.page);
