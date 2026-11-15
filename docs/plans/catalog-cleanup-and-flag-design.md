@@ -2,7 +2,7 @@
 
 Drafted 10 November 2026 for a new session. Status: **draft, not approved**. Nothing here has been run or changed in code.
 
-This plan covers the first two steps of the owner's rework. Background, findings and the open questions are in the [handoff](../history/plans/headers-flags-classifier-handoff.md); how flags and headers work today is in the owner's [headers and flags map](../../maps/headers-and-flags-map.md). Read both first.
+This plan covers the first two steps of the owner's rework. Background, findings and the open questions are in the [handoff](../history/plans/headers-flags-classifier-handoff.md); how flags and headers work today is in the owner's local headers and flags map (not in the repository). Read both first.
 
 The owner's order of work:
 

@@ -4,7 +4,7 @@
 
 Draft for the owner's review, 10 November 2026. Nothing here is decided. The experiment answers one question before any architecture is designed: **which of the flags that the text model writes today can Jev decide before generation, as reliably, and how fast from here?**
 
-Background: the [headers and flags map](../../../maps/headers-and-flags-map.md) lists the seven flags and what reads them. Each is written today inside the card's single request ([D17](../../architecture/decisions/d17-one-request.md)), so nothing can be routed before generation. The [Wiktionary experiment](../evidence/wiktionary-english-experiment.md) stood a small model in for Jev; this one uses Jev itself.
+Background: the owner's local headers and flags map (not in the repository) lists the seven flags and what reads them. Each is written today inside the card's single request ([D17](../../architecture/decisions/d17-one-request.md)), so nothing can be routed before generation. The [Wiktionary experiment](../evidence/wiktionary-english-experiment.md) stood a small model in for Jev; this one uses Jev itself.
 
 ## What is compared
 

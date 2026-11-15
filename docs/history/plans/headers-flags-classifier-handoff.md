@@ -145,7 +145,7 @@ What a new session must know about them:
 | Topic | File |
 | --- | --- |
 | Field definitions | `packages/domain/src/catalog/define.ts` |
-| Flags, headers and what reads them (the owner's own map) | [maps/headers-and-flags-map.md](../../../maps/headers-and-flags-map.md) |
+| Flags, headers and what reads them (the owner's own map) | `maps/headers-and-flags-map.md`, the owner's local map (not in the repository) |
 | Applicability | `packages/domain/src/parents.ts` |
 | Stored header | `packages/contracts/src/pages.ts` (`ParentHeaderSchema`) |
 | One request per module | [D17](../../architecture/decisions/d17-one-request.md) and the [generation rounds experiment](../evidence/generation-rounds-experiment.md) |

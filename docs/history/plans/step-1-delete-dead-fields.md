@@ -4,7 +4,7 @@
 
 Drafted 10 November 2026 for the owner's review. Status: **draft; the owner answered its questions on 10 November**. No code has changed. Recorded as [D31](../../architecture/decisions/d31.md) (proposed).
 
-This is the first of the owner's three steps (clean up; move flags to Jev; look up instead of generate). It narrows and checks the step 1 section of [catalog-cleanup-and-flag-design.md](../../plans/catalog-cleanup-and-flag-design.md) against the code. Background is in the [headers and flags map](../../../maps/headers-and-flags-map.md) and the [handoff](headers-flags-classifier-handoff.md).
+This is the first of the owner's three steps (clean up; move flags to Jev; look up instead of generate). It narrows and checks the step 1 section of [catalog-cleanup-and-flag-design.md](../../plans/catalog-cleanup-and-flag-design.md) against the code. Background is in the owner's local headers and flags map (not in the repository) and the [handoff](headers-flags-classifier-handoff.md).
 
 ## Goal
 
