@@ -1,12 +1,12 @@
 # Install Vocabularium in Chrome
 
-A candidate ZIP contains this guide, the `extension` folder, and `package-info.json`, which identifies the package version, server address, and source revision. Release 0.16.4 is a local build: it connects to the Vocabularium API on the **same computer** at `127.0.0.1:4318`.
+A candidate ZIP contains this guide, the `extension` folder, and `package-info.json`, which identifies the package version, server address, and source revision. The package is a local build: it connects to the Vocabularium API on the **same computer** at `127.0.0.1:4318`.
 
 ## Before installing
 
 Use current Google Chrome. Start PostgreSQL 18 and the local API first, following the [local PostgreSQL setup](../architecture/local-postgresql.md) and the README's [account and dashboard steps](../../README.md#account-and-dashboard): `npm ci`, `npm run db:setup`, then `npm start` from the repository root. Check that `package-info.json` shows the expected version and `http://127.0.0.1:4318` before signing in.
 
-Use a separate Chrome profile for this local account rather than one that held an earlier hosted or karte/seite build. Upgrading to 0.5.0 discards existing decks and pages, as 0.4.0 did; accounts and sign-in stay ([upgrade from earlier builds](../product/scope.md#upgrade-from-earlier-builds)).
+Use a separate Chrome profile for this local account rather than one that held an earlier hosted build. What an upgrade keeps and changes is stated for each release in [upgrade from earlier builds](../product/scope.md#upgrade-from-earlier-builds).
 
 ## Install
 
@@ -21,7 +21,7 @@ The dashboard starts with **My Deck**. Select text on a webpage, right-click, an
 
 ## Update an installed copy
 
-Finish or cancel manual edits and let active generation finish. When the update includes a backend change, stop the API, back up the database with `npm run db:backup -- .data/backup-before-<version>.dump` (a file that does not exist yet; see [backup and restore](../architecture/local-postgresql.md#backup-and-restore-into-a-separate-database)), apply the reviewed migrations with `npm run db:migrate`, and restart the API before updating the extension; backend and extension upgrade together. Keep the PostgreSQL database and `DATA_DIR/generation-outbox`. **Upgrading to 0.12.0 discards every deck and page** (migration `0017`): accounts, sign-in and the language preference stay, and the account starts again with one My Deck ([upgrade from earlier builds](../product/scope.md#upgrade-from-earlier-builds)). Finish or discard pending saves first.
+Finish or cancel manual edits and let active generation finish. When the update includes a backend change, stop the API, back up the database with `npm run db:backup -- .data/backup-before-<version>.dump` (a file that does not exist yet; see [backup and restore](../architecture/local-postgresql.md#backup-and-restore-into-a-separate-database)), apply the reviewed migrations with `npm run db:migrate`, and restart the API before updating the extension; backend and extension upgrade together. Keep the PostgreSQL database and `DATA_DIR/generation-outbox`. Read the version's entry in [upgrade from earlier builds](../product/scope.md#upgrade-from-earlier-builds) before migrating: it says what the upgrade keeps and changes. Finish or discard pending saves first.
 
 Replace the files in the same permanent extension folder with the new package, then select **Reload** on Vocabularium's entry at `chrome://extensions` and reload any open Vocabularium dashboard tabs. Reloading ends the extension's generation session, so unfinished generation is reconciled as failed; review those components using the [capture and generation rules](../specs/capture-and-generation.md) and retry them explicitly.
 
@@ -30,8 +30,8 @@ Replace the files in the same permanent extension folder with the new package, t
 - **Cannot sign in:** check the server address in `package-info.json` and that the local API is running (`GET http://127.0.0.1:4318/health/ready`).
 - **No capture menu:** open Vocabularium and sign in; make sure the extension is enabled and some text is selected.
 - **Capture received, but generation failed:** the receipt confirms capture only. Check each component's outcome on the saved page. Generation needs the owner's OpenCode Go key on the server.
-- **English Pronunciation has the wrong voice:** English speaks as `en`, so the voice decides the accent. Name one for its part in `ELEVENLABS_VOICES`, beside the others: `{"default":"<voice id>","english.pronunciation":"<voice id>"}` (a part without its own voice falls back to `en`, then `default`), and restart the API. The 0.16.4 entries `english-british.pronunciation` and `english-american.pronunciation` are no longer read.
+- **English Pronunciation has the wrong voice:** English speaks as `en`, so the voice decides the accent. Name one for its part in `ELEVENLABS_VOICES`, beside the others: `{"default":"<voice id>","english.pronunciation":"<voice id>"}` (a part without its own voice falls back to `en`, then `default`), and restart the API. The entries `english-british.pronunciation` and `english-american.pronunciation` of 0.16.4 and earlier are no longer read.
 - **A Pronunciation clip failed or never plays:** spoken parts need `ELEVENLABS_API_KEY` and `ELEVENLABS_VOICES` on the server (see `.env.example`); the text of the card appears without them. Use **Retry** on the clip after setting them and restarting the API. When several clips of one card fail with *Too much audio at once*, the server sends more speech calls at a time than the ElevenLabs plan allows: set `AUDIO_MAX_ACTIVE` to the plan's concurrency limit (2 by default) and restart the API.
-- **Try saving again:** resubmits the pending save. **Retry** on a component or the whole page starts replacement generation after a warning.
+- **Try saving again:** resubmits the pending save. **Retry** on a card starts replacement generation, after "Are you sure?" when the card has content.
 
 Collect [diagnostic logs](diagnostics.md) if needed. Report the package version, Chrome version and operating system, steps, and visible message in the relevant delivery issue. Do not include API keys.
