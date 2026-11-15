@@ -8,7 +8,7 @@ Content modules are **parent modules** with a core and facets ([D08](../architec
 
 ## Module kinds
 
-Modules have three kinds ([Q72](../architecture/questionnaire/answers/answers-06-data-and-semantics.md#q72), [D02](../architecture/decisions/d02.md)):
+Modules have three kinds (Q72, the owner's answer of 10 October 2026; [D02](../architecture/decisions/d02.md)):
 
 - **Input modules** are filled by capture or by the user, never by generation. The **main key module** is compulsory, exactly one per deck and page, always first, and cannot be removed. The **Context module** is optional, at most one per deck or page; a deck with it captures the selection's surrounding block. The **Text module** holds the user's own writing and can repeat. The main key and Context are a content module's only inputs; Text never is.
 - **Content modules** produce components from a page's main key and Context. Every content module type is a [parent module](#parent-modules-and-facets). Each instance owns one component per page.
@@ -27,7 +27,7 @@ The catalog defines the core as the parent's first facet, one the user cannot ad
 
 In a Languages parent, facets describe the core's translation, not the main key. When the main key is already in the parent's language, the core explains it in that language instead of translating it, and the translation the facets describe is the main key itself; this is how a user finds, for example, the article of a German noun.
 
-Facets have no options. Variety comes from more parent types: a German and a Spanish translation are two parent types, not one type with a language setting (partly answers [Q41](../architecture/questionnaire/08-modules.md#q41-what-can-a-module-be-configured-with)). Varieties of one language are not told apart: one `English`, not British and American ([D34](../architecture/decisions/d34.md)).
+Facets have no options. Variety comes from more parent types: a German and a Spanish translation are two parent types, not one type with a language setting (partly answers Q41, which the owner answered on 7 October 2026). Varieties of one language are not told apart: one `English`, not British and American ([D34](../architecture/decisions/d34.md)).
 
 A parent and its facets are one component, produced by one generation attempt in one request, and **Retry** regenerates them together; a spoken part's audio follows in its own jobs ([audio](#audio)). Several instances of one parent type on a page generate independently, each from the main key and Context.
 
@@ -180,7 +180,7 @@ Applicability is judged per facet. A parent's core always applies. A facet that 
 
 ## Render contracts
 
-The provider returns a parent's content as JSON, and the app keeps it as **markdown per facet** ([D09](../architecture/decisions/d09.md)). Generation validates the JSON strictly against the parent's shape, then formats it into markdown as the card looks, and the component stores one typed block in its block document ([Q13](../architecture/questionnaire/answers/answers-03-frontend.md#q13)): the core's top line, the core's markdown, and one markdown text per facet with content. Each shape is defined once, in its facet's folder in the catalog, and fixed with its golden set.
+The provider returns a parent's content as JSON, and the app keeps it as **markdown per facet** ([D09](../architecture/decisions/d09.md)). Generation validates the JSON strictly against the parent's shape, then formats it into markdown as the card looks, and the component stores one typed block in its block document (Q13, the owner's answer of 5 October 2026): the core's top line, the core's markdown, and one markdown text per facet with content. Each shape is defined once, in its facet's folder in the catalog, and fixed with its golden set.
 
 **The provider's JSON**, complete for every result:
 
@@ -227,7 +227,7 @@ The provider returns a parent's content as JSON, and the app keeps it as **markd
 
 **The main key's emphasis** is a stored highlight, the same yellow as the default highlight: when generated content is formatted, each whole-word occurrence of the main key in the core and every facet is written as `==…==` (not inside code or an existing highlight), so a key does not light up inside a longer word (*in* inside *einer*); a key in a script without spaces between words, such as Chinese, is marked wherever it occurs, and a table is highlighted cell by cell. The card draws no emphasis of its own, so the editor shows the same highlights and the user can remove or add them.
 
-**Rendering.** The card renders each facet's markdown inside that facet's fixed container, under its label, in the card's own order ([D26](../architecture/decisions/d26.md)): the parent's order until the user rearranges it. A facet whose markdown is empty has no content: its container is not shown and its [tag](pages-and-editing.md#facet-tags) is blander. A core whose markdown is empty shows only its top line. Rendering is a pure function of the stored content, shared by every client; it produces HTML only through KaTeX, for a formula (owner, 28 October 2026, setting aside that part of [Q59](../architecture/questionnaire/answers/answers-11-security-privacy.md#q59)). Each future module's specification states its shape, its formatting and its containers under *Output and presentation*.
+**Rendering.** The card renders each facet's markdown inside that facet's fixed container, under its label, in the card's own order ([D26](../architecture/decisions/d26.md)): the parent's order until the user rearranges it. A facet whose markdown is empty has no content: its container is not shown and its [tag](pages-and-editing.md#facet-tags) is blander. A core whose markdown is empty shows only its top line. Rendering is a pure function of the stored content, shared by every client; it produces HTML only through KaTeX, for a formula (owner, 28 October 2026, setting aside that part of Q59, the owner's answer of 7 October 2026). Each future module's specification states its shape, its formatting and its containers under *Output and presentation*.
 
 ## Audio
 

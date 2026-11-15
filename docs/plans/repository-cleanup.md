@@ -1,6 +1,6 @@
 # Plan: repository cleanup against 0.16.6
 
-Drafted 15 November 2026 for the owner's review. Status: **owner's answers recorded 15 November 2026** (see [answers](#the-owners-answers)); Batch 0 partly carried out, no PR batch started. Nothing in git has been deleted, moved or edited; this file is the only change.
+Drafted 15 November 2026 for the owner's review. Status: **owner's answers recorded 15 November 2026** (see [answers](#the-owners-answers)); Batch 0 partly carried out; Batches 1, 2, 3 (its rows), 4, 5 and 7 **done on 15 November 2026** in one branch, `claude/determined-villani-b4b693`; Batch 6 skipped. Each batch's status is under its heading.
 
 The current code on `main` at `6ce4e95` (0.16.6) is the source of truth. Each candidate below names its path, the evidence that it is stale, the suggested action and the risk. Candidates are grouped into batches that can each be one PR. Applied migrations (`migrations/`) and upgrade fixtures (`tests/helpers/legacy-database.mjs`, the fixtures inside `tests/upgrade.test.mjs`) are out of scope and stay untouched.
 
@@ -10,7 +10,7 @@ So the batches below are not mistaken for the whole picture:
 
 - **Code is in use.** Every file under `extension/`, `src/`, `shared/`, `types/`, `packages/*/src` and `scripts/` is imported by another file or named in `package.json`, CI or a skill. Every dependency in `package.json` is imported, except `@tiptap/core`, `@tiptap/pm` (peer dependencies of the Tiptap packages) and `@types/pg` (used by `tsc`); all stay.
 - **Tests run.** Every `tests/*.test.mjs` is in `npm test`, every `tests/browser/*.test.mjs` is in `npm run test:browser`. `tests/prompts.test.mjs` already fails on an orphaned `tests/prompts/*.txt`.
-- **Retired terms.** Karte and seite appear outside history, migrations and upgrade fixtures only in: `docs/product/model.md` (the terms table, which is its job), `docs/architecture/questionnaire/` and `decisions/conflicts.md` (questions recorded as asked), `README.md` and `docs/guides/install.md` (stale upgrade text, Batch 2). No code or interface string uses them.
+- **Retired terms.** The earlier terms of [the model's terms table](../product/model.md#earlier-terms) appear outside history, migrations and upgrade fixtures only in: `docs/product/model.md` (the terms table, which is its job), `docs/architecture/questionnaire/` and `decisions/conflicts.md` (questions recorded as asked), `README.md` and `docs/guides/install.md` (stale upgrade text, Batch 2). No code or interface string uses them.
 - **Paths and commands named in docs** exist, apart from shorthand (`domain/render.ts`) and files that are generated or only in the package ZIP (`about.generated.ts`, `INSTALL.md`, `package-info.json`).
 - **Specifications** (`docs/specs/`) and `docs/architecture/generation.md` name no retired module, model or control.
 
@@ -46,6 +46,8 @@ Only finding 4 is worth an issue; finding 6's boundary test could join it.
 
 ## Batch 1: move finished plans into history
 
+**Status: done (15 November 2026).** Sixteen plans moved; their links in and out fixed mechanically; the link check reports nothing new.
+
 **Evidence.** The [project workflow](../guides/project-workflow.md) says a plan moves to `docs/history/plans/` once its release ships. These are finished or abandoned and still in `docs/plans/`:
 
 | Path | Why it is finished | Action |
@@ -70,16 +72,20 @@ Only finding 4 is worth an issue; finding 6's boundary test could join it.
 
 ## Batch 2: README and install guide match 0.16.6
 
+**Status: done (15 November 2026).** README and install guide rewritten as below; `npm run build`, `python scripts/package.py` and `verify_package.py` passed on the committed tree. The User-Agent follow-up stays open.
+
 | Path | Evidence | Action | Risk |
 | --- | --- | --- | --- |
-| `README.md` | Says "release 0.11.0" (twice). Describes **Edit page**, **Generate missing** and **Retry page**, which D04 removed (`tests/browser/editing.test.mjs:36` checks they are gone) and no string in `extension/locales/en/messages.json` has. Says "exact-selection components still complete", but D03 retired the selected-text modules. Says requests identify as `Vocabularium/0.8.1`; the code sends `Vocabularium/0.13.1` (`src/server/opencode.mjs:33`). Mentions "word/sentence sample previews" in deck settings, and a karte/seite upgrade paragraph that predates nine later upgrades. Links provider smoke results from DeepSeek in September. | Rewrite the Deck settings, Page workflows, Generation and Release status sections from the specifications; replace the upgrade paragraph with a link to [scope's upgrade section](../product/scope.md#upgrade-from-earlier-builds). Keep the setup and verification commands, which are current. | Low. Docs only, but read by every new session; each claim must be checked against the code or a string. |
-| `docs/guides/install.md` | Says "Release 0.16.4" and "Upgrading to 0.5.0 discards existing decks and pages"; mentions a karte/seite build. It ships inside every candidate ZIP. | State the version generically (from `package-info.json`) and point upgrades to scope. | Low; check the Deliver skill's package check still finds the guide. |
+| `README.md` | Says "release 0.11.0" (twice). Describes **Edit page**, **Generate missing** and **Retry page**, which D04 removed (`tests/browser/editing.test.mjs:36` checks they are gone) and no string in `extension/locales/en/messages.json` has. Says "exact-selection components still complete", but D03 retired the selected-text modules. Says requests identify as `Vocabularium/0.8.1`; the code sends `Vocabularium/0.13.1` (`src/server/opencode.mjs:33`). Mentions "word/sentence sample previews" in deck settings, and an upgrade paragraph in the retired terms that predates nine later upgrades. Links provider smoke results from DeepSeek in September. | Rewrite the Deck settings, Page workflows, Generation and Release status sections from the specifications; replace the upgrade paragraph with a link to [scope's upgrade section](../product/scope.md#upgrade-from-earlier-builds). Keep the setup and verification commands, which are current. | Low. Docs only, but read by every new session; each claim must be checked against the code or a string. |
+| `docs/guides/install.md` | Says "Release 0.16.4" and "Upgrading to 0.5.0 discards existing decks and pages"; mentions a build with the retired terms. It ships inside every candidate ZIP. | State the version generically (from `package-info.json`) and point upgrades to scope. | Low; check the Deliver skill's package check still finds the guide. |
 
 **Checks:** `npm run check`; the link check; `npm run build` and `python scripts/package.py` followed by the Deliver skill's `verify_package.py`, because the install guide goes into the ZIP.
 
 **Separate follow-up, not in this batch:** the hard-coded `User-Agent: Vocabularium/0.13.1` in `src/server/opencode.mjs` is a code fact, not a doc fact. Reading it from `package.json` is a small code change that belongs with `tests/opencode.test.mjs`.
 
 ## Batch 3: decision records agree with what shipped
+
+**Status: done for this cleanup (15 November 2026).** D36 has a row; D31 and D35 are marked implemented in the map and in their files; D32 and D33 have rows saying they come with the dictionary milestone. D35's open item and five links wait for that milestone.
 
 | Path | Evidence | Action | Risk |
 | --- | --- | --- | --- |
@@ -106,6 +112,8 @@ The Notion column shows "pending" for D26, D27, D34 and D35. That is a Notion ta
 
 ## Batch 4: decide what `maps/` is
 
+**Status: done (15 November 2026).** `maps/` untracked; links into it from plans are plain text.
+
 **Evidence.** Commit `a0eea1d` (9 November 2026, "Keep the structure maps local in an ignored maps/ folder") added `maps/` to `.gitignore`, but the files were already tracked, so git still tracks all six, and two later commits changed them. They describe `main` at `761bfbd` (0.16.4). `capture-to-card-walkthrough.md` links to a plan that does not exist. D31 calls them not in the repository.
 
 **Owner's choice (15 November 2026): keep them local.** `git rm --cached -r maps/` removes them from git and leaves the local copies. Links into `maps/` from plans moved in Batch 1 become plain text ("the owner's local map").
@@ -115,6 +123,8 @@ The Notion column shows "pending" for D26, D27, D34 and D35. That is a Notion ta
 **Checks:** `npm run check`; the link check.
 
 ## Batch 5: experiment fixtures under `tests/golden/`
+
+**Status: done (15 November 2026).** `tests/golden/token-split/inputs.json` is now `docs/history/evidence/m1-token-split-inputs.json`; `held-out/` kept.
 
 `scripts/golden-set.mjs` and `scripts/gate.mjs` read only the top-level `tests/golden/*.json` and `calibration/`; `silver/` is read by `scripts/silver-set.mjs` and `tests/catalog.test.mjs`, and `reading/` by `scripts/reading-check.mjs`. Two folders are read by nothing:
 
@@ -126,6 +136,8 @@ The Notion column shows "pending" for D26, D27, D34 and D35. That is a Notion ta
 **Checks:** `npm test` (in particular `tests/catalog.test.mjs`); `node --check` via `npm run check`. No live gate run is needed, because no read path changes.
 
 ## Batch 6 (optional): unused exported types
+
+**Status: skipped** (owner, 15 November 2026).
 
 These exported type aliases are used nowhere, not even in their own file. The extension and server are JavaScript, so no caller imports them.
 
@@ -140,18 +152,20 @@ These exported type aliases are used nowhere, not even in their own file. The ex
 
 ## Batch 7: delete the questionnaire
 
-**Owner's decision (15 November 2026):** karte and seite are long past; the questionnaire goes.
+**Status: done (15 November 2026).** The questionnaire is deleted. Links in specs and decisions became plain text with the Q number and the date of the owner's answer (the date its answer was committed); in scope's deferred rows, which already link each answer's Notion record, they became plain Q numbers. The retired terms also left `AGENTS.md`'s own wording, C14 in `conflicts.md`, its row in the map and scope's 0.4.0 upgrade line. **What the search still finds**, all expected: `extension/pages.js:32` removes an old session-storage key on upgrade (the statement above that no code uses them was wrong; this is upgrade code, checked by `tests/browser/upgrade.test.mjs`); the upgrade tests `tests/browser/upgrade.test.mjs`, `tests/extension.test.mjs:170`, `tests/reads.test.mjs:97` and `tests/pages-schema.test.mjs` besides the listed fixtures; and the German word *Seite* in a golden-set key (`tests/golden/computer-science.json:130`).
+
+**Owner's decision (15 November 2026):** the retired terms are long past; the questionnaire goes.
 
 | Path | Evidence | Action | Risk |
 | --- | --- | --- | --- |
-| `docs/architecture/questionnaire/` (14 question files, 13 answer files, `spec-mapping.md`) | The questions were asked against 0.3.0+ and 0.4.1; every answer that still holds has since been written into a specification, a decision or scope. It is the main remaining user of karte and seite. | Delete. Git keeps it. | Medium: about 40 links in 16 files point into it. |
+| `docs/architecture/questionnaire/` (14 question files, 13 answer files, `spec-mapping.md`) | The questions were asked against 0.3.0+ and 0.4.1; every answer that still holds has since been written into a specification, a decision or scope. It is the main remaining user of the retired terms. | Delete. Git keeps it. | Medium: about 40 links in 16 files point into it. |
 | Links into it: `docs/product/scope.md` (14), `docs/specs/modules.md` (4), `traceability-map.md` (3), `generation.md` (3), `model.md`, `d14.md`, `conflicts.md`, `clarifications.md` (2 each), and one each in `shared-ui.md`, `capture-and-generation.md`, `accounts-and-sync.md`, `project-workflow.md`, `d09.md`, `d11.md`, `d36.md`, `README.md` | A link to a deleted file. | Replace each with the decision or Notion record that carries the same rule, or with plain text such as "the owner's answer to Q72 (10 October 2026)". `project-workflow.md` step 1 drops the questionnaire as a decision source. `README.md`'s link goes with Batch 2's rewrite. | Low each; the risk is a rule losing its only stated reason, so each replacement names one. |
-| `decisions/conflicts.md`, `clarifications.md` | Many entries resolve a conflict between two questionnaire answers by Q number (C14 mentions karte and seite). | **Keep**; turn the links into plain Q numbers. These files are how the decisions explain themselves. | Low. |
+| `decisions/conflicts.md`, `clarifications.md` | Many entries resolve a conflict between two questionnaire answers by Q number (C14 uses the retired terms). | **Keep**; turn the links into plain Q numbers. These files are how the decisions explain themselves. | Low. |
 | 8 links from `docs/history/` | History is frozen. | Leave them; they point to files git still has. | None. |
 
-The karte and seite rule in AGENTS.md then holds without an exception: after this batch they remain only in `docs/history/`, migrations, upgrade fixtures and `docs/product/model.md`'s terms table.
+The retired-terms rule in AGENTS.md then holds without an exception: after this batch they remain only in `docs/history/`, migrations, upgrade fixtures and `docs/product/model.md`'s terms table.
 
-**Checks:** `npm run check`; the link check, which must report nothing outside `docs/history/`; a search for `karte` and `seite` outside history, migrations, upgrade fixtures and `model.md`, which must find nothing.
+**Checks:** `npm run check`; the link check, which must report nothing outside `docs/history/`; a search for the retired terms outside history, migrations, upgrade fixtures and `model.md`, which must find nothing.
 
 ## Kept on purpose
 

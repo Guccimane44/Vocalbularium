@@ -46,7 +46,7 @@ Both themes keep readable hover and focus states, non-color status cues, and usa
 
 ## Interface language
 
-Every interface text is English, in sentence case, and English is the default **language preference** ([D14](../architecture/decisions/d14.md); [Q69](../architecture/questionnaire/13-ux-and-migration.md#q69-which-languages-does-the-ui-speak)). 1.0 ships with the interface localised into the major languages:
+Every interface text is English, in sentence case, and English is the default **language preference** ([D14](../architecture/decisions/d14.md); Q69, the owner's answer of 8 October 2026). 1.0 ships with the interface localised into the major languages:
 
 - **The languages** for 1.0 are English and the other official UN languages: Arabic, Chinese (Simplified), French, Russian and Spanish. Arabic is written right to left, so every surface mirrors its layout in Arabic, while generated content keeps the direction of its own language. After 1.0 the list grows release by release; a new language is a catalogue of strings and explanations, not a code change.
 
