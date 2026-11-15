@@ -53,6 +53,7 @@ test('0.13.0: family, module and facet pages in one sheet, from the module windo
   const english = await catalogSample('languages/german');
   assert.deepEqual(await sheet.locator('.about-chain .about-mk:not([data-out])').allTextContents(),
     Object.keys(PARENTS.german.facets).filter(facet => facet in english.word_phrase.facets).map(facet => PARENTS.german.facets[facet].abbreviation));
+  await a.page.screenshot({ path: 'artifacts/v0.13.0-module-page.png', animations: 'disabled' });
   // The key's language and a sentence change the sample; only Examples applies to a sentence.
   // Each language named in itself only (D21).
   assert.deepEqual(await sheet.locator('select option').allTextContents(), ['العربية', 'English', 'Español', 'Français', 'Русский', '中文（简体）']);
@@ -74,6 +75,7 @@ test('0.13.0: family, module and facet pages in one sheet, from the module windo
   assert.equal(await sheet.locator('.about-where .about-here .facet-body').innerText(), [singular, plural].filter(Boolean).join(' · '));
   assert.equal(await sheet.locator('.about-where .about-other').count(), Object.keys(english.word_phrase.facets).length - 1);
   assert.equal(await sheet.getByRole('heading', { name: 'Where it sits' }).count(), 0);
+  await a.page.screenshot({ path: 'artifacts/v0.13.0-facet-page.png', animations: 'disabled' });
   await sheet.getByRole('button', { name: 'Sentence', exact: true }).click();
   assert.match(await sheet.locator('.about-left-out').innerText(), /Left out/);
   await sheet.locator('.about-strip button', { hasText: 'Conjugation' }).click();
@@ -84,6 +86,7 @@ test('0.13.0: family, module and facet pages in one sheet, from the module windo
   assert.match(await sheet.locator('.about-where .about-dim').first().innerText(), /sprechen/);
   assert.doesNotMatch(await sheet.locator('.about-where .about-dim').first().innerText(), /Sprache/);
   assert.equal(await sheet.locator('.about-flow').count(), 0, 'no key-to-core flow above the card');
+  await a.page.screenshot({ path: 'artifacts/v0.13.1-conjugation-page.png', animations: 'disabled' });
   // Declension has a noun and an adjective (language, good); Synonyms shows good, gut (D21).
   await sheet.locator('.about-strip button', { hasText: 'Declension' }).click();
   await waitFor(async () => await title() === 'Declension', 'Declension’s page');
@@ -92,6 +95,7 @@ test('0.13.0: family, module and facet pages in one sheet, from the module windo
   await sheet.getByRole('button', { name: 'Adjective', exact: true }).click();
   assert.equal(await sheet.locator('.about-key').innerText(), 'good');
   assert.match(await sheet.locator('.about-where .about-here').innerText(), /ein guter/);
+  await a.page.screenshot({ path: 'artifacts/v0.13.1-declension-page.png', animations: 'disabled' });
   await sheet.locator('.about-strip button', { hasText: 'Synonyms' }).click();
   await waitFor(async () => await title() === 'Synonyms', 'Synonyms’ page');
   assert.deepEqual(await sheet.locator('.about-toggle button').allTextContents(), ['Word', 'Sentence']);
@@ -107,6 +111,7 @@ test('0.13.0: family, module and facet pages in one sheet, from the module windo
   await waitFor(async () => await title() === 'Languages', 'the family page');
   assert.deepEqual(await sheet.locator('.about-row .about-row-name').allTextContents(), ['German', 'Chinese', 'English']);
   assert.equal(await sheet.locator('.about-steps > li').count(), 3);
+  await a.page.screenshot({ path: 'artifacts/v0.13.0-family-page.png', animations: 'disabled' });
   // Escape closes the sheet, returns the focus to About German, and adds nothing.
   await a.page.keyboard.press('Escape');
   await sheet.waitFor({ state: 'detached' });
@@ -170,6 +175,12 @@ test('0.13.0: family, module and facet pages in one sheet, from the module windo
   await cardTab(a.page, 'German').click();
   await componentArticle(a.page, 'German').locator('.card-actions').getByRole('button', { name: 'About German', exact: true }).click();
   await waitFor(async () => await title() === 'German', 'German from its card');
+  // Both themes, with forced colours off and on, the sheet keeps its edge and readable text.
+  for (const colorScheme of ['light', 'dark']) for (const forcedColors of ['none', 'active']) {
+    await a.page.emulateMedia({ colorScheme, forcedColors });
+    await a.page.screenshot({ path: `artifacts/v0.13.0-module-page-${colorScheme}${forcedColors === 'active' ? '-forced' : ''}.png`, animations: 'disabled' });
+  }
+  await a.page.emulateMedia({ colorScheme: 'light', forcedColors: 'none' });
   await a.page.keyboard.press('Escape');
   await sheet.waitFor({ state: 'detached' });
 

@@ -114,6 +114,7 @@ test('parents and facets: core only on add, the facet window on the parent, its 
   assert.deepEqual(await card('German').locator('.facet').evaluateAll(sections => sections.map(each => each.dataset.facet)),
     ['article', 'synonyms', 'antonyms', 'examples']);
   assert.deepEqual(await card('German').locator('.facet-tag .facet-tag-mark').allTextContents(), ['Ar', 'Sy', 'An', 'Ex']);
+  await a.page.screenshot({ path: 'artifacts/v0.7.0-facets-page.png', fullPage: true });
 
   // Two German parents each choose their own facets: ticked on German 2, Synonyms goes there alone
   // and its tag flies in from its row (D13).
@@ -136,6 +137,7 @@ test('parents and facets: core only on add, the facet window on the parent, its 
   });
   facets = await facetWindow(a.page, 'German 2');
   assert.deepEqual(await inOrder(facets, 'equipped'), Array(12).fill(false), 'a core only');
+  await a.page.screenshot({ path: 'artifacts/v0.8.1-facet-window.png', fullPage: true, animations: 'disabled' });
   await tick(facets, 'Synonyms').click();
   await waitFor(async () => (await german())[1].facets.includes('synonyms'), 'Synonyms added to the second German');
   assert.equal((await german())[0].facets.includes('synonyms'), false, 'and not to the first');

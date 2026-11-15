@@ -46,6 +46,7 @@ test('0.8.0: an Expertise card, leaf green with a graduation cap, explains the k
   assert.deepEqual(await card.locator('.entry-core p').allTextContents(), ['The part of a program that people see and touch.', 'Think of a restaurant: the frontend is the dining room.']);
   const colours = await card.locator('.card-tab').first().evaluate(node => [getComputedStyle(node).backgroundColor, getComputedStyle(node).color]);
   assert.deepEqual(colours, ['rgb(70, 110, 18)', 'rgb(255, 255, 255)'], 'leaf green with a white label in the light theme');
+  await a.page.screenshot({ path: 'artifacts/v0.8.0-expertise-card.png', fullPage: true });
 });
 
 test('0.12.0: a German verb’s Conjugation is a table on the card, its top line says Verb, and its own Edit edits the table as its source (D17)', { timeout: 45000 }, async (t) => {
@@ -76,16 +77,19 @@ test('0.12.0: a German verb’s Conjugation is a table on the card, its top line
   assert.deepEqual(await facet.locator('tbody tr').evaluateAll(rows => rows.map(row => [...row.cells].map(cell => cell.textContent))),
     [['ich', 'laufe', 'lief', 'bin gelaufen'], ['du', 'läufst', 'liefst', 'bist gelaufen']]);
   assert.equal(await facet.locator('tbody th[scope="row"]').count(), 2, 'each row is labelled by its person');
+  await card.screenshot({ path: 'artifacts/v0.12.0-conjugation.png' });
   // A facet the verb rules out shows no note; its Retry stays, unavailable, on its heading (0.12.1; its tag has none since 0.13.2).
   const declension = card.locator('.facet[data-facet="declension"]');
   assert.equal(await card.locator('.facet-note[data-note="ruled-out"]').count(), 0);
   await declension.hover();
   assert.equal(await a.page.getByRole('button', { name: 'Retry Declension from German', exact: true }).isDisabled(), true);
+  await card.screenshot({ path: 'artifacts/v0.12.1-retry-unavailable.png', animations: 'disabled' });
   assert.equal(await a.page.getByRole('button', { name: 'Retry Conjugation from German', exact: true }).isDisabled(), false, 'Conjugation applies');
   // Its About opens the facet's page, as its › in the facet window does (0.12.1; a page since 0.13.0).
   await a.page.getByRole('button', { name: 'About Conjugation from German', exact: true }).click();
   const conjugationAbout = a.page.getByRole('dialog', { name: 'Conjugation', exact: true });
   await conjugationAbout.waitFor();
+  await a.page.screenshot({ path: 'artifacts/v0.12.1-facet-about.png', animations: 'disabled' });
   assert.equal(await conjugationAbout.locator('.about-applies').innerText(), 'Verbs');
   await a.page.keyboard.press('Escape');
   await conjugationAbout.waitFor({ state: 'detached' });
@@ -136,6 +140,8 @@ test('0.12.0: a Formula renders with KaTeX, a broken one shows its LaTeX, and a 
   await code.locator('pre.md-code[data-language="python"] .hljs-keyword').first().waitFor();
   assert.equal(await code.locator('pre.md-code code').textContent(), 'import numpy as np\n# the eigenvalues of a matrix\nvalues = np.linalg.eigvals([[2, 0], [0, 3]])');
   assert.equal(await code.locator('.hljs-comment').textContent(), '# the eigenvalues of a matrix');
+  await componentArticle(a.page, 'Mathematics').screenshot({ path: 'artifacts/v0.12.0-formula.png' });
+  await componentArticle(a.page, 'Computer Science').screenshot({ path: 'artifacts/v0.12.0-code.png' });
 
   // A formula KaTeX cannot read shows its source; the Formula's own Edit edits it as source.
   await formula.hover();
@@ -175,6 +181,7 @@ test('0.16.4: a Chemistry Equation renders its \\ce{} reaction with KaTeX’s mh
   assert.ok(!(await equation.locator('.md-math .katex-html').textContent()).includes('ce'), 'no \\ce macro left as text');
   assert.equal(await equation.locator('li .md-math-inline .katex').count(), 3, 'each substance is inline math');
   assert.match(await equation.locator('li').nth(2).textContent(), /water/);
+  await componentArticle(a.page, 'Chemistry').screenshot({ path: 'artifacts/v0.16.4-equation.png' });
 });
 
 test('0.16.4: a Creativity card, indigo with a sparkle, shows its haiku a line each in its key’s language, under a top line naming that language (D30)', { timeout: 60000 }, async (t) => {

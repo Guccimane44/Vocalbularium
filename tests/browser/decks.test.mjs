@@ -48,6 +48,7 @@ test('deck UI: draft previews, all modules, the module limit, removal without co
   // Deck settings have no Preview (0.13.2; a dialog from 0.6.3, beside the list before).
   assert.equal(await a.page.getByRole('button', { name: 'Preview', exact: true }).count(), 0, 'no Preview button');
   assert.equal(await a.page.locator('.sample-page, .preview-dialog').count(), 0, 'and no preview');
+  await a.page.screenshot({ path: 'artifacts/m3-configuration-list.png' });
   const listTypes = () => a.page.locator('.shaping-list .deck-module').evaluateAll(nodes => nodes.slice(1).map(node => node.dataset.type));
   // A module's tab is two parts edge to edge, as on a page: the six dots at its left end, then its icon and name.
   const block = a.page.locator('.deck-module[data-type="chinese"]').first();
@@ -70,6 +71,7 @@ test('deck UI: draft previews, all modules, the module limit, removal without co
   await a.page.keyboard.press('Escape');
   assert.deepEqual(await listTypes(), ['context', 'german', 'german', 'chinese', 'chinese', 'chinese'], 'a cancelled drag keeps the order');
   assert.equal((await application.store.pages()).length, 0); assert.equal((await application.store.account()).decks.length, 1);
+  await a.page.screenshot({ path: 'artifacts/m3-configuration.png', fullPage: true });
   await a.page.getByRole('button', { name: 'Save', exact: true }).click();
   await a.page.getByRole('heading', { name: 'Everyday Chinese', exact: true }).waitFor();
   const created = (await application.store.account()).decks.find(deck => deck.name === 'Everyday Chinese');

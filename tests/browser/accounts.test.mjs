@@ -139,6 +139,7 @@ test('appearance: all open views, drafts, dialogs, feedback lifetime, logout and
   await b.page.emulateMedia({ colorScheme: 'dark' }); assert.equal(await ground(b.page), '#161a15');
   await b.page.emulateMedia({ colorScheme: 'light' }); assert.equal(await ground(b.page), '#eef3ea');
   await theme(a.page, 'dark');
+  await a.page.screenshot({ path: 'artifacts/v0.2.0-login-dark.png', fullPage: true });
   await signIn(a.page);
   await hasTheme(a.page, 'dark'); await hasTheme(b.page, 'system');
   const other = await a.context.newPage(); await other.goto(`chrome-extension://${a.id}/app.html`);
@@ -154,6 +155,7 @@ test('appearance: all open views, drafts, dialogs, feedback lifetime, logout and
   await crumb(a.page, 'My Deck').click();
   await a.page.getByRole('dialog').waitFor();
   await theme(other, 'dark'); await hasTheme(a.page, 'dark');
+  await a.page.getByRole('dialog').screenshot({ path: 'artifacts/v0.2.0-dialog-dark.png' });
   await a.page.getByRole('dialog').getByRole('button', { name: 'Continue editing', exact: true }).click();
   assert.equal(await editor.inputValue(), 'Keep this unsaved draft');
   const reading = await a.context.newPage(); await reading.goto(apiOrigin + '/health');
@@ -162,8 +164,10 @@ test('appearance: all open views, drafts, dialogs, feedback lifetime, logout and
   await a.worker.evaluate(async (tabId) => globalThis.feedbackForTest(tabId, 'Capture received'), tabId);
   await reading.getByRole('status').waitFor();
   assert.equal(await reading.locator('vocabularium-feedback').getAttribute('data-theme'), 'dark');
+  await reading.screenshot({ path: 'artifacts/v0.2.0-feedback-dark.png' });
   await theme(other, 'light');
   await reading.waitForFunction(() => document.querySelector('vocabularium-feedback')?.dataset.theme === 'light');
+  await reading.screenshot({ path: 'artifacts/v0.2.0-feedback-light.png' });
   assert.equal(await a.worker.evaluate(async (tabId) => {
     const [result] = await chrome.scripting.executeScript({
       target: { tabId }, func: async () => {
@@ -183,6 +187,7 @@ test('appearance: all open views, drafts, dialogs, feedback lifetime, logout and
   await popup.getByRole('status').waitFor(); await hasTheme(popup, 'light');
   const closePromise = popup.waitForEvent('close');
   await theme(other, 'dark'); await hasTheme(popup, 'dark');
+  await popup.screenshot({ path: 'artifacts/v0.2.0-feedback-popup-dark.png' });
   await closePromise;
   await a.page.getByRole('button', { name: 'Cancel', exact: true }).click();
   await accountMenu(a.page); await a.page.getByRole('button', { name: 'Log out', exact: true }).click();
@@ -197,6 +202,7 @@ test('appearance: all open views, drafts, dialogs, feedback lifetime, logout and
     await theme(a.page, appearance);
     assert.equal(await a.page.getByLabel('Deck name', { exact: true }).inputValue(), 'Unsaved configuration');
     assert.equal(await a.page.locator('.deck-module').count(), 4);
+    await a.page.screenshot({ path: `artifacts/v0.2.0-configuration-${appearance}.png`, fullPage: true });
   }
   await a.page.getByRole('button', { name: 'Cancel', exact: true }).click();
 });
