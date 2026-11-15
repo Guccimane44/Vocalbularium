@@ -144,7 +144,7 @@ test('page view: main key tiers, Show all, rendered and plain content, quiet car
   await window.getByLabel('Search modules', { exact: true }).fill('');
   assert.equal(await window.locator('.window-module').count(), 12);
   await a.page.setViewportSize({ width: 390, height: 800 });
-  assert.equal(await a.page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+  await waitFor(() => a.page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'the page fits a narrow window');
 });
 
 test('generation reveal: finished content rises into its card and is announced; reduced motion keeps the state without movement', { timeout: 45000 }, async (t) => {

@@ -170,7 +170,7 @@ test('page list: quiet states, layouts remembered per deck, sorting, grouping, e
   await a.page.setViewportSize({ width: 390, height: 760 });
   for (const layout of ['List', 'Table', 'Gallery']) {
     await a.page.getByRole('button', { name: layout, exact: true }).click();
-    assert.equal(await a.page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `${layout} fits`);
+    await waitFor(() => a.page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${layout} fits`);
   }
   await a.page.getByRole('button', { name: 'List', exact: true }).click();
   await a.page.emulateMedia({ forcedColors: 'active' });
