@@ -38,6 +38,16 @@ test('dashboard capture feedback: shared appearance, original lifetime, originat
       console.log(`[diag] url ${a.page.url()}`);
       console.log(`[diag] text ${JSON.stringify((await a.page.locator('body').innerText({ timeout: 2000 })).slice(0, 600))}`);
       console.log(`[diag] health ${await fetch(apiOrigin + '/health').then(r => r.status + ' ' + r.statusText, e => 'error ' + e.message)}`);
+      const timed = (label, promise) => Promise.race([promise, new Promise(done => setTimeout(() => done('TIMEOUT'), 3000))]).then(value => console.log(`[diag] ${label} ${JSON.stringify(value)}`), error => console.log(`[diag] ${label} error ${error.message}`));
+      await timed('workers', Promise.resolve(a.context.serviceWorkers().map(worker => worker.url())));
+      await timed('worker storage', a.worker.evaluate(() => chrome.storage.local.get(null).then(items => Object.keys(items))));
+      await timed('worker session', a.worker.evaluate(() => chrome.storage.session.get(null)));
+      await timed('worker health', a.worker.evaluate(url => fetch(url).then(r => r.status), apiOrigin + '/health'));
+      await timed('worker ping', a.worker.evaluate(() => typeof captureForTest));
+      await timed('page send', a.page.evaluate(() => chrome.runtime.sendMessage({ type: 'initialize' })));
+      const { execSync } = await import('node:child_process');
+      console.log(`[diag] ports ${execSync('ss -ltnp 2>/dev/null | grep -E "431[0-9]" || true').toString()}`);
+      console.log(`[diag] processes ${execSync('ps -eo pid,etimes,args | grep -E "node|chrom" | grep -v grep | cut -c1-200 | head -40 || true').toString()}`);
     } catch (error) { console.log(`[diag] failed ${error.message}`); }
   }, 12000).unref();
   step(6);
