@@ -65,7 +65,6 @@ test('manual page UI: per-card actions, drafts, leave choices, sorting, failed-s
     [was.x + was.width / 2, was.y + was.height / 2]), 'Keep Context', 'Cancel is under the pointer');
   assert.ok((await confirmDelete.boundingBox()).x < (await keep.boundingBox()).x, 'the final Delete is to the left of Cancel');
   assert.equal(await a.page.evaluate(() => document.activeElement.getAttribute('aria-label')), 'Keep Context', 'focus is on Cancel');
-  await a.page.locator('.shaping-list').screenshot({ path: 'artifacts/v0.6.3-confirm-delete.png' });
   await keep.click();
   assert.equal(await confirmDelete.count(), 0);
   assert.equal((await shape()).length, 4);
@@ -151,7 +150,6 @@ test('manual page UI: per-card actions, drafts, leave choices, sorting, failed-s
   assert.equal(await newKey.getAttribute('aria-invalid'), 'true');
   assert.equal(await a.page.locator('.notice.error').count(), 0, 'no notice below the field');
   assert.equal(await a.page.evaluate(() => document.activeElement.id), 'main-key', 'the field takes focus');
-  await a.page.screenshot({ path: 'artifacts/v0.6.3-empty-main-key.png' });
   await newKey.fill('aardvark');
   await a.page.getByRole('button', { name: /^(Save|Try saving again)$/ }).click();
   await pageReady(a.page);
@@ -204,7 +202,6 @@ test('retry UI: exact confirmation asked beside the tab, a first Retry without w
   assert.equal(await a.page.getByRole('dialog').count(), 0, 'no dialog');
   assert.equal(await a.page.locator('[data-confirm="retry"] .confirm-text').textContent(), 'Are you sure?');
   await a.page.locator('[data-confirm="retry"]').evaluate(node => Promise.all(node.getAnimations({ subtree: true }).map(animation => animation.finished.catch(() => {}))));
-  await a.page.locator('.shaping-list').screenshot({ path: 'artifacts/v0.6.3-confirm-retry.png' });
   assert.notEqual(await a.page.locator('[data-confirm="retry"] .action-confirm').evaluate(node => getComputedStyle(node).backgroundColor),
     await a.page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--status-failed').trim()), 'not red');
   await keepExplanation.click();

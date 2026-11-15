@@ -42,7 +42,6 @@ test('module window: drag modules onto a page and into deck settings, and reorde
   const columnLeft = async locator => Math.round((await locator.locator('.card-tab').boundingBox()).x);
   assert.ok(Math.abs(await columnLeft(moving) - await columnLeft(card('Context'))) <= 6, 'the module keeps to the card column (tilted as a dragged card)');
   await waitFor(async () => (await card('Context').boundingBox()).y > contextCard.y + 20, 'Context makes room');
-  await a.page.locator('.shaping-list').screenshot({ path: 'artifacts/v0.6.3-drag-in.png' });
   await a.page.mouse.move(textModule.x + textModule.width / 2, textModule.y + textModule.height / 2, { steps: 10 });
   await a.page.locator('.module-window[data-over]').waitFor();
   assert.equal(await landingCard.count(), 0, 'no gap over the window');

@@ -63,7 +63,6 @@ test('0.7.3: a facet’s own Retry beside its Delete, a tag’s remove keeping i
   await a.page.getByRole('button', { name: 'Keep Examples from German 1', exact: true }).click();
   await examples.hover();
   await underPointer(retry, 'retry');
-  await examples.locator('.facet-confirm').screenshot({ path: 'artifacts/v0.7.3-facet-confirm.png' });
   await a.page.getByRole('button', { name: 'Yes, retry Examples from German 1', exact: true }).click();
 
   // While it regenerates the card stays open with the rest of its content.
@@ -95,7 +94,6 @@ test('0.7.3: a facet’s own Retry beside its Delete, a tag’s remove keeping i
   assert.match(await examples.textContent(), /The bank was steep\./);
   assert.match(await card.locator('.facet[data-facet="article"]').textContent(), /das Ufer · die Ufer/, 'the other facet stays');
   assert.equal(await examples.locator('.facet-note').count(), 0);
-  await a.page.screenshot({ path: 'artifacts/v0.7.3-facet-retry.png' });
 
   // Hovering an empty card lifts its tab and what hangs below it together.
   const hung = componentArticle(a.page, 'German 2');
@@ -137,7 +135,6 @@ test('0.7.3: a facet’s own Retry beside its Delete, a tag’s remove keeping i
   assert.notEqual(await synonyms.getAttribute('data-pending'), null);
   assert.equal(await synonyms.locator('.facet-body').count(), 0);
   assert.deepEqual(await card.locator('.facet').evaluateAll(sections => sections.map(each => each.dataset.facet)), ['article', 'examples', 'synonyms', 'antonyms']);
-  await card.screenshot({ path: 'artifacts/v0.7.4-facet-generating.png' });
   await waitFor(() => calls.length === 2, 'facet provider started again');
   assert.deepEqual(calls[1].facets, ['synonyms']);
   release({ facets: { synonyms: ['Böschung'] } });
@@ -164,7 +161,6 @@ test('0.7.3: a facet’s own Retry beside its Delete, a tag’s remove keeping i
   await waitFor(async () => await card.locator('.facet[data-facet="antonyms"]').getAttribute('data-pending') === null, 'Antonyms done');
   assert.equal(await card.locator('.facet[data-facet="antonyms"] .facet-body').count(), 0);
   assert.notEqual(await card.locator('.facet-tag[data-facet="antonyms"]').getAttribute('data-unfilled'), null, 'its tag stays bland');
-  await card.screenshot({ path: 'artifacts/v0.7.4-facet-tabs.png' });
 
   // The module window fits the viewport; below its search, the list scrolls on its own.
   await a.page.setViewportSize({ width: 1280, height: 520 });
@@ -185,7 +181,6 @@ test('0.7.3: a facet’s own Retry beside its Delete, a tag’s remove keeping i
   assert.equal((await moduleWindow.locator('.window-search').boundingBox()).y, searchAt, 'the heading and search stay put');
   assert.equal(await a.page.evaluate(() => window.scrollY), pageAt, 'the page does not scroll with it');
   await list.evaluate(node => { node.scrollTop = 120; });
-  await moduleWindow.screenshot({ path: 'artifacts/v0.7.3-module-window-scroll.png' });
   await list.evaluate(node => { node.scrollTop = 0; });
   await a.page.setViewportSize({ width: 1280, height: 1400 });
 
@@ -199,7 +194,6 @@ test('0.7.3: a facet’s own Retry beside its Delete, a tag’s remove keeping i
   const box = await hung.locator('.card-tab').boundingBox();
   assert.equal(await a.page.evaluate(({ x, y }) => document.elementsFromPoint(x, y).find(node => node.matches('.spark i, .facet-tags, .card-tab'))?.className,
     { x: box.x + 30, y: box.y + box.height - 1 }), 'card-tab', 'at the tab\'s bottom edge the tab is uppermost, not the rail');
-  await hung.locator('.card-tab').screenshot({ path: 'artifacts/v0.7.3-spark-over-rail.png' });
   release(wordResult(['Ufer'], { synonyms: ['Böschung'] }, { key: 'bank' }));
   await waitFor(async () => await hung.getAttribute('data-generating') === null, 'German 2 generated');
 });

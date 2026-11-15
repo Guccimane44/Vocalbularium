@@ -66,9 +66,6 @@ test('0.14.0: a Pronunciation card in Sound speaks the main key: generating, fai
   assert.equal(await card.locator('.entry-heading .entry-key').textContent(), 'Gift');
   assert.equal(await player.locator('.clip-note').textContent(), 'The speech service could not speak this.');
   const heights = [Math.round((await player.boundingBox()).height)];
-  const shot = async name => a.page.screenshot({ path: `artifacts/v0.14.0-pronunciation-${name}.png`,
-    clip: await card.boundingBox().then(box => ({ x: box.x - 20, y: box.y - 30, width: box.width + 40, height: box.height + 50 })) });
-  await shot('failed');
 
   // A spoken card has no text to edit and no facets: its actions are Retry, About, Fold and Delete.
   await cardTab(a.page, 'Pronunciation').click();
@@ -82,7 +79,6 @@ test('0.14.0: a Pronunciation card in Sound speaks the main key: generating, fai
   await card.locator('.clip-player[data-state="ready"]').waitFor();
   assert.equal(await player.locator('.clip-time').textContent(), '0:01');
   heights.push(Math.round((await player.boundingBox()).height));
-  await shot('light');
 
   // Playing: the button pauses and the line fills; it ends back at Play.
   const play = a.page.getByRole('button', { name: 'Play Gift', exact: true });
@@ -90,7 +86,6 @@ test('0.14.0: a Pronunciation card in Sound speaks the main key: generating, fai
   await card.locator('.clip-player[data-state="playing"]').waitFor();
   assert.equal(await a.page.getByRole('button', { name: 'Pause Gift', exact: true }).getAttribute('aria-pressed'), 'true');
   await waitFor(async () => (await card.locator('.clip-fill').evaluate(node => parseFloat(node.style.width))) > 0, 'the progress line fills');
-  await shot('playing');
   await card.locator('.clip-player[data-state="ready"]').waitFor({ timeout: 5000 });
   assert.equal(speech.calls.length, 2, 'played from the clip, not spoken again');
 
@@ -98,7 +93,6 @@ test('0.14.0: a Pronunciation card in Sound speaks the main key: generating, fai
   await chooseAppearance(a.page, 'dark');
   const colours = await card.locator('.clip-play').evaluate(node => [getComputedStyle(node).backgroundColor, getComputedStyle(node).color]);
   assert.deepEqual(colours, ['rgb(242, 155, 181)', 'rgb(70, 17, 31)'], 'the Sound pink with its dark label in Moss night');
-  await shot('dark');
   await chooseAppearance(a.page, 'light');
 
   // A language the speech model does not speak: the key alone, a note in the row's place, and no clip.
@@ -112,8 +106,6 @@ test('0.14.0: a Pronunciation card in Sound speaks the main key: generating, fai
   assert.equal(await unspoken.locator('.clip-note').textContent(), 'This language can\'t be spoken yet.');
   assert.equal(await unspoken.getByRole('button', { name: 'Retry', exact: true }).count(), 1);
   heights.push(Math.round((await unspoken.boundingBox()).height));
-  await a.page.screenshot({ path: 'artifacts/v0.14.0-pronunciation-unspoken.png', clip: await componentArticle(a.page, 'Pronunciation').boundingBox()
-    .then(box => ({ x: box.x - 20, y: box.y - 30, width: box.width + 40, height: box.height + 50 })) });
   assert.deepEqual(heights, [44, 44, 44], 'every state keeps the row\'s height');
   assert.deepEqual((await store.clips(other.pageId)), []);
 });
@@ -154,9 +146,6 @@ test('0.14.0: a German card’s Pronunciation facet speaks each line beside its 
   assert.deepEqual(await facet.locator('.clip-player').evaluateAll(nodes => nodes.map(node => node.dataset.state)), ['ready', 'failed'],
     'each line has its own clip; one failing leaves the other');
   assert.equal(await facet.locator('.facet-title .tag-mark, .facet-title').first().textContent().then(text => text.includes('Pronunciation')), true);
-  const shot = async name => a.page.screenshot({ path: `artifacts/v0.14.0-pronunciation-facet-${name}.png`,
-    clip: await card.boundingBox().then(box => ({ x: box.x - 20, y: box.y - 30, width: box.width + 40, height: box.height + 50 })) });
-  await shot('failed');
 
   // The facet has About, Retry and Delete, and no Edit: its lines must match their audio.
   await facet.locator('.facet-title').hover();
@@ -169,7 +158,6 @@ test('0.14.0: a German card’s Pronunciation facet speaks each line beside its 
   await a.page.getByRole('button', { name: 'Speak das Ufer again', exact: true }).click();
   await waitFor(async () => (await facet.locator('.clip-player').evaluateAll(nodes => nodes.map(node => node.dataset.state))).join() === 'ready,ready', 'both lines ready');
   assert.deepEqual(speech.calls.map(call => `${call.language}:${call.text}`), ['de:die Bank', 'de:das Ufer', 'de:das Ufer']);
-  await shot('light');
   await a.page.getByRole('button', { name: 'Play das Ufer', exact: true }).click();
   await facet.locator('.clip-player[data-state="playing"]').waitFor();
   assert.equal(await facet.locator('.clip-player').first().getAttribute('data-state'), 'ready', 'one clip plays at a time');
@@ -184,7 +172,4 @@ test('0.14.0: a German card’s Pronunciation facet speaks each line beside its 
   await card.locator('.live-editor').waitFor({ state: 'detached' });
   assert.deepEqual(await facet.locator('.spoken-text').allTextContents(), ['die Bank', 'das Ufer']);
 
-  await chooseAppearance(a.page, 'dark');
-  await shot('dark');
-  await chooseAppearance(a.page, 'light');
 });

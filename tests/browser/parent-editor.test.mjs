@@ -50,7 +50,6 @@ test('0.7.5: the parent editor in place: names and top line locked, no markdown 
   assert.doesNotMatch(await editor.textContent(), /\*|==|`|^\s*\d+\./m);
   assert.equal(await a.page.evaluate(() => document.activeElement?.tagName), 'BODY', 'opening moves the focus nowhere');
   assert.notEqual(await editor.locator('.facet[data-facet="antonyms"]').getAttribute('data-unfilled'), null, 'the empty facet is dimmed in its place');
-  await a.page.screenshot({ path: 'artifacts/v0.7.4-live-editor.png' });
 
   // No markdown (D10, 0.7.5): typed markdown stays as typed; the toolbar formats.
   const toolbars = editor.locator('.md-toolbar');
@@ -115,8 +114,6 @@ test('0.7.5: the parent editor in place: names and top line locked, no markdown 
   assert.equal(await editor.locator('.facet[data-facet="article"] .md-toolbar').count(), 1);
   assert.equal(await editor.locator('.md-editor > ul + p, .md-editor > ol + p').count(), 0, 'no blank line after a list');
   await part('Antonyms').click();
-  await editor.locator('.facet[data-facet="antonyms"] .facet-title').screenshot({ path: 'artifacts/v0.7.5-toolbar.png' });
-  await a.page.screenshot({ path: 'artifacts/v0.7.5-toolbar-editor.png' });
   await card.getByRole('button', { name: 'Save', exact: true }).click();
   await card.locator('.live-editor').waitFor({ state: 'detached' });
   const saved = await stored();
@@ -149,7 +146,6 @@ test('0.7.5: the parent editor in place: names and top line locked, no markdown 
   await card.locator('.live-editor').waitFor({ state: 'detached' });
   assert.equal((await stored()).core, '');
   assert.equal(await card.locator('.entry-heading').textContent(), 'EnglischbankWortNomen', 'an emptied core shows its top line');
-  await a.page.screenshot({ path: 'artifacts/v0.7.4-live-editor-saved.png' });
 });
 
 test('0.7.5: an empty parent is written by hand: its top line the main key, the language blank, saved and shown', { timeout: 60000 }, async (t) => {
@@ -181,7 +177,6 @@ test('0.7.5: an empty parent is written by hand: its top line the main key, the 
   const core = editor.getByRole('textbox', { name: 'Meanings, German 2', exact: true });
   await core.click();
   await a.page.keyboard.type('Ufer am Fluss');
-  await card.screenshot({ path: 'artifacts/v0.7.5-empty-parent-editor.png' });
   await card.getByRole('button', { name: 'Save', exact: true }).click();
   await editor.waitFor({ state: 'detached' });
   assert.deepEqual(await written(), { type: 'parent', header: { kind: 'word', language: '', key: 'bank' }, core: 'Ufer am Fluss', facets: {} });

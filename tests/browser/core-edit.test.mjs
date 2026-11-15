@@ -73,5 +73,4 @@ test('0.16.2: the core’s own Edit opens the core alone in place, saves only th
   assert.match(saved.core, /\(river\)/);
   assert.equal(saved.facets.synonyms, 'Gestade', 'the facet changed elsewhere is kept');
   await waitFor(async () => /\(river\)/.test(await card.locator('.entry-core').textContent()), 'the card shows it');
-  await a.page.screenshot({ path: 'artifacts/v0.16.2-core-edit.png' });
 });
