@@ -8,7 +8,6 @@ import { resultFor, text, useModules } from '../helpers/pages.mjs';
 import { apiOrigin, launch, chooseAppearance, signIn, waitFor, captureFrom } from './helpers.mjs';
 
 test('dashboard capture feedback: shared appearance, original lifetime, originating tab, rerenders and zero windows', { timeout: 45000 }, async (t) => {
-  const t0 = Date.now(); const mark = label => console.log(`[mark] ${label} +${Date.now() - t0}ms`);
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-dashboard-feedback-'));
   const testingExtension = join(directory, 'extension');
   await cp(resolve(process.env.VOCABULARIUM_TEST_EXTENSION ?? 'artifacts/extension'), testingExtension, { recursive: true });
@@ -27,7 +26,6 @@ test('dashboard capture feedback: shared appearance, original lifetime, originat
   await application.start();
   const a = await launch(join(directory, 'profile'), testingExtension);
   t.after(async () => { await a.context.close(); await application.close(); await rm(directory, { recursive: true, force: true }); });
-  mark(`signed in`);
   await signIn(a.page);
   const other = await a.context.newPage(); await other.goto(`chrome-extension://${a.id}/app.html`);
   await other.getByRole('heading', { name: 'Your decks', exact: true }).waitFor();
@@ -35,8 +33,10 @@ test('dashboard capture feedback: shared appearance, original lifetime, originat
   for (const theme of ['light', 'dark']) {
     await chooseAppearance(a.page, theme);
     assert.equal(await a.page.getByRole('heading', { name: 'Recent captures', exact: true }).evaluate(node => node.nextElementSibling === null), true, 'empty section has no replacement paragraph or gap');
+    // Nothing reads these screenshots, but without them this test times out on CI;
+    // they stay until that is understood (see the pull request that removed the others).
+    await a.page.screenshot({ path: `artifacts/v0.2.1-empty-dashboard-${theme}.png`, fullPage: true });
   }
-  mark(`themes done`);
   const tabId = await a.page.evaluate(async () => (await chrome.tabs.getCurrent()).id);
   const capture = text => a.worker.evaluate(async ({ tabId, text }) => globalThis.captureForTest(
     { menuItemId: 'capture', selectionText: text }, await chrome.tabs.get(tabId)), { tabId, text });
@@ -56,23 +56,19 @@ test('dashboard capture feedback: shared appearance, original lifetime, originat
     assert.equal(await a.page.locator('#app p').filter({ hasText: /Select text on a webpage/ }).count(), 0);
     await a.page.bringToFront();
     const originalURL = a.page.url();
-    mark(`dashboard capture ${theme}`);
     await capture(`dashboard-${theme}`);
     await feedback(a.page).waitFor();
     assert.equal(await feedback(a.page).count(), 1);
     assert.equal(await feedback(other).count(), 0);
     assert.equal(a.page.url(), originalURL);
     assert.equal(await a.page.evaluate(() => document.hasFocus()), true);
-    mark(`external capture ${theme}`);
     await captureFrom(a, `external-${theme}`);
-    mark(`reading feedback ${theme}`);
     await feedback(reading).waitFor();
-    mark(`appearance a ${theme}`);
     await a.page.mouse.move(0, 0); await reading.mouse.move(0, 0);
     assert.deepEqual(await appearance(a.page), await appearance(reading), 'dashboard matches the accepted external-page presentation');
-    mark(`close a ${theme}`);
+    await a.page.screenshot({ path: `artifacts/v0.2.1-dashboard-feedback-${theme}.png` });
+    await reading.screenshot({ path: `artifacts/v0.2.1-external-feedback-${theme}.png` });
     await a.page.getByRole('button', { name: 'Close capture feedback' }).click();
-    mark(`close reading ${theme}`);
     await reading.getByRole('button', { name: 'Close capture feedback' }).click();
     assert.equal(await feedback(a.page).count(), 0);
   }
@@ -87,7 +83,6 @@ test('dashboard capture feedback: shared appearance, original lifetime, originat
       }
     }).observe(document.documentElement, { childList: true });
   });
-  mark(`timer`);
   await capture('timer');
   const original = await feedback(a.page).elementHandle();
   await a.page.waitForTimeout(1200); // A restarted timer would now exceed the original deadline below.
@@ -100,14 +95,12 @@ test('dashboard capture feedback: shared appearance, original lifetime, originat
   const [lifetime] = await a.page.evaluate(() => window.feedbackLifetimes);
   assert.ok(lifetime >= 2900 && lifetime < 3800, `original three-second lifetime: ${lifetime}ms`);
   await a.worker.evaluate(() => chrome.storage.local.remove('capture-rerender-test'));
-  mark(`rapid`);
   await Promise.all([(await capture('rapid-one')), (await capture('rapid-two'))]);
   assert.equal(await feedback(a.page).count(), 2);
   await a.page.getByRole('button', { name: 'Close capture feedback' }).first().click();
   assert.equal(await feedback(a.page).count(), 1);
   await feedback(a.page).waitFor({ state: 'detached', timeout: 4000 });
   // A dashboard cannot forge the worker-only route, even for a valid tab id.
-  mark(`forge`);
   await other.evaluate(async (tabId) => { await chrome.runtime.sendMessage({ type: 'dashboard-feedback', tabId, message: 'Forged', css: '' }); }, tabId);
   assert.equal(await feedback(a.page).count(), 0);
   // Preserve the capture-time tab data through closure and navigation races.
@@ -119,7 +112,6 @@ test('dashboard capture feedback: shared appearance, original lifetime, originat
   await a.worker.evaluate(tab => globalThis.captureForTest({ menuItemId: 'capture', selectionText: 'navigated-origin' }, tab), navigatedTab);
   assert.equal(await feedback(a.page).count(), 0);
   assert.equal(await feedback(reading).count(), 0);
-  mark(`nine pages`);
   await waitFor(async () => (await application.store.pages()).length === 9 && (await application.store.pages()).every(page => page.status === 'completed'), 'each invocation saves and completes exactly one page');
   assert.equal(new Set((await application.store.pages()).map(page => page.selectedText)).size, 9);
   assert.deepEqual(await a.worker.evaluate(() => globalThis.feedbackWindows), { calls: 0, events: 0 });
@@ -174,6 +166,7 @@ test('save feedback: successful publication stays quiet in both lists, failures 
       await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
       assert.equal(await recovery(page).count(), 0, 'an in-flight save is not a failure');
       assert.deepEqual(await page.evaluate(() => window.recoveryPanels), [], 'no transient panel appeared');
+      await page.screenshot({ path: `artifacts/v0.2.2-${index ? 'deck' : 'recent'}-${theme}.png`, fullPage: true });
     }
     hold = false; for (const resume of held.splice(0)) resume();
     await waitFor(async () => (await application.store.pages()).find(page => page.selectedText === `successful-${theme}`)?.status === 'completed', 'successful publication completes');
