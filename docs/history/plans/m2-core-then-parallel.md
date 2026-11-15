@@ -1,6 +1,6 @@
 # M2: core then parallel facets, against one request
 
-Drafted 11 November 2026 for the owner's review. Status: **approved by the owner and run, 11 November 2026**; results in the [evidence note](../history/evidence/m2-core-then-parallel.md). Part of Phase 1 of the [split facets plan](split-facets.md), for the Languages modules first.
+Drafted 11 November 2026 for the owner's review. Status: **approved by the owner and run, 11 November 2026**; results in the [evidence note](../evidence/m2-core-then-parallel.md). Part of Phase 1 of the [split facets plan](../../plans/split-facets.md), for the Languages modules first.
 
 ## Question
 
@@ -14,7 +14,7 @@ M2 also records what Phase 3 and the decision need: how long each facet request 
 
 ## What M1 changed
 
-[M1](../history/evidence/m1-token-split.md) found that reasoning is 70–82 % of a request's cost, and that a split card's extra input alone adds 10–19 % to the cost. **The split can only meet the cost bar if its requests reason less in total than today's one request.** So M2 measures reasoning per request, and it adds a third arm in which the facet requests reason less.
+[M1](../evidence/m1-token-split.md) found that reasoning is 70–82 % of a request's cost, and that a split card's extra input alone adds 10–19 % to the cost. **The split can only meet the cost bar if its requests reason less in total than today's one request.** So M2 measures reasoning per request, and it adds a third arm in which the facet requests reason less.
 
 M1 also found that 7 % of today's requests fail, nearly all by using up the 8,192-token output limit in reasoning. That is today's baseline for failures.
 
@@ -28,13 +28,13 @@ Each card is written three ways. All three use the product's own functions in `p
 | **B, split** | One request for the core alone. When it returns, one request for each facet its flags call for, all sent at once. Each facet request gets the key, the Context and the core as written, as a facet's own Retry does today | `generateComponent` with no facets, then `generateFacet` for each facet in `facetsFor` (`packages/domain/src/parents.ts`), in parallel |
 | **C, split, facets reasoning `low`** | As B, but the facet requests ask for `reasoning_effort: low`. The core keeps the default | As B, with a second `OpenCodeProvider` set to `low` for the facets |
 
-Why C uses `low`: in the [reasoning effort experiment](../history/evidence/reasoning-effort-experiment.md), `low` lost no measurable quality on whole cards and cut reasoning by about a sixth. `none` was six times faster but clearly worse on the hard cases. A facet request, with its core already written, may need less reasoning than a whole card, but that is what C tests, not something assumed. The owner chose `low`.
+Why C uses `low`: in the [reasoning effort experiment](../evidence/reasoning-effort-experiment.md), `low` lost no measurable quality on whole cards and cut reasoning by about a sixth. `none` was six times faster but clearly worse on the hard cases. A facet request, with its core already written, may need less reasoning than a whole card, but that is what C tests, not something assumed. The owner chose `low`.
 
 A card in B or C is put together from its core and its facets into the same shape as A's, so the same content checks and the same judge score all three.
 
 ## Inputs
 
-[`tests/golden/parents.json`](../../tests/golden/parents.json): the 54 Languages golden inputs (43 words, 11 sentences, 6 with a Context), through **German, Chinese and English (US)**, one sample each. That is 162 cards per arm, 486 in all.
+[`tests/golden/parents.json`](../../../tests/golden/parents.json): the 54 Languages golden inputs (43 words, 11 sentences, 6 with a Context), through **German, Chinese and English (US)**, one sample each. That is 162 cards per arm, 486 in all.
 
 - **English (UK) is left out.** In M1 it matched English (US) within a few percent on every measure, with the same inputs and nearly the same prompts. If the split is decided for Languages, the gate checks English (UK) in Phase 3.
 - **One sample.** It keeps the run within 2 hours. The bar is read from medians over 54 cards per module and arm, and each input is compared across arms, so one sample is enough to see a clear difference; it is not enough to see a small one (see [Limits](#limits)).

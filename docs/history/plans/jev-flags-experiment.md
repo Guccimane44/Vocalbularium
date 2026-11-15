@@ -1,8 +1,10 @@
 # Experiment: the flags from Jev
 
+**Not carried out:** the classifier was dropped ([split facets](../../plans/split-facets.md#why-there-is-no-classifier)).
+
 Draft for the owner's review, 10 November 2026. Nothing here is decided. The experiment answers one question before any architecture is designed: **which of the flags that the text model writes today can Jev decide before generation, as reliably, and how fast from here?**
 
-Background: the [headers and flags map](../../maps/headers-and-flags-map.md) lists the seven flags and what reads them. Each is written today inside the card's single request ([D17](../architecture/decisions/d17-one-request.md)), so nothing can be routed before generation. The [Wiktionary experiment](../history/evidence/wiktionary-english-experiment.md) stood a small model in for Jev; this one uses Jev itself.
+Background: the [headers and flags map](../../../maps/headers-and-flags-map.md) lists the seven flags and what reads them. Each is written today inside the card's single request ([D17](../../architecture/decisions/d17-one-request.md)), so nothing can be routed before generation. The [Wiktionary experiment](../evidence/wiktionary-english-experiment.md) stood a small model in for Jev; this one uses Jev itself.
 
 ## What is compared
 
@@ -24,7 +26,7 @@ Background: the [headers and flags map](../../maps/headers-and-flags-map.md) lis
 Two points about these questions:
 
 - **`gramRole` is not the same question as today's.** Today it describes the German word for the first meaning, which exists only once the core is written. Jev is asked for the part of speech of the key in its own language. The experiment reports how often the two agree for foreign keys, which says whether the flag can move before the core at all.
-- **`relevance` and the `has…` flags are a control.** The text model decided every case correctly inline in the [generation rounds experiment](../history/evidence/generation-rounds-experiment.md), and no generation is skipped by knowing them earlier. They are asked to learn where Jev's limit is, not because a move is expected.
+- **`relevance` and the `has…` flags are a control.** The text model decided every case correctly inline in the [generation rounds experiment](../evidence/generation-rounds-experiment.md), and no generation is skipped by knowing them earlier. They are asked to learn where Jev's limit is, not because a move is expected.
 
 The wording of each question is taken from the matching sentences of today's core prompts, so the definition of a flag does not change between A and J. One alternative wording per question is run as well, since reviews report that Jev reads questions literally.
 

@@ -1,6 +1,6 @@
 # Wiktionary experiment: an English card from the dictionary
 
-9 November 2026 (Europe/Berlin). Plan: [wiktionary-experiment](../../plans/wiktionary-experiment.md). The question: for English (British), how much of a card can Wiktionary fill, how good is it, and how much faster is it than today's single request?
+9 November 2026 (Europe/Berlin). Plan: [wiktionary-experiment](../plans/wiktionary-experiment.md). The question: for English (British), how much of a card can Wiktionary fill, how good is it, and how much faster is it than today's single request?
 
 ## Method
 

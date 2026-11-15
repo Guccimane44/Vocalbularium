@@ -1,6 +1,6 @@
 # M3: what each part of a card costs
 
-Run 11–12 November 2026, following the [M3 plan](../../plans/m3-cost-per-facet.md), Phase 1 of the [split facets plan](../../plans/split-facets.md). Costs are in millionths of a dollar (µ$) per card or per request, from the provider's `list_cost`.
+Run 11–12 November 2026, following the [M3 plan](../plans/m3-cost-per-facet.md), Phase 1 of the [split facets plan](../../plans/split-facets.md). Costs are in millionths of a dollar (µ$) per card or per request, from the provider's `list_cost`.
 
 ## Summary
 

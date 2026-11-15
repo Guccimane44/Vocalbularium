@@ -2,13 +2,13 @@
 
 Drafted 10 November 2026 for a new session. Status: **draft, not approved**. Nothing here has been run or changed in code.
 
-This plan covers the first two steps of the owner's rework. Background, findings and the open questions are in the [handoff](headers-flags-classifier-handoff.md); how flags and headers work today is in the owner's [headers and flags map](../../maps/headers-and-flags-map.md). Read both first.
+This plan covers the first two steps of the owner's rework. Background, findings and the open questions are in the [handoff](../history/plans/headers-flags-classifier-handoff.md); how flags and headers work today is in the owner's [headers and flags map](../../maps/headers-and-flags-map.md). Read both first.
 
 The owner's order of work:
 
 1. Delete the dead fields. *(this plan)*
 2. Design the flags and give them clear definitions. *(this plan)*
-3. Measure Jev on the flags, then build it in. *(not this plan; see the [Jev plan](jev-flags-experiment.md))*
+3. Measure Jev on the flags, then build it in. *(not this plan; see the [Jev plan](../history/plans/jev-flags-experiment.md))*
 4. Dictionary lookup and the decision that supersedes D17. *(not this plan)*
 
 ## Before starting
@@ -176,4 +176,4 @@ Step 1 needs none of these. Part A is where they are answered.
 2. Part A: draft the definitions, with the questions above put to the owner.
 3. Owner approves the definitions; correct the held-out labels to match.
 4. Part B on its own branch, as one PR.
-5. Hand over to step 3: point the [Jev plan](jev-flags-experiment.md) at the held-out set and the approved definitions.
+5. Hand over to step 3: point the [Jev plan](../history/plans/jev-flags-experiment.md) at the held-out set and the approved definitions.

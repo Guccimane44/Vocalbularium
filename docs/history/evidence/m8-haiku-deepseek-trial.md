@@ -1,6 +1,6 @@
 # M8 trial: Claude Haiku against DeepSeek, judged by Claude Opus
 
-Run 14 November 2026 from `main` after PR 311, as the trial of the [M8 plan](../../plans/m8-haiku-deepseek-opus-judge.md). It led to [D36](../../architecture/decisions/d36.md).
+Run 14 November 2026 from `main` after PR 311, as the trial of the [M8 plan](../plans/m8-haiku-deepseek-opus-judge.md). It led to [D36](../../architecture/decisions/d36.md).
 
 ## Setup
 

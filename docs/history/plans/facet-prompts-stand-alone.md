@@ -1,6 +1,6 @@
 # Plan: facet prompts that stand alone
 
-Drafted 11 November 2026 for the owner's review. Status: **approved by the owner, 11 November 2026, as drafted** (a new `facets.prompt.md`; the restraint sentence in all four Languages modules). **Implemented and rerun the same day: [results](../history/evidence/facet-prompts-stand-alone.md).** German is fixed; the restraint sentence overcorrected English Etymology and did not reduce English Antonyms, so **the owner had it removed again (11 November 2026)**. Only Change 1 remains. Follows [M2](../history/evidence/m2-core-then-parallel.md), Phase 1 of the [split facets plan](split-facets.md), for the Languages modules.
+Drafted 11 November 2026 for the owner's review. Status: **approved by the owner, 11 November 2026, as drafted** (a new `facets.prompt.md`; the restraint sentence in all four Languages modules). **Implemented and rerun the same day: [results](../evidence/facet-prompts-stand-alone.md).** German is fixed; the restraint sentence overcorrected English Etymology and did not reduce English Antonyms, so **the owner had it removed again (11 November 2026)**. Only Change 1 remains. Follows [M2](../evidence/m2-core-then-parallel.md), Phase 1 of the [split facets plan](../../plans/split-facets.md), for the Languages modules.
 
 ## Problem
 
@@ -59,7 +59,7 @@ About 1¼ hours in all, and about $3.
 What counts:
 - **German:** grammar facets missing at about today's rate (Declension 1, Article 1), and no `facets` fail for a grammar facet that describes the key.
 - **English (US) and German:** Synonyms and Antonyms written on about as many cards as today, and the `facets` criterion failing no more often than today's.
-- **All three modules:** the judge's pass, weak and fail counts at least as good as A's, as the [split plan's bar](split-facets.md#goal) asks. Time and cost as in M2.
+- **All three modules:** the judge's pass, weak and fail counts at least as good as A's, as the [split plan's bar](../../plans/split-facets.md#goal) asks. Time and cost as in M2.
 
 **Today's facet Retry** gets the same change, so it should improve too. The rerun measures it indirectly: a split facet request is a facet's Retry request, sent with the first core. No separate run is planned.
 

@@ -1,5 +1,5 @@
 {
-  "note": "Inputs for M1 of the split facets plan (docs/plans/m1-token-split.md): where one Languages request spends its tokens. Each input is sent as today's single request with every facet of its module, so every facet's prompt and output is measured. The fields after the key describe the input, so each facet's coverage can be checked before a run; they are not scored. Not for prompt examples or the golden sets.",
+  "note": "Inputs for M1 of the split facets plan (docs/history/plans/m1-token-split.md): where one Languages request spends its tokens. Each input is sent as today's single request with every facet of its module, so every facet's prompt and output is measured. The fields after the key describe the input, so each facet's coverage can be checked before a run; they are not scored. Not for prompt examples or the golden sets.",
   "status": "draft: written by Claude on 2026-11-11 for the owner's review",
   "fields": {"context": "the sentence the key was selected from, when the capture has one", "kind": "word_phrase or sentence, by the Phase 0 rules", "keyLanguage": "the key's language, ISO 639-1; descriptive only", "gramRole": "German only: the part of speech of the grammar word (the key when German, else the German word for its first meaning), which decides the grammar facets"},
   "samples": 2,

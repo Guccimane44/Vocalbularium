@@ -59,7 +59,7 @@ The held-out classification set stays in the repository, reviewed, in case a lat
 | Existing cards are for testing and are discarded if a stored shape changes: decks and pages go; accounts, sign-in and the language preference stay, with a fresh My Deck | Owner, as in 0.12.0 |
 | The success bar above | Left to Claude by the owner |
 | Synonyms and Antonyms are written together, in one request, wherever both apply; every other facet has its own request. Asked for alone, Antonyms in English (US) gave wrong opposites (*adult* for *tot*); written with Synonyms, most of those went away | Owner, 11 November 2026; [facet prompts follow-up](../history/evidence/facet-prompts-stand-alone.md#follow-up-what-reduces-the-extra-antonyms) |
-| What the facets rely on from the core lives in the module's `facets/core/facets.prompt.md`, which every request that writes a facet carries | Owner, 11 November 2026; [plan](facet-prompts-stand-alone.md) |
+| What the facets rely on from the core lives in the module's `facets/core/facets.prompt.md`, which every request that writes a facet carries | Owner, 11 November 2026; [plan](../history/plans/facet-prompts-stand-alone.md) |
 
 ## What we know and what we don't
 
@@ -82,9 +82,9 @@ Each measurement gets its own short plan for approval, a runner kept locally und
 
 | | What | How | Sends anything out? |
 | --- | --- | --- | --- |
-| **M1** | Token split per module ([plan](m1-token-split.md), [results](../history/evidence/m1-token-split.md)) | Today's single request, with every facet, on a test set built for M1 (`tests/golden/token-split/`): the tokens of the shared prompt, the core's rules, each facet's prompt, and each part of the output | Text provider only, as today |
-| **M2** | Core-then-parallel against one request ([plan](m2-core-then-parallel.md), [results](../history/evidence/m2-core-then-parallel.md)) | For every golden-set input of the Languages modules (Expertise and Mathematics follow only if Languages passes): today's single request, then the split (the core alone, then each facet that applies as its own request, given the key, the Context, the core's flags and meanings, and that facet's prompt, all at once). One card at a time, several runs each, the same model and settings. Recorded: time to the core, time to the last facet, facets missing or failing their checks, golden-set and gate scores | Text provider only, as today |
-| **M3** | Average cost per facet, the core included ([plan](m3-cost-per-facet.md), [results](../history/evidence/m3-cost-per-facet.md)) | Each part's input and output tokens at the provider's prices, averaged over the runs: from M1 for today's single request, and directly from each split request in M2. The two together show what the split adds per card and where | No (M1's and M2's runs) |
+| **M1** | Token split per module ([plan](../history/plans/m1-token-split.md), [results](../history/evidence/m1-token-split.md)) | Today's single request, with every facet, on a test set built for M1 (`tests/golden/token-split/`): the tokens of the shared prompt, the core's rules, each facet's prompt, and each part of the output | Text provider only, as today |
+| **M2** | Core-then-parallel against one request ([plan](../history/plans/m2-core-then-parallel.md), [results](../history/evidence/m2-core-then-parallel.md)) | For every golden-set input of the Languages modules (Expertise and Mathematics follow only if Languages passes): today's single request, then the split (the core alone, then each facet that applies as its own request, given the key, the Context, the core's flags and meanings, and that facet's prompt, all at once). One card at a time, several runs each, the same model and settings. Recorded: time to the core, time to the last facet, facets missing or failing their checks, golden-set and gate scores | Text provider only, as today |
+| **M3** | Average cost per facet, the core included ([plan](../history/plans/m3-cost-per-facet.md), [results](../history/evidence/m3-cost-per-facet.md)) | Each part's input and output tokens at the provider's prices, averaged over the runs: from M1 for today's single request, and directly from each split request in M2. The two together show what the split adds per card and where | No (M1's and M2's runs) |
 
 M1 runs first: its token split tells M2 how large each facet request will be. M3 needs both.
 

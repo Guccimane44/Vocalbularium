@@ -1,6 +1,6 @@
 # Facet prompts that stand alone: rerun of M2's arm C
 
-Run 11 November 2026, following the [plan](../../plans/facet-prompts-stand-alone.md), after [M2](m2-core-then-parallel.md).
+Run 11 November 2026, following the [plan](../plans/facet-prompts-stand-alone.md), after [M2](m2-core-then-parallel.md).
 
 ## Summary
 
@@ -32,7 +32,7 @@ Run 11 November 2026, following the [plan](../../plans/facet-prompts-stand-alone
 
 | | |
 | --- | --- |
-| Change | The [plan](../../plans/facet-prompts-stand-alone.md) as approved: a new `facets/core/facets.prompt.md` for German, holding the grammar-word sentences, added to every request that writes a facet; the restraint sentence in the `retry.prompt.md` of the four Languages modules |
+| Change | The [plan](../plans/facet-prompts-stand-alone.md) as approved: a new `facets/core/facets.prompt.md` for German, holding the grammar-word sentences, added to every request that writes a facet; the restraint sentence in the `retry.prompt.md` of the four Languages modules |
 | Part 1 | The 12 timing inputs of M2, through German, Chinese and English (US), arms A and C, one card at a time |
 | Part 2 | The other 42 inputs, arm C only, 4 cards at a time. Today's request didn't change, so M2's A cards are the comparison |
 | Model, judge | As in M2. English (US) is still not calibrated (owner) |

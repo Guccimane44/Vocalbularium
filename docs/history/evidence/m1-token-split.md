@@ -1,6 +1,6 @@
 # M1: how one Languages request spends its tokens
 
-Run 11 November 2026, following the [M1 plan](../../plans/m1-token-split.md), Phase 1 of the [split facets plan](../../plans/split-facets.md).
+Run 11 November 2026, following the [M1 plan](../plans/m1-token-split.md), Phase 1 of the [split facets plan](../../plans/split-facets.md).
 
 ## Summary
 

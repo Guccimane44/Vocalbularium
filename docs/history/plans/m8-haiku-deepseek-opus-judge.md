@@ -1,6 +1,6 @@
 # M8: Claude Haiku against DeepSeek, judged by Claude Opus
 
-Drafted 14 November 2026 for the owner's review. Status: **approved by the owner as a 48-card trial, 14 November 2026**, with Opus judging in a Claude Code session instead of through OpenCode Zen. Follows M6 (`docs/history/evidence/m6-model-and-setup.md` on `claude/german-tables`), which compared the two models on German only with a DeepSeek judge, and [M7](../history/evidence/m7-luna-gate.md), which gated every module on Luna and DeepSeek.
+Drafted 14 November 2026 for the owner's review. Status: **approved by the owner as a 48-card trial, 14 November 2026**, with Opus judging in a Claude Code session instead of through OpenCode Zen. Follows M6 (`docs/history/evidence/m6-model-and-setup.md` on `claude/german-tables`), which compared the two models on German only with a DeepSeek judge, and [M7](../evidence/m7-luna-gate.md), which gated every module on Luna and DeepSeek.
 
 ## Trial (what runs now)
 

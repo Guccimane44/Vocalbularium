@@ -1,12 +1,14 @@
 # Experiment: an English card from Wiktionary
 
+**Superseded by M4** ([dictionary reading](../../plans/m4-dictionary-reading.md)).
+
 Draft for the owner's review, 9 November 2026. Nothing here is decided. The experiment answers one question before any architecture is designed: **for the English (British) module, how much of a card can Wiktionary fill, how good is it, and how much faster is it than today's single request?**
 
 ## What is compared
 
 | Variant | How a card is made |
 | --- | --- |
-| **A** (today) | One request to the pinned text model with the core and all seven facets ([D17](../architecture/decisions/d17-one-request.md)). |
+| **A** (today) | One request to the pinned text model with the core and all seven facets ([D17](../../architecture/decisions/d17-one-request.md)). |
 | **W** (dictionary first) | 1. Word or sentence: a sentence goes to A unchanged. 2. Look the key up in Wiktionary. No entry: A unchanged. 3. Entry found: pick the language when several have one, and the sense the Context means (Jev if we have access, otherwise a small model request, counted as such). 4. Fill from the entry what it holds (table below). 5. The facets left over go to the model as a facet's own Retry does today, with the dictionary core as `core`, in parallel. |
 
 Every card runs every facet of English (British): Examples, Synonyms, Antonyms, Pronunciation, Etymology, Simple translation and Grammar teacher.
@@ -35,10 +37,10 @@ Wiktionary data: the English edition's per-word files on kaikki.org (`/dictionar
 1. **Coverage.** Share of word keys with an entry; for each facet, the share W filled from the entry rather than the model.
 2. **Checks.** The catalog's content checks on every W card (`british-spelling`, `english-key-spoken`, the Etymology checks …), against A's pass rate.
 3. **Senses.** Meanings per card in W and A; senses a learner would not want (from the sample *river*: "the last card dealt in a hand", "one who rives"); for the six Context inputs, whether the picked sense is right.
-4. **Quality.** The owner ranks A and W blind, card by card, as in the [Expertise ranking](../history/evidence/expertise-insight-ranking.md); the judge (`npm run judge`) scores both against `rubric.md`.
+4. **Quality.** The owner ranks A and W blind, card by card, as in the [Expertise ranking](../evidence/expertise-insight-ranking.md); the judge (`npm run judge`) scores both against `rubric.md`.
 5. **Time.** Wall time per card, first request to last facet, A against W; for W, lookup, sense pick and model time separately.
 
-One sample per variant, the pinned provider, four cards at a time, as in the [generation rounds experiment](../history/evidence/generation-rounds-experiment.md).
+One sample per variant, the pinned provider, four cards at a time, as in the [generation rounds experiment](../evidence/generation-rounds-experiment.md).
 
 ## Proposed reading of the results
 
