@@ -5,7 +5,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { text, useModules, wordResult, staged } from '../helpers/pages.mjs';
-import { modulesOf, componentArticle, cardTab, cardButton, launch, chooseAppearance, signIn, waitFor, steps } from './helpers.mjs';
+import { modulesOf, componentArticle, cardTab, cardButton, launch, signIn, waitFor, steps } from './helpers.mjs';
 
 test('page view: main key tiers, Show all, rendered and plain content, quiet card status, and module window search and families', { timeout: 45000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-page-view-browser-'));
@@ -114,10 +114,6 @@ test('page view: main key tiers, Show all, rendered and plain content, quiet car
   await waitFor(async () => (await store.page(pages.word)).components.find(item => item.moduleType === 'chinese').attemptId !== usageBefore, 'the failed card retried');
   assert.equal(await a.page.getByRole('dialog').count(), 0, 'no dialog');
   assert.equal(await a.page.locator('[data-confirm]').count(), 0, 'no question');
-  for (const theme of ['light', 'dark']) {
-    await chooseAppearance(a.page, theme);
-    await a.page.screenshot({ path: `artifacts/v0.6.0-page-${theme}.png`, fullPage: true });
-  }
 
   // The module window groups by family, opens the families already here, and searches.
   const window = a.page.locator('.module-window');
@@ -132,7 +128,6 @@ test('page view: main key tiers, Show all, rendered and plain content, quiet car
   await helpText.waitFor({ state: 'hidden' });
   await help.click(); await a.page.mouse.move(5, 5);
   assert.equal(await helpText.isVisible(), true, 'a click keeps it open');
-  await window.screenshot({ path: 'artifacts/v0.6.3-module-help.png' });
   await a.page.keyboard.press('Escape');
   await helpText.waitFor({ state: 'hidden' });
   const families = await window.locator('details').evaluateAll(nodes => nodes.map(node => [node.querySelector('summary').textContent, node.open]));
@@ -149,7 +144,6 @@ test('page view: main key tiers, Show all, rendered and plain content, quiet car
   await window.getByLabel('Search modules', { exact: true }).fill('');
   assert.equal(await window.locator('.window-module').count(), 12);
   await a.page.setViewportSize({ width: 390, height: 800 });
-  await a.page.screenshot({ path: 'artifacts/v0.6.0-page-narrow.png', fullPage: true });
   assert.equal(await a.page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
 });
 
@@ -187,7 +181,6 @@ test('generation reveal: finished content rises into its card and is announced; 
   assert.ok(sorted[Math.floor(sorted.length * .1)] > median * .6 && sorted[Math.floor(sorted.length * .9)] < median * 1.4,
     `steady speed (10th–90th percentile ${sorted[Math.floor(sorted.length * .1)].toFixed(3)}–${sorted[Math.floor(sorted.length * .9)].toFixed(3)} px/ms, median ${median.toFixed(3)})`);
   assert.equal(await card('Chinese').getByRole('status').first().textContent(), 'Chinese: generating');
-  await a.page.locator('.shaping-list').screenshot({ path: 'artifacts/v0.6.3-generating.png' });
 
   await store.stage(explanation.attemptId, staged(wordResult(['生活称心如意'], {}, { language: '汉语', key: '幸福' })));
   await store.publish('reveal-publish-1', { attemptId: explanation.attemptId, session });

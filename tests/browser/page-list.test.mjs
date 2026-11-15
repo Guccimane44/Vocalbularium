@@ -70,10 +70,6 @@ test('page list: quiet states, layouts remembered per deck, sorting, grouping, e
   assert.equal(await saving.getAttribute('data-state'), 'saving');
   assert.equal(await saving.locator('.list-status').textContent(), 'Saving to your account');
   assert.equal(await saving.getByRole('link').count(), 0, 'an unsaved capture has no page to open');
-  for (const theme of ['light', 'dark']) {
-    await chooseAppearance(a.page, theme);
-    await a.page.screenshot({ path: `artifacts/v0.6.0-dashboard-${theme}.png`, fullPage: true });
-  }
   await a.worker.evaluate(() => chrome.storage.local.remove(['capture-visual-saving', 'capture-visual-failed']));
   await capture('failed entry').getByRole('button', { name: 'Retry…', exact: true }).click();
   await pageReady(a.page);
@@ -100,7 +96,6 @@ test('page list: quiet states, layouts remembered per deck, sorting, grouping, e
   for (const theme of ['light', 'dark']) {
     await chooseAppearance(a.page, theme);
     await row('completed').getByRole('link').focus();
-    await a.page.screenshot({ path: `artifacts/v0.6.0-list-${theme}.png`, fullPage: true });
     const report = await a.page.evaluate(() => {
       const style = getComputedStyle(document.documentElement);
       const luminance = color => {
@@ -175,13 +170,11 @@ test('page list: quiet states, layouts remembered per deck, sorting, grouping, e
   await a.page.setViewportSize({ width: 390, height: 760 });
   for (const layout of ['List', 'Table', 'Gallery']) {
     await a.page.getByRole('button', { name: layout, exact: true }).click();
-    await a.page.screenshot({ path: `artifacts/v0.6.0-${layout.toLowerCase()}-narrow.png`, fullPage: true });
     assert.equal(await a.page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `${layout} fits`);
   }
   await a.page.getByRole('button', { name: 'List', exact: true }).click();
   await a.page.emulateMedia({ forcedColors: 'active' });
   await row('failed').getByRole('link').focus();
-  await a.page.screenshot({ path: 'artifacts/v0.6.0-list-forced-colors.png', fullPage: true });
   assert.equal(await row('failed').locator('.list-status').textContent(), 'Generation failed', 'status is a word, never colour alone');
   await row('neutral').getByRole('link', { name: 'neutral entry', exact: true }).press('Enter');
   await pageReady(a.page);

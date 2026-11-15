@@ -33,7 +33,6 @@ test('dashboard capture feedback: shared appearance, original lifetime, originat
   for (const theme of ['light', 'dark']) {
     await chooseAppearance(a.page, theme);
     assert.equal(await a.page.getByRole('heading', { name: 'Recent captures', exact: true }).evaluate(node => node.nextElementSibling === null), true, 'empty section has no replacement paragraph or gap');
-    await a.page.screenshot({ path: `artifacts/v0.2.1-empty-dashboard-${theme}.png`, fullPage: true });
   }
   const tabId = await a.page.evaluate(async () => (await chrome.tabs.getCurrent()).id);
   const capture = text => a.worker.evaluate(async ({ tabId, text }) => globalThis.captureForTest(
@@ -64,8 +63,6 @@ test('dashboard capture feedback: shared appearance, original lifetime, originat
     await feedback(reading).waitFor();
     await a.page.mouse.move(0, 0); await reading.mouse.move(0, 0);
     assert.deepEqual(await appearance(a.page), await appearance(reading), 'dashboard matches the accepted external-page presentation');
-    await a.page.screenshot({ path: `artifacts/v0.2.1-dashboard-feedback-${theme}.png` });
-    await reading.screenshot({ path: `artifacts/v0.2.1-external-feedback-${theme}.png` });
     await a.page.getByRole('button', { name: 'Close capture feedback' }).click();
     await reading.getByRole('button', { name: 'Close capture feedback' }).click();
     assert.equal(await feedback(a.page).count(), 0);
@@ -164,7 +161,6 @@ test('save feedback: successful publication stays quiet in both lists, failures 
       await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
       assert.equal(await recovery(page).count(), 0, 'an in-flight save is not a failure');
       assert.deepEqual(await page.evaluate(() => window.recoveryPanels), [], 'no transient panel appeared');
-      await page.screenshot({ path: `artifacts/v0.2.2-${index ? 'deck' : 'recent'}-${theme}.png`, fullPage: true });
     }
     hold = false; for (const resume of held.splice(0)) resume();
     await waitFor(async () => (await application.store.pages()).find(page => page.selectedText === `successful-${theme}`)?.status === 'completed', 'successful publication completes');

@@ -75,7 +75,6 @@ test('facet tags: abbreviations in order, on the left edge, along the edge to th
   const edge = await geometry();
   assert.ok(edge.every(tag => tag.right <= 2 && tag.right >= -2), `tags stand against the left edge (${JSON.stringify(edge)})`);
   assert.ok(edge.every((tag, index) => !index || tag.top > edge[index - 1].top), 'one under another, in order');
-  await a.page.screenshot({ path: 'artifacts/v0.7.1-facet-tags-edge.png' });
 
   // Folded, the tags move down the left side and then along the bottom to its right.
   await (await cardButton(a.page, 'Fold German')).click();
@@ -93,7 +92,6 @@ test('facet tags: abbreviations in order, on the left edge, along the edge to th
   assert.ok(bottom.every(tag => tag.top >= tag.height - 8 && tag.top <= tag.height && tag.bottom > tag.height), `the tags hang from the folded card's bottom edge (${JSON.stringify(bottom)})`);
   assert.ok(bottom.every(tag => tag.right <= tag.width && tag.left > tag.width / 2), 'at its right');
   assert.ok(bottom.every((tag, index) => !index || tag.left > bottom[index - 1].left), 'in order, left to right');
-  await a.page.screenshot({ path: 'artifacts/v0.7.1-facet-tags-folded.png' });
 
   // A folded card's tags are no buttons (0.7.4); unfolded, the tags go back the same way.
   assert.equal(await tags.getByRole('button', { name: /^Synonyms/ }).count(), 0);
@@ -166,7 +164,6 @@ test('facet tags: abbreviations in order, on the left edge, along the edge to th
   await row.locator('.tab-button').click();
   assert.deepEqual(await row.locator('.card-actions button').evaluateAll(buttons => buttons.map(button => button.textContent)), ['About', 'Facet', 'Remove']);
   await row.locator('.tab-button').click();
-  await a.page.screenshot({ path: 'artifacts/v0.7.1-facet-tags-deck-settings.png', fullPage: true });
   // No tag is a button there either (0.13.2). Unticked in the facet window, a tag pops; ticked again, it flies in from its row.
   assert.equal(await row.locator('.facet-tags').getByRole('button').count(), 0, 'no tag interaction');
   // The six-dot menu opens over the tags hung below the tab, the card lifted under the pointer (0.13.2: it opened beneath them).

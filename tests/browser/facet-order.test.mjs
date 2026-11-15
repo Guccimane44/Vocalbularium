@@ -82,5 +82,4 @@ test('facet order: a grip drags a facet among its card’s facets by pointer or 
   assert.deepEqual(await sections(), stepped);
   assert.deepEqual(await tags(), stepped);
   assert.deepEqual((await german()).content, published, 'only the order changed');
-  await a.page.screenshot({ path: 'artifacts/v0.16.1-facet-order.png', animations: 'disabled' });
 });
