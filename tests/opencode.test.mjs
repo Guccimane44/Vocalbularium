@@ -16,7 +16,7 @@ import { confirmed, generated, resultFor, sentenceResult, text, textBlocks, useM
 
 import { session, BANK, data, completion, GERMAN, REPLY } from './helpers/generation.mjs';
 
-test('OpenCode uses the Go endpoint, selected DeepSeek model, and only selection data', async () => {
+test('OpenCode uses the Go endpoint, selected Haiku model, and only selection data', async () => {
   let body;
   const provider = new OpenCodeProvider({
     apiKey: 'test-only', fetchImpl: async (url, options) => {
@@ -29,7 +29,7 @@ test('OpenCode uses the Go endpoint, selected DeepSeek model, and only selection
     }
   });
   assert.deepEqual(await provider.generate({ ...GERMAN, sessionId: 'capture-conversation' }), REPLY);
-  assert.equal(body.model, 'deepseek-v4.1-flash'); assert.equal(body.stream, false);
+  assert.equal(body.model, 'claude-haiku-5-5'); assert.equal(body.stream, false);
   assert.equal('reasoning_effort' in body, false, 'the model keeps its own reasoning effort unless one is set');
   assert.equal(body.messages.length, 2); assert.equal(body.messages[0].role, 'system');
   assert.match(body.messages[0].content, /JSON schema/);
