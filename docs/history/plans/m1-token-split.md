@@ -12,7 +12,7 @@ M2 needs the answer to predict what a split card will send, since each facet req
 
 ## Test set
 
-[`tests/golden/token-split/inputs.json`](../../../tests/golden/token-split/inputs.json), written for M1 alone. It has 122 inputs for the four Languages modules: German 32, Chinese 30, and English (US) and English (UK) 30 each. The two English modules share one list, so they can be compared input for input.
+[`m1-token-split-inputs.json`](../evidence/m1-token-split-inputs.json) (in `tests/golden/token-split/` until the cleanup of 15 November 2026), written for M1 alone. It has 122 inputs for the four Languages modules: German 32, Chinese 30, and English (US) and English (UK) 30 each. The two English modules share one list, so they can be compared input for input.
 
 Every request asks for **all of its module's facets**, not just a deck's default ones, so every facet is measured. Whether a facet applies is still decided as it is today, by its `applies` and `when`. The set is built so that every facet applies often enough to measure:
 
