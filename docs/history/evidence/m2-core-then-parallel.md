@@ -1,6 +1,6 @@
 # M2: core then parallel facets, against one request
 
-Run 11 November 2026, following the [M2 plan](../../plans/m2-core-then-parallel.md), Phase 1 of the [split facets plan](../../plans/split-facets.md).
+Run 11 November 2026, following the [M2 plan](../plans/m2-core-then-parallel.md), Phase 1 of the [split facets plan](../../plans/split-facets.md).
 
 ## Summary
 

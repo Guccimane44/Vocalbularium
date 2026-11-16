@@ -1,6 +1,6 @@
 # M1: how one Languages request spends its tokens
 
-Run 11 November 2026, following the [M1 plan](../../plans/m1-token-split.md), Phase 1 of the [split facets plan](../../plans/split-facets.md).
+Run 11 November 2026, following the [M1 plan](../plans/m1-token-split.md), Phase 1 of the [split facets plan](../../plans/split-facets.md).
 
 ## Summary
 
@@ -16,7 +16,7 @@ Run 11 November 2026, following the [M1 plan](../../plans/m1-token-split.md), Ph
 
 | | |
 | --- | --- |
-| Inputs | [`tests/golden/token-split/inputs.json`](../../../tests/golden/token-split/inputs.json): German 32, Chinese 30, English (US) 30, English (UK) 30 (the same list as English US) |
+| Inputs | [`m1-token-split-inputs.json`](m1-token-split-inputs.json): German 32, Chinese 30, English (US) 30, English (UK) 30 (the same list as English US) |
 | Samples | 2 per input, 244 requests |
 | Request | Today's single request per module, with every facet of the module asked for, through the product's composer and `OpenCodeProvider` |
 | Model | deepseek-v4.1-flash through OpenCode Go, default reasoning, `max_tokens` 8,192 as in the product |

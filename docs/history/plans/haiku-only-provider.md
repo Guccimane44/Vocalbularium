@@ -1,6 +1,6 @@
 # Claude Haiku 5.5 as the only model
 
-Drafted 14 November 2026 for the owner's review. Status: **approved by the owner, 14 November 2026**; carried out in [D36](../architecture/decisions/d36.md).
+Drafted 14 November 2026 for the owner's review. Status: **approved by the owner, 14 November 2026**; carried out in [D36](../../architecture/decisions/d36.md).
 
 ## Decision
 
@@ -9,10 +9,10 @@ The owner, 14 November 2026, after M6 and the [M8 trial](m8-haiku-deepseek-opus-
 Why, in short: under an independent judge (Opus) Haiku's cards are level with DeepSeek's; Haiku returned every card in M6 and M8 where DeepSeek dropped some; it is about 4–5 times faster (8 s against 40 s a card) and about half the cost.
 
 This sets aside two earlier rules, and the decision record says so:
-- [K28](../architecture/decisions/clarifications.md#k28) and C8: a model switch needs its own golden-set review. The owner waives it for this switch; M6 and M8 stand in for it.
+- [K28](../../architecture/decisions/clarifications.md#k28) and C8: a model switch needs its own golden-set review. The owner waives it for this switch; M6 and M8 stand in for it.
 - The gate's judge counts only once calibrated for its model. Haiku as judge needs one calibration run (step 3). That run is the gate's own mechanism, not new evidence, and costs well under a dollar.
 
-Unchanged: OpenCode Go stays the only provider and stays development-only ([K4](../architecture/decisions/clarifications.md#k4)); one pinned model at a time (Q46); no automatic fallback.
+Unchanged: OpenCode Go stays the only provider and stays development-only ([K4](../../architecture/decisions/clarifications.md#k4)); one pinned model at a time (Q46); no automatic fallback.
 
 ## Changes
 
@@ -21,7 +21,7 @@ Unchanged: OpenCode Go stays the only provider and stays development-only ([K4](
 3. **The judge.** `judgeModel` already falls back to the generator's model, so with no `JUDGE_MODEL` the judge is Haiku. Run `npm run judge -- --calibrate` once for every module with a rubric. If Haiku doesn't reach 90 % or misses an expected fail on a module, stop and bring it to the owner: the choice is then a looser calibration rule or a different judge, not more model trials.
 4. **Docs.** Name Haiku where the current product's model is stated: `README.md`, `docs/architecture/generation.md` (examples of the stored model), and K28's note. The questionnaire keeps DeepSeek: it records the state when it was asked. History, evidence and earlier plans keep DeepSeek, since they record what ran then.
 5. **Decision record.** `docs/architecture/decisions/d36.md`, linked from the traceability map, citing M6 and M8 and the two rules set aside. The same decision in the Notion hub's decision history.
-6. **Release.** Joins 0.16.5, whose upgrade note already exists. Its [upgrade note](../product/scope.md#upgrade-from-earlier-builds): no migration. Existing cards keep the model they were written with (stored per facet, K27); a Retry or a new card uses Haiku. The owner's `.env`, if it sets `OPENCODE_MODEL=deepseek-v4.1-flash`, must drop that line or set Haiku, or it keeps overriding the default. The release notes say so.
+6. **Release.** Joins 0.16.5, whose upgrade note already exists. Its [upgrade note](../../product/scope.md#upgrade-from-earlier-builds): no migration. Existing cards keep the model they were written with (stored per facet, K27); a Retry or a new card uses Haiku. The owner's `.env`, if it sets `OPENCODE_MODEL=deepseek-v4.1-flash`, must drop that line or set Haiku, or it keeps overriding the default. The release notes say so.
 
 **Result (14 November 2026):** Haiku's first calibration (14 November 2026, 171 of 177, 97 %) passed for Chinese, Computer Science, Mathematics, Joke, Modern Haiku and Traditional Haiku. It missed expected fails on German (2), English (1) and Chemistry (1): two were replies it could not score, two were faults it marked weak (*Frontend* as a chemistry term, synonyms that don't fit *break the ice*). The owner accepted this as it is: until a later calibration passes, the gate's Judge step reports those three modules as not calibrated, and their gate does not pass.
 
@@ -40,4 +40,4 @@ From M8, not fixed here: on a key in another language, Haiku's English Etymology
 ## Questions for the owner
 
 1. ~~Is Haiku also the judge?~~ **Answered (owner, 14 November 2026): yes, Haiku judges.** The risk that a model scores its own cards kindly is accepted; DeepSeek did the same until now.
-2. ~~An M8 evidence note?~~ **Answered (owner, 14 November 2026): yes,** [m8-haiku-deepseek-trial.md](../history/evidence/m8-haiku-deepseek-trial.md).
+2. ~~An M8 evidence note?~~ **Answered (owner, 14 November 2026): yes,** [m8-haiku-deepseek-trial.md](../evidence/m8-haiku-deepseek-trial.md).

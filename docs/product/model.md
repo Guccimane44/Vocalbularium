@@ -4,7 +4,7 @@
 
 This document defines Vocabularium's core concepts and their fundamental relationships. It is a conceptual model, not a database schema or a workflow specification. [Scope](scope.md) identifies current capability limits; [vision](vision.md) describes possible future uses.
 
-The model below is the deck → page → component model ([Q72](../architecture/questionnaire/answers/answers-06-data-and-semantics.md#q72)), with page-owned modules ([D02](../architecture/decisions/d02.md)) and content modules as parent modules with facets ([D08](../architecture/decisions/d08.md)). [Current scope](scope.md) lists what is supported. [Earlier terms](#earlier-terms) maps the vocabulary of earlier builds.
+The model below is the deck → page → component model (Q72, the owner's answer of 10 October 2026), with page-owned modules ([D02](../architecture/decisions/d02.md)) and content modules as parent modules with facets ([D08](../architecture/decisions/d08.md)). [Current scope](scope.md) lists what is supported. [Earlier terms](#earlier-terms) maps the vocabulary of earlier builds.
 
 ## Account
 
@@ -54,7 +54,7 @@ A component records the page's module instance that owns it. That ownership, not
 
 A **Text component** is the user's own writing, owned by a Text module instance. Generation never creates, replaces, or removes it.
 
-A component's content is a versioned block document ([Q13](../architecture/questionnaire/answers/answers-03-frontend.md#q13)). Context and Text hold markdown. A parent module's component holds one typed block: the core's top line, then its core and each facet as markdown ([modules](../specs/modules.md#render-contracts)). A component can be empty; emptiness alone does not indicate a failed generation attempt. Components have no inherent subject or language; their meaning comes from the module that owns them or from what the user writes. A parent module's component holds its core followed by one entry per facet.
+A component's content is a versioned block document (Q13, the owner's answer of 5 October 2026). Context and Text hold markdown. A parent module's component holds one typed block: the core's top line, then its core and each facet as markdown ([modules](../specs/modules.md#render-contracts)). A component can be empty; emptiness alone does not indicate a failed generation attempt. Components have no inherent subject or language; their meaning comes from the module that owns them or from what the user writes. A parent module's component holds its core followed by one entry per facet.
 
 ## Module type, instance, and output
 

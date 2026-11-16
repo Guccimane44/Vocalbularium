@@ -6,7 +6,7 @@ This document is the authoritative source for detailed component completion, fai
 
 ## Status
 
-These rules describe the deck → page → component model ([Q72](../architecture/questionnaire/answers/answers-06-data-and-semantics.md#q72)) with page-owned modules ([D02](../architecture/decisions/d02.md)); [current scope](../product/scope.md) records which parts are implemented. [Pages and editing](pages-and-editing.md) owns main key, Context, and component editing; [decks and configuration](decks-and-configuration.md) owns the template new pages start from.
+These rules describe the deck → page → component model (Q72, the owner's answer of 10 October 2026) with page-owned modules ([D02](../architecture/decisions/d02.md)); [current scope](../product/scope.md) records which parts are implemented. [Pages and editing](pages-and-editing.md) owns main key, Context, and component editing; [decks and configuration](decks-and-configuration.md) owns the template new pages start from.
 
 ## Availability and default deck
 

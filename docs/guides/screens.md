@@ -2,7 +2,7 @@
 
 `npm run screens` captures every screen of the extension in a fixed state and
 compares it with a baseline, so a change shows exactly which screens it moved
-([0.16.0 plan, increment A](../plans/backpressure.md#a-screens-and-visual-diffs)).
+([0.16.0 plan, increment A](../history/plans/backpressure.md#a-screens-and-visual-diffs)).
 
 ## The catalogue
 

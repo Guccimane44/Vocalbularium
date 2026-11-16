@@ -2,8 +2,8 @@
 
 The [product model](docs/product/model.md) defines deck → page →
 component, with content modules, view modules and the default view.
-Karte and seite are earlier terms; they remain only in history,
-migrations and upgrade fixtures. Other meanings of “page” (web page,
+The earlier terms in its [terms table](docs/product/model.md#earlier-terms)
+remain only in history, migrations and upgrade fixtures. Other meanings of “page” (web page,
 pagination) stay unchanged.
 
 ## Architecture map

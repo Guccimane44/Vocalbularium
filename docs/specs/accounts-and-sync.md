@@ -2,7 +2,7 @@
 
 ## Purpose and status
 
-This specification defines sign-in and how saved data synchronizes between Chrome installations. Public accounts, registration, OAuth and passkeys ([Q02](../architecture/questionnaire/answers/answers-01-maturity-and-scope.md#q02), [Q17](../architecture/questionnaire/answers/answers-04-identity-sync.md#q17)) are still `Proposed`; [current scope](../product/scope.md) records their status.
+This specification defines sign-in and how saved data synchronizes between Chrome installations. Public accounts, registration, OAuth and passkeys (the owner's answers to Q02 and Q17, 5 October 2026) are still `Proposed`; [current scope](../product/scope.md) records their status.
 
 ## Account and sign-in
 

@@ -10,7 +10,7 @@ This plan replaces `english-british` and `english-american` (both added in 0.16.
 
 ## Why
 
-- **The split's main English failure comes from the variety rule.** In [M3](../history/evidence/m3-cost-per-facet.md), Pronunciation written in its own request turned an English selection into the module's variety: *colour* into *color*, *The team are playing* into *The team is playing*. The module's rule, "write American English … never the British one", won over the facet's own "the selection itself, exactly as selected". Without a variety rule, nothing pulls the key away from what was selected.
+- **The split's main English failure comes from the variety rule.** In [M3](../evidence/m3-cost-per-facet.md), Pronunciation written in its own request turned an English selection into the module's variety: *colour* into *color*, *The team are playing* into *The team is playing*. The module's rule, "write American English … never the British one", won over the facet's own "the selection itself, exactly as selected". Without a variety rule, nothing pulls the key away from what was selected.
 - **Two modules double every English cost:**
   - 14 facet folders;
   - two rubrics and two calibration sets;
@@ -20,7 +20,7 @@ This plan replaces `english-british` and `english-american` (both added in 0.16.
   Only one of them was measured in M2 and M3.
 - **The two modules differ only in their variety.** The difference is the variety rule in `module.prompt.md`, the spelling lists in `english.ts` and the checks built on them, and the variety words in prompts, samples and about pages.
 
-**This changes a rule in the specs.** [`docs/specs/modules.md`](../specs/modules.md#catalog) says variety comes from more parent types, such as a German and a Spanish translation. For languages that stays true. Varieties of one language are not told apart at all. This needs a decision record of its own, D34.
+**This changes a rule in the specs.** [`docs/specs/modules.md`](../../specs/modules.md#catalog) says variety comes from more parent types, such as a German and a Spanish translation. For languages that stays true. Varieties of one language are not told apart at all. This needs a decision record of its own, D34.
 
 ## The module
 

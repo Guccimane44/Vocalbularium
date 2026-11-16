@@ -1,5 +1,7 @@
 # Handoff: catalog cleanup, a classifier before generation, and dictionary lookup
 
+**Not carried out:** the classifier was dropped ([split facets](../../plans/split-facets.md#why-there-is-no-classifier)).
+
 Written 10 November 2026 for a new session. It records what the owner asked for, what was found, what was drafted, and what is still open. Nothing here is decided, no product code was changed, nothing was run against Jev, and nothing is committed.
 
 ## What the owner asked for
@@ -20,7 +22,7 @@ The owner works in this order: refine, readiness analysis, plan, iterate, execut
 | Evaluation of steps 2 and 3 | Delivered in chat, summarised below |
 | Assessment of the golden sets | Delivered in chat, summarised below |
 | [Jev experiment plan](jev-flags-experiment.md) | Draft, not approved, not run. Its inputs still name the golden sets and should point at the held-out set |
-| [Held-out evaluation sets](../../tests/golden/held-out/README.md) | Draft. Every label is Claude's and unreviewed |
+| [Held-out evaluation sets](../../../tests/golden/held-out/README.md) | Draft. Every label is Claude's and unreviewed |
 | Deleting the four fields | Not started; the owner has not asked for it yet |
 | German lookup coverage experiment | Not planned yet |
 
@@ -69,7 +71,7 @@ How well each flag fits Jev:
 | `gramRole` for a foreign key | Poor | Today it describes the German translation, which exists only after the core is written |
 | `relevance`, `hasFormula`, `hasCode`, `hasEquation` | Poor | The text model already got 39 of 39 inline, and knowing them earlier skips nothing |
 
-Lookup fits facets with closed-form answers: German Article, Declension, Conjugation and Comparison. It does not fit explanatory text. The [earlier Wiktionary experiment](../history/evidence/wiktionary-english-experiment.md) supports this: a dictionary-first English card passed 15 of 41 checks against 36 of 41 today, no card skipped the model, and the speed gain came from sending facet requests in parallel (12.2 s against 38.7 s). Cached entries in `.data/wiktionary-2026-11/entries/` already hold German inflection forms.
+Lookup fits facets with closed-form answers: German Article, Declension, Conjugation and Comparison. It does not fit explanatory text. The [earlier Wiktionary experiment](../evidence/wiktionary-english-experiment.md) supports this: a dictionary-first English card passed 15 of 41 checks against 36 of 41 today, no card skipped the model, and the speed gain came from sending facet requests in parallel (12.2 s against 38.7 s). Cached entries in `.data/wiktionary-2026-11/entries/` already hold German inflection forms.
 
 Two ways the plan should be reframed:
 
@@ -100,7 +102,7 @@ Recommended: keep the golden sets for regression, add expected languages to `par
 
 ## The held-out sets
 
-In `tests/golden/held-out/`, with the rules and known limits in its [README](../../tests/golden/held-out/README.md). No script reads them yet.
+In `tests/golden/held-out/`, with the rules and known limits in its [README](../../../tests/golden/held-out/README.md). No script reads them yet.
 
 - `classification.json`: 247 items in eight strata (headword 30, inflected 33, boundary 45, homograph 38, homograph with Context 28, name-number-code 23, noise 24, part of speech with Context 26). Each item lists every acceptable `kind` and `language`, the likeliest first. 56 items accept more than one language and 16 accept either kind.
 - `lookup-german.json`: 139 items. 52 nouns, 43 verbs and 20 adjectives by inflection class, each with the forms that fix its table, plus 24 inflected keys that must first be traced to a headword.
@@ -143,9 +145,9 @@ What a new session must know about them:
 | Topic | File |
 | --- | --- |
 | Field definitions | `packages/domain/src/catalog/define.ts` |
-| Flags, headers and what reads them (the owner's own map) | [maps/headers-and-flags-map.md](../../maps/headers-and-flags-map.md) |
+| Flags, headers and what reads them (the owner's own map) | `maps/headers-and-flags-map.md`, the owner's local map (not in the repository) |
 | Applicability | `packages/domain/src/parents.ts` |
 | Stored header | `packages/contracts/src/pages.ts` (`ParentHeaderSchema`) |
-| One request per module | [D17](../architecture/decisions/d17-one-request.md) and the [generation rounds experiment](../history/evidence/generation-rounds-experiment.md) |
-| Earlier dictionary work | [plan](wiktionary-experiment.md) and [evidence](../history/evidence/wiktionary-english-experiment.md) |
+| One request per module | [D17](../../architecture/decisions/d17-one-request.md) and the [generation rounds experiment](../evidence/generation-rounds-experiment.md) |
+| Earlier dictionary work | [plan](wiktionary-experiment.md) and [evidence](../evidence/wiktionary-english-experiment.md) |
 | Golden sets and their runner | `tests/golden/`, `scripts/golden-set.mjs`, `scripts/gate.mjs` |
