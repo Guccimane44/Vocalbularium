@@ -21,7 +21,8 @@ import { FacetWindow } from './facet-window.tsx';
 import { openAbout } from './about-sheet.tsx';
 import { FamilyIcon } from './families.tsx';
 import { mainKeyTier } from './main-key.ts';
-import { AT_THE_END, moduleLabel, numbered, ShapingArea } from './shaping.tsx';
+import { moduleLabel, numbered, ShapingArea } from './shaping.tsx';
+import { countedBefore } from './placing.ts';
 import type { RowParts } from './shaping.tsx';
 import { direction, listFormat, t } from './i18n.ts';
 import { ClipsProvider } from './audio.tsx';
@@ -220,17 +221,21 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
   const [facetsFor, setFacetsFor] = useState<string | null>(null);
   // Cards popping away: a deleted card pops where it stands first, then goes;
   // under reduced motion it goes at once, and a failed delete brings it back.
+  // It stays marked until the page read again no longer holds it, and modules
+  // added or moved meanwhile are placed as if it were already gone.
   const [vanishing, setVanishing] = useState<ReadonlySet<string>>(new Set());
+  const unmark = (id: string) => setVanishing(current => { const next = new Set(current); next.delete(id); return next; });
   const vanish = (item: Component) => {
-    const remove = () => void run(async () => { await deleteComponent(item); });
-    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) { remove(); return; }
     setVanishing(current => new Set(current).add(item.id));
-    setTimeout(() => {
-      void run(async () => { try { await deleteComponent(item); } finally {
-        setVanishing(current => { const next = new Set(current); next.delete(item.id); return next; });
-      } });
-    }, POOF_MS);
+    const remove = () => void run(async () => { if (await deleteComponent(item) === false) unmark(item.id); });
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) remove();
+    else setTimeout(remove, POOF_MS);
   };
+  const componentIds = (page?.components ?? []).map(item => item.id).join('|');
+  useEffect(() => {
+    const present = new Set(componentIds.split('|'));
+    setVanishing(current => [...current].every(id => present.has(id)) ? current : new Set([...current].filter(id => present.has(id))));
+  }, [componentIds]);
   // The facet asking "Are you sure?" before it is deleted, on which card.
   const [askingFacet, setAskingFacet] = useState<{ id: string; facet: FacetType; kind: FacetAsk } | null>(null);
   // The card asking whether to delete, and where its Delete stood in the row.
@@ -287,6 +292,7 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
   const known = new Set(page.components.map(item => item.id));
   const lost = editing && draft ? [...Object.keys(draft.texts), ...Object.keys(draft.fields ?? {})].filter(id => !known.has(id)) : [];
   const items = numbered(rest.map(item => ({ id: item.id, type: item.moduleType, label: moduleLabel(item.moduleType), component: item })));
+  const restIds = rest.map(item => item.id);
 
   const mainKey = mainKeyOf(page.components);
   // A card's actions are ejected from its tab when the tab is clicked (D07);
@@ -470,8 +476,11 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
     <ShapingArea items={items} types={page.components.map(item => item.moduleType)} disabled={disabled}
       label={t('page.components')} where="page"
       // The server appends a module sent without a position, after anything added meanwhile.
-      onAdd={(type, index) => addModule(type, index === AT_THE_END ? undefined : index + 1)}
-      onMove={(id, index) => moveComponent(id, index + 1)}
+      onAdd={(type, before) => { const at = countedBefore(restIds, before, vanishing); return addModule(type, at === null ? undefined : at + 1); }}
+      onMove={(id, before) => {
+        const skip = new Set(vanishing).add(id);
+        return moveComponent(id, (countedBefore(restIds, before, skip) ?? restIds.filter(other => !skip.has(other)).length) + 1);
+      }}
       menuItems={componentMenu()}
       renderLanding={type => <LandingCard type={type} />}
       renderItem={(item, parts) => card(item.component, item.label, parts)} />

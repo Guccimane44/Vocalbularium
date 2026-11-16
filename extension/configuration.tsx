@@ -132,14 +132,18 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
     const module = modules.find(item => item.id === id);
     if (module) { module.facets = (module.facets ?? []).filter(item => item !== facet); refresh(); }
   };
-  const add = (type: string, index: number) => {
-    if (addBlocked(modules, type)) return false;
-    modules.splice(index + 1, 0, instance(type)); refresh(); return true;
+  const at = (before: string | null) => {
+    const index = before === null ? -1 : modules.findIndex(module => module.id === before);
+    return index < 0 ? modules.length : index;
   };
-  const move = (id: string, index: number) => {
+  const add = (type: string, before: string | null) => {
+    if (addBlocked(modules, type)) return false;
+    modules.splice(at(before), 0, instance(type)); refresh(); return true;
+  };
+  const move = (id: string, before: string | null) => {
     const from = modules.findIndex(module => module.id === id);
     const [module] = modules.splice(from, 1);
-    modules.splice(index + 1, 0, module); refresh();
+    modules.splice(at(before), 0, module); refresh();
   };
 
   async function saveDraft(): Promise<void> {
@@ -209,7 +213,7 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
       </div>
     </fieldset>
     <ShapingArea items={items} types={modules.map(module => module.type)} disabled={busy} unavailable={busy ? t('status.savingEllipsis') : undefined}
-      label={t('deck.modules')} where="list" onAdd={add} onMove={(id, index) => { move(id, index); return true; }}
+      label={t('deck.modules')} where="list" onAdd={add} onMove={(id, before) => { move(id, before); return true; }}
       pinned={<>
         <div className="list-intro">
           <h2>{t('deck.modules')}</h2>

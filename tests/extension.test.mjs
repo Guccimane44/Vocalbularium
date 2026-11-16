@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { captureMenu, captureMenuTitle } from '../extension/context-menu.js';
 import { captureRuntime } from '../extension/capture.js';
+import { countedBefore } from '../extension/placing.ts';
 
 function menuAPI() {
   const items = new Map();
@@ -310,4 +311,17 @@ test('KaTeX with mhchem renders a \\ce{} reaction, and the card renderer loads m
   assert.match(html, /→|\\rightarrow|<mo[^>]*>→/);
   const { readFile } = await import('node:fs/promises');
   assert.match(await readFile(new URL('../extension/rich-blocks.tsx', import.meta.url), 'utf8'), /^import 'katex\/contrib\/mhchem';$/m);
+});
+
+test('a module added or moved before a card is placed among the cards the server holds', () => {
+  const ids = ['a', 'b', 'c', 'd'];
+  assert.equal(countedBefore(ids, 'c'), 2);
+  assert.equal(countedBefore(ids, null), null, 'no card after it: the end');
+  assert.equal(countedBefore(ids, 'gone'), null, 'a card no longer listed: the end');
+  // B is still shown while it is deleted: a drop between C and D lands third, not fourth.
+  assert.equal(countedBefore(ids, 'd', new Set(['b'])), 2);
+  // Dropped just above the card being deleted, it lands where that card was.
+  assert.equal(countedBefore(ids, 'b', new Set(['b'])), 1);
+  // A card moved down from the top leaves its old place.
+  assert.equal(countedBefore(ids, 'd', new Set(['a'])), 2);
 });

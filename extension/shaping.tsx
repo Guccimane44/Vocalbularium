@@ -97,14 +97,13 @@ export function numbered<T extends { type: string; label: string }>(items: reado
 // starts a drag with the pointer or Space, and show `menu` before it.
 export type RowParts = { drag: Record<string, unknown>; menu: ReactNode };
 const KEYBOARD_CODES = { start: ['Space'], cancel: ['Escape'], end: ['Space'] };
-// The index onAdd receives from the window's +: after the last entry, whatever the list holds by then.
-export const AT_THE_END = Number.POSITIVE_INFINITY;
 type Result = boolean | void | Promise<boolean | void>;
 
 // The list below a pinned first entry (the main key), and the module window
-// beside it. Indexes passed to the handlers count among the movable entries,
-// so nothing is ever placed above the pinned one. A handler returning false
-// reports a failed save, which restores the saved order.
+// beside it. The handlers receive the entry an added or moved one lands
+// before, or null for the end, so nothing is ever placed above the pinned
+// one, and the list's owner counts the position among the entries it holds.
+// A handler returning false reports a failed save, which restores the saved order.
 export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unavailable, pinned, label, where, onAdd, onMove, renderItem, menuItems = [], renderLanding = type => <span>{moduleLabel(type)}</span> }: {
   items: T[];
   // Every module type present, the pinned main key included, for the window's limits.
@@ -115,8 +114,8 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
   pinned?: ReactNode;
   label: string;
   where: 'page' | 'list';
-  onAdd: (type: string, index: number) => Result;
-  onMove: (id: string, index: number) => Result;
+  onAdd: (type: string, before: string | null) => Result;
+  onMove: (id: string, before: string | null) => Result;
   renderItem: (item: T, parts: RowParts) => ReactNode;
   // Placeholder entries for each row's menu.
   menuItems?: readonly string[];
@@ -212,8 +211,7 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
     if (disabled) return;
     setAdding({ type, index: shown.length });
     requestAnimationFrame(() => list.current?.querySelector('.landing-row')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }));
-    // "At the end" is left to the list's owner: a page may hold more by then.
-    if (await onAdd(type, AT_THE_END) === false) setAdding(null);
+    if (await onAdd(type, null) === false) setAdding(null);
   }
   async function end(event: DragEndEvent) {
     const { active, over } = event;
@@ -224,14 +222,15 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
     if (fromWindow(active)) {
       if (target === null) return;
       setAdding({ type: windowType(active), index: target });
-      if (await onAdd(windowType(active), target) === false) setAdding(null);
+      if (await onAdd(windowType(active), shown[target]?.id ?? null) === false) setAdding(null);
       return;
     }
     const from = order.indexOf(String(active.id));
     const to = String(over.id) === LIST_END ? order.length - 1 : order.indexOf(String(over.id));
     if (from < 0 || to < 0 || from === to) return;
-    setOrder(arrayMove(order, from, to));
-    if (await onMove(String(active.id), to) === false) setOrder(saved.current);
+    const next = arrayMove(order, from, to);
+    setOrder(next);
+    if (await onMove(String(active.id), next[to + 1] ?? null) === false) setOrder(saved.current);
   }
 
   const rows: ReactNode[] = shown.map(item => <SortableRow key={item.id} item={item} disabled={disabled} renderItem={renderItem} menuItems={menuItems} />);
