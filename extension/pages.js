@@ -178,7 +178,7 @@ export function pageViews({ getAccount, renderView, refresh, send, applyState, n
   // The page view asks first, beside the card's tab, unless the component is empty (0.6.3).
   /** @param {Page} page @param {Component} component */
   async function deleteComponent(page, component) {
-    await shape('delete-component', { pageId: page.id, componentId: component.id });
+    return shape('delete-component', { pageId: page.id, componentId: component.id });
   }
   /** @param {string} hash @param {LocalItems} local @param {string} [externalError] */
   function render(hash, local, externalError) {
