@@ -6,6 +6,7 @@ import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { Generation } from '../src/server/generation.mjs';
 import { OpenCodeProvider } from '../src/server/opencode.mjs';
+import { readFile } from 'node:fs/promises';
 import { moduleInstructions as parentInstructions, moduleSchema as parentSchema, promptVersion } from '@vocabularium/domain/composer';
 import { generateComponents } from '@vocabularium/domain/modules';
 import { facetsOf } from '@vocabularium/domain/parents';
@@ -22,7 +23,7 @@ test('OpenCode uses the Go endpoint, selected Haiku model, and only selection da
     apiKey: 'test-only', fetchImpl: async (url, options) => {
       assert.equal(url, 'https://opencode.ai/zen/go/v1/chat/completions'); body = JSON.parse(options.body);
       assert.equal(options.headers.Authorization, 'Bearer test-only');
-      assert.equal(options.headers['User-Agent'], 'Vocabularium/0.13.1');
+      assert.equal(options.headers['User-Agent'], `Vocabularium/${JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8')).version}`);
       assert.equal(options.headers['x-opencode-session'], 'capture-conversation');
       assert.equal(options.method, 'POST'); assert.ok(options.signal instanceof AbortSignal);
       return Response.json(completion(JSON.stringify(REPLY)));
