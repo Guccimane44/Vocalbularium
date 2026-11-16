@@ -33,6 +33,8 @@ test('dashboard capture feedback: shared appearance, original lifetime, originat
   for (const theme of ['light', 'dark']) {
     await chooseAppearance(a.page, theme);
     assert.equal(await a.page.getByRole('heading', { name: 'Recent captures', exact: true }).evaluate(node => node.nextElementSibling === null), true, 'empty section has no replacement paragraph or gap');
+    // Nothing reads these screenshots, but without them this test times out on CI;
+    // they stay until that is understood (see the pull request that removed the others).
     await a.page.screenshot({ path: `artifacts/v0.2.1-empty-dashboard-${theme}.png`, fullPage: true });
   }
   const tabId = await a.page.evaluate(async () => (await chrome.tabs.getCurrent()).id);

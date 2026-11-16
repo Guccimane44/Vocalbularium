@@ -43,7 +43,6 @@ test('0.9.0: Language in the account menu is the account’s preference, English
   // The account menu's Language row shows the current language and opens the list in the menu.
   await accountMenu(a.page);
   const row = a.page.getByRole('button', { name: 'Language, English', exact: true });
-  await a.page.locator('.account-panel').screenshot({ path: 'artifacts/v0.9.0-account-menu-light.png' });
   await row.click();
   const list = a.page.getByRole('group', { name: 'Language', exact: true });
   await list.waitFor();
@@ -55,11 +54,6 @@ test('0.9.0: Language in the account menu is the account’s preference, English
   assert.equal(await list.getByRole('button', { name: 'Français', exact: true }).isDisabled(), false);
   assert.equal(await list.locator('[data-language="ar"] .language-name').getAttribute('dir'), 'rtl');
   assert.equal(await a.page.evaluate(() => document.activeElement?.dataset.language), 'en', 'the focus moves to the first language that can be picked');
-  for (const theme of ['light', 'dark']) {
-    await a.page.evaluate(value => { document.documentElement.dataset.theme = value; }, theme);
-    await a.page.locator('.account-panel').screenshot({ path: `artifacts/v0.9.0-language-list-${theme}.png` });
-  }
-  await a.page.evaluate(() => { delete document.documentElement.dataset.theme; });
   // Back returns to the menu with the focus on Language; picking the current language closes the menu.
   await list.getByRole('button', { name: 'Back to the account menu', exact: true }).click();
   assert.equal(await a.page.evaluate(() => document.activeElement?.classList.contains('language-row')), true);
@@ -99,16 +93,6 @@ test('0.9.0: right to left and the pseudo-languages: every surface mirrors, cont
   await signIn(a.page);
   const pseudo = value => a.page.evaluate(language => language ? chrome.storage.local.set({ pseudoLanguage: language }) : chrome.storage.local.remove('pseudoLanguage'), value);
   const box = locator => locator.evaluate(node => { const { left, right, top, bottom } = node.getBoundingClientRect(); return { left, right, top, bottom }; });
-  // A card is shot with the row above it, where its tab and question stand.
-  const shoot = async (name, locator) => {
-    for (const theme of ['light', 'dark']) {
-      await a.page.evaluate(value => { document.documentElement.dataset.theme = value; }, theme);
-      const path = `artifacts/v0.9.0-${name}-${theme}.png`;
-      if (!locator) await a.page.screenshot({ path });
-      else { const area = await box(locator); await a.page.screenshot({ path, clip: { x: area.left - 40, y: area.top - 40, width: area.right - area.left + 80, height: Math.min(700, area.bottom - area.top + 80) } }); }
-    }
-    await a.page.evaluate(() => { delete document.documentElement.dataset.theme; });
-  };
 
   // Right to left (ar-XB): the document and every surface mirror.
   await pseudo('ar-XB');
@@ -122,7 +106,6 @@ test('0.9.0: right to left and the pseudo-languages: every surface mirrors, cont
   const trigger = await box(accountTrigger(a.page)), panel = await box(a.page.locator('.account-panel'));
   assert.ok(Math.abs(panel.right - trigger.right) < 2 && Math.abs(panel.left - trigger.left) < 2 && panel.bottom <= trigger.top, `the account menu opens upward over the trigger, as wide as it (D23): ${JSON.stringify({ panel, trigger })}`);
   await a.page.keyboard.press('Escape');
-  await shoot('rtl-dashboard');
 
   await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
   const card = componentArticle(a.page, 'German');
@@ -134,7 +117,6 @@ test('0.9.0: right to left and the pseudo-languages: every surface mirrors, cont
   assert.equal(await a.page.locator('h1.main-key').evaluate(node => getComputedStyle(node).direction), 'ltr', 'so does a Latin main key');
   const windowBox = await box(a.page.locator('.module-window'));
   assert.ok(windowBox.right < cardBox.left, 'the module window stands at the left of the page');
-  await shoot('rtl-page');
   // A card's actions spring out from its tab towards the reading end, and Delete asks beside it.
   await cardTab(a.page, 'German').click();
   const actions = card.locator('.card-actions');
@@ -143,19 +125,16 @@ test('0.9.0: right to left and the pseudo-languages: every surface mirrors, cont
   const question = await box(actions.locator('.confirm-text')), cancel = await box(actions.getByRole('button', { name: 'Keep German', exact: true }));
   assert.ok(question.right <= cancel.left + 1, 'the question stands after Cancel in the reading order, at its left');
   await a.page.waitForTimeout(700);
-  await shoot('rtl-card-question', card);
   await actions.getByRole('button', { name: 'Keep German', exact: true }).click();
   await actions.getByRole('button', { name: 'Facets of German', exact: true }).click();
   const window = a.page.getByRole('group', { name: 'Facets of German', exact: true });
   await window.waitFor();
   await a.page.waitForTimeout(300);
-  await shoot('rtl-facet-window', card);
   await a.page.keyboard.press('Escape');
   await window.waitFor({ state: 'detached' });
   // Keyboard reordering still moves a module, the arrows following the reading direction.
   await a.page.goto(`chrome-extension://${a.id}/app.html#configure/${(await store.snapshot()).id}`);
   await a.page.getByRole('heading', { name: 'Modules for new pages', exact: true }).waitFor();
-  await shoot('rtl-deck-settings');
 
   // The accented pseudo-language (en-XA): no visible interface text or label is left in plain English.
   await pseudo('en-XA');
@@ -177,7 +156,6 @@ test('0.9.0: right to left and the pseudo-languages: every surface mirrors, cont
   assert.deepEqual(await unaccented(a.page), [], 'page');
   await a.page.locator('article.component[data-type="german"] .tab-button').click();
   assert.deepEqual(await unaccented(a.page), [], 'card actions');
-  await shoot('pseudo-page');
   await a.page.goto(`chrome-extension://${a.id}/app.html#configure/${(await store.snapshot()).id}`);
   await a.page.locator('.module-window').waitFor();
   assert.deepEqual(await unaccented(a.page), [], 'deck settings');
@@ -224,7 +202,6 @@ test('0.9.0: the interface in each language: picked from Language, saved to the 
     await a.page.goto(`chrome-extension://${a.id}/app.html`);
     await a.page.getByRole('heading', { name: messages['dashboard.title'], exact: true }).waitFor({ timeout: 15000 });
     assert.deepEqual(await a.page.evaluate(() => [document.documentElement.lang, document.documentElement.dir]), [code, code === 'ar' ? 'rtl' : 'ltr']);
-    await a.page.screenshot({ path: `artifacts/v0.9.0-${code}-dashboard-light.png` });
     // A page: the module's name, its facets' names, in the language; the facet marks as the catalog gives them.
     await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
     const card = a.page.locator('article.component[data-type="german"]');
@@ -233,7 +210,6 @@ test('0.9.0: the interface in each language: picked from Language, saved to the 
     assert.equal(await card.locator('.facet[data-facet="article"] .facet-tab-label').innerText(), messages['catalog.german.article.label']);
     assert.deepEqual(await card.locator('.facet-tag-mark').allInnerTexts(), ['Ar', 'Ex', 'Sy', 'An']);
     assert.equal(await a.page.locator('h1.main-key').evaluate(node => getComputedStyle(node).direction), 'ltr', 'a Latin main key keeps its direction');
-    await a.page.screenshot({ path: `artifacts/v0.9.0-${code}-page-light.png` });
     // About German opens its page in the language (D20).
     const about = a.page.locator('.window-module[data-type="german"] .window-about');
     await openFamily(about);
@@ -242,7 +218,6 @@ test('0.9.0: the interface in each language: picked from Language, saved to the 
     const dialog = a.page.locator('dialog.about-sheet');
     await dialog.waitFor();
     assert.equal(await dialog.locator('.about-lede').innerText(), summary, `${code}: the page is in the language`);
-    await dialog.screenshot({ path: `artifacts/v0.9.0-${code}-about-light.png` });
     await a.page.keyboard.press('Escape');
     assert.notEqual(messages['dashboard.title'], english['dashboard.title']);
   }
@@ -260,7 +235,6 @@ test('0.9.0: the interface in each language: picked from Language, saved to the 
     const edge = await panel.evaluate(node => { const style = getComputedStyle(node); return { border: style.borderTopStyle, shadow: style.boxShadow }; });
     assert.ok(forcedColors === 'active' ? edge.border === 'solid' : edge.shadow !== 'none', `${name}: the account menu is outlined (${JSON.stringify(edge)})`);
     assert.equal(await a.page.evaluate(() => document.documentElement.dir), 'rtl');
-    await a.page.screenshot({ path: `artifacts/v0.9.0-ar-language-${name}.png`, animations: 'disabled' });
   }
   await a.page.emulateMedia({ colorScheme: 'light', forcedColors: 'none' });
   await a.page.keyboard.press('Escape');

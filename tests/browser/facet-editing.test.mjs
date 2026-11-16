@@ -55,7 +55,6 @@ test('0.7.5: a facet’s own Edit opens that facet alone in place, with its tool
   assert.equal(await a.page.getByRole('button', { name: 'Edit Article from German', exact: true }).isDisabled(), true);
   assert.equal(await a.page.getByRole('button', { name: 'Retry Article from German', exact: true }).isDisabled(), true);
   assert.equal(await card.locator('.card-actions').count(), 0, 'the card\'s actions are put away');
-  await a.page.screenshot({ path: 'artifacts/v0.7.5-facet-edit.png' });
 
   // Cancel restores everything.
   await text.click(); await a.page.keyboard.type(', discarded');
@@ -94,13 +93,11 @@ test('0.7.5: a facet’s own Edit opens that facet alone in place, with its tool
   await size.selectOption('large');
   await fontChoice.selectOption('display');
   await waitFor(async () => await text.locator('.md-size-large .md-font-display, .md-font-display .md-size-large').count() > 0, 'the editor shows it at once');
-  await synonyms.locator('.facet-title').screenshot({ path: 'artifacts/v0.7.5-size-font-toolbar.png' });
   await synonyms.getByRole('button', { name: 'Save', exact: true }).click();
   await card.getByRole('textbox').waitFor({ state: 'detached' });
   assert.equal((await stored()).facets.synonyms, '[Böschung,]{size=large font=display} **[fest]{size=large font=display}**');
   assert.equal(await synonyms.locator('.facet-body .md-size-large.md-font-display').count(), 2, 'the card shows it as set');
   assert.equal(await synonyms.locator('.facet-body').textContent(), 'Böschung, fest');
-  await card.screenshot({ path: 'artifacts/v0.7.5-size-font-card.png' });
   await synonyms.hover();
   await a.page.getByRole('button', { name: 'Edit Synonyms from German', exact: true }).click();
   await text.waitFor();
@@ -119,8 +116,6 @@ test('0.7.5: a facet’s own Edit opens that facet alone in place, with its tool
   const palette = synonyms.locator('.md-palette');
   assert.deepEqual(await palette.getByRole('button').evaluateAll(buttons => buttons.map(button => button.getAttribute('aria-label'))),
     ['Yellow highlight', 'Green highlight', 'Blue highlight', 'Pink highlight', 'Orange highlight', 'No highlight']);
-  { const box = await synonyms.locator('.facet-title').boundingBox();
-    await a.page.screenshot({ path: 'artifacts/v0.7.5-highlight-palette.png', clip: { x: box.x + box.width - 340, y: box.y - 6, width: 350, height: 80 } }); }
   await palette.getByRole('button', { name: 'Green highlight', exact: true }).click();
   assert.equal(await palette.count(), 0, 'the palette closes');
   assert.equal(await synonyms.locator('.md-toolbar [data-tool="highlight"]').getAttribute('data-colour'), 'green', 'the button keeps the colour');
@@ -131,7 +126,6 @@ test('0.7.5: a facet’s own Edit opens that facet alone in place, with its tool
   assert.equal(await synonyms.locator('.facet-body mark.md-highlight-green').first().evaluate(node => getComputedStyle(node).backgroundColor),
     await a.page.evaluate(() => { const probe = document.body.appendChild(Object.assign(document.createElement('i'), { style: 'background: var(--highlight-green)' }));
       const colour = getComputedStyle(probe).backgroundColor; probe.remove(); return colour; }), 'in the palette\'s green');
-  await card.screenshot({ path: 'artifacts/v0.7.5-highlight-card.png' });
 
   // Emptied, the facet loses its content and leaves the card; its tag stays, bland.
   await synonyms.hover();
@@ -149,7 +143,6 @@ test('0.7.5: a facet’s own Edit opens that facet alone in place, with its tool
   await synonyms.hover();
   assert.deepEqual(await synonyms.locator('.facet-actions button').evaluateAll(buttons => buttons.map(button => button.getAttribute('aria-label'))),
     ['About Synonyms from German', 'Edit Synonyms from German', 'Retry Synonyms from German', 'Delete Synonyms from German']);
-  await synonyms.screenshot({ path: 'artifacts/v0.7.5-empty-facet.png' });
   await a.page.getByRole('button', { name: 'Edit Synonyms from German', exact: true }).click();
   await text.waitFor();
   await waitFor(() => a.page.evaluate(() => document.activeElement?.getAttribute('aria-label') === 'Synonyms, German'), 'focused to fill');
