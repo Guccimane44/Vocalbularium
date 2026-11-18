@@ -11,7 +11,7 @@ root = Path(__file__).resolve().parent.parent
 extension = root / 'artifacts' / 'extension'
 manifest = json.loads((extension / 'manifest.json').read_text())
 config = (extension / 'config.js').read_text()
-match = re.fullmatch(r'export const API_URL = (.+);\n', config)
+match = re.fullmatch(r'export const API_URL = (.+);\nexport const BUILD = (\{.*\});\n', config)
 if not match:
     raise SystemExit('Run npm run build before packaging.')
 origin = json.loads(match.group(1))
@@ -26,6 +26,9 @@ if f'releases/{version}.md' not in (root / 'docs' / 'guides' / 'install.md').rea
     raise SystemExit(f'Point docs/guides/install.md at docs/releases/{version}.md before packaging.')
 archive = root / 'artifacts' / f'vocabularium-{version}-{variant}-candidate.zip'
 revision = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=root, text=True).strip()
+built_from = json.loads(match.group(2))['commit']
+if built_from != revision:
+    raise SystemExit(f'The extension was built from {built_from[:7]}, but the checkout is at {revision[:7]}: run npm run build again.')
 dirty = bool(subprocess.check_output(['git', 'status', '--porcelain'], cwd=root, text=True).strip())
 metadata = {'version': version, 'serverOrigin': origin, 'sourceRevision': revision, 'uncommittedChanges': dirty,
             'status': 'Candidate — owner installation pending; see INSTALL.md and the iteration delivery issue'}

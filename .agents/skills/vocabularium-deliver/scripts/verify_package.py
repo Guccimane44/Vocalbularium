@@ -78,9 +78,10 @@ def verify_package(archive, expected_origin, expected_revision):
         parts = origin_parts(origin)
         require(origin == expected_origin, 'Package server origin differs from the expected origin.')
         config = package.read('extension/config.js').decode()
-        match = re.fullmatch(r'export const API_URL = (.+);\n', config)
+        match = re.fullmatch(r'export const API_URL = (.+);\nexport const BUILD = (\{.*\});\n', config)
         require(match is not None, 'Extension config format is unexpected; review the build script.')
         require(json.loads(match.group(1)) == origin, 'Extension config and package origins differ.')
+        require(json.loads(match.group(2)).get('commit') == expected_revision, 'The extension was built from another commit than the package source.')
         hostname = f'[{parts.hostname}]' if ':' in parts.hostname else parts.hostname
         require(manifest.get('host_permissions') == [f'{parts.scheme}://{hostname}/*'],
                 'Extension host permission differs from its configured backend.')
