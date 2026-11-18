@@ -58,7 +58,7 @@ alone decides (D25). The full rules are in the
 | A module, facet or prompt | its catalog folder | `tests/catalog.test.mjs`, `tests/prompts.test.mjs` (`UPDATE_PROMPTS=1` after a deliberate change), `tests/localisation.test.mjs`, `tests/content-checks.test.mjs` (a facet's `checks`); live: `npm run gate -- <module>` (golden set, checks and the calibrated judge against the module's `rubric.md`) |
 | Stored shape or API | `packages/contracts`, `migrations/`, `src/core/` | `tests/postgres.test.mjs`, `tests/upgrade.test.mjs`, `tests/server.test.mjs` |
 | Generation, Retry, recovery | `src/server/generation.mjs`, `src/core/store-generation.mjs` | `tests/generation.test.mjs`, `tests/generation-recovery.test.mjs`, `tests/opencode.test.mjs`, `tests/browser/reliability.test.mjs` |
-| A page, card or deck interaction | `extension/` | `tests/extension.test.mjs`, the journey files in `tests/browser/`, `npm run screens -- --base main` ([screens](docs/guides/screens.md)) |
+| A page, card or deck interaction | `extension/` | `tests/extension.test.mjs`, the journey files in `tests/browser/`, `npm run screens -- --base main` ([screens](docs/guides/screens.md)); a move that slides, adds, deletes or navigates joins the motion catalogue, `tests/browser/motion.test.mjs`, checked frame by frame by `tests/browser/motion.mjs` |
 | Interface strings | `extension/locales/` | `tests/localisation.test.mjs`, `tests/browser/localisation.test.mjs` |
 
 ## Reusable workflows
