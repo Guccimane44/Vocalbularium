@@ -43,7 +43,7 @@ alone decides (D25). The full rules are in the
 
 **Invariants every change keeps:**
 
-- Applied migrations never change; a schema change is a new migration (`npm run db:generate`). Upgrades keep accounts, sign-in, decks and pages unless the owner decides otherwise, and each release states its upgrade in [scope](docs/product/scope.md#upgrade-from-earlier-builds).
+- Applied migrations never change; a schema change is a new migration (`npm run db:generate`). Upgrades keep accounts, sign-in, decks and pages unless the owner decides otherwise, and each release states its upgrade in its own file under [docs/releases](docs/releases/README.md).
 - A mutation is idempotent by its operation ID. Provider calls never run inside a database transaction or the ordered executor.
 - One browser session per installation ([accounts and sync](docs/specs/accounts-and-sync.md#browser-sessions)).
 - A parent's header (its top line) is written by generation and never edited by the user.
