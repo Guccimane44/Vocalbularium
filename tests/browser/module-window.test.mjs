@@ -6,6 +6,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { text } from '../helpers/pages.mjs';
 import { cardTab, launch, signIn, waitFor, steps, windowModule, openFamily, drag } from './helpers.mjs';
+import { assertSmooth, watchMotion } from './motion.mjs';
 
 test('module window: drag modules onto a page and into deck settings, and reorder by drag and keyboard', { timeout: 45000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-shaping-browser-'));
@@ -112,23 +113,10 @@ test('module window: drag modules onto a page and into deck settings, and reorde
   const shiftOf = heading => rowOf(heading).evaluate(node => new DOMMatrix(getComputedStyle(node).transform).m42);
   await waitFor(async () => await shiftOf('German') < -20 && await shiftOf('Context') < -20, 'every card after it makes room');
   assert.equal(await rowOf('Text').evaluate(node => new DOMMatrix(getComputedStyle(node).transform).m41), 0, 'the card stays in its column');
-  // Every frame after the drop, each card only moves on toward its place, never back (no flicker).
-  await a.page.evaluate(() => {
-    window.settling = [];
-    const sample = () => {
-      window.settling.push(Object.fromEntries([...document.querySelectorAll('.shaping-list .sortable-row')]
-        .map(row => [row.querySelector('h2')?.textContent, row.firstElementChild.getBoundingClientRect().y])));
-      if (window.settling.length < 45) requestAnimationFrame(sample);
-    };
-    sample();
-  });
+  // Every frame after the drop, each card only moves on toward its place, never back (no flicker; motion.mjs).
+  const settling = await watchMotion(a.page, { rows: '.shaping-list .sortable-row', key: '.tab-label', box: '.card-tab', frames: 45 });
   await a.page.mouse.up();
-  await waitFor(() => a.page.evaluate(() => window.settling.length >= 45), 'drop settled');
-  const settling = await a.page.evaluate(() => window.settling);
-  for (const heading of ['Context', 'German', 'Text']) {
-    const steps = settling.map(frame => frame[heading]).filter(y => y !== undefined).map((y, index, all) => index ? y - all[index - 1] : 0);
-    assert.ok(!(steps.some(step => step > 2) && steps.some(step => step < -2)), `${heading} settles without jumping back (${steps.map(Math.round)})`);
-  }
+  assertSmooth(await settling.finish(), { label: 'Text dropped at the end while its move is saved' });
   await waitFor(() => heldMoves.length === 1, 'move request reached the server');
   for (let sample = 0; sample < 5; sample++) {
     assert.deepEqual(await headings(), ['Main key', 'Context', 'German', 'Text'], 'the new order shows before the save finishes');

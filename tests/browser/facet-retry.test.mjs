@@ -85,9 +85,12 @@ test('0.7.3: a facet’s own Retry beside its Delete, a tag’s remove keeping i
   const exampleText = card.getByRole('textbox', { name: 'Examples, German 1', exact: true });
   await exampleText.waitFor();
   assert.equal(await exampleText.locator('mark').textContent(), 'bank', 'the editor shows the main key’s highlight');
-  await exampleText.locator('mark').dblclick(); await a.page.waitForTimeout(300);
+  // Wait for the selection and for the editor's redraw rather than a fixed time:
+  // counting the marks right after the click failed at random on 22 October and 18 November.
+  await exampleText.locator('mark').dblclick();
+  await waitFor(() => a.page.evaluate(() => getSelection()?.toString().trim() === 'bank'), 'the highlighted word selected');
   await examples.locator('.md-toolbar [data-tool="highlight"]').click();
-  assert.equal(await exampleText.locator('mark').count(), 0);
+  await waitFor(async () => await exampleText.locator('mark').count() === 0, 'the highlight removed in the editor');
   await examples.getByRole('button', { name: 'Save', exact: true }).click();
   await card.getByRole('textbox').waitFor({ state: 'detached' });
   assert.equal(await examples.locator('.facet-body mark').count(), 0, 'and it stays removed on the card');
