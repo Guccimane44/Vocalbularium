@@ -106,7 +106,7 @@ When the main key is already in the parent's language, examples have no translat
 
 ## Explanations
 
-Every module family with modules, every module in the module window and every facet but the core has a **page** that explains it, so a user can learn what it does without trying it: a **family page**, a **module page** and a **facet page**. The owner's settled design is the reference for their layout and wording ([D20's reference design](../decisions/d20-module-pages.md)).
+Every module family with modules, every module in the module window and every facet but the core has a **page** that explains it, so a user can learn what it does without trying it: a **family page**, a **module page** and a **facet page**. This section and the screen catalogue (`npm run screens`, [screens](../guides/screens.md)) are the reference for their layout and wording; D20's design boards are history ([D20](../decisions/d20-module-pages.md)).
 
 - **One sheet.** The pages open in one side sheet that slides in over the module window, the same for all three kinds. A **path** at its top links them, such as *Languages / German / Article*; a module page links to its facets, a facet page back to its module and on to the module's other facets. **Back** returns one step; **Escape** closes the sheet and returns the focus to what opened it. They open from the module window ([shared UI](shared-ui.md#module-window)), a facet window and a card ([pages and editing](pages-and-editing.md#facet-window)) and deck settings ([decks and configuration](decks-and-configuration.md#configuration)).
 - **Static.** A page shows the same content wherever it opens: it takes nothing from the current card or deck and has no add button. Modules are added only from the module window.
