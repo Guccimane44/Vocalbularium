@@ -5,6 +5,7 @@ import { cp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { promisify } from 'node:util';
 import { hostPermission, serverOrigin } from './extension-origin.mjs';
+import { sourceStamp } from '../src/server/source-stamp.mjs';
 
 const run = promisify(execFile);
 await run(process.execPath, [resolve('node_modules/wxt/bin/wxt.mjs'), 'build', '--browser', 'chrome'], {
@@ -32,11 +33,12 @@ for (const file of await readdir(assets)) {
   }
 }
 assert.ok(!(await readdir(assets)).some(file => /\.(woff|ttf)$/.test(file)), 'A font other than WOFF2 is in the extension');
-await writeFile(resolve(output, 'config.js'), `export const API_URL = ${JSON.stringify(serverOrigin)};\n`);
+await writeFile(resolve(output, 'config.js'), `export const API_URL = ${JSON.stringify(serverOrigin)};\nexport const BUILD = ${JSON.stringify(sourceStamp())};\n`);
 
 const sourceManifest = JSON.parse(await readFile(resolve('extension/manifest.json'), 'utf8'));
 const manifest = JSON.parse(await readFile(resolve(output, 'manifest.json'), 'utf8'));
 assert.deepEqual(manifest, { ...sourceManifest, host_permissions: [hostPermission] }, 'WXT changed the extension identity or permissions');
 const worker = await readFile(resolve(output, 'background.js'), 'utf8');
 assert.ok(worker.includes(JSON.stringify(serverOrigin)), 'The worker does not contain the configured API origin');
+assert.ok(worker.includes(JSON.stringify(sourceStamp().commit)), 'The worker does not contain the commit it was built from');
 console.log(`Built WXT extension in artifacts/extension for ${serverOrigin}`);

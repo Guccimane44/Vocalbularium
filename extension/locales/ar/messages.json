@@ -230,6 +230,7 @@
   "nav.newDeck": "+ رزمة جديدة",
   "account.menu": "الحساب",
   "account.menuFor": "الحساب: {name}",
+  "account.buildMismatch": "إصداران مختلفان: الواجهة البرمجية {api}، الإضافة {extension}",
   "account.diagnostics": "سجلات التشخيص",
   "account.logOut": "تسجيل الخروج",
   "login.title": "مرحبًا بعودتك.",

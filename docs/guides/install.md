@@ -28,6 +28,7 @@ Replace the files in the same permanent extension folder with the new package, t
 ## If something does not work
 
 - **Cannot sign in:** check the server address in `package-info.json` and that the local API is running (`GET http://127.0.0.1:4318/health/ready`).
+- **"Different builds" under your name in the account menu:** the extension and the API come from different commits, shown as two short commit IDs (`?` for an API older than this check). Restart the API from the checkout the extension was built from, or rebuild and reload the extension; `GET http://127.0.0.1:4318/health/live` names the API's version, commit and whether its checkout had uncommitted changes.
 - **No capture menu:** open Vocabularium and sign in; make sure the extension is enabled and some text is selected.
 - **Capture received, but generation failed:** the receipt confirms capture only. Check each component's outcome on the saved page. Generation needs the owner's OpenCode Go key on the server.
 - **English Pronunciation has the wrong voice:** English speaks as `en`, so the voice decides the accent. Name one for its part in `ELEVENLABS_VOICES`, beside the others: `{"default":"<voice id>","english.pronunciation":"<voice id>"}` (a part without its own voice falls back to `en`, then `default`), and restart the API. The entries `english-british.pronunciation` and `english-american.pronunciation` of 0.16.4 and earlier are no longer read.

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { captureMenu, captureMenuTitle } from '../extension/context-menu.js';
 import { captureRuntime } from '../extension/capture.js';
 import { countedBefore } from '../extension/placing.ts';
+import { buildMismatch } from '../extension/builds.js';
 
 function menuAPI() {
   const items = new Map();
@@ -324,4 +325,16 @@ test('a module added or moved before a card is placed among the cards the server
   assert.equal(countedBefore(ids, 'b', new Set(['b'])), 1);
   // A card moved down from the top leaves its old place.
   assert.equal(countedBefore(ids, 'd', new Set(['a'])), 2);
+});
+
+test('the account menu names both builds only when the extension and the API come from different commits', () => {
+  const stamp = (/** @type {string} */ commit) => ({ version: '0.16.6', commit, dirty: false });
+  const a = 'a'.repeat(40), b = 'b'.repeat(40);
+  assert.equal(buildMismatch(undefined), null);
+  assert.equal(buildMismatch({ extension: stamp(a), api: stamp(a) }), null);
+  assert.equal(buildMismatch({ extension: { ...stamp(a), dirty: true }, api: stamp(a) }), null, 'uncommitted changes on one side alone are not a different commit');
+  assert.equal(buildMismatch({ extension: stamp('unknown'), api: stamp(b) }), null, 'an unbundled extension knows no commit');
+  assert.deepEqual(buildMismatch({ extension: stamp(a), api: stamp(b) }), { api: 'bbbbbbb', extension: 'aaaaaaa' });
+  assert.deepEqual(buildMismatch({ extension: stamp(a), api: null }), { api: '?', extension: 'aaaaaaa' }, 'an API older than the stamp sends none');
+  assert.deepEqual(buildMismatch({ extension: stamp(a), api: stamp('unknown') }), { api: 'unknown', extension: 'aaaaaaa' });
 });

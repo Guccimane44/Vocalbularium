@@ -1,7 +1,7 @@
 // @ts-check
 import { discardRetiredData, readLocal } from './recovery.js';
 import { saveOperations } from './save-operations.js';
-import { API_URL } from './config.js';
+import { API_URL, BUILD } from './config.js';
 import { captureRuntime } from './capture.js';
 import { captureMenu } from './context-menu.js';
 import { captureBadge } from './badge.js';
@@ -54,8 +54,11 @@ export function startBackground() {
       try {
         const summary = await request('/api/account/summary', null, auth.token);
         const recent = await request('/api/captures/recent', null, auth.token);
-        // The account menu names the server the extension is signed in to (D23).
-        account = { ...summary, recentPages: recent.pages, server: new URL(API_URL).host };
+        // An API older than the build stamp sends none: the menu then shows its commit as unknown.
+        const health = await request('/health/live').catch(() => null);
+        // The account menu names the server the extension is signed in to (D23),
+        // and both builds when they come from different commits (builds.js).
+        account = { ...summary, recentPages: recent.pages, server: new URL(API_URL).host, builds: { extension: BUILD, api: health?.build ?? null } };
       }
       catch (/** @type {any} */ error) {
         if (version !== accessVersion) return { signedIn: false };
@@ -104,7 +107,7 @@ export function startBackground() {
     const started = performance.now();
     const diagnosticRoute = path.startsWith('/api/diagnostics/');
     // Polls, the audio list included (D24), are not worth a log line each.
-    const meaningful = !diagnosticRoute && path !== '/api/poll' && !path.endsWith('/audio') && !['/api/account/summary', '/api/captures/recent'].includes(path);
+    const meaningful = !diagnosticRoute && path !== '/api/poll' && !path.endsWith('/audio') && !['/api/account/summary', '/api/captures/recent', '/health/live'].includes(path);
     const metadata = { operationId: body?.operationId, pageId: body?.payload?.pageId,
       componentId: body?.payload?.target?.componentId, attemptId: body?.payload?.attemptId, method: body ? 'POST' : 'GET', route: path.split('?')[0] };
     diagnostics.addSecret(token);

@@ -1,4 +1,5 @@
 // @ts-check
+import { sourceStamp } from './source-stamp.mjs';
 import { StoreError } from '../core/store.mjs';
 import { isModuleType } from '@vocabularium/domain/page-modules';
 import { mainKeyOf } from '@vocabularium/domain/pages';
@@ -53,9 +54,9 @@ function routeSchema(summary, body, { publicRoute = false, success = JsonObjectS
 async function healthReply(store, reply) {
   try {
     await store.ready();
-    return { ok: true };
+    return { ok: true, build: sourceStamp() };
   } catch {
-    return reply.code(503).send({ ok: false });
+    return reply.code(503).send({ ok: false, build: sourceStamp() });
   }
 }
 
@@ -66,7 +67,7 @@ export function registerRoutes(fastify, { store, authentication, generation, aud
       summary: 'Check whether the API process is running', tags: ['health'], security: [],
       response: { 200: HealthResponseSchema }
     }
-  }, async () => ({ ok: true }));
+  }, async () => ({ ok: true, build: sourceStamp() }));
 
   fastify.get('/health/ready', {
     schema: {

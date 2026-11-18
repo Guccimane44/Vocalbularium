@@ -1,4 +1,5 @@
 // @ts-check
+import { buildMismatch } from './builds.js';
 import { deckColour } from './deck-colour.ts';
 import { preferredLanguage, isOffered, LANGUAGES, onLanguageChange, t } from './i18n.ts';
 /** @import { ViewDeck } from '../types/extension.js' */
@@ -317,14 +318,15 @@ const initial = name => (name.trim()[0] ?? '?').toLocaleUpperCase();
 // trigger shows the account's initial, name and server; the menu opens upward
 // over it with Appearance as three icons on one row, the Language row,
 // Diagnostic logs and Log out, each row with its icon.
-/** @param {HTMLElement} root @param {{ username?: string, server?: string, logOut: () => void, diagnostics: () => void, chooseLanguage: (language: InterfaceLanguage) => Promise<unknown> }} options */
-export function renderAccountMenu(root, { username, server, logOut, diagnostics, chooseLanguage }) {
-  // An API older than 0.13.3 sends no name: the trigger then reads Account.
-  const name = username || t('account.menu');
+/** @param {HTMLElement} root @param {{ username?: string, server?: string, builds?: Parameters<typeof buildMismatch>[0], logOut: () => void, diagnostics: () => void, chooseLanguage: (language: InterfaceLanguage) => Promise<unknown> }} options */
+export function renderAccountMenu(root, { username, server, builds, logOut, diagnostics, chooseLanguage }) {
+  const mismatch = buildMismatch(builds);
+  const stamp = `${preferredLanguage()}:${name0(username)}:${server}:${mismatch?.api}:${mismatch?.extension}`;
+  const name = name0(username);
   // Built once per sign-in, so a periodic rerender never moves a focused control; only the name follows.
   const built = /** @type {HTMLElement | null} */ (root.querySelector('.account-menu'));
   if (built) {
-    if (built.dataset.username !== `${preferredLanguage()}:${name}:${server}`) fillIdentity(built, name, Boolean(username), server);
+    if (built.dataset.username !== stamp) fillIdentity(built, name, Boolean(username), server, mismatch, stamp);
     return;
   }
   {
@@ -332,7 +334,7 @@ export function renderAccountMenu(root, { username, server, logOut, diagnostics,
     const trigger = element('button', undefined, 'account-trigger');
     trigger.type = 'button'; trigger.setAttribute('aria-expanded', 'false'); trigger.setAttribute('aria-controls', 'account-panel');
     const who = element('span', undefined, 'account-who');
-    who.append(element('span', undefined, 'account-name'), element('span', undefined, 'account-server'));
+    who.append(element('span', undefined, 'account-name'), element('span', undefined, 'account-server'), element('span', undefined, 'account-build'));
     trigger.append(element('span', undefined, 'account-avatar'), who, icon(ICONS.updown));
     const panel = element('div', undefined, 'account-panel');
     panel.id = 'account-panel'; panel.hidden = true;
@@ -356,17 +358,22 @@ export function renderAccountMenu(root, { username, server, logOut, diagnostics,
     main.append(themeControl(), row, action('account.diagnostics', ICONS.diagnostics, diagnostics), rule, action('account.logOut', ICONS.logOut, logOut));
     panel.append(main, list);
     menu.append(panel, trigger);
-    fillIdentity(menu, name, Boolean(username), server);
+    fillIdentity(menu, name, Boolean(username), server, mismatch, stamp);
     root.replaceChildren(menu);
   }
 }
 
-// The trigger's name and server; the worker, which holds the API origin, names the server.
-// The menu has each of these parts (renderAccountMenu).
-/** @param {HTMLElement} menu @param {string} name @param {boolean} known @param {string | undefined} server */
-function fillIdentity(menu, name, known, server) {
-  menu.dataset.username = `${preferredLanguage()}:${name}:${server}`;
+// An API older than 0.13.3 sends no name: the trigger then reads Account.
+/** @param {string | undefined} username */
+const name0 = username => username || t('account.menu');
+
+// The trigger's name and server, and both builds when they differ; the worker,
+// which holds the API origin, names the server. The menu has each of these parts (renderAccountMenu).
+/** @param {HTMLElement} menu @param {string} name @param {boolean} known @param {string | undefined} server @param {ReturnType<typeof buildMismatch>} mismatch @param {string} stamp */
+function fillIdentity(menu, name, known, server, mismatch, stamp) {
+  menu.dataset.username = stamp;
   /** @type {HTMLElement} */ (menu.querySelector('.account-server')).textContent = server ?? '';
+  /** @type {HTMLElement} */ (menu.querySelector('.account-build')).textContent = mismatch ? t('account.buildMismatch', mismatch) : '';
   const avatar = /** @type {HTMLElement} */ (menu.querySelector('.account-avatar'));
   avatar.textContent = initial(name); avatar.setAttribute('aria-hidden', 'true');
   /** @type {HTMLElement} */ (menu.querySelector('.account-name')).textContent = name;
