@@ -39,7 +39,7 @@ A working-process decision; it gets a Notion decision record (System area) for t
 
 - **Specifications** describe today's behaviour only, `pages-and-editing.md` and `modules.md` first: phrasings of what changed when, and descriptions of retired features, are removed. Decision references stay where a reader needs the rationale, as one link, not as history.
 - **Scope** opens with what is supported; the release-by-release paragraphs go, since the ledger rows and git already carry them. The upgrade notes stay.
-- **Traceability map:** one line per decision (ID, date, one-sentence summary, affected documents, Notion link, status); each entry's full text moves to its own file beside the map, as [D17](../architecture/decisions/d17-one-request.md) and [D20](../architecture/decisions/d20-module-pages.md) already have.
+- **Traceability map:** one line per decision (ID, date, one-sentence summary, affected documents, Notion link, status); each entry's full text moves to its own file beside the map, as [D17](../decisions/d17-one-request.md) and [D20](../decisions/d20-module-pages.md) already have.
 - **Finished plans** move to `docs/history/plans/`; `docs/plans/` holds only live plans.
 - **Scope check:** every capability marked `implemented` is checked against the code.
 
@@ -49,7 +49,7 @@ A working-process decision; it gets a Notion decision record (System area) for t
 - No German or Chinese name remains outside their catalog folders and test fixtures. The default deck (`src/core/store.mjs`, `extension/configuration.tsx`) keeps German but reads its facets from the catalog.
 - An upgrade test shows that pages stored by 0.14.0 read unchanged.
 
-A contract change; it gets a traceability-map entry and the owner's acceptance before it is applied.
+A contract change; it gets a decision file in `docs/decisions/` and the owner's acceptance before it is applied.
 
 ### D. Conformance driven by the catalog
 
@@ -78,7 +78,7 @@ The full unit and browser suites, CI green, and the first owner review packet in
 3. A database written by 0.14.0 reads and edits unchanged under 0.15.0.
 4. `AGENTS.md` lets a new session find where a facet is defined, prompted, stored, shown and tested without searching.
 5. Specifications describe no retired feature and say nothing of what changed when; the scope ledger starts with what is supported.
-6. The traceability map has one line per decision, and `docs/plans/` holds only live plans.
+6. Each decision keeps its status in its own file, and `docs/plans/` holds only live plans.
 7. No source or test file exceeds about 30 KB, and the browser suite runs the same number of tests as before the split.
 8. The current documents total well under half their present 97,000 words, with every relative link resolving.
 

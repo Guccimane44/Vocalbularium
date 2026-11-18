@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  issues: read
 
 jobs:
   foundation:
@@ -22,6 +23,11 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check
+      - name: Check that each issue-numbered decision has its issue
+        if: runner.os == 'Linux'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/check-decision-issues.mjs
       - name: Check that the committed OpenAPI reference is current
         if: runner.os == 'Linux'
         run: npm run openapi && git diff --exit-code docs/api/openapi.json

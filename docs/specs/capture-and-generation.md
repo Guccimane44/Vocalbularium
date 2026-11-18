@@ -6,7 +6,7 @@ This document is the authoritative source for detailed component completion, fai
 
 ## Status
 
-These rules describe the deck → page → component model (Q72, the owner's answer of 10 October 2026) with page-owned modules ([D02](../architecture/decisions/d02.md)); [current scope](../product/scope.md) records which parts are implemented. [Pages and editing](pages-and-editing.md) owns main key, Context, and component editing; [decks and configuration](decks-and-configuration.md) owns the template new pages start from.
+These rules describe the deck → page → component model (Q72, the owner's answer of 10 October 2026) with page-owned modules ([D02](../decisions/d02.md)); [current scope](../product/scope.md) records which parts are implemented. [Pages and editing](pages-and-editing.md) owns main key, Context, and component editing; [decks and configuration](decks-and-configuration.md) owns the template new pages start from.
 
 ## Availability and default deck
 
@@ -54,7 +54,7 @@ This transient popup is separate from the dashboard and from confirmation dialog
 
 ## Input interpretation
 
-There is no interpretation shared by the run ([D17](../architecture/decisions/d17.md)). Each attempt reads the main key and Context in its own request and records its reading as the core's flags, such as word or sentence for a Languages parent, which its card's header shows ([pages and editing](pages-and-editing.md#required-main-key)). No reading chooses a source language for the page: each parent reads the language from the key and Context. Target languages are defined by the parent modules, not by a fixed language-pair setting for the deck. A failed attempt fails only its own component.
+There is no interpretation shared by the run ([D17](../decisions/d17.md)). Each attempt reads the main key and Context in its own request and records its reading as the core's flags, such as word or sentence for a Languages parent, which its card's header shows ([pages and editing](pages-and-editing.md#required-main-key)). No reading chooses a source language for the page: each parent reads the language from the key and Context. Target languages are defined by the parent modules, not by a fixed language-pair setting for the deck. A failed attempt fails only its own component.
 
 The reading and applicability rules are defined in the [Modules specification](modules.md#input-and-applicability).
 
@@ -131,9 +131,9 @@ For the whole page:
 - **Cancel** leaves the page unchanged.
 - **Confirm** discards the targeted components' current content and starts a fresh attempt for each. Previous edits and generated output are not preserved or merged into the replacement. If an attempt fails, its component stays empty with a failure indicator; the discarded content is not restored.
 
-Retry uses the page's current saved main key and Context and its content module instances at confirmation time. Each retry generates anew from them: nothing from an earlier attempt is reused ([D28](../architecture/decisions/d28.md)), and generated content is never cached. A retry generates the parent's core and every facet it currently has, including facets added since its last attempt, and never a facet the user deleted.
+Retry uses the page's current saved main key and Context and its content module instances at confirmation time. Each retry generates anew from them: nothing from an earlier attempt is reused ([D28](../decisions/d28.md)), and generated content is never cached. A retry generates the parent's core and every facet it currently has, including facets added since its last attempt, and never a facet the user deleted.
 
-<a id="keeping-the-reading"></a>**A Retry starts over** ([D28](../architecture/decisions/d28.md), from 0.16.3; it kept the reading from 0.12.2 to 0.16.2, [D19](../architecture/decisions/d19.md)). A Retry of a content card, alone or as part of the whole page's Retry, sends the same request as the card's first attempt: the main key, its Context and the instance. Nothing from the card goes with it, neither its core nor the user's edits, so the model reads the key afresh, whatever the card held or whatever main key it was written for. To keep the reading and write the meanings again, the user retries the core alone ([below](#retrying-the-core)).
+<a id="keeping-the-reading"></a>**A Retry starts over** ([D28](../decisions/d28.md)). A Retry of a content card, alone or as part of the whole page's Retry, sends the same request as the card's first attempt: the main key, its Context and the instance. Nothing from the card goes with it, neither its core nor the user's edits, so the model reads the key afresh, whatever the card held or whatever main key it was written for. To keep the reading and write the meanings again, the user retries the core alone ([below](#retrying-the-core)).
 
 ### Retrying one facet
 
@@ -145,7 +145,7 @@ Each facet of a parent component has its own **Retry** beside its label ([pages 
 - **Failure.** A failed or interrupted facet attempt leaves the content and the component's state as they were before it, and the facet's tag says its Retry failed until the component's next attempt. A facet that was waiting still waits.
 - **Spoken facets.** A Pronunciation facet's **Retry** writes its lines again for the saved core, then speaks every line anew. A whole component's **Retry** does the same for every spoken part it has.
 
-<a id="retrying-the-core"></a>**Retrying the core** ([D28](../architecture/decisions/d28.md), 0.16.3). The core has its own **Retry** beside its Edit, at the end of its top line. It keeps the card's reading and writes the core's text again: a Languages card's meanings (and its context meaning, D29), an Expertise card's explanation.
+<a id="retrying-the-core"></a>**Retrying the core** ([D28](../decisions/d28.md)). The core has its own **Retry** beside its Edit, at the end of its top line. It keeps the card's reading and writes the core's text again: a Languages card's meanings (and its context meaning, D29), an Expertise card's explanation.
 
 - **Asking.** As a facet's: "Are you sure?", with a final **Retry** and **Cancel**, in place of the core's Edit and Retry.
 - **Input.** The attempt sends the module's core prompt, then its `reading.prompt.md`, with the saved core (edits included) as `previous`, and asks for no facet. The model copies the flags and the key as given.

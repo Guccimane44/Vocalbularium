@@ -4,7 +4,7 @@
 
 This document defines Vocabularium's core concepts and their fundamental relationships. It is a conceptual model, not a database schema or a workflow specification. [Scope](scope.md) identifies current capability limits; [vision](vision.md) describes possible future uses.
 
-The model below is the deck → page → component model (Q72, the owner's answer of 10 October 2026), with page-owned modules ([D02](../architecture/decisions/d02.md)) and content modules as parent modules with facets ([D08](../architecture/decisions/d08.md)). [Current scope](scope.md) lists what is supported. [Earlier terms](#earlier-terms) maps the vocabulary of earlier builds.
+The model below is the deck → page → component model (Q72, the owner's answer of 10 October 2026), with page-owned modules ([D02](../decisions/d02.md)) and content modules as parent modules with facets ([D08](../decisions/d08.md)). [Current scope](scope.md) lists what is supported. [Earlier terms](#earlier-terms) maps the vocabulary of earlier builds.
 
 ## Account
 
@@ -32,7 +32,7 @@ The main key and the optional Context are the only text inputs for module genera
 
 **Captured input** describes the text originally supplied through capture. Capture is an input origin, not a prerequisite for generation. The original selection does not override an edited main key on subsequent generation. Capture may also supply an optional **Context** (the surrounding block, capped): a stored input aid for reading the key, not a semantic referent — see the direction note below.
 
-A **reading** is how a content module understands the main key in one attempt: whether it is a word or phrase, or a sentence, its language and, where a module needs them, further decisions such as a German word's grammatical role. Each module reads the key in its own request and records the reading as **flags** in its core; no reading is shared by a run, and none is reused from an earlier main key. It does not choose a source language for the page: the language of a key is often ambiguous, so each parent module reads it from the key and Context ([D17](../architecture/decisions/d17.md)). The [module specification](../specs/modules.md#input-and-applicability) defines the rules.
+A **reading** is how a content module understands the main key in one attempt: whether it is a word or phrase, or a sentence, its language and, where a module needs them, further decisions such as a German word's grammatical role. Each module reads the key in its own request and records the reading as **flags** in its core; no reading is shared by a run, and none is reused from an earlier main key. It does not choose a source language for the page: the language of a key is often ambiguous, so each parent module reads it from the key and Context ([D17](../decisions/d17.md)). The [module specification](../specs/modules.md#input-and-applicability) defines the rules.
 
 ### Direction: semantic continuity
 
@@ -66,7 +66,7 @@ Modules have three kinds:
 
 A **module type** defines one focused way to contribute content, such as displaying the selected text or generating an explanation. Some types use generative AI; others display input directly.
 
-A **parent module** has a required **core**, which applies to every word, phrase, and sentence, and **facets**: optional parts that each add one kind of content to the core, such as an article or examples. Each facet belongs to one parent module type, which fixes the order facets appear in. A facet exists only inside a parent of its type and is not a module instance. Variety comes from more parent types, not from options on a facet. The core is itself a facet, the first of every parent and one that cannot be removed, and a parent owns all its facets: two parents never share one, however alike, such as German and Chinese Examples ([D11](../architecture/decisions/d11.md)). Input modules have no facets yet, but may gain them.
+A **parent module** has a required **core**, which applies to every word, phrase, and sentence, and **facets**: optional parts that each add one kind of content to the core, such as an article or examples. Each facet belongs to one parent module type, which fixes the order facets appear in. A facet exists only inside a parent of its type and is not a module instance. Variety comes from more parent types, not from options on a facet. The core is itself a facet, the first of every parent and one that cannot be removed, and a parent owns all its facets: two parents never share one, however alike, such as German and Chinese Examples ([D11](../decisions/d11.md)). Input modules have no facets yet, but may gain them.
 
 A module's purpose, applicable inputs, supported options, and output behavior are product-defined. The [module specification](../specs/modules.md) describes the current catalog and the design contract for future additions. The **module catalog** defines every module type once, grouped by family, with its facets and their prompts ([generation architecture](../architecture/generation.md#module-catalog)). A module can serve different subjects or languages within its applicability; it need not apply to every input.
 
@@ -140,6 +140,6 @@ Use this mapping when reading history, releases, issues, and code that predate t
 | card view page, karte view page | opening a page ("Open page") |
 | card content page, karte content page | page editor |
 | manual component (0.4.x) | Text component, owned by a Text module (0.5.0) |
-| content module type with one modality (`German explanation`, `German explanation + examples`, `Sentence usage`) | parent module with a core and facets ([D08](../architecture/decisions/d08.md)) |
+| content module type with one modality (`German explanation`, `German explanation + examples`, `Sentence usage`) | parent module with a core and facets ([D08](../decisions/d08.md)) |
 
 The 0.3.0+ [terminology plan](../history/plans/v0.3.0-plus-terminology-migration.md) and [compatibility record](../history/architecture/terminology-compatibility.md) describe the earlier migration and are historical.
