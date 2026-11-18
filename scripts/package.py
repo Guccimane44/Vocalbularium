@@ -19,6 +19,11 @@ variant = 'local' if urlparse(origin).hostname in ('127.0.0.1', 'localhost') els
 version = manifest['version']
 if not re.fullmatch(r'\d+(\.\d+){1,3}', version):
     raise SystemExit('The extension version is invalid.')
+release = root / 'docs' / 'releases' / f'{version}.md'
+if not release.is_file():
+    raise SystemExit(f'Write docs/releases/{version}.md before packaging.')
+if f'releases/{version}.md' not in (root / 'docs' / 'guides' / 'install.md').read_text():
+    raise SystemExit(f'Point docs/guides/install.md at docs/releases/{version}.md before packaging.')
 archive = root / 'artifacts' / f'vocabularium-{version}-{variant}-candidate.zip'
 revision = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=root, text=True).strip()
 dirty = bool(subprocess.check_output(['git', 'status', '--porcelain'], cwd=root, text=True).strip())
@@ -31,6 +36,7 @@ with zipfile.ZipFile(archive, 'w', compression=zipfile.ZIP_DEFLATED) as output:
                 raise SystemExit(f'Unexpected extension file: {path.name}')
             output.write(path, Path('extension') / path.relative_to(extension))
     output.write(root / 'docs' / 'guides' / 'install.md', 'INSTALL.md')
+    output.write(release, 'RELEASE.md')
     output.writestr('package-info.json', json.dumps(metadata, indent=2) + '\n')
 with zipfile.ZipFile(archive) as package:
     if package.testzip() is not None:

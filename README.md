@@ -12,7 +12,7 @@ The product uses deck → page → component. A page holds a main key, optional 
 - [Local PostgreSQL setup](docs/architecture/local-postgresql.md) and [diagnostic logs](docs/guides/diagnostics.md)
 - [History](docs/history/): the MVP, the Render deployment, Windows delivery, and finished plans
 
-Each release states what its upgrade keeps and what it changes in [scope's upgrade section](docs/product/scope.md#upgrade-from-earlier-builds). Back up the database, install the updated backend and run its reviewed migrations, then update the extension; backend and extension upgrade together.
+Each release states what its upgrade keeps and what it changes in its file under [docs/releases](docs/releases/README.md). Back up the database, install the updated backend and run its reviewed migrations, then update the extension; backend and extension upgrade together.
 
 ## Account and dashboard
 

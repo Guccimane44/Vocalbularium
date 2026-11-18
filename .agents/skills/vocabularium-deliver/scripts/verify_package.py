@@ -44,7 +44,7 @@ def verify_package(archive, expected_origin, expected_revision):
         require(package.testzip() is None, 'Archive integrity check failed.')
         names = package.namelist()
         require(len(names) == len(set(names)), 'Archive contains duplicate entries.')
-        required = {'package-info.json', 'INSTALL.md', 'extension/manifest.json', 'extension/config.js'}
+        required = {'package-info.json', 'INSTALL.md', 'RELEASE.md', 'extension/manifest.json', 'extension/config.js'}
         require(required.issubset(names), 'Archive is missing required package files.')
         for member in package.infolist():
             path = PurePosixPath(member.filename)
@@ -56,7 +56,7 @@ def verify_package(archive, expected_origin, expected_revision):
             # and their licences in extension/fonts/.
             is_font = (path.suffix == '.woff2' and path.parent == PurePosixPath('extension/assets')) or (
                 path.suffix == '.txt' and path.parent == PurePosixPath('extension/fonts') and path.name.startswith('LICENSE-'))
-            require(member.filename in {'package-info.json', 'INSTALL.md'}
+            require(member.filename in {'package-info.json', 'INSTALL.md', 'RELEASE.md'}
                     or (is_extension and path.suffix in {'.js', '.json', '.html', '.css'}) or is_font,
                     'Archive contains a file outside the current extension package format.')
             content = package.read(member)
@@ -72,6 +72,8 @@ def verify_package(archive, expected_origin, expected_revision):
         version = metadata.get('version')
         require(isinstance(version, str) and re.fullmatch(r'\d+(\.\d+){1,3}', version), 'Package version is invalid.')
         require(manifest.get('version') == version, 'Package and extension versions differ.')
+        require(package.read('RELEASE.md').decode().startswith(f'# Vocabularium {version}\n'),
+                'RELEASE.md is not the release notes for this version.')
         origin = metadata.get('serverOrigin')
         parts = origin_parts(origin)
         require(origin == expected_origin, 'Package server origin differs from the expected origin.')
