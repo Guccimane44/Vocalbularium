@@ -39,7 +39,9 @@ Read `.github/workflows/verify.yml` for required CI. Database/browser suites cur
 
 Read the failing assertion and logs before rerunning. Distinguish a product regression, environment failure, and a test that observes the wrong state. The reliability scenario intentionally controls worker wake sources and waits for successful publication receipts to clear; preserve what those assertions prove. Do not remove lifecycle evidence or extend timeouts just to obtain green CI.
 
-If a transient infrastructure/timing failure is supported by evidence, retry the failed job once. A repeated identical failure needs investigation or an explicit blocker. Wait for checks on the actual PR head; green checks for a predecessor do not verify later edits. Stop broad reruns after the relevant checks pass unless new changes or unresolved concerns justify them.
+`npm run test:browser` (`scripts/browser-tests.mjs`) runs each journey file on its own and runs a failed file once more. A file that then passes still fails the run, named as failing at random; a file that fails twice is named as failing every time. Treat a test that fails at random as a race to find, in the product or the test: the editing journey's "Chinese added" timeout was a real race in the product (#315). Do not rerun CI until it is green. `npm run test:browser -- <file>…` runs only those files.
+
+If a transient infrastructure failure outside the tests (a runner or package download) is supported by evidence, retry the failed job once. A repeated identical failure needs investigation or an explicit blocker. `main` requires every job of `verify.yml` to pass on a branch that is up to date with `main`; never merge with `--admin` to get past it. Wait for checks on the actual PR head; green checks for a predecessor do not verify later edits. Stop broad reruns after the relevant checks pass unless new changes or unresolved concerns justify them.
 
 ## Live checks are a separate mode
 
