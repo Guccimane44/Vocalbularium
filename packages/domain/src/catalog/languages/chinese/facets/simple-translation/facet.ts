@@ -1,7 +1,8 @@
 import { defineFacet, escapeMarkdown, hasScript, list, numbered, text } from '../../../../blocks.js';
 import { traditionalIn } from '../../simplified.js';
 
-// The core again in simple Chinese (0.16.4), in simple words a beginner knows:
+// The core again in simple Chinese (0.16.4), in simple words a beginner knows
+// (owner, 8 November 2026: no fixed HSK level):
 // for a word one line per meaning, `contextual` first, in the core's order;
 // for a sentence one line. Several lines are numbered so the reader can match
 // them to the meanings; a single line is plain text.

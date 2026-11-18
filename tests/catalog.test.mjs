@@ -279,3 +279,33 @@ test('English tells no variety apart: no request, check or module text names Bri
   assert.doesNotMatch(`${english.label} ${english.description}`, /american|british/i);
   assert.deepEqual(MODULE_IDS.filter(id => id.startsWith('english')), ['english']);
 });
+
+// What a module folder holds (docs/specs/modules.md#what-a-module-folder-holds):
+// the catalog folder is the only source for a module (D25), so a folder that
+// lacks one of its parts fails here rather than in a page or a request.
+test('every module folder holds the parts the modules spec requires', () => {
+  const has = path => existsSync(new URL(path, SRC));
+  const others = LANGUAGE_CODES.filter(language => language !== 'en');
+  const missing = [];
+  const need = (path, owner) => { if (!has(path)) missing.push(`${owner}: ${path}`); };
+  for (const family of CATALOG_FAMILIES) {
+    for (const file of ['family.ts', 'about.json', ...others.map(language => `about.${language}.json`)]) need(`${family.folder}/${file}`, family.id);
+  }
+  for (const id of MODULE_IDS) {
+    const module = MODULES[id];
+    const folder = folderOf(id);
+    need(`${folder}/module.ts`, id);
+    for (const language of others) need(`${folder}/names.${language}.json`, id);
+    if (id !== 'main-key') for (const file of ['about.json', ...others.map(language => `about.${language}.json`)]) need(`${folder}/${file}`, id);
+    if (id !== 'text') for (const language of LANGUAGE_CODES) need(`${folder}/samples/${language}.json`, id);
+    if (module.kind !== 'content') continue;
+    need(`${folder}/module.prompt.md`, id);
+    // A spoken module's card has no text for the judge to score.
+    if (!module.core.spoken) need(`${folder}/rubric.md`, id);
+    for (const file of ['facet.ts', 'core.prompt.md', 'reading.prompt.md']) need(`${folder}/facets/core/${file}`, id);
+    for (const facet of module.facets) {
+      for (const file of ['facet.ts', 'prompt.md', 'about.json', ...others.map(language => `about.${language}.json`)]) need(`${folder}/facets/${facet.id}/${file}`, `${id}.${facet.id}`);
+    }
+  }
+  assert.deepEqual(missing, []);
+});
