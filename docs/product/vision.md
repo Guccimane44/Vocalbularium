@@ -18,7 +18,7 @@ The central promise is:
 
 Language learning is one natural application of this generative knowledge-capture system. Translation is one possible contribution, and flashcard review is one possible interaction with a page. Neither language pairs nor memorization define the underlying product model.
 
-The [owner's competitor critique](competitor-critique.md) records the rationale behind this direction.
+The [owner's competitor critique](../history/competitor-critique.md) records the rationale behind this direction.
 
 ## Problems to solve
 
@@ -47,7 +47,7 @@ Feature accumulation can obscure a product's value. Vocabularium should grow thr
 
 ## UI/UX direction
 
-The visual identity is **Vocabularium Sage** ([D05](../architecture/traceability-map.md#entries)): a calm, Notion-like workspace on green-grey paper where each module is marked by a coloured index tab of its module family. The interface stays quiet so that captured text and module content carry the colour; motion is quick and physical; success is quiet and only work in progress or problems show. The direction is playful but grown-up, with Arc and Notion as references. Its values live in the [design system](https://claude.ai/artifact/6gmEs5nUHAzKCC4do39u9E), and the shared rules in the [shared UI specification](../specs/shared-ui.md#visual-identity). Release 0.6.0 builds it ([plan](../history/plans/visual-identity.md)); earlier releases used a functional foundation.
+The visual identity is **Vocabularium Sage** ([D05](../decisions/d05.md)): a calm, Notion-like workspace on green-grey paper where each module is marked by a coloured index tab of its module family. The interface stays quiet so that captured text and module content carry the colour; motion is quick and physical; success is quiet and only work in progress or problems show. The direction is playful but grown-up, with Arc and Notion as references. Its values live in the [design system](https://claude.ai/artifact/6gmEs5nUHAzKCC4do39u9E), and the shared rules in the [shared UI specification](../specs/shared-ui.md#visual-identity). Release 0.6.0 builds it ([plan](../history/plans/visual-identity.md)); earlier releases used a functional foundation.
 
 ## Long-term possibilities
 

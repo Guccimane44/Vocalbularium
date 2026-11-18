@@ -14,6 +14,10 @@ Clicking the extension button opens the dashboard in a Chrome tab when signed in
 
 Decks, their configurations, the default-deck choice, and saved pages belong to the account and persist across closing and reopening Chrome. Unsaved drafts, capture receipts awaiting saving, the theme, and page-list sort orders belong to the installation.
 
+## Browser sessions
+
+Each Chrome installation has one browser session at a time, named by the installation, an epoch that grows each time the browser starts, and a session ID. Opening a new session ends the previous one: any generation that session had in progress is marked failed. A request from an older epoch, or from another session ID at the same epoch, is rejected as `stale_session`, so a browser that has been restarted never sees a reply meant for its earlier run.
+
 ## Synchronization
 
 Open views refresh from the account every five seconds, and after each change the installation makes. Other installations' changes appear on the next refresh.

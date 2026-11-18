@@ -6,7 +6,7 @@ This replaces the earlier draft of the same day, which classified each key with 
 
 Background:
 
-- [D17](../architecture/decisions/d17.md): one text request per module, which this plan measures itself against
+- [D17](../decisions/d17.md): one text request per module, which this plan measures itself against
 - [Generation rounds experiment](../history/evidence/generation-rounds-experiment.md) and [Wiktionary experiment](../history/evidence/wiktionary-english-experiment.md)
 - The owner's local maps (not in the repository): facet dependencies, the headers and flags map, the capture-to-card walkthrough
 - [Step 2 plan](https://github.com/Guccimane44/Vocalbularium/blob/claude/catalog-dead-fields/docs/plans/step-2-flag-definitions.md): flag definitions and their declaration (on `claude/catalog-dead-fields`)

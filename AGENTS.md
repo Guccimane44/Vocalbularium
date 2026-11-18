@@ -45,7 +45,7 @@ alone decides (D25). The full rules are in the
 
 - Applied migrations never change; a schema change is a new migration (`npm run db:generate`). Upgrades keep accounts, sign-in, decks and pages unless the owner decides otherwise, and each release states its upgrade in [scope](docs/product/scope.md#upgrade-from-earlier-builds).
 - A mutation is idempotent by its operation ID. Provider calls never run inside a database transaction or the ordered executor.
-- One browser session per installation: an older epoch or another session ID is `stale_session`.
+- One browser session per installation ([accounts and sync](docs/specs/accounts-and-sync.md#browser-sessions)).
 - A parent's header (its top line) is written by generation and never edited by the user.
 - No interface text in code: English strings in `extension/locales/en/messages.json`, other languages beside them, a module's names in its folder. Arabic mirrors the layout.
 - No generated content is cached; a prompt change shows as a change to `tests/prompts/*.txt`.
@@ -82,6 +82,9 @@ documents define versioned product behavior and technical constraints;
 GitHub issues, PRs, CI, and release records hold implementation and delivery evidence.
 The [project workflow](docs/guides/project-workflow.md) says when to consult
 and update each, and when a change needs a decision of its own.
+A decision's ID is its GitHub issue number: its file is
+`docs/decisions/d<issue>-<short-name>.md`, or `d-draft-<slug>.md` until the
+issue exists; D01–D36 keep their names.
 
 Check approval, revision, environment, and completion scope before relying
 on a status. If Notion is unavailable, continue work that does not depend on
