@@ -6,6 +6,7 @@ import type { showFeedback as feedback } from '../extension/feedback.js';
 declare global {
   // Replaced by WXT's build (wxt.config.mjs); unset where the source runs unbundled, as in the tests.
   const __VOCABULARIUM_API_URL__: string | undefined;
+  const __VOCABULARIUM_BUILD__: { version: string, commit: string, dirty: boolean } | undefined;
   // WXT's auto-import in an entrypoint.
   const defineBackground: typeof wxtDefineBackground;
   // What the worker's entrypoint exposes on its global scope.

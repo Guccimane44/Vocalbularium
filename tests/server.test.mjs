@@ -7,6 +7,7 @@ import { join } from 'node:path';
 import { connect } from 'node:net';
 import { once } from 'node:events';
 import { loadConfig } from '../src/server/config.mjs';
+import { execFileSync } from 'node:child_process';
 
 async function fixture(t, options) {
   const application = await createTestApplication(t, options);
@@ -120,7 +121,7 @@ test('closing the server releases unused and in-flight keep-alive connections', 
   const started = Date.now();
   await application.close();
   assert.ok(Date.now() - started < 5000, `close took ${Date.now() - started} ms`);
-  assert.deepEqual(await (await pending).json(), { ok: true });
+  assert.equal((await (await pending).json()).ok, true);
 });
 
 test('invalid commands and untrusted webpage origins cannot alter account data', async (t) => {
@@ -165,9 +166,9 @@ test('Fastify publishes route contracts and request IDs on health responses', as
   const { url, application } = await fixture(t);
   const live = await fetch(url + '/health/live');
   assert.equal(live.status, 200);
-  assert.deepEqual(await live.json(), { ok: true });
+  assert.equal((await live.json()).ok, true);
   assert.match(live.headers.get('x-request-id'), /^[\da-f-]{36}$/);
-  assert.deepEqual(await (await fetch(url + '/health/ready')).json(), { ok: true });
+  assert.equal((await (await fetch(url + '/health/ready')).json()).ok, true);
 
   const document = await application.openapi();
   assert.equal(document.info.version, '0.16.6');
@@ -201,4 +202,18 @@ test('expired authentication is rejected before malformed JSON or route validati
   }, body: '{malformed' });
   assert.equal(result.status, 401);
   assert.equal((await result.json()).code, 'unauthorized');
+});
+
+test('health names the commit the API runs from, so the extension can tell a different build', async (t) => {
+  const { url } = await fixture(t);
+  const head = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+  const { version } = JSON.parse(execFileSync('git', ['show', 'HEAD:package.json'], { encoding: 'utf8' }));
+  for (const path of ['/health/live', '/health/ready', '/health']) {
+    const { status, data } = await call(url, path);
+    assert.equal(status, 200, path);
+    assert.equal(data.ok, true, path);
+    assert.equal(data.build.commit, head, path);
+    assert.equal(data.build.version, version, path);
+    assert.equal(typeof data.build.dirty, 'boolean', path);
+  }
 });

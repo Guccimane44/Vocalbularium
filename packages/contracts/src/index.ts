@@ -20,7 +20,14 @@ export const ApiFailureSchema = Type.Object({
   code: Type.String({ minLength: 1 }),
   details: Type.Optional(Type.Record(Type.String(), Type.Unknown()))
 }, { additionalProperties: false });
-export const HealthResponseSchema = Type.Object({ ok: Type.Boolean() }, { additionalProperties: false });
+// The source the running API came from (src/server/source-stamp.mjs): the
+// extension compares it with its own and warns when they differ.
+export const SourceStampSchema = Type.Object({
+  version: Type.String(),
+  commit: Type.String({ minLength: 1 }),
+  dirty: Type.Boolean()
+}, { additionalProperties: false });
+export const HealthResponseSchema = Type.Object({ ok: Type.Boolean(), build: Type.Optional(SourceStampSchema) }, { additionalProperties: false });
 export const LoginResponseSchema = Type.Object({
   token: Type.String({ minLength: 1 }),
   expiresAt: Type.Integer()
@@ -97,6 +104,7 @@ export type InputType = Type.Static<typeof InputTypeSchema>;
 export type BrowserSession = Type.Static<typeof BrowserSessionSchema>;
 export type ApiFailure = Type.Static<typeof ApiFailureSchema>;
 export type HealthResponse = Type.Static<typeof HealthResponseSchema>;
+export type SourceStamp = Type.Static<typeof SourceStampSchema>;
 export type LoginResponse = Type.Static<typeof LoginResponseSchema>;
 export type MutationOutcome = Type.Static<typeof MutationOutcomeSchema>;
 export type PendingMutation = Type.Static<typeof PendingMutationSchema>;

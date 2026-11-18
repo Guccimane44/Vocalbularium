@@ -230,6 +230,7 @@
   "nav.newDeck": "+ 新建卡组",
   "account.menu": "账户",
   "account.menuFor": "账户：{name}",
+  "account.buildMismatch": "版本不一致：API {api}，扩展 {extension}",
   "account.diagnostics": "诊断日志",
   "account.logOut": "退出登录",
   "login.title": "欢迎回来。",

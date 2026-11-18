@@ -35,6 +35,27 @@
                   "properties": {
                     "ok": {
                       "type": "boolean"
+                    },
+                    "build": {
+                      "type": "object",
+                      "required": [
+                        "version",
+                        "commit",
+                        "dirty"
+                      ],
+                      "properties": {
+                        "version": {
+                          "type": "string"
+                        },
+                        "commit": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "dirty": {
+                          "type": "boolean"
+                        }
+                      },
+                      "additionalProperties": false
                     }
                   },
                   "additionalProperties": false
@@ -65,6 +86,27 @@
                   "properties": {
                     "ok": {
                       "type": "boolean"
+                    },
+                    "build": {
+                      "type": "object",
+                      "required": [
+                        "version",
+                        "commit",
+                        "dirty"
+                      ],
+                      "properties": {
+                        "version": {
+                          "type": "string"
+                        },
+                        "commit": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "dirty": {
+                          "type": "boolean"
+                        }
+                      },
+                      "additionalProperties": false
                     }
                   },
                   "additionalProperties": false
@@ -84,6 +126,27 @@
                   "properties": {
                     "ok": {
                       "type": "boolean"
+                    },
+                    "build": {
+                      "type": "object",
+                      "required": [
+                        "version",
+                        "commit",
+                        "dirty"
+                      ],
+                      "properties": {
+                        "version": {
+                          "type": "string"
+                        },
+                        "commit": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "dirty": {
+                          "type": "boolean"
+                        }
+                      },
+                      "additionalProperties": false
                     }
                   },
                   "additionalProperties": false
@@ -114,6 +177,27 @@
                   "properties": {
                     "ok": {
                       "type": "boolean"
+                    },
+                    "build": {
+                      "type": "object",
+                      "required": [
+                        "version",
+                        "commit",
+                        "dirty"
+                      ],
+                      "properties": {
+                        "version": {
+                          "type": "string"
+                        },
+                        "commit": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "dirty": {
+                          "type": "boolean"
+                        }
+                      },
+                      "additionalProperties": false
                     }
                   },
                   "additionalProperties": false
@@ -133,6 +217,27 @@
                   "properties": {
                     "ok": {
                       "type": "boolean"
+                    },
+                    "build": {
+                      "type": "object",
+                      "required": [
+                        "version",
+                        "commit",
+                        "dirty"
+                      ],
+                      "properties": {
+                        "version": {
+                          "type": "string"
+                        },
+                        "commit": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "dirty": {
+                          "type": "boolean"
+                        }
+                      },
+                      "additionalProperties": false
                     }
                   },
                   "additionalProperties": false

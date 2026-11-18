@@ -166,6 +166,7 @@ async function render() {
   renderAccountMenu(accountRoot(), {
     username: /** @type {ViewAccount} */ (account)?.username,
     server: /** @type {ViewAccount} */ (account)?.server,
+    builds: /** @type {ViewAccount} */ (account)?.builds,
     logOut: async () => {
       try { if (!await pageUI.leave()) return; await send({ type: 'logout' }); location.hash = ''; login(); } catch (error) { showError(error); }
     },
