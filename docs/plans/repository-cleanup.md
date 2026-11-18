@@ -169,7 +169,7 @@ The retired-terms rule in AGENTS.md then holds without an exception: after this 
 
 ## Kept on purpose
 
-- `docs/architecture/d20-design/`: D20's reference design boards, which D20 says win over its text.
+- `docs/history/d20-design/`: D20's design boards, moved to history on 18 November 2026 once every element was found built or replaced; the specifications and the screen catalogue are the visual authority.
 - `docs/product/vision.md`, `competitor-critique.md`: product direction; `vision.md` links the critique, so it stays when Batch 7 removes the questionnaire's links to it.
 - `docs/history/`: history by definition; not audited for staleness.
 - `opencode.jsonc`: OpenCode's Notion MCP configuration for agent sessions, not app configuration.
