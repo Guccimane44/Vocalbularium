@@ -230,6 +230,7 @@
   "nav.newDeck": "+ Mazo nuevo",
   "account.menu": "Cuenta",
   "account.menuFor": "Cuenta: {name}",
+  "account.buildMismatch": "Compilaciones distintas: API {api}, extensión {extension}",
   "account.diagnostics": "Registros de diagnóstico",
   "account.logOut": "Cerrar sesión",
   "login.title": "Hola de nuevo.",

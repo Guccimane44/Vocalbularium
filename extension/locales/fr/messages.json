@@ -230,6 +230,7 @@
   "nav.newDeck": "+ Nouveau paquet",
   "account.menu": "Compte",
   "account.menuFor": "Compte : {name}",
+  "account.buildMismatch": "Versions différentes : API {api}, extension {extension}",
   "account.diagnostics": "Journaux de diagnostic",
   "account.logOut": "Se déconnecter",
   "login.title": "Ravi de vous revoir.",

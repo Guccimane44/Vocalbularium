@@ -230,6 +230,7 @@
   "nav.newDeck": "+ New deck",
   "account.menu": "Account",
   "account.menuFor": "Account: {name}",
+  "account.buildMismatch": "Different builds: API {api}, extension {extension}",
   "account.diagnostics": "Diagnostic logs",
   "account.logOut": "Log out",
   "login.title": "Welcome back.",

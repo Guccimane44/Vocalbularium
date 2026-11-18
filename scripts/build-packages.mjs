@@ -1,6 +1,6 @@
 // @ts-check
 import { spawnSync } from 'node:child_process';
-import { cpSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { relative, resolve } from 'node:path';
 
 // Every family's, module's and facet's page (D20) has its text in `about.json`
@@ -43,3 +43,22 @@ for (const project of ['packages/contracts/tsconfig.json', 'packages/domain/tsco
 // The catalog's prompt files and the composer's rules ship beside the compiled
 // domain, where the composer reads them (D11).
 cpSync(resolve('packages/domain/src'), resolve('packages/domain/dist'), { recursive: true, filter: source => !/\.ts$/.test(source) });
+
+// A file in dist/ whose source is gone, such as a deleted module's folder, would
+// otherwise stay and still be read: remove it. Files are removed one by one,
+// never the whole folder, because a running API reads prompt files from dist/.
+for (const name of ['contracts', 'domain']) {
+  const dist = resolve(`packages/${name}/dist`), src = resolve(`packages/${name}/src`);
+  if (!existsSync(dist)) continue;
+  for (const path of readdirSync(dist, { recursive: true }).map(String)) {
+    const file = resolve(dist, path);
+    if (!existsSync(file) || !statSync(file).isFile()) continue;
+    const compiled = path.match(/^(.*)\.(?:js|d\.ts)(?:\.map)?$/);
+    const sources = [resolve(src, path), ...(compiled ? [resolve(src, `${compiled[1]}.ts`)] : [])];
+    if (!sources.some(source => existsSync(source))) rmSync(file);
+  }
+  for (const path of readdirSync(dist, { recursive: true }).map(String).sort().reverse()) {
+    const folder = resolve(dist, path);
+    if (statSync(folder).isDirectory() && !readdirSync(folder).length) rmSync(folder, { recursive: true });
+  }
+}
