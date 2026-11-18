@@ -72,7 +72,7 @@ def verify_package(archive, expected_origin, expected_revision):
         version = metadata.get('version')
         require(isinstance(version, str) and re.fullmatch(r'\d+(\.\d+){1,3}', version), 'Package version is invalid.')
         require(manifest.get('version') == version, 'Package and extension versions differ.')
-        require(package.read('RELEASE.md').decode().startswith(f'# Vocabularium {version}\n'),
+        require(package.read('RELEASE.md').decode('utf-8').startswith(f'# Vocabularium {version}\n'),
                 'RELEASE.md is not the release notes for this version.')
         origin = metadata.get('serverOrigin')
         parts = origin_parts(origin)

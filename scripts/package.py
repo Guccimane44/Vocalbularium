@@ -22,7 +22,7 @@ if not re.fullmatch(r'\d+(\.\d+){1,3}', version):
 release = root / 'docs' / 'releases' / f'{version}.md'
 if not release.is_file():
     raise SystemExit(f'Write docs/releases/{version}.md before packaging.')
-if f'releases/{version}.md' not in (root / 'docs' / 'guides' / 'install.md').read_text():
+if f'releases/{version}.md' not in (root / 'docs' / 'guides' / 'install.md').read_text(encoding='utf-8'):
     raise SystemExit(f'Point docs/guides/install.md at docs/releases/{version}.md before packaging.')
 archive = root / 'artifacts' / f'vocabularium-{version}-{variant}-candidate.zip'
 revision = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=root, text=True).strip()
