@@ -46,12 +46,12 @@ export function parseColour(value) {
   const text = value.trim();
   if (text === 'transparent') return { r: 0, g: 0, b: 0, a: 0 };
   if (/^#[0-9a-f]{3,8}$/i.test(text)) return hex(text);
-  let match = text.match(/^rgba?\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)(?:\s*[,/]\s*([\d.]+%?))?\s*\)$/);
+  let match = text.match(/^rgba?\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)(?:\s*[,/]\s*([\d.]+(?:e-?\d+)?%?))?\s*\)$/);
   if (match) return { r: +match[1], g: +match[2], b: +match[3], a: alpha(match[4]) };
-  match = text.match(/^color\(srgb\s+([-\d.e]+)\s+([-\d.e]+)\s+([-\d.e]+)(?:\s*\/\s*([\d.]+%?))?\s*\)$/);
+  match = text.match(/^color\(srgb\s+([-\d.e]+)\s+([-\d.e]+)\s+([-\d.e]+)(?:\s*\/\s*([\d.]+(?:e-?\d+)?%?))?\s*\)$/);
   if (match) return { r: match[1] * 255, g: match[2] * 255, b: match[3] * 255, a: alpha(match[4]), mixed: true };
   // Linux Chromium computes a colour-mix in OKLab to oklab() or oklch().
-  match = text.match(/^ok(lab|lch)\(\s*([-\d.e]+%?)\s+([-\d.e]+)\s+([-\d.e]+)(?:\s*\/\s*([\d.]+%?))?\s*\)$/);
+  match = text.match(/^ok(lab|lch)\(\s*([-\d.e]+%?)\s+([-\d.e]+)\s+([-\d.e]+)(?:\s*\/\s*([\d.]+(?:e-?\d+)?%?))?\s*\)$/);
   if (match) {
     const lightness = match[2].endsWith('%') ? parseFloat(match[2]) / 100 : +match[2];
     const [a, b] = match[1] === 'lab' ? [+match[3], +match[4]] : [match[3] * Math.cos(match[4] * Math.PI / 180), match[3] * Math.sin(match[4] * Math.PI / 180)];
@@ -90,7 +90,8 @@ const near = (a, b) => Math.abs(a.r - b.r) <= 1.5 && Math.abs(a.g - b.g) <= 1.5 
 // Whether a computed colour comes from a token: a token's own colour at any
 // opacity, or (for a colour-mix) a point between two tokens.
 export function fromTokens(colour, palette) {
-  if (colour.a === 0) return true;
+  // An animation caught mid-fade can leave an alpha like 1e-9: nothing shows.
+  if (colour.a < 0.001) return true;
   if (palette.some(token => near(colour, token))) return true;
   if (!colour.mixed) return false;
   for (const a of palette) for (const b of palette) {
