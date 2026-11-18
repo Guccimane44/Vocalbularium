@@ -13,6 +13,9 @@ test('0.16.0: a computed colour comes from the tokens at any opacity, or from a 
   assert.deepEqual(Object.values(parseColour('oklab(1 0 0)')).slice(0, 3).map(Math.round), [255, 255, 255]);
   assert.deepEqual(Object.values(parseColour('oklch(0.6279 0.2577 29.23)')).slice(0, 3).map(Math.round), [255, 0, 0], 'sRGB red');
   assert.equal(parseColour('lab(50 0 0)'), null);
+  const fading = parseColour('oklab(0.816921 -0.084988 0.108472 / 1.33496e-9)');
+  assert.ok(fading && fading.a < 0.001, 'an animation caught mid-fade gives an alpha in exponent notation');
+  assert.ok(fromTokens(fading, []), 'a colour nobody can see passes the token rule');
   // ink, and ink at 18%, in Sage; not in Moss night.
   assert.ok(fromTokens(parseColour('rgba(27, 36, 25, 0.18)'), light));
   assert.equal(fromTokens(parseColour('rgba(27, 36, 25, 0.18)'), dark), false);
