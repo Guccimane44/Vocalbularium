@@ -13,6 +13,7 @@ import { Dashboard } from './dashboard.tsx';
 import { diagnosticSettings } from './diagnostic-settings.js';
 import { accountRoot, initializeShell, keepSidebarOrder, renderAccountMenu, renderSidebar, showSignedOutShell } from './shell.js';
 import { initializeLanguage, onLanguageChange, t, translateDocument } from './i18n.ts';
+import { versionLine } from './version-line.ts';
 /** @typedef {import('../types/editor-drafts.js').DeckEditorDraft} DeckEditorDraft */
 /** @import { Root } from 'react-dom/client' */
 /** @import { Page } from '@vocabularium/contracts' */
@@ -99,7 +100,11 @@ function login() {
       signedIn = result.signedIn; account = result.account; location.hash = ''; await render();
     } catch (error) { showError(error); } finally { submit.disabled = false; }
   };
-  section.append(form); app.replaceChildren(section);
+  section.append(form);
+  // The build's version and commit, quietly under the form (0.16.7).
+  const version = versionLine();
+  if (version) section.append(element('p', version, 'app-version'));
+  app.replaceChildren(section);
 }
 // A new language redraws the static texts and the view in it.
 onLanguageChange(() => { translateDocument(); if (signedIn) void render(); else login(); });

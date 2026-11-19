@@ -34,6 +34,9 @@ const out = resolve(options.out ?? join('.data/screens', new Date().toISOString(
 const scratch = await mkdtemp(join(tmpdir(), 'vocabularium-screens-build-'));
 const filters = ['only', 'languages', 'themes'].flatMap(name => options[name] ? [`--${name}`, options[name]] : []);
 const exists = path => access(path).then(() => true, () => false);
+// Both the extension build and the API read this stamp (src/server/source-stamp.mjs):
+// a fixed commit keeps the homepage's version line the same from commit to commit.
+process.env.VOCABULARIUM_SOURCE_STAMP = JSON.stringify({ commit: '0'.repeat(40), dirty: false });
 const run = (command, args, cwd, env = {}) => exec(command, args, { cwd, env: { ...process.env, ...env }, maxBuffer: 64 * 1024 * 1024 });
 
 // Builds the extension of the checkout at `checkout` for the screens' port into `target`,

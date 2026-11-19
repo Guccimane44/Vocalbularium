@@ -233,6 +233,8 @@
   "account.buildMismatch": "Разные сборки: API {api}, расширение {extension}",
   "account.diagnostics": "Журналы диагностики",
   "account.logOut": "Выйти",
+  "app.version": "Vocabularium {version} · {commit}",
+  "app.versionChanged": "Vocabularium {version} · {commit}, с незафиксированными изменениями",
   "login.title": "С возвращением.",
   "login.body": "Войдите, чтобы открыть свои колоды и сохранённую лексику.",
   "login.username": "Имя пользователя",

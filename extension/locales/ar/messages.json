@@ -233,6 +233,8 @@
   "account.buildMismatch": "إصداران مختلفان: الواجهة البرمجية {api}، الإضافة {extension}",
   "account.diagnostics": "سجلات التشخيص",
   "account.logOut": "تسجيل الخروج",
+  "app.version": "Vocabularium {version} · {commit}",
+  "app.versionChanged": "Vocabularium {version} · {commit}، مع تغييرات غير مُثبَّتة",
   "login.title": "مرحبًا بعودتك.",
   "login.body": "سجّل الدخول لفتح رزمك ومفرداتك المحفوظة.",
   "login.username": "اسم المستخدم",

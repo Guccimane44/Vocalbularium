@@ -5,6 +5,7 @@ import type { Announcements, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, rectSortingStrategy, SortableContext, sortableKeyboardCoordinates, useSortable } from '@dnd-kit/sortable';
 import { CSS as DndCSS } from '@dnd-kit/utilities';
 import { dialog } from './dialog.ts';
+import { versionLine } from './version-line.ts';
 import { SORT_ORDERS } from './sorting.ts';
 import { deckColour } from './deck-colour.ts';
 import { mainKeyTier } from './main-key.ts';
@@ -381,7 +382,14 @@ function DeckGrid({ account, local, navigate, configure, mutate, reportError, lo
     {cursor && <button className="load-more-decks" disabled={loading} onClick={() => void more()}>{t('dashboard.moreDecks')}</button>}
     {/* Since 0.13.3 (D23) the decks come first and the recent captures follow them. */}
     <RecentCaptures account={account} local={local} navigate={navigate} mutate={mutate} reportError={reportError} />
+    <VersionLine />
   </>;
+}
+
+// The build's version and commit, quietly at the foot of the homepage (0.16.7).
+function VersionLine() {
+  const text = versionLine();
+  return text ? <p className="app-version">{text}</p> : null;
 }
 
 export function Dashboard({ account, local, deckId, focusedMenu, showPendingSaves, error, navigate, configure, mutate, reportError, loadPages, loadDecks }: DashboardProps) {

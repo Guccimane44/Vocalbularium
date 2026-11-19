@@ -233,6 +233,8 @@
   "account.buildMismatch": "Compilaciones distintas: API {api}, extensión {extension}",
   "account.diagnostics": "Registros de diagnóstico",
   "account.logOut": "Cerrar sesión",
+  "app.version": "Vocabularium {version} · {commit}",
+  "app.versionChanged": "Vocabularium {version} · {commit}, con cambios sin confirmar",
   "login.title": "Hola de nuevo.",
   "login.body": "Inicia sesión para abrir tus mazos y tu vocabulario guardado.",
   "login.username": "Nombre de usuario",

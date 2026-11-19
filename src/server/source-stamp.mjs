@@ -19,6 +19,10 @@ let cached;
 export function sourceStamp() {
   if (cached) return cached;
   const version = String(JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8')).version);
+  // The screens (tests/screens/run.mjs) fix the commit, so the version line and
+  // the account menu do not change their captures with every commit.
+  const fixed = process.env.VOCABULARIUM_SOURCE_STAMP;
+  if (fixed) return (cached = { version, ...JSON.parse(fixed) });
   /** @param {string[]} args */
   const git = args => execFileSync('git', args, { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
   try {
