@@ -34,7 +34,7 @@ export function pageLimit(value, fallback, maximum) {
   return limit;
 }
 /** @param {unknown} value @returns {unknown} */
-export function canonical(value) {
+function canonical(value) {
   if (Array.isArray(value)) return value.map(canonical);
   if (value && typeof value === 'object') {
     return Object.fromEntries(Object.keys(value).sort().map(key => [key, canonical(/** @type {Record<string, unknown>} */ (value)[key])]));

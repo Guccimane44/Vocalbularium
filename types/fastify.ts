@@ -7,7 +7,7 @@ import type { Static, TSchema } from 'typebox';
 // validated with. Types only: the routes run on a plain Fastify instance.
 type SchemaType<S> = [Exclude<S, undefined>] extends [never] ? unknown
   : Exclude<S, undefined> extends TSchema ? Static<Exclude<S, undefined>> : unknown;
-export interface TypeBoxTypeProvider extends FastifyTypeProvider {
+interface TypeBoxTypeProvider extends FastifyTypeProvider {
   validator: SchemaType<this['schema']>;
   serializer: SchemaType<this['schema']>;
 }

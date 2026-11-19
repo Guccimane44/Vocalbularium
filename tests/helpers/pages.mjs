@@ -28,7 +28,7 @@ export const sentenceResult = (translation, facets = {}, { language = 'Englisch'
 // What a controlled provider reads the key as, since each module reads it
 // itself (D17): a key that ends like a sentence is one.
 /** @param {string} key */
-export const isSentence = key => /[.!?。！？]\s*$/.test(key.trim());
+const isSentence = key => /[.!?。！？]\s*$/.test(key.trim());
 // The result for the request's key: `value` as the one meaning of a word, or a sentence's translation.
 /** @param {{ selectedText: string }} request @param {string} value @param {Record<string, unknown>} [facets] */
 export const resultFor = (request, value, facets = {}) =>

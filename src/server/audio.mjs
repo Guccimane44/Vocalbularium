@@ -12,7 +12,7 @@ import { createSpeechProvider } from './speech-providers.mjs';
 const keyOf = (/** @type {ClipKey} */ key) => `${key.pageId}/${key.componentId}/${key.part}/${key.line}`;
 // A line longer than this, such as a main key over 500 characters, is not
 // spoken (K73): every clip is billed by character.
-export const MAX_SPOKEN_LENGTH = 500;
+const MAX_SPOKEN_LENGTH = 500;
 
 // Audio jobs (D24): one per clip of a spoken part, after the text it speaks is
 // published, in parallel and with their own bounds beside the text attempts

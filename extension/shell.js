@@ -219,7 +219,7 @@ function sortableDecks(list, announcer, moveDeck) {
   });
 }
 
-export function closeAccountMenu() {
+function closeAccountMenu() {
   const menu = document.querySelector('.account-menu');
   if (!menu) return;
   menu.classList.remove('open');

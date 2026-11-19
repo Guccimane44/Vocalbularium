@@ -154,7 +154,7 @@ function ComponentBody({ item, title, editable, draft, locked, persist, redraw, 
 }
 
 // The page title: the main key in its tier; a passage is cut after six lines.
-export function MainKeyTitle({ text }: { text: string }) {
+function MainKeyTitle({ text }: { text: string }) {
   const tier = mainKeyTier(text);
   const title = useRef<HTMLHeadingElement>(null);
   const [expanded, setExpanded] = useState(false);

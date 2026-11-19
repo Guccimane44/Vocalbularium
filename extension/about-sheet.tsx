@@ -4,7 +4,7 @@ import type { InputType } from '@vocabularium/contracts';
 import { facetAbout, facetSamplesOf, familyAbout, moduleAbout, sampleKeyOf, sampleLanguages, sampleOf } from '@vocabularium/domain/about';
 import type { FamilyId } from '@vocabularium/domain/catalog';
 import { CATALOG, isModuleType, WINDOW_MODULES } from '@vocabularium/domain/page-modules';
-import type { ModuleFamily, ModuleType } from '@vocabularium/domain/page-modules';
+import type { ModuleFamily } from '@vocabularium/domain/page-modules';
 import { facetsOf, isParentType, PARENTS } from '@vocabularium/domain/parents';
 import type { FacetType, ParentType } from '@vocabularium/domain/parents';
 import type { Rendered } from '@vocabularium/domain/render';

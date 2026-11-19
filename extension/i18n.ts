@@ -38,15 +38,15 @@ export const CATALOGUES: Readonly<Record<InterfaceLanguage, Catalogue>> = { en: 
 // with the reviews of its Expertise writing guide and of the Expertise output
 // in it (D15, K42). English, the source, records only those two.
 type Reviewed = Readonly<{ reviewed: string; reviewer: string; summary: string }>;
-export type Review = Partial<Reviewed> & Readonly<{ writingGuide?: Reviewed; expertise?: Reviewed }>;
-export const REVIEWS: Readonly<Partial<Record<InterfaceLanguage, Review>>> = reviews;
+type Review = Partial<Reviewed> & Readonly<{ writingGuide?: Reviewed; expertise?: Reviewed }>;
+const REVIEWS: Readonly<Partial<Record<InterfaceLanguage, Review>>> = reviews;
 export const ENGLISH: Readonly<Record<MessageKey, string>> = english;
 
 // Pseudo-languages for testing (increment B), never offered to users and set
 // only by `pseudoLanguage` in local storage: `en-XA` accents and lengthens
 // every message inside ⟦…⟧, so text written outside the catalogue and labels
 // too narrow for longer languages show; `ar-XB` keeps English and runs right to left.
-export const PSEUDO_LANGUAGES = { 'en-XA': 'ltr', 'ar-XB': 'rtl' } as const;
+const PSEUDO_LANGUAGES = { 'en-XA': 'ltr', 'ar-XB': 'rtl' } as const;
 type PseudoLanguage = keyof typeof PSEUDO_LANGUAGES;
 const isPseudo = (value: unknown): value is PseudoLanguage => typeof value === 'string' && Object.hasOwn(PSEUDO_LANGUAGES, value);
 

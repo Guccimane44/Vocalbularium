@@ -1,12 +1,12 @@
 // @ts-check
 // Capture with Context: the selection's surrounding block, capped around
 // CONTEXT_LIMIT characters (Pages and editing §Context).
-export const CONTEXT_LIMIT = 500;
+const CONTEXT_LIMIT = 500;
 
 // Runs in the captured page through chrome.scripting, so it must stay
 // self-contained. Returns the surrounding text, or null when there is none.
 /** @param {string} selectionText @param {number} limit */
-export function surroundingBlock(selectionText, limit) {
+function surroundingBlock(selectionText, limit) {
   /** @param {string} value */
   const squash = value => value.replace(/\s+/g, ' ');
   let before, selected, after;
@@ -57,7 +57,7 @@ export function surroundingBlock(selectionText, limit) {
 // Context is optional: an unavailable page (restricted, PDF viewer, closed
 // tab) captures the selection alone rather than delaying or failing capture.
 // A busy page gets CONTEXT_TIMEOUT_MS before capture proceeds without it.
-export const CONTEXT_TIMEOUT_MS = 1000;
+const CONTEXT_TIMEOUT_MS = 1000;
 // Called for a capture's click, which has its selection and its tab.
 /** @param {ChromeMenuClick & { selectionText: string }} info @param {ChromeTab} tab @param {typeof chrome.scripting} [scripting] */
 export async function captureContext(info, tab, scripting = chrome.scripting) {
@@ -70,7 +70,7 @@ export async function captureContext(info, tab, scripting = chrome.scripting) {
         func: surroundingBlock,
         args: [info.selectionText, CONTEXT_LIMIT]
       }),
-      new Promise((resolve, reject) => { timer = setTimeout(() => reject(new Error('Context timed out.')), CONTEXT_TIMEOUT_MS); })
+      new Promise((_resolve, reject) => { timer = setTimeout(() => reject(new Error('Context timed out.')), CONTEXT_TIMEOUT_MS); })
     ]);
     return typeof result?.result === 'string' && result.result ? result.result : undefined;
   } catch { return undefined; } finally { clearTimeout(timer); }
