@@ -10,7 +10,7 @@ const isGerman = (value: string) => {
   return Boolean(scripts.latin) && foreign < scripts.latin!;
 };
 // The core's names for German as the key's language.
-export const GERMAN_NAMES = ['deutsch'];
+const GERMAN_NAMES = ['deutsch'];
 
 export default defineFacet({
   id: 'grammar-teacher', label: 'Grammar teacher', abbreviation: 'Gr', description: 'A teacher\'s notes on a German key\'s grammar.',

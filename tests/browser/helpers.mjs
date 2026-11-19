@@ -76,7 +76,7 @@ export async function accountMenu(page) {
   }
 }
 // Appearance is a segmented control of three radios (D23); the menu stays open, so Escape closes it.
-export const APPEARANCES = { system: 'System', light: 'Sage', dark: 'Moss night' };
+const APPEARANCES = { system: 'System', light: 'Sage', dark: 'Moss night' };
 export async function chooseAppearance(page, value) {
   await accountMenu(page);
   await page.getByRole('group', { name: 'Appearance', exact: true }).getByRole('radio', { name: APPEARANCES[value], exact: true }).check();

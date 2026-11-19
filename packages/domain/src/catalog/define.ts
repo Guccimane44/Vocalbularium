@@ -18,7 +18,7 @@ export type FamilyDefinition<Id extends string = string> = Readonly<{
 // How a spoken part's audio is made (D24): its text stays markdown, its audio
 // is attached beside it, and its lines are spoken in this language, an ISO
 // 639-1 code.
-export type Spoken = Readonly<{ language: string }>;
+type Spoken = Readonly<{ language: string }>;
 
 // A deterministic check of one generated part (0.16.0): it reads the part as
 // the provider wrote it, after its shape passed, with the card's core beside
@@ -59,7 +59,7 @@ export type FacetDefinition<Id extends string = string, T = any> = Readonly<{
 export type CoreValue = Readonly<{ kind?: 'word' | 'sentence' } & Record<string, unknown>>;
 // The labels a core's header shows for its flags, in the module's language
 // (D17, K51): word or sentence, and a German word's grammatical role.
-export type HeaderLabels = Readonly<{ word: string; sentence: string; gramRole?: Readonly<Record<string, string>> }>;
+type HeaderLabels = Readonly<{ word: string; sentence: string; gramRole?: Readonly<Record<string, string>> }>;
 export type CoreDefinition<T extends CoreValue = any> = Readonly<{
   id: 'core';
   // How the editor names the core's text for each input type.
@@ -79,7 +79,6 @@ export type CoreDefinition<T extends CoreValue = any> = Readonly<{
   checks?: readonly Check<T>[];
 }>;
 
-export type ModuleKind = 'input' | 'content';
 // How many instances a deck or page holds: the main key first and exactly once.
 export type Instances = 'first-once' | 'at-most-one' | 'many';
 

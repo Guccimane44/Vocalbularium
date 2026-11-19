@@ -44,11 +44,11 @@ const still = () => Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce
 // folding, the tags first travel along the still edge to the bottom right,
 // then the card folds and they ride its bottom edge up; unfolding, the card
 // opens with them riding its bottom edge down, then they travel back.
-export const FOLD_MS = 500;
-export const TAG_TRAVEL_MS = 600;
+const FOLD_MS = 500;
+const TAG_TRAVEL_MS = 600;
 const ALONG_THE_EDGE = { duration: TAG_TRAVEL_MS, easing: 'cubic-bezier(.45,0,.25,1)' };
 const FLIGHT = { duration: 560, easing: 'cubic-bezier(.3,.7,.2,1)' };
-export const TAG_POP_MS = 240;
+const TAG_POP_MS = 240;
 
 type Spot = { x: number; y: number };
 

@@ -5,7 +5,7 @@ import { SpeechProvider } from './speech.mjs';
 // The ElevenLabs adapter (D24): transport only. One pinned model, Eleven v4
 // Turbo by default, which accepts `language_code` (ISO 639-1); one voice per
 // language from ELEVENLABS_VOICES, a JSON map with a default.
-export const OUTPUT_FORMAT = 'mp3_44100_128';
+const OUTPUT_FORMAT = 'mp3_44100_128';
 
 // A reply that says the account's quota or plan does not allow the request.
 /** @param {number} status @param {string} body */

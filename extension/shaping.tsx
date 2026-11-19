@@ -315,7 +315,7 @@ export const SixDots = () => <svg className="six-dots" viewBox="0 0 10 16" aria-
 
 // The six dots before an entry's label: a menu of what else can be done with
 // it. Its entries are placeholders for now (0.6.3).
-export function RowMenu({ label, items }: { label: string; items: readonly string[] }) {
+function RowMenu({ label, items }: { label: string; items: readonly string[] }) {
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLSpanElement>(null);
   const button = useRef<HTMLButtonElement>(null);

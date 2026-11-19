@@ -8,7 +8,7 @@ export const OWNER_ACCOUNT_ID = 1;
 
 // Admission is synchronous. A database lock protects transactions but does not
 // define arrival order. Nested work shares admission only while its owner runs.
-export class OrderedExecutor {
+class OrderedExecutor {
   private tail: Promise<unknown> = Promise.resolve();
   private context = new AsyncLocalStorage<{ active: boolean }>();
   run<T>(action: () => Promise<T>): Promise<T> {

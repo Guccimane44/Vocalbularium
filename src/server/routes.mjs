@@ -328,7 +328,7 @@ export function registerRoutes(fastify, { store, authentication, generation, aud
 }
 
 /** @param {any} session unchecked input */
-export function sessionValue(session) {
+function sessionValue(session) {
   if (!session || typeof session.installationId !== 'string' || typeof session.sessionId !== 'string' ||
     !session.installationId || !session.sessionId || !Number.isSafeInteger(session.epoch) || session.epoch < 1) {
     throw new StoreError('invalid', 'A valid browser session is required.');
@@ -336,7 +336,7 @@ export function sessionValue(session) {
 }
 
 /** @param {any} payload unchecked input */
-export function captureValue(payload) {
+function captureValue(payload) {
   if (!payload || typeof payload.mainKey !== 'string' || !payload.mainKey.length) {
     throw new StoreError('invalid', 'Select some text first.');
   }
