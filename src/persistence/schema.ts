@@ -112,3 +112,18 @@ export const componentAudio = pgTable('component_audio', {
 export const dataMigrations = pgTable('data_migrations', {
   name: text().primaryKey()
 });
+// A problem the user reported from the account menu (D336). It keeps what it is
+// about as it was, so it outlives the page; a daily agent files it as a GitHub
+// issue, with only the text, the screen and the module type, and records its number.
+export const reports = pgTable('reports', {
+  id: text().primaryKey(), created_at: text().notNull(), text: text().notNull(), screen: text().notNull(),
+  page_id: text(), component_id: text(), module_type: text(),
+  // The builds of the API and of the extension, as JSON.
+  builds: text().notNull(),
+  // The page and its components as they were, as JSON; null off a page.
+  page: text(),
+  // The diagnostic events of the 15 minutes before saving, as JSON; null when the user unticked them.
+  logs: text(),
+  issue: integer()
+}, table => [index('reports_unfiled').on(table.created_at).where(sql`${table.issue} IS NULL`),
+  check('report_text', sql`length(${table.text}) between 1 and 2000`)]);

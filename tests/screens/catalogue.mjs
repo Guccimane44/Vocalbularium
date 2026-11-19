@@ -52,6 +52,13 @@ export const SCREENS = [
   { name: 'facet-grip', phase: 'full', route: ({ pages }) => `page/${pages['german-complete']}`, ready: page => card(page, 'german').waitFor(),
     show: page => card(page, 'german').locator('.facet').nth(1).locator('.facet-grip').focus() },
   // The page's ⋯ menu open, holding Delete page (0.16.1).
+  // Report a problem (D336), opened from the account menu on a page: about its cards.
+  { name: 'report-dialog', phase: 'full', route: ({ pages }) => `page/${pages['german-complete']}`, ready: page => card(page, 'german').waitFor(),
+    show: async page => {
+      await page.locator('.account-trigger').press('Enter');
+      await page.locator('.account-panel .menu-action').nth(2).click();
+      await page.locator('.report-dialog').waitFor();
+    } },
   { name: 'page-menu', phase: 'full', route: ({ pages }) => `page/${pages['german-complete']}`, ready: page => card(page, 'german').waitFor(),
     show: async page => { await page.locator('.page-menu-trigger').click(); await page.locator('.page-menu-choices').waitFor(); } },
   { name: 'module-window', phase: 'full', route: ({ pages }) => `page/${pages.new}`, ready: page => page.locator('.module-window').waitFor(),

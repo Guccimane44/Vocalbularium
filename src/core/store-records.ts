@@ -72,3 +72,9 @@ export type Attempt = Omit<AttemptRow, 'module' | 'result'> & Readonly<{ module:
 export type ClipKey = Readonly<{ pageId: string; componentId: string; part: string; line: number }>;
 type ClipState = 'waiting' | 'generating' | 'ready' | 'failed';
 export type ClipRow = Readonly<{ component_id: string; part: string; line: number; state: ClipState; error: string | null; duration_ms: number | null }>;
+// A reported problem (D336); `builds`, `page` and `logs` are JSON.
+export type ReportRow = Readonly<{
+  id: string; created_at: string; text: string; screen: string;
+  page_id: string | null; component_id: string | null; module_type: string | null;
+  builds: string; page: string | null; logs: string | null; issue: number | null;
+}>;

@@ -8,6 +8,6 @@ What a user can do in Vocabularium, one file per feature, each written from the 
 | Read a page and its cards; shape a card | [page-and-cards.md](page-and-cards.md) | — |
 | Retry a card | [retry.md](retry.md) | [retry-a-failed-card.mjs](../journeys/retry-a-failed-card.mjs) |
 | Decks: Home, a deck's pages, deck settings | [decks.md](decks.md) | — |
-| The account menu: appearance, language, logs, log out | [account.md](account.md) | — |
+| The account menu: appearance, language, logs, Report a problem, log out | [account.md](account.md) | [report-a-problem.mjs](../journeys/report-a-problem.mjs) |
 
 A feature with no journey yet is driven by hand from its file; when you write one, add it here. A change to what a user sees or does updates its feature file in the same PR.

@@ -47,7 +47,7 @@ test('page list: quiet states, layouts remembered per deck, sorting, grouping, e
   assert.equal(await trigger.locator('.account-server').textContent(), new URL(apiOrigin).host, 'the trigger names the server too');
   assert.deepEqual(await a.page.getByRole('group', { name: 'Appearance', exact: true }).getByRole('radio').evaluateAll(nodes => nodes.map(node => node.labels[0].textContent)), ['System', 'Sage', 'Moss night']);
   assert.ok((await a.page.locator('.account-panel').boundingBox()).y + (await a.page.locator('.account-panel').boundingBox()).height <= (await trigger.boundingBox()).y, 'the menu opens upward');
-  assert.deepEqual(await a.page.locator('.account-main > .menu-action, .account-main > .language-row').allTextContents(), ['LanguageEnglish', 'Diagnostic logs', 'Log out']);
+  assert.deepEqual(await a.page.locator('.account-main > .menu-action, .account-main > .language-row').allTextContents(), ['LanguageEnglish', 'Diagnostic logs', 'Report a problem…', 'Log out']);
   await a.page.keyboard.press('Escape');
   assert.equal(await a.page.locator('.capture .badge, .capture .state-icon').count(), 0);
   assert.equal(await capture('completed entry').locator('.list-status').count(), 0);

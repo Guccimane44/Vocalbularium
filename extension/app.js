@@ -14,6 +14,7 @@ import { diagnosticSettings } from './diagnostic-settings.js';
 import { accountRoot, initializeShell, keepSidebarOrder, renderAccountMenu, renderSidebar, showSignedOutShell } from './shell.js';
 import { initializeLanguage, onLanguageChange, t, translateDocument } from './i18n.ts';
 import { versionLine } from './version-line.ts';
+import { openReport } from './report-dialog.ts';
 /** @typedef {import('../types/editor-drafts.js').DeckEditorDraft} DeckEditorDraft */
 /** @import { Root } from 'react-dom/client' */
 /** @import { Page } from '@vocabularium/contracts' */
@@ -176,6 +177,9 @@ async function render() {
       try { if (!await pageUI.leave()) return; await send({ type: 'logout' }); location.hash = ''; login(); } catch (error) { showError(error); }
     },
     diagnostics: async () => { if (await pageUI.leave()) location.hash = 'diagnostics'; },
+    // About the page shown, or the screen: Home, a deck, its settings, the logs (D336).
+    report: () => openReport({ send, screen: location.hash.slice(1).split('/')[0] || 'home',
+      page: location.hash.startsWith('#page/') && currentPageDetail?.id === location.hash.slice(6) ? currentPageDetail : undefined }),
     chooseLanguage: (/** @type {string} */ language) => send({ type: 'set-language', language })
   });
   // A page's deck is known only once the page loads; until then the sidebar

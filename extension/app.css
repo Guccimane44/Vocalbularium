@@ -117,3 +117,35 @@ h1, h2, .deck .open { overflow-wrap: anywhere; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }
+
+/* Report a problem (D336): the dialog from the account menu and its saved notice. */
+.report-dialog { width: min(520px, calc(100vw - 32px)); box-sizing: border-box; }
+.report-dialog label { margin: 0; }
+.report-about legend { padding: 0; }
+.report-dialog h2 { margin: 0 0 8px; font-family: var(--font-display, Fraunces, Georgia, serif); font-size: 26px; line-height: 1.15; }
+.report-intro { margin: 0 0 20px; font-size: 14px; line-height: 1.5; color: var(--ink-soft); }
+.report-about legend, .report-what, .report-sent > p { font-size: 13px; font-weight: 600; color: var(--ink-soft); }
+.report-about legend { margin-bottom: 8px; }
+.report-choices { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+.report-choice { position: relative; display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 14px; border: 1px solid var(--line-control); border-radius: 999px; background: var(--surface); font-size: 14px; font-weight: 500; cursor: pointer; }
+.report-choice input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; }
+.report-choice .report-check { display: none; }
+.report-choice:has(input:checked) { border-color: var(--ink); background: var(--ink); color: var(--on-ink); }
+.report-choice:has(input:checked) .report-check { display: block; }
+.report-choice:has(input:focus-visible) { outline: 2px solid var(--focus); outline-offset: 2px; }
+.report-check { width: 14px; height: 14px; flex: none; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.report-dialog .report-what { display: grid; gap: 8px; margin-bottom: 20px; }
+.report-what textarea { resize: vertical; min-height: 96px; font-size: 15px; font-weight: 400; line-height: 1.5; color: var(--ink); }
+.report-sent { display: grid; gap: 10px; padding: 14px 16px; border-radius: 12px; background: var(--surface-hover); }
+.report-sent > p { margin: 0; }
+.report-sent-row { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+.report-sent-row .report-check { color: var(--focus); width: 16px; height: 16px; }
+.report-sent-row input { width: 16px; height: 16px; margin: 0; padding: 0; accent-color: var(--focus); }
+.report-local { margin: 10px 0 0; font-size: 13px; line-height: 1.5; color: var(--ink-muted); }
+.report-dialog .error:empty { display: none; }
+.report-notice { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 50; display: flex; align-items: center; gap: 14px; width: min(560px, calc(100vw - 32px)); box-sizing: border-box; padding: 14px 18px; border-radius: 14px; background: var(--ink); color: var(--on-ink); box-shadow: var(--shadow-lift); }
+.report-notice .report-check { width: 20px; height: 20px; color: var(--focus); }
+.report-notice-text { display: grid; gap: 2px; flex: 1; font-size: 14px; }
+.report-notice-text strong { font-size: 15px; }
+.report-notice button.quiet { color: var(--on-ink); text-decoration: underline; text-underline-offset: 3px; }
+.report-notice button.quiet:hover:not(:disabled) { background: transparent; color: var(--on-ink); }

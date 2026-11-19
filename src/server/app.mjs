@@ -262,7 +262,7 @@ export async function createApplication({ databaseUrl, outbox, accountId = 1, au
   });
 
   fastify.register(async (/** @type {ApiInstance} */ api) => {
-    registerRoutes(api, { store, authentication, generation, audio });
+    registerRoutes(api, { store, authentication, generation, audio, diagnostics });
     registerDiagnosticRoutes(api, diagnostics);
 
     // Keep authenticated POSTs to unknown paths on the same JSON parsing and error path.

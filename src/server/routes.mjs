@@ -6,7 +6,7 @@ import { mainKeyOf } from '@vocabularium/domain/pages';
 import {
   ApiFailureSchema, CapturePreparationRequestSchema, ComponentDeleteRequestSchema, ComponentMoveRequestSchema, FacetMoveRequestSchema,
   DeckConfigurationSaveRequestSchema, DeckDeleteRequestSchema, FacetAddRequestSchema, FacetDeleteRequestSchema, ModuleAddRequestSchema,
-  DefaultDeckRequestSchema, DeckMoveRequestSchema, JsonObjectSchema, LanguageRequestSchema, LoginRequestSchema, HealthResponseSchema, LoginResponseSchema,
+  DefaultDeckRequestSchema, DeckMoveRequestSchema, JsonObjectSchema, LanguageRequestSchema, ReportRequestSchema, ReportDeleteRequestSchema, LoginRequestSchema, HealthResponseSchema, LoginResponseSchema,
   PageCaptureRequestSchema, PageCreateRequestSchema, PageDeleteRequestSchema, PageGenerateRequestSchema,
   PageSaveRequestSchema, PollRequestSchema, PublishRequestSchema, SessionRequestSchema,
   ClipListSchema, ClipParamsSchema, ClipRetryResponseSchema
@@ -22,6 +22,7 @@ import Type from 'typebox';
 /** @import { Authentication } from './auth.mjs' */
 /** @import { Generation } from './generation.mjs' */
 /** @import { Audio } from './audio.mjs' */
+/** @import { Diagnostics } from './diagnostics.mjs' */
 
 const errorResponses = {
   400: ApiFailureSchema,
@@ -60,8 +61,8 @@ async function healthReply(store, reply) {
   }
 }
 
-/** @param {ApiInstance} fastify @param {{ store: AccountStore, authentication: Authentication, generation: Generation, audio: Audio }} services */
-export function registerRoutes(fastify, { store, authentication, generation, audio }) {
+/** @param {ApiInstance} fastify @param {{ store: AccountStore, authentication: Authentication, generation: Generation, audio: Audio, diagnostics?: Diagnostics }} services */
+export function registerRoutes(fastify, { store, authentication, generation, audio, diagnostics }) {
   fastify.get('/health/live', {
     schema: {
       summary: 'Check whether the API process is running', tags: ['health'], security: [],
@@ -155,6 +156,20 @@ export function registerRoutes(fastify, { store, authentication, generation, aud
   fastify.post('/api/language', {
     schema: routeSchema('Set the account interface language', LanguageRequestSchema)
   }, async request => store.setLanguage(request.body.operationId, request.body.language));
+
+  // A problem reported from the account menu (D336). The API adds its own build
+  // and, when asked, the diagnostic events of the last 15 minutes.
+  fastify.post('/api/reports', {
+    schema: routeSchema('Report a problem', ReportRequestSchema)
+  }, async request => {
+    const { operationId, ...report } = request.body;
+    const logs = report.includeLogs && diagnostics
+      ? await diagnostics.inspect({ from: new Date(Date.now() - 15 * 60_000).toISOString(), limit: 1000 }).then(result => result.events, () => null) : null;
+    return store.createReport(operationId, report, { build: sourceStamp(), logs });
+  });
+  fastify.post('/api/reports/delete', {
+    schema: routeSchema('Delete a report not filed yet', ReportDeleteRequestSchema)
+  }, async request => store.deleteReport(request.body.operationId, request.body.reportId));
 
   fastify.post('/api/capture/prepare', {
     schema: routeSchema('Read the current capture destination', CapturePreparationRequestSchema)

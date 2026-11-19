@@ -71,6 +71,23 @@ export const LanguageRequestSchema = Type.Object({
   operationId: OperationIdSchema,
   language: Type.String()
 }, OpenRequest);
+// A problem the user reports from the account menu (D336): what it is about, in
+// their words, and whether the last 15 minutes of diagnostic logs go with it.
+// The API adds the page as it is and its own build; the extension sends its build.
+export const ReportRequestSchema = Type.Object({
+  operationId: OperationIdSchema,
+  text: Type.String({ minLength: 1, maxLength: 2000 }),
+  screen: Type.String({ minLength: 1, maxLength: 200 }),
+  pageId: Type.Optional(Type.String({ minLength: 1 })),
+  componentId: Type.Optional(Type.String({ minLength: 1 })),
+  extensionBuild: Type.Optional(SourceStampSchema),
+  includeLogs: Type.Boolean()
+}, OpenRequest);
+// Undo: a report not filed yet is deleted.
+export const ReportDeleteRequestSchema = Type.Object({
+  operationId: OperationIdSchema,
+  reportId: Type.String({ minLength: 1 })
+}, OpenRequest);
 export const CapturePreparationPayloadSchema = Type.Object({
   session: BrowserSessionSchema,
   mainKey: Type.String({ minLength: 1 })
@@ -100,6 +117,8 @@ export const PublishRequestSchema = Type.Object({
 export type OperationId = Type.Static<typeof OperationIdSchema>;
 export type InterfaceLanguage = Type.Static<typeof InterfaceLanguageSchema>;
 export type LanguageRequest = Type.Static<typeof LanguageRequestSchema>;
+export type ReportRequest = Type.Static<typeof ReportRequestSchema>;
+export type ReportDeleteRequest = Type.Static<typeof ReportDeleteRequestSchema>;
 export type InputType = Type.Static<typeof InputTypeSchema>;
 export type BrowserSession = Type.Static<typeof BrowserSessionSchema>;
 export type ApiFailure = Type.Static<typeof ApiFailureSchema>;
