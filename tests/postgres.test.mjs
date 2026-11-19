@@ -110,7 +110,7 @@ test('restart preserves staged output, fails unowned generation, and excludes a 
   database.resources.push({ close: () => store.close() });
   const page = await captured(store);
   await store.stage(generated(page)[0].attemptId, staged('durably staged'));
-  await assert.rejects(AccountStore.open(database), /already has an API owner/);
+  await assert.rejects(AccountStore.open(database), { code: 'api_already_running', message: /already has an API owner/ });
   await assert.rejects(migrateDatabase(database.databaseUrl), /Stop the API/);
   await store.close();
   store = await AccountStore.open(database);

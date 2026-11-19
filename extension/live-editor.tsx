@@ -96,7 +96,9 @@ function HighlightTool({ editor, icon }: { editor: Editor; icon: ReactNode }) {
   return <span className="md-split" data-open={open || undefined} onKeyDown={close}>
     <button type="button" className="md-tool" data-tool="highlight" aria-label={t('editor.highlight')} title={t('editor.highlight')} aria-pressed={state.active}
       data-colour={lastColour || 'yellow'} onMouseDown={keep}
-      onClick={() => state.active ? editor.chain().focus().unsetMark('highlight').run() : highlight(editor, lastColour)}>{icon}</button>
+      // Ask the editor at the click, not the last render: a click right after
+      // selecting a highlighted word otherwise added the highlight again.
+      onClick={() => editor.isActive('highlight') ? editor.chain().focus().unsetMark('highlight').run() : highlight(editor, lastColour)}>{icon}</button>
     <button type="button" className="md-tool md-tool-more" aria-label={t('editor.highlightColours')} title={t('editor.highlightColours')} aria-expanded={open} aria-haspopup="true"
       onMouseDown={keep} onClick={() => setOpen(!open)}>
       <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M7 10l5 5 5-5" /></svg>
