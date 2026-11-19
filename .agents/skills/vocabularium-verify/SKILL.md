@@ -27,6 +27,7 @@ The commands below already exist. Confirm them against the checkout when using t
 | Extension interactions or browser lifetime | The relevant journey in `tests/browser/`; `npm run test:browser` for the complete product and foundation browser suite |
 | API routes or schemas | `npm run openapi` and commit `docs/api/openapi.json`; CI fails when the committed reference differs |
 | How anything moves: a drag, an add, a delete, a way back | Add the move to `tests/browser/motion.test.mjs`; `motion.mjs` records every frame and fails on a row moving back, leaping, vanishing and returning, or a flash. Screens disable animation, so they cannot show this |
+| Seeing a change work, or reproducing a vague report | `npm run drive` and a journey from the [Drive skill](../vocabularium-drive/SKILL.md); its evidence is a proof for the PR, not a regression test |
 | How any screen looks | `npm run screens -- --base main` and its report; see the [screens guide](../../../docs/guides/screens.md). CI's `screens` job compares with main's baseline |
 | Build/package | `npm run build`, `python3 scripts/package.py`, and verification of the resulting archive; see `$vocabularium-deliver` |
 
