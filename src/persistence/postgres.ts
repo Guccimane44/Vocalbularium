@@ -63,7 +63,9 @@ export class Postgres {
       throw new Error('PostgreSQL 18 is required.');
     }
     const lock = await this.owner.query('SELECT pg_try_advisory_lock(172910, $1) AS owned', [this.accountId]);
-    if (!lock.rows[0].owned) throw new Error('This account database already has an API owner. Run one API process.');
+    if (!lock.rows[0].owned) {
+      throw Object.assign(new Error('This account database already has an API owner. Run one API process.'), { code: 'api_already_running' });
+    }
     await this.owner.query('SELECT id FROM account LIMIT 1');
   }
   detached<T>(action: () => T): T { return this.context.exit(() => this.ordered.detached(action)); }
