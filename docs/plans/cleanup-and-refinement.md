@@ -92,7 +92,15 @@ Refines the product as it stands; no new modules or languages. Its scope is set 
 2. **Selection.** The owner picks the batch and its priorities once; Claude turns each item into acceptance criteria under the intake step.
 3. **Build** in parallel increments where they touch separate files, then one review packet for the whole batch.
 
-Candidates already known: the static review's other findings (a dangling context-capture script on timeout, `.trim()` on non-string required fields, the component position contract); owner items to come.
+Candidates already known: the static review's other findings (a dangling context-capture script on timeout, `.trim()` on non-string required fields, the component position contract); the test batch below; owner items to come.
+
+### Test batch
+
+Added by the owner on 19 November 2026, after a review of the test suites. The review found the suites the right size (about 11,000 lines of tests for 13,500 lines of product code; growth slowed from about 4,400 lines in October to 1,900 in November), so this is a narrow batch, not a general cleanup. Rules checked at several levels (pure function, store, API) stay: each level catches a different mistake.
+
+1. **Random failures in the browser journeys.** Four of the last 40 runs on `main` failed on a journey that passed when run again (14 and 19 November); [#339](https://github.com/Guccimane44/Vocalbularium/pull/339) fixed the editor races behind the 19 November pair. About 30 fixed sleeps remain in `tests/browser/` (`waitForTimeout` or a timer of 100 ms or more). *Done when* each sleep either waits for a state instead, or is kept with a comment saying why time itself is what it checks (something must *not* happen within it); and the screens job's three red "Check the report" runs on `main` (8 and 18 November) are explained, and fixed if they are a fault rather than a changed screen.
+2. **Counts copied from the catalog.** Some journeys assert exact lists or counts that the catalog decides: modules in the module window, a language's facets, the account menu's rows. Each new module or menu item turns them red and needs a commit that only changes the number (at least five since October, among them `257c1d4`, `8277306`, `44b0077` and `fe92433`). *Done when* such assertions take their expected list from the catalog or the locale file, as `tests/catalog.test.mjs` does, or check the rule instead of the number; and adding a module to the catalog breaks no browser journey that is not about that module.
+3. **History in test names.** 25 journeys start their name with a release ("0.7.5: …"), and about nine assertions check that features removed long ago stay gone (the deck Preview, the page-level Edit page, the old dashboard heading). *Done when* journeys are named by what they check, and an absence check stays only where a return of the feature is a real risk. Lowest priority; a file can be renamed when it is touched for the other two.
 
 ## Not in these milestones
 
