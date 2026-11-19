@@ -41,16 +41,6 @@ alone decides (D25). The full rules are in the
 5. Spoken parts (`domain/spoken.ts`) become audio jobs (`src/server/audio.mjs`, `speech.mjs`, `elevenlabs.mjs`) stored per line by `store-audio`.
 6. The extension's page (`page-view.tsx`, `card-content.tsx`, `shaping.tsx`, `facet-window.tsx`) renders through `domain/render.ts`. Module pages come from `about-sheet.tsx`, reading the generated `catalog/about.generated.ts`, because the extension cannot read files at run time.
 
-**Invariants every change keeps:**
-
-- Applied migrations never change; a schema change is a new migration (`npm run db:generate`). Upgrades keep accounts, sign-in, decks and pages unless the owner decides otherwise, and each release states its upgrade in its own file under [docs/releases](docs/releases/README.md).
-- A mutation is idempotent by its operation ID. Provider calls never run inside a database transaction or the ordered executor.
-- One browser session per installation ([accounts and sync](docs/specs/accounts-and-sync.md#browser-sessions)).
-- A parent's header (its top line) is written by generation and never edited by the user.
-- No interface text in code: English strings in `extension/locales/en/messages.json`, other languages beside them, a module's names in its folder. Arabic mirrors the layout.
-- No generated content is cached; a prompt change shows as a change to `tests/prompts/*.txt`.
-- An API change regenerates `docs/api/openapi.json` (`npm run openapi`); CI fails on drift.
-
 **Where each kind of change goes, and what guards it:**
 
 | Change | Where | Guarded by |
@@ -60,6 +50,36 @@ alone decides (D25). The full rules are in the
 | Generation, Retry, recovery | `src/server/generation.mjs`, `src/core/store-generation.mjs` | `tests/generation.test.mjs`, `tests/generation-recovery.test.mjs`, `tests/opencode.test.mjs`, `tests/browser/reliability.test.mjs` |
 | A page, card or deck interaction | `extension/` | `tests/extension.test.mjs`, the journey files in `tests/browser/`, `npm run screens -- --base main` ([screens](docs/guides/screens.md)); a move that slides, adds, deletes or navigates joins the motion catalogue, `tests/browser/motion.test.mjs`, checked frame by frame by `tests/browser/motion.mjs` |
 | Interface strings | `extension/locales/` | `tests/localisation.test.mjs`, `tests/browser/localisation.test.mjs` |
+
+## Rules and what enforces them
+
+Every change keeps these rules. The second column says what fails when a rule is broken; **nothing** means only this text holds it, so take extra care there.
+
+| Rule | Enforced by |
+| --- | --- |
+| Applied migrations never change; a schema change is a new migration (`npm run db:generate`). | nothing |
+| Upgrades keep accounts, sign-in, decks and pages unless the owner decides otherwise. | `tests/upgrade.test.mjs`, `tests/browser/upgrade.test.mjs` |
+| Each release states its upgrade in its own file under [docs/releases](docs/releases/README.md). | `scripts/package.py` refuses to package without `docs/releases/<version>.md` |
+| A mutation is idempotent by its operation ID. | replay tests in `tests/postgres.test.mjs`, `tests/decks.test.mjs`, `tests/server.test.mjs`; nothing makes a new mutation route take one |
+| Provider calls never run inside a database transaction or the ordered executor. | one test in `tests/postgres.test.mjs` (a waiting model call doesn't hold the executor); nothing for transactions |
+| One browser session per installation ([accounts and sync](docs/specs/accounts-and-sync.md#browser-sessions)). | the store's `stale_session` check (`src/core/store-sessions.mjs`); `tests/foundation.test.mjs`, `tests/postgres.test.mjs`, `tests/browser/reliability.test.mjs` |
+| A parent's header (its top line) is written by generation and never edited by the user. | the store rejects the edit; `tests/facets.test.mjs` |
+| No interface text in code: English strings in `extension/locales/en/messages.json`, other languages beside them, a module's names in its folder. | `tests/localisation.test.mjs` |
+| Arabic mirrors the layout. | `tests/browser/localisation.test.mjs`, `tests/browser/layout-rules.test.mjs` |
+| No generated content is cached, audio included. | nothing |
+| A prompt change shows as a change to `tests/prompts/*.txt`. | `tests/prompts.test.mjs` (`UPDATE_PROMPTS=1` after a deliberate change) |
+| An API change regenerates `docs/api/openapi.json` (`npm run openapi`). | the OpenAPI step in `.github/workflows/verify.yml` |
+| A changed screen is looked at before it merges. | the screens job fails on a changed screen until the PR is labelled `screens-changed` ([screens](docs/guides/screens.md)) |
+| A move draws no flicker, jump or flash. | `tests/browser/motion.test.mjs`, for the moves in its catalogue; add a new move there |
+| Merge only when every check passes on a branch up to date with `main`. | the GitHub ruleset "main: verify must pass" |
+| A browser test that fails at random is named, never passed over. | `scripts/browser-tests.mjs` reruns a failed file once and fails the run either way |
+| The API and extension under discussion are the ones built from the code under discussion. | the version and commit on the homepage and login page; the account menu's warning when the two differ (`tests/extension.test.mjs`); `/health/live` and a failed second start name the running build (`tests/server.test.mjs`) |
+| Relative links and anchors in Markdown resolve. | `scripts/check-links.mjs` in `npm run check` |
+| Decision files follow their naming, numbering and header rules ([decisions](docs/decisions/README.md)). | `scripts/check-decisions.mjs` in `npm run check`; `scripts/check-decision-issues.mjs` in CI |
+| Ask the owner only when a wrong guess is costly; list every default under **Defaults taken** ([Change skill](.agents/skills/vocabularium-change/SKILL.md#take-the-request-in)). | nothing (a judgment call) |
+| A field, file or export goes once nothing uses it. | nothing |
+
+**Keep this table true.** When the owner corrects a mistake, fix it and add its rule here. If its rule is already here with **nothing** beside it, the mistake is a repeat: in the same change, enforce the rule at the highest level that works (a design that makes the mistake impossible, then types, then a lint or CI check whose message names the fix, then a test), and show the check failing on the past mistake. Keep prose only for judgment calls. Remove a rule once its mistake can no longer happen.
 
 ## Reusable workflows
 
