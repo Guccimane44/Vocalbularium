@@ -1,6 +1,6 @@
 {
   "name": "vocabularium",
-  "version": "0.16.7",
+  "version": "0.16.8",
   "private": true,
   "type": "module",
   "workspaces": [
@@ -18,7 +18,7 @@
     "check:sessions": "npm run build:packages && node --env-file-if-exists=.env.postgres scripts/check-sessions.mjs",
     "start": "npm run build:packages && node --env-file-if-exists=.env --env-file-if-exists=.env.postgres src/server/start.mjs",
     "logs": "node --env-file-if-exists=.env scripts/logs.mjs",
-    "reports": "node --env-file-if-exists=.env scripts/reports.mjs",
+    "reports": "node --env-file-if-exists=.env --env-file-if-exists=.env.postgres scripts/reports.mjs",
     "openapi": "npm run build:packages && node scripts/generate-openapi.mjs",
     "build:packages": "node scripts/build-packages.mjs",
     "pretest": "npm run build:packages",

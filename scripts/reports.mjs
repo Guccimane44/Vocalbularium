@@ -14,7 +14,7 @@ import pg from 'pg';
 
 const [command, id, issue] = process.argv.slice(2);
 const databaseUrl = process.env.DATABASE_URL;
-if (!databaseUrl) throw new Error('DATABASE_URL is required: run it as `npm run reports`, which reads .env.');
+if (!databaseUrl) throw new Error('DATABASE_URL is required: run it as `npm run reports`, which reads .env and .env.postgres, as `npm start` does.');
 const client = new pg.Client({ connectionString: databaseUrl });
 await client.connect();
 
