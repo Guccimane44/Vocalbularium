@@ -116,3 +116,9 @@ test('the report route adds the API build and the recent logs only when asked', 
   assert.equal(undone.status, 200);
   await assert.rejects(application.store.report(without.data.reportId), { code: 'deleted' });
 });
+
+test('npm run reports reads the env files npm start reads, where DATABASE_URL lives', async () => {
+  const { scripts } = JSON.parse(await (await import('node:fs/promises')).readFile('package.json', 'utf8'));
+  const envFiles = script => script.match(/--env-file(?:-if-exists)?=\S+/g)?.map(flag => flag.split('=')[1]) ?? [];
+  assert.deepEqual(envFiles(scripts.reports), envFiles(scripts.start));
+});

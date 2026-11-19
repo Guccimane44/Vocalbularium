@@ -6,7 +6,7 @@ A candidate ZIP contains this guide, the `extension` folder, and `package-info.j
 
 Use current Google Chrome. Start PostgreSQL 18 and the local API first, following the [local PostgreSQL setup](../architecture/local-postgresql.md) and the README's [account and dashboard steps](../../README.md#account-and-dashboard): `npm ci`, `npm run db:setup`, then `npm start` from the repository root. Check that `package-info.json` shows the expected version and `http://127.0.0.1:4318` before signing in.
 
-Use a separate Chrome profile for this local account rather than one that held an earlier hosted build. What an upgrade keeps and changes is stated for each release in its own file under [docs/releases](../releases/README.md); this package carries its own as `RELEASE.md` ([0.16.7](../releases/0.16.7.md)).
+Use a separate Chrome profile for this local account rather than one that held an earlier hosted build. What an upgrade keeps and changes is stated for each release in its own file under [docs/releases](../releases/README.md); this package carries its own as `RELEASE.md` ([0.16.8](../releases/0.16.8.md)).
 
 ## Install
 
@@ -21,7 +21,7 @@ The dashboard starts with **My Deck**. Select text on a webpage, right-click, an
 
 ## Update an installed copy
 
-Finish or cancel manual edits and let active generation finish. When the update includes a backend change, stop the API, back up the database with `npm run db:backup -- .data/backup-before-<version>.dump` (a file that does not exist yet; see [backup and restore](../architecture/local-postgresql.md#backup-and-restore-into-a-separate-database)), apply the reviewed migrations with `npm run db:migrate`, and restart the API before updating the extension; backend and extension upgrade together. Keep the PostgreSQL database and `DATA_DIR/generation-outbox`. Read the version's `RELEASE.md` in the package (the latest is [0.16.7](../releases/0.16.7.md)) before migrating: it says what the upgrade keeps and changes. Finish or discard pending saves first.
+Finish or cancel manual edits and let active generation finish. When the update includes a backend change, stop the API, back up the database with `npm run db:backup -- .data/backup-before-<version>.dump` (a file that does not exist yet; see [backup and restore](../architecture/local-postgresql.md#backup-and-restore-into-a-separate-database)), apply the reviewed migrations with `npm run db:migrate`, and restart the API before updating the extension; backend and extension upgrade together. Keep the PostgreSQL database and `DATA_DIR/generation-outbox`. Read the version's `RELEASE.md` in the package (the latest is [0.16.8](../releases/0.16.8.md)) before migrating: it says what the upgrade keeps and changes. Finish or discard pending saves first.
 
 Replace the files in the same permanent extension folder with the new package, then select **Reload** on Vocabularium's entry at `chrome://extensions` and reload any open Vocabularium dashboard tabs. Reloading ends the extension's generation session, so unfinished generation is reconciled as failed; review those components using the [capture and generation rules](../specs/capture-and-generation.md) and retry them explicitly.
 
