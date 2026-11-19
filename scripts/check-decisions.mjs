@@ -6,6 +6,9 @@
 // decision has its GitHub issue is scripts/check-decision-issues.mjs.
 import { readdirSync, readFileSync } from 'node:fs';
 
+// Windows checks the files out with CRLF line endings.
+const read = (/** @type {string} */ path) => readFileSync(path, 'utf8').replace(/\r\n/g, '\n');
+
 const dir = 'docs/decisions';
 const LAST_HAND_NUMBERED = 36;
 // The two decisions that keep a longer detail file beside their own (README).
@@ -14,7 +17,7 @@ const NOT_DECISIONS = new Set(['README.md', 'conflicts.md', 'clarifications.md']
 
 // The status values are the backticked words that open each bullet under
 // "Where a decision's status lives", so the workflow stays their one home.
-const workflow = readFileSync('docs/guides/project-workflow.md', 'utf8');
+const workflow = read('docs/guides/project-workflow.md');
 const list = workflow.slice(workflow.indexOf('**Where a decision\'s status lives.**')).split('\n\n')[1] ?? '';
 const statuses = [...list.matchAll(/^- (.*?):/gm)].flatMap(([, values]) => [...values.matchAll(/`([^`]+)`/g)].map(([, value]) => value));
 if (!statuses.length) throw new Error('No status values found under "Where a decision\'s status lives" in docs/guides/project-workflow.md.');
@@ -36,7 +39,7 @@ for (const name of readdirSync(dir).filter(name => name.endsWith('.md') && !NOT_
     problems.push(`${name}: name it d<issue>-<short-name>.md, or d-draft-<slug>.md until its issue exists (D01–D36 keep dNN.md).`);
     continue;
   }
-  const text = readFileSync(`${dir}/${name}`, 'utf8');
+  const text = read(`${dir}/${name}`);
   const header = text.split(/^## /m)[0];
   if (number !== undefined) {
     const heading = header.match(/^# D0*(\d+):/);
