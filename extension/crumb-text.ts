@@ -6,7 +6,7 @@ import { t } from './i18n.ts';
 // key), so it is cut to a character limit and keeps its full text as a tooltip.
 // `own`: the crumb is the owner's text (a deck's name, a main key), not the interface's.
 export type Crumb = Readonly<{ label: string; go?: () => void; own?: boolean }>;
-export const CRUMB_LIMIT = 32;
+const CRUMB_LIMIT = 32;
 export function crumbText(text: string): { shown: string; full: string } {
   const full = text.replace(/\s+/g, ' ').trim();
   const characters = Array.from(full);

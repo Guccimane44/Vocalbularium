@@ -4,7 +4,7 @@
 // Storage written by this build. Version 2 is the deck → page → component model;
 // version 3 has page-owned modules (D02); version 4 has one request per module
 // and a card's own reading of the main key (D17).
-export const DATA_VERSION = 4;
+const DATA_VERSION = 4;
 
 // The items as this build writes them.
 /** @param {string | string[] | null} keys @returns {Promise<LocalItems>} */

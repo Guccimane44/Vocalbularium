@@ -8,7 +8,7 @@ import { failure, Provider } from './provider.mjs';
 export const DEFAULT_MODEL = 'claude-haiku-5-5';
 
 // Requests name the app and its release, read once from package.json.
-export const USER_AGENT = `Vocabularium/${JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8')).version}`;
+const USER_AGENT = `Vocabularium/${JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8')).version}`;
 
 // The OpenCode adapter (D11): transport only. OpenCode has no native JSON
 // schema, so the schema travels inside the instructions.

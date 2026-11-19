@@ -15,7 +15,7 @@ import { AudioStore } from './store-audio.mjs';
 export { StoreError } from './store-common.mjs';
 
 // A new account's My Deck, from the catalog (D08).
-export { DEFAULT_DECK_MODULES };
+;
 
 export class AccountStore extends AudioStore {
   /** @param {{ databaseUrl?: string, accountId?: number, outbox?: string | null, diagnostic?: (event: Record<string, unknown>) => void }} [options] */

@@ -7,7 +7,7 @@ import type { MessageKey } from './i18n.ts';
 
 // Page list layouts and quiet list states (D05): a completed page shows no
 // status; saving, generating, failed and not-saved replace the meaning line.
-export type PageStatus = 'completed' | 'loading' | 'failed' | null;
+type PageStatus = 'completed' | 'loading' | 'failed' | null;
 export type SummaryModule = { type: string; status: PageStatus; filled: boolean };
 export type ListPage = {
   id: string;
@@ -18,7 +18,7 @@ export type ListPage = {
   modules?: SummaryModule[];
 };
 export type Layout = 'list' | 'table' | 'gallery';
-export const LAYOUTS: [Layout, MessageKey][] = [['list', 'layout.list'], ['table', 'layout.table'], ['gallery', 'layout.gallery']];
+const LAYOUTS: [Layout, MessageKey][] = [['list', 'layout.list'], ['table', 'layout.table'], ['gallery', 'layout.gallery']];
 export const isLayout = (value: unknown): value is Layout => LAYOUTS.some(([layout]) => layout === value);
 
 type Navigate = (hash: string) => void;
@@ -42,7 +42,7 @@ export function useArrivals(ids: string[], { appended = false } = {}) {
 }
 
 // One small mark per filled component, in page order, with one text alternative.
-export function FamilyMarks({ modules }: { modules?: SummaryModule[] }) {
+function FamilyMarks({ modules }: { modules?: SummaryModule[] }) {
   const filled = (modules ?? []).filter(module => module.filled && familyOf(module.type));
   // Marks pop in as components finish, not when the list first appears.
   const shown = useRef<number | null>(null);
@@ -93,7 +93,7 @@ export function MeaningLine({ page, navigate }: { page: ListPage; navigate: Navi
 
 const sameDay = (a: Date, b: Date) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 // Group headings for the creation-time orders: Today, Yesterday, then month and day.
-export function dateGroup(iso: string, now = new Date()) {
+function dateGroup(iso: string, now = new Date()) {
   const date = new Date(iso);
   if (sameDay(date, now)) return t('time.today');
   if (sameDay(date, new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1))) return t('time.yesterday');

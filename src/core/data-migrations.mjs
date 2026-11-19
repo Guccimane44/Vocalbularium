@@ -11,7 +11,7 @@ import { isParentType } from '@vocabularium/domain/parents';
 // `npm run db:migrate` after the schema migrations, each in a transaction and
 // recorded in data_migrations so it runs only once.
 /** @type {DataMigration[]} */
-export const DATA_MIGRATIONS = [
+const DATA_MIGRATIONS = [
   // The main key's emphasis, drawn by the card until 0.7.5, becomes a stored
   // highlight in every parent's core and facets, so the card reads as before.
   { name: '0.7.5-main-key-highlights', async run(client) {
