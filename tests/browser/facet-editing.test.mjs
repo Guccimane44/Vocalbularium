@@ -7,7 +7,7 @@ import { join } from 'node:path';
 import { once } from 'node:events';
 import { blockText } from '@vocabularium/domain/pages';
 import { text, staged, fieldEdit } from '../helpers/pages.mjs';
-import { BANK, componentArticle, cardButton, launch, signIn, waitFor } from './helpers.mjs';
+import { BANK, componentArticle, cardButton, focusPart, launch, selectedIn, signIn, waitFor } from './helpers.mjs';
 
 test('0.7.5: a facet’s own Edit opens that facet alone in place, with its toolbar, Save and Cancel, and saves only that facet', { timeout: 60000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-facet-edit-browser-'));
@@ -69,8 +69,11 @@ test('0.7.5: a facet’s own Edit opens that facet alone in place, with its tool
   await text.waitFor();
   await waitFor(() => a.page.evaluate(() => document.activeElement?.getAttribute('aria-label') === 'Synonyms, German'), 'focused again');
   await a.page.keyboard.type(', fest');
+  // Selected with the keys once the editor's focus check has run, and held by the editor before Bold (helpers.mjs, focusPart).
+  await focusPart(text);
   await a.page.keyboard.press('Shift+ArrowLeft'); await a.page.keyboard.press('Shift+ArrowLeft');
   await a.page.keyboard.press('Shift+ArrowLeft'); await a.page.keyboard.press('Shift+ArrowLeft');
+  await waitFor(async () => (await selectedIn(text)).text === 'fest', 'the editor holds "fest"');
   await synonyms.locator('.md-toolbar').getByRole('button', { name: 'Bold', exact: true }).click();
   await store.savePage('facet-edit-elsewhere', { pageId, changes: [{ componentId: first.id, content: fieldEdit(await german(), 'Flussufer') }] });
   await synonyms.getByRole('button', { name: 'Save', exact: true }).click();
@@ -139,6 +142,7 @@ test('0.7.5: a facet’s own Edit opens that facet alone in place, with its tool
   await card.getByRole('textbox').waitFor({ state: 'detached' });
   await waitFor(async () => await synonyms.getAttribute('data-unfilled') !== null, 'Synonyms emptied');
   assert.equal(await synonyms.locator('.facet-body').count(), 0);
+  assert.notEqual(await card.locator('.facet-tag[data-facet="synonyms"]').getAttribute('data-unfilled'), null, 'its tag stays, bland');
   // Its heading keeps Edit, Retry and Delete; Edit fills it by hand; Delete goes at once, as there is nothing to lose.
   await synonyms.hover();
   assert.deepEqual(await synonyms.locator('.facet-actions button').evaluateAll(buttons => buttons.map(button => button.getAttribute('aria-label'))),
@@ -162,7 +166,10 @@ test('0.7.5: a facet’s own Edit opens that facet alone in place, with its tool
   await synonyms.waitFor({ state: 'detached' });
   assert.equal(await card.locator('.facet-confirm').count(), 0, 'no "Are you sure?" for an empty facet');
   assert.equal((await stored()).facets.synonyms, undefined);
-  assert.notEqual(await card.locator('.facet-tag[data-facet="synonyms"]').getAttribute('data-unfilled'), null);
+  // Deleted, the facet leaves the card's facets, and its tag pops and goes (pages-and-editing, Facet tags).
+  // The tag stands only while it pops, so it is not read meanwhile.
+  assert.equal((await german()).facets.includes('synonyms'), false);
+  await card.locator('.facet-tag[data-facet="synonyms"]').waitFor({ state: 'detached' });
 });
 
 test('0.7.5: Context and Text edit with the toolbar editor, from their tab', { timeout: 60000 }, async (t) => {

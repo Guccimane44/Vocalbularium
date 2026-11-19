@@ -88,6 +88,25 @@ export async function signIn(page) {
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await page.getByRole('heading', { name: 'Your decks', exact: true }).waitFor();
 }
+// A toolbar editor (ProseMirror) hears of a selection the browser made, by a click or with the keys, from
+// the browser's selectionchange event, a moment later; until then it still holds the selection before. Two
+// things act on the editor's selection in that moment: its own check 20 ms after it takes focus, which puts
+// the older selection back on the page (prosemirror-view's focus handler), and the toolbar's buttons. A
+// person is never that fast; a test is. So a test lets that check run before it moves the selection in a
+// part, and waits until the editor holds the selection before it goes on.
+//
+// Gives the editor part the focus if it lacks it, and resolves once its focus check has run: a timer of the
+// same length, started after the focus, runs after that check.
+export const focusPart = part => part.evaluate(node => new Promise(resolve => {
+  if (!node.contains(document.activeElement)) node.focus();
+  setTimeout(resolve, 20);
+}));
+// What the editor part holds: the text selected, and whether it is a caret with no text after it.
+export const selectedIn = part => part.evaluate(node => {
+  const { state } = node.editor;
+  const { from, to } = state.selection;
+  return { text: state.doc.textBetween(from, to), caretAtEnd: from === to && !state.doc.textBetween(to, state.doc.content.size) };
+});
 export async function waitFor(predicate, message, timeout = 12000) {
   const start = Date.now();
   while (Date.now() - start < timeout) {
