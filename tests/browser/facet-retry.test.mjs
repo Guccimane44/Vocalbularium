@@ -86,10 +86,14 @@ test('0.7.3: a facet’s own Retry beside its Delete, a tag’s remove keeping i
   await exampleText.waitFor();
   assert.equal(await exampleText.locator('mark').textContent(), 'bank', 'the editor shows the main key’s highlight');
   // Wait for the selection and for the editor's redraw rather than a fixed time:
-  // counting the marks right after the click failed at random on 22 October and 18 November.
+  // counting the marks right after the click failed at random on 22 October and 18 November,
+  // and on 19 November the button still added the highlight it should remove.
   await exampleText.locator('mark').dblclick();
   await waitFor(() => a.page.evaluate(() => getSelection()?.toString().trim() === 'bank'), 'the highlighted word selected');
-  await examples.locator('.md-toolbar [data-tool="highlight"]').click();
+  // The button shows the highlight under the selection before it is clicked, as a person would see it.
+  const highlightTool = examples.locator('.md-toolbar [data-tool="highlight"]');
+  await waitFor(async () => await highlightTool.getAttribute('aria-pressed') === 'true', 'the highlight button pressed');
+  await highlightTool.click();
   await waitFor(async () => await exampleText.locator('mark').count() === 0, 'the highlight removed in the editor');
   await examples.getByRole('button', { name: 'Save', exact: true }).click();
   await card.getByRole('textbox').waitFor({ state: 'detached' });

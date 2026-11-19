@@ -28,6 +28,7 @@ Replace the files in the same permanent extension folder with the new package, t
 ## If something does not work
 
 - **Cannot sign in:** check the server address in `package-info.json` and that the local API is running (`GET http://127.0.0.1:4318/health/ready`).
+- **`npm start` says another API already owns the database or the port is in use:** an earlier API is still running; only one API may serve the account. The message names the address and the build that answers there. Stop that process (Ctrl+C in its terminal, or end it by its process ID: `lsof -i :4318` shows it on macOS and Linux), then start again.
 - **"Different builds" under your name in the account menu:** the extension and the API come from different commits, shown as two short commit IDs (`?` for an API older than this check). Restart the API from the checkout the extension was built from, or rebuild and reload the extension; `GET http://127.0.0.1:4318/health/live` names the API's version, commit and whether its checkout had uncommitted changes.
 - **No capture menu:** open Vocabularium and sign in; make sure the extension is enabled and some text is selected.
 - **Capture received, but generation failed:** the receipt confirms capture only. Check each component's outcome on the saved page. Generation needs the owner's OpenCode Go key on the server.

@@ -7,6 +7,7 @@ import { join } from 'node:path';
 import { connect } from 'node:net';
 import { once } from 'node:events';
 import { loadConfig } from '../src/server/config.mjs';
+import { startupMessage } from '../src/server/startup-message.mjs';
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 
@@ -217,4 +218,24 @@ test('health names the commit the API runs from, so the extension can tell a dif
     assert.equal(data.build.version, version, path);
     assert.equal(typeof data.build.dirty, 'boolean', path);
   }
+});
+
+test('a failed start names the API that already runs, and stays generic otherwise', async () => {
+  const answering = build => async url => {
+    assert.equal(url, 'http://127.0.0.1:4318/health/live');
+    return new Response(JSON.stringify({ ok: true, ...(build ? { build } : {}) }));
+  };
+  const owner = Object.assign(new Error('owned'), { code: 'api_already_running' });
+  assert.equal(await startupMessage(owner, { fetch: answering({ version: '0.16.6', commit: '69043e4aaaaaaaa', dirty: false }) }),
+    'Vocabularium startup failed: Another Vocabularium API already owns this database. Vocabularium 0.16.6 (69043e4) is running at http://127.0.0.1:4318. Stop that process (Ctrl+C in its terminal), then start again.');
+  assert.match(await startupMessage(owner, { fetch: answering({ version: '0.16.7', commit: 'e25b970bbbb', dirty: true }) }),
+    /Vocabularium 0\.16\.7 \(e25b970, with uncommitted changes\)/);
+  assert.match(await startupMessage(owner, { fetch: answering(null) }), /Something is answering at http:\/\/127\.0\.0\.1:4318, but it does not say which build/);
+  const busy = Object.assign(new Error('listen'), { code: 'EADDRINUSE' });
+  const refused = async () => { throw new TypeError('fetch failed'); };
+  assert.match(await startupMessage(busy, { port: 4400, fetch: refused }),
+    /^Vocabularium startup failed: Port 4400 on 127\.0\.0\.1 is already in use\. Nothing answers at http:\/\/127\.0\.0\.1:4400/);
+  assert.match(await startupMessage(busy, { host: '::1', port: 4400, fetch: refused }), /http:\/\/\[::1\]:4400/);
+  assert.equal(await startupMessage(new Error('other'), { fetch: () => assert.fail('must not probe') }),
+    'Vocabularium startup failed. Inspect local diagnostic logs for safe error metadata.');
 });

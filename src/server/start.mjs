@@ -3,6 +3,7 @@ import { resolve } from 'node:path';
 import { createApplication } from './app.mjs';
 import { loadConfig } from './config.mjs';
 import { Diagnostics } from './diagnostics.mjs';
+import { startupMessage } from './startup-message.mjs';
 /** @typedef {Error & { code?: string }} StartError */
 
 /** @type {ReturnType<typeof loadConfig> | undefined} */
@@ -32,7 +33,7 @@ try {
     phase: config ? 'startup' : 'configuration', errorType: error.name, errorCode: error.code });
   if (application) await application.close();
   else await diagnostics.close();
-  console.error('Vocabularium startup failed. Inspect local diagnostic logs for safe error metadata.');
+  console.error(await startupMessage(error, { host: config?.host, port: config?.port }));
   process.exitCode = 1;
 }
 

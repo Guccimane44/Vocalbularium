@@ -14,7 +14,9 @@ The owner's requests are often short and casual. Before changing anything, resta
 - **Before and after:** what the user sees or what the system does now, and what it should do instead, in the product model's terms.
 - **Acceptance criteria:** observable checks, each one something a test, a screenshot or a browser journey can show.
 - **Where it goes:** the files, modules or journeys it touches, from the architecture map in `AGENTS.md`, and whether it is polish within the milestone or a decision with a D-number ([what gets a D-number](../../../docs/guides/project-workflow.md#from-decisions-to-iterations)).
-- **Questions:** only where the request is genuinely ambiguous and a sensible default would risk the wrong result; otherwise state the default you take.
+- **Questions:** ask only when a wrong guess would be costly to undo: stored data or a migration, an API contract, deleting the owner's content, spending beyond what the owner authorized, or going against something the owner already decided. Otherwise take a sensible default and carry on.
+
+**Defaults.** The same rule holds after the intake: a new uncertainty met during the work is settled by a sensible default unless a wrong guess would be costly. Record every default you took where the owner will see it, under **Defaults taken** in the PR description and in the milestone's review packet, each with what you chose, the alternative and where to change it. A default that never reaches either place counts as an undisclosed change.
 
 Keep it short. When the owner confirms, the intake's criteria become the issue's or plan's acceptance checklist. A request that already reads as an intake, or a fix whose before and after are evident, needs no separate confirmation.
 
