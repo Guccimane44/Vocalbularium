@@ -7,7 +7,7 @@ import { join } from 'node:path';
 import { once } from 'node:events';
 import { blockText } from '@vocabularium/domain/pages';
 import { text, staged, fieldEdit } from '../helpers/pages.mjs';
-import { BANK, componentArticle, cardButton, launch, signIn, waitFor } from './helpers.mjs';
+import { BANK, componentArticle, cardButton, focusPart, launch, selectedIn, signIn, waitFor } from './helpers.mjs';
 
 test('0.7.5: a facet’s own Edit opens that facet alone in place, with its toolbar, Save and Cancel, and saves only that facet', { timeout: 60000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-facet-edit-browser-'));
@@ -69,18 +69,11 @@ test('0.7.5: a facet’s own Edit opens that facet alone in place, with its tool
   await text.waitFor();
   await waitFor(() => a.page.evaluate(() => document.activeElement?.getAttribute('aria-label') === 'Synonyms, German'), 'focused again');
   await a.page.keyboard.type(', fest');
-  // The editor hears of a selection made with the keys from the browser's selectionchange event, a moment
-  // later; until then it still holds the selection before. Two things act on the editor's selection in that
-  // moment: its own check 20 ms after it takes focus, which puts the older selection back on the page
-  // (prosemirror-view's focus handler), and Bold. So the keys wait for that check, which a timer of the same
-  // length started after the focus follows; and Bold waits until the editor holds the four letters.
-  await a.page.evaluate(() => new Promise(resolve => setTimeout(resolve, 20)));
+  // Selected with the keys once the editor's focus check has run, and held by the editor before Bold (helpers.mjs, focusPart).
+  await focusPart(text);
   await a.page.keyboard.press('Shift+ArrowLeft'); await a.page.keyboard.press('Shift+ArrowLeft');
   await a.page.keyboard.press('Shift+ArrowLeft'); await a.page.keyboard.press('Shift+ArrowLeft');
-  await waitFor(() => a.page.evaluate(() => {
-    const { state } = document.querySelector('[aria-label="Synonyms, German"]').editor;
-    return state.doc.textBetween(state.selection.from, state.selection.to) === 'fest';
-  }), 'the editor holds "fest"');
+  await waitFor(async () => (await selectedIn(text)).text === 'fest', 'the editor holds "fest"');
   await synonyms.locator('.md-toolbar').getByRole('button', { name: 'Bold', exact: true }).click();
   await store.savePage('facet-edit-elsewhere', { pageId, changes: [{ componentId: first.id, content: fieldEdit(await german(), 'Flussufer') }] });
   await synonyms.getByRole('button', { name: 'Save', exact: true }).click();

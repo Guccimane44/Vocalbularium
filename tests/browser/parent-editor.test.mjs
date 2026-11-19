@@ -5,7 +5,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { text, staged } from '../helpers/pages.mjs';
-import { BANK, componentArticle, cardButton, escaped, launch, signIn, waitFor } from './helpers.mjs';
+import { BANK, componentArticle, cardButton, escaped, focusPart, launch, selectedIn, signIn, waitFor } from './helpers.mjs';
 
 test('0.7.5: the parent editor in place: names and top line locked, no markdown (typed stays typed), the toolbar beside the focused part, empty facets filled, any part emptied', { timeout: 60000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-live-editor-browser-'));
@@ -56,7 +56,10 @@ test('0.7.5: the parent editor in place: names and top line locked, no markdown 
   const facetTool = (facet, label) => editor.locator(`.facet[data-facet="${facet}"] .md-toolbar`).getByRole('button', { name: label, exact: true });
   const coreTool = label => editor.locator('.live-core .md-toolbar').getByRole('button', { name: label, exact: true });
   assert.equal(await toolbars.count(), 0, 'no toolbar while nothing is focused');
-  await part('Synonyms').click(); await a.page.keyboard.press('End');
+  // Each step that moves the selection in a part lets the editor's focus check run first and waits
+  // until the editor holds the selection (helpers.mjs, focusPart).
+  await part('Synonyms').click(); await focusPart(part('Synonyms')); await a.page.keyboard.press('End');
+  await waitFor(async () => (await selectedIn(part('Synonyms'))).caretAtEnd, 'the caret at the end of Synonyms');
   await a.page.keyboard.type(', **fest**');
   assert.equal(await part('Synonyms').textContent(), 'Böschung, **fest**', 'typed markdown stays as typed');
   assert.equal(await part('Synonyms').locator('strong').count(), 0);
@@ -65,7 +68,7 @@ test('0.7.5: the parent editor in place: names and top line locked, no markdown 
   assert.deepEqual(await toolbars.getByRole('button').evaluateAll(buttons => buttons.map(button => button.getAttribute('aria-label'))),
     ['Bold', 'Italic', 'Highlight', 'Highlight colours', 'Inline code', 'Bulleted list', 'Numbered list']);
   // A button shows whether its formatting applies at the cursor.
-  await part('Examples').locator('em').click();
+  await focusPart(part('Examples')); await part('Examples').locator('em').click();
   await waitFor(async () => await facetTool('examples', 'Italic').getAttribute('aria-pressed') === 'true', 'Italic pressed in the translation');
   assert.equal(await facetTool('examples', 'Bold').getAttribute('aria-pressed'), 'false');
   assert.equal(await toolbars.count(), 1, 'the toolbar follows the focus');
@@ -77,10 +80,10 @@ test('0.7.5: the parent editor in place: names and top line locked, no markdown 
   await a.page.keyboard.press('ControlOrMeta+b');
   assert.equal(await part('Meanings').locator('strong').count(), 0, 'Cmd/Ctrl+B toggles it back');
   await a.page.keyboard.press('ControlOrMeta+b');
-  // Faster than a person, ProseMirror would still hold the whole selection.
-  await a.page.waitForTimeout(300);
-  await part('Meanings').click(); await a.page.waitForTimeout(300);
+  await part('Meanings').click();
+  await waitFor(async () => (await selectedIn(part('Meanings'))).caretAtEnd, 'the caret at the end of the meanings');
   await a.page.keyboard.type(' x'); await a.page.keyboard.press('Shift+ArrowLeft');
+  await waitFor(async () => (await selectedIn(part('Meanings'))).text === 'x', 'the editor holds "x"');
   await coreTool('Inline code').click();
   assert.equal(await part('Meanings').locator('code').textContent(), 'x');
   // Lists and highlight from the toolbar; a typed "- " stays a dash.
@@ -98,10 +101,12 @@ test('0.7.5: the parent editor in place: names and top line locked, no markdown 
   assert.equal(await part('Antonyms').locator('ol li').count(), 1, 'the numbered list takes its place');
   await a.page.keyboard.press('End');
   for (let i = 0; i < 5; i++) await a.page.keyboard.press('Shift+ArrowLeft');
+  await waitFor(async () => (await selectedIn(part('Antonyms'))).text === 'stark', 'the editor holds "stark"');
   await facetTool('antonyms', 'Highlight').click();
   assert.equal(await part('Antonyms').locator('mark').textContent(), 'stark');
   // Pasted markdown stays as its characters.
-  await a.page.waitForTimeout(300); await part('Synonyms').click(); await a.page.waitForTimeout(300);
+  await part('Synonyms').click();
+  await waitFor(async () => (await selectedIn(part('Synonyms'))).caretAtEnd, 'the caret at the end of Synonyms again');
   await part('Synonyms').evaluate(node => {
     const data = new DataTransfer(); data.setData('text/plain', ' ==p==');
     node.dispatchEvent(new ClipboardEvent('paste', { clipboardData: data, bubbles: true, cancelable: true }));

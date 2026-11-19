@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { once } from 'node:events';
 import { wordResult, staged } from '../helpers/pages.mjs';
-import { componentArticle, launch, signIn, waitFor } from './helpers.mjs';
+import { componentArticle, focusPart, launch, selectedIn, signIn, waitFor } from './helpers.mjs';
 
 test('0.7.3: a facet’s own Retry beside its Delete, a tag’s remove keeping its colours, and hung tags lifting with their tab', { timeout: 60000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-facet-retry-browser-'));
@@ -88,8 +88,11 @@ test('0.7.3: a facet’s own Retry beside its Delete, a tag’s remove keeping i
   // Wait for the selection and for the editor's redraw rather than a fixed time:
   // counting the marks right after the click failed at random on 22 October and 18 November,
   // and on 19 November the button still added the highlight it should remove.
+  // Once the editor has taken its focus and run its focus check, and held by the editor (helpers.mjs, focusPart).
+  await waitFor(() => a.page.evaluate(() => document.activeElement?.getAttribute('aria-label') === 'Examples, German 1'), 'the editor focused');
+  await focusPart(exampleText);
   await exampleText.locator('mark').dblclick();
-  await waitFor(() => a.page.evaluate(() => getSelection()?.toString().trim() === 'bank'), 'the highlighted word selected');
+  await waitFor(async () => (await selectedIn(exampleText)).text.trim() === 'bank', 'the highlighted word selected');
   // The button shows the highlight under the selection before it is clicked, as a person would see it.
   const highlightTool = examples.locator('.md-toolbar [data-tool="highlight"]');
   await waitFor(async () => await highlightTool.getAttribute('aria-pressed') === 'true', 'the highlight button pressed');
