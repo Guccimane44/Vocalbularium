@@ -233,6 +233,8 @@
   "account.buildMismatch": "Versions différentes : API {api}, extension {extension}",
   "account.diagnostics": "Journaux de diagnostic",
   "account.logOut": "Se déconnecter",
+  "app.version": "Vocabularium {version} · {commit}",
+  "app.versionChanged": "Vocabularium {version} · {commit}, avec des modifications non validées",
   "login.title": "Ravi de vous revoir.",
   "login.body": "Connectez-vous pour ouvrir vos paquets et votre vocabulaire enregistré.",
   "login.username": "Nom d’utilisateur",

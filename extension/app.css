@@ -54,6 +54,9 @@ button:disabled { opacity: .5; cursor: default; }
 @media (prefers-reduced-motion: reduce) { :is(.primary, .secondary, .danger, .dialog-actions button):active:not(:disabled) { transform: none; } }
 @media (forced-colors: active) { .primary, .primary:hover, .danger, .danger:hover { background: ButtonFace; border: 1px solid ButtonText; color: ButtonText; } }
 .login .primary { width: 100%; min-height: 46px; margin-top: 26px; font-size: 15px; }
+/* The build's version and commit at the foot of the homepage and the login page (0.16.7). */
+.app-version { margin: 48px 0 0; color: var(--ink-muted); font-size: 12px; }
+.login .app-version { margin-top: 28px; text-align: center; }
 /* An arrow points the way the text reads. */
 :root[dir="rtl"] .icon-arrow { transform: scaleX(-1); }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 22px; margin-top: 36px; }

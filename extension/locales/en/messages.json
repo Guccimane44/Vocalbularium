@@ -233,6 +233,8 @@
   "account.buildMismatch": "Different builds: API {api}, extension {extension}",
   "account.diagnostics": "Diagnostic logs",
   "account.logOut": "Log out",
+  "app.version": "Vocabularium {version} · {commit}",
+  "app.versionChanged": "Vocabularium {version} · {commit}, with uncommitted changes",
   "login.title": "Welcome back.",
   "login.body": "Sign in to open your decks and saved vocabulary.",
   "login.username": "Username",

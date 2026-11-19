@@ -8,6 +8,7 @@ import { connect } from 'node:net';
 import { once } from 'node:events';
 import { loadConfig } from '../src/server/config.mjs';
 import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 
 async function fixture(t, options) {
   const application = await createTestApplication(t, options);
@@ -171,7 +172,7 @@ test('Fastify publishes route contracts and request IDs on health responses', as
   assert.equal((await (await fetch(url + '/health/ready')).json()).ok, true);
 
   const document = await application.openapi();
-  assert.equal(document.info.version, '0.16.6');
+  assert.equal(document.info.version, '0.16.7');
   assert.ok(document.paths['/api/capture'].post.requestBody.content['application/json'].schema.properties.payload);
   assert.deepEqual(document.paths['/api/capture'].post.security, [{ bearerAuth: [] }]);
   assert.deepEqual(document.paths['/api/login'].post.security, []);
@@ -207,7 +208,7 @@ test('expired authentication is rejected before malformed JSON or route validati
 test('health names the commit the API runs from, so the extension can tell a different build', async (t) => {
   const { url } = await fixture(t);
   const head = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
-  const { version } = JSON.parse(execFileSync('git', ['show', 'HEAD:package.json'], { encoding: 'utf8' }));
+  const { version } = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
   for (const path of ['/health/live', '/health/ready', '/health']) {
     const { status, data } = await call(url, path);
     assert.equal(status, 200, path);

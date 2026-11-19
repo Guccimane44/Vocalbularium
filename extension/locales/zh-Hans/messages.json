@@ -233,6 +233,8 @@
   "account.buildMismatch": "版本不一致：API {api}，扩展 {extension}",
   "account.diagnostics": "诊断日志",
   "account.logOut": "退出登录",
+  "app.version": "Vocabularium {version} · {commit}",
+  "app.versionChanged": "Vocabularium {version} · {commit}，含未提交的更改",
   "login.title": "欢迎回来。",
   "login.body": "登录后即可打开你的卡组和已保存的词汇。",
   "login.username": "用户名",

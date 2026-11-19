@@ -89,7 +89,7 @@ No capability is `post-1.0` or `out at maturity` yet: the questionnaire's decisi
 
 ## Upgrade from earlier builds
 
-Each release's upgrade notes live in [`docs/releases/`](../releases/README.md), one file per release; the latest is [0.16.6](../releases/0.16.6.md).
+Each release's upgrade notes live in [`docs/releases/`](../releases/README.md), one file per release; the latest is [0.16.7](../releases/0.16.7.md).
 
 ## Current delivery boundary
 

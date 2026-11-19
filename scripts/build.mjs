@@ -38,7 +38,14 @@ await writeFile(resolve(output, 'config.js'), `export const API_URL = ${JSON.str
 const sourceManifest = JSON.parse(await readFile(resolve('extension/manifest.json'), 'utf8'));
 const manifest = JSON.parse(await readFile(resolve(output, 'manifest.json'), 'utf8'));
 assert.deepEqual(manifest, { ...sourceManifest, host_permissions: [hostPermission] }, 'WXT changed the extension identity or permissions');
-const worker = await readFile(resolve(output, 'background.js'), 'utf8');
+// The worker and the chunks it imports: the configuration can sit in a chunk it shares with the pages.
+const workerFiles = new Set(['background.js']);
+let worker = '';
+for (const file of workerFiles) {
+  const text = await readFile(resolve(output, file), 'utf8');
+  worker += text;
+  for (const match of text.matchAll(/^import\s.*?["']\.\/(chunks\/[^"']+\.js)["']/gm)) workerFiles.add(match[1]);
+}
 assert.ok(worker.includes(JSON.stringify(serverOrigin)), 'The worker does not contain the configured API origin');
 assert.ok(worker.includes(JSON.stringify(sourceStamp().commit)), 'The worker does not contain the commit it was built from');
 console.log(`Built WXT extension in artifacts/extension for ${serverOrigin}`);
