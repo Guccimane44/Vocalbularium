@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import type { CSSProperties, KeyboardEvent, ReactNode } from 'react';
 import { closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import type { Announcements, DragEndEvent } from '@dnd-kit/core';
@@ -20,7 +20,7 @@ import { home } from './crumb-text.ts';
 
 // A page summary: list rows show the main key, the first meaning and the
 // filled modules, never the page's content.
-export type DashboardPage = ListPage & {
+type DashboardPage = ListPage & {
   deckId: string;
   selectedText: string | null;
 };

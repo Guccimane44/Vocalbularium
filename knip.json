@@ -1,0 +1,32 @@
+{
+  "$schema": "https://unpkg.com/knip@6.44.1/schema.json",
+  "workspaces": {
+    ".": {
+      "entry": [
+        "extension/app.js",
+        "extension/feedback-popup.js",
+        "extension/entrypoints/background.js",
+        "extension/background.js",
+        "scripts/*.{mjs,ts}",
+        "tests/**/*.test.mjs",
+        "tests/screens/*.mjs"
+      ],
+      "project": [
+        "extension/**/*.{js,ts,tsx}",
+        "src/**/*.{mjs,ts}",
+        "shared/**/*.mjs",
+        "scripts/**/*.{mjs,ts}",
+        "tests/**/*.mjs",
+        "types/**/*.ts"
+      ]
+    },
+    "packages/*": {
+      "entry": [
+        "src/**/index.ts"
+      ],
+      "project": [
+        "src/**/*.ts"
+      ]
+    }
+  }
+}

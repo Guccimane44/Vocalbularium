@@ -5,7 +5,7 @@ import { traditionalIn } from '../../simplified.js';
 // a few bullet points, such as its measure word, an aspect particle, the word
 // order, 把 or 被, or a complement. Only when the core names the key's
 // language as Chinese, by one of these names; never for a foreign key.
-export const CHINESE_NAMES: readonly string[] = ['中文', '汉语', '普通话'];
+const CHINESE_NAMES: readonly string[] = ['中文', '汉语', '普通话'];
 const MAX_POINTS = 5;
 const MAX_POINT = 80;
 

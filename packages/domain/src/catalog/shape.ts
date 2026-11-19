@@ -38,14 +38,6 @@ export function text(name?: string): Shape<string> {
   };
 }
 
-// One fixed text, such as a core's `kind`.
-export function literal<const T extends string>(value: T, name?: string): Shape<T> {
-  return {
-    schema: { type: 'string', enum: [value] }, ...(name ? { name } : {}),
-    check: (given, what) => given === value ? value : fail(`${what} must be "${value}".`)
-  };
-}
-
 // One of a few fixed texts, such as a core's `kind` or `relevance` (D17).
 export function oneOf<const T extends string>(values: readonly T[], name?: string): Shape<T> {
   return {

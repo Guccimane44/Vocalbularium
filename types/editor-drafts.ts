@@ -4,7 +4,7 @@ import type { DeckConfiguration, OperationId } from '@vocabularium/contracts';
 // markdown text per facet the card has, empty ones included.
 export type FieldDraft = { core: string; facets: Record<string, string> };
 
-export type EditorPendingPageSave = Readonly<{
+type EditorPendingPageSave = Readonly<{
   operationId: OperationId;
   type: 'save-page' | 'create-page';
   payload: Readonly<Record<string, unknown>>;
@@ -41,7 +41,7 @@ export type PageEditorDraft = {
   errorCode?: string;
 };
 
-export type EditorPendingDeckSave = Readonly<{
+type EditorPendingDeckSave = Readonly<{
   operationId: OperationId;
   payload: Readonly<{ deck: DeckConfiguration }>;
 }>;

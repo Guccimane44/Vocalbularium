@@ -12,7 +12,7 @@ export type PageRow = Readonly<{
   created_at: string;
   main_key_sort_key: Buffer;
 }>;
-export type ComponentStatus = 'loading' | 'completed' | 'failed' | null;
+type ComponentStatus = 'loading' | 'completed' | 'failed' | null;
 export type ComponentRow = Readonly<{
   page_id: string;
   id: string;
@@ -37,7 +37,6 @@ export type AttemptRow = Readonly<{
   state: 'loading' | 'completed' | 'failed';
   result: string | null;
 }>;
-export type RunRow = Readonly<{ id: string; page_id: string; ordinal: number }>;
 export type ReceiptRow = Readonly<{
   sequence: number;
   operation_id: string;
@@ -71,5 +70,5 @@ export type AttemptResult = Readonly<{ ok: boolean; content?: unknown; generatio
 export type Attempt = Omit<AttemptRow, 'module' | 'result'> & Readonly<{ module: AttemptModule; result: AttemptResult | null }>;
 // One clip of a spoken part (D24), by its component, part and line.
 export type ClipKey = Readonly<{ pageId: string; componentId: string; part: string; line: number }>;
-export type ClipState = 'waiting' | 'generating' | 'ready' | 'failed';
+type ClipState = 'waiting' | 'generating' | 'ready' | 'failed';
 export type ClipRow = Readonly<{ component_id: string; part: string; line: number; state: ClipState; error: string | null; duration_ms: number | null }>;

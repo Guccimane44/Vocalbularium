@@ -14,5 +14,5 @@ export const isEnglish = (value: string) => {
 
 // The core's names for English as the key's language; Grammar teacher applies
 // only to these (0.16.4).
-export const ENGLISH_NAMES = ['english', 'british english', 'american english'];
+const ENGLISH_NAMES = ['english', 'british english', 'american english'];
 export const keyIsEnglish = (core: CoreValue) => ENGLISH_NAMES.includes(String(core.language ?? '').trim().toLowerCase());

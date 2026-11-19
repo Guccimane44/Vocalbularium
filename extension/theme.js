@@ -6,7 +6,7 @@ import { t } from './i18n.ts';
 // The choice is three radios drawn as a segmented control (0.13.3, D23; a
 // select before).
 /** @param {unknown} value @returns {'dark' | 'light' | 'system'} */
-export const appearance = value => value === 'dark' || value === 'light' ? value : 'system';
+const appearance = value => value === 'dark' || value === 'light' ? value : 'system';
 
 export async function initializeTheme() {
   const control = /** @type {HTMLFieldSetElement | null} */ (document.querySelector('#theme-control'));
