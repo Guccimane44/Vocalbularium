@@ -88,6 +88,7 @@ Use the project skills relevant to the task:
 - [Vocabularium Change](.agents/skills/vocabularium-change/SKILL.md): take a request in, scope the increment, and keep issues and PRs current.
 - [Vocabularium Verify](.agents/skills/vocabularium-verify/SKILL.md): choose regression checks, investigate failures, and record evidence.
 - [Vocabularium Deliver](.agents/skills/vocabularium-deliver/SKILL.md): package a candidate, validate its ZIP, and prepare the owner handoff.
+- [Vocabularium Drive](.agents/skills/vocabularium-drive/SKILL.md): run the real extension and API on a disposable account, drive a feature the way a user does, and keep screenshots and database rows as evidence; its [feature map](.agents/skills/vocabularium-drive/features/README.md) says what a user can do.
 
 A task may need more than one skill; use Deliver when packaging
 or delivery is part of the request.
