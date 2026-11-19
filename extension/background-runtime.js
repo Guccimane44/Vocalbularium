@@ -292,6 +292,17 @@ export function startBackground() {
         setLanguage(message.language);
         return refreshAfterMutation();
       }
+      // Report a problem (D336): the extension's logs reach the API before it reads the
+      // last 15 minutes; the receipt resends the same report after a worker restart.
+      if (message.type === 'report' || message.type === 'report-undo') {
+        if (message.type === 'report' && message.includeLogs) await diagnostics.flush().catch(() => {});
+        const operationId = message.operationId ?? crypto.randomUUID();
+        const payload = message.type === 'report'
+          ? { operationId, text: message.text, screen: message.screen, ...(message.pageId ? { pageId: message.pageId } : {}),
+            ...(message.componentId ? { componentId: message.componentId } : {}), extensionBuild: BUILD, includeLogs: Boolean(message.includeLogs) }
+          : { operationId, reportId: message.reportId };
+        return saves.perform({ operationId, path: message.type === 'report' ? '/api/reports' : '/api/reports/delete', payload }, auth.token, ['invalid', 'deleted']);
+      }
       /** @type {Record<string, string>} */
       const paths = { 'save-deck': '/api/deck/save', 'delete-deck': '/api/deck/delete', 'create-page': '/api/page/create', 'save-page': '/api/page/save', 'delete-page': '/api/page/delete', 'generate-page': '/api/page/generate',
         'add-module': '/api/page/modules/add', 'delete-component': '/api/page/components/delete', 'move-component': '/api/page/components/move',

@@ -308,6 +308,7 @@ const icon = paths => {
 const ICONS = {
   language: ['M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z', 'M3.6 9h16.8M3.6 15h16.8', 'M12 3c2.2 2.4 3.3 5.4 3.3 9s-1.1 6.6-3.3 9c-2.2-2.4-3.3-5.4-3.3-9S9.8 5.4 12 3Z'],
   diagnostics: ['M3 12h4l2.5-6 5 12 2.5-6H21'],
+  report: ['M5 21V4', 'M5 4h11l-2 4 2 4H5'],
   logOut: ['M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3', 'M10 8l-4 4 4 4', 'M6 12h10'],
   updown: ['M8 9l4-4 4 4', 'M8 15l4 4 4-4']
 };
@@ -317,9 +318,9 @@ const initial = name => (name.trim()[0] ?? '?').toLocaleUpperCase();
 // Signed in: one account menu at the foot of the sidebar (D23, 0.13.3). Its
 // trigger shows the account's initial, name and server; the menu opens upward
 // over it with Appearance as three icons on one row, the Language row,
-// Diagnostic logs and Log out, each row with its icon.
-/** @param {HTMLElement} root @param {{ username?: string, server?: string, builds?: Parameters<typeof buildMismatch>[0], logOut: () => void, diagnostics: () => void, chooseLanguage: (language: InterfaceLanguage) => Promise<unknown> }} options */
-export function renderAccountMenu(root, { username, server, builds, logOut, diagnostics, chooseLanguage }) {
+// Diagnostic logs, Report a problem (D336) and Log out, each row with its icon.
+/** @param {HTMLElement} root @param {{ username?: string, server?: string, builds?: Parameters<typeof buildMismatch>[0], logOut: () => void, diagnostics: () => void, report: () => void, chooseLanguage: (language: InterfaceLanguage) => Promise<unknown> }} options */
+export function renderAccountMenu(root, { username, server, builds, logOut, diagnostics, report, chooseLanguage }) {
   const mismatch = buildMismatch(builds);
   const stamp = `${preferredLanguage()}:${name0(username)}:${server}:${mismatch?.api}:${mismatch?.extension}`;
   const name = name0(username);
@@ -355,7 +356,7 @@ export function renderAccountMenu(root, { username, server, builds, logOut, diag
     const { row, list } = languageViews(menu, { chooseLanguage, done: () => { closeAccountMenu(); trigger.focus(); } });
     row.prepend(icon(ICONS.language));
     const rule = element('hr', undefined, 'menu-rule');
-    main.append(themeControl(), row, action('account.diagnostics', ICONS.diagnostics, diagnostics), rule, action('account.logOut', ICONS.logOut, logOut));
+    main.append(themeControl(), row, action('account.diagnostics', ICONS.diagnostics, diagnostics), action('account.report', ICONS.report, report), rule, action('account.logOut', ICONS.logOut, logOut));
     panel.append(main, list);
     menu.append(panel, trigger);
     fillIdentity(menu, name, Boolean(username), server, mismatch, stamp);

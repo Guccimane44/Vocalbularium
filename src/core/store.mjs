@@ -8,14 +8,11 @@ import { Postgres, OWNER_ACCOUNT_ID } from '../persistence/postgres.ts';
 import { randomUUID } from 'node:crypto';
 import { INTERFACE_LANGUAGES } from '@vocabularium/contracts';
 import { DEFAULT_DECK_MODULES } from '@vocabularium/domain/parents';
-/** @import { DeckDeleteRequest } from '@vocabularium/contracts' */
-/** @import { AccountRow, DeckRow } from './store-records.js' */
+/** @import { DeckDeleteRequest, ReportRequest, SourceStamp } from '@vocabularium/contracts' */
+/** @import { AccountRow, DeckRow, ReportRow } from './store-records.js' */
 import { fail } from './store-common.mjs';
 import { AudioStore } from './store-audio.mjs';
 export { StoreError } from './store-common.mjs';
-
-// A new account's My Deck, from the catalog (D08).
-;
 
 export class AccountStore extends AudioStore {
   /** @param {{ databaseUrl?: string, accountId?: number, outbox?: string | null, diagnostic?: (event: Record<string, unknown>) => void }} [options] */
@@ -94,6 +91,48 @@ export class AccountStore extends AudioStore {
       if (!INTERFACE_LANGUAGES.includes(/** @type {any} */ (language))) fail('invalid', 'Choose a supported language.');
       await this.database.run('UPDATE account SET language = $1 WHERE id = 1', [language]);
       return { language };
+    });
+  }
+  // A problem the user reported (D336), kept with what it is about as it is now:
+  // the page and the card, both builds and, when asked, the recent logs. The logs
+  // are read when the report is saved, so they are not part of the receipt.
+  /** @param {string} operationId @param {Omit<ReportRequest, 'operationId'>} report @param {{ build: SourceStamp, logs?: unknown[] | null, now?: Date }} context */
+  async createReport(operationId, { text, screen, pageId, componentId, extensionBuild, includeLogs }, { build, logs = null, now = new Date() }) {
+    return await this.command(operationId, 'report', { text, screen, pageId, componentId, extensionBuild, includeLogs }, async () => {
+      if (typeof text !== 'string' || !text.trim() || text.length > 2000) fail('invalid', 'Say what went wrong, in at most 2,000 characters.');
+      if (typeof screen !== 'string' || !screen) fail('invalid', 'Say which screen the report is about.');
+      if (componentId && !pageId) fail('invalid', 'A card belongs to a page.');
+      const page = pageId ? await this.page(pageId) : null;
+      const component = componentId ? page?.components.find(item => item.id === componentId) : undefined;
+      if (componentId && !component) fail('deleted', 'The card no longer exists.');
+      const id = randomUUID();
+      await this.database.run(`INSERT INTO reports (id, created_at, text, screen, page_id, component_id, module_type, builds, page, logs)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`, [id, now.toISOString(), text, screen, pageId ?? null, componentId ?? null, component?.moduleType ?? null,
+        JSON.stringify({ api: build, extension: extensionBuild ?? null }), page && JSON.stringify(page), includeLogs && logs ? JSON.stringify(logs) : null]);
+      return { reportId: id };
+    });
+  }
+  // Undo: a report goes again while it is not filed.
+  /** @param {string} operationId @param {string} reportId */
+  async deleteReport(operationId, reportId) {
+    return await this.command(operationId, 'delete-report', { reportId }, async () => {
+      const row = /** @type {Pick<ReportRow, 'issue'> | undefined} */ (await this.database.one('SELECT issue FROM reports WHERE id = $1', [reportId]));
+      if (!row) fail('deleted', 'The report no longer exists.');
+      if (row.issue !== null) fail('invalid', 'The report is filed already.');
+      await this.database.run('DELETE FROM reports WHERE id = $1', [reportId]);
+      return { reportId };
+    });
+  }
+  // The reports no issue was opened for yet, oldest first (`scripts/reports.mjs` files them).
+  async unfiledReports() {
+    return this.database.transaction(async () => /** @type {ReportRow[]} */ (await this.database.all('SELECT * FROM reports WHERE issue IS NULL ORDER BY created_at, id')));
+  }
+  /** @param {string} reportId */
+  async report(reportId) {
+    return this.database.transaction(async () => {
+      const row = /** @type {ReportRow | undefined} */ (await this.database.one('SELECT * FROM reports WHERE id = $1', [reportId]));
+      if (!row) fail('deleted', 'The report no longer exists.');
+      return row;
     });
   }
 }
