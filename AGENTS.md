@@ -60,9 +60,9 @@ Every change keeps these rules. The second column says what fails when a rule is
 | Applied migrations never change; a schema change is a new migration (`npm run db:generate`). | nothing |
 | Upgrades keep accounts, sign-in, decks and pages unless the owner decides otherwise. | `tests/upgrade.test.mjs`, `tests/browser/upgrade.test.mjs` |
 | Each release states its upgrade in its own file under [docs/releases](docs/releases/README.md). | `scripts/package.py` refuses to package without `docs/releases/<version>.md` |
-| A mutation is idempotent by its operation ID. | replay tests in `tests/postgres.test.mjs`, `tests/decks.test.mjs`, `tests/server.test.mjs`; nothing makes a new mutation route take one |
+| A mutation is idempotent by its operation ID. | `npm run check:sessions` in CI, for capture, publish and delete page in every order ([sessions skill](.agents/skills/vocabularium-sessions/SKILL.md)); replay tests in `tests/postgres.test.mjs`, `tests/decks.test.mjs`, `tests/server.test.mjs`; nothing makes a new mutation route take one |
 | Provider calls never run inside a database transaction or the ordered executor. | one test in `tests/postgres.test.mjs` (a waiting model call doesn't hold the executor); nothing for transactions |
-| One browser session per installation ([accounts and sync](docs/specs/accounts-and-sync.md#browser-sessions)). | the store's `stale_session` check (`src/core/store-sessions.mjs`); `tests/foundation.test.mjs`, `tests/postgres.test.mjs`, `tests/browser/reliability.test.mjs` |
+| One browser session per installation ([accounts and sync](docs/specs/accounts-and-sync.md#browser-sessions)). | `npm run check:sessions` in CI (an ended session changes nothing; none of its attempts stays loading); the store's `stale_session` check (`src/core/store-sessions.mjs`); `tests/foundation.test.mjs`, `tests/postgres.test.mjs`, `tests/browser/reliability.test.mjs` |
 | A parent's header (its top line) is written by generation and never edited by the user. | the store rejects the edit; `tests/facets.test.mjs` |
 | No interface text in code: English strings in `extension/locales/en/messages.json`, other languages beside them, a module's names in its folder. | `tests/localisation.test.mjs` |
 | Arabic mirrors the layout. | `tests/browser/localisation.test.mjs`, `tests/browser/layout-rules.test.mjs` |
@@ -89,6 +89,7 @@ Use the project skills relevant to the task:
 - [Vocabularium Verify](.agents/skills/vocabularium-verify/SKILL.md): choose regression checks, investigate failures, and record evidence.
 - [Vocabularium Deliver](.agents/skills/vocabularium-deliver/SKILL.md): package a candidate, validate its ZIP, and prepare the owner handoff.
 - [Vocabularium Drive](.agents/skills/vocabularium-drive/SKILL.md): run the real extension and API on a disposable account, drive a feature the way a user does, and keep screenshots and database rows as evidence; its [feature map](.agents/skills/vocabularium-drive/features/README.md) says what a user can do.
+- [Vocabularium Sessions](.agents/skills/vocabularium-sessions/SKILL.md): check the store's session and receipt promises on every order of operations, and extend the check when a change touches them.
 
 A task may need more than one skill; use Deliver when packaging
 or delivery is part of the request.

@@ -21,6 +21,7 @@ The commands below already exist. Confirm them against the checkout when using t
 | --- | --- |
 | Documents or skill instructions | `npm run check`, changed links, and any applicable skill validation; no product browser run solely for prose |
 | Account, store, modules, generation, decks, pages | Relevant files in `tests/`; `npm test` for shared logic or a complete backend regression pass |
+| Browser sessions, operation receipts, capture, publish or page deletion | `npm run check:sessions` (every order of these operations; see the [sessions skill](../vocabularium-sessions/SKILL.md)), then the related tests |
 | PostgreSQL, migrations, operation ordering, recovery journal | Relevant scenarios in `tests/postgres.test.mjs` and related store/generation tests; use the local guide for backup/restore rehearsals when those operations are in scope |
 | Bounded lists, sorting, read routes, cursors | `tests/reads.test.mjs` and the affected browser list scenarios |
 | Upgrade compatibility | `tests/upgrade.test.mjs`, `tests/extension.test.mjs`, and `tests/browser/upgrade.test.mjs` |

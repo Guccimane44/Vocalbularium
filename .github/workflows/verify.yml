@@ -67,6 +67,8 @@ jobs:
           psql -h 127.0.0.1 -U postgres -d postgres -v ON_ERROR_STOP=1 \
             -c "CREATE ROLE vocabularium_test LOGIN CREATEDB NOSUPERUSER NOCREATEROLE PASSWORD 'test-ci-only'"
       - run: npm test
+      # Every order of session, capture, publish and delete operations against the real store.
+      - run: npm run check:sessions
       # The browser download is quick; the system packages from the Ubuntu
       # mirror can take minutes. Seed apt's archive directory with the
       # packages from an earlier run: apt verifies each one against its index
