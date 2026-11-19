@@ -47,6 +47,7 @@ The owner reviews a milestone once, at its end, from one **review packet** poste
 - screenshots of every screen the milestone changed, in both themes and every interface language, before and after;
 - the golden-set output diffs for every prompt the milestone changed;
 - the test evidence: suites and counts, the journeys exercised, what was mocked;
+- the defaults taken where a request left a choice open, each with the alternative and where to change it ([Change skill](../../.agents/skills/vocabularium-change/SKILL.md#take-the-request-in));
 - known gaps and anything left unverified.
 
 The owner's feedback comes back as one batch; small corrections join the milestone, larger ones become the next milestone's items. Increments within a milestone merge when their CI is green, without a review of their own unless the plan asks for one.
