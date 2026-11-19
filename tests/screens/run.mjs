@@ -10,11 +10,12 @@
 // --languages en,ar and --themes light. It fails on a capture error, a layout
 // violation, or a screen whose changed-pixel ratio is over the threshold.
 import { execFile } from 'node:child_process';
-import { access, cp, mkdir, mkdtemp, readdir, rename, rm, symlink } from 'node:fs/promises';
+import { access, cp, mkdir, mkdtemp, readdir, rm, symlink } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { parseArgs, promisify } from 'node:util';
 import { compare } from './compare.mjs';
+import { buildExtensionCopy } from '../../scripts/extension-copy.mjs';
 
 const exec = promisify(execFile);
 // Over this share of its pixels (about 13 of a 1280 × 1000 screen) a screen
@@ -41,23 +42,10 @@ const run = (command, args, cwd, env = {}) => exec(command, args, { cwd, env: { 
 
 // Builds the extension of the checkout at `checkout` for the screens' port into `target`,
 // leaving the checkout's own `artifacts/extension` (the owner's, pointed at 4318) as it was.
-async function buildExtension(checkout, target) {
-  await run('npm', ['run', 'build:packages'], checkout);
-  const output = join(checkout, 'artifacts/extension'), kept = `${output}.screens-kept`;
-  const had = await exists(output);
-  if (had) { await rm(kept, { recursive: true, force: true }); await rename(output, kept); }
-  try {
-    await run(process.execPath, ['scripts/build.mjs'], checkout, { VOCABULARIUM_API_URL: `http://127.0.0.1:${port}` });
-    await cp(output, target, { recursive: true });
-  } finally {
-    await rm(output, { recursive: true, force: true });
-    if (had) await rename(kept, output);
-  }
-}
 async function capture(checkout, label, target) {
   const extension = join(scratch, `${label}-extension`);
   console.log(`Building ${label}…`);
-  await buildExtension(checkout, extension);
+  await buildExtensionCopy(checkout, port, extension);
   console.log(`Capturing ${label}…`);
   const child = execFile(process.execPath, ['tests/screens/capture.mjs', '--out', target, '--extension', extension, '--port', port, ...filters],
     { cwd: checkout, env: process.env, maxBuffer: 64 * 1024 * 1024 });

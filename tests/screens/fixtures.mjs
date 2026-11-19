@@ -1,3 +1,5 @@
+// @ts-nocheck: like the rest of tests/screens, not written for the typecheck;
+// scripts/drive.mjs imports it, which would otherwise pull it in.
 // The account every screen is captured from (0.16.0 increment A): fixed decks,
 // pages and cards built through the store with the catalog's own English samples,
 // so a screen changes only when the interface does.
@@ -28,7 +30,7 @@ export class SilentSpeech extends FakeSpeechProvider {
 const FOLDERS = { german: 'languages/german', chinese: 'languages/chinese', english: 'languages/english', 'computer-science': 'expertise/computer-science',
   mathematics: 'expertise/mathematics', chemistry: 'expertise/chemistry', pronunciation: 'sound/pronunciation', 'traditional-haiku': 'creativity/traditional-haiku',
   'modern-haiku': 'creativity/modern-haiku', joke: 'creativity/joke' };
-const sample = async type => JSON.parse(await readFile(`packages/domain/src/catalog/${FOLDERS[type]}/samples/en.json`, 'utf8')).word_phrase;
+export const sample = async type => JSON.parse(await readFile(`packages/domain/src/catalog/${FOLDERS[type]}/samples/en.json`, 'utf8')).word_phrase;
 
 // The pages a screen opens, by the module group they show and their state.
 // Every module named here must be in the catalog: a missing one, such as a
