@@ -55,7 +55,7 @@ Capture could extend beyond browser selection to hotkeys, sharing, and mobile de
 
 Developing the module library is a primary product direction. Possibilities include technical explanations, simple explanations, historical context, timelines, related concepts, comparisons, summaries, key ideas, analysis, and clearly identified creative or speculative perspectives. Language modules could include pronunciation, audio, grammar, etymology, contextual examples, and character decomposition. Images, diagrams, and audio could provide further representations where they are useful.
 
-The standard experience should offer curated modules and suitable predefined variants. Advanced module creation or customization APIs remain separate possibilities; ordinary users should not need them to get useful results. The [module specification](../subsystems/module-catalog.md) separates current behavior from the design contract for future additions.
+The standard experience should offer curated modules and suitable predefined variants. Advanced module creation or customization APIs remain separate possibilities; ordinary users should not need them to get useful results. The [module catalog](../subsystems/module-catalog.md) separates current behavior from the design contract for future additions.
 
 New modules could operate on previously captured material. Richer interpretation could retain a chosen meaning or referent across generations and let users correct it.
 

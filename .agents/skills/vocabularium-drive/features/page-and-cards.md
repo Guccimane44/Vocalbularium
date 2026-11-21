@@ -9,7 +9,7 @@ How to drive this feature with `npm run drive`. What the user sees is in the [pa
 - A card: `page.locator('article.component').filter({ has: page.getByRole('heading', { name: '<Module>', exact: true }) })`; its tab is `.tab-button` inside it.
 - The helpers in `tests/browser/helpers.mjs` already drive most of this: `cardButton`, `facetWindow`, `tick`, `addFromWindow`, `drag`, `removeFromDeck`. Import them in a journey.
 - Prove a change with `query` on `components` (`module_type`, `position`, `status`, `facets`) as well as on screen.
-- `launch --seed full` gives completed, loading and failed pages for every module group, and a hand-made page whose cards wait for **Generate**.
+- `launch --seed full` gives completed, loading and failed pages for every module group, and a hand-made page whose cards wait for **Retry**.
 
 ## Gotchas
 

@@ -9,9 +9,9 @@ The account menu, at the foot of the sidebar, holds what belongs to the account 
 
 ## What it shows and what the user can do
 
-The **account menu** sits at the foot of the sidebar. Its trigger shows the account's initial in a round mark, the account's name, *admin*, and beneath it the server it is signed in to (such as `127.0.0.1:4318`); its accessible name is "Account: admin". An API that sends no name leaves the trigger reading **Account**. The menu opens upward over the trigger, as wide as it, and holds, in order: **Appearance** with its three choices as icons on the same row ([shared UI](../subsystems/interface.md#appearance)); the **Language** row ([shared UI](../subsystems/localisation.md#interface-language)); **Diagnostic logs**; **Report a problem…** ([below](#report-a-problem)); and, after a rule, **Log out**. Each row has its icon. Escape or a click outside closes it and Escape returns the focus to the trigger.
+Its trigger shows the account's initial in a round mark, the account's name, *admin*, and beneath it the server it is signed in to (such as `127.0.0.1:4318`); its accessible name is "Account: admin". An API that sends no name leaves the trigger reading **Account**. The menu opens upward over the trigger, as wide as it, and holds, in order: **Appearance** with its three choices as icons on the same row ([appearance](../subsystems/interface.md#appearance)); the **Language** row ([interface language](../subsystems/localisation.md#interface-language)); **Diagnostic logs**; **Report a problem…** ([below](#report-a-problem)); and, after a rule, **Log out**. Each row has its icon. Escape or a click outside closes it and Escape returns the focus to the trigger.
 
-- **Appearance** and **Language** follow [appearance](../subsystems/interface.md#appearance) and [interface language](../subsystems/localisation.md#interface-language); the language list (`language-list`) opens in the menu's place.
+- **Language** opens the language list (`language-list`) in the menu's place.
 - **Log out** ends the sign-in on this installation and returns to [sign-in](sign-in.md).
 - When the API and the extension were built from different commits, the menu says **Different builds: API …, extension …** ([packaging and releases](../subsystems/packaging-and-releases.md#behaviour)).
 
@@ -19,11 +19,15 @@ The **account menu** sits at the foot of the sidebar. Its trigger shows the acco
 
 **Report a problem…** in the account menu opens a dialog of that name from any screen ([D336](../decisions/d336-report-a-problem.md)). **About** chooses what the report is about: on a page, *The whole page*, chosen first, or one of its content cards by its module's name; elsewhere, *This screen*. **What went wrong?** takes the user's own text, required, at most 2,000 characters. **Sent with your report** lists what is kept with it: the page and its cards as they are now (on a page), the build of the API and of the extension, and **Diagnostic logs from the last 15 minutes**, ticked at first. **Save report** keeps the report in the account's database and closes the dialog; **Cancel** closes it and keeps nothing. A notice then says **Report saved**, with **Undo**, which deletes the report again while the notice shows. A report keeps what it was about when that page is later deleted. Reports leave the computer only as described in [diagnostic logging](../subsystems/observability-and-reports.md#reports).
 
-How a report is kept and filed is in [observability and reports](../subsystems/observability-and-reports.md#reports).
-
 ### Diagnostic logs
 
 **Diagnostic logs** opens its own screen, `app.html#diagnostics`, with the trail *Home › Diagnostic logs*. It shows how much of the extension's buffer and the API's log budget is used and the API's content mode, says when logging is degraded, sets the extension's buffer budget (0 to 1024 MiB), and previews and clears logs by UTC range, or the extension's buffer alone. The rules are in [observability and reports](../subsystems/observability-and-reports.md#retention-cleanup-and-failure); the owner's terminal commands are in the [diagnostics guide](../guides/diagnostics.md).
+
+## States
+
+- **A report that fails to save** keeps the dialog open with what was typed, and says so.
+- **A language that fails to save** keeps the previous language and says so in the list ([interface language](../subsystems/localisation.md#interface-language)).
+- **Different builds** add the warning line to the menu.
 
 ## Source
 

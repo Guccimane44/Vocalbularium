@@ -44,7 +44,7 @@ Use `npm run db:generate` to prepare reviewed schema changes and `npm run db:mig
 
 ## Deck settings
 
-A deck's configuration is the template for its new pages: an ordered list of up to 12 module instances, the main key first, then an optional Context, any number of Text and content modules, and each parent's facets. Changing it never changes an existing page, which owns its own modules. Deck settings also name the deck and choose its colour; edits are a draft until **Save**. Deleting the default deck requires a replacement; deleting the sole deck creates a fresh My Deck. When the deck has the Context module (a new deck does), capture also takes the text around the selection, up to about 500 characters, as the page's Context; the page URL and title are never taken. The [decks and configuration specification](docs/screens/home.md) holds the rules.
+A deck's configuration is the template for its new pages: an ordered list of up to 12 module instances, the main key first, then an optional Context, any number of Text and content modules, and each parent's facets. Changing it never changes an existing page, which owns its own modules. Deck settings also name the deck and choose its colour; edits are a draft until **Save**. Deleting the default deck requires a replacement; deleting the sole deck creates a fresh My Deck. When the deck has the Context module (a new deck does), capture also takes the text around the selection, up to about 500 characters, as the page's Context; the page URL and title are never taken. The [deck settings reference](docs/screens/deck-settings.md#the-configuration) holds the rules.
 
 ## Page workflows
 
