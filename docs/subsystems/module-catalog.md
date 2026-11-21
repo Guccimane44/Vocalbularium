@@ -54,14 +54,14 @@ Each facet type has an abbreviation that marks its [tag](../screens/page.md#face
 #### Choosing and changing facets
 
 - **Adding a parent.** A parent is added like any module, by dragging it or with its **+**, with its core only, or with the facets its module brings to a new deck.
-- **Adding a facet.** A parent's facets are chosen on the parent itself: **Facet** among its actions, on a page or in deck settings, opens its [facet window](../screens/facet-window.md#the-window), which lists every facet of the parent's module. An added facet waits, as its dimmed heading, until the user's next **Retry** regenerates the whole parent or the facet's own **Retry** generates it ([capture and generation](generation.md#retry)); a parent already generating takes no facet until its attempt finishes.
-- **Deleting a facet.** A facet is deleted from its parent the way a component is deleted from a page ([pages and editing](../screens/page.md#components-as-cards)). A deleted facet stays gone: Retry never brings it back, and the user adds it again in the facet window to restore it.
+- **Adding a facet.** A parent's facets are chosen on the parent itself: **Facet** among its actions, on a page or in deck settings, opens its [facet window](../screens/facet-window.md#the-window), which lists every facet of the parent's module. An added facet waits, as its dimmed heading, until the user's next **Retry** regenerates the whole parent or the facet's own **Retry** generates it ([generation](generation.md#retry)); a parent already generating takes no facet until its attempt finishes.
+- **Deleting a facet.** A facet is deleted from its parent the way a component is deleted from a page ([page](../screens/page.md#components-as-cards)). A deleted facet stays gone: Retry never brings it back, and the user adds it again in the facet window to restore it.
 
-A deck configuration stores each parent instance with its facets, and a new page copies them ([decks and configuration](store.md#configuration-and-pages)). Facets are not module instances and do not count toward the limit of 12. A parent holds at most 12 facets of its own (`MAX_FACETS`); a module may offer more, and once a parent holds 12 the facet window disables the rest, saying why.
+A deck configuration stores each parent instance with its facets, and a new page copies them ([store](store.md#configuration-and-pages)). Facets are not module instances and do not count toward the limit of 12. A parent holds at most 12 facets of its own (`MAX_FACETS`); a module may offer more, and once a parent holds 12 the facet window disables the rest, saying why.
 
 ### Module families
 
-Every input and content module belongs to one **module family**, which gives it its colour and icon in the interface ([shared UI](interface.md#visual-identity)). The family is part of the module type's definition, shared by every client. A parent module's family colours its whole card; its facets have no family of their own. A new module joins an existing family; a further family is added only when a group of modules fits none of these.
+Every input and content module belongs to one **module family**, which gives it its colour and icon in the interface ([interface](interface.md#visual-identity)). The family is part of the module type's definition, shared by every client. A parent module's family colours its whole card; its facets have no family of their own. A new module joins an existing family; a further family is added only when a group of modules fits none of these.
 
 | Family | Icon | What belongs here | Writes in |
 | --- | --- | --- | --- |
@@ -75,7 +75,7 @@ Every input and content module belongs to one **module family**, which gives it 
 | Creativity | a sparkle | something new written from the key in its language: a haiku, a joke ([D30](../decisions/d30.md)) | the key's language |
 | Notes | pencil | the user's own input: Context and Text | — |
 
-The main key module belongs to no family; it is shown as the page title. Languages is a family of its own because a translation's facets span Meaning, Usage, Connections, and Sound; Expertise is one because it explains a key as one field understands it, whatever language the key is in. Families with no module yet stay defined so that future modules have a place; they add no module to the catalog. Sound is coloured with the `fam-sound` tokens, Creativity indigo, Languages petrol and Expertise leaf green; deck colours are the six colours of Meaning, Usage, Roots, Connections, Sound and Notes ([decks and configuration](interface.md#navigation)).
+The main key module belongs to no family; it is shown as the page title. Languages is a family of its own because a translation's facets span Meaning, Usage, Connections, and Sound; Expertise is one because it explains a key as one field understands it, whatever language the key is in. Families with no module yet stay defined so that future modules have a place; they add no module to the catalog. Sound is coloured with the `fam-sound` tokens, Creativity indigo, Languages petrol and Expertise leaf green; deck colours are the six colours of Meaning, Usage, Roots, Connections, Sound and Notes ([interface](interface.md#navigation)).
 
 **Family rules.**
 
@@ -118,7 +118,7 @@ Applicability is judged per facet, by its `applies` (word or phrase, sentence) a
 
 ### Content module contract
 
-[Pages and editing](../screens/page.md) owns the main key and Context; [capture and generation](generation.md) owns attempt states, failure, and retry.
+[Page](../screens/page.md) owns the main key and Context; [generation](generation.md) owns attempt states, failure, and retry.
 
 - **Input:** the page's current main key and its saved Context when present. These are a content module's only text inputs, whether capture or manual entry supplied them. The parent type and the instance's facets are the instructions governing the contribution.
 - **One request:** a module's attempt is one text request that returns the core with its flags and every facet asked for. No request spans two modules, and none is shared by all of them; a module adds a request before its text request only when the answer must change the request itself, such as choosing another provider or model, and none does. One request's output stays well within the provider's timeout; a prompt change that widens it is measured against the golden sets first.
@@ -145,12 +145,12 @@ The provider returns a parent's content as JSON, and the app keeps it as **markd
 
 ### Writing in the interface language
 
-The Expertise modules' output reads as written in the interface language, not translated into it ([D15](../decisions/d15.md)). A key in another language is still explained in the interface language, English by default ([shared UI](localisation.md#interface-language)). The Languages modules, which write in their own language, and the Creativity family, which writes in the key's language ([D30](../decisions/d30.md)), are not affected; a later family gets this only by its own decision.
+The Expertise modules' output reads as written in the interface language, not translated into it ([D15](../decisions/d15.md)). A key in another language is still explained in the interface language, English by default ([localisation](localisation.md#interface-language)). The Languages modules, which write in their own language, and the Creativity family, which writes in the key's language ([D30](../decisions/d30.md)), are not affected; a later family gets this only by its own decision.
 
 - **A writing guide per language.** Every interface language has a short writing guide for the Expertise family (`catalog/expertise/writing/`), written in English with short example phrases in that language. It covers five things: the register (a clear explanation for a learner, written as the language is natively written) and the stock phrases to avoid; how a technical term is written at first use, the established term with the English in brackets, keeping the English where no translation is current, so an invented term shows; what stays as it is (code, formulas and symbols, identifiers, commands and the selection); the language's punctuation and spacing; and the unit a length limit is counted in. Every Expertise request carries the guide of the interface language; no module repeats it. Because the guide differs per language, so does the prompt version ([generation record](generation.md#how-the-record-is-stored)).
 - **English prompts only.** The Expertise modules' prompts and the rules every request carries stay in English in every language; no module has a translated prompt. A translated prompt would need a new decision with evidence for its language.
 - **Length.** A module states a length limit in a form that holds in every language: the guide restates it in the unit the language counts in, such as 50 words in English or French and about 80 characters in Chinese.
-- **Review per language.** A language is offered only once its strings, its guide and its Expertise generation have passed review: each Expertise module's golden set runs in it and is read by a reviewer separate from the drafter, for facts, invented terms and the guide's conventions ([shared UI](localisation.md#interface-language)).
+- **Review per language.** A language is offered only once its strings, its guide and its Expertise generation have passed review: each Expertise module's golden set runs in it and is read by a reviewer separate from the drafter, for facts, invented terms and the guide's conventions ([localisation](localisation.md#interface-language)).
 
 ### Staying with the subject
 
@@ -174,9 +174,9 @@ The **default view** module shows every component in page order: the main key fi
 
 ### Composition
 
-Users add, remove, reorder, and repeat content module instances in deck settings, and add or remove the Context and Text modules, up to the [limit of 12 module instances](../screens/deck-settings.md#the-configuration) counting every module, and the deck's instances become the starting modules of each new page. After creation, users add, delete, and rearrange modules on the page itself, and add or delete a parent's facets ([pages and editing](../screens/page.md#shaping-a-page)). Both use the module window for modules and a parent's facet window for its facets. Adding an instance does not remove its type from the library. Repeated instances of one parent type generate independently.
+Users add, remove, reorder, and repeat content module instances in deck settings, and add or remove the Context and Text modules, up to the [limit of 12 module instances](../screens/deck-settings.md#the-configuration) counting every module, and the deck's instances become the starting modules of each new page. After creation, users add, delete, and rearrange modules on the page itself, and add or delete a parent's facets ([page](../screens/page.md#shaping-a-page)). Both use the module window for modules and a parent's facet window for its facets. Adding an instance does not remove its type from the library. Repeated instances of one parent type generate independently.
 
-Each instance's output is its own component, and users edit each component separately. Deck configuration edits affect only pages created afterwards ([decks and configuration](store.md#configuration-and-pages)).
+Each instance's output is its own component, and users edit each component separately. Deck configuration edits affect only pages created afterwards ([store](store.md#configuration-and-pages)).
 
 ### Design contract for future modules
 

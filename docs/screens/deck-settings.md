@@ -18,12 +18,12 @@ A deck's configuration has:
 - its **colour** ([navigation](../subsystems/interface.md#navigation));
 - an ordered list of **module instances**, at most 12 in total:
   - the **main key module**: compulsory and always first; it cannot be removed or moved;
-  - the **Context module**: optional, at most one. When the deck has it, capture into the deck also takes the selection's surrounding block ([pages and editing](page.md#context));
+  - the **Context module**: optional, at most one. When the deck has it, capture into the deck also takes the selection's surrounding block ([page](page.md#context));
   - **Text module instances**: optional and repeatable; each gives new pages an empty Text component for the user's own writing;
   - **content module instances**, each a [parent module](../subsystems/module-catalog.md#parent-modules-and-facets) with the facets chosen for it: the same type may appear more than once, and facets do not count toward the 12;
 - its **view**: the default view, which shows each page as its ordered component list.
 
-The user edits the configuration in **deck settings**: name the deck, choose its colour from six swatches, add, remove, and reorder the Context, Text, and content module instances, and add or remove a parent's facets as on a page ([pages and editing](page.md#shaping-a-page)); the main key stays first. Configuration edits are a draft until **Save**; **Cancel** discards them. A failed save keeps the draft and offers **Try saving again**. Deck settings keep the page view's layout: the module list beside the module window. A module's samples are on its own [page](module-pages.md#the-pages).
+The user edits the configuration in **deck settings**: name the deck, choose its colour from six swatches, add, remove, and reorder the Context, Text, and content module instances, and add or remove a parent's facets as on a page ([page](page.md#shaping-a-page)); the main key stays first. Configuration edits are a draft until **Save**; **Cancel** discards them. A failed save keeps the draft and offers **Try saving again**. Deck settings keep the page view's layout: the module list beside the module window. A module's samples are on its own [page](module-pages.md#the-pages).
 
 Deck settings hold modules without content, so each module is drawn as a folded card is on a page and never unfolds: a slim band under its index tab, ruled in its family colour, which offers no **Fold** or **Unfold** ([D22](../decisions/d22.md)).
 
@@ -36,7 +36,7 @@ A configuration with only the main key module is valid. Its new pages hold only 
 
 #### Module window
 
-Deck settings show the module list on the left and the **module window** on the right ([shared UI](module-window.md#the-window)). The user adds an instance by dragging a module from the window into the configuration and reorders instances by dragging their icon and name, which fill the module's row from the six dots to **Remove**, with the pointer or from the keyboard (Space, the arrow keys, Space). The six dots before the name open the instance's menu, whose entries, **Duplicate** and **Copy to another deck…**, are placeholders marked *Coming soon*. **Remove** stays on each instance. The page view shows the same window ([pages and editing](page.md#shaping-a-page)), so shaping a deck and shaping a page use the same gesture.
+Deck settings show the module list on the left and the **module window** on the right ([module window](module-window.md#the-window)). The user adds an instance by dragging a module from the window into the configuration and reorders instances by dragging their icon and name, which fill the module's row from the six dots to **Remove**, with the pointer or from the keyboard (Space, the arrow keys, Space). The six dots before the name open the instance's menu, whose entries, **Duplicate** and **Copy to another deck…**, are placeholders marked *Coming soon*. **Remove** stays on each instance. The page view shows the same window ([page](page.md#shaping-a-page)), so shaping a deck and shaping a page use the same gesture.
 
 ### Deck colour
 

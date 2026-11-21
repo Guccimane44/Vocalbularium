@@ -35,7 +35,7 @@ These rules hold everywhere:
 - **Colour means module family.** Each module belongs to one family ([modules](module-catalog.md#module-families)), which sets the colour of its index tab and its icon. Apart from status, nothing else uses saturated colour. A family colour always appears with the module's name, or with a text alternative where only the small family mark is shown.
 - **Success is quiet.** Completed work shows no status. Only saving, generating, and failed states appear ([list state presentation](#list-state-presentation)).
 - **Type.** Main keys, titles, and generated reading text use Fraunces; the interface, translations, and captions use Instrument Sans. Both are bundled with the extension. Chinese and Japanese text uses the system's serif or sans-serif fonts; no font is loaded from the network. Reading text is never smaller than 16 px.
-- **Long text.** Every layout handles text of any length without overflow: main keys from one word to a passage ([pages and editing](../screens/page.md#the-main-key)), long module names, and right-to-left text, which sets its direction on the component content, never on the card.
+- **Long text.** Every layout handles text of any length without overflow: main keys from one word to a passage ([page](../screens/page.md#the-main-key)), long module names, and right-to-left text, which sets its direction on the component content, never on the card.
 
 ### Appearance
 
@@ -51,7 +51,7 @@ Lists show status only when something is in progress or needs attention. A compl
 
 - **Saving:** a capture receipt still being saved to the account shows a clock and "Saving to your account".
 - **Generating:** a page with a component attempt in progress shows three moving dots and "Generating", with the count of finished components when there are several ("Generating 1 of 2").
-- **Generation failed:** a page whose current outcome is failed ([capture and generation](generation.md#component-completion-and-failure)) shows "Generation failed" on a tinted row, with a visible **Retry…** button. It opens the page at its first failed component, whose card offers **Retry** under the usual rules ([capture and generation](generation.md#generation-actions)); the list itself starts no generation.
+- **Generation failed:** a page whose current outcome is failed ([generation](generation.md#component-completion-and-failure)) shows "Generation failed" on a tinted row, with a visible **Retry…** button. It opens the page at its first failed component, whose card offers **Retry** under the usual rules ([generation](generation.md#generation-actions)); the list itself starts no generation.
 - **Not saved:** a receipt waiting to be saved again shows "Not saved" and the error on a tinted row, with **Try saving again** as a visible button. That is a save problem, not a generation failure, and nothing implies that the capture was saved.
 
 A row that holds a button is not itself one link: its text links to the page, and the button sits beside it, so each works from the pointer and the keyboard. Status is always a word, never colour alone.
@@ -60,17 +60,17 @@ A row that holds a button is not itself one link: its text links to the page, an
 
 Motion is quick and physical: what the user touches responds with a small spring and settles. Nothing moves on its own except work in progress. Durations and easings come from the design system: colour changes 120 ms, revealing hover actions 150 ms, moving things 350 ms with a slight overshoot, larger objects 450 ms, and one cycle of the generating dots 1 s. Elements move by transform and opacity only, a few pixels at a time.
 
-The named moments are: the capture flight ([capture and generation](../screens/capture.md#the-menu-the-popup-the-flight-and-the-badge)); a new page sliding into a list and its family marks appearing as components finish; status changes cross-fading; generated content rising into its card line by line while the card grows to fit; a module card's tab lifting on hover; a card's actions ejecting from its tab with a spring, one after the other; and a dragged module tilting slightly while the landing line and the other cards make room.
+The named moments are: the capture flight ([capture](../screens/capture.md#the-menu-the-popup-the-flight-and-the-badge)); a new page sliding into a list and its family marks appearing as components finish; status changes cross-fading; generated content rising into its card line by line while the card grows to fit; a module card's tab lifting on hover; a card's actions ejecting from its tab with a spring, one after the other; and a dragged module tilting slightly while the landing line and the other cards make room.
 
 When the system asks for reduced motion, nothing moves: every state change still happens, without transitions, and the generating dots stand still beside their word.
 
 ### Dialogs, menus, and feedback
 
-Confirmation dialogs for retry, deletion, and unsaved changes stay open until the user chooses; they never close on a timer. Menus close after an action, on Escape, on navigation, and on a click outside, and return focus to their trigger. The capture feedback popup is defined in [capture and generation](../screens/capture.md#the-menu-the-popup-the-flight-and-the-badge).
+Confirmation dialogs for retry, deletion, and unsaved changes stay open until the user chooses; they never close on a timer. Menus close after an action, on Escape, on navigation, and on a click outside, and return focus to their trigger. The capture feedback popup is defined in [capture](../screens/capture.md#the-menu-the-popup-the-flight-and-the-badge).
 
 ### Text content
 
-The main key holds plain text, shown with line breaks preserved and never interpreted as HTML; editing it edits that text. The Context and the Text module hold the same markdown as a parent's core, edited with the same toolbar editor. A parent module's content is markdown per facet, drawn into fixed containers ([modules](module-catalog.md#render-contracts)): the core, then one container per facet with content. The editor shows formatting without markdown characters ([pages and editing](../screens/page.md#editing-generated-components)). A facet's content can also hold a table, display math in LaTeX rendered with KaTeX, or a fenced code block with syntax highlighting; tables keep their rows and columns on a narrow card by scrolling within their container, a formula that fails to render shows its LaTeX source, and a facet's own Edit edits them as their source text.
+The main key holds plain text, shown with line breaks preserved and never interpreted as HTML; editing it edits that text. The Context and the Text module hold the same markdown as a parent's core, edited with the same toolbar editor. A parent module's content is markdown per facet, drawn into fixed containers ([modules](module-catalog.md#render-contracts)): the core, then one container per facet with content. The editor shows formatting without markdown characters ([page](../screens/page.md#editing-generated-components)). A facet's content can also hold a table, display math in LaTeX rendered with KaTeX, or a fenced code block with syntax highlighting; tables keep their rows and columns on a narrow card by scrolling within their container, a formula that fails to render shows its LaTeX source, and a facet's own Edit edits them as their source text.
 
 ## Constraints and failure behaviour
 

@@ -23,7 +23,7 @@ The dashboard starts with **My Deck**. Select text on a webpage, right-click, an
 
 Finish or cancel manual edits and let active generation finish. When the update includes a backend change, stop the API, back up the database with `npm run db:backup -- .data/backup-before-<version>.dump` (a file that does not exist yet; see [backup and restore](local-postgresql.md#backup-and-restore-into-a-separate-database)), apply the reviewed migrations with `npm run db:migrate`, and restart the API before updating the extension; backend and extension upgrade together. Keep the PostgreSQL database and `DATA_DIR/generation-outbox`. Read the version's `RELEASE.md` in the package (the latest is [0.16.8](../releases/0.16.8.md)) before migrating: it says what the upgrade keeps and changes. Finish or discard pending saves first.
 
-Replace the files in the same permanent extension folder with the new package, then select **Reload** on Vocabularium's entry at `chrome://extensions` and reload any open Vocabularium dashboard tabs. Reloading ends the extension's generation session, so unfinished generation is reconciled as failed; review those components using the [capture and generation rules](../subsystems/generation.md) and retry them explicitly.
+Replace the files in the same permanent extension folder with the new package, then select **Reload** on Vocabularium's entry at `chrome://extensions` and reload any open Vocabularium dashboard tabs. Reloading ends the extension's generation session, so unfinished generation is reconciled as failed; review those components using the [generation rules](../subsystems/generation.md) and retry them explicitly.
 
 ## If something does not work
 

@@ -28,7 +28,7 @@ Generation writes a page's content cards. Each content module instance on a page
 
 ### Input interpretation
 
-There is no interpretation shared by the run ([D17](../decisions/d17.md)). Each attempt reads the main key and Context in its own request and records its reading as the core's flags, such as word or sentence for a Languages parent, which its card's header shows ([pages and editing](../screens/page.md#the-main-key)). No reading chooses a source language for the page: each parent reads the language from the key and Context. Target languages are defined by the parent modules, not by a fixed language-pair setting for the deck. A failed attempt fails only its own component.
+There is no interpretation shared by the run ([D17](../decisions/d17.md)). Each attempt reads the main key and Context in its own request and records its reading as the core's flags, such as word or sentence for a Languages parent, which its card's header shows ([page](../screens/page.md#the-main-key)). No reading chooses a source language for the page: each parent reads the language from the key and Context. Target languages are defined by the parent modules, not by a fixed language-pair setting for the deck. A failed attempt fails only its own component.
 
 The reading and applicability rules are defined in the [Modules specification](module-catalog.md#input-and-applicability).
 
@@ -48,7 +48,7 @@ No action touches an input module's component (main key, Context, Text), and non
 
 ### Component completion and failure
 
-Generation-status labels describe actual generation attempts. A component that has never had a generation attempt shows no status label. A page with no generation attempts shows no overall status label. Components not generated yet are shown as empty, with only their index tab ([pages and editing](../screens/page.md#components-as-cards)), not as failed.
+Generation-status labels describe actual generation attempts. A component that has never had a generation attempt shows no status label. A page with no generation attempts shows no overall status label. Components not generated yet are shown as empty, with only their index tab ([page](../screens/page.md#components-as-cards)), not as failed.
 
 Each component attempt has one of these states:
 
@@ -72,7 +72,7 @@ If capacity cannot admit every attempt of a **Retry**, report that generation is
 
 **Retry** is available in the page editor for one content component and for one facet of a parent component ([below](#retrying-one-facet)); the API also retries a whole page. Completed, failed, empty, missing, or manually edited components can be targets. Capture origin does not matter: a manually created page has a main key and can retry like a captured one.
 
-Before replacing content, always ask. For one component the question is asked beside the card's tab, as for **Delete** ([pages and editing](../screens/page.md#components-as-cards)): "Are you sure?" with a final **Retry** and **Cancel**. If the content changed after the user answered, for example in another browser, the warning below is shown before anything is replaced:
+Before replacing content, always ask. For one component the question is asked beside the card's tab, as for **Delete** ([page](../screens/page.md#components-as-cards)): "Are you sure?" with a final **Retry** and **Cancel**. If the content changed after the user answered, for example in another browser, the warning below is shown before anything is replaced:
 
 > Retry will replace this component's content, including your edits to it. The main key, Context, and other components will not change.
 
@@ -89,7 +89,7 @@ Retry uses the page's current saved main key and Context and its content module 
 
 #### Retrying one facet
 
-Each facet of a parent component has its own **Retry** beside its label ([pages and editing](../screens/page.md#components-as-cards)). It regenerates that facet alone: the facet's markdown is replaced with its new JSON formatted as markdown, or added when the facet had none, and the core and the other facets stay exactly as they are, edits included. A facet waiting for **Retry** can be generated this way without regenerating the rest. Every facet of a parent with a core can be retried alone ([render contracts](module-catalog.md#render-contracts)).
+Each facet of a parent component has its own **Retry** beside its label ([page](../screens/page.md#components-as-cards)). It regenerates that facet alone: the facet's markdown is replaced with its new JSON formatted as markdown, or added when the facet had none, and the core and the other facets stay exactly as they are, edits included. A facet waiting for **Retry** can be generated this way without regenerating the rest. Every facet of a parent with a core can be retried alone ([render contracts](module-catalog.md#render-contracts)).
 
 - **Asking.** Beside its label, a facet with content asks "Are you sure?", with a final **Retry** and **Cancel**; one with nothing in it starts at once. If the facet's content changed after the user answered, the dialog warns: "Retry will replace this facet's content, including your edits to it. The rest of the component will not change."
 - **Input.** The attempt uses the page's saved main key and Context and the component's current core, with its flags, so the facet follows the core it joins. The provider writes only that facet for the core; anything else it returns is discarded. A facet that does not apply to the core's flags is left out, as in a whole attempt.
@@ -118,7 +118,7 @@ The generation lock applies across installations. Another installation may alrea
 
 ### Editing after capture
 
-Generated content remains editable. The user opens the page editor to change any component, edit the main key or its Context, write in Text components, or delete the page. Adding, deleting, and moving components is described in [pages and editing](../screens/page.md#shaping-a-page). Manual edits require an explicit **Save**. Select and Add and confirmed retries save their outcomes automatically. A later confirmed **Retry** discards the edits on the components it targets along with their previous generation; edits on other components remain unchanged.
+Generated content remains editable. The user opens the page editor to change any component, edit the main key or its Context, write in Text components, or delete the page. Adding, deleting, and moving components is described in [page](../screens/page.md#shaping-a-page). Manual edits require an explicit **Save**. Select and Add and confirmed retries save their outcomes automatically. A later confirmed **Retry** discards the edits on the components it targets along with their previous generation; edits on other components remain unchanged.
 
 ### Generation record
 

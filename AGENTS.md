@@ -18,66 +18,33 @@ extension and the server import their `dist/`.
 
 **A module** lives in one folder of the catalog,
 `packages/domain/src/catalog/<family>/<module>/`, and is registered with one
-import and one entry in `catalog/index.ts`. Its folder holds:
-
-- `module.ts`: ID, kind, label, description, instances, its core and ordered facets.
-- `module.prompt.md`: the module's rule inside the shared rules (`composer/rules.md`); `rubric.md`: what the judge scores its cards on.
-- `facets/core/`: `facet.ts` (shape, flags, formatter), `core.prompt.md`, `retry.prompt.md` (a facet's own Retry), `reading.prompt.md` (a card's Retry keeping its reading).
-- `facets/<facet>/`: `facet.ts` (label, abbreviation, `applies`, `when`, `spoken`, shape, formatter, `checks`), `prompt.md`, `about*.json`, and optionally `sample-key.json` and `samples/`.
-- `about.json` and `about.<language>.json`: its page's text; `names.<language>.json`: its names in the other interface languages; `samples/<language>.json`: its sample cards; optionally `sample-keys.json`.
-
-Every module owns its facets; nothing is shared between modules, so German
-Examples and Chinese Examples are separate folders. Each language gets the
-facets its dictionary can offer. The contract names no facet: the catalog
-alone decides (D25). The full rules are in the
-[module catalog](docs/subsystems/module-catalog.md#catalog-layout).
+import and one entry in `catalog/index.ts`. Every module owns its facets;
+nothing is shared between modules, and the contract names no facet: the
+catalog alone decides (D25). What a module folder holds, and the rules every
+module follows, are in the [module catalog](docs/subsystems/module-catalog.md#what-a-module-folder-holds).
 
 **From capture to card:**
 
-1. `extension/context-menu.js` and `capture.js` take the selection and its Context; `background-runtime.js` owns the browser session and the durable receipts (`save-operations.js`, `recovery.js`).
-2. `src/server/routes.mjs` checks the payload against `packages/contracts` and calls the store.
-3. The store (`src/core/store.mjs`, built from one concern per file: `store-sessions`, `store-decks`, `store-pages`, `store-generation`, `store-audio`, sharing `store-common`) commits the page and its components. Every mutation carries an operation ID whose receipt replays its first result.
-4. `src/server/generation.mjs` runs each content module's attempt: the composer (`packages/domain/src/composer/compose.ts`) builds one request per module from its prompt files, `provider.mjs` and the adapter (`opencode.mjs`) call the model, `domain/generated.ts` checks the result against the module's shapes, and `domain/content.ts` formats it into stored markdown per facet. The store stages it, then publishes it into its component.
-5. Spoken parts (`domain/spoken.ts`) become audio jobs (`src/server/audio.mjs`, `speech.mjs`, `elevenlabs.mjs`) stored per line by `store-audio`.
-6. The extension's page (`page-view.tsx`, `card-content.tsx`, `shaping.tsx`, `facet-window.tsx`) renders through `domain/render.ts`. Module pages come from `about-sheet.tsx`, reading the generated `catalog/about.generated.ts`, because the extension cannot read files at run time.
+1. `extension/context-menu.js` and `capture.js` take the selection and its Context; `background-runtime.js` owns the browser session and the durable receipts (`save-operations.js`, `recovery.js`). ([capture and save](docs/subsystems/capture-and-save.md))
+2. `src/server/routes.mjs` checks the payload against `packages/contracts` and calls the store. ([store](docs/subsystems/store.md))
+3. The store (`src/core/store.mjs`, built from one concern per file: `store-sessions`, `store-decks`, `store-pages`, `store-generation`, `store-audio`, sharing `store-common`) commits the page and its components. Every mutation carries an operation ID whose receipt replays its first result. ([store](docs/subsystems/store.md))
+4. `src/server/generation.mjs` runs each content module's attempt: the composer (`packages/domain/src/composer/compose.ts`) builds one request per module from its prompt files, `provider.mjs` and the adapter (`opencode.mjs`) call the model, `domain/generated.ts` checks the result against the module's shapes, and `domain/content.ts` formats it into stored markdown per facet. The store stages it, then publishes it into its component. ([generation](docs/subsystems/generation.md))
+5. Spoken parts (`domain/spoken.ts`) become audio jobs (`src/server/audio.mjs`, `speech.mjs`, `elevenlabs.mjs`) stored per line by `store-audio`. ([audio](docs/subsystems/audio.md))
+6. The extension's page (`page-view.tsx`, `card-content.tsx`, `shaping.tsx`, `facet-window.tsx`) renders through `domain/render.ts`. Module pages come from `about-sheet.tsx`, reading the generated `catalog/about.generated.ts`, because the extension cannot read files at run time. ([page](docs/screens/page.md), [module pages](docs/screens/module-pages.md))
 
 **Where each kind of change goes, and what guards it:**
 
-| Change | Where | Guarded by |
-| --- | --- | --- |
-| A module, facet or prompt | its catalog folder | `tests/catalog.test.mjs`, `tests/prompts.test.mjs` (`UPDATE_PROMPTS=1` after a deliberate change), `tests/localisation.test.mjs`, `tests/content-checks.test.mjs` (a facet's `checks`); live: `npm run gate -- <module>` (golden set, checks and the calibrated judge against the module's `rubric.md`) |
-| Stored shape or API | `packages/contracts`, `migrations/`, `src/core/` | `tests/postgres.test.mjs`, `tests/upgrade.test.mjs`, `tests/server.test.mjs` |
-| Generation, Retry, recovery | `src/server/generation.mjs`, `src/core/store-generation.mjs` | `tests/generation.test.mjs`, `tests/generation-recovery.test.mjs`, `tests/opencode.test.mjs`, `tests/browser/reliability.test.mjs` |
-| A page, card or deck interaction | `extension/` | `tests/extension.test.mjs`, the journey files in `tests/browser/`, `npm run screens -- --base main` ([screens](docs/guides/screens.md)); a move that slides, adds, deletes or navigates joins the motion catalogue, `tests/browser/motion.test.mjs`, checked frame by frame by `tests/browser/motion.mjs` |
-| Interface strings | `extension/locales/` | `tests/localisation.test.mjs`, `tests/browser/localisation.test.mjs` |
+| Change | Where | Docs to update | Guarded by |
+| --- | --- | --- | --- |
+| A module, facet or prompt | its catalog folder | [module catalog](docs/subsystems/module-catalog.md) | `tests/catalog.test.mjs`, `tests/prompts.test.mjs` (`UPDATE_PROMPTS=1` after a deliberate change), `tests/localisation.test.mjs`, `tests/content-checks.test.mjs` (a facet's `checks`); live: `npm run gate -- <module>` (golden set, checks and the calibrated judge against the module's `rubric.md`) |
+| Stored shape or API | `packages/contracts`, `migrations/`, `src/core/` | [store](docs/subsystems/store.md), [sessions and recovery](docs/subsystems/sessions-and-recovery.md) | `tests/postgres.test.mjs`, `tests/upgrade.test.mjs`, `tests/server.test.mjs` |
+| Generation, Retry, recovery | `src/server/generation.mjs`, `src/core/store-generation.mjs` | [generation](docs/subsystems/generation.md), [audio](docs/subsystems/audio.md) | `tests/generation.test.mjs`, `tests/generation-recovery.test.mjs`, `tests/opencode.test.mjs`, `tests/browser/reliability.test.mjs` |
+| A page, card or deck interaction | `extension/` | its [screen page](docs/screens/README.md), [interface](docs/subsystems/interface.md) | `tests/extension.test.mjs`, the journey files in `tests/browser/`, `npm run screens -- --base main` ([screens](docs/guides/screens.md)); a move that slides, adds, deletes or navigates joins the motion catalogue, `tests/browser/motion.test.mjs`, checked frame by frame by `tests/browser/motion.mjs` |
+| Interface strings | `extension/locales/` | [localisation](docs/subsystems/localisation.md) | `tests/localisation.test.mjs`, `tests/browser/localisation.test.mjs` |
 
-## Rules and what enforces them
+## Rules
 
-Every change keeps these rules. The second column says what fails when a rule is broken; **nothing** means only this text holds it, so take extra care there. Rules for one area are moving into the [code standards](docs/code-standards.md), section by section.
-
-| Rule | Enforced by |
-| --- | --- |
-| Applied migrations never change; a schema change is a new migration (`npm run db:generate`). | nothing |
-| Upgrades keep accounts, sign-in, decks and pages unless the owner decides otherwise. | `tests/upgrade.test.mjs`, `tests/browser/upgrade.test.mjs` |
-| Each release states its upgrade in its own file under [docs/releases](docs/releases/README.md). | `scripts/package.py` refuses to package without `docs/releases/<version>.md` |
-| A mutation is idempotent by its operation ID. | `npm run check:sessions` in CI, for capture, publish and delete page in every order ([sessions skill](.agents/skills/vocabularium-sessions/SKILL.md)); replay tests in `tests/postgres.test.mjs`, `tests/decks.test.mjs`, `tests/server.test.mjs`; nothing makes a new mutation route take one |
-| Provider calls never run inside a database transaction or the ordered executor. | one test in `tests/postgres.test.mjs` (a waiting model call doesn't hold the executor); nothing for transactions |
-| One browser session per installation ([sessions and recovery](docs/subsystems/sessions-and-recovery.md#browser-sessions)). | `npm run check:sessions` in CI (an ended session changes nothing; none of its attempts stays loading); the store's `stale_session` check (`src/core/store-sessions.mjs`); `tests/foundation.test.mjs`, `tests/postgres.test.mjs`, `tests/browser/reliability.test.mjs` |
-| A parent's header (its top line) is written by generation and never edited by the user. | the store rejects the edit; `tests/facets.test.mjs` |
-| No generated content is cached, audio included. | nothing |
-| A prompt change shows as a change to `tests/prompts/*.txt`. | `tests/prompts.test.mjs` (`UPDATE_PROMPTS=1` after a deliberate change) |
-| An API change regenerates `docs/api/openapi.json` (`npm run openapi`). | the OpenAPI step in `.github/workflows/verify.yml` |
-| The interface rules: strings, mirroring, colour, focus, motion, dialogs and screens. | [code standards, Interface](docs/code-standards.md#interface) |
-| Merge only when every check passes on a branch up to date with `main`. | the GitHub ruleset "main: verify must pass" |
-| A browser test that fails at random is named, never passed over. | `scripts/browser-tests.mjs` reruns a failed file once and fails the run either way |
-| The API and extension under discussion are the ones built from the code under discussion. | the version and commit on the homepage and login page; the account menu's warning when the two differ (`tests/extension.test.mjs`); `/health/live` and a failed second start name the running build (`tests/server.test.mjs`) |
-| Relative links and anchors in Markdown resolve. | `scripts/check-links.mjs` in `npm run check` |
-| Decision files follow their naming, numbering and header rules ([decisions](docs/decisions/README.md)). | `scripts/check-decisions.mjs` in `npm run check`; `scripts/check-decision-issues.mjs` in CI |
-| Ask the owner only when a wrong guess is costly; list every default under **Defaults taken** ([Change skill](.agents/skills/vocabularium-change/SKILL.md#take-the-request-in)). | nothing (a judgment call) |
-| A report's page and logs never leave this computer: its GitHub issue carries only the user's text, the screen, the module type and the builds ([D336](docs/decisions/d336-report-a-problem.md)). | `tests/reports.test.mjs` (the issue `scripts/reports.mjs` writes names no page content and no logs) |
-| A file, export, dependency, local or parameter goes once nothing uses it. | `knip` (unused files, exports and dependencies; a new entry point goes in `knip.json`) and the compiler's `noUnusedLocals` and `noUnusedParameters`, both in `npm run check`; nothing catches an unused field of an object or a constant copied between files |
-
-**Keep this table true.** When the owner corrects a mistake, fix it and add its rule here, or under its area in the code standards. A mistake found in merged work that the owner did not correct goes into [LESSONS.md](LESSONS.md) first; it moves here once it is seen on a third day. If its rule is already here with **nothing** beside it, the mistake is a repeat: in the same change, enforce the rule at the highest level that works (a design that makes the mistake impossible, then types, then a lint or CI check whose message names the fix, then a test), and show the check failing on the past mistake. Keep prose only for judgment calls. Remove a rule once its mistake can no longer happen.
+Every change keeps the rules in the [code standards](docs/code-standards.md), grouped by area, each with what enforces it. When the owner corrects a mistake, its rule goes there.
 
 ## Before you change code
 

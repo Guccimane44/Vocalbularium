@@ -27,10 +27,10 @@ Some modules and facets are **spoken**: after their text is published, a speech 
 Audio is an output that is not markdown, and a **heavy facet** in the sense of [D17's direction](../decisions/d17-one-request.md#heavy-facets-direction) ([D24](../decisions/d24.md)).
 
 - **What is spoken.** A spoken core speaks the page's saved main key in the language its flag names, never the key as the model wrote it; a spoken facet (`spoken` in its `facet.ts`) speaks each of its lines in its parent's language. The text stays markdown as every facet's does; the audio is attached to the component beside it, one **clip** per spoken line.
-- **Where it comes from.** A speech provider, ElevenLabs, with one pinned speech model, Eleven v4 Turbo, beside the one pinned text model ([generation architecture](generation.md#the-text-provider)), and a voice per language from `ELEVENLABS_VOICES`. Changing the model or a voice needs the owner's listening review.
+- **Where it comes from.** A speech provider, ElevenLabs, with one pinned speech model, Eleven v4 Turbo, beside the one pinned text model ([generation](generation.md#the-text-provider)), and a voice per language from `ELEVENLABS_VOICES`. Changing the model or a voice needs the owner's listening review.
 - **When.** A clip is generated once its text is saved, in parallel with the card's other clips; the card shows its text first, and each clip fills in when it is ready. A clip succeeds or fails on its own, with its own **Retry**, and the text around it stays ([capture and generation](#audio-jobs)).
 - **Not spoken.** A language `other`, a language the pinned model does not speak, and a line over 500 characters start no audio; the card says why and offers **Retry**. These are not failures.
-- **Format.** MP3 at 44.1 kHz and 128 kbit/s, played on the card ([pages and editing](../screens/page.md#spoken-parts)); there is no download or export.
+- **Format.** MP3 at 44.1 kHz and 128 kbit/s, played on the card ([page](../screens/page.md#spoken-parts)); there is no download or export.
 - **Editing.** Spoken lines are shown but not editable, because an edited line would no longer match its audio.
 
 ### Audio jobs

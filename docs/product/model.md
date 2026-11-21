@@ -16,7 +16,7 @@ A **deck** is the primary collection of pages, organized for a subject, language
 
 A **deck configuration** defines the deck's settings: its name, its ordered **module instances** (the compulsory main key module, an optional Context module, and content module instances), and its view. The module instances are the template for new pages: creating a page gives it a copy of them. After that the page owns its modules, and the deck configuration does not affect it. Changing the configuration changes only pages created afterwards.
 
-**Deck settings** is the interface for editing the configuration. The [deck configuration specification](../screens/home.md) owns its rules and limits.
+**Deck settings** is the interface for editing the configuration. The [deck settings reference](../screens/deck-settings.md) owns its rules and limits.
 
 The **default deck** is the account's designated destination for capture. Default is a role held by a deck, not a separate kind of deck.
 
@@ -32,7 +32,7 @@ The main key and the optional Context are the only text inputs for module genera
 
 **Captured input** describes the text originally supplied through capture. Capture is an input origin, not a prerequisite for generation. The original selection does not override an edited main key on subsequent generation. Capture may also supply an optional **Context** (the surrounding block, capped): a stored input aid for reading the key, not a semantic referent — see the direction note below.
 
-A **reading** is how a content module understands the main key in one attempt: whether it is a word or phrase, or a sentence, its language and, where a module needs them, further decisions such as a German word's grammatical role. Each module reads the key in its own request and records the reading as **flags** in its core; no reading is shared by a run, and none is reused from an earlier main key. It does not choose a source language for the page: the language of a key is often ambiguous, so each parent module reads it from the key and Context ([D17](../decisions/d17.md)). The [module specification](../subsystems/module-catalog.md#input-and-applicability) defines the rules.
+A **reading** is how a content module understands the main key in one attempt: whether it is a word or phrase, or a sentence, its language and, where a module needs them, further decisions such as a German word's grammatical role. Each module reads the key in its own request and records the reading as **flags** in its core; no reading is shared by a run, and none is reused from an earlier main key. It does not choose a source language for the page: the language of a key is often ambiguous, so each parent module reads it from the key and Context ([D17](../decisions/d17.md)). The [module catalog](../subsystems/module-catalog.md#input-and-applicability) defines the rules.
 
 ### Direction: semantic continuity
 
@@ -68,7 +68,7 @@ A **module type** defines one focused way to contribute content, such as display
 
 A **parent module** has a required **core**, which applies to every word, phrase, and sentence, and **facets**: optional parts that each add one kind of content to the core, such as an article or examples. Each facet belongs to one parent module type, which fixes the order facets appear in. A facet exists only inside a parent of its type and is not a module instance. Variety comes from more parent types, not from options on a facet. The core is itself a facet, the first of every parent and one that cannot be removed, and a parent owns all its facets: two parents never share one, however alike, such as German and Chinese Examples ([D11](../decisions/d11.md)). Input modules have no facets yet, but may gain them.
 
-A module's purpose, applicable inputs, supported options, and output behavior are product-defined. The [module specification](../subsystems/module-catalog.md) describes the current catalog and the design contract for future additions. The **module catalog** defines every module type once, grouped by family, with its facets and their prompts ([generation architecture](../subsystems/module-catalog.md#catalog-layout)). A module can serve different subjects or languages within its applicability; it need not apply to every input.
+A module's purpose, applicable inputs, supported options, and output behavior are product-defined. The [module catalog](../subsystems/module-catalog.md) describes the current catalog and the design contract for future additions. The **module catalog** defines every module type once, grouped by family, with its facets and their prompts ([module catalog](../subsystems/module-catalog.md#catalog-layout)). A module can serve different subjects or languages within its applicability; it need not apply to every input.
 
 A **module instance** is one placement of an input or content module type, with the facets chosen for it, either in a deck configuration, where it is a template for new pages, or on a page, where it owns one component. A deck or page holds at most 12 module instances, counting every module, including the main key, Context, and Text. Text and content module types may have several instances.
 
@@ -84,7 +84,7 @@ The **default view** module shows a page as its ordered component list. It needs
 
 Other view modules, such as a **card** view module with a configurable layout, are later work. No term is defined for parts of a view; each view module's specification names its own settings.
 
-A **layout** is how a deck's page list shows its pages: List, Table, or Gallery ([pages and editing](../screens/deck.md)). A layout lists many pages; a view shows one. Layouts are presentation choices remembered on each installation, not modules and not part of the deck configuration.
+A **layout** is how a deck's page list shows its pages: List, Table, or Gallery ([deck](../screens/deck.md)). A layout lists many pages; a view shows one. Layouts are presentation choices remembered on each installation, not modules and not part of the deck configuration.
 
 A **module family** groups module types by what they contribute (Languages, Expertise, Meaning, Usage, Roots, Connections, Sound, Notes) and gives them their colour and icon ([modules](../subsystems/module-catalog.md#module-families)). It is a property of the module type; it does not change what a module does.
 
@@ -98,7 +98,7 @@ A **generation outcome** describes an attempt's state or result. Component conte
 
 A component can have no generation attempt. Manual creation and editing, including a main key edit, do not start generation. A page's overall generation outcome is derived from its component outcomes according to [Select and Add](../subsystems/generation.md). Existing content and outcomes continue to describe their prior attempts until the user explicitly requests generation again.
 
-The [page input and editing specification](../screens/page.md) owns main key creation and editing. [Select and Add](../subsystems/generation.md) owns attempt states, completion, publication, failure, interruption, and retry behavior. This model does not define their transitions or recovery workflow.
+The [page reference](../screens/page.md) owns main key creation and editing. [Select and Add](../subsystems/generation.md) owns attempt states, completion, publication, failure, interruption, and retry behavior. This model does not define their transitions or recovery workflow.
 
 ## Draft and saved content
 

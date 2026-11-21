@@ -19,8 +19,8 @@ The **module window** is a panel on the right side of both the page view and dec
 
 Dragging a module from the window:
 
-- into deck settings adds an instance to the deck configuration, the template for new pages ([decks and configuration](deck-settings.md#module-window));
-- onto a page adds an instance to that page only ([pages and editing](page.md#shaping-a-page)).
+- into deck settings adds an instance to the deck configuration, the template for new pages ([deck settings](deck-settings.md#module-window));
+- onto a page adds an instance to that page only ([page](page.md#shaping-a-page)).
 
 A parent is added with its core only ([modules](../subsystems/module-catalog.md#choosing-and-changing-facets)).
 

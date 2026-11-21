@@ -1,10 +1,53 @@
 # Code standards
 
-These are the rules a change keeps, grouped by area, with what fails when a rule is broken. **Nothing** in the second column means only a reviewer holds the rule, so take extra care there. The rules every change keeps, whatever its area, are still in the [rules table in AGENTS.md](../AGENTS.md#rules-and-what-enforces-them); they move here section by section.
+Every change keeps these rules. Each one says what fails when it is broken; **nothing** means only this text holds it, so take extra care there. Read this file, and [LESSONS.md](../LESSONS.md), before changing code; CLAUDE.md loads both into every session.
 
-A rule comes here from three places: the owner corrects a mistake, a lesson in [LESSONS.md](../LESSONS.md) is seen on a third separate day, or a review keeps asking for the same thing. When a rule here with **nothing** beside it is broken again, enforce it in the same change at the highest level that works (a design that makes the mistake impossible, then types, then a lint or CI check whose message names the fix, then a test), and show the check failing on the past mistake.
+**Keep these tables true.** When the owner corrects a mistake, fix it and add its rule under its area here. A mistake found in merged work that the owner did not correct goes into [LESSONS.md](../LESSONS.md) first, and moves here once it is seen on a third separate day. If its rule is already here with **nothing** beside it, the mistake is a repeat: in the same change, enforce the rule at the highest level that works (a design that makes the mistake impossible, then types, then a lint or CI check whose message names the fix, then a test), and show the check failing on the past mistake. Keep prose only for judgment calls. Remove a rule once its mistake can no longer happen.
 
 How to describe and review a change to a subsystem is in the [subsystem references](subsystems/README.md#describe-a-prs-change).
+
+## Storage and the API
+
+| Rule | Enforced by |
+| --- | --- |
+| Applied migrations never change; a schema change is a new migration (`npm run db:generate`). | nothing |
+| Upgrades keep accounts, sign-in, decks and pages unless the owner decides otherwise. | `tests/upgrade.test.mjs`, `tests/browser/upgrade.test.mjs` |
+| A mutation is idempotent by its operation ID. | `npm run check:sessions` in CI, for capture, publish and delete page in every order ([sessions skill](../.agents/skills/vocabularium-sessions/SKILL.md)); replay tests in `tests/postgres.test.mjs`, `tests/decks.test.mjs`, `tests/server.test.mjs`; nothing makes a new mutation route take one |
+| One browser session per installation ([sessions and recovery](subsystems/sessions-and-recovery.md#browser-sessions)). | `npm run check:sessions` in CI (an ended session changes nothing; none of its attempts stays loading); the store's `stale_session` check (`src/core/store-sessions.mjs`); `tests/foundation.test.mjs`, `tests/postgres.test.mjs`, `tests/browser/reliability.test.mjs` |
+| A parent's header (its top line) is written by generation and never edited by the user. | the store rejects the edit; `tests/facets.test.mjs` |
+| An API change regenerates `docs/api/openapi.json` (`npm run openapi`). | the OpenAPI step in `.github/workflows/verify.yml` |
+
+## Generation and prompts
+
+| Rule | Enforced by |
+| --- | --- |
+| Provider calls never run inside a database transaction or the ordered executor. | one test in `tests/postgres.test.mjs` (a waiting model call doesn't hold the executor); nothing for transactions |
+| No generated content is cached, audio included. | nothing |
+| A prompt change shows as a change to `tests/prompts/*.txt`. | `tests/prompts.test.mjs` (`UPDATE_PROMPTS=1` after a deliberate change) |
+
+## Privacy
+
+| Rule | Enforced by |
+| --- | --- |
+| A report's page and logs never leave this computer: its GitHub issue carries only the user's text, the screen, the module type and the builds ([D336](decisions/d336-report-a-problem.md)). | `tests/reports.test.mjs` (the issue `scripts/reports.mjs` writes names no page content and no logs) |
+
+## Releases and merging
+
+| Rule | Enforced by |
+| --- | --- |
+| Each release states its upgrade in its own file under [docs/releases](releases/README.md). | `scripts/package.py` refuses to package without `docs/releases/<version>.md` |
+| Merge only when every check passes on a branch up to date with `main`. | the GitHub ruleset "main: verify must pass" |
+| A browser test that fails at random is named, never passed over. | `scripts/browser-tests.mjs` reruns a failed file once and fails the run either way |
+| The API and extension under discussion are the ones built from the code under discussion. | the version and commit on the homepage and login page; the account menu's warning when the two differ (`tests/extension.test.mjs`); `/health/live` and a failed second start name the running build (`tests/server.test.mjs`) |
+
+## The repository
+
+| Rule | Enforced by |
+| --- | --- |
+| Relative links and anchors in Markdown resolve. | `scripts/check-links.mjs` in `npm run check` |
+| Decision files follow their naming, numbering and header rules ([decisions](decisions/README.md)). | `scripts/check-decisions.mjs` in `npm run check`; `scripts/check-decision-issues.mjs` in CI |
+| A file, export, dependency, local or parameter goes once nothing uses it. | `knip` (unused files, exports and dependencies; a new entry point goes in `knip.json`) and the compiler's `noUnusedLocals` and `noUnusedParameters`, both in `npm run check`; nothing catches an unused field of an object or a constant copied between files |
+| Ask the owner only when a wrong guess is costly; list every default under **Defaults taken** ([Change skill](../.agents/skills/vocabularium-change/SKILL.md#take-the-request-in)). | nothing (a judgment call) |
 
 ## Interface
 

@@ -8,7 +8,7 @@ This document describes Vocabularium's purpose, guiding principles, and long-ter
 
 Vocabularium helps people collect and work with useful text at the moment they encounter it. Captured material becomes a persistent page, organized in a deck and developed through the user's chosen modules. A word, expression, sentence, passage, or text referring to a person, place, or concept can be a starting point.
 
-Capture and manual creation supply the same kind of page input: a required, editable main key that every page shows. Modules generate the page's components from that main key. Users can create a page manually without generating content, and editing its main key leaves existing content intact until they explicitly generate again. The [page specification](../screens/page.md) defines these rules; [scope](scope.md) records their implementation status.
+Capture and manual creation supply the same kind of page input: a required, editable main key that every page shows. Modules generate the page's components from that main key. Users can create a page manually without generating content, and editing its main key leaves existing content intact until they explicitly generate again. The [page reference](../screens/page.md) defines these rules; [scope](scope.md) records their implementation status.
 
 The core is a rich, extensible library of creative and useful modules for text-related work across subjects, languages, projects, and purposes. Each module offers a deliberately designed capability; users can choose and combine these capabilities to shape what a page provides.
 
@@ -47,7 +47,7 @@ Feature accumulation can obscure a product's value. Vocabularium should grow thr
 
 ## UI/UX direction
 
-The visual identity is **Vocabularium Sage** ([D05](../decisions/d05.md)): a calm, Notion-like workspace on green-grey paper where each module is marked by a coloured index tab of its module family. The interface stays quiet so that captured text and module content carry the colour; motion is quick and physical; success is quiet and only work in progress or problems show. The direction is playful but grown-up, with Arc and Notion as references. Its values live in the [design system](https://claude.ai/artifact/6gmEs5nUHAzKCC4do39u9E), and the shared rules in the [shared UI specification](../subsystems/interface.md#visual-identity). Release 0.6.0 builds it ([plan](../history/plans/visual-identity.md)); earlier releases used a functional foundation.
+The visual identity is **Vocabularium Sage** ([D05](../decisions/d05.md)): a calm, Notion-like workspace on green-grey paper where each module is marked by a coloured index tab of its module family. The interface stays quiet so that captured text and module content carry the colour; motion is quick and physical; success is quiet and only work in progress or problems show. The direction is playful but grown-up, with Arc and Notion as references. Its values live in the [design system](https://claude.ai/artifact/6gmEs5nUHAzKCC4do39u9E), and the shared rules in the [interface reference](../subsystems/interface.md#visual-identity). Release 0.6.0 builds it ([plan](../history/plans/visual-identity.md)); earlier releases used a functional foundation.
 
 ## Long-term possibilities
 
@@ -55,7 +55,7 @@ Capture could extend beyond browser selection to hotkeys, sharing, and mobile de
 
 Developing the module library is a primary product direction. Possibilities include technical explanations, simple explanations, historical context, timelines, related concepts, comparisons, summaries, key ideas, analysis, and clearly identified creative or speculative perspectives. Language modules could include pronunciation, audio, grammar, etymology, contextual examples, and character decomposition. Images, diagrams, and audio could provide further representations where they are useful.
 
-The standard experience should offer curated modules and suitable predefined variants. Advanced module creation or customization APIs remain separate possibilities; ordinary users should not need them to get useful results. The [module specification](../subsystems/module-catalog.md) separates current behavior from the design contract for future additions.
+The standard experience should offer curated modules and suitable predefined variants. Advanced module creation or customization APIs remain separate possibilities; ordinary users should not need them to get useful results. The [module catalog](../subsystems/module-catalog.md) separates current behavior from the design contract for future additions.
 
 New modules could operate on previously captured material. Richer interpretation could retain a chosen meaning or referent across generations and let users correct it.
 

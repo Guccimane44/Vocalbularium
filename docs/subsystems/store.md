@@ -40,7 +40,7 @@ For a selected sentence such as `我真的很幸福`, the `German` component sho
 
 ### Configuration and pages
 
-The configuration is the template for page creation. Capture and manual creation give the new page a copy of the deck's content module instances, in configured order ([capture and generation](capture-and-save.md#what-a-capture-saves)). From then on the page owns its modules:
+The configuration is the template for page creation. Capture and manual creation give the new page a copy of the deck's content module instances, in configured order ([capture and save](capture-and-save.md#what-a-capture-saves)). From then on the page owns its modules:
 
 - Saving a configuration change never changes existing pages. Only pages created afterwards use it.
 - Generation and retry on an existing page use the page's own module instances, not the deck's.
@@ -52,7 +52,7 @@ A generation run already in progress when the configuration changes is unaffecte
 
 Every page is shown through the default view. Choosing among several views per deck, switching views, and configuring other view modules (such as the card view module) are later work. When they arrive, they follow the [Notion-style model](../product/model.md#view): a view shows one page, with one default per deck.
 
-How a deck **lists** its pages is a separate choice, its page list **layout**: List (the default), Table, or Gallery ([pages and editing](../screens/deck.md)). The layout is remembered per deck on each installation and is not part of the deck configuration. To fill every layout without loading each page, a page summary from the backend (the deck's page list and the recent captures) carries, besides the main key, capture date and page status, the page's meaning line and, for each component after the main key, its module type, status, and whether it has content. It never carries the content itself.
+How a deck **lists** its pages is a separate choice, its page list **layout**: List (the default), Table, or Gallery ([deck](../screens/deck.md)). The layout is remembered per deck on each installation and is not part of the deck configuration. To fill every layout without loading each page, a page summary from the backend (the deck's page list and the recent captures) carries, besides the main key, capture date and page status, the page's meaning line and, for each component after the main key, its module type, status, and whether it has content. It never carries the content itself.
 
 
 ## Constraints and failure behaviour
