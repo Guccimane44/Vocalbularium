@@ -8,19 +8,7 @@ The [product model](../product/model.md) defines a page, its components, and the
 
 ## Page list
 
-Opening a deck shows its pages in one of three **layouts** of the page list (a layout lists pages, a [view](../product/model.md#view) shows one page). **List** is the default for every deck; a switch beside the sort order offers **List**, **Table**, and **Gallery**, and the chosen layout is remembered per deck on that installation.
-
-- **List** shows each page as its main key above one line of meaning, so words, phrases, sentences, and passages share one shape. The main key wraps to at most two lines and is cut with an ellipsis after that. The meaning line shows the first numbered meaning in the core of the page's first content component that has one; for a sentence it shows the first translation, starting with "Sentence ·", and for a passage it reads "Passage · *n* words". On the right, one small family mark per filled component, in page order, with a text alternative such as "3 modules filled", and **Open** on hover and keyboard focus. In the two creation-time orders, pages are grouped under their capture date (Today, Yesterday, then month and day); the alphabetical orders are not grouped.
-- **Table** shows one row per page with the columns main key (up to two lines), meaning, modules (the family marks), and capture date.
-- **Gallery** shows one card per page: its family marks along the top edge, the main key (larger for a word, up to four lines for longer text), the meaning, and the capture date.
-
-In every layout, the main key is the whole text when it is searched or read aloud; only its display is cut. The page list receives these fields with each page summary, never the page's content ([decks and configuration](decks-and-configuration.md#views-and-layouts)). A page that is saving, generating, or failed shows its status in place of the meaning ([shared UI](shared-ui.md#list-state-presentation)); a completed page shows none.
-
-The list loads 30 pages at a time, with **Load more pages** when more exist. A deck without pages shows "No pages in this deck yet." The main key links to the page, and clicking anywhere else on a row or card opens it too, except when the user is selecting text in it or presses its own button. Each row or card has one keyboard target named by its main key.
-
-**Sort pages** offers four orders: creation time newest first (the default), creation time oldest first, alphabetical A to Z, and alphabetical Z to A. Alphabetical order compares main keys after Unicode NFKC normalization and lowercasing, in code-unit order. Pages with equal sort values are ordered by page ID, so the list is stable. The chosen order is remembered per deck on that installation.
-
-The deck's **Add page manually** opens a new page draft ([creation](#creation-and-optional-generation)). The deck's **•••** menu is described in [decks and configuration](decks-and-configuration.md#dashboard).
+Moved to the [deck screen](../screens/deck.md).
 
 ## Required main key
 

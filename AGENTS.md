@@ -53,7 +53,7 @@ alone decides (D25). The full rules are in the
 
 ## Rules and what enforces them
 
-Every change keeps these rules. The second column says what fails when a rule is broken; **nothing** means only this text holds it, so take extra care there.
+Every change keeps these rules. The second column says what fails when a rule is broken; **nothing** means only this text holds it, so take extra care there. Rules for one area are moving into the [code standards](docs/code-standards.md), section by section.
 
 | Rule | Enforced by |
 | --- | --- |
@@ -64,13 +64,10 @@ Every change keeps these rules. The second column says what fails when a rule is
 | Provider calls never run inside a database transaction or the ordered executor. | one test in `tests/postgres.test.mjs` (a waiting model call doesn't hold the executor); nothing for transactions |
 | One browser session per installation ([accounts and sync](docs/specs/accounts-and-sync.md#browser-sessions)). | `npm run check:sessions` in CI (an ended session changes nothing; none of its attempts stays loading); the store's `stale_session` check (`src/core/store-sessions.mjs`); `tests/foundation.test.mjs`, `tests/postgres.test.mjs`, `tests/browser/reliability.test.mjs` |
 | A parent's header (its top line) is written by generation and never edited by the user. | the store rejects the edit; `tests/facets.test.mjs` |
-| No interface text in code: English strings in `extension/locales/en/messages.json`, other languages beside them, a module's names in its folder. | `tests/localisation.test.mjs` |
-| Arabic mirrors the layout. | `tests/browser/localisation.test.mjs`, `tests/browser/layout-rules.test.mjs` |
 | No generated content is cached, audio included. | nothing |
 | A prompt change shows as a change to `tests/prompts/*.txt`. | `tests/prompts.test.mjs` (`UPDATE_PROMPTS=1` after a deliberate change) |
 | An API change regenerates `docs/api/openapi.json` (`npm run openapi`). | the OpenAPI step in `.github/workflows/verify.yml` |
-| A changed screen is looked at before it merges. | the screens job fails on a changed screen until the PR is labelled `screens-changed` ([screens](docs/guides/screens.md)) |
-| A move draws no flicker, jump or flash. | `tests/browser/motion.test.mjs`, for the moves in its catalogue; add a new move there |
+| The interface rules: strings, mirroring, colour, focus, motion, dialogs and screens. | [code standards, Interface](docs/code-standards.md#interface) |
 | Merge only when every check passes on a branch up to date with `main`. | the GitHub ruleset "main: verify must pass" |
 | A browser test that fails at random is named, never passed over. | `scripts/browser-tests.mjs` reruns a failed file once and fails the run either way |
 | The API and extension under discussion are the ones built from the code under discussion. | the version and commit on the homepage and login page; the account menu's warning when the two differ (`tests/extension.test.mjs`); `/health/live` and a failed second start name the running build (`tests/server.test.mjs`) |
@@ -80,7 +77,13 @@ Every change keeps these rules. The second column says what fails when a rule is
 | A report's page and logs never leave this computer: its GitHub issue carries only the user's text, the screen, the module type and the builds ([D336](docs/decisions/d336-report-a-problem.md)). | `tests/reports.test.mjs` (the issue `scripts/reports.mjs` writes names no page content and no logs) |
 | A file, export, dependency, local or parameter goes once nothing uses it. | `knip` (unused files, exports and dependencies; a new entry point goes in `knip.json`) and the compiler's `noUnusedLocals` and `noUnusedParameters`, both in `npm run check`; nothing catches an unused field of an object or a constant copied between files |
 
-**Keep this table true.** When the owner corrects a mistake, fix it and add its rule here. If its rule is already here with **nothing** beside it, the mistake is a repeat: in the same change, enforce the rule at the highest level that works (a design that makes the mistake impossible, then types, then a lint or CI check whose message names the fix, then a test), and show the check failing on the past mistake. Keep prose only for judgment calls. Remove a rule once its mistake can no longer happen.
+**Keep this table true.** When the owner corrects a mistake, or a review keeps asking for the same thing, fix it and add its rule here, or under its area in the code standards. A mistake found in merged work that the owner did not correct goes into [LESSONS.md](LESSONS.md) first; it moves here once it is seen on a third day. If its rule is already here with **nothing** beside it, the mistake is a repeat: in the same change, enforce the rule at the highest level that works (a design that makes the mistake impossible, then types, then a lint or CI check whose message names the fix, then a test), and show the check failing on the past mistake. Keep prose only for judgment calls. Remove a rule once its mistake can no longer happen.
+
+## Before you change code
+
+- Read the [subsystem reference](docs/subsystems/README.md) for the area you are changing, and the [screen reference](docs/screens/README.md) for each screen you change, then follow their source links. Areas without a page yet are still described in `docs/specs/` and `docs/architecture/`.
+- Read [LESSONS.md](LESSONS.md) and the [code standards](docs/code-standards.md).
+- A PR updates the pages it makes untrue, and describes its change per subsystem ([how](docs/subsystems/README.md#describe-a-prs-change)).
 
 ## Reusable workflows
 

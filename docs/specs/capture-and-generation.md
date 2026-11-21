@@ -10,47 +10,15 @@ These rules describe the deck → page → component model (Q72, the owner's ans
 
 ## Availability and default deck
 
-When the Chrome extension is installed, enabled, initialized, and the user is logged in, its browser context-menu action **Create a page in “{default deck name}”** is available for selected text. Capture is unavailable before login. The label names the last successfully synchronized default deck. It updates after successful initialization, login, default changes, renames, replacement/deletion, and account refreshes. Other installations' changes appear on the next successful synchronization, including background recovery while Chrome is running. Offline use retains the last synchronized name; unsaved drafts do not change the label. Logout, expired access, or missing default/session readiness make capture unavailable. Label updates do not replace the generation session. The product uses one built-in owner-test account ([accounts and synchronization](accounts-and-sync.md)); there is no registration.
-
-The account initially has one default deck, **My Deck**. The user can configure this deck or set another deck as the default from the dashboard. There is exactly one default deck per account, and its choice synchronizes with the account.
-
-A captured page receives a copy of the default deck's content module instances ([decks and configuration](decks-and-configuration.md#configuration-and-pages)). Supported inputs are words, phrases, and sentences.
+Moved to [capture and save](../subsystems/capture-and-save.md#availability-and-the-default-deck).
 
 ## Capture scenario
 
-1. A logged-in user is reading a webpage and selects an unfamiliar word, phrase, or sentence, such as `幸福`.
-2. The user right-clicks the selection and chooses **Create a page in “{default deck name}”**.
-3. Vocabularium takes the selected text exactly as selected. When the destination deck has the Context module, it also takes the surrounding block (capped at around 500 characters); otherwise no surrounding text is taken. The web page URL and title are never taken. The Context is defined in [Pages and editing](pages-and-editing.md#context).
-4. It automatically saves a page in the destination deck with the selected text as its main key and the captured Context when present. This page remains accessible if generation later fails; its existence does not mean generation succeeded.
-5. It starts one generation run for the page: one attempt per content module instance the page received from the deck. Each attempt is one request in which its module decides how to read the key and writes its card ([input interpretation](#input-interpretation)).
-6. Each attempt publishes its own component when it completes: the parent's core and its facets that apply. A failed attempt leaves its component empty with a failure indicator; it does not affect the other components.
-7. It automatically saves and synchronizes components and generation outcomes with the account. The user does not need to select **Save**.
-
-The destination is the default deck at the time the capture action is invoked. Changing the default deck while generation is running does not redirect that capture. Each page belongs to exactly one deck.
-
-Each separate **Create a page in “{default deck name}”** action creates a new page, even if the same selected text or resulting content already exists in that deck or another deck. Duplicate pages are allowed without a warning, automatic merging, or content-based deduplication. They remain independently editable and deletable.
-
-A generation run keeps the module instances it started with. Later changes to the deck or the page do not change that run. Deleting a page, its destination deck, or a targeted component cancels the affected pending generation; it must not recreate deleted pages, decks, or components.
-
-The saved page appears in the destination deck's page list, including while generation is loading or after it fails. Page lists show each page's main key. Opening a page shows it in the default view, with **Retry** in each content card ([generation actions](#generation-actions)). Component content is rendered as its module's render contract describes ([shared UI](shared-ui.md#text-content)). The extension does not automatically open the new page or move the user away from the web page they are reading.
-
-Clicking the extension button opens the dashboard in a Chrome tab. The dashboard provides access to recent capture outcomes and their destination decks, including requests that have not yet produced a saved page. A new capture remains visible while its local pending receipt hands off to the saved account page; a delayed account refresh must not briefly remove the row.
+Moved to [capture and save](../subsystems/capture-and-save.md#what-a-capture-saves): what a capture saves, and the [runtime path](../subsystems/capture-and-save.md#runtime-path) it takes.
 
 ## Capture-feedback popup
 
-When Select and Add accepts the selected text, immediately show a brief popup confirming receipt, such as **Capture received**. This confirms that the request was received, not that generation or account saving has completed. If the capture cannot be accepted, show a failure message instead.
-
-**Capture flight:** on a web page where the selection can be read, the selected text lifts off the page as a small label and flies along a short arc into the popup's position in about half a second; the popup then appears as described here. A label longer than about 44 characters is shortened with an ellipsis; the capture always takes the full selection. The flight never delays the capture, never moves the page or the selection, and is skipped when the system asks for reduced motion, on Chrome-restricted pages, and when the capture fails. It needs no permission beyond those capture already uses.
-
-After each accepted capture, the toolbar icon shows a badge with the number of captures since the user last opened the dashboard; opening the dashboard clears it.
-
-The same popup appears on ordinary web pages and the originating Vocabularium dashboard, with identical wording, top-right placement relative to the web page, dimensions, styling, close control, and appearance ([shared UI](shared-ui.md#appearance)). It uses the Vocabularium Sage styling and the destination deck's colour. Dashboard capture creates no additional Chrome window and does not change focus or route. Other open dashboards do not receive its feedback. Account rerenders preserve the popup; theme changes update its appearance without restarting its timer. If the originating dashboard closes or navigates away, capture continues without redirecting feedback or opening a window. Chrome-restricted external pages retain the separate feedback-window fallback.
-
-The popup closes automatically three seconds after it appears. This duration is fixed at three seconds. It also includes a close control so the user can dismiss it sooner. Each new capture receives its own feedback with the same three-second duration.
-
-Closing the popup manually or waiting for it to disappear does not cancel the capture, end generation, or open the generated page. Generation may take longer than the popup's lifetime; progress and final outcomes remain available in the dashboard and the page editor.
-
-This transient popup is separate from the dashboard and from confirmation dialogs. Retry warnings, deletion warnings, and unsaved-edit choices do not close automatically after three seconds.
+Moved to [capture and save](../subsystems/capture-and-save.md#what-the-user-sees).
 
 ## Input interpretation
 
@@ -170,13 +138,7 @@ Each generated facet of a parent, the core included, records with its component 
 
 ## Saving and synchronization failures
 
-Generation outcomes and persistence are distinct. Persisting a page with failed components makes it accessible for retry; it does not label incomplete generation as successful. Never report unsaved content as saved or synchronized.
-
-Ordinary in-flight saves retain their recovery record internally without showing a recovery panel or **Try saving again**. A successful save must not briefly insert such a panel in Recent captures or the deck's page list. If the extension worker stops before a save is acknowledged, make its retained operation available for explicit recovery when the worker starts again; do not silently resubmit it. The existing browser-session interruption rules still apply to generation and publication from an ended session.
-
-If saving or synchronization fails, retain the pending change and offer **Try saving again**. This action only resubmits the same pending save for that page; it does not start another capture, generate content, discard manual edits, or require the retry warning. This is distinct from **Retry**, which starts fresh generation after confirmation.
-
-Account synchronization follows [accounts and synchronization](accounts-and-sync.md). Saved changes from different installations are applied in server-arrival order (FIFO); a later save to the same component replaces the earlier saved content. The generation lock still applies while an attempt is active, and late results from a canceled or interrupted attempt must not overwrite a subsequent save or retry.
+Moved to [capture and save](../subsystems/capture-and-save.md#saving-every-change).
 
 ## Initial default-deck example
 
