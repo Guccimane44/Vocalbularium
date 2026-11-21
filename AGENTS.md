@@ -30,7 +30,7 @@ Every module owns its facets; nothing is shared between modules, so German
 Examples and Chinese Examples are separate folders. Each language gets the
 facets its dictionary can offer. The contract names no facet: the catalog
 alone decides (D25). The full rules are in the
-[generation architecture](docs/architecture/generation.md#module-catalog).
+[module catalog](docs/subsystems/module-catalog.md#catalog-layout).
 
 **From capture to card:**
 
@@ -62,7 +62,7 @@ Every change keeps these rules. The second column says what fails when a rule is
 | Each release states its upgrade in its own file under [docs/releases](docs/releases/README.md). | `scripts/package.py` refuses to package without `docs/releases/<version>.md` |
 | A mutation is idempotent by its operation ID. | `npm run check:sessions` in CI, for capture, publish and delete page in every order ([sessions skill](.agents/skills/vocabularium-sessions/SKILL.md)); replay tests in `tests/postgres.test.mjs`, `tests/decks.test.mjs`, `tests/server.test.mjs`; nothing makes a new mutation route take one |
 | Provider calls never run inside a database transaction or the ordered executor. | one test in `tests/postgres.test.mjs` (a waiting model call doesn't hold the executor); nothing for transactions |
-| One browser session per installation ([accounts and sync](docs/specs/accounts-and-sync.md#browser-sessions)). | `npm run check:sessions` in CI (an ended session changes nothing; none of its attempts stays loading); the store's `stale_session` check (`src/core/store-sessions.mjs`); `tests/foundation.test.mjs`, `tests/postgres.test.mjs`, `tests/browser/reliability.test.mjs` |
+| One browser session per installation ([sessions and recovery](docs/subsystems/sessions-and-recovery.md#browser-sessions)). | `npm run check:sessions` in CI (an ended session changes nothing; none of its attempts stays loading); the store's `stale_session` check (`src/core/store-sessions.mjs`); `tests/foundation.test.mjs`, `tests/postgres.test.mjs`, `tests/browser/reliability.test.mjs` |
 | A parent's header (its top line) is written by generation and never edited by the user. | the store rejects the edit; `tests/facets.test.mjs` |
 | No generated content is cached, audio included. | nothing |
 | A prompt change shows as a change to `tests/prompts/*.txt`. | `tests/prompts.test.mjs` (`UPDATE_PROMPTS=1` after a deliberate change) |
@@ -81,7 +81,7 @@ Every change keeps these rules. The second column says what fails when a rule is
 
 ## Before you change code
 
-- Read the [subsystem reference](docs/subsystems/README.md) for the area you are changing, and the [screen reference](docs/screens/README.md) for each screen you change, then follow their source links. Areas without a page yet are still described in `docs/specs/` and `docs/architecture/`.
+- Read the [subsystem reference](docs/subsystems/README.md) for the area you are changing, and the [screen reference](docs/screens/README.md) for each screen you change, then follow their source links. Screens without a page yet are still described in `docs/specs/`.
 - Read [LESSONS.md](LESSONS.md) and the [code standards](docs/code-standards.md).
 - A PR updates the pages it makes untrue, and describes its change per subsystem ([how](docs/subsystems/README.md#describe-a-prs-change)).
 

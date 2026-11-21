@@ -11,7 +11,7 @@ The screens' rules are still in [`docs/specs/`](../specs/) until each screen has
 ## Which page owns a fact
 
 - **True on one screen** (what it shows, its order, its actions, its empty state): that screen's page.
-- **True on every screen** (colours, type, motion, dialogs, list states, the sidebar and trail, interface languages): the [shared interface](../specs/shared-ui.md). A screen page links to it and doesn't repeat it.
+- **True on every screen** (colours, type, motion, dialogs, list states, the sidebar and trail, interface languages): the [interface](../subsystems/interface.md) subsystem page. A screen page links to it and doesn't repeat it.
 - **How data moves or is stored** (what a request carries, ordering, receipts, limits the store enforces): the [subsystem page](../subsystems/README.md). A screen page says what the user sees and links there for why.
 - **A rule every change must keep**: the [code standards](../code-standards.md).
 

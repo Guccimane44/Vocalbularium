@@ -12,16 +12,16 @@ Each rule is stated in one line; where it needs more, the linked section owns th
 
 | Rule | Enforced by |
 | --- | --- |
-| No interface text in code: English strings are in `extension/locales/en/messages.json`, other languages beside them, a module's names in its folder ([interface language](specs/shared-ui.md#interface-language)). | `tests/localisation.test.mjs`; the `english-string` layout rule on every captured screen |
+| No interface text in code: English strings are in `extension/locales/en/messages.json`, other languages beside them, a module's names in its folder ([interface language](subsystems/localisation.md#interface-language)). | `tests/localisation.test.mjs`; the `english-string` layout rule on every captured screen |
 | Arabic mirrors the layout; generated content keeps its own direction, set on the content, never on the card. | `tests/browser/localisation.test.mjs`; the `rtl-mirror` layout rule (`tests/browser/layout-rules.test.mjs`) |
-| Colours come from the theme's tokens. Saturated colour means a module family or a status, and a family colour always comes with a name or a text alternative ([visual identity](specs/shared-ui.md#visual-identity)). | the `token-colour` layout rule, for colours outside the tokens; nothing for the meaning of a colour |
-| Status is always a word, never colour alone. Completed work shows no status ([list states](specs/shared-ui.md#list-state-presentation)). | nothing |
+| Colours come from the theme's tokens. Saturated colour means a module family or a status, and a family colour always comes with a name or a text alternative ([visual identity](subsystems/interface.md#visual-identity)). | the `token-colour` layout rule, for colours outside the tokens; nothing for the meaning of a colour |
+| Status is always a word, never colour alone. Completed work shows no status ([list states](subsystems/interface.md#list-state-presentation)). | nothing |
 | Text of any length fits: a main key from one word to a passage, long module names, every interface language. | the `text-overflow` and `viewport-overflow` layout rules on every captured screen |
-| Focus is always a visible 2 px ring, and every control is large enough to hit ([appearance](specs/shared-ui.md#appearance)). | the `focus-visible` layout rule checks that a focused control has a ring, not its width; the `target-size` layout rule |
+| Focus is always a visible 2 px ring, and every control is large enough to hit ([appearance](subsystems/interface.md#appearance)). | the `focus-visible` layout rule checks that a focused control has a ring, not its width; the `target-size` layout rule |
 | Every drag also works from the keyboard (Space, the arrow keys, Space, Escape) and is announced to screen readers. | the drag tests in `tests/browser/`; nothing makes a new drag do it |
-| Menus close after an action, on Escape, on navigation and on a click outside, and return the focus to their trigger. Confirmation dialogs never close on a timer ([dialogs](specs/shared-ui.md#dialogs-menus-and-feedback)). | nothing |
+| Menus close after an action, on Escape, on navigation and on a click outside, and return the focus to their trigger. Confirmation dialogs never close on a timer ([dialogs](subsystems/interface.md#dialogs-menus-and-feedback)). | nothing |
 | A row that holds a button is not itself one link: its text links, and the button sits beside it. | nothing |
-| Things move by transform and opacity only, with the design system's durations; under reduced motion nothing moves ([motion](specs/shared-ui.md#motion)). | nothing for new code |
+| Things move by transform and opacity only, with the design system's durations; under reduced motion nothing moves ([motion](subsystems/interface.md#motion)). | nothing for new code |
 | A move draws no flicker, jump or flash. A move that slides, adds, deletes or navigates joins the motion catalogue. | `tests/browser/motion.test.mjs`, checked frame by frame by `tests/browser/motion.mjs`, for the moves in its catalogue |
 | No font or other asset is loaded from the network; the fonts are bundled. Reading text is never smaller than 16 px. | nothing |
 | A changed screen is looked at before it merges, and its [screen reference](screens/README.md) changes with it. | the screens job fails on a changed screen until the PR is labelled `screens-changed` ([screens](guides/screens.md)); nothing for the screen page |

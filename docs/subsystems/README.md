@@ -5,8 +5,17 @@ Each page describes one part of Vocabularium as it works today: what it is respo
 | Subsystem | What it covers | Reference |
 | --- | --- | --- |
 | Capture and save | The context-menu capture, its receipt, the feedback popup and badge, and saving through operation receipts, **Try saving again** and recovery after the worker stops | [Capture and save](capture-and-save.md) |
+| Sessions and recovery | Sign-in, one browser session per installation, refreshing open views, and what Chrome or the API stopping does to work in progress | [Sessions and recovery](sessions-and-recovery.md) |
+| Store | PostgreSQL, the ordered executor, the schema and migrations, decks, pages and components, page summaries | [Store](store.md) |
+| Generation | Attempts and runs, capacity, Retry of a card, a facet or the core, the journal, stage and publish, the text provider | [Generation](generation.md) |
+| Audio | Spoken parts, clips and their jobs, the speech provider | [Audio](audio.md) |
+| Module catalog | Modules and facets, their shapes, flags, checks, prompts and page text; the composer; golden sets and the gate | [Module catalog](module-catalog.md) |
+| Interface | Visual identity, themes, list states, motion, dialogs and text content, shared by every screen | [Interface](interface.md) |
+| Localisation | Interface languages, catalogues, the account's preference, right to left | [Localisation](localisation.md) |
+| Observability and reports | Diagnostic logs on both sides, and **Report a problem** with its GitHub issues | [Observability and reports](observability-and-reports.md) |
+| Packaging and releases | The build, the package, release notes, build identity and CI | [Packaging and releases](packaging-and-releases.md) |
 
-The specifications in [`docs/specs/`](../specs/) and the pages in [`docs/architecture/`](../architecture/) are moving here, one subsystem at a time. Until a subsystem has its page, its rules are still in those files.
+What is left in [`docs/specs/`](../specs/) describes screens, and moves to the [screen references](../screens/README.md).
 
 How a screen looks and what the user can do on it is in the [screen references](../screens/README.md). A subsystem page explains how the mechanism works and links to the screens that show it. A rule that every change must keep is in the [code standards](../code-standards.md).
 

@@ -6,7 +6,7 @@ import type { Shape } from './shape.js';
 // definition (`prompt.md`; the core's `core.prompt.md` and `retry.prompt.md`); the
 // composer reads them. Since D17 a module writes its card in one request: the
 // core's flags come first and each facet says when it applies. See
-// docs/architecture/generation.md.
+// docs/subsystems/module-catalog.md.
 
 export type FamilyDefinition<Id extends string = string> = Readonly<{
   id: Id;
