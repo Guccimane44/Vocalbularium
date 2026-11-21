@@ -26,7 +26,7 @@ Every page uses the same sections, in this order, and leaves out a section only 
 1. **An opening paragraph**: what the subsystem does and where it ends.
 2. **Responsibilities and sources of truth**: a table with the columns *Part*, *Responsibility* and *Source*. The source links the file and names the function, class or table that holds the piece.
 3. **Runtime path**: the numbered steps a request takes through the code, from the user's action to the stored result.
-4. **Behaviour**: the rules the user can observe, in the product model's terms. These are the rules the specifications used to hold.
+4. **Behaviour**: the rules the user can observe, in the product model's terms.
 5. **Constraints and failure behaviour**: what must always hold, and what the user and the store see when a step fails.
 6. **Verification**: the tests and commands that prove the behaviour, each with what it covers.
 
