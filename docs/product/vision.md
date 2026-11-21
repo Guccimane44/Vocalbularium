@@ -47,7 +47,7 @@ Feature accumulation can obscure a product's value. Vocabularium should grow thr
 
 ## UI/UX direction
 
-The visual identity is **Vocabularium Sage** ([D05](../decisions/d05.md)): a calm, Notion-like workspace on green-grey paper where each module is marked by a coloured index tab of its module family. The interface stays quiet so that captured text and module content carry the colour; motion is quick and physical; success is quiet and only work in progress or problems show. The direction is playful but grown-up, with Arc and Notion as references. Its values live in the [design system](https://claude.ai/artifact/6gmEs5nUHAzKCC4do39u9E), and the shared rules in the [shared UI specification](../specs/shared-ui.md#visual-identity). Release 0.6.0 builds it ([plan](../history/plans/visual-identity.md)); earlier releases used a functional foundation.
+The visual identity is **Vocabularium Sage** ([D05](../decisions/d05.md)): a calm, Notion-like workspace on green-grey paper where each module is marked by a coloured index tab of its module family. The interface stays quiet so that captured text and module content carry the colour; motion is quick and physical; success is quiet and only work in progress or problems show. The direction is playful but grown-up, with Arc and Notion as references. Its values live in the [design system](https://claude.ai/artifact/6gmEs5nUHAzKCC4do39u9E), and the shared rules in the [shared UI specification](../subsystems/interface.md#visual-identity). Release 0.6.0 builds it ([plan](../history/plans/visual-identity.md)); earlier releases used a functional foundation.
 
 ## Long-term possibilities
 
@@ -55,7 +55,7 @@ Capture could extend beyond browser selection to hotkeys, sharing, and mobile de
 
 Developing the module library is a primary product direction. Possibilities include technical explanations, simple explanations, historical context, timelines, related concepts, comparisons, summaries, key ideas, analysis, and clearly identified creative or speculative perspectives. Language modules could include pronunciation, audio, grammar, etymology, contextual examples, and character decomposition. Images, diagrams, and audio could provide further representations where they are useful.
 
-The standard experience should offer curated modules and suitable predefined variants. Advanced module creation or customization APIs remain separate possibilities; ordinary users should not need them to get useful results. The [module specification](../specs/modules.md) separates current behavior from the design contract for future additions.
+The standard experience should offer curated modules and suitable predefined variants. Advanced module creation or customization APIs remain separate possibilities; ordinary users should not need them to get useful results. The [module specification](../subsystems/module-catalog.md) separates current behavior from the design contract for future additions.
 
 New modules could operate on previously captured material. Richer interpretation could retain a chosen meaning or referent across generations and let users correct it.
 

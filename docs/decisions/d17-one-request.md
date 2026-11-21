@@ -95,15 +95,15 @@ The German facets describe the grammar word, as Article does. Formula and Code e
 
 | Document | Change |
 | --- | --- |
-| [modules](../specs/modules.md#input-and-applicability) | The run's interpretation is removed; one request per module; flags; the merged Languages core; facets apply by their own prompts; Expertise `relevance`; content module contract inputs; render contracts (Languages core header; Expertise core without word/sentence); unique generation |
-| [modules: catalog](../specs/modules.md#catalog) | The six new facets, their tags, when they apply and their render contracts |
-| [capture and generation](../specs/capture-and-generation.md#input-interpretation) | No run-level interpretation; a module's attempt is its one request; Retry generates anew |
+| [modules](../subsystems/module-catalog.md#input-and-applicability) | The run's interpretation is removed; one request per module; flags; the merged Languages core; facets apply by their own prompts; Expertise `relevance`; content module contract inputs; render contracts (Languages core header; Expertise core without word/sentence); unique generation |
+| [modules: catalog](../subsystems/module-catalog.md#catalog) | The six new facets, their tags, when they apply and their render contracts |
+| [capture and generation](../subsystems/generation.md#input-interpretation) | No run-level interpretation; a module's attempt is its one request; Retry generates anew |
 | [pages and editing](../specs/pages-and-editing.md#required-main-key) | The label under the main key is removed; the title tier comes from length alone; the core header shows its labels, not editable |
-| [shared UI](../specs/shared-ui.md) | Markdown tables, KaTeX formulas and highlighted code in a card |
-| [generation architecture](../architecture/generation.md) | Flag declarations; one Languages prompt instead of one per input type; one Expertise prompt with `relevance`; the facet check; prompt snapshots; catalog conformance test |
+| [shared UI](../subsystems/interface.md) | Markdown tables, KaTeX formulas and highlighted code in a card |
+| [generation architecture](../subsystems/module-catalog.md) | Flag declarations; one Languages prompt instead of one per input type; one Expertise prompt with `relevance`; the facet check; prompt snapshots; catalog conformance test |
 | [golden sets](../../tests/golden/) | Expected `kind`, `gramRole` and `relevance` per input; the new facets' cases (K55) |
 | [scope](../product/scope.md#upgrade-from-earlier-builds) | The capability rows; the upgrade discards every deck and page and keeps accounts, sign-in and the language preference |
-| [capture and generation](../specs/capture-and-generation.md#initial-default-deck-example) | The fresh My Deck after the upgrade (unchanged modules) |
+| [capture and generation](../subsystems/store.md#initial-default-deck-example) | The fresh My Deck after the upgrade (unchanged modules) |
 
 ## Implementation sketch (for sizing, not part of the decision)
 

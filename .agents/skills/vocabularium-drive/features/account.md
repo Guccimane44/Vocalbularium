@@ -1,6 +1,6 @@
 # The account menu
 
-The account's own settings, at the foot of the sidebar: appearance, interface language, diagnostic logs, reporting a problem and log out. It also shows which build of the API the extension talks to, and warns when the extension and the API come from different commits. Rules: [accounts and sync](../../../../docs/specs/accounts-and-sync.md) and [shared UI](../../../../docs/specs/shared-ui.md).
+The account's own settings, at the foot of the sidebar: appearance, interface language, diagnostic logs, reporting a problem and log out. It also shows which build of the API the extension talks to, and warns when the extension and the API come from different commits. Rules: [sessions and recovery](../../../../docs/subsystems/sessions-and-recovery.md) and [interface](../../../../docs/subsystems/interface.md).
 
 ## Sub-features
 

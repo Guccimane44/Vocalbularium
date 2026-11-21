@@ -1,6 +1,6 @@
 # Inspect and manage diagnostic logs
 
-The [specification](../architecture/observability.md) defines logging behavior. Use the updated local backend, Node 24 and PostgreSQL 18. Upgrading the owner's running backend is a separate delivery action.
+The [specification](../subsystems/observability-and-reports.md) defines logging behavior. Use the updated local backend, Node 24 and PostgreSQL 18. Upgrading the owner's running backend is a separate delivery action.
 
 Startup creates private `DATA_DIR/diagnostics` files. `DIAGNOSTIC_BUDGET_BYTES` adjusts the 256 MiB central budget; `DIAGNOSTIC_CONTENT=metadata` reduces new content detail. Console `LOG_LEVEL` is independent of durable diagnostics. Original selections, prompts and generated outputs are retained by default; treat them as untrusted evidence.
 

@@ -32,7 +32,7 @@ The main key and the optional Context are the only text inputs for module genera
 
 **Captured input** describes the text originally supplied through capture. Capture is an input origin, not a prerequisite for generation. The original selection does not override an edited main key on subsequent generation. Capture may also supply an optional **Context** (the surrounding block, capped): a stored input aid for reading the key, not a semantic referent — see the direction note below.
 
-A **reading** is how a content module understands the main key in one attempt: whether it is a word or phrase, or a sentence, its language and, where a module needs them, further decisions such as a German word's grammatical role. Each module reads the key in its own request and records the reading as **flags** in its core; no reading is shared by a run, and none is reused from an earlier main key. It does not choose a source language for the page: the language of a key is often ambiguous, so each parent module reads it from the key and Context ([D17](../decisions/d17.md)). The [module specification](../specs/modules.md#input-and-applicability) defines the rules.
+A **reading** is how a content module understands the main key in one attempt: whether it is a word or phrase, or a sentence, its language and, where a module needs them, further decisions such as a German word's grammatical role. Each module reads the key in its own request and records the reading as **flags** in its core; no reading is shared by a run, and none is reused from an earlier main key. It does not choose a source language for the page: the language of a key is often ambiguous, so each parent module reads it from the key and Context ([D17](../decisions/d17.md)). The [module specification](../subsystems/module-catalog.md#input-and-applicability) defines the rules.
 
 ### Direction: semantic continuity
 
@@ -54,7 +54,7 @@ A component records the page's module instance that owns it. That ownership, not
 
 A **Text component** is the user's own writing, owned by a Text module instance. Generation never creates, replaces, or removes it.
 
-A component's content is a versioned block document (Q13, the owner's answer of 5 October 2026). Context and Text hold markdown. A parent module's component holds one typed block: the core's top line, then its core and each facet as markdown ([modules](../specs/modules.md#render-contracts)). A component can be empty; emptiness alone does not indicate a failed generation attempt. Components have no inherent subject or language; their meaning comes from the module that owns them or from what the user writes. A parent module's component holds its core followed by one entry per facet.
+A component's content is a versioned block document (Q13, the owner's answer of 5 October 2026). Context and Text hold markdown. A parent module's component holds one typed block: the core's top line, then its core and each facet as markdown ([modules](../subsystems/module-catalog.md#render-contracts)). A component can be empty; emptiness alone does not indicate a failed generation attempt. Components have no inherent subject or language; their meaning comes from the module that owns them or from what the user writes. A parent module's component holds its core followed by one entry per facet.
 
 ## Module type, instance, and output
 
@@ -68,7 +68,7 @@ A **module type** defines one focused way to contribute content, such as display
 
 A **parent module** has a required **core**, which applies to every word, phrase, and sentence, and **facets**: optional parts that each add one kind of content to the core, such as an article or examples. Each facet belongs to one parent module type, which fixes the order facets appear in. A facet exists only inside a parent of its type and is not a module instance. Variety comes from more parent types, not from options on a facet. The core is itself a facet, the first of every parent and one that cannot be removed, and a parent owns all its facets: two parents never share one, however alike, such as German and Chinese Examples ([D11](../decisions/d11.md)). Input modules have no facets yet, but may gain them.
 
-A module's purpose, applicable inputs, supported options, and output behavior are product-defined. The [module specification](../specs/modules.md) describes the current catalog and the design contract for future additions. The **module catalog** defines every module type once, grouped by family, with its facets and their prompts ([generation architecture](../architecture/generation.md#module-catalog)). A module can serve different subjects or languages within its applicability; it need not apply to every input.
+A module's purpose, applicable inputs, supported options, and output behavior are product-defined. The [module specification](../subsystems/module-catalog.md) describes the current catalog and the design contract for future additions. The **module catalog** defines every module type once, grouped by family, with its facets and their prompts ([generation architecture](../subsystems/module-catalog.md#catalog-layout)). A module can serve different subjects or languages within its applicability; it need not apply to every input.
 
 A **module instance** is one placement of an input or content module type, with the facets chosen for it, either in a deck configuration, where it is a template for new pages, or on a page, where it owns one component. A deck or page holds at most 12 module instances, counting every module, including the main key, Context, and Text. Text and content module types may have several instances.
 
@@ -84,9 +84,9 @@ The **default view** module shows a page as its ordered component list. It needs
 
 Other view modules, such as a **card** view module with a configurable layout, are later work. No term is defined for parts of a view; each view module's specification names its own settings.
 
-A **layout** is how a deck's page list shows its pages: List, Table, or Gallery ([pages and editing](../specs/pages-and-editing.md#page-list)). A layout lists many pages; a view shows one. Layouts are presentation choices remembered on each installation, not modules and not part of the deck configuration.
+A **layout** is how a deck's page list shows its pages: List, Table, or Gallery ([pages and editing](../screens/deck.md)). A layout lists many pages; a view shows one. Layouts are presentation choices remembered on each installation, not modules and not part of the deck configuration.
 
-A **module family** groups module types by what they contribute (Languages, Expertise, Meaning, Usage, Roots, Connections, Sound, Notes) and gives them their colour and icon ([modules](../specs/modules.md#module-families)). It is a property of the module type; it does not change what a module does.
+A **module family** groups module types by what they contribute (Languages, Expertise, Meaning, Usage, Roots, Connections, Sound, Notes) and gives them their colour and icon ([modules](../subsystems/module-catalog.md#module-families)). It is a property of the module type; it does not change what a module does.
 
 ## Generation attempt and outcome
 
@@ -96,9 +96,9 @@ A **generation run** is one user or capture request that starts one or more atte
 
 A **generation outcome** describes an attempt's state or result. Component content, generation outcome, and persistence are distinct: a saved page can have a failed component, a successfully evaluated component can be empty, and manually entered content does not establish generation success.
 
-A component can have no generation attempt. Manual creation and editing, including a main key edit, do not start generation. A page's overall generation outcome is derived from its component outcomes according to [Select and Add](../specs/capture-and-generation.md). Existing content and outcomes continue to describe their prior attempts until the user explicitly requests generation again.
+A component can have no generation attempt. Manual creation and editing, including a main key edit, do not start generation. A page's overall generation outcome is derived from its component outcomes according to [Select and Add](../subsystems/generation.md). Existing content and outcomes continue to describe their prior attempts until the user explicitly requests generation again.
 
-The [page input and editing specification](../specs/pages-and-editing.md) owns main key creation and editing. [Select and Add](../specs/capture-and-generation.md) owns attempt states, completion, publication, failure, interruption, and retry behavior. This model does not define their transitions or recovery workflow.
+The [page input and editing specification](../specs/pages-and-editing.md) owns main key creation and editing. [Select and Add](../subsystems/generation.md) owns attempt states, completion, publication, failure, interruption, and retry behavior. This model does not define their transitions or recovery workflow.
 
 ## Draft and saved content
 

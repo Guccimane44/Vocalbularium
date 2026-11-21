@@ -22,7 +22,7 @@ The sidebar marks the deck as current, and keeps it marked while the account ref
    - In the two creation-time orders, pages are grouped under their capture date: Today, Yesterday, then month and day. The alphabetical orders are not grouped.
 4. **Load more pages**, under the list, when the deck has more pages than are shown.
 
-The main key is always the whole text when it is searched or read aloud; only its display is cut. The list gets these fields with each page summary, never the page's content ([views and layouts](../specs/decks-and-configuration.md#views-and-layouts)).
+The main key is always the whole text when it is searched or read aloud; only its display is cut. The list gets these fields with each page summary, never the page's content ([views and layouts](../subsystems/store.md#page-summaries-and-layouts)).
 
 ## What the user can do
 
@@ -32,7 +32,7 @@ The main key is always the whole text when it is searched or read aloud; only it
 - **Load more pages.** The list loads 30 pages at a time.
 - **Add page manually** opens a new page draft in this deck, *Home › the deck › New page* ([creation](../specs/pages-and-editing.md#creation-and-optional-generation)).
 - **Configure deck** opens deck settings, *Home › the deck › Deck settings* ([configuration](../specs/decks-and-configuration.md#configuration)).
-- **Set as default** makes this the deck that capture saves into ([default deck](../specs/decks-and-configuration.md#default-deck)).
+- **Set as default** makes this the deck that capture saves into ([default deck](../subsystems/store.md#default-deck)).
 - **Delete deck** asks first, then returns to Home ([deleting a deck](../specs/decks-and-configuration.md#deleting-a-deck)).
 
 After an action in the head, the focus returns to the symbol that took it.
@@ -41,8 +41,8 @@ After an action in the head, the focus returns to the symbol that took it.
 
 - **Loading.** Until the deck's first batch arrives, the list's place stays blank. If that takes longer than 300 ms, it says the pages are loading. A reload, for another order or an account refresh, keeps the current list on screen until the new batch replaces it, so the way back from a page or a re-sort never shows an empty or loading box over the list.
 - **Empty.** A deck without pages shows "No pages in this deck yet."
-- **Saving, generating, failed.** A page in one of these states shows it in place of its meaning line, and a failed page offers **Retry…**, which opens the page ([list states](../specs/shared-ui.md#list-state-presentation)). A completed page shows no status.
-- **A new page arriving.** A page captured while the list is open slides into it ([motion](../specs/shared-ui.md#motion)).
+- **Saving, generating, failed.** A page in one of these states shows it in place of its meaning line, and a failed page offers **Retry…**, which opens the page ([list states](../subsystems/interface.md#list-state-presentation)). A completed page shows no status.
+- **A new page arriving.** A page captured while the list is open slides into it ([motion](../subsystems/interface.md#motion)).
 - **The list changed under Load more.** If the deck changed since the first batch, the store answers `stale_cursor` and the list starts again from its first batch.
 
 ## Source

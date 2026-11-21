@@ -1,6 +1,6 @@
 # Retry
 
-A card, or one of its facets, is generated again from the page's current main key and Context. A failed card shows **Retry <Module>** beside its tab; a completed card's Retry asks first, because it replaces the content, edits included. Rules: [capture and generation](../../../../docs/specs/capture-and-generation.md) and decisions [D19](../../../../docs/decisions/d19.md), [D22](../../../../docs/decisions/d22.md) and [D28](../../../../docs/decisions/d28.md).
+A card, or one of its facets, is generated again from the page's current main key and Context. A failed card shows **Retry <Module>** beside its tab; a completed card's Retry asks first, because it replaces the content, edits included. Rules: [generation](../../../../docs/subsystems/generation.md) and decisions [D19](../../../../docs/decisions/d19.md), [D22](../../../../docs/decisions/d22.md) and [D28](../../../../docs/decisions/d28.md).
 
 ## Sub-features
 
