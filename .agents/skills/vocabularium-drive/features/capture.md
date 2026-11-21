@@ -1,6 +1,6 @@
 # Capture
 
-The user selects a word or a sentence on any web page and sends it to Vocabularium from the context menu. A new page is made in the deck the menu names, with the selection as its main key, the surrounding paragraph as its Context, and one card per content module of that deck, each generated on its own. Rules: [capture and generation](../../../../docs/specs/capture-and-generation.md).
+The user selects a word or a sentence on any web page and sends it to Vocabularium from the context menu. A new page is made in the deck the menu names, with the selection as its main key, the surrounding paragraph as its Context, and one card per content module of that deck, each generated on its own. Rules: [capture and save](../../../../docs/subsystems/capture-and-save.md).
 
 ## Sub-features
 
