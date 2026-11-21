@@ -1,6 +1,6 @@
 // @ts-check
 // Capture with Context: the selection's surrounding block, capped around
-// CONTEXT_LIMIT characters (Pages and editing §Context).
+// CONTEXT_LIMIT characters (docs/screens/page.md, Context).
 const CONTEXT_LIMIT = 500;
 
 // Runs in the captured page through chrome.scripting, so it must stay

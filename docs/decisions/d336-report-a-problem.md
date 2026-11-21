@@ -4,7 +4,7 @@
 - **Status:** accepted
 - **Notion:** pending
 - **Source:** the owner in a Claude Code chat, 19 November 2026, choosing the outer loop of the five-layer development framework: a local report button, an agent that opens fix PRs the owner merges, run daily on the owner's Mac. Placement and design from the owner's design canvas the same day: "the report button should be placed alongside the diagnostic logs", then "Yes, build it". Issue [#336](https://github.com/Guccimane44/Vocalbularium/issues/336).
-- **Affected docs:** [decks and configuration](../specs/decks-and-configuration.md#navigation) (the account menu), [diagnostic logging](../subsystems/observability-and-reports.md) (where reports and logs live), [scope](../product/scope.md)
+- **Affected docs:** [decks and configuration](../subsystems/interface.md#navigation) (the account menu), [diagnostic logging](../subsystems/observability-and-reports.md) (where reports and logs live), [scope](../product/scope.md)
 - **Open items:** none
 
 ## Context

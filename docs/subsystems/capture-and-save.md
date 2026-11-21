@@ -2,7 +2,7 @@
 
 Capture turns a selection on a web page into a saved page in the default deck, and starts its generation. Saving covers how the extension gets every account change to the store exactly once: a durable receipt in the browser, an operation ID the store remembers, and **Try saving again** when a save did not get through.
 
-This page ends where generation begins: what a generation attempt does, how it fails and how **Retry** works are in [capture and generation](generation.md#generation-actions). Browser sessions, which every capture names, are in [accounts and synchronization](sessions-and-recovery.md#browser-sessions). What a captured page holds is in [pages and editing](../specs/pages-and-editing.md#context).
+This page ends where generation begins: what a generation attempt does, how it fails and how **Retry** works are in [capture and generation](generation.md#generation-actions). Browser sessions, which every capture names, are in [accounts and synchronization](sessions-and-recovery.md#browser-sessions). What a captured page holds is in [pages and editing](../screens/page.md#context).
 
 ## Responsibilities and sources of truth
 
@@ -39,19 +39,12 @@ The destination is the default deck at the moment of the click. Changing the def
 
 ### What a capture saves
 
-- The main key is the selected text exactly as selected. The Context is taken only when the deck has the Context module; the web page's URL and title are never taken ([Context](../specs/pages-and-editing.md#context)).
+- The main key is the selected text exactly as selected. The Context is taken only when the deck has the Context module; the web page's URL and title are never taken ([Context](../screens/page.md#context)).
 - The page gets a copy of the deck's module instances as the deck is configured when the store saves it, not as it was at the click: Context taken while the deck had the Context module is dropped if the module was removed in between.
 - Every capture creates a new page, even for the same text in the same deck. There is no warning, merge or deduplication.
 - The page is saved before generation begins, so it stays reachable when generation fails. Its existence does not mean generation succeeded.
 - One generation run starts, with one attempt per content module instance. A run keeps the instances it started with; later changes to the deck or the page don't change it. Deleting the page, its deck or a targeted component cancels the affected attempts and never brings them back.
 - Saving is automatic; the user never presses **Save** for a capture.
-
-### What the user sees
-
-- **The popup.** As soon as the capture is accepted, a popup at the top right of the page says **Capture received**. It confirms receipt only, not saving or generation. It closes after exactly three seconds, or on its close button, and closing it cancels nothing. Each capture gets its own popup. It uses the Sage styling with the destination deck's colour, and looks the same on a web page and on Vocabularium's own dashboard. On the dashboard it opens no window and changes no focus or route, other dashboards don't show it, account rerenders keep it, and a theme change restyles it without restarting its timer. If that dashboard closes or navigates away, the capture goes on and its feedback goes nowhere else. On Chrome's restricted pages a small feedback window takes its place. A capture that can't be accepted shows a failure message instead.
-- **The capture flight.** Where the selection can be read, it lifts off the page as a small label and flies along a short arc into the popup in about half a second. Labels over about 44 characters are cut with an ellipsis; the capture still takes the whole selection. The flight never delays the capture or moves the page, and is skipped under reduced motion, on restricted pages and when the capture fails.
-- **The badge.** The toolbar icon counts the captures accepted since the dashboard was last opened, up to `99+`. Opening the dashboard clears it.
-- **Where the page appears.** The extension never opens the new page or moves the user away from what they are reading. The page shows in its deck's list ([deck](../screens/deck.md)) while it generates and after it fails. The toolbar button opens the dashboard in a Chrome tab, where **Recent captures** lists the twenty newest captures and any receipts not saved yet; a receipt hands over to its saved page without the row disappearing for a moment.
 
 ### Saving every change
 

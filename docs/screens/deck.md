@@ -7,7 +7,7 @@ A deck's screen lists its pages. It is where the user finds a page again after c
 - From a deck's card on Home, or its row in the sidebar.
 - From a page or deck settings, through the deck's crumb in the trail.
 - Route: `app.html#deck/<deck id>`.
-- Trail: *Home › the deck*. A deck name longer than 32 characters is cut with an ellipsis and keeps its whole text as a tooltip ([navigation](../specs/decks-and-configuration.md#navigation)).
+- Trail: *Home › the deck*. A deck name longer than 32 characters is cut with an ellipsis and keeps its whole text as a tooltip ([navigation](../subsystems/interface.md#navigation)).
 
 The sidebar marks the deck as current, and keeps it marked while the account refreshes.
 
@@ -30,10 +30,10 @@ The main key is always the whole text when it is searched or read aloud; only it
 - **Sort pages.** Creation time newest first (the default), creation time oldest first, A to Z, and Z to A. Alphabetical order compares main keys after Unicode NFKC normalisation and lowercasing, in code-unit order. Pages with equal sort values are ordered by page ID, so the list is stable. The order is remembered per deck on this installation.
 - **Change the layout.** The layout is remembered per deck on this installation. It is not part of the deck's configuration.
 - **Load more pages.** The list loads 30 pages at a time.
-- **Add page manually** opens a new page draft in this deck, *Home › the deck › New page* ([creation](../specs/pages-and-editing.md#creation-and-optional-generation)).
-- **Configure deck** opens deck settings, *Home › the deck › Deck settings* ([configuration](../specs/decks-and-configuration.md#configuration)).
+- **Add page manually** opens a new page draft in this deck, *Home › the deck › New page* ([creation](page.md#creation-and-optional-generation)).
+- **Configure deck** opens deck settings, *Home › the deck › Deck settings* ([configuration](deck-settings.md#the-configuration)).
 - **Set as default** makes this the deck that capture saves into ([default deck](../subsystems/store.md#default-deck)).
-- **Delete deck** asks first, then returns to Home ([deleting a deck](../specs/decks-and-configuration.md#deleting-a-deck)).
+- **Delete deck** asks first, then returns to Home ([deleting a deck](home.md#deleting-a-deck)).
 
 After an action in the head, the focus returns to the symbol that took it.
 

@@ -1,19 +1,6 @@
 # Capture
 
-The user selects a word or a sentence on any web page and sends it to Vocabularium from the context menu. A new page is made in the deck the menu names, with the selection as its main key, the surrounding paragraph as its Context, and one card per content module of that deck, each generated on its own. Rules: [capture and save](../../../../docs/subsystems/capture-and-save.md).
-
-## Sub-features
-
-- A word or phrase becomes a word page; a sentence becomes a sentence page.
-- The Context: the paragraph around the selection, when the deck has a Context module.
-- The capture popup on the web page ("Capture received").
-- Recent captures on Home.
-- The same selection captured twice makes two pages; a resubmitted capture (same receipt) does not.
-- A capture made before sign-in, or while the API is down, says so and is kept to send later.
-
-## How to get to it (user POV)
-
-Select text on a web page, right-click, and choose **Create a page in "My Deck"** (the default deck's name). The page then appears under **Recent captures** on Home and in its deck.
+How to drive this feature with `npm run drive`. What the user sees is in the [capture](../../../../docs/screens/capture.md) screen reference; what a capture saves is in [capture and save](../../../../docs/subsystems/capture-and-save.md).
 
 ## Driving it with drive
 

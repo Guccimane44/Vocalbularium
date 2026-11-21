@@ -1,6 +1,6 @@
 # Interface
 
-The rules every screen shares: the Vocabularium Sage visual identity, the two themes, how lists show state, motion, dialogs and menus, and how text content is drawn. A screen's own layout is on its [screen page](../screens/README.md); the checks a reviewer applies to any interface change are in the [code standards](../code-standards.md#interface). Interface languages are in [localisation](localisation.md).
+The rules every screen shares: the sidebar and trail, the Vocabularium Sage visual identity, the two themes, how lists show state, motion, dialogs and menus, and how text content is drawn. A screen's own layout is on its [screen page](../screens/README.md); the checks a reviewer applies to any interface change are in the [code standards](../code-standards.md#interface). Interface languages are in [localisation](localisation.md).
 
 ## Responsibilities and sources of truth
 
@@ -13,10 +13,17 @@ The rules every screen shares: the Vocabularium Sage visual identity, the two th
 | Motion | The named moves, their durations and easings, and reduced motion. | [`motion.css`](../../extension/motion.css); `useArrivals` in [`page-list.tsx`](../../extension/page-list.tsx) |
 | List states | Saving, generating and failed in place of a page's meaning line. | `SavingStatus`, `GeneratingStatus`, `MeaningLine` in [`page-list.tsx`](../../extension/page-list.tsx) |
 | Dialogs and buttons | Confirmation dialogs, menus, the keycap buttons and their icons. | [`dialog.ts`](../../extension/dialog.ts), [`button-icon.tsx`](../../extension/button-icon.tsx), [`button-icons.ts`](../../extension/button-icons.ts) |
+| Navigation | The deck sidebar, its drag, and the narrow-window menu button; the trail. | `renderSidebar`, `sortableDecks` in [`shell.js`](../../extension/shell.js); [`crumbs.tsx`](../../extension/crumbs.tsx), [`crumb-text.ts`](../../extension/crumb-text.ts) |
 | Text content | Plain main keys, markdown in Context, Text and facets, tables, KaTeX and highlighted code. | [`rich-blocks.tsx`](../../extension/rich-blocks.tsx), [`card-content.tsx`](../../extension/card-content.tsx); `renderContent` in [`render.ts`](../../packages/domain/src/render.ts) |
 | Layout rules | Deterministic checks on every captured screen: overflow, target size, focus, mirroring, English strings and token colours. | [`tests/screens/rules/`](../../tests/screens/rules/index.mjs) |
 
 ## Behaviour
+
+### Navigation
+
+Every signed-in view shows a **deck sidebar** on the left: the wordmark, **Home** (the dashboard), the account's decks in the account's own order ([D27](../decisions/d27.md)), each with its deck colour, name, and page count, and **+ New deck**, and the account menu at its foot. The deck being shown is marked as current. A deck's row drags to a new place, as its card on the dashboard does, and either list follows the other. The decks scroll within the sidebar while the account menu stays at the foot. On a narrow window the sidebar becomes a menu button in the header.
+
+Every view below Home starts with its **trail** from Home: a deck's page shows *Home › the deck*; its settings, whether opened from Home or from the deck's page, *Home › the deck › Deck settings*; a page *Home › the deck › its main key*, and a page being made *Home › the deck › New page*; a new deck *Home › New deck*; diagnostic logs *Home › Diagnostic logs*. Every crumb but the last is a link; the last names the view. A deck's name or a main key is cut to 32 characters with an ellipsis and keeps its whole text as a tooltip. Leaving deck settings by a crumb discards the draft as Cancel does. In a right-to-left language the trail mirrors.
 
 ### Visual identity
 
@@ -28,7 +35,7 @@ These rules hold everywhere:
 - **Colour means module family.** Each module belongs to one family ([modules](module-catalog.md#module-families)), which sets the colour of its index tab and its icon. Apart from status, nothing else uses saturated colour. A family colour always appears with the module's name, or with a text alternative where only the small family mark is shown.
 - **Success is quiet.** Completed work shows no status. Only saving, generating, and failed states appear ([list state presentation](#list-state-presentation)).
 - **Type.** Main keys, titles, and generated reading text use Fraunces; the interface, translations, and captions use Instrument Sans. Both are bundled with the extension. Chinese and Japanese text uses the system's serif or sans-serif fonts; no font is loaded from the network. Reading text is never smaller than 16 px.
-- **Long text.** Every layout handles text of any length without overflow: main keys from one word to a passage ([pages and editing](../specs/pages-and-editing.md#required-main-key)), long module names, and right-to-left text, which sets its direction on the component content, never on the card.
+- **Long text.** Every layout handles text of any length without overflow: main keys from one word to a passage ([pages and editing](../screens/page.md#the-main-key)), long module names, and right-to-left text, which sets its direction on the component content, never on the card.
 
 ### Appearance
 
@@ -53,18 +60,17 @@ A row that holds a button is not itself one link: its text links to the page, an
 
 Motion is quick and physical: what the user touches responds with a small spring and settles. Nothing moves on its own except work in progress. Durations and easings come from the design system: colour changes 120 ms, revealing hover actions 150 ms, moving things 350 ms with a slight overshoot, larger objects 450 ms, and one cycle of the generating dots 1 s. Elements move by transform and opacity only, a few pixels at a time.
 
-The named moments are: the capture flight ([capture and generation](capture-and-save.md#what-the-user-sees)); a new page sliding into a list and its family marks appearing as components finish; status changes cross-fading; generated content rising into its card line by line while the card grows to fit; a module card's tab lifting on hover; a card's actions ejecting from its tab with a spring, one after the other; and a dragged module tilting slightly while the landing line and the other cards make room.
+The named moments are: the capture flight ([capture and generation](../screens/capture.md#the-menu-the-popup-the-flight-and-the-badge)); a new page sliding into a list and its family marks appearing as components finish; status changes cross-fading; generated content rising into its card line by line while the card grows to fit; a module card's tab lifting on hover; a card's actions ejecting from its tab with a spring, one after the other; and a dragged module tilting slightly while the landing line and the other cards make room.
 
 When the system asks for reduced motion, nothing moves: every state change still happens, without transitions, and the generating dots stand still beside their word.
 
 ### Dialogs, menus, and feedback
 
-Confirmation dialogs for retry, deletion, and unsaved changes stay open until the user chooses; they never close on a timer. Menus close after an action, on Escape, on navigation, and on a click outside, and return focus to their trigger. The capture feedback popup is defined in [capture and generation](capture-and-save.md#what-the-user-sees).
+Confirmation dialogs for retry, deletion, and unsaved changes stay open until the user chooses; they never close on a timer. Menus close after an action, on Escape, on navigation, and on a click outside, and return focus to their trigger. The capture feedback popup is defined in [capture and generation](../screens/capture.md#the-menu-the-popup-the-flight-and-the-badge).
 
 ### Text content
 
-The main key holds plain text, shown with line breaks preserved and never interpreted as HTML; editing it edits that text. The Context and the Text module hold the same markdown as a parent's core, edited with the same toolbar editor. A parent module's content is markdown per facet, drawn into fixed containers ([modules](module-catalog.md#render-contracts)): the core, then one container per facet with content. The editor shows formatting without markdown characters ([pages and editing](../specs/pages-and-editing.md#editing-generated-components)). A facet's content can also hold a table, display math in LaTeX rendered with KaTeX, or a fenced code block with syntax highlighting; tables keep their rows and columns on a narrow card by scrolling within their container, a formula that fails to render shows its LaTeX source, and a facet's own Edit edits them as their source text.
-
+The main key holds plain text, shown with line breaks preserved and never interpreted as HTML; editing it edits that text. The Context and the Text module hold the same markdown as a parent's core, edited with the same toolbar editor. A parent module's content is markdown per facet, drawn into fixed containers ([modules](module-catalog.md#render-contracts)): the core, then one container per facet with content. The editor shows formatting without markdown characters ([pages and editing](../screens/page.md#editing-generated-components)). A facet's content can also hold a table, display math in LaTeX rendered with KaTeX, or a fenced code block with syntax highlighting; tables keep their rows and columns on a narrow card by scrolling within their container, a formula that fails to render shows its LaTeX source, and a facet's own Edit edits them as their source text.
 
 ## Constraints and failure behaviour
 
@@ -82,4 +88,5 @@ The main key holds plain text, shown with line breaks preserved and never interp
 | [`tests/browser/motion.test.mjs`](../../tests/browser/motion.test.mjs) | The motion catalogue, frame by frame |
 | [`tests/browser/buttons.test.mjs`](../../tests/browser/buttons.test.mjs) | The keycap buttons |
 | [`tests/browser/accounts.test.mjs`](../../tests/browser/accounts.test.mjs) | A theme change reaching every open view, draft, dialog and the popup |
+| [`tests/browser/crumbs.test.mjs`](../../tests/browser/crumbs.test.mjs) | The trail on every screen below Home |
 | [`tests/render.test.mjs`](../../tests/render.test.mjs) | Text content rendering |
