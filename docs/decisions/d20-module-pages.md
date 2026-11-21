@@ -44,7 +44,7 @@ The family's name, mark and colour; one sentence on what its modules do; what ev
 - **An Expertise module** (board 4) has the header, three facts (*Reads: any language*, *Writes:* the interface language, *Best for:* the subject's terms; dropped in 0.13.1 by [D21](d21.md)), **See it on a card** with **Word** or **Sentence** on the subject's own term and no language dropdown, a card with the core and the same facet hint, and its facets. It has no How it works.
 - **Text** (board 5) has the header, three facts (*Written by: you*, *Generation: never touches it*, *How many: as many as you like*); no example, generated sample or facets. Since 0.13.1 it has the header only ([D21](d21.md)).
 
-The pages say **core** for what the facets are written from. The specifications' term *grammar word* ([modules](../specs/modules.md#catalog)) stays as an internal term and is not shown.
+The pages say **core** for what the facets are written from. The specifications' term *grammar word* ([modules](../subsystems/module-catalog.md#catalog)) stays as an internal term and is not shown.
 
 ### Samples
 

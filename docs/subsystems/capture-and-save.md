@@ -2,7 +2,7 @@
 
 Capture turns a selection on a web page into a saved page in the default deck, and starts its generation. Saving covers how the extension gets every account change to the store exactly once: a durable receipt in the browser, an operation ID the store remembers, and **Try saving again** when a save did not get through.
 
-This page ends where generation begins: what a generation attempt does and how it fails are in [capture and generation](../specs/capture-and-generation.md#generation-actions), and how **Retry** works is in [Retry](../specs/capture-and-generation.md#retry). Browser sessions, which every capture names, are in [accounts and synchronization](../specs/accounts-and-sync.md#browser-sessions). What a captured page holds is in [pages and editing](../specs/pages-and-editing.md#context).
+This page ends where generation begins: what a generation attempt does and how it fails are in [generation actions](generation.md#generation-actions), and how **Retry** works is in [Retry](generation.md#retry). Browser sessions, which every capture names, are in [browser sessions](sessions-and-recovery.md#browser-sessions). What a captured page holds is in [pages and editing](../specs/pages-and-editing.md#context).
 
 ## Responsibilities and sources of truth
 
@@ -35,7 +35,7 @@ This page ends where generation begins: what a generation attempt does and how i
 
 Capture is offered for selected text once the extension is installed, initialised and signed in. The menu item names the last synchronised default deck. It follows sign-in, changes of the default, renames, deleting or replacing the deck, and account refreshes, including background recovery while Chrome is running. Offline, it keeps the last synchronised name, and unsaved drafts never change it. Signing out, an expired sign-in or a missing default or session removes it. Renaming the menu item never replaces the browser session.
 
-The destination is the default deck at the moment of the click. Changing the default while generation runs does not redirect that capture. A new account starts with **My Deck** as its default ([initial default deck](../specs/capture-and-generation.md#initial-default-deck-example)); the dashboard can make another deck the default.
+The destination is the default deck at the moment of the click. Changing the default while generation runs does not redirect that capture. A new account starts with **My Deck** as its default ([initial default deck](store.md#initial-default-deck-example)); the dashboard can make another deck the default.
 
 ### What a capture saves
 
@@ -62,7 +62,7 @@ Every page, deck and component change the extension sends (a capture, a page edi
 
 - A save is never shown as saved before the store has it. A page whose cards failed is still saved; it is never labelled as generated.
 - Saves from several installations apply in the order they reach the server, not in the order editing began or by device clocks. When two installations save different text for the same component, the later arrival wins; there is no merge or conflict dialog. Saves to different components keep both, because a save sends only what changed. A save to a page, deck or component that an earlier operation deleted fails instead of recreating it.
-- A save never overrides a component that is generating: that save is rejected ([Retry](../specs/capture-and-generation.md#retry)). A late result from a cancelled or interrupted attempt never overwrites a later save or Retry.
+- A save never overrides a component that is generating: that save is rejected ([Retry](generation.md#retry)). A late result from a cancelled or interrupted attempt never overwrites a later save or Retry.
 - A save in flight shows no recovery notice and no **Try saving again** (a capture still saving shows "Saving to your account" in Recent captures). A save that failed keeps its change and offers **Try saving again**, which sends the same operation again. It never generates, never starts another capture, never discards an edit and asks for no confirmation. It is a different thing from **Retry**, which generates again.
 - A save interrupted by the worker stopping is offered for **Try saving again** when the worker starts again; it is never sent again silently. A successful save never briefly shows a recovery row in Recent captures or a page list.
 
@@ -75,7 +75,7 @@ Every page, deck and component change the extension sends (a capture, a page edi
 - **After a restart.** `reconcile` turns every `saving` capture receipt into `pending` with "The save was interrupted. Try saving again.", and drops publish receipts of an earlier session. `recover` in `saveOperations` turns `saving` save receipts into `pending`, without a message. The `recover` alarm polls every 30 seconds while signed in.
 - **Errors that end a save.** For a page, deck or component change, `confirmation_required`, `invalid`, `deleted`, `replacement` and `generation_busy` drop the receipt instead of keeping it for **Try saving again**, because sending the same operation again cannot succeed; a page's Generate also drops it on `generating`. Moving a deck and reports drop it on `invalid` and `deleted`, the language on `invalid`.
 - **Upgrades.** A build with a new local data version (`DATA_VERSION` in [`recovery.js`](../../extension/recovery.js)) drops cached account data and unsent capture and save receipts once, and keeps the sign-in, installation identity, theme and log settings.
-- **Logs.** `capture.invoked` is logged with the selection and Context as content ([observability](../architecture/observability.md#content-policy)); logging never fails a capture.
+- **Logs.** `capture.invoked` is logged with the selection and Context as content ([observability](observability-and-reports.md#content-policy)); logging never fails a capture.
 
 ## Verification
 

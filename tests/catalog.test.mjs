@@ -280,7 +280,7 @@ test('English tells no variety apart: no request, check or module text names Bri
   assert.deepEqual(MODULE_IDS.filter(id => id.startsWith('english')), ['english']);
 });
 
-// What a module folder holds (docs/specs/modules.md#what-a-module-folder-holds):
+// What a module folder holds (docs/subsystems/module-catalog.md#what-a-module-folder-holds):
 // the catalog folder is the only source for a module (D25), so a folder that
 // lacks one of its parts fails here rather than in a page or a request.
 test('every module folder holds the parts the modules spec requires', () => {

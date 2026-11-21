@@ -9,14 +9,14 @@ The product uses deck → page → component. A page holds a main key, optional 
 - [Vision](docs/product/vision.md): where the product is going
 - [Project workflow](docs/guides/project-workflow.md): how decisions become specifications and releases
 - [Install a candidate package](docs/guides/install.md): load and update the extension in Chrome
-- [Local PostgreSQL setup](docs/architecture/local-postgresql.md) and [diagnostic logs](docs/guides/diagnostics.md)
+- [Local PostgreSQL setup](docs/guides/local-postgresql.md) and [diagnostic logs](docs/guides/diagnostics.md)
 - [History](docs/history/): the MVP, the Render deployment, Windows delivery, and finished plans
 
 Each release states what its upgrade keeps and what it changes in its file under [docs/releases](docs/releases/README.md). Back up the database, install the updated backend and run its reviewed migrations, then update the extension; backend and extension upgrade together.
 
 ## Account and dashboard
 
-Install Node.js 24 and start PostgreSQL 18 on loopback using the [local setup instructions](docs/architecture/local-postgresql.md), then run from the repository root:
+Install Node.js 24 and start PostgreSQL 18 on loopback using the [local setup instructions](docs/guides/local-postgresql.md), then run from the repository root:
 
 ```sh
 npm ci
@@ -40,7 +40,7 @@ The earlier Render/SQLite deployment is retired; its [testing procedure](docs/hi
 
 The local API uses Fastify and validates its startup settings. `npm run db:setup` writes ignored `.env.postgres` with separate application, migration, and test connections. Set provider options, `HOST` (loopback only), `PORT`, `DATA_DIR` (generation journal), and `LOG_LEVEL` in `.env`. `GENERATION_MAX_ACTIVE` and `GENERATION_MAX_QUEUED` bound active and waiting component attempts (defaults: 4 and 16). Login sessions last seven days; active views refresh every five seconds. `GET /health/live` checks process liveness; `GET /health/ready` and the compatible `GET /health` check database readiness and API ownership. The [OpenAPI JSON reference](docs/api/openapi.json) is generated with `npm run openapi` without a database connection.
 
-Use `npm run db:generate` to prepare reviewed schema changes and `npm run db:migrate` with the API stopped to apply them. Normal API requests use the restricted application role. [Backup/restore commands and ordering/recovery details](docs/architecture/local-postgresql.md) explain the one-process limit and durable journal requirement.
+Use `npm run db:generate` to prepare reviewed schema changes and `npm run db:migrate` with the API stopped to apply them. Normal API requests use the restricted application role. [Backup/restore commands and ordering/recovery details](docs/guides/local-postgresql.md) explain the one-process limit and durable journal requirement.
 
 ## Deck settings
 
@@ -60,7 +60,7 @@ Each content module writes its card in one request ([D17](docs/decisions/d17.md)
 
 Without a key, the capture is still saved as a page; its content cards fail visibly and can be retried once the key is set. Automated checks inject controlled provider responses and do not spend API credits. `npm run gate -- <module>` runs a module's live golden set, its content checks and the judge against the module's `rubric.md`.
 
-Capture receipts remain local through confirmed handoff to server pages; pending receipts and saves remain available for explicit recovery. **Try saving again** resubmits the existing operation. Generation results are published only through their originating Chrome session; reopening Chrome fails its interrupted attempts. The [capture and generation specification](docs/specs/capture-and-generation.md) holds the authoritative rules.
+Capture receipts remain local through confirmed handoff to server pages; pending receipts and saves remain available for explicit recovery. **Try saving again** resubmits the existing operation. Generation results are published only through their originating Chrome session; reopening Chrome fails its interrupted attempts. The [generation reference](docs/subsystems/generation.md) holds the authoritative rules.
 
 ## Release status
 
@@ -79,4 +79,4 @@ npm run test:browser
 
 Browser checks use temporary isolated profiles and their own servers on ports 4317 and 4318; stop manual servers first. The tests create and remove uniquely named PostgreSQL databases using `.env.postgres` or `TEST_DATABASE_ADMIN_URL`; they reject the development database as a reset target. Linux machines may need `npx playwright install --with-deps chromium`.
 
-For updates, pull the working branch, run `npm ci`, apply reviewed migrations with the API stopped, restart the API, then reload the unpacked extension and open dashboard tabs. Extension reload ends that installation's generation session; review interrupted components using the [capture and generation rules](docs/specs/capture-and-generation.md).
+For updates, pull the working branch, run `npm ci`, apply reviewed migrations with the API stopped, restart the API, then reload the unpacked extension and open dashboard tabs. Extension reload ends that installation's generation session; review interrupted components using the [generation rules](docs/subsystems/generation.md).

@@ -1,6 +1,6 @@
 # Local PostgreSQL development
 
-The API now requires Node 24 and PostgreSQL 18. PostgreSQL is its only runtime database. The Drizzle schema is in `src/persistence/schema.ts`; reviewed SQL and migration metadata are in `migrations/`. [Current scope](../product/scope.md) and the specifications it links define product behavior.
+The API now requires Node 24 and PostgreSQL 18. PostgreSQL is its only runtime database. The Drizzle schema is in `src/persistence/schema.ts`; reviewed SQL and migration metadata are in `migrations/`. How the store orders, recovers and owns its database, and how the tests make disposable databases, is in the [store](../subsystems/store.md) reference.
 
 ## Start locally
 
@@ -42,33 +42,6 @@ The API binds to `127.0.0.1:4318` by default. Startup rejects non-loopback API b
 Use a **new Chrome profile** for this PostgreSQL environment and load the local build from `artifacts/extension`. Keep the existing hosted extension/profile and every SQLite file intact. Do not move old local capture receipts or pending saves into the new profile. There is no automatic SQLite import, old-account export, or in-place cache/session cutover in Stage 4. Existing vocabulary import remains an explicit future operation.
 
 The former Render/SQLite deployment is retired. Later hosting needs PostgreSQL, deliberate data cutover, authenticated deployment configuration, and durable journal storage.
-
-## Ordering, recovery, and single-process ownership
-
-The persistence boundary has an explicit owner account ID. Only account `1` is supported; this is not multi-tenant authorization. Complete validated commands are admitted to the per-account executor before asynchronous handler authentication. Initial authentication also runs in that executor. Each mutation commits with its operation receipt before acknowledgment. Replaying an operation returns the original result and sequence; a different payload with the same operation ID is rejected.
-
-All account mutations, authentication writes, generation transitions, and assembled reads use the same ordered executor. Transactions acquire the account row lock and use repeatable-read isolation, so a snapshot cannot combine different deck configuration or page revisions. Query, lock, connection, and idle-transaction waits are bounded. Provider calls run outside the executor and transactions. A save rejected while a component is generating is not queued for eventual application; the user must resubmit explicitly under the existing [recovery rules](../specs/capture-and-generation.md#saving-and-synchronization-failures).
-
-One dedicated pool connection holds an advisory ownership lock. A second API or a migration attempt against an active API fails. This enforces the one-process deployment limit; database locks alone are not used to claim cross-process arrival ordering. The pool holds at most five connections including ownership. If ownership is lost, readiness fails and account operations stop until the API restarts; liveness still responds.
-
-Completed provider results that cannot reach PostgreSQL are retained in memory and in `DATA_DIR/generation-outbox`. Keep that directory on durable storage alongside database backups. Startup stages retained journal results without calling the provider again; unfinished attempts without a staged/journaled result fail. Publication still requires the originating browser session. No automatic provider retry or failed-save resubmission is introduced. If both the journal and database writes fail before a process exit, unstored output cannot be recovered; a retry remains necessary. PostgreSQL does not make the filesystem journal durable by itself.
-
-## Verification and disposable databases
-
-```sh
-npm run check
-npm test
-npx playwright install chromium
-npm run test:browser
-npm run build
-python3 scripts/package.py
-```
-
-Tests load `.env.postgres` when present. CI supplies `TEST_DATABASE_ADMIN_URL` directly. It must address the loopback `postgres` maintenance database, never `vocabularium_dev`. Each fixture creates a random `vocabularium_test_<24 hex characters>` database, applies migrations, and drops only its own generated name during cleanup. Cleanup closes the fixture's connections, then uses plain `DROP DATABASE`, which stops autovacuum workers itself and waits briefly for closing sessions. It retries with `WITH (FORCE)` only when a session still holds the database (`55006`). FORCE is not the first attempt because it needs `pg_signal_backend` to terminate an autovacuum worker; without that role it fails with `permission denied to terminate process` (`42501`) whenever autovacuum is analyzing the freshly migrated database. The test role needs no `pg_signal_backend` membership, and CI runs without it. A process killed outside test cleanup can leave disposable databases for manual inspection; there is no broad prefix-based reset command. Tests do not require local Docker and inject controlled generation providers.
-
-Browser tests own ports 4317/4318 and temporary Chrome profiles. Check for listener conflicts before running them.
-
-GitHub Actions runs database/browser suites on Linux with PostgreSQL 18. Ubuntu and Windows retain syntax, strict type checks, extension-worker checks, building, and packaging. Native Windows PostgreSQL/browser coverage is not claimed.
 
 ## Backup and restore into a separate database
 
