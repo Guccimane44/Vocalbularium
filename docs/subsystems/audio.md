@@ -30,7 +30,7 @@ Audio is an output that is not markdown, and a **heavy facet** in the sense of [
 - **Where it comes from.** A speech provider, ElevenLabs, with one pinned speech model, Eleven v4 Turbo, beside the one pinned text model ([the text provider](generation.md#the-text-provider)), and a voice per language from `ELEVENLABS_VOICES`. Changing the model or a voice needs the owner's listening review.
 - **When.** A clip is generated once its text is saved, in parallel with the card's other clips; the card shows its text first, and each clip fills in when it is ready. A clip succeeds or fails on its own, with its own **Retry**, and the text around it stays ([audio jobs](#audio-jobs)).
 - **Not spoken.** A language `other`, a language the pinned model does not speak, and a line over 500 characters start no audio; the card says why and offers **Retry**. These are not failures.
-- **Format.** MP3 at 44.1 kHz and 128 kbit/s, played on the card ([pages and editing](../specs/pages-and-editing.md#spoken-parts)); there is no download or export.
+- **Format.** MP3 at 44.1 kHz and 128 kbit/s, played on the card ([spoken parts](../screens/page.md#spoken-parts)); there is no download or export.
 - **Editing.** Spoken lines are shown but not editable, because an edited line would no longer match its audio.
 
 ### Audio jobs

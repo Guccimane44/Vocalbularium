@@ -5,7 +5,7 @@ description: "Drive the real Vocabularium extension and API the way a user does,
 
 # Vocabularium Drive
 
-`npm run drive` starts the real extension in Chromium and the real API on a disposable database, signs in, and lets a journey drive it through the Chrome DevTools Protocol. The **Verify** skill chooses regression checks; this skill is for looking at a change working and keeping proof. The [feature map](features/README.md) says what a user can do and how to drive each feature.
+`npm run drive` starts the real extension in Chromium and the real API on a disposable database, signs in, and lets a journey drive it through the Chrome DevTools Protocol. The **Verify** skill chooses regression checks; this skill is for looking at a change working and keeping proof. The [feature map](features/README.md) says how to drive each feature; the [screen references](../../../docs/screens/README.md) say what a user sees and can do.
 
 Run every command from the repository root. It needs what the browser tests need: PostgreSQL 18 with `.env.postgres` (see the Verify skill's test environment), `npm ci`, and Playwright's Chromium.
 
@@ -90,4 +90,4 @@ It stops the launch process it recorded in `.data/drive/session.json`, which clo
 
 ## Keep the map true
 
-A change to what a user sees or does updates its feature file under [features/](features/README.md) in the same PR. When a journey breaks because the app changed on purpose, fix the journey and its feature file together. A journey that fails because the app is wrong is a bug report, not something to edit away.
+A change to what a user sees or does updates its [screen reference](../../../docs/screens/README.md) in the same PR; a change to how a feature is driven (routes, seeds, helpers) updates its file under [features/](features/README.md). When a journey breaks because the app changed on purpose, fix the journey and its feature file together. A journey that fails because the app is wrong is a bug report, not something to edit away.

@@ -81,7 +81,7 @@ Every change keeps these rules. The second column says what fails when a rule is
 
 ## Before you change code
 
-- Read the [subsystem reference](docs/subsystems/README.md) for the area you are changing, and the [screen reference](docs/screens/README.md) for each screen you change, then follow their source links. Screens without a page yet are still described in `docs/specs/`.
+- Read the [subsystem reference](docs/subsystems/README.md) for the area you are changing, and the [screen reference](docs/screens/README.md) for each screen you change, then follow their source links.
 - Read [LESSONS.md](LESSONS.md) and the [code standards](docs/code-standards.md).
 - A PR updates the pages it makes untrue, and describes its change per subsystem ([how](docs/subsystems/README.md#describe-a-prs-change)).
 
@@ -92,7 +92,7 @@ Use the project skills relevant to the task:
 - [Vocabularium Change](.agents/skills/vocabularium-change/SKILL.md): take a request in, scope the increment, and keep issues and PRs current.
 - [Vocabularium Verify](.agents/skills/vocabularium-verify/SKILL.md): choose regression checks, investigate failures, and record evidence.
 - [Vocabularium Deliver](.agents/skills/vocabularium-deliver/SKILL.md): package a candidate, validate its ZIP, and prepare the owner handoff.
-- [Vocabularium Drive](.agents/skills/vocabularium-drive/SKILL.md): run the real extension and API on a disposable account, drive a feature the way a user does, and keep screenshots and database rows as evidence; its [feature map](.agents/skills/vocabularium-drive/features/README.md) says what a user can do.
+- [Vocabularium Drive](.agents/skills/vocabularium-drive/SKILL.md): run the real extension and API on a disposable account, drive a feature the way a user does, and keep screenshots and database rows as evidence; its [feature map](.agents/skills/vocabularium-drive/features/README.md) says how to drive each feature, and the [screen references](docs/screens/README.md) what a user sees.
 - [Vocabularium Sessions](.agents/skills/vocabularium-sessions/SKILL.md): check the store's session and receipt promises on every order of operations, and extend the check when a change touches them.
 
 A task may need more than one skill; use Deliver when packaging

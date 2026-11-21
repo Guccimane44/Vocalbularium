@@ -16,7 +16,7 @@ A **deck** is the primary collection of pages, organized for a subject, language
 
 A **deck configuration** defines the deck's settings: its name, its ordered **module instances** (the compulsory main key module, an optional Context module, and content module instances), and its view. The module instances are the template for new pages: creating a page gives it a copy of them. After that the page owns its modules, and the deck configuration does not affect it. Changing the configuration changes only pages created afterwards.
 
-**Deck settings** is the interface for editing the configuration. The [deck configuration specification](../specs/decks-and-configuration.md) owns its rules and limits.
+**Deck settings** is the interface for editing the configuration. The [deck settings reference](../screens/deck-settings.md#the-configuration) owns its rules and limits.
 
 The **default deck** is the account's designated destination for capture. Default is a role held by a deck, not a separate kind of deck.
 
@@ -98,7 +98,7 @@ A **generation outcome** describes an attempt's state or result. Component conte
 
 A component can have no generation attempt. Manual creation and editing, including a main key edit, do not start generation. A page's overall generation outcome is derived from its component outcomes according to [Select and Add](../subsystems/generation.md). Existing content and outcomes continue to describe their prior attempts until the user explicitly requests generation again.
 
-The [page input and editing specification](../specs/pages-and-editing.md) owns main key creation and editing. [Select and Add](../subsystems/generation.md) owns attempt states, completion, publication, failure, interruption, and retry behavior. This model does not define their transitions or recovery workflow.
+The [page input and editing specification](../screens/page.md) owns main key creation and editing. [Select and Add](../subsystems/generation.md) owns attempt states, completion, publication, failure, interruption, and retry behavior. This model does not define their transitions or recovery workflow.
 
 ## Draft and saved content
 
