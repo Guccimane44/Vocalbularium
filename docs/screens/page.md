@@ -77,7 +77,7 @@ A spoken part shows a **player** for each clip: a play button in the family colo
 
 - **Pronunciation card.** Its top line names the key's language in the interface language and shows the key (*German · Gift*), with one player below it. Its actions are **Retry**, **About**, **Fold** and **Delete**; it has no **Edit** and no **Facet**.
 - **Pronunciation facet.** Each line stands beside its own player, in the facet's place on the card. The facet keeps its **About**, **Retry** and **Delete**, and has no **Edit**.
-- **While a clip generates,** its player shows a loading state of its own; the card's text is already shown. A failed clip shows what failed in place of its player, with its own **Retry** ([capture and generation](../subsystems/generation.md#retrying-one-clip)). A part that is not spoken (`other`, an unspoken language, a key over 500 characters) says so in place of the player.
+- **While a clip generates,** its player shows a loading state of its own; the card's text is already shown. A failed clip shows what failed in place of its player, with its own **Retry** ([retrying one clip](../subsystems/generation.md#retrying-one-clip)). A part that is not spoken (`other`, an unspoken language, a key over 500 characters) says so in place of the player.
 - **From the keyboard,** a player's button is focusable and plays or pauses with Enter or Space; it is named for assistive technology with the line it speaks.
 
 #### Facet tags

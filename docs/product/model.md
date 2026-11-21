@@ -98,7 +98,7 @@ A **generation outcome** describes an attempt's state or result. Component conte
 
 A component can have no generation attempt. Manual creation and editing, including a main key edit, do not start generation. A page's overall generation outcome is derived from its component outcomes according to [Select and Add](../subsystems/generation.md). Existing content and outcomes continue to describe their prior attempts until the user explicitly requests generation again.
 
-The [page input and editing specification](../screens/page.md) owns main key creation and editing. [Select and Add](../subsystems/generation.md) owns attempt states, completion, publication, failure, interruption, and retry behavior. This model does not define their transitions or recovery workflow.
+The [page reference](../screens/page.md) owns main key creation and editing. [Select and Add](../subsystems/generation.md) owns attempt states, completion, publication, failure, interruption, and retry behavior. This model does not define their transitions or recovery workflow.
 
 ## Draft and saved content
 

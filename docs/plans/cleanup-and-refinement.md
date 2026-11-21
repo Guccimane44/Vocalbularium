@@ -15,7 +15,7 @@ Measured on 31 October 2026 at 0.14.0:
 
 - **Code:** about 15,300 lines of product source in a sound layering (contracts and domain packages, server, store, persistence, extension; one catalog folder per module). Hotspots: `src/core/store.mjs` (900 lines, 63 KB), `extension/page-view.tsx` (50 KB), and `tests/app.browser.test.mjs` (296 KB, about 4,000 lines in one file). About 4,500 lines are untyped JavaScript.
 - **Documents:** about 97,000 words of current authority (product, specifications, architecture, plans, guides) beside 67,000 words of history. The traceability map alone is 16,000 words, with entries of up to 6,500 characters. `AGENTS.md` has 360 words and no architecture.
-- **History inside current documents:** `pages-and-editing.md` has about 70 phrasings such as *since 0.x*, *until*, *in place of*, *no longer* or *retired*, `scope.md` 30 and `modules.md` 22; retired features (ghost tags, the deck-settings preview) are still described. The scope ledger opens with release-by-release paragraphs before what is supported.
+- **History inside current documents:** `pages-and-editing.md` (now `docs/screens/page.md`) has about 70 phrasings such as *since 0.x*, *until*, *in place of*, *no longer* or *retired*, `scope.md` 30 and `modules.md` 22; retired features (ghost tags, the deck-settings preview) are still described. The scope ledger opens with release-by-release paragraphs before what is supported.
 - **Plans:** six finished plans (0.8.1 to 0.13.0) remain in `docs/plans/`.
 - **Links:** every relative link outside `docs/history/` resolves.
 
@@ -37,7 +37,7 @@ A working-process decision; it gets a Notion decision record (System area) for t
 
 ### B. Documents state current rules
 
-- **Specifications** describe today's behaviour only, `pages-and-editing.md` and `modules.md` first: phrasings of what changed when, and descriptions of retired features, are removed. Decision references stay where a reader needs the rationale, as one link, not as history.
+- **Specifications** describe today's behaviour only, `docs/screens/page.md` and `docs/subsystems/module-catalog.md` first: phrasings of what changed when, and descriptions of retired features, are removed. Decision references stay where a reader needs the rationale, as one link, not as history.
 - **Scope** opens with what is supported; the release-by-release paragraphs go, since the ledger rows and git already carry them. The upgrade notes stay.
 - **Traceability map:** one line per decision (ID, date, one-sentence summary, affected documents, Notion link, status); each entry's full text moves to its own file beside the map, as [D17](../decisions/d17-one-request.md) and [D20](../decisions/d20-module-pages.md) already have.
 - **Finished plans** move to `docs/history/plans/`; `docs/plans/` holds only live plans.
