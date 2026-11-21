@@ -1,6 +1,6 @@
 # Observability and reports
 
-Diagnostic logs let the owner, or an agent on the owner's computer, follow one action across the extension and the API: a capture from its receipt to its publication, a provider call with its prompt and reply, a failed save. **Report a problem** keeps the user's own account of what went wrong, with the page as it was and the recent logs, in the account's database; a daily task turns each new report into a GitHub issue that carries only the user's text. The dialog itself is part of the [account menu](../specs/decks-and-configuration.md#report-a-problem).
+Diagnostic logs let the owner, or an agent on the owner's computer, follow one action across the extension and the API: a capture from its receipt to its publication, a provider call with its prompt and reply, a failed save. **Report a problem** keeps the user's own account of what went wrong, with the page as it was and the recent logs, in the account's database; a daily task turns each new report into a GitHub issue that carries only the user's text. The dialog itself is part of the [account menu](../screens/account-menu.md#report-a-problem).
 
 ## Responsibilities and sources of truth
 
@@ -54,7 +54,7 @@ Settings show local/central usage and degraded status. Local-buffer-only cleanup
 
 ### Reports
 
-A report made with **Report a problem…** ([decks and configuration](../specs/decks-and-configuration.md#report-a-problem), [D336](../decisions/d336-report-a-problem.md)) is kept in the account's PostgreSQL database, in `reports`, not in the diagnostic segments: the user's text, the screen, the page and card it is about, the page as it was, the builds of the API and the extension, and, when the user leaves it ticked, the diagnostic events of the 15 minutes before saving, read from the segments then. The extension flushes its buffer first, so its own recent events are among them.
+A report made with **Report a problem…** ([report a problem](../screens/account-menu.md#report-a-problem), [D336](../decisions/d336-report-a-problem.md)) is kept in the account's PostgreSQL database, in `reports`, not in the diagnostic segments: the user's text, the screen, the page and card it is about, the page as it was, the builds of the API and the extension, and, when the user leaves it ticked, the diagnostic events of the 15 minutes before saving, read from the segments then. The extension flushes its buffer first, so its own recent events are among them.
 
 `npm run reports` reads them on the owner's computer. A daily Claude Code task opens one GitHub issue per new report with only the user's text, what it is about (the screen and the module type) and the builds, and records the issue's number on the report. The page as it was and the logs never leave the computer: the repository is public, and they hold captured text, prompts and generated output.
 

@@ -1,16 +1,16 @@
-# Pages and editing
+# Page
 
-## Purpose and status
+A page shows one main key and its cards, in the page's own order: the main key as the title, then Context, Text and one card per content module. On it the user reads, edits, retries, folds, deletes and reorders cards, adds modules from the module window, and deletes the page. The same screen makes a new page by hand. How generation and Retry work is in [generation](../subsystems/generation.md); how saves reach the store is in [capture and save](../subsystems/capture-and-save.md#saving-every-change).
 
-This specification defines the page list, page input, and page editing shared by captured and manually created pages. [Current scope](../product/scope.md) records which parts are implemented.
+## Getting there
 
-The [product model](../product/model.md) defines a page, its components, and the main key. [Content module contract](../subsystems/module-catalog.md#content-module-contract) owns how content modules consume the main key and Context. [Generation](../subsystems/generation.md) owns generation completion, replacement, failure, interruption, and recovery. [Decks and configuration](decks-and-configuration.md) owns the deck configuration that new pages start from. [Sessions and recovery](../subsystems/sessions-and-recovery.md) owns save ordering across installations.
+- A page's row or card in the [deck](deck.md)'s list, or an entry in **Recent captures** on [Home](home.md). A failed page's **Retry…** opens it.
+- Route: `app.html#page/<page id>`. Trail: *Home › the deck › its main key*, the key cut to 32 characters.
+- **Add page manually** in the deck's head makes a new page. Route: `app.html#new-page/<deck id>`. Trail: *Home › the deck › New page*.
 
-## Page list
+## What it shows and what the user can do
 
-Moved to the [deck screen](../screens/deck.md).
-
-## Required main key
+### The main key
 
 Every page has a main key component: the editable text used as its generation input. A captured selection supplies the initial value; manual creation requires the user to specify it. A saved page cannot omit the main key, and a main key that is empty or only whitespace is rejected with "Main key can not be empty.", shown inside the empty field in the failed colour with a failed-colour outline until the user types, and the field takes focus. A new manual draft may begin before the user has entered it.
 
@@ -29,21 +29,21 @@ The tier changes only the presentation: generation, search, duplicates, and edit
 
 Each Languages card says in its core's header whether it read the key as a word or as a sentence, beside the key's language and the key, and on a German word its grammatical role, in the module's language and not editable ([render contracts](../subsystems/module-catalog.md#render-contracts)); editing the main key and retrying reads it again.
 
-## Context
+### Context
 
-A page can have one **Context** component, owned by the Context module: the surrounding block captured with the selection (around 500 characters, capped). Capture takes it only when the destination deck's configuration has the [Context module](decks-and-configuration.md#configuration); Context taken while the deck had the module is dropped if the module was removed by the time the capture is saved. A manually created page in such a deck starts with an empty Context for the user to fill. A page without the Context module has no Context.
+A page can have one **Context** component, owned by the Context module: the surrounding block captured with the selection (around 500 characters, capped). Capture takes it only when the destination deck's configuration has the [Context module](deck-settings.md#the-configuration); Context taken while the deck had the module is dropped if the module was removed by the time the capture is saved. A manually created page in such a deck starts with an empty Context for the user to fill. A page without the Context module has no Context.
 
 The surrounding block is the nearest block-level element containing the selection, or the whole text field for a selection in one. When it exceeds the cap, capture keeps the text nearest the selection on both sides and marks each cut with an ellipsis. Whitespace is collapsed. A selection that fills its block, or one that cannot be read from the page (restricted pages, PDF viewers), yields no Context; capture itself proceeds unchanged. The web page URL, title, and other page details are not taken: they add nothing to generation.
 
 The Context is editable alongside the main key. Removing it from a page, or adding it to a page that has none, follows [shaping a page](#shaping-a-page). Editing the Context follows the main-key rule below: it changes the input for subsequent generation only. It never regenerates, replaces content, or changes prior outcomes by itself.
 
-## Components on a page
+### Cards
 
 A new page starts with one component per module instance copied from the deck configuration, in configured order: the main key, the Context when the deck has the Context module, then the content components ([configuration and pages](../subsystems/store.md#configuration-and-pages)). A content module instance that has not generated on this page yet is empty and shows only its index tab, with **Retry** among its actions.
 
 After creation the page owns its module instances. Deck configuration changes never add, remove, or reorder a page's components.
 
-### Components as cards
+#### Components as cards
 
 Each component below the main key is a card. Its index tab, on the card's top edge, shows a six-dot menu button, then the family icon and the module's label in the family colour. When a page holds more than one instance of the same module, their labels are numbered in the page's order, such as German 1 and German 2, in their tabs, actions and announcements; a module alone of its type keeps its plain label. The card repeats the colour as a thin top edge ([visual identity](../subsystems/interface.md#visual-identity)). Generated content is rendered as its module's render contract describes ([text content](../subsystems/interface.md#text-content)).
 
@@ -54,7 +54,7 @@ Each component below the main key is a card. Its index tab, on the card's top ed
 
 A parent module's card shows its core, then each of its facets that applies, in the card's own order: the order the parent type defines ([parent modules and facets](../subsystems/module-catalog.md#parent-modules-and-facets)) until the user rearranges it ([D26](../decisions/d26.md)). A facet's label is a small tab sitting on the facet's rule, a cousin of the module's index tab: in a pale tint of the family colour, rounded on top, with the facet's abbreviation in a small family-coloured mark before its name; the editor shows the same tab. A facet that does not apply to the input is not shown. A facet without content, such as one added since the parent last generated, shows only its heading, dimmed, with no text below it, in its place in the card's order, with its actions like any facet's; while editing, it has an empty editor.
 
-Each facet's label offers **About**, **Edit**, **Retry** and **Delete**, shown while the facet is pointed at or focused; they act on the facet's entry in the structured content. **About** opens the facet's [page](modules.md#explanations) and **Edit** edits that facet alone ([editing one facet](#editing-one-facet)). **Retry** and **Delete** work like a card's: at once when the facet is empty, otherwise after "Are you sure?" beside the label. "Are you sure?" stands on the left, its tail pointing at the final **Retry** or **Delete** and **Cancel**, which comes last, under the pointer that asked, and takes the focus; Cancel, the final button and the question spring out leftwards one after another, and the question gives one small wobble. Each question's bubble and tail share one unbroken outline.
+Each facet's label offers **About**, **Edit**, **Retry** and **Delete**, shown while the facet is pointed at or focused; they act on the facet's entry in the structured content. **About** opens the facet's [page](module-pages.md#the-pages) and **Edit** edits that facet alone ([editing one facet](#editing-one-facet)). **Retry** and **Delete** work like a card's: at once when the facet is empty, otherwise after "Are you sure?" beside the label. "Are you sure?" stands on the left, its tail pointing at the final **Retry** or **Delete** and **Cancel**, which comes last, under the pointer that asked, and takes the focus; Cancel, the final button and the question spring out leftwards one after another, and the question gives one small wobble. Each question's bubble and tail share one unbroken outline.
 
 A facet's **Retry** regenerates that facet alone and keeps the rest of the card ([retrying one facet](../subsystems/generation.md#retrying-one-facet)). While it runs, the card stays open and the spark runs round the facet's tab, as round a generating card's tab, and is the only sign of it. A facet without content stands in its place while it generates, as its tab alone, and stays only if it comes back with content: an empty result or a failure takes it away again. When it ends with content, a shining frame lights on the edges of the facet's rounded block, which reaches the card's sides and runs from the facet's tab down to the next facet's tab, or for the last facet to the card's bottom edge, just inside the card and the size of its focus outline, with a soft glow inside it, and fades; the halo round the facet's tab goes at once, so the frame is the only glow.
 
@@ -62,8 +62,8 @@ Each card has its own actions. They stay inside the card's tab until the user cl
 
 - **Edit** turns that card into a text field with **Save** and **Cancel** in the card ([editing](#editing-a-component)).
 - **Retry** on a content component generates it. A component with nothing in it, such as one that never generated, starts at once, because there is nothing to replace. A component with content asks first, the same way **Delete** does, in the card's family colour rather than the failed one: a final **Retry**, **Cancel** under the pointer, and "Are you sure?" ([Retry](../subsystems/generation.md#retry)).
-- **Facet**, on a parent's card, opens its [facet window](#facet-window), where its facets are chosen. It is disabled while the parent generates or while that card is edited.
-- **About** with the module's name, such as **About German**, opens the module's [page](modules.md#explanations) in the pages' sheet; Escape returns the focus to it.
+- **Facet**, on a parent's card, opens its [facet window](facet-window.md#the-window), where its facets are chosen. It is disabled while the parent generates or while that card is edited.
+- **About** with the module's name, such as **About German**, opens the module's [page](module-pages.md#the-pages) in the pages' sheet; Escape returns the focus to it.
 - **Fold** folds the card: its content slides shut and fades while the card narrows to a slim band under its tab, so the user can set components aside and see the rest of the page better. A folded card offers **Unfold**, which opens it the same way, and **Edit** unfolds it before editing. Folding changes only how the page is shown in this browser, where it is remembered per page; it never changes the page, and other browsers show the card unfolded. An empty component has nothing to fold and offers no **Fold**.
 - **Delete** removes the component ([shaping](#shaping-a-page)). An empty component is deleted at once. A component with content asks first, in the same row and without a dialog: the actions give way to a final **Delete**, filled with the failed colour, **Cancel**, and "Are you sure?" in a small speech bubble in the failed colours, which gives one small wobble as it appears. Cancel lands exactly where the clicked **Delete** was, so a second click under the pointer cancels; the final **Delete** stands to its left, and focus moves to **Cancel**. Cancel returns to the actions; Escape or a click elsewhere puts everything back. A deleted card pops where it stands, like a bubble: it swells a touch, then grows a little more as it vanishes, around its own middle, in about a quarter of a second; the cards below then slide up. Under reduced motion it simply goes.
 
@@ -71,7 +71,7 @@ The six dots before the family icon open the card's **menu**. Its entries, **Dup
 
 The main key, shown as the page title, has only **Edit**, always shown beside it like **Delete page**. There are no page-level edit, generate, or retry controls; **Delete page** sits in the page header.
 
-### Spoken parts
+#### Spoken parts
 
 A spoken part shows a **player** for each clip: a play button in the family colour, the clip's duration and a progress line; playing one clip stops any other on the page ([spoken parts](../subsystems/audio.md#spoken-parts)).
 
@@ -80,55 +80,43 @@ A spoken part shows a **player** for each clip: a play button in the family colo
 - **While a clip generates,** its player shows a loading state of its own; the card's text is already shown. A failed clip shows what failed in place of its player, with its own **Retry** ([capture and generation](../subsystems/generation.md#retrying-one-clip)). A part that is not spoken (`other`, an unspoken language, a key over 500 characters) says so in place of the player.
 - **From the keyboard,** a player's button is focusable and plays or pauses with Enter or Space; it is named for assistive technology with the line it speaks.
 
-### Facet tags
+#### Facet tags
 
 A parent's card wears one **tag** per facet it has, shaped like a bookmark in the parent's family colour and marked with the facet's abbreviation ([catalog](../subsystems/module-catalog.md#catalog)). The tags follow the order the parent type defines, whatever order the facets were added in. Where they sit follows the card:
 
 - A card with content wears its tags stuck out of its left edge, one under another below the tab; the card is at least as tall as its tags.
-- A folded card, and every module in [deck settings](decks-and-configuration.md#configuration), wears them in a row at the right of its bottom edge, hanging below it.
+- A folded card, and every module in [deck settings](deck-settings.md#the-configuration), wears them in a row at the right of its bottom edge, hanging below it.
 - A card that is only its tab, such as one that is generating, hangs them below the tab, each on a short chain from a rail under the tab; with more tags than the tab is wide, the rail reaches past the tab's end. When the card is pointed at, the rail, chains and tags lift with the tab, and while the card generates they stay beneath the tab so the spark running round it is never covered.
 
 The tags move with the card:
 
-1. **A facet is added.** Its tag flies from the facet's row in the [facet window](#facet-window) to its place: the left edge of a card with content, the bottom right of a folded card, or below the tab.
+1. **A facet is added.** Its tag flies from the facet's row in the [facet window](facet-window.md#the-window) to its place: the left edge of a card with content, the bottom right of a folded card, or below the tab.
 2. **The card folds.** While the card holds still, the tags move down the left edge, round the corner and along the bottom edge to the bottom right; then the card folds and they ride its bottom edge up.
 3. **The card unfolds.** The card opens with the tags riding its bottom edge down; then they move back the same way, along the bottom edge, round the corner and up the left side.
 4. **A facet is deleted.** Its tag pops where it stands and disappears, like a deleted card.
 
 A facet with nothing in it, such as one waiting for **Retry**, one that does not apply to the input, or every facet of a card that is only its tab, wears a blander tag: its family colour, much less saturated, with its mark still legible; its accessible name ends in "empty". Deck settings hold no content, so their tags are not marked.
 
-A tag only shows its facet: it is no button, and clicking it changes nothing, wherever it sits. A facet's actions stand beside its label, and its parent's [facet window](#facet-window) adds and removes facets. When its facet's own Retry failed, a tag wears a small dot in the failed colour, and its accessible name says so. A tag shows no text beyond its abbreviation; its facet's name is in its accessible name. Under reduced motion the tags stand in their places without moving, and a deleted tag simply goes.
+A tag only shows its facet: it is no button, and clicking it changes nothing, wherever it sits. A facet's actions stand beside its label, and its parent's [facet window](facet-window.md#the-window) adds and removes facets. When its facet's own Retry failed, a tag wears a small dot in the failed colour, and its accessible name says so. A tag shows no text beyond its abbreviation; its facet's name is in its accessible name. Under reduced motion the tags stand in their places without moving, and a deleted tag simply goes.
 
-### Facet window
-
-A parent's facets are chosen in its **facet window**, opened by **Facet** among the card's actions. It is a popover attached below the card's tab, a card on the surface colour: a heading naming the parent, such as "Facets of German 2", with a close (**×**) at its end, then two groups, each in the module's order, the core excepted. **On this card** lists the facets the parent has, each row in a pale tint of the family colour with its filled abbreviation mark, its name in bold, its **›** and its **Remove** (**×**). **Add** lists the others, each with its outlined mark, its name, and an **Add** (**+**) in the family colour; its **›** shows while the row is pointed at or holds the focus. A group with no facet is left out. A parent holds at most 12 facets: once it holds 12, the **Add** group's **+** buttons are unavailable and the line "A card holds at most 12 facets. Remove one to add another." stands beneath the group's name; removing a facet makes them available again. On a page the line "Added facets fill in on the next Retry." closes the window. Facets that do not apply to the page's main key, such as Article on a sentence, are listed too; their page says what they apply to.
-
-- **Adding** a facet with its **+** adds it at once: its tag flies from its row to the card, its row moves to **On this card**, and it waits for **Retry** like any added facet ([shaping](#shaping-a-page)).
-- **Removing** a facet without content with its **×**, such as one waiting for **Retry**, removes it at once and its row moves to **Add**. Removing one with content asks first, on a line beneath its row, as a facet's **Delete** does beside its label: "Are you sure?", the final **Delete** and **Cancel** under the pointer. A removed facet's tag pops.
-- **Facet page.** Each row's **›** opens the facet's [page](modules.md#explanations) in the pages' sheet; the window stays open beneath it.
-- **Closing.** The window stays open for more choices until Escape, its close, a click outside, or another of the card's actions; Escape and the close return the focus to the card's tab.
-- **From the keyboard.** Opening the window moves the focus to its first row's **×** or **+**. They are buttons named "Remove Article" and "Add Synonyms", in lists named by their group, in a group named by the heading, such as "Facets of German 2"; each **›** is a button such as "About Article". After a facet moves, the focus follows it to its new button.
-
-A parent that is generating takes no facet and loses none until its attempt finishes, so its **Facet** is disabled meanwhile. Deck settings use the same window ([decks and configuration](decks-and-configuration.md#configuration)). The module window lists no facets. Under reduced motion the window and the pages' sheet appear without sliding, and tags without flying.
-
-### Shaping a page
+#### Shaping a page
 
 The user shapes a page directly, outside editing. Each shaping step is saved immediately as one operation, with no separate **Save**, and reaches other installations in the order it arrives, like every save ([synchronization](../subsystems/sessions-and-recovery.md#synchronization)). Shaping is unavailable while a component is being edited.
 
 - **Delete a component.** Any component except the main key can be deleted: a content component, the Context, or a Text component. Deleting a component with content asks first, beside its tab, then removes it immediately; an empty component is deleted at once. Deleting a module's component also removes the module instance from the page, so generation never brings it back. A component that is generating cannot be deleted until its attempt finishes.
 - **Rearrange components.** The user can drag any component except the main key, including the Context and Text components, into a new order below the main key by dragging its tab's family icon and label: with the pointer, where a click that does not move opens the actions instead, or from the keyboard with Space to pick it up, the arrow keys to move it, and Space to drop it. The new order shows at once, and the page reverts to the saved order only if saving fails. The order is saved with the page and used by the default view.
-- **Add a module.** The user drags the Context module, the Text module, or a content module from the [module window](shared-ui.md#module-window) onto the page; while it is over the page, it stands where it will land as the card it will become, and the cards slide apart to make room. From the keyboard, the user picks the module up with Space, moves through the landing places with the arrow keys, and drops it with Space. This adds a module instance to this page only; the deck configuration is unchanged. A page holds at most 12 module instances, counting every module, and at most one Context. An added content module starts empty, showing only its index tab, and generates only when the user presses its **Retry**; an added Context or Text starts empty for the user to fill. Adding the same module again restores what the user deleted earlier, as new, ungenerated content. A parent is added with its core only; its facets are added separately ([choosing and changing facets](../subsystems/module-catalog.md#choosing-and-changing-facets)).
+- **Add a module.** The user drags the Context module, the Text module, or a content module from the [module window](module-window.md#the-window) onto the page; while it is over the page, it stands where it will land as the card it will become, and the cards slide apart to make room. From the keyboard, the user picks the module up with Space, moves through the landing places with the arrow keys, and drops it with Space. This adds a module instance to this page only; the deck configuration is unchanged. A page holds at most 12 module instances, counting every module, and at most one Context. An added content module starts empty, showing only its index tab, and generates only when the user presses its **Retry**; an added Context or Text starts empty for the user to fill. Adding the same module again restores what the user deleted earlier, as new, ungenerated content. A parent is added with its core only; its facets are added separately ([choosing and changing facets](../subsystems/module-catalog.md#choosing-and-changing-facets)).
 - **Rearrange facets** ([D26](../decisions/d26.md)). Hovering or focusing a facet shows its grip (six dots) in the card's margin, before its tab; dragging the grip moves the facet up or down among the card's facets, and the others make room. From the keyboard, Space picks it up, the arrow keys move it, Space drops it and Escape puts it back, announced as module moves are. The order is saved for that card only, and the card's tags follow it. A deck's modules, and every new page, keep the parent's order. No grip shows while a part of the card is being edited.
-- **Add a facet.** The user adds the facet with its **+** in its parent's [facet window](#facet-window). The facet joins the card last ([D26](../decisions/d26.md)) and waits, as its dimmed heading and a blander tag, until the user's next **Retry** regenerates the whole parent, or the facet's own **Retry** generates it alone. A parent holds each facet at most once.
+- **Add a facet.** The user adds the facet with its **+** in its parent's [facet window](facet-window.md#the-window). The facet joins the card last ([D26](../decisions/d26.md)) and waits, as its dimmed heading and a blander tag, until the user's next **Retry** regenerates the whole parent, or the facet's own **Retry** generates it alone. A parent holds each facet at most once.
 - **Delete a facet.** Deleting a facet removes it from its parent's content and from the instance, so a later **Retry** does not bring it back; adding it again in the facet window restores it. A parent that is generating cannot lose or gain a facet until its attempt finishes.
 
 When another installation deletes a component the user is editing, the user's save fails as deleted and keeps their draft, as for any deleted component ([editing](#editing-a-component)).
 
-### Text components
+#### Text components
 
 A **Text component** holds the user's own writing and belongs to a Text module instance. The user adds one by dragging the Text module onto the page, and a deck that includes the Text module gives every new page an empty one. A Context or Text card's **Edit**, in its tab, opens its text in the same toolbar editor as a parent's. Their text is markdown, so it is formatted as the editor shows it; the main key in a captured Context is a stored highlight. Generation and every retry leave Text components unchanged, and they are never a generation input. Image components follow the rich-media scope (Q59) and are not part of this specification.
 
-### Editing generated components
+#### Editing generated components
 
 Generated components are editable. An edit to a generated component lasts until the next retry that targets that component. That retry asks for confirmation first because it replaces the edit ([Retry](../subsystems/generation.md#retry)).
 
@@ -148,15 +136,15 @@ The editor has no structure of its own: no fields, item numbers or separators be
 - **While editing,** the card's tags stay and show, as the user types, which facets have text; the facets' actions wait until **Save** or **Cancel**. Opening the editor moves the focus nowhere.
 - **A parent with no content yet** can be edited too: its editor opens with a top line of the page's main key and the language blank, read as a word, and an empty core and facets to fill; **Save** stores what was written with that top line. A later **Retry** fills the language.
 
-### Editing one facet
+#### Editing one facet
 
 A facet's **Edit** turns that facet alone into an editor in place, under its tab, with the toolbar and its own **Save** and **Cancel** below it; the core and the other facets stay as they are, read-only. A facet without content has its own **Edit** too, which opens its empty editor to fill. It counts as editing the card: the card's **Edit**, the other facets' actions and the other cards wait ([editing a component](#editing-a-component)). **Save** writes only that facet's text into the component, over its content as the server has it, so an edit of the rest from another installation meanwhile stays; emptying it removes the facet's content, as in the card's editor. Drafts, the leave warning, save recovery and a save during generation work as for a card.
 
 The core has its own **Edit** too, at the end of its top line, shown while the core is pointed at or focused. It works as a facet's: the core alone becomes an editor in place under its top line, which stays locked, with the toolbar and its own **Save** and **Cancel**, and Save writes only the core's text over the content as the server has it. A spoken core (Pronunciation) has no Edit. Beside the Edit, the core has its own **Retry**, which writes the core again for the reading the card has ([retrying the core](../subsystems/generation.md#retrying-the-core)).
 
-A facet's **About**, first among its actions, opens the facet's [page](modules.md#explanations) in the pages' sheet, as the facet window's **›** does; Escape returns the focus to it.
+A facet's **About**, first among its actions, opens the facet's [page](module-pages.md#the-pages) in the pages' sheet, as the facet window's **›** does; Escape returns the focus to it.
 
-## Editing a component
+### Editing a component
 
 Editing is one card at a time. **Edit** on a card makes that component editable; while it is open, the other cards' **Edit**, **Retry**, and **Delete** wait, and shaping is unavailable, without a separate notice: the open card's **Save** and **Cancel** end editing. Adding, deleting, and moving components is [shaping](#shaping-a-page).
 
@@ -171,7 +159,7 @@ A save that changes a component while it is generating is rejected: the componen
 
 Saving a main-key edit updates the page's entry and its position in alphabetical order. Editing never changes the page's creation time. If the page or its deck is deleted elsewhere while the user has drafts, the editor shows "Page unavailable" with the unsaved text so the user can copy it, and **Discard draft**.
 
-## Creation and optional generation
+### Creation and optional generation
 
 Capture and manual entry are two ways to supply the same page input. They share generation capabilities rather than defining different kinds of page.
 
@@ -180,7 +168,7 @@ Capture and manual entry are two ways to supply the same page input. They share 
 
 After creation, captured and manually created pages behave the same.
 
-## Editing and generation again
+### Editing and generation again
 
 Editing the main key changes the input for subsequent generation. It does not run modules, remove existing generated or manually written content, or change prior generation outcomes. Editing another component does not redefine the main key.
 
@@ -188,7 +176,30 @@ The user must explicitly request generation again to produce content from the up
 
 Generation uses the page's own content module instances. Finish editing with **Save** or **Cancel** before starting a generation or a retry.
 
-## Acceptance scenarios
+## States
+
+- **Generating.** A card being generated is locked; the spark runs round its tab, and finished content rises into the card ([motion](../subsystems/interface.md#motion)).
+- **Failed.** A failed card is empty, says so, and offers its **Retry** ([component completion and failure](../subsystems/generation.md#component-completion-and-failure)).
+- **Waiting for Retry.** A page made by hand has empty cards until the user retries each of them; saving it generates nothing.
+- **A failed save** keeps the draft and offers **Try saving again**.
+
+## Source
+
+| Part | Source |
+| --- | --- |
+| The screen, the main key title, the page menu and the new-page editor | `PageView`, `MainKeyTitle`, `PageMenu`, `NewPageEditor` in [`page-view.tsx`](../../extension/page-view.tsx); [`page-view.css`](../../extension/page-view.css) |
+| Opening, drafts and leaving | `pageViews` in [`pages.js`](../../extension/pages.js) |
+| A card's content, facet actions and confirmations | `Content`, `Reveal`, `ConfirmAction`, `FacetActions` in [`card-content.tsx`](../../extension/card-content.tsx); [`rich-blocks.tsx`](../../extension/rich-blocks.tsx) |
+| Editing in place | `LiveEditor`, `CoreEditor`, `FacetEditor`, `NoteEditor` in [`live-editor.tsx`](../../extension/live-editor.tsx) |
+| Shaping: dragging, adding, deleting cards | `ShapingArea` in [`shaping.tsx`](../../extension/shaping.tsx) |
+| Facet tags | `FacetTags`, `FacetTab` in [`facet-tags.tsx`](../../extension/facet-tags.tsx) |
+| Spoken parts | [`audio.tsx`](../../extension/audio.tsx) ([audio](../subsystems/audio.md)) |
+| The main key's tier | [`main-key.ts`](../../extension/main-key.ts) |
+| Routes | `GET /api/pages/:pageId`, `/api/page/create`, `/api/page/save`, `/api/page/delete`, `/api/page/generate`, `/api/page/modules/add`, `/api/page/components/delete` and `/move`, `/api/page/facets/add`, `/delete` and `/move` in [`routes.mjs`](../../src/server/routes.mjs) |
+
+## Verification
+
+### Acceptance scenarios
 
 1. Capturing `john cena` initializes the page's main key to `john cena`, shows it first, and generates one component per content module instance copied from the deck.
 2. Manually creating a page with `john cena` supplies the same generation input. Saving creates no generation attempt and keeps what the user wrote.
@@ -225,3 +236,14 @@ Generation uses the page's own content module instances. Finish editing with **S
 33. A Pronunciation card on a page whose key is `Gift`, with Context from a German text, reads *German · Gift* (in an English interface) and plays the key in German; its text shows before its audio, which fills in when it is ready.
 34. A German parent with Pronunciation on the English key `bank` shows a line per meaning, such as *die Bank* and *das Ufer*, each with its own player; failing one clip shows its failure and **Retry** in its place while the other line still plays, and its **Retry** speaks that line again without asking.
 35. A Pronunciation card whose key's language the speech model does not speak says so in place of the player, with **Retry**, and is not shown as failed; deleting a card with audio removes its audio.
+
+| Check | What it covers |
+| --- | --- |
+| [`tests/browser/page-view.test.mjs`](../../tests/browser/page-view.test.mjs) | Main key tiers, **Show all**, rendered and plain content, quiet card status, the reveal |
+| [`tests/browser/editing.test.mjs`](../../tests/browser/editing.test.mjs) | Per-card actions, drafts, leaving, sorting, failed saves, deleting; Retry's question and the two-installation lock |
+| [`tests/browser/parent-editor.test.mjs`](../../tests/browser/parent-editor.test.mjs), [`facet-editing.test.mjs`](../../tests/browser/facet-editing.test.mjs), [`core-edit.test.mjs`](../../tests/browser/core-edit.test.mjs) | Editing a card, a facet and the core in place, and Context and Text |
+| [`tests/browser/cards.test.mjs`](../../tests/browser/cards.test.mjs) | Expertise, Creativity and German cards, tables, formulas and code |
+| [`tests/browser/facets.test.mjs`](../../tests/browser/facets.test.mjs), [`facet-tags.test.mjs`](../../tests/browser/facet-tags.test.mjs), [`facet-order.test.mjs`](../../tests/browser/facet-order.test.mjs), [`facet-retry.test.mjs`](../../tests/browser/facet-retry.test.mjs) | Facets on a card: adding, tags, order and their Retry |
+| [`tests/browser/audio.test.mjs`](../../tests/browser/audio.test.mjs) | Spoken parts on a card |
+| [`tests/pages.test.mjs`](../../tests/pages.test.mjs), [`tests/facets.test.mjs`](../../tests/facets.test.mjs) | The store's side: manual pages, edits, shaping, the header never edited |
+| `npm run screens -- --only '^(page-\|facet-grip)'` | `page-<group>-<state>` for every module group complete, loading and failed, `page-new`, `page-menu` and `facet-grip` |

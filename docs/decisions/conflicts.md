@@ -18,11 +18,11 @@ Contradictions between entries, or between an entry and the specs. Numbering con
 **C31. No partial success within a component versus audio that fills in later — RESOLVED (D24: per-clip success for audio only).** [Capture and generation](../subsystems/generation.md) discards a failed attempt's partial output, and D08 allows no partial success within a component. *Resolution* (owner, 30 October 2026): as D17's heavy-facets direction foresaw, for audio only: the text attempt keeps its all-or-nothing rule; each clip succeeds or fails on its own, with its own Retry, and the card's text stays.
 
 <a id="c29"></a>
-**C29. Explanations in a dialog and beneath a facet-window row versus pages in one sheet — RESOLVED (D20: pages in one sheet).** [Modules](../specs/modules.md#explanations), [shared UI](../specs/shared-ui.md#module-window) and [pages and editing](../specs/pages-and-editing.md#facet-window) open a module's explanation in a dialog from a round ⓘ (D13, D18), expand a facet's beneath its row in the facet window (D13) and open it in a dialog from a facet's About on a card (D18). D20 replaces all three with pages in one sheet.
+**C29. Explanations in a dialog and beneath a facet-window row versus pages in one sheet — RESOLVED (D20: pages in one sheet).** [Modules](../screens/module-pages.md#the-pages), [shared UI](../screens/module-window.md#the-window) and [pages and editing](../screens/facet-window.md#the-window) open a module's explanation in a dialog from a round ⓘ (D13, D18), expand a facet's beneath its row in the facet window (D13) and open it in a dialog from a facet's About on a card (D18). D20 replaces all three with pages in one sheet.
 *Resolution* (owner, 29 October 2026): D20 supersedes those parts of D13 and D18; the facet window keeps its ticks and gains a › per row, the module window's ⓘ becomes **About German**, and acceptance criteria 31–32 of pages and editing are rewritten for the sheet.
 
 <a id="c30"></a>
-**C30. The deck-settings preview's sample versus the retired 幸福 sample — RESOLVED (D20: the new samples in the interface language).** A module's `sample.json` is both its explanation's sample and the sample the deck-settings preview shows ([modules](../specs/modules.md#explanations), [generation](../subsystems/module-catalog.md#catalog-layout)). D20 retires the 幸福 sample and adds a sample set per interface language.
+**C30. The deck-settings preview's sample versus the retired 幸福 sample — RESOLVED (D20: the new samples in the interface language).** A module's `sample.json` is both its explanation's sample and the sample the deck-settings preview shows ([modules](../screens/module-pages.md#the-pages), [generation](../subsystems/module-catalog.md#catalog-layout)). D20 retires the 幸福 sample and adds a sample set per interface language.
 *Resolution* (owner, 29 October 2026): the deck-settings preview shows the new set's word sample in the interface language (*language* in English, 语言 in Chinese), with the facets the deck has; `sample.json` is replaced by the per-language samples.
 
 <a id="c28"></a>
@@ -38,7 +38,7 @@ Contradictions between entries, or between an entry and the specs. Numbering con
 *Resolution:* D17 supersedes D08's interpretation. It stays not correctable, as in D08.
 
 <a id="c25"></a>
-**C25. A module already on the page marked in the window versus no mark — RESOLVED (D13: no mark).** The [module window](../specs/shared-ui.md#module-window) says when a module is already on the page (**Already here**), since the families of modules present also start open. D13 removes the mark.
+**C25. A module already on the page marked in the window versus no mark — RESOLVED (D13: no mark).** The [module window](../screens/module-window.md#the-window) says when a module is already on the page (**Already here**), since the families of modules present also start open. D13 removes the mark.
 *Resolution:* the mark goes; the families of modules on the page still start open, and the 12-module and single-Context limits still disable a module with their reason.
 
 <a id="c24"></a>

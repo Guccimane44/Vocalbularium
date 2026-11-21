@@ -1,17 +1,6 @@
 # Retry
 
-A card, or one of its facets, is generated again from the page's current main key and Context. A failed card shows **Retry <Module>** beside its tab; a completed card's Retry asks first, because it replaces the content, edits included. Rules: [generation](../../../../docs/subsystems/generation.md) and decisions [D19](../../../../docs/decisions/d19.md), [D22](../../../../docs/decisions/d22.md) and [D28](../../../../docs/decisions/d28.md).
-
-## Sub-features
-
-- Retry a failed card.
-- Retry a completed card (asks: **Yes, retry <Module>**).
-- Retry one facet, from the facet's own menu.
-- Retry from the page list (**Retry…**).
-
-## How to get to it (user POV)
-
-On a page, a failed card shows **Generation failed** and a **Retry <Module>** button. For a completed card, click its tab, then **Retry**.
+How to drive this feature with `npm run drive`. How Retry behaves is in [generation](../../../../docs/subsystems/generation.md#retry); where it is offered is in the [page](../../../../docs/screens/page.md) screen reference.
 
 ## Driving it with drive
 

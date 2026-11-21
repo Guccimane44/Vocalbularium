@@ -15,8 +15,6 @@ Each page describes one part of Vocabularium as it works today: what it is respo
 | Observability and reports | Diagnostic logs on both sides, and **Report a problem** with its GitHub issues | [Observability and reports](observability-and-reports.md) |
 | Packaging and releases | The build, the package, release notes, build identity and CI | [Packaging and releases](packaging-and-releases.md) |
 
-What is left in [`docs/specs/`](../specs/) describes screens, and moves to the [screen references](../screens/README.md).
-
 How a screen looks and what the user can do on it is in the [screen references](../screens/README.md). A subsystem page explains how the mechanism works and links to the screens that show it. A rule that every change must keep is in the [code standards](../code-standards.md).
 
 ## What a page contains
