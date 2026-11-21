@@ -2,7 +2,7 @@
 
 Capture turns a selection on a web page into a saved page in the default deck, and starts its generation. Saving covers how the extension gets every account change to the store exactly once: a durable receipt in the browser, an operation ID the store remembers, and **Try saving again** when a save did not get through.
 
-This page ends where generation begins: what a generation attempt does and how it fails are in [capture and generation](generation.md#generation-actions), and how **Retry** works is in [Retry](generation.md#retry). Browser sessions, which every capture names, are in [accounts and synchronization](sessions-and-recovery.md#browser-sessions). What a captured page holds is in [pages and editing](../specs/pages-and-editing.md#context).
+This page ends where generation begins: what a generation attempt does and how it fails are in [generation actions](generation.md#generation-actions), and how **Retry** works is in [Retry](generation.md#retry). Browser sessions, which every capture names, are in [browser sessions](sessions-and-recovery.md#browser-sessions). What a captured page holds is in [pages and editing](../specs/pages-and-editing.md#context).
 
 ## Responsibilities and sources of truth
 

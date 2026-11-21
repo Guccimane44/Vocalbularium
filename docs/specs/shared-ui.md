@@ -18,7 +18,7 @@ Dragging a module from the window:
 - into deck settings adds an instance to the deck configuration, the template for new pages ([decks and configuration](decks-and-configuration.md#module-window));
 - onto a page adds an instance to that page only ([pages and editing](pages-and-editing.md#shaping-a-page)).
 
-A parent is added with its core only ([modules](../subsystems/module-catalog.md#choosing-and-changing-facets)).
+A parent is added with its core only ([choosing and changing facets](../subsystems/module-catalog.md#choosing-and-changing-facets)).
 
 A module dragged from the window moves the way an entry being reordered does: over the list it is the entry it will become (an empty card's tab, on a page and in deck settings), lifted and tilted, keeping to the list's column and moving only up and down, while the entries open a gap where it would land; outside the list it follows the pointer in the same form. Dropped, it glides into its gap and stays there as the entry while it is saved. Dragged back onto the window, the module is put back and nothing is added; the window is highlighted while it would take the module back. While a module is dragged, it stays marked in the window, tinted and outlined in its family colour, and the dragged entry carries a focus ring until it is dropped, so it is never confused with entries like it. A module is disabled when the deck or page already holds 12 modules, and the Context module when one is already present; the window says why. On a narrow window the panel moves below the content.
 

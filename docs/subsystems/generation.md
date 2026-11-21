@@ -7,9 +7,9 @@ Generation writes a page's content cards. Each content module instance on a page
 | Part | Responsibility | Source |
 | --- | --- | --- |
 | Targets and runs | Which components an action targets (`capture`, `missing`, `page`, `component`, `facet`, `core`), the confirmation digest for content it replaces, and one attempt row per target with the module request it will send. | `generate`, `startRun`, `confirmationDigest` in [`store-generation.mjs`](../../src/core/store-generation.mjs); `generationTargets` in [`page-modules.ts`](../../packages/domain/src/page-modules.ts) |
-| Admission | At most 4 attempts run and 16 wait per API; a request reserves every slot it needs or none. | `Generation` (`reserve`, `admit`, `pump`) in [`generation.mjs`](../../src/server/generation.mjs); the `/api/page/generate` route in [`routes.mjs`](../../src/server/routes.mjs) |
+| Admission | By default at most 4 attempts run and 16 wait per API (`GENERATION_MAX_ACTIVE`, `GENERATION_MAX_QUEUED` in [`config.mjs`](../../src/server/config.mjs)). A Retry or generate request reserves every slot it needs or none; a capture admits what fits. | `Generation` (`reserve`, `admit`, `pump`) in [`generation.mjs`](../../src/server/generation.mjs); the `/api/page/generate` route in [`routes.mjs`](../../src/server/routes.mjs) |
 | Executing an attempt | Reads the page, composes the request, calls the provider, and turns the reply into the component's structured content: a whole card, a facet alone, or the core alone. | `Generation.execute` in [`generation.mjs`](../../src/server/generation.mjs); `generateComponent`, `generateFacet`, `generateCore` in [`modules.ts`](../../packages/domain/src/modules.ts) |
-| Journal | A result is written to `DATA_DIR/generation-outbox/<attemptId>.json` before it is staged, so a failed database write or a restart loses nothing. | `Generation.execute`, `Generation.initialize` in [`generation.mjs`](../../src/server/generation.mjs) |
+| Journal | A result is written to `DATA_DIR/generation-outbox/<attemptId>.json` before it is staged, so a failed database write or a restart loses nothing, unless writing the journal failed too. | `Generation.execute`, `Generation.initialize` in [`generation.mjs`](../../src/server/generation.mjs) |
 | Stage and publish | `stage` stores the result on the attempt; only `publish`, sent by the originating session, moves it into the component, with its generation record. | `stage`, `publish`, `keepAfterFacetFailure` in [`store-generation.mjs`](../../src/core/store-generation.mjs) |
 | Content | Checking a reply against the module's shapes, and formatting it into stored markdown per facet. | [`generated.ts`](../../packages/domain/src/generated.ts); `validateParentContent`, `parentDocument` in [`content.ts`](../../packages/domain/src/content.ts) |
 | Provider | The 180-second timeout, cancellation, error codes, diagnostics and the reply's outer check, for every adapter; OpenCode is the one adapter. | `Provider` in [`provider.mjs`](../../src/server/provider.mjs); `OpenCodeProvider` in [`opencode.mjs`](../../src/server/opencode.mjs); `createProvider` in [`providers.mjs`](../../src/server/providers.mjs) |
@@ -17,7 +17,7 @@ Generation writes a page's content cards. Each content module instance on a page
 
 ## Runtime path
 
-1. An action reaches the store: a capture (`capture`), or `/api/page/generate` for a card's, a facet's or the core's **Retry**. `generate` checks the session, refuses a target that is already generating (`generating`), and, when the target holds content, requires the client to echo the digest of what it will replace (`confirmation_required` returns the digest). The route reserves capacity first; with no room it answers busy and changes nothing.
+1. An action reaches the store: a capture (`capture`), or `/api/page/generate` for a card's, a facet's or the core's **Retry**. `generate` checks the session, refuses a target that is already generating (`generating`), and, when the target holds content, requires the client to echo the digest of what it will replace (`confirmation_required` returns the digest). Just before any attempt is written, `generate` reserves capacity for all of them; with no room it answers busy and changes nothing.
 2. `startRun` writes one `component_attempts` row per target, with the module request (its type, facets in the parent's order, and for a facet or core Retry the facet and the component's prior state), and sets the component to `loading`. A whole attempt empties the component; a facet's or the core's keeps it.
 3. After the commit, `Generation.start` admits the attempts. `execute` checks that the attempt is still loading and its session still current, reads the page's main key and Context and the account's language, and composes the request ([module catalog](module-catalog.md#prompts)).
 4. The provider answers. The domain checks the reply against the module's shapes, drops a facet the core's flags rule out (logging the mismatch, never the text), and builds the structured content.
@@ -30,7 +30,7 @@ Generation writes a page's content cards. Each content module instance on a page
 
 There is no interpretation shared by the run ([D17](../decisions/d17.md)). Each attempt reads the main key and Context in its own request and records its reading as the core's flags, such as word or sentence for a Languages parent, which its card's header shows ([pages and editing](../specs/pages-and-editing.md#required-main-key)). No reading chooses a source language for the page: each parent reads the language from the key and Context. Target languages are defined by the parent modules, not by a fixed language-pair setting for the deck. A failed attempt fails only its own component.
 
-The reading and applicability rules are defined in the [Modules specification](module-catalog.md#input-and-applicability).
+The reading and applicability rules are in the module catalog, under [input and applicability](module-catalog.md#input-and-applicability).
 
 ### Generation actions
 
@@ -122,7 +122,7 @@ Generated content remains editable. The user opens the page editor to change any
 
 ### Generation record
 
-Each generated facet of a parent, the core included, records with its component the model and the version of the prompt that produced it ([generation architecture](#how-the-record-is-stored)). A whole attempt records them for the core and every facet it generated; a facet's own Retry records them for that facet only, and the other facets keep theirs. A user's edit does not change the record. A spoken part's record adds the speech model and voice that spoke it. The interface does not show the record.
+Each generated facet of a parent, the core included, records with its component the model and the version of the prompt that produced it ([how the record is stored](#how-the-record-is-stored)). A facet's own Retry records them for that facet only, and the other facets keep theirs. A user's edit does not change the record. A spoken part's record adds the speech model and voice that spoke it. The interface does not show the record.
 
 
 ## Providers
@@ -160,7 +160,7 @@ The prompt version is the first 16 hex digits of a SHA-256 over the instructions
 
 - **Provider calls never run inside a transaction or the ordered executor.** `execute` reads, calls the provider with no transaction open, then stages in a new one. One test holds the executor part ([`tests/postgres.test.mjs`](../../tests/postgres.test.mjs)); nothing holds the transaction part, so a reviewer checks.
 - **A staged result is not content.** Only `publish` from the originating session writes a component, and only while the component is still on that attempt (`stale_attempt` otherwise), so a late result never overwrites a later save or Retry.
-- **Admission is all or nothing.** A request reserves every attempt it starts; a capture that can't be admitted is saved with its attempts failed, without a provider call.
+- **A Retry is admitted whole or not at all.** A generate or Retry request reserves every attempt it starts. A capture admits the attempts that fit and fails the rest, without a provider call; its page is saved either way.
 - **A malformed reply fails the attempt.** One missing `}` before `"facets"` is repaired; anything else that isn't the schema's JSON is `provider_invalid`, never retried automatically.
 - **Nothing is cached or reused.** Every attempt sends a fresh request.
 
@@ -170,7 +170,7 @@ The prompt version is the first 16 hex digits of a SHA-256 over the instructions
 | --- | --- |
 | [`tests/generation.test.mjs`](../../tests/generation.test.mjs) | Attempts, targets, confirmation, facet and core Retry, flags and mismatches, the generation record |
 | [`tests/generation-recovery.test.mjs`](../../tests/generation-recovery.test.mjs) | Capacity and busy Retry, reservations, cancelling, late replies, the journal across a failed write and a restart |
-| [`tests/opencode.test.mjs`](../../tests/opencode.test.mjs) | The OpenCode adapter, the timeout, error codes and the reply's outer check |
+| [`tests/opencode.test.mjs`](../../tests/opencode.test.mjs) | The OpenCode adapter, cancellation, error codes and the reply's outer check |
 | [`tests/foundation.test.mjs`](../../tests/foundation.test.mjs), [`tests/postgres.test.mjs`](../../tests/postgres.test.mjs) | Stage versus publish, the generation lock on saves, fencing late results |
 | [`tests/browser/facet-retry.test.mjs`](../../tests/browser/facet-retry.test.mjs), [`tests/browser/reliability.test.mjs`](../../tests/browser/reliability.test.mjs) | Retry and recovery in the real extension |
 | `npm run drive` with [the retry journey](../../.agents/skills/vocabularium-drive/journeys/retry-a-failed-card.mjs) | A failed card retried on a disposable account |
