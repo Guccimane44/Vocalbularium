@@ -50,7 +50,7 @@ A deck's configuration is the template for its new pages: an ordered list of up 
 
 The page list shows each page's main key and loads up to 30 pages at a time in any of four sort orders. Alphabetical sorting uses Unicode NFKC normalization and lowercase text, followed by JavaScript code-unit order; ties use the stable page ID. Decks load in batches of 40; page and deck detail is fetched when opened.
 
-A page shows its main key as the title, then its components as cards: Context, one card per content module, and your own text. Each card has its own **Edit**, **Retry** and **Delete**, and a parent's facets have their own Edit and Retry. **Retry** on an empty card starts at once; on content it asks "Are you sure?" and replaces the content, edits included. Manually created pages generate only when you click a card's **Retry**. Drag modules from the module window onto a page, and drag cards to rearrange them; a deleted card stays gone. Failed saves keep their drafts and offer **Try saving again**. The [pages and editing specification](docs/screens/page.md) holds the rules.
+A page shows its main key as the title, then its components as cards: Context, one card per content module, and your own text. Each card has its own **Edit**, **Retry** and **Delete**, and a parent's facets have their own Edit and Retry. **Retry** on an empty card starts at once; on content it asks "Are you sure?" and replaces the content, edits included. Manually created pages generate only when you click a card's **Retry**. Drag modules from the module window onto a page, and drag cards to rearrange them; a deleted card stays gone. Failed saves keep their drafts and offer **Try saving again**. The [page screen reference](docs/screens/page.md) holds the rules.
 
 ## Generation
 

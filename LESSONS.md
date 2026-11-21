@@ -1,6 +1,6 @@
 # Lessons from merged work
 
-Read this before changing code. Each lesson is what merged work got wrong and the rule that would have caught it. A lesson seen on three separate days moves into the [code standards](docs/code-standards.md) or the [rules table in AGENTS.md](AGENTS.md#rules-and-what-enforces-them), and leaves this file.
+Read this before changing code. Each lesson is what merged work got wrong and the rule that would have caught it. A lesson seen on three separate days moves into the [code standards](docs/code-standards.md), and leaves this file.
 
 ## How a lesson is written
 
@@ -23,6 +23,6 @@ No lessons yet.
 
 ## Moved
 
-Rules that were seen a third time and now live in the code standards or AGENTS.md, one line each with where they went.
+Rules that were seen a third time and now live in the code standards, one line each with the section they went to.
 
 None yet.

@@ -8,11 +8,11 @@ The [working-agreement decision](https://app.notion.com/p/3ecbb135020881ff9036e7
 
 | Source | Owns |
 | --- | --- |
-| Repository | Versioned product model, supported and pending scope, capability specifications, architecture, repeatable procedures, and source changes |
+| Repository | Versioned product model, supported and pending scope, the specifications (subsystem and screen references), repeatable procedures, and source changes |
 | Notion | Milestone intent and completion scope, decision context and approval history, concise progress summaries, and reusable Q&As |
 | GitHub | Implementation issues and PRs, reviews and merge state, CI runs, releases, and delivery evidence tied to a revision and environment |
 
-Use the [product model](../product/model.md) for terms, [current scope](../product/scope.md) for implementation boundaries, and the relevant substantive specification for behavior. Documents under `docs/history/`, finished plans included, are historical context, not current authority. Vision and proposals do not establish implementation or approval.
+Use the [product model](../product/model.md) for terms, [current scope](../product/scope.md) for implementation boundaries, and the relevant specification for behavior. **The specifications** are the [subsystem references](../subsystems/README.md), which say how each part works and link its code, and the [screen references](../screens/README.md), which say what each screen shows and does; the rules every change keeps are in the [code standards](../code-standards.md). Documents under `docs/history/`, finished plans included, are historical context, not current authority. Vision and proposals do not establish implementation or approval.
 
 Link between records. Keep the complete plan, specification, test output, and package evidence in their appropriate sources; Notion summarizes the result and points to them. Derive GitHub links from the actual remote and relevant branch or commit. Use immutable revision links for verified facts and evidence; identify the branch when linking evolving documentation. Do not assume the default branch contains the working specification or released backend.
 

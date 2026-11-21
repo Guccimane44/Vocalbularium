@@ -289,7 +289,7 @@ The composer (`moduleInstructions`, `moduleSchema`, `composeModule`) builds a pr
 
 ## Constraints and failure behaviour
 
-- **A module owns all its facets.** Nothing is shared between modules; look-alike facets stay separate folders, and a change meant for several is made in each.
+- **A module owns all its facets, and each language gets the facets its dictionary can offer.** Nothing is shared between modules; look-alike facets stay separate folders, and a change meant for several is made in each.
 - **The contract names no facet.** The catalog alone decides which facets a module has; the domain rejects a facet its module lacks (D25).
 - **The shared rules live only in the composer**, never copied into a prompt file, so no module can lose them.
 - **A prompt change shows in review** as a change to `tests/prompts/*.txt`; regenerate them with `UPDATE_PROMPTS=1 node --test tests/prompts.test.mjs` after a deliberate change.
