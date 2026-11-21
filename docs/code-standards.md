@@ -2,7 +2,7 @@
 
 Every change keeps these rules. Each one says what fails when it is broken; **nothing** means only this text holds it, so take extra care there. Read this file, and [LESSONS.md](../LESSONS.md), before changing code; CLAUDE.md loads both into every session.
 
-**Keep these tables true.** When the owner corrects a mistake, fix it and add its rule under its area here. A mistake found in merged work that the owner did not correct goes into [LESSONS.md](../LESSONS.md) first, and moves here once it is seen on a third separate day. If its rule is already here with **nothing** beside it, the mistake is a repeat: in the same change, enforce the rule at the highest level that works (a design that makes the mistake impossible, then types, then a lint or CI check whose message names the fix, then a test), and show the check failing on the past mistake. Keep prose only for judgment calls. Remove a rule once its mistake can no longer happen.
+**Keep these tables true.** When the owner corrects a mistake, or a review keeps asking for the same thing, fix it and add its rule under its area here. A mistake found in merged work that the owner did not correct goes into [LESSONS.md](../LESSONS.md) first, and moves here once it is seen on a third separate day. If its rule is already here with **nothing** beside it, the mistake is a repeat: in the same change, enforce the rule at the highest level that works (a design that makes the mistake impossible, then types, then a lint or CI check whose message names the fix, then a test), and show the check failing on the past mistake. Keep prose only for judgment calls. Remove a rule once its mistake can no longer happen.
 
 How to describe and review a change to a subsystem is in the [subsystem references](subsystems/README.md#describe-a-prs-change).
 
@@ -60,7 +60,7 @@ Each rule is stated in one line; where it needs more, the linked section owns th
 | Colours come from the theme's tokens. Saturated colour means a module family or a status, and a family colour always comes with a name or a text alternative ([visual identity](subsystems/interface.md#visual-identity)). | the `token-colour` layout rule, for colours outside the tokens; nothing for the meaning of a colour |
 | Status is always a word, never colour alone. Completed work shows no status ([list states](subsystems/interface.md#list-state-presentation)). | nothing |
 | Text of any length fits: a main key from one word to a passage, long module names, every interface language. | the `text-overflow` and `viewport-overflow` layout rules on every captured screen |
-| Focus is always a visible 2 px ring, and every control is large enough to hit ([appearance](subsystems/interface.md#appearance)). | the `focus-visible` and `target-size` layout rules |
+| Focus is always a visible 2 px ring, and every control is large enough to hit ([appearance](subsystems/interface.md#appearance)). | the `focus-visible` layout rule checks that a focused control has a ring, not its width; the `target-size` layout rule |
 | Every drag also works from the keyboard (Space, the arrow keys, Space, Escape) and is announced to screen readers. | the drag tests in `tests/browser/`; nothing makes a new drag do it |
 | Menus close after an action, on Escape, on navigation and on a click outside, and return the focus to their trigger. Confirmation dialogs never close on a timer ([dialogs](subsystems/interface.md#dialogs-menus-and-feedback)). | nothing |
 | A row that holds a button is not itself one link: its text links, and the button sits beside it. | nothing |

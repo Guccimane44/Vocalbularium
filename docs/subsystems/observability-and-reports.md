@@ -54,7 +54,7 @@ Settings show local/central usage and degraded status. Local-buffer-only cleanup
 
 ### Reports
 
-A report made with **Report a problem…** ([account menu](../screens/account-menu.md#report-a-problem), [D336](../decisions/d336-report-a-problem.md)) is kept in the account's PostgreSQL database, in `reports`, not in the diagnostic segments: the user's text, the screen, the page and card it is about, the page as it was, the builds of the API and the extension, and, when the user leaves it ticked, the diagnostic events of the 15 minutes before saving, read from the segments then. The extension flushes its buffer first, so its own recent events are among them.
+A report made with **Report a problem…** ([report a problem](../screens/account-menu.md#report-a-problem), [D336](../decisions/d336-report-a-problem.md)) is kept in the account's PostgreSQL database, in `reports`, not in the diagnostic segments: the user's text, the screen, the page and card it is about, the page as it was, the builds of the API and the extension, and, when the user leaves it ticked, the diagnostic events of the 15 minutes before saving, read from the segments then. The extension flushes its buffer first, so its own recent events are among them.
 
 `npm run reports` reads them on the owner's computer. A daily Claude Code task opens one GitHub issue per new report with only the user's text, what it is about (the screen and the module type) and the builds, and records the issue's number on the report. The page as it was and the logs never leave the computer: the repository is public, and they hold captured text, prompts and generated output.
 

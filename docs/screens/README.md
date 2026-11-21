@@ -24,7 +24,7 @@ Each page describes one screen of the extension: how the user gets there, what i
 
 ## What a page contains
 
-Every page uses these sections, in this order:
+Every page uses these sections, in this order, and leaves out a section only when it has nothing to say (a window with no states of its own has no *States*):
 
 1. **An opening paragraph**: what the screen is for.
 2. **Getting there**: where it opens from, its route (`app.html#…`), and its trail.

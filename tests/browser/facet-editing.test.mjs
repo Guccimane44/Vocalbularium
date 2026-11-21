@@ -166,7 +166,7 @@ test('0.7.5: a facet’s own Edit opens that facet alone in place, with its tool
   await synonyms.waitFor({ state: 'detached' });
   assert.equal(await card.locator('.facet-confirm').count(), 0, 'no "Are you sure?" for an empty facet');
   assert.equal((await stored()).facets.synonyms, undefined);
-  // Deleted, the facet leaves the card's facets, and its tag pops and goes (pages-and-editing, Facet tags).
+  // Deleted, the facet leaves the card's facets, and its tag pops and goes (docs/screens/page.md, Facet tags).
   // The tag stands only while it pops, so it is not read meanwhile.
   assert.equal((await german()).facets.includes('synonyms'), false);
   await card.locator('.facet-tag[data-facet="synonyms"]').waitFor({ state: 'detached' });

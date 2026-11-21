@@ -14,7 +14,7 @@ Read this before changing code. Each lesson is what merged work got wrong and th
 - **Write the rule so a reviewer can check it.** "Test the receipt after a worker restart" is checkable; "be careful with receipts" is not.
 - **Fix the class, not the sample.** Name the whole kind of mistake, not just the case that was reported.
 - **Evidence is short.** A commit or PR link and one line each. The story belongs in the PR.
-- **Each time the mistake is seen on another day**, add its evidence line and raise the count. On the third day, move the rule into the code standards with its check, and add a line under [Moved](#moved) saying where it went.
+- **Each time the mistake is seen on another day**, add its evidence line and raise the count. On the third day, move the rule into the code standards or the AGENTS.md rules table, with its check, and add a line under [Moved](#moved) saying where it went.
 - **A lesson that no longer applies** (its code is gone, or a design now makes the mistake impossible) is deleted, with the reason in the commit message.
 
 ## Lessons

@@ -1,6 +1,6 @@
 # Plan: delete the dead catalog fields, then define the flags
 
-Drafted 10 November 2026 for a new session. Status: **draft, not approved**. Nothing here has been run or changed in code.
+Drafted 10 November 2026 for a new session. Status: **step 1 done** (released as 0.16.6, [D31](../decisions/d31.md)); **step 2 is a draft**, not approved.
 
 This plan covers the first two steps of the owner's rework. Background, findings and the open questions are in the [handoff](../history/plans/headers-flags-classifier-handoff.md); how flags and headers work today is in the owner's local headers and flags map (not in the repository). Read both first.
 
@@ -47,7 +47,7 @@ These have similar names and are in use:
 2. Remove the fields and the three types from `define.ts`, and fix the comments there that describe them.
 3. Remove the fields from every `module.ts` and `facet.ts` in the catalog.
 4. In `tests/catalog.test.mjs`, drop the three assertions. Keep what the two `source` assertions were really checking by asserting on `kind` instead, if `kind` is not already checked there.
-5. In `docs/architecture/generation.md`, remove the sentence that says `ProviderKind` in the catalog is `text` or `speech` (around line 96), and any other mention of the four fields. The rest of that paragraph, about the speech provider, stays.
+5. In `docs/subsystems/module-catalog.md`, remove the sentence that says `ProviderKind` in the catalog is `text` or `speech` (around line 96), and any other mention of the four fields. The rest of that paragraph, about the speech provider, stays.
 6. Leave the owner's map in `maps/` alone. It is a dated description of `main` at `761bfbd`.
 
 ### Done when
@@ -116,7 +116,7 @@ This is a change of meaning, not a refactor. Part A decides it; it is built as i
 
 #### Where the definitions are written
 
-Put the draft in a new document under `docs/plans/` for the owner to mark up. Once approved, the durable home is the generation architecture (`docs/architecture/generation.md`) and, for each changed meaning, a decision record. The held-out labels in `tests/golden/held-out/classification.json` must then be corrected to follow the approved definitions; their boundary stratum and their part-of-speech labels encode guesses at exactly these rules. The owner can review those labels alongside the definitions.
+Put the draft in a new document under `docs/plans/` for the owner to mark up. Once approved, the durable home is the module catalog reference (`docs/subsystems/module-catalog.md`) and, for each changed meaning, a decision record. The held-out labels in `tests/golden/held-out/classification.json` must then be corrected to follow the approved definitions; their boundary stratum and their part-of-speech labels encode guesses at exactly these rules. The owner can review those labels alongside the definitions.
 
 ### Part B: declare the flags in the catalog (no behaviour change)
 
@@ -144,7 +144,7 @@ What the refactor does:
 2. Replace the guesses with the declarations: `ruledOut()` no longer tests `'relevance' in core`; the core's Retry in `modules.ts` reads the declared flags instead of the keys of `header(previous)`.
 3. Add a catalog test: every field a `when` reads is a declared flag of its module; every declared flag is in the core's shape; every flag `header()` returns is declared.
 4. Decide with the owner whether `header()` and `read()` stay hand-written per core or are derived from the declarations. Deriving them removes the parser copied across the four Languages cores, but it is more risk in a change that promises no behaviour change. Recommended: keep them hand-written in Part B and guard them with the test in item 3.
-5. Update `docs/architecture/generation.md`.
+5. Update `docs/subsystems/module-catalog.md`.
 
 **Out of scope for Part B:** the stored header shape. `ParentHeaderSchema` in `packages/contracts/src/pages.ts` keeps its five variants. Replacing it with a general record of flags is right in the long run (it brings the contract in line with D25), but it changes stored data and the API, and step 4 changes the header again when a classifier writes it first. Do it once, with the decision that supersedes D17.
 

@@ -28,19 +28,19 @@ The store is the API's one way into the account's data in PostgreSQL 18: decks a
 
 ### Default deck
 
-Every account has exactly one default deck, the destination for capture. Default is a role a deck holds, not a kind of deck. A new account starts with **My Deck** as its default deck, created once when the account is initialized. Its initial configuration is defined in [capture and generation](#initial-default-deck-example). **Set as default** moves the role to another deck; the choice synchronizes with the account.
+Every account has exactly one default deck, the destination for capture. Default is a role a deck holds, not a kind of deck. A new account starts with **My Deck** as its default deck, created once when the account is initialized. Its initial configuration is defined in [initial default-deck example](#initial-default-deck-example). **Set as default** moves the role to another deck; the choice synchronizes with the account.
 
 ### Initial default-deck example
 
 The initial **My Deck** has the main key module, the Context module, and one content module instance: `German`, with Article, Examples, Synonyms and Antonyms. A new deck starts with the same configuration. German's other facets are not in it.
 
-For the selected input `幸福`, read as a word, the page shows its main key `幸福`, then a `German` component, whose header names the key's language, that it is a word and its grammatical role: an explanation in German of the word, then the article of its German translation (`das Glück`), examples with their translations, synonyms, and antonyms, following the [modules specification](module-catalog.md#catalog). The exact generated wording may vary.
+For the selected input `幸福`, read as a word, the page shows its main key `幸福`, then a `German` component, whose header names the key's language, that it is a word and its grammatical role: an explanation in German of the word, then the article of its German translation (`das Glück`), examples with their translations, synonyms, and antonyms, following the [catalog](module-catalog.md#catalog). The exact generated wording may vary.
 
 For a selected sentence such as `我真的很幸福`, the `German` component shows the German translation and, from Examples, one similar sentence with its translation; Article, Synonyms, and Antonyms do not apply to a sentence and are not shown. This is an intentional, successfully completed page.
 
 ### Configuration and pages
 
-The configuration is the template for page creation. Capture and manual creation give the new page a copy of the deck's content module instances, in configured order ([capture and save](capture-and-save.md#what-a-capture-saves)). From then on the page owns its modules:
+The configuration is the template for page creation. Capture and manual creation give the new page a copy of the deck's content module instances, in configured order ([what a capture saves](capture-and-save.md#what-a-capture-saves)). From then on the page owns its modules:
 
 - Saving a configuration change never changes existing pages. Only pages created afterwards use it.
 - Generation and retry on an existing page use the page's own module instances, not the deck's.

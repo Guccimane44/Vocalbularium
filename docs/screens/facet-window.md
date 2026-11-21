@@ -5,7 +5,7 @@ The facet window chooses which facets a parent card has and in what order. It op
 ## Getting there
 
 - **Facet** among a parent card's actions on a [page](page.md) (click its tab, or Enter on it).
-- **Facet** in a parent module's menu in [deck settings](deck-settings.md).
+- **Facet** among a parent module's actions, from its tab, in [deck settings](deck-settings.md).
 - It has no route of its own; it opens over the screen it belongs to.
 
 ## What it shows and what the user can do
@@ -20,7 +20,7 @@ A parent's facets are chosen in its **facet window**, opened by **Facet** among 
 - **Closing.** The window stays open for more choices until Escape, its close, a click outside, or another of the card's actions; Escape and the close return the focus to the card's tab.
 - **From the keyboard.** Opening the window moves the focus to its first row's **×** or **+**. They are buttons named "Remove Article" and "Add Synonyms", in lists named by their group, in a group named by the heading, such as "Facets of German 2"; each **›** is a button such as "About Article". After a facet moves, the focus follows it to its new button.
 
-A parent that is generating takes no facet and loses none until its attempt finishes, so its **Facet** is disabled meanwhile. Deck settings use the same window ([deck settings](deck-settings.md#the-configuration)). The module window lists no facets. Under reduced motion the window and the pages' sheet appear without sliding, and tags without flying.
+A parent that is generating takes no facet and loses none until its attempt finishes, so its **Facet** is disabled meanwhile. Deck settings use the same window ([the configuration](deck-settings.md#the-configuration)). The module window lists no facets. Under reduced motion the window and the pages' sheet appear without sliding, and tags without flying.
 
 ## Source
 

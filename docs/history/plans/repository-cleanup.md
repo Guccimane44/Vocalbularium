@@ -2,6 +2,8 @@
 
 Drafted 15 November 2026 for the owner's review. Status: **owner's answers recorded 15 November 2026** (see [answers](#the-owners-answers)); Batch 0 partly carried out; Batches 1, 2, 3 (its rows), 4, 5 and 7 **done on 15 November 2026** in one branch, `claude/determined-villani-b4b693`; Batch 6 skipped. Each batch's status is under its heading.
 
+Moved to history on 21 November 2026: every batch is done or skipped. What is left of Batch 0 is the owner's own local files (`.workbuddy/`, `report/` and `.claude/launch.json`), which no PR changes.
+
 The current code on `main` at `6ce4e95` (0.16.6) is the source of truth. Each candidate below names its path, the evidence that it is stale, the suggested action and the risk. Candidates are grouped into batches that can each be one PR. Applied migrations (`migrations/`) and upgrade fixtures (`tests/helpers/legacy-database.mjs`, the fixtures inside `tests/upgrade.test.mjs`) are out of scope and stay untouched.
 
 ## What was checked and found clean

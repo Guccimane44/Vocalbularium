@@ -14,15 +14,15 @@ The **module window** is a panel on the right side of both the page view and dec
 
 - **Groups.** Each family group shows the family mark, its name, and how many modules it holds; it can be collapsed, and the families of modules already on the page start open. The family's mark and name in the group's heading open the family's [page](module-pages.md#the-pages) in the pages' sheet, and the rest of the heading folds the group. A family with no modules yet is not listed; while the search has text, every matching group is open.
 - **Search and scrolling.** A search field above the groups filters every module by name and description as the user types. The window stays beside the page as it scrolls and never grows taller than the browser window: its heading and search stay in place, and the groups below the search scroll on their own, fading out at the top and bottom edges, without scrolling the page. In a narrow window, where the module window sits below the page, it is shown at full length.
-- **Each module** shows its label and a one-line description of what it contributes. **About** with the module's name, such as **About German**, a text link below the description, opens its module page in the pages' sheet ([modules](module-pages.md#the-pages)); the sheet never adds the module, and closing it returns the focus to the link. A round **+** in the module's bottom-right corner adds it as the last entry, without dragging; it waits at the end like a dropped module and is scrolled into view.
+- **Each module** shows its label and a one-line description of what it contributes. **About** with the module's name, such as **About German**, a text link below the description, opens its module page in the pages' sheet ([the pages](module-pages.md#the-pages)); the sheet never adds the module, and closing it returns the focus to the link. A round **+** in the module's bottom-right corner adds it as the last entry, without dragging; it waits at the end like a dropped module and is scrolled into view.
 - **No facets.** The window lists no facets, and marks no module as already on the page: a parent's facets are chosen in its [facet window](facet-window.md#the-window).
 
 Dragging a module from the window:
 
-- into deck settings adds an instance to the deck configuration, the template for new pages ([deck settings](deck-settings.md#module-window));
-- onto a page adds an instance to that page only ([page](page.md#shaping-a-page)).
+- into deck settings adds an instance to the deck configuration, the template for new pages ([module window](deck-settings.md#module-window));
+- onto a page adds an instance to that page only ([shaping a page](page.md#shaping-a-page)).
 
-A parent is added with its core only ([modules](../subsystems/module-catalog.md#choosing-and-changing-facets)).
+A parent is added with its core only ([choosing and changing facets](../subsystems/module-catalog.md#choosing-and-changing-facets)).
 
 A module dragged from the window moves the way an entry being reordered does: over the list it is the entry it will become (an empty card's tab, on a page and in deck settings), lifted and tilted, keeping to the list's column and moving only up and down, while the entries open a gap where it would land; outside the list it follows the pointer in the same form. Dropped, it glides into its gap and stays there as the entry while it is saved. Dragged back onto the window, the module is put back and nothing is added; the window is highlighted while it would take the module back. While a module is dragged, it stays marked in the window, tinted and outlined in its family colour, and the dragged entry carries a focus ring until it is dropped, so it is never confused with entries like it. A module is disabled when the deck or page already holds 12 modules, and the Context module when one is already present; the window says why. On a narrow window the panel moves below the content.
 
