@@ -22,10 +22,8 @@ Each Chrome installation has one browser session at a time, named by the install
 
 Open views refresh from the account every five seconds, and after each change the installation makes. Other installations' changes appear on the next refresh.
 
-A save is never reported as saved before the account has persisted it. Saved changes from several installations are applied in the order they reach the server (FIFO), not in the order editing began or by device clocks. When two installations save different text for the same component, the later arrival becomes its content; there is no merge or conflict dialog. Saves to different components keep both changes, because a save sends only the components that changed. A save for a page, deck, or component that an earlier operation deleted fails instead of recreating it.
-
-FIFO does not override the generation lock: a save that changes a generating component is rejected ([capture and generation](capture-and-generation.md#retry)).
+How saves from several installations are ordered, and what a failed save does, is in [capture and save](../subsystems/capture-and-save.md#saving-every-change).
 
 ## Save failures and recovery
 
-A failed save keeps the pending change and offers **Try saving again**, which resubmits the same operation. Resubmitting an operation the server already applied returns its original result instead of applying it twice. **Try saving again** never generates content and is distinct from **Retry**. Saves interrupted by the extension worker stopping become available for explicit recovery when it starts again; they are never resubmitted silently. The detailed rules for captures and generation results are in [capture and generation](capture-and-generation.md#saving-and-synchronization-failures).
+Moved to [capture and save](../subsystems/capture-and-save.md#saving-every-change).
