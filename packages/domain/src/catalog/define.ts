@@ -65,6 +65,9 @@ export type CoreDefinition<T extends CoreValue = any> = Readonly<{
   // How the editor names the core's text for each input type.
   labels: Readonly<Record<InputType, string>>;
   shape: Shape<T>;
+  // The core's flags: the fields a facet's `when` may read. Their values are
+  // the shape's, such as the choices of a `oneOf`.
+  flags: readonly (keyof T & string)[];
   // The labels of the flags the header shows; none for a module that shows none.
   headerLabels?: HeaderLabels;
   format: (value: T) => string;
