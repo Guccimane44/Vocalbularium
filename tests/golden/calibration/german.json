@@ -423,7 +423,7 @@
       "key": "serendipity",
       "language": "en",
       "expected": "pass",
-      "why": "Recorded output, golden run 2026-10-30T17-25-27-661Z-en-german.json.",
+      "why": "Recorded output, golden run 2026-10-30T17-25-27-661Z-en-german.json. Fixed on 2026-11-23 after the judges named real faults: loose synonyms (Glück, Zufall, Glücksumstand) and a non-opposite antonym (Missgeschick) removed.",
       "card": {
         "core": {
           "kind": "word",
@@ -451,15 +451,11 @@
             }
           ],
           "synonyms": [
-            "Glück",
-            "Zufall",
-            "Fügung",
-            "Glücksumstand"
+            "Fügung"
           ],
           "antonyms": [
             "Pech",
-            "Unglück",
-            "Missgeschick"
+            "Unglück"
           ],
           "declension": {
             "columns": [
@@ -943,7 +939,7 @@
       "key": "Ufer",
       "language": "en",
       "expected": "pass",
-      "why": "Recorded output, golden run 2026-10-30T17-25-27-661Z-en-german.json.",
+      "why": "Recorded output, golden run 2026-10-30T17-25-27-661Z-en-german.json. Fixed on 2026-11-23 after the judges named real faults: loose synonyms (Küste, Strand, Bord, Rand) removed; Grammar teacher added, which a German key now gets.",
       "card": {
         "core": {
           "kind": "word",
@@ -965,11 +961,7 @@
             }
           ],
           "synonyms": [
-            "Gestade",
-            "Küste",
-            "Strand",
-            "Bord",
-            "Rand"
+            "Gestade"
           ],
           "declension": {
             "columns": [
@@ -1009,6 +1001,11 @@
           },
           "pronunciation": [
             "Ufer"
+          ],
+          "grammar-teacher": [
+            "Ufer ist ein Neutrum: das Ufer, des Ufers.",
+            "Der Plural lautet gleich, die Ufer; nur im Dativ Plural kommt -n dazu: den Ufern.",
+            "Wo man ist, steht der Dativ, wohin man geht, der Akkusativ: am Ufer sitzen, ans Ufer schwimmen."
           ]
         }
       }
