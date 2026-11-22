@@ -174,4 +174,4 @@ The prompt version is the first 16 hex digits of a SHA-256 over the instructions
 | [`tests/foundation.test.mjs`](../../tests/foundation.test.mjs), [`tests/postgres.test.mjs`](../../tests/postgres.test.mjs) | Stage versus publish, the generation lock on saves, fencing late results |
 | [`tests/browser/facet-retry.test.mjs`](../../tests/browser/facet-retry.test.mjs), [`tests/browser/reliability.test.mjs`](../../tests/browser/reliability.test.mjs) | Retry and recovery in the real extension |
 | `npm run drive` with [the retry journey](../../.agents/skills/vocabularium-drive/journeys/retry-a-failed-card.mjs) | A failed card retried on a disposable account |
-| `npm run gate -- <module>` | A module's live output: golden set, checks and the calibrated judge ([module catalog](module-catalog.md#verification)) |
+| `npm run gate -- <module>` | A module's live output: golden set, checks, the calibrated judge and the audit ([module catalog](module-catalog.md#verification)) |
