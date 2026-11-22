@@ -1,6 +1,6 @@
 # M3: the average cost of each facet, the core included
 
-Drafted 11 November 2026 for the owner's review. Status: **approved by the owner with the confirmation run, and run, 11–12 November 2026**; results in the [evidence note](../evidence/m3-cost-per-facet.md). Part of Phase 1 of the [split facets plan](../../plans/split-facets.md), for the Languages modules. M3 comes after [M1](../evidence/m1-token-split.md), [M2](../evidence/m2-core-then-parallel.md) and the [facet-prompt fix](../evidence/facet-prompts-stand-alone.md).
+Drafted 11 November 2026 for the owner's review. Status: **approved by the owner with the confirmation run, and run, 11–12 November 2026**; results in the [evidence note](../evidence/m3-cost-per-facet.md). Part of Phase 1 of the [split facets plan](split-facets.md), for the Languages modules. M3 comes after [M1](../evidence/m1-token-split.md), [M2](../evidence/m2-core-then-parallel.md) and the [facet-prompt fix](../evidence/facet-prompts-stand-alone.md).
 
 ## Question
 

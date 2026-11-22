@@ -1,6 +1,6 @@
 # M2: core then parallel facets, against one request
 
-Drafted 11 November 2026 for the owner's review. Status: **approved by the owner and run, 11 November 2026**; results in the [evidence note](../evidence/m2-core-then-parallel.md). Part of Phase 1 of the [split facets plan](../../plans/split-facets.md), for the Languages modules first.
+Drafted 11 November 2026 for the owner's review. Status: **approved by the owner and run, 11 November 2026**; results in the [evidence note](../evidence/m2-core-then-parallel.md). Part of Phase 1 of the [split facets plan](split-facets.md), for the Languages modules first.
 
 ## Question
 

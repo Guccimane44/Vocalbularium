@@ -60,7 +60,7 @@ Only finding 4 is worth an issue; finding 6's boundary test could join it.
 | `haiku-only-provider.md` | Carried out in D36, 0.16.5. | Move. |
 | `step-1-delete-dead-fields.md` | Released as 0.16.6 (D31). Its header still says "draft". | Move; add a one-line "released as 0.16.6". |
 | `facet-prompts-stand-alone.md`, `m1-token-split.md`, `m2-core-then-parallel.md`, `m3-cost-per-facet.md`, `m8-haiku-deepseek-opus-judge.md` | Run; each result is already in `docs/history/evidence/`. | Move. |
-| `headers-flags-classifier-handoff.md`, `jev-flags-experiment.md` | The owner dropped the classifier ([split facets](../../plans/split-facets.md#why-there-is-no-classifier)); the Jev experiment was never run. | Move, with a one-line "not carried out: the classifier was dropped". |
+| `headers-flags-classifier-handoff.md`, `jev-flags-experiment.md` | The owner dropped the classifier ([split facets](split-facets.md#why-there-is-no-classifier)); the Jev experiment was never run. | Move, with a one-line "not carried out: the classifier was dropped". |
 | `wiktionary-experiment.md` | Written for the retired English (British) module and replaced by M4. | Move, with "superseded by M4". |
 | `catalog-cleanup-and-flag-design.md` | Step 1 is done (D31). Step 2 (flag definitions) is still open; its draft is uncommitted in `.claude/worktrees/catalog-dead-fields/docs/plans/step-2-flag-definitions.md`. | **Keep** (owner, 15 November 2026: "not yet"). |
 

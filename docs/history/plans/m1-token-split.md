@@ -1,6 +1,6 @@
 # M1: how one Languages request spends its tokens
 
-Drafted 11 November 2026 for the owner's review. Status: **run 11 November 2026**; results in the [evidence note](../evidence/m1-token-split.md). Part of Phase 1 of the [split facets plan](../../plans/split-facets.md).
+Drafted 11 November 2026 for the owner's review. Status: **run 11 November 2026**; results in the [evidence note](../evidence/m1-token-split.md). Part of Phase 1 of the [split facets plan](split-facets.md).
 
 ## Question
 

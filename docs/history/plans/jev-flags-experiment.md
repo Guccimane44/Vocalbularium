@@ -1,6 +1,6 @@
 # Experiment: the flags from Jev
 
-**Not carried out:** the classifier was dropped ([split facets](../../plans/split-facets.md#why-there-is-no-classifier)).
+**Not carried out:** the classifier was dropped ([split facets](split-facets.md#why-there-is-no-classifier)).
 
 Draft for the owner's review, 10 November 2026. Nothing here is decided. The experiment answers one question before any architecture is designed: **which of the flags that the text model writes today can Jev decide before generation, as reliably, and how fast from here?**
 
