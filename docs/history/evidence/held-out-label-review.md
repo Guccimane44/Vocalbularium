@@ -1,6 +1,6 @@
 # Held-out label review
 
-11 November 2026. An independent check of the [held-out sets](../../../tests/golden/held-out/README.md), done for a draft plan that would have tested Jev on them (M4). The owner later dropped the classifier, and the plan became [split facets](../../plans/split-facets.md), so no M4 runs; the reviewed sets stay for later use.
+11 November 2026. An independent check of the [held-out sets](../../../tests/golden/held-out/README.md), done for a draft plan that would have tested Jev on them (M4). The owner later dropped the classifier, and the plan became [split facets](../plans/split-facets.md), so no M4 runs; the reviewed sets stay for later use.
 
 ## What was done
 

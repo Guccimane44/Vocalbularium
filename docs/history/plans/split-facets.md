@@ -1,16 +1,16 @@
 # Plan: split each card into its core and parallel facets
 
-Drafted 11 November 2026 for the owner's review. Status: **draft; the owner's questions are answered**. Nothing has been run or changed in code.
+Drafted 11 November 2026 for the owner's review. Status: **dropped by the owner, 22 November 2026**, after the switch to Claude Haiku 5.5 ([D36](../../decisions/d36.md)) made a card fast enough in one request. Phase 1 ran as M1 to M3; nothing was built. Nothing has been run or changed in code.
 
 This replaces the earlier draft of the same day, which classified each key with Jev before generation and then sent each facet to a lookup or to generation. The owner dropped the classifier (see [Why there is no classifier](#why-there-is-no-classifier)). Two parts of that draft carry over: the split into core and parallel facets, which this plan now centres on, and the German lookup, which stays deferred.
 
 Background:
 
-- [D17](../decisions/d17.md): one text request per module, which this plan measures itself against
-- [Generation rounds experiment](../history/evidence/generation-rounds-experiment.md) and [Wiktionary experiment](../history/evidence/wiktionary-english-experiment.md)
+- [D17](../../decisions/d17.md): one text request per module, which this plan measures itself against
+- [Generation rounds experiment](../../evidence/generation-rounds-experiment.md) and [Wiktionary experiment](../../evidence/wiktionary-english-experiment.md)
 - The owner's local maps (not in the repository): facet dependencies, the headers and flags map, the capture-to-card walkthrough
 - [Step 2 plan](https://github.com/Guccimane44/Vocalbularium/blob/claude/catalog-dead-fields/docs/plans/step-2-flag-definitions.md): flag definitions and their declaration (on `claude/catalog-dead-fields`)
-- [Held-out label review](../history/evidence/held-out-label-review.md)
+- [Held-out label review](../../evidence/held-out-label-review.md)
 
 ## Goal
 
@@ -51,15 +51,15 @@ The held-out classification set stays in the repository, reviewed, in case a lat
 
 | Decision | Source |
 | --- | --- |
-| `kind` is `word_phrase` \| `sentence`, decided by the core. A verbless set phrase and a bare verb form are a `word_phrase`; a title accepts both, `word_phrase` first | Owner, 11 November 2026; [label review](../history/evidence/held-out-label-review.md) |
+| `kind` is `word_phrase` \| `sentence`, decided by the core. A verbless set phrase and a bare verb form are a `word_phrase`; a title accepts both, `word_phrase` first | Owner, 11 November 2026; [label review](../../evidence/held-out-label-review.md) |
 | `language` stays as it is today, decided by the core | Owner |
 | `languageMatch` (`yes` \| `no`: is the key in the module's language?) follows from the core's `language` | Owner; how to read it from today's value is settled in Phase 2 |
 | `gramRole` stays with the core | Owner |
 | An Expertise card whose key is `unrelated` skips its facets and shows a fixed message | Owner. With the split this happens on its own: the core says `unrelated`, and no facet is requested |
 | Existing cards are for testing and are discarded if a stored shape changes: decks and pages go; accounts, sign-in and the language preference stay, with a fresh My Deck | Owner, as in 0.12.0 |
 | The success bar above | Left to Claude by the owner |
-| Synonyms and Antonyms are written together, in one request, wherever both apply; every other facet has its own request. Asked for alone, Antonyms in English (US) gave wrong opposites (*adult* for *tot*); written with Synonyms, most of those went away | Owner, 11 November 2026; [facet prompts follow-up](../history/evidence/facet-prompts-stand-alone.md#follow-up-what-reduces-the-extra-antonyms) |
-| What the facets rely on from the core lives in the module's `facets/core/facets.prompt.md`, which every request that writes a facet carries | Owner, 11 November 2026; [plan](../history/plans/facet-prompts-stand-alone.md) |
+| Synonyms and Antonyms are written together, in one request, wherever both apply; every other facet has its own request. Asked for alone, Antonyms in English (US) gave wrong opposites (*adult* for *tot*); written with Synonyms, most of those went away | Owner, 11 November 2026; [facet prompts follow-up](../../evidence/facet-prompts-stand-alone.md#follow-up-what-reduces-the-extra-antonyms) |
+| What the facets rely on from the core lives in the module's `facets/core/facets.prompt.md`, which every request that writes a facet carries | Owner, 11 November 2026; [plan](../../plans/facet-prompts-stand-alone.md) |
 
 ## What we know and what we don't
 
@@ -82,9 +82,9 @@ Each measurement gets its own short plan for approval, a runner kept locally und
 
 | | What | How | Sends anything out? |
 | --- | --- | --- | --- |
-| **M1** | Token split per module ([plan](../history/plans/m1-token-split.md), [results](../history/evidence/m1-token-split.md)) | Today's single request, with every facet, on a test set built for M1 (now [`m1-token-split-inputs.json`](../history/evidence/m1-token-split-inputs.json)): the tokens of the shared prompt, the core's rules, each facet's prompt, and each part of the output | Text provider only, as today |
-| **M2** | Core-then-parallel against one request ([plan](../history/plans/m2-core-then-parallel.md), [results](../history/evidence/m2-core-then-parallel.md)) | For every golden-set input of the Languages modules (Expertise and Mathematics follow only if Languages passes): today's single request, then the split (the core alone, then each facet that applies as its own request, given the key, the Context, the core's flags and meanings, and that facet's prompt, all at once). One card at a time, several runs each, the same model and settings. Recorded: time to the core, time to the last facet, facets missing or failing their checks, golden-set and gate scores | Text provider only, as today |
-| **M3** | Average cost per facet, the core included ([plan](../history/plans/m3-cost-per-facet.md), [results](../history/evidence/m3-cost-per-facet.md)) | Each part's input and output tokens at the provider's prices, averaged over the runs: from M1 for today's single request, and directly from each split request in M2. The two together show what the split adds per card and where | No (M1's and M2's runs) |
+| **M1** | Token split per module ([plan](../../plans/m1-token-split.md), [results](../../evidence/m1-token-split.md)) | Today's single request, with every facet, on a test set built for M1 (now [`m1-token-split-inputs.json`](../../evidence/m1-token-split-inputs.json)): the tokens of the shared prompt, the core's rules, each facet's prompt, and each part of the output | Text provider only, as today |
+| **M2** | Core-then-parallel against one request ([plan](../../plans/m2-core-then-parallel.md), [results](../../evidence/m2-core-then-parallel.md)) | For every golden-set input of the Languages modules (Expertise and Mathematics follow only if Languages passes): today's single request, then the split (the core alone, then each facet that applies as its own request, given the key, the Context, the core's flags and meanings, and that facet's prompt, all at once). One card at a time, several runs each, the same model and settings. Recorded: time to the core, time to the last facet, facets missing or failing their checks, golden-set and gate scores | Text provider only, as today |
+| **M3** | Average cost per facet, the core included ([plan](../../plans/m3-cost-per-facet.md), [results](../../evidence/m3-cost-per-facet.md)) | Each part's input and output tokens at the provider's prices, averaged over the runs: from M1 for today's single request, and directly from each split request in M2. The two together show what the split adds per card and where | No (M1's and M2's runs) |
 
 M1 runs first: its token split tells M2 how large each facet request will be. M3 needs both.
 
@@ -121,7 +121,7 @@ The split needs this, because the server has to know from the core's flags which
 
 Deferred until the owner designs it after Phase 1. A lookup takes chosen parts of a Wiktionary entry, not the whole entry. With the split, a lookup would simply replace one facet's request with a check against a local import, and the rest of the card is unchanged. The label review's notes on the German set (*Beamte*, *Deutsche*, rarer variants) are input to that design.
 
-Now planned in [M4](m4-dictionary-reading.md), after a [coverage check of the German Wiktionary](../history/evidence/m4-german-wiktionary-coverage.md).
+Now planned in [M4](m4-dictionary-reading.md), after a [coverage check of the German Wiktionary](../../evidence/m4-german-wiktionary-coverage.md).
 
 ## Verification
 

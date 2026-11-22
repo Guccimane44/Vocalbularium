@@ -1,6 +1,6 @@
 # Experiment: an English card from Wiktionary
 
-**Superseded by M4** ([dictionary reading](../../plans/m4-dictionary-reading.md)).
+**Superseded by M4** ([dictionary reading](m4-dictionary-reading.md)).
 
 Draft for the owner's review, 9 November 2026. Nothing here is decided. The experiment answers one question before any architecture is designed: **for the English (British) module, how much of a card can Wiktionary fill, how good is it, and how much faster is it than today's single request?**
 

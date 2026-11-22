@@ -1,10 +1,10 @@
 # M4: facets written from a Wiktionary entry
 
-Drafted 12 November 2026 for the owner's review. Status: **draft**. Follows [M3](../history/evidence/m3-cost-per-facet.md) and the owner's direction of 12 November 2026: send the costly facets to Wiktionary, read by a model rather than copied. It extends the [split facets plan](split-facets.md), whose German lookup was deferred until after Phase 1.
+Drafted 12 November 2026 for the owner's review. Status: **dropped by the owner, 22 November 2026.** [M9](../evidence/m9-dictionary-lookup.md) tested the dictionary with Claude Haiku 5.5 as a lookup the model calls when it chooses. Haiku already wrote the German forms correctly, the entries made synonyms, antonyms and senses worse, and only etymology gained, at 60–90 % more cost per German card. Nothing in this plan was built. Follows [M3](../../evidence/m3-cost-per-facet.md) and the owner's direction of 12 November 2026: send the costly facets to Wiktionary, read by a model rather than copied. It extends the [split facets plan](split-facets.md), whose German lookup was deferred until after Phase 1.
 
 Revised 12 November 2026 after the owner's review of the lookup's design: [the lookup in the product](#the-lookup-in-the-product) records how the dictionary is stored and looked up, in the cloud and with many languages. The German tables become the first product step, and M4 adds an arm with the German Wiktionary and a measure of the import's size.
 
-Revised again on 12 November 2026 after three inputs from the owner and a [coverage check of the German Wiktionary](../history/evidence/m4-german-wiktionary-coverage.md):
+Revised again on 12 November 2026 after three inputs from the owner and a [coverage check of the German Wiktionary](../../evidence/m4-german-wiktionary-coverage.md):
 - **Each module reads its own language's Wiktionary:** German from the German Wiktionary, English from the English Wiktionary.
 - **The facets are provisional**, so the import keeps a general entry, not one shaped by today's facets.
 - **A key often isn't the dictionary's headword** (*went*, *ging*, *Reader* and *reader*). [Finding the main word](#finding-the-main-word) says how the lookup gets from one to the other.
@@ -22,7 +22,7 @@ Some facets may need no model at all: German's grammar tables can come straight 
 
 ## Why not a pure lookup
 
-The [Wiktionary experiment](../history/evidence/wiktionary-english-experiment.md) of 9 November copied entries into the card and passed 15 of 41 cards, against 36 for today's request. Its failures were all reading failures:
+The [Wiktionary experiment](../../evidence/wiktionary-english-experiment.md) of 9 November copied entries into the card and passed 15 of 41 cards, against 36 for today's request. Its failures were all reading failures:
 - glosses that aren't senses (*past participle of rin*);
 - rare senses first;
 - synonyms of every sense mixed together (*block* for *bank*);
@@ -71,7 +71,7 @@ A model is used only when a word has more than one entry (*der See* and *die See
 
 ## Arms
 
-Every arm uses the same cores: the 42 part-2 cores of [M3's confirmation run](../history/evidence/m3-cost-per-facet.md), already written and judged. Only the facet requests are sent again. That removes core variation from the comparison and needs no new core requests.
+Every arm uses the same cores: the 42 part-2 cores of [M3's confirmation run](../../evidence/m3-cost-per-facet.md), already written and judged. Only the facet requests are sent again. That removes core variation from the comparison and needs no new core requests.
 
 | Arm | Facets |
 | --- | --- |

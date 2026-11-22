@@ -1,6 +1,6 @@
 # German Wiktionary coverage on the held-out German keys
 
-12 November 2026 (Europe/Berlin). A model-free check before [M4](../../plans/m4-dictionary-reading.md): for the German module, does the German Wiktionary reach the right main word from a key as a reader selects it, and does that word's entry hold what the costly facets need? No model was called.
+12 November 2026 (Europe/Berlin). A model-free check before [M4](../plans/m4-dictionary-reading.md): for the German module, does the German Wiktionary reach the right main word from a key as a reader selects it, and does that word's entry hold what the costly facets need? No model was called.
 
 ## Method
 

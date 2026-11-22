@@ -1,6 +1,6 @@
 # Handoff: catalog cleanup, a classifier before generation, and dictionary lookup
 
-**Not carried out:** the classifier was dropped ([split facets](../../plans/split-facets.md#why-there-is-no-classifier)).
+**Not carried out:** the classifier was dropped ([split facets](split-facets.md#why-there-is-no-classifier)).
 
 Written 10 November 2026 for a new session. It records what the owner asked for, what was found, what was drafted, and what is still open. Nothing here is decided, no product code was changed, nothing was run against Jev, and nothing is committed.
 
