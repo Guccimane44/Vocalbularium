@@ -38,12 +38,14 @@ test('deck return: the way back from a page and a re-sort draw no empty or loadi
     await watch();
     if (way === 'back link') await crumb(a.page, 'My Deck').click(); else await a.page.goBack();
     await a.page.locator('.page-row').first().waitFor();
+    // Nothing may flash over the list while it reloads: time is what this checks.
     await new Promise(resolve => setTimeout(resolve, 400));
     assert.deepEqual((await drawn()).filter(text => text.endsWith('…') || text.startsWith('empty')), [], `${way}: no empty or loading box over the list`);
   }
   // Another order reloads the list in place.
   await watch();
   await a.page.getByLabel('Sort pages', { exact: true }).selectOption('za');
+  // As above: nothing may flash over the list while it reloads.
   await new Promise(resolve => setTimeout(resolve, 400));
   assert.deepEqual((await drawn()).filter(text => text.endsWith('…') || text.startsWith('empty')), [], 'a re-sort keeps the list');
   assert.equal(await a.page.locator('.page-row').count() > 0, true);

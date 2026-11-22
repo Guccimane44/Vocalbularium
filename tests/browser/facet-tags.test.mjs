@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { once } from 'node:events';
 import { staged } from '../helpers/pages.mjs';
-import { BANK, componentArticle, cardButton, facetWindow, tick, launch, signIn, waitFor } from './helpers.mjs';
+import { BANK, componentArticle, cardButton, facetWindow, tick, launch, signIn, waitFor, settled } from './helpers.mjs';
 
 test('facet tags: abbreviations in order, on the left edge, along the edge to the bottom right when folded and back, flown in from the facet window, popped when deleted, and hung from the tab in deck settings', { timeout: 60000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-facet-tags-browser-'));
@@ -170,7 +170,7 @@ test('facet tags: abbreviations in order, on the left edge, along the edge to th
   await row.locator('.menu-button').click();
   await row.locator('.row-menu-list').waitFor();
   await row.locator('.card-tab').hover();
-  await a.page.waitForTimeout(400);
+  await settled(a.page);
   // Tags let the pointer through, so for the hit test they briefly take it.
   assert.deepEqual(await row.locator('.row-menu-list [role="menuitem"]').evaluateAll(items => {
     const hittable = document.head.appendChild(Object.assign(document.createElement('style'), { textContent: '.facet-tags, .facet-tag { pointer-events: auto !important; }' }));
@@ -217,9 +217,9 @@ test('facet tags: abbreviations in order, on the left edge, along the edge to th
   // Scrolled since the list last drew, the first module added moves no other entry (0.13.2: each replayed from below by the scroll's length).
   await a.page.setViewportSize({ width: 1280, height: 420 });
   await a.page.evaluate(() => window.scrollTo(0, 0));
-  await a.page.waitForTimeout(300);
+  await settled(a.page);
   await a.page.evaluate(() => window.scrollTo(0, 160));
-  await a.page.waitForTimeout(300);
+  await settled(a.page);
   const moved = await a.page.evaluate(() => new Promise(done => {
     const entries = [...document.querySelectorAll('.shaping-list [data-row-id] > *')];
     document.querySelector('[aria-label="Add Text at the end"]').click();

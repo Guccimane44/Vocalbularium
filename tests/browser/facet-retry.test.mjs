@@ -6,9 +6,9 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { once } from 'node:events';
 import { wordResult, staged } from '../helpers/pages.mjs';
-import { componentArticle, focusPart, launch, selectedIn, signIn, waitFor } from './helpers.mjs';
+import { componentArticle, focusPart, launch, selectedIn, signIn, waitFor, settled } from './helpers.mjs';
 
-test('0.7.3: a facet’s own Retry beside its Delete, a tag’s remove keeping its colours, and hung tags lifting with their tab', { timeout: 60000 }, async (t) => {
+test('a facet’s own Retry beside its Delete, a tag’s remove keeping its colours, and hung tags lifting with their tab', { timeout: 60000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-facet-retry-browser-'));
   const calls = [];
   let release;
@@ -108,12 +108,12 @@ test('0.7.3: a facet’s own Retry beside its Delete, a tag’s remove keeping i
   // Hovering an empty card lifts its tab and what hangs below it together.
   const hung = componentArticle(a.page, 'German 2');
   await a.page.mouse.move(5, 5);
-  await a.page.waitForTimeout(400);
+  await settled(a.page);
   const place = () => hung.evaluate(node => ({ tab: node.querySelector('.card-tab').getBoundingClientRect().top,
     tags: node.querySelector('.facet-tags').getBoundingClientRect().top }));
   const rest = await place();
   await hung.locator('.card-tab').hover();
-  await a.page.waitForTimeout(400);
+  await settled(a.page);
   const lifted = await place();
   assert.ok(Math.abs((rest.tab - lifted.tab) - 2) < .5, `the tab lifts (${rest.tab} → ${lifted.tab})`);
   assert.ok(Math.abs((rest.tags - lifted.tags) - (rest.tab - lifted.tab)) < .5, `the hung tags lift with it (${rest.tags} → ${lifted.tags})`);
@@ -132,7 +132,7 @@ test('0.7.3: a facet’s own Retry beside its Delete, a tag’s remove keeping i
   assert.equal(await hung.locator('.facet-tags').getByRole('button').count(), 0, 'nor below an empty card');
   const tucked = await synonymsTag.boundingBox();
   await a.page.mouse.click(tucked.x + tucked.width / 2, tucked.y + tucked.height / 2);
-  await a.page.waitForTimeout(300);
+  await settled(a.page);
   assert.deepEqual(await synonymsTag.boundingBox(), tucked, 'clicking a tag moves nothing');
   // An empty facet's own Retry, beside its heading, asks nothing: the facet generates at once, its tag breathing.
   await card.locator('.facet[data-facet="synonyms"]').hover();
