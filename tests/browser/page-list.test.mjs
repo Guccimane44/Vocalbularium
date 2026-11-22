@@ -214,6 +214,7 @@ test('sidebar: the current deck stays marked on a page while the account refresh
   // A real change redraws it, and My Deck stays marked throughout.
   await store.capture('sidebar-second', { session, mainKey: '快乐', snapshot: await store.snapshot() });
   await a.page.locator('#sidebar .nav-count').filter({ hasText: '2' }).waitFor({ timeout: 12000 });
+  // Redraws that follow the count may come a moment later: time is what this checks.
   await new Promise(resolve => setTimeout(resolve, 500));
   const redraws = await log();
   assert.ok(redraws.length > 0, 'the change redrew the sidebar');

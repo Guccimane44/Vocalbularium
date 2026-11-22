@@ -4,6 +4,8 @@ import assert from 'node:assert/strict';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import { CATALOG_FAMILIES, MODULES } from '@vocabularium/domain/catalog';
+import { CATALOG, FAMILIES, WINDOW_MODULES } from '@vocabularium/domain/page-modules';
 import { text, useModules, wordResult, staged } from '../helpers/pages.mjs';
 import { modulesOf, componentArticle, cardTab, cardButton, launch, signIn, waitFor, steps } from './helpers.mjs';
 
@@ -131,18 +133,22 @@ test('page view: main key tiers, Show all, rendered and plain content, quiet car
   await a.page.keyboard.press('Escape');
   await helpText.waitFor({ state: 'hidden' });
   const families = await window.locator('details').evaluateAll(nodes => nodes.map(node => [node.querySelector('summary').textContent, node.open]));
-  // Translation is called Languages since 0.8.0; Expertise, Creativity and Sound have no module on this page, so they start closed (D11, D24, D30).
-  assert.deepEqual(families, [['Languages3', true], ['Expertise3', false], ['Creativity3', false], ['Sound1', false], ['Notes2', true]]);
+  // Each family with a module in the window shows its count; only the families of this page's modules, Languages and Notes, start open (D11).
+  const inWindow = family => WINDOW_MODULES.filter(type => CATALOG[type].family === family).length;
+  assert.deepEqual(families, FAMILIES.filter(inWindow).map(family => [`${CATALOG_FAMILIES.find(each => each.id === family).label}${inWindow(family)}`, ['translation', 'notes'].includes(family)]));
   // A module on the page is not marked in the window (D13, 0.8.1), and the search no longer finds facets.
   assert.equal(await window.getByText('Already here').count(), 0);
   await window.getByLabel('Search modules', { exact: true }).fill('pinyin');
   await window.getByText('No module matches “pinyin”.').waitFor();
   await window.getByLabel('Search modules', { exact: true }).fill('chinese');
-  assert.deepEqual(await window.locator('.window-module:visible').evaluateAll(nodes => nodes.map(node => node.dataset.type)), ['chinese']);
+  // The search reads each module's name and description.
+  const mentioning = term => WINDOW_MODULES.filter(type => `${MODULES[type].label} ${MODULES[type].description}`.toLowerCase().includes(term));
+  assert.deepEqual(await window.locator('.window-module:visible').evaluateAll(nodes => nodes.map(node => node.dataset.type)), mentioning('chinese'));
+  assert.ok(mentioning('chinese').includes('chinese'));
   await window.getByLabel('Search modules', { exact: true }).fill('nothing like this');
   await window.getByText('No module matches “nothing like this”.').waitFor();
   await window.getByLabel('Search modules', { exact: true }).fill('');
-  assert.equal(await window.locator('.window-module').count(), 12);
+  assert.equal(await window.locator('.window-module').count(), WINDOW_MODULES.length);
   await a.page.setViewportSize({ width: 390, height: 800 });
   await waitFor(() => a.page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'the page fits a narrow window');
 });

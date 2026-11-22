@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { launch, signIn, waitFor } from './helpers.mjs';
+import { dragKey, launch, settled, signIn, waitFor } from './helpers.mjs';
 
 test('deck order: drag a card on Home, move a sidebar row by keyboard and by pointer; both lists follow and the order stays', { timeout: 60000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-deck-order-browser-'));
@@ -21,7 +21,6 @@ test('deck order: drag a card on Home, move a sidebar row by keyboard and by poi
   const saved = async () => (await store.listDecks()).decks.map(deck => deck.name);
   const home = () => a.page.locator('.deck-slot h2').allTextContents();
   const sidebar = () => a.page.locator('.nav-decks .nav-label').allTextContents();
-  const pause = () => new Promise(resolve => setTimeout(resolve, 300));
   assert.deepEqual(await home(), ['My Deck', 'Second', 'Third']);
 
   // Home: Third dragged by its body onto My Deck's place.
@@ -37,25 +36,25 @@ test('deck order: drag a card on Home, move a sidebar row by keyboard and by poi
   assert.match(new URL(a.page.url()).hash, /^#?$/, 'a drag opens no deck');
   // The dropped card settles once the pointer leaves it: not lifted, its families back behind its edge (0.16.2's first build stayed up).
   await a.page.mouse.move(5, 900);
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  const settled = await a.page.locator('.deck-slot').filter({ has: a.page.getByRole('heading', { name: 'Third', exact: true }) }).evaluate(slot =>
+  await settled(a.page);
+  const resting = await a.page.locator('.deck-slot').filter({ has: a.page.getByRole('heading', { name: 'Third', exact: true }) }).evaluate(slot =>
     [getComputedStyle(slot.querySelector('.deck')).transform, new DOMMatrix(getComputedStyle(slot.querySelector('.deck-family')).transform).f]);
-  assert.deepEqual(settled, ['none', 22], 'the dropped card settles');
+  assert.deepEqual(resting, ['none', 22], 'the dropped card settles');
 
   // Sidebar, keyboard: Space picks Second up, Arrow Up twice, Space drops it.
   const row = name => a.page.locator('.nav-decks a').filter({ hasText: name });
   await row('Second').focus();
-  await a.page.keyboard.press('Space'); await pause();
-  await a.page.keyboard.press('ArrowUp'); await pause();
-  await a.page.keyboard.press('ArrowUp'); await pause();
+  await dragKey(a.page, 'Space');
+  await dragKey(a.page, 'ArrowUp');
+  await dragKey(a.page, 'ArrowUp');
   await a.page.keyboard.press('Space');
   await waitFor(async () => JSON.stringify(await saved()) === JSON.stringify(['Second', 'Third', 'My Deck']), 'the keyboard move saved');
   await waitFor(async () => JSON.stringify(await home()) === JSON.stringify(['Second', 'Third', 'My Deck']), 'Home follows');
   // Escape puts a picked-up row back.
   await row('Second').focus();
-  await a.page.keyboard.press('Space'); await pause();
-  await a.page.keyboard.press('ArrowDown'); await pause();
-  await a.page.keyboard.press('Escape'); await pause();
+  await dragKey(a.page, 'Space');
+  await dragKey(a.page, 'ArrowDown');
+  await dragKey(a.page, 'Escape');
   assert.deepEqual(await sidebar(), ['Second', 'Third', 'My Deck'], 'Escape moves nothing');
   assert.deepEqual(await saved(), ['Second', 'Third', 'My Deck']);
 
@@ -72,6 +71,7 @@ test('deck order: drag a card on Home, move a sidebar row by keyboard and by poi
   await a.page.mouse.move(mine.x + 40, top.y + 4, { steps: 12 });
   await a.page.mouse.up();
   await waitFor(async () => JSON.stringify(await saved()) === JSON.stringify(['My Deck', 'Second', 'Third']), 'the sidebar drag saved');
+  // The old order must not come back after the save: time is what this checks.
   await new Promise(resolve => setTimeout(resolve, 600));
   // The row passes its neighbours while dragged; no order shown before comes back (0.16.2's first build put the old order back for a moment).
   const orders = await a.page.evaluate(() => window.orders);
