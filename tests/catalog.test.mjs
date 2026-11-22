@@ -309,3 +309,32 @@ test('every module folder holds the parts the modules spec requires', () => {
   }
   assert.deepEqual(missing, []);
 });
+
+// A facet's `when` reads only its core's declared flags, whatever their values:
+// a field it misspells, or one its core never writes, would hide the facet on
+// every card. Each closed flag takes the shape's choices; a free-text flag, the
+// texts a core writes for the catalog's languages and roles.
+const TEXTS = [undefined, '', 'noun', 'verb', 'adjective', 'adverb', 'preposition', 'other', 'Deutsch', 'deutsch', 'Englisch', 'English', 'english', '中文', '汉语', 'Chinesisch', 'en', 'de', 'zh'];
+function* combinations(flags, choices) {
+  if (!flags.length) { yield {}; return; }
+  const [first, ...rest] = flags;
+  for (const value of choices(first)) for (const others of combinations(rest, choices)) yield { ...(value === undefined ? {} : { [first]: value }), ...others };
+}
+test('every facet condition reads only its core’s declared flags', () => {
+  for (const id of content) {
+    const { core, facets } = contentModule(id);
+    const properties = core.shape.schema.properties;
+    const choices = flag => [undefined, ...(properties[flag].enum ?? TEXTS)];
+    for (const facet of facets.filter(each => each.when)) {
+      const read = new Set();
+      for (const values of combinations(core.flags, choices)) {
+        facet.when(new Proxy(values, {
+          get: (target, field) => { if (typeof field === 'string') read.add(field); return target[field]; },
+          has: (target, field) => { if (typeof field === 'string') read.add(field); return field in target; }
+        }));
+      }
+      const undeclared = [...read].filter(field => !core.flags.includes(field));
+      assert.deepEqual(undeclared, [], `${id}'s ${facet.id} reads ${undeclared.join(', ')}, which its core does not declare as a flag`);
+    }
+  }
+});

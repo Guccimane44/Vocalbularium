@@ -30,7 +30,7 @@ const checks: readonly Check<Joke>[] = [
 ];
 
 export default defineCore<Joke>({
-  id: 'core', labels: { word_phrase: 'Joke', sentence: 'Joke' }, shape,
+  id: 'core', labels: { word_phrase: 'Joke', sentence: 'Joke' }, shape, flags: ['language'],
   // One line each, in one paragraph.
   format: core => core.joke.map(escapeMarkdown).join('\n'),
   header: core => ({ kind: 'creativity', language: core.language, key: core.key }),

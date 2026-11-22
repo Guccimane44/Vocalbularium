@@ -1,6 +1,6 @@
 # Plan: delete the dead catalog fields, then define the flags
 
-Drafted 10 November 2026 for a new session. Status: **step 1 done** (released as 0.16.6, [D31](../decisions/d31.md)); **step 2 is a draft**, not approved.
+Drafted 10 November 2026 for a new session. Status: **step 1 done** (released as 0.16.6, [D31](../decisions/d31.md)); **step 2 Part B done** in a narrowed form (see [Part B as built](#part-b-as-built)); **Part A is a draft**, not approved.
 
 This plan covers the first two steps of the owner's rework. Background, findings and the open questions are in the [handoff](../history/plans/headers-flags-classifier-handoff.md); how flags and headers work today is in the owner's local headers and flags map (not in the repository). Read both first.
 
@@ -147,6 +147,16 @@ What the refactor does:
 5. Update `docs/subsystems/module-catalog.md`.
 
 **Out of scope for Part B:** the stored header shape. `ParentHeaderSchema` in `packages/contracts/src/pages.ts` keeps its five variants. Replacing it with a general record of flags is right in the long run (it brings the contract in line with D25), but it changes stored data and the API, and step 4 changes the header again when a classifier writes it first. Do it once, with the decision that supersedes D17.
+
+### Part B as built
+
+Built on 22 November 2026, at the owner's request, after the classifier (step 3) and the core and facet split were dropped. Without a classifier, the parts of the sketch that described when a flag can be known (`about`, `from`) have no reader, so they were left out.
+
+- Each core lists its flags as `flags: readonly (keyof T)[]`, the only fields a facet's `when` may read. Their values are the shape's, so nothing is declared twice. The compiler rejects a flag the core's shape does not have.
+- `ruledOut()` reads the declaration instead of testing `'relevance' in core`.
+- `tests/catalog.test.mjs` runs every `when` over every combination of its core's flag values and fails when it reads an undeclared field.
+- `modules.ts` still takes the keys of `header(previous)` on a core Retry. That keeps every top-line field, `key`, `romanization` and the language name included, which are not flags. Reading the declared flags there would change what a Retry keeps, so it was left as it is.
+- `requires` (such as `hasCode` only for a key of the subject) stays in each core's `header()` and its prompt; no code reads it from a declaration.
 
 ### Done when (Part B)
 

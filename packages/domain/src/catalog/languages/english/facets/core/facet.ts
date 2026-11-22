@@ -30,7 +30,7 @@ const CONTEXT_LABEL = '(in this context)';
 const LABELLED = /(^|\()\s*in this context\b/i;
 
 export default defineCore({
-  id: 'core', labels: { word_phrase: 'Meanings', sentence: 'Translation' }, shape,
+  id: 'core', labels: { word_phrase: 'Meanings', sentence: 'Translation' }, shape, flags: ['kind', 'language', 'gramRole'],
   headerLabels: { word: 'Word', sentence: 'Sentence' },
   // A word's meanings as a numbered list, its meaning in this Context first
   // under the label; a sentence's translation as text.
