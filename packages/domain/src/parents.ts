@@ -92,7 +92,7 @@ export function ruledOut(parent: ParentType, facet: FacetType, core: CoreValue):
   const definition = contentModule(parent).facets.find(each => each.id === facet);
   if (!definition) return null;
   if (!definition.applies.includes(core.kind === 'sentence' ? 'sentence' : 'word_phrase')) return 'sentence';
-  if ('relevance' in core) return core.relevance === 'subject' ? 'none' : 'subject';
+  if (contentModule(parent).core.flags.includes('relevance')) return core.relevance === 'subject' ? 'none' : 'subject';
   return 'role';
 }
 // The given facets that apply to a written core, in the parent's order.

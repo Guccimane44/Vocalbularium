@@ -15,7 +15,7 @@ const shape = object({
 }, { own: true });
 
 export default defineCore({
-  id: 'core', labels: { word_phrase: 'Explanation', sentence: 'Explanation' }, shape,
+  id: 'core', labels: { word_phrase: 'Explanation', sentence: 'Explanation' }, shape, flags: ['relevance', 'hasEquation'],
   // Paragraphs separated by a blank line.
   format: core => core.explanation.map(escapeMarkdown).join('\n\n'),
   header: core => ({ kind: 'expertise', key: core.key, relevance: core.relevance, ...(core.relevance === 'subject' && core.hasEquation ? { hasEquation: core.hasEquation } : {}) }),
