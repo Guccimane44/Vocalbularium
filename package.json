@@ -15,6 +15,7 @@
     "test:browser": "node --env-file-if-exists=.env.postgres scripts/browser-tests.mjs",
     "screens": "node --env-file-if-exists=.env.postgres tests/screens/run.mjs",
     "drive": "node --env-file-if-exists=.env.postgres scripts/drive.mjs",
+    "test-build": "node scripts/test-build.mjs",
     "check:sessions": "npm run build:packages && node --env-file-if-exists=.env.postgres scripts/check-sessions.mjs",
     "start": "npm run build:packages && node --env-file-if-exists=.env --env-file-if-exists=.env.postgres src/server/start.mjs",
     "logs": "node --env-file-if-exists=.env scripts/logs.mjs",

@@ -9,7 +9,8 @@ Each page describes one part of Vocabularium as it works today: what it is respo
 | Store | PostgreSQL, the ordered executor, the schema and migrations, decks, pages and components, page summaries | [Store](store.md) |
 | Generation | Attempts and runs, capacity, Retry of a card, a facet or the core, the journal, stage and publish, the text provider | [Generation](generation.md) |
 | Audio | Spoken parts, clips and their jobs, the speech provider | [Audio](audio.md) |
-| Module catalog | Modules and facets, their shapes, flags, checks, prompts and page text; the composer; golden sets and the gate | [Module catalog](module-catalog.md) |
+| Module catalog | Modules and facets, their shapes, flags, checks, prompts and page text; the composer | [Module catalog](module-catalog.md) |
+| Quality gate | Golden sets, the judge and its calibration, the audit, and the verdict on whether a module ships | [Quality gate](quality-gate.md) |
 | Interface | Visual identity, themes, list states, motion, dialogs and text content, shared by every screen | [Interface](interface.md) |
 | Localisation | Interface languages, catalogues, the account's preference, right to left | [Localisation](localisation.md) |
 | Observability and reports | Diagnostic logs on both sides, and **Report a problem** with its GitHub issues | [Observability and reports](observability-and-reports.md) |
