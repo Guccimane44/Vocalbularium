@@ -49,9 +49,8 @@ test('parents and facets: core only on add, the facet window on the parent, its 
     'every facet of German, the grammar facets (D17), Pronunciation (D24) and the 0.16.4 facets included');
   assert.deepEqual(await inOrder(facets, 'equipped'), [true, true, true, true, false, false, false, false, false, false, false, false], 'the grammar facets and Pronunciation are not on a My Deck card (K56)');
   await waitFor(() => tick(facets, 'Article').evaluate(node => node === document.activeElement), 'the first row takes the focus');
-  // A card on the surface (D23, 0.13.3): a heading naming the parent, a close, and a line on Retry.
+  // A card on the surface (D23, 0.13.3): a heading naming the parent and a close.
   assert.equal(await facets.getByRole('heading', { level: 3 }).textContent(), 'Facets of German');
-  assert.equal(await facets.locator('.facet-window-hint').textContent(), 'Added facets fill in on the next Retry.');
   // Two groups: the facets on the card, each with its Remove, then the others, each with its Add.
   assert.deepEqual(await facets.locator('.facet-window-group').allTextContents(), ['On this card', 'Add']);
   assert.deepEqual(await facets.getByRole('list', { name: 'On this card', exact: true }).locator('.facet-toggle').evaluateAll(nodes => nodes.map(node => node.getAttribute('aria-label'))),

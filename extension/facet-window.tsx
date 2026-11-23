@@ -26,10 +26,8 @@ import { FamilyIcon } from './families.tsx';
 // remove, and the others to add, each with a +; a facet moves between them.
 // Since 0.16.4 a parent holding MAX_FACETS facets has its others disabled,
 // with the reason beneath the group's name.
-export function FacetWindow({ holderId, parent, title, facets, disabled, onPage = true, hasContent, onAdd, onRemove, onClose }: {
+export function FacetWindow({ holderId, parent, title, facets, disabled, hasContent, onAdd, onRemove, onClose }: {
   holderId: string; parent: ParentType; title: string; facets: readonly string[]; disabled: boolean;
-  // On a page an added facet waits for Retry, which the heading says; deck settings hold no content.
-  onPage?: boolean;
   // Whether unticking would lose what the facet holds; never in deck settings.
   hasContent: (facet: FacetType) => boolean;
   onAdd: (facet: FacetType) => boolean | void | Promise<boolean | void>;
@@ -150,7 +148,6 @@ export function FacetWindow({ holderId, parent, title, facets, disabled, onPage 
     <div className="facet-window-body">
       {group('on', all.filter(equipped))}
       {group('add', all.filter(facet => !equipped(facet)))}
-      {onPage && <p className="facet-window-hint" style={{ '--j': drop++ } as CSSProperties}>{t('card.facetsHint')}</p>}
     </div>
   </div>;
 }

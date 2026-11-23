@@ -32,7 +32,6 @@
   "card.generatedAnnouncement": "تم توليد {card}.",
   "card.actions": "إجراءات {card}",
   "card.facetsOf": "جوانب {card}",
-  "card.facetsHint": "تُملأ الجوانب المضافة عند «إعادة المحاولة» التالية.",
   "card.facetsOn": "على هذه البطاقة",
   "card.facetsAdd": "إضافة",
   "card.facetsFull": "تحمل البطاقة {count} جانبًا على الأكثر. أزل واحدًا لتضيف غيره.",

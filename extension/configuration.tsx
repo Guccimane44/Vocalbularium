@@ -83,7 +83,7 @@ function DeckModule({ item, parts, busy, opened, setOpened, choosing, setChoosin
           onClick={() => { setOpened(false); openAbout({ kind: 'module', module: item.type }); }}><ActionIcon name="about" />{t('card.about')}</button>
         <SettingsAction index={isParentType(item.type) ? 3 : 2} name={item.label} entries={deckModuleSettings()} />
       </div>}
-      {opened && choosing && isParentType(item.type) && <FacetWindow holderId={item.id} parent={item.type} title={item.label} facets={item.facets ?? []} onPage={false}
+      {opened && choosing && isParentType(item.type) && <FacetWindow holderId={item.id} parent={item.type} title={item.label} facets={item.facets ?? []}
         disabled={busy} hasContent={() => false} onAdd={onAddFacet} onRemove={onRemoveFacet}
         onClose={refocus => {
           setChoosing(false);

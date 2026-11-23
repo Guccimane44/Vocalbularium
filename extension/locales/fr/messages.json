@@ -32,7 +32,6 @@
   "card.generatedAnnouncement": "{card} : génération terminée.",
   "card.actions": "Actions : {card}",
   "card.facetsOf": "Facettes : {card}",
-  "card.facetsHint": "Les facettes ajoutées se remplissent au prochain Réessayer.",
   "card.facetsOn": "Sur cette carte",
   "card.facetsAdd": "Ajouter",
   "card.facetsFull": "Une carte contient au plus {count} facettes. Retirez-en une pour en ajouter une autre.",

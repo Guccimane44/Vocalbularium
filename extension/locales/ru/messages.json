@@ -32,7 +32,6 @@
   "card.generatedAnnouncement": "{card}: генерация завершена.",
   "card.actions": "Действия: {card}",
   "card.facetsOf": "Разделы: {card}",
-  "card.facetsHint": "Добавленные разделы заполнятся при следующем «Повторить».",
   "card.facetsOn": "На этой карточке",
   "card.facetsAdd": "Добавить",
   "card.facetsFull": "На карточке не больше {count} разделов. Уберите один, чтобы добавить другой.",

@@ -32,7 +32,6 @@
   "card.generatedAnnouncement": "{card} generated.",
   "card.actions": "{card} actions",
   "card.facetsOf": "Facets of {card}",
-  "card.facetsHint": "Added facets fill in on the next Retry.",
   "card.facetsOn": "On this card",
   "card.facetsAdd": "Add",
   "card.facetsFull": "A card holds at most {count} facets. Remove one to add another.",
