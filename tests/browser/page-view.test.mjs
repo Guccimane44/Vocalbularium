@@ -70,7 +70,7 @@ test('page view: main key tiers, Show all, rendered and plain content, quiet car
   assert.equal(await examples.locator('.card-actions').count(), 0, 'hovering no longer shows actions');
   await cardTab(a.page, 'German').click();
   // A parent's Facet opens its facet window (D13, 0.8.1).
-  assert.deepEqual(await examples.locator('.card-actions button').allTextContents(), ['Edit', 'Retry', 'Facet', 'About', 'Fold', '', 'Delete']);
+  assert.deepEqual(await examples.locator('.card-actions button').allTextContents(), ['Edit', 'Retry', 'Facet', 'About', 'Fold', 'Settings', 'Delete']);
   assert.equal(await cardTab(a.page, 'German').getAttribute('aria-expanded'), 'true');
   assert.equal(await examples.locator('.card-actions button').first().evaluate(node => getComputedStyle(node).animationName), 'eject', 'the actions eject from the tab');
   await a.page.mouse.click(5, 5);
@@ -94,7 +94,7 @@ test('page view: main key tiers, Show all, rendered and plain content, quiet car
   await a.page.keyboard.press('Escape');
   assert.equal(await examples.locator('.card-actions').count(), 0);
   assert.equal(await a.page.evaluate(() => document.activeElement.className), 'tab-button');
-  // The tab's actions are its only menu: Settings, an icon only, drops its placeholder entries down below it, with the eject's spring.
+  // The tab's actions are its only menu: Settings drops its placeholder entries down below it, with the eject's spring.
   await cardTab(a.page, 'German').click();
   await (await cardButton(a.page, 'Settings for German')).click();
   const menu = a.page.getByRole('menu', { name: 'Settings for German' });

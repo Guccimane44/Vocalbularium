@@ -435,8 +435,7 @@ export function ConfirmAction({ kind, title, offset, onConfirm, onCancel }: {
 }
 
 // Settings, among the actions a tab ejects, drops its entries down below it,
-// one after another with the same spring. It shows its icon only, so the tab
-// keeps room for its label. Its entries are placeholders for now.
+// one after another with the same spring. Its entries are placeholders for now.
 export function SettingsAction({ index, name, entries }: { index: number; name: string; entries: readonly string[] }) {
   const [open, setOpen] = useState(false);
   const button = useRef<HTMLButtonElement>(null);
@@ -447,7 +446,7 @@ export function SettingsAction({ index, name, entries }: { index: number; name: 
     event.stopPropagation(); setOpen(false); button.current?.focus();
   }}>
     <button ref={button} type="button" style={{ '--i': index } as CSSProperties} aria-label={label} aria-haspopup="menu" aria-expanded={open}
-      aria-controls={open ? listId : undefined} title={t('card.settings')} onClick={() => setOpen(!open)}><ActionIcon name="settings" /></button>
+      aria-controls={open ? listId : undefined} onClick={() => setOpen(!open)}><ActionIcon name="settings" />{t('card.settings')}</button>
     {open && <ul id={listId} className="action-submenu" role="menu" aria-label={label}>
       {entries.map((entry, at) => <li key={entry} role="menuitem" aria-disabled="true" style={{ '--j': at } as CSSProperties}>
         {entry}<span className="soon">{t('shaping.comingSoon')}</span></li>)}

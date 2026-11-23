@@ -162,7 +162,7 @@ test('facet tags: abbreviations in order, on the left edge, along the edge to th
   assert.ok((await row.boundingBox()).height < 30, 'a slim band');
   // Its tab ejects About, Facet, Settings and Remove: no Fold or Unfold.
   await row.locator('.tab-button').click();
-  assert.deepEqual(await row.locator('.card-actions button').evaluateAll(buttons => buttons.map(button => button.textContent)), ['About', 'Facet', '', 'Remove']);
+  assert.deepEqual(await row.locator('.card-actions button').evaluateAll(buttons => buttons.map(button => button.textContent)), ['About', 'Facet', 'Settings', 'Remove']);
   // No tag is a button there either (0.13.2). Unticked in the facet window, a tag pops; ticked again, it flies in from its row.
   assert.equal(await row.locator('.facet-tags').getByRole('button').count(), 0, 'no tag interaction');
   // Settings drops its entries over the tags hung below the tab, the card lifted under the pointer (0.13.2: a menu opened beneath them).

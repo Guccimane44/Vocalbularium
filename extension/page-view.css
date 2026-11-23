@@ -182,7 +182,7 @@
 /* Settings drops its entries down below it, one after another, with the
    spring its own action ejected with; they show as placeholders. */
 .action-settings { position: relative; display: inline-flex; flex: none; }
-.action-settings > button { z-index: 1; padding: 0 9px; }
+.action-settings > button { z-index: 1; }
 .card-actions .action-settings > button[aria-expanded="true"] { background: var(--fam, var(--fam-notes)); color: var(--on-fam, var(--on-ink)); }
 .action-submenu { position: absolute; top: calc(100% + 4px); inset-inline-start: 0; z-index: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 4px;
   margin: 0; padding: 0; list-style: none; }
