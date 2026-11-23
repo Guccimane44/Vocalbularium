@@ -98,8 +98,12 @@ test('the layout rules on the dashboard, a German page, its facet window and the
     'facet-window': async m => {
       await screens['german-page'](m);
       const label = m['catalog.german.label'] ?? 'German';
-      await a.page.locator('article.component[data-type="german"] .tab-button').click({ timeout: 10000 });
-      await a.page.getByRole('button', { name: m['card.facetsOf'].replace('{card}', label), exact: true }).click({ timeout: 10000 });
+      // Going to the same page keeps it as it was: the window, and the actions it opens from, may still be out.
+      if (!await a.page.locator('.facet-window').count()) {
+        const facet = a.page.getByRole('button', { name: m['card.facetsOf'].replace('{card}', label), exact: true });
+        if (!await facet.count()) await a.page.locator('article.component[data-type="german"] .tab-button').click({ timeout: 10000 });
+        await facet.click({ timeout: 10000 });
+      }
       await a.page.locator('.facet-window-row').first().waitFor({ timeout: 10000 });
     },
     'account-menu': async m => {
