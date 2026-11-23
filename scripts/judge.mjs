@@ -64,6 +64,15 @@ export async function judgeCard(provider, module, criteria, input) {
   return { verdict, checks, scores };
 }
 
+// Where a second judge's verdicts differ from the gate judge's on the same run,
+// matched by position: both judge the golden run's cards in order. With no gate
+// verdicts, every card the second judge did not pass.
+/** @template {{ verdict: string }} T @param {readonly T[]} judged @param {readonly T[]} audited @returns {{ index: number, judge: T | undefined, audit: T }[]} */
+export function disagreements(judged, audited) {
+  return audited.map((audit, index) => ({ index, judge: judged[index], audit }))
+    .filter(({ judge, audit }) => judge ? judge.verdict !== audit.verdict : audit.verdict !== 'pass');
+}
+
 // A card the judge could not score is reported, and the run goes on.
 /** @param {Judge} provider @param {ModuleId} module @param {Criterion[]} criteria @param {JudgeInput} input @returns {Promise<Judgement>} */
 async function judgeSafely(provider, module, criteria, input) {

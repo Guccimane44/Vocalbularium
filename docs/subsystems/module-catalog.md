@@ -319,5 +319,5 @@ Each content module has its own **golden set** under `tests/golden/`, run agains
 | [`tests/content-checks.test.mjs`](../../tests/content-checks.test.mjs) | Each facet's `checks` on recorded good and bad cards |
 | [`tests/content.test.mjs`](../../tests/content.test.mjs), [`tests/render.test.mjs`](../../tests/render.test.mjs), [`tests/parents.test.mjs`](../../tests/parents.test.mjs) | Shapes, formatting and rendering |
 | [`tests/localisation.test.mjs`](../../tests/localisation.test.mjs) | Every module's page text and names in every interface language |
-| `npm run gate -- <module>` | Live: the module's golden set, its checks and the calibrated judge against its `rubric.md`; spends provider usage |
+| `npm run gate -- <module>` | Live: the module's golden set, its checks and the calibrated judge against its `rubric.md`, then an audit by a judge from another model family (`AUDIT_MODEL`, GPT-6 Luna by default) that lists where the two disagree without changing the verdict; spends provider usage |
 | `npm run smoke:reading` | Live: ambiguous keys retried with and without their saved core as `previous`, for the owner to compare the readings (the core's Retry) |

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
-import { judgeCard, rubricOf } from '../scripts/judge.mjs';
+import { disagreements, judgeCard, rubricOf } from '../scripts/judge.mjs';
 import { parentsIn } from '@vocabularium/domain/parents';
 import { checkCard } from '@vocabularium/domain/checks';
 import { checkTools } from '../scripts/check-tools.mjs';
@@ -77,4 +77,11 @@ test('the meter adds up the service\'s list cost of every reply, failed ones inc
   assert.equal(cost.spent(), 0.0004);
   assert.equal(costOf('not json'), 0);
   assert.equal(costOf(undefined), 0);
+});
+
+test('the audit lists the cards a second judge scores differently, matched in order, or with no judge every card it does not pass', () => {
+  const judged = [{ key: 'a', verdict: 'pass' }, { key: 'b', verdict: 'weak' }, { key: 'c', verdict: 'fail' }];
+  const audited = [{ key: 'a', verdict: 'pass' }, { key: 'b', verdict: 'fail' }, { key: 'c', verdict: 'fail' }];
+  assert.deepEqual(disagreements(judged, audited).map(({ judge, audit }) => [audit.key, judge?.verdict, audit.verdict]), [['b', 'weak', 'fail']]);
+  assert.deepEqual(disagreements([], audited).map(({ audit }) => audit.key), ['b', 'c']);
 });
