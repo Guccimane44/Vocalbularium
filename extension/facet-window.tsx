@@ -50,12 +50,12 @@ export function FacetWindow({ holderId, parent, title, facets, disabled, hasCont
   const holding = facets.join('|');
   useEffect(() => { setWanted({}); }, [holding]);
   const equipped = (facet: FacetType) => wanted[facet] ?? facets.includes(facet);
-  // Facet, in the same card head; the window unfolds from below it.
+  // Facet, in the same card head; the window unfolds 8px below it, clear of the card's ruled edge, as the dropdowns do.
   const trigger = () => root.current?.parentElement?.querySelector<HTMLElement>('[data-facet-trigger]') ?? null;
   const [place, setPlace] = useState<{ insetInlineStart: number; top: number }>();
   useLayoutEffect(() => {
     const head = root.current?.parentElement?.getBoundingClientRect(), facet = trigger()?.getBoundingClientRect();
-    if (head && facet) setPlace({ insetInlineStart: direction() === 'rtl' ? head.right - facet.right : facet.left - head.left, top: facet.bottom - head.top + 4 });
+    if (head && facet) setPlace({ insetInlineStart: direction() === 'rtl' ? head.right - facet.right : facet.left - head.left, top: facet.bottom - head.top + 8 });
   }, []);
   // The rows drop in once, as the window opens; a facet moving between the
   // groups later keeps still.
