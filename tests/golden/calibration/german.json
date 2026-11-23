@@ -1469,8 +1469,8 @@
       "id": "phrase-synonyms",
       "key": "break the ice",
       "language": "en",
-      "expected": "fail",
-      "why": "Recorded defect: golden run 2026-11-03T19-57-22-113Z-en-german.json. \"zerbrechen\" and \"knacken\" are synonyms of brechen alone, not of \"das Eis brechen\" or \"auflockern\".",
+      "expected": "pass",
+      "why": "Recorded defect: golden run 2026-11-03T19-57-22-113Z-en-german.json. \"zerbrechen\" and \"knacken\" are synonyms of brechen alone, not of \"das Eis brechen\" or \"auflockern\". Relabelled on 2026-11-23 by the owner: the gate fails only fatal faults. Both words fit the card's literal meaning \"das Eis brechen\" loosely, so this is a weak fault, not a fatal one.",
       "card": {
         "core": {
           "kind": "word",

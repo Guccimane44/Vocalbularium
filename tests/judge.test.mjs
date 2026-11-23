@@ -37,6 +37,10 @@ test('a card fails on any failed criterion or content check, is weak on a weak o
   const judged = await judgeCard(scored(all('pass')), 'german', criteria, badArticle);
   assert.deepEqual([judged.verdict, judged.checks.map(check => check.check)], ['fail', ['article-form']], 'a content check fails the card whatever the judge says');
   await assert.rejects(judgeCard({ complete: async () => ({ [ids[0]]: { verdict: 'great', reason: 'x' } }) }, 'german', criteria, input), /no verdict/);
+  let asked = 0;
+  const schemaOnce = { complete: async request => ({ ...(await scored(all('pass')).complete(request)), ...(asked++ ? {} : { [ids[1]]: { type: 'object' } }) }) };
+  assert.equal((await judgeCard(schemaOnce, 'german', criteria, input)).verdict, 'pass', 'an unreadable verdict is asked for once more');
+  assert.equal(asked, 2);
 });
 
 test('the calibration set covers every module with a rubric, with recorded passes that pass the content checks and seeded fails', async () => {
