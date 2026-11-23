@@ -10,6 +10,7 @@ import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, v
 import { CSS as DndCSS } from '@dnd-kit/utilities';
 import type { Component } from '@vocabularium/contracts';
 import { CATALOG, isModuleType } from '@vocabularium/domain/page-modules';
+import type { ModuleFamily } from '@vocabularium/domain/page-modules';
 import { blockText } from '@vocabularium/domain/pages';
 import { renderContent, renderParent } from '@vocabularium/domain/render';
 import type { Rendered } from '@vocabularium/domain/render';
@@ -411,28 +412,32 @@ export function Reveal({ status, title, facet, failedFacet, children }: {
   </div>;
 }
 
-// Deleting or retrying a component that has content asks first, ejected from
-// the tab like its actions (0.6.3): the final Delete or Retry and Cancel, then
-// the question. Cancel lands where the button just clicked was, under the
-// pointer, so a second click does not act; the final button stands to its left.
-export function ConfirmAction({ kind, title, offset, onConfirm, onCancel }: {
-  kind: 'delete' | 'retry'; title: string; offset: number; onConfirm: () => void; onCancel: () => void;
+// A card's question: a small panel ejected beside the Delete or
+// Retry it asks for, the Actions menu still open. It names the module with
+// its tag, says what cannot be undone, and starts on Cancel.
+const MODULE_MARK = '\uE000';
+export function ConfirmPanel({ kind, title, family, onConfirm, onCancel }: {
+  kind: 'delete' | 'retry'; title: string; family: ModuleFamily; onConfirm: () => void; onCancel: () => void;
 }) {
-  const confirm = useRef<HTMLButtonElement>(null);
+  const root = useRef<HTMLDivElement>(null);
   const cancel = useRef<HTMLButtonElement>(null);
-  const [inset, setInset] = useState(0);
-  useLayoutEffect(() => {
-    setInset(Math.max(0, offset - (confirm.current?.offsetWidth ?? 0) - 4));
-    cancel.current?.focus();
-  }, [offset]);
-  const questionId = `confirm-${title.replace(/\W+/g, '-')}`;
-  const verb = kind === 'delete' ? t('common.delete') : t('common.retry');
-  return <div className="card-actions" role="group" aria-label={kind === 'delete' ? t('action.deleteAsk', { name: title }) : t('action.retryAsk', { name: title })} aria-describedby={questionId} data-open data-confirm={kind}
-    style={{ paddingInlineStart: inset }}>
-    <button ref={confirm} style={{ '--i': 0 } as CSSProperties} className="action-confirm" aria-label={kind === 'delete' ? t('action.confirmDelete', { name: title }) : t('action.confirmRetry', { name: title })} onClick={onConfirm}>
-      <ActionIcon name={kind} />{verb}</button>
-    <button ref={cancel} style={{ '--i': 1 } as CSSProperties} aria-label={t('action.keepNamed', { name: title })} onClick={onCancel}>{t('common.cancel')}</button>
-    <span id={questionId} className="confirm-text" style={{ '--i': 2 } as CSSProperties}>{t('common.areYouSure')}</span>
+  useLayoutEffect(() => { cancel.current?.focus(); }, []);
+  const id = useId();
+  const back = () => {
+    const asker = root.current?.parentElement?.querySelector<HTMLButtonElement>(':scope > button');
+    onCancel();
+    asker?.focus();
+  };
+  const [before, after] = t(kind === 'delete' ? 'confirm.deleteTitle' : 'confirm.retryTitle', { module: MODULE_MARK }).split(MODULE_MARK);
+  return <div ref={root} className="confirm-panel" role="alertdialog" aria-labelledby={`${id}-title`} aria-describedby={`${id}-body`} data-confirm={kind}
+    onKeyDown={event => { if (event.key === 'Escape') { event.stopPropagation(); back(); } }}>
+    <p id={`${id}-title`} className="confirm-title">{before}<span className="confirm-tag"><FamilyIcon family={family} />{title}</span>{after}</p>
+    <p id={`${id}-body`} className="confirm-body">{t(kind === 'delete' ? 'confirm.deleteBody' : 'confirm.retryBody')}</p>
+    <div className="confirm-buttons">
+      <button ref={cancel} type="button" aria-label={t('action.keepNamed', { name: title })} onClick={back}>{t('common.cancel')}</button>
+      <button type="button" className="action-confirm" aria-label={t(kind === 'delete' ? 'action.confirmDelete' : 'action.confirmRetry', { name: title })} onClick={onConfirm}>
+        <ActionIcon name={kind} />{kind === 'delete' ? t('common.delete') : t('common.retry')}</button>
+    </div>
   </div>;
 }
 

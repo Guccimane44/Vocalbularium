@@ -24,9 +24,9 @@ import { mainKeyTier } from './main-key.ts';
 import { moduleLabel, numbered, ShapingArea } from './shaping.tsx';
 import { countedBefore } from './placing.ts';
 import type { RowParts } from './shaping.tsx';
-import { direction, listFormat, t } from './i18n.ts';
+import { listFormat, t } from './i18n.ts';
 import { ClipsProvider } from './audio.tsx';
-import { ActionIcon, CORE_PART, CORE_RETRY, Spark, Content, readContent, isSpokenModule, spokenOf, Reveal, ConfirmAction, LandingCard, SettingsAction, SubmenuAction } from './card-content.tsx';
+import { ActionIcon, CORE_PART, CORE_RETRY, Spark, Content, readContent, isSpokenModule, spokenOf, Reveal, ConfirmPanel, LandingCard, SettingsAction, SubmenuAction } from './card-content.tsx';
 import type { FacetAsk, FacetControls } from './card-content.tsx';
 // A module in the module window has a page (D20); the main key has none.
 const isWindowModule = (type: string) => (WINDOW_MODULES as readonly string[]).includes(type);
@@ -238,8 +238,8 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
   }, [componentIds]);
   // The facet asking "Are you sure?" before it is deleted, on which card.
   const [askingFacet, setAskingFacet] = useState<{ id: string; facet: FacetType; kind: FacetAsk } | null>(null);
-  // The card asking whether to delete, and where its Delete stood in the row.
-  const [confirming, setConfirming] = useState<{ id: string; offset: number; kind: 'delete' | 'retry' } | null>(null);
+  // The card asking whether to delete or retry it.
+  const [confirming, setConfirming] = useState<{ id: string; kind: 'delete' | 'retry' } | null>(null);
   useEffect(() => { if (opened !== confirming?.id) setConfirming(null); }, [opened]);
   // Folded cards show only their tab on a slim band; remembered per page in
   // this browser, a convenience that never reaches the account (0.6.3).
@@ -302,25 +302,18 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
     const generated = isContentType(item.moduleType);
     const open = opened === item.id;
     if (!open && !(item.status === 'failed' && generated)) return null;
-    if (open && confirming?.id === item.id) return <ConfirmAction kind={confirming.kind} title={title} offset={confirming.offset}
-      onCancel={() => setConfirming(null)}
-      onConfirm={() => {
-        const kind = confirming.kind;
-        setConfirming(null); setOpened(null);
-        if (kind === 'delete') vanish(item);
-        else void run(() => generate({ scope: 'component', componentId: item.id }, true));
-      }} />;
-    // Where the clicked button stands within the row from its start, transforms aside;
-    // for one dropped from Actions, where Actions stands, so Cancel lands in its column.
-    // offsetLeft counts from the card's head; a right-to-left row starts at its right.
-    const ask = (kind: 'delete' | 'retry') => (event: { currentTarget: HTMLButtonElement }) => {
-      const button = event.currentTarget.closest<HTMLElement>('.action-sub') ?? event.currentTarget;
-      const row = button.closest<HTMLElement>('.card-actions');
-      const offset = direction() === 'rtl'
-        ? (row ? row.offsetLeft + row.offsetWidth : 0) - (button.offsetLeft + button.offsetWidth)
-        : button.offsetLeft - (row?.offsetLeft ?? 0);
-      setConfirming({ id: item.id, kind, offset });
-    };
+    // The question ejects beside the entry that asked, the menu still open.
+    const asking = (kind: 'delete' | 'retry', button: ReactNode) => <span className="action-entry">
+      {button}
+      {confirming?.id === item.id && confirming.kind === kind && <ConfirmPanel kind={kind} title={title} family={isModuleType(item.moduleType) ? CATALOG[item.moduleType].family ?? 'notes' : 'notes'}
+        onCancel={() => setConfirming(null)}
+        onConfirm={() => {
+          setConfirming(null); setOpened(null);
+          if (kind === 'delete') vanish(item);
+          else void run(() => generate({ scope: 'component', componentId: item.id }, true));
+        }} />}
+    </span>;
+    const ask = (kind: 'delete' | 'retry') => () => setConfirming({ id: item.id, kind });
     // A component with nothing in it has nothing to lose: Delete and Retry act at once.
     const hasContent = readContent(item.moduleType, item.content).present;
     // An empty component is already only its tab: there is nothing to fold.
@@ -332,6 +325,7 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
     let entry = 0;
     const drop = () => ({ '--j': entry++ }) as CSSProperties;
     const retry = (style: CSSProperties) => generated && <button style={style} className={item.status === 'failed' ? 'action-failed' : undefined} aria-label={t('action.retryNamed', { name: title })}
+      aria-expanded={open && hasContent ? confirming?.id === item.id && confirming.kind === 'retry' : undefined}
       disabled={working || Boolean(editingId) || item.status === 'loading'}
       onClick={hasContent && open ? ask('retry') : choose(() => void run(() => generate({ scope: 'component', componentId: item.id })))}>
       <ActionIcon name="retry" />{t('common.retry')}</button>;
@@ -344,12 +338,13 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
         {!isSpokenModule(item.moduleType) && <button style={drop()} aria-label={t('action.editNamed', { name: title })} disabled={Boolean(editingId) || item.status === 'loading'}
           onClick={choose(() => { if (isFolded) fold(item.id, false); begin(item.id); })}>
           <ActionIcon name="edit" />{t('common.edit')}</button>}
-        {retry(drop())}
+        {generated && asking('retry', retry(drop()))}
         {foldable && <button style={drop()} aria-label={t(isFolded ? 'card.unfoldNamed' : 'card.foldNamed', { card: title })} onClick={choose(() => fold(item.id, !isFolded))}>
           <ActionIcon name={isFolded ? 'unfold' : 'fold'} />{isFolded ? t('card.unfold') : t('card.fold')}</button>}
-        <button style={drop()} className="action-delete" aria-label={t('action.deleteNamed', { name: title })} disabled={disabled || working || item.status === 'loading'}
+        {asking('delete', <button style={drop()} className="action-delete" aria-label={t('action.deleteNamed', { name: title })} disabled={disabled || working || item.status === 'loading'}
+          aria-expanded={hasContent ? confirming?.id === item.id && confirming.kind === 'delete' : undefined}
           onClick={hasContent ? ask('delete') : choose(() => vanish(item))}>
-          <ActionIcon name="delete" />{t('common.delete')}</button>
+          <ActionIcon name="delete" />{t('common.delete')}</button>)}
       </SubmenuAction>
       {/* A parent's facets are chosen in its facet window (D13, 0.8.1). */}
       {isParentType(item.moduleType) && facetsOf(item.moduleType).length > 0 && <button style={order()} aria-label={t('card.facetsOf', { card: title })}

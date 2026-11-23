@@ -117,15 +117,16 @@ test('right to left and the pseudo-languages: every surface mirrors, content kee
   assert.equal(await a.page.locator('h1.main-key').evaluate(node => getComputedStyle(node).direction), 'ltr', 'so does a Latin main key');
   const windowBox = await box(a.page.locator('.module-window'));
   assert.ok(windowBox.right < cardBox.left, 'the module window stands at the left of the page');
-  // A card's actions spring out from its tab towards the reading end, and Delete asks beside it.
+  // A card's actions spring out from its tab towards the reading end, and Delete's question ejects beyond it.
   await cardTab(a.page, 'German').click();
   const actions = card.locator('.card-actions');
   await actions.getByRole('button', { name: 'Actions for German', exact: true }).click();
   await actions.getByRole('button', { name: 'Delete German', exact: true }).click();
-  await actions.getByText('Are you sure?', { exact: true }).waitFor();
-  const question = await box(actions.locator('.confirm-text')), cancel = await box(actions.getByRole('button', { name: 'Keep German', exact: true }));
-  assert.ok(question.right <= cancel.left + 1, 'the question stands after Cancel in the reading order, at its left');
+  const question = actions.getByRole('alertdialog');
+  await question.waitFor();
   await settled(a.page);
+  const asked = await box(question), deleteButton = await box(actions.getByRole('button', { name: 'Delete German', exact: true }));
+  assert.ok(asked.right <= deleteButton.left + 1, 'the panel stands at the left of Delete, towards the reading end');
   await actions.getByRole('button', { name: 'Keep German', exact: true }).click();
   await actions.getByRole('button', { name: 'Facets of German', exact: true }).click();
   const window = a.page.getByRole('group', { name: 'Facets of German', exact: true });
