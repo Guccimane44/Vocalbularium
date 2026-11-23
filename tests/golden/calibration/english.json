@@ -8,7 +8,7 @@
    "context": "We sat on the bank and watched the river go by.",
    "language": "en",
    "expected": "pass",
-   "why": "Recorded output, golden run 2026-11-07T15-28-47-553Z-en-english-british.json.",
+   "why": "Recorded output, golden run 2026-11-07T15-28-47-553Z-en-english-british.json. Fixed on 2026-11-23 after the judges named real faults: Pronunciation speaks the key only; the false claim about American English removed.",
    "card": {
     "core": {
      "kind": "word",
@@ -42,7 +42,6 @@
       "mound"
      ],
      "pronunciation": [
-      "riverbank",
       "bank"
      ],
      "etymology": {
@@ -62,7 +61,7 @@
       "Bank is a countable noun, so it takes a or the and has a plural, banks.",
       "We say on the bank of a river or by the river, never in the bank for the land.",
       "Bank on something is a phrasal verb meaning to rely on it, as in don't bank on the weather.",
-      "A bank holiday is a British public holiday; American English has no such term."
+      "A bank holiday is a British public holiday, when banks and most offices close."
      ]
     }
    }
@@ -328,7 +327,7 @@
    "key": "Wohnung",
    "language": "en",
    "expected": "pass",
-   "why": "Recorded output, golden run 2026-11-07T15-28-47-553Z-en-english-british.json.",
+   "why": "Recorded output, golden run 2026-11-07T15-28-47-553Z-en-english-british.json. Fixed on 2026-11-23 after the judges named real faults: the unverified 18th-century date removed.",
    "card": {
     "core": {
      "kind": "word",
@@ -359,7 +358,7 @@
        "Old English",
        "Scots"
       ],
-      "text": "From Old English flett, meaning 'floor' or 'dwelling', which survived in Scots as flat, 'floor of a house'. English took up the Scots word in the 18th century for a set of rooms on one floor."
+      "text": "From Old English flett, meaning 'floor' or 'dwelling', which survived in Scots as flat, 'floor of a house'. English took up the Scots word for a set of rooms on one floor."
      },
      "simple-translation": [
       "a set of rooms to live in, usually on one floor",
@@ -948,7 +947,7 @@
    "context": "I need to go to the bank before it closes.",
    "language": "en",
    "expected": "pass",
-   "why": "Recorded output, golden run 2026-11-07T15-55-02-455Z-en-english-american.json.",
+   "why": "Recorded output, golden run 2026-11-07T15-55-02-455Z-en-english-american.json. Fixed on 2026-11-23 after the judges named real faults: Pronunciation speaks the key only; the verb note rewritten.",
    "card": {
     "core": {
      "kind": "word",
@@ -981,8 +980,7 @@
       }
      ],
      "pronunciation": [
-      "bank",
-      "riverbank"
+      "bank"
      ],
      "etymology": {
       "origins": [
@@ -1004,7 +1002,7 @@
       "Bank is a countable noun: one bank, two banks.",
       "In the financial sense it usually takes the: I need to go to the bank.",
       "The plural is regular: banks.",
-      "As a verb, bank takes on to mean rely on: I bank on your help."
+      "As a verb, bank on means rely on: I am banking on your help."
      ]
     }
    }
