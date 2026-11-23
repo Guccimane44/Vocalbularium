@@ -2,12 +2,12 @@
    page following every drag, and the module window. */
 
 .deck-settings .page-head { align-items: flex-start; }
-.deck-settings .page-head .head-actions { margin-top: 10px; }
+.deck-settings .page-head .head-actions { margin-top: 12px; }
 .deck-settings .eyebrow { margin: 0; }
 .deck-name { max-width: 420px; margin-top: 4px; }
 .deck-name label { margin-top: 0; }
 .deck-colour { margin: 12px 0 0; padding: 0; border: 0; }
-.deck-colour legend { padding: 0; margin-bottom: 6px; font-size: 13px; color: var(--ink-muted); }
+.deck-colour legend { padding: 0; margin-bottom: 8px; font-size: 13px; color: var(--ink-muted); }
 .colour-swatches { display: flex; flex-wrap: wrap; gap: 8px; }
 .colour-swatch { position: relative; display: block; width: 28px; height: 28px; margin: 0; border-radius: 50%; background: var(--fam); cursor: pointer;
   transition: transform var(--dur-instant); }
@@ -19,7 +19,7 @@
 
 /* The module list and the module window, laid out like a page (0.6.3). */
 .list-intro h2 { margin: 0 0 4px; font: 600 20px/1.2 var(--font-display); }
-.list-intro p { margin: 0 0 10px; font-size: 13px; line-height: 1.45; }
+.list-intro p { margin: 0 0 12px; font-size: 13px; line-height: 1.45; }
 
 /* Each module is a folded card, as on a page, and never unfolds: a slim band
    under its tab, a parent's facets hanging from the end of its bottom edge
