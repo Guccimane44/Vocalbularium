@@ -204,7 +204,7 @@
 .confirm-tag .fam-icon { width: 13px; height: 13px; }
 .confirm-body { margin: 0 0 12px; color: var(--ink-soft); }
 .confirm-buttons { display: flex; justify-content: flex-end; gap: 4px; }
-.card-actions .confirm-buttons button { height: 28px; animation: none; }
+.card-actions .confirm-buttons button { height: 28px; padding: 0 14px; border-radius: var(--radius-control); animation: none; }
 .card-actions .confirm-buttons .action-confirm, .card-actions .confirm-buttons .action-confirm:not(:disabled):hover { background: var(--tone); color: var(--on-tone); box-shadow: none; }
 @keyframes eject-down {
   from { opacity: 0; transform: translateY(calc(-20px - var(--j, 0) * 26px)) scale(.7); }
