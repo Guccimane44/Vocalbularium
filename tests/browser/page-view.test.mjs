@@ -80,11 +80,15 @@ test('page view: main key tiers, Show all, rendered and plain content, quiet car
   await actionsMenu.getByRole('button').evaluateAll(items => Promise.all(items.flatMap(item => item.getAnimations()).map(animation => animation.finished)));
   assert.ok(await actionsMenu.getByRole('button').evaluateAll(items => items.every((item, index) => index === 0
     || item.getBoundingClientRect().top > items[index - 1].getBoundingClientRect().top)), 'one below another');
+  // While a dropdown is open the card's content steps back, so its text never competes with the entries.
+  const content = examples.locator('.card-fold-inner');
+  await waitFor(async () => await content.evaluate(node => getComputedStyle(node).opacity) === '0.3', 'the content steps back');
   // Opening Settings folds Actions back: one dropdown at a time.
   await (await cardButton(a.page, 'Settings for German')).click();
   assert.equal(await actionsMenu.count(), 0);
   await a.page.keyboard.press('Escape');
   assert.equal(await cardTab(a.page, 'German').getAttribute('aria-expanded'), 'true');
+  await waitFor(async () => await content.evaluate(node => getComputedStyle(node).opacity) === '1', 'the content comes back once the dropdown closes');
   assert.equal(await examples.locator('.card-actions button').first().evaluate(node => getComputedStyle(node).animationName), 'eject', 'the actions eject from the tab');
   await a.page.mouse.click(5, 5);
   assert.equal(await examples.locator('.card-actions').count(), 0, 'a click elsewhere puts them back');

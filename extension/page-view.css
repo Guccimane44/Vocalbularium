@@ -265,6 +265,9 @@
 .component[data-folded] { padding-top: 20px; padding-bottom: 0; }
 .component[data-folded] .card-fold { grid-template-rows: 0fr; }
 .component[data-folded] .card-fold-inner { opacity: 0; transform: translateY(-6px); }
+/* While one of the card's dropdowns is open, its content steps back, so the
+   card's text never competes with the entries between their gaps. */
+.component:not([data-folded]):has(.card-head .action-submenu) .card-fold-inner { opacity: .3; }
 .card-status { margin: 0 0 8px; }
 .component[data-status="failed"] { background: var(--status-failed-bg); }
 .component-tools { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
