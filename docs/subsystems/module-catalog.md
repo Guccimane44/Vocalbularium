@@ -13,7 +13,7 @@ The catalog defines every module (input or content) and every facet in one folde
 | Shapes and formatting | A reply checked against the module's shapes, formatted into stored markdown per facet, and read back for rendering. | [`generated.ts`](../../packages/domain/src/generated.ts), [`content.ts`](../../packages/domain/src/content.ts), [`render.ts`](../../packages/domain/src/render.ts), [`parents.ts`](../../packages/domain/src/parents.ts) |
 | Checks | Deterministic checks of a card's parts, run by the golden sets and the gate, never for a user. | `checkCard` in [`checks.ts`](../../packages/domain/src/checks.ts) |
 | Page text for the extension | The about texts, samples and names, gathered at build time into one module, because the extension can't read files at run time. | [`build-packages.mjs`](../../scripts/build-packages.mjs) → `catalog/about.generated.ts` (not committed) |
-| Golden sets and the gate | Live runs of each module for review, its content checks, and the judge calibrated against its rubric. | [`tests/golden/`](../../tests/golden); [`golden-set.mjs`](../../scripts/golden-set.mjs), [`judge.mjs`](../../scripts/judge.mjs), [`gate.mjs`](../../scripts/gate.mjs), [`samples.mjs`](../../scripts/samples.mjs) |
+| Golden sets and the gate | Live runs of each module, judged and audited before it ships: see the [quality gate](quality-gate.md). | [`tests/golden/`](../../tests/golden); [`gate.mjs`](../../scripts/gate.mjs) |
 
 ## Runtime path
 
@@ -319,5 +319,5 @@ Each content module has its own **golden set** under `tests/golden/`, run agains
 | [`tests/content-checks.test.mjs`](../../tests/content-checks.test.mjs) | Each facet's `checks` on recorded good and bad cards |
 | [`tests/content.test.mjs`](../../tests/content.test.mjs), [`tests/render.test.mjs`](../../tests/render.test.mjs), [`tests/parents.test.mjs`](../../tests/parents.test.mjs) | Shapes, formatting and rendering |
 | [`tests/localisation.test.mjs`](../../tests/localisation.test.mjs) | Every module's page text and names in every interface language |
-| `npm run gate -- <module>` | Live: the module's golden set, its checks and the calibrated judge against its `rubric.md`, then an audit by a judge from another model family (`AUDIT_MODEL`, GPT-6 Luna by default) that lists where the two disagree without changing the verdict; spends provider usage |
+| `npm run gate -- <module>` | Live: the module's golden set, its checks, the calibrated judge and the audit ([quality gate](quality-gate.md)); spends provider usage |
 | `npm run smoke:reading` | Live: ambiguous keys retried with and without their saved core as `previous`, for the owner to compare the readings (the core's Retry) |
