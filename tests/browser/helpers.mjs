@@ -107,6 +107,19 @@ export const selectedIn = part => part.evaluate(node => {
   const { from, to } = state.selection;
   return { text: state.doc.textBetween(from, to), caretAtEnd: from === to && !state.doc.textBetween(to, state.doc.content.size) };
 });
+// Resolves once every finite animation and transition has finished, or after two
+// seconds, since a paused animation never finishes. Two frames first, so a
+// transition a hover, click or key has just started is counted.
+export const settled = page => page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))).then(() => Promise.race([
+  new Promise(resolve => setTimeout(resolve, 2000)),
+  Promise.all(document.getAnimations().filter(each => each.effect?.getComputedTiming().endTime !== Infinity).map(each => each.finished.catch(() => {})))
+])));
+// A key in a keyboard drag. dnd-kit's sensor takes keys only from the task after
+// a pickup, and finds the new target after React renders, so the next key waits.
+export async function dragKey(page, key) {
+  await page.keyboard.press(key);
+  await settled(page);
+}
 export async function waitFor(predicate, message, timeout = 12000) {
   const start = Date.now();
   while (Date.now() - start < timeout) {
@@ -178,7 +191,7 @@ export async function drag(page, source, target, { below = false, above = false,
   let to = await target.boundingBox();
   const scrolled = await page.evaluate(() => scrollY);
   for (let pass = 0; pass < 2; pass++) {
-    if (follow && pass) { await new Promise(resolve => setTimeout(resolve, 300)); to = await target.boundingBox(); }
+    if (follow && pass) { await settled(page); to = await target.boundingBox(); }
     const shift = follow ? 0 : scrolled - await page.evaluate(() => scrollY);
     await page.mouse.move(to.x + to.width / 2, to.y + shift + to.height * (below ? 0.8 : above ? 0.25 : 0.5), { steps: 8 });
   }

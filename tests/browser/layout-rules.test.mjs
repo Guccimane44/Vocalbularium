@@ -8,13 +8,13 @@ import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { chromium } from 'playwright';
 import { staged } from '../helpers/pages.mjs';
-import { BANK, launch, signIn, steps } from './helpers.mjs';
+import { BANK, launch, signIn, steps, settled } from './helpers.mjs';
 import { checkLayout, measureLandmarks, RULES } from '../screens/rules/index.mjs';
 
 const fixture = name => pathToFileURL(resolve('tests/screens/rules/fixtures', `${name}.html`)).href;
 const summary = violations => violations.map(each => `${each.rule} ${each.selector}: ${each.message}`).join('\n');
 
-test('0.16.0: each layout rule fails on its broken fixture and passes on the correct ones', { timeout: 60000 }, async (t) => {
+test('each layout rule fails on its broken fixture and passes on the correct ones', { timeout: 60000 }, async (t) => {
   const browser = await chromium.launch({ channel: 'chromium', headless: true });
   t.after(() => browser.close());
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
@@ -66,7 +66,7 @@ test('0.16.0: each layout rule fails on its broken fixture and passes on the cor
 });
 
 // The real screens on main: what they break today is in the allowlist, so anything new fails.
-test('0.16.0: the layout rules on the dashboard, a German page, its facet window and the account menu, in English and Arabic, light and dark', { timeout: 120000 }, async (t) => {
+test('the layout rules on the dashboard, a German page, its facet window and the account menu, in English and Arabic, light and dark', { timeout: 120000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-layout-rules-'));
   const application = await createTestApplication(t); await application.start();
   const a = await launch(join(directory, 'a'));
@@ -84,9 +84,7 @@ test('0.16.0: the layout rules on the dashboard, a German page, its facet window
   const { catalogNames } = await import('@vocabularium/domain/about');
   const messages = async code => ({ ...JSON.parse(await readFile(`extension/locales/${code}/messages.json`, 'utf8')), ...catalogNames(code) });
   // Each screen, opened from the start, settled before it is checked.
-  // Finite animations only, and at most two seconds: a paused one never finishes.
-  const settle = () => a.page.evaluate(() => Promise.race([new Promise(resolve => setTimeout(resolve, 2000)),
-    Promise.all(document.getAnimations().filter(each => each.effect?.getComputedTiming().endTime !== Infinity).map(each => each.finished.catch(() => {})))]));
+  const settle = () => settled(a.page);
   const screens = {
     dashboard: async m => {
       await a.page.goto(`chrome-extension://${a.id}/app.html`);

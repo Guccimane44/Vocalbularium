@@ -9,7 +9,7 @@ import { blockText } from '@vocabularium/domain/pages';
 import { text, staged, fieldEdit } from '../helpers/pages.mjs';
 import { BANK, componentArticle, cardButton, focusPart, launch, selectedIn, signIn, waitFor } from './helpers.mjs';
 
-test('0.7.5: a facet’s own Edit opens that facet alone in place, with its toolbar, Save and Cancel, and saves only that facet', { timeout: 60000 }, async (t) => {
+test('a facet’s own Edit opens that facet alone in place, with its toolbar, Save and Cancel, and saves only that facet', { timeout: 60000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-facet-edit-browser-'));
   const application = await createTestApplication(t); await application.start();
   const a = await launch(join(directory, 'a'));
@@ -89,7 +89,7 @@ test('0.7.5: a facet’s own Edit opens that facet alone in place, with its tool
   await a.page.getByRole('button', { name: 'Edit Synonyms from German', exact: true }).click();
   await text.waitFor();
   await waitFor(() => a.page.evaluate(() => document.activeElement?.getAttribute('aria-label') === 'Synonyms, German'), 'focused for size');
-  await a.page.keyboard.press('ControlOrMeta+a'); await a.page.waitForTimeout(300);
+  await a.page.keyboard.press('ControlOrMeta+a'); await waitFor(async () => (await selectedIn(text)).text, 'the editor selects everything');
   const size = synonyms.locator('.md-toolbar').getByRole('combobox', { name: 'Text size', exact: true });
   const fontChoice = synonyms.locator('.md-toolbar').getByRole('combobox', { name: 'Font', exact: true });
   assert.deepEqual([await size.inputValue(), await fontChoice.inputValue()], ['', ''], 'Normal and Text at first');
@@ -114,7 +114,7 @@ test('0.7.5: a facet’s own Edit opens that facet alone in place, with its tool
   await a.page.getByRole('button', { name: 'Edit Synonyms from German', exact: true }).click();
   await text.waitFor();
   await waitFor(() => a.page.evaluate(() => document.activeElement?.getAttribute('aria-label') === 'Synonyms, German'), 'focused for colour');
-  await a.page.keyboard.press('ControlOrMeta+a'); await a.page.waitForTimeout(300);
+  await a.page.keyboard.press('ControlOrMeta+a'); await waitFor(async () => (await selectedIn(text)).text, 'the editor selects everything');
   await synonyms.locator('.md-toolbar').getByRole('button', { name: 'Highlight colours', exact: true }).click();
   const palette = synonyms.locator('.md-palette');
   assert.deepEqual(await palette.getByRole('button').evaluateAll(buttons => buttons.map(button => button.getAttribute('aria-label'))),
@@ -172,7 +172,7 @@ test('0.7.5: a facet’s own Edit opens that facet alone in place, with its tool
   await card.locator('.facet-tag[data-facet="synonyms"]').waitFor({ state: 'detached' });
 });
 
-test('0.7.5: Context and Text edit with the toolbar editor, from their tab', { timeout: 60000 }, async (t) => {
+test('Context and Text edit with the toolbar editor, from their tab', { timeout: 60000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-notes-browser-'));
   const application = await createTestApplication(t); await application.start();
   const a = await launch(join(directory, 'a'));
@@ -199,7 +199,7 @@ test('0.7.5: Context and Text edit with the toolbar editor, from their tab', { t
   await waitFor(() => a.page.evaluate(() => document.activeElement?.getAttribute('aria-label') === 'Edit Context'), 'focused');
   assert.equal(await text.locator('mark').textContent(), 'bank');
   assert.equal(await card.locator('.md-toolbar').count(), 1);
-  await a.page.keyboard.press('ControlOrMeta+a'); await a.page.waitForTimeout(300);
+  await a.page.keyboard.press('ControlOrMeta+a'); await waitFor(async () => (await selectedIn(text)).text, 'the editor selects everything');
   await card.locator('.md-toolbar').getByRole('button', { name: 'Italic', exact: true }).click();
   await card.getByRole('button', { name: 'Save', exact: true }).click();
   await text.waitFor({ state: 'detached' });

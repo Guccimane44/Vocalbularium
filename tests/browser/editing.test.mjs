@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { once } from 'node:events';
 import { text, textBlocks, useModules, wordResult, staged } from '../helpers/pages.mjs';
-import { keyOf, modulesOf, componentArticle, cardTab, cardButton, launch, signIn, waitFor, pageReady, chooseDeletePage, addFromWindow, drag, crumb } from './helpers.mjs';
+import { keyOf, modulesOf, componentArticle, cardTab, cardButton, launch, signIn, waitFor, pageReady, chooseDeletePage, addFromWindow, drag, crumb, settled } from './helpers.mjs';
 
 test('manual page UI: per-card actions, drafts, leave choices, sorting, failed-save recovery, and deletion', { timeout: 45000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-manual-browser-'));
@@ -240,7 +240,7 @@ test('retry UI: exact confirmation asked beside the tab, a first Retry without w
   assert.equal(await a.page.getByRole('dialog').count(), 0);
 });
 
-test('0.9.1: deleting a page goes straight to its deck, and an ejected action stays lifted under a pointer at its lower edge', { timeout: 45000 }, async (t) => {
+test('deleting a page goes straight to its deck, and an ejected action stays lifted under a pointer at its lower edge', { timeout: 45000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-0-9-1-browser-'));
   const application = await createTestApplication(t); await application.start();
   const a = await launch(join(directory, 'a'));
@@ -262,7 +262,7 @@ test('0.9.1: deleting a page goes straight to its deck, and an ejected action st
   await cardTab(a.page, 'German').click();
   const action = a.page.locator('.card-actions[data-open] button').first();
   await action.waitFor();
-  await new Promise(resolve => setTimeout(resolve, 800));
+  await settled(a.page);
   const box = await action.boundingBox();
   let hovered = '';
   for (let step = 0; step < 20; step++) {
@@ -281,12 +281,13 @@ test('0.9.1: deleting a page goes straight to its deck, and an ejected action st
   await chooseDeletePage(a.page);
   await a.page.getByRole('dialog').getByRole('button', { name: 'Delete page', exact: true }).click();
   await a.page.getByRole('heading', { name: 'My Deck' }).waitFor();
+  // A late Page unavailable must not follow the deck: time is what this checks.
   await new Promise(resolve => setTimeout(resolve, 500));
   const headings = [...new Set(await a.page.evaluate(() => window.headings))];
   assert.ok(!headings.includes('Page unavailable'), `no unavailable page on the way to the deck (${JSON.stringify(headings)})`);
 });
 
-test('0.16.3: a card’s Retry starts over: after an edit to the meanings, it sends the model no core (D28; kept the reading from 0.12.2, D19)', { timeout: 45000 }, async (t) => {
+test('a card’s Retry starts over: after an edit to the meanings, it sends the model no core (D28; kept the reading from 0.12.2, D19)', { timeout: 45000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-reading-browser-'));
   const requests = [];
   const bench = { core: { kind: 'word', language: 'Deutsch', key: 'Bank', gramRole: 'noun', meanings: ['Sitzbank'] }, facets: {} };
@@ -322,7 +323,7 @@ test('0.16.3: a card’s Retry starts over: after an edit to the meanings, it se
   await card.locator('.entry-core', { hasText: 'Sitzbank' }).waitFor();
 });
 
-test('0.16.3: the core’s Retry rewrites the meanings for the reading the card has, every facet as it was; it is not offered for another main key (D28)', { timeout: 45000 }, async (t) => {
+test('the core’s Retry rewrites the meanings for the reading the card has, every facet as it was; it is not offered for another main key (D28)', { timeout: 45000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-core-retry-'));
   const requests = [];
   let release;

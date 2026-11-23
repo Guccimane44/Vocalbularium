@@ -28,6 +28,7 @@ async function dragWatched(page, source, target, label, { dragged, watch = CARDS
   const making = await watchMotion(page, { ...watch, flashes: NEVER, frames: 600 });
   const to = await target.boundingBox();
   await page.mouse.move(to.x + to.width / 2, to.y + to.height * 0.8, { steps: 16 });
+  // Frames are recorded over a fixed span of the drag: time is what this checks.
   await new Promise(resolve => setTimeout(resolve, 400));
   const during = await making.stop();
   assertSmooth(during.map(frame => ({ ...frame, rows: Object.fromEntries(Object.entries(frame.rows).filter(([name]) => name !== dragged)) })),

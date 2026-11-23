@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { mkdtemp, rm, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { familyOf, MODULE_IDS, MODULES } from '@vocabularium/domain/catalog';
 import { PARENTS } from '@vocabularium/domain/parents';
 import { text, staged } from '../helpers/pages.mjs';
 import { BANK, componentArticle, cardTab, facetWindow, inOrder, launch, signIn, waitFor, steps, openFamily } from './helpers.mjs';
@@ -11,7 +12,7 @@ import { BANK, componentArticle, cardTab, facetWindow, inOrder, launch, signIn, 
 // A sample the catalog stores for the pages (D20).
 const catalogSample = async (folder, language = 'en') => JSON.parse(await readFile(`packages/domain/src/catalog/${folder}/samples/${language}.json`, 'utf8'));
 
-test('0.13.0: family, module and facet pages in one sheet, from the module window, a card, the facet window and deck settings (D20)', { timeout: 60000 }, async (t) => {
+test('family, module and facet pages in one sheet, from the module window, a card, the facet window and deck settings (D20)', { timeout: 60000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-explanations-browser-'));
   const application = await createTestApplication(t); await application.start();
   const a = await launch(join(directory, 'a'));
@@ -105,7 +106,7 @@ test('0.13.0: family, module and facet pages in one sheet, from the module windo
   await waitFor(async () => await title() === 'German', 'German from the path');
   await sheet.locator('.about-path button', { hasText: 'Languages' }).click();
   await waitFor(async () => await title() === 'Languages', 'the family page');
-  assert.deepEqual(await sheet.locator('.about-row .about-row-name').allTextContents(), ['German', 'Chinese', 'English']);
+  assert.deepEqual(await sheet.locator('.about-row .about-row-name').allTextContents(), MODULE_IDS.filter(id => familyOf(id) === 'translation').map(id => MODULES[id].label));
   assert.equal(await sheet.locator('.about-steps > li').count(), 3);
   // Escape closes the sheet, returns the focus to About German, and adds nothing.
   await a.page.keyboard.press('Escape');

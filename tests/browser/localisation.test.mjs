@@ -5,7 +5,7 @@ import { mkdtemp, rm, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { text, staged } from '../helpers/pages.mjs';
-import { BANK, componentArticle, cardTab, launch, accountTrigger, accountMenu, signIn, openFamily } from './helpers.mjs';
+import { BANK, componentArticle, cardTab, launch, accountTrigger, accountMenu, signIn, openFamily, settled } from './helpers.mjs';
 
 // Text an interface shows that is not its own: the brand, the user's decks,
 // keys and content, dates, counts, and the languages named in themselves.
@@ -30,7 +30,7 @@ const unaccented = page => page.evaluate(selector => {
   return [...new Set(found)];
 }, NOT_INTERFACE);
 
-test('0.9.0: Language in the account menu is the account’s preference, English by default, and another installation’s choice follows (D14)', { timeout: 45000 }, async (t) => {
+test('Language in the account menu is the account’s preference, English by default, and another installation’s choice follows (D14)', { timeout: 45000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-language-browser-'));
   const application = await createTestApplication(t); await application.start();
   const a = await launch(join(directory, 'a'));
@@ -77,7 +77,7 @@ test('0.9.0: Language in the account menu is the account’s preference, English
   assert.deepEqual(await documentLanguage(), ['fr', 'ltr']);
 });
 
-test('0.9.0: right to left and the pseudo-languages: every surface mirrors, content keeps its direction, and no interface text escapes the catalogue (D14)', { timeout: 90000 }, async (t) => {
+test('right to left and the pseudo-languages: every surface mirrors, content keeps its direction, and no interface text escapes the catalogue (D14)', { timeout: 90000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-rtl-browser-'));
   const application = await createTestApplication(t); await application.start();
   const a = await launch(join(directory, 'a'));
@@ -124,12 +124,12 @@ test('0.9.0: right to left and the pseudo-languages: every surface mirrors, cont
   await actions.getByText('Are you sure?', { exact: true }).waitFor();
   const question = await box(actions.locator('.confirm-text')), cancel = await box(actions.getByRole('button', { name: 'Keep German', exact: true }));
   assert.ok(question.right <= cancel.left + 1, 'the question stands after Cancel in the reading order, at its left');
-  await a.page.waitForTimeout(700);
+  await settled(a.page);
   await actions.getByRole('button', { name: 'Keep German', exact: true }).click();
   await actions.getByRole('button', { name: 'Facets of German', exact: true }).click();
   const window = a.page.getByRole('group', { name: 'Facets of German', exact: true });
   await window.waitFor();
-  await a.page.waitForTimeout(300);
+  await settled(a.page);
   await a.page.keyboard.press('Escape');
   await window.waitFor({ state: 'detached' });
   // Keyboard reordering still moves a module, the arrows following the reading direction.
@@ -168,7 +168,7 @@ test('0.9.0: right to left and the pseudo-languages: every surface mirrors, cont
   await a.page.waitForFunction(() => document.documentElement.lang === 'en' && document.documentElement.dir === 'ltr');
 });
 
-test('0.9.0: the interface in each language: picked from Language, saved to the account, with its names, explanations and direction (D14)', { timeout: 120000 }, async (t) => {
+test('the interface in each language: picked from Language, saved to the account, with its names, explanations and direction (D14)', { timeout: 120000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-languages-browser-'));
   const application = await createTestApplication(t); await application.start();
   const a = await launch(join(directory, 'a'));

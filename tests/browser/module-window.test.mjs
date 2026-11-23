@@ -5,7 +5,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { text } from '../helpers/pages.mjs';
-import { cardTab, launch, signIn, waitFor, steps, windowModule, openFamily, drag } from './helpers.mjs';
+import { cardTab, launch, signIn, waitFor, steps, windowModule, openFamily, drag, settled } from './helpers.mjs';
 import { assertSmooth, watchMotion } from './motion.mjs';
 
 test('module window: drag modules onto a page and into deck settings, and reorder by drag and keyboard', { timeout: 45000 }, async (t) => {
@@ -48,7 +48,7 @@ test('module window: drag modules onto a page and into deck settings, and reorde
   assert.equal(await landingCard.count(), 0, 'no gap over the window');
   await moving.waitFor();
   await a.page.mouse.up();
-  await new Promise(resolve => setTimeout(resolve, 300));
+  await settled(a.page);
   assert.deepEqual(await types(), ['main-key', 'context', 'german'], 'a module dropped back on the window is not added');
   assert.equal(await a.page.locator('.landing-row').count(), 0);
 
@@ -71,7 +71,7 @@ test('module window: drag modules onto a page and into deck settings, and reorde
   await a.page.mouse.up();
   assert.equal(await a.page.evaluate(() => document.querySelector('.landing-row[data-saving]') === window.incoming), true, 'the dropped module fills its gap');
   // It glides into the gap, then stays there until the card arrives in the same place.
-  await a.page.evaluate(() => new Promise(resolve => setTimeout(resolve, 320))).then(() => a.page.evaluate(() => {
+  await settled(a.page).then(() => a.page.evaluate(() => {
     window.track = [];
     const sample = () => {
       const node = document.querySelector('.shaping-list article.component[data-type="text"] .card-tab');
@@ -120,6 +120,7 @@ test('module window: drag modules onto a page and into deck settings, and reorde
   await waitFor(() => heldMoves.length === 1, 'move request reached the server');
   for (let sample = 0; sample < 5; sample++) {
     assert.deepEqual(await headings(), ['Main key', 'Context', 'German', 'Text'], 'the new order shows before the save finishes');
+    // The order must hold for as long as the save is held: time is what this checks.
     await new Promise(resolve => setTimeout(resolve, 100));
   }
   assert.deepEqual(await types(), ['main-key', 'text', 'context', 'german'], 'the move is still held');
@@ -133,8 +134,7 @@ test('module window: drag modules onto a page and into deck settings, and reorde
   const announced = text => a.page.locator('[id^="DndLiveRegion"]').filter({ hasText: text }).waitFor({ state: 'attached' });
   await a.page.keyboard.press('Space');
   await announced('Text is over position 4.');
-  // The sensor needs a moment after pickup before it moves.
-  await new Promise(resolve => setTimeout(resolve, 300));
+  await settled(a.page);
   await a.page.keyboard.press('ArrowUp');
   await announced('Text is over position 3.');
   await a.page.keyboard.press('ArrowUp');
@@ -151,7 +151,7 @@ test('module window: drag modules onto a page and into deck settings, and reorde
   await windowModule(a.page, 'text').focus();
   await a.page.keyboard.press('Space');
   await announced('Text is over');
-  await new Promise(resolve => setTimeout(resolve, 300));
+  await settled(a.page);
   for (let step = 0; step < 6; step++) await a.page.keyboard.press('ArrowDown');
   await announced('Text is over the end.');
   await openFamily(windowModule(a.page, 'chinese'));

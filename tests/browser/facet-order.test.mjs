@@ -7,7 +7,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { staged } from '../helpers/pages.mjs';
-import { BANK, componentArticle, launch, signIn, waitFor } from './helpers.mjs';
+import { BANK, componentArticle, dragKey, launch, signIn, waitFor } from './helpers.mjs';
 
 test('facet order: a grip drags a facet among its card’s facets by pointer or keyboard, the tags follow, and the order is saved', { timeout: 60000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-facet-order-browser-'));
@@ -61,19 +61,17 @@ test('facet order: a grip drags a facet among its card’s facets by pointer or 
   await waitFor(async () => JSON.stringify(await tags()) === JSON.stringify(moved), 'the tags follow');
 
   // Keyboard: Space picks the first facet up, Arrow Down moves it one place, Space drops it.
-  // The sensor needs a moment after each key, as for the cards.
-  const pause = () => new Promise(resolve => setTimeout(resolve, 300));
   await grip(last).focus();
-  await a.page.keyboard.press('Space'); await pause();
-  await a.page.keyboard.press('ArrowDown'); await pause();
+  await dragKey(a.page, 'Space');
+  await dragKey(a.page, 'ArrowDown');
   await a.page.keyboard.press('Space');
   const stepped = [moved[1], moved[0], ...moved.slice(2)];
   await waitFor(async () => JSON.stringify((await german()).facets) === JSON.stringify(stepped), 'the keyboard move saved');
   // Escape puts a picked-up facet back.
   await grip(stepped[0]).focus();
-  await a.page.keyboard.press('Space'); await pause();
-  await a.page.keyboard.press('ArrowDown'); await pause();
-  await a.page.keyboard.press('Escape'); await pause();
+  await dragKey(a.page, 'Space');
+  await dragKey(a.page, 'ArrowDown');
+  await dragKey(a.page, 'Escape');
   assert.deepEqual((await german()).facets, stepped, 'Escape moves nothing');
 
   // The order is the card's own: it stays after a reload, and the content is unchanged.

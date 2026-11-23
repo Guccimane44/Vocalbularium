@@ -1,11 +1,12 @@
 // Deck settings: modules, the module limit, deck menus and default-deck deletion.
 import test, { createTestApplication } from '../helpers/database.mjs';
+import { WINDOW_MODULES } from '@vocabularium/domain/page-modules';
 import assert from 'node:assert/strict';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { text, staged } from '../helpers/pages.mjs';
-import { modulesOf, componentArticle, removeFromDeck, launch, signIn, waitFor, addFromWindow, drag } from './helpers.mjs';
+import { modulesOf, componentArticle, removeFromDeck, launch, signIn, waitFor, addFromWindow, drag, dragKey } from './helpers.mjs';
 
 test('deck UI: draft previews, all modules, the module limit, removal without content loss, and default deletion', { timeout: 40000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-decks-browser-'));
@@ -38,9 +39,9 @@ test('deck UI: draft previews, all modules, the module limit, removal without co
   await addFromWindow(a.page, 'chinese');
   await addFromWindow(a.page, 'chinese');
   assert.equal(await a.page.locator('.deck-module').count(), 7);
-  assert.equal(await a.page.locator('.module-window .window-module').count(), 12, 'the window offers Context, Text, the three Languages parents (D08; one English since D34), the three Expertise modules (D11, D30), Pronunciation (D24) and the three Creativity modules (D30)');
+  assert.equal(await a.page.locator('.module-window .window-module').count(), WINDOW_MODULES.length, 'the window offers every module but the main key');
   // Every module has its + (0.6.3; D04 had none); facets are not in the window (D13, 0.8.1).
-  assert.equal(await a.page.locator('.window-module > .window-add').count(), 12, 'every module has its +');
+  assert.equal(await a.page.locator('.window-module > .window-add').count(), WINDOW_MODULES.length, 'every module has its +');
   assert.equal(await a.page.locator('.window-facet').count(), 0, 'and no facet is listed');
   assert.equal(await a.page.locator('.window-module[data-type="context"]').getAttribute('aria-disabled'), 'true', 'one Context per deck');
   assert.equal(await a.page.locator('.window-module[data-type="context"] .window-add').isDisabled(), true, 'a blocked module cannot be added');
@@ -58,10 +59,8 @@ test('deck UI: draft previews, all modules, the module limit, removal without co
   }), ['menu-button', 'tab-button']);
   // A module drags by its label (D07).
   await block.locator('.tab-button').focus();
-  await a.page.keyboard.press('Space');
-  await new Promise(resolve => setTimeout(resolve, 300));
-  await a.page.keyboard.press('ArrowUp');
-  await new Promise(resolve => setTimeout(resolve, 300));
+  await dragKey(a.page, 'Space');
+  await dragKey(a.page, 'ArrowUp');
   assert.equal(await a.page.locator('.deck-module').nth(2).getAttribute('data-type'), 'german', 'nothing dropped yet');
   // The others slide to make room.
   const slides = await a.page.locator('.shaping-list .sortable-row').evaluateAll(rows => rows.filter(row => !row.hasAttribute('data-dragging'))
