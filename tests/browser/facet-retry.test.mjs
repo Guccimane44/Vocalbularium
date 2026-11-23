@@ -105,7 +105,7 @@ test('a facet’s own Retry beside its Delete, a tag’s remove keeping its colo
   assert.match(await card.locator('.facet[data-facet="article"]').textContent(), /das Ufer · die Ufer/, 'the other facet stays');
   assert.equal(await examples.locator('.facet-note').count(), 0);
 
-  // Hovering an empty card lifts its tab and what hangs below it together.
+  // A folder tab stands on its edge: hovering an empty card moves neither its tab nor what hangs below it.
   const hung = componentArticle(a.page, 'German 2');
   await a.page.mouse.move(5, 5);
   await settled(a.page);
@@ -115,8 +115,8 @@ test('a facet’s own Retry beside its Delete, a tag’s remove keeping its colo
   await hung.locator('.card-tab').hover();
   await settled(a.page);
   const lifted = await place();
-  assert.ok(Math.abs((rest.tab - lifted.tab) - 2) < .5, `the tab lifts (${rest.tab} → ${lifted.tab})`);
-  assert.ok(Math.abs((rest.tags - lifted.tags) - (rest.tab - lifted.tab)) < .5, `the hung tags lift with it (${rest.tags} → ${lifted.tags})`);
+  assert.ok(Math.abs(rest.tab - lifted.tab) < .5, `the tab stays on its edge (${rest.tab} → ${lifted.tab})`);
+  assert.ok(Math.abs(rest.tags - lifted.tags) < .5, `the hung tags stay (${rest.tags} → ${lifted.tags})`);
 
   // A facet with nothing in it wears a blander tag; one with content does not.
   const unfilled = holder => holder.locator('.facet-tag').evaluateAll(tags => tags.map(tag => [tag.dataset.facet, tag.hasAttribute('data-unfilled')]));

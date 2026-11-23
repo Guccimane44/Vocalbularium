@@ -25,7 +25,7 @@ there is no account to give a language.
 | `deck-settings`, `deck-new` | My Deck's settings; a new deck |
 | `page-<group>-<state>` | German, Chinese, English, Expertise (Mathematics, Computer Science and Chemistry), Pronunciation and Creativity (Traditional Haiku, Modern Haiku and Joke) cards, each `complete`, `loading` and `failed` |
 | `page-menu` | German's complete page with its ⋯ menu open |
-| `facet-grip` | German's complete page with a facet's grip focused |
+| `facet-handle` | German's complete page with a facet's tag, its drag handle, focused |
 | `page-new` | a page made by hand, its cards waiting for Generate |
 | `facet-window` | German's facet window |
 | `module-window` | every family of the module window open |

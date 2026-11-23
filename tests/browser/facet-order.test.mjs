@@ -1,4 +1,4 @@
-// A card's own facet order (D26, 0.16.1): a facet's grip drags it among the
+// A card's own facet order (D26, 0.16.1): a facet's tag and title drag it among the
 // card's facets, with the pointer or the keyboard; the tags follow, and the
 // order is saved for that card.
 import test, { createTestApplication } from '../helpers/database.mjs';
@@ -9,7 +9,7 @@ import { join } from 'node:path';
 import { staged } from '../helpers/pages.mjs';
 import { BANK, componentArticle, dragKey, launch, signIn, waitFor } from './helpers.mjs';
 
-test('facet order: a grip drags a facet among its card’s facets by pointer or keyboard, the tags follow, and the order is saved', { timeout: 60000 }, async (t) => {
+test('facet order: a facet’s tag drags it among its card’s facets by pointer or keyboard, the tags follow, and the order is saved', { timeout: 60000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-facet-order-browser-'));
   const application = await createTestApplication(t); await application.start();
   const a = await launch(join(directory, 'a'));
@@ -34,18 +34,21 @@ test('facet order: a grip drags a facet among its card’s facets by pointer or 
   assert.deepEqual(await sections(), saved, 'the card shows its facets in its order');
   assert.deepEqual(await tags(), saved);
 
-  // At rest the grips are hidden; hovering a facet shows its grip, named for the facet and the card.
-  const grip = facet => card.locator(`.facet[data-facet="${facet}"] .facet-grip`);
+  // No grip: the facet's tag and title are its handle, named for the move, with the grab hand.
+  const grip = facet => card.locator(`.facet[data-facet="${facet}"] .facet-handle`);
   const last = saved.at(-1);
-  await a.page.mouse.move(5, 5);
-  assert.equal(await grip(last).evaluate(node => getComputedStyle(node).opacity), '0');
-  await card.locator(`.facet[data-facet="${last}"]`).hover();
-  await waitFor(async () => await grip(last).evaluate(node => getComputedStyle(node).opacity) === '1', 'the grip shows on hover');
+  assert.equal(await card.locator('.facet-grip, .six-dots').count(), 0, 'no six dots');
   assert.match(await grip(last).getAttribute('aria-label'), /^Move .+ from German$/);
-  // The grip sits in the card's margin, before the facet's tab, so showing it moves nothing.
-  const gripBox = await grip(last).boundingBox(), tabBox = await card.locator(`.facet[data-facet="${last}"] .facet-tab`).boundingBox();
-  assert.ok(gripBox.x + gripBox.width <= tabBox.x + 1, 'the grip stands before the tab');
-  assert.ok(gripBox.width >= 24 && gripBox.height >= 24, 'a 24 px target');
+  assert.equal(await grip(last).evaluate(node => getComputedStyle(node).cursor), 'grab');
+  assert.ok((await grip(last).boundingBox()).height >= 22, 'the tag is the target');
+  // The facet's actions show only while its tag or its actions are pointed at, not the rest of its line.
+  const actions = facet => card.locator(`.facet[data-facet="${facet}"] .facet-actions button`).first();
+  const line = await card.locator(`.facet[data-facet="${last}"] .facet-title`).boundingBox();
+  await a.page.mouse.move(line.x + line.width * 0.6, line.y + line.height / 2);
+  await a.page.waitForTimeout(400);
+  assert.equal(await actions(last).evaluate(node => getComputedStyle(node).opacity), '0', 'the empty line shows nothing');
+  await grip(last).hover();
+  await waitFor(async () => await actions(last).evaluate(node => getComputedStyle(node).opacity) === '1', 'the tag shows the actions');
 
   // Pointer: the last facet dragged above the first.
   const from = await grip(last).boundingBox();

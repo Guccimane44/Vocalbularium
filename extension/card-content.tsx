@@ -3,7 +3,7 @@
 // generated, the confirmation ejected from its tab, the icons and spark
 // its tab uses, and the card a module from the window lands as.
 import { Fragment, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import type { CSSProperties, KeyboardEvent, ReactNode, Ref } from 'react';
+import type { CSSProperties, ReactNode, Ref } from 'react';
 import { closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import type { Announcements, DragEndEvent, Modifier } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
@@ -25,7 +25,7 @@ import type { FacetType, ParentType } from '@vocabularium/domain/parents';
 import { FacetTab } from './facet-tags.tsx';
 import { openAbout } from './about-sheet.tsx';
 import { FamilyIcon } from './families.tsx';
-import { moduleLabel, SixDots } from './shaping.tsx';
+import { moduleLabel } from './shaping.tsx';
 import { currentLanguage, t } from './i18n.ts';
 import { contentModule } from '@vocabularium/domain/catalog';
 import { ClipPlayer, MAX_SPOKEN_LENGTH } from './audio.tsx';
@@ -228,9 +228,12 @@ export function Content({ type, rendered, mainKey, controls, spoken }: {
   const ruled = rendered.kind === 'parent' ? rendered.ruledOut : {};
   const canRetryFacet = (facet: FacetType) => rendered.kind === 'parent' && !ruled[facet];
   // While the facet generates on its own, the spark runs round its tab (0.7.4).
-  const facetHead = (facet: FacetType, hasContent = true, grip?: ReactNode) => parent && <h3 className="facet-title">
-    {grip}
-    <FacetTab parent={parent} facet={facet}><Spark active={controls?.retrying === facet} /></FacetTab>
+  // The facet's tag and title drag it, while the card's facets can move (D26).
+  const facetHead = (facet: FacetType, hasContent = true, handle?: FacetHandle) => parent && <h3 className="facet-title">
+    {(() => {
+      const tab = <FacetTab parent={parent} facet={facet}><Spark active={controls?.retrying === facet} /></FacetTab>;
+      return handle ? <span className="facet-handle" ref={handle.ref} {...handle.props} title={handle.label}>{tab}</span> : tab;
+    })()}
     {controls?.retrying === facet ? <span className="visually-hidden">{t('status.generatingEllipsis')}</span>
       : controls?.failed === facet && <span className="facet-note" data-note="failed">{t('card.retryFailed')}</span>}
     {controls && <FacetActions name={t('facet.fromCard', { facet: facetName(parent, facet), card: controls.title })} hasContent={hasContent} canRetry={canRetryFacet(facet)}
@@ -253,24 +256,24 @@ export function Content({ type, rendered, mainKey, controls, spoken }: {
     // A spoken facet (D24): each line beside its own player row.
     const lines = spoken?.facets[name];
     if (facet && lines?.length) return <section key={name} {...section(name, slot)}>
-      {facetHead(name, true, slot?.grip)}
+      {facetHead(name, true, slot?.handle)}
       <div className="facet-body spoken-lines">{lines.map((line, index) => <div className="spoken-line" key={index}>
         <span className="spoken-text" dir="auto">{line}</span>
         <ClipPlayer componentId={spoken!.componentId} part={name} line={index} text={line} speakable tooLong={line.length > MAX_SPOKEN_LENGTH} />
       </div>)}</div>
     </section>;
     if (facet) return <section key={name} {...section(name, slot)}>
-      {facetHead(name, true, slot?.grip)}
+      {facetHead(name, true, slot?.handle)}
       <Markdown blocks={facet.body} mainKey={mainKey} className="facet-body" />
     </section>;
     // A facet the card has without content: its heading only, dimmed (D10, amended a sixth time),
     // also while it generates on its own.
     return controls?.retrying === name || controls?.facets?.includes(name)
-      ? <section key={name} {...section(name, slot)} data-unfilled data-pending={controls?.retrying === name || undefined}>{facetHead(name, false, slot?.grip)}</section> : null;
+      ? <section key={name} {...section(name, slot)} data-unfilled data-pending={controls?.retrying === name || undefined}>{facetHead(name, false, slot?.handle)}</section> : null;
   };
   // The card's facets in its own order (D26); without controls, the parent's.
   const order = parent ? (controls?.facets ? inOrder(parent, [...controls.facets, ...facetsOf(parent)]) : facetsOf(parent)) : [];
-  // A card's facets reorder by their grips, except while a part is open in its editor.
+  // A card's facets reorder by their tags, except while a part is open in its editor.
   const sortable = Boolean(parent && controls?.onMoveFacet && controls.facets && controls.facets.length > 1 && !controls.editing);
 
   // The core open in its own editor (0.16.2) stands in place of its top line and text.
@@ -318,14 +321,15 @@ export function Content({ type, rendered, mainKey, controls, spoken }: {
 }
 
 // Where a card's facet section stands while its facets are reordered (D26):
-// its node, its movement, and the grip before its tab that drags it.
-type FacetSlot = { ref: Ref<HTMLElement>; style: CSSProperties; dragging: boolean; grip: ReactNode };
+// its node, its movement, and its tag and title, which drag it.
+type FacetHandle = { ref: (node: HTMLElement | null) => void; props: Record<string, unknown>; label: string };
+type FacetSlot = { ref: Ref<HTMLElement>; style: CSSProperties; dragging: boolean; handle: FacetHandle };
 // The facets move along the card only, as the cards move along the page.
 const alongTheCard: Modifier = ({ transform }) => ({ ...transform, x: 0 });
 const FACET_KEYS = { start: ['Space'], cancel: ['Escape'], end: ['Space'] };
 const MAKING_ROOM = { duration: 250, easing: 'cubic-bezier(.2,.8,.2,1)' };
 
-// A card's facets reordered by their grips (D26), with the pointer or with Space
+// A card's facets reordered by their tags (D26), with the pointer or with Space
 // and the arrow keys. The order shown changes at once on a drop, so a facet never
 // snaps back while its move is saved, and returns to the saved one if the save fails.
 function FacetSorter({ parent, title, facets, disabled, onMove, children }: {
@@ -362,13 +366,12 @@ function FacetSorter({ parent, title, facets, disabled, onMove, children }: {
   </DndContext>;
 }
 
-// One facet's section as it reorders: its grip, before its tab, drags it.
+// One facet's section as it reorders: its tag and title drag it.
 function SortableFacet({ id, label, disabled, children }: { id: FacetType; label: string; disabled: boolean; children: (slot: FacetSlot) => ReactNode }) {
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id, disabled, transition: MAKING_ROOM });
-  // Space picks up and drops on keydown; its keyup would also click the grip.
-  const grip = <button type="button" className="facet-grip" ref={setActivatorNodeRef} {...attributes} {...listeners} aria-label={label} title={label}
-    onKeyUp={(event: KeyboardEvent) => { if (event.code === 'Space') event.preventDefault(); }}><SixDots /></button>;
-  return <>{children({ ref: setNodeRef, style: { transform: DndCSS.Translate.toString(transform), transition }, dragging: isDragging, grip })}</>;
+  // The handle is focusable and named for the move; Space picks it up and drops it.
+  const handle = { ref: setActivatorNodeRef, label, props: { ...attributes, ...listeners, 'aria-label': label } };
+  return <>{children({ ref: setNodeRef, style: { transform: DndCSS.Translate.toString(transform), transition }, dragging: isDragging, handle })}</>;
 }
 
 

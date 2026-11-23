@@ -26,7 +26,7 @@
    (0.13.2; from 0.7.1 only its tab, the tags hung below it on chains). The
    main key's tab has no menu, family or actions, and stands outlined rather
    than filled, on a band ruled in the line colour. */
-.deck-settings .shaping-list { gap: 30px; padding-top: 14px; }
+.deck-settings .shaping-list { gap: 44px; padding-top: 28px; }
 .deck-module[data-type="main-key"] { --fam: var(--line-control); }
 .deck-module[data-type="main-key"] .card-tab { padding: 0 12px; background: var(--ground); color: var(--ink-soft); box-shadow: inset 0 0 0 1px var(--line-control); }
 .deck-module[data-type="main-key"] .card-tab h2 { align-items: center; }

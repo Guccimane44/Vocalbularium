@@ -306,11 +306,6 @@ function SortableRow<T extends ShapeItem>({ item, disabled, renderItem }: {
   </div>;
 }
 
-// Six dots drawn as circles: a text glyph turns uneven when a dragged entry tilts.
-export const SixDots = () => <svg className="six-dots" viewBox="0 0 10 16" aria-hidden="true" fill="currentColor">
-  {[3, 8, 13].flatMap(y => [2.5, 7.5].map(x => <circle key={`${x}-${y}`} cx={x} cy={y} r="1.5" />))}
-</svg>;
-
 // The landing card: a drop target of its own, so the pointer resting on it
 // keeps the module where it is.
 function LandingRow({ type, render, saving = false }: { type: string; render: (type: string) => ReactNode; saving?: boolean }) {
