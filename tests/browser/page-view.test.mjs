@@ -76,6 +76,8 @@ test('page view: main key tiers, Show all, rendered and plain content, quiet car
   const actionsMenu = a.page.getByRole('group', { name: 'Actions for German', exact: true });
   assert.deepEqual(await actionsMenu.getByRole('button').allTextContents(), ['Edit', 'Retry', 'Fold', 'Delete']);
   assert.equal(await actionsMenu.getByRole('button').first().evaluate(node => getComputedStyle(node).animationName), 'eject-down', 'they drop down');
+  // Measured once they land: on the way down, each starts above the one before it.
+  await actionsMenu.getByRole('button').evaluateAll(items => Promise.all(items.flatMap(item => item.getAnimations()).map(animation => animation.finished)));
   assert.ok(await actionsMenu.getByRole('button').evaluateAll(items => items.every((item, index) => index === 0
     || item.getBoundingClientRect().top > items[index - 1].getBoundingClientRect().top)), 'one below another');
   // Opening Settings folds Actions back: one dropdown at a time.
@@ -112,6 +114,8 @@ test('page view: main key tiers, Show all, rendered and plain content, quiet car
   assert.deepEqual(await menu.getByRole('menuitem').evaluateAll(items => items.map(item => [item.firstChild.textContent, item.getAttribute('aria-disabled')])),
     [['Duplicate', 'true'], ['Copy text', 'true'], ['Move to page…', 'true']]);
   assert.equal(await menu.getByRole('menuitem').first().evaluate(node => getComputedStyle(node).animationName), 'eject-down', 'the entries drop down');
+  // Measured once they land: on the way down, each starts above the one before it.
+  await menu.getByRole('menuitem').evaluateAll(items => Promise.all(items.flatMap(item => item.getAnimations()).map(animation => animation.finished)));
   assert.ok(await menu.getByRole('menuitem').evaluateAll(items => items.every((item, index) => index === 0
     || item.getBoundingClientRect().top > items[index - 1].getBoundingClientRect().top)), 'one below another');
   // Escape folds Settings back first and returns to it; a second Escape puts the actions back.

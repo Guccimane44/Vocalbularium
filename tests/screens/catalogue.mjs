@@ -43,8 +43,8 @@ export const SCREENS = [
   { name: 'facet-window', phase: 'full', route: ({ pages }) => `page/${pages['german-complete']}`, ready: page => card(page, 'german').waitFor(),
     show: async page => {
       await card(page, 'german').locator('.tab-button').click();
-      // The card's actions are Edit, Retry and then Facet.
-      await card(page, 'german').locator('.card-actions button').nth(2).click();
+      // The card's actions are Actions and then Facet.
+      await card(page, 'german').locator('.card-actions button').nth(1).click();
       await page.locator('.facet-window').waitFor();
     } },
   // A facet's grip focused on German's complete card, showing in the card's margin (D26).
