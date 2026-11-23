@@ -179,7 +179,7 @@ test('family, module and facet pages in one sheet, from the module window, a car
   await a.page.goto(`chrome-extension://${a.id}/app.html#configure/${deckId}`);
   const row = a.page.locator('.deck-module[data-type="german"]');
   await row.locator('.tab-button').click();
-  assert.deepEqual(await row.locator('.card-actions button').allTextContents(), ['About', 'Facet', 'Remove']);
+  assert.deepEqual(await row.locator('.card-actions button').allTextContents(), ['About', 'Facet', 'Settings', 'Remove']);
   await row.getByRole('button', { name: 'About German', exact: true }).click();
   await waitFor(async () => await title() === 'German', 'German from deck settings');
   await a.page.keyboard.press('Escape');

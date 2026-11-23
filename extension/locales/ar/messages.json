@@ -34,6 +34,8 @@
   "card.facetsFull": "تحمل البطاقة {count} جانبًا على الأكثر. أزل واحدًا لتضيف غيره.",
   "card.facet": "جانب",
   "card.fold": "طيّ",
+  "card.actionsMenu": "إجراءات",
+  "card.actionsMenuFor": "قائمة إجراءات {card}",
   "card.settings": "الإعدادات",
   "card.settingsFor": "إعدادات {card}",
   "card.unfold": "توسيع",

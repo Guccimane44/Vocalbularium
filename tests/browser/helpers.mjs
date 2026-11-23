@@ -16,11 +16,14 @@ export const modulesOf = page => page.components.filter(component => isContentTy
 export const componentArticle = (page, heading) => page.locator('article.component').filter({ has: page.getByRole('heading', { name: heading, exact: true }) });
 // A card's label in its tab drags the card; clicked, it ejects the card's actions (D07).
 export const cardTab = (page, heading) => componentArticle(page, heading).locator('.tab-button');
-// An action ejected from its card's tab, opening the tab first when the actions are not out.
+// An action ejected from its card's tab, opening the tab first when the actions are not out,
+// and then Actions when the action is one it drops down (Edit, Retry, Fold, Unfold, Delete).
 export async function cardButton(page, name) {
   const button = page.getByRole('button', { name, exact: true });
   if (await button.count()) return button;
-  await cardTab(page, name.replace(/^(Edit|Retry|Generate|Fold|Unfold|Delete) /, '')).click();
+  const card = name.replace(/^(Edit|Retry|Generate|Fold|Unfold|Delete) /, '');
+  if (!await page.getByRole('button', { name: `Actions for ${card}`, exact: true }).count()) await cardTab(page, card).click();
+  if (!await button.count()) await page.getByRole('button', { name: `Actions for ${card}`, exact: true }).click();
   return button;
 }
 // A parent's facet window (D13, 0.8.1), opened by Facet among its actions; already open, it is returned as it is.

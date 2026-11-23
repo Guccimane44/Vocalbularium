@@ -214,12 +214,12 @@ test('facet window from the keyboard: Facet among the actions, Space on a tick, 
   await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
   await card('German').locator('.facet').first().waitFor();
 
-  // Enter on the tab ejects the actions; Facet stands after Retry (D13, 0.8.1), About before Fold (D20).
+  // Enter on the tab ejects the actions; Facet stands after Actions (D13, 0.8.1), then About (D20) and Settings.
   await cardTab(a.page, 'German').focus();
   await a.page.keyboard.press('Enter');
   const actions = card('German').locator('.card-actions button');
   await actions.first().waitFor();
-  assert.deepEqual(await actions.allTextContents(), ['Edit', 'Retry', 'Facet', 'About', 'Fold', 'Delete']);
+  assert.deepEqual(await actions.allTextContents(), ['Actions', 'Facet', 'About', 'Settings']);
   await a.page.getByRole('button', { name: 'Facets of German', exact: true }).focus();
   await a.page.keyboard.press('Enter');
   const facets = a.page.getByRole('group', { name: 'Facets of German', exact: true });

@@ -34,6 +34,8 @@
   "card.facetsFull": "На карточке не больше {count} разделов. Уберите один, чтобы добавить другой.",
   "card.facet": "Разделы",
   "card.fold": "Свернуть",
+  "card.actionsMenu": "Действия",
+  "card.actionsMenuFor": "Меню действий: {card}",
   "card.settings": "Настройки",
   "card.settingsFor": "Настройки: {card}",
   "card.unfold": "Развернуть",

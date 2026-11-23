@@ -49,11 +49,12 @@ test('manual page UI: per-card actions, drafts, leave choices, sorting, failed-s
   await drag(a.page, cardTab(a.page, 'Text'), componentArticle(a.page, 'German'));
   await waitFor(async () => (await shape())[2][0] === 'text', 'Text moved up');
   assert.equal(await a.page.getByRole('button', { name: /^Move / }).count(), 0, 'no move buttons (D04)');
-  // Deleting a component with content asks beside its tab, not in a dialog (0.6.3): Cancel lands
-  // under the pointer, where Delete was, and the final Delete stands to its left.
+  // Deleting a component with content asks beside its tab, not in a dialog (0.6.3): the final Delete
+  // stands where Actions was, Cancel to its right, and the pointer below them, where Delete dropped.
   const askDelete = await cardButton(a.page, 'Delete Context');
   await a.page.locator('.card-actions[data-open]').evaluate(node => Promise.all(node.getAnimations({ subtree: true }).map(animation => animation.finished)));
   const was = await askDelete.boundingBox();
+  const column = await a.page.getByRole('button', { name: 'Actions for Context', exact: true }).boundingBox();
   await askDelete.click();
   const keep = a.page.getByRole('button', { name: 'Keep Context', exact: true });
   const confirmDelete = a.page.getByRole('button', { name: 'Yes, delete Context', exact: true });
@@ -61,13 +62,24 @@ test('manual page UI: per-card actions, drafts, leave choices, sorting, failed-s
   assert.equal(await a.page.getByRole('dialog').count(), 0, 'no dialog');
   assert.equal(await a.page.locator('.confirm-text').textContent(), 'Are you sure?');
   await a.page.locator('[data-confirm]').evaluate(node => Promise.all(node.getAnimations({ subtree: true }).map(animation => animation.finished)));
-  assert.equal(await a.page.evaluate(([x, y]) => document.elementFromPoint(x, y)?.closest('button')?.getAttribute('aria-label'),
-    [was.x + was.width / 2, was.y + was.height / 2]), 'Keep Context', 'Cancel is under the pointer');
+  assert.ok(Math.abs((await confirmDelete.boundingBox()).x - column.x) <= 2, 'the final Delete stands where Actions was');
+  assert.equal(await a.page.evaluate(([x, y]) => document.elementFromPoint(x, y)?.closest('button'),
+    [was.x + was.width / 2, was.y + was.height / 2]), null, 'no button under the pointer');
   assert.ok((await confirmDelete.boundingBox()).x < (await keep.boundingBox()).x, 'the final Delete is to the left of Cancel');
   assert.equal(await a.page.evaluate(() => document.activeElement.getAttribute('aria-label')), 'Keep Context', 'focus is on Cancel');
   await keep.click();
   assert.equal(await confirmDelete.count(), 0);
   assert.equal((await shape()).length, 4);
+  // A second click where Delete was lands on the card: it takes the question back, deleting nothing,
+  // and the card reopens on its actions.
+  await (await cardButton(a.page, 'Delete Context')).click();
+  await keep.waitFor();
+  await a.page.mouse.click(was.x + was.width / 2, was.y + was.height / 2);
+  await keep.waitFor({ state: 'detached' });
+  assert.equal((await shape()).length, 4, 'nothing deleted');
+  await cardTab(a.page, 'Context').click();
+  await a.page.getByRole('button', { name: 'Actions for Context', exact: true }).waitFor();
+  await a.page.keyboard.press('Escape');
   await (await cardButton(a.page, 'Delete Context')).click();
   await confirmDelete.click();
   await waitFor(async () => (await shape()).length === 3, 'Context deleted');
@@ -234,8 +246,7 @@ test('retry UI: exact confirmation asked beside the tab, a first Retry without w
   assert.equal(await componentArticle(a.page, 'German').count(), 1, 'a deck change never reaches the page');
   await addFromWindow(a.page, 'german');
   // Two Germans on one page are numbered in their tabs (0.7.2).
-  await componentArticle(a.page, 'German 2').locator('.tab-button').click();
-  await componentArticle(a.page, 'German 2').getByRole('button', { name: 'Retry German 2', exact: true }).click();
+  await (await cardButton(a.page, 'Retry German 2')).click();
   await waitFor(async () => modulesOf(await application.store.page(pageId)).filter(item => item.attemptId).length === 3, 'the added module generated');
   assert.equal(await a.page.getByRole('dialog').count(), 0);
 });

@@ -120,6 +120,7 @@ test('right to left and the pseudo-languages: every surface mirrors, content kee
   // A card's actions spring out from its tab towards the reading end, and Delete asks beside it.
   await cardTab(a.page, 'German').click();
   const actions = card.locator('.card-actions');
+  await actions.getByRole('button', { name: 'Actions for German', exact: true }).click();
   await actions.getByRole('button', { name: 'Delete German', exact: true }).click();
   await actions.getByText('Are you sure?', { exact: true }).waitFor();
   const question = await box(actions.locator('.confirm-text')), cancel = await box(actions.getByRole('button', { name: 'Keep German', exact: true }));

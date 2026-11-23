@@ -42,6 +42,8 @@ const ACTION_ICONS = {
   about: <><circle cx="12" cy="12" r="9.5" /><path d="M12 11v6" /><path d="M12 7.5h.01" /></>,
   fold: <><path d="M7 20l5-5 5 5" /><path d="M7 4l5 5 5-5" /></>,
   unfold: <><path d="M7 15l5 5 5-5" /><path d="M7 9l5-5 5 5" /></>,
+  // A bolt.
+  actions: <path d="M13 3 5 14h6l-1 7 8-11h-6z" />,
   // Three sliders.
   settings: <><path d="M4 6h9" /><path d="M17 6h3" /><circle cx="15" cy="6" r="2" /><path d="M4 12h3" /><path d="M11 12h9" /><circle cx="9" cy="12" r="2" /><path d="M4 18h11" /><path d="M19 18h1" /><circle cx="17" cy="18" r="2" /></>
 } as const;
@@ -434,24 +436,39 @@ export function ConfirmAction({ kind, title, offset, onConfirm, onCancel }: {
   </div>;
 }
 
-// Settings, among the actions a tab ejects, drops its entries down below it,
-// one after another with the same spring. Its entries are placeholders for now.
-export function SettingsAction({ index, name, entries }: { index: number; name: string; entries: readonly string[] }) {
+// An action that drops its own entries down below it, one after another with
+// the spring the tab's actions eject with: Actions holds a card's buttons,
+// Settings its placeholder menu. Escape or a click elsewhere folds it back.
+export function SubmenuAction({ index, icon, label, name, menu = false, children }: {
+  index: number; icon: keyof typeof ACTION_ICONS; label: string; name: string; menu?: boolean; children: ReactNode;
+}) {
   const [open, setOpen] = useState(false);
+  const root = useRef<HTMLSpanElement>(null);
   const button = useRef<HTMLButtonElement>(null);
   const listId = useId();
-  const label = t('card.settingsFor', { card: name });
-  return <span className="action-settings" onKeyDown={event => {
+  useEffect(() => {
+    if (!open) return;
+    const outside = (event: PointerEvent) => { if (!root.current?.contains(event.target as Node)) setOpen(false); };
+    document.addEventListener('pointerdown', outside);
+    return () => document.removeEventListener('pointerdown', outside);
+  }, [open]);
+  const list = { id: listId, className: 'action-submenu', 'aria-label': name };
+  return <span ref={root} className="action-sub" onKeyDown={event => {
     if (event.key !== 'Escape' || !open) return;
     event.stopPropagation(); setOpen(false); button.current?.focus();
   }}>
-    <button ref={button} type="button" style={{ '--i': index } as CSSProperties} aria-label={label} aria-haspopup="menu" aria-expanded={open}
-      aria-controls={open ? listId : undefined} onClick={() => setOpen(!open)}><ActionIcon name="settings" />{t('card.settings')}</button>
-    {open && <ul id={listId} className="action-submenu" role="menu" aria-label={label}>
-      {entries.map((entry, at) => <li key={entry} role="menuitem" aria-disabled="true" style={{ '--j': at } as CSSProperties}>
-        {entry}<span className="soon">{t('shaping.comingSoon')}</span></li>)}
-    </ul>}
+    <button ref={button} type="button" style={{ '--i': index } as CSSProperties} aria-label={name} aria-haspopup={menu ? 'menu' : true} aria-expanded={open}
+      aria-controls={open ? listId : undefined} onClick={() => setOpen(!open)}><ActionIcon name={icon} />{label}</button>
+    {open && (menu ? <ul {...list} role="menu">{children}</ul> : <div {...list} role="group">{children}</div>)}
   </span>;
+}
+
+// Settings: placeholder entries for now.
+export function SettingsAction({ index, name, entries }: { index: number; name: string; entries: readonly string[] }) {
+  return <SubmenuAction index={index} icon="settings" label={t('card.settings')} name={t('card.settingsFor', { card: name })} menu>
+    {entries.map((entry, at) => <li key={entry} role="menuitem" aria-disabled="true" style={{ '--j': at } as CSSProperties}>
+      {entry}<span className="soon">{t('shaping.comingSoon')}</span></li>)}
+  </SubmenuAction>;
 }
 
 // A module from the window, shown where it would land on the page: built

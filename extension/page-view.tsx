@@ -26,7 +26,7 @@ import { countedBefore } from './placing.ts';
 import type { RowParts } from './shaping.tsx';
 import { direction, listFormat, t } from './i18n.ts';
 import { ClipsProvider } from './audio.tsx';
-import { ActionIcon, CORE_PART, CORE_RETRY, Spark, Content, readContent, isSpokenModule, spokenOf, Reveal, ConfirmAction, LandingCard, SettingsAction } from './card-content.tsx';
+import { ActionIcon, CORE_PART, CORE_RETRY, Spark, Content, readContent, isSpokenModule, spokenOf, Reveal, ConfirmAction, LandingCard, SettingsAction, SubmenuAction } from './card-content.tsx';
 import type { FacetAsk, FacetControls } from './card-content.tsx';
 // A module in the module window has a page (D20); the main key has none.
 const isWindowModule = (type: string) => (WINDOW_MODULES as readonly string[]).includes(type);
@@ -255,7 +255,8 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
   useEffect(() => {
     if (!opened) return;
     const outside = (event: PointerEvent) => {
-      if (!(event.target as Element).closest?.(`[data-component-id="${CSS.escape(opened)}"] .card-head`)) setOpened(null);
+      // Closing takes back a question too, so the card reopens on its actions.
+      if (!(event.target as Element).closest?.(`[data-component-id="${CSS.escape(opened)}"] .card-head`)) { setOpened(null); setConfirming(null); }
     };
     document.addEventListener('pointerdown', outside);
     return () => document.removeEventListener('pointerdown', outside);
@@ -309,10 +310,12 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
         if (kind === 'delete') vanish(item);
         else void run(() => generate({ scope: 'component', componentId: item.id }, true));
       }} />;
-    // Where a clicked button stands within the row from its start, transforms aside:
+    // Where the clicked button stands within the row from its start, transforms aside;
+    // for one dropped from Actions, where Actions stands, so Cancel lands in its column.
     // offsetLeft counts from the card's head; a right-to-left row starts at its right.
     const ask = (kind: 'delete' | 'retry') => (event: { currentTarget: HTMLButtonElement }) => {
-      const button = event.currentTarget, row = button.parentElement;
+      const button = event.currentTarget.closest<HTMLElement>('.action-sub') ?? event.currentTarget;
+      const row = button.closest<HTMLElement>('.card-actions');
       const offset = direction() === 'rtl'
         ? (row ? row.offsetLeft + row.offsetWidth : 0) - (button.offsetLeft + button.offsetWidth)
         : button.offsetLeft - (row?.offsetLeft ?? 0);
@@ -326,29 +329,36 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
     const choose = (action: () => void) => () => { setOpened(null); action(); };
     let index = 0;
     const order = () => ({ '--i': index++ }) as CSSProperties;
-    return <div id={`actions-${item.id}`} className="card-actions" role="group" aria-label={t('card.actions', { card: title })} data-open={open || undefined}>
-      {/* An empty parent can be written by hand too (D10, amended a fourth time). */}
-      {/* A spoken core has no text to edit (D24). */}
-      {open && !isSpokenModule(item.moduleType) && <button style={order()} aria-label={t('action.editNamed', { name: title })} disabled={Boolean(editingId) || item.status === 'loading'}
-        onClick={choose(() => { if (isFolded) fold(item.id, false); begin(item.id); })}>
-        <ActionIcon name="edit" />{t('common.edit')}</button>}
-      {generated && <button style={order()} className={item.status === 'failed' ? 'action-failed' : undefined} aria-label={t('action.retryNamed', { name: title })}
-        disabled={working || Boolean(editingId) || item.status === 'loading'}
-        onClick={hasContent && open ? ask('retry') : choose(() => void run(() => generate({ scope: 'component', componentId: item.id })))}>
-        <ActionIcon name="retry" />{t('common.retry')}</button>}
+    let entry = 0;
+    const drop = () => ({ '--j': entry++ }) as CSSProperties;
+    const retry = (style: CSSProperties) => generated && <button style={style} className={item.status === 'failed' ? 'action-failed' : undefined} aria-label={t('action.retryNamed', { name: title })}
+      disabled={working || Boolean(editingId) || item.status === 'loading'}
+      onClick={hasContent && open ? ask('retry') : choose(() => void run(() => generate({ scope: 'component', componentId: item.id })))}>
+      <ActionIcon name="retry" />{t('common.retry')}</button>;
+    // Closed, a failed card keeps only its Retry beside the tab.
+    if (!open) return <div id={`actions-${item.id}`} className="card-actions" role="group" aria-label={t('card.actions', { card: title })}>{retry(order())}</div>;
+    return <div id={`actions-${item.id}`} className="card-actions" role="group" aria-label={t('card.actions', { card: title })} data-open>
+      {/* Actions holds what changes the card: Edit, Retry, Fold and Delete. */}
+      <SubmenuAction index={index++} icon="actions" label={t('card.actionsMenu')} name={t('card.actionsMenuFor', { card: title })}>
+        {/* An empty parent can be written by hand too (D10, amended a fourth time). A spoken core has no text to edit (D24). */}
+        {!isSpokenModule(item.moduleType) && <button style={drop()} aria-label={t('action.editNamed', { name: title })} disabled={Boolean(editingId) || item.status === 'loading'}
+          onClick={choose(() => { if (isFolded) fold(item.id, false); begin(item.id); })}>
+          <ActionIcon name="edit" />{t('common.edit')}</button>}
+        {retry(drop())}
+        {foldable && <button style={drop()} aria-label={t(isFolded ? 'card.unfoldNamed' : 'card.foldNamed', { card: title })} onClick={choose(() => fold(item.id, !isFolded))}>
+          <ActionIcon name={isFolded ? 'unfold' : 'fold'} />{isFolded ? t('card.unfold') : t('card.fold')}</button>}
+        <button style={drop()} className="action-delete" aria-label={t('action.deleteNamed', { name: title })} disabled={disabled || working || item.status === 'loading'}
+          onClick={hasContent ? ask('delete') : choose(() => vanish(item))}>
+          <ActionIcon name="delete" />{t('common.delete')}</button>
+      </SubmenuAction>
       {/* A parent's facets are chosen in its facet window (D13, 0.8.1). */}
-      {open && isParentType(item.moduleType) && facetsOf(item.moduleType).length > 0 && <button style={order()} aria-label={t('card.facetsOf', { card: title })}
+      {isParentType(item.moduleType) && facetsOf(item.moduleType).length > 0 && <button style={order()} aria-label={t('card.facetsOf', { card: title })}
         disabled={disabled || working || item.status === 'loading'} onClick={choose(() => setFacetsFor(item.id))}>
         <ActionIcon name="facet" />{t('card.facet')}</button>}
       {/* About opens the module's page in the pages' sheet (D20, 0.13.0). */}
-      {open && isWindowModule(item.moduleType) && <button style={order()} aria-label={t('shaping.about', { name: title })} aria-haspopup="dialog"
+      {isWindowModule(item.moduleType) && <button style={order()} aria-label={t('shaping.about', { name: title })} aria-haspopup="dialog"
         onClick={choose(() => openAbout({ kind: 'module', module: item.moduleType }))}><ActionIcon name="about" />{t('card.about')}</button>}
-      {open && foldable && <button style={order()} aria-label={t(isFolded ? 'card.unfoldNamed' : 'card.foldNamed', { card: title })} onClick={choose(() => fold(item.id, !isFolded))}>
-        <ActionIcon name={isFolded ? 'unfold' : 'fold'} />{isFolded ? t('card.unfold') : t('card.fold')}</button>}
-      {open && <SettingsAction index={index++} name={title} entries={componentSettings()} />}
-      {open && <button style={order()} className="action-delete" aria-label={t('action.deleteNamed', { name: title })} disabled={disabled || working || item.status === 'loading'}
-        onClick={hasContent ? ask('delete') : choose(() => vanish(item))}>
-        <ActionIcon name="delete" />{t('common.delete')}</button>}
+      <SettingsAction index={index++} name={title} entries={componentSettings()} />
     </div>;
   };
   const editor = (item: Component, title: string, controls?: FacetControls) => {
@@ -429,7 +439,7 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
       data-component-id={item.id} data-type={item.moduleType} data-status={item.status ?? undefined} data-editing={editingId === item.id || undefined}>
       <div className="card-head" onKeyDown={event => {
         if (event.key !== 'Escape' || opened !== item.id) return;
-        setOpened(null);
+        setOpened(null); setConfirming(null);
         (event.currentTarget.querySelector('.tab-button') as HTMLElement | null)?.focus();
       }}>
         <div className="card-tab">

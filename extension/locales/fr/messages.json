@@ -34,6 +34,8 @@
   "card.facetsFull": "Une carte contient au plus {count} facettes. Retirez-en une pour en ajouter une autre.",
   "card.facet": "Facette",
   "card.fold": "Replier",
+  "card.actionsMenu": "Actions",
+  "card.actionsMenuFor": "Menu des actions : {card}",
   "card.settings": "Réglages",
   "card.settingsFor": "Réglages : {card}",
   "card.unfold": "Déplier",

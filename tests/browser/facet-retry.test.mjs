@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { once } from 'node:events';
 import { wordResult, staged } from '../helpers/pages.mjs';
-import { componentArticle, focusPart, launch, selectedIn, signIn, waitFor, settled } from './helpers.mjs';
+import { cardButton, componentArticle, focusPart, launch, selectedIn, signIn, waitFor, settled } from './helpers.mjs';
 
 test('a facet’s own Retry beside its Delete, a tag’s remove keeping its colours, and hung tags lifting with their tab', { timeout: 60000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-facet-retry-browser-'));
@@ -195,8 +195,7 @@ test('a facet’s own Retry beside its Delete, a tag’s remove keeping its colo
   await a.page.setViewportSize({ width: 1280, height: 1400 });
 
   // Generating, a card's hung tags stay beneath its tab, so the rail does not cover the spark.
-  await hung.locator('.tab-button').click();
-  await a.page.getByRole('button', { name: 'Retry German 2', exact: true }).click();
+  await (await cardButton(a.page, 'Retry German 2')).click();
   await waitFor(async () => await hung.getAttribute('data-generating') !== null, 'German 2 generating');
   await hung.locator('.spark').waitFor();
   const layers = await hung.evaluate(node => [getComputedStyle(node.querySelector('.card-tab')).zIndex, getComputedStyle(node.querySelector('.facet-tags')).zIndex]);

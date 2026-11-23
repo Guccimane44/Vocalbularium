@@ -34,6 +34,8 @@
   "card.facetsFull": "Una tarjeta tiene como máximo {count} facetas. Quita una para añadir otra.",
   "card.facet": "Faceta",
   "card.fold": "Plegar",
+  "card.actionsMenu": "Acciones",
+  "card.actionsMenuFor": "Menú de acciones de {card}",
   "card.settings": "Ajustes",
   "card.settingsFor": "Ajustes de {card}",
   "card.unfold": "Desplegar",

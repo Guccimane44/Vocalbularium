@@ -70,7 +70,18 @@ test('page view: main key tiers, Show all, rendered and plain content, quiet car
   assert.equal(await examples.locator('.card-actions').count(), 0, 'hovering no longer shows actions');
   await cardTab(a.page, 'German').click();
   // A parent's Facet opens its facet window (D13, 0.8.1).
-  assert.deepEqual(await examples.locator('.card-actions button').allTextContents(), ['Edit', 'Retry', 'Facet', 'About', 'Fold', 'Settings', 'Delete']);
+  assert.deepEqual(await examples.locator('.card-actions button').allTextContents(), ['Actions', 'Facet', 'About', 'Settings']);
+  // Actions drops Edit, Retry, Fold and Delete down below it, with the eject's spring.
+  await (await cardButton(a.page, 'Actions for German')).click();
+  const actionsMenu = a.page.getByRole('group', { name: 'Actions for German', exact: true });
+  assert.deepEqual(await actionsMenu.getByRole('button').allTextContents(), ['Edit', 'Retry', 'Fold', 'Delete']);
+  assert.equal(await actionsMenu.getByRole('button').first().evaluate(node => getComputedStyle(node).animationName), 'eject-down', 'they drop down');
+  assert.ok(await actionsMenu.getByRole('button').evaluateAll(items => items.every((item, index) => index === 0
+    || item.getBoundingClientRect().top > items[index - 1].getBoundingClientRect().top)), 'one below another');
+  // Opening Settings folds Actions back: one dropdown at a time.
+  await (await cardButton(a.page, 'Settings for German')).click();
+  assert.equal(await actionsMenu.count(), 0);
+  await a.page.keyboard.press('Escape');
   assert.equal(await cardTab(a.page, 'German').getAttribute('aria-expanded'), 'true');
   assert.equal(await examples.locator('.card-actions button').first().evaluate(node => getComputedStyle(node).animationName), 'eject', 'the actions eject from the tab');
   await a.page.mouse.click(5, 5);
@@ -90,7 +101,7 @@ test('page view: main key tiers, Show all, rendered and plain content, quiet car
   // From the keyboard: Enter ejects them, Escape puts them back and returns to the tab.
   await cardTab(a.page, 'German').focus();
   await a.page.keyboard.press('Enter');
-  await examples.getByRole('button', { name: 'Edit German', exact: true }).waitFor();
+  await examples.getByRole('button', { name: 'Actions for German', exact: true }).waitFor();
   await a.page.keyboard.press('Escape');
   assert.equal(await examples.locator('.card-actions').count(), 0);
   assert.equal(await a.page.evaluate(() => document.activeElement.className), 'tab-button');
