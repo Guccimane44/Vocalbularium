@@ -42,11 +42,14 @@ export const tick = (window, facet) => window.getByRole('button', { name: new Re
 export const inOrder = (window, read) => window.locator('.facet-window-row').evaluateAll((rows, read) => rows
   .sort((a, b) => Number(a.dataset.index) - Number(b.dataset.index))
   .map(row => read === 'name' ? row.querySelector('.facet-window-name').textContent : row.hasAttribute('data-equipped')), read);
-// In deck settings a module is an empty card (0.7.1): its tab ejects Remove.
+// In deck settings a module is an empty card (0.7.1): its tab ejects Actions,
+// which drops Remove.
 // Only deck-settings rows: right after navigating there from a page, that
 // page's card of the same name can still be on screen.
 export async function removeFromDeck(page, label, nth = 0) {
-  await page.locator('.deck-module').filter({ has: page.getByRole('heading', { name: label, exact: true }) }).nth(nth).locator('.tab-button').click();
+  const row = page.locator('.deck-module').filter({ has: page.getByRole('heading', { name: label, exact: true }) }).nth(nth);
+  await row.locator('.tab-button').click();
+  await row.getByRole('button', { name: `Actions for ${label}`, exact: true }).click();
   await page.getByRole('button', { name: `Remove ${label}`, exact: true }).click();
 }
 export const apiOrigin = process.env.VOCABULARIUM_API_URL ?? 'http://127.0.0.1:4318';

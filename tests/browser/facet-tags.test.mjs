@@ -160,9 +160,11 @@ test('facet tags: abbreviations in order, on the left edge, along the edge to th
   assert.ok(hung.every(tag => Math.abs(tag.below + 6) <= 2 && tag.chain === '0'), `from the band's bottom edge, without chains (${JSON.stringify(hung)})`);
   assert.ok(hung.at(-1).end > 10 && hung.at(-1).end < 30 && hung[0].end > hung.at(-1).end, `at its end, in order (${JSON.stringify(hung)})`);
   assert.ok((await row.boundingBox()).height < 30, 'a slim band');
-  // Its tab ejects About, Facet, Settings and Remove: no Fold or Unfold.
+  // Its tab ejects Actions, Facet, About and Settings, and Actions holds only Remove: no Fold or Unfold.
   await row.locator('.tab-button').click();
-  assert.deepEqual(await row.locator('.card-actions button').evaluateAll(buttons => buttons.map(button => button.textContent)), ['About', 'Facet', 'Settings', 'Remove']);
+  assert.deepEqual(await row.locator('.card-actions button').evaluateAll(buttons => buttons.map(button => button.textContent)), ['Actions', 'Facet', 'About', 'Settings']);
+  await row.getByRole('button', { name: 'Actions for German', exact: true }).click();
+  assert.deepEqual(await row.locator('.action-submenu button').allTextContents(), ['Remove']);
   // No tag is a button there either (0.13.2). Unticked in the facet window, a tag pops; ticked again, it flies in from its row.
   assert.equal(await row.locator('.facet-tags').getByRole('button').count(), 0, 'no tag interaction');
   // Settings drops its entries over the tags hung below the tab, the card lifted under the pointer (0.13.2: a menu opened beneath them).

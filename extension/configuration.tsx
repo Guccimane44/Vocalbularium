@@ -14,7 +14,7 @@ import { FacetTags } from './facet-tags.tsx';
 import { openAbout } from './about-sheet.tsx';
 import { FacetWindow } from './facet-window.tsx';
 import { FamilyIcon } from './families.tsx';
-import { ActionIcon, LandingCard, SettingsAction } from './card-content.tsx';
+import { ActionIcon, LandingCard, SettingsAction, SubmenuAction } from './card-content.tsx';
 import { moduleLabel, numbered, ShapingArea } from './shaping.tsx';
 import type { RowParts } from './shaping.tsx';
 import { t } from './i18n.ts';
@@ -71,14 +71,17 @@ function DeckModule({ item, parts, busy, opened, setOpened, choosing, setChoosin
         </button></h2>
       </div>
       {opened && <div id={`actions-${item.id}`} className="card-actions" role="group" aria-label={t('card.actions', { card: item.label })} data-open>
-        {/* About, first, opens the module's page, as from the module window (D20). */}
-        <button style={{ '--i': 0 } as CSSProperties} aria-label={t('shaping.about', { name: item.label })} aria-haspopup="dialog"
-          onClick={() => { setOpened(false); openAbout({ kind: 'module', module: item.type }); }}><ActionIcon name="about" />{t('card.about')}</button>
+        {/* Actions first, as on the page; it holds Remove. */}
+        <SubmenuAction index={0} icon="actions" label={t('card.actionsMenu')} name={t('card.actionsMenuFor', { card: item.label })}>
+          <button style={{ '--j': 0 } as CSSProperties} className="action-delete" aria-label={t('action.removeNamed', { name: item.label })} disabled={busy}
+            onClick={() => { setOpened(false); onRemove(); }}><ActionIcon name="delete" />{t('common.remove')}</button>
+        </SubmenuAction>
         {isParentType(item.type) && <button style={{ '--i': 1 } as CSSProperties} aria-label={t('card.facetsOf', { card: item.label })} disabled={busy}
           onClick={() => { setOpened(false); setChoosing(true); }}><ActionIcon name="facet" />{t('card.facet')}</button>}
-        <SettingsAction index={isParentType(item.type) ? 2 : 1} name={item.label} entries={deckModuleSettings()} />
-        <button style={{ '--i': isParentType(item.type) ? 3 : 2 } as CSSProperties} className="action-delete" aria-label={t('action.removeNamed', { name: item.label })} disabled={busy}
-          onClick={() => { setOpened(false); onRemove(); }}><ActionIcon name="delete" />{t('common.remove')}</button>
+        {/* About opens the module's page, as from the module window (D20). */}
+        <button style={{ '--i': isParentType(item.type) ? 2 : 1 } as CSSProperties} aria-label={t('shaping.about', { name: item.label })} aria-haspopup="dialog"
+          onClick={() => { setOpened(false); openAbout({ kind: 'module', module: item.type }); }}><ActionIcon name="about" />{t('card.about')}</button>
+        <SettingsAction index={isParentType(item.type) ? 3 : 2} name={item.label} entries={deckModuleSettings()} />
       </div>}
       {choosing && isParentType(item.type) && <FacetWindow holderId={item.id} parent={item.type} title={item.label} facets={item.facets ?? []} onPage={false}
         disabled={busy} hasContent={() => false} onAdd={onAddFacet} onRemove={onRemoveFacet}

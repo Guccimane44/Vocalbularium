@@ -28,7 +28,7 @@ The user edits the configuration in **deck settings**: name the deck, choose its
 Deck settings hold modules without content, so each module is drawn as a folded card is on a page and never unfolds: a slim band under its index tab, ruled in its family colour, which offers no **Fold** or **Unfold** ([D22](../decisions/d22.md)).
 
 - **The main key** is shown first in the list like the other modules: its tab is outlined, on a band ruled in the line colour, with no drag, actions or **Remove**.
-- **Each other module's tab** is numbered like a page's when the same module appears more than once, drags it and, clicked, ejects **About** first, which opens its [module page](module-pages.md#the-pages) in the pages' sheet, the same page as from the module window or a card; then, on a parent, **Facet**, which opens its [facet window](facet-window.md#the-window) on the draft; then **Settings**, which drops its placeholder entries, **Duplicate** and **Copy to another deck…**, marked *Coming soon*, down below it as on a page ([components as cards](page.md#components-as-cards)); then **Remove**. The tab is one button, with no menu of its own.
+- **Each other module's tab** is numbered like a page's when the same module appears more than once, drags it and, clicked, ejects the same row as a card on a page ([components as cards](page.md#components-as-cards)). **Actions** comes first and drops **Remove** down below it; Remove takes the module out of the draft at once, with no question, since nothing is lost until the deck is saved. Then, on a parent, **Facet**, which opens its [facet window](facet-window.md#the-window) on the draft; then **About**, which opens its [module page](module-pages.md#the-pages) in the pages' sheet, the same page as from the module window or a card; then **Settings**, which drops its placeholder entries, **Duplicate** and **Copy to another deck…**, marked *Coming soon*. The tab is one button, with no menu of its own.
 - **Facets.** A parent's facets hang from the end of its band's bottom edge as [facet tags](page.md#facet-tags), as on a folded card, fly there from the facet window when added, and pop when removed. Deck settings hold no content, so removing a facet there never asks.
 - **Menus over tags.** An open **Settings** or facet window stands over the tags.
 
@@ -36,7 +36,7 @@ A configuration with only the main key module is valid. Its new pages hold only 
 
 #### Module window
 
-Deck settings show the module list on the left and the **module window** on the right ([the window](module-window.md#the-window)). The user adds an instance by dragging a module from the window into the configuration and reorders instances by dragging their icon and name, which fill the module's tab, with the pointer or from the keyboard (Space, the arrow keys, Space). **Remove** stays on each instance. The page view shows the same window ([shaping a page](page.md#shaping-a-page)), so shaping a deck and shaping a page use the same gesture.
+Deck settings show the module list on the left and the **module window** on the right ([the window](module-window.md#the-window)). The user adds an instance by dragging a module from the window into the configuration and reorders instances by dragging their icon and name, which fill the module's tab, with the pointer or from the keyboard (Space, the arrow keys, Space). **Remove**, under each instance's **Actions**, takes it out. The page view shows the same window ([shaping a page](page.md#shaping-a-page)), so shaping a deck and shaping a page use the same gesture.
 
 ### Deck colour
 
