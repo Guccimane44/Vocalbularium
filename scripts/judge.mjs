@@ -53,13 +53,18 @@ async function request(module, criteria, input) {
  */
 export async function judgeCard(provider, module, criteria, input) {
   const checks = (await checkCard(module, input.card, checkTools)).failures;
-  const reply = await steady(async () => provider.complete(await request(module, criteria, input), undefined, randomUUID()));
-  /** @type {Score[]} */
-  const scores = criteria.map(criterion => {
-    const score = reply[criterion.id];
-    if (!VERDICTS.includes(score?.verdict) || typeof score?.reason !== 'string') throw new Error(`The judge gave no verdict for ${criterion.id}.`);
-    return { criterion: criterion.id, verdict: score.verdict, reason: score.reason };
-  });
+  /** @returns {Promise<Score[]>} */
+  const ask = async () => {
+    const reply = await steady(async () => provider.complete(await request(module, criteria, input), undefined, randomUUID()));
+    return criteria.map(criterion => {
+      const score = reply[criterion.id];
+      if (!VERDICTS.includes(score?.verdict) || typeof score?.reason !== 'string') throw new Error(`The judge gave no verdict for ${criterion.id}.`);
+      return { criterion: criterion.id, verdict: score.verdict, reason: score.reason };
+    });
+  };
+  // Haiku now and then writes the schema itself in place of one verdict; a
+  // later request almost always reads.
+  const scores = await ask().catch(ask).catch(ask);
   const verdict = checks.length || scores.some(score => score.verdict === 'fail') ? 'fail' : scores.some(score => score.verdict === 'weak') ? 'weak' : 'pass';
   return { verdict, checks, scores };
 }

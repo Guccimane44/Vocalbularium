@@ -42,6 +42,7 @@ Use the project's existing authorization to maintain issues and PRs. If that aut
 
 - Reuse a matching issue or create one for the new increment. Record the user-visible outcome, acceptance checklist, linked specifications, and remaining dependencies. Use a milestone or parent tracker when it helps group actual work; do not reuse completed MVP milestones merely because they exist.
 - Link a focused PR to the issue. If its base is another implementation branch, state the dependency. Keep the title and description about the final behavior and evidence.
+- Every PR that changes the extension comes with a build the owner can load by hand: after opening the PR, and after each later push to it, run `npm run test-build` on its committed head. Give the owner the folder it prints, whose `extension/` Chrome's **Load unpacked** takes, with its commit and SHA-256. It builds for the owner's API on 4318 in a clean checkout, so local edits never reach it.
 - Update progress after meaningful events: implementation ready, checks passed/failed, package prepared, deployed, or owner action needed. Record actual results and relevant commit/run links. Distinguish implementation, automated verification, deployment, and owner acceptance.
 - Close an issue when its own acceptance conditions are met. A stable MVP is a baseline for increments, not evidence that an unperformed check passed. Historical test counts, package hashes, and deployment revisions belong in evidence records, not in this skill.
 
