@@ -63,8 +63,11 @@ test('manual page UI: per-card actions, drafts, leave choices, sorting, failed-s
   assert.match(await panel.locator('.confirm-body').textContent(), /can’t be undone/);
   assert.equal(await askDelete.getAttribute('aria-expanded'), 'true', 'Delete stays lit');
   assert.ok(await a.page.getByRole('group', { name: 'Actions for Context', exact: true }).isVisible(), 'the Actions menu stays open');
+  // Measured at rest: under the pointer, Delete lifts 2px as any action does.
+  await a.page.mouse.move(5, 5);
+  await settled(a.page);
   const [deleteBox, panelBox] = [await askDelete.boundingBox(), await panel.boundingBox()];
-  assert.ok(panelBox.x >= deleteBox.x + deleteBox.width && Math.abs(panelBox.y - deleteBox.y) <= 2, 'the panel stands beside Delete, level with it');
+  assert.ok(panelBox.x >= deleteBox.x + deleteBox.width && Math.abs(panelBox.y - deleteBox.y) <= 1, `the panel stands beside Delete, level with it (${JSON.stringify({ deleteBox, panelBox })})`);
   assert.ok((await keep.boundingBox()).x < (await confirmDelete.boundingBox()).x, 'Cancel, then the final Delete');
   assert.equal(await a.page.evaluate(() => document.activeElement.getAttribute('aria-label')), 'Keep Context', 'focus is on Cancel');
   await keep.click();
