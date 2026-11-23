@@ -26,7 +26,7 @@ import { countedBefore } from './placing.ts';
 import type { RowParts } from './shaping.tsx';
 import { direction, listFormat, t } from './i18n.ts';
 import { ClipsProvider } from './audio.tsx';
-import { ActionIcon, CORE_PART, CORE_RETRY, Spark, Content, readContent, isSpokenModule, spokenOf, Reveal, ConfirmAction, LandingCard } from './card-content.tsx';
+import { ActionIcon, CORE_PART, CORE_RETRY, Spark, Content, readContent, isSpokenModule, spokenOf, Reveal, ConfirmAction, LandingCard, SettingsAction } from './card-content.tsx';
 import type { FacetAsk, FacetControls } from './card-content.tsx';
 // A module in the module window has a page (D20); the main key has none.
 const isWindowModule = (type: string) => (WINDOW_MODULES as readonly string[]).includes(type);
@@ -34,8 +34,8 @@ const isWindowModule = (type: string) => (WINDOW_MODULES as readonly string[]).i
 // A deleted card pops where it stands, like a bubble, before it goes (0.6.3).
 const POOF_MS = 240;
 
-// The six-dot menu on each card; its entries are placeholders (0.6.3).
-const componentMenu = () => [t('card.menu.duplicate'), t('card.menu.copyText'), t('card.menu.moveToPage')];
+// The entries of a card's Settings; placeholders for now.
+const componentSettings = () => [t('card.menu.duplicate'), t('card.menu.copyText'), t('card.menu.moveToPage')];
 
 type Deck = { id: string; name: string; modules: ModuleInstance[] };
 type Props = {
@@ -345,6 +345,7 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
         onClick={choose(() => openAbout({ kind: 'module', module: item.moduleType }))}><ActionIcon name="about" />{t('card.about')}</button>}
       {open && foldable && <button style={order()} aria-label={t(isFolded ? 'card.unfoldNamed' : 'card.foldNamed', { card: title })} onClick={choose(() => fold(item.id, !isFolded))}>
         <ActionIcon name={isFolded ? 'unfold' : 'fold'} />{isFolded ? t('card.unfold') : t('card.fold')}</button>}
+      {open && <SettingsAction index={index++} name={title} entries={componentSettings()} />}
       {open && <button style={order()} className="action-delete" aria-label={t('action.deleteNamed', { name: title })} disabled={disabled || working || item.status === 'loading'}
         onClick={hasContent ? ask('delete') : choose(() => vanish(item))}>
         <ActionIcon name="delete" />{t('common.delete')}</button>}
@@ -368,11 +369,11 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
     </>;
   };
 
-  // One card: its index tab (menu, then the family and label, which drags the
+  // One card: its index tab (the family and label, which drags the
   // card and, clicked, ejects its actions beside it), its status only while
   // unfinished, and its content. An empty component is only its tab. Editing
   // is one card at a time; Save and Cancel live in that card.
-  const card = (item: Component, title: string, { drag, menu }: RowParts) => {
+  const card = (item: Component, title: string, { drag }: RowParts) => {
     const family = isModuleType(item.moduleType) ? CATALOG[item.moduleType].family ?? 'notes' : 'notes';
     const read = readContent(item.moduleType, item.content);
     const empty = !read.present && item.status !== 'loading' && item.status !== 'failed' && editingId !== item.id;
@@ -432,7 +433,6 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
         (event.currentTarget.querySelector('.tab-button') as HTMLElement | null)?.focus();
       }}>
         <div className="card-tab">
-          {menu}
           <h2><button type="button" className="tab-button" {...drag} aria-disabled={undefined}
             aria-expanded={opened === item.id} aria-controls={opened === item.id ? `actions-${item.id}` : undefined}
             onClick={() => setOpened(opened === item.id ? null : item.id)}>
@@ -481,7 +481,6 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
         const skip = new Set(vanishing).add(id);
         return moveComponent(id, (countedBefore(restIds, before, skip) ?? restIds.filter(other => !skip.has(other)).length) + 1);
       }}
-      menuItems={componentMenu()}
       renderLanding={type => <LandingCard type={type} />}
       renderItem={(item, parts) => card(item.component, item.label, parts)} />
     </ClipsProvider>

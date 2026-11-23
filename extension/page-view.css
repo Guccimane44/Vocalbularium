@@ -73,31 +73,15 @@
 .tab-button:active { cursor: grabbing; }
 .tab-button:hover { background: color-mix(in srgb, currentColor 14%, transparent); }
 .tab-label { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-/* The six dots open the card's menu. */
-.menu-button { flex: none; display: inline-flex; align-items: center; justify-content: center; padding: 2px 4px; border: 0; border-radius: 4px; line-height: 1; color: inherit; background: transparent; cursor: pointer; }
-.six-dots { width: 7px; height: 11px; flex: none; }
-.menu-button:hover, .menu-button[aria-expanded="true"] { background: color-mix(in srgb, currentColor 18%, transparent); }
-.row-menu { position: relative; display: inline-flex; flex: none; }
-/* Each tab is its own layer (it stays above the actions it ejects), so an open
-   menu lifts its tab, and its row, above the cards and tabs that follow. */
-.card-tab:has(.row-menu-list), .sortable-row:has(.row-menu-list) { z-index: 6; }
-/* The card's head too, over the facet tags hung below it (0.13.2): lifted
-   on hover, the head is a layer of its own, which held the menu beneath them. */
-.card-head:has(.row-menu-list, .facet-window) { z-index: 2; }
-/* The tag is exactly two buttons, edge to edge: the six dots fill its left end
-   and the family icon and label fill the rest, to its right end. Each takes
-   the tag's corners on its side, so a hover or press fills its whole part. */
+/* The tag is one button, the family icon and label, filling it to its
+   corners, so a hover or press fills the whole tag. */
 .card-head .card-tab { padding: 0; gap: 0; align-items: stretch; }
-.card-head .card-tab .row-menu { align-self: stretch; }
-.card-head .card-tab .menu-button { height: 100%; padding: 0 6px 0 9px; border-radius: var(--radius-control) 0 0 2px;
-  box-shadow: inset -1px 0 0 color-mix(in srgb, currentColor 22%, transparent); }
 .card-head .card-tab h2 { display: flex; flex: 1 1 auto; }
-.card-head .card-tab .tab-button { width: 100%; height: 100%; padding: 0 12px 0 7px; border-radius: 0 var(--radius-control) var(--radius-control) 0; }
-.row-menu-list { position: absolute; top: calc(100% + 6px); inset-inline-start: -4px; z-index: 5; min-width: 210px; margin: 0; padding: 4px; list-style: none;
-  border-radius: var(--radius-md); background: var(--surface); color: var(--ink); box-shadow: 0 0 0 1px var(--line), var(--shadow-lift);
-  font: 500 13px/1.2 var(--font-text); letter-spacing: normal; animation: menu-open var(--dur-quick) var(--ease-out) both; transform-origin: top left; }
-.row-menu-list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 10px; border-radius: 6px; color: var(--ink-muted); cursor: default; }
-.row-menu-list .soon { font-size: 11px; color: var(--ink-muted); opacity: .8; }
+.card-head .card-tab .tab-button { width: 100%; height: 100%; padding: 0 12px 0 10px; border-radius: var(--radius-control) var(--radius-control) var(--radius-control) 2px; }
+/* An open Settings lifts its row, and its card's head over the facet tags
+   hung below the tab (0.13.2), above the cards and tabs that follow. */
+.sortable-row:has(.action-submenu) { z-index: 6; }
+.card-head:has(.action-submenu, .facet-window) { z-index: 2; }
 @keyframes menu-open { from { opacity: 0; transform: translateY(-4px) scale(.97); } }
 /* A parent's facet window (D13, 0.8.1), since 0.13.3 (D23) a card on the
    surface: a heading naming the parent with a close, then the facets on the
@@ -195,7 +179,24 @@
   50% { opacity: 1; }
 }
 @media (prefers-reduced-motion: reduce) { .card-tab, .confirm-text { animation: none !important; } }
-@media (prefers-reduced-motion: reduce) { .card-actions[data-open] button, .row-menu-list { animation: none; } }
+/* Settings drops its entries down below it, one after another, with the
+   spring its own action ejected with; they show as placeholders. */
+.action-settings { position: relative; display: inline-flex; flex: none; }
+.action-settings > button { z-index: 1; padding: 0 9px; }
+.card-actions .action-settings > button[aria-expanded="true"] { background: var(--fam, var(--fam-notes)); color: var(--on-fam, var(--on-ink)); }
+.action-submenu { position: absolute; top: calc(100% + 4px); inset-inline-start: 0; z-index: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 4px;
+  margin: 0; padding: 0; list-style: none; }
+.action-submenu li { display: inline-flex; align-items: center; gap: 10px; height: 26px; padding: 0 11px; white-space: nowrap;
+  border-radius: 2px var(--radius-control) var(--radius-control) var(--radius-control);
+  font: 600 13px/1 var(--font-text); color: var(--fam, var(--fam-notes)); background: var(--fam-tint, var(--fam-notes-tint));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fam, var(--fam-notes)) 30%, transparent); cursor: default;
+  animation: eject-down var(--dur-spring) var(--ease-spring) both; animation-delay: calc(var(--j, 0) * 40ms); transform-origin: center top; }
+.action-submenu .soon { font-size: 11px; font-weight: 500; color: var(--ink-muted); }
+@keyframes eject-down {
+  from { opacity: 0; transform: translateY(calc(-20px - var(--j, 0) * 26px)) scale(.7); }
+  50% { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) { .card-actions[data-open] button, .action-submenu li { animation: none; } }
 /* Generating (0.6.3): the card is only its tab, and a comet runs round the
    tab's edge for as long as the work goes on: a bright light head with a
    glow in the family colour, then a trail of smaller, fainter sparks. It
@@ -489,7 +490,7 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
 @media (forced-colors: active) {
   .card-tab, .fam-chip { forced-color-adjust: none; background: CanvasText; color: Canvas; }
   .component { border: 1px solid CanvasText; }
-  .card-actions button, .row-menu-list { border: 1px solid CanvasText; }
+  .card-actions button, .action-submenu li { border: 1px solid CanvasText; }
   /* Filled actions draw their own Canvas text, which the backplate behind
      adjusted text would hide; a family fill's text is Canvas too. */
   .card-actions button, .facet-confirm .action-confirm { forced-color-adjust: none; --on-fam: Canvas; }

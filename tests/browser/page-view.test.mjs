@@ -60,17 +60,17 @@ test('page view: main key tiers, Show all, rendered and plain content, quiet car
   await failed.getByRole('button', { name: 'Retry Chinese', exact: true }).waitFor();
   assert.equal(await failed.getByRole('button', { name: 'Edit Chinese', exact: true }).count(), 0, 'only Retry waits beside a failed tab');
   assert.equal(await examples.locator('.card-actions').count(), 0, 'no actions until the tab is clicked');
-  // The tag is two buttons edge to edge: the six dots at its left end, the label to its right end.
+  // The tag is one button, the family icon and label, from its left end to its right end.
   await examples.locator('.card-tab').scrollIntoViewIfNeeded();
   assert.deepEqual(await examples.locator('.card-tab').evaluate(node => {
     const box = node.getBoundingClientRect();
     return [2, box.width / 2, box.width - 2].map(x => document.elementFromPoint(box.left + x, box.top + box.height / 2)?.closest('button')?.className);
-  }), ['menu-button', 'tab-button', 'tab-button']);
+  }), ['tab-button', 'tab-button', 'tab-button']);
   await examples.hover();
   assert.equal(await examples.locator('.card-actions').count(), 0, 'hovering no longer shows actions');
   await cardTab(a.page, 'German').click();
   // A parent's Facet opens its facet window (D13, 0.8.1).
-  assert.deepEqual(await examples.locator('.card-actions button').allTextContents(), ['Edit', 'Retry', 'Facet', 'About', 'Fold', 'Delete']);
+  assert.deepEqual(await examples.locator('.card-actions button').allTextContents(), ['Edit', 'Retry', 'Facet', 'About', 'Fold', '', 'Delete']);
   assert.equal(await cardTab(a.page, 'German').getAttribute('aria-expanded'), 'true');
   assert.equal(await examples.locator('.card-actions button').first().evaluate(node => getComputedStyle(node).animationName), 'eject', 'the actions eject from the tab');
   await a.page.mouse.click(5, 5);
@@ -94,15 +94,25 @@ test('page view: main key tiers, Show all, rendered and plain content, quiet car
   await a.page.keyboard.press('Escape');
   assert.equal(await examples.locator('.card-actions').count(), 0);
   assert.equal(await a.page.evaluate(() => document.activeElement.className), 'tab-button');
-  // The six dots open the card's menu; its entries are placeholders.
-  await a.page.getByRole('button', { name: 'More for German', exact: true }).click();
-  const menu = a.page.getByRole('menu', { name: 'More for German' });
+  // The tab's actions are its only menu: Settings, an icon only, drops its placeholder entries down below it, with the eject's spring.
+  await cardTab(a.page, 'German').click();
+  await (await cardButton(a.page, 'Settings for German')).click();
+  const menu = a.page.getByRole('menu', { name: 'Settings for German' });
   assert.deepEqual(await menu.getByRole('menuitem').evaluateAll(items => items.map(item => [item.firstChild.textContent, item.getAttribute('aria-disabled')])),
     [['Duplicate', 'true'], ['Copy text', 'true'], ['Move to page…', 'true']]);
+  assert.equal(await menu.getByRole('menuitem').first().evaluate(node => getComputedStyle(node).animationName), 'eject-down', 'the entries drop down');
+  assert.ok(await menu.getByRole('menuitem').evaluateAll(items => items.every((item, index) => index === 0
+    || item.getBoundingClientRect().top > items[index - 1].getBoundingClientRect().top)), 'one below another');
+  // Escape folds Settings back first and returns to it; a second Escape puts the actions back.
   await a.page.keyboard.press('Escape');
-  // A menu lies above the cards below it, their tabs included: Context is empty, so the next tab is right under it.
-  await a.page.getByRole('button', { name: 'More for Context', exact: true }).click();
-  const contextMenu = a.page.getByRole('menu', { name: 'More for Context' });
+  assert.equal(await menu.count(), 0);
+  assert.equal(await a.page.evaluate(() => document.activeElement.getAttribute('aria-label')), 'Settings for German');
+  await a.page.keyboard.press('Escape');
+  assert.equal(await examples.locator('.card-actions').count(), 0);
+  // The entries lie above the cards below, their tabs included: Context is empty, so the next tab is right under it.
+  await cardTab(a.page, 'Context').click();
+  await (await cardButton(a.page, 'Settings for Context')).click();
+  const contextMenu = a.page.getByRole('menu', { name: 'Settings for Context' });
   const covered = await contextMenu.getByRole('menuitem').evaluateAll(items => items.filter(item => {
     const box = item.getBoundingClientRect();
     return !document.elementFromPoint(box.left + 8, box.top + box.height / 2)?.closest('[role="menu"]');
@@ -110,6 +120,7 @@ test('page view: main key tiers, Show all, rendered and plain content, quiet car
   assert.deepEqual(covered, [], 'no menu entry is hidden under the next card');
   await a.page.keyboard.press('Escape');
   assert.equal(await contextMenu.count(), 0);
+  await a.page.keyboard.press('Escape');
   // Retrying a card with nothing in it, such as a failed one, starts at once: no question, no dialog (0.6.3).
   const usageBefore = (await store.page(pages.word)).components.find(item => item.moduleType === 'chinese').attemptId;
   await failed.getByRole('button', { name: 'Retry Chinese', exact: true }).click();

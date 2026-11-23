@@ -2,7 +2,7 @@
 // facets with their actions, spoken parts), its content rising in once
 // generated, the confirmation ejected from its tab, the icons and spark
 // its tab uses, and the card a module from the window lands as.
-import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties, KeyboardEvent, ReactNode, Ref } from 'react';
 import { closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import type { Announcements, DragEndEvent, Modifier } from '@dnd-kit/core';
@@ -41,7 +41,9 @@ const ACTION_ICONS = {
   // The ⓘ of the facet window's rows.
   about: <><circle cx="12" cy="12" r="9.5" /><path d="M12 11v6" /><path d="M12 7.5h.01" /></>,
   fold: <><path d="M7 20l5-5 5 5" /><path d="M7 4l5 5 5-5" /></>,
-  unfold: <><path d="M7 15l5 5 5-5" /><path d="M7 9l5-5 5 5" /></>
+  unfold: <><path d="M7 15l5 5 5-5" /><path d="M7 9l5-5 5 5" /></>,
+  // Three sliders.
+  settings: <><path d="M4 6h9" /><path d="M17 6h3" /><circle cx="15" cy="6" r="2" /><path d="M4 12h3" /><path d="M11 12h9" /><circle cx="9" cy="12" r="2" /><path d="M4 18h11" /><path d="M19 18h1" /><circle cx="17" cy="18" r="2" /></>
 } as const;
 export const ActionIcon = ({ name }: { name: keyof typeof ACTION_ICONS }) => <svg className="action-icon" viewBox="0 0 24 24" aria-hidden="true"
   fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">{ACTION_ICONS[name]}</svg>;
@@ -432,6 +434,27 @@ export function ConfirmAction({ kind, title, offset, onConfirm, onCancel }: {
   </div>;
 }
 
+// Settings, among the actions a tab ejects, drops its entries down below it,
+// one after another with the same spring. It shows its icon only, so the tab
+// keeps room for its label. Its entries are placeholders for now.
+export function SettingsAction({ index, name, entries }: { index: number; name: string; entries: readonly string[] }) {
+  const [open, setOpen] = useState(false);
+  const button = useRef<HTMLButtonElement>(null);
+  const listId = useId();
+  const label = t('card.settingsFor', { card: name });
+  return <span className="action-settings" onKeyDown={event => {
+    if (event.key !== 'Escape' || !open) return;
+    event.stopPropagation(); setOpen(false); button.current?.focus();
+  }}>
+    <button ref={button} type="button" style={{ '--i': index } as CSSProperties} aria-label={label} aria-haspopup="menu" aria-expanded={open}
+      aria-controls={open ? listId : undefined} title={t('card.settings')} onClick={() => setOpen(!open)}><ActionIcon name="settings" /></button>
+    {open && <ul id={listId} className="action-submenu" role="menu" aria-label={label}>
+      {entries.map((entry, at) => <li key={entry} role="menuitem" aria-disabled="true" style={{ '--j': at } as CSSProperties}>
+        {entry}<span className="soon">{t('shaping.comingSoon')}</span></li>)}
+    </ul>}
+  </span>;
+}
+
 // A module from the window, shown where it would land on the page: built
 // like the empty card it will become, so the card that arrives takes its
 // place unchanged. It is only a picture; the row says what is happening.
@@ -440,7 +463,6 @@ export function LandingCard({ type, folded = false }: { type: string; folded?: b
   const family = isModuleType(type) ? CATALOG[type].family ?? 'notes' : 'notes';
   return <article className={`component fam-${family}`} data-empty={!folded || undefined} data-folded={folded || undefined} data-landing data-type={type} aria-hidden="true">
     <div className="card-head"><div className="card-tab">
-      <span className="row-menu"><span className="menu-button"><SixDots /></span></span>
       <h2><span className="tab-button"><FamilyIcon family={family} /><span className="tab-label">{moduleLabel(type)}</span></span></h2>
     </div></div>
   </article>;

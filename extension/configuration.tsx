@@ -14,7 +14,7 @@ import { FacetTags } from './facet-tags.tsx';
 import { openAbout } from './about-sheet.tsx';
 import { FacetWindow } from './facet-window.tsx';
 import { FamilyIcon } from './families.tsx';
-import { ActionIcon, LandingCard } from './card-content.tsx';
+import { ActionIcon, LandingCard, SettingsAction } from './card-content.tsx';
 import { moduleLabel, numbered, ShapingArea } from './shaping.tsx';
 import type { RowParts } from './shaping.tsx';
 import { t } from './i18n.ts';
@@ -37,16 +37,16 @@ const COLOUR_NAMES: Readonly<Record<DeckColour, MessageKey>> = {
   meaning: 'deck.colour.blue', usage: 'deck.colour.green', roots: 'deck.colour.amber', connections: 'deck.colour.violet', sound: 'deck.colour.rose', notes: 'deck.colour.sage'
 };
 
-// The six-dot menu on each module in the list; its entries are placeholders (0.6.3).
-const deckModuleMenu = () => [t('card.menu.duplicate'), t('deck.menu.copyToDeck')];
+// The entries of a module's Settings in the list; placeholders for now.
+const deckModuleSettings = () => [t('card.menu.duplicate'), t('deck.menu.copyToDeck')];
 
 const familyOf = (type: string): ModuleFamily => (isModuleType(type) && CATALOG[type].family) || 'notes';
 
 // In deck settings a module has no component yet, so it is drawn as an empty
 // component is on a page (0.7.1): only its tab, which drags it and, clicked,
-// ejects Remove beside it, and a parent's facets hung below the tab on chains.
-// A parent also ejects Facet before Remove, opening its facet window on the
-// draft (D13, 0.8.1); with no content to lose, unticking never asks.
+// ejects About, Settings and Remove beside it, and a parent's facets hung
+// below the tab. A parent also ejects Facet after About, opening its facet
+// window on the draft (D13, 0.8.1); with no content to lose, unticking never asks.
 function DeckModule({ item, parts, busy, opened, setOpened, choosing, setChoosing, onRemove, onAddFacet, onRemoveFacet }: {
   item: { id: string; label: string; type: string; facets?: string[] }; parts: RowParts; busy: boolean;
   opened: boolean; setOpened: (value: boolean) => void;
@@ -64,7 +64,6 @@ function DeckModule({ item, parts, busy, opened, setOpened, choosing, setChoosin
       event.currentTarget.querySelector<HTMLElement>('.tab-button')?.focus();
     }}>
       <div className="card-tab">
-        {parts.menu}
         <h2><button type="button" className="tab-button" {...parts.drag} aria-disabled={undefined}
           aria-expanded={opened} aria-controls={opened ? `actions-${item.id}` : undefined} onClick={() => setOpened(!opened)}>
           <FamilyIcon family={family} />
@@ -77,7 +76,8 @@ function DeckModule({ item, parts, busy, opened, setOpened, choosing, setChoosin
           onClick={() => { setOpened(false); openAbout({ kind: 'module', module: item.type }); }}><ActionIcon name="about" />{t('card.about')}</button>
         {isParentType(item.type) && <button style={{ '--i': 1 } as CSSProperties} aria-label={t('card.facetsOf', { card: item.label })} disabled={busy}
           onClick={() => { setOpened(false); setChoosing(true); }}><ActionIcon name="facet" />{t('card.facet')}</button>}
-        <button style={{ '--i': isParentType(item.type) ? 2 : 1 } as CSSProperties} className="action-delete" aria-label={t('action.removeNamed', { name: item.label })} disabled={busy}
+        <SettingsAction index={isParentType(item.type) ? 2 : 1} name={item.label} entries={deckModuleSettings()} />
+        <button style={{ '--i': isParentType(item.type) ? 3 : 2 } as CSSProperties} className="action-delete" aria-label={t('action.removeNamed', { name: item.label })} disabled={busy}
           onClick={() => { setOpened(false); onRemove(); }}><ActionIcon name="delete" />{t('common.remove')}</button>
       </div>}
       {choosing && isParentType(item.type) && <FacetWindow holderId={item.id} parent={item.type} title={item.label} facets={item.facets ?? []} onPage={false}
@@ -224,7 +224,6 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
           <div className="card-head"><div className="card-tab"><h2><span className="tab-label">{moduleLabel(key.type)}</span></h2></div></div>
         </div>
       </>}
-      menuItems={deckModuleMenu()}
       renderLanding={type => <LandingCard type={type} folded />}
       renderItem={(item, parts) => <DeckModule item={item} parts={parts} busy={busy}
         opened={opened === item.id} setOpened={value => setOpened(value ? item.id : null)}

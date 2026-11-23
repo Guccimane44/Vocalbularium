@@ -20,7 +20,7 @@ import { familyLabel, moduleDescription, moduleLabel } from './catalog-text.ts';
 
 // Shared by the page view and deck settings (D02, D04): a list whose entries
 // reorder by drag, and the module window whose modules drag into the list.
-// An entry drags by its label (D07); the six dots beside it open its menu.
+// An entry drags by its label (D07); a click on it ejects its actions.
 // Every drag also works from the keyboard: Space picks up, the arrow keys
 // move, Space drops, Escape cancels. Enter is left to the label's own click.
 // Since 0.8.1 the window lists no facets: a parent's are chosen in its facet
@@ -94,8 +94,8 @@ export function numbered<T extends { type: string; label: string }>(items: reado
   });
 }
 // What an entry needs to be dragged: spread `drag` on its label, which then
-// starts a drag with the pointer or Space, and show `menu` before it.
-export type RowParts = { drag: Record<string, unknown>; menu: ReactNode };
+// starts a drag with the pointer or Space.
+export type RowParts = { drag: Record<string, unknown> };
 const KEYBOARD_CODES = { start: ['Space'], cancel: ['Escape'], end: ['Space'] };
 type Result = boolean | void | Promise<boolean | void>;
 
@@ -104,7 +104,7 @@ type Result = boolean | void | Promise<boolean | void>;
 // before, or null for the end, so nothing is ever placed above the pinned
 // one, and the list's owner counts the position among the entries it holds.
 // A handler returning false reports a failed save, which restores the saved order.
-export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unavailable, pinned, label, where, onAdd, onMove, renderItem, menuItems = [], renderLanding = type => <span>{moduleLabel(type)}</span> }: {
+export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unavailable, pinned, label, where, onAdd, onMove, renderItem, renderLanding = type => <span>{moduleLabel(type)}</span> }: {
   items: T[];
   // Every module type present, the pinned main key included, for the window's limits.
   types: readonly string[];
@@ -117,8 +117,6 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
   onAdd: (type: string, before: string | null) => Result;
   onMove: (id: string, before: string | null) => Result;
   renderItem: (item: T, parts: RowParts) => ReactNode;
-  // Placeholder entries for each row's menu.
-  menuItems?: readonly string[];
   // How a module from the window looks in the list while it is dragged over
   // it and while it is being added, so it looks like the entries around it.
   renderLanding?: (type: string) => ReactNode;
@@ -233,7 +231,7 @@ export function ShapingArea<T extends ShapeItem>({ items, types, disabled, unava
     if (await onMove(String(active.id), next[to + 1] ?? null) === false) setOrder(saved.current);
   }
 
-  const rows: ReactNode[] = shown.map(item => <SortableRow key={item.id} item={item} disabled={disabled} renderItem={renderItem} menuItems={menuItems} />);
+  const rows: ReactNode[] = shown.map(item => <SortableRow key={item.id} item={item} disabled={disabled} renderItem={renderItem} />);
   // A window module over the list stands where it would land, like the entry
   // it will become, and the entries make room around it (0.6.3).
   const incoming = dragged?.startsWith(WINDOW) && slot !== null ? dragged.slice(WINDOW.length) : null;
@@ -294,8 +292,8 @@ const MAKING_ROOM = { duration: 250, easing: 'cubic-bezier(.2,.8,.2,1)' };
 // A list entry that reorders by dragging its label, with the pointer or with
 // Space and the arrow keys. A pointer that moves less than the activation
 // distance is a click on the label instead.
-function SortableRow<T extends ShapeItem>({ item, disabled, renderItem, menuItems }: {
-  item: T; disabled: boolean; renderItem: (item: T, parts: RowParts) => ReactNode; menuItems: readonly string[];
+function SortableRow<T extends ShapeItem>({ item, disabled, renderItem }: {
+  item: T; disabled: boolean; renderItem: (item: T, parts: RowParts) => ReactNode;
 }) {
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id: item.id, disabled, transition: MAKING_ROOM });
   // Translate only: cards of different heights keep their shape while moving.
@@ -304,7 +302,7 @@ function SortableRow<T extends ShapeItem>({ item, disabled, renderItem, menuItem
   const drag = { ref: setActivatorNodeRef, ...attributes, ...listeners,
     onKeyUp: (event: KeyboardEvent) => { if (event.code === 'Space') event.preventDefault(); } };
   return <div ref={setNodeRef} style={style} className="sortable-row" data-row-id={item.id} data-dragging={isDragging || undefined}>
-    {renderItem(item, { drag, menu: <RowMenu label={item.label} items={menuItems} /> })}
+    {renderItem(item, { drag })}
   </div>;
 }
 
@@ -312,31 +310,6 @@ function SortableRow<T extends ShapeItem>({ item, disabled, renderItem, menuItem
 export const SixDots = () => <svg className="six-dots" viewBox="0 0 10 16" aria-hidden="true" fill="currentColor">
   {[3, 8, 13].flatMap(y => [2.5, 7.5].map(x => <circle key={`${x}-${y}`} cx={x} cy={y} r="1.5" />))}
 </svg>;
-
-// The six dots before an entry's label: a menu of what else can be done with
-// it. Its entries are placeholders for now (0.6.3).
-function RowMenu({ label, items }: { label: string; items: readonly string[] }) {
-  const [open, setOpen] = useState(false);
-  const root = useRef<HTMLSpanElement>(null);
-  const button = useRef<HTMLButtonElement>(null);
-  const menuId = useId();
-  useEffect(() => {
-    if (!open) return;
-    const outside = (event: PointerEvent) => { if (!root.current?.contains(event.target as Node)) setOpen(false); };
-    document.addEventListener('pointerdown', outside);
-    return () => document.removeEventListener('pointerdown', outside);
-  }, [open]);
-  return <span ref={root} className="row-menu" onKeyDown={event => {
-    if (event.key !== 'Escape' || !open) return;
-    event.stopPropagation(); setOpen(false); button.current?.focus();
-  }}>
-    <button ref={button} type="button" className="menu-button" aria-label={t('shaping.moreFor', { name: label })} aria-haspopup="menu" aria-expanded={open}
-      aria-controls={open ? menuId : undefined} onClick={() => setOpen(!open)}><SixDots /></button>
-    {open && <ul id={menuId} className="row-menu-list" role="menu" aria-label={t('shaping.moreFor', { name: label })}>
-      {items.map(entry => <li key={entry} role="menuitem" aria-disabled="true">{entry}<span className="soon">{t('shaping.comingSoon')}</span></li>)}
-    </ul>}
-  </span>;
-}
 
 // The landing card: a drop target of its own, so the pointer resting on it
 // keeps the module where it is.
