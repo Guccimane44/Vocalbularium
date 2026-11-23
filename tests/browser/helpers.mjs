@@ -30,8 +30,10 @@ export async function cardButton(page, name) {
 export async function facetWindow(page, label) {
   const window = page.getByRole('group', { name: `Facets of ${label}`, exact: true });
   if (await window.count()) return window;
-  await cardTab(page, label).click();
-  await page.getByRole('button', { name: `Facets of ${label}`, exact: true }).click();
+  // Closing the window leaves the actions out, Facet among them.
+  const facet = page.getByRole('button', { name: `Facets of ${label}`, exact: true });
+  if (!await facet.count()) await cardTab(page, label).click();
+  await facet.click();
   await window.waitFor();
   return window;
 }

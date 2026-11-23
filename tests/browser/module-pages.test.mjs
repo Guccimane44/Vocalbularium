@@ -167,8 +167,8 @@ test('family, module and facet pages in one sheet, from the module window, a car
   assert.deepEqual(await inOrder(facets, 'equipped'), [true, true, true, true, ...Array(8).fill(false)], 'the grammar facets, Pronunciation and the 0.16.4 facets are not on a My Deck card (K56)');
   await a.page.keyboard.press('Escape');
 
-  // The card's own About opens its module page.
-  await cardTab(a.page, 'German').click();
+  // The card's own About opens its module page; closing the facet window left the actions out.
+  await facets.waitFor({ state: 'detached' });
   await componentArticle(a.page, 'German').locator('.card-actions').getByRole('button', { name: 'About German', exact: true }).click();
   await waitFor(async () => await title() === 'German', 'German from its card');
   await a.page.keyboard.press('Escape');

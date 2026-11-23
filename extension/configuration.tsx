@@ -44,9 +44,9 @@ const familyOf = (type: string): ModuleFamily => (isModuleType(type) && CATALOG[
 
 // In deck settings a module has no component yet, so it is drawn as an empty
 // component is on a page (0.7.1): only its tab, which drags it and, clicked,
-// ejects About, Settings and Remove beside it, and a parent's facets hung
-// below the tab. A parent also ejects Facet after About, opening its facet
-// window on the draft (D13, 0.8.1); with no content to lose, unticking never asks.
+// ejects Actions (holding Remove), About and Settings beside it, and a parent's facets hung
+// below the tab. A parent also ejects Facet, whose facet window unfolds below
+// it on the draft (D13, 0.8.1); with no content to lose, unticking never asks.
 function DeckModule({ item, parts, busy, opened, setOpened, choosing, setChoosing, onRemove, onAddFacet, onRemoveFacet }: {
   item: { id: string; label: string; type: string; facets?: string[] }; parts: RowParts; busy: boolean;
   opened: boolean; setOpened: (value: boolean) => void;
@@ -76,18 +76,18 @@ function DeckModule({ item, parts, busy, opened, setOpened, choosing, setChoosin
           <button style={{ '--j': 0 } as CSSProperties} className="action-delete" aria-label={t('action.removeNamed', { name: item.label })} disabled={busy}
             onClick={() => { setOpened(false); onRemove(); }}><ActionIcon name="delete" />{t('common.remove')}</button>
         </SubmenuAction>
-        {isParentType(item.type) && <button style={{ '--i': 1 } as CSSProperties} aria-label={t('card.facetsOf', { card: item.label })} disabled={busy}
-          onClick={() => { setOpened(false); setChoosing(true); }}><ActionIcon name="facet" />{t('card.facet')}</button>}
+        {isParentType(item.type) && <button style={{ '--i': 1 } as CSSProperties} data-facet-trigger aria-label={t('card.facetsOf', { card: item.label })} aria-expanded={choosing}
+          disabled={busy} onClick={() => setChoosing(!choosing)}><ActionIcon name="facet" />{t('card.facet')}</button>}
         {/* About opens the module's page, as from the module window (D20). */}
         <button style={{ '--i': isParentType(item.type) ? 2 : 1 } as CSSProperties} aria-label={t('shaping.about', { name: item.label })} aria-haspopup="dialog"
           onClick={() => { setOpened(false); openAbout({ kind: 'module', module: item.type }); }}><ActionIcon name="about" />{t('card.about')}</button>
         <SettingsAction index={isParentType(item.type) ? 3 : 2} name={item.label} entries={deckModuleSettings()} />
       </div>}
-      {choosing && isParentType(item.type) && <FacetWindow holderId={item.id} parent={item.type} title={item.label} facets={item.facets ?? []} onPage={false}
+      {opened && choosing && isParentType(item.type) && <FacetWindow holderId={item.id} parent={item.type} title={item.label} facets={item.facets ?? []} onPage={false}
         disabled={busy} hasContent={() => false} onAdd={onAddFacet} onRemove={onRemoveFacet}
         onClose={refocus => {
           setChoosing(false);
-          if (refocus) document.querySelector<HTMLElement>(`[data-module-id="${CSS.escape(item.id)}"] .tab-button`)?.focus();
+          if (refocus) document.querySelector<HTMLElement>(`[data-module-id="${CSS.escape(item.id)}"] [data-facet-trigger]`)?.focus();
         }} />}
     </div>
     {isParentType(item.type) && <FacetTags holderId={item.id} parent={item.type} facets={item.facets ?? []} layout="folded" title={item.label} />}
@@ -109,6 +109,8 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
   const [opened, setOpened] = useState<string | null>(null);
   // The parent whose facet window is open (D13, 0.8.1).
   const [choosing, setChoosing] = useState<string | null>(null);
+  // The window lives in the module's row, so it goes when the row does.
+  useEffect(() => { if (opened !== choosing) setChoosing(null); }, [opened]);
   useEffect(() => {
     if (!opened) return;
     const outside = (event: PointerEvent) => {

@@ -1,12 +1,14 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { facetsOf } from '@vocabularium/domain/parents';
 import type { FacetType, ParentType } from '@vocabularium/domain/parents';
 import { openAbout } from './about-sheet.tsx';
 import { launchFacet } from './facet-tags.tsx';
-import { t } from './i18n.ts';
+import { direction, t } from './i18n.ts';
 import { facetMark, facetName } from './catalog-text.ts';
 import { facetsFull, MAX_FACETS } from './facet-limit.ts';
+import { CATALOG } from '@vocabularium/domain/page-modules';
+import { FamilyIcon } from './families.tsx';
 
 // A parent's facet window (D13, 0.8.1), opened by Facet among the parent's
 // actions, on a page and in deck settings. It lists every facet of the
@@ -15,7 +17,8 @@ import { facetsFull, MAX_FACETS } from './facet-limit.ts';
 // and the tag flies from the facet's row to the card; unticking a facet with
 // content asks "Are you sure?" in its row first, as its Delete does beside its
 // label. The window stays open for more until Escape, a click outside or
-// another of the card's actions; Escape returns the focus to the card's tab.
+// another of the card's actions; Escape returns the focus to Facet. It
+// unfolds below Facet, its rows dropping in as its edge reaches them.
 // Each row's › opens the facet's page in the pages' sheet (D20, 0.13.0; from
 // 0.8.1 an ⓘ expanded its explanation beneath the row). Since 0.13.3 (D23)
 // it is a card on the surface with a heading naming the parent and a close,
@@ -49,13 +52,25 @@ export function FacetWindow({ holderId, parent, title, facets, disabled, onPage 
   const holding = facets.join('|');
   useEffect(() => { setWanted({}); }, [holding]);
   const equipped = (facet: FacetType) => wanted[facet] ?? facets.includes(facet);
+  // Facet, in the same card head; the window unfolds from below it.
+  const trigger = () => root.current?.parentElement?.querySelector<HTMLElement>('[data-facet-trigger]') ?? null;
+  const [place, setPlace] = useState<{ insetInlineStart: number; top: number }>();
+  useLayoutEffect(() => {
+    const head = root.current?.parentElement?.getBoundingClientRect(), facet = trigger()?.getBoundingClientRect();
+    if (head && facet) setPlace({ insetInlineStart: direction() === 'rtl' ? head.right - facet.right : facet.left - head.left, top: facet.bottom - head.top + 4 });
+  }, []);
+  // The rows drop in once, as the window opens; a facet moving between the
+  // groups later keeps still.
+  const [opening, setOpening] = useState(true);
+  useEffect(() => { const done = setTimeout(() => setOpening(false), 700); return () => clearTimeout(done); }, []);
   // Opened, the focus goes to the first row's button.
   useEffect(() => { root.current?.querySelector<HTMLButtonElement>('.facet-toggle')?.focus(); }, []);
   useEffect(() => {
     // The pages' sheet opens over the window, which stays open beneath it.
     const outside = (event: PointerEvent) => {
       const target = event.target as Element | null;
-      if (!root.current?.contains(target) && !target?.closest?.('.about-sheet')) close.current(false);
+      // Facet itself toggles the window on its own click.
+      if (!root.current?.contains(target) && !trigger()?.contains(target) && !target?.closest?.('.about-sheet')) close.current(false);
     };
     document.addEventListener('pointerdown', outside);
     return () => document.removeEventListener('pointerdown', outside);
@@ -88,12 +103,16 @@ export function FacetWindow({ holderId, parent, title, facets, disabled, onPage 
     }
   }
   const headingId = `${ids}-heading`;
+  // The heading names the parent by its tag, wherever the language puts it.
+  const [before, after] = t('card.facetsOf', { card: '\uE000' }).split('\uE000');
+  const family = CATALOG[parent].family ?? 'notes';
   const limitId = `${ids}-limit`;
   const all = facetsOf(parent);
   const full = facetsFull(all.filter(equipped).length);
+  let drop = 0;
   const row = (facet: FacetType, on: boolean) => {
     const label = facetName(parent, facet);
-    return <li key={facet} className="facet-window-row" data-facet={facet} data-index={all.indexOf(facet)} data-equipped={on || undefined} data-asking={asking === facet || undefined}>
+    return <li key={facet} style={{ '--j': drop++ } as CSSProperties} className="facet-window-row" data-facet={facet} data-index={all.indexOf(facet)} data-equipped={on || undefined} data-asking={asking === facet || undefined}>
       <span className="facet-tab-mark" aria-hidden="true">{facetMark(parent, facet)}</span>
       <span className="facet-window-name">{label}</span>
       <button type="button" className="facet-about" aria-label={t('about.facet', { name: label })} aria-haspopup="dialog"
@@ -112,18 +131,18 @@ export function FacetWindow({ holderId, parent, title, facets, disabled, onPage 
     </li>;
   };
   const group = (key: 'on' | 'add', members: FacetType[]) => members.length > 0 && <>
-    <p className="facet-window-group" id={`${ids}-${key}`}>{t(key === 'on' ? 'card.facetsOn' : 'card.facetsAdd')}</p>
+    <p className="facet-window-group" style={{ '--j': drop++ } as CSSProperties} id={`${ids}-${key}`}>{t(key === 'on' ? 'card.facetsOn' : 'card.facetsAdd')}</p>
     {key === 'add' && full && <p className="facet-window-limit" id={limitId}>{t('card.facetsFull', { count: MAX_FACETS })}</p>}
     <ul aria-labelledby={`${ids}-${key}`}>{members.map(facet => row(facet, key === 'on'))}</ul>
   </>;
-  return <div ref={root} className="facet-window" role="group" aria-labelledby={headingId}
+  return <div ref={root} className="facet-window" data-opening={opening || undefined} role="group" aria-labelledby={headingId} style={place}
     onKeyDown={event => {
       if (event.key !== 'Escape') return;
       event.stopPropagation();
       if (asking) answer(asking); else close.current(true);
     }}>
     <header className="facet-window-head">
-      <h3 id={headingId}>{t('card.facetsOf', { card: title })}</h3>
+      <h3 id={headingId}>{before}<span className="module-tag"><FamilyIcon family={family} />{title}</span>{after}</h3>
       <button type="button" className="facet-window-close" aria-label={t('common.close')} onClick={() => close.current(true)}>
         <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
       </button>
@@ -131,7 +150,7 @@ export function FacetWindow({ holderId, parent, title, facets, disabled, onPage 
     <div className="facet-window-body">
       {group('on', all.filter(equipped))}
       {group('add', all.filter(facet => !equipped(facet)))}
-      {onPage && <p className="facet-window-hint">{t('card.facetsHint')}</p>}
+      {onPage && <p className="facet-window-hint" style={{ '--j': drop++ } as CSSProperties}>{t('card.facetsHint')}</p>}
     </div>
   </div>;
 }

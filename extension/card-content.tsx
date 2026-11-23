@@ -431,7 +431,7 @@ export function ConfirmPanel({ kind, title, family, onConfirm, onCancel }: {
   const [before, after] = t(kind === 'delete' ? 'confirm.deleteTitle' : 'confirm.retryTitle', { module: MODULE_MARK }).split(MODULE_MARK);
   return <div ref={root} className="confirm-panel" role="alertdialog" aria-labelledby={`${id}-title`} aria-describedby={`${id}-body`} data-confirm={kind}
     onKeyDown={event => { if (event.key === 'Escape') { event.stopPropagation(); back(); } }}>
-    <p id={`${id}-title`} className="confirm-title">{before}<span className="confirm-tag"><FamilyIcon family={family} />{title}</span>{after}</p>
+    <p id={`${id}-title`} className="confirm-title">{before}<span className="module-tag"><FamilyIcon family={family} />{title}</span>{after}</p>
     <p id={`${id}-body`} className="confirm-body">{t(kind === 'delete' ? 'confirm.deleteBody' : 'confirm.retryBody')}</p>
     <div className="confirm-buttons">
       <button ref={cancel} type="button" aria-label={t('action.keepNamed', { name: title })} onClick={back}>{t('common.cancel')}</button>

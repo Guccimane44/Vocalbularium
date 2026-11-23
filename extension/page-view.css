@@ -84,13 +84,20 @@
 .card-head:has(.action-submenu, .facet-window) { z-index: 2; }
 @keyframes menu-open { from { opacity: 0; transform: translateY(-4px) scale(.97); } }
 /* A parent's facet window (D13, 0.8.1), since 0.13.3 (D23) a card on the
-   surface: a heading naming the parent with a close, then the facets on the
-   card, in a pale family tint with a remove, and the others to add, with a +
-   in the family colour; each row's › to its page shows on pointing or focus. */
-.facet-window { position: absolute; top: calc(100% + 8px); inset-inline-start: 0; z-index: 5; width: 280px; max-width: calc(100vw - 48px);
-  display: flex; flex-direction: column; max-height: min(520px, 70vh); box-sizing: border-box; padding: 6px; overflow: hidden;
-  border-radius: var(--radius-card); background: var(--surface); color: var(--ink); box-shadow: 0 0 0 1px var(--line), var(--shadow-lift);
-  font: 500 14px/1.3 var(--font-text); letter-spacing: normal; text-transform: none; animation: menu-open var(--dur-quick) var(--ease-out) both; transform-origin: top left; }
+   surface: a heading naming the parent by its tag, with a close, then the
+   facets on the card, in a pale family tint with a remove, and the others to
+   add, with a + in the family colour; each row's › to its page shows on
+   pointing or focus. It unfolds from below Facet, its corner there almost
+   square, its rows dropping in with the menus' spring as its edge reaches them. */
+.facet-window { position: absolute; top: calc(100% + 4px); inset-inline-start: 0; z-index: 5; width: 300px; max-width: calc(100vw - 48px);
+  display: flex; flex-direction: column; max-height: min(560px, 70vh); box-sizing: border-box; padding: 6px; overflow: hidden;
+  border-radius: 2px var(--radius-card) var(--radius-card) var(--radius-card); background: var(--surface); color: var(--ink); box-shadow: 0 0 0 1px var(--line), var(--shadow-lift);
+  font: 500 14px/1.3 var(--font-text); letter-spacing: normal; text-transform: none; animation: unfold calc(var(--dur-spring) + 30ms) var(--ease-out) both; }
+:root[dir="rtl"] .facet-window { border-radius: var(--radius-card) 2px var(--radius-card) var(--radius-card); }
+@keyframes unfold { from { clip-path: inset(0 0 100% 0 round 2px var(--radius-card) var(--radius-card) var(--radius-card)); } to { clip-path: inset(0 round 2px var(--radius-card) var(--radius-card) var(--radius-card)); } }
+.facet-window[data-opening] :is(.facet-window-row, .facet-window-group, .facet-window-hint) { animation: unfold-row var(--dur-spring) var(--ease-spring) both; animation-delay: calc(var(--j, 0) * 18ms); }
+@keyframes unfold-row { from { opacity: 0; transform: translateY(calc(-14px - var(--j, 0) * 6px)) scale(.85); } 50% { opacity: 1; } }
+.card-actions [data-facet-trigger][aria-expanded="true"] { background: var(--fam, var(--fam-notes)); color: var(--on-fam, var(--on-ink)); box-shadow: none; }
 .facet-window-head { display: flex; align-items: center; gap: 8px; padding: 6px 4px 6px 10px; }
 .facet-window-head h3 { flex: 1 1 auto; min-width: 0; margin: 0; font: 600 14px/1.3 var(--font-text); color: var(--ink); }
 .facet-window-body { min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
@@ -123,7 +130,7 @@
 /* Removing a facet with content asks on a line of its own under the row. */
 .facet-window-row[data-asking] .facet-confirm { flex: 1 0 100%; display: flex; justify-content: flex-end; margin: 4px 0 6px; }
 .sortable-row:has(.facet-window) { z-index: 6; }
-@media (prefers-reduced-motion: reduce) { .facet-window { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .facet-window, .facet-window :is(.facet-window-row, .facet-window-group, .facet-window-hint) { animation: none; } }
 @media (forced-colors: active) { .facet-window { border: 1px solid CanvasText; } .facet-window-row[data-equipped] { outline: 1px solid CanvasText; } .facet-about { opacity: 1; } }
 
 /* Actions eject from the tab as smaller sibling tabs in the family's tint (D07):
@@ -199,9 +206,9 @@
 :root[dir="rtl"] .confirm-panel { border-radius: var(--radius-card) 2px var(--radius-card) var(--radius-card); }
 .confirm-panel[data-confirm="retry"] { --tone: var(--fam, var(--fam-notes)); --on-tone: var(--on-fam, var(--on-ink)); }
 .confirm-title { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; margin: 0 0 6px; font-weight: 600; line-height: 1.3; }
-.confirm-tag { display: inline-flex; align-items: center; gap: 5px; height: 22px; padding: 0 9px 0 7px; border-radius: var(--radius-control) var(--radius-control) var(--radius-control) 2px;
+.module-tag { display: inline-flex; align-items: center; gap: 5px; height: 22px; padding: 0 9px 0 7px; border-radius: var(--radius-control) var(--radius-control) var(--radius-control) 2px;
   background: var(--fam, var(--fam-notes)); color: var(--on-fam, var(--on-ink)); font-size: 13px; white-space: nowrap; }
-.confirm-tag .fam-icon { width: 13px; height: 13px; }
+.module-tag .fam-icon { width: 13px; height: 13px; }
 .confirm-body { margin: 0 0 12px; color: var(--ink-soft); }
 .confirm-buttons { display: flex; justify-content: flex-end; gap: 4px; }
 .card-actions .confirm-buttons button { height: 28px; padding: 0 14px; border-radius: var(--radius-control); animation: none; }
@@ -265,9 +272,9 @@
 .component[data-folded] { padding-top: 20px; padding-bottom: 0; }
 .component[data-folded] .card-fold { grid-template-rows: 0fr; }
 .component[data-folded] .card-fold-inner { opacity: 0; transform: translateY(-6px); }
-/* While one of the card's dropdowns is open, its content steps back, so the
-   card's text never competes with the entries between their gaps. */
-.component:not([data-folded]):has(.card-head .action-submenu) .card-fold-inner { opacity: .3; }
+/* While one of the card's dropdowns or its facet window is open, its content
+   steps back, so the card's text never competes with them. */
+.component:not([data-folded]):has(.card-head :is(.action-submenu, .facet-window)) .card-fold-inner { opacity: .3; }
 .card-status { margin: 0 0 8px; }
 .component[data-status="failed"] { background: var(--status-failed-bg); }
 .component-tools { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }

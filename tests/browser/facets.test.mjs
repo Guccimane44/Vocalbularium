@@ -74,15 +74,16 @@ test('parents and facets: core only on add, the facet window on the parent, its 
   assert.doesNotMatch(text((await german())[0]), /Examples/);
   assert.equal(await facets.isVisible(), true, 'the window stays open');
   assert.equal(await ticked(facets, 'Examples'), false);
-  // Escape closes it and returns the focus to the card's tab.
+  // Escape closes it and returns the focus to Facet, the card's actions still out.
   await a.page.keyboard.press('Escape');
   await facets.waitFor({ state: 'detached' });
-  assert.equal(await cardTab(a.page, 'German').evaluate(node => node === document.activeElement), true, 'the focus back on the tab');
+  assert.equal(await a.page.getByRole('button', { name: 'Facets of German', exact: true }).evaluate(node => node === document.activeElement), true, 'the focus back on Facet');
   // Its close does the same (D23).
   facets = await facetWindow(a.page, 'German');
   await facets.getByRole('button', { name: 'Close', exact: true }).click();
   await facets.waitFor({ state: 'detached' });
-  assert.equal(await cardTab(a.page, 'German').evaluate(node => node === document.activeElement), true, 'the close returns the focus to the tab');
+  assert.equal(await a.page.getByRole('button', { name: 'Facets of German', exact: true }).evaluate(node => node === document.activeElement), true, 'the close returns the focus to Facet');
+  await a.page.keyboard.press('Escape');
 
   // A parent added from the window has its core only; its facet window lists its own facets.
   await openFamily(windowModule(a.page, 'chinese'));
@@ -161,7 +162,8 @@ test('parents and facets: core only on add, the facet window on the parent, its 
   facets = await facetWindow(a.page, 'German 2');
   await tick(facets, 'Antonyms').click();
   await waitFor(async () => (await deckGermans.nth(1).locator('.facet-tag-mark').allTextContents()).join() === 'An', 'Antonyms on German 2');
-  assert.deepEqual(await deckGermans.nth(0).locator('.facet-tag-mark').allTextContents(), ['Ar', 'Ex', 'Sy']);
+  // A popped tag stays in the list until its pop ends.
+  await waitFor(async () => (await deckGermans.nth(0).locator('.facet-tag:not([data-leaving]) .facet-tag-mark').allTextContents()).join() === 'Ar,Ex,Sy', 'German 1 keeps its own');
   await tick(facets, 'Antonyms').click();
   await waitFor(async () => await deckGermans.nth(1).locator('.facet-tag:not([data-leaving])').count() === 0, 'unticked at once');
   assert.equal(await facets.getByRole('button', { name: /^Yes, delete/ }).count(), 0, 'without a question');
@@ -253,10 +255,11 @@ test('facet window from the keyboard: Facet among the actions, Space on a tick, 
   await a.page.keyboard.press('Space');
   await waitFor(async () => (await german()).facets.includes('synonyms'), 'Synonyms added again');
   await waitFor(async () => await card('German').locator('.facet-tag[data-facet="synonyms"][data-unfilled]').count() === 1, 'waiting for Retry');
-  // Escape closes the window and returns the focus to the tab.
+  // Escape closes the window and returns the focus to Facet, the card's actions still out.
   await a.page.keyboard.press('Escape');
   await facets.waitFor({ state: 'detached' });
-  assert.equal(await focused(cardTab(a.page, 'German')), true);
+  assert.equal(await focused(a.page.getByRole('button', { name: 'Facets of German', exact: true })), true);
+  await a.page.keyboard.press('Escape');
 
   // While the card is edited its actions stay in, so the window cannot open.
   await (await cardButton(a.page, 'Edit German')).click();

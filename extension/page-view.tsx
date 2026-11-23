@@ -219,6 +219,8 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
   const [opened, setOpened] = useState<string | null>(null);
   // The parent whose facet window is open (D13, 0.8.1); one at a time.
   const [facetsFor, setFacetsFor] = useState<string | null>(null);
+  // The window lives in the card's row, so it goes when the row does.
+  useEffect(() => { if (opened !== facetsFor) setFacetsFor(null); }, [opened]);
   // Cards popping away: a deleted card pops where it stands first, then goes;
   // under reduced motion it goes at once, and a failed delete brings it back.
   // It stays marked until the page read again no longer holds it, and modules
@@ -347,8 +349,10 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
           <ActionIcon name="delete" />{t('common.delete')}</button>)}
       </SubmenuAction>
       {/* A parent's facets are chosen in its facet window (D13, 0.8.1). */}
-      {isParentType(item.moduleType) && facetsOf(item.moduleType).length > 0 && <button style={order()} aria-label={t('card.facetsOf', { card: title })}
-        disabled={disabled || working || item.status === 'loading'} onClick={choose(() => setFacetsFor(item.id))}>
+      {/* It unfolds below Facet, which stays lit while the row stays out. */}
+      {isParentType(item.moduleType) && facetsOf(item.moduleType).length > 0 && <button style={order()} data-facet-trigger
+        aria-label={t('card.facetsOf', { card: title })} aria-expanded={facetsFor === item.id}
+        disabled={disabled || working || item.status === 'loading'} onClick={() => setFacetsFor(facetsFor === item.id ? null : item.id)}>
         <ActionIcon name="facet" />{t('card.facet')}</button>}
       {/* About opens the module's page in the pages' sheet (D20, 0.13.0). */}
       {isWindowModule(item.moduleType) && <button style={order()} aria-label={t('shaping.about', { name: title })} aria-haspopup="dialog"
@@ -426,7 +430,7 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
       onRemove={async facet => { let saved = true; await run(async () => { saved = await deleteFacet(item.id, item.moduleType as ParentType, facet); }); return saved; }}
       onClose={refocus => {
         setFacetsFor(null);
-        if (refocus) document.querySelector<HTMLElement>(`[data-component-id="${CSS.escape(item.id)}"] .tab-button`)?.focus();
+        if (refocus) document.querySelector<HTMLElement>(`[data-component-id="${CSS.escape(item.id)}"] [data-facet-trigger]`)?.focus();
       }} /> : null;
     return <article className={`component fam-${family}`} data-empty={empty || undefined} data-generating={generating || undefined}
       data-folded={isFolded || undefined} data-vanishing={gone || undefined} data-tagged={tagged ? layout : undefined}

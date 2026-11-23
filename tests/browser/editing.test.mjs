@@ -59,7 +59,7 @@ test('manual page UI: per-card actions, drafts, leave choices, sorting, failed-s
   await keep.waitFor();
   await panel.evaluate(node => Promise.all(node.getAnimations().map(animation => animation.finished)));
   assert.equal(await panel.locator('.confirm-title').textContent(), 'Context will be deleted');
-  assert.equal(await panel.locator('.confirm-tag').textContent(), 'Context', 'the module is named by its tag');
+  assert.equal(await panel.locator('.module-tag').textContent(), 'Context', 'the module is named by its tag');
   assert.match(await panel.locator('.confirm-body').textContent(), /can’t be undone/);
   assert.equal(await askDelete.getAttribute('aria-expanded'), 'true', 'Delete stays lit');
   assert.ok(await a.page.getByRole('group', { name: 'Actions for Context', exact: true }).isVisible(), 'the Actions menu stays open');
