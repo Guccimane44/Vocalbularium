@@ -9,9 +9,9 @@ import { facetMark, facetName } from './catalog-text.ts';
 // parent's order, each marked with its facet's abbreviation. Where they sit
 // follows the card:
 // - `edge`: a card with content, the tags stuck out of its left edge;
-// - `folded`: a folded card, the tags hanging from the right of its bottom edge;
-// - `hanging`: a card that is only its tab (an empty or generating component,
-//   and every module in deck settings), the tags hung below the tab on chains.
+// - `folded`: a folded card, or one with nothing to show yet (an empty or
+//   generating component, and every module in deck settings), the tags
+//   hanging from the right of its bottom edge.
 // A tag only shows its facet: clicking it does nothing (0.13.2; until then a
 // tag on a card's edge pulled out to its Retry and any tag had a remove). A
 // facet's Retry and Delete stand beside its heading, and the facet window adds
@@ -20,7 +20,7 @@ import { facetMark, facetName } from './catalog-text.ts';
 // folding and unfolding move the tags along the card's edge between the left
 // side and the bottom right; a deleted facet's tag pops. Under reduced motion
 // each simply stands in its place.
-export type TagLayout = 'edge' | 'folded' | 'hanging';
+export type TagLayout = 'edge' | 'folded';
 
 // Where an added facet was last seen in its facet window, by parent and facet,
 // so that its tag can fly from there once the parent has it.

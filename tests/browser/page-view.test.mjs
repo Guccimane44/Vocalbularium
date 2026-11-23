@@ -116,7 +116,7 @@ test('page view: main key tiers, Show all, rendered and plain content, quiet car
   await (await cardButton(a.page, 'Settings for German')).click();
   const menu = a.page.getByRole('menu', { name: 'Settings for German' });
   assert.deepEqual(await menu.getByRole('menuitem').evaluateAll(items => items.map(item => [item.firstChild.textContent, item.getAttribute('aria-disabled')])),
-    [['Duplicate', 'true'], ['Copy text', 'true'], ['Move to page…', 'true']]);
+    [['Duplicate', 'true'], ['Copy text', 'true'], ['Move to page…', 'true'], ['Copy to another deck…', 'true']], 'the same entries as in deck settings');
   assert.equal(await menu.getByRole('menuitem').first().evaluate(node => getComputedStyle(node).animationName), 'eject-down', 'the entries drop down');
   // Measured once they land: on the way down, each starts above the one before it.
   await menu.getByRole('menuitem').evaluateAll(items => Promise.all(items.flatMap(item => item.getAnimations()).map(animation => animation.finished)));

@@ -38,7 +38,6 @@ const COLOUR_NAMES: Readonly<Record<DeckColour, MessageKey>> = {
 };
 
 // The entries of a module's Settings in the list; placeholders for now.
-const deckModuleSettings = () => [t('card.menu.duplicate'), t('deck.menu.copyToDeck')];
 
 const familyOf = (type: string): ModuleFamily => (isModuleType(type) && CATALOG[type].family) || 'notes';
 
@@ -71,9 +70,13 @@ function DeckModule({ item, parts, busy, opened, setOpened, choosing, setChoosin
         </button></h2>
       </div>
       {opened && <div id={`actions-${item.id}`} className="card-actions" role="group" aria-label={t('card.actions', { card: item.label })} data-open>
-        {/* Actions first, as on the page; it holds Remove. */}
+        {/* Actions first, with the page's four entries; a module without content can
+            only be removed, so Edit, Retry and Fold show unavailable. */}
         <SubmenuAction index={0} icon="actions" label={t('card.actionsMenu')} name={t('card.actionsMenuFor', { card: item.label })}>
-          <button style={{ '--j': 0 } as CSSProperties} className="action-delete" aria-label={t('action.removeNamed', { name: item.label })} disabled={busy}
+          <button style={{ '--j': 0 } as CSSProperties} aria-label={t('action.editNamed', { name: item.label })} disabled><ActionIcon name="edit" />{t('common.edit')}</button>
+          <button style={{ '--j': 1 } as CSSProperties} aria-label={t('action.retryNamed', { name: item.label })} disabled><ActionIcon name="retry" />{t('common.retry')}</button>
+          <button style={{ '--j': 2 } as CSSProperties} aria-label={t('card.foldNamed', { card: item.label })} disabled><ActionIcon name="fold" />{t('card.fold')}</button>
+          <button style={{ '--j': 3 } as CSSProperties} className="action-delete" aria-label={t('action.removeNamed', { name: item.label })} disabled={busy}
             onClick={() => { setOpened(false); onRemove(); }}><ActionIcon name="delete" />{t('common.remove')}</button>
         </SubmenuAction>
         {isParentType(item.type) && <button style={{ '--i': 1 } as CSSProperties} data-facet-trigger aria-label={t('card.facetsOf', { card: item.label })} aria-expanded={choosing}
@@ -81,7 +84,7 @@ function DeckModule({ item, parts, busy, opened, setOpened, choosing, setChoosin
         {/* About opens the module's page, as from the module window (D20). */}
         <button style={{ '--i': isParentType(item.type) ? 2 : 1 } as CSSProperties} aria-label={t('shaping.about', { name: item.label })} aria-haspopup="dialog"
           onClick={() => { setOpened(false); openAbout({ kind: 'module', module: item.type }); }}><ActionIcon name="about" />{t('card.about')}</button>
-        <SettingsAction index={isParentType(item.type) ? 3 : 2} name={item.label} entries={deckModuleSettings()} />
+        <SettingsAction index={isParentType(item.type) ? 3 : 2} name={item.label} />
       </div>}
       {opened && choosing && isParentType(item.type) && <FacetWindow holderId={item.id} parent={item.type} title={item.label} facets={item.facets ?? []}
         disabled={busy} hasContent={() => false} onAdd={onAddFacet} onRemove={onRemoveFacet}
@@ -114,7 +117,10 @@ export function ConfigurationView({ draft, send, onSaved, onCancel, externalErro
   useEffect(() => {
     if (!opened) return;
     const outside = (event: PointerEvent) => {
-      if (!(event.target as Element).closest?.(`[data-module-id="${CSS.escape(opened)}"] .card-head`)) setOpened(null);
+      // The pages' sheet, opened from the facet window or About, leaves the module's actions as they are.
+      const target = event.target as Element;
+      if (target.closest?.('.about-sheet')) return;
+      if (!target.closest?.(`[data-module-id="${CSS.escape(opened)}"] .card-head`)) setOpened(null);
     };
     document.addEventListener('pointerdown', outside);
     return () => document.removeEventListener('pointerdown', outside);

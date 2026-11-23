@@ -72,7 +72,7 @@ test('0.14.0: a Pronunciation card in Sound speaks the main key: generating, fai
   const actions = a.page.locator(`#actions-${await card.getAttribute('data-component-id')}`);
   assert.deepEqual(await actions.locator('button').allTextContents(), ['Actions', 'About', 'Settings']);
   await actions.getByRole('button', { name: 'Actions for Pronunciation', exact: true }).click();
-  assert.deepEqual(await actions.getByRole('group', { name: 'Actions for Pronunciation', exact: true }).getByRole('button').allTextContents(), ['Retry', 'Fold', 'Delete']);
+  assert.deepEqual(await actions.getByRole('group', { name: 'Actions for Pronunciation', exact: true }).getByRole('button').allTextContents(), ['Edit', 'Retry', 'Fold', 'Delete']);
   await a.page.keyboard.press('Escape');
   await a.page.keyboard.press('Escape');
 

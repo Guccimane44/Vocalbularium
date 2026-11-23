@@ -105,8 +105,11 @@ test('a facet’s own Retry beside its Delete, a tag’s remove keeping its colo
   assert.match(await card.locator('.facet[data-facet="article"]').textContent(), /das Ufer · die Ufer/, 'the other facet stays');
   assert.equal(await examples.locator('.facet-note').count(), 0);
 
-  // A folder tab stands on its edge: hovering an empty card moves neither its tab nor what hangs below it.
+  // An empty card is drawn as a folded one: its tab on a slim band, its tags at the end of its bottom edge;
+  // hovering it moves neither its tab nor its tags.
   const hung = componentArticle(a.page, 'German 2');
+  assert.equal(await hung.locator('.facet-tags').getAttribute('data-layout'), 'folded', 'an empty card wears its tags as a folded one');
+  assert.ok((await hung.boundingBox()).height < 40, 'a slim band, as a folded card');
   await a.page.mouse.move(5, 5);
   await settled(a.page);
   const place = () => hung.evaluate(node => ({ tab: node.querySelector('.card-tab').getBoundingClientRect().top,
@@ -194,7 +197,7 @@ test('a facet’s own Retry beside its Delete, a tag’s remove keeping its colo
   await list.evaluate(node => { node.scrollTop = 0; });
   await a.page.setViewportSize({ width: 1280, height: 1400 });
 
-  // Generating, a card's hung tags stay beneath its tab, so the rail does not cover the spark.
+  // Generating, a card's tags stay beneath its tab, so nothing covers the spark.
   await (await cardButton(a.page, 'Retry German 2')).click();
   await waitFor(async () => await hung.getAttribute('data-generating') !== null, 'German 2 generating');
   await hung.locator('.spark').waitFor();
@@ -202,7 +205,7 @@ test('a facet’s own Retry beside its Delete, a tag’s remove keeping its colo
   assert.ok(Number(layers[0]) > Number(layers[1]), `the tab, with its spark, above the hung tags (${layers})`);
   const box = await hung.locator('.card-tab').boundingBox();
   assert.equal(await a.page.evaluate(({ x, y }) => document.elementsFromPoint(x, y).find(node => node.matches('.spark i, .facet-tags, .card-tab'))?.className,
-    { x: box.x + 30, y: box.y + box.height - 1 }), 'card-tab', 'at the tab\'s bottom edge the tab is uppermost, not the rail');
+    { x: box.x + 30, y: box.y + box.height - 1 }), 'card-tab', 'at the tab\'s bottom edge the tab is uppermost');
   release(wordResult(['Ufer'], { synonyms: ['Böschung'] }, { key: 'bank' }));
   await waitFor(async () => await hung.getAttribute('data-generating') === null, 'German 2 generated');
 });

@@ -471,10 +471,11 @@ export function SubmenuAction({ index, icon, label, name, menu = false, children
   </span>;
 }
 
-// Settings: placeholder entries for now.
-export function SettingsAction({ index, name, entries }: { index: number; name: string; entries: readonly string[] }) {
+// Settings: the same placeholder entries on a page and in deck settings, for now.
+const moduleSettings = () => [t('card.menu.duplicate'), t('card.menu.copyText'), t('card.menu.moveToPage'), t('deck.menu.copyToDeck')];
+export function SettingsAction({ index, name }: { index: number; name: string }) {
   return <SubmenuAction index={index} icon="settings" label={t('card.settings')} name={t('card.settingsFor', { card: name })} menu>
-    {entries.map((entry, at) => <li key={entry} role="menuitem" aria-disabled="true" style={{ '--j': at } as CSSProperties}>
+    {moduleSettings().map((entry, at) => <li key={entry} role="menuitem" aria-disabled="true" style={{ '--j': at } as CSSProperties}>
       {entry}<span className="soon">{t('shaping.comingSoon')}</span></li>)}
   </SubmenuAction>;
 }
