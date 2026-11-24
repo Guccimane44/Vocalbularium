@@ -4,7 +4,7 @@ import type { RefObject } from 'react';
 // The facet window's frame is the card's own top line: as the window
 // opens, the line flows in from both of the card's top corners, turns down at
 // the window's edges and runs round it, the two streams meeting in the middle
-// of its bottom edge, which dips and springs back as they meet. The line above
+// of its bottom edge, where they stop: nothing bounces. The line above
 // the window stays where it is and becomes the frame's top. While the window is
 // open the card draws no line of its own (page-view.css), so this one is the
 // only line along its top.
@@ -13,15 +13,13 @@ const RULE = 3;
 const FILLET = 10;
 const CORNER = 12;
 const FLOW_MS = 520;
-// The dip starts once the two streams have met, never while they still run.
-const POUR_MS = 340;
-const DIP = 12;
 
 type Geometry = { left: number; top: number; width: number; height: number; radius: number; start: number; end: number; bottom: number };
 
 // A side's path from its corner of the card's top edge to the middle of the
-// window's bottom edge; `bottom` moves for the dip.
-function sidePath(g: Geometry, side: 1 | -1, bottom = g.bottom) {
+// window's bottom edge.
+function sidePath(g: Geometry, side: 1 | -1) {
+  const bottom = g.bottom;
   const y = RULE / 2, r = g.radius, f = FILLET;
   const middle = (g.start + g.end) / 2;
   if (side === 1) {
@@ -38,8 +36,7 @@ const ruleLength = (g: Geometry, side: 1 | -1) => (g.radius - RULE / 2) * Math.P
   + (side === 1 ? g.start - FILLET - g.radius : g.width - g.radius - (g.end + FILLET));
 
 // The window opens on the line's own timeline, never on one of its own: its
-// lower edge is wherever the line has got to down the sides, and it dips and
-// springs back with the line's bottom, so the two move as one.
+// lower edge is wherever the line has got to down the sides, so the two move as one.
 export function clipFrames(panel: HTMLElement, frame: number): Keyframe[] {
   const height = panel.offsetHeight, fillet = Math.PI * FILLET / 2;
   const reached = (progress: number) => {
@@ -55,11 +52,7 @@ export function clipFrames(panel: HTMLElement, frame: number): Keyframe[] {
 }
 
 function unfold(panel: HTMLElement, frame: number) {
-  const height = panel.offsetHeight;
   panel.animate(clipFrames(panel, frame), { duration: FLOW_MS, easing: 'cubic-bezier(.5, 0, .2, 1)', fill: 'both' });
-  const stretch = (by: number) => `scaleY(${(height + by) / height})`;
-  panel.animate([{ transform: 'none' }, { transform: stretch(DIP), offset: .4 }, { transform: stretch(-3), offset: .75 }, { transform: 'none' }],
-    { duration: POUR_MS, delay: FLOW_MS, easing: 'ease-out' });
 }
 
 export function FacetFlow({ target, closing }: { target: RefObject<HTMLElement | null>; closing: boolean }) {
@@ -71,7 +64,7 @@ export function FacetFlow({ target, closing }: { target: RefObject<HTMLElement |
     if (!panel || !head || !card) return;
     const measure = () => {
       const h = head.getBoundingClientRect(), c = card.getBoundingClientRect(), w = panel.getBoundingClientRect();
-      setGeometry({ left: c.left - h.left, top: c.top - h.top, width: c.width, height: w.bottom - c.top + DIP + RULE,
+      setGeometry({ left: c.left - h.left, top: c.top - h.top, width: c.width, height: w.bottom - c.top + RULE,
         radius: parseFloat(getComputedStyle(card).borderTopLeftRadius) || 14,
         start: w.left - c.left, end: w.right - c.left, bottom: w.bottom - c.top });
     };
@@ -97,9 +90,6 @@ export function FacetFlow({ target, closing }: { target: RefObject<HTMLElement |
       if (still) return;
       path.animate([{ strokeDasharray: `${rule} ${2 * total}`, strokeDashoffset: '0' }, open], { duration: FLOW_MS, easing: 'cubic-bezier(.5, 0, .2, 1)' });
       path.animate([{ strokeWidth: `${RULE}` }, { strokeWidth: `${RULE * 1.5}`, offset: .5 }, { strokeWidth: `${RULE}` }], { duration: FLOW_MS, easing: 'ease' });
-      const at = (bottom: number) => `path("${sidePath(geometry, side, bottom)}")`;
-      path.animate([{ d: at(geometry.bottom) }, { d: at(geometry.bottom + DIP), offset: .4 }, { d: at(geometry.bottom - 3), offset: .75 }, { d: at(geometry.bottom) }],
-        { duration: POUR_MS, delay: FLOW_MS, easing: 'ease-out' });
       if (side === 1 && panel) unfold(panel, total - rule);
     });
   }, [geometry]);

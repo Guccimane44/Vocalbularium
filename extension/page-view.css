@@ -91,7 +91,7 @@
 .facet-window { position: absolute; top: calc(100% + 4px); inset-inline-start: 0; z-index: 5; width: 300px; max-width: calc(100vw - 48px);
   display: flex; flex-direction: column; box-sizing: border-box; padding: 4px; overflow: hidden;
   border-radius: 0 0 12px 12px; background: var(--surface); color: var(--ink); box-shadow: var(--shadow-lift);
-  font: 500 14px/1.3 var(--font-text); letter-spacing: normal; text-transform: none; transform-origin: top; }
+  font: 500 14px/1.3 var(--font-text); letter-spacing: normal; text-transform: none; }
 /* Its frame is the card's top line, flowing round it (facet-flow.tsx); while
    it is open the card draws no line of its own along its top. */
 .facet-flow { position: absolute; z-index: 6; overflow: visible; pointer-events: none; }
