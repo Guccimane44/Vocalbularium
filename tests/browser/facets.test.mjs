@@ -49,6 +49,15 @@ test('parents and facets: core only on add, the facet window on the parent, its 
     'every facet of German, the grammar facets (D17), Pronunciation (D24) and the 0.16.4 facets included');
   assert.deepEqual(await inOrder(facets, 'equipped'), [true, true, true, true, false, false, false, false, false, false, false, false], 'the grammar facets and Pronunciation are not on a My Deck card (K56)');
   await waitFor(() => tick(facets, 'Article').evaluate(node => node === document.activeElement), 'the first row takes the focus');
+  // It hangs from the card's top line, under Facet, and that line flows round it as its frame:
+  // the card draws no line of its own along its top while it is open.
+  const germanCard = card('German');
+  // Facet may still be springing out of the tab: measured where it lands.
+  await a.page.getByRole('button', { name: 'Facets of German', exact: true }).evaluate(node => Promise.all(node.getAnimations().map(animation => animation.finished)));
+  const [cardBox, windowBox, facetBox] = [await germanCard.boundingBox(), await facets.boundingBox(), await a.page.getByRole('button', { name: 'Facets of German', exact: true }).boundingBox()];
+  assert.ok(Math.abs(windowBox.y - cardBox.y - 3) <= 1 && Math.abs(windowBox.x - facetBox.x) <= 1, `the window hangs below the card's line, under Facet (${JSON.stringify({ cardBox, windowBox, facetBox })})`);
+  assert.equal(await germanCard.locator('.facet-flow path').count(), 3, 'the line above the window and the two that flow round it');
+  assert.doesNotMatch(await germanCard.evaluate(node => getComputedStyle(node).boxShadow), /inset/, 'the card lends its line to the frame');
   // A card on the surface (D23, 0.13.3): a heading naming the parent and a close.
   assert.equal(await facets.getByRole('heading', { level: 3 }).textContent(), 'Facets of German');
   // Two groups: the facets on the card, each with its Remove, then the others, each with its Add.
@@ -82,6 +91,8 @@ test('parents and facets: core only on add, the facet window on the parent, its 
   await facets.getByRole('button', { name: 'Close', exact: true }).click();
   await facets.waitFor({ state: 'detached' });
   assert.equal(await a.page.getByRole('button', { name: 'Facets of German', exact: true }).evaluate(node => node === document.activeElement), true, 'the close returns the focus to Facet');
+  assert.equal(await card('German').locator('.facet-flow').count(), 0, 'closed, the frame goes');
+  assert.match(await card('German').evaluate(node => getComputedStyle(node).boxShadow), /inset/, 'and the card has its top line back');
   await a.page.keyboard.press('Escape');
 
   // A parent added from the window has its core only; its facet window lists its own facets.

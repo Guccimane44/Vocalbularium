@@ -90,9 +90,14 @@
    pointing or focus. It unfolds from below Facet, its rows dropping in with the menus' spring as its edge reaches them. */
 .facet-window { position: absolute; top: calc(100% + 4px); inset-inline-start: 0; z-index: 5; width: 300px; max-width: calc(100vw - 48px);
   display: flex; flex-direction: column; max-height: min(560px, 70vh); box-sizing: border-box; padding: 4px; overflow: hidden;
-  border-radius: 12px; background: var(--surface); color: var(--ink); box-shadow: 0 0 0 1px var(--line), var(--shadow-lift);
-  font: 500 14px/1.3 var(--font-text); letter-spacing: normal; text-transform: none; animation: unfold calc(var(--dur-spring) + 30ms) var(--ease-out) both; }
-@keyframes unfold { from { clip-path: inset(0 0 100% 0 round 12px); } to { clip-path: inset(0 round 12px); } }
+  border-radius: 0 0 12px 12px; background: var(--surface); color: var(--ink); box-shadow: var(--shadow-lift);
+  font: 500 14px/1.3 var(--font-text); letter-spacing: normal; text-transform: none; animation: unfold 520ms var(--ease-out) both; }
+@keyframes unfold { from { clip-path: inset(0 0 100% 0 round 0 0 12px 12px); } to { clip-path: inset(0 0 -40px 0 round 0 0 12px 12px); } }
+/* Its frame is the card's top line, flowing round it (facet-flow.tsx); while
+   it is open the card draws no line of its own along its top. */
+.facet-flow { position: absolute; z-index: 6; overflow: visible; pointer-events: none; }
+.facet-flow path { fill: none; stroke: var(--fam, var(--fam-notes)); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.component:has(> .card-head .facet-window) { box-shadow: 0 0 0 1px var(--line); }
 .facet-window[data-opening] :is(.facet-window-row, .facet-window-group) { animation: unfold-row var(--dur-spring) var(--ease-spring) both; animation-delay: calc(var(--j, 0) * 18ms); }
 @keyframes unfold-row { from { opacity: 0; transform: translateY(calc(-14px - var(--j, 0) * 6px)) scale(.85); } 50% { opacity: 1; } }
 .card-actions [data-facet-trigger][aria-expanded="true"] { background: var(--fam, var(--fam-notes)); color: var(--on-fam, var(--on-ink)); box-shadow: none; }

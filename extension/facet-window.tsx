@@ -9,6 +9,7 @@ import { facetMark, facetName } from './catalog-text.ts';
 import { facetsFull, MAX_FACETS } from './facet-limit.ts';
 import { CATALOG } from '@vocabularium/domain/page-modules';
 import { FamilyIcon } from './families.tsx';
+import { FacetFlow } from './facet-flow.tsx';
 
 // A parent's facet window (D13, 0.8.1), opened by Facet among the parent's
 // actions, on a page and in deck settings. It lists every facet of the
@@ -50,12 +51,17 @@ export function FacetWindow({ holderId, parent, title, facets, disabled, hasCont
   const holding = facets.join('|');
   useEffect(() => { setWanted({}); }, [holding]);
   const equipped = (facet: FacetType) => wanted[facet] ?? facets.includes(facet);
-  // Facet, in the same card head; the window unfolds 8px below it, clear of the card's ruled edge, as the dropdowns do.
+  // Facet, in the same card head; the window hangs below it from the card's top line, which flows round it (facet-flow.tsx).
   const trigger = () => root.current?.parentElement?.querySelector<HTMLElement>('[data-facet-trigger]') ?? null;
   const [place, setPlace] = useState<{ insetInlineStart: number; top: number }>();
   useLayoutEffect(() => {
-    const head = root.current?.parentElement?.getBoundingClientRect(), facet = trigger()?.getBoundingClientRect();
-    if (head && facet) setPlace({ insetInlineStart: direction() === 'rtl' ? head.right - facet.right : facet.left - head.left, top: facet.bottom - head.top + 8 });
+    const head = root.current?.parentElement, facet = trigger();
+    // It hangs from the card's top line, just below its 3px rule. Measured by
+    // layout, not on screen, so a Facet still springing out of the tab counts
+    // where it will stand.
+    const card = root.current?.closest<HTMLElement>('.component');
+    if (head && facet && card) setPlace({ insetInlineStart: direction() === 'rtl' ? head.offsetWidth - facet.offsetLeft - facet.offsetWidth : facet.offsetLeft,
+      top: card.getBoundingClientRect().top - head.getBoundingClientRect().top + 3 });
   }, []);
   // The rows drop in once, as the window opens; a facet moving between the
   // groups later keeps still.
@@ -133,7 +139,7 @@ export function FacetWindow({ holderId, parent, title, facets, disabled, hasCont
     {key === 'add' && full && <p className="facet-window-limit" id={limitId}>{t('card.facetsFull', { count: MAX_FACETS })}</p>}
     <ul aria-labelledby={`${ids}-${key}`}>{members.map(facet => row(facet, key === 'on'))}</ul>
   </>;
-  return <div ref={root} className="facet-window" data-opening={opening || undefined} role="group" aria-labelledby={headingId} style={place}
+  return <>{place && <FacetFlow target={root} />}<div ref={root} className="facet-window" data-opening={opening || undefined} role="group" aria-labelledby={headingId} style={place}
     onKeyDown={event => {
       if (event.key !== 'Escape') return;
       event.stopPropagation();
@@ -149,7 +155,7 @@ export function FacetWindow({ holderId, parent, title, facets, disabled, hasCont
       {group('on', all.filter(equipped))}
       {group('add', all.filter(facet => !equipped(facet)))}
     </div>
-  </div>;
+  </div></>;
 }
 
 // The facet's question, as beside its label (page-view.tsx): "Are you sure?",
