@@ -36,7 +36,7 @@ function sidePath(g: Geometry, side: 1 | -1, bottom = g.bottom) {
 const ruleLength = (g: Geometry, side: 1 | -1) => (g.radius - RULE / 2) * Math.PI / 2
   + (side === 1 ? g.start - FILLET - g.radius : g.width - g.radius - (g.end + FILLET));
 
-export function FacetFlow({ target }: { target: RefObject<HTMLElement | null> }) {
+export function FacetFlow({ target, closing }: { target: RefObject<HTMLElement | null>; closing: boolean }) {
   const svg = useRef<SVGSVGElement>(null);
   const [geometry, setGeometry] = useState<Geometry | null>(null);
   const played = useRef(false);
@@ -56,12 +56,15 @@ export function FacetFlow({ target }: { target: RefObject<HTMLElement | null> })
     return () => observer.disconnect();
   }, [target]);
   useLayoutEffect(() => {
-    if (!geometry || !svg.current) return;
+    // Closing, the window animates the line back itself (facet-window.tsx).
+    if (!geometry || !svg.current || closing) return;
     const still = played.current || matchMedia('(prefers-reduced-motion: reduce)').matches;
     played.current = true;
     svg.current.querySelectorAll<SVGPathElement>('path[data-side]').forEach(path => {
       const side = Number(path.dataset.side) as 1 | -1;
       const total = path.getTotalLength(), rule = Math.min(ruleLength(geometry, side), total);
+      path.dataset.total = String(total);
+      path.dataset.rule = String(rule);
       const open = { strokeDasharray: `${total - rule} ${2 * total}`, strokeDashoffset: `${-rule}` };
       Object.assign(path.style, open);
       if (still) return;

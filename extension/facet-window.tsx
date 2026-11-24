@@ -27,19 +27,40 @@ import { FacetFlow } from './facet-flow.tsx';
 // remove, and the others to add, each with a +; a facet moves between them.
 // Since 0.16.4 a parent holding MAX_FACETS facets has its others disabled,
 // with the reason beneath the group's name.
-export function FacetWindow({ holderId, parent, title, facets, disabled, hasContent, onAdd, onRemove, onClose }: {
+// Which parent's facet window is open, and whether it is closing: it stays
+// on screen while it folds away and its frame flows back into the card's
+// line, then `gone` takes it down. It closes whenever its card's actions do.
+export function useFacetWindowState(opened: string | null) {
+  const [holder, setHolder] = useState<string | null>(null);
+  const [closing, setClosing] = useState(false);
+  // Each opening is a new window, so Facet pressed again while it closes opens it afresh.
+  const [round, setRound] = useState(0);
+  useEffect(() => { if (holder && opened !== holder) setClosing(true); }, [opened]);
+  return {
+    holder, closing, round,
+    toggle: (id: string) => { if (holder === id && !closing) setClosing(true); else { setHolder(id); setClosing(false); setRound(value => value + 1); } },
+    close: () => { if (holder) setClosing(true); },
+    gone: () => { setHolder(null); setClosing(false); }
+  };
+}
+
+export function FacetWindow({ holderId, parent, title, facets, disabled, hasContent, onAdd, onRemove, onClose, closing = false, onGone }: {
   holderId: string; parent: ParentType; title: string; facets: readonly string[]; disabled: boolean;
   // Whether unticking would lose what the facet holds; never in deck settings.
   hasContent: (facet: FacetType) => boolean;
   onAdd: (facet: FacetType) => boolean | void | Promise<boolean | void>;
   // Removes the facet; false when it could not be saved, which puts its tick back.
   onRemove: (facet: FacetType) => boolean | void | Promise<boolean | void>;
-  // `refocus` returns the focus to the card's tab, after Escape.
+  // `refocus` returns the focus to Facet, after Escape or the close.
   onClose: (refocus: boolean) => void;
+  // Closing, it folds away, and `onGone` takes it down once it has.
+  closing?: boolean; onGone?: () => void;
 }) {
   const root = useRef<HTMLDivElement>(null);
   const close = useRef(onClose);
   close.current = onClose;
+  const closingNow = useRef(closing);
+  closingNow.current = closing;
   // The facet asking before it is removed, and the tick its question gives the
   // focus back to once the row shows its tick again.
   const [asking, setAsking] = useState<FacetType | null>(null);
@@ -63,6 +84,26 @@ export function FacetWindow({ holderId, parent, title, facets, disabled, hasCont
     if (head && facet && card) setPlace({ insetInlineStart: direction() === 'rtl' ? head.offsetWidth - facet.offsetLeft - facet.offsetWidth : facet.offsetLeft,
       top: card.getBoundingClientRect().top - head.getBoundingClientRect().top + 3 });
   }, []);
+  // Closing: the panel folds up while its frame flows back into the card's
+  // line, then it goes; at once under reduced motion.
+  const gone = useRef(onGone);
+  gone.current = onGone;
+  useEffect(() => {
+    if (!closing) return;
+    const panel = root.current;
+    if (!panel || matchMedia('(prefers-reduced-motion: reduce)').matches) { gone.current?.(); return; }
+    const motions = [panel.animate([{ clipPath: 'inset(0 0 -40px 0 round 0 0 12px 12px)' }, { clipPath: 'inset(0 0 100% 0 round 0 0 12px 12px)' }],
+      { duration: 380, easing: 'cubic-bezier(.4, 0, .2, 1)', fill: 'forwards' })];
+    panel.parentElement?.querySelectorAll<SVGPathElement>('.facet-flow path[data-side]').forEach(path => {
+      const total = Number(path.dataset.total), rule = Number(path.dataset.rule);
+      path.getAnimations().forEach(motion => motion.cancel());
+      motions.push(path.animate([{ strokeDasharray: `${total - rule} ${2 * total}`, strokeDashoffset: `${-rule}` }, { strokeDasharray: `${rule} ${2 * total}`, strokeDashoffset: '0' }],
+        { duration: 460, easing: 'cubic-bezier(.5, 0, .3, 1)', fill: 'forwards' }));
+    });
+    let left = false;
+    void Promise.all(motions.map(motion => motion.finished)).then(() => { if (!left) gone.current?.(); }, () => undefined);
+    return () => { left = true; };
+  }, [closing]);
   // The rows drop in once, as the window opens; a facet moving between the
   // groups later keeps still.
   const [opening, setOpening] = useState(true);
@@ -74,7 +115,7 @@ export function FacetWindow({ holderId, parent, title, facets, disabled, hasCont
     const outside = (event: PointerEvent) => {
       const target = event.target as Element | null;
       // Facet itself toggles the window on its own click.
-      if (!root.current?.contains(target) && !trigger()?.contains(target) && !target?.closest?.('.about-sheet')) close.current(false);
+      if (!closingNow.current && !root.current?.contains(target) && !trigger()?.contains(target) && !target?.closest?.('.about-sheet')) close.current(false);
     };
     document.addEventListener('pointerdown', outside);
     return () => document.removeEventListener('pointerdown', outside);
@@ -139,7 +180,7 @@ export function FacetWindow({ holderId, parent, title, facets, disabled, hasCont
     {key === 'add' && full && <p className="facet-window-limit" id={limitId}>{t('card.facetsFull', { count: MAX_FACETS })}</p>}
     <ul aria-labelledby={`${ids}-${key}`}>{members.map(facet => row(facet, key === 'on'))}</ul>
   </>;
-  return <>{place && <FacetFlow target={root} />}<div ref={root} className="facet-window" data-opening={opening || undefined} role="group" aria-labelledby={headingId} style={place}
+  return <>{place && <FacetFlow target={root} closing={closing} />}<div ref={root} className="facet-window" data-opening={opening || undefined} data-closing={closing || undefined} inert={closing || undefined} role="group" aria-labelledby={headingId} style={place}
     onKeyDown={event => {
       if (event.key !== 'Escape') return;
       event.stopPropagation();

@@ -28,6 +28,8 @@ export async function cardButton(page, name) {
 }
 // A parent's facet window (D13, 0.8.1), opened by Facet among its actions; already open, it is returned as it is.
 export async function facetWindow(page, label) {
+  // A window still folding away from an earlier close is no window to use.
+  await page.locator('.facet-window[data-closing]').waitFor({ state: 'detached' });
   const window = page.getByRole('group', { name: `Facets of ${label}`, exact: true });
   if (await window.count()) return window;
   // Closing the window leaves the actions out, Facet among them.

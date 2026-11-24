@@ -89,7 +89,7 @@
    add, with a + in the family colour; each row's › to its page shows on
    pointing or focus. It unfolds from below Facet, its rows dropping in with the menus' spring as its edge reaches them. */
 .facet-window { position: absolute; top: calc(100% + 4px); inset-inline-start: 0; z-index: 5; width: 300px; max-width: calc(100vw - 48px);
-  display: flex; flex-direction: column; max-height: min(560px, 70vh); box-sizing: border-box; padding: 4px; overflow: hidden;
+  display: flex; flex-direction: column; box-sizing: border-box; padding: 4px; overflow: hidden;
   border-radius: 0 0 12px 12px; background: var(--surface); color: var(--ink); box-shadow: var(--shadow-lift);
   font: 500 14px/1.3 var(--font-text); letter-spacing: normal; text-transform: none; animation: unfold 520ms var(--ease-out) both; }
 @keyframes unfold { from { clip-path: inset(0 0 100% 0 round 0 0 12px 12px); } to { clip-path: inset(0 0 -40px 0 round 0 0 12px 12px); } }
@@ -103,7 +103,8 @@
 .card-actions [data-facet-trigger][aria-expanded="true"] { background: var(--fam, var(--fam-notes)); color: var(--on-fam, var(--on-ink)); box-shadow: none; }
 .facet-window-head { display: flex; align-items: center; gap: 8px; padding: 8px 4px 4px 8px; }
 .facet-window-head h3 { flex: 1 1 auto; min-width: 0; margin: 0; font: 600 14px/1.3 var(--font-text); color: var(--ink); }
-.facet-window-body { min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+/* Never a scrolling list: the window is as tall as its facets, all of them in view. */
+.facet-window-body { flex: none; }
 .facet-window-group { margin: 0; padding: 8px 8px 4px; font: 600 11px/16px var(--font-text); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-muted); }
 .facet-window ul { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
 .facet-window-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0 8px; min-height: 36px; padding: 0 4px 0 8px; border-radius: var(--radius-md);
@@ -276,7 +277,7 @@
 .component[data-folded] .card-fold-inner { opacity: 0; transform: translateY(-6px); }
 /* While one of the card's dropdowns or its facet window is open, its content
    steps back, so the card's text never competes with them. */
-.component:not([data-folded]):has(.card-head :is(.action-submenu, .facet-window)) .card-fold-inner { opacity: .3; }
+.component:not([data-folded]):has(.card-head :is(.action-submenu, .facet-window:not([data-closing]))) .card-fold-inner { opacity: .3; }
 .card-status { margin: 0 0 8px; }
 .component[data-status="failed"] { background: var(--status-failed-bg); }
 .component-tools { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
