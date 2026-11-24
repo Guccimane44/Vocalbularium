@@ -24,6 +24,7 @@ How to describe and review a change to a subsystem is in the [subsystem referenc
 | Provider calls never run inside a database transaction or the ordered executor. | one test in `tests/postgres.test.mjs` (a waiting model call doesn't hold the executor); nothing for transactions |
 | No generated content is cached, audio included. | nothing |
 | A prompt change shows as a change to `tests/prompts/*.txt`. | `tests/prompts.test.mjs` (`UPDATE_PROMPTS=1` after a deliberate change) |
+| A facet comes with its failure points, and its module's golden set fills each one (at least 3 items, one in the test split) before the facet merges ([golden folders](subsystems/quality-gate.md#golden-folders)). | for a module with a golden plan: the plan's type (a facet without points does not compile) and `tests/catalog.test.mjs` (every failure point filled); nothing for modules without a plan until v0.17.0 step 9 |
 
 ## Privacy
 

@@ -4,8 +4,8 @@ This plan will be executed using poteto-mode, so it needs to be tailored for it.
 
 ## The generation effort
 ### add a button for deck setting in the deck configuration page.
-currently it can only contain the generation efforts and reflection on/off(defined below). this two options will apply to all the 
-module in the deck. 
+currently it can only contain the generation efforts and reflection on/off(defined below). this two options will apply to all the
+module in the deck.
 
 ### adding generation effort setting and reflection on/off
 Add two new options in the settings submenu:
@@ -21,7 +21,7 @@ spanish, japanese, urdu. however im not an expert on those languages. so we need
 i studied german before. for instance, the declension and conjugation facets are something that i considered as important for a german learner. And im pretty sure there are many those aspects that special to every langugaes.
 
 for every new language module expansion
-1. do reasearch on internet: what facets would be helpful for this language module. our main target audiance is either the language learner or 
+1. do reasearch on internet: what facets would be helpful for this language module. our main target audiance is either the language learner or
 the people who already understand the language but use it for own purposes. for example people might want to know the etymology, might want to know a fun fact etc.
 2. draft the facet lists
 3. tailor the prompt and constraints
@@ -33,5 +33,5 @@ the people who already understand the language but use it for own purposes. for 
 since we are introducing different reasoning levels
 
 ## Notes on future minor increments
-in the upcoming iterations in v.0.17.x, we will work on UI and frontend. 
+in the upcoming iterations in v.0.17.x, we will work on UI and frontend.
 
