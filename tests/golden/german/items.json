@@ -1,0 +1,4199 @@
+{
+  "note": "German's golden items (v0.17.0 step 1): each fills failure points of packages/domain/src/catalog/languages/german/golden/plan.ts. Test items change only by addition; a retired item stays, so past runs still resolve.",
+  "items": [
+    {
+      "id": "sample-01",
+      "key": "Treffen",
+      "context": "«Wir brauchen ein starkes Signal für ein Ende der Gewalt und den Start eines Demokratisierungsprozesses», sagte er in der jordanischen Hauptstadt Amman nach einem Treffen mit seinem Kollegen Nasser Dschudeh.",
+      "why": "Simulated capture: Treffen, drawn with seed 20261124 as draw 1 from Leipzig deu_news_2012_1M, sentence 241646.",
+      "part": "sample",
+      "split": "dev",
+      "candidates": [
+        "Treffen"
+      ],
+      "fills": {
+        "core": [
+          "kind",
+          "context-flat"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "sample-02",
+      "key": "mile",
+      "context": "When converted in monetary terms 1 mile is approximately N$0.22 excluding taxes.",
+      "why": "Simulated capture: mile, drawn with seed 20261124 as draw 2 from Leipzig eng_news_2013_1M, sentence 958148. The Context is about loyalty miles converted to money, a sense the Context picks.",
+      "part": "sample",
+      "split": "test",
+      "candidates": [
+        "Meile"
+      ],
+      "fills": {
+        "core": [
+          "kind",
+          "source-language",
+          "context-sense"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "sample-03",
+      "key": "begann",
+      "context": "Rivers begann während seiner Schulzeit damit Musik zu spielen.",
+      "why": "Simulated capture: begann, drawn with seed 20261124 as draw 3 from Leipzig deu_wikipedia_2010_1M, sentence 528239.",
+      "part": "sample",
+      "split": "dev",
+      "candidates": [
+        "beginnen"
+      ],
+      "fills": {
+        "core": [
+          "kind",
+          "inflected-key"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        }
+      }
+    },
+    {
+      "id": "sample-04",
+      "key": "writings",
+      "context": "Science and empires As a child of parents who lived under colonial rule in what was British-India, much of Sardar's writings are about what happens to people, languages and institutions when one country is taken over by another country or empire.",
+      "why": "Simulated capture: writings, drawn with seed 20261124 as draw 4 from Leipzig eng_wikipedia_2012_1M, sentence 874966.",
+      "part": "sample",
+      "split": "test",
+      "candidates": [
+        "Schrift",
+        "Werk"
+      ],
+      "fills": {
+        "core": [
+          "kind",
+          "source-language",
+          "inflected-key"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "sample-05",
+      "key": "dem",
+      "context": "Auch die Tatsache, dass Edeka Walke in diesen Tagen am selben Ort Lebensmittel verkauft, an dem einst das Zuhause der Familie Bergmann war, sei schwer nachzuvollziehen.",
+      "why": "Simulated capture: dem, drawn with seed 20261124 as draw 5 from Leipzig deu_news_2012_1M, sentence 796211.",
+      "part": "sample",
+      "split": "dev",
+      "fills": {
+        "core": [
+          "kind",
+          "inflected-key",
+          "context-sense"
+        ]
+      },
+      "expect": {
+        "kind": "word"
+      }
+    },
+    {
+      "id": "sample-06",
+      "key": "carriers",
+      "context": "Earlier Tuesday, senior Obama administration officials said the U.S. never told American commercial carriers to comply specifically with China’s demands.",
+      "why": "Simulated capture: carriers, drawn with seed 20261124 as draw 6 from Leipzig eng_news_2013_1M, sentence 202514.",
+      "part": "sample",
+      "split": "dev",
+      "candidates": [
+        "Fluggesellschaft",
+        "Fluglinie"
+      ],
+      "fills": {
+        "core": [
+          "kind",
+          "source-language",
+          "inflected-key",
+          "context-sense"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        },
+        "contextual": true
+      }
+    },
+    {
+      "id": "sample-07",
+      "key": "Frankreich",
+      "context": "Dokumentarfilm, Frankreich 2009, gezeigt in ARTE am 28. Oktober 2009 von 21:00-21:50 und von 21:50-22:45.",
+      "why": "Simulated capture: Frankreich, drawn with seed 20261124 as draw 7 from Leipzig deu_wikipedia_2010_1M, sentence 307947.",
+      "part": "sample",
+      "split": "test",
+      "fills": {
+        "core": [
+          "kind",
+          "context-flat"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        },
+        "contextual": false
+      }
+    },
+    {
+      "id": "sample-08",
+      "key": "stay",
+      "context": "Pulmonary Rehabilitation — Pulmonary rehabilitation may be initiated as a treatment as a source for continuity of improvement after a hospital stay or as a therapeutic way to increase quality of life.",
+      "why": "Simulated capture: stay, drawn with seed 20261124 as draw 8 from Leipzig eng_wikipedia_2012_1M, sentence 262111.",
+      "part": "sample",
+      "split": "dev",
+      "candidates": [
+        "Aufenthalt"
+      ],
+      "fills": {
+        "core": [
+          "kind",
+          "source-language",
+          "context-sense"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        },
+        "contextual": true
+      }
+    },
+    {
+      "id": "sample-09",
+      "key": "des",
+      "context": "Dies wird spätestens in den kommenden Jahren erwartet, hat Samsung doch laut Reuters erst heute die Aufstockung des Budgets auf eine insgesamt 4 Milliarden US-Dollar umfassende Investition in Austin, Texas, angekündigt.",
+      "why": "Simulated capture: des, drawn with seed 20261124 as draw 9 from Leipzig deu_news_2012_1M, sentence 813643.",
+      "part": "sample",
+      "split": "test",
+      "fills": {
+        "core": [
+          "kind",
+          "inflected-key"
+        ]
+      },
+      "expect": {
+        "kind": "word"
+      }
+    },
+    {
+      "id": "sample-10",
+      "key": "day",
+      "context": "The armband project quickly consumed his free time, he says: “We are usually working 20 hours a day.”",
+      "why": "Simulated capture: day, drawn with seed 20261124 as draw 10 from Leipzig eng_news_2013_1M, sentence 704555.",
+      "part": "sample",
+      "split": "dev",
+      "candidates": [
+        "Tag#Sonnenaufgang"
+      ],
+      "fills": {
+        "core": [
+          "kind",
+          "source-language",
+          "context-sense"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "sample-11",
+      "key": "Offiziere",
+      "context": "Erster Weltkrieg 1914 Am 2. August 1914 trat das Regiment in Stärke 51 Offiziere, 4 Sanitäts-Offiziere, 1 Beamter, 1802 Mann und 190 Pferde an und war der 11. Infanterie-Brigade der 6. Infanterie-Division unterstellt.",
+      "why": "Simulated capture: Offiziere, drawn with seed 20261124 as draw 11 from Leipzig deu_wikipedia_2010_1M, sentence 122471.",
+      "part": "sample",
+      "split": "dev",
+      "candidates": [
+        "Offizier"
+      ],
+      "fills": {
+        "core": [
+          "kind",
+          "inflected-key"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "sample-12",
+      "key": "by",
+      "context": "The album was considered by Scarface to be the label's finest release.",
+      "why": "Simulated capture: by, drawn with seed 20261124 as draw 12 from Leipzig eng_wikipedia_2012_1M, sentence 397641.",
+      "part": "sample",
+      "split": "test",
+      "candidates": [
+        "von"
+      ],
+      "fills": {
+        "core": [
+          "kind",
+          "source-language",
+          "context-sense"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "preposition"
+        }
+      }
+    },
+    {
+      "id": "sample-13",
+      "key": "Die",
+      "context": "Inhaltlich hat er jedoch Recht: Die Kanzlerin hat versprochen, was sie kaum wird halten können.",
+      "why": "Simulated capture: Die, drawn with seed 20261124 as draw 13 from Leipzig deu_news_2012_1M, sentence 883794.",
+      "part": "sample",
+      "split": "dev",
+      "fills": {
+        "core": [
+          "kind",
+          "inflected-key",
+          "shared-spelling"
+        ]
+      },
+      "expect": {
+        "kind": "word"
+      }
+    },
+    {
+      "id": "sample-14",
+      "key": "Delhi",
+      "context": "The protestors in Delhi and the feminist activists have made clear demands.",
+      "why": "Simulated capture: Delhi, drawn with seed 20261124 as draw 14 from Leipzig eng_news_2013_1M, sentence 797510.",
+      "part": "sample",
+      "split": "test",
+      "fills": {
+        "core": [
+          "kind",
+          "source-language",
+          "context-flat"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        },
+        "contextual": false
+      }
+    },
+    {
+      "id": "sample-15",
+      "key": "gehört",
+      "context": "Merkmale Adelphobates castaneoticus gehört zu den kleinsten Baumsteigerfröschen und hat eine Gesamtlänge von etwa 18 bis 23 mm. Dabei sind die Weibchen im Regelfall größer als die Männchen, unterscheiden sich jedoch in der Färbung nicht von ihnen.",
+      "why": "Simulated capture: gehört, drawn with seed 20261124 as draw 15 from Leipzig deu_wikipedia_2010_1M, sentence 517602.",
+      "part": "sample",
+      "split": "dev",
+      "candidates": [
+        "gehören"
+      ],
+      "fills": {
+        "core": [
+          "kind",
+          "inflected-key",
+          "context-sense"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        },
+        "contextual": true
+      }
+    },
+    {
+      "id": "sample-16",
+      "key": "shuttle",
+      "context": "They begin retrofitting and reinforcing two shuttle buses from the parking garage for their escape.",
+      "why": "Simulated capture: shuttle, drawn with seed 20261124 as draw 16 from Leipzig eng_wikipedia_2012_1M, sentence 194939.",
+      "part": "sample",
+      "split": "dev",
+      "candidates": [
+        "Shuttle"
+      ],
+      "fills": {
+        "core": [
+          "kind",
+          "source-language",
+          "context-sense"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "sample-17",
+      "key": "Wollen",
+      "context": "Wollen sie aber etwas lernen, so sollen sie daheim ihre Männer fragen.",
+      "why": "Simulated capture: Wollen, drawn with seed 20261124 as draw 17 from Leipzig deu_news_2012_1M, sentence 211570.",
+      "part": "sample",
+      "split": "test",
+      "candidates": [
+        "wollen#Modalverb"
+      ],
+      "fills": {
+        "core": [
+          "kind",
+          "inflected-key"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        }
+      }
+    },
+    {
+      "id": "sample-18",
+      "key": "Author",
+      "context": "Author and journalist Beinart to leave Daily Beast; will write regularly for Haaretz on Israel, America and the American Jewish community.",
+      "why": "Simulated capture: Author, drawn with seed 20261124 as draw 18 from Leipzig eng_news_2013_1M, sentence 97614.",
+      "part": "sample",
+      "split": "dev",
+      "candidates": [
+        "Autor"
+      ],
+      "fills": {
+        "core": [
+          "kind",
+          "source-language",
+          "context-flat"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "sample-19",
+      "key": "schon",
+      "context": "Er wurde 1939 als Kammergerichtsrat an das Kammergericht in Berlin berufen, schon kurz danach aber zum Kriegsdienst einberufen.",
+      "why": "Simulated capture: schon, drawn with seed 20261124 as draw 19 from Leipzig deu_wikipedia_2010_1M, sentence 389448.",
+      "part": "sample",
+      "split": "test",
+      "fills": {
+        "core": [
+          "kind",
+          "context-sense"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "adverb"
+        }
+      }
+    },
+    {
+      "id": "sample-20",
+      "key": "showed",
+      "context": "For example, David Hubel and Torsten Wiesel recorded the activity of single neurons in the primary visual cortex of the anesthetized cat, and showed how single neurons in this area respond to very specific features of a visual stimulus.",
+      "why": "Simulated capture: showed, drawn with seed 20261124 as draw 20 from Leipzig eng_wikipedia_2012_1M, sentence 927871.",
+      "part": "sample",
+      "split": "dev",
+      "candidates": [
+        "zeigen"
+      ],
+      "fills": {
+        "core": [
+          "kind",
+          "source-language",
+          "inflected-key"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        }
+      }
+    },
+    {
+      "id": "sample-21",
+      "key": "Dänemark",
+      "context": "Die international gute Vernetzung dank ihren Galerien in London und Dänemark ist unerlässlich für eine nachhaltige Künstlerkarriere.",
+      "why": "Simulated capture: Dänemark, drawn with seed 20261124 as draw 21 from Leipzig deu_news_2012_1M, sentence 545318.",
+      "part": "sample",
+      "split": "dev",
+      "fills": {
+        "core": [
+          "kind",
+          "context-flat"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        },
+        "contextual": false
+      }
+    },
+    {
+      "id": "sample-22",
+      "key": "songs",
+      "context": "I even have gospel songs prepared for my third album.",
+      "why": "Simulated capture: songs, drawn with seed 20261124 as draw 22 from Leipzig eng_news_2013_1M, sentence 325875.",
+      "part": "sample",
+      "split": "test",
+      "candidates": [
+        "Lied",
+        "Song"
+      ],
+      "fills": {
+        "core": [
+          "kind",
+          "source-language",
+          "inflected-key"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "sample-23",
+      "key": "Erster",
+      "context": "1943/44 war er als Erster Kapellmeister am Theater am Nollendorfplatz in Berlin tätig.",
+      "why": "Simulated capture: Erster, drawn with seed 20261124 as draw 23 from Leipzig deu_wikipedia_2010_1M, sentence 852356.",
+      "part": "sample",
+      "split": "dev",
+      "fills": {
+        "core": [
+          "kind",
+          "inflected-key",
+          "context-sense"
+        ]
+      },
+      "expect": {
+        "kind": "word"
+      }
+    },
+    {
+      "id": "sample-24",
+      "key": "in",
+      "context": "His opus, however, is the high point of \"genetic history\" or the archivist's approach, which patiently weaves the tapestry of the chosen period without engaging in speculations that are sometimes necessary to fill the gaps left open by archive materials.",
+      "why": "Simulated capture: in, drawn with seed 20261124 as draw 24 from Leipzig eng_wikipedia_2012_1M, sentence 904548.",
+      "part": "sample",
+      "split": "test",
+      "candidates": [
+        "in#örtlich"
+      ],
+      "fills": {
+        "core": [
+          "kind",
+          "source-language",
+          "shared-spelling"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "preposition"
+        }
+      }
+    },
+    {
+      "id": "sample-25",
+      "key": "viel",
+      "context": "» Da gibts wohl viele Neider, ich jedenfalls finde es gut, dass er wieder spielt und wünsche ihm viel Erfolg.",
+      "why": "Simulated capture: viel, drawn with seed 20261124 as draw 25 from Leipzig deu_news_2012_1M, sentence 816880.",
+      "part": "sample",
+      "split": "dev",
+      "candidates": [
+        "viel"
+      ],
+      "fills": {
+        "core": [
+          "kind",
+          "inflected-key"
+        ]
+      },
+      "expect": {
+        "kind": "word"
+      }
+    },
+    {
+      "id": "sample-26",
+      "key": "started",
+      "context": "My oldest son was supposed to start college in the fall of 2012, and my wife, in preparation for the empty-nest experience, had started a two-year graduate school program.",
+      "why": "Simulated capture: started, drawn with seed 20261124 as draw 26 from Leipzig eng_news_2013_1M, sentence 519484.",
+      "part": "sample",
+      "split": "dev",
+      "candidates": [
+        "beginnen",
+        "anfangen"
+      ],
+      "fills": {
+        "core": [
+          "kind",
+          "source-language",
+          "inflected-key"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        }
+      }
+    },
+    {
+      "id": "sample-27",
+      "key": "möglich",
+      "context": "Aufgrund des starken deutschen Artilleriefeuers waren diese Manöver nur nachts möglich und war infolge deutscher Artillerie- oder Sturzkampfbomberangriffe mit hohen Verlusten verbunden.",
+      "why": "Simulated capture: möglich, drawn with seed 20261124 as draw 27 from Leipzig deu_wikipedia_2010_1M, sentence 88594.",
+      "part": "sample",
+      "split": "test",
+      "candidates": [
+        "möglich"
+      ],
+      "fills": {
+        "core": [
+          "kind",
+          "context-flat"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "adjective"
+        }
+      }
+    },
+    {
+      "id": "sample-28",
+      "key": "is",
+      "context": "Griveaudia nigropuncta is a species of moth of the Callidulidae family.",
+      "why": "Simulated capture: is, drawn with seed 20261124 as draw 28 from Leipzig eng_wikipedia_2012_1M, sentence 748124.",
+      "part": "sample",
+      "split": "dev",
+      "candidates": [
+        "sein"
+      ],
+      "fills": {
+        "core": [
+          "kind",
+          "source-language",
+          "inflected-key"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        }
+      }
+    },
+    {
+      "id": "sample-29",
+      "key": "war",
+      "context": "Die Serie riss am Montagabend ab, und ausgerechnet Jeremy Lin war einer der Hauptdarsteller beim Coup der Houston Rockets in Manhattan.",
+      "why": "Simulated capture: war, drawn with seed 20261124 as draw 29 from Leipzig deu_news_2012_1M, sentence 944803.",
+      "part": "sample",
+      "split": "test",
+      "candidates": [
+        "sein"
+      ],
+      "fills": {
+        "core": [
+          "kind",
+          "inflected-key",
+          "shared-spelling"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        }
+      }
+    },
+    {
+      "id": "sample-30",
+      "key": "is",
+      "context": "About ten minutes north of the area in Northwest Austin, near Lakecreek Parkway and Highway 183, heavy rain made a rushing rapids out of what is usually a dry drainage ditch.",
+      "why": "Simulated capture: is, drawn with seed 20261124 as draw 30 from Leipzig eng_news_2013_1M, sentence 8345.",
+      "part": "sample",
+      "split": "dev",
+      "candidates": [
+        "sein"
+      ],
+      "fills": {
+        "core": [
+          "kind",
+          "source-language",
+          "inflected-key"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        }
+      }
+    },
+    {
+      "id": "haus",
+      "key": "Haus",
+      "why": "Inherited: ahd. hūs, germ. *hūsa-. Genitive des Hauses, dative plural den Häusern, plural with umlaut and -er.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "Haus",
+      "frequency": 5,
+      "fills": {
+        "etymology": [
+          "inherited"
+        ],
+        "declension": [
+          "genitive-s",
+          "dative-plural"
+        ],
+        "article": [
+          "plural-class"
+        ],
+        "examples": [
+          "german-key"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "ufer",
+      "key": "Ufer",
+      "why": "A real past fault: a card gave a related word as its antonym; Ufer has no true opposite. Inherited, westgerm. (mhd. uover). Plural unchanged, den Ufern.",
+      "part": "knowledge",
+      "split": "test",
+      "word": "Ufer#Gewässer",
+      "frequency": 3,
+      "fills": {
+        "etymology": [
+          "inherited"
+        ],
+        "declension": [
+          "genitive-s",
+          "dative-plural"
+        ],
+        "article": [
+          "plural-class"
+        ],
+        "antonyms": [
+          "true-opposite",
+          "none"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "eidam",
+      "key": "Eidam",
+      "why": "Inherited: ahd. eidum, germ. *aiþuma-, son-in-law, now dated. Genitive des Eidams or Eidames.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "Eidam#Tochter",
+      "frequency": 1,
+      "fills": {
+        "etymology": [
+          "inherited"
+        ],
+        "declension": [
+          "genitive-s",
+          "dative-plural"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "fenster",
+      "key": "Fenster",
+      "why": "Early Latin loan: ahd. fenstar from Latin fenestra. Dative plural den Fenstern.",
+      "part": "knowledge",
+      "split": "test",
+      "word": "Fenster",
+      "frequency": 4,
+      "fills": {
+        "etymology": [
+          "latin-early"
+        ],
+        "declension": [
+          "dative-plural"
+        ],
+        "antonyms": [
+          "none"
+        ],
+        "examples": [
+          "german-key"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "ziegel",
+      "key": "Ziegel",
+      "why": "Early Latin loan: ahd. ziegal from Latin tegula. Dative plural den Ziegeln.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "Ziegel",
+      "frequency": 2,
+      "fills": {
+        "etymology": [
+          "latin-early"
+        ],
+        "declension": [
+          "dative-plural"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "soeller",
+      "key": "Söller",
+      "why": "Early Latin loan: ahd. solāri from Latin solarium. Genitive des Söllers, dative plural den Söllern.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "Söller",
+      "frequency": 1,
+      "fills": {
+        "etymology": [
+          "latin-early"
+        ],
+        "declension": [
+          "genitive-s",
+          "dative-plural"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "buero",
+      "key": "Büro",
+      "why": "French loan: bureau. Plural die Büros; spoken with its French stress.",
+      "part": "knowledge",
+      "split": "test",
+      "word": "Büro",
+      "frequency": 4,
+      "fills": {
+        "etymology": [
+          "french"
+        ],
+        "article": [
+          "plural-class"
+        ],
+        "pronunciation": [
+          "loanword"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "friseur",
+      "key": "Friseur",
+      "why": "Formed in German from French friser, to curl; a French-looking word that French does not use.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "Friseur",
+      "frequency": 3,
+      "fills": {
+        "etymology": [
+          "french"
+        ],
+        "pronunciation": [
+          "loanword"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "chaiselongue",
+      "key": "Chaiselongue",
+      "why": "French loan: chaise longue, first half of the 19th century; gender varies in use.",
+      "part": "knowledge",
+      "split": "test",
+      "word": "Chaiselongue",
+      "frequency": 1,
+      "fills": {
+        "etymology": [
+          "french"
+        ],
+        "article": [
+          "gender-loan"
+        ],
+        "pronunciation": [
+          "loanword"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "computer",
+      "key": "Computer",
+      "why": "English loan from American English, mid 20th century.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "Computer",
+      "frequency": 4,
+      "fills": {
+        "etymology": [
+          "english"
+        ],
+        "pronunciation": [
+          "loanword"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "keks",
+      "key": "Keks",
+      "why": "English loan: the plural cakes, taken over in the 19th century (Leibniz-Cakes 1889), respelt Keks.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "Keks#Plätzchen",
+      "frequency": 3,
+      "fills": {
+        "etymology": [
+          "english"
+        ],
+        "article": [
+          "gender-loan"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "kricket",
+      "key": "Kricket",
+      "why": "English loan: cricket (standard account; DWDS has no etymology entry).",
+      "part": "knowledge",
+      "split": "test",
+      "word": "Kricket",
+      "frequency": 1,
+      "fills": {
+        "etymology": [
+          "english"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "kaffee",
+      "key": "Kaffee",
+      "why": "Through French café and English coffee from Turkish kahve, from Arabic qahwa.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "Kaffee#Arabica",
+      "frequency": 4,
+      "fills": {
+        "etymology": [
+          "other-route"
+        ],
+        "antonyms": [
+          "none"
+        ],
+        "grammar-teacher": [
+          "little-to-say"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "kartoffel",
+      "key": "Kartoffel",
+      "why": "From Italian tartufolo (truffle), Tartuffel, then Kartoffel by dissimilation.",
+      "part": "knowledge",
+      "split": "test",
+      "word": "Kartoffel",
+      "frequency": 3,
+      "fills": {
+        "etymology": [
+          "other-route"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "tollpatsch",
+      "key": "Tollpatsch",
+      "why": "From Hungarian talpas, broad-footed, a name for Hungarian foot soldiers, around 1700.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "Tollpatsch",
+      "frequency": 1,
+      "fills": {
+        "etymology": [
+          "other-route"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "stelldichein",
+      "key": "Stelldichein",
+      "why": "Coined by Campe in 1791 to replace French rendez-vous.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "Stelldichein",
+      "frequency": 2,
+      "fills": {
+        "etymology": [
+          "coined"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "realpolitik",
+      "key": "Realpolitik",
+      "why": "Coined by Ludwig August von Rochau, Grundsätze der Realpolitik, 1853 (standard account; DWDS has no etymology entry).",
+      "part": "knowledge",
+      "split": "test",
+      "word": "Realpolitik",
+      "frequency": 2,
+      "fills": {
+        "etymology": [
+          "coined"
+        ],
+        "simple-translation": [
+          "compound",
+          "abstract"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "weltschmerz",
+      "key": "Weltschmerz",
+      "why": "Coined by Jean Paul (Selina, 1827) (standard account; DWDS has no etymology entry).",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "Weltschmerz",
+      "frequency": 1,
+      "fills": {
+        "etymology": [
+          "coined"
+        ],
+        "simple-translation": [
+          "abstract"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "zeitung",
+      "key": "Zeitung",
+      "why": "Meaning shift: late mhd. zīdunge meant news or tidings, later the printed paper. Feminine by -ung.",
+      "part": "knowledge",
+      "split": "test",
+      "word": "Zeitung",
+      "frequency": 4,
+      "fills": {
+        "etymology": [
+          "meaning-shift"
+        ],
+        "article": [
+          "gender-suffix"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "gift",
+      "key": "Gift",
+      "why": "Meaning shift: mhd. gift meant a gift or giving (as English gift); narrowed to poison.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "Gift#gesundheitsschädlich",
+      "frequency": 3,
+      "fills": {
+        "etymology": [
+          "meaning-shift"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "dirne",
+      "key": "Dirne",
+      "why": "Meaning shift: ahd. thiorna, girl or maid; now a prostitute, girl only regionally.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "Dirne",
+      "frequency": 1,
+      "fills": {
+        "etymology": [
+          "meaning-shift"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "friedhof",
+      "key": "Friedhof",
+      "why": "Folk etymology: ahd. frīthof, an enclosed yard (frīten, to protect), later linked to Friede, peace. Masculine by Hof.",
+      "part": "knowledge",
+      "split": "test",
+      "word": "Friedhof#Bestattung",
+      "frequency": 3,
+      "fills": {
+        "etymology": [
+          "folk-etymology"
+        ],
+        "article": [
+          "gender-compound"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "haengematte",
+      "key": "Hängematte",
+      "why": "Folk etymology: Taino hamaca through Dutch hangmat, reshaped after hängen and Matte. Feminine by Matte.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "Hängematte",
+      "frequency": 2,
+      "fills": {
+        "etymology": [
+          "folk-etymology"
+        ],
+        "article": [
+          "gender-compound"
+        ],
+        "simple-translation": [
+          "compound"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "vielfrass",
+      "key": "Vielfraß",
+      "why": "For the animal: Norwegian fjeldfross, mountain cat, reshaped after viel and Fraß.",
+      "part": "knowledge",
+      "split": "test",
+      "word": "Vielfraß",
+      "frequency": 1,
+      "fills": {
+        "etymology": [
+          "folk-etymology"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "gott",
+      "key": "Gott",
+      "why": "Disputed: germ. *guða-, usually read as the one called upon, but DWDS says the origin is not certain.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "Gott",
+      "frequency": 4,
+      "fills": {
+        "etymology": [
+          "disputed"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "kitsch",
+      "key": "Kitsch",
+      "why": "Disputed: DWDS calls it unclear; English sketch or dialect kitschen, to smear, are both proposed.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "Kitsch",
+      "frequency": 2,
+      "fills": {
+        "etymology": [
+          "disputed"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "techtelmechtel",
+      "key": "Techtelmechtel",
+      "why": "Disputed: DWDS calls it unexplained; usually taken as Italian a teco meco, between you and me.",
+      "part": "knowledge",
+      "split": "test",
+      "word": "Techtelmechtel",
+      "frequency": 1,
+      "fills": {
+        "etymology": [
+          "disputed"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "glueck",
+      "key": "Glück",
+      "why": "Unclear: DWDS says the origin is not explained and every attempt is unsatisfying.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "Glück#hypostatisch",
+      "frequency": 4,
+      "fills": {
+        "etymology": [
+          "unclear"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "ziege",
+      "key": "Ziege",
+      "why": "Unclear: DWDS says the origin is not certain.",
+      "part": "knowledge",
+      "split": "test",
+      "word": "Ziege#Hornträger",
+      "frequency": 3,
+      "fills": {
+        "etymology": [
+          "unclear"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "kiepe",
+      "key": "Kiepe",
+      "why": "Unclear: DWDS says the origin is unknown.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "Kiepe",
+      "frequency": 1,
+      "fills": {
+        "etymology": [
+          "unclear"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "herr",
+      "key": "Herr",
+      "why": "Weak masculine with -n in the singular and -en in the plural: des Herrn, die Herren.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "Herr#höflich",
+      "frequency": 4,
+      "fills": {
+        "declension": [
+          "n-declension"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "baer",
+      "key": "Bär",
+      "why": "Weak masculine: des Bären (des Bärs is colloquial).",
+      "part": "knowledge",
+      "split": "test",
+      "word": "Bär#Raubtier",
+      "frequency": 3,
+      "fills": {
+        "declension": [
+          "n-declension"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "geck",
+      "key": "Geck",
+      "why": "Weak masculine, rare: des Gecken.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "Geck",
+      "frequency": 1,
+      "fills": {
+        "declension": [
+          "n-declension"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "name",
+      "key": "Name",
+      "why": "Mixed noun: des Namens, dem Namen.",
+      "part": "knowledge",
+      "split": "test",
+      "word": "Name",
+      "frequency": 4,
+      "fills": {
+        "declension": [
+          "mixed-noun"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "herz",
+      "key": "Herz",
+      "why": "Mixed neuter noun: des Herzens, dem Herzen, das Herz.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "Herz#Blutkreislauf",
+      "frequency": 4,
+      "fills": {
+        "declension": [
+          "mixed-noun"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "glaube",
+      "key": "Glaube",
+      "why": "Mixed noun: des Glaubens, dem Glauben.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "Glaube",
+      "frequency": 3,
+      "fills": {
+        "declension": [
+          "mixed-noun"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "leute",
+      "key": "Leute",
+      "why": "Plural only: no singular forms.",
+      "part": "knowledge",
+      "split": "test",
+      "word": "Leute",
+      "frequency": 4,
+      "fills": {
+        "declension": [
+          "missing-forms"
+        ],
+        "article": [
+          "plural-none"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "durst",
+      "key": "Durst",
+      "why": "Singular only: no plural forms.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "Durst#trinken",
+      "frequency": 3,
+      "fills": {
+        "declension": [
+          "missing-forms"
+        ],
+        "article": [
+          "plural-none"
+        ],
+        "grammar-teacher": [
+          "little-to-say"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "geruempel",
+      "key": "Gerümpel",
+      "why": "Singular only: no plural forms.",
+      "part": "knowledge",
+      "split": "test",
+      "word": "Gerümpel",
+      "frequency": 1,
+      "fills": {
+        "declension": [
+          "missing-forms"
+        ],
+        "article": [
+          "plural-none"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "fernweh",
+      "key": "Fernweh",
+      "why": "A real past fault: Fernweh has no antonym. Singular only; neuter by Weh.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "Fernweh",
+      "frequency": 2,
+      "fills": {
+        "declension": [
+          "missing-forms"
+        ],
+        "article": [
+          "gender-compound",
+          "plural-none"
+        ],
+        "antonyms": [
+          "none"
+        ],
+        "simple-translation": [
+          "abstract"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "freiheit",
+      "key": "Freiheit",
+      "why": "Feminine by -heit.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "Freiheit",
+      "frequency": 4,
+      "fills": {
+        "article": [
+          "gender-suffix"
+        ],
+        "simple-translation": [
+          "abstract"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "maedchen",
+      "key": "Mädchen",
+      "why": "Neuter by -chen although it names a girl.",
+      "part": "knowledge",
+      "split": "test",
+      "word": "Mädchen",
+      "frequency": 4,
+      "fills": {
+        "article": [
+          "gender-suffix",
+          "gender-natural"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "weib",
+      "key": "Weib",
+      "why": "Neuter although it names a woman.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "Weib",
+      "frequency": 3,
+      "fills": {
+        "article": [
+          "gender-natural"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "fraeulein",
+      "key": "Fräulein",
+      "why": "Neuter by -lein although it names a woman; plural unchanged (Fräuleins is colloquial).",
+      "part": "knowledge",
+      "split": "test",
+      "word": "Fräulein",
+      "frequency": 2,
+      "fills": {
+        "article": [
+          "gender-natural",
+          "gender-suffix"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "see-meer",
+      "key": "See",
+      "context": "Bei Sturm ist die See vor der Küste gefährlich.",
+      "why": "Feminine in the sense of the sea (die See), masculine for a lake.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "See#Sammelbegriff",
+      "frequency": 4,
+      "fills": {
+        "article": [
+          "gender-sense"
+        ],
+        "core": [
+          "context-sense"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        },
+        "contextual": true
+      }
+    },
+    {
+      "id": "kiefer-baum",
+      "key": "Kiefer",
+      "context": "Im Wald wachsen vor allem Kiefern und Fichten.",
+      "why": "Feminine for the pine (die Kiefer, die Kiefern), masculine for the jaw.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "Kiefer#Baum",
+      "frequency": 3,
+      "fills": {
+        "article": [
+          "gender-sense"
+        ],
+        "core": [
+          "context-sense"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        },
+        "contextual": true
+      }
+    },
+    {
+      "id": "band-buch",
+      "key": "Band",
+      "context": "Der zweite Band der Reihe erscheint im Herbst.",
+      "why": "Masculine with plural Bände for a volume; das Band (Bänder) is a ribbon, die Band a group.",
+      "part": "knowledge",
+      "split": "test",
+      "word": "Band#Buchreihe",
+      "frequency": 4,
+      "fills": {
+        "article": [
+          "gender-sense",
+          "plural-sense"
+        ],
+        "core": [
+          "context-sense"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        },
+        "contextual": true
+      }
+    },
+    {
+      "id": "virus",
+      "key": "Virus",
+      "why": "Neuter in standard German (der Virus is colloquial); plural Viren.",
+      "part": "knowledge",
+      "split": "test",
+      "word": "Virus",
+      "frequency": 3,
+      "fills": {
+        "article": [
+          "gender-loan",
+          "plural-foreign"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "rechtsschutz",
+      "key": "Rechtsschutzversicherung",
+      "why": "A long compound, feminine by Versicherung.",
+      "part": "knowledge",
+      "split": "test",
+      "word": "Rechtsschutzversicherung",
+      "frequency": 2,
+      "fills": {
+        "article": [
+          "gender-compound"
+        ],
+        "simple-translation": [
+          "compound"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "museum",
+      "key": "Museum",
+      "why": "Latin plural pattern: die Museen.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "Museum",
+      "frequency": 4,
+      "fills": {
+        "article": [
+          "plural-foreign"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "atlas",
+      "key": "Atlas",
+      "context": "Im Atlas suchten wir die Insel.",
+      "why": "Foreign plural Atlanten (Atlasse is colloquial for the book).",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "Atlas#Kartenwerk",
+      "frequency": 2,
+      "fills": {
+        "article": [
+          "plural-foreign"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        },
+        "contextual": true
+      }
+    },
+    {
+      "id": "bank-sitz",
+      "key": "Bank",
+      "context": "Wir saßen auf einer Bank im Park.",
+      "why": "The seat: plural Bänke; the money sense has Banken.",
+      "part": "knowledge",
+      "split": "test",
+      "word": "Bank#Sitz",
+      "frequency": 4,
+      "fills": {
+        "article": [
+          "plural-sense"
+        ],
+        "synonyms": [
+          "per-sense"
+        ],
+        "simple-translation": [
+          "order"
+        ],
+        "core": [
+          "context-sense"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        },
+        "contextual": true
+      }
+    },
+    {
+      "id": "bank-geld",
+      "key": "Bank",
+      "context": "Ich muss vor dem Urlaub noch Geld von der Bank holen.",
+      "why": "The money institution: plural Banken; the seat has Bänke.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "Bank#Geldinstitut",
+      "frequency": 4,
+      "fills": {
+        "article": [
+          "plural-sense"
+        ],
+        "core": [
+          "context-sense"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        },
+        "contextual": true
+      }
+    },
+    {
+      "id": "tisch",
+      "key": "Tisch",
+      "why": "A plain word with no antonym and little to teach.",
+      "part": "knowledge",
+      "split": "test",
+      "word": "Tisch",
+      "frequency": 4,
+      "fills": {
+        "antonyms": [
+          "none"
+        ],
+        "grammar-teacher": [
+          "little-to-say"
+        ],
+        "examples": [
+          "german-key",
+          "natural-use"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "laufen",
+      "key": "laufen",
+      "why": "A real past fault: the ihr form of the Präteritum (lieft). Perfekt with sein only for the plain sense.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "laufen",
+      "frequency": 4,
+      "fills": {
+        "conjugation": [
+          "present-vowel",
+          "strong-preterite",
+          "preterite-ihr",
+          "auxiliary"
+        ],
+        "grammar-teacher": [
+          "word-points"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        }
+      }
+    },
+    {
+      "id": "lesen",
+      "key": "lesen",
+      "why": "du liest, er liest: the vowel change and -t after the s stem.",
+      "part": "knowledge",
+      "split": "test",
+      "word": "lesen",
+      "frequency": 4,
+      "fills": {
+        "conjugation": [
+          "present-vowel",
+          "present-stem"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        }
+      }
+    },
+    {
+      "id": "arbeiten",
+      "key": "arbeiten",
+      "why": "du arbeitest, ihr arbeitet, arbeitete.",
+      "part": "knowledge",
+      "split": "test",
+      "word": "arbeiten",
+      "frequency": 4,
+      "fills": {
+        "conjugation": [
+          "et-insertion"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        }
+      }
+    },
+    {
+      "id": "gehen",
+      "key": "gehen",
+      "why": "ging, ihr gingt, ist gegangen.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "gehen",
+      "frequency": 5,
+      "fills": {
+        "conjugation": [
+          "strong-preterite",
+          "preterite-ihr",
+          "auxiliary"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        }
+      }
+    },
+    {
+      "id": "bringen",
+      "key": "bringen",
+      "why": "Mixed verb: brachte, gebracht.",
+      "part": "knowledge",
+      "split": "test",
+      "word": "bringen",
+      "frequency": 5,
+      "fills": {
+        "conjugation": [
+          "mixed"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        }
+      }
+    },
+    {
+      "id": "denken",
+      "key": "denken",
+      "why": "Mixed verb: dachte, gedacht.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "denken",
+      "frequency": 4,
+      "fills": {
+        "conjugation": [
+          "mixed"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        }
+      }
+    },
+    {
+      "id": "koennen",
+      "key": "können",
+      "why": "Modal: ich kann, du kannst, konnte.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "können#Modalverb mit Infinitiv",
+      "frequency": 6,
+      "fills": {
+        "conjugation": [
+          "modal-wissen"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        }
+      }
+    },
+    {
+      "id": "wissen",
+      "key": "wissen",
+      "why": "ich weiß, du weißt, wusste.",
+      "part": "knowledge",
+      "split": "test",
+      "word": "wissen",
+      "frequency": 5,
+      "fills": {
+        "conjugation": [
+          "modal-wissen"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        }
+      }
+    },
+    {
+      "id": "anfangen",
+      "key": "anfangen",
+      "why": "Separable with a vowel change: fängst an, fing an, angefangen.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "anfangen",
+      "frequency": 4,
+      "fills": {
+        "conjugation": [
+          "separable",
+          "present-vowel",
+          "strong-preterite"
+        ],
+        "grammar-teacher": [
+          "word-points"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        }
+      }
+    },
+    {
+      "id": "verstehen",
+      "key": "verstehen",
+      "why": "Inseparable prefix, no ge-: verstand, verstanden.",
+      "part": "knowledge",
+      "split": "test",
+      "word": "verstehen#akustisch",
+      "frequency": 4,
+      "fills": {
+        "conjugation": [
+          "inseparable",
+          "strong-preterite"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        }
+      }
+    },
+    {
+      "id": "wiederholen",
+      "key": "wiederholen",
+      "context": "Können Sie die Frage bitte noch einmal wiederholen?",
+      "why": "Inseparable in the sense to repeat (wiederholte, wiederholt); separable to fetch back.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "wiederholen#erneut",
+      "frequency": 3,
+      "fills": {
+        "conjugation": [
+          "prefix-sense"
+        ],
+        "core": [
+          "context-sense"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        },
+        "contextual": true
+      }
+    },
+    {
+      "id": "umgehen",
+      "key": "umgehen",
+      "context": "Sie kann sehr gut mit kleinen Kindern umgehen.",
+      "why": "Separable in the sense to deal with (ging um, ist umgegangen); inseparable to avoid (umging, hat umgangen).",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "umgehen#handhaben",
+      "fills": {
+        "conjugation": [
+          "prefix-sense"
+        ],
+        "core": [
+          "context-sense"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        },
+        "contextual": true
+      },
+      "frequency": 4
+    },
+    {
+      "id": "freuen",
+      "key": "sich freuen",
+      "why": "Reflexive: ich freue mich, habe mich gefreut.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "freuen",
+      "frequency": 4,
+      "fills": {
+        "conjugation": [
+          "reflexive"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        }
+      }
+    },
+    {
+      "id": "flechten",
+      "key": "flechten",
+      "why": "du flichtst, flocht.",
+      "part": "knowledge",
+      "split": "test",
+      "word": "flechten",
+      "frequency": 2,
+      "fills": {
+        "conjugation": [
+          "present-vowel",
+          "strong-preterite"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        }
+      }
+    },
+    {
+      "id": "beissen",
+      "key": "beißen",
+      "why": "du beißt (not beißst), biss.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "beißen",
+      "frequency": 3,
+      "fills": {
+        "conjugation": [
+          "present-stem",
+          "strong-preterite"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        }
+      }
+    },
+    {
+      "id": "atmen",
+      "key": "atmen",
+      "why": "du atmest, ihr atmet, atmete.",
+      "part": "knowledge",
+      "split": "test",
+      "word": "atmen",
+      "frequency": 3,
+      "fills": {
+        "conjugation": [
+          "et-insertion"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        }
+      }
+    },
+    {
+      "id": "schwimmen",
+      "key": "schwimmen",
+      "why": "schwamm, ihr schwammt; Perfekt with sein or haben, both standard.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "schwimmen",
+      "frequency": 3,
+      "fills": {
+        "conjugation": [
+          "strong-preterite",
+          "preterite-ihr",
+          "auxiliary"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        }
+      }
+    },
+    {
+      "id": "reiten",
+      "key": "reiten",
+      "why": "ritt, ihr rittet, du reitest.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "reiten",
+      "frequency": 3,
+      "fills": {
+        "conjugation": [
+          "preterite-ihr",
+          "et-insertion"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        }
+      }
+    },
+    {
+      "id": "rennen",
+      "key": "rennen",
+      "why": "Mixed verb with sein: rannte, ist gerannt.",
+      "part": "knowledge",
+      "split": "test",
+      "word": "rennen",
+      "frequency": 3,
+      "fills": {
+        "conjugation": [
+          "mixed",
+          "auxiliary"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        }
+      }
+    },
+    {
+      "id": "vermoegen",
+      "key": "vermögen",
+      "why": "Conjugated like mögen: vermag, vermochte.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "vermögen",
+      "frequency": 3,
+      "fills": {
+        "conjugation": [
+          "modal-wissen"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        }
+      }
+    },
+    {
+      "id": "aufstehen",
+      "key": "aufstehen",
+      "why": "stehe auf, stand auf, ist aufgestanden.",
+      "part": "knowledge",
+      "split": "test",
+      "word": "aufstehen",
+      "frequency": 3,
+      "fills": {
+        "conjugation": [
+          "separable",
+          "auxiliary",
+          "strong-preterite"
+        ],
+        "grammar-teacher": [
+          "word-points"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        }
+      }
+    },
+    {
+      "id": "zerbrechen",
+      "key": "zerbrechen",
+      "why": "zerbrichst, zerbrach, zerbrochen.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "zerbrechen",
+      "frequency": 3,
+      "fills": {
+        "conjugation": [
+          "inseparable",
+          "present-vowel"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        }
+      }
+    },
+    {
+      "id": "uebersetzen",
+      "key": "übersetzen",
+      "context": "Der Fährmann setzte uns ans andere Ufer über.",
+      "why": "Separable in the sense to ferry across (setzte über, übergesetzt); inseparable to translate.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "übersetzen#Fähre",
+      "frequency": 3,
+      "fills": {
+        "conjugation": [
+          "prefix-sense"
+        ],
+        "core": [
+          "context-sense"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        },
+        "contextual": true
+      }
+    },
+    {
+      "id": "umfahren",
+      "key": "umfahren",
+      "context": "Der Lastwagen hat beim Wenden ein Verkehrsschild umgefahren.",
+      "why": "Separable in the sense to knock down (fuhr um, umgefahren); inseparable to drive around.",
+      "part": "knowledge",
+      "split": "test",
+      "word": "umfahren#umwerfen",
+      "frequency": 2,
+      "fills": {
+        "conjugation": [
+          "prefix-sense"
+        ],
+        "core": [
+          "context-sense"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        },
+        "contextual": true
+      }
+    },
+    {
+      "id": "schaemen",
+      "key": "sich schämen",
+      "why": "Reflexive: ich schäme mich, habe mich geschämt.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "schämen",
+      "frequency": 3,
+      "fills": {
+        "conjugation": [
+          "reflexive"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        }
+      }
+    },
+    {
+      "id": "aufquellen",
+      "key": "aufquellen",
+      "why": "quillt auf, quoll auf, ist aufgequollen.",
+      "part": "knowledge",
+      "split": "test",
+      "word": "aufquellen",
+      "frequency": 1,
+      "fills": {
+        "conjugation": [
+          "present-vowel",
+          "separable",
+          "auxiliary",
+          "strong-preterite"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        }
+      }
+    },
+    {
+      "id": "verbleichen",
+      "key": "verbleichen",
+      "why": "verblich, ihr verblicht, ist verblichen.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "verbleichen",
+      "frequency": 1,
+      "fills": {
+        "conjugation": [
+          "strong-preterite",
+          "preterite-ihr",
+          "inseparable",
+          "auxiliary"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        }
+      }
+    },
+    {
+      "id": "schnaeuzen",
+      "key": "sich schnäuzen",
+      "why": "du schnäuzt dich (not schnäuzst).",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "schnäuzen",
+      "frequency": 1,
+      "fills": {
+        "conjugation": [
+          "present-stem",
+          "reflexive"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        }
+      }
+    },
+    {
+      "id": "erdreisten",
+      "key": "sich erdreisten",
+      "why": "du erdreistest dich, hat sich erdreistet.",
+      "part": "knowledge",
+      "split": "test",
+      "word": "erdreisten",
+      "frequency": 1,
+      "fills": {
+        "conjugation": [
+          "et-insertion",
+          "reflexive"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        }
+      }
+    },
+    {
+      "id": "umfliegen",
+      "key": "umfliegen",
+      "context": "Die Zugvögel umfliegen das Gebirge im Osten.",
+      "why": "Inseparable in the sense to fly around (umflog, umflogen); separable colloquially to fall over.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "umfliegen#umsäumen",
+      "frequency": 1,
+      "fills": {
+        "conjugation": [
+          "prefix-sense"
+        ],
+        "core": [
+          "context-sense"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        },
+        "contextual": true
+      }
+    },
+    {
+      "id": "wringen",
+      "key": "wringen",
+      "why": "wrang, ihr wrangt, gewrungen.",
+      "part": "knowledge",
+      "split": "test",
+      "word": "wringen",
+      "frequency": 1,
+      "fills": {
+        "conjugation": [
+          "strong-preterite",
+          "preterite-ihr"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        }
+      }
+    },
+    {
+      "id": "missraten",
+      "key": "missraten",
+      "why": "missrät, missriet, ist missraten; no ge-.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "missraten",
+      "frequency": 1,
+      "fills": {
+        "conjugation": [
+          "inseparable",
+          "present-vowel"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        }
+      }
+    },
+    {
+      "id": "klein",
+      "key": "klein",
+      "why": "Regular endings and comparison; opposite groß.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "klein",
+      "frequency": 5,
+      "fills": {
+        "declension": [
+          "adjective-regular"
+        ],
+        "comparison": [
+          "regular"
+        ],
+        "antonyms": [
+          "true-opposite"
+        ],
+        "examples": [
+          "natural-use"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "adjective"
+        }
+      }
+    },
+    {
+      "id": "mutig",
+      "key": "mutig",
+      "why": "Regular; opposite feige.",
+      "part": "knowledge",
+      "split": "test",
+      "word": "mutig",
+      "frequency": 3,
+      "fills": {
+        "declension": [
+          "adjective-regular"
+        ],
+        "comparison": [
+          "regular"
+        ],
+        "antonyms": [
+          "true-opposite"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "adjective"
+        }
+      }
+    },
+    {
+      "id": "hurtig",
+      "key": "hurtig",
+      "why": "Regular, rare.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "hurtig",
+      "frequency": 1,
+      "fills": {
+        "declension": [
+          "adjective-regular"
+        ],
+        "comparison": [
+          "regular"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "adjective"
+        }
+      }
+    },
+    {
+      "id": "alt",
+      "key": "alt",
+      "why": "älter, am ältesten; opposite jung for people, neu for things.",
+      "part": "knowledge",
+      "split": "test",
+      "word": "alt",
+      "frequency": 5,
+      "fills": {
+        "declension": [
+          "adjective-regular"
+        ],
+        "comparison": [
+          "umlaut"
+        ],
+        "antonyms": [
+          "by-sense"
+        ],
+        "synonyms": [
+          "per-sense"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "adjective"
+        }
+      }
+    },
+    {
+      "id": "dunkel",
+      "key": "dunkel",
+      "why": "dunkle, dunkler.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "dunkel",
+      "frequency": 4,
+      "fills": {
+        "declension": [
+          "adjective-e-drop"
+        ],
+        "comparison": [
+          "e-drop"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "adjective"
+        }
+      }
+    },
+    {
+      "id": "teuer",
+      "key": "teuer",
+      "why": "teure, teurer.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "teuer",
+      "frequency": 4,
+      "fills": {
+        "declension": [
+          "adjective-e-drop"
+        ],
+        "comparison": [
+          "e-drop"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "adjective"
+        }
+      }
+    },
+    {
+      "id": "sauer",
+      "key": "sauer",
+      "why": "saure, saurer; opposite süß for taste, basisch in chemistry.",
+      "part": "knowledge",
+      "split": "test",
+      "word": "sauer",
+      "frequency": 3,
+      "fills": {
+        "declension": [
+          "adjective-e-drop"
+        ],
+        "comparison": [
+          "e-drop"
+        ],
+        "antonyms": [
+          "by-sense"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "adjective"
+        }
+      }
+    },
+    {
+      "id": "illuster",
+      "key": "illuster",
+      "why": "illustre, rare.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "illuster",
+      "frequency": 1,
+      "fills": {
+        "declension": [
+          "adjective-e-drop"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "adjective"
+        }
+      }
+    },
+    {
+      "id": "hoch",
+      "key": "hoch",
+      "why": "hohe, höher, am höchsten; opposite niedrig, or tief for a voice.",
+      "part": "knowledge",
+      "split": "test",
+      "word": "hoch",
+      "frequency": 5,
+      "fills": {
+        "declension": [
+          "adjective-stem"
+        ],
+        "comparison": [
+          "stem-change"
+        ],
+        "antonyms": [
+          "by-sense"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "adjective"
+        }
+      }
+    },
+    {
+      "id": "haushoch",
+      "key": "haushoch",
+      "why": "haushohe, like hoch.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "haushoch",
+      "frequency": 2,
+      "fills": {
+        "declension": [
+          "adjective-stem"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "adjective"
+        }
+      }
+    },
+    {
+      "id": "turmhoch",
+      "key": "turmhoch",
+      "why": "turmhohe, like hoch, rare.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "turmhoch",
+      "frequency": 1,
+      "fills": {
+        "declension": [
+          "adjective-stem"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "adjective"
+        }
+      }
+    },
+    {
+      "id": "lila",
+      "key": "lila",
+      "why": "Indeclinable (lilane is colloquial).",
+      "part": "knowledge",
+      "split": "test",
+      "word": "lila",
+      "frequency": 2,
+      "fills": {
+        "declension": [
+          "adjective-indeclinable"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "adjective"
+        }
+      }
+    },
+    {
+      "id": "prima",
+      "key": "prima",
+      "why": "Indeclinable.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "prima",
+      "frequency": 3,
+      "fills": {
+        "declension": [
+          "adjective-indeclinable"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "adjective"
+        }
+      }
+    },
+    {
+      "id": "ocker",
+      "key": "ocker",
+      "why": "Indeclinable, rare.",
+      "part": "knowledge",
+      "split": "test",
+      "word": "ocker",
+      "frequency": 1,
+      "fills": {
+        "declension": [
+          "adjective-indeclinable"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "adjective"
+        }
+      }
+    },
+    {
+      "id": "arm",
+      "key": "arm",
+      "why": "ärmer, am ärmsten.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "arm",
+      "frequency": 3,
+      "fills": {
+        "comparison": [
+          "umlaut"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "adjective"
+        }
+      }
+    },
+    {
+      "id": "kurz",
+      "key": "kurz",
+      "why": "kürzer, am kürzesten.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "kurz",
+      "frequency": 5,
+      "fills": {
+        "comparison": [
+          "umlaut",
+          "est-superlative"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "adjective"
+        }
+      }
+    },
+    {
+      "id": "heiss",
+      "key": "heiß",
+      "why": "heißer, am heißesten.",
+      "part": "knowledge",
+      "split": "test",
+      "word": "heiß",
+      "frequency": 4,
+      "fills": {
+        "comparison": [
+          "est-superlative"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "adjective"
+        }
+      }
+    },
+    {
+      "id": "suess",
+      "key": "süß",
+      "why": "süßer, am süßesten.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "süß",
+      "frequency": 3,
+      "fills": {
+        "comparison": [
+          "est-superlative"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "adjective"
+        }
+      }
+    },
+    {
+      "id": "gut",
+      "key": "gut",
+      "why": "besser, am besten.",
+      "part": "knowledge",
+      "split": "test",
+      "word": "gut",
+      "frequency": 5,
+      "fills": {
+        "comparison": [
+          "suppletive"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "adjective"
+        }
+      }
+    },
+    {
+      "id": "viel",
+      "key": "viel",
+      "why": "mehr, am meisten.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "viel",
+      "frequency": 5,
+      "fills": {
+        "comparison": [
+          "suppletive"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "adjective"
+        }
+      }
+    },
+    {
+      "id": "nah",
+      "key": "nah",
+      "why": "näher, am nächsten.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "nah",
+      "frequency": 4,
+      "fills": {
+        "comparison": [
+          "stem-change"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "adjective"
+        }
+      }
+    },
+    {
+      "id": "tot",
+      "key": "tot",
+      "why": "No comparison in the plain sense.",
+      "part": "knowledge",
+      "split": "test",
+      "word": "tot",
+      "frequency": 4,
+      "fills": {
+        "comparison": [
+          "not-comparable"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "adjective"
+        }
+      }
+    },
+    {
+      "id": "schwanger",
+      "key": "schwanger",
+      "why": "No comparison in the plain sense.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "schwanger",
+      "frequency": 3,
+      "fills": {
+        "comparison": [
+          "not-comparable"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "adjective"
+        }
+      }
+    },
+    {
+      "id": "ganz",
+      "key": "ganz",
+      "why": "No comparison.",
+      "part": "knowledge",
+      "split": "test",
+      "word": "ganz",
+      "frequency": 5,
+      "fills": {
+        "comparison": [
+          "not-comparable"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "adjective"
+        }
+      }
+    },
+    {
+      "id": "fuer",
+      "key": "für",
+      "why": "Accusative.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "für",
+      "frequency": 6,
+      "fills": {
+        "case": [
+          "accusative"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "preposition"
+        }
+      }
+    },
+    {
+      "id": "durch",
+      "key": "durch",
+      "why": "Accusative.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "durch",
+      "frequency": 5,
+      "fills": {
+        "case": [
+          "accusative"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "preposition"
+        }
+      }
+    },
+    {
+      "id": "ohne",
+      "key": "ohne",
+      "why": "Accusative.",
+      "part": "knowledge",
+      "split": "test",
+      "word": "ohne",
+      "frequency": 5,
+      "fills": {
+        "case": [
+          "accusative"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "preposition"
+        }
+      }
+    },
+    {
+      "id": "mit",
+      "key": "mit",
+      "why": "Dative.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "mit",
+      "frequency": 6,
+      "fills": {
+        "case": [
+          "dative"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "preposition"
+        }
+      }
+    },
+    {
+      "id": "seit",
+      "key": "seit",
+      "why": "Dative.",
+      "part": "knowledge",
+      "split": "test",
+      "word": "seit",
+      "frequency": 5,
+      "fills": {
+        "case": [
+          "dative"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "preposition"
+        }
+      }
+    },
+    {
+      "id": "aus",
+      "key": "aus",
+      "why": "Dative.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "aus",
+      "frequency": 6,
+      "fills": {
+        "case": [
+          "dative"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "preposition"
+        }
+      }
+    },
+    {
+      "id": "in",
+      "key": "in",
+      "why": "Accusative for direction, dative for place.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "in#örtlich",
+      "frequency": 6,
+      "fills": {
+        "case": [
+          "two-way"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "preposition"
+        }
+      }
+    },
+    {
+      "id": "an",
+      "key": "an",
+      "why": "Accusative for direction, dative for place.",
+      "part": "knowledge",
+      "split": "test",
+      "word": "an",
+      "frequency": 6,
+      "fills": {
+        "case": [
+          "two-way"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "preposition"
+        }
+      }
+    },
+    {
+      "id": "ueber",
+      "key": "über",
+      "why": "Accusative for direction, dative for place.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "über",
+      "frequency": 5,
+      "fills": {
+        "case": [
+          "two-way"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "preposition"
+        }
+      }
+    },
+    {
+      "id": "wegen",
+      "key": "wegen",
+      "why": "A real past case: genitive, with the dative accepted as colloquial.",
+      "part": "knowledge",
+      "split": "test",
+      "word": "wegen",
+      "frequency": 4,
+      "fills": {
+        "case": [
+          "genitive"
+        ],
+        "grammar-teacher": [
+          "word-points"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "preposition"
+        }
+      }
+    },
+    {
+      "id": "trotz",
+      "key": "trotz",
+      "why": "Genitive, the dative also found.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "trotz",
+      "frequency": 0,
+      "fills": {
+        "case": [
+          "genitive"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "preposition"
+        }
+      }
+    },
+    {
+      "id": "waehrend",
+      "key": "während",
+      "why": "Genitive, the dative colloquial.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "während",
+      "frequency": 0,
+      "fills": {
+        "case": [
+          "genitive"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "preposition"
+        }
+      }
+    },
+    {
+      "id": "anhand",
+      "key": "anhand",
+      "why": "Genitive only.",
+      "part": "knowledge",
+      "split": "test",
+      "word": "anhand",
+      "frequency": 4,
+      "fills": {
+        "case": [
+          "genitive-rare"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "preposition"
+        }
+      }
+    },
+    {
+      "id": "aufgrund",
+      "key": "aufgrund",
+      "why": "Genitive only.",
+      "part": "knowledge",
+      "split": "dev",
+      "word": "aufgrund",
+      "frequency": 4,
+      "fills": {
+        "case": [
+          "genitive-rare"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "preposition"
+        }
+      }
+    },
+    {
+      "id": "innerhalb",
+      "key": "innerhalb",
+      "why": "Genitive; a dative where the genitive is not visible.",
+      "part": "knowledge",
+      "split": "test",
+      "word": "innerhalb",
+      "frequency": 4,
+      "fills": {
+        "case": [
+          "genitive-rare"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "preposition"
+        }
+      }
+    },
+    {
+      "id": "r-run",
+      "key": "run",
+      "why": "A real past case: an English verb, German laufen or rennen.",
+      "part": "reading",
+      "split": "dev",
+      "candidates": [
+        "laufen",
+        "rennen"
+      ],
+      "fills": {
+        "core": [
+          "source-language"
+        ],
+        "conjugation": [
+          "strong-preterite"
+        ],
+        "grammar-teacher": [
+          "foreign-key"
+        ],
+        "pronunciation": [
+          "speaks-translation"
+        ],
+        "examples": [
+          "translation"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        }
+      }
+    },
+    {
+      "id": "r-bank-river",
+      "key": "bank",
+      "context": "We sat on the bank and watched the river go by.",
+      "why": "English noun; the Context picks the river bank (Ufer); the money sense stays among the meanings.",
+      "part": "reading",
+      "split": "dev",
+      "candidates": [
+        "Ufer#Gewässer"
+      ],
+      "fills": {
+        "core": [
+          "context-sense",
+          "original-meaning",
+          "source-language"
+        ],
+        "pronunciation": [
+          "speaks-translation"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        },
+        "contextual": true
+      }
+    },
+    {
+      "id": "r-bank-money",
+      "key": "bank",
+      "context": "I need to go to the bank before it closes.",
+      "why": "English noun; the Context picks the money institution, plural Banken.",
+      "part": "reading",
+      "split": "test",
+      "candidates": [
+        "Bank#Geldinstitut"
+      ],
+      "fills": {
+        "core": [
+          "context-sense",
+          "original-meaning",
+          "source-language"
+        ],
+        "article": [
+          "plural-sense"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        },
+        "contextual": true
+      }
+    },
+    {
+      "id": "r-refrigerator",
+      "key": "refrigerator",
+      "context": "Put the milk back in the refrigerator.",
+      "why": "English noun with one sense: the Context does not narrow it.",
+      "part": "reading",
+      "split": "dev",
+      "candidates": [
+        "Kühlschrank"
+      ],
+      "fills": {
+        "core": [
+          "context-flat",
+          "source-language"
+        ],
+        "pronunciation": [
+          "speaks-translation"
+        ],
+        "examples": [
+          "translation"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        },
+        "contextual": false
+      }
+    },
+    {
+      "id": "r-gift-en",
+      "key": "gift",
+      "context": "She wrapped the birthday gift in blue paper.",
+      "why": "English gift, spelt like German Gift (poison); the Context makes it English.",
+      "part": "reading",
+      "split": "test",
+      "candidates": [
+        "Geschenk"
+      ],
+      "fills": {
+        "core": [
+          "shared-spelling",
+          "source-language"
+        ],
+        "examples": [
+          "translation"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "r-gift-de",
+      "key": "Gift",
+      "context": "Die Pilze enthielten ein tödliches Gift.",
+      "why": "German Gift (poison), spelt like English gift; the Context makes it German.",
+      "part": "reading",
+      "split": "dev",
+      "candidates": [
+        "Gift#gesundheitsschädlich"
+      ],
+      "fills": {
+        "core": [
+          "shared-spelling"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "r-lief",
+      "key": "lief",
+      "why": "An inflected German form, explained as laufen.",
+      "part": "reading",
+      "split": "dev",
+      "candidates": [
+        "laufen"
+      ],
+      "fills": {
+        "core": [
+          "inflected-key"
+        ],
+        "conjugation": [
+          "strong-preterite",
+          "preterite-ihr"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        }
+      }
+    },
+    {
+      "id": "r-haeuser",
+      "key": "Häuser",
+      "why": "A German plural, explained as Haus.",
+      "part": "reading",
+      "split": "test",
+      "candidates": [
+        "Haus"
+      ],
+      "fills": {
+        "core": [
+          "inflected-key"
+        ],
+        "article": [
+          "plural-class"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "r-serendipity",
+      "key": "serendipity",
+      "why": "A real past case: an English noun without a close German word.",
+      "part": "reading",
+      "split": "dev",
+      "fills": {
+        "core": [
+          "no-equivalent",
+          "source-language"
+        ],
+        "simple-translation": [
+          "abstract"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "r-toska",
+      "key": "тоска",
+      "why": "A Russian noun without a close German word.",
+      "part": "reading",
+      "split": "test",
+      "fills": {
+        "core": [
+          "no-equivalent",
+          "source-language"
+        ],
+        "grammar-teacher": [
+          "foreign-key"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "r-ba",
+      "key": "把",
+      "why": "A real past case: a Chinese grammar word (the 把 construction, a measure word); not German, so no Grammar teacher.",
+      "part": "reading",
+      "split": "dev",
+      "fills": {
+        "core": [
+          "source-language",
+          "kind"
+        ],
+        "grammar-teacher": [
+          "foreign-key"
+        ]
+      },
+      "expect": {
+        "kind": "word"
+      }
+    },
+    {
+      "id": "r-get-up",
+      "key": "get up",
+      "why": "A real past case: an English phrasal verb, German aufstehen.",
+      "part": "reading",
+      "split": "dev",
+      "candidates": [
+        "aufstehen"
+      ],
+      "fills": {
+        "core": [
+          "kind",
+          "source-language"
+        ],
+        "conjugation": [
+          "separable"
+        ],
+        "grammar-teacher": [
+          "foreign-key"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "verb"
+        }
+      }
+    },
+    {
+      "id": "r-window",
+      "key": "window",
+      "why": "A real past case: Etymology describes Fenster (Latin fenestra), not window; no Grammar teacher.",
+      "part": "reading",
+      "split": "test",
+      "candidates": [
+        "Fenster"
+      ],
+      "fills": {
+        "core": [
+          "source-language"
+        ],
+        "etymology": [
+          "latin-early"
+        ],
+        "grammar-teacher": [
+          "foreign-key"
+        ],
+        "pronunciation": [
+          "speaks-translation"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "r-break-the-ice",
+      "key": "break the ice",
+      "why": "A real past case: an English idiom; synonyms in its register.",
+      "part": "reading",
+      "split": "test",
+      "fills": {
+        "core": [
+          "kind",
+          "source-language"
+        ],
+        "synonyms": [
+          "register"
+        ]
+      },
+      "expect": {
+        "kind": "word"
+      }
+    },
+    {
+      "id": "r-konjunktiv",
+      "key": "Wenn ich Zeit hätte, würde ich mitkommen.",
+      "why": "A German sentence: Konjunktiv II, the verb-final clause and separable mitkommen.",
+      "part": "reading",
+      "split": "test",
+      "fills": {
+        "core": [
+          "kind"
+        ],
+        "grammar-teacher": [
+          "sentence-points"
+        ],
+        "simple-translation": [
+          "sentence"
+        ],
+        "examples": [
+          "sentence-key"
+        ]
+      },
+      "expect": {
+        "kind": "sentence"
+      }
+    },
+    {
+      "id": "r-passiv",
+      "key": "Das Haus wurde abgerissen, weil niemand die Reparatur bezahlen wollte.",
+      "why": "A German sentence: the passive and a verb-final clause with a modal.",
+      "part": "reading",
+      "split": "dev",
+      "fills": {
+        "core": [
+          "kind"
+        ],
+        "grammar-teacher": [
+          "sentence-points"
+        ],
+        "simple-translation": [
+          "sentence"
+        ],
+        "examples": [
+          "sentence-key"
+        ]
+      },
+      "expect": {
+        "kind": "sentence"
+      }
+    },
+    {
+      "id": "r-hätte",
+      "key": "Hätte ich das gewusst, wäre ich zu Hause geblieben.",
+      "why": "A German sentence: a conditional without wenn, Konjunktiv II past with haben and sein.",
+      "part": "reading",
+      "split": "dev",
+      "fills": {
+        "core": [
+          "kind"
+        ],
+        "grammar-teacher": [
+          "sentence-points"
+        ],
+        "examples": [
+          "sentence-key"
+        ]
+      },
+      "expect": {
+        "kind": "sentence"
+      }
+    },
+    {
+      "id": "r-committee",
+      "key": "The committee postponed the decision indefinitely.",
+      "why": "An English sentence with hard words: one simple German line; no Grammar teacher.",
+      "part": "reading",
+      "split": "test",
+      "fills": {
+        "core": [
+          "kind",
+          "source-language"
+        ],
+        "grammar-teacher": [
+          "foreign-key"
+        ],
+        "simple-translation": [
+          "sentence"
+        ],
+        "examples": [
+          "sentence-key"
+        ]
+      },
+      "expect": {
+        "kind": "sentence"
+      }
+    },
+    {
+      "id": "r-name",
+      "key": "Angela Merkel",
+      "why": "A name.",
+      "part": "reading",
+      "split": "dev",
+      "fills": {
+        "core": [
+          "kind"
+        ]
+      },
+      "expect": {
+        "kind": "word"
+      }
+    },
+    {
+      "id": "r-abbreviation",
+      "key": "z. B.",
+      "why": "A German abbreviation, zum Beispiel.",
+      "part": "reading",
+      "split": "test",
+      "fills": {
+        "core": [
+          "kind"
+        ]
+      },
+      "expect": {
+        "kind": "word"
+      }
+    },
+    {
+      "id": "r-keks",
+      "key": "jemandem auf den Keks gehen",
+      "why": "A German idiom: synonyms in its colloquial register.",
+      "part": "reading",
+      "split": "dev",
+      "fills": {
+        "core": [
+          "kind"
+        ],
+        "synonyms": [
+          "register"
+        ],
+        "simple-translation": [
+          "order"
+        ]
+      },
+      "expect": {
+        "kind": "word"
+      }
+    },
+    {
+      "id": "r-sobremesa",
+      "key": "sobremesa",
+      "why": "A Spanish noun without a close German word.",
+      "part": "reading",
+      "split": "dev",
+      "fills": {
+        "core": [
+          "source-language",
+          "no-equivalent"
+        ],
+        "examples": [
+          "translation"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "r-depaysement",
+      "key": "dépaysement",
+      "why": "A French noun without a close German word.",
+      "part": "reading",
+      "split": "test",
+      "fills": {
+        "core": [
+          "source-language",
+          "no-equivalent"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "r-komorebi",
+      "key": "木漏れ日",
+      "why": "A Japanese noun without a close German word.",
+      "part": "reading",
+      "split": "dev",
+      "fills": {
+        "core": [
+          "source-language",
+          "no-equivalent"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "r-hubb",
+      "key": "حب",
+      "why": "An Arabic noun, German Liebe.",
+      "part": "reading",
+      "split": "test",
+      "candidates": [
+        "Liebe#Zuneigung"
+      ],
+      "fills": {
+        "core": [
+          "source-language"
+        ],
+        "pronunciation": [
+          "speaks-translation"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
+    },
+    {
+      "id": "r-because-of",
+      "key": "because of",
+      "why": "An English phrase, German wegen with the genitive.",
+      "part": "reading",
+      "split": "dev",
+      "candidates": [
+        "wegen"
+      ],
+      "fills": {
+        "core": [
+          "kind",
+          "source-language"
+        ],
+        "case": [
+          "genitive"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "preposition"
+        }
+      }
+    },
+    {
+      "id": "r-good",
+      "key": "good",
+      "why": "An English adjective, German gut: besser, am besten.",
+      "part": "reading",
+      "split": "dev",
+      "candidates": [
+        "gut"
+      ],
+      "fills": {
+        "core": [
+          "source-language"
+        ],
+        "comparison": [
+          "suppletive"
+        ],
+        "examples": [
+          "natural-use"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "adjective"
+        }
+      }
+    },
+    {
+      "id": "r-schloss",
+      "key": "Schloss",
+      "context": "Ich habe das Schloss an der Haustür ausgetauscht.",
+      "why": "German noun; the Context picks the lock, the castle stays among the meanings.",
+      "part": "reading",
+      "split": "test",
+      "candidates": [
+        "Schloss#Türschloss"
+      ],
+      "fills": {
+        "core": [
+          "context-sense",
+          "original-meaning"
+        ],
+        "synonyms": [
+          "per-sense"
+        ],
+        "simple-translation": [
+          "order"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        },
+        "contextual": true
+      }
+    },
+    {
+      "id": "r-gras",
+      "key": "ins Gras beißen",
+      "why": "A German idiom for dying: synonyms in its colloquial register.",
+      "part": "reading",
+      "split": "dev",
+      "fills": {
+        "core": [
+          "kind"
+        ],
+        "synonyms": [
+          "register"
+        ],
+        "examples": [
+          "natural-use"
+        ]
+      },
+      "expect": {
+        "kind": "word"
+      }
+    },
+    {
+      "id": "r-high",
+      "key": "high",
+      "context": "The wall around the old town is very high.",
+      "why": "An English adjective, German hoch: höher, am höchsten.",
+      "part": "reading",
+      "split": "test",
+      "candidates": [
+        "hoch"
+      ],
+      "fills": {
+        "core": [
+          "context-sense",
+          "source-language"
+        ],
+        "comparison": [
+          "stem-change"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "adjective"
+        }
+      }
+    },
+    {
+      "id": "r-orange",
+      "key": "orange",
+      "context": "He peeled an orange for breakfast.",
+      "why": "English noun in a fruit Context: German die Orange, spoken as the French loan.",
+      "part": "reading",
+      "split": "dev",
+      "candidates": [
+        "Orange#süßlich"
+      ],
+      "fills": {
+        "core": [
+          "context-sense",
+          "source-language"
+        ],
+        "pronunciation": [
+          "loanword"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        },
+        "contextual": true
+      }
+    }
+  ]
+}
