@@ -32,7 +32,7 @@ The cut points live in the plan: common is class 4–6, middle 2–3, rare 0–1
 
 German's grammar facets describe the German translation, not the key. A wrong conjugation on an English key can mean the model does not know the forms, or that it chose rennen where the item expected laufen. The two are measured apart.
 
-- **The knowledge part** (about 95 items): German keys, so the word each grammar facet describes is the key itself. Every facet's failure points are filled here.
+- **The knowledge part** (about 95 items planned; 125 built, because three items per failure point and one per band for conjugation, declension and etymology need about 115): German keys, so the word each grammar facet describes is the key itself. Every facet's failure points are filled here.
 - **The reading part** (about 25 items): foreign keys, the six kinds of input, the Context cases and the other source languages. It measures the core: the translation chosen, the sense, the kind, the flags. Its grammar facets are scored only where the card's word is one the set has a reference for (below).
 
 ### 4. Facets with one right answer carry reference answers
@@ -85,7 +85,7 @@ After step 5, items that every model passed in every sample are retired from dev
 
 About 30 items drawn at random from public text, so the report can also say roughly what a reader of the web would see. The rest of the set is packed with hard cases on purpose, so its fail rates run far above what everyday captures meet.
 
-- Sentences are drawn at random from the Leipzig Corpora Collection's news and web corpora: German, English and Chinese, in proportion to the source languages in the reading part.
+- Sentences are drawn at random from the Leipzig Corpora Collection's news and Wikipedia corpora in German and English. Its API serves no Chinese and no web corpus, so Chinese is not in the slice.
 - In each sentence, one word or short phrase is picked at random, weighted by how often it occurs, and the sentence becomes its Context, as a capture from a web page would have.
 - The script that draws them (`scripts/golden-sample.mjs`) takes a fixed seed and records it, so the draw can be repeated. Picks that are not words (numbers, punctuation) are drawn again; nothing else is filtered by hand, because choosing by hand brings back the bias the draw avoids.
 - The slice is split into dev and test like the rest.
@@ -267,7 +267,7 @@ One PR, with no extension change, so no test build. Tasks 2 and 3 are the long o
 - 2 samples per item instead of 3; more items are worth more than more samples.
 - Items run in the English interface language only. German writes its card in German whatever the interface language.
 - Frequency bands from DWDS frequency classes.
-- The simulated-capture slice draws from the Leipzig news and web corpora, about 30 items, not from the owner's decks.
+- The simulated-capture slice draws from the Leipzig news and Wikipedia corpora (German and English), about 30 items, not from the owner's decks.
 
 ## Open questions for the owner
 
