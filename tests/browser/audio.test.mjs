@@ -67,10 +67,13 @@ test('0.14.0: a Pronunciation card in Sound speaks the main key: generating, fai
   assert.equal(await player.locator('.clip-note').textContent(), 'The speech service could not speak this.');
   const heights = [Math.round((await player.boundingBox()).height)];
 
-  // A spoken card has no text to edit and no facets: its actions are Retry, About, Fold and Delete.
+  // A spoken card has no text to edit and no facets: Actions, About and Settings, and Actions drops Retry, Fold and Delete.
   await cardTab(a.page, 'Pronunciation').click();
-  const actions = await a.page.locator(`#actions-${await card.getAttribute('data-component-id')} button`).allTextContents();
-  assert.deepEqual(actions, ['Retry', 'About', 'Fold', 'Delete']);
+  const actions = a.page.locator(`#actions-${await card.getAttribute('data-component-id')}`);
+  assert.deepEqual(await actions.locator('button').allTextContents(), ['Actions', 'About', 'Settings']);
+  await actions.getByRole('button', { name: 'Actions for Pronunciation', exact: true }).click();
+  assert.deepEqual(await actions.getByRole('group', { name: 'Actions for Pronunciation', exact: true }).getByRole('button').allTextContents(), ['Edit', 'Retry', 'Fold', 'Delete']);
+  await a.page.keyboard.press('Escape');
   await a.page.keyboard.press('Escape');
 
   // The clip's own Retry speaks it again; the card's text stays.

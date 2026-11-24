@@ -43,14 +43,14 @@ export const SCREENS = [
   { name: 'facet-window', phase: 'full', route: ({ pages }) => `page/${pages['german-complete']}`, ready: page => card(page, 'german').waitFor(),
     show: async page => {
       await card(page, 'german').locator('.tab-button').click();
-      // The card's actions are Edit, Retry and then Facet.
-      await card(page, 'german').locator('.card-actions button').nth(2).click();
+      // The card's actions are Actions and then Facet.
+      await card(page, 'german').locator('.card-actions button').nth(1).click();
       await page.locator('.facet-window').waitFor();
     } },
-  // A facet's grip focused on German's complete card, showing in the card's margin (D26).
+  // A facet's tag focused on German's complete card, the handle that drags it (D26).
   // Focus rather than hover: the capture moves the pointer out of the view.
-  { name: 'facet-grip', phase: 'full', route: ({ pages }) => `page/${pages['german-complete']}`, ready: page => card(page, 'german').waitFor(),
-    show: page => card(page, 'german').locator('.facet').nth(1).locator('.facet-grip').focus() },
+  { name: 'facet-handle', phase: 'full', route: ({ pages }) => `page/${pages['german-complete']}`, ready: page => card(page, 'german').waitFor(),
+    show: page => card(page, 'german').locator('.facet').nth(1).locator('.facet-handle').focus() },
   // The page's ⋯ menu open, holding Delete page (0.16.1).
   // Report a problem (D336), opened from the account menu on a page: about its cards.
   { name: 'report-dialog', phase: 'full', route: ({ pages }) => `page/${pages['german-complete']}`, ready: page => card(page, 'german').waitFor(),

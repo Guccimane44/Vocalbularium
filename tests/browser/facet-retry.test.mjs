@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { once } from 'node:events';
 import { wordResult, staged } from '../helpers/pages.mjs';
-import { componentArticle, focusPart, launch, selectedIn, signIn, waitFor, settled } from './helpers.mjs';
+import { cardButton, componentArticle, focusPart, launch, selectedIn, signIn, waitFor, settled } from './helpers.mjs';
 
 test('a facet’s own Retry beside its Delete, a tag’s remove keeping its colours, and hung tags lifting with their tab', { timeout: 60000 }, async (t) => {
   const directory = await mkdtemp(join(tmpdir(), 'vocabularium-facet-retry-browser-'));
@@ -105,8 +105,11 @@ test('a facet’s own Retry beside its Delete, a tag’s remove keeping its colo
   assert.match(await card.locator('.facet[data-facet="article"]').textContent(), /das Ufer · die Ufer/, 'the other facet stays');
   assert.equal(await examples.locator('.facet-note').count(), 0);
 
-  // Hovering an empty card lifts its tab and what hangs below it together.
+  // An empty card is drawn as a folded one: its tab on a slim band, its tags at the end of its bottom edge;
+  // hovering it moves neither its tab nor its tags.
   const hung = componentArticle(a.page, 'German 2');
+  assert.equal(await hung.locator('.facet-tags').getAttribute('data-layout'), 'folded', 'an empty card wears its tags as a folded one');
+  assert.ok((await hung.boundingBox()).height < 40, 'a slim band, as a folded card');
   await a.page.mouse.move(5, 5);
   await settled(a.page);
   const place = () => hung.evaluate(node => ({ tab: node.querySelector('.card-tab').getBoundingClientRect().top,
@@ -115,8 +118,8 @@ test('a facet’s own Retry beside its Delete, a tag’s remove keeping its colo
   await hung.locator('.card-tab').hover();
   await settled(a.page);
   const lifted = await place();
-  assert.ok(Math.abs((rest.tab - lifted.tab) - 2) < .5, `the tab lifts (${rest.tab} → ${lifted.tab})`);
-  assert.ok(Math.abs((rest.tags - lifted.tags) - (rest.tab - lifted.tab)) < .5, `the hung tags lift with it (${rest.tags} → ${lifted.tags})`);
+  assert.ok(Math.abs(rest.tab - lifted.tab) < .5, `the tab stays on its edge (${rest.tab} → ${lifted.tab})`);
+  assert.ok(Math.abs(rest.tags - lifted.tags) < .5, `the hung tags stay (${rest.tags} → ${lifted.tags})`);
 
   // A facet with nothing in it wears a blander tag; one with content does not.
   const unfilled = holder => holder.locator('.facet-tag').evaluateAll(tags => tags.map(tag => [tag.dataset.facet, tag.hasAttribute('data-unfilled')]));
@@ -194,16 +197,15 @@ test('a facet’s own Retry beside its Delete, a tag’s remove keeping its colo
   await list.evaluate(node => { node.scrollTop = 0; });
   await a.page.setViewportSize({ width: 1280, height: 1400 });
 
-  // Generating, a card's hung tags stay beneath its tab, so the rail does not cover the spark.
-  await hung.locator('.tab-button').click();
-  await a.page.getByRole('button', { name: 'Retry German 2', exact: true }).click();
+  // Generating, a card's tags stay beneath its tab, so nothing covers the spark.
+  await (await cardButton(a.page, 'Retry German 2')).click();
   await waitFor(async () => await hung.getAttribute('data-generating') !== null, 'German 2 generating');
   await hung.locator('.spark').waitFor();
   const layers = await hung.evaluate(node => [getComputedStyle(node.querySelector('.card-tab')).zIndex, getComputedStyle(node.querySelector('.facet-tags')).zIndex]);
   assert.ok(Number(layers[0]) > Number(layers[1]), `the tab, with its spark, above the hung tags (${layers})`);
   const box = await hung.locator('.card-tab').boundingBox();
   assert.equal(await a.page.evaluate(({ x, y }) => document.elementsFromPoint(x, y).find(node => node.matches('.spark i, .facet-tags, .card-tab'))?.className,
-    { x: box.x + 30, y: box.y + box.height - 1 }), 'card-tab', 'at the tab\'s bottom edge the tab is uppermost, not the rail');
+    { x: box.x + 30, y: box.y + box.height - 1 }), 'card-tab', 'at the tab\'s bottom edge the tab is uppermost');
   release(wordResult(['Ufer'], { synonyms: ['Böschung'] }, { key: 'bank' }));
   await waitFor(async () => await hung.getAttribute('data-generating') === null, 'German 2 generated');
 });

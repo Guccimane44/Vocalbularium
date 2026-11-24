@@ -17,16 +17,16 @@ import type { FacetType, ParentType } from '@vocabularium/domain/parents';
 import type { FieldDraft, PageEditorDraft } from '../types/editor-drafts.js';
 import { FacetTags } from './facet-tags.tsx';
 import type { TagLayout } from './facet-tags.tsx';
-import { FacetWindow } from './facet-window.tsx';
+import { FacetWindow, useFacetWindowState } from './facet-window.tsx';
 import { openAbout } from './about-sheet.tsx';
 import { FamilyIcon } from './families.tsx';
 import { mainKeyTier } from './main-key.ts';
 import { moduleLabel, numbered, ShapingArea } from './shaping.tsx';
 import { countedBefore } from './placing.ts';
 import type { RowParts } from './shaping.tsx';
-import { direction, listFormat, t } from './i18n.ts';
+import { listFormat, t } from './i18n.ts';
 import { ClipsProvider } from './audio.tsx';
-import { ActionIcon, CORE_PART, CORE_RETRY, Spark, Content, readContent, isSpokenModule, spokenOf, Reveal, ConfirmAction, LandingCard } from './card-content.tsx';
+import { ActionIcon, CORE_PART, CORE_RETRY, Spark, Content, readContent, isSpokenModule, spokenOf, Reveal, ConfirmPanel, LandingCard, SettingsAction, SubmenuAction } from './card-content.tsx';
 import type { FacetAsk, FacetControls } from './card-content.tsx';
 // A module in the module window has a page (D20); the main key has none.
 const isWindowModule = (type: string) => (WINDOW_MODULES as readonly string[]).includes(type);
@@ -34,8 +34,7 @@ const isWindowModule = (type: string) => (WINDOW_MODULES as readonly string[]).i
 // A deleted card pops where it stands, like a bubble, before it goes (0.6.3).
 const POOF_MS = 240;
 
-// The six-dot menu on each card; its entries are placeholders (0.6.3).
-const componentMenu = () => [t('card.menu.duplicate'), t('card.menu.copyText'), t('card.menu.moveToPage')];
+// The entries of a card's Settings; placeholders for now.
 
 type Deck = { id: string; name: string; modules: ModuleInstance[] };
 type Props = {
@@ -218,7 +217,8 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
   // The card whose tab has ejected its actions; one at a time.
   const [opened, setOpened] = useState<string | null>(null);
   // The parent whose facet window is open (D13, 0.8.1); one at a time.
-  const [facetsFor, setFacetsFor] = useState<string | null>(null);
+  // The parent whose facet window is open, kept while it closes; it closes with its card's actions.
+  const facetWindow = useFacetWindowState(opened);
   // Cards popping away: a deleted card pops where it stands first, then goes;
   // under reduced motion it goes at once, and a failed delete brings it back.
   // It stays marked until the page read again no longer holds it, and modules
@@ -238,8 +238,8 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
   }, [componentIds]);
   // The facet asking "Are you sure?" before it is deleted, on which card.
   const [askingFacet, setAskingFacet] = useState<{ id: string; facet: FacetType; kind: FacetAsk } | null>(null);
-  // The card asking whether to delete, and where its Delete stood in the row.
-  const [confirming, setConfirming] = useState<{ id: string; offset: number; kind: 'delete' | 'retry' } | null>(null);
+  // The card asking whether to delete or retry it.
+  const [confirming, setConfirming] = useState<{ id: string; kind: 'delete' | 'retry' } | null>(null);
   useEffect(() => { if (opened !== confirming?.id) setConfirming(null); }, [opened]);
   // Folded cards show only their tab on a slim band; remembered per page in
   // this browser, a convenience that never reaches the account (0.6.3).
@@ -255,7 +255,11 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
   useEffect(() => {
     if (!opened) return;
     const outside = (event: PointerEvent) => {
-      if (!(event.target as Element).closest?.(`[data-component-id="${CSS.escape(opened)}"] .card-head`)) setOpened(null);
+      // Closing takes back a question too, so the card reopens on its actions.
+      // The pages' sheet opens over the card from its facet window or About; its clicks, the backdrop's included, leave the card as it is.
+      const target = event.target as Element;
+      if (target.closest?.('.about-sheet')) return;
+      if (!target.closest?.(`[data-component-id="${CSS.escape(opened)}"] .card-head`)) { setOpened(null); setConfirming(null); }
     };
     document.addEventListener('pointerdown', outside);
     return () => document.removeEventListener('pointerdown', outside);
@@ -301,23 +305,18 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
     const generated = isContentType(item.moduleType);
     const open = opened === item.id;
     if (!open && !(item.status === 'failed' && generated)) return null;
-    if (open && confirming?.id === item.id) return <ConfirmAction kind={confirming.kind} title={title} offset={confirming.offset}
-      onCancel={() => setConfirming(null)}
-      onConfirm={() => {
-        const kind = confirming.kind;
-        setConfirming(null); setOpened(null);
-        if (kind === 'delete') vanish(item);
-        else void run(() => generate({ scope: 'component', componentId: item.id }, true));
-      }} />;
-    // Where a clicked button stands within the row from its start, transforms aside:
-    // offsetLeft counts from the card's head; a right-to-left row starts at its right.
-    const ask = (kind: 'delete' | 'retry') => (event: { currentTarget: HTMLButtonElement }) => {
-      const button = event.currentTarget, row = button.parentElement;
-      const offset = direction() === 'rtl'
-        ? (row ? row.offsetLeft + row.offsetWidth : 0) - (button.offsetLeft + button.offsetWidth)
-        : button.offsetLeft - (row?.offsetLeft ?? 0);
-      setConfirming({ id: item.id, kind, offset });
-    };
+    // The question ejects beside the entry that asked, the menu still open.
+    const asking = (kind: 'delete' | 'retry', button: ReactNode) => <span className="action-entry">
+      {button}
+      {confirming?.id === item.id && confirming.kind === kind && <ConfirmPanel kind={kind} title={title} family={isModuleType(item.moduleType) ? CATALOG[item.moduleType].family ?? 'notes' : 'notes'}
+        onCancel={() => setConfirming(null)}
+        onConfirm={() => {
+          setConfirming(null); setOpened(null);
+          if (kind === 'delete') vanish(item);
+          else void run(() => generate({ scope: 'component', componentId: item.id }, true));
+        }} />}
+    </span>;
+    const ask = (kind: 'delete' | 'retry') => () => setConfirming({ id: item.id, kind });
     // A component with nothing in it has nothing to lose: Delete and Retry act at once.
     const hasContent = readContent(item.moduleType, item.content).present;
     // An empty component is already only its tab: there is nothing to fold.
@@ -326,28 +325,42 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
     const choose = (action: () => void) => () => { setOpened(null); action(); };
     let index = 0;
     const order = () => ({ '--i': index++ }) as CSSProperties;
-    return <div id={`actions-${item.id}`} className="card-actions" role="group" aria-label={t('card.actions', { card: title })} data-open={open || undefined}>
-      {/* An empty parent can be written by hand too (D10, amended a fourth time). */}
-      {/* A spoken core has no text to edit (D24). */}
-      {open && !isSpokenModule(item.moduleType) && <button style={order()} aria-label={t('action.editNamed', { name: title })} disabled={Boolean(editingId) || item.status === 'loading'}
-        onClick={choose(() => { if (isFolded) fold(item.id, false); begin(item.id); })}>
-        <ActionIcon name="edit" />{t('common.edit')}</button>}
-      {generated && <button style={order()} className={item.status === 'failed' ? 'action-failed' : undefined} aria-label={t('action.retryNamed', { name: title })}
-        disabled={working || Boolean(editingId) || item.status === 'loading'}
-        onClick={hasContent && open ? ask('retry') : choose(() => void run(() => generate({ scope: 'component', componentId: item.id })))}>
-        <ActionIcon name="retry" />{t('common.retry')}</button>}
+    let entry = 0;
+    const drop = () => ({ '--j': entry++ }) as CSSProperties;
+    // Retry shows in the menu even where there is nothing to generate, unavailable.
+    const retry = (style: CSSProperties) => <button style={style} className={item.status === 'failed' ? 'action-failed' : undefined} aria-label={t('action.retryNamed', { name: title })}
+      aria-expanded={open && hasContent ? confirming?.id === item.id && confirming.kind === 'retry' : undefined}
+      disabled={!generated || working || Boolean(editingId) || item.status === 'loading'}
+      onClick={hasContent && open ? ask('retry') : choose(() => void run(() => generate({ scope: 'component', componentId: item.id })))}>
+      <ActionIcon name="retry" />{t('common.retry')}</button>;
+    // Closed, a failed card keeps only its Retry beside the tab.
+    if (!open) return generated ? <div id={`actions-${item.id}`} className="card-actions" role="group" aria-label={t('card.actions', { card: title })}>{retry(order())}</div> : null;
+    return <div id={`actions-${item.id}`} className="card-actions" role="group" aria-label={t('card.actions', { card: title })} data-open>
+      {/* Actions holds what changes the card: Edit, Retry, Fold and Delete, always all
+          four, as in deck settings; one that cannot act here shows unavailable. */}
+      <SubmenuAction index={index++} icon="actions" label={t('card.actionsMenu')} name={t('card.actionsMenuFor', { card: title })}>
+        {/* An empty parent can be written by hand too (D10, amended a fourth time). A spoken core has no text to edit (D24). */}
+        <button style={drop()} aria-label={t('action.editNamed', { name: title })} disabled={isSpokenModule(item.moduleType) || Boolean(editingId) || item.status === 'loading'}
+          onClick={choose(() => { if (isFolded) fold(item.id, false); begin(item.id); })}>
+          <ActionIcon name="edit" />{t('common.edit')}</button>
+        {asking('retry', retry(drop()))}
+        <button style={drop()} aria-label={t(isFolded ? 'card.unfoldNamed' : 'card.foldNamed', { card: title })} disabled={!foldable} onClick={choose(() => fold(item.id, !isFolded))}>
+          <ActionIcon name={isFolded ? 'unfold' : 'fold'} />{isFolded ? t('card.unfold') : t('card.fold')}</button>
+        {asking('delete', <button style={drop()} className="action-delete" aria-label={t('action.deleteNamed', { name: title })} disabled={disabled || working || item.status === 'loading'}
+          aria-expanded={hasContent ? confirming?.id === item.id && confirming.kind === 'delete' : undefined}
+          onClick={hasContent ? ask('delete') : choose(() => vanish(item))}>
+          <ActionIcon name="delete" />{t('common.delete')}</button>)}
+      </SubmenuAction>
       {/* A parent's facets are chosen in its facet window (D13, 0.8.1). */}
-      {open && isParentType(item.moduleType) && facetsOf(item.moduleType).length > 0 && <button style={order()} aria-label={t('card.facetsOf', { card: title })}
-        disabled={disabled || working || item.status === 'loading'} onClick={choose(() => setFacetsFor(item.id))}>
+      {/* It unfolds below Facet, which stays lit while the row stays out. */}
+      {isParentType(item.moduleType) && facetsOf(item.moduleType).length > 0 && <button style={order()} data-facet-trigger
+        aria-label={t('card.facetsOf', { card: title })} aria-expanded={facetWindow.holder === item.id && !facetWindow.closing}
+        disabled={disabled || working || item.status === 'loading'} onClick={() => facetWindow.toggle(item.id)}>
         <ActionIcon name="facet" />{t('card.facet')}</button>}
       {/* About opens the module's page in the pages' sheet (D20, 0.13.0). */}
-      {open && isWindowModule(item.moduleType) && <button style={order()} aria-label={t('shaping.about', { name: title })} aria-haspopup="dialog"
+      {isWindowModule(item.moduleType) && <button style={order()} aria-label={t('shaping.about', { name: title })} aria-haspopup="dialog"
         onClick={choose(() => openAbout({ kind: 'module', module: item.moduleType }))}><ActionIcon name="about" />{t('card.about')}</button>}
-      {open && foldable && <button style={order()} aria-label={t(isFolded ? 'card.unfoldNamed' : 'card.foldNamed', { card: title })} onClick={choose(() => fold(item.id, !isFolded))}>
-        <ActionIcon name={isFolded ? 'unfold' : 'fold'} />{isFolded ? t('card.unfold') : t('card.fold')}</button>}
-      {open && <button style={order()} className="action-delete" aria-label={t('action.deleteNamed', { name: title })} disabled={disabled || working || item.status === 'loading'}
-        onClick={hasContent ? ask('delete') : choose(() => vanish(item))}>
-        <ActionIcon name="delete" />{t('common.delete')}</button>}
+      <SettingsAction index={index++} name={title} />
     </div>;
   };
   const editor = (item: Component, title: string, controls?: FacetControls) => {
@@ -368,11 +381,11 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
     </>;
   };
 
-  // One card: its index tab (menu, then the family and label, which drags the
+  // One card: its index tab (the family and label, which drags the
   // card and, clicked, ejects its actions beside it), its status only while
   // unfinished, and its content. An empty component is only its tab. Editing
   // is one card at a time; Save and Cancel live in that card.
-  const card = (item: Component, title: string, { drag, menu }: RowParts) => {
+  const card = (item: Component, title: string, { drag }: RowParts) => {
     const family = isModuleType(item.moduleType) ? CATALOG[item.moduleType].family ?? 'notes' : 'notes';
     const read = readContent(item.moduleType, item.content);
     const empty = !read.present && item.status !== 'loading' && item.status !== 'failed' && editingId !== item.id;
@@ -400,7 +413,7 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
     const isFolded = !empty && !generating && folded.has(item.id) && editingId !== item.id;
     const gone = vanishing.has(item.id);
     // The parent's facets as tags on the card's edge, or hung from its tab while it is only its tab (0.7.1).
-    const layout: TagLayout = empty || generating ? 'hanging' : isFolded ? 'folded' : 'edge';
+    const layout: TagLayout = empty || generating || isFolded ? 'folded' : 'edge';
     const tagCount = item.facets?.length ?? 0;
     const tagged = Boolean(controls && tagCount);
     // Which facets have content: none on a card that is only its tab; on
@@ -414,13 +427,13 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
       : generating || !read.present ? [] : rendered.kind === 'parent' ? rendered.facets.map(each => each.facet) : undefined;
     const tags = controls ? <FacetTags holderId={item.id} parent={item.moduleType as ParentType} facets={item.facets ?? []} filled={filled}
       layout={layout} title={title} retrying={item.retryingFacet} failed={item.failedFacet} /> : null;
-    const facetWindow = controls && facetsFor === item.id ? <FacetWindow holderId={item.id} parent={item.moduleType as ParentType} title={title}
+    const facets = controls && facetWindow.holder === item.id ? <FacetWindow key={facetWindow.round} closing={facetWindow.closing} onGone={facetWindow.gone} holderId={item.id} parent={item.moduleType as ParentType} title={title}
       facets={item.facets ?? []} disabled={controls.disabled} hasContent={hasContent}
       onAdd={facet => addFacet(item.id, item.moduleType as ParentType, facet)}
       onRemove={async facet => { let saved = true; await run(async () => { saved = await deleteFacet(item.id, item.moduleType as ParentType, facet); }); return saved; }}
       onClose={refocus => {
-        setFacetsFor(null);
-        if (refocus) document.querySelector<HTMLElement>(`[data-component-id="${CSS.escape(item.id)}"] .tab-button`)?.focus();
+        facetWindow.close();
+        if (refocus) document.querySelector<HTMLElement>(`[data-component-id="${CSS.escape(item.id)}"] [data-facet-trigger]`)?.focus();
       }} /> : null;
     return <article className={`component fam-${family}`} data-empty={empty || undefined} data-generating={generating || undefined}
       data-folded={isFolded || undefined} data-vanishing={gone || undefined} data-tagged={tagged ? layout : undefined}
@@ -428,11 +441,10 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
       data-component-id={item.id} data-type={item.moduleType} data-status={item.status ?? undefined} data-editing={editingId === item.id || undefined}>
       <div className="card-head" onKeyDown={event => {
         if (event.key !== 'Escape' || opened !== item.id) return;
-        setOpened(null);
+        setOpened(null); setConfirming(null);
         (event.currentTarget.querySelector('.tab-button') as HTMLElement | null)?.focus();
       }}>
         <div className="card-tab">
-          {menu}
           <h2><button type="button" className="tab-button" {...drag} aria-disabled={undefined}
             aria-expanded={opened === item.id} aria-controls={opened === item.id ? `actions-${item.id}` : undefined}
             onClick={() => setOpened(opened === item.id ? null : item.id)}>
@@ -443,7 +455,7 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
           {generating && <span className="visually-hidden" role="status">{t('card.generatingStatus', { card: title })}</span>}
         </div>
         {editingId !== item.id && actions(item, title)}
-        {facetWindow}
+        {facets}
       </div>
       {!empty && <div className="card-fold"><div className="card-fold-inner" inert={isFolded || undefined}>
         {item.status === 'failed' && <p className="card-status"><span className="list-status" data-status="failed">{t('status.generationFailed')}</span></p>}
@@ -481,7 +493,6 @@ export function PageView({ page, deck, draft, isNew, editing, busy, error, pendi
         const skip = new Set(vanishing).add(id);
         return moveComponent(id, (countedBefore(restIds, before, skip) ?? restIds.filter(other => !skip.has(other)).length) + 1);
       }}
-      menuItems={componentMenu()}
       renderLanding={type => <LandingCard type={type} />}
       renderItem={(item, parts) => card(item.component, item.label, parts)} />
     </ClipsProvider>

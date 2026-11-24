@@ -2,14 +2,15 @@
 // facets with their actions, spoken parts), its content rising in once
 // generated, the confirmation ejected from its tab, the icons and spark
 // its tab uses, and the card a module from the window lands as.
-import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import type { CSSProperties, KeyboardEvent, ReactNode, Ref } from 'react';
+import { Fragment, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import type { CSSProperties, ReactNode, Ref } from 'react';
 import { closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import type { Announcements, DragEndEvent, Modifier } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS as DndCSS } from '@dnd-kit/utilities';
 import type { Component } from '@vocabularium/contracts';
 import { CATALOG, isModuleType } from '@vocabularium/domain/page-modules';
+import type { ModuleFamily } from '@vocabularium/domain/page-modules';
 import { blockText } from '@vocabularium/domain/pages';
 import { renderContent, renderParent } from '@vocabularium/domain/render';
 import type { Rendered } from '@vocabularium/domain/render';
@@ -24,7 +25,7 @@ import type { FacetType, ParentType } from '@vocabularium/domain/parents';
 import { FacetTab } from './facet-tags.tsx';
 import { openAbout } from './about-sheet.tsx';
 import { FamilyIcon } from './families.tsx';
-import { moduleLabel, SixDots } from './shaping.tsx';
+import { moduleLabel } from './shaping.tsx';
 import { currentLanguage, t } from './i18n.ts';
 import { contentModule } from '@vocabularium/domain/catalog';
 import { ClipPlayer, MAX_SPOKEN_LENGTH } from './audio.tsx';
@@ -41,7 +42,11 @@ const ACTION_ICONS = {
   // The ⓘ of the facet window's rows.
   about: <><circle cx="12" cy="12" r="9.5" /><path d="M12 11v6" /><path d="M12 7.5h.01" /></>,
   fold: <><path d="M7 20l5-5 5 5" /><path d="M7 4l5 5 5-5" /></>,
-  unfold: <><path d="M7 15l5 5 5-5" /><path d="M7 9l5-5 5 5" /></>
+  unfold: <><path d="M7 15l5 5 5-5" /><path d="M7 9l5-5 5 5" /></>,
+  // A bolt.
+  actions: <path d="M13 3 5 14h6l-1 7 8-11h-6z" />,
+  // Three sliders.
+  settings: <><path d="M4 6h9" /><path d="M17 6h3" /><circle cx="15" cy="6" r="2" /><path d="M4 12h3" /><path d="M11 12h9" /><circle cx="9" cy="12" r="2" /><path d="M4 18h11" /><path d="M19 18h1" /><circle cx="17" cy="18" r="2" /></>
 } as const;
 export const ActionIcon = ({ name }: { name: keyof typeof ACTION_ICONS }) => <svg className="action-icon" viewBox="0 0 24 24" aria-hidden="true"
   fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">{ACTION_ICONS[name]}</svg>;
@@ -223,9 +228,12 @@ export function Content({ type, rendered, mainKey, controls, spoken }: {
   const ruled = rendered.kind === 'parent' ? rendered.ruledOut : {};
   const canRetryFacet = (facet: FacetType) => rendered.kind === 'parent' && !ruled[facet];
   // While the facet generates on its own, the spark runs round its tab (0.7.4).
-  const facetHead = (facet: FacetType, hasContent = true, grip?: ReactNode) => parent && <h3 className="facet-title">
-    {grip}
-    <FacetTab parent={parent} facet={facet}><Spark active={controls?.retrying === facet} /></FacetTab>
+  // The facet's tag and title drag it, while the card's facets can move (D26).
+  const facetHead = (facet: FacetType, hasContent = true, handle?: FacetHandle) => parent && <h3 className="facet-title">
+    {(() => {
+      const tab = <FacetTab parent={parent} facet={facet}><Spark active={controls?.retrying === facet} /></FacetTab>;
+      return handle ? <span className="facet-handle" ref={handle.ref} {...handle.props} title={handle.label}>{tab}</span> : tab;
+    })()}
     {controls?.retrying === facet ? <span className="visually-hidden">{t('status.generatingEllipsis')}</span>
       : controls?.failed === facet && <span className="facet-note" data-note="failed">{t('card.retryFailed')}</span>}
     {controls && <FacetActions name={t('facet.fromCard', { facet: facetName(parent, facet), card: controls.title })} hasContent={hasContent} canRetry={canRetryFacet(facet)}
@@ -248,24 +256,24 @@ export function Content({ type, rendered, mainKey, controls, spoken }: {
     // A spoken facet (D24): each line beside its own player row.
     const lines = spoken?.facets[name];
     if (facet && lines?.length) return <section key={name} {...section(name, slot)}>
-      {facetHead(name, true, slot?.grip)}
+      {facetHead(name, true, slot?.handle)}
       <div className="facet-body spoken-lines">{lines.map((line, index) => <div className="spoken-line" key={index}>
         <span className="spoken-text" dir="auto">{line}</span>
         <ClipPlayer componentId={spoken!.componentId} part={name} line={index} text={line} speakable tooLong={line.length > MAX_SPOKEN_LENGTH} />
       </div>)}</div>
     </section>;
     if (facet) return <section key={name} {...section(name, slot)}>
-      {facetHead(name, true, slot?.grip)}
+      {facetHead(name, true, slot?.handle)}
       <Markdown blocks={facet.body} mainKey={mainKey} className="facet-body" />
     </section>;
     // A facet the card has without content: its heading only, dimmed (D10, amended a sixth time),
     // also while it generates on its own.
     return controls?.retrying === name || controls?.facets?.includes(name)
-      ? <section key={name} {...section(name, slot)} data-unfilled data-pending={controls?.retrying === name || undefined}>{facetHead(name, false, slot?.grip)}</section> : null;
+      ? <section key={name} {...section(name, slot)} data-unfilled data-pending={controls?.retrying === name || undefined}>{facetHead(name, false, slot?.handle)}</section> : null;
   };
   // The card's facets in its own order (D26); without controls, the parent's.
   const order = parent ? (controls?.facets ? inOrder(parent, [...controls.facets, ...facetsOf(parent)]) : facetsOf(parent)) : [];
-  // A card's facets reorder by their grips, except while a part is open in its editor.
+  // A card's facets reorder by their tags, except while a part is open in its editor.
   const sortable = Boolean(parent && controls?.onMoveFacet && controls.facets && controls.facets.length > 1 && !controls.editing);
 
   // The core open in its own editor (0.16.2) stands in place of its top line and text.
@@ -313,14 +321,15 @@ export function Content({ type, rendered, mainKey, controls, spoken }: {
 }
 
 // Where a card's facet section stands while its facets are reordered (D26):
-// its node, its movement, and the grip before its tab that drags it.
-type FacetSlot = { ref: Ref<HTMLElement>; style: CSSProperties; dragging: boolean; grip: ReactNode };
+// its node, its movement, and its tag and title, which drag it.
+type FacetHandle = { ref: (node: HTMLElement | null) => void; props: Record<string, unknown>; label: string };
+type FacetSlot = { ref: Ref<HTMLElement>; style: CSSProperties; dragging: boolean; handle: FacetHandle };
 // The facets move along the card only, as the cards move along the page.
 const alongTheCard: Modifier = ({ transform }) => ({ ...transform, x: 0 });
 const FACET_KEYS = { start: ['Space'], cancel: ['Escape'], end: ['Space'] };
 const MAKING_ROOM = { duration: 250, easing: 'cubic-bezier(.2,.8,.2,1)' };
 
-// A card's facets reordered by their grips (D26), with the pointer or with Space
+// A card's facets reordered by their tags (D26), with the pointer or with Space
 // and the arrow keys. The order shown changes at once on a drop, so a facet never
 // snaps back while its move is saved, and returns to the saved one if the save fails.
 function FacetSorter({ parent, title, facets, disabled, onMove, children }: {
@@ -357,13 +366,12 @@ function FacetSorter({ parent, title, facets, disabled, onMove, children }: {
   </DndContext>;
 }
 
-// One facet's section as it reorders: its grip, before its tab, drags it.
+// One facet's section as it reorders: its tag and title drag it.
 function SortableFacet({ id, label, disabled, children }: { id: FacetType; label: string; disabled: boolean; children: (slot: FacetSlot) => ReactNode }) {
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id, disabled, transition: MAKING_ROOM });
-  // Space picks up and drops on keydown; its keyup would also click the grip.
-  const grip = <button type="button" className="facet-grip" ref={setActivatorNodeRef} {...attributes} {...listeners} aria-label={label} title={label}
-    onKeyUp={(event: KeyboardEvent) => { if (event.code === 'Space') event.preventDefault(); }}><SixDots /></button>;
-  return <>{children({ ref: setNodeRef, style: { transform: DndCSS.Translate.toString(transform), transition }, dragging: isDragging, grip })}</>;
+  // The handle is focusable and named for the move; Space picks it up and drops it.
+  const handle = { ref: setActivatorNodeRef, label, props: { ...attributes, ...listeners, 'aria-label': label } };
+  return <>{children({ ref: setNodeRef, style: { transform: DndCSS.Translate.toString(transform), transition }, dragging: isDragging, handle })}</>;
 }
 
 
@@ -407,29 +415,69 @@ export function Reveal({ status, title, facet, failedFacet, children }: {
   </div>;
 }
 
-// Deleting or retrying a component that has content asks first, ejected from
-// the tab like its actions (0.6.3): the final Delete or Retry and Cancel, then
-// the question. Cancel lands where the button just clicked was, under the
-// pointer, so a second click does not act; the final button stands to its left.
-export function ConfirmAction({ kind, title, offset, onConfirm, onCancel }: {
-  kind: 'delete' | 'retry'; title: string; offset: number; onConfirm: () => void; onCancel: () => void;
+// A card's question: a small panel ejected beside the Delete or
+// Retry it asks for, the Actions menu still open. It names the module with
+// its tag, says what cannot be undone, and starts on Cancel.
+const MODULE_MARK = '\uE000';
+export function ConfirmPanel({ kind, title, family, onConfirm, onCancel }: {
+  kind: 'delete' | 'retry'; title: string; family: ModuleFamily; onConfirm: () => void; onCancel: () => void;
 }) {
-  const confirm = useRef<HTMLButtonElement>(null);
+  const root = useRef<HTMLDivElement>(null);
   const cancel = useRef<HTMLButtonElement>(null);
-  const [inset, setInset] = useState(0);
-  useLayoutEffect(() => {
-    setInset(Math.max(0, offset - (confirm.current?.offsetWidth ?? 0) - 4));
-    cancel.current?.focus();
-  }, [offset]);
-  const questionId = `confirm-${title.replace(/\W+/g, '-')}`;
-  const verb = kind === 'delete' ? t('common.delete') : t('common.retry');
-  return <div className="card-actions" role="group" aria-label={kind === 'delete' ? t('action.deleteAsk', { name: title }) : t('action.retryAsk', { name: title })} aria-describedby={questionId} data-open data-confirm={kind}
-    style={{ paddingInlineStart: inset }}>
-    <button ref={confirm} style={{ '--i': 0 } as CSSProperties} className="action-confirm" aria-label={kind === 'delete' ? t('action.confirmDelete', { name: title }) : t('action.confirmRetry', { name: title })} onClick={onConfirm}>
-      <ActionIcon name={kind} />{verb}</button>
-    <button ref={cancel} style={{ '--i': 1 } as CSSProperties} aria-label={t('action.keepNamed', { name: title })} onClick={onCancel}>{t('common.cancel')}</button>
-    <span id={questionId} className="confirm-text" style={{ '--i': 2 } as CSSProperties}>{t('common.areYouSure')}</span>
+  useLayoutEffect(() => { cancel.current?.focus(); }, []);
+  const id = useId();
+  const back = () => {
+    const asker = root.current?.parentElement?.querySelector<HTMLButtonElement>(':scope > button');
+    onCancel();
+    asker?.focus();
+  };
+  const [before, after] = t(kind === 'delete' ? 'confirm.deleteTitle' : 'confirm.retryTitle', { module: MODULE_MARK }).split(MODULE_MARK);
+  return <div ref={root} className="confirm-panel" role="alertdialog" aria-labelledby={`${id}-title`} aria-describedby={`${id}-body`} data-confirm={kind}
+    onKeyDown={event => { if (event.key === 'Escape') { event.stopPropagation(); back(); } }}>
+    <p id={`${id}-title`} className="confirm-title">{before}<span className="module-tag"><FamilyIcon family={family} />{title}</span>{after}</p>
+    <p id={`${id}-body`} className="confirm-body">{t(kind === 'delete' ? 'confirm.deleteBody' : 'confirm.retryBody')}</p>
+    <div className="confirm-buttons">
+      <button ref={cancel} type="button" aria-label={t('action.keepNamed', { name: title })} onClick={back}>{t('common.cancel')}</button>
+      <button type="button" className="action-confirm" aria-label={t(kind === 'delete' ? 'action.confirmDelete' : 'action.confirmRetry', { name: title })} onClick={onConfirm}>
+        <ActionIcon name={kind} />{kind === 'delete' ? t('common.delete') : t('common.retry')}</button>
+    </div>
   </div>;
+}
+
+// An action that drops its own entries down below it, one after another with
+// the spring the tab's actions eject with: Actions holds a card's buttons,
+// Settings its placeholder menu. Escape or a click elsewhere folds it back.
+export function SubmenuAction({ index, icon, label, name, menu = false, children }: {
+  index: number; icon: keyof typeof ACTION_ICONS; label: string; name: string; menu?: boolean; children: ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+  const root = useRef<HTMLSpanElement>(null);
+  const button = useRef<HTMLButtonElement>(null);
+  const listId = useId();
+  useEffect(() => {
+    if (!open) return;
+    const outside = (event: PointerEvent) => { if (!root.current?.contains(event.target as Node)) setOpen(false); };
+    document.addEventListener('pointerdown', outside);
+    return () => document.removeEventListener('pointerdown', outside);
+  }, [open]);
+  const list = { id: listId, className: 'action-submenu', 'aria-label': name };
+  return <span ref={root} className="action-sub" onKeyDown={event => {
+    if (event.key !== 'Escape' || !open) return;
+    event.stopPropagation(); setOpen(false); button.current?.focus();
+  }}>
+    <button ref={button} type="button" style={{ '--i': index } as CSSProperties} aria-label={name} aria-haspopup={menu ? 'menu' : true} aria-expanded={open}
+      aria-controls={open ? listId : undefined} onClick={() => setOpen(!open)}><ActionIcon name={icon} />{label}</button>
+    {open && (menu ? <ul {...list} role="menu">{children}</ul> : <div {...list} role="group">{children}</div>)}
+  </span>;
+}
+
+// Settings: the same placeholder entries on a page and in deck settings, for now.
+const moduleSettings = () => [t('card.menu.duplicate'), t('card.menu.copyText'), t('card.menu.moveToPage'), t('deck.menu.copyToDeck')];
+export function SettingsAction({ index, name }: { index: number; name: string }) {
+  return <SubmenuAction index={index} icon="settings" label={t('card.settings')} name={t('card.settingsFor', { card: name })} menu>
+    {moduleSettings().map((entry, at) => <li key={entry} role="menuitem" aria-disabled="true" style={{ '--j': at } as CSSProperties}>
+      {entry}<span className="soon">{t('shaping.comingSoon')}</span></li>)}
+  </SubmenuAction>;
 }
 
 // A module from the window, shown where it would land on the page: built
@@ -440,7 +488,6 @@ export function LandingCard({ type, folded = false }: { type: string; folded?: b
   const family = isModuleType(type) ? CATALOG[type].family ?? 'notes' : 'notes';
   return <article className={`component fam-${family}`} data-empty={!folded || undefined} data-folded={folded || undefined} data-landing data-type={type} aria-hidden="true">
     <div className="card-head"><div className="card-tab">
-      <span className="row-menu"><span className="menu-button"><SixDots /></span></span>
       <h2><span className="tab-button"><FamilyIcon family={family} /><span className="tab-label">{moduleLabel(type)}</span></span></h2>
     </div></div>
   </article>;

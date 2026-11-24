@@ -120,7 +120,8 @@ test('facet tags: abbreviations in order, on the left edge, along the edge to th
 
   // Ticked again in the facet window, the tag flies in from its row to its place in the parent's order (D13).
   const facets = await facetWindow(a.page, 'German');
-  // Measured before the click, once its row is in view: the added facet then moves to On this card (D23).
+  // Measured before the click, once the window has settled and its row is in view: the added facet then moves to On this card (D23).
+  await facets.evaluate(node => Promise.all(node.getAnimations({ subtree: true }).map(animation => animation.finished)));
   await tick(facets, 'Antonyms').scrollIntoViewIfNeeded();
   const origin = await facets.locator('.facet-window-row[data-facet="antonyms"] .facet-tab-mark').boundingBox();
   await tick(facets, 'Antonyms').click();
@@ -155,34 +156,38 @@ test('facet tags: abbreviations in order, on the left edge, along the edge to th
   assert.equal(await row.locator('.facet-tags').getAttribute('data-layout'), 'folded');
   const hung = await row.evaluate(node => {
     const band = node.getBoundingClientRect();
-    return [...node.querySelectorAll('.facet-tag')].map(tag => { const box = tag.getBoundingClientRect(); return { below: box.top - band.bottom, end: band.right - box.right, chain: getComputedStyle(tag, '::after').opacity }; });
+    return [...node.querySelectorAll('.facet-tag')].map(tag => { const box = tag.getBoundingClientRect(); return { below: box.top - band.bottom, end: band.right - box.right, chain: getComputedStyle(tag, '::after').content }; });
   });
-  assert.ok(hung.every(tag => Math.abs(tag.below + 6) <= 2 && tag.chain === '0'), `from the band's bottom edge, without chains (${JSON.stringify(hung)})`);
+  assert.ok(hung.every(tag => Math.abs(tag.below + 6) <= 2 && tag.chain === 'none'), `from the band's bottom edge, without chains (${JSON.stringify(hung)})`);
   assert.ok(hung.at(-1).end > 10 && hung.at(-1).end < 30 && hung[0].end > hung.at(-1).end, `at its end, in order (${JSON.stringify(hung)})`);
   assert.ok((await row.boundingBox()).height < 30, 'a slim band');
-  // Its tab ejects About, Facet and Remove: no Fold or Unfold.
+  // Its tab ejects Actions, Facet, About and Settings; Actions holds the page's four entries, only Remove available.
   await row.locator('.tab-button').click();
-  assert.deepEqual(await row.locator('.card-actions button').evaluateAll(buttons => buttons.map(button => button.textContent)), ['About', 'Facet', 'Remove']);
-  await row.locator('.tab-button').click();
+  assert.deepEqual(await row.locator('.card-actions button').evaluateAll(buttons => buttons.map(button => button.textContent)), ['Actions', 'Facet', 'About', 'Settings']);
+  await row.getByRole('button', { name: 'Actions for German', exact: true }).click();
+  assert.deepEqual(await row.locator('.action-submenu button').allTextContents(), ['Edit', 'Retry', 'Fold', 'Remove']);
+  assert.deepEqual(await row.locator('.action-submenu button').evaluateAll(buttons => buttons.map(button => button.disabled)), [true, true, true, false], 'only Remove acts on a module without content');
   // No tag is a button there either (0.13.2). Unticked in the facet window, a tag pops; ticked again, it flies in from its row.
   assert.equal(await row.locator('.facet-tags').getByRole('button').count(), 0, 'no tag interaction');
-  // The six-dot menu opens over the tags hung below the tab, the card lifted under the pointer (0.13.2: it opened beneath them).
-  await row.locator('.menu-button').click();
-  await row.locator('.row-menu-list').waitFor();
+  // Settings drops its entries over the tags hung below the tab, the card lifted under the pointer (0.13.2: a menu opened beneath them).
+  await row.getByRole('button', { name: 'Settings for German', exact: true }).click();
+  await row.locator('.action-submenu').waitFor();
   await row.locator('.card-tab').hover();
   await settled(a.page);
   // Tags let the pointer through, so for the hit test they briefly take it.
-  assert.deepEqual(await row.locator('.row-menu-list [role="menuitem"]').evaluateAll(items => {
+  assert.deepEqual(await row.locator('.action-submenu [role="menuitem"]').evaluateAll(items => {
     const hittable = document.head.appendChild(Object.assign(document.createElement('style'), { textContent: '.facet-tags, .facet-tag { pointer-events: auto !important; }' }));
     const onTop = items.map(item => {
       const box = item.getBoundingClientRect();
-      return [12, 40, 70].every(x => Boolean(document.elementFromPoint(box.left + x, box.top + box.height / 2)?.closest('.row-menu-list')));
+      return [12, 40, 70].every(x => Boolean(document.elementFromPoint(box.left + x, box.top + box.height / 2)?.closest('.action-submenu')));
     });
     hittable.remove();
     return onTop;
-  }), [true, true], 'every menu entry is on top');
+  }), [true, true, true, true], 'every menu entry is on top');
   await a.page.keyboard.press('Escape');
-  await row.locator('.row-menu-list').waitFor({ state: 'detached' });
+  await row.locator('.action-submenu').waitFor({ state: 'detached' });
+  await a.page.keyboard.press('Escape');
+  await row.locator('.card-actions').waitFor({ state: 'detached' });
   const remove = await facetWindow(a.page, 'German');
   await watchPops();
   await tick(remove, 'Antonyms').click();

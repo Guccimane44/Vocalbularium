@@ -164,22 +164,29 @@ test('family, module and facet pages in one sheet, from the module window, a car
   await sheet.waitFor({ state: 'detached' });
   assert.equal(await facets.isVisible(), true, 'the facet window stays open');
   assert.equal(await focused(info('Article')), true, 'the focus back on its ›');
+  // Closing the sheet with a click beside it leaves the window open too, for the next facet's page.
+  await info('Examples').click();
+  await waitFor(async () => await title() === 'Examples', 'Examples from the facet window');
+  await a.page.mouse.click(5, 5);
+  await sheet.waitFor({ state: 'detached' });
+  assert.equal(await facets.isVisible(), true, 'the facet window stays open after a click beside the sheet');
+  assert.equal(await focused(info('Examples')), true, 'the focus back on the next ›');
   assert.deepEqual(await inOrder(facets, 'equipped'), [true, true, true, true, ...Array(8).fill(false)], 'the grammar facets, Pronunciation and the 0.16.4 facets are not on a My Deck card (K56)');
   await a.page.keyboard.press('Escape');
 
-  // The card's own About opens its module page.
-  await cardTab(a.page, 'German').click();
+  // The card's own About opens its module page; closing the facet window left the actions out.
+  await facets.waitFor({ state: 'detached' });
   await componentArticle(a.page, 'German').locator('.card-actions').getByRole('button', { name: 'About German', exact: true }).click();
   await waitFor(async () => await title() === 'German', 'German from its card');
   await a.page.keyboard.press('Escape');
   await sheet.waitFor({ state: 'detached' });
 
-  // Deck settings open the same page, About first among a module's actions.
+  // Deck settings open the same page from About.
   const deckId = (await store.page(pageId)).deckId;
   await a.page.goto(`chrome-extension://${a.id}/app.html#configure/${deckId}`);
   const row = a.page.locator('.deck-module[data-type="german"]');
   await row.locator('.tab-button').click();
-  assert.deepEqual(await row.locator('.card-actions button').allTextContents(), ['About', 'Facet', 'Remove']);
+  assert.deepEqual(await row.locator('.card-actions button').allTextContents(), ['Actions', 'Facet', 'About', 'Settings']);
   await row.getByRole('button', { name: 'About German', exact: true }).click();
   await waitFor(async () => await title() === 'German', 'German from deck settings');
   await a.page.keyboard.press('Escape');

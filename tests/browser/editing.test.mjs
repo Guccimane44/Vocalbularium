@@ -49,25 +49,45 @@ test('manual page UI: per-card actions, drafts, leave choices, sorting, failed-s
   await drag(a.page, cardTab(a.page, 'Text'), componentArticle(a.page, 'German'));
   await waitFor(async () => (await shape())[2][0] === 'text', 'Text moved up');
   assert.equal(await a.page.getByRole('button', { name: /^Move / }).count(), 0, 'no move buttons (D04)');
-  // Deleting a component with content asks beside its tab, not in a dialog (0.6.3): Cancel lands
-  // under the pointer, where Delete was, and the final Delete stands to its left.
+  // Deleting a component with content asks in a panel ejected beside its Delete, the Actions
+  // menu still open: it names the module by its tag, says it cannot be undone, and starts on Cancel.
   const askDelete = await cardButton(a.page, 'Delete Context');
-  await a.page.locator('.card-actions[data-open]').evaluate(node => Promise.all(node.getAnimations({ subtree: true }).map(animation => animation.finished)));
-  const was = await askDelete.boundingBox();
   await askDelete.click();
-  const keep = a.page.getByRole('button', { name: 'Keep Context', exact: true });
-  const confirmDelete = a.page.getByRole('button', { name: 'Yes, delete Context', exact: true });
+  const panel = a.page.getByRole('alertdialog');
+  const keep = panel.getByRole('button', { name: 'Keep Context', exact: true });
+  const confirmDelete = panel.getByRole('button', { name: 'Yes, delete Context', exact: true });
   await keep.waitFor();
-  assert.equal(await a.page.getByRole('dialog').count(), 0, 'no dialog');
-  assert.equal(await a.page.locator('.confirm-text').textContent(), 'Are you sure?');
-  await a.page.locator('[data-confirm]').evaluate(node => Promise.all(node.getAnimations({ subtree: true }).map(animation => animation.finished)));
-  assert.equal(await a.page.evaluate(([x, y]) => document.elementFromPoint(x, y)?.closest('button')?.getAttribute('aria-label'),
-    [was.x + was.width / 2, was.y + was.height / 2]), 'Keep Context', 'Cancel is under the pointer');
-  assert.ok((await confirmDelete.boundingBox()).x < (await keep.boundingBox()).x, 'the final Delete is to the left of Cancel');
+  await panel.evaluate(node => Promise.all(node.getAnimations().map(animation => animation.finished)));
+  assert.equal(await panel.locator('.confirm-title').textContent(), 'Context will be deleted');
+  assert.equal(await panel.locator('.module-tag').textContent(), 'Context', 'the module is named by its tag');
+  assert.match(await panel.locator('.confirm-body').textContent(), /can’t be undone/);
+  assert.equal(await askDelete.getAttribute('aria-expanded'), 'true', 'Delete stays lit');
+  assert.ok(await a.page.getByRole('group', { name: 'Actions for Context', exact: true }).isVisible(), 'the Actions menu stays open');
+  // Measured at rest: under the pointer, Delete lifts 2px as any action does.
+  await a.page.mouse.move(5, 5);
+  await settled(a.page);
+  const [deleteBox, panelBox] = [await askDelete.boundingBox(), await panel.boundingBox()];
+  assert.ok(panelBox.x >= deleteBox.x + deleteBox.width && Math.abs(panelBox.y - deleteBox.y) <= 1, `the panel stands beside Delete, level with it (${JSON.stringify({ deleteBox, panelBox })})`);
+  assert.ok((await keep.boundingBox()).x < (await confirmDelete.boundingBox()).x, 'Cancel, then the final Delete');
   assert.equal(await a.page.evaluate(() => document.activeElement.getAttribute('aria-label')), 'Keep Context', 'focus is on Cancel');
   await keep.click();
   assert.equal(await confirmDelete.count(), 0);
+  assert.equal(await a.page.evaluate(() => document.activeElement.getAttribute('aria-label')), 'Delete Context', 'Cancel returns to Delete');
   assert.equal((await shape()).length, 4);
+  // Escape takes the question back first, then the menu.
+  await askDelete.click();
+  await keep.waitFor();
+  await a.page.keyboard.press('Escape');
+  await keep.waitFor({ state: 'detached' });
+  assert.ok(await askDelete.isVisible(), 'the menu is still open');
+  await a.page.keyboard.press('Escape');
+  await askDelete.waitFor({ state: 'detached' });
+  // A click elsewhere takes the question and the menu back, deleting nothing.
+  await (await cardButton(a.page, 'Delete Context')).click();
+  await keep.waitFor();
+  await a.page.mouse.click(4, 4);
+  await keep.waitFor({ state: 'detached' });
+  assert.equal((await shape()).length, 4, 'nothing deleted');
   await (await cardButton(a.page, 'Delete Context')).click();
   await confirmDelete.click();
   await waitFor(async () => (await shape()).length === 3, 'Context deleted');
@@ -194,13 +214,12 @@ test('retry UI: exact confirmation asked beside the tab, a first Retry without w
   await (await cardButton(b.page, 'Edit German')).click();
   const bMeanings = b.page.getByRole('textbox', { name: 'Meanings, German', exact: true });
   await bMeanings.click(); await b.page.keyboard.press('ControlOrMeta+a'); await b.page.keyboard.type('draft back');
-  // Retrying content asks beside the tab, as Delete does, in the card's colour; no dialog (0.6.3).
+  // Retrying content asks in the same panel as Delete, in the card's colour.
   const retryExplanation = () => cardButton(a.page, 'Retry German');
   await (await retryExplanation()).click();
   const keepExplanation = a.page.getByRole('button', { name: 'Keep German', exact: true });
   await keepExplanation.waitFor();
-  assert.equal(await a.page.getByRole('dialog').count(), 0, 'no dialog');
-  assert.equal(await a.page.locator('[data-confirm="retry"] .confirm-text').textContent(), 'Are you sure?');
+  assert.equal(await a.page.locator('[data-confirm="retry"] .confirm-title').textContent(), 'German will be generated again');
   await a.page.locator('[data-confirm="retry"]').evaluate(node => Promise.all(node.getAnimations({ subtree: true }).map(animation => animation.finished.catch(() => {}))));
   assert.notEqual(await a.page.locator('[data-confirm="retry"] .action-confirm').evaluate(node => getComputedStyle(node).backgroundColor),
     await a.page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--status-failed').trim()), 'not red');
@@ -208,7 +227,6 @@ test('retry UI: exact confirmation asked beside the tab, a first Retry without w
   assert.equal(text(modulesOf(await application.store.page(pageId))[1]), 'saved original');
   await (await retryExplanation()).click();
   await a.page.getByRole('button', { name: 'Yes, retry German', exact: true }).click();
-  assert.equal(await a.page.getByRole('dialog').count(), 0, 'the answer beside the tab is the confirmation');
   await waitFor(() => release, 'retry provider started');
   await waitFor(async () => (await retryExplanation()).isDisabled(), 'retry disables its control while generating');
   // Every Retry is briefly disabled while the request is in flight; once accepted, only the generating component stays locked.
@@ -234,8 +252,7 @@ test('retry UI: exact confirmation asked beside the tab, a first Retry without w
   assert.equal(await componentArticle(a.page, 'German').count(), 1, 'a deck change never reaches the page');
   await addFromWindow(a.page, 'german');
   // Two Germans on one page are numbered in their tabs (0.7.2).
-  await componentArticle(a.page, 'German 2').locator('.tab-button').click();
-  await componentArticle(a.page, 'German 2').getByRole('button', { name: 'Retry German 2', exact: true }).click();
+  await (await cardButton(a.page, 'Retry German 2')).click();
   await waitFor(async () => modulesOf(await application.store.page(pageId)).filter(item => item.attemptId).length === 3, 'the added module generated');
   assert.equal(await a.page.getByRole('dialog').count(), 0);
 });

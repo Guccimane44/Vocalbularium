@@ -50,13 +50,13 @@ test('deck UI: draft previews, all modules, the module limit, removal without co
   assert.equal(await a.page.getByRole('button', { name: 'Preview', exact: true }).count(), 0, 'no Preview button');
   assert.equal(await a.page.locator('.sample-page, .preview-dialog').count(), 0, 'and no preview');
   const listTypes = () => a.page.locator('.shaping-list .deck-module').evaluateAll(nodes => nodes.slice(1).map(node => node.dataset.type));
-  // A module's tab is two parts edge to edge, as on a page: the six dots at its left end, then its icon and name.
+  // A module's tab is one button, as on a page: its icon and name from end to end.
   const block = a.page.locator('.deck-module[data-type="chinese"]').first();
   await block.scrollIntoViewIfNeeded();
   assert.deepEqual(await block.locator('.card-tab').evaluate(node => {
     const box = node.getBoundingClientRect();
-    return [5, box.width / 2].map(x => document.elementFromPoint(box.left + x, box.top + box.height / 2)?.closest('.menu-button, .tab-button')?.className);
-  }), ['menu-button', 'tab-button']);
+    return [3, box.width / 2].map(x => document.elementFromPoint(box.left + x, box.top + box.height / 2)?.closest('button')?.className);
+  }), ['tab-button', 'tab-button']);
   // A module drags by its label (D07).
   await block.locator('.tab-button').focus();
   await dragKey(a.page, 'Space');

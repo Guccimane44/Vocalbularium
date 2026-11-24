@@ -8,7 +8,7 @@ Each page describes one screen of the extension: how the user gets there, what i
 | Home: the decks and recent captures | `dashboard`, `dashboard-empty` | [Home](home.md) |
 | A deck's page list | `deck`, `deck-empty` | [Deck](deck.md) |
 | A deck's settings, and a new deck | `deck-settings`, `deck-new` | [Deck settings](deck-settings.md) |
-| A page and its cards, and a new page | `page-<group>-<state>`, `page-new`, `page-menu`, `facet-grip` | [Page](page.md) |
+| A page and its cards, and a new page | `page-<group>-<state>`, `page-new`, `page-menu`, `facet-handle` | [Page](page.md) |
 | Choosing a card's facets | `facet-window` | [Facet window](facet-window.md) |
 | The modules to add, beside a page and deck settings | `module-window` | [Module window](module-window.md) |
 | Family, module and facet pages | `family-page`, `module-page`, `facet-page` | [Module pages](module-pages.md) |

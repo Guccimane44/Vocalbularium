@@ -5,8 +5,6 @@
 // is noisy on correct screens is tightened, never quietened here.
 /** @type {readonly import('./index.mjs').AllowEntry[]} */
 export const ALLOWLIST = Object.freeze([
-  { screen: '*', rule: 'target-size', selector: 'div.card-head > div.card-tab > span.row-menu > button.menu-button',
-    description: 'A card tab’s ⋯ menu button is 22 × 28 px, flush against the tab button beside it.' },
   { screen: '*', theme: 'dark', rule: 'token-colour', selector: 'fieldset#theme-control > div.segmented > label',
     description: 'In Moss night the Appearance control’s selected segment keeps the light theme’s shadow, rgba(27, 36, 25, 0.18), not a dark token.' },
   { screen: '*', theme: 'dark', rule: 'token-colour', selector: 'div.card-head > div.card-tab > span.spark > i',

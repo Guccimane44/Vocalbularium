@@ -2,9 +2,9 @@
    pages, where the bundled fonts are not loaded, so it uses system fonts and
    looks the same on a web page and on the dashboard. */
 .feedback-item {
-  display: flex; align-items: center; gap: 10px;
+  display: flex; align-items: center; gap: 8px;
   font: 500 15px/1.45 system-ui, sans-serif; color: var(--ink); background: var(--surface);
-  padding: 10px 10px 10px 14px; margin: 0 0 8px; border: 0; border-radius: var(--radius-card);
+  padding: 12px 12px 12px 16px; margin: 0 0 8px; border: 0; border-radius: var(--radius-card);
   box-shadow: 0 0 0 1px var(--line), var(--shadow-lift); max-width: min(380px, calc(100vw - 36px));
   overflow-wrap: anywhere;
   animation: feedback-in var(--dur-spring) var(--ease-spring) both;
@@ -15,7 +15,7 @@
 .feedback-text { flex: 1 1 auto; min-width: 0; }
 .feedback-item button {
   flex: none; font: inherit; line-height: 1; color: var(--ink-soft); background: transparent; border: 0;
-  border-radius: var(--radius-sm); cursor: pointer; padding: 6px 9px; margin-inline-start: 6px;
+  border-radius: var(--radius-sm); cursor: pointer; padding: 8px 8px; margin-inline-start: 8px;
 }
 .feedback-item button:hover { background: var(--surface-hover); color: var(--ink); }
 .feedback-item button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
@@ -24,7 +24,7 @@
 .flight-label {
   position: fixed; left: 0; top: 0; z-index: 1; pointer-events: none; white-space: nowrap;
   font: 600 15px/1.2 Georgia, serif; color: var(--on-ink); background: var(--ink);
-  padding: 7px 14px; border-radius: 999px; box-shadow: var(--shadow-drag); will-change: transform, opacity;
+  padding: 8px 16px; border-radius: 999px; box-shadow: var(--shadow-drag); will-change: transform, opacity;
 }
 @media (prefers-reduced-motion: reduce) { .feedback-item { animation: none; } .flight-label { display: none; } }
 @media (forced-colors: active) { .feedback-item { border: 1px solid CanvasText; } .feedback-mark { forced-color-adjust: none; background: CanvasText; } }

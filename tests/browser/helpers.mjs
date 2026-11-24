@@ -16,19 +16,26 @@ export const modulesOf = page => page.components.filter(component => isContentTy
 export const componentArticle = (page, heading) => page.locator('article.component').filter({ has: page.getByRole('heading', { name: heading, exact: true }) });
 // A card's label in its tab drags the card; clicked, it ejects the card's actions (D07).
 export const cardTab = (page, heading) => componentArticle(page, heading).locator('.tab-button');
-// An action ejected from its card's tab, opening the tab first when the actions are not out.
+// An action ejected from its card's tab, opening the tab first when the actions are not out,
+// and then Actions when the action is one it drops down (Edit, Retry, Fold, Unfold, Delete).
 export async function cardButton(page, name) {
   const button = page.getByRole('button', { name, exact: true });
   if (await button.count()) return button;
-  await cardTab(page, name.replace(/^(Edit|Retry|Generate|Fold|Unfold|Delete) /, '')).click();
+  const card = name.replace(/^(Edit|Retry|Generate|Fold|Unfold|Delete) /, '');
+  if (!await page.getByRole('button', { name: `Actions for ${card}`, exact: true }).count()) await cardTab(page, card).click();
+  if (!await button.count()) await page.getByRole('button', { name: `Actions for ${card}`, exact: true }).click();
   return button;
 }
 // A parent's facet window (D13, 0.8.1), opened by Facet among its actions; already open, it is returned as it is.
 export async function facetWindow(page, label) {
+  // A window still folding away from an earlier close is no window to use.
+  await page.locator('.facet-window[data-closing]').waitFor({ state: 'detached' });
   const window = page.getByRole('group', { name: `Facets of ${label}`, exact: true });
   if (await window.count()) return window;
-  await cardTab(page, label).click();
-  await page.getByRole('button', { name: `Facets of ${label}`, exact: true }).click();
+  // Closing the window leaves the actions out, Facet among them.
+  const facet = page.getByRole('button', { name: `Facets of ${label}`, exact: true });
+  if (!await facet.count()) await cardTab(page, label).click();
+  await facet.click();
   await window.waitFor();
   return window;
 }
@@ -39,9 +46,14 @@ export const tick = (window, facet) => window.getByRole('button', { name: new Re
 export const inOrder = (window, read) => window.locator('.facet-window-row').evaluateAll((rows, read) => rows
   .sort((a, b) => Number(a.dataset.index) - Number(b.dataset.index))
   .map(row => read === 'name' ? row.querySelector('.facet-window-name').textContent : row.hasAttribute('data-equipped')), read);
-// In deck settings a module is an empty card (0.7.1): its tab ejects Remove.
+// In deck settings a module is an empty card (0.7.1): its tab ejects Actions,
+// which drops Remove.
+// Only deck-settings rows: right after navigating there from a page, that
+// page's card of the same name can still be on screen.
 export async function removeFromDeck(page, label, nth = 0) {
-  await componentArticle(page, label).nth(nth).locator('.tab-button').click();
+  const row = page.locator('.deck-module').filter({ has: page.getByRole('heading', { name: label, exact: true }) }).nth(nth);
+  await row.locator('.tab-button').click();
+  await row.getByRole('button', { name: `Actions for ${label}`, exact: true }).click();
   await page.getByRole('button', { name: `Remove ${label}`, exact: true }).click();
 }
 export const apiOrigin = process.env.VOCABULARIUM_API_URL ?? 'http://127.0.0.1:4318';

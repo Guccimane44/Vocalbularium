@@ -49,9 +49,21 @@ test('parents and facets: core only on add, the facet window on the parent, its 
     'every facet of German, the grammar facets (D17), Pronunciation (D24) and the 0.16.4 facets included');
   assert.deepEqual(await inOrder(facets, 'equipped'), [true, true, true, true, false, false, false, false, false, false, false, false], 'the grammar facets and Pronunciation are not on a My Deck card (K56)');
   await waitFor(() => tick(facets, 'Article').evaluate(node => node === document.activeElement), 'the first row takes the focus');
-  // A card on the surface (D23, 0.13.3): a heading naming the parent, a close, and a line on Retry.
+  // It hangs from the card's top line, under Facet, and that line flows round it as its frame:
+  // the card draws no line of its own along its top while it is open.
+  const germanCard = card('German');
+  // Facet may still be springing out of the tab: measured where it lands.
+  await a.page.getByRole('button', { name: 'Facets of German', exact: true }).evaluate(node => Promise.all(node.getAnimations().map(animation => animation.finished)));
+  const [cardBox, windowBox, facetBox] = [await germanCard.boundingBox(), await facets.boundingBox(), await a.page.getByRole('button', { name: 'Facets of German', exact: true }).boundingBox()];
+  assert.ok(Math.abs(windowBox.y - cardBox.y - 3) <= 1 && Math.abs(windowBox.x - facetBox.x) <= 1, `the window hangs below the card's line, under Facet (${JSON.stringify({ cardBox, windowBox, facetBox })})`);
+  assert.equal(await germanCard.locator('.facet-flow path').count(), 3, 'the line above the window and the two that flow round it');
+  // It never scrolls: all twelve facets stand in view, the last one inside the window.
+  await facets.evaluate(node => Promise.all(node.getAnimations({ subtree: true }).map(animation => animation.finished)));
+  const fit = await facets.evaluate(node => { const body = node.querySelector('.facet-window-body'); const last = [...node.querySelectorAll('.facet-window-row')].at(-1); return { scroll: body.scrollHeight, client: body.clientHeight, overflow: getComputedStyle(body).overflowY, last: last.getBoundingClientRect().bottom, window: node.getBoundingClientRect().bottom }; });
+  assert.ok(fit.scroll <= fit.client + 1 && fit.overflow === 'visible' && fit.last <= fit.window, `every facet in view, nothing to scroll (${JSON.stringify(fit)})`);
+  assert.doesNotMatch(await germanCard.evaluate(node => getComputedStyle(node).boxShadow), /inset/, 'the card lends its line to the frame');
+  // A card on the surface (D23, 0.13.3): a heading naming the parent and a close.
   assert.equal(await facets.getByRole('heading', { level: 3 }).textContent(), 'Facets of German');
-  assert.equal(await facets.locator('.facet-window-hint').textContent(), 'Added facets fill in on the next Retry.');
   // Two groups: the facets on the card, each with its Remove, then the others, each with its Add.
   assert.deepEqual(await facets.locator('.facet-window-group').allTextContents(), ['On this card', 'Add']);
   assert.deepEqual(await facets.getByRole('list', { name: 'On this card', exact: true }).locator('.facet-toggle').evaluateAll(nodes => nodes.map(node => node.getAttribute('aria-label'))),
@@ -74,15 +86,22 @@ test('parents and facets: core only on add, the facet window on the parent, its 
   assert.doesNotMatch(text((await german())[0]), /Examples/);
   assert.equal(await facets.isVisible(), true, 'the window stays open');
   assert.equal(await ticked(facets, 'Examples'), false);
-  // Escape closes it and returns the focus to the card's tab.
+  // Escape closes it and returns the focus to Facet, the card's actions still out. It folds away first,
+  // its frame flowing back into the card's line, and the card gets its line back once it has gone.
   await a.page.keyboard.press('Escape');
-  await facets.waitFor({ state: 'detached' });
-  assert.equal(await cardTab(a.page, 'German').evaluate(node => node === document.activeElement), true, 'the focus back on the tab');
+  assert.equal(await card('German').locator('.facet-window[data-closing]').count(), 1, 'it folds away first');
+  assert.doesNotMatch(await card('German').evaluate(node => getComputedStyle(node).boxShadow), /inset/, 'the frame still holds the line while it flows back');
+  await card('German').locator('.facet-window').waitFor({ state: 'detached' });
+  assert.match(await card('German').evaluate(node => getComputedStyle(node).boxShadow), /inset/, 'the card has its line back');
+  assert.equal(await a.page.getByRole('button', { name: 'Facets of German', exact: true }).evaluate(node => node === document.activeElement), true, 'the focus back on Facet');
   // Its close does the same (D23).
   facets = await facetWindow(a.page, 'German');
   await facets.getByRole('button', { name: 'Close', exact: true }).click();
   await facets.waitFor({ state: 'detached' });
-  assert.equal(await cardTab(a.page, 'German').evaluate(node => node === document.activeElement), true, 'the close returns the focus to the tab');
+  assert.equal(await a.page.getByRole('button', { name: 'Facets of German', exact: true }).evaluate(node => node === document.activeElement), true, 'the close returns the focus to Facet');
+  assert.equal(await card('German').locator('.facet-flow').count(), 0, 'closed, the frame goes');
+  assert.match(await card('German').evaluate(node => getComputedStyle(node).boxShadow), /inset/, 'and the card has its top line back');
+  await a.page.keyboard.press('Escape');
 
   // A parent added from the window has its core only; its facet window lists its own facets.
   await openFamily(windowModule(a.page, 'chinese'));
@@ -161,7 +180,8 @@ test('parents and facets: core only on add, the facet window on the parent, its 
   facets = await facetWindow(a.page, 'German 2');
   await tick(facets, 'Antonyms').click();
   await waitFor(async () => (await deckGermans.nth(1).locator('.facet-tag-mark').allTextContents()).join() === 'An', 'Antonyms on German 2');
-  assert.deepEqual(await deckGermans.nth(0).locator('.facet-tag-mark').allTextContents(), ['Ar', 'Ex', 'Sy']);
+  // A popped tag stays in the list until its pop ends.
+  await waitFor(async () => (await deckGermans.nth(0).locator('.facet-tag:not([data-leaving]) .facet-tag-mark').allTextContents()).join() === 'Ar,Ex,Sy', 'German 1 keeps its own');
   await tick(facets, 'Antonyms').click();
   await waitFor(async () => await deckGermans.nth(1).locator('.facet-tag:not([data-leaving])').count() === 0, 'unticked at once');
   assert.equal(await facets.getByRole('button', { name: /^Yes, delete/ }).count(), 0, 'without a question');
@@ -214,12 +234,12 @@ test('facet window from the keyboard: Facet among the actions, Space on a tick, 
   await a.page.goto(`chrome-extension://${a.id}/app.html#page/${pageId}`);
   await card('German').locator('.facet').first().waitFor();
 
-  // Enter on the tab ejects the actions; Facet stands after Retry (D13, 0.8.1), About before Fold (D20).
+  // Enter on the tab ejects the actions; Facet stands after Actions (D13, 0.8.1), then About (D20) and Settings.
   await cardTab(a.page, 'German').focus();
   await a.page.keyboard.press('Enter');
   const actions = card('German').locator('.card-actions button');
   await actions.first().waitFor();
-  assert.deepEqual(await actions.allTextContents(), ['Edit', 'Retry', 'Facet', 'About', 'Fold', 'Delete']);
+  assert.deepEqual(await actions.allTextContents(), ['Actions', 'Facet', 'About', 'Settings']);
   await a.page.getByRole('button', { name: 'Facets of German', exact: true }).focus();
   await a.page.keyboard.press('Enter');
   const facets = a.page.getByRole('group', { name: 'Facets of German', exact: true });
@@ -253,10 +273,11 @@ test('facet window from the keyboard: Facet among the actions, Space on a tick, 
   await a.page.keyboard.press('Space');
   await waitFor(async () => (await german()).facets.includes('synonyms'), 'Synonyms added again');
   await waitFor(async () => await card('German').locator('.facet-tag[data-facet="synonyms"][data-unfilled]').count() === 1, 'waiting for Retry');
-  // Escape closes the window and returns the focus to the tab.
+  // Escape closes the window and returns the focus to Facet, the card's actions still out.
   await a.page.keyboard.press('Escape');
   await facets.waitFor({ state: 'detached' });
-  assert.equal(await focused(cardTab(a.page, 'German')), true);
+  assert.equal(await focused(a.page.getByRole('button', { name: 'Facets of German', exact: true })), true);
+  await a.page.keyboard.press('Escape');
 
   // While the card is edited its actions stay in, so the window cannot open.
   await (await cardButton(a.page, 'Edit German')).click();
