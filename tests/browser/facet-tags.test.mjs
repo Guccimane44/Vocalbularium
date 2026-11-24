@@ -120,7 +120,8 @@ test('facet tags: abbreviations in order, on the left edge, along the edge to th
 
   // Ticked again in the facet window, the tag flies in from its row to its place in the parent's order (D13).
   const facets = await facetWindow(a.page, 'German');
-  // Measured before the click, once its row is in view: the added facet then moves to On this card (D23).
+  // Measured before the click, once the window has settled and its row is in view: the added facet then moves to On this card (D23).
+  await facets.evaluate(node => Promise.all(node.getAnimations({ subtree: true }).map(animation => animation.finished)));
   await tick(facets, 'Antonyms').scrollIntoViewIfNeeded();
   const origin = await facets.locator('.facet-window-row[data-facet="antonyms"] .facet-tab-mark').boundingBox();
   await tick(facets, 'Antonyms').click();

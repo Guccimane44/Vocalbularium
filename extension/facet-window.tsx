@@ -9,7 +9,7 @@ import { facetMark, facetName } from './catalog-text.ts';
 import { facetsFull, MAX_FACETS } from './facet-limit.ts';
 import { CATALOG } from '@vocabularium/domain/page-modules';
 import { FamilyIcon } from './families.tsx';
-import { FacetFlow } from './facet-flow.tsx';
+import { clipFrames, FacetFlow } from './facet-flow.tsx';
 
 // A parent's facet window (D13, 0.8.1), opened by Facet among the parent's
 // actions, on a page and in deck settings. It lists every facet of the
@@ -92,14 +92,16 @@ export function FacetWindow({ holderId, parent, title, facets, disabled, hasCont
     if (!closing) return;
     const panel = root.current;
     if (!panel || matchMedia('(prefers-reduced-motion: reduce)').matches) { gone.current?.(); return; }
-    const motions = [panel.animate([{ clipPath: 'inset(0 0 -40px 0 round 0 0 12px 12px)' }, { clipPath: 'inset(0 0 100% 0 round 0 0 12px 12px)' }],
-      { duration: 380, easing: 'cubic-bezier(.4, 0, .2, 1)', fill: 'forwards' })];
+    // The window folds on the line's own timeline too, its lower edge always where the line has got back to.
+    const closingTime = { duration: 460, easing: 'cubic-bezier(.5, 0, .3, 1)', fill: 'forwards' } as const;
+    const motions: Animation[] = [];
     panel.parentElement?.querySelectorAll<SVGPathElement>('.facet-flow path[data-side]').forEach(path => {
       const total = Number(path.dataset.total), rule = Number(path.dataset.rule);
       path.getAnimations().forEach(motion => motion.cancel());
-      motions.push(path.animate([{ strokeDasharray: `${total - rule} ${2 * total}`, strokeDashoffset: `${-rule}` }, { strokeDasharray: `${rule} ${2 * total}`, strokeDashoffset: '0' }],
-        { duration: 460, easing: 'cubic-bezier(.5, 0, .3, 1)', fill: 'forwards' }));
+      motions.push(path.animate([{ strokeDasharray: `${total - rule} ${2 * total}`, strokeDashoffset: `${-rule}` }, { strokeDasharray: `${rule} ${2 * total}`, strokeDashoffset: '0' }], closingTime));
+      if (path.dataset.side === '1') motions.push(panel.animate(clipFrames(panel, total - rule).reverse().map(frame => ({ ...frame, offset: 1 - Number(frame.offset) })), closingTime));
     });
+    if (!motions.length) motions.push(panel.animate([{ opacity: 1 }, { opacity: 0 }], closingTime));
     let left = false;
     void Promise.all(motions.map(motion => motion.finished)).then(() => { if (!left) gone.current?.(); }, () => undefined);
     return () => { left = true; };

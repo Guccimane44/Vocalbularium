@@ -36,6 +36,31 @@ function sidePath(g: Geometry, side: 1 | -1, bottom = g.bottom) {
 const ruleLength = (g: Geometry, side: 1 | -1) => (g.radius - RULE / 2) * Math.PI / 2
   + (side === 1 ? g.start - FILLET - g.radius : g.width - g.radius - (g.end + FILLET));
 
+// The window opens on the line's own timeline, never on one of its own: its
+// lower edge is wherever the line has got to down the sides, and it dips and
+// springs back with the line's bottom, so the two move as one.
+export function clipFrames(panel: HTMLElement, frame: number): Keyframe[] {
+  const height = panel.offsetHeight, fillet = Math.PI * FILLET / 2;
+  const reached = (progress: number) => {
+    const along = progress * frame;
+    const down = along < fillet ? along * FILLET / fillet : FILLET + along - fillet;
+    return Math.min(height, Math.max(0, down - RULE / 2));
+  };
+  const steps = 24;
+  return Array.from({ length: steps + 1 }, (_, step) => {
+    const shown = reached(step / steps);
+    return { offset: step / steps, clipPath: `inset(0 0 ${shown >= height ? -40 : height - shown}px 0 round 0 0 12px 12px)` };
+  });
+}
+
+function unfold(panel: HTMLElement, frame: number) {
+  const height = panel.offsetHeight;
+  panel.animate(clipFrames(panel, frame), { duration: FLOW_MS, easing: 'cubic-bezier(.5, 0, .2, 1)', fill: 'both' });
+  const stretch = (by: number) => `scaleY(${(height + by) / height})`;
+  panel.animate([{ transform: 'none', offset: 0 }, { transform: 'none', offset: .72 }, { transform: stretch(DIP), offset: .86 },
+    { transform: stretch(-3), offset: .94 }, { transform: 'none', offset: 1 }], { duration: POUR_MS, easing: 'ease-out' });
+}
+
 export function FacetFlow({ target, closing }: { target: RefObject<HTMLElement | null>; closing: boolean }) {
   const svg = useRef<SVGSVGElement>(null);
   const [geometry, setGeometry] = useState<Geometry | null>(null);
@@ -60,6 +85,7 @@ export function FacetFlow({ target, closing }: { target: RefObject<HTMLElement |
     if (!geometry || !svg.current || closing) return;
     const still = played.current || matchMedia('(prefers-reduced-motion: reduce)').matches;
     played.current = true;
+    const panel = target.current;
     svg.current.querySelectorAll<SVGPathElement>('path[data-side]').forEach(path => {
       const side = Number(path.dataset.side) as 1 | -1;
       const total = path.getTotalLength(), rule = Math.min(ruleLength(geometry, side), total);
@@ -73,6 +99,7 @@ export function FacetFlow({ target, closing }: { target: RefObject<HTMLElement |
       const at = (bottom: number) => `path("${sidePath(geometry, side, bottom)}")`;
       path.animate([{ d: at(geometry.bottom), offset: 0 }, { d: at(geometry.bottom), offset: .72 }, { d: at(geometry.bottom + DIP), offset: .86 },
         { d: at(geometry.bottom - 3), offset: .94 }, { d: at(geometry.bottom), offset: 1 }], { duration: POUR_MS, easing: 'ease-out' });
+      if (side === 1 && panel) unfold(panel, total - rule);
     });
   }, [geometry]);
   if (!geometry) return null;
