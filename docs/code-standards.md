@@ -36,8 +36,9 @@ How to describe and review a change to a subsystem is in the [subsystem referenc
 | Rule | Enforced by |
 | --- | --- |
 | Each release states its upgrade in its own file under [docs/releases](releases/README.md). | `scripts/package.py` refuses to package without `docs/releases/<version>.md` |
-| Every PR that changes the extension comes with a ready-to-load build of its head for the owner to try, unzipped beside its ZIP (`npm run test-build`, [Change skill](../.agents/skills/vocabularium-change/SKILL.md#keep-github-useful)). | nothing |
+| Every PR that changes the extension comes with a ready-to-load build of its head for the owner to try, unzipped beside its ZIP (`npm run test-build`, [Change skill](../.agents/skills/vocabularium-change/SKILL.md#keep-github-useful)). | the Stop hook (`scripts/stop-hook.mjs`, wired in `.claude/settings.json`) stops a Claude Code session from ending while its branch's open PR changes `extension/` and has no test build of its head; nothing for other agents |
 | Merge only when every check passes on a branch up to date with `main`. | the GitHub ruleset "main: verify must pass" |
+| An agent never merges a PR; the owner does. | `.claude/settings.json` asks the owner before any `gh pr merge`; nothing for other agents |
 | A browser test that fails at random is named, never passed over. | `scripts/browser-tests.mjs` reruns a failed file once and fails the run either way |
 | The API and extension under discussion are the ones built from the code under discussion. | the version and commit on the homepage and login page; the account menu's warning when the two differ (`tests/extension.test.mjs`); `/health/live` and a failed second start name the running build (`tests/server.test.mjs`) |
 
@@ -45,6 +46,7 @@ How to describe and review a change to a subsystem is in the [subsystem referenc
 
 | Rule | Enforced by |
 | --- | --- |
+| Every project skill in `.agents/skills/` has a link in `.claude/skills/`, where Claude Code finds skills. | `scripts/check.mjs` in `npm run check` |
 | Relative links and anchors in Markdown resolve. | `scripts/check-links.mjs` in `npm run check` |
 | Decision files follow their naming, numbering and header rules ([decisions](decisions/README.md)). | `scripts/check-decisions.mjs` in `npm run check`; `scripts/check-decision-issues.mjs` in CI |
 | A file, export, dependency, local or parameter goes once nothing uses it. | `knip` (unused files, exports and dependencies; a new entry point goes in `knip.json`) and the compiler's `noUnusedLocals` and `noUnusedParameters`, both in `npm run check`; nothing catches an unused field of an object or a constant copied between files |
