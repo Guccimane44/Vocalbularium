@@ -54,7 +54,7 @@ Every change keeps the rules in the [code standards](docs/code-standards.md), gr
 
 ## Reusable workflows
 
-Use the project skills relevant to the task:
+Use the project skills relevant to the task. They live in `.agents/skills/`; each has a link in `.claude/skills/` so Claude Code loads it, and a new skill adds its link in the same change (`npm run check` fails without it). Claude Code's Stop hook, `scripts/stop-hook.mjs`, also checks the files a session changed and the test build of an extension PR before the session ends.
 
 - [Vocabularium Change](.agents/skills/vocabularium-change/SKILL.md): take a request in, scope the increment, and keep issues and PRs current.
 - [Vocabularium Verify](.agents/skills/vocabularium-verify/SKILL.md): choose regression checks, investigate failures, and record evidence.
