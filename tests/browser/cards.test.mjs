@@ -82,7 +82,7 @@ test('0.12.0: a German verb’s Conjugation is a table on the card, its top line
   await declension.hover();
   assert.equal(await a.page.getByRole('button', { name: 'Retry Declension from German', exact: true }).isDisabled(), true);
   assert.equal(await a.page.getByRole('button', { name: 'Retry Conjugation from German', exact: true }).isDisabled(), false, 'Conjugation applies');
-  // Its About opens the facet's page, as its › in the facet window does (0.12.1; a page since 0.13.0).
+  // Its About opens the facet's page, as its row in the facet window does (0.12.1; a page since 0.13.0).
   await a.page.getByRole('button', { name: 'About Conjugation from German', exact: true }).click();
   const conjugationAbout = a.page.getByRole('dialog', { name: 'Conjugation', exact: true });
   await conjugationAbout.waitFor();

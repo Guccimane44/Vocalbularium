@@ -155,7 +155,7 @@ test('family, module and facet pages in one sheet, from the module window, a car
   await a.page.mouse.click(5, 5);
   await sheet.waitFor({ state: 'detached' });
 
-  // In the facet window a row's › opens the facet's page over the window, which stays open beneath it.
+  // In the facet window a click on a row opens the facet's page over the window, which stays open beneath it.
   const facets = await facetWindow(a.page, 'German');
   const info = name => facets.getByRole('button', { name: `About ${name}`, exact: true });
   await info('Article').click();
@@ -163,14 +163,14 @@ test('family, module and facet pages in one sheet, from the module window, a car
   await a.page.keyboard.press('Escape');
   await sheet.waitFor({ state: 'detached' });
   assert.equal(await facets.isVisible(), true, 'the facet window stays open');
-  assert.equal(await focused(info('Article')), true, 'the focus back on its ›');
+  assert.equal(await focused(info('Article')), true, 'the focus back on its row');
   // Closing the sheet with a click beside it leaves the window open too, for the next facet's page.
   await info('Examples').click();
   await waitFor(async () => await title() === 'Examples', 'Examples from the facet window');
   await a.page.mouse.click(5, 5);
   await sheet.waitFor({ state: 'detached' });
   assert.equal(await facets.isVisible(), true, 'the facet window stays open after a click beside the sheet');
-  assert.equal(await focused(info('Examples')), true, 'the focus back on the next ›');
+  assert.equal(await focused(info('Examples')), true, 'the focus back on the next row');
   assert.deepEqual(await inOrder(facets, 'equipped'), [true, true, true, true, ...Array(8).fill(false)], 'the grammar facets, Pronunciation and the 0.16.4 facets are not on a My Deck card (K56)');
   await a.page.keyboard.press('Escape');
 

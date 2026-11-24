@@ -160,11 +160,10 @@ export function FacetWindow({ holderId, parent, title, facets, disabled, hasCont
   const row = (facet: FacetType, on: boolean) => {
     const label = facetName(parent, facet);
     return <li key={facet} style={{ '--j': drop++ } as CSSProperties} className="facet-window-row" data-facet={facet} data-index={all.indexOf(facet)} data-equipped={on || undefined} data-asking={asking === facet || undefined}>
-      <span className="facet-tab-mark" aria-hidden="true">{facetMark(parent, facet)}</span>
-      <span className="facet-window-name">{label}</span>
       <button type="button" className="facet-about" aria-label={t('about.facet', { name: label })} aria-haspopup="dialog"
         onClick={() => openAbout({ kind: 'facet', module: parent, facet })}>
-        <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6" /></svg>
+        <span className="facet-tab-mark" aria-hidden="true">{facetMark(parent, facet)}</span>
+        <span className="facet-window-name">{label}</span>
       </button>
       {/* While the parent is busy the button still holds the focus, so it is only marked unavailable. */}
       <button type="button" className="facet-toggle" hidden={asking === facet} aria-disabled={disabled || (full && !on) || undefined}
