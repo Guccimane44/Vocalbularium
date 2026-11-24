@@ -246,7 +246,7 @@ test('facet window from the keyboard: Facet among the actions, Space on a tick, 
   await facets.waitFor();
   await waitFor(() => focused(tick(facets, 'Article')), 'the focus on the first tick');
 
-  // Tab moves through each row's ›, then its tick; Space on a tick with content asks, with the focus on
+  // Tab moves through each row's name, then its tick; Space on a tick with content asks, with the focus on
   // Cancel; Escape takes back the question and returns the focus to its tick, still ticked.
   await a.page.keyboard.press('Tab');
   assert.equal(await focused(facets.getByRole('button', { name: 'About Examples', exact: true })), true);

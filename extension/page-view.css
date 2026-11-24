@@ -106,34 +106,35 @@
 .facet-window-body { flex: none; }
 .facet-window-group { margin: 0; padding: 8px 8px 4px; font: 600 11px/16px var(--font-text); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-muted); }
 .facet-window ul { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
-.facet-window-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0 8px; min-height: 36px; padding: 0 4px 0 8px; border-radius: var(--radius-md);
+.facet-window-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0 8px; min-height: 36px; padding: 0 4px 0 0; border-radius: var(--radius-md);
   transition: background var(--dur-instant) var(--ease-fade); }
 .facet-window-row[data-equipped] { min-height: 36px; background: var(--fam-tint, var(--fam-notes-tint)); }
 .facet-window-row:not([data-equipped]):hover, .facet-window-row:not([data-equipped]):focus-within { background: var(--surface-hover); }
+.facet-window-row[data-equipped]:has(.facet-about:hover) { background: color-mix(in srgb, var(--fam, var(--fam-notes)) 8%, var(--fam-tint, var(--fam-notes-tint))); }
+/* A row's mark and name are one button opening the facet's page, reaching to its + or ×. */
+.facet-window-row .facet-about { flex: 1 1 auto; display: flex; align-items: center; gap: 8px; min-width: 0; min-height: 36px; padding: 0 0 0 8px; border: 0;
+  border-radius: var(--radius-md); background: transparent; text-align: start; }
+.facet-window-row .facet-about:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
 .facet-window-row .facet-tab-mark { flex: 0 0 auto; min-width: 22px; height: 18px; border-radius: 4px; font-size: 10px; }
 .facet-window-row:not([data-equipped]) .facet-tab-mark { background: transparent; color: var(--fam, var(--fam-notes)); box-shadow: inset 0 0 0 1px var(--fam, var(--fam-notes)); }
 .facet-window-name { flex: 1 1 auto; min-width: 0; color: var(--ink-soft); }
 .facet-window-row[data-equipped] .facet-window-name { color: var(--ink); font-weight: 600; }
 .facet-window-limit { margin: 0 8px 4px; font-size: 12px; color: var(--ink-muted); }
-/* The close, a row's ›, its remove and its +: quiet square buttons. */
-.facet-window-close, .facet-about, .facet-toggle { flex: 0 0 auto; display: grid; place-items: center; width: 26px; height: 26px; padding: 0; border: 0; border-radius: var(--radius-sm);
+/* The close, a row's remove and its +: quiet square buttons. */
+.facet-window-close, .facet-toggle { flex: 0 0 auto; display: grid; place-items: center; width: 26px; height: 26px; padding: 0; border: 0; border-radius: var(--radius-sm);
   background: transparent; color: var(--ink-muted); box-shadow: none; cursor: pointer; transition: background var(--dur-instant) var(--ease-fade), color var(--dur-instant) var(--ease-fade), opacity var(--dur-instant) var(--ease-fade); }
-.facet-window-close svg, .facet-about svg, .facet-toggle svg { width: 15px; height: 15px; }
-.facet-window-close:hover, .facet-about:hover, .facet-toggle:hover { background: var(--surface-active); color: var(--ink); }
-:is(.facet-window-close, .facet-about, .facet-toggle):focus-visible { opacity: 1; outline: 2px solid var(--focus); outline-offset: 1px; }
+.facet-window-close svg, .facet-toggle svg { width: 15px; height: 15px; }
+.facet-window-close:hover, .facet-toggle:hover { background: var(--surface-active); color: var(--ink); }
+:is(.facet-window-close, .facet-toggle):focus-visible { opacity: 1; outline: 2px solid var(--focus); outline-offset: 1px; }
 .facet-window-row:not([data-equipped]) .facet-toggle { color: var(--fam, var(--fam-notes)); }
 .facet-window-row:not([data-equipped]) .facet-toggle svg { width: 16px; height: 16px; }
 .facet-toggle[aria-disabled="true"] { opacity: .5; cursor: default; }
 .facet-toggle[hidden] { display: none; }
-.facet-window-row:not([data-equipped]) .facet-about { opacity: 0; }
-.facet-window-row:not([data-equipped]):is(:hover, :focus-within) .facet-about { opacity: 1; }
-:root[dir="rtl"] .facet-about svg { transform: scaleX(-1); }
-@media (hover: none) { .facet-window-row .facet-about { opacity: 1; } }
 /* Removing a facet with content asks on a line of its own under the row. */
 .facet-window-row[data-asking] .facet-confirm { flex: 1 0 100%; display: flex; justify-content: flex-end; margin: 4px 0 8px; }
 .sortable-row:has(.facet-window) { z-index: 6; }
 @media (prefers-reduced-motion: reduce) { .facet-window, .facet-window :is(.facet-window-row, .facet-window-group) { animation: none; } }
-@media (forced-colors: active) { .facet-window { border: 1px solid CanvasText; } .facet-window-row[data-equipped] { outline: 1px solid CanvasText; } .facet-about { opacity: 1; } }
+@media (forced-colors: active) { .facet-window { border: 1px solid CanvasText; } .facet-window-row[data-equipped] { outline: 1px solid CanvasText; } }
 
 /* Actions eject from the tab as smaller sibling tabs in the family's tint (D07):
    each springs out from behind the tab, one after the other, and the tab
@@ -158,7 +159,8 @@
 .card-actions .action-delete:not(:disabled):hover { background: var(--status-failed); color: var(--status-failed-bg); }
 .card-actions .action-failed { color: var(--status-failed-bg); background: var(--status-failed); box-shadow: none; }
 .card-actions .action-failed:not(:disabled):hover { background: var(--status-failed); color: var(--status-failed-bg); }
-.card-actions button:disabled { opacity: .5; cursor: default; background: var(--fam-tint, var(--fam-notes-tint)); }
+/* Greyed by a filter, which the eject's fade leaves alone, so an unavailable action is grey from its first frame. */
+.card-actions button:disabled { opacity: 1; filter: opacity(.5); cursor: default; background: var(--fam-tint, var(--fam-notes-tint)); }
 .card-actions .action-failed:disabled { background: var(--status-failed); }
 .facet-confirm[data-confirm="retry"] .confirm-text { --ink-bubble: var(--fam, var(--fam-notes)); --bubble: var(--fam-tint, var(--fam-notes-tint)); }
 /* A speech bubble: its tail points back at Delete and Cancel. The pill and
@@ -747,8 +749,6 @@ mark { background: var(--highlight); color: inherit; border-radius: 3px; padding
 .component[data-tagged] { min-height: 0; }
 .component[data-folded][data-tagged], .component[data-folded][data-tagged] :is(.card-fold, .card-fold-inner) {
   transition-delay: calc(var(--tag-travel) + (var(--tags, 1) - 1) * 40ms); }
-/* Folded, the card keeps room below for the tags hanging from it. */
-.component[data-tagged="folded"] { margin-bottom: 18px; }
 /* With content, the card is at least as tall as the tags on its left edge. */
 .component[data-tagged="edge"] { min-height: calc(40px + var(--tags, 0) * 30px); }
 /* Leaving, a tag pops where it stands, like a deleted card. */

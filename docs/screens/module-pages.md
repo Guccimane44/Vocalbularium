@@ -6,7 +6,7 @@ Module pages explain a family, a module or a facet, so a user can learn what it 
 
 - A family's mark and name in the [module window](module-window.md) open its family page; **About <module>** under a module opens its module page.
 - **About** among a card's actions on a [page](page.md), or among a module's actions, from its tab, in [deck settings](deck-settings.md).
-- A row's **›** in the [facet window](facet-window.md) opens its facet page, and so does a facet's own **About** on a card.
+- A click on a row in the [facet window](facet-window.md) opens its facet page, and so does a facet's own **About** on a card.
 - No route of its own; the sheet opens over the screen.
 
 ## What it shows and what the user can do
