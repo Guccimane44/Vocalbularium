@@ -41,3 +41,4 @@ One file per release, oldest first. Each file says what an upgrade from the rele
 - [0.16.6](0.16.6.md)
 - [0.16.7](0.16.7.md)
 - [0.16.8](0.16.8.md)
+- [0.16.9](0.16.9.md)
