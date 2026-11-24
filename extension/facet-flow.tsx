@@ -13,7 +13,8 @@ const RULE = 3;
 const FILLET = 10;
 const CORNER = 12;
 const FLOW_MS = 520;
-const POUR_MS = 620;
+// The dip starts once the two streams have met, never while they still run.
+const POUR_MS = 340;
 const DIP = 12;
 
 type Geometry = { left: number; top: number; width: number; height: number; radius: number; start: number; end: number; bottom: number };
@@ -57,8 +58,8 @@ function unfold(panel: HTMLElement, frame: number) {
   const height = panel.offsetHeight;
   panel.animate(clipFrames(panel, frame), { duration: FLOW_MS, easing: 'cubic-bezier(.5, 0, .2, 1)', fill: 'both' });
   const stretch = (by: number) => `scaleY(${(height + by) / height})`;
-  panel.animate([{ transform: 'none', offset: 0 }, { transform: 'none', offset: .72 }, { transform: stretch(DIP), offset: .86 },
-    { transform: stretch(-3), offset: .94 }, { transform: 'none', offset: 1 }], { duration: POUR_MS, easing: 'ease-out' });
+  panel.animate([{ transform: 'none' }, { transform: stretch(DIP), offset: .4 }, { transform: stretch(-3), offset: .75 }, { transform: 'none' }],
+    { duration: POUR_MS, delay: FLOW_MS, easing: 'ease-out' });
 }
 
 export function FacetFlow({ target, closing }: { target: RefObject<HTMLElement | null>; closing: boolean }) {
@@ -97,8 +98,8 @@ export function FacetFlow({ target, closing }: { target: RefObject<HTMLElement |
       path.animate([{ strokeDasharray: `${rule} ${2 * total}`, strokeDashoffset: '0' }, open], { duration: FLOW_MS, easing: 'cubic-bezier(.5, 0, .2, 1)' });
       path.animate([{ strokeWidth: `${RULE}` }, { strokeWidth: `${RULE * 1.5}`, offset: .5 }, { strokeWidth: `${RULE}` }], { duration: FLOW_MS, easing: 'ease' });
       const at = (bottom: number) => `path("${sidePath(geometry, side, bottom)}")`;
-      path.animate([{ d: at(geometry.bottom), offset: 0 }, { d: at(geometry.bottom), offset: .72 }, { d: at(geometry.bottom + DIP), offset: .86 },
-        { d: at(geometry.bottom - 3), offset: .94 }, { d: at(geometry.bottom), offset: 1 }], { duration: POUR_MS, easing: 'ease-out' });
+      path.animate([{ d: at(geometry.bottom) }, { d: at(geometry.bottom + DIP), offset: .4 }, { d: at(geometry.bottom - 3), offset: .75 }, { d: at(geometry.bottom) }],
+        { duration: POUR_MS, delay: FLOW_MS, easing: 'ease-out' });
       if (side === 1 && panel) unfold(panel, total - rule);
     });
   }, [geometry]);
