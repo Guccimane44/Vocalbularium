@@ -1,5 +1,5 @@
 {
-  "about": "The silver set: a tenth of the golden set's cards (41 of 407), one or more from every content module that has golden cards, and each kind of hard case (a Context that picks a sense, a sentence, a foreign key, an unrelated key, a Chinese grammar word). Each pick names a golden input by its set, key and Context, and the one module it runs on; the input's expectation comes from the golden file, so the two never drift apart. It is for quick comparisons, such as the reasoning experiment (npm run silver), not for a module's gate.",
+  "about": "The silver set: a tenth of the golden set's cards (45 of 443), one or more from every content module that has golden cards, and each kind of hard case (a Context that picks a sense, a sentence, a foreign key, an unrelated key, a Chinese grammar word, a messy capture such as slang, a typo or a broken selection). Each pick names a golden input by its set, key and Context, and the one module it runs on; the input's expectation comes from the golden file, so the two never drift apart. It is for quick comparisons, such as the reasoning experiment (npm run silver), not for a module's gate.",
   "picks": [
     {
       "set": "parents",
@@ -212,6 +212,30 @@
       "set": "german",
       "key": "carriers",
       "context": "Earlier Tuesday, senior Obama administration officials said the U.S. never told American commercial carriers to comply specifically with China’s demands.",
+      "module": "german"
+    },
+    {
+      "set": "german",
+      "key": "sus",
+      "context": "bro that guy is acting kinda sus ngl",
+      "module": "german"
+    },
+    {
+      "set": "german",
+      "key": "Weter",
+      "context": "Das Weter wird morgen schlechter.",
+      "module": "german"
+    },
+    {
+      "set": "german",
+      "key": "fängt",
+      "context": "Der Film fängt um acht Uhr an.",
+      "module": "german"
+    },
+    {
+      "set": "german",
+      "key": "Homeofficemüdigkeit",
+      "context": "Nach zwei Jahren macht sich bei vielen Homeofficemüdigkeit breit.",
       "module": "german"
     }
   ]

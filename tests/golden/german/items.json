@@ -4194,6 +4194,510 @@
         },
         "contextual": true
       }
+    },
+    {
+      "id": "m-slang-sus",
+      "key": "sus",
+      "context": "bro that guy is acting kinda sus ngl",
+      "why": "A messy capture, as a user selects it on the web; the card gets no expectation and the model decides what to make of it. English internet slang.",
+      "part": "reading",
+      "split": "test",
+      "fills": {
+        "core": [
+          "slang"
+        ]
+      },
+      "expect": {}
+    },
+    {
+      "id": "m-slang-vllt",
+      "key": "vllt",
+      "context": "vllt komm ich später noch vorbei, mal schauen",
+      "why": "A messy capture, as a user selects it on the web; the card gets no expectation and the model decides what to make of it. German chat abbreviation of vielleicht.",
+      "part": "reading",
+      "split": "dev",
+      "fills": {
+        "core": [
+          "slang"
+        ]
+      },
+      "expect": {}
+    },
+    {
+      "id": "m-slang-lost",
+      "key": "lost",
+      "context": "Der ist komplett lost, der checkt gar nichts mehr.",
+      "why": "A messy capture, as a user selects it on the web; the card gets no expectation and the model decides what to make of it. German youth word of the year 2020, borrowed from English.",
+      "part": "reading",
+      "split": "dev",
+      "fills": {
+        "core": [
+          "slang"
+        ]
+      },
+      "expect": {}
+    },
+    {
+      "id": "m-slang-666",
+      "key": "666",
+      "context": "这波操作太666了",
+      "why": "A messy capture, as a user selects it on the web; the card gets no expectation and the model decides what to make of it. Chinese internet slang: 6 sounds like 溜, skilful.",
+      "part": "reading",
+      "split": "test",
+      "fills": {
+        "core": [
+          "slang"
+        ]
+      },
+      "expect": {}
+    },
+    {
+      "id": "m-slang-mdr",
+      "key": "mdr",
+      "context": "mdr t'as vu sa tête ??",
+      "why": "A messy capture, as a user selects it on the web; the card gets no expectation and the model decides what to make of it. French chat abbreviation: mort de rire.",
+      "part": "reading",
+      "split": "dev",
+      "fills": {
+        "core": [
+          "slang"
+        ]
+      },
+      "expect": {}
+    },
+    {
+      "id": "m-slang-kusa",
+      "key": "草",
+      "context": "その動画マジで草",
+      "why": "A messy capture, as a user selects it on the web; the card gets no expectation and the model decides what to make of it. Japanese internet slang: grass, for laughter.",
+      "part": "reading",
+      "split": "test",
+      "fills": {
+        "core": [
+          "slang"
+        ]
+      },
+      "expect": {}
+    },
+    {
+      "id": "m-slang-krinzh",
+      "key": "кринж",
+      "context": "это такой кринж, я не могу",
+      "why": "A messy capture, as a user selects it on the web; the card gets no expectation and the model decides what to make of it. Russian loan slang from cringe.",
+      "part": "reading",
+      "split": "dev",
+      "fills": {
+        "core": [
+          "slang"
+        ]
+      },
+      "expect": {}
+    },
+    {
+      "id": "m-typo-weter",
+      "key": "Weter",
+      "context": "Das Weter wird morgen schlechter.",
+      "why": "A messy capture, as a user selects it on the web; the card gets no expectation and the model decides what to make of it. German, Wetter with one t.",
+      "part": "reading",
+      "split": "test",
+      "fills": {
+        "core": [
+          "typo"
+        ]
+      },
+      "expect": {}
+    },
+    {
+      "id": "m-typo-recieve",
+      "key": "recieve",
+      "context": "You will recieve a confirmation email shortly.",
+      "why": "A messy capture, as a user selects it on the web; the card gets no expectation and the model decides what to make of it. English, the common ie/ei swap.",
+      "part": "reading",
+      "split": "dev",
+      "fills": {
+        "core": [
+          "typo"
+        ]
+      },
+      "expect": {}
+    },
+    {
+      "id": "m-typo-fernwhe",
+      "key": "Fernwhe",
+      "context": "Ich habe so ein Fernwhe nach Portugal.",
+      "why": "A messy capture, as a user selects it on the web; the card gets no expectation and the model decides what to make of it. German, Fernweh with swapped letters.",
+      "part": "reading",
+      "split": "dev",
+      "fills": {
+        "core": [
+          "typo"
+        ]
+      },
+      "expect": {}
+    },
+    {
+      "id": "m-typo-tambien",
+      "key": "tambein",
+      "context": "Yo tambein quiero ir a la playa.",
+      "why": "A messy capture, as a user selects it on the web; the card gets no expectation and the model decides what to make of it. Spanish, también misspelt and without its accent.",
+      "part": "reading",
+      "split": "test",
+      "fills": {
+        "core": [
+          "typo"
+        ]
+      },
+      "expect": {}
+    },
+    {
+      "id": "m-typo-beaucoup",
+      "key": "beaucoups",
+      "context": "Merci beaucoups pour ton aide !",
+      "why": "A messy capture, as a user selects it on the web; the card gets no expectation and the model decides what to make of it. French, beaucoup with a stray s.",
+      "part": "reading",
+      "split": "dev",
+      "fills": {
+        "core": [
+          "typo"
+        ]
+      },
+      "expect": {}
+    },
+    {
+      "id": "m-typo-zh",
+      "key": "在见",
+      "context": "明天在见！",
+      "why": "A messy capture, as a user selects it on the web; the card gets no expectation and the model decides what to make of it. Chinese, 再见 with the homophone 在.",
+      "part": "reading",
+      "split": "test",
+      "fills": {
+        "core": [
+          "typo"
+        ]
+      },
+      "expect": {}
+    },
+    {
+      "id": "m-frag-ngsamkeit",
+      "key": "ngsamkeit",
+      "context": "Die Langsamkeit der Behörden ist legendär.",
+      "why": "A messy capture, as a user selects it on the web; the card gets no expectation and the model decides what to make of it. German, the selection cut the first letters off.",
+      "part": "reading",
+      "split": "dev",
+      "fills": {
+        "core": [
+          "fragment"
+        ]
+      },
+      "expect": {}
+    },
+    {
+      "id": "m-frag-faengt",
+      "key": "fängt",
+      "context": "Der Film fängt um acht Uhr an.",
+      "why": "A messy capture, as a user selects it on the web; the card gets no expectation and the model decides what to make of it. German, the verb part of anfangen without its particle.",
+      "part": "reading",
+      "split": "test",
+      "fills": {
+        "core": [
+          "fragment"
+        ]
+      },
+      "expect": {}
+    },
+    {
+      "id": "m-frag-ponsib",
+      "key": "ponsib",
+      "context": "She took full responsibility for the mistake.",
+      "why": "A messy capture, as a user selects it on the web; the card gets no expectation and the model decides what to make of it. English, a piece from the middle of a word.",
+      "part": "reading",
+      "split": "dev",
+      "fills": {
+        "core": [
+          "fragment"
+        ]
+      },
+      "expect": {}
+    },
+    {
+      "id": "m-frag-ruf",
+      "key": "ruf",
+      "context": "Ruf mich bitte heute Abend noch an.",
+      "why": "A messy capture, as a user selects it on the web; the card gets no expectation and the model decides what to make of it. German, the verb part of anrufen, cut and lower case.",
+      "part": "reading",
+      "split": "test",
+      "fills": {
+        "core": [
+          "fragment"
+        ]
+      },
+      "expect": {}
+    },
+    {
+      "id": "m-frag-ja",
+      "key": "した",
+      "context": "昨日、友達と映画を見ました。",
+      "why": "A messy capture, as a user selects it on the web; the card gets no expectation and the model decides what to make of it. Japanese, a verb ending without its stem.",
+      "part": "reading",
+      "split": "dev",
+      "fills": {
+        "core": [
+          "fragment"
+        ]
+      },
+      "expect": {}
+    },
+    {
+      "id": "m-coined-homeoffice",
+      "key": "Homeofficemüdigkeit",
+      "context": "Nach zwei Jahren macht sich bei vielen Homeofficemüdigkeit breit.",
+      "why": "A messy capture, as a user selects it on the web; the card gets no expectation and the model decides what to make of it. German ad-hoc compound.",
+      "part": "reading",
+      "split": "test",
+      "fills": {
+        "core": [
+          "coined"
+        ]
+      },
+      "expect": {}
+    },
+    {
+      "id": "m-coined-downgeloadet",
+      "key": "downgeloadet",
+      "context": "Ich hab die App gestern downgeloadet.",
+      "why": "A messy capture, as a user selects it on the web; the card gets no expectation and the model decides what to make of it. Denglisch, an English verb with German participle.",
+      "part": "reading",
+      "split": "dev",
+      "fills": {
+        "core": [
+          "coined"
+        ]
+      },
+      "expect": {}
+    },
+    {
+      "id": "m-coined-doomscrolling",
+      "key": "doomscrolling",
+      "context": "I spent the whole night doomscrolling again.",
+      "why": "A messy capture, as a user selects it on the web; the card gets no expectation and the model decides what to make of it. English blend, newer than most dictionaries.",
+      "part": "reading",
+      "split": "dev",
+      "fills": {
+        "core": [
+          "coined"
+        ]
+      },
+      "expect": {}
+    },
+    {
+      "id": "m-coined-chillig",
+      "key": "gechillt",
+      "context": "Lass uns heute einfach gechillt zu Hause bleiben.",
+      "why": "A messy capture, as a user selects it on the web; the card gets no expectation and the model decides what to make of it. Denglisch participle used as an adjective.",
+      "part": "reading",
+      "split": "test",
+      "fills": {
+        "core": [
+          "coined"
+        ]
+      },
+      "expect": {}
+    },
+    {
+      "id": "m-coined-neijuan",
+      "key": "内卷",
+      "context": "现在大学生找工作太内卷了",
+      "why": "A messy capture, as a user selects it on the web; the card gets no expectation and the model decides what to make of it. Chinese coinage, involution for pointless competition.",
+      "part": "reading",
+      "split": "dev",
+      "fills": {
+        "core": [
+          "coined"
+        ]
+      },
+      "expect": {}
+    },
+    {
+      "id": "m-coined-trotinette",
+      "key": "trottinettiste",
+      "context": "Un trottinettiste a été renversé ce matin.",
+      "why": "A messy capture, as a user selects it on the web; the card gets no expectation and the model decides what to make of it. French nonce derivation from trottinette.",
+      "part": "reading",
+      "split": "test",
+      "fills": {
+        "core": [
+          "coined"
+        ]
+      },
+      "expect": {}
+    },
+    {
+      "id": "m-coll-nix",
+      "key": "nix",
+      "context": "Ich hab heute noch nix gegessen.",
+      "why": "A messy capture, as a user selects it on the web; the card gets no expectation and the model decides what to make of it. German colloquial nichts.",
+      "part": "reading",
+      "split": "dev",
+      "fills": {
+        "core": [
+          "colloquial"
+        ]
+      },
+      "expect": {}
+    },
+    {
+      "id": "m-coll-haste",
+      "key": "haste",
+      "context": "Haste mal ne Minute?",
+      "why": "A messy capture, as a user selects it on the web; the card gets no expectation and the model decides what to make of it. German colloquial hast du.",
+      "part": "reading",
+      "split": "test",
+      "fills": {
+        "core": [
+          "colloquial"
+        ]
+      },
+      "expect": {}
+    },
+    {
+      "id": "m-coll-moin",
+      "key": "Moin",
+      "context": "Moin, wie läuft's bei dir?",
+      "why": "A messy capture, as a user selects it on the web; the card gets no expectation and the model decides what to make of it. North German greeting.",
+      "part": "reading",
+      "split": "dev",
+      "fills": {
+        "core": [
+          "colloquial"
+        ]
+      },
+      "expect": {}
+    },
+    {
+      "id": "m-coll-gonna",
+      "key": "gonna",
+      "context": "I'm gonna call you back later.",
+      "why": "A messy capture, as a user selects it on the web; the card gets no expectation and the model decides what to make of it. English colloquial going to.",
+      "part": "reading",
+      "split": "test",
+      "fills": {
+        "core": [
+          "colloquial"
+        ]
+      },
+      "expect": {}
+    },
+    {
+      "id": "m-coll-gell",
+      "key": "gell",
+      "context": "Das war schön heute, gell?",
+      "why": "A messy capture, as a user selects it on the web; the card gets no expectation and the model decides what to make of it. South German tag question.",
+      "part": "reading",
+      "split": "dev",
+      "fills": {
+        "core": [
+          "colloquial"
+        ]
+      },
+      "expect": {}
+    },
+    {
+      "id": "m-coll-pa",
+      "key": "pa'",
+      "context": "Voy pa' la casa ahora.",
+      "why": "A messy capture, as a user selects it on the web; the card gets no expectation and the model decides what to make of it. Spanish colloquial para.",
+      "part": "reading",
+      "split": "dev",
+      "fills": {
+        "core": [
+          "colloquial"
+        ]
+      },
+      "expect": {}
+    },
+    {
+      "id": "m-noise-haus",
+      "key": "HAUS",
+      "context": "ZU VERKAUFEN: HAUS MIT GARTEN",
+      "why": "A messy capture, as a user selects it on the web; the card gets no expectation and the model decides what to make of it. German key in capitals.",
+      "part": "reading",
+      "split": "test",
+      "fills": {
+        "core": [
+          "noise"
+        ]
+      },
+      "expect": {}
+    },
+    {
+      "id": "m-noise-ufer",
+      "key": "Ufer,",
+      "context": "Wir saßen am Ufer, bis die Sonne unterging.",
+      "why": "A messy capture, as a user selects it on the web; the card gets no expectation and the model decides what to make of it. German key with its comma selected.",
+      "part": "reading",
+      "split": "dev",
+      "fills": {
+        "core": [
+          "noise"
+        ]
+      },
+      "expect": {}
+    },
+    {
+      "id": "m-noise-fernweh",
+      "key": "#Fernweh",
+      "context": "Sonnenuntergang in Lissabon #Fernweh #travel",
+      "why": "A messy capture, as a user selects it on the web; the card gets no expectation and the model decides what to make of it. German key as a hashtag.",
+      "part": "reading",
+      "split": "test",
+      "fills": {
+        "core": [
+          "noise"
+        ]
+      },
+      "expect": {}
+    },
+    {
+      "id": "m-noise-ocean",
+      "key": "ocean 🌊",
+      "context": "summer vibes, ocean 🌊 all day",
+      "why": "A messy capture, as a user selects it on the web; the card gets no expectation and the model decides what to make of it. English key with an emoji.",
+      "part": "reading",
+      "split": "dev",
+      "fills": {
+        "core": [
+          "noise"
+        ]
+      },
+      "expect": {}
+    },
+    {
+      "id": "m-noise-berlin",
+      "key": "berlin",
+      "context": "ich zieh nächsten monat nach berlin",
+      "why": "A messy capture, as a user selects it on the web; the card gets no expectation and the model decides what to make of it. German name in lower case.",
+      "part": "reading",
+      "split": "dev",
+      "fills": {
+        "core": [
+          "noise"
+        ]
+      },
+      "expect": {}
+    },
+    {
+      "id": "m-noise-quotes",
+      "key": "«liberté»",
+      "context": "Ils criaient «liberté» dans les rues.",
+      "why": "A messy capture, as a user selects it on the web; the card gets no expectation and the model decides what to make of it. French key with its guillemets.",
+      "part": "reading",
+      "split": "test",
+      "fills": {
+        "core": [
+          "noise"
+        ]
+      },
+      "expect": {}
     }
   ]
 }

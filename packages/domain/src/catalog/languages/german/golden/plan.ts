@@ -16,7 +16,13 @@ export default defineGoldenPlan<typeof german>({
       { id: 'inflected-key', what: 'an inflected form explained as its headword (lief, Häuser)' },
       { id: 'kind', what: 'the six kinds: word, phrase, idiom, sentence, name, abbreviation' },
       { id: 'source-language', what: 'keys in English, Chinese, French, Spanish, Japanese, Russian and Arabic' },
-      { id: 'no-equivalent', what: 'a word without a close German word (serendipity, тоска)' }
+      { id: 'no-equivalent', what: 'a word without a close German word (serendipity, тоска)' },
+      { id: 'slang', what: 'internet slang and chat abbreviations, in any language (sus, vllt, idk, 666, mdr)' },
+      { id: 'typo', what: 'a misspelt key (Weter, recieve); the model decides what to make of it' },
+      { id: 'fragment', what: 'a broken selection: part of a word, or one part of a separable verb (ngsamkeit, fängt)' },
+      { id: 'coined', what: 'a word no dictionary holds: an ad-hoc compound or a loan blend (Homeofficemüdigkeit, downgeloadet)' },
+      { id: 'colloquial', what: "dialect and colloquial forms (nix, haste, Moin, gonna, ain't)" },
+      { id: 'noise', what: 'a key with odd case, punctuation, a hashtag or an emoji around it (HAUS, "Ufer,", #Fernweh)' }
     ] },
     article: { scoring: 'reference', shape: { kind: 'fields' }, points: [
       { id: 'gender-suffix', what: 'gender a suffix predicts (-ung, -heit, -chen, -ling); a floor', cells: ['singular'] },
