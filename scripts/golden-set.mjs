@@ -1,14 +1,15 @@
 // Runs the content modules' golden sets (D08, D11, C8) against the live
-// provider and writes the outputs for the owner's review. Each file in
-// tests/golden names the modules, or the family, its inputs run through. It calls OpenCodeProvider
+// provider and writes the outputs for the owner's review, every set that
+// scripts/golden-sets.mjs reads from tests/golden. It calls OpenCodeProvider
 // directly, without the API, database or extension, and spends provider usage.
 // Usage: npm run smoke:generation -- [module] [language] [samples], such as
 // `computer-science zh-Hans 3`: the language is the preference the Expertise
 // modules write in (English by default), and each input runs `samples` times.
-import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
 import { OpenCodeProvider } from '../src/server/opencode.mjs';
-import { parentsIn, PARENTS } from '@vocabularium/domain/parents';
+import { PARENTS } from '@vocabularium/domain/parents';
+import { goldenSets } from './golden-sets.mjs';
 import { runCard } from './golden-card.mjs';
 import { meter } from './meter.mjs';
 import { INTERFACE_LANGUAGES } from '@vocabularium/contracts';
@@ -18,14 +19,7 @@ const [only, language = 'en', count = '1'] = process.argv.slice(2);
 if (!INTERFACE_LANGUAGES.includes(language)) throw new Error(`Unknown language ${language}; use one of ${INTERFACE_LANGUAGES.join(', ')}.`);
 const samples = Number(count);
 if (!Number.isInteger(samples) || samples < 1) throw new Error('Samples must be a whole number of at least 1.');
-const directory = new URL('../tests/golden/', import.meta.url);
-const sets = [];
-for (const file of (await readdir(directory)).filter(name => name.endsWith('.json')).sort()) {
-  // A set names its modules, or a family whose every module it runs through.
-  const { modules, family, inputs } = JSON.parse(await readFile(new URL(file, directory), 'utf8'));
-  const types = (family ? parentsIn(family) : modules).filter(type => !only || type === only);
-  if (types.length) sets.push({ types, inputs });
-}
+const sets = goldenSets().map(set => ({ types: set.modules.filter(type => !only || type === only), inputs: set.inputs })).filter(set => set.types.length);
 const provider = new OpenCodeProvider();
 const cost = meter(provider);
 const evidence = { date: new Date().toISOString(), provider: 'OpenCode Go', model: provider.model, language, samples, results: [] };
