@@ -3,10 +3,11 @@
 // no right answer, which only the owner can grade. `write` lays one part's cards
 // out in a Markdown file, each under a letter, with no model named, so the
 // verdict is not swayed by which model wrote it; `read` takes the filled file
-// back into the module's calibration file as whole cards decided by the owner.
+// back into the module's calibration file as whole cards decided by the owner,
+// or by Claude with `--by claude` when the owner hands the grading over.
 // Rerunning `read` replaces the cards it wrote before.
 // Usage: npm run calibration:review -- write <module> <dev|held-out> <golden run .json>...
-//        npm run calibration:review -- read <module> <dev|held-out>
+//        npm run calibration:review -- read <module> <dev|held-out> [--by claude]
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { isContentModule } from '@vocabularium/domain/catalog';
 import { moduleSet } from './golden-sets.mjs';
@@ -18,9 +19,11 @@ const LETTERS = 'ABCDEFGH';
 
 const [command, module, part, ...runs] = process.argv.slice(2);
 if (!['write', 'read'].includes(command ?? '') || !module || !isContentModule(module) || !['dev', 'held-out'].includes(part ?? '')) {
-  throw new Error('Usage: calibration:review -- write <module> <dev|held-out> <golden run .json>... | read <module> <dev|held-out>');
+  throw new Error('Usage: calibration:review -- write <module> <dev|held-out> <golden run .json>... | read <module> <dev|held-out> [--by claude]');
 }
 const review = `.data/calibration/review-${module}-messy-${part}`;
+const decided = command === 'read' && runs[0] === '--by' ? runs[1] : 'owner';
+if (!['owner', 'claude'].includes(decided ?? '')) throw new Error('--by takes owner or claude.');
 const calibrationFile = `tests/golden/calibration/${module}.json`;
 
 if (command === 'write') {
@@ -65,13 +68,13 @@ if (command === 'write') {
   const set = JSON.parse(await readFile(calibrationFile, 'utf8'));
   const written = graded.map(({ code, verdict, reason }) => {
     const { item, generator, ...rest } = cards[code];
-    return { id: `messy-${item}-${generator.replace(/^claude-|-\d.*$/g, '')}`, item, split: part, generator, decided: 'owner', verdict, reason, ...rest };
+    return { id: `messy-${item}-${generator.replace(/^claude-|-\d.*$/g, '')}`, item, split: part, generator, decided, verdict, reason, ...rest };
   });
   const ids = new Set(written.map(card => card.id));
   set.cards = [...set.cards.filter((/** @type {any} */ card) => !ids.has(card.id)), ...written];
   await readCalibration(calibrationFile, set);
   await writeFile(calibrationFile, JSON.stringify(set, null, 2) + '\n');
-  console.log(`${calibrationFile}: ${written.length} messy cards from the owner's review.`);
+  console.log(`${calibrationFile}: ${written.length} messy cards decided by ${decided}.`);
 }
 
 /** A small stable hash, for an order that is fixed but not the runs' order. @param {string} text */

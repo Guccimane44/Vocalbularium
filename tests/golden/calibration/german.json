@@ -16406,6 +16406,6066 @@
         }
       },
       "fault": "planted"
+    },
+    {
+      "id": "messy-m-slang-vllt-opus",
+      "item": "m-slang-vllt",
+      "split": "dev",
+      "generator": "claude-opus-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Reads vllt as the chat spelling of vielleicht, says it belongs in casual messages, and gives the full word's pronunciation and origin.",
+      "key": "vllt",
+      "context": "vllt komm ich später noch vorbei, mal schauen",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "vllt",
+          "gramRole": "adverb",
+          "meanings": [
+            "Abkürzung von „vielleicht“: möglicherweise, eventuell"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "Vllt regnet es morgen, dann bleiben wir drinnen."
+            }
+          ],
+          "synonyms": [
+            "möglicherweise",
+            "eventuell",
+            "unter Umständen",
+            "womöglich"
+          ],
+          "antonyms": [
+            "bestimmt",
+            "sicher"
+          ],
+          "pronunciation": [
+            "vielleicht"
+          ],
+          "etymology": {
+            "origins": [
+              "Mittelhochdeutsch"
+            ],
+            "text": "Vielleicht entstand aus mittelhochdeutsch vil lîhte „sehr leicht“, also „es kann leicht sein“. Die beiden Wörter wuchsen zusammen, und die Bedeutung verschob sich zu „möglicherweise“."
+          },
+          "simple-translation": [
+            "vielleicht – es kann sein, aber es ist nicht sicher"
+          ],
+          "grammar-teacher": [
+            "„vllt“ ist eine Abkürzung für das Adverb „vielleicht“, die man nur in lockeren Nachrichten schreibt.",
+            "Am Satzanfang zählt es als erstes Satzglied, deshalb folgt direkt das Verb: Vielleicht komme ich später.",
+            "Als Adverb wird es nicht gebeugt."
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-slang-vllt-haiku",
+      "item": "m-slang-vllt",
+      "split": "dev",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Reads vllt as the chat spelling of vielleicht and says to write the full word in formal texts.",
+      "key": "vllt",
+      "context": "vllt komm ich später noch vorbei, mal schauen",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "vllt",
+          "gramRole": "adverb",
+          "meanings": [
+            "Umgangssprachliche Kurzform von „vielleicht“: etwas ist möglich, aber nicht sicher"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "Vllt komme ich später noch vorbei."
+            },
+            {
+              "sentence": "Vllt hast du ja recht."
+            }
+          ],
+          "synonyms": [
+            "vielleicht",
+            "möglicherweise",
+            "eventuell",
+            "womöglich"
+          ],
+          "pronunciation": [
+            "vielleicht"
+          ],
+          "simple-translation": [
+            "Es kann sein, aber man weiß es noch nicht genau."
+          ],
+          "grammar-teacher": [
+            "Umgangssprachliche Kurzform: „vllt“ steht für „vielleicht“ und ist vor allem in Chats und SMS üblich, in formellen Texten schreibt man „vielleicht“.",
+            "Als Adverb bleibt es unveränderlich und steht meist vor dem Verb oder vor dem Satzteil, auf den es sich bezieht."
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-slang-lost-opus",
+      "item": "m-slang-lost",
+      "split": "dev",
+      "generator": "claude-opus-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Reads lost as German youth slang for clueless, with German examples and a note on how it is used in a sentence.",
+      "key": "lost",
+      "context": "Der ist komplett lost, der checkt gar nichts mehr.",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "lost",
+          "gramRole": "adjective",
+          "contextual": "völlig ahnungslos und verwirrt, versteht nicht mehr, was los ist (Jugendsprache)",
+          "meanings": [
+            "verloren und orientierungslos, ohne Plan oder Ziel (Jugendsprache)"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "In der Matheklausur war ich total lost."
+            },
+            {
+              "sentence": "Seit der Trennung wirkt sie irgendwie lost."
+            }
+          ],
+          "synonyms": [
+            "ahnungslos",
+            "verwirrt",
+            "planlos",
+            "orientierungslos",
+            "verpeilt"
+          ],
+          "pronunciation": [
+            "lost"
+          ],
+          "etymology": {
+            "origins": [
+              "Altenglisch",
+              "Englisch"
+            ],
+            "text": "Aus englisch lost „verloren“, dem Partizip von to lose, altenglisch losian „verloren gehen“. In der deutschen Jugendsprache bedeutet es „ahnungslos, unsicher“ und wurde 2020 zum Jugendwort des Jahres gewählt."
+          },
+          "simple-translation": [
+            "weiß gar nicht mehr, was los ist, und versteht nichts",
+            "weiß nicht, wo man hin will, und hat keinen Plan"
+          ],
+          "grammar-teacher": [
+            "„Lost“ steht nur nach „sein“ oder „wirken“: Er ist lost; vor einem Nomen gebraucht man es nicht.",
+            "Es bekommt keine Endungen und wird nicht gesteigert; verstärkt wird es mit Wörtern wie „komplett“, „total“ oder „voll“."
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-slang-lost-haiku",
+      "item": "m-slang-lost",
+      "split": "dev",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "verdict": "weak",
+      "reason": "The context sense is right, but the card treats lost as an English word: every example is English, though the capture is German slang in a German sentence.",
+      "key": "lost",
+      "context": "Der ist komplett lost, der checkt gar nichts mehr.",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Englisch",
+          "key": "lost",
+          "gramRole": "adjective",
+          "contextual": "völlig überfordert, ohne Durchblick, nichts mehr verstehend (Umgangssprache)",
+          "meanings": [
+            "verloren, nicht mehr auffindbar oder verschwunden",
+            "orientierungslos, sich verirrt habend"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "I'm completely lost with this homework.",
+              "translation": "Ich bin mit diesen Hausaufgaben total überfordert."
+            },
+            {
+              "sentence": "I can't find my keys, they're lost.",
+              "translation": "Ich finde meine Schlüssel nicht, sie sind verloren."
+            },
+            {
+              "sentence": "We got lost in the forest.",
+              "translation": "Wir haben uns im Wald verirrt."
+            }
+          ],
+          "antonyms": [
+            "gefunden"
+          ],
+          "pronunciation": [
+            "überfordert",
+            "verloren",
+            "orientierungslos"
+          ],
+          "simple-translation": [
+            "so verwirrt, dass man gar nichts mehr versteht",
+            "nicht mehr da oder nicht mehr zu finden",
+            "nicht wissen, wo man ist"
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-slang-mdr-haiku",
+      "item": "m-slang-mdr",
+      "split": "dev",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Resolves the French chat abbreviation mort de rire and says what it is used for.",
+      "key": "mdr",
+      "context": "mdr t'as vu sa tête ??",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Französisch",
+          "key": "mdr",
+          "gramRole": "interjection",
+          "meanings": [
+            "Abkürzung für „mort de rire“ (wörtlich „vor Lachen sterbend“), in Chats und SMS für sehr starkes Lachen"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "mdr, j'ai trop ri en voyant ça.",
+              "translation": "Ich habe so gelacht, als ich das gesehen habe."
+            }
+          ],
+          "pronunciation": [
+            "lautes Lachen"
+          ],
+          "simple-translation": [
+            "Abkürzung im Chat: Man lacht sehr stark."
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-slang-mdr-opus",
+      "item": "m-slang-mdr",
+      "split": "dev",
+      "generator": "claude-opus-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Resolves the French chat abbreviation and compares it with lol.",
+      "key": "mdr",
+      "context": "mdr t'as vu sa tête ??",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Französisch",
+          "key": "mdr",
+          "gramRole": "interjection",
+          "meanings": [
+            "Abkürzung für „mort de rire“, wörtlich „tot vor Lachen“: zeigt in Chats, dass man etwas sehr lustig findet, ähnlich wie lol"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "mdr il est tombé de sa chaise en plein cours",
+              "translation": "lol, er ist mitten im Unterricht vom Stuhl gefallen"
+            }
+          ],
+          "synonyms": [
+            "lol",
+            "haha"
+          ],
+          "pronunciation": [
+            "tot vor Lachen"
+          ],
+          "simple-translation": [
+            "ich lache sehr, das ist sehr lustig"
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-slang-krinzh-haiku",
+      "item": "m-slang-krinzh",
+      "split": "dev",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Reads кринж as the borrowed cringe and gives Fremdscham as the German equivalent, with examples for both senses.",
+      "key": "кринж",
+      "context": "это такой кринж, я не могу",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Russisch",
+          "key": "кринж",
+          "romanization": "krinsch",
+          "gramRole": "noun",
+          "meanings": [
+            "Fremdscham, das unangenehme Gefühl beim Anblick von etwas Peinlichem",
+            "etwas, das als sehr peinlich, unbeholfen oder übertrieben empfunden wird"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "die Fremdscham"
+          },
+          "examples": [
+            {
+              "sentence": "Этот момент был такой кринж.",
+              "translation": "Dieser Moment war so peinlich."
+            },
+            {
+              "sentence": "Он танцевал на сцене — полный кринж.",
+              "translation": "Er tanzte auf der Bühne – total peinlich."
+            }
+          ],
+          "declension": {
+            "columns": [
+              "Singular",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "Nominativ",
+                "cells": [
+                  "die Fremdscham",
+                  "—"
+                ]
+              },
+              {
+                "label": "Genitiv",
+                "cells": [
+                  "der Fremdscham",
+                  "—"
+                ]
+              },
+              {
+                "label": "Dativ",
+                "cells": [
+                  "der Fremdscham",
+                  "—"
+                ]
+              },
+              {
+                "label": "Akkusativ",
+                "cells": [
+                  "die Fremdscham",
+                  "—"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "die Fremdscham",
+            "das Peinliche"
+          ],
+          "simple-translation": [
+            "das unangenehme Gefühl, wenn man sieht, dass jemand sich sehr peinlich benimmt",
+            "etwas, das sehr peinlich ist"
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-slang-krinzh-opus",
+      "item": "m-slang-krinzh",
+      "split": "dev",
+      "generator": "claude-opus-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Reads кринж as the borrowed cringe, names its English source, and gives Peinlichkeit and Fremdscham as equivalents.",
+      "key": "кринж",
+      "context": "это такой кринж, я не могу",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Russisch",
+          "key": "кринж",
+          "romanization": "krinzh",
+          "gramRole": "noun",
+          "contextual": "etwas sehr Peinliches, für das man sich fremdschämt (Jugendsprache)",
+          "meanings": [
+            "das Gefühl des Fremdschämens, peinliches Berührtsein (Jugendsprache, aus englisch cringe)"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "die Peinlichkeit",
+            "plural": "die Peinlichkeiten"
+          },
+          "examples": [
+            {
+              "sentence": "Его выступление на свадьбе было полным кринжем.",
+              "translation": "Seine Rede auf der Hochzeit war eine einzige Peinlichkeit."
+            },
+            {
+              "sentence": "Когда я читаю свои старые посты, я испытываю кринж.",
+              "translation": "Wenn ich meine alten Beiträge lese, schäme ich mich fremd."
+            }
+          ],
+          "synonyms": [
+            "Cringe",
+            "Blamage",
+            "Fremdscham"
+          ],
+          "declension": {
+            "columns": [
+              "Singular",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "Nominativ",
+                "cells": [
+                  "die Peinlichkeit",
+                  "die Peinlichkeiten"
+                ]
+              },
+              {
+                "label": "Genitiv",
+                "cells": [
+                  "der Peinlichkeit",
+                  "der Peinlichkeiten"
+                ]
+              },
+              {
+                "label": "Dativ",
+                "cells": [
+                  "der Peinlichkeit",
+                  "den Peinlichkeiten"
+                ]
+              },
+              {
+                "label": "Akkusativ",
+                "cells": [
+                  "die Peinlichkeit",
+                  "die Peinlichkeiten"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "die Peinlichkeit",
+            "die Fremdscham"
+          ],
+          "etymology": {
+            "origins": [
+              "Latein",
+              "Althochdeutsch"
+            ],
+            "text": "Gebildet aus peinlich und der Endung -keit. Peinlich gehört zu Pein, althochdeutsch pīna „Strafe, Qual“, aus lateinisch poena „Strafe“; es bedeutete zuerst „schmerzhaft, die Strafe betreffend“ und dann „unangenehm, beschämend“."
+          },
+          "simple-translation": [
+            "etwas, das so peinlich ist, dass man sich für andere schämt",
+            "das Gefühl, wenn man sich für jemand anderen schämt"
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-typo-recieve-haiku",
+      "item": "m-typo-recieve",
+      "split": "dev",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "verdict": "fail",
+      "reason": "The table has 'du erhielst' for 'du erhieltst', and nothing says recieve is a misspelling of receive.",
+      "key": "recieve",
+      "context": "You will recieve a confirmation email shortly.",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Englisch",
+          "key": "recieve",
+          "gramRole": "verb",
+          "meanings": [
+            "erhalten, bekommen",
+            "empfangen, willkommen heißen (Gäste)"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "I will receive the package tomorrow.",
+              "translation": "Ich werde das Paket morgen erhalten."
+            },
+            {
+              "sentence": "She received the guests at the door.",
+              "translation": "Sie empfing die Gäste an der Tür."
+            }
+          ],
+          "synonyms": [
+            "bekommen",
+            "empfangen"
+          ],
+          "antonyms": [
+            "abgeben"
+          ],
+          "conjugation": {
+            "columns": [
+              "Präsens",
+              "Präteritum",
+              "Perfekt"
+            ],
+            "rows": [
+              {
+                "label": "ich",
+                "cells": [
+                  "erhalte",
+                  "erhielt",
+                  "habe erhalten"
+                ]
+              },
+              {
+                "label": "du",
+                "cells": [
+                  "erhältst",
+                  "erhielst",
+                  "hast erhalten"
+                ]
+              },
+              {
+                "label": "er/sie/es",
+                "cells": [
+                  "erhält",
+                  "erhielt",
+                  "hat erhalten"
+                ]
+              },
+              {
+                "label": "wir",
+                "cells": [
+                  "erhalten",
+                  "erhielten",
+                  "haben erhalten"
+                ]
+              },
+              {
+                "label": "ihr",
+                "cells": [
+                  "erhaltet",
+                  "erhieltet",
+                  "habt erhalten"
+                ]
+              },
+              {
+                "label": "sie/Sie",
+                "cells": [
+                  "erhalten",
+                  "erhielten",
+                  "haben erhalten"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "erhalten",
+            "empfangen"
+          ],
+          "etymology": {
+            "origins": [
+              "Althochdeutsch"
+            ],
+            "text": "Es geht auf althochdeutsch irhaltan zurück, gebildet aus dem Präfix ir- und halten. Zunächst wurde es im Sinne von bewahren und festhalten gebraucht, bevor es die heutige Bedeutung bekam."
+          },
+          "simple-translation": [
+            "etwas bekommen",
+            "Gäste begrüßen, wenn sie kommen"
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-typo-recieve-opus",
+      "item": "m-typo-recieve",
+      "split": "dev",
+      "generator": "claude-opus-5-5",
+      "decided": "claude",
+      "verdict": "weak",
+      "reason": "The meaning and table are right, but nothing says recieve is a misspelling; the right form receive appears only inside the examples.",
+      "key": "recieve",
+      "context": "You will recieve a confirmation email shortly.",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Englisch",
+          "key": "recieve",
+          "gramRole": "verb",
+          "contextual": "erhalten, bekommen",
+          "meanings": [
+            "empfangen, begrüßen (Gäste)",
+            "empfangen (Funk- oder Fernsehsignale)"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "Did you receive my letter?",
+              "translation": "Hast du meinen Brief erhalten?"
+            },
+            {
+              "sentence": "They received their guests at the door.",
+              "translation": "Sie empfingen ihre Gäste an der Tür."
+            },
+            {
+              "sentence": "Our radio can't receive this station.",
+              "translation": "Unser Radio kann diesen Sender nicht empfangen."
+            }
+          ],
+          "synonyms": [
+            "bekommen",
+            "kriegen",
+            "empfangen"
+          ],
+          "antonyms": [
+            "senden",
+            "verschicken"
+          ],
+          "conjugation": {
+            "columns": [
+              "Präsens",
+              "Präteritum",
+              "Perfekt"
+            ],
+            "rows": [
+              {
+                "label": "ich",
+                "cells": [
+                  "erhalte",
+                  "erhielt",
+                  "habe erhalten"
+                ]
+              },
+              {
+                "label": "du",
+                "cells": [
+                  "erhältst",
+                  "erhieltst",
+                  "hast erhalten"
+                ]
+              },
+              {
+                "label": "er/sie/es",
+                "cells": [
+                  "erhält",
+                  "erhielt",
+                  "hat erhalten"
+                ]
+              },
+              {
+                "label": "wir",
+                "cells": [
+                  "erhalten",
+                  "erhielten",
+                  "haben erhalten"
+                ]
+              },
+              {
+                "label": "ihr",
+                "cells": [
+                  "erhaltet",
+                  "erhieltet",
+                  "habt erhalten"
+                ]
+              },
+              {
+                "label": "sie/Sie",
+                "cells": [
+                  "erhalten",
+                  "erhielten",
+                  "haben erhalten"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "erhalten",
+            "empfangen"
+          ],
+          "etymology": {
+            "origins": [
+              "Germanisch",
+              "Althochdeutsch"
+            ],
+            "text": "Althochdeutsch irhaltan, gebildet aus der Vorsilbe er- und halten, althochdeutsch haltan „hüten, bewahren“. Ursprünglich bedeutete es „bewahren, festhalten“; daraus entwickelte sich auch die Bedeutung „bekommen“."
+          },
+          "simple-translation": [
+            "etwas bekommen, das jemand schickt oder gibt",
+            "Gäste begrüßen und zu sich hereinlassen",
+            "Radio- oder Fernsehsignale bekommen"
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-typo-fernwhe-haiku",
+      "item": "m-typo-fernwhe",
+      "split": "dev",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "verdict": "weak",
+      "reason": "The card for Fernweh is right, but nothing says Fernwhe is misspelled; the example silently corrects it.",
+      "key": "Fernwhe",
+      "context": "Ich habe so ein Fernwhe nach Portugal.",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "Fernwhe",
+          "gramRole": "noun",
+          "meanings": [
+            "Sehnsucht nach fernen Ländern und dem Reisen dorthin"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "das Fernweh"
+          },
+          "examples": [
+            {
+              "sentence": "Ich habe so ein Fernweh nach Portugal."
+            },
+            {
+              "sentence": "Im Winter bekomme ich immer Fernweh."
+            }
+          ],
+          "declension": {
+            "columns": [
+              "Singular",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "Nominativ",
+                "cells": [
+                  "das Fernweh",
+                  "—"
+                ]
+              },
+              {
+                "label": "Genitiv",
+                "cells": [
+                  "des Fernwehs",
+                  "—"
+                ]
+              },
+              {
+                "label": "Dativ",
+                "cells": [
+                  "dem Fernweh",
+                  "—"
+                ]
+              },
+              {
+                "label": "Akkusativ",
+                "cells": [
+                  "das Fernweh",
+                  "—"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "das Fernweh"
+          ],
+          "etymology": {
+            "origins": [
+              "Althochdeutsch"
+            ],
+            "text": "Zusammensetzung aus „fern“ und „Weh“ (Schmerz, Sehnsucht). Das Wort ist um 1900 aufgekommen und bezeichnet das Gegenteil von Heimweh."
+          },
+          "simple-translation": [
+            "die starke Sehnsucht, in ferne Länder zu reisen"
+          ],
+          "grammar-teacher": [
+            "Das Wort ist ein Neutrum: das Fernweh.",
+            "Es hat im Plural keine gebräuchliche Form.",
+            "Im Genitiv Singular steht die Endung -s: des Fernwehs."
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-typo-fernwhe-opus",
+      "item": "m-typo-fernwhe",
+      "split": "dev",
+      "generator": "claude-opus-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Builds the card on Fernweh, and the grammar tip names the right spelling and the usual phrase 'Fernweh nach'.",
+      "key": "Fernwhe",
+      "context": "Ich habe so ein Fernwhe nach Portugal.",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "Fernweh",
+          "gramRole": "noun",
+          "meanings": [
+            "Sehnsucht, in die Ferne zu reisen und fremde Länder kennenzulernen"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "das Fernweh"
+          },
+          "examples": [
+            {
+              "sentence": "Jedes Mal, wenn ich Flugzeuge sehe, packt mich das Fernweh."
+            }
+          ],
+          "synonyms": [
+            "Reiselust",
+            "Wanderlust"
+          ],
+          "antonyms": [
+            "Heimweh"
+          ],
+          "declension": {
+            "columns": [
+              "Singular",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "Nominativ",
+                "cells": [
+                  "das Fernweh",
+                  "—"
+                ]
+              },
+              {
+                "label": "Genitiv",
+                "cells": [
+                  "des Fernwehs",
+                  "—"
+                ]
+              },
+              {
+                "label": "Dativ",
+                "cells": [
+                  "dem Fernweh",
+                  "—"
+                ]
+              },
+              {
+                "label": "Akkusativ",
+                "cells": [
+                  "das Fernweh",
+                  "—"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "Fernweh"
+          ],
+          "etymology": {
+            "origins": [
+              "Althochdeutsch"
+            ],
+            "text": "Zusammengesetzt aus fern, althochdeutsch ferro, und Weh, althochdeutsch wē „Schmerz“. Das Wort wurde im 19. Jahrhundert als Gegenstück zu Heimweh gebildet und bedeutet den Schmerz der Sehnsucht nach der Ferne."
+          },
+          "simple-translation": [
+            "der starke Wunsch, weit weg zu reisen und andere Länder zu sehen"
+          ],
+          "grammar-teacher": [
+            "Richtig geschrieben heißt das Wort „Fernweh“, mit „eh“ am Ende wie in „Weh“.",
+            "Neutrum: das Fernweh, denn das Genus kommt vom letzten Teil, das Weh.",
+            "Es hat keinen Plural; der Genitiv lautet des Fernwehs.",
+            "Man sagt oft „Fernweh nach etwas haben“, mit der Präposition „nach“ und Dativ: Fernweh nach Portugal."
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-typo-beaucoup-opus",
+      "item": "m-typo-beaucoup",
+      "split": "dev",
+      "generator": "claude-opus-5-5",
+      "decided": "claude",
+      "verdict": "weak",
+      "reason": "The meanings are right, but nothing says beaucoups is a misspelling of beaucoup.",
+      "key": "beaucoups",
+      "context": "Merci beaucoups pour ton aide !",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Französisch",
+          "key": "beaucoups",
+          "gramRole": "adverb",
+          "contextual": "sehr (in merci beaucoup: vielen Dank)",
+          "meanings": [
+            "viel, eine große Menge"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "Je t'aime beaucoup.",
+              "translation": "Ich mag dich sehr."
+            },
+            {
+              "sentence": "Il y a beaucoup de monde dans la rue.",
+              "translation": "Auf der Straße sind viele Leute."
+            }
+          ],
+          "synonyms": [
+            "äußerst",
+            "überaus",
+            "höchst"
+          ],
+          "antonyms": [
+            "wenig"
+          ],
+          "pronunciation": [
+            "sehr",
+            "viel"
+          ],
+          "etymology": {
+            "origins": [
+              "Althochdeutsch",
+              "Mittelhochdeutsch"
+            ],
+            "text": "Althochdeutsch sēro bedeutete „schmerzlich, schwer“ und ist mit versehren verwandt. Über mittelhochdeutsch sēre schwächte sich die Bedeutung von „schmerzlich“ zu „heftig“ und schließlich zu „in hohem Maß“ ab."
+          },
+          "simple-translation": [
+            "sehr",
+            "viel, eine große Menge"
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-typo-beaucoup-haiku",
+      "item": "m-typo-beaucoup",
+      "split": "dev",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "verdict": "weak",
+      "reason": "The meanings are right, but nothing says beaucoups is a misspelling; the example silently uses beaucoup.",
+      "key": "beaucoups",
+      "context": "Merci beaucoups pour ton aide !",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Französisch",
+          "key": "beaucoups",
+          "gramRole": "adverb",
+          "contextual": "Verstärkung in der Dankesformel: sehr, vielen",
+          "meanings": [
+            "viel, in großer Menge"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "Merci beaucoup pour ton aide !",
+              "translation": "Vielen Dank für deine Hilfe!"
+            },
+            {
+              "sentence": "Il y a beaucoup de monde ici.",
+              "translation": "Hier sind viele Leute."
+            }
+          ],
+          "synonyms": [
+            "reichlich"
+          ],
+          "antonyms": [
+            "wenig"
+          ],
+          "pronunciation": [
+            "sehr",
+            "viel"
+          ],
+          "etymology": {
+            "origins": [
+              "Althochdeutsch"
+            ],
+            "text": "Aus althochdeutsch sēro „schmerzlich, heftig“; die Bedeutung wandelte sich zu „sehr, stark“."
+          },
+          "simple-translation": [
+            "sehr, vielen Dank",
+            "eine große Menge, viel"
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-frag-ngsamkeit-opus",
+      "item": "m-frag-ngsamkeit",
+      "split": "dev",
+      "generator": "claude-opus-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Restores the whole word Langsamkeit from the fragment and gives a correct card for it.",
+      "key": "ngsamkeit",
+      "context": "Die Langsamkeit der Behörden ist legendär.",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "Langsamkeit",
+          "gramRole": "noun",
+          "meanings": [
+            "das Langsamsein; geringe Geschwindigkeit, mit der etwas geschieht oder getan wird"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "die Langsamkeit"
+          },
+          "examples": [
+            {
+              "sentence": "Die Langsamkeit des Internets hier macht mich wahnsinnig."
+            }
+          ],
+          "synonyms": [
+            "Gemächlichkeit",
+            "Schwerfälligkeit",
+            "Behäbigkeit"
+          ],
+          "antonyms": [
+            "Schnelligkeit",
+            "Raschheit"
+          ],
+          "declension": {
+            "columns": [
+              "Singular",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "Nominativ",
+                "cells": [
+                  "die Langsamkeit",
+                  "—"
+                ]
+              },
+              {
+                "label": "Genitiv",
+                "cells": [
+                  "der Langsamkeit",
+                  "—"
+                ]
+              },
+              {
+                "label": "Dativ",
+                "cells": [
+                  "der Langsamkeit",
+                  "—"
+                ]
+              },
+              {
+                "label": "Akkusativ",
+                "cells": [
+                  "die Langsamkeit",
+                  "—"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "Langsamkeit"
+          ],
+          "etymology": {
+            "origins": [
+              "Althochdeutsch"
+            ],
+            "text": "Abgeleitet vom Adjektiv langsam mit der Endung -keit. Langsam geht auf althochdeutsch langsam zurück, gebildet aus lang und -sam, und bedeutete zuerst „lange dauernd“, dann „nicht schnell“."
+          },
+          "simple-translation": [
+            "wenn etwas sehr langsam geht und lange dauert"
+          ],
+          "grammar-teacher": [
+            "Femininum: Nomen mit der Endung -keit sind immer feminin, also die Langsamkeit.",
+            "Das Nomen ist vom Adjektiv „langsam“ mit der Endung -keit abgeleitet.",
+            "Es wird fast nur im Singular gebraucht, und im Singular bleibt die Form in allen Fällen gleich: der Langsamkeit."
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-frag-ngsamkeit-haiku",
+      "item": "m-frag-ngsamkeit",
+      "split": "dev",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "verdict": "weak",
+      "reason": "Restores Langsamkeit and says the capture is its end, but the grammar tip gives a plural the table denies and has a garbled sentence.",
+      "key": "ngsamkeit",
+      "context": "Die Langsamkeit der Behörden ist legendär.",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "ngsamkeit",
+          "gramRole": "noun",
+          "meanings": [
+            "Ende des Wortes „Langsamkeit“: die Eigenschaft, langsam zu sein, also geringe Geschwindigkeit"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "die Langsamkeit",
+            "plural": "—"
+          },
+          "examples": [
+            {
+              "sentence": "Die Langsamkeit der Behörden ist legendär."
+            },
+            {
+              "sentence": "Die Langsamkeit des Zuges ärgerte alle Fahrgäste."
+            }
+          ],
+          "antonyms": [
+            "Schnelligkeit"
+          ],
+          "declension": {
+            "columns": [
+              "Singular",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "Nominativ",
+                "cells": [
+                  "die Langsamkeit",
+                  "—"
+                ]
+              },
+              {
+                "label": "Genitiv",
+                "cells": [
+                  "der Langsamkeit",
+                  "—"
+                ]
+              },
+              {
+                "label": "Dativ",
+                "cells": [
+                  "der Langsamkeit",
+                  "—"
+                ]
+              },
+              {
+                "label": "Akkusativ",
+                "cells": [
+                  "die Langsamkeit",
+                  "—"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "die Langsamkeit"
+          ],
+          "etymology": {
+            "origins": [
+              "Althochdeutsch",
+              "Mittelhochdeutsch"
+            ],
+            "text": "Aus langsam, einem Adjektiv, das zu lang gehört, und dem Suffix -keit, das eine Eigenschaft bezeichnet."
+          },
+          "simple-translation": [
+            "die Eigenschaft, dass etwas nur wenig schnell ist"
+          ],
+          "grammar-teacher": [
+            "Feminina auf -keit sind immer feminin: die Langsamkeit, der Langsamkeit, die Langsamkeiten.",
+            "Im Genitiv Singular steht ohne Endung: der Langsamkeit, nicht der Langsamkeits."
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-frag-ponsib-opus",
+      "item": "m-frag-ponsib",
+      "split": "dev",
+      "generator": "claude-opus-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Says ponsib is only part of responsibility and builds the card on Verantwortung.",
+      "key": "ponsib",
+      "context": "She took full responsibility for the mistake.",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Englisch",
+          "key": "ponsib",
+          "gramRole": "noun",
+          "meanings": [
+            "kein eigenständiges Wort, sondern ein Bruchstück aus responsibility: Verantwortung"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "die Verantwortung",
+            "plural": "die Verantwortungen"
+          },
+          "examples": [
+            {
+              "sentence": "She took full responsibility for the mistake.",
+              "translation": "Sie übernahm die volle Verantwortung für den Fehler."
+            }
+          ],
+          "synonyms": [
+            "Verantwortlichkeit"
+          ],
+          "declension": {
+            "columns": [
+              "Singular",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "Nominativ",
+                "cells": [
+                  "die Verantwortung",
+                  "die Verantwortungen"
+                ]
+              },
+              {
+                "label": "Genitiv",
+                "cells": [
+                  "der Verantwortung",
+                  "der Verantwortungen"
+                ]
+              },
+              {
+                "label": "Dativ",
+                "cells": [
+                  "der Verantwortung",
+                  "den Verantwortungen"
+                ]
+              },
+              {
+                "label": "Akkusativ",
+                "cells": [
+                  "die Verantwortung",
+                  "die Verantwortungen"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "die Verantwortung"
+          ],
+          "etymology": {
+            "origins": [
+              "Althochdeutsch",
+              "Mittelhochdeutsch"
+            ],
+            "text": "Abgeleitet von verantworten, mittelhochdeutsch verantwürten „vor Gericht antworten, sich rechtfertigen“, einer Bildung zu antworten. Aus „sich für etwas rechtfertigen müssen“ entwickelte sich die heutige Bedeutung „Pflicht, für etwas einzustehen“."
+          },
+          "simple-translation": [
+            "ein Teil von dem Wort responsibility, das heißt: Verantwortung – man muss für etwas sorgen und dafür geradestehen"
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-frag-ponsib-haiku",
+      "item": "m-frag-ponsib",
+      "split": "dev",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "verdict": "weak",
+      "reason": "Says rightly that ponsib is part of responsibility, but the card has nothing else: no example, no German word to learn.",
+      "key": "ponsib",
+      "context": "She took full responsibility for the mistake.",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Englisch",
+          "key": "ponsib",
+          "meanings": [
+            "kein vollständiges Wort, sondern ein Ausschnitt aus „responsibility“ (Verantwortung)"
+          ]
+        },
+        "facets": {}
+      }
+    },
+    {
+      "id": "messy-m-frag-ja-opus",
+      "item": "m-frag-ja",
+      "split": "dev",
+      "generator": "claude-opus-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Sees that した here is the end of the polite past ました, and keeps 'did' as the second sense with its own example.",
+      "key": "した",
+      "context": "昨日、友達と映画を見ました。",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Japanisch",
+          "key": "した",
+          "romanization": "shita",
+          "gramRole": "verb",
+          "contextual": "Teil der höflichen Vergangenheitsendung ました (mashita): zeigt, dass die Handlung schon vorbei ist",
+          "meanings": [
+            "tat, machte: einfache Vergangenheitsform von する (suru) „tun, machen“"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "先週、京都に行きました。",
+              "translation": "Letzte Woche bin ich nach Kyoto gefahren."
+            },
+            {
+              "sentence": "昨日は一日中テニスをした。",
+              "translation": "Gestern habe ich den ganzen Tag Tennis gespielt."
+            }
+          ],
+          "synonyms": [
+            "tun"
+          ],
+          "conjugation": {
+            "columns": [
+              "Präsens",
+              "Präteritum",
+              "Perfekt"
+            ],
+            "rows": [
+              {
+                "label": "ich",
+                "cells": [
+                  "mache",
+                  "machte",
+                  "habe gemacht"
+                ]
+              },
+              {
+                "label": "du",
+                "cells": [
+                  "machst",
+                  "machtest",
+                  "hast gemacht"
+                ]
+              },
+              {
+                "label": "er/sie/es",
+                "cells": [
+                  "macht",
+                  "machte",
+                  "hat gemacht"
+                ]
+              },
+              {
+                "label": "wir",
+                "cells": [
+                  "machen",
+                  "machten",
+                  "haben gemacht"
+                ]
+              },
+              {
+                "label": "ihr",
+                "cells": [
+                  "macht",
+                  "machtet",
+                  "habt gemacht"
+                ]
+              },
+              {
+                "label": "sie/Sie",
+                "cells": [
+                  "machen",
+                  "machten",
+                  "haben gemacht"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "Vergangenheit",
+            "machte"
+          ],
+          "etymology": {
+            "origins": [
+              "Westgermanisch",
+              "Althochdeutsch"
+            ],
+            "text": "Aus althochdeutsch mahhōn „zusammenfügen, bereiten, herstellen“. Das Wort ist nur im Westgermanischen belegt; aus der Bedeutung „etwas formen, herstellen“ wurde allgemein „tun“."
+          },
+          "simple-translation": [
+            "zeigt, dass etwas schon vorbei ist",
+            "hat gemacht, hat getan"
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-frag-ja-haiku",
+      "item": "m-frag-ja",
+      "split": "dev",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "verdict": "fail",
+      "reason": "Reads した only as 'did', but in 見ました it is the end of the polite past, so the card misleads on the sentence the user selected.",
+      "key": "した",
+      "context": "昨日、友達と映画を見ました。",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Japanisch",
+          "key": "した",
+          "romanization": "shita",
+          "gramRole": "verb",
+          "meanings": [
+            "Vergangenheitsform (schlicht) von する: tat, machte"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "昨日、宿題をした。",
+              "translation": "Gestern habe ich die Hausaufgaben gemacht."
+            }
+          ],
+          "synonyms": [
+            "tun",
+            "herstellen"
+          ],
+          "antonyms": [
+            "unterlassen"
+          ],
+          "conjugation": {
+            "columns": [
+              "Präsens",
+              "Präteritum",
+              "Perfekt"
+            ],
+            "rows": [
+              {
+                "label": "ich",
+                "cells": [
+                  "mache",
+                  "machte",
+                  "habe gemacht"
+                ]
+              },
+              {
+                "label": "du",
+                "cells": [
+                  "machst",
+                  "machtest",
+                  "hast gemacht"
+                ]
+              },
+              {
+                "label": "er/sie/es",
+                "cells": [
+                  "macht",
+                  "machte",
+                  "hat gemacht"
+                ]
+              },
+              {
+                "label": "wir",
+                "cells": [
+                  "machen",
+                  "machten",
+                  "haben gemacht"
+                ]
+              },
+              {
+                "label": "ihr",
+                "cells": [
+                  "macht",
+                  "machtet",
+                  "habt gemacht"
+                ]
+              },
+              {
+                "label": "sie/Sie",
+                "cells": [
+                  "machen",
+                  "machten",
+                  "haben gemacht"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "machte"
+          ],
+          "simple-translation": [
+            "die Vergangenheit von „machen“: etwas tun oder herstellen, was schon passiert ist"
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-coined-downgeloadet-haiku",
+      "item": "m-coined-downgeloadet",
+      "split": "dev",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Explains the anglicism as the participle of downloaden, with a correct table and herunterladen as the German word.",
+      "key": "downgeloadet",
+      "context": "Ich hab die App gestern downgeloadet.",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "downgeloadet",
+          "gramRole": "verb",
+          "meanings": [
+            "Partizip II von „downloaden“: aus dem Internet auf ein Gerät herunterladen"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "Ich habe das Spiel gestern downgeloadet."
+            }
+          ],
+          "synonyms": [
+            "herunterladen"
+          ],
+          "antonyms": [
+            "hochladen"
+          ],
+          "conjugation": {
+            "columns": [
+              "Präsens",
+              "Präteritum",
+              "Perfekt"
+            ],
+            "rows": [
+              {
+                "label": "ich",
+                "cells": [
+                  "downloade",
+                  "downloadete",
+                  "habe downgeloadet"
+                ]
+              },
+              {
+                "label": "du",
+                "cells": [
+                  "downloadest",
+                  "downloadetest",
+                  "hast downgeloadet"
+                ]
+              },
+              {
+                "label": "er/sie/es",
+                "cells": [
+                  "downloadet",
+                  "downloadete",
+                  "hat downgeloadet"
+                ]
+              },
+              {
+                "label": "wir",
+                "cells": [
+                  "downloaden",
+                  "downloadeten",
+                  "haben downgeloadet"
+                ]
+              },
+              {
+                "label": "ihr",
+                "cells": [
+                  "downloadet",
+                  "downloadetet",
+                  "habt downgeloadet"
+                ]
+              },
+              {
+                "label": "sie/Sie",
+                "cells": [
+                  "downloaden",
+                  "downloadeten",
+                  "haben downgeloadet"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "downgeloadet"
+          ],
+          "etymology": {
+            "origins": [
+              "Englisch"
+            ],
+            "text": "Aus englisch „download“, zusammengesetzt aus „down“ für herunter und „load“ für Last, Ladung, und im Zuge der Computertechnik ins Deutsche übernommen. Dort wird es wie ein regelmäßiges Verb gebildet."
+          },
+          "simple-translation": [
+            "aus dem Internet auf ein Gerät holen"
+          ],
+          "grammar-teacher": [
+            "Regelmäßiges Verb: Das Partizip II bildet man mit „ge-“ zwischen Vorsilbe und Stamm und mit der Endung „-t“: downgeloadet.",
+            "Das Perfekt bildet es mit „haben“: Ich habe die App gestern downgeloadet."
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-coined-downgeloadet-opus",
+      "item": "m-coined-downgeloadet",
+      "split": "dev",
+      "generator": "claude-opus-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Explains the anglicism, names the other form gedownloadet, and says standard German prefers herunterladen.",
+      "key": "downgeloadet",
+      "context": "Ich hab die App gestern downgeloadet.",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "downgeloadet",
+          "gramRole": "verb",
+          "meanings": [
+            "Partizip II von downloaden: Daten aus dem Internet auf das eigene Gerät heruntergeladen"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "Hast du das Update schon downgeloadet?"
+            }
+          ],
+          "synonyms": [
+            "herunterladen",
+            "runterladen"
+          ],
+          "antonyms": [
+            "hochladen",
+            "uploaden"
+          ],
+          "conjugation": {
+            "columns": [
+              "Präsens",
+              "Präteritum",
+              "Perfekt"
+            ],
+            "rows": [
+              {
+                "label": "ich",
+                "cells": [
+                  "downloade",
+                  "downloadete",
+                  "habe downgeloadet"
+                ]
+              },
+              {
+                "label": "du",
+                "cells": [
+                  "downloadest",
+                  "downloadetest",
+                  "hast downgeloadet"
+                ]
+              },
+              {
+                "label": "er/sie/es",
+                "cells": [
+                  "downloadet",
+                  "downloadete",
+                  "hat downgeloadet"
+                ]
+              },
+              {
+                "label": "wir",
+                "cells": [
+                  "downloaden",
+                  "downloadeten",
+                  "haben downgeloadet"
+                ]
+              },
+              {
+                "label": "ihr",
+                "cells": [
+                  "downloadet",
+                  "downloadetet",
+                  "habt downgeloadet"
+                ]
+              },
+              {
+                "label": "sie/Sie",
+                "cells": [
+                  "downloaden",
+                  "downloadeten",
+                  "haben downgeloadet"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "downgeloadet"
+          ],
+          "etymology": {
+            "origins": [
+              "Englisch"
+            ],
+            "text": "Entlehnt aus englisch to download „herunterladen“, aus down „herunter“ und load „laden“. Im Deutschen wird es wie ein deutsches Verb konjugiert."
+          },
+          "simple-translation": [
+            "aus dem Internet auf den Computer oder das Handy geholt"
+          ],
+          "grammar-teacher": [
+            "Das Partizip II von downloaden lautet downgeloadet oder gedownloadet; beide Formen kommen vor.",
+            "Das Perfekt bildet es mit „haben“: Ich habe die App downgeloadet.",
+            "Das Wort ist umgangssprachlich; in der Standardsprache sagt man meist herunterladen."
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-coined-doomscrolling-haiku",
+      "item": "m-coined-doomscrolling",
+      "split": "dev",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Explains the English coinage clearly and gives it as a German loanword with its gender.",
+      "key": "doomscrolling",
+      "context": "I spent the whole night doomscrolling again.",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Englisch",
+          "key": "doomscrolling",
+          "gramRole": "noun",
+          "meanings": [
+            "das stundenlange Scrollen durch schlechte Nachrichten auf dem Smartphone, obwohl man sich dadurch schlechter fühlt"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "das Doomscrolling"
+          },
+          "examples": [
+            {
+              "sentence": "Instead of sleeping, I ended up doomscrolling through bad news.",
+              "translation": "Statt zu schlafen, habe ich stundenlang schlechte Nachrichten auf dem Handy gelesen."
+            }
+          ],
+          "declension": {
+            "columns": [
+              "Singular",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "Nominativ",
+                "cells": [
+                  "das Doomscrolling",
+                  "—"
+                ]
+              },
+              {
+                "label": "Genitiv",
+                "cells": [
+                  "des Doomscrollings",
+                  "—"
+                ]
+              },
+              {
+                "label": "Dativ",
+                "cells": [
+                  "dem Doomscrolling",
+                  "—"
+                ]
+              },
+              {
+                "label": "Akkusativ",
+                "cells": [
+                  "das Doomscrolling",
+                  "—"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "das Doomscrolling"
+          ],
+          "simple-translation": [
+            "Stundenlang am Handy schlechte Nachrichten lesen, obwohl man sich dabei schlecht fühlt"
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-coined-doomscrolling-opus",
+      "item": "m-coined-doomscrolling",
+      "split": "dev",
+      "generator": "claude-opus-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Explains the English coinage, its parts and when it spread.",
+      "key": "doomscrolling",
+      "context": "I spent the whole night doomscrolling again.",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Englisch",
+          "key": "doomscrolling",
+          "gramRole": "noun",
+          "meanings": [
+            "zwanghaftes, endloses Durchscrollen schlechter Nachrichten im Internet oder in sozialen Medien"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "das Doomscrolling"
+          },
+          "examples": [
+            {
+              "sentence": "I need to stop doomscrolling before bed.",
+              "translation": "Ich muss mit dem Doomscrolling vor dem Schlafengehen aufhören."
+            }
+          ],
+          "declension": {
+            "columns": [
+              "Singular",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "Nominativ",
+                "cells": [
+                  "das Doomscrolling",
+                  "—"
+                ]
+              },
+              {
+                "label": "Genitiv",
+                "cells": [
+                  "des Doomscrollings",
+                  "—"
+                ]
+              },
+              {
+                "label": "Dativ",
+                "cells": [
+                  "dem Doomscrolling",
+                  "—"
+                ]
+              },
+              {
+                "label": "Akkusativ",
+                "cells": [
+                  "das Doomscrolling",
+                  "—"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "das Doomscrolling"
+          ],
+          "etymology": {
+            "origins": [
+              "Englisch"
+            ],
+            "text": "Aus englisch doomscrolling, gebildet aus doom „Verhängnis, Untergang“ und scrolling „Blättern auf dem Bildschirm“. Das Wort kam um 2018 auf und verbreitete sich während der Corona-Pandemie 2020 stark, auch im Deutschen."
+          },
+          "simple-translation": [
+            "lange am Handy schlechte Nachrichten lesen und nicht aufhören können"
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-coined-neijuan-haiku",
+      "item": "m-coined-neijuan",
+      "split": "dev",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Gives the slang sense of 内卷 for this context first and the scholarly sense after, with Konkurrenzkampf as the German equivalent.",
+      "key": "内卷",
+      "context": "现在大学生找工作太内卷了",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Chinesisch",
+          "key": "内卷",
+          "romanization": "nèijuǎn",
+          "gramRole": "noun",
+          "contextual": "übermäßiger, aufreibender Konkurrenzkampf, bei dem alle viel Mühe investieren, ohne echten Vorteil zu gewinnen",
+          "meanings": [
+            "Involution: in der Soziologie eine Entwicklung, bei der ein System immer komplexer wird, ohne sich grundlegend zu verändern"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "der Konkurrenzkampf",
+            "plural": "die Konkurrenzkämpfe"
+          },
+          "examples": [
+            {
+              "sentence": "现在大学生找工作太内卷了。",
+              "translation": "Heutzutage ist die Jobsuche für Studierende ein unglaublich harter Konkurrenzkampf."
+            },
+            {
+              "sentence": "学者用“内卷”来描述一种越来越复杂却没有根本变化的社会发展。",
+              "translation": "Wissenschaftler verwenden „Involution“, um eine gesellschaftliche Entwicklung zu beschreiben, die immer komplizierter wird, sich aber nicht grundlegend ändert."
+            }
+          ],
+          "declension": {
+            "columns": [
+              "Singular",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "Nominativ",
+                "cells": [
+                  "der Konkurrenzkampf",
+                  "die Konkurrenzkämpfe"
+                ]
+              },
+              {
+                "label": "Genitiv",
+                "cells": [
+                  "des Konkurrenzkampfes",
+                  "der Konkurrenzkämpfe"
+                ]
+              },
+              {
+                "label": "Dativ",
+                "cells": [
+                  "dem Konkurrenzkampf",
+                  "den Konkurrenzkämpfen"
+                ]
+              },
+              {
+                "label": "Akkusativ",
+                "cells": [
+                  "den Konkurrenzkampf",
+                  "die Konkurrenzkämpfe"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "der Konkurrenzkampf",
+            "die Involution"
+          ],
+          "etymology": {
+            "origins": [
+              "Latein",
+              "Französisch",
+              "Althochdeutsch"
+            ],
+            "text": "Konkurrenz geht auf lateinisch concurrere „zusammenlaufen, zusammentreffen“ zurück und kam über das Französische ins Deutsche. Kampf ist ein altes Wort für Streit mit Kräften oder Waffen, das schon im Althochdeutschen als champf bezeugt ist."
+          },
+          "simple-translation": [
+            "ein sehr starker Wettstreit, bei dem alle viel Mühe machen und trotzdem wenig gewinnen",
+            "in der Wissenschaft: eine Entwicklung, die immer komplizierter wird, aber sich nicht richtig ändert"
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-coined-neijuan-opus",
+      "item": "m-coined-neijuan",
+      "split": "dev",
+      "generator": "claude-opus-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Gives the slang sense of 内卷 first and the scholarly sense after, each with a fitting example.",
+      "key": "内卷",
+      "context": "现在大学生找工作太内卷了",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Chinesisch",
+          "key": "内卷",
+          "romanization": "nèijuǎn",
+          "gramRole": "noun",
+          "contextual": "übermäßiger, zermürbender Konkurrenzkampf, bei dem alle immer mehr leisten, ohne dass es jemandem nützt",
+          "meanings": [
+            "Involution: Entwicklung, die nicht nach außen wächst, sondern sich nach innen verdichtet und stagniert"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "der Konkurrenzkampf",
+            "plural": "die Konkurrenzkämpfe"
+          },
+          "examples": [
+            {
+              "sentence": "公司里大家都在加班，越来越内卷了。",
+              "translation": "In der Firma machen alle Überstunden, der Konkurrenzkampf wird immer härter."
+            },
+            {
+              "sentence": "这个地区的农业出现了内卷现象。",
+              "translation": "In der Landwirtschaft dieser Region zeigte sich eine Involution."
+            }
+          ],
+          "declension": {
+            "columns": [
+              "Singular",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "Nominativ",
+                "cells": [
+                  "der Konkurrenzkampf",
+                  "die Konkurrenzkämpfe"
+                ]
+              },
+              {
+                "label": "Genitiv",
+                "cells": [
+                  "des Konkurrenzkampfes",
+                  "der Konkurrenzkämpfe"
+                ]
+              },
+              {
+                "label": "Dativ",
+                "cells": [
+                  "dem Konkurrenzkampf",
+                  "den Konkurrenzkämpfen"
+                ]
+              },
+              {
+                "label": "Akkusativ",
+                "cells": [
+                  "den Konkurrenzkampf",
+                  "die Konkurrenzkämpfe"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "der Konkurrenzkampf",
+            "die Involution"
+          ],
+          "etymology": {
+            "origins": [
+              "Latein",
+              "Mittellatein",
+              "Althochdeutsch"
+            ],
+            "text": "Zusammensetzung aus Konkurrenz und Kampf. Konkurrenz kam im 16. Jahrhundert aus mittellateinisch concurrentia, zu lateinisch concurrere „zusammenlaufen“; Kampf geht über althochdeutsch kampf auf lateinisch campus „Feld, Schlachtfeld“ zurück."
+          },
+          "simple-translation": [
+            "wenn alle immer mehr arbeiten, weil die anderen auch mehr arbeiten, aber am Ende niemand etwas davon hat",
+            "wenn etwas nicht mehr nach außen wächst, sondern nur innen immer enger und komplizierter wird"
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-coll-nix-haiku",
+      "item": "m-coll-nix",
+      "split": "dev",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Reads nix as spoken nichts and says it does not belong in formal writing.",
+      "key": "nix",
+      "context": "Ich hab heute noch nix gegessen.",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "nix",
+          "gramRole": "pronoun",
+          "meanings": [
+            "umgangssprachlich für „nichts“"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "Hast du schon was gegessen? – Nee, ich hab nix gegessen."
+            }
+          ],
+          "antonyms": [
+            "etwas"
+          ],
+          "pronunciation": [
+            "nix"
+          ],
+          "etymology": {
+            "origins": [
+              "Althochdeutsch",
+              "Mittelhochdeutsch"
+            ],
+            "text": "Aus althochdeutsch niowiht „nicht ein Ding“, mittelhochdeutsch niht. Die umgangssprachliche Kurzform nix ist eine verkürzte Form von nichts."
+          },
+          "simple-translation": [
+            "das Wort „nichts“, so wie man es im Alltag sagt"
+          ],
+          "grammar-teacher": [
+            "Umgangssprachliche Form: „nix“ steht für „nichts“ und passt nicht in formelle oder schriftliche Texte.",
+            "Als Objekt des Verbs steht es im Akkusativ: „nix gegessen“ bedeutet, dass nichts gegessen wurde."
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-coll-nix-opus",
+      "item": "m-coll-nix",
+      "split": "dev",
+      "generator": "claude-opus-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Reads nix as spoken nichts and explains how -chts became -x.",
+      "key": "nix",
+      "context": "Ich hab heute noch nix gegessen.",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "nix",
+          "gramRole": "pronoun",
+          "meanings": [
+            "umgangssprachlich für nichts: kein Ding, keine Sache"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "Da kann man nix machen."
+            }
+          ],
+          "synonyms": [
+            "nichts"
+          ],
+          "antonyms": [
+            "alles",
+            "etwas"
+          ],
+          "pronunciation": [
+            "nix"
+          ],
+          "etymology": {
+            "origins": [
+              "Althochdeutsch",
+              "Mittelhochdeutsch"
+            ],
+            "text": "Umgangssprachliche Form von nichts, das auf mittelhochdeutsch nihtes zurückgeht, den Genitiv von niht „nichts“, aus althochdeutsch niwiht „nicht etwas“. In der gesprochenen Sprache wurde die Lautfolge -chts zu -x vereinfacht."
+          },
+          "simple-translation": [
+            "nichts, so sagt man es locker im Gespräch"
+          ],
+          "grammar-teacher": [
+            "Nix ist ein Indefinitpronomen und wird nicht dekliniert.",
+            "Es gehört zur Umgangssprache; in geschriebenem Standarddeutsch schreibt man nichts."
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-coll-moin-haiku",
+      "item": "m-coll-moin",
+      "split": "dev",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Explains Moin as the northern German greeting.",
+      "key": "Moin",
+      "context": "Moin, wie läuft's bei dir?",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "Moin",
+          "gramRole": "interjection",
+          "meanings": [
+            "norddeutsche Grußformel, etwa wie „Hallo“ oder „Guten Tag“"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "Moin, Thomas, schön dich zu sehen!"
+            }
+          ],
+          "synonyms": [
+            "Hallo",
+            "Guten Tag"
+          ],
+          "pronunciation": [
+            "Moin"
+          ],
+          "simple-translation": [
+            "ein kurzer Gruß, den man im Norden Deutschlands sagt, wie Hallo"
+          ],
+          "grammar-teacher": [
+            "Moin ist eine Interjektion und bleibt unverändert: Es wird nicht gebeugt und hat keine Konjugation."
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-coll-moin-opus",
+      "item": "m-coll-moin",
+      "split": "dev",
+      "generator": "claude-opus-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Explains Moin as the northern German greeting for any time of day, with how it is written and doubled.",
+      "key": "Moin",
+      "context": "Moin, wie läuft's bei dir?",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "Moin",
+          "gramRole": "interjection",
+          "meanings": [
+            "norddeutscher Gruß zu jeder Tageszeit, etwa Hallo oder Guten Tag"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "Moin, schön, dich zu sehen!"
+            }
+          ],
+          "synonyms": [
+            "Hallo",
+            "Guten Tag"
+          ],
+          "pronunciation": [
+            "Moin"
+          ],
+          "simple-translation": [
+            "Hallo – so grüßt man im Norden von Deutschland, egal wie spät es ist"
+          ],
+          "grammar-teacher": [
+            "„Moin“ ist eine Interjektion und wird nicht gebeugt.",
+            "Als Gruß steht es meist allein am Satzanfang und wird mit einem Komma abgetrennt: Moin, wie geht's?",
+            "Die Verdopplung „Moin moin“ ist ebenfalls üblich."
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-coll-gell-opus",
+      "item": "m-coll-gell",
+      "split": "dev",
+      "generator": "claude-opus-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Explains gell as the southern tag question with its origin in 'es gelte'.",
+      "key": "gell",
+      "context": "Das war schön heute, gell?",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "gell",
+          "gramRole": "particle",
+          "meanings": [
+            "Rückfrage am Satzende, besonders in Süddeutschland und Österreich, mit der man Zustimmung erwartet: nicht wahr?"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "Du kommst morgen auch zur Feier, gell?"
+            }
+          ],
+          "synonyms": [
+            "nicht wahr",
+            "oder",
+            "ne"
+          ],
+          "pronunciation": [
+            "gell"
+          ],
+          "etymology": {
+            "origins": [
+              "Althochdeutsch",
+              "Mittelhochdeutsch"
+            ],
+            "text": "Verkürzt aus „gelte es“ beziehungsweise „es gelte“, einer Form des Verbs gelten, althochdeutsch geltan. Gemeint war ursprünglich „soll es gelten?“, daraus wurde die Rückfrage „nicht wahr?“."
+          },
+          "simple-translation": [
+            "am Ende vom Satz: Das ist doch so, oder?"
+          ],
+          "grammar-teacher": [
+            "„Gell“ steht meist nach einem Komma am Satzende und macht eine Aussage zu einer Frage, auf die man ein Ja erwartet.",
+            "Das Wort verändert seine Form nicht; es gehört zur gesprochenen Sprache in Süddeutschland und Österreich, dort auch als „gelt“."
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-coll-gell-haiku",
+      "item": "m-coll-gell",
+      "split": "dev",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Explains gell as the southern tag question for this context and keeps the rare adjective 'shrill' as a second sense.",
+      "key": "gell",
+      "context": "Das war schön heute, gell?",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "gell",
+          "gramRole": "particle",
+          "contextual": "Bekräftigende Frage am Satzende, etwa wie „nicht wahr?“ (süddeutsch, österreichisch)",
+          "meanings": [
+            "schrill, durchdringend (Adjektiv, selten)"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "Das war heute schön, gell?"
+            },
+            {
+              "sentence": "Der Schrei klang gell in den Ohren."
+            }
+          ],
+          "pronunciation": [
+            "gell"
+          ],
+          "simple-translation": [
+            "eine Frage am Satzende, die bedeutet: Das stimmt doch, oder?",
+            "laut und hoch klingend, sodass es weh tut"
+          ],
+          "grammar-teacher": [
+            "Partikel: „gell“ ist unveränderlich und steht am Satzende, um die Zustimmung des Gegenübers zu suchen.",
+            "Die Form ist vor allem im süddeutschen und österreichischen Sprachgebrauch üblich; in der Standardsprache sagt man eher „nicht wahr?“ oder „oder?“."
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-coll-pa-haiku",
+      "item": "m-coll-pa",
+      "split": "dev",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Reads pa' as spoken para and gives the direction sense of this context first, with an example for each sense.",
+      "key": "pa'",
+      "context": "Voy pa' la casa ahora.",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Spanisch",
+          "key": "pa'",
+          "gramRole": "preposition",
+          "contextual": "umgangssprachlich für „nach“ in Richtung eines Ortes, hier „nach Hause“",
+          "meanings": [
+            "umgangssprachliche Kurzform von „para“: für, zugunsten von",
+            "umgangssprachlich: um zu (Zweck, Absicht)"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "Voy pa' la casa ahora.",
+              "translation": "Ich gehe jetzt nach Hause."
+            },
+            {
+              "sentence": "Esto es pa' ti.",
+              "translation": "Das ist für dich."
+            },
+            {
+              "sentence": "Vine pa' verte.",
+              "translation": "Ich bin gekommen, um dich zu sehen."
+            }
+          ],
+          "pronunciation": [
+            "nach",
+            "für",
+            "um zu"
+          ],
+          "simple-translation": [
+            "in die Richtung eines Ortes, hier: nach Hause",
+            "für etwas oder jemanden",
+            "um etwas zu tun"
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-coll-pa-opus",
+      "item": "m-coll-pa",
+      "split": "dev",
+      "generator": "claude-opus-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Reads pa' as spoken para with the direction sense first and an example for each sense.",
+      "key": "pa'",
+      "context": "Voy pa' la casa ahora.",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Spanisch",
+          "key": "pa'",
+          "gramRole": "preposition",
+          "contextual": "nach, in Richtung (umgangssprachliche Kurzform von para)",
+          "meanings": [
+            "für (umgangssprachliche Kurzform von para)",
+            "um zu (Zweck)"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "Vamos pa' la playa mañana.",
+              "translation": "Wir fahren morgen zum Strand."
+            },
+            {
+              "sentence": "Esto es pa' ti.",
+              "translation": "Das ist für dich."
+            },
+            {
+              "sentence": "Trabajo pa' pagar el alquiler.",
+              "translation": "Ich arbeite, um die Miete zu bezahlen."
+            }
+          ],
+          "case": [
+            {
+              "case": "Dativ",
+              "use": "Richtung zu Orten, Ländern und Städten ohne Artikel",
+              "example": "Ich gehe nach Hause."
+            }
+          ],
+          "pronunciation": [
+            "nach",
+            "für",
+            "um zu"
+          ],
+          "etymology": {
+            "origins": [
+              "Althochdeutsch"
+            ],
+            "text": "Aus althochdeutsch nāh, eigentlich „nahe“, verwandt mit dem Adjektiv nah. Aus „nahe an etwas heran“ entwickelte sich die Richtungsangabe „hin zu einem Ziel“ und später auch die zeitliche Bedeutung „hinterher“."
+          },
+          "simple-translation": [
+            "nach, also dorthin, wo man hingeht",
+            "für",
+            "damit man etwas machen kann"
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-noise-ufer-opus",
+      "item": "m-noise-ufer",
+      "split": "dev",
+      "generator": "claude-opus-5-5",
+      "decided": "claude",
+      "verdict": "weak",
+      "reason": "Drops the comma and gives a sound card for Ufer, but calls the word a borrowing from Middle Low German, where Pfeifer lists ōver only as a related form.",
+      "key": "Ufer,",
+      "context": "Wir saßen am Ufer, bis die Sonne unterging.",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "Ufer",
+          "gramRole": "noun",
+          "meanings": [
+            "Rand eines Gewässers, wo das Land beginnt, etwa an einem Fluss oder See"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "das Ufer",
+            "plural": "die Ufer"
+          },
+          "examples": [
+            {
+              "sentence": "Am anderen Ufer des Sees steht ein kleines Haus."
+            }
+          ],
+          "synonyms": [
+            "Gestade"
+          ],
+          "declension": {
+            "columns": [
+              "Singular",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "Nominativ",
+                "cells": [
+                  "das Ufer",
+                  "die Ufer"
+                ]
+              },
+              {
+                "label": "Genitiv",
+                "cells": [
+                  "des Ufers",
+                  "der Ufer"
+                ]
+              },
+              {
+                "label": "Dativ",
+                "cells": [
+                  "dem Ufer",
+                  "den Ufern"
+                ]
+              },
+              {
+                "label": "Akkusativ",
+                "cells": [
+                  "das Ufer",
+                  "die Ufer"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "das Ufer"
+          ],
+          "etymology": {
+            "origins": [
+              "Germanisch",
+              "Mittelniederdeutsch"
+            ],
+            "text": "Aus dem Niederdeutschen übernommen, mittelniederdeutsch ōver, ūver „Ufer, Rand“. Das Wort verbreitete sich seit der frühen Neuzeit im Hochdeutschen und verdrängte dort ältere Wörter wie Gestade."
+          },
+          "simple-translation": [
+            "der Rand von einem Fluss oder See, wo das Land anfängt"
+          ],
+          "grammar-teacher": [
+            "Ufer ist ein Neutrum: das Ufer.",
+            "Der Plural lautet gleich wie der Singular, die Ufer; nur im Dativ Plural kommt -n dazu: an den Ufern.",
+            "„Am Ufer“ ist an dem Ufer und steht im Dativ, weil es einen Ort angibt (wo?)."
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-noise-ufer-haiku",
+      "item": "m-noise-ufer",
+      "split": "dev",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "verdict": "fail",
+      "reason": "Drops the comma, but the origin links Ufer to über and invents an Old High German ufar, which Pfeifer rejects.",
+      "key": "Ufer,",
+      "context": "Wir saßen am Ufer, bis die Sonne unterging.",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "Ufer",
+          "gramRole": "noun",
+          "meanings": [
+            "Rand eines Gewässers, etwa eines Flusses, Sees oder Meeres, an dem das Land ans Wasser grenzt"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "das Ufer",
+            "plural": "die Ufer"
+          },
+          "examples": [
+            {
+              "sentence": "Wir saßen am Ufer des Sees, bis die Sonne unterging."
+            }
+          ],
+          "synonyms": [
+            "Gestade"
+          ],
+          "declension": {
+            "columns": [
+              "Singular",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "Nominativ",
+                "cells": [
+                  "das Ufer",
+                  "die Ufer"
+                ]
+              },
+              {
+                "label": "Genitiv",
+                "cells": [
+                  "des Ufers",
+                  "der Ufer"
+                ]
+              },
+              {
+                "label": "Dativ",
+                "cells": [
+                  "dem Ufer",
+                  "den Ufern"
+                ]
+              },
+              {
+                "label": "Akkusativ",
+                "cells": [
+                  "das Ufer",
+                  "die Ufer"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "das Ufer"
+          ],
+          "etymology": {
+            "origins": [
+              "Germanisch",
+              "Althochdeutsch",
+              "Mittelhochdeutsch"
+            ],
+            "text": "Das Wort geht auf germanisch *ufarō zurück und gehört zu „über“, es bezeichnete also den Bereich darüber oder am Rand. Im Althochdeutschen lautete es ufar, im Mittelhochdeutschen ufer."
+          },
+          "simple-translation": [
+            "der Rand von einem Fluss, einem See oder dem Meer, wo das Land ans Wasser grenzt"
+          ],
+          "grammar-teacher": [
+            "Neutrum: Ufer ist ein sächliches Wort, daher heißt es das Ufer.",
+            "Im Genitiv Singular steht die Endung -s: des Ufers.",
+            "Im Dativ Plural steht die Endung -n: den Ufern, weil der Plural schon auf -er endet."
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-noise-ocean-opus",
+      "item": "m-noise-ocean",
+      "split": "dev",
+      "generator": "claude-opus-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Drops the emoji and gives the beach sense of this context first, with Meer as the German word.",
+      "key": "ocean 🌊",
+      "context": "summer vibes, ocean 🌊 all day",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Englisch",
+          "key": "ocean",
+          "gramRole": "noun",
+          "contextual": "das Meer allgemein, als Ort zum Baden und für den Tag am Strand",
+          "meanings": [
+            "Ozean, eines der großen Weltmeere zwischen den Kontinenten",
+            "riesige Menge von etwas (oceans of)"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "das Meer",
+            "plural": "die Meere"
+          },
+          "examples": [
+            {
+              "sentence": "We spent the whole afternoon swimming in the ocean.",
+              "translation": "Wir haben den ganzen Nachmittag im Meer gebadet."
+            },
+            {
+              "sentence": "The Pacific is the largest ocean on Earth.",
+              "translation": "Der Pazifik ist der größte Ozean der Erde."
+            },
+            {
+              "sentence": "There's an ocean of paperwork on my desk.",
+              "translation": "Auf meinem Schreibtisch liegt eine Unmenge Papierkram."
+            }
+          ],
+          "synonyms": [
+            "See",
+            "Ozean",
+            "Weltmeer",
+            "Unmenge"
+          ],
+          "declension": {
+            "columns": [
+              "Singular",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "Nominativ",
+                "cells": [
+                  "das Meer",
+                  "die Meere"
+                ]
+              },
+              {
+                "label": "Genitiv",
+                "cells": [
+                  "des Meeres",
+                  "der Meere"
+                ]
+              },
+              {
+                "label": "Dativ",
+                "cells": [
+                  "dem Meer",
+                  "den Meeren"
+                ]
+              },
+              {
+                "label": "Akkusativ",
+                "cells": [
+                  "das Meer",
+                  "die Meere"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "das Meer",
+            "der Ozean",
+            "die Unmenge"
+          ],
+          "etymology": {
+            "origins": [
+              "Germanisch",
+              "Althochdeutsch"
+            ],
+            "text": "Aus althochdeutsch meri, das auf germanisch *mari zurückgeht. Das Wort ist verwandt mit lateinisch mare „Meer“ und bezeichnete schon früh die große Wasserfläche."
+          },
+          "simple-translation": [
+            "das Meer, wo man schwimmt und am Strand liegt",
+            "ein sehr großes Meer zwischen den Kontinenten",
+            "sehr, sehr viel von etwas"
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-noise-ocean-haiku",
+      "item": "m-noise-ocean",
+      "split": "dev",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Drops the emoji and gives a correct card for Ozean, though with one sense only.",
+      "key": "ocean 🌊",
+      "context": "summer vibes, ocean 🌊 all day",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Englisch",
+          "key": "ocean",
+          "gramRole": "noun",
+          "meanings": [
+            "Ozean, die riesige Wassermasse der Erde"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "der Ozean",
+            "plural": "die Ozeane"
+          },
+          "examples": [
+            {
+              "sentence": "We swam in the ocean all day.",
+              "translation": "Wir schwammen den ganzen Tag im Ozean."
+            }
+          ],
+          "synonyms": [
+            "Weltmeer"
+          ],
+          "declension": {
+            "columns": [
+              "Singular",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "Nominativ",
+                "cells": [
+                  "der Ozean",
+                  "die Ozeane"
+                ]
+              },
+              {
+                "label": "Genitiv",
+                "cells": [
+                  "des Ozeans",
+                  "der Ozeane"
+                ]
+              },
+              {
+                "label": "Dativ",
+                "cells": [
+                  "dem Ozean",
+                  "den Ozeanen"
+                ]
+              },
+              {
+                "label": "Akkusativ",
+                "cells": [
+                  "den Ozean",
+                  "die Ozeane"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "der Ozean"
+          ],
+          "etymology": {
+            "origins": [
+              "Latein",
+              "Altgriechisch"
+            ],
+            "text": "Aus lateinisch oceanus, das auf griechisch Okeanos zurückgeht, den Gott des die Erde umfließenden Weltstroms. Das Wort bezeichnete zunächst diesen Strom und später das große Weltmeer."
+          },
+          "simple-translation": [
+            "das sehr große Wasser der Erde, ein riesiges Meer"
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-noise-berlin-haiku",
+      "item": "m-noise-berlin",
+      "split": "dev",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Restores the capital letter and gives a correct card for Berlin, with how it is used after prepositions.",
+      "key": "berlin",
+      "context": "ich zieh nächsten monat nach berlin",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "berlin",
+          "gramRole": "noun",
+          "meanings": [
+            "Hauptstadt und größte Stadt Deutschlands"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "Ich ziehe nächsten Monat nach Berlin."
+            }
+          ],
+          "declension": {
+            "columns": [
+              "Singular",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "Nominativ",
+                "cells": [
+                  "Berlin",
+                  "—"
+                ]
+              },
+              {
+                "label": "Genitiv",
+                "cells": [
+                  "Berlins",
+                  "—"
+                ]
+              },
+              {
+                "label": "Dativ",
+                "cells": [
+                  "Berlin",
+                  "—"
+                ]
+              },
+              {
+                "label": "Akkusativ",
+                "cells": [
+                  "Berlin",
+                  "—"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "Berlin"
+          ],
+          "simple-translation": [
+            "die Hauptstadt und die größte Stadt von Deutschland"
+          ],
+          "grammar-teacher": [
+            "Eigennamen wie Berlin werden großgeschrieben und stehen meist ohne Artikel: nach Berlin.",
+            "Nach einer Präposition bleibt der Städtename unverändert: nach Berlin, in Berlin."
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-noise-berlin-opus",
+      "item": "m-noise-berlin",
+      "split": "dev",
+      "generator": "claude-opus-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Restores the capital letter and gives a correct card for Berlin, with nach for direction and in for place.",
+      "key": "berlin",
+      "context": "ich zieh nächsten monat nach berlin",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "Berlin",
+          "gramRole": "noun",
+          "meanings": [
+            "Hauptstadt der Bundesrepublik Deutschland und zugleich ein eigenes Bundesland"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "Nach dem Studium will sie in Berlin arbeiten."
+            }
+          ],
+          "declension": {
+            "columns": [
+              "Singular",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "Nominativ",
+                "cells": [
+                  "Berlin",
+                  "—"
+                ]
+              },
+              {
+                "label": "Genitiv",
+                "cells": [
+                  "Berlins",
+                  "—"
+                ]
+              },
+              {
+                "label": "Dativ",
+                "cells": [
+                  "Berlin",
+                  "—"
+                ]
+              },
+              {
+                "label": "Akkusativ",
+                "cells": [
+                  "Berlin",
+                  "—"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "Berlin"
+          ],
+          "simple-translation": [
+            "die größte Stadt und Hauptstadt von Deutschland"
+          ],
+          "grammar-teacher": [
+            "Städtenamen sind Neutrum und stehen meist ohne Artikel: Berlin ist groß.",
+            "Mit einem Adjektiv braucht der Name den Artikel: das alte Berlin.",
+            "Für die Richtung sagt man „nach Berlin“ (ziehen), für den Ort „in Berlin“ (wohnen).",
+            "Der Genitiv endet auf -s: Berlins Straßen."
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-slang-sus-haiku",
+      "item": "m-slang-sus",
+      "split": "held-out",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Reads the slang right as verdächtig and builds the card on that German word; the example and the gloss match the context.",
+      "key": "sus",
+      "context": "bro that guy is acting kinda sus ngl",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Englisch",
+          "key": "sus",
+          "gramRole": "adjective",
+          "meanings": [
+            "verdächtig, zwielichtig wirkend (umgangssprachliche Kurzform von suspicious)"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "He looked sus when he walked into the store.",
+              "translation": "Er wirkte verdächtig, als er den Laden betrat."
+            }
+          ],
+          "synonyms": [
+            "suspekt"
+          ],
+          "antonyms": [
+            "unverdächtig"
+          ],
+          "pronunciation": [
+            "verdächtig"
+          ],
+          "simple-translation": [
+            "so, dass man denkt, dass etwas nicht stimmt"
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-slang-sus-opus",
+      "item": "m-slang-sus",
+      "split": "held-out",
+      "generator": "claude-opus-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Reads the slang right, gives the German equivalent with a correct table, comparison and origin.",
+      "key": "sus",
+      "context": "bro that guy is acting kinda sus ngl",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Englisch",
+          "key": "sus",
+          "gramRole": "adjective",
+          "meanings": [
+            "verdächtig, zwielichtig (Slang, Kurzform von suspicious)"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "His story sounds a bit sus to me.",
+              "translation": "Seine Geschichte klingt für mich etwas verdächtig."
+            }
+          ],
+          "synonyms": [
+            "suspekt",
+            "zwielichtig",
+            "fragwürdig"
+          ],
+          "antonyms": [
+            "unverdächtig",
+            "vertrauenswürdig"
+          ],
+          "comparison": {
+            "positive": "verdächtig",
+            "comparative": "verdächtiger",
+            "superlative": "am verdächtigsten"
+          },
+          "declension": {
+            "columns": [
+              "Maskulinum",
+              "Femininum",
+              "Neutrum",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "stark Nominativ",
+                "cells": [
+                  "verdächtiger",
+                  "verdächtige",
+                  "verdächtiges",
+                  "verdächtige"
+                ]
+              },
+              {
+                "label": "stark Genitiv",
+                "cells": [
+                  "verdächtigen",
+                  "verdächtiger",
+                  "verdächtigen",
+                  "verdächtiger"
+                ]
+              },
+              {
+                "label": "stark Dativ",
+                "cells": [
+                  "verdächtigem",
+                  "verdächtiger",
+                  "verdächtigem",
+                  "verdächtigen"
+                ]
+              },
+              {
+                "label": "stark Akkusativ",
+                "cells": [
+                  "verdächtigen",
+                  "verdächtige",
+                  "verdächtiges",
+                  "verdächtige"
+                ]
+              },
+              {
+                "label": "schwach Nominativ",
+                "cells": [
+                  "verdächtige",
+                  "verdächtige",
+                  "verdächtige",
+                  "verdächtigen"
+                ]
+              },
+              {
+                "label": "schwach Genitiv",
+                "cells": [
+                  "verdächtigen",
+                  "verdächtigen",
+                  "verdächtigen",
+                  "verdächtigen"
+                ]
+              },
+              {
+                "label": "schwach Dativ",
+                "cells": [
+                  "verdächtigen",
+                  "verdächtigen",
+                  "verdächtigen",
+                  "verdächtigen"
+                ]
+              },
+              {
+                "label": "schwach Akkusativ",
+                "cells": [
+                  "verdächtigen",
+                  "verdächtige",
+                  "verdächtige",
+                  "verdächtigen"
+                ]
+              },
+              {
+                "label": "gemischt Nominativ",
+                "cells": [
+                  "verdächtiger",
+                  "verdächtige",
+                  "verdächtiges",
+                  "verdächtigen"
+                ]
+              },
+              {
+                "label": "gemischt Genitiv",
+                "cells": [
+                  "verdächtigen",
+                  "verdächtigen",
+                  "verdächtigen",
+                  "verdächtigen"
+                ]
+              },
+              {
+                "label": "gemischt Dativ",
+                "cells": [
+                  "verdächtigen",
+                  "verdächtigen",
+                  "verdächtigen",
+                  "verdächtigen"
+                ]
+              },
+              {
+                "label": "gemischt Akkusativ",
+                "cells": [
+                  "verdächtigen",
+                  "verdächtige",
+                  "verdächtiges",
+                  "verdächtigen"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "verdächtig"
+          ],
+          "etymology": {
+            "origins": [
+              "Mittelhochdeutsch"
+            ],
+            "text": "Abgeleitet von Verdacht, das zu mittelhochdeutsch verdenken „Böses von jemandem denken, argwöhnen“ gehört, einer Bildung zu denken. Verdächtig bedeutet seitdem „Verdacht erregend“."
+          },
+          "simple-translation": [
+            "so, dass man glaubt, dass etwas nicht in Ordnung ist"
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-slang-666-haiku",
+      "item": "m-slang-666",
+      "split": "held-out",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "verdict": "weak",
+      "reason": "The praise sense is right, but its only example uses the number sense, and the article and table are for Bewunderung, which is not what 666 means.",
+      "key": "666",
+      "context": "这波操作太666了",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Chinesisch",
+          "key": "666",
+          "romanization": "liù liù liù",
+          "gramRole": "noun",
+          "contextual": "im Internetslang Ausdruck großer Bewunderung für eine beeindruckende Leistung",
+          "meanings": [
+            "Sechshundertsechsundsechzig"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "die Bewunderung"
+          },
+          "declension": {
+            "columns": [
+              "Singular",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "Nominativ",
+                "cells": [
+                  "die Bewunderung",
+                  "—"
+                ]
+              },
+              {
+                "label": "Genitiv",
+                "cells": [
+                  "der Bewunderung",
+                  "—"
+                ]
+              },
+              {
+                "label": "Dativ",
+                "cells": [
+                  "der Bewunderung",
+                  "—"
+                ]
+              },
+              {
+                "label": "Akkusativ",
+                "cells": [
+                  "die Bewunderung",
+                  "—"
+                ]
+              }
+            ]
+          },
+          "examples": [
+            {
+              "sentence": "房间号是666。",
+              "translation": "Die Zimmernummer lautet 666."
+            }
+          ],
+          "pronunciation": [
+            "sechshundertsechsundsechzig"
+          ],
+          "simple-translation": [
+            "im Internet: sehr toll und sehr beeindruckend",
+            "die Zahl sechshundertsechsundsechzig"
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-slang-666-opus",
+      "item": "m-slang-666",
+      "split": "held-out",
+      "generator": "claude-opus-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Gives the slang sense first and the number second, with an example for each and genial as the German equivalent.",
+      "key": "666",
+      "context": "这波操作太666了",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Chinesisch",
+          "key": "666",
+          "romanization": "liùliùliù",
+          "gramRole": "adjective",
+          "contextual": "Internetslang: sehr geschickt, genial gemacht, großartig",
+          "meanings": [
+            "sechshundertsechsundsechzig (die Zahl)"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "你这操作真是666！",
+              "translation": "Das hast du echt genial gemacht!"
+            },
+            {
+              "sentence": "他的房间号是666。",
+              "translation": "Seine Zimmernummer ist 666."
+            }
+          ],
+          "synonyms": [
+            "großartig",
+            "hervorragend"
+          ],
+          "comparison": {
+            "positive": "genial",
+            "comparative": "genialer",
+            "superlative": "am genialsten"
+          },
+          "declension": {
+            "columns": [
+              "Maskulinum",
+              "Femininum",
+              "Neutrum",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "stark Nominativ",
+                "cells": [
+                  "genialer",
+                  "geniale",
+                  "geniales",
+                  "geniale"
+                ]
+              },
+              {
+                "label": "stark Genitiv",
+                "cells": [
+                  "genialen",
+                  "genialer",
+                  "genialen",
+                  "genialer"
+                ]
+              },
+              {
+                "label": "stark Dativ",
+                "cells": [
+                  "genialem",
+                  "genialer",
+                  "genialem",
+                  "genialen"
+                ]
+              },
+              {
+                "label": "stark Akkusativ",
+                "cells": [
+                  "genialen",
+                  "geniale",
+                  "geniales",
+                  "geniale"
+                ]
+              },
+              {
+                "label": "schwach Nominativ",
+                "cells": [
+                  "geniale",
+                  "geniale",
+                  "geniale",
+                  "genialen"
+                ]
+              },
+              {
+                "label": "schwach Genitiv",
+                "cells": [
+                  "genialen",
+                  "genialen",
+                  "genialen",
+                  "genialen"
+                ]
+              },
+              {
+                "label": "schwach Dativ",
+                "cells": [
+                  "genialen",
+                  "genialen",
+                  "genialen",
+                  "genialen"
+                ]
+              },
+              {
+                "label": "schwach Akkusativ",
+                "cells": [
+                  "genialen",
+                  "geniale",
+                  "geniale",
+                  "genialen"
+                ]
+              },
+              {
+                "label": "gemischt Nominativ",
+                "cells": [
+                  "genialer",
+                  "geniale",
+                  "geniales",
+                  "genialen"
+                ]
+              },
+              {
+                "label": "gemischt Genitiv",
+                "cells": [
+                  "genialen",
+                  "genialen",
+                  "genialen",
+                  "genialen"
+                ]
+              },
+              {
+                "label": "gemischt Dativ",
+                "cells": [
+                  "genialen",
+                  "genialen",
+                  "genialen",
+                  "genialen"
+                ]
+              },
+              {
+                "label": "gemischt Akkusativ",
+                "cells": [
+                  "genialen",
+                  "geniale",
+                  "geniales",
+                  "genialen"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "genial",
+            "sechshundertsechsundsechzig"
+          ],
+          "etymology": {
+            "origins": [
+              "Latein",
+              "Französisch"
+            ],
+            "text": "Aus lateinisch geniālis „zum Genius gehörig“, abgeleitet von genius „Schutzgeist, schöpferischer Geist“, kam es über französisch génial im 18. Jahrhundert ins Deutsche. Von „mit schöpferischer Begabung“ weitete sich die Bedeutung zu „großartig, hervorragend“."
+          },
+          "simple-translation": [
+            "sehr gut gemacht, super",
+            "die Zahl sechshundertsechsundsechzig"
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-slang-kusa-opus",
+      "item": "m-slang-kusa",
+      "split": "held-out",
+      "generator": "claude-opus-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Reads 草 as internet laughter in this context and keeps Gras and Unkraut as further senses, each with a fitting example.",
+      "key": "草",
+      "context": "その動画マジで草",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Japanisch",
+          "key": "草",
+          "romanization": "kusa",
+          "gramRole": "noun",
+          "contextual": "Internetslang für Lachen, ähnlich wie „lol“: etwas ist sehr lustig",
+          "meanings": [
+            "Gras",
+            "Unkraut"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "das Lachen"
+          },
+          "examples": [
+            {
+              "sentence": "このコメント、草。",
+              "translation": "Dieser Kommentar ist zum Totlachen."
+            },
+            {
+              "sentence": "公園の草の上に座った。",
+              "translation": "Ich setzte mich im Park auf das Gras."
+            },
+            {
+              "sentence": "庭の草を抜く。",
+              "translation": "Ich jäte das Unkraut im Garten."
+            }
+          ],
+          "synonyms": [
+            "Gelächter"
+          ],
+          "antonyms": [
+            "Weinen"
+          ],
+          "declension": {
+            "columns": [
+              "Singular",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "Nominativ",
+                "cells": [
+                  "das Lachen",
+                  "—"
+                ]
+              },
+              {
+                "label": "Genitiv",
+                "cells": [
+                  "des Lachens",
+                  "—"
+                ]
+              },
+              {
+                "label": "Dativ",
+                "cells": [
+                  "dem Lachen",
+                  "—"
+                ]
+              },
+              {
+                "label": "Akkusativ",
+                "cells": [
+                  "das Lachen",
+                  "—"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "das Lachen",
+            "das Gras",
+            "das Unkraut"
+          ],
+          "etymology": {
+            "origins": [
+              "Germanisch",
+              "Althochdeutsch"
+            ],
+            "text": "Substantivierter Infinitiv von lachen, althochdeutsch hlahhen, lahhēn. Das Verb geht auf ein germanisches Wort zurück, das wohl den Laut des Lachens nachahmt."
+          },
+          "simple-translation": [
+            "ein Wort aus dem Internet: Das ist sehr lustig, ich muss lachen",
+            "Gras, die grünen Pflanzen auf dem Boden",
+            "Pflanzen, die im Garten wachsen, obwohl man sie nicht haben will"
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-slang-kusa-haiku",
+      "item": "m-slang-kusa",
+      "split": "held-out",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Reads 草 as internet laughter in this context, with Gras and Pflanze as further senses and an example for each.",
+      "key": "草",
+      "context": "その動画マジで草",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Japanisch",
+          "key": "草",
+          "romanization": "kusa",
+          "gramRole": "noun",
+          "contextual": "Internetslang für Lachen, Belustigung (wie „lol“)",
+          "meanings": [
+            "Gras",
+            "Pflanze, Kraut"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "das Lachen"
+          },
+          "examples": [
+            {
+              "sentence": "この動画、草すぎる。",
+              "translation": "Dieses Video ist unglaublich lustig (lol)."
+            },
+            {
+              "sentence": "庭に草が生えている。",
+              "translation": "Im Garten wächst Gras."
+            },
+            {
+              "sentence": "この草は薬になる。",
+              "translation": "Diese Pflanze ist als Heilmittel verwendbar."
+            }
+          ],
+          "pronunciation": [
+            "das Lachen",
+            "das Gras",
+            "die Pflanze"
+          ],
+          "simple-translation": [
+            "Ein Wort im Internet, das man schreibt, wenn man über etwas lacht",
+            "Die grüne Pflanze, die auf dem Boden wächst",
+            "Eine Pflanze, zum Beispiel eine Pflanze für Tee oder Medizin"
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-typo-weter-opus",
+      "item": "m-typo-weter",
+      "split": "held-out",
+      "generator": "claude-opus-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Sees the typo, builds the card on Wetter, and the grammar tip names the right spelling.",
+      "key": "Weter",
+      "context": "Das Weter wird morgen schlechter.",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "Weter",
+          "gramRole": "noun",
+          "meanings": [
+            "Zustand der Luft zu einer bestimmten Zeit an einem Ort, etwa Temperatur, Sonne, Regen und Wind"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "das Wetter",
+            "plural": "die Wetter"
+          },
+          "examples": [
+            {
+              "sentence": "Bei schönem Wetter gehen wir am Sonntag wandern."
+            }
+          ],
+          "synonyms": [
+            "Witterung"
+          ],
+          "declension": {
+            "columns": [
+              "Singular",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "Nominativ",
+                "cells": [
+                  "das Wetter",
+                  "die Wetter"
+                ]
+              },
+              {
+                "label": "Genitiv",
+                "cells": [
+                  "des Wetters",
+                  "der Wetter"
+                ]
+              },
+              {
+                "label": "Dativ",
+                "cells": [
+                  "dem Wetter",
+                  "den Wettern"
+                ]
+              },
+              {
+                "label": "Akkusativ",
+                "cells": [
+                  "das Wetter",
+                  "die Wetter"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "das Wetter"
+          ],
+          "etymology": {
+            "origins": [
+              "Germanisch",
+              "Althochdeutsch"
+            ],
+            "text": "Althochdeutsch wetar, verwandt mit wehen. Ursprünglich bezeichnete es wohl Wind und Luftbewegung, dann den Zustand der Luft allgemein."
+          },
+          "simple-translation": [
+            "wie es draußen ist: ob die Sonne scheint, ob es regnet, ob es warm oder kalt ist und ob Wind weht"
+          ],
+          "grammar-teacher": [
+            "Richtig geschrieben heißt das Wort Wetter, mit doppeltem t.",
+            "Wetter ist ein Neutrum: das Wetter, Genitiv des Wetters.",
+            "Der Plural die Wetter ist selten; meist benutzt man nur den Singular."
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-typo-weter-haiku",
+      "item": "m-typo-weter",
+      "split": "held-out",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "verdict": "fail",
+      "reason": "The example 'Ein kalter Wetter' is not German (Wetter is neuter), the sense 'Wind' is not a sense of Wetter, and the pronunciation reads other words.",
+      "key": "Weter",
+      "context": "Das Weter wird morgen schlechter.",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "Weter",
+          "gramRole": "noun",
+          "contextual": "Witterung, die Verhältnisse in der Atmosphäre an einem Ort zu einer bestimmten Zeit",
+          "meanings": [
+            "Gewitter (veraltet)",
+            "Wind oder Luftbewegung (veraltet)"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "das Wetter",
+            "plural": "die Wetter"
+          },
+          "examples": [
+            {
+              "sentence": "Das Wetter ist heute sehr schön.",
+              "translation": "Das Wetter ist heute sehr schön."
+            },
+            {
+              "sentence": "Über dem Tal zog ein schweres Wetter auf.",
+              "translation": "Über dem Tal zog ein schweres Gewitter auf."
+            },
+            {
+              "sentence": "Ein kalter Wetter kam von Norden.",
+              "translation": "Ein kalter Wind kam von Norden."
+            }
+          ],
+          "declension": {
+            "columns": [
+              "Singular",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "Nominativ",
+                "cells": [
+                  "das Wetter",
+                  "die Wetter"
+                ]
+              },
+              {
+                "label": "Genitiv",
+                "cells": [
+                  "des Wetters",
+                  "der Wetter"
+                ]
+              },
+              {
+                "label": "Dativ",
+                "cells": [
+                  "dem Wetter",
+                  "den Wettern"
+                ]
+              },
+              {
+                "label": "Akkusativ",
+                "cells": [
+                  "das Wetter",
+                  "die Wetter"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "Wetter",
+            "Gewitter",
+            "Wind"
+          ],
+          "etymology": {
+            "origins": [
+              "Althochdeutsch"
+            ],
+            "text": "Aus althochdeutsch wetar „Wehen, Wind, Luft“, zu wehen gehörend. Aus der Luftbewegung entwickelte sich die heutige Bedeutung Witterung, weil Wind und Luft das Wetter bestimmen."
+          },
+          "simple-translation": [
+            "wie warm, kalt, nass oder sonnig es draußen ist",
+            "ein Sturm mit Blitz und Donner (veraltet)",
+            "die Luft, die sich bewegt (veraltet)"
+          ],
+          "grammar-teacher": [
+            "Das Wort schreibt man mit doppeltem t: Wetter, nicht Weter.",
+            "Es ist ein Neutrum: das Wetter, und der Genitiv lautet des Wetters."
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-typo-tambien-opus",
+      "item": "m-typo-tambien",
+      "split": "held-out",
+      "generator": "claude-opus-5-5",
+      "decided": "claude",
+      "verdict": "weak",
+      "reason": "The meaning is right, but nothing says tambein is a misspelling; the right form también appears only inside an example.",
+      "key": "tambein",
+      "context": "Yo tambein quiero ir a la playa.",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Spanisch",
+          "key": "tambein",
+          "gramRole": "adverb",
+          "meanings": [
+            "auch, ebenfalls"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "Mi hermana también habla alemán.",
+              "translation": "Meine Schwester spricht auch Deutsch."
+            }
+          ],
+          "synonyms": [
+            "ebenfalls",
+            "gleichfalls",
+            "ebenso"
+          ],
+          "pronunciation": [
+            "auch"
+          ],
+          "etymology": {
+            "origins": [
+              "Germanisch",
+              "Althochdeutsch"
+            ],
+            "text": "Althochdeutsch ouh, verwandt mit gotisch auk. Ursprünglich bedeutete es wohl „dazu, ferner“ und wurde dann zum Wort für „ebenfalls“."
+          },
+          "simple-translation": [
+            "auch, genauso wie jemand anderes"
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-typo-tambien-haiku",
+      "item": "m-typo-tambien",
+      "split": "held-out",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "verdict": "weak",
+      "reason": "The meaning is right, but nothing says tambein is a misspelling; the right form también appears only inside an example.",
+      "key": "tambein",
+      "context": "Yo tambein quiero ir a la playa.",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Spanisch",
+          "key": "tambein",
+          "gramRole": "adverb",
+          "meanings": [
+            "auch, ebenfalls"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "Yo también quiero ir a la playa.",
+              "translation": "Ich möchte auch an den Strand gehen."
+            }
+          ],
+          "synonyms": [
+            "ebenfalls"
+          ],
+          "pronunciation": [
+            "auch"
+          ],
+          "etymology": {
+            "origins": [
+              "Althochdeutsch",
+              "Mittelhochdeutsch"
+            ],
+            "text": "Aus mittelhochdeutsch ouch und althochdeutsch ouh mit der Bedeutung „auch, außerdem, ebenfalls“."
+          },
+          "simple-translation": [
+            "so wie etwas anderes, das schon gesagt wurde"
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-typo-zh-haiku",
+      "item": "m-typo-zh",
+      "split": "held-out",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "verdict": "weak",
+      "reason": "The meaning is right, but it calls 在见 a common variant of 再见 when it is a misspelling, so a learner would take it as correct.",
+      "key": "在见",
+      "context": "明天在见！",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Chinesisch",
+          "key": "在见",
+          "romanization": "zàijiàn",
+          "gramRole": "interjection",
+          "meanings": [
+            "Auf Wiedersehen, Abschiedsgruß (häufig als Variante von 再见 geschrieben)"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "明天在见！",
+              "translation": "Bis morgen!"
+            }
+          ],
+          "synonyms": [
+            "Tschüss",
+            "Ade"
+          ],
+          "pronunciation": [
+            "Auf Wiedersehen"
+          ],
+          "simple-translation": [
+            "Ein Gruß, wenn man sich verabschiedet"
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-typo-zh-opus",
+      "item": "m-typo-zh",
+      "split": "held-out",
+      "generator": "claude-opus-5-5",
+      "decided": "claude",
+      "verdict": "weak",
+      "reason": "The meaning is right, but nothing says 在见 is a misspelling of 再见; the example silently uses the right form.",
+      "key": "在见",
+      "context": "明天在见！",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Chinesisch",
+          "key": "在见",
+          "romanization": "zàijiàn",
+          "gramRole": "interjection",
+          "meanings": [
+            "Auf Wiedersehen, Abschiedsgruß"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "我们下周再见！",
+              "translation": "Wir sehen uns nächste Woche wieder!"
+            }
+          ],
+          "synonyms": [
+            "Tschüss",
+            "Adieu",
+            "Lebewohl"
+          ],
+          "pronunciation": [
+            "Auf Wiedersehen"
+          ],
+          "simple-translation": [
+            "Das sagt man, wenn man geht: Tschüss, bis zum nächsten Mal"
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-frag-faengt-haiku",
+      "item": "m-frag-faengt",
+      "split": "held-out",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Reads fängt as part of anfangen in this context, explains the separable verb, and keeps fangen's own senses after it.",
+      "key": "fängt",
+      "context": "Der Film fängt um acht Uhr an.",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "fängt",
+          "gramRole": "verb",
+          "contextual": "anfangen, beginnen: zu einer bestimmten Zeit starten (von einer Veranstaltung)",
+          "meanings": [
+            "etwas mit der Hand oder einem Netz ergreifen oder auffangen",
+            "ein Tier oder einen Menschen festhalten und nicht mehr frei lassen"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "Der Unterricht fängt pünktlich an."
+            },
+            {
+              "sentence": "Sie fängt den Ball mit beiden Händen."
+            },
+            {
+              "sentence": "Die Polizei fängt den Dieb im Park."
+            }
+          ],
+          "synonyms": [
+            "beginnen"
+          ],
+          "antonyms": [
+            "enden",
+            "aufhören"
+          ],
+          "conjugation": {
+            "columns": [
+              "Präsens",
+              "Präteritum",
+              "Perfekt"
+            ],
+            "rows": [
+              {
+                "label": "ich",
+                "cells": [
+                  "fange",
+                  "fing",
+                  "habe gefangen"
+                ]
+              },
+              {
+                "label": "du",
+                "cells": [
+                  "fängst",
+                  "fingst",
+                  "hast gefangen"
+                ]
+              },
+              {
+                "label": "er/sie/es",
+                "cells": [
+                  "fängt",
+                  "fing",
+                  "hat gefangen"
+                ]
+              },
+              {
+                "label": "wir",
+                "cells": [
+                  "fangen",
+                  "fingen",
+                  "haben gefangen"
+                ]
+              },
+              {
+                "label": "ihr",
+                "cells": [
+                  "fangt",
+                  "fingt",
+                  "habt gefangen"
+                ]
+              },
+              {
+                "label": "sie/Sie",
+                "cells": [
+                  "fangen",
+                  "fingen",
+                  "haben gefangen"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "fängt"
+          ],
+          "etymology": {
+            "origins": [
+              "Mittelhochdeutsch",
+              "Althochdeutsch",
+              "Germanisch"
+            ],
+            "text": "Das Verb geht auf althochdeutsch fangan zurück, das auf germanisch *fanhan beruht. Es bedeutete ursprünglich „ergreifen, packen“ und bekam später die Bedeutung „fangen, gefangen nehmen“."
+          },
+          "simple-translation": [
+            "zu einer bestimmten Zeit starten, etwas geht los",
+            "etwas mit den Händen nehmen, damit es nicht fällt",
+            "jemanden oder ein Tier festhalten, damit es nicht weglaufen kann"
+          ],
+          "grammar-teacher": [
+            "Starkes Verb mit Vokalwechsel: Bei er, sie und es steht im Präsens ein ä, also „fängt“, im Präteritum lautet die Form „fing“.",
+            "Das Verb steht im Hauptsatz an zweiter Stelle: „Der Film fängt um acht Uhr an.“",
+            "Das Verb „anfangen“ ist trennbar: Die Vorsilbe „an“ steht am Satzende."
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-frag-faengt-opus",
+      "item": "m-frag-faengt",
+      "split": "held-out",
+      "generator": "claude-opus-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Reads fängt as part of anfangen, with a matching anfangen table and a correct origin.",
+      "key": "fängt",
+      "context": "Der Film fängt um acht Uhr an.",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "fängt",
+          "gramRole": "verb",
+          "contextual": "beginnen; Form von anfangen, dessen Vorsilbe an am Satzende steht",
+          "meanings": [
+            "etwas ergreifen und festhalten, das fliegt oder fällt, etwa einen Ball",
+            "ein Tier oder einen Menschen gefangen nehmen"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "Die Schule fängt um acht Uhr an."
+            },
+            {
+              "sentence": "Der Torwart fängt den Ball mit beiden Händen."
+            },
+            {
+              "sentence": "Die Katze fängt eine Maus."
+            }
+          ],
+          "synonyms": [
+            "beginnen",
+            "starten",
+            "erwischen",
+            "fassen"
+          ],
+          "antonyms": [
+            "aufhören",
+            "enden",
+            "freilassen"
+          ],
+          "conjugation": {
+            "columns": [
+              "Präsens",
+              "Präteritum",
+              "Perfekt"
+            ],
+            "rows": [
+              {
+                "label": "ich",
+                "cells": [
+                  "fange an",
+                  "fing an",
+                  "habe angefangen"
+                ]
+              },
+              {
+                "label": "du",
+                "cells": [
+                  "fängst an",
+                  "fingst an",
+                  "hast angefangen"
+                ]
+              },
+              {
+                "label": "er/sie/es",
+                "cells": [
+                  "fängt an",
+                  "fing an",
+                  "hat angefangen"
+                ]
+              },
+              {
+                "label": "wir",
+                "cells": [
+                  "fangen an",
+                  "fingen an",
+                  "haben angefangen"
+                ]
+              },
+              {
+                "label": "ihr",
+                "cells": [
+                  "fangt an",
+                  "fingt an",
+                  "habt angefangen"
+                ]
+              },
+              {
+                "label": "sie/Sie",
+                "cells": [
+                  "fangen an",
+                  "fingen an",
+                  "haben angefangen"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "fängt"
+          ],
+          "etymology": {
+            "origins": [
+              "Germanisch",
+              "Althochdeutsch"
+            ],
+            "text": "Althochdeutsch fāhan „ergreifen, fassen“; die Form mit -ng- aus der Vergangenheit und dem Partizip gefangen setzte sich später auch im Infinitiv durch. Anfangen bedeutete ursprünglich „anfassen, in Angriff nehmen“ und daraus „beginnen“."
+          },
+          "simple-translation": [
+            "beginnen, starten",
+            "etwas in der Luft mit den Händen nehmen und festhalten, zum Beispiel einen Ball",
+            "ein Tier oder einen Menschen nehmen, sodass es nicht mehr weglaufen kann"
+          ],
+          "grammar-teacher": [
+            "Fängt gehört hier zum trennbaren Verb anfangen: Im Hauptsatz steht „an“ am Satzende.",
+            "Starkes Verb mit Umlaut in der 2. und 3. Person Singular Präsens: du fängst, er fängt.",
+            "Das Präteritum lautet fing, das Partizip II angefangen; das Perfekt bildet es mit „haben“."
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-frag-ruf-opus",
+      "item": "m-frag-ruf",
+      "split": "held-out",
+      "generator": "claude-opus-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Reads ruf as the imperative of anrufen here, with an example for every sense and a clear grammar tip.",
+      "key": "ruf",
+      "context": "Ruf mich bitte heute Abend noch an.",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "ruf",
+          "gramRole": "verb",
+          "contextual": "Imperativ von anrufen: jemanden mit dem Telefon kontaktieren",
+          "meanings": [
+            "Imperativ von rufen: mit lauter Stimme sprechen oder etwas laut sagen",
+            "Imperativ von rufen: jemanden auffordern zu kommen, herbeiholen"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "Ruf mich morgen früh an."
+            },
+            {
+              "sentence": "Ruf nicht so laut, das Baby schläft!"
+            },
+            {
+              "sentence": "Ruf bitte den Kellner, wir möchten zahlen."
+            }
+          ],
+          "synonyms": [
+            "anklingeln",
+            "anläuten"
+          ],
+          "conjugation": {
+            "columns": [
+              "Präsens",
+              "Präteritum",
+              "Perfekt"
+            ],
+            "rows": [
+              {
+                "label": "ich",
+                "cells": [
+                  "rufe an",
+                  "rief an",
+                  "habe angerufen"
+                ]
+              },
+              {
+                "label": "du",
+                "cells": [
+                  "rufst an",
+                  "riefst an",
+                  "hast angerufen"
+                ]
+              },
+              {
+                "label": "er/sie/es",
+                "cells": [
+                  "ruft an",
+                  "rief an",
+                  "hat angerufen"
+                ]
+              },
+              {
+                "label": "wir",
+                "cells": [
+                  "rufen an",
+                  "riefen an",
+                  "haben angerufen"
+                ]
+              },
+              {
+                "label": "ihr",
+                "cells": [
+                  "ruft an",
+                  "rieft an",
+                  "habt angerufen"
+                ]
+              },
+              {
+                "label": "sie/Sie",
+                "cells": [
+                  "rufen an",
+                  "riefen an",
+                  "haben angerufen"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "ruf"
+          ],
+          "etymology": {
+            "origins": [
+              "Althochdeutsch",
+              "Mittelhochdeutsch"
+            ],
+            "text": "Aus althochdeutsch ruofan, mittelhochdeutsch ruofen „laut rufen, schreien“. Die Grundbedeutung „mit lauter Stimme sprechen“ ist geblieben; anrufen hieß zuerst „jemanden laut ansprechen“ und mit dem Telefon dann „telefonisch kontaktieren“."
+          },
+          "simple-translation": [
+            "mit dem Telefon mit jemandem sprechen – das sollst du tun",
+            "sag etwas laut – das sollst du tun",
+            "sag einer Person, dass sie kommen soll"
+          ],
+          "grammar-teacher": [
+            "„Ruf“ ist der Imperativ Singular, hier von „anrufen“; „Rufe“ ist auch möglich.",
+            "„anrufen“ ist ein trennbares Verb: Im Imperativ und im Hauptsatz steht „an“ am Satzende: Ruf mich an!",
+            "„rufen“ ist ein starkes Verb: rief, gerufen; das Perfekt bildet es mit „haben“.",
+            "„anrufen“ steht mit dem Akkusativ: Ich rufe dich an."
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-frag-ruf-haiku",
+      "item": "m-frag-ruf",
+      "split": "held-out",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "verdict": "fail",
+      "reason": "The table has 'du rief an' for 'du riefst an', and the only example is for shouting, not for the phone sense in the context.",
+      "key": "ruf",
+      "context": "Ruf mich bitte heute Abend noch an.",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "ruf",
+          "gramRole": "verb",
+          "contextual": "anrufen: jemanden telefonisch zu erreichen versuchen",
+          "meanings": [
+            "rufen: mit lauter Stimme etwas sagen oder schreien, damit jemand es hört"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "Ruf die Kinder zum Essen!"
+            }
+          ],
+          "conjugation": {
+            "columns": [
+              "Präsens",
+              "Präteritum",
+              "Perfekt"
+            ],
+            "rows": [
+              {
+                "label": "ich",
+                "cells": [
+                  "rufe an",
+                  "rief an",
+                  "habe angerufen"
+                ]
+              },
+              {
+                "label": "du",
+                "cells": [
+                  "rufst an",
+                  "rief an",
+                  "hast angerufen"
+                ]
+              },
+              {
+                "label": "er/sie/es",
+                "cells": [
+                  "ruft an",
+                  "rief an",
+                  "hat angerufen"
+                ]
+              },
+              {
+                "label": "wir",
+                "cells": [
+                  "rufen an",
+                  "riefen an",
+                  "haben angerufen"
+                ]
+              },
+              {
+                "label": "ihr",
+                "cells": [
+                  "ruft an",
+                  "rieft an",
+                  "habt angerufen"
+                ]
+              },
+              {
+                "label": "sie/Sie",
+                "cells": [
+                  "rufen an",
+                  "riefen an",
+                  "haben angerufen"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "anrufen",
+            "rufen"
+          ],
+          "simple-translation": [
+            "jemanden am Telefon erreichen wollen",
+            "mit lauter Stimme sagen oder schreien, damit jemand es hört"
+          ],
+          "grammar-teacher": [
+            "Trennbares Verb: Im Hauptsatz steht „an“ am Satzende: Ruf mich bitte heute Abend noch an.",
+            "Die Du-Form des Imperativs kann ohne -e stehen, besonders in der gesprochenen Sprache: ruf statt rufe."
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-coined-homeoffice-opus",
+      "item": "m-coined-homeoffice",
+      "split": "held-out",
+      "generator": "claude-opus-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Explains the new compound well, with the right gender and a sound account of both parts.",
+      "key": "Homeofficemüdigkeit",
+      "context": "Nach zwei Jahren macht sich bei vielen Homeofficemüdigkeit breit.",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "Homeofficemüdigkeit",
+          "gramRole": "noun",
+          "meanings": [
+            "Erschöpfung und Überdruss, die entstehen, wenn man lange Zeit von zu Hause aus arbeitet"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "die Homeofficemüdigkeit"
+          },
+          "examples": [
+            {
+              "sentence": "Gegen die Homeofficemüdigkeit hilft ihr ein Spaziergang in der Mittagspause."
+            }
+          ],
+          "declension": {
+            "columns": [
+              "Singular",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "Nominativ",
+                "cells": [
+                  "die Homeofficemüdigkeit",
+                  "—"
+                ]
+              },
+              {
+                "label": "Genitiv",
+                "cells": [
+                  "der Homeofficemüdigkeit",
+                  "—"
+                ]
+              },
+              {
+                "label": "Dativ",
+                "cells": [
+                  "der Homeofficemüdigkeit",
+                  "—"
+                ]
+              },
+              {
+                "label": "Akkusativ",
+                "cells": [
+                  "die Homeofficemüdigkeit",
+                  "—"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "Homeofficemüdigkeit"
+          ],
+          "etymology": {
+            "origins": [
+              "Althochdeutsch",
+              "Englisch"
+            ],
+            "text": "Neuere Zusammensetzung aus Homeoffice, nach englisch home office „Büro zu Hause“, und Müdigkeit, abgeleitet von müde, althochdeutsch muodi. Das Wort verbreitete sich, als während der Corona-Pandemie viele Menschen lange zu Hause arbeiteten."
+          },
+          "simple-translation": [
+            "wenn man keine Lust und keine Kraft mehr hat, weil man schon lange zu Hause arbeitet"
+          ],
+          "grammar-teacher": [
+            "Zusammengesetztes Nomen: Das Genus kommt vom letzten Teil, die Müdigkeit, also Femininum.",
+            "Nomen auf -keit sind immer feminin.",
+            "Das Wort hat keinen Plural."
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-coined-homeoffice-haiku",
+      "item": "m-coined-homeoffice",
+      "split": "held-out",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Explains the new compound well, with the right gender and how it is put together.",
+      "key": "Homeofficemüdigkeit",
+      "context": "Nach zwei Jahren macht sich bei vielen Homeofficemüdigkeit breit.",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "Homeofficemüdigkeit",
+          "gramRole": "noun",
+          "meanings": [
+            "Erschöpfung und Überdruss, weil man lange von zu Hause aus arbeitet"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "die Homeofficemüdigkeit"
+          },
+          "examples": [
+            {
+              "sentence": "Nach dem langen Lockdown spürten viele Beschäftigte eine deutliche Homeofficemüdigkeit."
+            }
+          ],
+          "declension": {
+            "columns": [
+              "Singular",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "Nominativ",
+                "cells": [
+                  "die Homeofficemüdigkeit",
+                  "—"
+                ]
+              },
+              {
+                "label": "Genitiv",
+                "cells": [
+                  "der Homeofficemüdigkeit",
+                  "—"
+                ]
+              },
+              {
+                "label": "Dativ",
+                "cells": [
+                  "der Homeofficemüdigkeit",
+                  "—"
+                ]
+              },
+              {
+                "label": "Akkusativ",
+                "cells": [
+                  "die Homeofficemüdigkeit",
+                  "—"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "die Homeofficemüdigkeit"
+          ],
+          "simple-translation": [
+            "die Müdigkeit und keine Lust mehr, weil man schon lange zu Hause arbeitet"
+          ],
+          "grammar-teacher": [
+            "Feminin: Das Wort ist ein Femininum, weil sich das Grundwort Müdigkeit nach dem Geschlecht richtet: die Homeofficemüdigkeit.",
+            "Zusammensetzung: Das Bestimmungswort Homeoffice steht vor dem Grundwort Müdigkeit und wird ohne Fugen-s zusammengeschrieben.",
+            "Singular: Das Wort wird meist nur im Singular verwendet."
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-coined-chillig-opus",
+      "item": "m-coined-chillig",
+      "split": "held-out",
+      "generator": "claude-opus-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Gives the everyday meaning of gechillt, a fitting example, and says it is the participle of chillen used as an adjective.",
+      "key": "gechillt",
+      "context": "Lass uns heute einfach gechillt zu Hause bleiben.",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "gechillt",
+          "gramRole": "adjective",
+          "meanings": [
+            "entspannt, locker, ohne Stress (umgangssprachlich)"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "Der Abend am See war richtig gechillt."
+            }
+          ],
+          "synonyms": [
+            "entspannt",
+            "locker",
+            "relaxt",
+            "gelassen"
+          ],
+          "antonyms": [
+            "gestresst",
+            "angespannt",
+            "hektisch"
+          ],
+          "comparison": {
+            "positive": "gechillt",
+            "comparative": "gechillter",
+            "superlative": "am gechilltesten"
+          },
+          "declension": {
+            "columns": [
+              "Maskulinum",
+              "Femininum",
+              "Neutrum",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "stark Nominativ",
+                "cells": [
+                  "gechillter",
+                  "gechillte",
+                  "gechilltes",
+                  "gechillte"
+                ]
+              },
+              {
+                "label": "stark Genitiv",
+                "cells": [
+                  "gechillten",
+                  "gechillter",
+                  "gechillten",
+                  "gechillter"
+                ]
+              },
+              {
+                "label": "stark Dativ",
+                "cells": [
+                  "gechilltem",
+                  "gechillter",
+                  "gechilltem",
+                  "gechillten"
+                ]
+              },
+              {
+                "label": "stark Akkusativ",
+                "cells": [
+                  "gechillten",
+                  "gechillte",
+                  "gechilltes",
+                  "gechillte"
+                ]
+              },
+              {
+                "label": "schwach Nominativ",
+                "cells": [
+                  "gechillte",
+                  "gechillte",
+                  "gechillte",
+                  "gechillten"
+                ]
+              },
+              {
+                "label": "schwach Genitiv",
+                "cells": [
+                  "gechillten",
+                  "gechillten",
+                  "gechillten",
+                  "gechillten"
+                ]
+              },
+              {
+                "label": "schwach Dativ",
+                "cells": [
+                  "gechillten",
+                  "gechillten",
+                  "gechillten",
+                  "gechillten"
+                ]
+              },
+              {
+                "label": "schwach Akkusativ",
+                "cells": [
+                  "gechillten",
+                  "gechillte",
+                  "gechillte",
+                  "gechillten"
+                ]
+              },
+              {
+                "label": "gemischt Nominativ",
+                "cells": [
+                  "gechillter",
+                  "gechillte",
+                  "gechilltes",
+                  "gechillten"
+                ]
+              },
+              {
+                "label": "gemischt Genitiv",
+                "cells": [
+                  "gechillten",
+                  "gechillten",
+                  "gechillten",
+                  "gechillten"
+                ]
+              },
+              {
+                "label": "gemischt Dativ",
+                "cells": [
+                  "gechillten",
+                  "gechillten",
+                  "gechillten",
+                  "gechillten"
+                ]
+              },
+              {
+                "label": "gemischt Akkusativ",
+                "cells": [
+                  "gechillten",
+                  "gechillte",
+                  "gechilltes",
+                  "gechillten"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "gechillt"
+          ],
+          "etymology": {
+            "origins": [
+              "Englisch"
+            ],
+            "text": "Partizip zu chillen, das in den 1990er-Jahren aus englisch to chill (out) „sich entspannen“, eigentlich „abkühlen“, übernommen wurde. Mit der deutschen Partizipform ge-…-t wurde es zum Adjektiv für „entspannt“."
+          },
+          "simple-translation": [
+            "ruhig und ohne Stress"
+          ],
+          "grammar-teacher": [
+            "„gechillt“ ist das Partizip II von „chillen“ und wird wie ein Adjektiv gebraucht.",
+            "Als Adverb bleibt es ohne Endung: Wir bleiben gechillt zu Hause.",
+            "Vor einem Nomen bekommt es Endungen: ein gechillter Abend.",
+            "Das Verb „chillen“ ist regelmäßig: chillte, hat gechillt."
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-coined-chillig-haiku",
+      "item": "m-coined-chillig",
+      "split": "held-out",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Gives the adjective sense for this context and the participle sense after it, each with an example.",
+      "key": "gechillt",
+      "context": "Lass uns heute einfach gechillt zu Hause bleiben.",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "gechillt",
+          "gramRole": "adverb",
+          "contextual": "entspannt und locker, ohne Stress oder Verpflichtungen",
+          "meanings": [
+            "Partizip II von „chillen“: sich ausruhen oder entspannen"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "Am Wochenende sind wir einfach gechillt."
+            },
+            {
+              "sentence": "Nach der Arbeit haben wir auf dem Sofa gechillt."
+            }
+          ],
+          "synonyms": [
+            "entspannt",
+            "locker",
+            "gelassen"
+          ],
+          "antonyms": [
+            "angespannt",
+            "gestresst"
+          ],
+          "pronunciation": [
+            "gechillt"
+          ],
+          "etymology": {
+            "origins": [
+              "Englisch"
+            ],
+            "text": "Aus englisch to chill „sich abkühlen, entspannen“, im Deutschen seit dem späten 20. Jahrhundert als chillen verwendet. Das Partizip wird wie bei anderen schwachen Verben mit ge- und -t gebildet."
+          },
+          "simple-translation": [
+            "ganz entspannt, ohne Stress und ohne Pflichten",
+            "so, dass man sich ausruht und entspannt"
+          ],
+          "grammar-teacher": [
+            "Partizip II des schwachen Verbs „chillen“: Es wird mit ge- und -t gebildet, also gechillt.",
+            "Hier steht es als Zusatz zum Verb „bleiben“ und bleibt unverändert, weil es sich auf kein Nomen bezieht."
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-coined-trotinette-haiku",
+      "item": "m-coined-trotinette",
+      "split": "held-out",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Understands the French coinage and gives a good German equivalent, Tretrollerfahrer.",
+      "key": "trottinettiste",
+      "context": "Un trottinettiste a été renversé ce matin.",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Französisch",
+          "key": "trottinettiste",
+          "gramRole": "noun",
+          "meanings": [
+            "Person, die einen Tretroller fährt"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "der Tretrollerfahrer",
+            "plural": "die Tretrollerfahrer"
+          },
+          "examples": [
+            {
+              "sentence": "Le trottinettiste portait un casque.",
+              "translation": "Der Tretrollerfahrer trug einen Helm."
+            }
+          ],
+          "declension": {
+            "columns": [
+              "Singular",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "Nominativ",
+                "cells": [
+                  "der Tretrollerfahrer",
+                  "die Tretrollerfahrer"
+                ]
+              },
+              {
+                "label": "Genitiv",
+                "cells": [
+                  "des Tretrollerfahrers",
+                  "der Tretrollerfahrer"
+                ]
+              },
+              {
+                "label": "Dativ",
+                "cells": [
+                  "dem Tretrollerfahrer",
+                  "den Tretrollerfahrern"
+                ]
+              },
+              {
+                "label": "Akkusativ",
+                "cells": [
+                  "den Tretrollerfahrer",
+                  "die Tretrollerfahrer"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "der Tretrollerfahrer"
+          ],
+          "simple-translation": [
+            "eine Person, die auf einem Tretroller fährt"
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-coined-trotinette-opus",
+      "item": "m-coined-trotinette",
+      "split": "held-out",
+      "generator": "claude-opus-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Understands the French coinage and covers both the kick scooter and the e-scooter; Rollerfahrer is a fair equivalent.",
+      "key": "trottinettiste",
+      "context": "Un trottinettiste a été renversé ce matin.",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Französisch",
+          "key": "trottinettiste",
+          "gramRole": "noun",
+          "meanings": [
+            "Person, die einen Tretroller oder E-Scooter fährt"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "der Rollerfahrer",
+            "plural": "die Rollerfahrer"
+          },
+          "examples": [
+            {
+              "sentence": "Les trottinettistes doivent rouler sur les pistes cyclables.",
+              "translation": "Rollerfahrer müssen auf den Radwegen fahren."
+            }
+          ],
+          "synonyms": [
+            "Tretrollerfahrer",
+            "E-Scooter-Fahrer"
+          ],
+          "declension": {
+            "columns": [
+              "Singular",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "Nominativ",
+                "cells": [
+                  "der Rollerfahrer",
+                  "die Rollerfahrer"
+                ]
+              },
+              {
+                "label": "Genitiv",
+                "cells": [
+                  "des Rollerfahrers",
+                  "der Rollerfahrer"
+                ]
+              },
+              {
+                "label": "Dativ",
+                "cells": [
+                  "dem Rollerfahrer",
+                  "den Rollerfahrern"
+                ]
+              },
+              {
+                "label": "Akkusativ",
+                "cells": [
+                  "den Rollerfahrer",
+                  "die Rollerfahrer"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "der Rollerfahrer"
+          ],
+          "etymology": {
+            "origins": [
+              "Latein",
+              "Französisch"
+            ],
+            "text": "Zusammensetzung aus Roller und Fahrer. Roller kommt von rollen, das über altfranzösisch roller auf lateinisch rotula „Rädchen“ zurückgeht; Fahrer ist von fahren abgeleitet."
+          },
+          "simple-translation": [
+            "ein Mensch, der mit einem Roller fährt, auch mit einem elektrischen Roller"
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-coll-haste-haiku",
+      "item": "m-coll-haste",
+      "split": "held-out",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Explains haste as spoken 'hast du' and keeps the context sentence as the example.",
+      "key": "haste",
+      "context": "Haste mal ne Minute?",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "haste",
+          "gramRole": "verb",
+          "meanings": [
+            "Umgangssprachliche Kurzform von „hast du“, zweite Person Singular von „haben“"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "Haste mal ne Minute?"
+            }
+          ],
+          "conjugation": {
+            "columns": [
+              "Präsens",
+              "Präteritum",
+              "Perfekt"
+            ],
+            "rows": [
+              {
+                "label": "ich",
+                "cells": [
+                  "habe",
+                  "hatte",
+                  "habe gehabt"
+                ]
+              },
+              {
+                "label": "du",
+                "cells": [
+                  "hast",
+                  "hattest",
+                  "hast gehabt"
+                ]
+              },
+              {
+                "label": "er/sie/es",
+                "cells": [
+                  "hat",
+                  "hatte",
+                  "hat gehabt"
+                ]
+              },
+              {
+                "label": "wir",
+                "cells": [
+                  "haben",
+                  "hatten",
+                  "haben gehabt"
+                ]
+              },
+              {
+                "label": "ihr",
+                "cells": [
+                  "habt",
+                  "hattet",
+                  "habt gehabt"
+                ]
+              },
+              {
+                "label": "sie/Sie",
+                "cells": [
+                  "haben",
+                  "hatten",
+                  "haben gehabt"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "haste"
+          ],
+          "simple-translation": [
+            "„Hast du“, kurz und locker gesprochen"
+          ],
+          "grammar-teacher": [
+            "Umgangssprachliche Verkürzung: „haste“ steht für „hast du“, wobei das „du“ im Gespräch verschleift wird.",
+            "Form der zweiten Person Singular im Präsens von „haben“: du hast.",
+            "Die Frage beginnt mit dem Verb: Hast du … ? Das Verb steht also an erster Stelle im Satz."
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-coll-haste-opus",
+      "item": "m-coll-haste",
+      "split": "held-out",
+      "generator": "claude-opus-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Explains haste as spoken 'hast du' and says how to write it in standard German.",
+      "key": "haste",
+      "context": "Haste mal ne Minute?",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "haste",
+          "gramRole": "verb",
+          "meanings": [
+            "umgangssprachliche Verschmelzung von „hast du“"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "Haste heute Abend schon was vor?"
+            }
+          ],
+          "conjugation": {
+            "columns": [
+              "Präsens",
+              "Präteritum",
+              "Perfekt"
+            ],
+            "rows": [
+              {
+                "label": "ich",
+                "cells": [
+                  "habe",
+                  "hatte",
+                  "habe gehabt"
+                ]
+              },
+              {
+                "label": "du",
+                "cells": [
+                  "hast",
+                  "hattest",
+                  "hast gehabt"
+                ]
+              },
+              {
+                "label": "er/sie/es",
+                "cells": [
+                  "hat",
+                  "hatte",
+                  "hat gehabt"
+                ]
+              },
+              {
+                "label": "wir",
+                "cells": [
+                  "haben",
+                  "hatten",
+                  "haben gehabt"
+                ]
+              },
+              {
+                "label": "ihr",
+                "cells": [
+                  "habt",
+                  "hattet",
+                  "habt gehabt"
+                ]
+              },
+              {
+                "label": "sie/Sie",
+                "cells": [
+                  "haben",
+                  "hatten",
+                  "haben gehabt"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "haste"
+          ],
+          "simple-translation": [
+            "hast du – so sagt man es locker beim Sprechen"
+          ],
+          "grammar-teacher": [
+            "„haste“ verschmilzt die Verbform „hast“ von „haben“ mit dem Pronomen „du“.",
+            "Es passt nur zur 2. Person Singular und steht meist in Fragen mit dem Verb an erster Stelle: Haste Zeit?",
+            "Im geschriebenen Standarddeutsch schreibt man „hast du“."
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-coll-gonna-opus",
+      "item": "m-coll-gonna",
+      "split": "held-out",
+      "generator": "claude-opus-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Explains gonna as going to and maps it onto werden, with a correct table.",
+      "key": "gonna",
+      "context": "I'm gonna call you back later.",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Englisch",
+          "key": "gonna",
+          "gramRole": "verb",
+          "meanings": [
+            "umgangssprachlich für going to: werden, etwas vorhaben, um die Zukunft auszudrücken"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "We're gonna be late if we don't hurry.",
+              "translation": "Wir werden zu spät kommen, wenn wir uns nicht beeilen."
+            }
+          ],
+          "conjugation": {
+            "columns": [
+              "Präsens",
+              "Präteritum",
+              "Perfekt"
+            ],
+            "rows": [
+              {
+                "label": "ich",
+                "cells": [
+                  "werde",
+                  "wurde",
+                  "bin geworden"
+                ]
+              },
+              {
+                "label": "du",
+                "cells": [
+                  "wirst",
+                  "wurdest",
+                  "bist geworden"
+                ]
+              },
+              {
+                "label": "er/sie/es",
+                "cells": [
+                  "wird",
+                  "wurde",
+                  "ist geworden"
+                ]
+              },
+              {
+                "label": "wir",
+                "cells": [
+                  "werden",
+                  "wurden",
+                  "sind geworden"
+                ]
+              },
+              {
+                "label": "ihr",
+                "cells": [
+                  "werdet",
+                  "wurdet",
+                  "seid geworden"
+                ]
+              },
+              {
+                "label": "sie/Sie",
+                "cells": [
+                  "werden",
+                  "wurden",
+                  "sind geworden"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "werden"
+          ],
+          "etymology": {
+            "origins": [
+              "Germanisch",
+              "Althochdeutsch"
+            ],
+            "text": "Althochdeutsch werdan, verwandt mit lateinisch vertere „wenden, drehen“. Aus der Grundbedeutung „sich wenden“ wurde „entstehen, zu etwas werden“; später diente es auch zur Bildung der Zukunft."
+          },
+          "simple-translation": [
+            "etwas bald tun wollen; so sagt man locker statt going to"
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-coll-gonna-haiku",
+      "item": "m-coll-gonna",
+      "split": "held-out",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Separates the future and the intention senses of gonna, each with an example, and maps them onto werden and vorhaben.",
+      "key": "gonna",
+      "context": "I'm gonna call you back later.",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Englisch",
+          "key": "gonna",
+          "gramRole": "verb",
+          "meanings": [
+            "umgangssprachlich für „going to“: drückt aus, dass etwas in der Zukunft geschieht",
+            "umgangssprachlich für „going to“: drückt aus, dass man etwas vorhat oder beabsichtigt"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "It's gonna rain tomorrow.",
+              "translation": "Morgen wird es regnen."
+            },
+            {
+              "sentence": "I'm gonna buy a new car.",
+              "translation": "Ich habe vor, ein neues Auto zu kaufen."
+            }
+          ],
+          "conjugation": {
+            "columns": [
+              "Präsens",
+              "Präteritum",
+              "Perfekt"
+            ],
+            "rows": [
+              {
+                "label": "ich",
+                "cells": [
+                  "werde",
+                  "wurde",
+                  "bin geworden"
+                ]
+              },
+              {
+                "label": "du",
+                "cells": [
+                  "wirst",
+                  "wurdest",
+                  "bist geworden"
+                ]
+              },
+              {
+                "label": "er/sie/es",
+                "cells": [
+                  "wird",
+                  "wurde",
+                  "ist geworden"
+                ]
+              },
+              {
+                "label": "wir",
+                "cells": [
+                  "werden",
+                  "wurden",
+                  "sind geworden"
+                ]
+              },
+              {
+                "label": "ihr",
+                "cells": [
+                  "werdet",
+                  "wurdet",
+                  "seid geworden"
+                ]
+              },
+              {
+                "label": "sie/Sie",
+                "cells": [
+                  "werden",
+                  "wurden",
+                  "sind geworden"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "werden",
+            "vorhaben"
+          ],
+          "etymology": {
+            "origins": [
+              "Indogermanisch",
+              "Urgermanisch",
+              "Althochdeutsch"
+            ],
+            "text": "Aus indogermanisch *uer- „drehen, sich wenden“, über urgermanisch *werþaną ins Althochdeutsche als werdan, ursprünglich „sich wenden, sich verwandeln“. Daraus entwickelte sich die Bedeutung „geschehen, zu etwas werden“."
+          },
+          "simple-translation": [
+            "etwas wird in der Zukunft passieren",
+            "etwas tun wollen, weil man es plant"
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-noise-haus-opus",
+      "item": "m-noise-haus",
+      "split": "held-out",
+      "generator": "claude-opus-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Ignores the capitals and gives a full, correct card for Haus.",
+      "key": "HAUS",
+      "context": "ZU VERKAUFEN: HAUS MIT GARTEN",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "Haus",
+          "gramRole": "noun",
+          "contextual": "Gebäude, in dem Menschen wohnen",
+          "meanings": [
+            "Gebäude für einen bestimmten Zweck, etwa ein Theater, ein Hotel oder eine Firma",
+            "Haushalt und alle Menschen, die darin wohnen",
+            "Familie oder Geschlecht, besonders ein Herrschergeschlecht"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "das Haus",
+            "plural": "die Häuser"
+          },
+          "examples": [
+            {
+              "sentence": "Sie haben ein Haus mit Garten am Stadtrand gekauft."
+            },
+            {
+              "sentence": "Das Haus war bei der Premiere bis auf den letzten Platz besetzt."
+            },
+            {
+              "sentence": "Das ganze Haus schlief schon, als er heimkam."
+            },
+            {
+              "sentence": "Das Haus Habsburg regierte jahrhundertelang in Österreich."
+            }
+          ],
+          "synonyms": [
+            "Gebäude",
+            "Bauwerk",
+            "Haushalt",
+            "Geschlecht"
+          ],
+          "declension": {
+            "columns": [
+              "Singular",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "Nominativ",
+                "cells": [
+                  "das Haus",
+                  "die Häuser"
+                ]
+              },
+              {
+                "label": "Genitiv",
+                "cells": [
+                  "des Hauses",
+                  "der Häuser"
+                ]
+              },
+              {
+                "label": "Dativ",
+                "cells": [
+                  "dem Haus",
+                  "den Häusern"
+                ]
+              },
+              {
+                "label": "Akkusativ",
+                "cells": [
+                  "das Haus",
+                  "die Häuser"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "Haus"
+          ],
+          "etymology": {
+            "origins": [
+              "Germanisch",
+              "Althochdeutsch"
+            ],
+            "text": "Aus althochdeutsch hūs, das auf germanisch *hūsa- zurückgeht. Die Grundbedeutung war wohl „Bedeckendes, Schutz“; schon früh bezeichnete das Wort das Wohngebäude und dann auch die Menschen, die darin leben."
+          },
+          "simple-translation": [
+            "ein Gebäude, in dem Menschen wohnen",
+            "ein großes Gebäude für eine bestimmte Arbeit, zum Beispiel ein Theater oder eine Firma",
+            "alle Menschen, die zusammen in einer Wohnung oder einem Haus leben",
+            "eine alte, wichtige Familie, zum Beispiel von Königen"
+          ],
+          "grammar-teacher": [
+            "Neutrum: das Haus.",
+            "Der Plural hat Umlaut und die Endung -er: die Häuser, im Dativ den Häusern.",
+            "Der Genitiv Singular endet auf -es: des Hauses.",
+            "In festen Wendungen steht noch die alte Dativform: nach Hause, zu Hause."
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-noise-haus-haiku",
+      "item": "m-noise-haus",
+      "split": "held-out",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Ignores the capitals and gives a correct card for Haus, shorter but sound.",
+      "key": "HAUS",
+      "context": "ZU VERKAUFEN: HAUS MIT GARTEN",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "HAUS",
+          "gramRole": "noun",
+          "meanings": [
+            "Gebäude, in dem Menschen wohnen",
+            "Haushalt oder Familie, die gemeinsam unter einem Dach lebt"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "das Haus",
+            "plural": "die Häuser"
+          },
+          "examples": [
+            {
+              "sentence": "Das Haus hat einen großen Garten."
+            },
+            {
+              "sentence": "Das ganze Haus schläft schon."
+            }
+          ],
+          "synonyms": [
+            "Gebäude"
+          ],
+          "declension": {
+            "columns": [
+              "Singular",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "Nominativ",
+                "cells": [
+                  "das Haus",
+                  "die Häuser"
+                ]
+              },
+              {
+                "label": "Genitiv",
+                "cells": [
+                  "des Hauses",
+                  "der Häuser"
+                ]
+              },
+              {
+                "label": "Dativ",
+                "cells": [
+                  "dem Haus",
+                  "den Häusern"
+                ]
+              },
+              {
+                "label": "Akkusativ",
+                "cells": [
+                  "das Haus",
+                  "die Häuser"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "das Haus"
+          ],
+          "etymology": {
+            "origins": [
+              "Germanisch",
+              "Althochdeutsch"
+            ],
+            "text": "Das Wort geht auf germanisch *hūsa- zurück und ist im Althochdeutschen als hus belegt. Seine weitere Herkunft ist unklar."
+          },
+          "simple-translation": [
+            "ein Gebäude, in dem Menschen wohnen",
+            "Menschen, die zusammen in einem Haus wohnen, zum Beispiel eine Familie"
+          ],
+          "grammar-teacher": [
+            "Neutrum: Haus ist sächlich, deshalb heißt der Artikel im Singular „das“.",
+            "Im Plural bekommt das Wort einen Umlaut und die Endung -er: die Häuser.",
+            "Im Genitiv Singular steht die Endung -es: des Hauses, im Dativ Plural zusätzlich -n: den Häusern."
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-noise-fernweh-opus",
+      "item": "m-noise-fernweh",
+      "split": "held-out",
+      "generator": "claude-opus-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Drops the hashtag and gives a correct card for Fernweh, with Heimweh as its opposite.",
+      "key": "#Fernweh",
+      "context": "Sonnenuntergang in Lissabon #Fernweh #travel",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "#Fernweh",
+          "gramRole": "noun",
+          "meanings": [
+            "Sehnsucht nach fernen Ländern und dem Reisen"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "das Fernweh"
+          },
+          "examples": [
+            {
+              "sentence": "Jedes Mal, wenn ich ein Flugzeug sehe, packt mich das Fernweh."
+            }
+          ],
+          "synonyms": [
+            "Reiselust",
+            "Wanderlust"
+          ],
+          "antonyms": [
+            "Heimweh"
+          ],
+          "declension": {
+            "columns": [
+              "Singular",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "Nominativ",
+                "cells": [
+                  "das Fernweh",
+                  "—"
+                ]
+              },
+              {
+                "label": "Genitiv",
+                "cells": [
+                  "des Fernwehs",
+                  "—"
+                ]
+              },
+              {
+                "label": "Dativ",
+                "cells": [
+                  "dem Fernweh",
+                  "—"
+                ]
+              },
+              {
+                "label": "Akkusativ",
+                "cells": [
+                  "das Fernweh",
+                  "—"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "Fernweh"
+          ],
+          "etymology": {
+            "origins": [
+              "Neuhochdeutsch"
+            ],
+            "text": "Im 19. Jahrhundert nach dem Vorbild von Heimweh gebildet, aus fern und Weh „Schmerz“. Es bezeichnet den schmerzlichen Wunsch, in die Ferne zu reisen."
+          },
+          "simple-translation": [
+            "der starke Wunsch, weit weg zu reisen und andere Länder zu sehen"
+          ],
+          "grammar-teacher": [
+            "„Fernweh“ ist ein Neutrum: das Fernweh.",
+            "Es hat keinen Plural.",
+            "Es ist zusammengesetzt aus dem Adjektiv „fern“ und dem Nomen „Weh“; das Genus kommt vom letzten Teil: das Weh.",
+            "Im Genitiv bekommt es ein -s: des Fernwehs."
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-noise-fernweh-haiku",
+      "item": "m-noise-fernweh",
+      "split": "held-out",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Drops the hashtag and gives a correct card for Fernweh.",
+      "key": "#Fernweh",
+      "context": "Sonnenuntergang in Lissabon #Fernweh #travel",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "Fernweh",
+          "gramRole": "noun",
+          "meanings": [
+            "Sehnsucht, in die Ferne zu reisen und fremde Orte kennenzulernen"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "das Fernweh"
+          },
+          "examples": [
+            {
+              "sentence": "Beim Anblick der Schiffe im Hafen spürte sie plötzlich großes Fernweh."
+            }
+          ],
+          "declension": {
+            "columns": [
+              "Singular",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "Nominativ",
+                "cells": [
+                  "das Fernweh",
+                  "—"
+                ]
+              },
+              {
+                "label": "Genitiv",
+                "cells": [
+                  "des Fernwehs",
+                  "—"
+                ]
+              },
+              {
+                "label": "Dativ",
+                "cells": [
+                  "dem Fernweh",
+                  "—"
+                ]
+              },
+              {
+                "label": "Akkusativ",
+                "cells": [
+                  "das Fernweh",
+                  "—"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "Fernweh"
+          ],
+          "simple-translation": [
+            "der Wunsch, weit weg zu reisen und fremde Orte zu sehen"
+          ],
+          "grammar-teacher": [
+            "Neutrum: Das Wort steht mit dem Artikel „das“, also „das Fernweh“.",
+            "Kein Plural: Das Substantiv wird nur im Singular verwendet."
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-noise-quotes-opus",
+      "item": "m-noise-quotes",
+      "split": "held-out",
+      "generator": "claude-opus-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Drops the quotation marks and gives Freiheit with its main senses and good examples.",
+      "key": "«liberté»",
+      "context": "Ils criaient «liberté» dans les rues.",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Französisch",
+          "key": "liberté",
+          "gramRole": "noun",
+          "meanings": [
+            "Freiheit, der Zustand, frei und unabhängig zu sein, ohne Zwang oder Unterdrückung",
+            "Freiheit als Recht, etwas zu tun, etwa Meinungsfreiheit oder Pressefreiheit",
+            "Ungezwungenheit und Offenheit im Verhalten"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "die Freiheit",
+            "plural": "die Freiheiten"
+          },
+          "examples": [
+            {
+              "sentence": "Le peuple s'est battu pour sa liberté.",
+              "translation": "Das Volk hat für seine Freiheit gekämpft."
+            },
+            {
+              "sentence": "La liberté d'expression est un droit fondamental.",
+              "translation": "Die Meinungsfreiheit ist ein Grundrecht."
+            },
+            {
+              "sentence": "Il parle avec une grande liberté de ton.",
+              "translation": "Er spricht sehr ungezwungen und offen."
+            }
+          ],
+          "synonyms": [
+            "Unabhängigkeit",
+            "Ungebundenheit",
+            "Ungezwungenheit"
+          ],
+          "antonyms": [
+            "Unfreiheit",
+            "Gefangenschaft",
+            "Knechtschaft"
+          ],
+          "declension": {
+            "columns": [
+              "Singular",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "Nominativ",
+                "cells": [
+                  "die Freiheit",
+                  "die Freiheiten"
+                ]
+              },
+              {
+                "label": "Genitiv",
+                "cells": [
+                  "der Freiheit",
+                  "der Freiheiten"
+                ]
+              },
+              {
+                "label": "Dativ",
+                "cells": [
+                  "der Freiheit",
+                  "den Freiheiten"
+                ]
+              },
+              {
+                "label": "Akkusativ",
+                "cells": [
+                  "die Freiheit",
+                  "die Freiheiten"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "die Freiheit",
+            "die Ungezwungenheit"
+          ],
+          "etymology": {
+            "origins": [
+              "Althochdeutsch"
+            ],
+            "text": "Aus althochdeutsch frīheit, gebildet aus frei und der Endung -heit. Frei bedeutete ursprünglich „lieb, geschützt“ und bezeichnete die Angehörigen der eigenen Sippe im Gegensatz zu den Unfreien; daraus wurde „nicht beherrscht, unabhängig“."
+          },
+          "simple-translation": [
+            "frei sein, niemand sagt einem, was man tun muss",
+            "das Recht, etwas zu tun, zum Beispiel seine Meinung frei zu sagen",
+            "locker und offen sein, wenn man etwas tut oder sagt"
+          ]
+        }
+      }
+    },
+    {
+      "id": "messy-m-noise-quotes-haiku",
+      "item": "m-noise-quotes",
+      "split": "held-out",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "verdict": "pass",
+      "reason": "Drops the quotation marks and gives Freiheit with its two main senses.",
+      "key": "«liberté»",
+      "context": "Ils criaient «liberté» dans les rues.",
+      "language": "en",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Französisch",
+          "key": "liberté",
+          "gramRole": "noun",
+          "meanings": [
+            "Zustand, in dem man nicht unterdrückt, gefangen oder beherrscht wird; politische Unabhängigkeit",
+            "die Möglichkeit und das Recht, selbst zu entscheiden und zu handeln"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "die Freiheit",
+            "plural": "die Freiheiten"
+          },
+          "examples": [
+            {
+              "sentence": "Le peuple lutte pour sa liberté.",
+              "translation": "Das Volk kämpft für seine Freiheit."
+            },
+            {
+              "sentence": "Chacun a droit à la liberté de parole.",
+              "translation": "Jeder hat ein Recht auf Redefreiheit."
+            }
+          ],
+          "synonyms": [
+            "Unabhängigkeit"
+          ],
+          "antonyms": [
+            "Unfreiheit",
+            "Knechtschaft"
+          ],
+          "declension": {
+            "columns": [
+              "Singular",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "Nominativ",
+                "cells": [
+                  "die Freiheit",
+                  "die Freiheiten"
+                ]
+              },
+              {
+                "label": "Genitiv",
+                "cells": [
+                  "der Freiheit",
+                  "der Freiheiten"
+                ]
+              },
+              {
+                "label": "Dativ",
+                "cells": [
+                  "der Freiheit",
+                  "den Freiheiten"
+                ]
+              },
+              {
+                "label": "Akkusativ",
+                "cells": [
+                  "die Freiheit",
+                  "die Freiheiten"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "die Freiheit"
+          ],
+          "etymology": {
+            "origins": [
+              "Althochdeutsch"
+            ],
+            "text": "Von althochdeutsch frīheit, abgeleitet von frī „frei“ mit dem Suffix -heit, das einen Zustand bezeichnet. Das Wort meinte zunächst die Stellung eines Freien, der nicht unfrei war."
+          },
+          "simple-translation": [
+            "der Zustand, in dem man nicht unterdrückt oder eingesperrt wird",
+            "das Recht, selbst zu entscheiden und zu handeln"
+          ]
+        }
+      }
     }
   ]
 }
