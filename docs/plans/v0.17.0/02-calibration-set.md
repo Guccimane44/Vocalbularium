@@ -84,6 +84,8 @@ These numbers are small. With 2 to 4 held-out fails on a facet, one miss moves i
 
 **Real faults** come first. They start with what the Opus judge found on Haiku's cards on 2026-11-24: the Ufer, Fernweh and wegen etymologies, the run, 把 and get up Präteritum forms (these are closed-facet cards), and a garbled word. Then the new runs are read for more. Each fault is confirmed against a source before it is used.
 
+**A fault found by a judge never measures that judge.** The 2026-11-24 faults were found by the Opus judge, so they go into dev: on the held-out part they would only show that Opus catches what it already caught. Held-out fails come from faults found without Opus: a dictionary check, the step 1 scorer, Argon, or reading the card line by line.
+
 **Planted faults** are added only where real ones do not reach a criterion's minimum. A planted fault must be plausible: one changed fact a learner would not spot (a wrong century, a wrong language a loan passed through, the Präteritum of a similar verb). Blatant faults (antonyms written as synonyms) measure nothing a judge needs to prove.
 
 **Fail cards are checked line by line too.** Every other criterion on a fail card gets its own verdict. A card with a second, unplanned fault says so instead of hiding it.
