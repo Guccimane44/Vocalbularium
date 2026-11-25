@@ -14340,6 +14340,2036 @@
           ]
         }
       }
+    },
+    {
+      "id": "kiefer-baum-haiku-planted-sense",
+      "key": "Kiefer",
+      "context": "Im Wald wachsen vor allem Kiefern und Fichten.",
+      "language": "en",
+      "split": "dev",
+      "item": "kiefer-baum",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "criteria": {
+        "sense": "fail",
+        "german": "pass",
+        "facets": "pass",
+        "examples": "pass",
+        "etymology": "pass",
+        "simple-translation": "pass",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {
+        "sense": [
+          {
+            "why": "The Context (Im Wald wachsen vor allem Kiefern und Fichten) uses Kiefer as the tree, but the card lists the tree among \"meanings\" with no \"contextual\". Right: the tree as \"contextual\" and the jaw in \"meanings\", as the rubric asks for a Context that picks one of several senses.",
+            "source": "planted; DWDS Kiefer (der Kiefer, Knochen; die Kiefer, Nadelbaum)"
+          }
+        ]
+      },
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "Kiefer",
+          "gramRole": "noun",
+          "meanings": [
+            "Nadelbaum mit langen, paarweise stehenden Nadeln und holzigen Zapfen",
+            "Knochen im Gesicht, in dem die Zähne des Ober- oder Unterkiefers sitzen"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "die Kiefer",
+            "plural": "die Kiefern"
+          },
+          "examples": [
+            {
+              "sentence": "Die Kiefer ist ein robuster Baum, der auch auf sandigen Böden wächst."
+            },
+            {
+              "sentence": "Der Zahnarzt hat den Kiefer des Patienten geröntgt."
+            }
+          ],
+          "synonyms": [
+            "Föhre"
+          ],
+          "declension": {
+            "columns": [
+              "Singular",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "Nominativ",
+                "cells": [
+                  "die Kiefer",
+                  "die Kiefern"
+                ]
+              },
+              {
+                "label": "Genitiv",
+                "cells": [
+                  "der Kiefer",
+                  "der Kiefern"
+                ]
+              },
+              {
+                "label": "Dativ",
+                "cells": [
+                  "der Kiefer",
+                  "den Kiefern"
+                ]
+              },
+              {
+                "label": "Akkusativ",
+                "cells": [
+                  "die Kiefer",
+                  "die Kiefern"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "die Kiefer",
+            "der Kiefer"
+          ],
+          "simple-translation": [
+            "ein großer Baum mit langen Nadeln und Zapfen",
+            "der Knochen im Gesicht, in dem die Zähne sitzen"
+          ],
+          "grammar-teacher": [
+            "Das Genus hängt von der Bedeutung ab: Der Baum ist feminin (die Kiefer), der Knochen im Gesicht maskulin (der Kiefer).",
+            "Im Plural bildet der Baum „die Kiefern“, während der Knochen „die Kiefer“ bleibt."
+          ]
+        }
+      },
+      "fault": "planted"
+    },
+    {
+      "id": "r-serendipity-haiku-planted-sense",
+      "key": "serendipity",
+      "language": "en",
+      "split": "dev",
+      "item": "r-serendipity",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "criteria": {
+        "sense": "fail",
+        "german": "pass",
+        "facets": "pass",
+        "examples": "pass",
+        "etymology": "pass",
+        "simple-translation": "pass",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {
+        "sense": [
+          {
+            "why": "The capture has no Context, yet the card gives \"glücklicher Zufall\" as \"contextual\", as if a Context had picked it. Right: both senses in \"meanings\" and no \"contextual\".",
+            "source": "planted; rubric (sense): with no Context there is no \"contextual\""
+          }
+        ]
+      },
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Englisch",
+          "key": "serendipity",
+          "gramRole": "noun",
+          "contextual": "glücklicher Zufall, durch den etwas Gutes entsteht",
+          "meanings": [
+            "die Gabe, durch Zufall Wertvolles zu finden"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "der Zufall",
+            "plural": "die Zufälle"
+          },
+          "examples": [
+            {
+              "sentence": "It was pure serendipity that we met.",
+              "translation": "Es war reiner Zufall, dass wir uns getroffen haben."
+            },
+            {
+              "sentence": "Her talent for finding rare books was a kind of serendipity.",
+              "translation": "Ihr Talent, seltene Bücher zu finden, war eine Art glücklicher Zufall."
+            }
+          ],
+          "synonyms": [
+            "Glücksfall"
+          ],
+          "pronunciation": [
+            "der glückliche Zufall",
+            "die Gabe, durch Zufall Wertvolles zu finden"
+          ],
+          "etymology": {
+            "origins": [
+              "Mittelhochdeutsch"
+            ],
+            "text": "Zufall geht auf mittelhochdeutsch zuoval zurück, eine Bildung zu zufallen. Gemeint war zunächst, was einem unerwartet zufällt."
+          },
+          "simple-translation": [
+            "etwas Gutes, das man durch Zufall erlebt oder findet",
+            "die Fähigkeit, durch Zufall etwas Gutes zu finden"
+          ]
+        }
+      },
+      "fault": "planted"
+    },
+    {
+      "id": "r-gift-de-haiku-planted-sense",
+      "key": "Gift",
+      "context": "Die Pilze enthielten ein tödliches Gift.",
+      "language": "en",
+      "split": "dev",
+      "item": "r-gift-de",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "criteria": {
+        "sense": "fail",
+        "german": "pass",
+        "facets": "pass",
+        "examples": "pass",
+        "etymology": "pass",
+        "simple-translation": "pass",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {
+        "sense": [
+          {
+            "why": "\"contextual\" starts with its own label \"hier:\", which the card already adds. Right: \"Stoff, der Lebewesen schädigt oder tötet\" with no label.",
+            "source": "planted; rubric (sense): a meaning that writes the contextual label is a fault; DWDS Gift"
+          }
+        ]
+      },
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "Gift",
+          "gramRole": "noun",
+          "contextual": "hier: Stoff, der Lebewesen schädigt oder tötet",
+          "meanings": [
+            "übertragen: etwas, das anderen stark schadet"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "das Gift",
+            "plural": "die Gifte"
+          },
+          "examples": [
+            {
+              "sentence": "Die Pilze enthielten ein tödliches Gift."
+            },
+            {
+              "sentence": "Die Hetze wirkte wie ein Gift für das Zusammenleben."
+            }
+          ],
+          "synonyms": [
+            "Toxin"
+          ],
+          "declension": {
+            "columns": [
+              "Singular",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "Nominativ",
+                "cells": [
+                  "das Gift",
+                  "die Gifte"
+                ]
+              },
+              {
+                "label": "Genitiv",
+                "cells": [
+                  "des Giftes",
+                  "der Gifte"
+                ]
+              },
+              {
+                "label": "Dativ",
+                "cells": [
+                  "dem Gift",
+                  "den Giften"
+                ]
+              },
+              {
+                "label": "Akkusativ",
+                "cells": [
+                  "das Gift",
+                  "die Gifte"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "Gift"
+          ],
+          "etymology": {
+            "origins": [
+              "Germanisch",
+              "Althochdeutsch"
+            ],
+            "text": "Das Wort gehört zu geben und bedeutete ursprünglich „Gabe“. Die Bedeutung „Gift“ entwickelte sich aus der Vorstellung einer verabreichten Gabe."
+          },
+          "simple-translation": [
+            "ein Stoff, der Menschen oder Tiere krank macht oder tötet",
+            "etwas, das anderen stark schadet"
+          ],
+          "grammar-teacher": [
+            "Gift ist ein Neutrum: das Gift, im Genitiv des Giftes.",
+            "Der Plural „die Gifte“ wird meist nur für verschiedene Giftarten verwendet."
+          ]
+        }
+      },
+      "fault": "planted"
+    },
+    {
+      "id": "r-schloss-haiku-planted-sense",
+      "key": "Schloss",
+      "context": "Ich habe das Schloss an der Haustür ausgetauscht.",
+      "language": "en",
+      "split": "held-out",
+      "item": "r-schloss",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "criteria": {
+        "sense": "fail",
+        "german": "pass",
+        "facets": "pass",
+        "examples": "pass",
+        "etymology": "pass",
+        "simple-translation": "pass",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {
+        "sense": [
+          {
+            "why": "\"contextual\" describes a Türklinke (door handle), a sense of Klinke, not of Schloss. Right: Schloss in the Context is the locking device opened with a key (Türschloss).",
+            "source": "planted; DWDS Schloss (Vorrichtung zum Verschließen, mit einem Schlüssel geöffnet) and DWDS Klinke (Griff zum Öffnen oder Verschließen einer Tür)"
+          }
+        ]
+      },
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "Schloss",
+          "gramRole": "noun",
+          "contextual": "Griff an einer Tür, den man herunterdrückt, um sie zu öffnen oder zu schließen",
+          "meanings": [
+            "Gebäude eines Adligen oder Herrschers, meist mit Mauern und Türmen"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "das Schloss",
+            "plural": "die Schlösser"
+          },
+          "examples": [
+            {
+              "sentence": "Das Schloss an der Haustür klemmt manchmal."
+            },
+            {
+              "sentence": "Das Schloss liegt auf einem Hügel über der Stadt."
+            }
+          ],
+          "synonyms": [
+            "Schließvorrichtung"
+          ],
+          "declension": {
+            "columns": [
+              "Singular",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "Nominativ",
+                "cells": [
+                  "das Schloss",
+                  "die Schlösser"
+                ]
+              },
+              {
+                "label": "Genitiv",
+                "cells": [
+                  "des Schlosses",
+                  "der Schlösser"
+                ]
+              },
+              {
+                "label": "Dativ",
+                "cells": [
+                  "dem Schloss",
+                  "den Schlössern"
+                ]
+              },
+              {
+                "label": "Akkusativ",
+                "cells": [
+                  "das Schloss",
+                  "die Schlösser"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "das Schloss"
+          ],
+          "etymology": {
+            "origins": [
+              "Althochdeutsch",
+              "Mittelhochdeutsch"
+            ],
+            "text": "Aus althochdeutsch slōz „Verschluss, Riegel“, das zu schließen gehört. Die Bedeutung „Burg“ entwickelte sich später aus „geschlossene, befestigte Anlage“."
+          },
+          "simple-translation": [
+            "ein Ding, mit dem man eine Tür zumacht und wieder aufmacht",
+            "ein großes altes Haus, in dem früher ein König oder Adliger wohnte"
+          ],
+          "grammar-teacher": [
+            "Das Wort ist ein Neutrum: das Schloss.",
+            "Der Genitiv Singular endet auf -es: des Schlosses.",
+            "Im Plural bekommt es einen Umlaut und die Endung -er: die Schlösser, im Dativ Plural mit -n: den Schlössern."
+          ]
+        }
+      },
+      "fault": "planted"
+    },
+    {
+      "id": "r-window-argon-planted-sense",
+      "key": "window",
+      "language": "en",
+      "split": "held-out",
+      "item": "r-window",
+      "generator": "gemini-4-argon",
+      "decided": "claude",
+      "criteria": {
+        "sense": "fail",
+        "german": "pass",
+        "facets": "pass",
+        "examples": "pass",
+        "etymology": "pass",
+        "simple-translation": "pass",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {
+        "sense": [
+          {
+            "why": "The capture has no Context, yet the card gives the glass opening as \"contextual\", as if a Context had picked it. Right: all three senses in \"meanings\" and no \"contextual\".",
+            "source": "planted; rubric (sense): with no Context there is no \"contextual\""
+          }
+        ]
+      },
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Englisch",
+          "key": "window",
+          "gramRole": "noun",
+          "contextual": "Öffnung mit Glas in einer Wand eines Gebäudes oder Fahrzeugs",
+          "meanings": [
+            "rechteckiger Bereich auf dem Bildschirm eines Computers",
+            "begrenzter Zeitraum, in dem eine Gelegenheit besteht"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "das Fenster",
+            "plural": "die Fenster"
+          },
+          "examples": [
+            {
+              "sentence": "She opened the window to let some fresh air in.",
+              "translation": "Sie öffnete das Fenster, um etwas frische Luft hereinzulassen."
+            },
+            {
+              "sentence": "He closed the browser window on his laptop.",
+              "translation": "Er schloss das Browserfenster auf seinem Laptop."
+            },
+            {
+              "sentence": "We have a small window of time to finish the project.",
+              "translation": "Wir haben ein kleines Zeitfenster, um das Projekt abzuschließen."
+            }
+          ],
+          "declension": {
+            "columns": [
+              "Singular",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "Nominativ",
+                "cells": [
+                  "das Fenster",
+                  "die Fenster"
+                ]
+              },
+              {
+                "label": "Genitiv",
+                "cells": [
+                  "des Fensters",
+                  "der Fenster"
+                ]
+              },
+              {
+                "label": "Dativ",
+                "cells": [
+                  "dem Fenster",
+                  "den Fenstern"
+                ]
+              },
+              {
+                "label": "Akkusativ",
+                "cells": [
+                  "das Fenster",
+                  "die Fenster"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "das Fenster",
+            "das Zeitfenster"
+          ],
+          "etymology": {
+            "origins": [
+              "Latein",
+              "Althochdeutsch",
+              "Mittelhochdeutsch"
+            ],
+            "text": "Übernommen aus dem lateinischen Wort fenestra („Fensteröffnung, Maueröffnung“), als die Germanen den römischen Steinbau kennenlernten. Im Althochdeutschen lautete das Wort fenstar und entwickelte sich über mittelhochdeutsch venster zur heutigen Form."
+          },
+          "simple-translation": [
+            "ein Teil aus Glas in einer Wand oder im Auto, durch den man nach draußen schauen kann",
+            "ein Kasten auf dem Bildschirm von einem Computer, in dem ein Programm zu sehen ist",
+            "eine kurze Zeit, in der man etwas Bestimmtes machen kann"
+          ]
+        }
+      },
+      "fault": "planted"
+    },
+    {
+      "id": "freiheit-haiku-planted-antonyms",
+      "key": "Freiheit",
+      "language": "en",
+      "split": "dev",
+      "item": "freiheit",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "criteria": {
+        "sense": "pass",
+        "german": "pass",
+        "facets": "fail",
+        "examples": "pass",
+        "etymology": "pass",
+        "simple-translation": "pass",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {
+        "facets": [
+          {
+            "facet": "antonyms",
+            "why": "Pflicht (a binding duty) contrasts with Freiheit but is not its opposite. Right: an opposite such as Abhängigkeit, Unfreiheit or Knechtschaft.",
+            "source": "planted; DWDS Freiheit (Unabhängigkeit) and DWDS Pflicht (bindende Anforderung an das Verhalten)"
+          }
+        ]
+      },
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "Freiheit",
+          "gramRole": "noun",
+          "meanings": [
+            "Zustand, in dem man ohne Zwang und Einschränkung selbst entscheiden und handeln kann",
+            "Unabhängigkeit eines Landes oder Volkes von fremder Herrschaft"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "die Freiheit",
+            "plural": "die Freiheiten"
+          },
+          "examples": [
+            {
+              "sentence": "Die Freiheit der Meinungsäußerung ist ein Grundrecht."
+            },
+            {
+              "sentence": "Das Volk kämpfte um seine Freiheit."
+            }
+          ],
+          "synonyms": [
+            "Unabhängigkeit",
+            "Ungebundenheit",
+            "Selbstbestimmung"
+          ],
+          "antonyms": [
+            "Unfreiheit",
+            "Pflicht",
+            "Knechtschaft"
+          ],
+          "declension": {
+            "columns": [
+              "Singular",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "Nominativ",
+                "cells": [
+                  "die Freiheit",
+                  "die Freiheiten"
+                ]
+              },
+              {
+                "label": "Genitiv",
+                "cells": [
+                  "der Freiheit",
+                  "der Freiheiten"
+                ]
+              },
+              {
+                "label": "Dativ",
+                "cells": [
+                  "der Freiheit",
+                  "den Freiheiten"
+                ]
+              },
+              {
+                "label": "Akkusativ",
+                "cells": [
+                  "die Freiheit",
+                  "die Freiheiten"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "Freiheit"
+          ],
+          "etymology": {
+            "origins": [
+              "Althochdeutsch"
+            ],
+            "text": "Aus althochdeutsch frīheit, zusammengesetzt aus frī „frei“ und dem Suffix -heit, das einen Zustand bezeichnet. Das Wort bezeichnete zunächst die Stellung eines Freien im Gegensatz zum Unfreien und wurde später allgemeiner gebraucht."
+          },
+          "simple-translation": [
+            "der Zustand, in dem man selbst entscheiden kann, was man tut, und niemand einen zwingt",
+            "die Unabhängigkeit eines Landes oder Volkes von einer fremden Herrschaft"
+          ],
+          "grammar-teacher": [
+            "Femininum: Freiheit hat den Artikel „die“ und bildet den Genitiv Singular mit „der“.",
+            "Der Plural „Freiheiten“ wird vor allem gebraucht, wenn von einzelnen Rechten oder Möglichkeiten die Rede ist.",
+            "Die Endung -heit macht aus dem Adjektiv „frei“ ein Substantiv."
+          ]
+        }
+      },
+      "fault": "planted"
+    },
+    {
+      "id": "laufen-haiku-planted-antonyms",
+      "key": "laufen",
+      "language": "en",
+      "split": "dev",
+      "item": "laufen",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "criteria": {
+        "sense": "pass",
+        "german": "pass",
+        "facets": "fail",
+        "examples": "pass",
+        "etymology": "pass",
+        "simple-translation": "pass",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {
+        "facets": [
+          {
+            "facet": "antonyms",
+            "why": "gehen is a slower way of moving on foot, and DWDS even lists laufen as gehen; it is related, not an opposite. Right: stehen or stehen bleiben, which DWDS gives as antonyms.",
+            "source": "planted; DWDS laufen (sich zu Fuß fortbewegen, gehen; Antonyme: stehen bleiben, stehen)"
+          }
+        ]
+      },
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "laufen",
+          "gramRole": "verb",
+          "meanings": [
+            "sich zu Fuß schnell fortbewegen, sodass beide Füße kurz den Boden verlassen",
+            "in Betrieb sein und funktionieren, etwa von einer Maschine",
+            "fließen, etwa von Wasser aus einem Hahn",
+            "gültig sein oder bestehen, etwa von einem Vertrag"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "Er läuft jeden Morgen zwei Kilometer im Park."
+            },
+            {
+              "sentence": "Die Waschmaschine läuft schon seit einer Stunde."
+            },
+            {
+              "sentence": "Aus dem Hahn läuft kaltes Wasser."
+            },
+            {
+              "sentence": "Der Vertrag läuft noch zwei Jahre."
+            }
+          ],
+          "synonyms": [
+            "rennen",
+            "sprinten"
+          ],
+          "antonyms": [
+            "gehen",
+            "stillstehen"
+          ],
+          "conjugation": {
+            "columns": [
+              "Präsens",
+              "Präteritum",
+              "Perfekt"
+            ],
+            "rows": [
+              {
+                "label": "ich",
+                "cells": [
+                  "laufe",
+                  "lief",
+                  "bin gelaufen"
+                ]
+              },
+              {
+                "label": "du",
+                "cells": [
+                  "läufst",
+                  "liefst",
+                  "bist gelaufen"
+                ]
+              },
+              {
+                "label": "er/sie/es",
+                "cells": [
+                  "läuft",
+                  "lief",
+                  "ist gelaufen"
+                ]
+              },
+              {
+                "label": "wir",
+                "cells": [
+                  "laufen",
+                  "liefen",
+                  "sind gelaufen"
+                ]
+              },
+              {
+                "label": "ihr",
+                "cells": [
+                  "lauft",
+                  "lieft",
+                  "seid gelaufen"
+                ]
+              },
+              {
+                "label": "sie/Sie",
+                "cells": [
+                  "laufen",
+                  "liefen",
+                  "sind gelaufen"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "laufen"
+          ],
+          "etymology": {
+            "origins": [
+              "Germanisch",
+              "Althochdeutsch",
+              "Mittelhochdeutsch"
+            ],
+            "text": "Das Verb geht auf althochdeutsch loufan und mittelhochdeutsch loufen zurück, die schon die Bedeutung „sich schnell auf den Füßen bewegen“ hatten."
+          },
+          "simple-translation": [
+            "schnell mit den Beinen gehen, sodass man kurz in der Luft ist",
+            "funktionieren, wenn eine Maschine arbeitet",
+            "fließen, wenn Wasser aus einem Hahn kommt",
+            "gültig sein, wenn ein Vertrag für eine Zeit gilt"
+          ],
+          "grammar-teacher": [
+            "Unregelmäßiges Verb: Im Präteritum wechselt der Vokal zu „ie“: ich lief, wir liefen.",
+            "Im Präsens ändert sich der Vokal in der 2. und 3. Person Singular: du läufst, er läuft.",
+            "Bei der Bewegung bildet es das Perfekt mit „sein“: Ich bin den ganzen Tag gelaufen."
+          ]
+        }
+      },
+      "fault": "planted"
+    },
+    {
+      "id": "r-get-up-haiku-planted-antonyms",
+      "key": "get up",
+      "language": "en",
+      "split": "dev",
+      "item": "r-get-up",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "criteria": {
+        "sense": "pass",
+        "german": "pass",
+        "facets": "fail",
+        "examples": "pass",
+        "etymology": "pass",
+        "simple-translation": "pass",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {
+        "facets": [
+          {
+            "facet": "antonyms",
+            "why": "sich bücken (to bend down) is another movement of the body, not the opposite of getting up. Right: sich hinsetzen or sich hinlegen.",
+            "source": "planted; DWDS aufstehen (sich erheben) and DWDS bücken (sich zu Boden beugen)"
+          }
+        ]
+      },
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Englisch",
+          "key": "get up",
+          "gramRole": "verb",
+          "meanings": [
+            "aufstehen, sich aus dem Bett oder aus dem Sitzen erheben",
+            "etwas organisieren, auf die Beine stellen",
+            "sich herausputzen oder verkleiden"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "I get up at seven every day.",
+              "translation": "Ich stehe jeden Tag um sieben Uhr auf."
+            },
+            {
+              "sentence": "They got up a charity concert for the children.",
+              "translation": "Sie haben ein Wohltätigkeitskonzert für die Kinder auf die Beine gestellt."
+            },
+            {
+              "sentence": "She got herself up as a witch for the party.",
+              "translation": "Sie hat sich für die Party als Hexe verkleidet."
+            }
+          ],
+          "synonyms": [
+            "sich erheben"
+          ],
+          "antonyms": [
+            "sich bücken"
+          ],
+          "conjugation": {
+            "columns": [
+              "Präsens",
+              "Präteritum",
+              "Perfekt"
+            ],
+            "rows": [
+              {
+                "label": "ich",
+                "cells": [
+                  "stehe auf",
+                  "stand auf",
+                  "bin aufgestanden"
+                ]
+              },
+              {
+                "label": "du",
+                "cells": [
+                  "stehst auf",
+                  "standst auf",
+                  "bist aufgestanden"
+                ]
+              },
+              {
+                "label": "er/sie/es",
+                "cells": [
+                  "steht auf",
+                  "stand auf",
+                  "ist aufgestanden"
+                ]
+              },
+              {
+                "label": "wir",
+                "cells": [
+                  "stehen auf",
+                  "standen auf",
+                  "sind aufgestanden"
+                ]
+              },
+              {
+                "label": "ihr",
+                "cells": [
+                  "steht auf",
+                  "standet auf",
+                  "seid aufgestanden"
+                ]
+              },
+              {
+                "label": "sie/Sie",
+                "cells": [
+                  "stehen auf",
+                  "standen auf",
+                  "sind aufgestanden"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "aufstehen",
+            "etwas auf die Beine stellen",
+            "sich herausputzen"
+          ],
+          "etymology": {
+            "origins": [
+              "Althochdeutsch"
+            ],
+            "text": "Aus althochdeutsch ufstān, zusammengesetzt aus uf „auf“ und stān „stehen“. Die Bedeutung „sich erheben“ ist schon früh belegt."
+          },
+          "simple-translation": [
+            "vom Bett oder vom Stuhl hochkommen, nicht mehr liegen oder sitzen",
+            "etwas planen und möglich machen, zum Beispiel eine Feier",
+            "sich schön anziehen oder verkleiden"
+          ]
+        }
+      },
+      "fault": "planted"
+    },
+    {
+      "id": "mutig-argon-planted-antonyms",
+      "key": "mutig",
+      "language": "en",
+      "split": "held-out",
+      "item": "mutig",
+      "generator": "gemini-4-argon",
+      "decided": "claude",
+      "criteria": {
+        "sense": "pass",
+        "german": "pass",
+        "facets": "fail",
+        "examples": "pass",
+        "etymology": "pass",
+        "simple-translation": "pass",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {
+        "facets": [
+          {
+            "facet": "antonyms",
+            "why": "vorsichtig (careful) contrasts with mutig but is not its opposite: a brave person can be careful. Right: mutlos, feige or ängstlich.",
+            "source": "planted; DWDS mutig (tapfer, kühn, unerschrocken) and DWDS vorsichtig (besonnen, behutsam)"
+          }
+        ]
+      },
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "mutig",
+          "gramRole": "adjective",
+          "meanings": [
+            "ohne Angst vor Gefahren handelnd, entschlossen und unerschrocken"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "Die mutige Feuerwehrfrau rettete das Kind aus dem brennenden Haus."
+            }
+          ],
+          "synonyms": [
+            "tapfer",
+            "unerschrocken",
+            "kühn",
+            "couragiert",
+            "beherzt"
+          ],
+          "antonyms": [
+            "feige",
+            "ängstlich",
+            "furchtsam",
+            "zaghaft",
+            "vorsichtig"
+          ],
+          "declension": {
+            "columns": [
+              "Maskulinum",
+              "Femininum",
+              "Neutrum",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "stark Nominativ",
+                "cells": [
+                  "mutiger",
+                  "mutige",
+                  "mutiges",
+                  "mutige"
+                ]
+              },
+              {
+                "label": "stark Genitiv",
+                "cells": [
+                  "mutigen",
+                  "mutiger",
+                  "mutigen",
+                  "mutiger"
+                ]
+              },
+              {
+                "label": "stark Dativ",
+                "cells": [
+                  "mutigem",
+                  "mutiger",
+                  "mutigem",
+                  "mutigen"
+                ]
+              },
+              {
+                "label": "stark Akkusativ",
+                "cells": [
+                  "mutigen",
+                  "mutige",
+                  "mutiges",
+                  "mutige"
+                ]
+              },
+              {
+                "label": "schwach Nominativ",
+                "cells": [
+                  "der mutige",
+                  "die mutige",
+                  "das mutige",
+                  "die mutigen"
+                ]
+              },
+              {
+                "label": "schwach Genitiv",
+                "cells": [
+                  "des mutigen",
+                  "der mutigen",
+                  "des mutigen",
+                  "der mutigen"
+                ]
+              },
+              {
+                "label": "schwach Dativ",
+                "cells": [
+                  "dem mutigen",
+                  "der mutigen",
+                  "dem mutigen",
+                  "den mutigen"
+                ]
+              },
+              {
+                "label": "schwach Akkusativ",
+                "cells": [
+                  "den mutigen",
+                  "die mutige",
+                  "das mutige",
+                  "die mutigen"
+                ]
+              },
+              {
+                "label": "gemischt Nominativ",
+                "cells": [
+                  "ein mutiger",
+                  "eine mutige",
+                  "ein mutiges",
+                  "keine mutigen"
+                ]
+              },
+              {
+                "label": "gemischt Genitiv",
+                "cells": [
+                  "eines mutigen",
+                  "einer mutigen",
+                  "eines mutigen",
+                  "keiner mutigen"
+                ]
+              },
+              {
+                "label": "gemischt Dativ",
+                "cells": [
+                  "einem mutigen",
+                  "einer mutigen",
+                  "einem mutigen",
+                  "keinen mutigen"
+                ]
+              },
+              {
+                "label": "gemischt Akkusativ",
+                "cells": [
+                  "einen mutigen",
+                  "eine mutige",
+                  "ein mutiges",
+                  "keine mutigen"
+                ]
+              }
+            ]
+          },
+          "comparison": {
+            "positive": "mutig",
+            "comparative": "mutiger",
+            "superlative": "am mutigsten"
+          },
+          "pronunciation": [
+            "mutig"
+          ],
+          "etymology": {
+            "origins": [
+              "Althochdeutsch",
+              "Mittelhochdeutsch"
+            ],
+            "text": "Über mittelhochdeutsch muotec aus althochdeutsch muotīg hervorgegangen, einer Ableitung von muot „Sinn, Geist, Gemütszustand“. Ursprünglich bedeutete es allgemein „gesinnt, gelaunt“ oder auch „lebhaft, zornig“ und verengte sich ab dem Frühneuhochdeutschen auf die heutige Bedeutung „entschlossen, tapfer“."
+          },
+          "simple-translation": [
+            "etwas tun, obwohl man Angst haben könnte oder es gefährlich ist"
+          ],
+          "grammar-teacher": [
+            "Das Adjektiv wird mit dem Suffix „-ig“ vom Substantiv „der Mut“ abgeleitet.",
+            "Die Endung „-ig“ wird im Standarddeutschen im Wortauslaut wie „-ich“ ausgesprochen, erhält aber bei der Deklination und Steigerung vor Vokalen (wie in „mutige“ oder „mutiger“) wieder einen klaren g-Laut.",
+            "Die Steigerung ist regelmäßig und erfolgt ohne Umlaut: mutig, mutiger, am mutigsten."
+          ]
+        }
+      },
+      "fault": "planted"
+    },
+    {
+      "id": "sauer-argon-planted-antonyms",
+      "key": "sauer",
+      "language": "en",
+      "split": "held-out",
+      "item": "sauer",
+      "generator": "gemini-4-argon",
+      "decided": "claude",
+      "criteria": {
+        "sense": "pass",
+        "german": "pass",
+        "facets": "fail",
+        "examples": "pass",
+        "etymology": "pass",
+        "simple-translation": "pass",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {
+        "facets": [
+          {
+            "facet": "antonyms",
+            "why": "bitter is another taste, not the opposite of sauer. Right: süß for the taste, basisch or alkalisch for the chemistry sense.",
+            "source": "planted; DWDS sauer (wie eine Zitrone oder Essig schmeckend) and DWDS bitter (gleich dem Geschmack der Galle)"
+          }
+        ]
+      },
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "sauer",
+          "gramRole": "adjective",
+          "meanings": [
+            "mit einem Geschmack wie Zitronensaft oder Essig",
+            "in der Chemie den Eigenschaften einer Säure entsprechend",
+            "verärgert oder wütend",
+            "mühsam oder schwer zu ertragen"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "Der Apfel ist mir noch viel zu sauer."
+            },
+            {
+              "sentence": "Heidelbeeren wachsen am besten auf saurem Boden."
+            },
+            {
+              "sentence": "Sei mir bitte nicht sauer, ich habe deinen Geburtstag vergessen."
+            },
+            {
+              "sentence": "Er hat sich sein Geld durch saure Arbeit verdient."
+            }
+          ],
+          "synonyms": [
+            "essigsauer",
+            "säuerlich",
+            "verärgert",
+            "böse",
+            "wütend"
+          ],
+          "antonyms": [
+            "süß",
+            "basisch",
+            "bitter"
+          ],
+          "declension": {
+            "columns": [
+              "Maskulinum",
+              "Femininum",
+              "Neutrum",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "stark Nominativ",
+                "cells": [
+                  "saurer",
+                  "saure",
+                  "saures",
+                  "saure"
+                ]
+              },
+              {
+                "label": "stark Genitiv",
+                "cells": [
+                  "sauren",
+                  "saurer",
+                  "sauren",
+                  "saurer"
+                ]
+              },
+              {
+                "label": "stark Dativ",
+                "cells": [
+                  "saurem",
+                  "saurer",
+                  "saurem",
+                  "sauren"
+                ]
+              },
+              {
+                "label": "stark Akkusativ",
+                "cells": [
+                  "sauren",
+                  "saure",
+                  "saures",
+                  "saure"
+                ]
+              },
+              {
+                "label": "schwach Nominativ",
+                "cells": [
+                  "der saure",
+                  "die saure",
+                  "das saure",
+                  "die sauren"
+                ]
+              },
+              {
+                "label": "schwach Genitiv",
+                "cells": [
+                  "des sauren",
+                  "der sauren",
+                  "des sauren",
+                  "der sauren"
+                ]
+              },
+              {
+                "label": "schwach Dativ",
+                "cells": [
+                  "dem sauren",
+                  "der sauren",
+                  "dem sauren",
+                  "den sauren"
+                ]
+              },
+              {
+                "label": "schwach Akkusativ",
+                "cells": [
+                  "den sauren",
+                  "die saure",
+                  "das saure",
+                  "die sauren"
+                ]
+              },
+              {
+                "label": "gemischt Nominativ",
+                "cells": [
+                  "ein saurer",
+                  "eine saure",
+                  "ein saures",
+                  "keine sauren"
+                ]
+              },
+              {
+                "label": "gemischt Genitiv",
+                "cells": [
+                  "eines sauren",
+                  "einer sauren",
+                  "eines sauren",
+                  "keiner sauren"
+                ]
+              },
+              {
+                "label": "gemischt Dativ",
+                "cells": [
+                  "einem sauren",
+                  "einer sauren",
+                  "einem sauren",
+                  "keinen sauren"
+                ]
+              },
+              {
+                "label": "gemischt Akkusativ",
+                "cells": [
+                  "einen sauren",
+                  "eine saure",
+                  "ein saures",
+                  "keine sauren"
+                ]
+              }
+            ]
+          },
+          "comparison": {
+            "positive": "sauer",
+            "comparative": "saurer",
+            "superlative": "am sauersten"
+          },
+          "pronunciation": [
+            "sauer"
+          ],
+          "etymology": {
+            "origins": [
+              "Germanisch",
+              "Althochdeutsch",
+              "Mittelhochdeutsch"
+            ],
+            "text": "Das Wort geht über mittelhochdeutsch und althochdeutsch sūr auf das germanische Adjektiv sūra- mit der Bedeutung sauer, scharf oder bitter zurück. Es bezeichnete ursprünglich den scharfen, beißenden Geschmack bestimmter Speisen und wurde später auch bildlich für unangenehme Empfindungen und schlechte Laune verwendet."
+          },
+          "simple-translation": [
+            "mit einem Geschmack wie eine Zitrone oder wie Essig",
+            "in der Chemie so wie eine Säure",
+            "böse oder wütend auf jemanden",
+            "sehr schwer und anstrengend"
+          ],
+          "grammar-teacher": [
+            "Wenn „sauer“ eine Endung bekommt oder im Komparativ steht, fällt das „e“ vor dem „r“ weg: ein saurer Apfel, die saure Milch, saurer.",
+            "In der Umgangssprache bedeutet „sauer auf jemanden sein“ (mit der Präposition „auf“ und Akkusativ), dass man sich über die Person ärgert."
+          ]
+        }
+      },
+      "fault": "planted"
+    },
+    {
+      "id": "computer-haiku-planted-synonyms",
+      "key": "Computer",
+      "language": "en",
+      "split": "dev",
+      "item": "computer",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "criteria": {
+        "sense": "pass",
+        "german": "pass",
+        "facets": "fail",
+        "examples": "pass",
+        "etymology": "pass",
+        "simple-translation": "pass",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {
+        "facets": [
+          {
+            "facet": "synonyms",
+            "why": "Taschenrechner sounds close to Rechner but is a small calculator, not a computer. Right: Rechner.",
+            "source": "planted; DWDS Rechner (elektronische Rechenmaschine) and DWDS Taschenrechner (tragbares kleines elektronisches Gerät zum Rechnen)"
+          }
+        ]
+      },
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "Computer",
+          "gramRole": "noun",
+          "meanings": [
+            "elektronisches Gerät, das Daten speichert, berechnet und nach Programmen arbeitet"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "der Computer",
+            "plural": "die Computer"
+          },
+          "examples": [
+            {
+              "sentence": "Mein Computer ist seit gestern kaputt."
+            }
+          ],
+          "synonyms": [
+            "Taschenrechner"
+          ],
+          "declension": {
+            "columns": [
+              "Singular",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "Nominativ",
+                "cells": [
+                  "der Computer",
+                  "die Computer"
+                ]
+              },
+              {
+                "label": "Genitiv",
+                "cells": [
+                  "des Computers",
+                  "der Computer"
+                ]
+              },
+              {
+                "label": "Dativ",
+                "cells": [
+                  "dem Computer",
+                  "den Computern"
+                ]
+              },
+              {
+                "label": "Akkusativ",
+                "cells": [
+                  "den Computer",
+                  "die Computer"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "Computer"
+          ],
+          "etymology": {
+            "origins": [
+              "Latein",
+              "Englisch"
+            ],
+            "text": "Aus lateinisch computare „zusammenrechnen“, über englisch to compute „berechnen“ als englisch computer „Rechner“ übernommen. Im 20. Jahrhundert wurde es für elektronische Rechenmaschinen gebräuchlich."
+          },
+          "simple-translation": [
+            "ein elektrisches Gerät, mit dem man Texte schreibt, Daten speichert und Programme benutzt"
+          ],
+          "grammar-teacher": [
+            "Maskulinum: Computer ist ein maskulines Wort, deshalb heißt es der Computer und im Akkusativ den Computer.",
+            "Im Genitiv Singular steht die Endung -s: des Computers.",
+            "Im Plural bleibt die Form unverändert, nur im Dativ kommt ein -n dazu: die Computer, aber den Computern."
+          ]
+        }
+      },
+      "fault": "planted"
+    },
+    {
+      "id": "r-keks-haiku-planted-synonyms",
+      "key": "jemandem auf den Keks gehen",
+      "language": "en",
+      "split": "dev",
+      "item": "r-keks",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "criteria": {
+        "sense": "pass",
+        "german": "pass",
+        "facets": "fail",
+        "examples": "pass",
+        "etymology": "pass",
+        "simple-translation": "pass",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {
+        "facets": [
+          {
+            "facet": "synonyms",
+            "why": "jemandem auf den Leim gehen sounds like the idiom but means to be taken in by someone. Right: jemandem auf den Geist gehen or auf die Nerven gehen.",
+            "source": "planted; DWDS Leim (jmdm. auf den Leim gehen = auf jmdn. hereinfallen) and DWDS Keks (jmdm. auf den Keks gehen)"
+          }
+        ]
+      },
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "jemandem auf den Keks gehen",
+          "gramRole": "verb",
+          "meanings": [
+            "jemanden stark nerven oder ärgern, weil er einem lästig wird"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "Das ständige Gequatsche von meinem Bruder geht mir allmählich auf den Keks."
+            }
+          ],
+          "synonyms": [
+            "jemandem auf die Nerven gehen",
+            "jemandem auf den Leim gehen"
+          ],
+          "conjugation": {
+            "columns": [
+              "Präsens",
+              "Präteritum",
+              "Perfekt"
+            ],
+            "rows": [
+              {
+                "label": "ich",
+                "cells": [
+                  "gehe",
+                  "ging",
+                  "bin gegangen"
+                ]
+              },
+              {
+                "label": "du",
+                "cells": [
+                  "gehst",
+                  "gingst",
+                  "bist gegangen"
+                ]
+              },
+              {
+                "label": "er/sie/es",
+                "cells": [
+                  "geht",
+                  "ging",
+                  "ist gegangen"
+                ]
+              },
+              {
+                "label": "wir",
+                "cells": [
+                  "gehen",
+                  "gingen",
+                  "sind gegangen"
+                ]
+              },
+              {
+                "label": "ihr",
+                "cells": [
+                  "geht",
+                  "gingt",
+                  "seid gegangen"
+                ]
+              },
+              {
+                "label": "sie/Sie",
+                "cells": [
+                  "gehen",
+                  "gingen",
+                  "sind gegangen"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "jemandem auf den Keks gehen"
+          ],
+          "simple-translation": [
+            "jemanden sehr ärgern, weil er immer wieder stört"
+          ],
+          "grammar-teacher": [
+            "Feste Wendung: „jemandem“ steht im Dativ, weil die Person als Empfänger des Ärgers gemeint ist.",
+            "„auf den Keks“ steht im Akkusativ, weil „auf“ hier eine Richtung angibt.",
+            "Das Perfekt bildet „gehen“ mit „sein“: Das ist mir auf den Keks gegangen."
+          ]
+        }
+      },
+      "fault": "planted"
+    },
+    {
+      "id": "uebersetzen-haiku-planted-synonyms",
+      "key": "übersetzen",
+      "context": "Der Fährmann setzte uns ans andere Ufer über.",
+      "language": "en",
+      "split": "dev",
+      "item": "uebersetzen",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "criteria": {
+        "sense": "pass",
+        "german": "pass",
+        "facets": "fail",
+        "examples": "pass",
+        "etymology": "pass",
+        "simple-translation": "pass",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {
+        "facets": [
+          {
+            "facet": "synonyms",
+            "why": "überarbeiten means to revise a text in the same language, not to put it into another one. Right: übertragen.",
+            "source": "planted; DWDS übersetzen (in eine andere Sprache übertragen) and DWDS überarbeiten (ein Schriftstück noch einmal bearbeiten)"
+          }
+        ]
+      },
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "übersetzen",
+          "gramRole": "verb",
+          "contextual": "mit einem Boot auf das andere Ufer eines Gewässers bringen",
+          "meanings": [
+            "einen Text oder eine Äußerung in eine andere Sprache übertragen"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "Der Fährmann setzt die Reisenden über den Fluss über."
+            },
+            {
+              "sentence": "Sie übersetzt den Roman ins Französische."
+            }
+          ],
+          "synonyms": [
+            "überarbeiten"
+          ],
+          "conjugation": {
+            "columns": [
+              "Präsens",
+              "Präteritum",
+              "Perfekt"
+            ],
+            "rows": [
+              {
+                "label": "ich",
+                "cells": [
+                  "setze über",
+                  "setzte über",
+                  "habe übergesetzt"
+                ]
+              },
+              {
+                "label": "du",
+                "cells": [
+                  "setzt über",
+                  "setztest über",
+                  "hast übergesetzt"
+                ]
+              },
+              {
+                "label": "er/sie/es",
+                "cells": [
+                  "setzt über",
+                  "setzte über",
+                  "hat übergesetzt"
+                ]
+              },
+              {
+                "label": "wir",
+                "cells": [
+                  "setzen über",
+                  "setzten über",
+                  "haben übergesetzt"
+                ]
+              },
+              {
+                "label": "ihr",
+                "cells": [
+                  "setzt über",
+                  "setztet über",
+                  "habt übergesetzt"
+                ]
+              },
+              {
+                "label": "sie/Sie",
+                "cells": [
+                  "setzen über",
+                  "setzten über",
+                  "haben übergesetzt"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "übersetzen"
+          ],
+          "etymology": {
+            "origins": [
+              "Althochdeutsch"
+            ],
+            "text": "Zusammensetzung aus „über“ und „setzen“. Ursprünglich bedeutete es, jemanden über einen Fluss zu bringen, später auch, etwas in eine andere Sprache zu setzen."
+          },
+          "simple-translation": [
+            "mit einem Boot auf die andere Seite eines Flusses oder Sees bringen",
+            "einen Text oder einen Satz in eine andere Sprache bringen"
+          ],
+          "grammar-teacher": [
+            "Trennbares Verb in der Bedeutung „mit dem Boot ans andere Ufer bringen“: Das Präfix „über“ steht am Satzende, zum Beispiel Der Fährmann setzte uns über.",
+            "In der Bedeutung „in eine andere Sprache übertragen“ ist das Verb untrennbar: Sie übersetzt den Text, und das Partizip lautet übersetzt.",
+            "Die Vergangenheit der trennbaren Bedeutung bildet man mit „haben“ und dem Partizip übergesetzt: Er hat uns übergesetzt."
+          ]
+        }
+      },
+      "fault": "planted"
+    },
+    {
+      "id": "r-lief-haiku-planted-pronunciation",
+      "key": "lief",
+      "language": "en",
+      "split": "dev",
+      "item": "r-lief",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "criteria": {
+        "sense": "pass",
+        "german": "pass",
+        "facets": "fail",
+        "examples": "pass",
+        "etymology": "pass",
+        "simple-translation": "pass",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {
+        "facets": [
+          {
+            "facet": "pronunciation",
+            "why": "The pronunciation speaks ließ, the Präteritum of lassen, not lief. Right: lief.",
+            "source": "planted; DWDS laufen (Präteritum lief) and DWDS lassen (Präteritum ließ)"
+          }
+        ]
+      },
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "lief",
+          "gramRole": "verb",
+          "meanings": [
+            "Präteritum von „laufen“: sich schnell auf den Beinen fortbewegen",
+            "Präteritum von „laufen“: in Betrieb sein und funktionieren, etwa bei einer Maschine"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "Er lief schnell zum Bus.",
+              "translation": "Er rannte schnell zum Bus."
+            },
+            {
+              "sentence": "Der Motor lief den ganzen Tag.",
+              "translation": "Der Motor war den ganzen Tag in Betrieb."
+            }
+          ],
+          "synonyms": [
+            "rennen",
+            "eilen"
+          ],
+          "conjugation": {
+            "columns": [
+              "Präsens",
+              "Präteritum",
+              "Perfekt"
+            ],
+            "rows": [
+              {
+                "label": "ich",
+                "cells": [
+                  "laufe",
+                  "lief",
+                  "bin gelaufen"
+                ]
+              },
+              {
+                "label": "du",
+                "cells": [
+                  "läufst",
+                  "liefst",
+                  "bist gelaufen"
+                ]
+              },
+              {
+                "label": "er/sie/es",
+                "cells": [
+                  "läuft",
+                  "lief",
+                  "ist gelaufen"
+                ]
+              },
+              {
+                "label": "wir",
+                "cells": [
+                  "laufen",
+                  "liefen",
+                  "sind gelaufen"
+                ]
+              },
+              {
+                "label": "ihr",
+                "cells": [
+                  "lauft",
+                  "lieft",
+                  "seid gelaufen"
+                ]
+              },
+              {
+                "label": "sie/Sie",
+                "cells": [
+                  "laufen",
+                  "liefen",
+                  "sind gelaufen"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "ließ"
+          ],
+          "etymology": {
+            "origins": [
+              "Althochdeutsch",
+              "Mittelhochdeutsch"
+            ],
+            "text": "Die Form gehört zu laufen, althochdeutsch loufan „laufen, rennen“, mittelhochdeutsch loufen. Lief ist das Präteritum dieses Verbs."
+          },
+          "simple-translation": [
+            "die Vergangenheit von laufen: schnell auf den Beinen gehen",
+            "die Vergangenheit von laufen: arbeiten, wenn etwas funktioniert"
+          ],
+          "grammar-teacher": [
+            "Starkes, unregelmäßiges Verb: Der Stammvokal wechselt im Präteritum zu ie, die Form lautet lief, im Partizip gelaufen.",
+            "Im Präteritum ist die erste und dritte Person Singular gleich: ich lief, er lief."
+          ]
+        }
+      },
+      "fault": "planted"
+    },
+    {
+      "id": "r-sobremesa-haiku-planted-pronunciation",
+      "key": "sobremesa",
+      "language": "en",
+      "split": "dev",
+      "item": "r-sobremesa",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "criteria": {
+        "sense": "pass",
+        "german": "pass",
+        "facets": "fail",
+        "examples": "pass",
+        "etymology": "pass",
+        "simple-translation": "pass",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {
+        "facets": [
+          {
+            "facet": "pronunciation",
+            "why": "The pronunciation for the second meaning speaks der Nachtisch (Portuguese sobremesa), not the card's translation die Tischdecke. Right: die Tischdecke.",
+            "source": "planted; DWDS Tischdecke and DWDS Nachtisch (Nachspeise)"
+          }
+        ]
+      },
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Spanisch",
+          "key": "sobremesa",
+          "gramRole": "noun",
+          "meanings": [
+            "die Zeit nach dem Essen, in der man noch gemütlich am Tisch sitzt und plaudert",
+            "eine kleine Tischdecke oder ein Tischläufer"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "Después de la comida, nos quedamos de sobremesa hablando durante horas.",
+              "translation": "Nach dem Essen blieben wir noch stundenlang am Tisch sitzen und redeten."
+            },
+            {
+              "sentence": "Puso una sobremesa bordada sobre la mesa del comedor.",
+              "translation": "Sie legte eine bestickte Tischdecke auf den Esstisch."
+            }
+          ],
+          "pronunciation": [
+            "die Zeit nach dem Essen",
+            "der Nachtisch"
+          ],
+          "simple-translation": [
+            "die Zeit nach dem Essen, in der man noch am Tisch sitzt und redet",
+            "eine kleine Decke, die man auf den Tisch legt"
+          ]
+        }
+      },
+      "fault": "planted"
+    },
+    {
+      "id": "rechtsschutz-haiku-planted-simple-translation",
+      "key": "Rechtsschutzversicherung",
+      "language": "en",
+      "split": "held-out",
+      "item": "rechtsschutz",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "criteria": {
+        "sense": "pass",
+        "german": "pass",
+        "facets": "pass",
+        "examples": "pass",
+        "etymology": "pass",
+        "simple-translation": "fail",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {
+        "simple-translation": [
+          {
+            "why": "The simple line describes a Haftpflichtversicherung (damage done to others), not legal costs. Right: a line about paying for a lawyer or court case.",
+            "source": "planted; DWDS Rechtsschutzversicherung (Kosten bei Rechtsstreitigkeiten) and DWDS Haftpflichtversicherung (Kosten für Schäden)"
+          }
+        ]
+      },
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "Rechtsschutzversicherung",
+          "gramRole": "noun",
+          "meanings": [
+            "Versicherung, die die Kosten übernimmt, wenn man sich rechtlich wehren muss, zum Beispiel vor Gericht oder durch einen Anwalt"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "die Rechtsschutzversicherung",
+            "plural": "die Rechtsschutzversicherungen"
+          },
+          "examples": [
+            {
+              "sentence": "Dank meiner Rechtsschutzversicherung muss ich die Anwaltskosten nicht selbst bezahlen."
+            }
+          ],
+          "declension": {
+            "columns": [
+              "Singular",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "Nominativ",
+                "cells": [
+                  "die Rechtsschutzversicherung",
+                  "die Rechtsschutzversicherungen"
+                ]
+              },
+              {
+                "label": "Genitiv",
+                "cells": [
+                  "der Rechtsschutzversicherung",
+                  "der Rechtsschutzversicherungen"
+                ]
+              },
+              {
+                "label": "Dativ",
+                "cells": [
+                  "der Rechtsschutzversicherung",
+                  "den Rechtsschutzversicherungen"
+                ]
+              },
+              {
+                "label": "Akkusativ",
+                "cells": [
+                  "die Rechtsschutzversicherung",
+                  "die Rechtsschutzversicherungen"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "die Rechtsschutzversicherung"
+          ],
+          "etymology": {
+            "origins": [
+              "Althochdeutsch",
+              "Mittelhochdeutsch"
+            ],
+            "text": "Zusammensetzung aus Rechtsschutz und Versicherung. Recht geht auf althochdeutsch reht zurück, Schutz auf mittelhochdeutsch schuz, und versichern ist seit dem Mittelhochdeutschen belegt, im Sinne von sicher machen."
+          },
+          "simple-translation": [
+            "eine Versicherung, die zahlt, wenn man bei einem anderen etwas kaputt gemacht hat"
+          ],
+          "grammar-teacher": [
+            "Zusammengesetztes Substantiv: Das Grundwort „Versicherung“ bestimmt das Genus, deshalb ist das Wort ein Femininum: die Rechtsschutzversicherung.",
+            "Fugen-s: Zwischen den Bestandteilen „Rechtsschutz“ und „Versicherung“ steht kein Fugenelement, die Zusammensetzung ist aber aus „Rechtsschutz“ gebildet, das selbst ein Fugen-s zwischen „Recht“ und „Schutz“ enthält."
+          ]
+        }
+      },
+      "fault": "planted"
+    },
+    {
+      "id": "r-konjunktiv-haiku-planted-simple-translation",
+      "key": "Wenn ich Zeit hätte, würde ich mitkommen.",
+      "language": "en",
+      "split": "held-out",
+      "item": "r-konjunktiv",
+      "generator": "claude-haiku-5-5",
+      "decided": "claude",
+      "criteria": {
+        "sense": "pass",
+        "german": "pass",
+        "facets": "pass",
+        "examples": "pass",
+        "etymology": "pass",
+        "simple-translation": "fail",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {
+        "simple-translation": [
+          {
+            "why": "The simple line makes the condition real (I may still come), but the meaning is that the speaker has no time and will not come. Right: Ich komme nicht mit, weil ich keine Zeit habe.",
+            "source": "planted; the card's own meaning (Der Wunsch ist nur gedacht und nicht wirklich möglich); Konjunktiv II of an unreal condition, no dictionary entry needed"
+          }
+        ]
+      },
+      "card": {
+        "core": {
+          "kind": "sentence",
+          "language": "Deutsch",
+          "key": "Wenn ich Zeit hätte, würde ich mitkommen.",
+          "meanings": [
+            "Der Sprecher würde gern mitkommen, hat aber im Moment keine Zeit. Der Wunsch ist nur gedacht und nicht wirklich möglich."
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "Wenn er Geld hätte, würde er ein neues Auto kaufen."
+            }
+          ],
+          "pronunciation": [
+            "Wenn ich Zeit hätte, würde ich mitkommen."
+          ],
+          "simple-translation": [
+            "Ich komme gern mit, wenn ich dann Zeit habe."
+          ],
+          "grammar-teacher": [
+            "Konjunktiv II: „hätte“ ist die Konjunktiv-II-Form von „haben“ und drückt einen unwirklichen Wunsch oder eine Bedingung aus.",
+            "Die Form „würde“ + Infinitiv im Hauptsatz ist die Umschreibung des Konjunktivs II, hier mit „würde ich mitkommen“.",
+            "Im Nebensatz steht das konjugierte Verb „hätte“ am Satzende, und der Nebensatz steht vorn, gefolgt vom Komma.",
+            "Im Hauptsatz steht „würde“ an zweiter Stelle, und das trennbare Verb „mitkommen“ hat seinen Infinitiv am Satzende."
+          ]
+        }
+      },
+      "fault": "planted"
     }
   ]
 }
