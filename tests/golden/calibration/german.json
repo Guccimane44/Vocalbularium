@@ -8,9 +8,7 @@
       "context": "We sat on the bank and watched the river go by.",
       "language": "en",
       "split": "dev",
-      "decided": "owner",
-      "verdict": "pass",
-      "reason": "Recorded output, golden run 2026-10-30T17-25-27-661Z-en-german.json. Adapted for D29 (5 November 2026): the Context's sense moved to \"contextual\", and the other sense added to \"meanings\" with its example and pronunciation.",
+      "decided": "claude",
       "card": {
         "core": {
           "kind": "word",
@@ -83,6 +81,25 @@
             "die Bank"
           ]
         }
+      },
+      "fault": "real",
+      "criteria": {
+        "sense": "pass",
+        "german": "pass",
+        "facets": "weak",
+        "examples": "pass",
+        "etymology": "pass",
+        "simple-translation": "pass",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {
+        "facets": [
+          {
+            "facet": "synonyms",
+            "why": "Uferrand and Böschung are only near-synonyms of Ufer: Böschung is a sloping, often built-up bank or embankment, and Uferrand the edge of the bank. Gestade fits.",
+            "source": "judgement call; DWDS: Böschung, Uferrand, Gestade"
+          }
+        ]
       }
     },
     {
@@ -90,9 +107,7 @@
       "key": "We sat on the bank and watched the river.",
       "language": "en",
       "split": "dev",
-      "decided": "owner",
-      "verdict": "pass",
-      "reason": "Recorded output, golden run 2026-11-03T19-57-22-113Z-en-german.json. A sentence's one example is a new sentence of the same structure, by design.",
+      "decided": "claude",
       "card": {
         "core": {
           "kind": "sentence",
@@ -113,16 +128,24 @@
             "Wir saßen am Ufer und beobachteten den Fluss"
           ]
         }
-      }
+      },
+      "criteria": {
+        "sense": "pass",
+        "german": "pass",
+        "facets": "pass",
+        "examples": "pass",
+        "etymology": "pass",
+        "simple-translation": "pass",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {}
     },
     {
       "id": "sentence-2",
       "key": "我真的很幸福",
       "language": "en",
       "split": "dev",
-      "decided": "owner",
-      "verdict": "pass",
-      "reason": "Recorded output, golden run 2026-11-03T19-57-22-113Z-en-german.json. A sentence's one example is a new sentence of the same structure, by design.",
+      "decided": "claude",
       "card": {
         "core": {
           "kind": "sentence",
@@ -144,16 +167,24 @@
             "Ich bin wirklich sehr glücklich"
           ]
         }
-      }
+      },
+      "criteria": {
+        "sense": "pass",
+        "german": "pass",
+        "facets": "pass",
+        "examples": "pass",
+        "etymology": "pass",
+        "simple-translation": "pass",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {}
     },
     {
       "id": "grammar-word",
       "key": "一举两得",
       "language": "en",
       "split": "dev",
-      "decided": "owner",
-      "verdict": "pass",
-      "reason": "Recorded output, golden run 2026-11-03T19-57-22-113Z-en-german.json. The conjugation is that of the German translation's verb, schlagen, by design.",
+      "decided": "claude",
       "card": {
         "core": {
           "kind": "word",
@@ -239,7 +270,17 @@
             "mit einer einzigen Handlung zwei Vorteile erzielen"
           ]
         }
-      }
+      },
+      "criteria": {
+        "sense": "pass",
+        "german": "pass",
+        "facets": "pass",
+        "examples": "pass",
+        "etymology": "pass",
+        "simple-translation": "pass",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {}
     },
     {
       "id": "context-only",
@@ -247,9 +288,7 @@
       "context": "We sat on the bank and watched the river go by.",
       "language": "en",
       "split": "dev",
-      "decided": "owner",
-      "verdict": "fail",
-      "reason": "Seeded fault: The recorded card from before D29, which gives only the sense the Context uses: no \"contextual\", and the word's other, most common meaning is missing.",
+      "decided": "claude",
       "card": {
         "core": {
           "kind": "word",
@@ -316,6 +355,31 @@
             "das Ufer"
           ]
         }
+      },
+      "fault": "real",
+      "criteria": {
+        "sense": "fail",
+        "german": "pass",
+        "facets": "weak",
+        "examples": "pass",
+        "etymology": "pass",
+        "simple-translation": "pass",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {
+        "sense": [
+          {
+            "why": "The Context uses bank as a river bank, a word with several senses; the card gives only that sense, in \"meanings\" with no \"contextual\", and leaves out the most common meaning, Geldinstitut.",
+            "source": "rubric: sense; DWDS: Ufer"
+          }
+        ],
+        "facets": [
+          {
+            "facet": "synonyms",
+            "why": "Uferrand and Böschung are only near-synonyms of Ufer: Böschung is a sloping, often built-up bank or embankment, and Uferrand the edge of the bank. Gestade fits.",
+            "source": "judgement call; DWDS: Böschung, Uferrand, Gestade"
+          }
+        ]
       }
     },
     {
@@ -323,9 +387,7 @@
       "key": "run",
       "language": "en",
       "split": "dev",
-      "decided": "owner",
-      "verdict": "fail",
-      "reason": "Recorded defect: the recorded output conjugates ihr in the Präteritum as \"lief\"; it is \"lieft\". The review of 30 October missed it; the judge found it in its first calibration (3 November 2026).",
+      "decided": "claude",
       "card": {
         "core": {
           "kind": "word",
@@ -428,6 +490,30 @@
             "betreiben"
           ]
         }
+      },
+      "fault": "real",
+      "criteria": {
+        "sense": "pass",
+        "german": "pass",
+        "facets": "fail",
+        "examples": "pass",
+        "etymology": "pass",
+        "simple-translation": "pass",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {
+        "facets": [
+          {
+            "facet": "conjugation",
+            "why": "Gives ihr lief in the Präteritum; DWDS gives ihr lieft.",
+            "source": "DWDS: laufen, Konjugationstabelle"
+          },
+          {
+            "facet": "antonyms",
+            "why": "Gives gehen as an antonym of laufen; DWDS defines laufen 1 as \"sich zu Fuß fortbewegen, gehen\", so gehen is a synonym of one sense and only a slower contrast to rennen, not an opposite. stehen and anhalten pass.",
+            "source": "DWDS: laufen"
+          }
+        ]
       }
     },
     {
@@ -435,9 +521,7 @@
       "key": "serendipity",
       "language": "en",
       "split": "dev",
-      "decided": "owner",
-      "verdict": "pass",
-      "reason": "Recorded output, golden run 2026-10-30T17-25-27-661Z-en-german.json. Fixed on 2026-11-23 after the judges named real faults: loose synonyms (Glück, Zufall, Glücksumstand) and a non-opposite antonym (Missgeschick) removed.",
+      "decided": "claude",
       "card": {
         "core": {
           "kind": "word",
@@ -512,6 +596,25 @@
             "die glückliche Fügung"
           ]
         }
+      },
+      "fault": "real",
+      "criteria": {
+        "sense": "pass",
+        "german": "pass",
+        "facets": "weak",
+        "examples": "pass",
+        "etymology": "pass",
+        "simple-translation": "pass",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {
+        "facets": [
+          {
+            "facet": "synonyms",
+            "why": "Fügung alone is any event steered by fate, lucky or not; only \"glückliche Fügung\" means a Glücksfall. The DWDS thesaurus lists Fügung under Glücksfall only as an association.",
+            "source": "DWDS: Fügung, Glücksfall"
+          }
+        ]
       }
     },
     {
@@ -519,9 +622,7 @@
       "key": "break the ice",
       "language": "en",
       "split": "dev",
-      "decided": "owner",
-      "verdict": "pass",
-      "reason": "Recorded output, golden run 2026-10-30T17-25-27-661Z-en-german.json.",
+      "decided": "claude",
       "card": {
         "core": {
           "kind": "word",
@@ -605,16 +706,24 @@
             ]
           }
         }
-      }
+      },
+      "criteria": {
+        "sense": "pass",
+        "german": "pass",
+        "facets": "pass",
+        "examples": "pass",
+        "etymology": "pass",
+        "simple-translation": "pass",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {}
     },
     {
       "id": "recorded-5",
       "key": "beautiful",
       "language": "en",
       "split": "dev",
-      "decided": "owner",
-      "verdict": "pass",
-      "reason": "Recorded output, golden run 2026-10-30T17-25-27-661Z-en-german.json.",
+      "decided": "claude",
       "card": {
         "core": {
           "kind": "word",
@@ -769,16 +878,24 @@
             "schön"
           ]
         }
-      }
+      },
+      "criteria": {
+        "sense": "pass",
+        "german": "pass",
+        "facets": "pass",
+        "examples": "pass",
+        "etymology": "pass",
+        "simple-translation": "pass",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {}
     },
     {
       "id": "recorded-6",
       "key": "幸福",
       "language": "en",
       "split": "dev",
-      "decided": "owner",
-      "verdict": "pass",
-      "reason": "Recorded output, golden run 2026-10-30T17-25-27-661Z-en-german.json.",
+      "decided": "claude",
       "card": {
         "core": {
           "kind": "word",
@@ -859,6 +976,35 @@
             "glücklich"
           ]
         }
+      },
+      "fault": "real",
+      "criteria": {
+        "sense": "pass",
+        "german": "pass",
+        "facets": "weak",
+        "examples": "pass",
+        "etymology": "pass",
+        "simple-translation": "pass",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {
+        "facets": [
+          {
+            "facet": "article",
+            "why": "Gives no plural for das Glück; DWDS gives Nominativ Plural Glücke (meist im Singular), and only the luck sense, not the happiness sense, is marked \"nur im Singular\".",
+            "source": "DWDS: Glück"
+          },
+          {
+            "facet": "declension",
+            "why": "The plural column is all dashes; DWDS gives die Glücke, der Glücke, den Glücken, die Glücke.",
+            "source": "DWDS: Glück, Deklinationstabelle"
+          },
+          {
+            "facet": "synonyms",
+            "why": "Wohlbefinden is a good (mostly bodily) condition, not happiness; a near-synonym at best. Freude, Glückseligkeit, froh and selig fit.",
+            "source": "judgement call; DWDS: Wohlbefinden"
+          }
+        ]
       }
     },
     {
@@ -866,9 +1012,7 @@
       "key": "打算",
       "language": "en",
       "split": "dev",
-      "decided": "owner",
-      "verdict": "pass",
-      "reason": "Recorded output, golden run 2026-10-30T17-25-27-661Z-en-german.json.",
+      "decided": "claude",
       "card": {
         "core": {
           "kind": "word",
@@ -954,16 +1098,24 @@
             "planen"
           ]
         }
-      }
+      },
+      "criteria": {
+        "sense": "pass",
+        "german": "pass",
+        "facets": "pass",
+        "examples": "pass",
+        "etymology": "pass",
+        "simple-translation": "pass",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {}
     },
     {
       "id": "recorded-8",
       "key": "Ufer",
       "language": "en",
       "split": "dev",
-      "decided": "owner",
-      "verdict": "pass",
-      "reason": "Recorded output, golden run 2026-10-30T17-25-27-661Z-en-german.json. Fixed on 2026-11-23 after the judges named real faults: loose synonyms (Küste, Strand, Bord, Rand) removed; Grammar teacher added, which a German key now gets.",
+      "decided": "claude",
       "card": {
         "core": {
           "kind": "word",
@@ -1032,7 +1184,17 @@
             "Wo man ist, steht der Dativ, wohin man geht, der Akkusativ: am Ufer sitzen, ans Ufer schwimmen."
           ]
         }
-      }
+      },
+      "criteria": {
+        "sense": "pass",
+        "german": "pass",
+        "facets": "pass",
+        "examples": "pass",
+        "etymology": "pass",
+        "simple-translation": "pass",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {}
     },
     {
       "id": "wrong-sense",
@@ -1040,9 +1202,7 @@
       "context": "We sat on the bank and watched the river go by.",
       "language": "en",
       "split": "dev",
-      "decided": "owner",
-      "verdict": "fail",
-      "reason": "Seeded fault: The Context is a river bank; the only meaning is the money sense.",
+      "decided": "claude",
       "card": {
         "core": {
           "kind": "word",
@@ -1109,172 +1269,46 @@
             "das Ufer"
           ]
         }
-      }
-    },
-    {
-      "id": "wrong-gender",
-      "key": "bank",
-      "context": "We sat on the bank and watched the river go by.",
-      "language": "en",
-      "split": "dev",
-      "decided": "owner",
-      "verdict": "fail",
-      "reason": "Seeded fault: Ufer is neuter: das Ufer, not der Ufer. Adapted for D29 (5 November 2026): the Context's sense moved to \"contextual\", and the other sense added to \"meanings\" with its example and pronunciation.",
-      "card": {
-        "core": {
-          "kind": "word",
-          "language": "Englisch",
-          "key": "bank",
-          "gramRole": "noun",
-          "contextual": "Ufer eines Flusses",
-          "meanings": [
-            "Geldinstitut"
-          ]
-        },
-        "facets": {
-          "article": {
-            "singular": "der Ufer",
-            "plural": "die Ufer"
+      },
+      "fault": "planted",
+      "criteria": {
+        "sense": "fail",
+        "german": "pass",
+        "facets": "fail",
+        "examples": "pass",
+        "etymology": "pass",
+        "simple-translation": "pass",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {
+        "sense": [
+          {
+            "why": "The Context uses bank as a river bank; the card gives only Geldinstitut, so the Context's sense is missing.",
+            "source": "rubric: sense"
+          }
+        ],
+        "facets": [
+          {
+            "facet": "article",
+            "why": "The only meaning is Geldinstitut, so the grammar word is die Bank, but the article is das Ufer.",
+            "source": "rubric: facets; DWDS: Bank"
           },
-          "examples": [
-            {
-              "sentence": "We sat on the bank and watched the river go by.",
-              "translation": "Wir saßen am Ufer und sahen dem Fluss zu."
-            },
-            {
-              "sentence": "I need to go to the bank before it closes.",
-              "translation": "Ich muss zur Bank, bevor sie schließt."
-            }
-          ],
-          "synonyms": [
-            "Gestade",
-            "Uferrand",
-            "Böschung"
-          ],
-          "declension": {
-            "columns": [
-              "Singular",
-              "Plural"
-            ],
-            "rows": [
-              {
-                "label": "Nominativ",
-                "cells": [
-                  "das Ufer",
-                  "die Ufer"
-                ]
-              },
-              {
-                "label": "Genitiv",
-                "cells": [
-                  "des Ufers",
-                  "der Ufer"
-                ]
-              },
-              {
-                "label": "Dativ",
-                "cells": [
-                  "dem Ufer",
-                  "den Ufern"
-                ]
-              },
-              {
-                "label": "Akkusativ",
-                "cells": [
-                  "das Ufer",
-                  "die Ufer"
-                ]
-              }
-            ]
+          {
+            "facet": "declension",
+            "why": "Declines das Ufer, not die Bank, the grammar word of the only meaning.",
+            "source": "rubric: facets"
           },
-          "pronunciation": [
-            "das Ufer",
-            "die Bank"
-          ]
-        }
-      }
-    },
-    {
-      "id": "translation-mismatch",
-      "key": "bank",
-      "context": "We sat on the bank and watched the river go by.",
-      "language": "en",
-      "split": "dev",
-      "decided": "owner",
-      "verdict": "fail",
-      "reason": "Seeded fault: The translation says something else than its sentence. Adapted for D29 (5 November 2026): the Context's sense moved to \"contextual\", and the other sense added to \"meanings\" with its example and pronunciation.",
-      "card": {
-        "core": {
-          "kind": "word",
-          "language": "Englisch",
-          "key": "bank",
-          "gramRole": "noun",
-          "contextual": "Ufer eines Flusses",
-          "meanings": [
-            "Geldinstitut"
-          ]
-        },
-        "facets": {
-          "article": {
-            "singular": "das Ufer",
-            "plural": "die Ufer"
+          {
+            "facet": "synonyms",
+            "why": "Gestade, Uferrand and Böschung fit no meaning on the card, which is only Geldinstitut.",
+            "source": "DWDS: Gestade, Böschung"
           },
-          "examples": [
-            {
-              "sentence": "We sat on the bank and watched the river go by.",
-              "translation": "Ich gehe morgen zur Bank."
-            },
-            {
-              "sentence": "I need to go to the bank before it closes.",
-              "translation": "Ich muss zur Bank, bevor sie schließt."
-            }
-          ],
-          "synonyms": [
-            "Gestade",
-            "Uferrand",
-            "Böschung"
-          ],
-          "declension": {
-            "columns": [
-              "Singular",
-              "Plural"
-            ],
-            "rows": [
-              {
-                "label": "Nominativ",
-                "cells": [
-                  "das Ufer",
-                  "die Ufer"
-                ]
-              },
-              {
-                "label": "Genitiv",
-                "cells": [
-                  "des Ufers",
-                  "der Ufer"
-                ]
-              },
-              {
-                "label": "Dativ",
-                "cells": [
-                  "dem Ufer",
-                  "den Ufern"
-                ]
-              },
-              {
-                "label": "Akkusativ",
-                "cells": [
-                  "das Ufer",
-                  "die Ufer"
-                ]
-              }
-            ]
-          },
-          "pronunciation": [
-            "das Ufer",
-            "die Bank"
-          ]
-        }
+          {
+            "facet": "pronunciation",
+            "why": "Speaks das Ufer, a word that is none of the card's meanings.",
+            "source": "rubric: facets"
+          }
+        ]
       }
     },
     {
@@ -1283,9 +1317,7 @@
       "context": "We sat on the bank and watched the river go by.",
       "language": "en",
       "split": "dev",
-      "decided": "owner",
-      "verdict": "fail",
-      "reason": "Seeded fault: The synonyms are antonyms. Adapted for D29 (5 November 2026): the Context's sense moved to \"contextual\", and the other sense added to \"meanings\" with its example and pronunciation.",
+      "decided": "claude",
       "card": {
         "core": {
           "kind": "word",
@@ -1357,148 +1389,25 @@
             "die Bank"
           ]
         }
-      }
-    },
-    {
-      "id": "wrong-forms",
-      "key": "run",
-      "language": "en",
-      "split": "dev",
-      "decided": "owner",
-      "verdict": "fail",
-      "reason": "Seeded fault: The ich row repeats the third person: ich spricht.",
-      "card": {
-        "core": {
-          "kind": "word",
-          "language": "Englisch",
-          "key": "run",
-          "gramRole": "verb",
-          "meanings": [
-            "laufen",
-            "rennen",
-            "betreiben"
-          ]
-        },
-        "facets": {
-          "conjugation": {
-            "columns": [
-              "Präsens",
-              "Präteritum",
-              "Perfekt"
-            ],
-            "rows": [
-              {
-                "label": "ich",
-                "cells": [
-                  "spricht",
-                  "spricht",
-                  "spricht"
-                ]
-              },
-              {
-                "label": "du",
-                "cells": [
-                  "läufst",
-                  "liefst",
-                  "bist gelaufen"
-                ]
-              },
-              {
-                "label": "er/sie/es",
-                "cells": [
-                  "läuft",
-                  "lief",
-                  "ist gelaufen"
-                ]
-              },
-              {
-                "label": "wir",
-                "cells": [
-                  "laufen",
-                  "liefen",
-                  "sind gelaufen"
-                ]
-              },
-              {
-                "label": "ihr",
-                "cells": [
-                  "lauft",
-                  "lief",
-                  "seid gelaufen"
-                ]
-              },
-              {
-                "label": "sie/Sie",
-                "cells": [
-                  "laufen",
-                  "liefen",
-                  "sind gelaufen"
-                ]
-              }
-            ]
-          },
-          "examples": [
-            {
-              "sentence": "I run every morning in the park.",
-              "translation": "Ich laufe jeden Morgen im Park."
-            },
-            {
-              "sentence": "She runs fast to catch the bus.",
-              "translation": "Sie rennt schnell, um den Bus zu erwischen."
-            },
-            {
-              "sentence": "He runs a small café in Berlin.",
-              "translation": "Er betreibt ein kleines Café in Berlin."
-            }
-          ],
-          "synonyms": [
-            "laufen",
-            "rennen",
-            "eilen",
-            "sprinten",
-            "flitzen"
-          ],
-          "antonyms": [
-            "gehen",
-            "stehen",
-            "anhalten"
-          ],
-          "pronunciation": [
-            "laufen",
-            "rennen",
-            "betreiben"
-          ]
-        }
-      }
-    },
-    {
-      "id": "sentence-translation",
-      "key": "We sat on the bank and watched the river.",
-      "language": "en",
-      "split": "dev",
-      "decided": "owner",
-      "verdict": "fail",
-      "reason": "Seeded fault: the example's translation says she sat by the river, not that she stood on the bank and watched the boats.",
-      "card": {
-        "core": {
-          "kind": "sentence",
-          "language": "Englisch",
-          "key": "We sat on the bank and watched the river.",
-          "meanings": [
-            "Wir saßen am Ufer und beobachteten den Fluss."
-          ]
-        },
-        "facets": {
-          "examples": [
-            {
-              "sentence": "She stood on the bank and watched the boats.",
-              "translation": "Sie saß am Fluss und las ein Buch."
-            }
-          ],
-          "pronunciation": [
-            "Wir saßen am Ufer und beobachteten den Fluss"
-          ]
-        }
+      },
+      "fault": "planted",
+      "criteria": {
+        "sense": "pass",
+        "german": "pass",
+        "facets": "fail",
+        "examples": "pass",
+        "etymology": "pass",
+        "simple-translation": "pass",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {
+        "facets": [
+          {
+            "facet": "synonyms",
+            "why": "Gives schlecht and übel as synonyms; they are adjectives meaning bad and fit neither Ufer nor Geldinstitut.",
+            "source": "DWDS: Ufer"
+          }
+        ]
       }
     },
     {
@@ -1506,9 +1415,7 @@
       "key": "break the ice",
       "language": "en",
       "split": "dev",
-      "decided": "owner",
-      "verdict": "pass",
-      "reason": "Recorded defect: golden run 2026-11-03T19-57-22-113Z-en-german.json. \"zerbrechen\" and \"knacken\" are synonyms of brechen alone, not of \"das Eis brechen\" or \"auflockern\". Relabelled on 2026-11-23 by the owner: the gate fails only fatal faults. Both words fit the card's literal meaning \"das Eis brechen\" loosely, so this is a weak fault, not a fatal one.",
+      "decided": "claude",
       "card": {
         "core": {
           "kind": "word",
@@ -1596,6 +1503,25 @@
             "das Eis brechen"
           ]
         }
+      },
+      "fault": "real",
+      "criteria": {
+        "sense": "pass",
+        "german": "pass",
+        "facets": "weak",
+        "examples": "pass",
+        "etymology": "pass",
+        "simple-translation": "pass",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {
+        "facets": [
+          {
+            "facet": "synonyms",
+            "why": "zerbrechen and knacken are synonyms of brechen alone (in Stücke brechen, mit einem Knacks zerbrechen); they fit the literal \"das Eis brechen\" only loosely and not the figurative meaning.",
+            "source": "DWDS: zerbrechen, knacken"
+          }
+        ]
       }
     },
     {
@@ -1603,9 +1529,7 @@
       "key": "Ufer",
       "language": "en",
       "split": "dev",
-      "decided": "owner",
-      "verdict": "fail",
-      "reason": "Recorded defect: golden run 2026-11-03T19-57-22-113Z-en-german.json. \"Wasser\" is not an opposite of Ufer.",
+      "decided": "claude",
       "card": {
         "core": {
           "kind": "word",
@@ -1676,6 +1600,30 @@
             "das Ufer"
           ]
         }
+      },
+      "fault": "real",
+      "criteria": {
+        "sense": "pass",
+        "german": "pass",
+        "facets": "fail",
+        "examples": "pass",
+        "etymology": "pass",
+        "simple-translation": "pass",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {
+        "facets": [
+          {
+            "facet": "antonyms",
+            "why": "Gives Wasser and Flussmitte as antonyms of Ufer; they are related places, not opposites. DWDS defines Ufer as the edge zone between water and land.",
+            "source": "DWDS: Ufer"
+          },
+          {
+            "facet": "synonyms",
+            "why": "Küste and Strand are only sea shores (DWDS: Küste \"Ufer des Meeres\", Strand \"sandige Flachküste\"), and Böschung is a slope; near-synonyms of the card's general meaning. Gestade fits.",
+            "source": "DWDS: Küste, Strand, Böschung"
+          }
+        ]
       }
     },
     {
@@ -1683,9 +1631,7 @@
       "key": "打算",
       "language": "en",
       "split": "dev",
-      "decided": "owner",
-      "verdict": "pass",
-      "reason": "Recorded output, golden run 2026-11-07T15-25-47-457Z-en-german.json (0.16.4). Etymology describes planen, the grammar word, not the Chinese key, by design; Simple translation gives one A2 line per meaning.",
+      "decided": "claude",
       "card": {
         "core": {
           "kind": "word",
@@ -1787,6 +1733,24 @@
             "eine Idee, was man machen will"
           ]
         }
+      },
+      "fault": "real",
+      "criteria": {
+        "sense": "pass",
+        "german": "pass",
+        "facets": "pass",
+        "examples": "pass",
+        "etymology": "fail",
+        "simple-translation": "pass",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {
+        "etymology": [
+          {
+            "why": "Says French plan goes back to Latin planum \"Fläche, Ebene\". Pfeifer derives French plan as a back-formation from French planter, from Latin plantāre \"(be)pflanzen\". The rest (French loan, planen 18th century) matches.",
+            "source": "DWDS, Pfeifer: Plan"
+          }
+        ]
       }
     },
     {
@@ -1794,9 +1758,7 @@
       "key": "Ich habe Fernweh.",
       "language": "en",
       "split": "dev",
-      "decided": "owner",
-      "verdict": "pass",
-      "reason": "Recorded output, golden run 2026-11-07T15-25-47-457Z-en-german.json (0.16.4). A German sentence: Simple translation explains it simply, Grammar teacher's points are true of it.",
+      "decided": "claude",
       "card": {
         "core": {
           "kind": "sentence",
@@ -1824,16 +1786,24 @@
             "„habe“ ist die ich-Form von „haben“ und steht im Hauptsatz an zweiter Stelle; „Fernweh“ ist das Akkusativobjekt."
           ]
         }
-      }
+      },
+      "criteria": {
+        "sense": "pass",
+        "german": "pass",
+        "facets": "pass",
+        "examples": "pass",
+        "etymology": "pass",
+        "simple-translation": "pass",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {}
     },
     {
       "id": "simple-translation-sentence",
       "key": "The committee postponed the decision indefinitely.",
       "language": "en",
       "split": "dev",
-      "decided": "owner",
-      "verdict": "pass",
-      "reason": "Recorded output, golden run 2026-11-07T15-25-47-457Z-en-german.json (0.16.4). A foreign sentence: one A2 line, no Grammar teacher, by design.",
+      "decided": "claude",
       "card": {
         "core": {
           "kind": "sentence",
@@ -1857,16 +1827,24 @@
             "Die Gruppe hat die Entscheidung auf später verschoben und keinen Termin dafür genannt."
           ]
         }
-      }
+      },
+      "criteria": {
+        "sense": "pass",
+        "german": "pass",
+        "facets": "pass",
+        "examples": "pass",
+        "etymology": "pass",
+        "simple-translation": "pass",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {}
     },
     {
       "id": "recorded-defect-etymology-key",
       "key": "window",
       "language": "en",
       "split": "dev",
-      "decided": "owner",
-      "verdict": "fail",
-      "reason": "Recorded defect: Etymology traces English window (Old Norse vindauga), not the grammar word Fenster (Latin fenestra). The prompt now names the grammar word as German and gives язык → Sprache as its case. From recorded output, golden run 2026-11-07T15-25-47-457Z-en-german.json (0.16.4).",
+      "decided": "claude",
       "card": {
         "core": {
           "kind": "word",
@@ -1951,153 +1929,24 @@
             "ein Feld auf dem Computerbildschirm"
           ]
         }
-      }
-    },
-    {
-      "id": "wrong-grammar-point",
-      "key": "Ich habe Fernweh.",
-      "language": "en",
-      "split": "dev",
-      "decided": "owner",
-      "verdict": "fail",
-      "reason": "Seeded fault: Grammar teacher calls Fernweh feminine; it is das Fernweh.",
-      "card": {
-        "core": {
-          "kind": "sentence",
-          "language": "Deutsch",
-          "key": "Ich habe Fernweh.",
-          "meanings": [
-            "Ich habe Sehnsucht nach fernen Orten und möchte gerne weit weg reisen."
-          ]
-        },
-        "facets": {
-          "examples": [
-            {
-              "sentence": "Meine Schwester hat auch Fernweh."
-            }
-          ],
-          "pronunciation": [
-            "Ich habe Fernweh"
-          ],
-          "simple-translation": [
-            "Ich möchte gerne weit weg reisen."
-          ],
-          "grammar-teacher": [
-            "„Fernweh“ ist ein weibliches Nomen: die Fernweh.",
-            "„Fernweh“ wird hier ohne Artikel gebraucht und hat keinen Plural.",
-            "„habe“ ist die ich-Form von „haben“ und steht im Hauptsatz an zweiter Stelle; „Fernweh“ ist das Akkusativobjekt."
-          ]
-        }
-      }
-    },
-    {
-      "id": "invented-etymology",
-      "key": "打算",
-      "language": "en",
-      "split": "dev",
-      "decided": "owner",
-      "verdict": "fail",
-      "reason": "Seeded fault: an invented etymology; planen comes from Plan (French plan, Latin planum), not from Chinese.",
-      "card": {
-        "core": {
-          "kind": "word",
-          "language": "Chinesisch",
-          "key": "打算",
-          "romanization": "dǎsuàn",
-          "gramRole": "verb",
-          "meanings": [
-            "planen; beabsichtigen; vorhaben",
-            "der Plan; die Absicht; das Vorhaben"
-          ]
-        },
-        "facets": {
-          "examples": [
-            {
-              "sentence": "我们打算周末去爬山。",
-              "translation": "Wir haben vor, am Wochenende zu wandern."
-            },
-            {
-              "sentence": "他的打算很简单。",
-              "translation": "Sein Plan ist ganz einfach."
-            }
-          ],
-          "synonyms": [
-            "sich vornehmen",
-            "beabsichtigen",
-            "vorhaben"
-          ],
-          "conjugation": {
-            "columns": [
-              "Präsens",
-              "Präteritum",
-              "Perfekt"
-            ],
-            "rows": [
-              {
-                "label": "ich",
-                "cells": [
-                  "plane",
-                  "plante",
-                  "habe geplant"
-                ]
-              },
-              {
-                "label": "du",
-                "cells": [
-                  "planst",
-                  "plantest",
-                  "hast geplant"
-                ]
-              },
-              {
-                "label": "er/sie/es",
-                "cells": [
-                  "plant",
-                  "plante",
-                  "hat geplant"
-                ]
-              },
-              {
-                "label": "wir",
-                "cells": [
-                  "planen",
-                  "planten",
-                  "haben geplant"
-                ]
-              },
-              {
-                "label": "ihr",
-                "cells": [
-                  "plant",
-                  "plantet",
-                  "habt geplant"
-                ]
-              },
-              {
-                "label": "sie/Sie",
-                "cells": [
-                  "planen",
-                  "planten",
-                  "haben geplant"
-                ]
-              }
-            ]
-          },
-          "pronunciation": [
-            "planen",
-            "der Plan"
-          ],
-          "etymology": {
-            "origins": [
-              "Chinesisch"
-            ],
-            "text": "Aus chinesisch dǎsuàn „rechnen, schlagen“ im 19. Jahrhundert ins Deutsche entlehnt und zu planen eingedeutscht."
-          },
-          "simple-translation": [
-            "sich überlegen, was man in Zukunft machen will",
-            "eine Idee, was man machen will"
-          ]
-        }
+      },
+      "fault": "real",
+      "criteria": {
+        "sense": "pass",
+        "german": "pass",
+        "facets": "pass",
+        "examples": "pass",
+        "etymology": "fail",
+        "simple-translation": "pass",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {
+        "etymology": [
+          {
+            "why": "Traces English window to Old Norse vindauga; the grammar word is Fenster, which Pfeifer derives from Latin fenestra.",
+            "source": "DWDS, Pfeifer: Fenster"
+          }
+        ]
       }
     },
     {
@@ -2105,9 +1954,7 @@
       "key": "The committee postponed the decision indefinitely.",
       "language": "en",
       "split": "dev",
-      "decided": "owner",
-      "verdict": "fail",
-      "reason": "Seeded fault: Simple translation says the decision was made today; the sentence says it was put off without a date.",
+      "decided": "claude",
       "card": {
         "core": {
           "kind": "sentence",
@@ -2131,6 +1978,24 @@
             "Die Gruppe hat heute die Entscheidung getroffen."
           ]
         }
+      },
+      "fault": "planted",
+      "criteria": {
+        "sense": "pass",
+        "german": "pass",
+        "facets": "pass",
+        "examples": "pass",
+        "etymology": "pass",
+        "simple-translation": "fail",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {
+        "simple-translation": [
+          {
+            "why": "Says the group made the decision today; the sentence says it was put off with no date.",
+            "source": "rubric: simple-translation"
+          }
+        ]
       }
     },
     {
