@@ -49,8 +49,10 @@ if (command === 'write') {
   await mkdir('.data/calibration', { recursive: true });
   await writeFile(`${review}.json`, JSON.stringify(cards, null, 2) + '\n');
   await writeFile(`${review}.md`, [`# ${module}: messy captures, ${part} part`, '',
-    `${Object.keys(cards).length} cards, ${items.length} captures with ${runs.length} cards each. The letters do not say which model wrote a card.`,
-    'For each card, write pass, weak or fail after "Verdict:", and one line after "Reason:" saying why.', '',
+    `${Object.keys(cards).length} cards: ${items.length} messy captures, each turned into a card by ${runs.length} different models. A and B hide which model wrote which card.`, '',
+    'A messy capture is what a user might really select: slang, a typo, half a word, a made-up word, everyday speech, or a word with noise around it (a hashtag, an emoji). The code before the word says which: slang, typo, frag (a broken selection), coined, coll (everyday speech), noise. There is no dictionary answer, so your view decides.', '',
+    'Under each card, write one word after "Verdict:": **pass** (a card you would be happy to get), **weak** (usable, but something is off) or **fail** (misleading or useless). Then one line after "Reason:" saying why. The reasons matter most: they become the rules the judge uses for messy captures.', '',
+    'Each card shows its meaning first. Click "Facets" to see the rest (examples, synonyms, word origin and so on).', '',
     ...sections].join('\n'));
   console.log(`Wrote ${review}.md: ${Object.keys(cards).length} cards to grade.`);
 } else {
