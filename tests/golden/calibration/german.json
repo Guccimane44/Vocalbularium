@@ -3589,7 +3589,7 @@
       "criteria": {
         "sense": "pass",
         "german": "pass",
-        "facets": "fail",
+        "facets": "weak",
         "examples": "pass",
         "etymology": "fail",
         "simple-translation": "pass",
@@ -3599,12 +3599,12 @@
         "facets": [
           {
             "facet": "declension",
-            "why": "The declension writes — for every plural form, as if Kaffee had none; DWDS gives the plural Kaffees.",
+            "why": "The declension writes — for every plural form, as if Kaffee had none; DWDS gives the plural Kaffees. Owner, 2026-11-25: a left-out plural is weak, not fail.",
             "source": "DWDS: Kaffee (Nominativ Plural Kaffees)"
           },
           {
             "facet": "article",
-            "why": "The article leaves out the plural die Kaffees, which DWDS gives; the facet leaves out a plural only when the noun has none.",
+            "why": "The article leaves out the plural die Kaffees, which DWDS gives; the facet leaves out a plural only when the noun has none. Owner, 2026-11-25: a left-out plural is weak, not fail.",
             "source": "DWDS: Kaffee (Nominativ Plural Kaffees)"
           }
         ],
@@ -3615,7 +3615,7 @@
           }
         ]
       },
-      "decided": "claude",
+      "decided": "owner",
       "card": {
         "core": {
           "kind": "word",
@@ -3699,7 +3699,7 @@
       "criteria": {
         "sense": "pass",
         "german": "pass",
-        "facets": "fail",
+        "facets": "weak",
         "examples": "pass",
         "etymology": "fail",
         "simple-translation": "pass",
@@ -3709,7 +3709,7 @@
         "facets": [
           {
             "facet": "article",
-            "why": "The article gives only die Wirtschaft, though DWDS gives the plural Wirtschaften; the facet leaves out a plural only when the noun has none.",
+            "why": "The article gives only die Wirtschaft, though DWDS gives the plural Wirtschaften; the facet leaves out a plural only when the noun has none. Owner, 2026-11-25: a left-out plural is weak, not fail.",
             "source": "DWDS: Wirtschaft (Nominativ Plural Wirtschaften)"
           }
         ],
@@ -3720,7 +3720,7 @@
           }
         ]
       },
-      "decided": "claude",
+      "decided": "owner",
       "card": {
         "core": {
           "kind": "word",
@@ -3774,7 +3774,7 @@
       "criteria": {
         "sense": "pass",
         "german": "fail",
-        "facets": "fail",
+        "facets": "weak",
         "examples": "pass",
         "etymology": "pass",
         "simple-translation": "pass",
@@ -3790,12 +3790,12 @@
         "facets": [
           {
             "facet": "article",
-            "why": "The article gives only der Tee, though DWDS gives the plural Tees; the facet leaves out a plural only when the noun has none.",
+            "why": "The article gives only der Tee, though DWDS gives the plural Tees; the facet leaves out a plural only when the noun has none. Owner, 2026-11-25: a left-out plural is weak, not fail.",
             "source": "DWDS: Tee (Nominativ Plural Tees)"
           }
         ]
       },
-      "decided": "claude",
+      "decided": "owner",
       "card": {
         "core": {
           "kind": "word",

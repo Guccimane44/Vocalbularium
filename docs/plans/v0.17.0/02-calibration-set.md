@@ -98,6 +98,7 @@ These numbers are small. With 2 to 4 held-out fails on a facet, one miss moves i
 - **Wiktionary** is a lead, never a source on its own.
 - **Duden and Kluge** are used only when the owner looks them up, because scripts cannot reach them.
 - **A disputed or unclear origin.** When Pfeifer calls an origin unclear or disputed, a card that states one account as certain fails etymology. A card that names the dispute passes. A card that writes no Etymology for an unclear word passes.
+- **A left-out plural is weak** (owner, 2026-11-25). An article or declension that leaves out a plural DWDS gives (Kaffees, Tees, Wirtschaften) is graded weak under facets, not fail. A plural given for a noun that has none (Milch) stays a fail.
 - **What no dictionary settles** (whether an English example sounds natural, whether a grammar point is worth a learner's notice) is a judgement call. Claude drafts it, marks it as one, and the owner decides.
 
 ## Messy captures
