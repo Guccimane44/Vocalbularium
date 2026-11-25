@@ -494,7 +494,7 @@
       "fault": "real",
       "criteria": {
         "sense": "pass",
-        "german": "pass",
+        "german": "fail",
         "facets": "fail",
         "examples": "pass",
         "etymology": "pass",
@@ -512,6 +512,12 @@
             "facet": "antonyms",
             "why": "Gives gehen as an antonym of laufen; DWDS defines laufen 1 as \"sich zu Fuß fortbewegen, gehen\", so gehen is a synonym of one sense and only a slower contrast to rennen, not an opposite. stehen and anhalten pass.",
             "source": "DWDS: laufen"
+          }
+        ],
+        "german": [
+          {
+            "why": "A wrong German form in the conjugation facet is also wrong German (rubric, german: every German part is correct). Gives ihr lief in the Präteritum; DWDS gives ihr lieft.",
+            "source": "DWDS: laufen, Konjugationstabelle"
           }
         ]
       }
@@ -9002,7 +9008,7 @@
       "decided": "claude",
       "criteria": {
         "sense": "pass",
-        "german": "pass",
+        "german": "fail",
         "facets": "fail",
         "examples": "pass",
         "etymology": "pass",
@@ -9021,6 +9027,12 @@
           {
             "why": "The third point says the Perfekt is formed with haben when umgehen means 'behandeln'. It is formed with sein (sie ist gut mit den Kindern umgegangen); the example 'hat ... umgehen können' takes haben only from the modal können.",
             "source": "DWDS: umgehen (ist umgegangen)"
+          }
+        ],
+        "german": [
+          {
+            "why": "A wrong German form in the conjugation facet is also wrong German (rubric, german: every German part is correct). The Perfekt column reads 'habe umgegangen'. Separable umgehen, the sense of the Context, forms its Perfekt with sein: ist umgegangen.",
+            "source": "DWDS: umgehen (geht um, ging um, ist umgegangen)"
           }
         ]
       },
@@ -9660,7 +9672,7 @@
       "decided": "claude",
       "criteria": {
         "sense": "pass",
-        "german": "pass",
+        "german": "fail",
         "facets": "fail",
         "examples": "pass",
         "etymology": "fail",
@@ -9679,6 +9691,12 @@
           {
             "why": "The card has no Etymology, yet Pfeifer gives klein a full one (ahd. kleini \"glänzend, zierlich\", later \"gering\"). The rubric allows no Etymology only when it is unknown.",
             "source": "DWDS, Pfeifer: klein"
+          }
+        ],
+        "german": [
+          {
+            "why": "A wrong German form in the declension facet is also wrong German (rubric, german: every German part is correct). The strong genitive masculine and neuter read \"kleines\"; DWDS gives \"kleinen\" for both. The mixed plural row also writes \"die kleinen\", which is a weak form after the definite article, not a mixed one (keine kleinen).",
+            "source": "DWDS Deklinationstabelle: klein"
           }
         ]
       },
@@ -11350,7 +11368,7 @@
       "decided": "claude",
       "criteria": {
         "sense": "pass",
-        "german": "pass",
+        "german": "fail",
         "facets": "fail",
         "examples": "pass",
         "etymology": "pass",
@@ -11362,6 +11380,12 @@
           {
             "facet": "conjugation",
             "why": "The Präteritum du form reads \"rannst\"; DWDS gives \"ranntest\".",
+            "source": "DWDS Konjugationstabelle: rennen"
+          }
+        ],
+        "german": [
+          {
+            "why": "A wrong German form in the conjugation facet is also wrong German (rubric, german: every German part is correct). The Präteritum du form reads \"rannst\"; DWDS gives \"ranntest\".",
             "source": "DWDS Konjugationstabelle: rennen"
           }
         ]
@@ -12310,7 +12334,7 @@
       "decided": "claude",
       "criteria": {
         "sense": "pass",
-        "german": "pass",
+        "german": "fail",
         "facets": "fail",
         "examples": "pass",
         "etymology": "fail",
@@ -12329,6 +12353,12 @@
           {
             "why": "The card has no Etymology, yet its grammar word halten has one in Pfeifer. The rubric allows no Etymology only when it is unknown.",
             "source": "DWDS, Pfeifer: halten"
+          }
+        ],
+        "german": [
+          {
+            "why": "A wrong German form in the conjugation facet is also wrong German (rubric, german: every German part is correct). The Präteritum du form reads \"hielst\"; DWDS gives \"hieltest\" or \"hieltst\".",
+            "source": "DWDS Konjugationstabelle: halten"
           }
         ]
       },
@@ -12784,7 +12814,7 @@
       "decided": "claude",
       "criteria": {
         "sense": "pass",
-        "german": "pass",
+        "german": "fail",
         "facets": "fail",
         "examples": "pass",
         "etymology": "pass",
@@ -12796,6 +12826,12 @@
           {
             "facet": "conjugation",
             "why": "The Präteritum ihr form reads \"brachtet\"; DWDS gives \"bracht\".",
+            "source": "DWDS Konjugationstabelle: brechen"
+          }
+        ],
+        "german": [
+          {
+            "why": "A wrong German form in the conjugation facet is also wrong German (rubric, german: every German part is correct). The Präteritum ihr form reads \"brachtet\"; DWDS gives \"bracht\".",
             "source": "DWDS Konjugationstabelle: brechen"
           }
         ]
