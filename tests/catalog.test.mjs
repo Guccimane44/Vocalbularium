@@ -6,7 +6,8 @@ import { composeModule } from '@vocabularium/domain/composer';
 import { formatContent } from '@vocabularium/domain/content';
 import { validateGenerated } from '@vocabularium/domain/generated';
 import { INTERFACE_LANGUAGES } from '@vocabularium/contracts';
-import { parentsIn } from '@vocabularium/domain/parents';
+import { GOLDEN_PLANS } from '@vocabularium/domain/golden';
+import { goldenSets, moduleSet } from '../scripts/golden-sets.mjs';
 
 // Catalog conformance (D11): every module, facet and input type is complete,
 // so a module or facet added to the catalog cannot miss its prompt, shape,
@@ -143,13 +144,19 @@ test('every sample is written in every interface language, validates against its
 });
 
 test('every content module has a golden set (C8)', () => {
-  const sets = readdirSync(new URL('./golden/', import.meta.url)).filter(file => file.endsWith('.json'))
-    .map(file => JSON.parse(readFileSync(new URL(`./golden/${file}`, import.meta.url), 'utf8')));
-  // A set names its modules, or a family whose every module it runs through.
-  const modulesOf = set => set.family ? parentsIn(set.family) : set.modules;
-  const covered = sets.flatMap(modulesOf);
-  for (const set of sets) assert.ok(set.inputs.length > 0 && modulesOf(set).length > 0 && modulesOf(set).every(id => MODULE_IDS.includes(id)), set.note);
-  assert.deepEqual([...new Set(covered)].sort(), [...content].sort());
+  const sets = goldenSets();
+  for (const set of sets) assert.ok(set.modules.length > 0 && set.modules.every(id => MODULE_IDS.includes(id)), set.name);
+  for (const set of sets.filter(each => !(each.name in GOLDEN_PLANS))) assert.ok(set.inputs.length > 0, set.name);
+  assert.deepEqual([...new Set(sets.flatMap(set => set.modules))].sort(), [...content].sort());
+});
+
+// A facet comes with its failure points (the module's golden plan), and the
+// module's golden folder fills every one of them.
+test('every module with a golden plan fills its failure points', () => {
+  for (const module of Object.keys(GOLDEN_PLANS)) {
+    const { gaps } = moduleSet(module);
+    assert.deepEqual(gaps.map(gap => gap.message), [], `tests/golden/${module} has ${gaps.length} gaps`);
+  }
 });
 
 // Pages (D20, K62): every family with modules, every module in the module
@@ -248,19 +255,18 @@ test('every sample word file names a word, or a word and a sentence, in every in
   }
 });
 
-test('the silver set picks golden inputs on modules their golden file runs, a tenth of the golden set', () => {
-  const golden = new URL('golden/', import.meta.url);
-  const sets = Object.fromEntries(readdirSync(golden).filter(name => name.endsWith('.json')).map(name => [name.slice(0, -5), JSON.parse(readFileSync(new URL(name, golden), 'utf8'))]));
-  const cards = Object.values(sets).reduce((sum, set) => sum + set.inputs.length * (set.family ? parentsIn(set.family) : set.modules).length, 0);
-  const { picks } = JSON.parse(readFileSync(new URL('silver/silver.json', golden), 'utf8'));
+test('the silver set picks golden inputs on modules their golden set runs, a tenth of the golden set', () => {
+  const sets = Object.fromEntries(goldenSets().map(set => [set.name, set]));
+  const cards = Object.values(sets).reduce((sum, set) => sum + set.inputs.length * set.modules.length, 0);
+  const { picks } = JSON.parse(readFileSync(new URL('golden/silver/silver.json', import.meta.url), 'utf8'));
   for (const pick of picks) {
     const set = sets[pick.set];
-    assert.ok(set?.inputs.some(input => input.key === pick.key && (input.context ?? null) === (pick.context ?? null)), `${pick.key} is in tests/golden/${pick.set}.json`);
-    assert.ok((set.family ? parentsIn(set.family) : set.modules).includes(pick.module), `${pick.set} runs ${pick.module}`);
+    assert.ok(set?.inputs.some(input => input.key === pick.key && (input.context ?? null) === (pick.context ?? null)), `${pick.key} is in the ${pick.set} golden set`);
+    assert.ok(set.modules.includes(pick.module), `${pick.set} runs ${pick.module}`);
   }
   assert.equal(new Set(picks.map(pick => `${pick.set}|${pick.key}|${pick.context}|${pick.module}`)).size, picks.length, 'no pick twice');
   assert.ok(Math.abs(picks.length - cards / 10) <= 2, `${picks.length} picks for ${cards} golden cards`);
-  for (const module of Object.values(sets).flatMap(set => set.family ? parentsIn(set.family) : set.modules)) assert.ok(picks.some(pick => pick.module === module), `${module} has a pick`);
+  for (const module of Object.values(sets).filter(set => set.inputs.length).flatMap(set => set.modules)) assert.ok(picks.some(pick => pick.module === module), `${module} has a pick`);
 });
 
 test('English tells no variety apart: no request, check or module text names British or American English (D34)', () => {

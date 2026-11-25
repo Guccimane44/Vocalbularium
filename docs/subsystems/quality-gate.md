@@ -11,6 +11,9 @@ The quality gate gives a quality verdict on a content module's cards. It informs
 | Content checks | Deterministic tests of each part of a card, defined by its facet. | a facet's `checks` in the catalog; `checkCard` in [`checks.ts`](../../packages/domain/src/checks.ts) |
 | Rubric | What a good card of the module is, as named criteria. | `rubric.md` beside each module's `module.prompt.md` in the [catalog](../../packages/domain/src/catalog) |
 | Judge | Scores one card per criterion as pass, weak or fail, after its content checks. | `judgeCard` in [`scripts/judge.mjs`](../../scripts/judge.mjs); its instructions in [`scripts/judge.md`](../../scripts/judge.md) |
+| Golden plan | A module's failure points per facet, which facets are scored against references, and the frequency bands. | `catalog/<family>/<module>/golden/plan.ts`, listed in [`golden/index.ts`](../../packages/domain/src/golden/index.ts) (`@vocabularium/domain/golden`, never imported by the extension) |
+| Golden folder | A module's items and reference answers, read and checked through one reader. | `tests/golden/<module>/`; [`scripts/golden-sets.mjs`](../../scripts/golden-sets.mjs) |
+| Scorer | Scores a golden run's closed facets against the references, per facet, failure point, band and split. | [`scripts/golden-score.mjs`](../../scripts/golden-score.mjs) (`npm run golden:score -- <module>`); [`scripts/golden-coverage.mjs`](../../scripts/golden-coverage.mjs); [`scripts/golden-draft.mjs`](../../scripts/golden-draft.mjs) |
 | Calibration set | The answer key: cards with the verdict a careful human gives them. | [`tests/golden/calibration/<module>.json`](../../tests/golden/calibration) |
 | Audit | A second judge on the same cards; lists the cards the two score differently. | `disagreements` in [`scripts/judge.mjs`](../../scripts/judge.mjs); the audit step in [`scripts/gate.mjs`](../../scripts/gate.mjs) |
 | Reports | Every gate run, golden run, judgement and calibration, kept locally and never committed. | `.data/gates/`, `.data/golden/`, `.data/judge/` |
@@ -54,6 +57,18 @@ A card fails when any content check fails or any criterion fails. It is weak whe
 Some rules below are working agreements kept by review, not by code: who writes labels, which model family audits, and who approves a threshold change.
 
 **The audit: a second opinion.** By default the judge belongs to the same model family as the generator, and can share its blind spots. The audit judge comes from another family, so it catches some faults the judge passes. It is also stricter than the owner's labels and less steady from one run to the next. So it informs and never decides: a card it lists is a lead to read, and is fixed only when its reason holds up.
+
+### Golden folders
+
+A module with a golden plan (German since v0.17.0) keeps its golden set in `tests/golden/<module>/` instead of a single file, and no family file runs it. The set is built from the facets up:
+
+- **Failure points.** The plan lists, for every facet and the core, the ways it can fail, such as the ihr form in the Präteritum. Its type is a record over the module's facets, so a facet without failure points does not compile. A failure point marked as an abstention is one where the right answer is to leave something out, such as no Etymology for a word of unclear origin.
+- **Items** (`items.json`). Each item names the failure points it fills, its split (dev or test) and its German word, or for a foreign key the German words it may translate to. A knowledge item's DWDS frequency class gives its band: common (4–6), middle (2–3) or rare (0–1). Prompt work looks only at dev items. Test items change only by addition.
+- **References** (`references.json`). For the closed facets (Article, Declension, Conjugation, Comparison, Case), each word's right answers, expanded from de.wiktionary by `npm run golden:draft` and checked against DWDS. An alternative is one whole right paradigm (der or das Joghurt), a cell may hold several accepted forms, `"none"` means the word has no such facet, and every decision against the source is recorded in `disputes`. `npm run golden:draft -- german --check [words…]` reruns the DWDS comparison: it reads the grammar line of each word's entry page on dwds.de and compares the key cells (a noun's gender, genitive singular and plural; a verb's er/sie/es in the Präsens and Präteritum and its Perfekt; an adjective's comparative, superlative and whether it declines). It prints each disagreement no dispute decides, fails while one remains, and writes nothing. A dispute decides the cells it names (`Perfekt|*` covers every person of the Perfekt). Prepositions are not compared, since DWDS's line names only their case.
+- **Scoring.** `npm run golden:score -- <module>` compares each closed facet of a run's cards with the references, cell by cell, with no judge and no weak verdict. A wrong cell fails only the failure points that own it.
+- **Coverage.** Every failure point needs at least 3 items, one in the test split, and the points of Etymology, Conjugation and Declension one item per band where the band has words. `tests/catalog.test.mjs` fails on any gap and names the fix; `npm run golden:coverage -- <module>` prints the table.
+
+Until v0.17.0 step 3, the judge still scores closed facets too, and the gate does not run the scorer.
 
 **What a new module brings.** A content module joins when it has a golden set, a `rubric.md`, a calibration set whose labels the owner reviewed, a judge calibrated on it, and a passing gate.
 

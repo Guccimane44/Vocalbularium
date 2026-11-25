@@ -102,6 +102,7 @@ Every module lives in one folder, `catalog/<family>/<module>/` (the main key, wh
 | `rubric.md`: what the judge scores its cards on | required, except a spoken module, whose card has no text to judge | none |
 | `facets/core/`: `facet.ts` (shape, flags, formatter, top line), `core.prompt.md`, `reading.prompt.md`, and `retry.prompt.md` when the module has facets | required | none |
 | `facets/<facet>/` per facet: `facet.ts` (label, abbreviation, description, `applies`, `when`, `spoken`, shape, formatter, `checks`), `prompt.md`, `about.json` and `about.<language>.json` | required | none |
+| `golden/plan.ts`: every facet's failure points, which facets are scored against references, and the frequency bands ([golden folders](quality-gate.md#golden-folders)) | required for German since v0.17.0, then for every content module from step 9; a module with one must fill every failure point in `tests/golden/<module>/` | none |
 | `sample-keys.json`, a facet's `sample-key.json` and `samples/` | optional, when the module or facet needs its own sample key | none |
 
 A family folder holds `family.ts` and its page's `about.json` and `about.<language>.json`. Nothing else is shared between modules: two modules that need the same helper each import it, and a facet is never imported by another module.
@@ -280,7 +281,7 @@ The composer (`moduleInstructions`, `moduleSchema`, `composeModule`) builds a pr
 
 ### Adding to the catalog
 
-- **A module** is one folder under its family, with its definition, its page's text and names in every interface language, its samples, its facets and a golden set, registered with one import and one entry in `catalog/index.ts`. Its prompt snapshots are generated with `UPDATE_PROMPTS=1 node --test tests/prompts.test.mjs`. A Languages module is covered by the family's golden set (`tests/golden/parents.json`), and every test that walks a family finds it there ([D25](../decisions/d25.md)). It also brings a `rubric.md` beside its `module.prompt.md` and its cards in the judge's calibration set (`tests/golden/calibration/`), and joins when `npm run gate -- <module>` passes.
+- **A module** is one folder under its family, with its definition, its page's text and names in every interface language, its samples, its facets and a golden set, registered with one import and one entry in `catalog/index.ts`. Its prompt snapshots are generated with `UPDATE_PROMPTS=1 node --test tests/prompts.test.mjs`. A Languages module is covered by the family's golden set (`tests/golden/parents.json`), and every test that walks a family finds it there ([D25](../decisions/d25.md)), until it gets a golden plan and its own folder ([golden folders](quality-gate.md#golden-folders)), as German has. It also brings a `rubric.md` beside its `module.prompt.md` and its cards in the judge's calibration set (`tests/golden/calibration/`), and joins when `npm run gate -- <module>` passes.
 - **A facet** is one folder in its module, with its page's text, and an entry in the module's facet order.
 - **A family** is one folder with its definition, and its colour tokens in the design tokens, meeting the contrast tests in both themes.
 - **A provider** is one adapter of its kind, text or speech.
@@ -309,7 +310,7 @@ A **catalog conformance test** covers every module, every facet and every input 
 - every family with modules, every module in the module window and every facet but the core has its page's text in every interface language, and every content module its samples in every interface language, each validating against its facets' shapes;
 - every interface language has an Expertise writing guide with its five sections, and no Expertise prompt names a length limit outside the placeholder.
 
-Each content module has its own **golden set** under `tests/golden/`, run against the live provider for the owner's review ([C8](../decisions/conflicts.md#c8)); each input also states its expected flags (`kind`, `gramRole`, `relevance`), checked automatically. Each Expertise golden set also runs in every interface language and is reviewed before that language is offered, and again when its guide changes.
+Each content module has its own **golden set** under `tests/golden/` (for a module with a golden plan, a folder of items and reference answers built from its facets' failure points: [golden folders](quality-gate.md#golden-folders)), run against the live provider for the owner's review ([C8](../decisions/conflicts.md#c8)); each input also states its expected flags (`kind`, `gramRole`, `relevance`), checked automatically. Each Expertise golden set also runs in every interface language and is reviewed before that language is offered, and again when its guide changes.
 
 
 | Check | What it covers |

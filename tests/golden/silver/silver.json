@@ -1,17 +1,11 @@
 {
-  "about": "The silver set: a tenth of the golden set's cards (28 of 275), one or more from every content module and each kind of hard case (a Context that picks a sense, a sentence, a foreign key, an unrelated key, a German verb's forms, a Chinese grammar word). Each pick names a golden input by its set, key and Context, and the one module it runs on; the input's expectation comes from the golden file, so the two never drift apart. It is for quick comparisons, such as the reasoning experiment (npm run silver), not for a module's gate.",
+  "about": "The silver set: a tenth of the golden set's cards (45 of 443), one or more from every content module that has golden cards, and each kind of hard case (a Context that picks a sense, a sentence, a foreign key, an unrelated key, a Chinese grammar word, a messy capture such as slang, a typo or a broken selection). Each pick names a golden input by its set, key and Context, and the one module it runs on; the input's expectation comes from the golden file, so the two never drift apart. It is for quick comparisons, such as the reasoning experiment (npm run silver), not for a module's gate.",
   "picks": [
     {
       "set": "parents",
       "key": "bank",
       "context": "We sat on the bank and watched the river go by.",
       "module": "english"
-    },
-    {
-      "set": "parents",
-      "key": "Schloss",
-      "context": "Ich habe das Schloss an der Haustür ausgetauscht.",
-      "module": "german"
     },
     {
       "set": "parents",
@@ -26,11 +20,6 @@
     },
     {
       "set": "parents",
-      "key": "break the ice",
-      "module": "german"
-    },
-    {
-      "set": "parents",
       "key": "幸福",
       "module": "chinese"
     },
@@ -41,11 +30,6 @@
     },
     {
       "set": "parents",
-      "key": "laufen",
-      "module": "german"
-    },
-    {
-      "set": "parents",
       "key": "John Cena",
       "module": "english"
     },
@@ -53,21 +37,6 @@
       "set": "parents",
       "key": "我真的很幸福",
       "module": "chinese"
-    },
-    {
-      "set": "parents",
-      "key": "Der Zug ist schon abgefahren.",
-      "module": "german"
-    },
-    {
-      "set": "parents",
-      "key": "gehen",
-      "module": "german"
-    },
-    {
-      "set": "parents",
-      "key": "in",
-      "module": "german"
     },
     {
       "set": "parents",
@@ -146,6 +115,128 @@
       "set": "pronunciation",
       "key": "河岸",
       "module": "pronunciation"
+    },
+    {
+      "set": "german",
+      "key": "Ufer",
+      "module": "german"
+    },
+    {
+      "set": "german",
+      "key": "Fernweh",
+      "module": "german"
+    },
+    {
+      "set": "german",
+      "key": "wegen",
+      "module": "german"
+    },
+    {
+      "set": "german",
+      "key": "laufen",
+      "module": "german"
+    },
+    {
+      "set": "german",
+      "key": "run",
+      "module": "german"
+    },
+    {
+      "set": "german",
+      "key": "把",
+      "module": "german"
+    },
+    {
+      "set": "german",
+      "key": "get up",
+      "module": "german"
+    },
+    {
+      "set": "german",
+      "key": "window",
+      "module": "german"
+    },
+    {
+      "set": "german",
+      "key": "serendipity",
+      "module": "german"
+    },
+    {
+      "set": "german",
+      "key": "break the ice",
+      "module": "german"
+    },
+    {
+      "set": "german",
+      "key": "Bank",
+      "context": "Wir saßen auf einer Bank im Park.",
+      "module": "german"
+    },
+    {
+      "set": "german",
+      "key": "Schloss",
+      "context": "Ich habe das Schloss an der Haustür ausgetauscht.",
+      "module": "german"
+    },
+    {
+      "set": "german",
+      "key": "lief",
+      "module": "german"
+    },
+    {
+      "set": "german",
+      "key": "aufquellen",
+      "module": "german"
+    },
+    {
+      "set": "german",
+      "key": "verbleichen",
+      "module": "german"
+    },
+    {
+      "set": "german",
+      "key": "tot",
+      "module": "german"
+    },
+    {
+      "set": "german",
+      "key": "lila",
+      "module": "german"
+    },
+    {
+      "set": "german",
+      "key": "Wenn ich Zeit hätte, würde ich mitkommen.",
+      "module": "german"
+    },
+    {
+      "set": "german",
+      "key": "carriers",
+      "context": "Earlier Tuesday, senior Obama administration officials said the U.S. never told American commercial carriers to comply specifically with China’s demands.",
+      "module": "german"
+    },
+    {
+      "set": "german",
+      "key": "sus",
+      "context": "bro that guy is acting kinda sus ngl",
+      "module": "german"
+    },
+    {
+      "set": "german",
+      "key": "Weter",
+      "context": "Das Weter wird morgen schlechter.",
+      "module": "german"
+    },
+    {
+      "set": "german",
+      "key": "fängt",
+      "context": "Der Film fängt um acht Uhr an.",
+      "module": "german"
+    },
+    {
+      "set": "german",
+      "key": "Homeofficemüdigkeit",
+      "context": "Nach zwei Jahren macht sich bei vielen Homeofficemüdigkeit breit.",
+      "module": "german"
     }
   ]
 }

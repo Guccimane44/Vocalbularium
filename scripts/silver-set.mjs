@@ -13,7 +13,7 @@ import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
 import { parseArgs } from 'node:util';
 import { OpenCodeProvider } from '../src/server/opencode.mjs';
-import { parentsIn } from '@vocabularium/domain/parents';
+import { goldenSets } from './golden-sets.mjs';
 import { runCard } from './golden-card.mjs';
 import { judgeCard, rubricOf } from './judge.mjs';
 
@@ -30,22 +30,20 @@ const samples = Number(values.samples);
 const concurrency = Number(values.concurrency);
 if (!levels.length || !Number.isInteger(samples) || samples < 1 || !Number.isInteger(concurrency) || concurrency < 1) throw new Error('Check --levels, --samples and --concurrency.');
 
-// The picks, resolved against the golden files, which keep each input's expectation.
-const golden = new URL('../tests/golden/', import.meta.url);
-const silver = JSON.parse(await readFile(new URL('silver/silver.json', golden), 'utf8'));
-async function resolvePicks(picks) {
-  const files = {};
-  return Promise.all(picks.map(async pick => {
-    files[pick.set] ??= JSON.parse(await readFile(new URL(`${pick.set}.json`, golden), 'utf8'));
-    const { modules, family, inputs } = files[pick.set];
-    const input = inputs.find(each => each.key === pick.key && (each.context ?? null) === (pick.context ?? null));
-    if (!input) throw new Error(`The silver pick ${pick.key} is no longer in tests/golden/${pick.set}.json.`);
-    if (!(family ? parentsIn(family) : modules).includes(pick.module)) throw new Error(`tests/golden/${pick.set}.json does not run ${pick.module}.`);
+// The picks, resolved against the golden sets, which keep each input's expectation.
+const silver = JSON.parse(await readFile(new URL('../tests/golden/silver/silver.json', import.meta.url), 'utf8'));
+const sets = Object.fromEntries(goldenSets().map(set => [set.name, set]));
+function resolvePicks(picks) {
+  return picks.map(pick => {
+    const set = sets[pick.set];
+    const input = set?.inputs.find(each => each.key === pick.key && (each.context ?? null) === (pick.context ?? null));
+    if (!input) throw new Error(`The silver pick ${pick.key} is no longer in the ${pick.set} golden set.`);
+    if (!set.modules.includes(pick.module)) throw new Error(`The ${pick.set} golden set does not run ${pick.module}.`);
     return { input, module: pick.module };
-  }));
+  });
 }
 // --limit runs only the first picks, to try the runner cheaply.
-const picks = (await resolvePicks(silver.picks)).slice(0, values.limit ? Number(values.limit) : undefined);
+const picks = resolvePicks(silver.picks).slice(0, values.limit ? Number(values.limit) : undefined);
 
 // The usage and time of each request, by the session that sent it.
 const usage = new Map();

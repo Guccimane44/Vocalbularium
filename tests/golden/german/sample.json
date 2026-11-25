@@ -1,0 +1,437 @@
+{
+  "note": "The simulated-capture slice as drawn by npm run golden:sample: each draw's word, weighted by its frequency among the corpus's first 100000 words, and one of its sentences. The API serves no snapshot, so this file, not the seed alone, repeats the slice.",
+  "seed": 20261124,
+  "words": 100000,
+  "corpora": {
+    "German": [
+      "deu_news_2012_1M",
+      "deu_wikipedia_2010_1M"
+    ],
+    "English": [
+      "eng_news_2013_1M",
+      "eng_wikipedia_2012_1M"
+    ]
+  },
+  "draws": [
+    {
+      "draw": 1,
+      "language": "German",
+      "corpus": "deu_news_2012_1M",
+      "word": "Treffen",
+      "frequency": 1445,
+      "sentence": {
+        "id": "241646",
+        "offset": 772,
+        "of": 1445,
+        "text": "«Wir brauchen ein starkes Signal für ein Ende der Gewalt und den Start eines Demokratisierungsprozesses», sagte er in der jordanischen Hauptstadt Amman nach einem Treffen mit seinem Kollegen Nasser Dschudeh.",
+        "url": "http://www.schwaebische.de/politik/politik-aktuell_artikel,-Nahost-Reise-Westerwelles-Krisenbewaeltigung-im-Mittelpunkt-_arid,5198566.html?et_cid=2&et_lid=2"
+      }
+    },
+    {
+      "draw": 2,
+      "language": "English",
+      "corpus": "eng_news_2013_1M",
+      "word": "mile",
+      "frequency": 430,
+      "sentence": {
+        "id": "958148",
+        "offset": 414,
+        "of": 430,
+        "text": "When converted in monetary terms 1 mile is approximately N$0.22 excluding taxes.",
+        "url": "http://allafrica.com/stories/201307191222.html"
+      }
+    },
+    {
+      "draw": 3,
+      "language": "German",
+      "corpus": "deu_wikipedia_2010_1M",
+      "word": "begann",
+      "frequency": 6027,
+      "sentence": {
+        "id": "528239",
+        "offset": 962,
+        "of": 6027,
+        "text": "Rivers begann während seiner Schulzeit damit Musik zu spielen.",
+        "url": "http://de.wikipedia.org/wiki/Sam_Rivers_(E-Bassist)"
+      }
+    },
+    {
+      "draw": 4,
+      "language": "English",
+      "corpus": "eng_wikipedia_2012_1M",
+      "word": "writings",
+      "frequency": 463,
+      "sentence": {
+        "id": "874966",
+        "offset": 103,
+        "of": 463,
+        "text": "Science and empires As a child of parents who lived under colonial rule in what was British-India, much of Sardar's writings are about what happens to people, languages and institutions when one country is taken over by another country or empire.",
+        "url": "https://en.wikipedia.org"
+      }
+    },
+    {
+      "draw": 5,
+      "language": "German",
+      "corpus": "deu_news_2012_1M",
+      "word": "dem",
+      "frequency": 104807,
+      "sentence": {
+        "id": "796211",
+        "offset": 32298,
+        "of": 104807,
+        "text": "Auch die Tatsache, dass Edeka Walke in diesen Tagen am selben Ort Lebensmittel verkauft, an dem einst das Zuhause der Familie Bergmann war, sei schwer nachzuvollziehen.",
+        "url": "http://www.schwaebische.de/region/biberach-ulm/biberach/stadtnachrichten-biberach_artikel,-Schueler-arbeiten-Geschichte-juedischer-Familien-auf-_arid,5282195.html?et_cid=2&et_lid=2"
+      }
+    },
+    {
+      "draw": 6,
+      "language": "English",
+      "corpus": "eng_news_2013_1M",
+      "word": "carriers",
+      "frequency": 352,
+      "sentence": {
+        "id": "202514",
+        "offset": 81,
+        "of": 352,
+        "text": "Earlier Tuesday, senior Obama administration officials said the U.S. never told American commercial carriers to comply specifically with China’s demands.",
+        "url": "http://feedproxy.google.com/~r/NP_Top_Stories/~3/JGxQ0GYoN7k/"
+      }
+    },
+    {
+      "draw": 7,
+      "language": "German",
+      "corpus": "deu_wikipedia_2010_1M",
+      "word": "Frankreich",
+      "frequency": 3030,
+      "sentence": {
+        "id": "307947",
+        "offset": 2563,
+        "of": 3030,
+        "text": "Dokumentarfilm, Frankreich 2009, gezeigt in ARTE am 28. Oktober 2009 von 21:00-21:50 und von 21:50-22:45.",
+        "url": "http://de.wikipedia.org/wiki/Weltwirtschaftskrise"
+      }
+    },
+    {
+      "draw": 8,
+      "language": "English",
+      "corpus": "eng_wikipedia_2012_1M",
+      "word": "stay",
+      "frequency": 1325,
+      "sentence": {
+        "id": "262111",
+        "offset": 224,
+        "of": 1325,
+        "text": "Pulmonary Rehabilitation — Pulmonary rehabilitation may be initiated as a treatment as a source for continuity of improvement after a hospital stay or as a therapeutic way to increase quality of life.",
+        "url": "https://en.wikipedia.org"
+      }
+    },
+    {
+      "draw": 9,
+      "language": "German",
+      "corpus": "deu_news_2012_1M",
+      "word": "des",
+      "frequency": 97596,
+      "sentence": {
+        "id": "813643",
+        "offset": 57932,
+        "of": 97596,
+        "text": "Dies wird spätestens in den kommenden Jahren erwartet, hat Samsung doch laut Reuters erst heute die Aufstockung des Budgets auf eine insgesamt 4 Milliarden US-Dollar umfassende Investition in Austin, Texas, angekündigt.",
+        "url": "http://www.computerbase.de/news/2012-08/globalfoundries-wird-zweitgroesster-auftrags-halbleiterproduzent/"
+      }
+    },
+    {
+      "draw": 10,
+      "language": "English",
+      "corpus": "eng_news_2013_1M",
+      "word": "day",
+      "frequency": 12786,
+      "sentence": {
+        "id": "704555",
+        "offset": 9135,
+        "of": 12786,
+        "text": "The armband project quickly consumed his free time, he says: “We are usually working 20 hours a day.”",
+        "url": "http://www.nytimes.com/2013/04/05/opinion/antibiotics-farm-animals-and-you.html?partner=rss&emc=rss"
+      }
+    },
+    {
+      "draw": 11,
+      "language": "German",
+      "corpus": "deu_wikipedia_2010_1M",
+      "word": "Offiziere",
+      "frequency": 434,
+      "sentence": {
+        "id": "122471",
+        "offset": 353,
+        "of": 434,
+        "text": "Erster Weltkrieg 1914 Am 2. August 1914 trat das Regiment in Stärke 51 Offiziere, 4 Sanitäts-Offiziere, 1 Beamter, 1802 Mann und 190 Pferde an und war der 11. Infanterie-Brigade der 6. Infanterie-Division unterstellt.",
+        "url": "http://de.wikipedia.org/wiki/13._Königlich_Bayerisches_Infanterie-Regiment_„Franz_Joseph_I.,_Kaiser_von_Österreich_und_Apostolischer_König_von_Ungarn“"
+      }
+    },
+    {
+      "draw": 12,
+      "language": "English",
+      "corpus": "eng_wikipedia_2012_1M",
+      "word": "by",
+      "frequency": 124173,
+      "sentence": {
+        "id": "397641",
+        "offset": 23521,
+        "of": 124173,
+        "text": "The album was considered by Scarface to be the label's finest release.",
+        "url": "https://en.wikipedia.org"
+      }
+    },
+    {
+      "draw": 13,
+      "language": "German",
+      "corpus": "deu_news_2012_1M",
+      "word": "Die",
+      "frequency": 118314,
+      "sentence": {
+        "id": "883794",
+        "offset": 50449,
+        "of": 118314,
+        "text": "Inhaltlich hat er jedoch Recht: Die Kanzlerin hat versprochen, was sie kaum wird halten können.",
+        "url": "http://www.welt.de/debatte/kommentare/article106390686/Gaucks-gefaehrliche-Distanzierung-von-der-Kanzlerin.html"
+      }
+    },
+    {
+      "draw": 14,
+      "language": "English",
+      "corpus": "eng_news_2013_1M",
+      "word": "Delhi",
+      "frequency": 257,
+      "sentence": {
+        "id": "797510",
+        "offset": 221,
+        "of": 257,
+        "text": "The protestors in Delhi and the feminist activists have made clear demands.",
+        "url": "http://www.huffingtonpost.com/inderpal-grewal/india-bus-rape_b_2368032.html?utm_hp_ref=world"
+      }
+    },
+    {
+      "draw": 15,
+      "language": "German",
+      "corpus": "deu_wikipedia_2010_1M",
+      "word": "gehört",
+      "frequency": 3949,
+      "sentence": {
+        "id": "517602",
+        "offset": 2325,
+        "of": 3949,
+        "text": "Merkmale Adelphobates castaneoticus gehört zu den kleinsten Baumsteigerfröschen und hat eine Gesamtlänge von etwa 18 bis 23 mm. Dabei sind die Weibchen im Regelfall größer als die Männchen, unterscheiden sich jedoch in der Färbung nicht von ihnen.",
+        "url": "http://de.wikipedia.org/wiki/Adelphobates_castaneoticus"
+      }
+    },
+    {
+      "draw": 16,
+      "language": "English",
+      "corpus": "eng_wikipedia_2012_1M",
+      "word": "shuttle",
+      "frequency": 166,
+      "sentence": {
+        "id": "194939",
+        "offset": 8,
+        "of": 166,
+        "text": "They begin retrofitting and reinforcing two shuttle buses from the parking garage for their escape.",
+        "url": "https://en.wikipedia.org"
+      }
+    },
+    {
+      "draw": 17,
+      "language": "German",
+      "corpus": "deu_news_2012_1M",
+      "word": "Wollen",
+      "frequency": 101,
+      "sentence": {
+        "id": "211570",
+        "offset": 44,
+        "of": 101,
+        "text": "Wollen sie aber etwas lernen, so sollen sie daheim ihre Männer fragen.",
+        "url": "http://blog.zdf.de/zdfdasblog/2012/04/27/ukraine-im-abseits/"
+      }
+    },
+    {
+      "draw": 18,
+      "language": "English",
+      "corpus": "eng_news_2013_1M",
+      "word": "Author",
+      "frequency": 52,
+      "sentence": {
+        "id": "97614",
+        "offset": 3,
+        "of": 52,
+        "text": "Author and journalist Beinart to leave Daily Beast; will write regularly for Haaretz on Israel, America and the American Jewish community.",
+        "url": "http://haaretz.feedsportal.com/c/34191/f/620528/s/334cdeb2/sc/20/l/0L0Shaaretz0N0Cnews0Cdiplomacy0Edefense0C10B556321/story01.htm"
+      }
+    },
+    {
+      "draw": 19,
+      "language": "German",
+      "corpus": "deu_wikipedia_2010_1M",
+      "word": "schon",
+      "frequency": 7915,
+      "sentence": {
+        "id": "389448",
+        "offset": 3886,
+        "of": 7915,
+        "text": "Er wurde 1939 als Kammergerichtsrat an das Kammergericht in Berlin berufen, schon kurz danach aber zum Kriegsdienst einberufen.",
+        "url": "http://de.wikipedia.org/wiki/Claus_Seibert"
+      }
+    },
+    {
+      "draw": 20,
+      "language": "English",
+      "corpus": "eng_wikipedia_2012_1M",
+      "word": "showed",
+      "frequency": 1353,
+      "sentence": {
+        "id": "927871",
+        "offset": 530,
+        "of": 1353,
+        "text": "For example, David Hubel and Torsten Wiesel recorded the activity of single neurons in the primary visual cortex of the anesthetized cat, and showed how single neurons in this area respond to very specific features of a visual stimulus.",
+        "url": "https://en.wikipedia.org"
+      }
+    },
+    {
+      "draw": 21,
+      "language": "German",
+      "corpus": "deu_news_2012_1M",
+      "word": "Dänemark",
+      "frequency": 471,
+      "sentence": {
+        "id": "545318",
+        "offset": 195,
+        "of": 471,
+        "text": "Die international gute Vernetzung dank ihren Galerien in London und Dänemark ist unerlässlich für eine nachhaltige Künstlerkarriere.",
+        "url": "http://www.bilanz.ch/people/kuenstler-rating-2012-art-der-grenze"
+      }
+    },
+    {
+      "draw": 22,
+      "language": "English",
+      "corpus": "eng_news_2013_1M",
+      "word": "songs",
+      "frequency": 721,
+      "sentence": {
+        "id": "325875",
+        "offset": 258,
+        "of": 721,
+        "text": "I even have gospel songs prepared for my third album.",
+        "url": "http://allafrica.com/stories/201309200474.html"
+      }
+    },
+    {
+      "draw": 23,
+      "language": "German",
+      "corpus": "deu_wikipedia_2010_1M",
+      "word": "Erster",
+      "frequency": 463,
+      "sentence": {
+        "id": "852356",
+        "offset": 106,
+        "of": 463,
+        "text": "1943/44 war er als Erster Kapellmeister am Theater am Nollendorfplatz in Berlin tätig.",
+        "url": "http://de.wikipedia.org/wiki/Wilhelm_Schüchter"
+      }
+    },
+    {
+      "draw": 24,
+      "language": "English",
+      "corpus": "eng_wikipedia_2012_1M",
+      "word": "in",
+      "frequency": 454781,
+      "sentence": {
+        "id": "904548",
+        "offset": 125597,
+        "of": 454781,
+        "text": "His opus, however, is the high point of \"genetic history\" or the archivist's approach, which patiently weaves the tapestry of the chosen period without engaging in speculations that are sometimes necessary to fill the gaps left open by archive materials.",
+        "url": "https://en.wikipedia.org"
+      }
+    },
+    {
+      "draw": 25,
+      "language": "German",
+      "corpus": "deu_news_2012_1M",
+      "word": "viel",
+      "frequency": 9859,
+      "sentence": {
+        "id": "816880",
+        "offset": 1329,
+        "of": 9859,
+        "text": "» Da gibts wohl viele Neider, ich jedenfalls finde es gut, dass er wieder spielt und wünsche ihm viel Erfolg.",
+        "url": "http://rss.feedsportal.com/c/32351/f/493173/s/1bbe107a/l/0L0Sblick0Bch0Csport0Cfussball0Csuperleague0Cerstes0Etor0Enach0Edrei0Ejahren0Efuer0Ejohann0Evogel0E191818/story01.htm"
+      }
+    },
+    {
+      "draw": 26,
+      "language": "English",
+      "corpus": "eng_news_2013_1M",
+      "word": "started",
+      "frequency": 5360,
+      "sentence": {
+        "id": "519484",
+        "offset": 2761,
+        "of": 5360,
+        "text": "My oldest son was supposed to start college in the fall of 2012, and my wife, in preparation for the empty-nest experience, had started a two-year graduate school program.",
+        "url": "http://boss.blogs.nytimes.com/2013/02/20/what-i-took-home-in-2012/?partner=rss&emc=rss"
+      }
+    },
+    {
+      "draw": 27,
+      "language": "German",
+      "corpus": "deu_wikipedia_2010_1M",
+      "word": "möglich",
+      "frequency": 4661,
+      "sentence": {
+        "id": "88594",
+        "offset": 3091,
+        "of": 4661,
+        "text": "Aufgrund des starken deutschen Artilleriefeuers waren diese Manöver nur nachts möglich und war infolge deutscher Artillerie- oder Sturzkampfbomberangriffe mit hohen Verlusten verbunden.",
+        "url": "http://de.wikipedia.org/wiki/Eroberung_von_Stalingrad"
+      }
+    },
+    {
+      "draw": 28,
+      "language": "English",
+      "corpus": "eng_wikipedia_2012_1M",
+      "word": "is",
+      "frequency": 204611,
+      "sentence": {
+        "id": "748124",
+        "offset": 153575,
+        "of": 204611,
+        "text": "Griveaudia nigropuncta is a species of moth of the Callidulidae family.",
+        "url": "https://en.wikipedia.org"
+      }
+    },
+    {
+      "draw": 29,
+      "language": "German",
+      "corpus": "deu_news_2012_1M",
+      "word": "war",
+      "frequency": 40028,
+      "sentence": {
+        "id": "944803",
+        "offset": 1499,
+        "of": 40028,
+        "text": "Die Serie riss am Montagabend ab, und ausgerechnet Jeremy Lin war einer der Hauptdarsteller beim Coup der Houston Rockets in Manhattan.",
+        "url": "http://www.kicker.de/news/basketball/startseite/579302/artikel_linsanity-reloaded-houston-beendet-die-heimserie-der-knicks.html#omrss_news_aktuell"
+      }
+    },
+    {
+      "draw": 30,
+      "language": "English",
+      "corpus": "eng_news_2013_1M",
+      "word": "is",
+      "frequency": 181996,
+      "sentence": {
+        "id": "8345",
+        "offset": 141384,
+        "of": 181996,
+        "text": "About ten minutes north of the area in Northwest Austin, near Lakecreek Parkway and Highway 183, heavy rain made a rushing rapids out of what is usually a dry drainage ditch.",
+        "url": "http://www.kvue.com/news/Heavy-rains-challenge-drivers-during-the-evening-rush-hour-201168021.html"
+      }
+    }
+  ]
+}

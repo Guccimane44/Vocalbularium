@@ -55,6 +55,10 @@
     "./spoken": {
       "types": "./dist/spoken.d.ts",
       "import": "./dist/spoken.js"
+    },
+    "./golden": {
+      "types": "./dist/golden/index.d.ts",
+      "import": "./dist/golden/index.js"
     }
   },
   "dependencies": {
