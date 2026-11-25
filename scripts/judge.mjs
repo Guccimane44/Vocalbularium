@@ -6,12 +6,14 @@
 // it agrees with the calibration set made with the same model.
 // It spends provider usage.
 // Usage: npm run judge -- <module> [golden run .json]   judge a golden run (the latest for the module by default)
-//        npm run judge -- --calibrate [module]           score the calibration set and report agreement
+//        npm run judge -- --calibrate [module] [--part dev|held-out]
+//                                                        score the calibration set, or one part of it, and report agreement and missed fails
 import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
 import { OpenCodeProvider } from '../src/server/opencode.mjs';
 import { contentModule, folderOf, isContentModule, MODULES } from '@vocabularium/domain/catalog';
 import { checkCard } from '@vocabularium/domain/checks';
+import { calibrations, expected, missed } from './calibration.mjs';
 import { checkTools } from './check-tools.mjs';
 import { judgeModel, meter } from './meter.mjs';
 
@@ -99,7 +101,11 @@ async function steady(call) {
 
 async function main() {
   if (!process.env.OPENCODE_API_KEY) throw new Error('Configure OPENCODE_API_KEY in the ignored .env file first.');
-  const [first, second] = process.argv.slice(2);
+  const args = process.argv.slice(2);
+  const at = args.indexOf('--part');
+  const part = at >= 0 ? args.splice(at, 2)[1] : undefined;
+  const [first, second] = args;
+  if (part !== undefined && (first !== '--calibrate' || !['dev', 'held-out'].includes(part))) throw new Error('--part is dev or held-out, with --calibrate.');
   // Judging a card with many facets reasons longer than generating it.
   const provider = new OpenCodeProvider({ timeout: 180000, model: judgeModel(process.env) });
   const cost = meter(provider);
@@ -109,16 +115,15 @@ async function main() {
   const results = [];
   let title;
   if (first === '--calibrate') {
-    title = 'Judge calibration';
-    const directory = new URL('../tests/golden/calibration/', import.meta.url);
-    for (const file of (await readdir(directory)).filter(name => name.endsWith('.json')).sort()) {
-      const set = JSON.parse(await readFile(new URL(file, directory), 'utf8'));
+    title = `Judge calibration${part ? ` (${part})` : ''}`;
+    for (const set of await calibrations()) {
       if (second && set.module !== second) continue;
       const criteria = await rubricOf(set.module);
-      for (const item of set.cards) {
-        const judged = await judgeSafely(provider, set.module, criteria, { selection: item.key, context: item.context, language: item.language ?? 'en', card: item.card });
-        results.push({ module: set.module, id: item.id, key: item.key, expected: item.expected, why: item.why, ...judged,
-          agrees: judged.verdict !== 'error' && (judged.verdict === 'fail') === (item.expected === 'fail') });
+      for (const card of set.cards.filter(each => !part || each.split === part)) {
+        const judged = await judgeSafely(provider, set.module, criteria, { selection: card.key, context: card.context, language: card.language, card: card.card });
+        const why = 'criteria' in card ? Object.entries(card.reasons).flatMap(([criterion, reasons]) => reasons.map(reason => `${criterion} ${card.criteria[criterion]}${reason.facet ? ` (${reason.facet})` : ''}: ${reason.why}`)).join('\n') : card.reason;
+        results.push({ module: set.module, id: card.id, key: card.key, split: card.split, expected: expected(card), why, ...judged,
+          agrees: judged.verdict !== 'error' && (judged.verdict === 'fail') === (expected(card) === 'fail'), missed: missed(card, judged) });
       }
     }
   } else {
@@ -144,13 +149,14 @@ async function main() {
   const lines = [`# ${title}`, '', `${date} · model ${provider.model} · ${results.length} cards: ${count('pass')} pass, ${count('weak')} weak, ${count('fail')} fail${count('error') ? `, ${count('error')} not scored` : ''} · ${Math.round(cost.spent() * 1e6)} µ$`, ''];
   if (first === '--calibrate') {
     const agreed = results.filter(result => result.agrees).length;
-    const missed = results.filter(result => result.expected === 'fail' && result.verdict !== 'fail');
-    lines.push(`**Agreement:** ${agreed}/${results.length} (${Math.round(100 * agreed / Math.max(results.length, 1))}%) · **recorded fails missed:** ${missed.length}`, '',
-      missed.length || agreed < 0.9 * results.length ? '**Not calibrated:** the judge\'s verdicts do not count until it agrees on 90% and misses no recorded fail.' : '**Calibrated.**', '');
+    const missedFails = results.reduce((sum, result) => sum + result.missed.length, 0);
+    lines.push(`**Agreement:** ${agreed}/${results.length} (${Math.round(100 * agreed / Math.max(results.length, 1))}%) · **recorded fails missed:** ${missedFails}`, '',
+      missedFails || agreed < 0.9 * results.length ? '**Not calibrated:** the judge\'s verdicts do not count until it agrees on 90% and misses no recorded fail.' : '**Calibrated.**', '');
   }
   for (const result of results) {
     lines.push(`## ${result.module}: ${result.key}${result.id ? ` (${result.id})` : ''} · ${result.verdict}${result.expected ? `, expected ${result.expected}${result.agrees ? '' : ' **(disagrees)**'}` : ''}`, '');
     if (result.why) lines.push(result.why, '');
+    if (result.missed?.length) lines.push(`**Missed:** ${result.missed.map((/** @type {any} */ miss) => miss.criterion ? `${miss.criterion}${miss.facets.length ? ` (${miss.facets.join(', ')})` : ''}` : 'the card').join(', ')}`, '');
     for (const check of result.checks ?? []) lines.push(`- check ${check.part}.${check.check}: ${check.message}`);
     for (const score of result.scores ?? []) lines.push(`- ${score.criterion}: **${score.verdict}** · ${score.reason}`);
     if (result.error) lines.push(`- error: ${result.error}`);

@@ -68,7 +68,8 @@ let golden;
 }
 
 // The latest calibration that scored this module with this model, whether alone
-// or with the others: its share of agreement and the expected fails it missed.
+// or with the others: its share of agreement and the recorded fails it missed,
+// counted per criterion.
 /** @param {string} model */
 async function calibrationOf(model) {
   for (const name of (await readdir('.data/judge').catch(() => [])).filter(name => name.endsWith('-calibration.json')).sort().reverse()) {
@@ -76,7 +77,8 @@ async function calibrationOf(model) {
     if (calibration.model !== model) continue;
     /** @type {any[]} untyped JSON written by the judge */
     const scored = calibration.results.filter((/** @type {any} */ result) => result.module === module);
-    if (scored.length) return { cards: scored.length, agreement: scored.filter(result => result.agrees).length / scored.length, missed: scored.filter(result => result.expected === 'fail' && result.verdict !== 'fail').length };
+    // A calibration from before v0.17.0 names no missed fails per criterion: run it again.
+    if (scored.length && scored.every(result => Array.isArray(result.missed))) return { cards: scored.length, agreement: scored.filter(result => result.agrees).length / scored.length, missed: scored.reduce((sum, result) => sum + result.missed.length, 0) };
   }
   return { cards: 0, agreement: 0, missed: 0 };
 }
