@@ -156,12 +156,13 @@ One PR, with no extension change, so no test build. Tasks 4 and 5 are the long o
 - Verdicts per criterion replace verdicts per card, in every module's calibration file, so one format holds.
 - The held-out part follows the golden set's split instead of a separate draw.
 - No graded card is written by Opus; Haiku and Argon give enough faults and passes. Opus writes only messy cards.
-- DWDS with Pfeifer is the main source. Duden and Kluge only through the owner.
+- DWDS with Pfeifer is the main source. Duden and Kluge only through the owner, who has no access to them.
 - The messy-input section of the rubric is written from dev cards only.
 - Haiku and Opus write the messy cards. Argon is left out there to keep the owner's review at 72 cards.
 - Weak has no bar. Step 3 reports pass/weak agreement per criterion and facet, as a number.
 - Minimums are set for the open facets under the facets criterion (synonyms, antonyms, pronunciation), not for the closed ones, which the step 1 scorer measures.
 
-## Open questions for the owner
+## Owner answers
 
-1. **Duden and Kluge.** Do you have access, to settle the cases where DWDS and Wiktionary disagree on an origin?
+- **The review list** (2026-11-26). The owner went through it and agreed with the drafts, including the seven general rulings. The 44 cards it asked about (the judgement calls, the old cards that changed, and the planted faults) are marked `"decided": "owner"`.
+- **Duden and Kluge** (2026-11-26). The owner has no access. The six points that only they could settle (the origins of Junge, Kaffee, Plan and Cricket, the Chaiselongue plural, the Wicket plural) keep the verdict DWDS and Pfeifer support, and stay `"decided": "claude"` where the review list did not ask about them.

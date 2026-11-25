@@ -8,7 +8,7 @@
       "context": "We sat on the bank and watched the river go by.",
       "language": "en",
       "split": "dev",
-      "decided": "claude",
+      "decided": "owner",
       "card": {
         "core": {
           "kind": "word",
@@ -288,7 +288,7 @@
       "context": "We sat on the bank and watched the river go by.",
       "language": "en",
       "split": "dev",
-      "decided": "claude",
+      "decided": "owner",
       "card": {
         "core": {
           "kind": "word",
@@ -387,7 +387,7 @@
       "key": "run",
       "language": "en",
       "split": "dev",
-      "decided": "claude",
+      "decided": "owner",
       "card": {
         "core": {
           "kind": "word",
@@ -901,7 +901,7 @@
       "key": "幸福",
       "language": "en",
       "split": "dev",
-      "decided": "claude",
+      "decided": "owner",
       "card": {
         "core": {
           "kind": "word",
@@ -1208,7 +1208,7 @@
       "context": "We sat on the bank and watched the river go by.",
       "language": "en",
       "split": "dev",
-      "decided": "claude",
+      "decided": "owner",
       "card": {
         "core": {
           "kind": "word",
@@ -1323,7 +1323,7 @@
       "context": "We sat on the bank and watched the river go by.",
       "language": "en",
       "split": "dev",
-      "decided": "claude",
+      "decided": "owner",
       "card": {
         "core": {
           "kind": "word",
@@ -1421,7 +1421,7 @@
       "key": "break the ice",
       "language": "en",
       "split": "dev",
-      "decided": "claude",
+      "decided": "owner",
       "card": {
         "core": {
           "kind": "word",
@@ -1637,7 +1637,7 @@
       "key": "打算",
       "language": "en",
       "split": "dev",
-      "decided": "claude",
+      "decided": "owner",
       "card": {
         "core": {
           "kind": "word",
@@ -1960,7 +1960,7 @@
       "key": "The committee postponed the decision indefinitely.",
       "language": "en",
       "split": "dev",
-      "decided": "claude",
+      "decided": "owner",
       "card": {
         "core": {
           "kind": "sentence",
@@ -2029,7 +2029,7 @@
           }
         ]
       },
-      "decided": "claude",
+      "decided": "owner",
       "card": {
         "core": {
           "kind": "word",
@@ -2483,7 +2483,7 @@
           }
         ]
       },
-      "decided": "claude",
+      "decided": "owner",
       "card": {
         "core": {
           "kind": "word",
@@ -2794,7 +2794,7 @@
           }
         ]
       },
-      "decided": "claude",
+      "decided": "owner",
       "card": {
         "core": {
           "kind": "sentence",
@@ -2848,7 +2848,7 @@
           }
         ]
       },
-      "decided": "claude",
+      "decided": "owner",
       "card": {
         "core": {
           "kind": "word",
@@ -2989,7 +2989,7 @@
           }
         ]
       },
-      "decided": "claude",
+      "decided": "owner",
       "card": {
         "core": {
           "kind": "word",
@@ -3735,7 +3735,7 @@
           }
         ]
       },
-      "decided": "claude",
+      "decided": "owner",
       "card": {
         "core": {
           "kind": "word",
@@ -4060,7 +4060,7 @@
           }
         ]
       },
-      "decided": "claude",
+      "decided": "owner",
       "card": {
         "core": {
           "kind": "word",
@@ -4774,7 +4774,7 @@
       "item": "buero",
       "generator": "claude-haiku-5-5",
       "fault": "real",
-      "decided": "claude",
+      "decided": "owner",
       "criteria": {
         "sense": "pass",
         "german": "pass",
@@ -5091,7 +5091,7 @@
       "item": "chaiselongue",
       "generator": "claude-haiku-5-5",
       "fault": "real",
-      "decided": "claude",
+      "decided": "owner",
       "criteria": {
         "sense": "pass",
         "german": "pass",
@@ -5430,7 +5430,7 @@
       "item": "kricket",
       "generator": "claude-haiku-5-5",
       "fault": "real",
-      "decided": "claude",
+      "decided": "owner",
       "criteria": {
         "sense": "pass",
         "german": "fail",
@@ -5546,7 +5546,7 @@
       "item": "kricket",
       "generator": "gemini-4-argon",
       "fault": "real",
-      "decided": "claude",
+      "decided": "owner",
       "criteria": {
         "sense": "pass",
         "german": "pass",
@@ -6349,7 +6349,7 @@
       "item": "zeitung",
       "generator": "claude-haiku-5-5",
       "fault": "real",
-      "decided": "claude",
+      "decided": "owner",
       "criteria": {
         "sense": "pass",
         "german": "pass",
@@ -7056,7 +7056,7 @@
       "item": "techtelmechtel",
       "generator": "claude-haiku-5-5",
       "fault": "real",
-      "decided": "claude",
+      "decided": "owner",
       "criteria": {
         "sense": "pass",
         "german": "pass",
@@ -7279,7 +7279,7 @@
       "item": "ziege",
       "generator": "claude-haiku-5-5",
       "fault": "real",
-      "decided": "claude",
+      "decided": "owner",
       "criteria": {
         "sense": "pass",
         "german": "pass",
@@ -8249,7 +8249,7 @@
       "item": "bank-geld",
       "generator": "claude-haiku-5-5",
       "fault": "real",
-      "decided": "claude",
+      "decided": "owner",
       "criteria": {
         "sense": "pass",
         "german": "pass",
@@ -12934,7 +12934,7 @@
       "item": "r-break-the-ice",
       "generator": "gemini-4-argon",
       "fault": "real",
-      "decided": "claude",
+      "decided": "owner",
       "criteria": {
         "sense": "pass",
         "german": "pass",
@@ -13647,7 +13647,7 @@
       "item": "r-hubb",
       "generator": "gemini-4-argon",
       "fault": "real",
-      "decided": "claude",
+      "decided": "owner",
       "criteria": {
         "sense": "pass",
         "german": "pass",
@@ -14385,7 +14385,7 @@
       "split": "dev",
       "item": "kiefer-baum",
       "generator": "claude-haiku-5-5",
-      "decided": "claude",
+      "decided": "owner",
       "criteria": {
         "sense": "fail",
         "german": "pass",
@@ -14489,7 +14489,7 @@
       "split": "dev",
       "item": "r-serendipity",
       "generator": "claude-haiku-5-5",
-      "decided": "claude",
+      "decided": "owner",
       "criteria": {
         "sense": "fail",
         "german": "pass",
@@ -14562,7 +14562,7 @@
       "split": "dev",
       "item": "r-gift-de",
       "generator": "claude-haiku-5-5",
-      "decided": "claude",
+      "decided": "owner",
       "criteria": {
         "sense": "fail",
         "german": "pass",
@@ -14673,7 +14673,7 @@
       "split": "held-out",
       "item": "r-schloss",
       "generator": "claude-haiku-5-5",
-      "decided": "claude",
+      "decided": "owner",
       "criteria": {
         "sense": "fail",
         "german": "pass",
@@ -14784,7 +14784,7 @@
       "split": "held-out",
       "item": "r-window",
       "generator": "gemini-4-argon",
-      "decided": "claude",
+      "decided": "owner",
       "criteria": {
         "sense": "fail",
         "german": "pass",
@@ -14897,7 +14897,7 @@
       "split": "dev",
       "item": "freiheit",
       "generator": "claude-haiku-5-5",
-      "decided": "claude",
+      "decided": "owner",
       "criteria": {
         "sense": "pass",
         "german": "pass",
@@ -15015,7 +15015,7 @@
       "split": "dev",
       "item": "laufen",
       "generator": "claude-haiku-5-5",
-      "decided": "claude",
+      "decided": "owner",
       "criteria": {
         "sense": "pass",
         "german": "pass",
@@ -15160,7 +15160,7 @@
       "split": "dev",
       "item": "r-get-up",
       "generator": "claude-haiku-5-5",
-      "decided": "claude",
+      "decided": "owner",
       "criteria": {
         "sense": "pass",
         "german": "pass",
@@ -15296,7 +15296,7 @@
       "split": "held-out",
       "item": "mutig",
       "generator": "gemini-4-argon",
-      "decided": "claude",
+      "decided": "owner",
       "criteria": {
         "sense": "pass",
         "german": "pass",
@@ -15497,7 +15497,7 @@
       "split": "held-out",
       "item": "sauer",
       "generator": "gemini-4-argon",
-      "decided": "claude",
+      "decided": "owner",
       "criteria": {
         "sense": "pass",
         "german": "pass",
@@ -15711,7 +15711,7 @@
       "split": "dev",
       "item": "computer",
       "generator": "claude-haiku-5-5",
-      "decided": "claude",
+      "decided": "owner",
       "criteria": {
         "sense": "pass",
         "german": "pass",
@@ -15818,7 +15818,7 @@
       "split": "dev",
       "item": "r-keks",
       "generator": "claude-haiku-5-5",
-      "decided": "claude",
+      "decided": "owner",
       "criteria": {
         "sense": "pass",
         "german": "pass",
@@ -15937,7 +15937,7 @@
       "split": "dev",
       "item": "uebersetzen",
       "generator": "claude-haiku-5-5",
-      "decided": "claude",
+      "decided": "owner",
       "criteria": {
         "sense": "pass",
         "german": "pass",
@@ -16065,7 +16065,7 @@
       "split": "dev",
       "item": "r-lief",
       "generator": "claude-haiku-5-5",
-      "decided": "claude",
+      "decided": "owner",
       "criteria": {
         "sense": "pass",
         "german": "pass",
@@ -16196,7 +16196,7 @@
       "split": "dev",
       "item": "r-sobremesa",
       "generator": "claude-haiku-5-5",
-      "decided": "claude",
+      "decided": "owner",
       "criteria": {
         "sense": "pass",
         "german": "pass",
@@ -16256,7 +16256,7 @@
       "split": "held-out",
       "item": "rechtsschutz",
       "generator": "claude-haiku-5-5",
-      "decided": "claude",
+      "decided": "owner",
       "criteria": {
         "sense": "pass",
         "german": "pass",
@@ -16358,7 +16358,7 @@
       "split": "held-out",
       "item": "r-konjunktiv",
       "generator": "claude-haiku-5-5",
-      "decided": "claude",
+      "decided": "owner",
       "criteria": {
         "sense": "pass",
         "german": "pass",
