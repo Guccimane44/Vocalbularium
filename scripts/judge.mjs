@@ -142,7 +142,8 @@ async function main() {
       results.push({ module: first, key: result.key, ...await judgeSafely(provider, first, criteria, { selection: result.key, context: result.context, language: run.language, card }) });
     }
   }
-  const stamp = `${date.replace(/[:.]/g, '-')}${first === '--calibrate' ? '-calibration' : `-${first}`}`;
+  // One part is named apart, so the gate, which reads only "-calibration.json", never takes it for the whole set.
+  const stamp = `${date.replace(/[:.]/g, '-')}${first === '--calibrate' ? `-calibration${part ? `-${part}` : ''}` : `-${first}`}`;
   await mkdir('.data/judge', { recursive: true });
   await writeFile(`.data/judge/${stamp}.json`, JSON.stringify({ date, model: provider.model, cost: cost.spent(), title, results }, null, 2) + '\n');
   const count = (/** @type {string} */ verdict) => results.filter(result => result.verdict === verdict).length;
