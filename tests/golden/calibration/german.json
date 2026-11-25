@@ -1,5 +1,5 @@
 {
-  "note": "The judge's calibration set for german (0.16.0): recorded outputs that passed review, expected to pass (from 2026-10-30T17-25-27-661Z-en-german.json, and from 2026-11-03T19-57-22-113Z-en-german.json for sentences and a grammar word); copies of them with one seeded fault each, and two recorded defects, expected to fail. The judge counts only once it agrees on 90% and misses no expected fail. Since D29 (5 November 2026) the cards with a Context give the Context's sense as \"contextual\", and \"context-only\" is the earlier recorded card, expected to fail. Since 0.16.4 (7 November 2026) it adds Etymology, Simple translation and Grammar teacher: three recorded cards from 2026-11-07T15-25-47-457Z-en-german.json expected to pass, one recorded defect (Etymology of the key rather than the grammar word) and three seeded faults, expected to fail.",
+  "note": "The judge's calibration set for german (0.16.0): recorded outputs that passed review, expected to pass (from 2026-10-30T17-25-27-661Z-en-german.json, and from 2026-11-03T19-57-22-113Z-en-german.json for sentences and a grammar word); copies of them with one seeded fault each, and two recorded defects, expected to fail. The judge counts only once it agrees on 90% and misses no expected fail. Since D29 (5 November 2026) the cards with a Context give the Context's sense as \"contextual\", and \"context-only\" is the earlier recorded card, expected to fail. Since 0.16.4 (7 November 2026) it adds Etymology, Simple translation and Grammar teacher: three recorded cards from 2026-11-07T15-25-47-457Z-en-german.json expected to pass, one recorded defect (Etymology of the key rather than the grammar word) and three seeded faults, expected to fail. Since v0.17.0 (25 November 2026) it adds cards graded per criterion: the real faults the Opus judge found on Haiku's cards in 2026-11-24T13-07-45-440Z-en-bench-default-german.json, each confirmed against a source, all in dev because the Opus judge found them.",
   "module": "german",
   "cards": [
     {
@@ -2129,6 +2129,2238 @@
           ],
           "simple-translation": [
             "Die Gruppe hat heute die Entscheidung getroffen."
+          ]
+        }
+      }
+    },
+    {
+      "id": "real-bank-sandbank-example-haiku",
+      "split": "dev",
+      "key": "bank",
+      "context": "We sat on the bank and watched the river go by.",
+      "language": "en",
+      "generator": "claude-haiku-5-5",
+      "fault": "real",
+      "criteria": {
+        "sense": "pass",
+        "german": "pass",
+        "facets": "pass",
+        "examples": "fail",
+        "etymology": "pass",
+        "simple-translation": "pass",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {
+        "examples": [
+          {
+            "why": "The third example says sandbank, not bank, so it shows the selection only inside another word; each example must use the selection.",
+            "source": "judgement call"
+          }
+        ]
+      },
+      "decided": "claude",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Englisch",
+          "key": "bank",
+          "gramRole": "noun",
+          "contextual": "Ufer eines Flusses",
+          "meanings": [
+            "Geldinstitut, bei dem man Geld einzahlt und abhebt",
+            "Sandbank oder Untiefe im Wasser"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "das Ufer",
+            "plural": "die Ufer"
+          },
+          "examples": [
+            {
+              "sentence": "We sat on the bank and watched the river go by.",
+              "translation": "Wir saßen am Ufer und sahen dem Fluss beim Vorbeiziehen zu."
+            },
+            {
+              "sentence": "I deposited the cheque at the bank.",
+              "translation": "Ich habe den Scheck bei der Bank eingereicht."
+            },
+            {
+              "sentence": "The boat ran aground on a sandbank.",
+              "translation": "Das Boot lief auf einer Sandbank auf."
+            }
+          ],
+          "synonyms": [
+            "Flussufer",
+            "Gestade"
+          ],
+          "declension": {
+            "columns": [
+              "Singular",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "Nominativ",
+                "cells": [
+                  "das Ufer",
+                  "die Ufer"
+                ]
+              },
+              {
+                "label": "Genitiv",
+                "cells": [
+                  "des Ufers",
+                  "der Ufer"
+                ]
+              },
+              {
+                "label": "Dativ",
+                "cells": [
+                  "dem Ufer",
+                  "den Ufern"
+                ]
+              },
+              {
+                "label": "Akkusativ",
+                "cells": [
+                  "das Ufer",
+                  "die Ufer"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "das Ufer",
+            "die Bank",
+            "die Sandbank"
+          ],
+          "simple-translation": [
+            "der Rand von einem Fluss",
+            "wo man Geld hinbringt und Geld holt",
+            "eine Stelle mit Sand im Wasser, wo das Wasser nicht tief ist"
+          ]
+        }
+      }
+    },
+    {
+      "id": "real-run-praeteritum-haiku",
+      "split": "dev",
+      "key": "run",
+      "language": "en",
+      "generator": "claude-haiku-5-5",
+      "fault": "real",
+      "criteria": {
+        "sense": "pass",
+        "german": "fail",
+        "facets": "fail",
+        "examples": "pass",
+        "etymology": "pass",
+        "simple-translation": "pass",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {
+        "german": [
+          {
+            "why": "The Präteritum forms du rannst and ihr rannt are not German; they are du ranntest and ihr ranntet.",
+            "source": "DWDS, Konjugationstabelle: rennen"
+          }
+        ],
+        "facets": [
+          {
+            "facet": "conjugation",
+            "why": "The conjugation of rennen gives du rannst and ihr rannt in the Präteritum, where DWDS gives ranntest and ranntet.",
+            "source": "DWDS, Konjugationstabelle: rennen"
+          }
+        ]
+      },
+      "decided": "claude",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Englisch",
+          "key": "run",
+          "gramRole": "verb",
+          "meanings": [
+            "sich schnell zu Fuß fortbewegen",
+            "in Betrieb sein und funktionieren, etwa eine Maschine",
+            "ein Unternehmen, eine Organisation oder eine Veranstaltung leiten"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "I run every morning.",
+              "translation": "Ich renne jeden Morgen."
+            },
+            {
+              "sentence": "The engine runs smoothly.",
+              "translation": "Der Motor läuft reibungslos."
+            },
+            {
+              "sentence": "She runs a small company.",
+              "translation": "Sie leitet eine kleine Firma."
+            }
+          ],
+          "synonyms": [
+            "laufen",
+            "sprinten"
+          ],
+          "conjugation": {
+            "columns": [
+              "Präsens",
+              "Präteritum",
+              "Perfekt"
+            ],
+            "rows": [
+              {
+                "label": "ich",
+                "cells": [
+                  "renne",
+                  "rannte",
+                  "bin gerannt"
+                ]
+              },
+              {
+                "label": "du",
+                "cells": [
+                  "rennst",
+                  "rannst",
+                  "bist gerannt"
+                ]
+              },
+              {
+                "label": "er/sie/es",
+                "cells": [
+                  "rennt",
+                  "rannte",
+                  "ist gerannt"
+                ]
+              },
+              {
+                "label": "wir",
+                "cells": [
+                  "rennen",
+                  "rannten",
+                  "sind gerannt"
+                ]
+              },
+              {
+                "label": "ihr",
+                "cells": [
+                  "rennt",
+                  "rannt",
+                  "seid gerannt"
+                ]
+              },
+              {
+                "label": "sie/Sie",
+                "cells": [
+                  "rennen",
+                  "rannten",
+                  "sind gerannt"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "rennen",
+            "laufen",
+            "leiten"
+          ],
+          "etymology": {
+            "origins": [
+              "Althochdeutsch"
+            ],
+            "text": "Im Althochdeutschen als rennen belegt, ein Kausativ zu rinnen „fließen, laufen“. Es bedeutete zunächst „in Bewegung setzen, rasch laufen lassen“ und dann „schnell laufen“."
+          },
+          "simple-translation": [
+            "schnell laufen",
+            "gut arbeiten, so dass eine Maschine geht",
+            "etwas leiten, die Verantwortung für etwas haben"
+          ]
+        }
+      }
+    },
+    {
+      "id": "real-ufer-etymology-haiku",
+      "split": "dev",
+      "key": "Ufer",
+      "language": "en",
+      "generator": "claude-haiku-5-5",
+      "fault": "real",
+      "criteria": {
+        "sense": "pass",
+        "german": "pass",
+        "facets": "pass",
+        "examples": "pass",
+        "etymology": "fail",
+        "simple-translation": "pass",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {
+        "etymology": [
+          {
+            "why": "Gives Old High German ufar and says Ufer is related to über. Pfeifer gives no Old High German form (the word is only West Germanic and at first foreign to Upper German: mhd. uover, mnd. ōver) and derives it from ie. *āpero-, a comparative of *apo \"ab\", not from über.",
+            "source": "DWDS, Pfeifer: Ufer"
+          }
+        ]
+      },
+      "decided": "claude",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "Ufer",
+          "gramRole": "noun",
+          "meanings": [
+            "Rand eines Gewässers, etwa eines Flusses, Sees oder Meeres, wo das Land ans Wasser grenzt"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "das Ufer",
+            "plural": "die Ufer"
+          },
+          "examples": [
+            {
+              "sentence": "Wir spazierten am Ufer des Flusses entlang."
+            }
+          ],
+          "synonyms": [
+            "Gestade"
+          ],
+          "pronunciation": [
+            "das Ufer"
+          ],
+          "etymology": {
+            "origins": [
+              "Althochdeutsch",
+              "Mittelhochdeutsch"
+            ],
+            "text": "Aus althochdeutsch ufar und mittelhochdeutsch uover mit der Bedeutung „Rand, Ufer“. Das Wort ist mit „über“ verwandt."
+          },
+          "simple-translation": [
+            "der Rand von einem Fluss, See oder Meer, wo das Land ans Wasser kommt"
+          ],
+          "grammar-teacher": [
+            "Ufer ist ein Neutrum: das Ufer. Im Plural bleibt die Form ohne Endung: die Ufer."
+          ],
+          "declension": {
+            "columns": [
+              "Singular",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "Nominativ",
+                "cells": [
+                  "das Ufer",
+                  "die Ufer"
+                ]
+              },
+              {
+                "label": "Genitiv",
+                "cells": [
+                  "des Ufers",
+                  "der Ufer"
+                ]
+              },
+              {
+                "label": "Dativ",
+                "cells": [
+                  "dem Ufer",
+                  "den Ufern"
+                ]
+              },
+              {
+                "label": "Akkusativ",
+                "cells": [
+                  "das Ufer",
+                  "die Ufer"
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "real-fernweh-etymology-haiku",
+      "split": "dev",
+      "key": "Fernweh",
+      "language": "en",
+      "generator": "claude-haiku-5-5",
+      "fault": "real",
+      "criteria": {
+        "sense": "pass",
+        "german": "pass",
+        "facets": "pass",
+        "examples": "pass",
+        "etymology": "fail",
+        "simple-translation": "pass",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {
+        "etymology": [
+          {
+            "why": "Says Fernweh is attested from about 1900 and names Old High German as its origin. The DWDS historical corpus has it in Die Grenzboten in 1852, so the date is guessed, and a compound first found in the 19th century did not come from Old High German. Pfeifer has no entry for it.",
+            "source": "DWDS corpus (Deutsches Textarchiv): Fernweh, Die Grenzboten 1852"
+          }
+        ]
+      },
+      "decided": "claude",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "Fernweh",
+          "gramRole": "noun",
+          "meanings": [
+            "starkes Verlangen, in die Ferne zu reisen und fremde Orte kennenzulernen"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "das Fernweh"
+          },
+          "examples": [
+            {
+              "sentence": "Im Winter bekam ich großes Fernweh nach dem Meer."
+            },
+            {
+              "sentence": "Sein Fernweh führte ihn schließlich um die ganze Welt."
+            }
+          ],
+          "pronunciation": [
+            "das Fernweh"
+          ],
+          "etymology": {
+            "origins": [
+              "Althochdeutsch"
+            ],
+            "text": "Zusammensetzung aus „fern“ und „Weh“ (Schmerz, Sehnsucht), gebildet nach dem Vorbild von Heimweh. Das Wort ist seit etwa 1900 belegt."
+          },
+          "simple-translation": [
+            "die starke Sehnsucht, weit weg zu reisen und andere Länder zu sehen"
+          ],
+          "declension": {
+            "columns": [
+              "Singular",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "Nominativ",
+                "cells": [
+                  "das Fernweh",
+                  "—"
+                ]
+              },
+              {
+                "label": "Genitiv",
+                "cells": [
+                  "des Fernwehs",
+                  "—"
+                ]
+              },
+              {
+                "label": "Dativ",
+                "cells": [
+                  "dem Fernweh",
+                  "—"
+                ]
+              },
+              {
+                "label": "Akkusativ",
+                "cells": [
+                  "das Fernweh",
+                  "—"
+                ]
+              }
+            ]
+          },
+          "grammar-teacher": [
+            "Das Fernweh ist ein Neutrum: der Artikel lautet „das“.",
+            "Im Genitiv Singular steht die Endung -s: des Fernwehs.",
+            "Das Wort hat keinen Plural, weil es einen Gefühlszustand bezeichnet."
+          ]
+        }
+      }
+    },
+    {
+      "id": "real-schoen-grammar-teacher-haiku",
+      "split": "dev",
+      "key": "schön",
+      "language": "en",
+      "generator": "claude-haiku-5-5",
+      "fault": "real",
+      "criteria": {
+        "sense": "pass",
+        "german": "pass",
+        "facets": "pass",
+        "examples": "pass",
+        "etymology": "pass",
+        "simple-translation": "pass",
+        "grammar-teacher": "weak"
+      },
+      "reasons": {
+        "grammar-teacher": [
+          {
+            "why": "The point that schön forms its comparative without an umlaut is true but empty: its vowel is already ö, so no learner could expect one.",
+            "source": "judgement call"
+          }
+        ]
+      },
+      "decided": "claude",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "schön",
+          "gramRole": "adjective",
+          "meanings": [
+            "von ansprechender Form oder Erscheinung, die den Sinnen gefällt",
+            "angenehm, erfreulich, gut"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "Sie trägt ein schönes Kleid."
+            },
+            {
+              "sentence": "Heute ist das Wetter wirklich schön."
+            }
+          ],
+          "synonyms": [
+            "hübsch",
+            "reizvoll"
+          ],
+          "antonyms": [
+            "hässlich",
+            "unschön"
+          ],
+          "declension": {
+            "columns": [
+              "Maskulinum",
+              "Femininum",
+              "Neutrum",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "stark Nominativ",
+                "cells": [
+                  "schöner",
+                  "schöne",
+                  "schönes",
+                  "schöne"
+                ]
+              },
+              {
+                "label": "stark Genitiv",
+                "cells": [
+                  "schönen",
+                  "schöner",
+                  "schönen",
+                  "schöner"
+                ]
+              },
+              {
+                "label": "stark Dativ",
+                "cells": [
+                  "schönem",
+                  "schöner",
+                  "schönem",
+                  "schönen"
+                ]
+              },
+              {
+                "label": "stark Akkusativ",
+                "cells": [
+                  "schönen",
+                  "schöne",
+                  "schönes",
+                  "schöne"
+                ]
+              },
+              {
+                "label": "schwach Nominativ",
+                "cells": [
+                  "schöne",
+                  "schöne",
+                  "schöne",
+                  "schönen"
+                ]
+              },
+              {
+                "label": "schwach Genitiv",
+                "cells": [
+                  "schönen",
+                  "schönen",
+                  "schönen",
+                  "schönen"
+                ]
+              },
+              {
+                "label": "schwach Dativ",
+                "cells": [
+                  "schönen",
+                  "schönen",
+                  "schönen",
+                  "schönen"
+                ]
+              },
+              {
+                "label": "schwach Akkusativ",
+                "cells": [
+                  "schönen",
+                  "schöne",
+                  "schöne",
+                  "schönen"
+                ]
+              },
+              {
+                "label": "gemischt Nominativ",
+                "cells": [
+                  "schöner",
+                  "schöne",
+                  "schönes",
+                  "schönen"
+                ]
+              },
+              {
+                "label": "gemischt Genitiv",
+                "cells": [
+                  "schönen",
+                  "schönen",
+                  "schönen",
+                  "schönen"
+                ]
+              },
+              {
+                "label": "gemischt Dativ",
+                "cells": [
+                  "schönen",
+                  "schönen",
+                  "schönen",
+                  "schönen"
+                ]
+              },
+              {
+                "label": "gemischt Akkusativ",
+                "cells": [
+                  "schönen",
+                  "schöne",
+                  "schönes",
+                  "schönen"
+                ]
+              }
+            ]
+          },
+          "comparison": {
+            "positive": "schön",
+            "comparative": "schöner",
+            "superlative": "am schönsten"
+          },
+          "pronunciation": [
+            "schön"
+          ],
+          "etymology": {
+            "origins": [
+              "Germanisch",
+              "Althochdeutsch",
+              "Mittelhochdeutsch"
+            ],
+            "text": "Das Wort geht auf althochdeutsch scōni und mittelhochdeutsch schoene zurück, eigentlich „anzusehen, glänzend“. Es gehört zum Verb schauen."
+          },
+          "simple-translation": [
+            "so, dass es den Augen gut gefällt",
+            "angenehm und gut, so dass man sich freut"
+          ],
+          "grammar-teacher": [
+            "Die Steigerung bildet sich ohne Umlaut: schön, schöner, am schönsten.",
+            "Das Adjektiv richtet seine Endung nach Genus, Kasus und Numerus des Bezugswortes: ein schönes Haus, mit einem schönen Haus."
+          ]
+        }
+      }
+    },
+    {
+      "id": "real-depaysement-synonym-haiku",
+      "split": "dev",
+      "key": "dépaysement",
+      "language": "en",
+      "generator": "claude-haiku-5-5",
+      "fault": "real",
+      "criteria": {
+        "sense": "pass",
+        "german": "pass",
+        "facets": "weak",
+        "examples": "pass",
+        "etymology": "pass",
+        "simple-translation": "pass",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {
+        "facets": [
+          {
+            "facet": "synonyms",
+            "why": "Wechsel is broader than Abwechslung in the sense of a change of scene, a near-synonym at best; the synonym group DWDS shows for Abwechslung does not list it.",
+            "source": "DWDS: Abwechslung (bedeutungsverwandte Ausdrücke)"
+          }
+        ]
+      },
+      "decided": "claude",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Französisch",
+          "key": "dépaysement",
+          "gramRole": "noun",
+          "meanings": [
+            "Abwechslung durch einen Ortswechsel, bei dem man die gewohnte Umgebung hinter sich lässt",
+            "Gefühl der Fremdheit und Orientierungslosigkeit an einem ungewohnten Ort"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "die Abwechslung",
+            "plural": "die Abwechslungen"
+          },
+          "examples": [
+            {
+              "sentence": "Le voyage m'a apporté un vrai dépaysement.",
+              "translation": "Die Reise hat mir eine richtige Abwechslung gebracht."
+            },
+            {
+              "sentence": "Dans cette ville inconnue, j'ai ressenti un étrange dépaysement.",
+              "translation": "In dieser unbekannten Stadt spürte ich ein seltsames Fremdheitsgefühl."
+            }
+          ],
+          "synonyms": [
+            "Wechsel",
+            "Tapetenwechsel"
+          ],
+          "antonyms": [
+            "Eintönigkeit"
+          ],
+          "declension": {
+            "columns": [
+              "Singular",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "Nominativ",
+                "cells": [
+                  "die Abwechslung",
+                  "die Abwechslungen"
+                ]
+              },
+              {
+                "label": "Genitiv",
+                "cells": [
+                  "der Abwechslung",
+                  "der Abwechslungen"
+                ]
+              },
+              {
+                "label": "Dativ",
+                "cells": [
+                  "der Abwechslung",
+                  "den Abwechslungen"
+                ]
+              },
+              {
+                "label": "Akkusativ",
+                "cells": [
+                  "die Abwechslung",
+                  "die Abwechslungen"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "die Abwechslung",
+            "das Fremdheitsgefühl"
+          ],
+          "etymology": {
+            "origins": [
+              "Althochdeutsch",
+              "Mittelhochdeutsch"
+            ],
+            "text": "Das Wort gehört zu abwechseln und damit zu wechseln, das auf althochdeutsch wehsal „Tausch, Wechsel“ zurückgeht. Abwechslung bezeichnet das Hin und Her eines Wechsels."
+          },
+          "simple-translation": [
+            "etwas Neues sehen, weil man an einem anderen Ort ist und das Gewohnte hinter sich lässt",
+            "ein Gefühl, dass man fremd ist und sich an einem Ort nicht auskennt"
+          ]
+        }
+      }
+    },
+    {
+      "id": "real-ich-habe-fernweh-word-order-haiku",
+      "split": "dev",
+      "key": "Ich habe Fernweh.",
+      "language": "en",
+      "generator": "claude-haiku-5-5",
+      "fault": "real",
+      "criteria": {
+        "sense": "pass",
+        "german": "pass",
+        "facets": "pass",
+        "examples": "pass",
+        "etymology": "pass",
+        "simple-translation": "pass",
+        "grammar-teacher": "fail"
+      },
+      "reasons": {
+        "grammar-teacher": [
+          {
+            "why": "Says Fernweh stands after the verb because it is the accusative object. It stands there because the verb takes second place in a main clause, and the object may open the sentence (Fernweh habe ich). It also calls the one word Fernweh a Wortgruppe.",
+            "source": "judgement call"
+          }
+        ]
+      },
+      "decided": "claude",
+      "card": {
+        "core": {
+          "kind": "sentence",
+          "language": "Deutsch",
+          "key": "Ich habe Fernweh.",
+          "meanings": [
+            "Ich sehne mich danach, weit weg zu reisen und fremde Orte und Länder kennenzulernen."
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "Ich habe Lust auf eine lange Reise."
+            }
+          ],
+          "pronunciation": [
+            "Ich habe Fernweh"
+          ],
+          "simple-translation": [
+            "Ich möchte sehr gern in die Ferne reisen und andere Orte sehen."
+          ],
+          "grammar-teacher": [
+            "Das Verb „haben“ ist unregelmäßig: ich habe, du hast, er hat, im Satz steht es an zweiter Stelle.",
+            "„Fernweh“ ist ein Neutrum (das Fernweh) und wird nur im Singular verwendet, ohne Plural.",
+            "Die Wortgruppe „Fernweh“ ist hier das Akkusativobjekt, deshalb steht sie nach dem Verb."
+          ]
+        }
+      }
+    },
+    {
+      "id": "real-gehen-simple-translation-haiku",
+      "split": "dev",
+      "key": "gehen",
+      "language": "en",
+      "generator": "claude-haiku-5-5",
+      "fault": "real",
+      "criteria": {
+        "sense": "pass",
+        "german": "pass",
+        "facets": "pass",
+        "examples": "pass",
+        "etymology": "pass",
+        "simple-translation": "fail",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {
+        "simple-translation": [
+          {
+            "why": "The fourth line, sagen, wie es jemandem geht, describes telling how someone is, not the meaning it restates, being in a state; a learner would read gehen as a verb of saying.",
+            "source": "judgement call"
+          }
+        ]
+      },
+      "decided": "claude",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "gehen",
+          "gramRole": "verb",
+          "meanings": [
+            "sich mit den Beinen fortbewegen, Schritt für Schritt vorankommen",
+            "den Ort verlassen und sich entfernen, weggehen",
+            "funktionieren, in Betrieb sein oder richtig arbeiten",
+            "sich in einem bestimmten Zustand befinden, besonders im Hinblick auf das Befinden"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "Wir gehen zu Fuß zur Schule."
+            },
+            {
+              "sentence": "Er geht um acht Uhr aus dem Haus."
+            },
+            {
+              "sentence": "Der Computer geht nicht mehr."
+            },
+            {
+              "sentence": "Wie geht es dir heute?"
+            }
+          ],
+          "synonyms": [
+            "laufen",
+            "schreiten"
+          ],
+          "antonyms": [
+            "bleiben",
+            "kommen"
+          ],
+          "conjugation": {
+            "columns": [
+              "Präsens",
+              "Präteritum",
+              "Perfekt"
+            ],
+            "rows": [
+              {
+                "label": "ich",
+                "cells": [
+                  "gehe",
+                  "ging",
+                  "bin gegangen"
+                ]
+              },
+              {
+                "label": "du",
+                "cells": [
+                  "gehst",
+                  "gingst",
+                  "bist gegangen"
+                ]
+              },
+              {
+                "label": "er/sie/es",
+                "cells": [
+                  "geht",
+                  "ging",
+                  "ist gegangen"
+                ]
+              },
+              {
+                "label": "wir",
+                "cells": [
+                  "gehen",
+                  "gingen",
+                  "sind gegangen"
+                ]
+              },
+              {
+                "label": "ihr",
+                "cells": [
+                  "geht",
+                  "gingt",
+                  "seid gegangen"
+                ]
+              },
+              {
+                "label": "sie/Sie",
+                "cells": [
+                  "gehen",
+                  "gingen",
+                  "sind gegangen"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "gehen"
+          ],
+          "etymology": {
+            "origins": [
+              "Althochdeutsch"
+            ],
+            "text": "Aus althochdeutsch gān „schreiten, gehen“, dessen weitere Herkunft nicht sicher geklärt ist."
+          },
+          "simple-translation": [
+            "sich mit den Beinen bewegen und einen Schritt nach dem anderen machen",
+            "den Ort verlassen und von dort weg sein",
+            "funktionieren und richtig arbeiten",
+            "sagen, wie es jemandem geht und wie er sich fühlt"
+          ],
+          "grammar-teacher": [
+            "Unregelmäßiges (starkes) Verb: Im Präteritum heißt es „ging“, das Partizip II lautet „gegangen“.",
+            "Das Perfekt bildet es mit „sein“: Ich bin nach Hause gegangen.",
+            "In der Frage „Wie geht es dir?“ steht „es“ als unpersönliches Subjekt, das nicht übersetzt werden muss."
+          ]
+        }
+      }
+    },
+    {
+      "id": "real-sich-freuen-simple-translation-haiku",
+      "split": "dev",
+      "key": "sich freuen",
+      "language": "en",
+      "generator": "claude-haiku-5-5",
+      "fault": "real",
+      "criteria": {
+        "sense": "pass",
+        "german": "pass",
+        "facets": "pass",
+        "examples": "pass",
+        "etymology": "pass",
+        "simple-translation": "weak",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {
+        "simple-translation": [
+          {
+            "why": "The second line, sich innerlich darauf einstellen, uses words well above A2 where sich auf etwas freuen, das bald kommt, would do.",
+            "source": "judgement call"
+          }
+        ]
+      },
+      "decided": "claude",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "sich freuen",
+          "gramRole": "verb",
+          "meanings": [
+            "Freude empfinden und glücklich oder erfreut sein, etwa über eine gute Nachricht",
+            "sich auf etwas Kommendes innerlich einstellen und es gern erwarten"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "Ich freue mich über das Geschenk."
+            },
+            {
+              "sentence": "Wir freuen uns auf die Ferien."
+            }
+          ],
+          "synonyms": [
+            "sich erfreuen"
+          ],
+          "antonyms": [
+            "sich betrüben"
+          ],
+          "conjugation": {
+            "columns": [
+              "Präsens",
+              "Präteritum",
+              "Perfekt"
+            ],
+            "rows": [
+              {
+                "label": "ich",
+                "cells": [
+                  "freue mich",
+                  "freute mich",
+                  "habe mich gefreut"
+                ]
+              },
+              {
+                "label": "du",
+                "cells": [
+                  "freust dich",
+                  "freutest dich",
+                  "hast dich gefreut"
+                ]
+              },
+              {
+                "label": "er/sie/es",
+                "cells": [
+                  "freut sich",
+                  "freute sich",
+                  "hat sich gefreut"
+                ]
+              },
+              {
+                "label": "wir",
+                "cells": [
+                  "freuen uns",
+                  "freuten uns",
+                  "haben uns gefreut"
+                ]
+              },
+              {
+                "label": "ihr",
+                "cells": [
+                  "freut euch",
+                  "freutet euch",
+                  "habt euch gefreut"
+                ]
+              },
+              {
+                "label": "sie/Sie",
+                "cells": [
+                  "freuen sich",
+                  "freuten sich",
+                  "haben sich gefreut"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "sich freuen"
+          ],
+          "etymology": {
+            "origins": [
+              "Althochdeutsch",
+              "Mittelhochdeutsch"
+            ],
+            "text": "Das Verb geht auf althochdeutsch frouwen und mittelhochdeutsch vröuwen zurück, die „froh machen, erfreuen“ bedeuteten und zu froh gehören. Die reflexive Form „sich freuen“ bekam später die Bedeutung „froh sein“."
+          },
+          "simple-translation": [
+            "glücklich sein, weil etwas Schönes passiert ist",
+            "sich innerlich darauf einstellen, dass etwas Schönes kommt, und sich darauf schon jetzt gut fühlen"
+          ],
+          "grammar-teacher": [
+            "Reflexives Verb: „sich freuen“ steht immer mit einem Reflexivpronomen im Akkusativ, zum Beispiel „ich freue mich“.",
+            "Die Präposition bestimmt den Fall: „sich über etwas freuen“ und „sich auf etwas freuen“ verlangen beide den Akkusativ.",
+            "Im Perfekt steht immer „haben“: Ich habe mich gefreut."
+          ]
+        }
+      }
+    },
+    {
+      "id": "real-junge-garbled-haiku",
+      "split": "dev",
+      "key": "Junge",
+      "language": "en",
+      "generator": "claude-haiku-5-5",
+      "fault": "real",
+      "criteria": {
+        "sense": "pass",
+        "german": "fail",
+        "facets": "pass",
+        "examples": "pass",
+        "etymology": "fail",
+        "simple-translation": "fail",
+        "grammar-teacher": "fail"
+      },
+      "reasons": {
+        "german": [
+          {
+            "why": "The simple translation contains Mjunge, which is not a German word.",
+            "source": "DWDS: no entry for Mjunge"
+          }
+        ],
+        "etymology": [
+          {
+            "why": "Says the noun first meant a young person in general and later the male child. Pfeifer gives mhd. junge m. as \"Jüngling, junger Mann, Jünger\", and Junge \"Kind männlichen Geschlechts\" as a 16th-century shortening of phrases such as der junge Knabe; the general first sense is guessed.",
+            "source": "DWDS, Pfeifer: jung"
+          }
+        ],
+        "simple-translation": [
+          {
+            "why": "The first line, ein Kind, das ein Mjunge ist, is garbled and explains the word with itself.",
+            "source": "DWDS: no entry for Mjunge"
+          }
+        ],
+        "grammar-teacher": [
+          {
+            "why": "Says the plural ends in -en in every case except the nominative; the nominative plural die Jungen ends in -en too.",
+            "source": "DWDS: Junge (Nominativ Plural Jungen)"
+          }
+        ]
+      },
+      "decided": "claude",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "Junge",
+          "gramRole": "noun",
+          "meanings": [
+            "männliches Kind oder männlicher Jugendlicher",
+            "Jungtier, besonders von Säugetieren"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "der Junge",
+            "plural": "die Jungen"
+          },
+          "examples": [
+            {
+              "sentence": "Der Junge spielt im Garten."
+            },
+            {
+              "sentence": "Die Hündin hat fünf Junge geworfen."
+            }
+          ],
+          "synonyms": [
+            "Knabe",
+            "Bub"
+          ],
+          "declension": {
+            "columns": [
+              "Singular",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "Nominativ",
+                "cells": [
+                  "der Junge",
+                  "die Jungen"
+                ]
+              },
+              {
+                "label": "Genitiv",
+                "cells": [
+                  "des Jungen",
+                  "der Jungen"
+                ]
+              },
+              {
+                "label": "Dativ",
+                "cells": [
+                  "dem Jungen",
+                  "den Jungen"
+                ]
+              },
+              {
+                "label": "Akkusativ",
+                "cells": [
+                  "den Jungen",
+                  "die Jungen"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "der Junge",
+            "das Junge"
+          ],
+          "etymology": {
+            "origins": [
+              "Althochdeutsch",
+              "Mittelhochdeutsch"
+            ],
+            "text": "Es ist eine Substantivierung des Adjektivs jung, mittelhochdeutsch junc, das im Althochdeutschen als jung bezeugt ist. Ursprünglich bezeichnete es einen jungen Menschen allgemein, später den männlichen Nachwuchs."
+          },
+          "simple-translation": [
+            "ein Kind, das ein Mjunge ist, also ein Bub oder ein junger Mann",
+            "ein junges Tier, besonders ein Säugetier"
+          ],
+          "grammar-teacher": [
+            "Genus: Der Junge meint einen Menschen (Maskulinum), das Junge meint ein Jungtier (Neutrum).",
+            "Schwache Deklination: Im Singular endet das Wort außer im Nominativ auf -en, etwa des Jungen, dem Jungen, den Jungen.",
+            "Im Plural lautet es in allen Fällen außer dem Nominativ mit -en: die Jungen, der Jungen, den Jungen."
+          ]
+        }
+      }
+    },
+    {
+      "id": "real-wegen-etymology-haiku",
+      "split": "dev",
+      "key": "wegen",
+      "language": "en",
+      "generator": "claude-haiku-5-5",
+      "fault": "real",
+      "criteria": {
+        "sense": "pass",
+        "german": "pass",
+        "facets": "pass",
+        "examples": "pass",
+        "etymology": "fail",
+        "simple-translation": "pass",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {
+        "etymology": [
+          {
+            "why": "Glosses mhd. wegen as \"um des Weges willen\". Pfeifer: late mhd. wegen is shortened from von … wegen \"von … Seiten\", the dative plural of wec in the sense \"Ort, Stelle, Seite\".",
+            "source": "DWDS, Pfeifer: Weg (wegen)"
+          }
+        ]
+      },
+      "decided": "claude",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "wegen",
+          "gramRole": "preposition",
+          "meanings": [
+            "aufgrund von etwas; aus dem Grund, dass etwas der Ursache ist",
+            "um einer Person oder Sache willen; zum Vorteil oder im Interesse von jemandem"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "Wegen des Regens bleiben wir zu Hause."
+            },
+            {
+              "sentence": "Ich habe das wegen dir gemacht."
+            }
+          ],
+          "synonyms": [
+            "aufgrund",
+            "infolge"
+          ],
+          "case": [
+            {
+              "case": "Genitiv",
+              "use": "Grund oder Ursache, in der Standardsprache",
+              "example": "wegen des schlechten Wetters"
+            },
+            {
+              "case": "Dativ",
+              "use": "Grund oder Ursache, umgangssprachlich",
+              "example": "wegen dem Wetter"
+            }
+          ],
+          "pronunciation": [
+            "wegen"
+          ],
+          "simple-translation": [
+            "Man sagt damit, warum etwas passiert.",
+            "Man sagt damit, für wen oder was etwas gemacht wird."
+          ],
+          "grammar-teacher": [
+            "Präposition mit Genitiv: Das Nomen danach steht im Genitiv, etwa „wegen des Regens“.",
+            "Umgangssprachlich wird „wegen“ oft mit dem Dativ verwendet: „wegen dem Regen“; in der Standardsprache bleibt man beim Genitiv.",
+            "Bei Personalpronomen steht „wegen“ mit den Formen „meinetwegen“, „deinetwegen“, „seinetwegen“, „ihretwegen“, „unseretwegen“, „euretwegen“, „ihretwegen“ oder „Ihretwegen“."
+          ],
+          "etymology": {
+            "origins": [
+              "Mittelhochdeutsch"
+            ],
+            "text": "Aus mittelhochdeutsch wëgen, einer Form zu Weg, ursprünglich in der Bedeutung „um des Weges willen“. Daraus entwickelte sich die heutige Bedeutung von Grund und Ursache."
+          }
+        }
+      }
+    },
+    {
+      "id": "real-ba-praeteritum-haiku",
+      "split": "dev",
+      "key": "把",
+      "language": "en",
+      "generator": "claude-haiku-5-5",
+      "fault": "real",
+      "criteria": {
+        "sense": "pass",
+        "german": "fail",
+        "facets": "fail",
+        "examples": "pass",
+        "etymology": "pass",
+        "simple-translation": "pass",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {
+        "german": [
+          {
+            "why": "The du form of the Präteritum is written hielst; it is hieltest or hieltst.",
+            "source": "DWDS, Konjugationstabelle: halten"
+          }
+        ],
+        "facets": [
+          {
+            "facet": "conjugation",
+            "why": "The conjugation of halten gives du hielst in the Präteritum, where DWDS gives hieltest or hieltst.",
+            "source": "DWDS, Konjugationstabelle: halten"
+          }
+        ]
+      },
+      "decided": "claude",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Chinesisch",
+          "key": "把",
+          "romanization": "bǎ",
+          "gramRole": "verb",
+          "meanings": [
+            "fassen, halten, anfassen (mit der Hand greifen)",
+            "Zählwort für Gegenstände mit Griff oder Henkel, zum Beispiel Schirme, Stühle oder Messer",
+            "Markiert im Satz das Objekt, das vor dem Verb steht und durch die Handlung verändert wird"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "他用手把住栏杆。",
+              "translation": "Er hält das Geländer mit der Hand fest."
+            },
+            {
+              "sentence": "一把椅子",
+              "translation": "ein Stuhl"
+            },
+            {
+              "sentence": "我把书放在桌子上。",
+              "translation": "Ich lege das Buch auf den Tisch."
+            }
+          ],
+          "synonyms": [
+            "festhalten",
+            "umfassen"
+          ],
+          "antonyms": [
+            "loslassen"
+          ],
+          "conjugation": {
+            "columns": [
+              "Präsens",
+              "Präteritum",
+              "Perfekt"
+            ],
+            "rows": [
+              {
+                "label": "ich",
+                "cells": [
+                  "halte",
+                  "hielt",
+                  "habe gehalten"
+                ]
+              },
+              {
+                "label": "du",
+                "cells": [
+                  "hältst",
+                  "hielst",
+                  "hast gehalten"
+                ]
+              },
+              {
+                "label": "er/sie/es",
+                "cells": [
+                  "hält",
+                  "hielt",
+                  "hat gehalten"
+                ]
+              },
+              {
+                "label": "wir",
+                "cells": [
+                  "halten",
+                  "hielten",
+                  "haben gehalten"
+                ]
+              },
+              {
+                "label": "ihr",
+                "cells": [
+                  "haltet",
+                  "hieltet",
+                  "habt gehalten"
+                ]
+              },
+              {
+                "label": "sie/Sie",
+                "cells": [
+                  "halten",
+                  "hielten",
+                  "haben gehalten"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "halten",
+            "Stück"
+          ],
+          "etymology": {
+            "origins": [
+              "Germanisch",
+              "Althochdeutsch"
+            ],
+            "text": "Aus althochdeutsch haltan „festhalten, bewahren“, verwandt mit altenglisch healdan. Die Bedeutung blieb im Kern gleich: etwas festhalten oder bewahren."
+          },
+          "simple-translation": [
+            "etwas mit der Hand festhalten oder anfassen",
+            "ein Wort für Dinge mit einem Griff, zum Beispiel für Schirme oder Stühle",
+            "ein Wort im Satz, das zeigt, dass das Ding vor dem Verb steht und durch die Handlung verändert wird"
+          ]
+        }
+      }
+    },
+    {
+      "id": "real-kafei-etymology-haiku",
+      "split": "dev",
+      "key": "咖啡",
+      "language": "en",
+      "generator": "claude-haiku-5-5",
+      "fault": "real",
+      "criteria": {
+        "sense": "pass",
+        "german": "pass",
+        "facets": "fail",
+        "examples": "pass",
+        "etymology": "fail",
+        "simple-translation": "pass",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {
+        "facets": [
+          {
+            "facet": "declension",
+            "why": "The declension writes — for every plural form, as if Kaffee had none; DWDS gives the plural Kaffees.",
+            "source": "DWDS: Kaffee (Nominativ Plural Kaffees)"
+          },
+          {
+            "facet": "article",
+            "why": "The article leaves out the plural die Kaffees, which DWDS gives; the facet leaves out a plural only when the noun has none.",
+            "source": "DWDS: Kaffee (Nominativ Plural Kaffees)"
+          }
+        ],
+        "etymology": [
+          {
+            "why": "Says Kaffee came into German in the 17th century through Italian or Dutch. Pfeifer: it was borrowed in the 17th century from French café and English coffee, which go back to Turkish kahve and Arabic qahwa.",
+            "source": "DWDS, Pfeifer: Kaffee"
+          }
+        ]
+      },
+      "decided": "claude",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Chinesisch",
+          "key": "咖啡",
+          "romanization": "kāfēi",
+          "gramRole": "noun",
+          "meanings": [
+            "Kaffee, ein aus gerösteten Kaffeebohnen gebrühtes Getränk"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "der Kaffee"
+          },
+          "examples": [
+            {
+              "sentence": "咖啡很香。",
+              "translation": "Der Kaffee riecht gut."
+            }
+          ],
+          "declension": {
+            "columns": [
+              "Singular",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "Nominativ",
+                "cells": [
+                  "der Kaffee",
+                  "—"
+                ]
+              },
+              {
+                "label": "Genitiv",
+                "cells": [
+                  "des Kaffees",
+                  "—"
+                ]
+              },
+              {
+                "label": "Dativ",
+                "cells": [
+                  "dem Kaffee",
+                  "—"
+                ]
+              },
+              {
+                "label": "Akkusativ",
+                "cells": [
+                  "den Kaffee",
+                  "—"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "der Kaffee"
+          ],
+          "etymology": {
+            "origins": [
+              "Arabisch",
+              "Türkisch"
+            ],
+            "text": "Aus arabisch qahwa über türkisch kahve, im 17. Jahrhundert über das Italienische oder Niederländische ins Deutsche gelangt."
+          },
+          "simple-translation": [
+            "ein Getränk, das man aus gerösteten Kaffeebohnen und heißem Wasser macht"
+          ]
+        }
+      }
+    },
+    {
+      "id": "real-jingji-etymology-haiku",
+      "split": "dev",
+      "key": "经济",
+      "language": "en",
+      "generator": "claude-haiku-5-5",
+      "fault": "real",
+      "criteria": {
+        "sense": "pass",
+        "german": "pass",
+        "facets": "fail",
+        "examples": "pass",
+        "etymology": "fail",
+        "simple-translation": "pass",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {
+        "facets": [
+          {
+            "facet": "article",
+            "why": "The article gives only die Wirtschaft, though DWDS gives the plural Wirtschaften; the facet leaves out a plural only when the noun has none.",
+            "source": "DWDS: Wirtschaft (Nominativ Plural Wirtschaften)"
+          }
+        ],
+        "etymology": [
+          {
+            "why": "Says Wirtschaft first meant the household and farm, then the running and yield of a farm. Pfeifer: ahd. wirtscaft meant \"Gastfreundschaft, Bewirtung, Mahl, Speisen\"; \"Haushalt\" comes in the 17th century and the economic sense in the 19th.",
+            "source": "DWDS, Pfeifer: Wirtschaft"
+          }
+        ]
+      },
+      "decided": "claude",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Chinesisch",
+          "key": "经济",
+          "romanization": "jīngjì",
+          "gramRole": "noun",
+          "meanings": [
+            "Gesamtheit der Produktion, Verteilung und des Verbrauchs von Gütern in einem Land oder Gebiet",
+            "sparsam, wenig Kosten verursachend"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "die Wirtschaft"
+          },
+          "examples": [
+            {
+              "sentence": "中国的经济发展很快。",
+              "translation": "Die Wirtschaft Chinas entwickelt sich sehr schnell."
+            },
+            {
+              "sentence": "这台车很经济。",
+              "translation": "Dieses Auto ist im Verbrauch sehr sparsam."
+            }
+          ],
+          "pronunciation": [
+            "die Wirtschaft",
+            "sparsam"
+          ],
+          "etymology": {
+            "origins": [
+              "Althochdeutsch"
+            ],
+            "text": "Aus althochdeutsch wirt „Hausherr“ und dem Suffix -schaft; zunächst bezeichnete es das Haus- und Hofwesen, später die Verwaltung und den Ertrag eines Hofes."
+          },
+          "simple-translation": [
+            "die Art, wie in einem Land Geld, Waren und Arbeit hergestellt und verwendet werden",
+            "so, dass man wenig Geld ausgibt"
+          ]
+        }
+      }
+    },
+    {
+      "id": "real-tea-tee-essen-haiku",
+      "split": "dev",
+      "key": "tea",
+      "language": "en",
+      "generator": "claude-haiku-5-5",
+      "fault": "real",
+      "criteria": {
+        "sense": "pass",
+        "german": "fail",
+        "facets": "fail",
+        "examples": "pass",
+        "etymology": "pass",
+        "simple-translation": "pass",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {
+        "german": [
+          {
+            "why": "The translation Wir essen um fünf Uhr Tee is not natural German: one drinks Tee, or says es gibt um fünf Uhr Tee.",
+            "source": "judgement call"
+          }
+        ],
+        "facets": [
+          {
+            "facet": "article",
+            "why": "The article gives only der Tee, though DWDS gives the plural Tees; the facet leaves out a plural only when the noun has none.",
+            "source": "DWDS: Tee (Nominativ Plural Tees)"
+          }
+        ]
+      },
+      "decided": "claude",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Englisch",
+          "key": "tea",
+          "gramRole": "noun",
+          "meanings": [
+            "Getränk aus den Blättern der Teepflanze, mit heißem Wasser aufgegossen",
+            "leichte Mahlzeit am späten Nachmittag oder frühen Abend, besonders in Großbritannien"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "der Tee"
+          },
+          "examples": [
+            {
+              "sentence": "I'd like a cup of tea, please.",
+              "translation": "Ich hätte gern eine Tasse Tee, bitte."
+            },
+            {
+              "sentence": "We have tea at five o'clock.",
+              "translation": "Wir essen um fünf Uhr Tee."
+            }
+          ],
+          "pronunciation": [
+            "der Tee",
+            "das Abendbrot"
+          ],
+          "etymology": {
+            "origins": [
+              "Chinesisch",
+              "Malaiisch",
+              "Niederländisch"
+            ],
+            "text": "Aus niederländisch thee, das über malaiisch teh auf eine südchinesische Mundart zurückgeht; holländische Seefahrer brachten das Getränk und seinen Namen im 17. Jahrhundert nach Europa."
+          },
+          "simple-translation": [
+            "ein warmes Getränk, das man aus Blättern von einer Pflanze macht, die man in heißes Wasser legt",
+            "eine kleine Mahlzeit am späten Nachmittag oder frühen Abend, vor allem in Großbritannien"
+          ]
+        }
+      }
+    },
+    {
+      "id": "real-tollpatsch-simple-translation-haiku",
+      "split": "dev",
+      "key": "Tollpatsch",
+      "language": "en",
+      "generator": "claude-haiku-5-5",
+      "fault": "real",
+      "criteria": {
+        "sense": "pass",
+        "german": "pass",
+        "facets": "pass",
+        "examples": "pass",
+        "etymology": "pass",
+        "simple-translation": "weak",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {
+        "simple-translation": [
+          {
+            "why": "dadurch Dinge kaputt macht narrows the meaning, a clumsy person who often causes mishaps: a mishap need not break anything.",
+            "source": "judgement call"
+          }
+        ]
+      },
+      "decided": "claude",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Deutsch",
+          "key": "Tollpatsch",
+          "gramRole": "noun",
+          "meanings": [
+            "ungeschickter Mensch, der oft Missgeschicke verursacht"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "der Tollpatsch",
+            "plural": "die Tollpatsche"
+          },
+          "examples": [
+            {
+              "sentence": "Er ist ein richtiger Tollpatsch und stößt ständig an die Türrahmen."
+            }
+          ],
+          "synonyms": [
+            "Tölpel",
+            "Trampel"
+          ],
+          "declension": {
+            "columns": [
+              "Singular",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "Nominativ",
+                "cells": [
+                  "der Tollpatsch",
+                  "die Tollpatsche"
+                ]
+              },
+              {
+                "label": "Genitiv",
+                "cells": [
+                  "des Tollpatsches",
+                  "der Tollpatsche"
+                ]
+              },
+              {
+                "label": "Dativ",
+                "cells": [
+                  "dem Tollpatsch",
+                  "den Tollpatschen"
+                ]
+              },
+              {
+                "label": "Akkusativ",
+                "cells": [
+                  "den Tollpatsch",
+                  "die Tollpatsche"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "Tollpatsch"
+          ],
+          "simple-translation": [
+            "eine Person, die oft ungeschickt ist und dadurch Dinge kaputt macht"
+          ],
+          "grammar-teacher": [
+            "Maskulinum: Der Tollpatsch bekommt im Genitiv Singular die Endung -es: des Tollpatsches.",
+            "Im Plural endet das Wort auf -e: die Tollpatsche, im Dativ Plural auf -en: den Tollpatschen."
+          ]
+        }
+      }
+    },
+    {
+      "id": "real-colour-synonym-haiku",
+      "split": "dev",
+      "key": "colour",
+      "language": "en",
+      "generator": "claude-haiku-5-5",
+      "fault": "real",
+      "criteria": {
+        "sense": "pass",
+        "german": "pass",
+        "facets": "weak",
+        "examples": "pass",
+        "etymology": "pass",
+        "simple-translation": "pass",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {
+        "facets": [
+          {
+            "facet": "synonyms",
+            "why": "Tönung is a tint or shade of a colour, not a colour: DWDS gives \"Färbung, farbliche Schattierung\". A near-synonym.",
+            "source": "DWDS: Tönung"
+          }
+        ]
+      },
+      "decided": "claude",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Englisch",
+          "key": "colour",
+          "gramRole": "noun",
+          "meanings": [
+            "Farbe, der Eindruck, den Licht im Auge hervorruft, zum Beispiel Rot oder Blau",
+            "Hautfarbe eines Menschen",
+            "Farbstoff, mit dem man malt oder etwas färbt"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "die Farbe",
+            "plural": "die Farben"
+          },
+          "examples": [
+            {
+              "sentence": "The colour of the sky is blue.",
+              "translation": "Die Farbe des Himmels ist blau."
+            },
+            {
+              "sentence": "Her skin colour is very light.",
+              "translation": "Ihre Hautfarbe ist sehr hell."
+            },
+            {
+              "sentence": "The artist mixed the colours on the palette.",
+              "translation": "Der Künstler mischte die Farben auf der Palette."
+            }
+          ],
+          "synonyms": [
+            "Farbton",
+            "Tönung"
+          ],
+          "declension": {
+            "columns": [
+              "Singular",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "Nominativ",
+                "cells": [
+                  "die Farbe",
+                  "die Farben"
+                ]
+              },
+              {
+                "label": "Genitiv",
+                "cells": [
+                  "der Farbe",
+                  "der Farben"
+                ]
+              },
+              {
+                "label": "Dativ",
+                "cells": [
+                  "der Farbe",
+                  "den Farben"
+                ]
+              },
+              {
+                "label": "Akkusativ",
+                "cells": [
+                  "die Farbe",
+                  "die Farben"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "die Farbe",
+            "die Hautfarbe"
+          ],
+          "etymology": {
+            "origins": [
+              "Germanisch",
+              "Althochdeutsch",
+              "Mittelhochdeutsch"
+            ],
+            "text": "Im Althochdeutschen als farawa und im Mittelhochdeutschen als varwe bezeugt. Die genaue Herkunft aus einer germanischen Wortgruppe ist nicht sicher geklärt."
+          },
+          "simple-translation": [
+            "Der Eindruck, den Licht im Auge macht, zum Beispiel Rot oder Blau",
+            "Die Farbe der Haut eines Menschen",
+            "Stoff, mit dem man malt oder etwas anmalt"
+          ]
+        }
+      }
+    },
+    {
+      "id": "real-color-synonym-haiku",
+      "split": "dev",
+      "key": "color",
+      "language": "en",
+      "generator": "claude-haiku-5-5",
+      "fault": "real",
+      "criteria": {
+        "sense": "pass",
+        "german": "pass",
+        "facets": "weak",
+        "examples": "pass",
+        "etymology": "pass",
+        "simple-translation": "pass",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {
+        "facets": [
+          {
+            "facet": "synonyms",
+            "why": "Tönung is a tint or shade of a colour, not a colour: DWDS gives \"Färbung, farbliche Schattierung\". A near-synonym.",
+            "source": "DWDS: Tönung"
+          }
+        ]
+      },
+      "decided": "claude",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Englisch",
+          "key": "color",
+          "gramRole": "noun",
+          "meanings": [
+            "Die Eigenschaft eines Gegenstands, die durch das von ihm reflektierte Licht entsteht und vom Auge als Farbe wahrgenommen wird",
+            "Die Farbe der menschlichen Haut",
+            "Etwas mit Farbe versehen, bemalen oder färben (als Verb)"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "die Farbe",
+            "plural": "die Farben"
+          },
+          "examples": [
+            {
+              "sentence": "What color is your car?",
+              "translation": "Welche Farbe hat dein Auto?"
+            },
+            {
+              "sentence": "Her skin color is light.",
+              "translation": "Ihre Hautfarbe ist hell."
+            },
+            {
+              "sentence": "We color the eggs at Easter.",
+              "translation": "Wir färben die Eier zu Ostern."
+            }
+          ],
+          "synonyms": [
+            "Farbton",
+            "Tönung"
+          ],
+          "declension": {
+            "columns": [
+              "Singular",
+              "Plural"
+            ],
+            "rows": [
+              {
+                "label": "Nominativ",
+                "cells": [
+                  "die Farbe",
+                  "die Farben"
+                ]
+              },
+              {
+                "label": "Genitiv",
+                "cells": [
+                  "der Farbe",
+                  "der Farben"
+                ]
+              },
+              {
+                "label": "Dativ",
+                "cells": [
+                  "der Farbe",
+                  "den Farben"
+                ]
+              },
+              {
+                "label": "Akkusativ",
+                "cells": [
+                  "die Farbe",
+                  "die Farben"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "die Farbe",
+            "die Hautfarbe",
+            "färben"
+          ],
+          "simple-translation": [
+            "Das, was man an Dingen sieht, zum Beispiel rot, blau oder grün",
+            "Die Farbe der Haut von einem Menschen",
+            "Etwas bunt machen, indem man es mit Farbe anmalt"
+          ]
+        }
+      }
+    },
+    {
+      "id": "real-apartment-calque-haiku",
+      "split": "dev",
+      "key": "apartment",
+      "language": "en",
+      "generator": "claude-haiku-5-5",
+      "fault": "real",
+      "criteria": {
+        "sense": "pass",
+        "german": "fail",
+        "facets": "pass",
+        "examples": "pass",
+        "etymology": "pass",
+        "simple-translation": "pass",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {
+        "german": [
+          {
+            "why": "ein Satz Räume in the meaning copies English \"a set of rooms\"; German does not speak of a flat that way (mehrere Räume, zusammenhängende Räume).",
+            "source": "judgement call"
+          }
+        ]
+      },
+      "decided": "claude",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Englisch",
+          "key": "apartment",
+          "gramRole": "noun",
+          "meanings": [
+            "Wohnung, ein Satz Räume zum Wohnen in einem größeren Gebäude"
+          ]
+        },
+        "facets": {
+          "article": {
+            "singular": "die Wohnung",
+            "plural": "die Wohnungen"
+          },
+          "examples": [
+            {
+              "sentence": "She rents an apartment in the city centre.",
+              "translation": "Sie mietet eine Wohnung in der Innenstadt."
+            }
+          ],
+          "synonyms": [
+            "Behausung",
+            "Bleibe"
+          ],
+          "pronunciation": [
+            "die Wohnung"
+          ],
+          "etymology": {
+            "origins": [
+              "Althochdeutsch"
+            ],
+            "text": "Die Wohnung ist eine Bildung zu wohnen, althochdeutsch wonunga, mit der Bedeutung „Aufenthalt, Wohnsitz“."
+          },
+          "simple-translation": [
+            "Räume zum Wohnen, die in einem großen Haus liegen"
+          ]
+        }
+      }
+    },
+    {
+      "id": "real-get-up-praeteritum-haiku",
+      "split": "dev",
+      "key": "get up",
+      "language": "en",
+      "generator": "claude-haiku-5-5",
+      "fault": "real",
+      "criteria": {
+        "sense": "pass",
+        "german": "fail",
+        "facets": "fail",
+        "examples": "pass",
+        "etymology": "pass",
+        "simple-translation": "pass",
+        "grammar-teacher": "pass"
+      },
+      "reasons": {
+        "german": [
+          {
+            "why": "The du form of the Präteritum is given as stand auf; it is standest auf or standst auf.",
+            "source": "DWDS, Konjugationstabelle: aufstehen"
+          }
+        ],
+        "facets": [
+          {
+            "facet": "conjugation",
+            "why": "The conjugation of aufstehen gives du stand auf in the Präteritum, where DWDS gives standest auf or standst auf.",
+            "source": "DWDS, Konjugationstabelle: aufstehen"
+          }
+        ]
+      },
+      "decided": "claude",
+      "card": {
+        "core": {
+          "kind": "word",
+          "language": "Englisch",
+          "key": "get up",
+          "gramRole": "verb",
+          "meanings": [
+            "aufstehen, aus dem Bett oder aus dem Sitzen hochkommen",
+            "hinaufsteigen, eine Treppe oder einen Berg hinaufgehen",
+            "sich verkleiden, sich als jemand anderes anziehen"
+          ]
+        },
+        "facets": {
+          "examples": [
+            {
+              "sentence": "I get up at seven every day.",
+              "translation": "Ich stehe jeden Tag um sieben Uhr auf."
+            },
+            {
+              "sentence": "We had to get up the steep hill on foot.",
+              "translation": "Wir mussten den steilen Hügel zu Fuß hinaufsteigen."
+            },
+            {
+              "sentence": "He got up as a pirate for the party.",
+              "translation": "Er hat sich für die Party als Pirat verkleidet."
+            }
+          ],
+          "synonyms": [
+            "sich erheben"
+          ],
+          "antonyms": [
+            "sich hinsetzen"
+          ],
+          "conjugation": {
+            "columns": [
+              "Präsens",
+              "Präteritum",
+              "Perfekt"
+            ],
+            "rows": [
+              {
+                "label": "ich",
+                "cells": [
+                  "stehe auf",
+                  "stand auf",
+                  "bin aufgestanden"
+                ]
+              },
+              {
+                "label": "du",
+                "cells": [
+                  "stehst auf",
+                  "stand auf",
+                  "bist aufgestanden"
+                ]
+              },
+              {
+                "label": "er/sie/es",
+                "cells": [
+                  "steht auf",
+                  "stand auf",
+                  "ist aufgestanden"
+                ]
+              },
+              {
+                "label": "wir",
+                "cells": [
+                  "stehen auf",
+                  "standen auf",
+                  "sind aufgestanden"
+                ]
+              },
+              {
+                "label": "ihr",
+                "cells": [
+                  "steht auf",
+                  "standet auf",
+                  "seid aufgestanden"
+                ]
+              },
+              {
+                "label": "sie/Sie",
+                "cells": [
+                  "stehen auf",
+                  "standen auf",
+                  "sind aufgestanden"
+                ]
+              }
+            ]
+          },
+          "pronunciation": [
+            "aufstehen",
+            "hinaufsteigen",
+            "sich verkleiden"
+          ],
+          "simple-translation": [
+            "vom Bett oder vom Stuhl hochkommen, nicht mehr liegen oder sitzen",
+            "eine Treppe oder einen Berg nach oben gehen",
+            "sich anziehen wie eine andere Person, zum Beispiel für ein Fest"
           ]
         }
       }
