@@ -57,7 +57,6 @@ The facets criterion covers synonyms, antonyms, pronunciation and the grammar fa
 | Fails on each other criterion (sense, german, examples, simple-translation, grammar-teacher) | at least 3 each | at least 2 each | at least 25 |
 | Fails on each open facet under the facets criterion (synonyms, antonyms, pronunciation) | at least 3 each | at least 2 each | at least 15 |
 | Expect weak | about 10 | about 5 | about 15 |
-| Closed-facet cards (article, declension, conjugation, comparison, case) | 4 | 2 | 6 |
 | Messy cards | 40 | 32 | 72 |
 
 That is about 115 graded cards and 72 messy ones, close to a third held out. The minimums count criteria and facets, not cards, so one card may count toward two minimums when it has two real faults. The closed facets have no minimum here, because the step 1 scorer measures them; their few cards are a second check on the judge.
@@ -74,11 +73,11 @@ These numbers are small. With 2 to 4 held-out fails on a facet, one miss moves i
 
 **Weak cards** come first from the criteria whose rubric defines weak: simple-translation (words above A2), grammar-teacher (a trivial point) and facets (a near-synonym). At least 2 each.
 
-**Closed-facet cards** carry the step 1 scorer's result on the same card. Step 3 compares the judge's verdict with it.
+**Closed facets** need no cards of their own. Graded cards already carry article, declension and conjugation faults, and step 3 runs the step 1 scorer on the calibration cards to compare its verdicts with the judge's.
 
 ## Where the cards come from
 
-**Generators.** Cards are written by Haiku 5.5 and Gemini 4 Argon on OpenCode Go, and by Opus 5.5 through the file route used for the 2026-11-24 benchmark (`.data/bench/opus.mjs`). At most a third of the graded cards come from Opus. Opus is the judge measured in step 3, and a model tends to grade its own writing kindly. Step 3 reports agreement per generator, so any such lean shows.
+**Generators.** Graded cards are written by Haiku 5.5 and Gemini 4 Argon on OpenCode Go. Opus 5.5 writes only messy cards, through the file route used for the 2026-11-24 benchmark. Opus is the judge measured in step 3, and a model tends to grade its own writing kindly, so none of the graded cards are its own. Step 3 reports agreement per generator, so any such lean shows.
 
 **Pass cards** come from runs of the three generators on the new golden set. Every line of every criterion is checked against a source before the card is labelled pass.
 
@@ -156,7 +155,7 @@ One PR, with no extension change, so no test build. Tasks 4 and 5 are the long o
 
 - Verdicts per criterion replace verdicts per card, in every module's calibration file, so one format holds.
 - The held-out part follows the golden set's split instead of a separate draw.
-- At most a third of graded cards are written by Opus.
+- No graded card is written by Opus; Haiku and Argon give enough faults and passes. Opus writes only messy cards.
 - DWDS with Pfeifer is the main source. Duden and Kluge only through the owner.
 - The messy-input section of the rubric is written from dev cards only.
 - Haiku and Opus write the messy cards. Argon is left out there to keep the owner's review at 72 cards.
@@ -166,4 +165,3 @@ One PR, with no extension change, so no test build. Tasks 4 and 5 are the long o
 ## Open questions for the owner
 
 1. **Duden and Kluge.** Do you have access, to settle the cases where DWDS and Wiktionary disagree on an origin?
-2. Is a third the right cap on Opus-written cards?
