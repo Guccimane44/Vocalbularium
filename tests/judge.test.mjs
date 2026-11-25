@@ -53,6 +53,32 @@ test('every calibration file reads, and each module\'s set has passing cards tha
   }
 });
 
+// v0.17.0 step 2: enough fails on each criterion and open facet that each part
+// alone, the held-out part above all, can show a judge is blind to one.
+const MINIMUM_FAILS = {
+  etymology: { dev: 6, 'held-out': 4 },
+  ...Object.fromEntries(['sense', 'german', 'examples', 'simple-translation', 'grammar-teacher', 'facets/synonyms', 'facets/antonyms', 'facets/pronunciation']
+    .map(key => [key, { dev: 3, 'held-out': 2 }]))
+};
+
+test('German\'s calibration set has the minimum fails per criterion and open facet in each part', async () => {
+  const set = (await calibrations()).find(each => each.module === 'german');
+  assert.ok(set);
+  const fails = new Map();
+  for (const card of set.cards) {
+    if (!('criteria' in card)) continue;
+    for (const [criterion, verdict] of Object.entries(card.criteria)) {
+      if (verdict !== 'fail') continue;
+      const keys = criterion === 'facets' ? new Set(card.reasons.facets.map(reason => `facets/${reason.facet}`)) : [criterion];
+      for (const key of keys) fails.set(`${key} ${card.split}`, (fails.get(`${key} ${card.split}`) ?? 0) + 1);
+    }
+  }
+  const short = Object.entries(MINIMUM_FAILS).flatMap(([key, parts]) => Object.entries(parts)
+    .filter(([part, minimum]) => (fails.get(`${key} ${part}`) ?? 0) < minimum)
+    .map(([part, minimum]) => `${key} has ${fails.get(`${key} ${part}`) ?? 0} fails in the ${part} part, not ${minimum}; add real faults, or planted ones where none exist`));
+  assert.deepEqual(short, []);
+});
+
 // v0.17.0: a calibration card graded per criterion shows where the judge
 // fails a card for the wrong reason.
 const graded = async (criteria, reasons) => {
