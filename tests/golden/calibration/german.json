@@ -7,8 +7,10 @@
       "key": "bank",
       "context": "We sat on the bank and watched the river go by.",
       "language": "en",
-      "expected": "pass",
-      "why": "Recorded output, golden run 2026-10-30T17-25-27-661Z-en-german.json. Adapted for D29 (5 November 2026): the Context's sense moved to \"contextual\", and the other sense added to \"meanings\" with its example and pronunciation.",
+      "split": "dev",
+      "decided": "owner",
+      "verdict": "pass",
+      "reason": "Recorded output, golden run 2026-10-30T17-25-27-661Z-en-german.json. Adapted for D29 (5 November 2026): the Context's sense moved to \"contextual\", and the other sense added to \"meanings\" with its example and pronunciation.",
       "card": {
         "core": {
           "kind": "word",
@@ -87,8 +89,10 @@
       "id": "sentence-1",
       "key": "We sat on the bank and watched the river.",
       "language": "en",
-      "expected": "pass",
-      "why": "Recorded output, golden run 2026-11-03T19-57-22-113Z-en-german.json. A sentence's one example is a new sentence of the same structure, by design.",
+      "split": "dev",
+      "decided": "owner",
+      "verdict": "pass",
+      "reason": "Recorded output, golden run 2026-11-03T19-57-22-113Z-en-german.json. A sentence's one example is a new sentence of the same structure, by design.",
       "card": {
         "core": {
           "kind": "sentence",
@@ -115,8 +119,10 @@
       "id": "sentence-2",
       "key": "我真的很幸福",
       "language": "en",
-      "expected": "pass",
-      "why": "Recorded output, golden run 2026-11-03T19-57-22-113Z-en-german.json. A sentence's one example is a new sentence of the same structure, by design.",
+      "split": "dev",
+      "decided": "owner",
+      "verdict": "pass",
+      "reason": "Recorded output, golden run 2026-11-03T19-57-22-113Z-en-german.json. A sentence's one example is a new sentence of the same structure, by design.",
       "card": {
         "core": {
           "kind": "sentence",
@@ -144,8 +150,10 @@
       "id": "grammar-word",
       "key": "一举两得",
       "language": "en",
-      "expected": "pass",
-      "why": "Recorded output, golden run 2026-11-03T19-57-22-113Z-en-german.json. The conjugation is that of the German translation's verb, schlagen, by design.",
+      "split": "dev",
+      "decided": "owner",
+      "verdict": "pass",
+      "reason": "Recorded output, golden run 2026-11-03T19-57-22-113Z-en-german.json. The conjugation is that of the German translation's verb, schlagen, by design.",
       "card": {
         "core": {
           "kind": "word",
@@ -238,8 +246,10 @@
       "key": "bank",
       "context": "We sat on the bank and watched the river go by.",
       "language": "en",
-      "expected": "fail",
-      "why": "Seeded fault: The recorded card from before D29, which gives only the sense the Context uses: no \"contextual\", and the word's other, most common meaning is missing.",
+      "split": "dev",
+      "decided": "owner",
+      "verdict": "fail",
+      "reason": "Seeded fault: The recorded card from before D29, which gives only the sense the Context uses: no \"contextual\", and the word's other, most common meaning is missing.",
       "card": {
         "core": {
           "kind": "word",
@@ -312,8 +322,10 @@
       "id": "recorded-defect-run",
       "key": "run",
       "language": "en",
-      "expected": "fail",
-      "why": "Recorded defect: the recorded output conjugates ihr in the Präteritum as \"lief\"; it is \"lieft\". The review of 30 October missed it; the judge found it in its first calibration (3 November 2026).",
+      "split": "dev",
+      "decided": "owner",
+      "verdict": "fail",
+      "reason": "Recorded defect: the recorded output conjugates ihr in the Präteritum as \"lief\"; it is \"lieft\". The review of 30 October missed it; the judge found it in its first calibration (3 November 2026).",
       "card": {
         "core": {
           "kind": "word",
@@ -422,8 +434,10 @@
       "id": "recorded-3",
       "key": "serendipity",
       "language": "en",
-      "expected": "pass",
-      "why": "Recorded output, golden run 2026-10-30T17-25-27-661Z-en-german.json. Fixed on 2026-11-23 after the judges named real faults: loose synonyms (Glück, Zufall, Glücksumstand) and a non-opposite antonym (Missgeschick) removed.",
+      "split": "dev",
+      "decided": "owner",
+      "verdict": "pass",
+      "reason": "Recorded output, golden run 2026-10-30T17-25-27-661Z-en-german.json. Fixed on 2026-11-23 after the judges named real faults: loose synonyms (Glück, Zufall, Glücksumstand) and a non-opposite antonym (Missgeschick) removed.",
       "card": {
         "core": {
           "kind": "word",
@@ -504,8 +518,10 @@
       "id": "recorded-4",
       "key": "break the ice",
       "language": "en",
-      "expected": "pass",
-      "why": "Recorded output, golden run 2026-10-30T17-25-27-661Z-en-german.json.",
+      "split": "dev",
+      "decided": "owner",
+      "verdict": "pass",
+      "reason": "Recorded output, golden run 2026-10-30T17-25-27-661Z-en-german.json.",
       "card": {
         "core": {
           "kind": "word",
@@ -595,8 +611,10 @@
       "id": "recorded-5",
       "key": "beautiful",
       "language": "en",
-      "expected": "pass",
-      "why": "Recorded output, golden run 2026-10-30T17-25-27-661Z-en-german.json.",
+      "split": "dev",
+      "decided": "owner",
+      "verdict": "pass",
+      "reason": "Recorded output, golden run 2026-10-30T17-25-27-661Z-en-german.json.",
       "card": {
         "core": {
           "kind": "word",
@@ -757,8 +775,10 @@
       "id": "recorded-6",
       "key": "幸福",
       "language": "en",
-      "expected": "pass",
-      "why": "Recorded output, golden run 2026-10-30T17-25-27-661Z-en-german.json.",
+      "split": "dev",
+      "decided": "owner",
+      "verdict": "pass",
+      "reason": "Recorded output, golden run 2026-10-30T17-25-27-661Z-en-german.json.",
       "card": {
         "core": {
           "kind": "word",
@@ -845,8 +865,10 @@
       "id": "recorded-7",
       "key": "打算",
       "language": "en",
-      "expected": "pass",
-      "why": "Recorded output, golden run 2026-10-30T17-25-27-661Z-en-german.json.",
+      "split": "dev",
+      "decided": "owner",
+      "verdict": "pass",
+      "reason": "Recorded output, golden run 2026-10-30T17-25-27-661Z-en-german.json.",
       "card": {
         "core": {
           "kind": "word",
@@ -938,8 +960,10 @@
       "id": "recorded-8",
       "key": "Ufer",
       "language": "en",
-      "expected": "pass",
-      "why": "Recorded output, golden run 2026-10-30T17-25-27-661Z-en-german.json. Fixed on 2026-11-23 after the judges named real faults: loose synonyms (Küste, Strand, Bord, Rand) removed; Grammar teacher added, which a German key now gets.",
+      "split": "dev",
+      "decided": "owner",
+      "verdict": "pass",
+      "reason": "Recorded output, golden run 2026-10-30T17-25-27-661Z-en-german.json. Fixed on 2026-11-23 after the judges named real faults: loose synonyms (Küste, Strand, Bord, Rand) removed; Grammar teacher added, which a German key now gets.",
       "card": {
         "core": {
           "kind": "word",
@@ -1015,8 +1039,10 @@
       "key": "bank",
       "context": "We sat on the bank and watched the river go by.",
       "language": "en",
-      "expected": "fail",
-      "why": "Seeded fault: The Context is a river bank; the only meaning is the money sense.",
+      "split": "dev",
+      "decided": "owner",
+      "verdict": "fail",
+      "reason": "Seeded fault: The Context is a river bank; the only meaning is the money sense.",
       "card": {
         "core": {
           "kind": "word",
@@ -1090,8 +1116,10 @@
       "key": "bank",
       "context": "We sat on the bank and watched the river go by.",
       "language": "en",
-      "expected": "fail",
-      "why": "Seeded fault: Ufer is neuter: das Ufer, not der Ufer. Adapted for D29 (5 November 2026): the Context's sense moved to \"contextual\", and the other sense added to \"meanings\" with its example and pronunciation.",
+      "split": "dev",
+      "decided": "owner",
+      "verdict": "fail",
+      "reason": "Seeded fault: Ufer is neuter: das Ufer, not der Ufer. Adapted for D29 (5 November 2026): the Context's sense moved to \"contextual\", and the other sense added to \"meanings\" with its example and pronunciation.",
       "card": {
         "core": {
           "kind": "word",
@@ -1171,8 +1199,10 @@
       "key": "bank",
       "context": "We sat on the bank and watched the river go by.",
       "language": "en",
-      "expected": "fail",
-      "why": "Seeded fault: The translation says something else than its sentence. Adapted for D29 (5 November 2026): the Context's sense moved to \"contextual\", and the other sense added to \"meanings\" with its example and pronunciation.",
+      "split": "dev",
+      "decided": "owner",
+      "verdict": "fail",
+      "reason": "Seeded fault: The translation says something else than its sentence. Adapted for D29 (5 November 2026): the Context's sense moved to \"contextual\", and the other sense added to \"meanings\" with its example and pronunciation.",
       "card": {
         "core": {
           "kind": "word",
@@ -1252,8 +1282,10 @@
       "key": "bank",
       "context": "We sat on the bank and watched the river go by.",
       "language": "en",
-      "expected": "fail",
-      "why": "Seeded fault: The synonyms are antonyms. Adapted for D29 (5 November 2026): the Context's sense moved to \"contextual\", and the other sense added to \"meanings\" with its example and pronunciation.",
+      "split": "dev",
+      "decided": "owner",
+      "verdict": "fail",
+      "reason": "Seeded fault: The synonyms are antonyms. Adapted for D29 (5 November 2026): the Context's sense moved to \"contextual\", and the other sense added to \"meanings\" with its example and pronunciation.",
       "card": {
         "core": {
           "kind": "word",
@@ -1331,8 +1363,10 @@
       "id": "wrong-forms",
       "key": "run",
       "language": "en",
-      "expected": "fail",
-      "why": "Seeded fault: The ich row repeats the third person: ich spricht.",
+      "split": "dev",
+      "decided": "owner",
+      "verdict": "fail",
+      "reason": "Seeded fault: The ich row repeats the third person: ich spricht.",
       "card": {
         "core": {
           "kind": "word",
@@ -1441,8 +1475,10 @@
       "id": "sentence-translation",
       "key": "We sat on the bank and watched the river.",
       "language": "en",
-      "expected": "fail",
-      "why": "Seeded fault: the example's translation says she sat by the river, not that she stood on the bank and watched the boats.",
+      "split": "dev",
+      "decided": "owner",
+      "verdict": "fail",
+      "reason": "Seeded fault: the example's translation says she sat by the river, not that she stood on the bank and watched the boats.",
       "card": {
         "core": {
           "kind": "sentence",
@@ -1469,8 +1505,10 @@
       "id": "phrase-synonyms",
       "key": "break the ice",
       "language": "en",
-      "expected": "pass",
-      "why": "Recorded defect: golden run 2026-11-03T19-57-22-113Z-en-german.json. \"zerbrechen\" and \"knacken\" are synonyms of brechen alone, not of \"das Eis brechen\" or \"auflockern\". Relabelled on 2026-11-23 by the owner: the gate fails only fatal faults. Both words fit the card's literal meaning \"das Eis brechen\" loosely, so this is a weak fault, not a fatal one.",
+      "split": "dev",
+      "decided": "owner",
+      "verdict": "pass",
+      "reason": "Recorded defect: golden run 2026-11-03T19-57-22-113Z-en-german.json. \"zerbrechen\" and \"knacken\" are synonyms of brechen alone, not of \"das Eis brechen\" or \"auflockern\". Relabelled on 2026-11-23 by the owner: the gate fails only fatal faults. Both words fit the card's literal meaning \"das Eis brechen\" loosely, so this is a weak fault, not a fatal one.",
       "card": {
         "core": {
           "kind": "word",
@@ -1564,8 +1602,10 @@
       "id": "false-antonym",
       "key": "Ufer",
       "language": "en",
-      "expected": "fail",
-      "why": "Recorded defect: golden run 2026-11-03T19-57-22-113Z-en-german.json. \"Wasser\" is not an opposite of Ufer.",
+      "split": "dev",
+      "decided": "owner",
+      "verdict": "fail",
+      "reason": "Recorded defect: golden run 2026-11-03T19-57-22-113Z-en-german.json. \"Wasser\" is not an opposite of Ufer.",
       "card": {
         "core": {
           "kind": "word",
@@ -1642,8 +1682,10 @@
       "id": "etymology-grammar-word",
       "key": "打算",
       "language": "en",
-      "expected": "pass",
-      "why": "Recorded output, golden run 2026-11-07T15-25-47-457Z-en-german.json (0.16.4). Etymology describes planen, the grammar word, not the Chinese key, by design; Simple translation gives one A2 line per meaning.",
+      "split": "dev",
+      "decided": "owner",
+      "verdict": "pass",
+      "reason": "Recorded output, golden run 2026-11-07T15-25-47-457Z-en-german.json (0.16.4). Etymology describes planen, the grammar word, not the Chinese key, by design; Simple translation gives one A2 line per meaning.",
       "card": {
         "core": {
           "kind": "word",
@@ -1751,8 +1793,10 @@
       "id": "grammar-teacher-sentence",
       "key": "Ich habe Fernweh.",
       "language": "en",
-      "expected": "pass",
-      "why": "Recorded output, golden run 2026-11-07T15-25-47-457Z-en-german.json (0.16.4). A German sentence: Simple translation explains it simply, Grammar teacher's points are true of it.",
+      "split": "dev",
+      "decided": "owner",
+      "verdict": "pass",
+      "reason": "Recorded output, golden run 2026-11-07T15-25-47-457Z-en-german.json (0.16.4). A German sentence: Simple translation explains it simply, Grammar teacher's points are true of it.",
       "card": {
         "core": {
           "kind": "sentence",
@@ -1786,8 +1830,10 @@
       "id": "simple-translation-sentence",
       "key": "The committee postponed the decision indefinitely.",
       "language": "en",
-      "expected": "pass",
-      "why": "Recorded output, golden run 2026-11-07T15-25-47-457Z-en-german.json (0.16.4). A foreign sentence: one A2 line, no Grammar teacher, by design.",
+      "split": "dev",
+      "decided": "owner",
+      "verdict": "pass",
+      "reason": "Recorded output, golden run 2026-11-07T15-25-47-457Z-en-german.json (0.16.4). A foreign sentence: one A2 line, no Grammar teacher, by design.",
       "card": {
         "core": {
           "kind": "sentence",
@@ -1817,8 +1863,10 @@
       "id": "recorded-defect-etymology-key",
       "key": "window",
       "language": "en",
-      "expected": "fail",
-      "why": "Recorded defect: Etymology traces English window (Old Norse vindauga), not the grammar word Fenster (Latin fenestra). The prompt now names the grammar word as German and gives язык → Sprache as its case. From recorded output, golden run 2026-11-07T15-25-47-457Z-en-german.json (0.16.4).",
+      "split": "dev",
+      "decided": "owner",
+      "verdict": "fail",
+      "reason": "Recorded defect: Etymology traces English window (Old Norse vindauga), not the grammar word Fenster (Latin fenestra). The prompt now names the grammar word as German and gives язык → Sprache as its case. From recorded output, golden run 2026-11-07T15-25-47-457Z-en-german.json (0.16.4).",
       "card": {
         "core": {
           "kind": "word",
@@ -1909,8 +1957,10 @@
       "id": "wrong-grammar-point",
       "key": "Ich habe Fernweh.",
       "language": "en",
-      "expected": "fail",
-      "why": "Seeded fault: Grammar teacher calls Fernweh feminine; it is das Fernweh.",
+      "split": "dev",
+      "decided": "owner",
+      "verdict": "fail",
+      "reason": "Seeded fault: Grammar teacher calls Fernweh feminine; it is das Fernweh.",
       "card": {
         "core": {
           "kind": "sentence",
@@ -1944,8 +1994,10 @@
       "id": "invented-etymology",
       "key": "打算",
       "language": "en",
-      "expected": "fail",
-      "why": "Seeded fault: an invented etymology; planen comes from Plan (French plan, Latin planum), not from Chinese.",
+      "split": "dev",
+      "decided": "owner",
+      "verdict": "fail",
+      "reason": "Seeded fault: an invented etymology; planen comes from Plan (French plan, Latin planum), not from Chinese.",
       "card": {
         "core": {
           "kind": "word",
@@ -2052,8 +2104,10 @@
       "id": "simple-translation-wrong-sense",
       "key": "The committee postponed the decision indefinitely.",
       "language": "en",
-      "expected": "fail",
-      "why": "Seeded fault: Simple translation says the decision was made today; the sentence says it was put off without a date.",
+      "split": "dev",
+      "decided": "owner",
+      "verdict": "fail",
+      "reason": "Seeded fault: Simple translation says the decision was made today; the sentence says it was put off without a date.",
       "card": {
         "core": {
           "kind": "sentence",

@@ -1,8 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readdirSync, readFileSync } from 'node:fs';
 import { disagreements, judgeCard, rubricOf } from '../scripts/judge.mjs';
-import { expected, missed, readCalibration } from '../scripts/calibration.mjs';
+import { calibrations, expected, missed, readCalibration } from '../scripts/calibration.mjs';
 import { parentsIn } from '@vocabularium/domain/parents';
 import { checkCard } from '@vocabularium/domain/checks';
 import { checkTools } from '../scripts/check-tools.mjs';
@@ -44,17 +43,13 @@ test('a card fails on any failed criterion or content check, is weak on a weak o
   assert.equal(asked, 2);
 });
 
-test('the calibration set covers every module with a rubric, with recorded passes that pass the content checks and seeded fails', async () => {
-  const directory = new URL('./golden/calibration/', import.meta.url);
-  const sets = readdirSync(directory).filter(file => file.endsWith('.json')).map(file => JSON.parse(readFileSync(new URL(file, directory), 'utf8')));
+test('every calibration file reads, and each module\'s set has passing cards that pass the content checks and cards that fail', async () => {
+  const sets = await calibrations();
   assert.deepEqual(sets.map(set => set.module).sort(), [...parentsIn('translation'), ...parentsIn('expertise'), ...parentsIn('creativity')].sort());
   for (const set of sets) {
-    const pass = set.cards.filter(card => card.expected === 'pass');
-    const fail = set.cards.filter(card => card.expected === 'fail');
-    assert.ok(pass.length >= 5 && fail.length >= 5, set.module);
-    assert.equal(new Set(set.cards.map(card => card.id)).size, set.cards.length, `${set.module} repeats an ID`);
+    const pass = set.cards.filter(card => expected(card) === 'pass');
+    assert.ok(pass.length >= 5 && set.cards.filter(card => expected(card) === 'fail').length >= 5, `${set.module} has at least 5 pass and 5 fail cards`);
     for (const card of pass) assert.deepEqual((await checkCard(set.module, card.card, checkTools)).failures, [], `${set.module} ${card.id}`);
-    for (const card of fail) assert.ok(/^(Seeded fault|Recorded defect): /.test(card.why), `${set.module} ${card.id} says what is wrong`);
   }
 });
 

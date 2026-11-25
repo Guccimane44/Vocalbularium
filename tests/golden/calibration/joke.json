@@ -6,8 +6,10 @@
    "id": "recorded-1",
    "key": "autumn",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-11-07T15-50-16-702Z-en-joke.json, reviewed.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-11-07T15-50-16-702Z-en-joke.json, reviewed.",
    "card": {
     "core": {
      "language": "en",
@@ -26,8 +28,10 @@
    "key": "bank",
    "context": "We had a picnic on the bank of the river.",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-11-07T15-50-16-702Z-en-joke.json, reviewed.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-11-07T15-50-16-702Z-en-joke.json, reviewed.",
    "card": {
     "core": {
      "language": "en",
@@ -45,8 +49,10 @@
    "id": "recorded-3",
    "key": "The train was late again this morning.",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-11-07T15-50-16-702Z-en-joke.json, reviewed.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-11-07T15-50-16-702Z-en-joke.json, reviewed.",
    "card": {
     "core": {
      "language": "en",
@@ -63,8 +69,10 @@
    "id": "recorded-4",
    "key": "Schmetterling",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-11-07T15-50-16-702Z-en-joke.json, reviewed.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-11-07T15-50-16-702Z-en-joke.json, reviewed.",
    "card": {
     "core": {
      "language": "de",
@@ -81,8 +89,10 @@
    "id": "recorded-5",
    "key": "Ich habe meinen Schlüssel vergessen.",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-11-07T15-50-16-702Z-en-joke.json, reviewed.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-11-07T15-50-16-702Z-en-joke.json, reviewed.",
    "card": {
     "core": {
      "language": "de",
@@ -101,8 +111,10 @@
    "id": "recorded-6",
    "key": "月亮",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-11-07T15-50-16-702Z-en-joke.json, reviewed.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-11-07T15-50-16-702Z-en-joke.json, reviewed.",
    "card": {
     "core": {
      "language": "zh",
@@ -121,8 +133,10 @@
    "id": "recorded-7",
    "key": "地铁",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-11-07T15-50-16-702Z-en-joke.json, reviewed.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-11-07T15-50-16-702Z-en-joke.json, reviewed.",
    "card": {
     "core": {
      "language": "zh",
@@ -140,8 +154,10 @@
    "key": "café",
    "context": "On se retrouve au café ce soir ?",
    "language": "en",
-   "expected": "fail",
-   "why": "Recorded defect: the joke is about coffee, the drink, though the Context means the café as a place to meet.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Recorded defect: the joke is about coffee, the drink, though the Context means the café as a place to meet.",
    "card": {
     "core": {
      "language": "fr",
@@ -158,8 +174,10 @@
    "id": "seeded-1",
    "key": "autumn",
    "language": "en",
-   "expected": "fail",
-   "why": "Seeded fault: told in German for an English key.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Seeded fault: told in German for an English key.",
    "card": {
     "core": {
      "language": "en",
@@ -178,8 +196,10 @@
    "key": "bank",
    "context": "We had a picnic on the bank of the river.",
    "language": "en",
-   "expected": "fail",
-   "why": "Seeded fault: its target is a profession, bankers.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Seeded fault: its target is a profession, bankers.",
    "card": {
     "core": {
      "language": "en",
@@ -196,8 +216,10 @@
    "id": "seeded-3",
    "key": "Schmetterling",
    "language": "en",
-   "expected": "fail",
-   "why": "Seeded fault: nothing to do with the key, a butterfly.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Seeded fault: nothing to do with the key, a butterfly.",
    "card": {
     "core": {
      "language": "de",
@@ -215,8 +237,10 @@
    "key": "café",
    "context": "On se retrouve au café ce soir ?",
    "language": "en",
-   "expected": "fail",
-   "why": "Seeded fault: the joke is explained after its punchline.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Seeded fault: the joke is explained after its punchline.",
    "card": {
     "core": {
      "language": "fr",
@@ -234,8 +258,10 @@
    "id": "seeded-5",
    "key": "月亮",
    "language": "en",
-   "expected": "fail",
-   "why": "Seeded fault: a plain statement with no punchline.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Seeded fault: a plain statement with no punchline.",
    "card": {
     "core": {
      "language": "zh",
@@ -252,8 +278,10 @@
    "id": "seeded-6",
    "key": "The train was late again this morning.",
    "language": "en",
-   "expected": "fail",
-   "why": "Seeded fault: a pun that only works in German, told in English.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Seeded fault: a pun that only works in German, told in English.",
    "card": {
     "core": {
      "language": "en",

@@ -6,8 +6,10 @@
    "id": "recorded-1",
    "key": "combustion of methane",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-11-07T19-42-22-889Z-en-chemistry.json.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-11-07T19-42-22-889Z-en-chemistry.json.",
    "card": {
     "core": {
      "relevance": "subject",
@@ -46,8 +48,10 @@
    "id": "recorded-2",
    "key": "sodium chloride",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-11-07T19-42-22-889Z-en-chemistry.json.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-11-07T19-42-22-889Z-en-chemistry.json.",
    "card": {
     "core": {
      "relevance": "subject",
@@ -75,8 +79,10 @@
    "id": "recorded-3",
    "key": "electrolysis of water",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-11-07T19-42-22-889Z-en-chemistry.json.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-11-07T19-42-22-889Z-en-chemistry.json.",
    "card": {
     "core": {
      "relevance": "subject",
@@ -112,8 +118,10 @@
    "id": "recorded-4",
    "key": "electronegativity",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-11-07T19-42-22-889Z-en-chemistry.json.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-11-07T19-42-22-889Z-en-chemistry.json.",
    "card": {
     "core": {
      "relevance": "subject",
@@ -131,8 +139,10 @@
    "id": "recorded-5",
    "key": "chirality",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-11-07T19-42-22-889Z-en-chemistry.json.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-11-07T19-42-22-889Z-en-chemistry.json.",
    "card": {
     "core": {
      "relevance": "subject",
@@ -150,8 +160,10 @@
    "id": "recorded-6",
    "key": "mole",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-11-07T19-42-22-889Z-en-chemistry.json.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-11-07T19-42-22-889Z-en-chemistry.json.",
    "card": {
     "core": {
      "relevance": "subject",
@@ -170,8 +182,10 @@
    "key": "bond",
    "context": "A covalent bond forms when two atoms share a pair of electrons.",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-11-07T19-42-22-889Z-en-chemistry.json.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-11-07T19-42-22-889Z-en-chemistry.json.",
    "card": {
     "core": {
      "relevance": "subject",
@@ -189,8 +203,10 @@
    "id": "recorded-8",
    "key": "When hydrogen burns in oxygen, water is formed.",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-11-07T19-42-22-889Z-en-chemistry.json.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-11-07T19-42-22-889Z-en-chemistry.json.",
    "card": {
     "core": {
      "relevance": "subject",
@@ -226,8 +242,10 @@
    "id": "recorded-9",
    "key": "photon",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-11-07T19-42-22-889Z-en-chemistry.json.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-11-07T19-42-22-889Z-en-chemistry.json.",
    "card": {
     "core": {
      "relevance": "neighbouring",
@@ -243,8 +261,10 @@
    "id": "recorded-10",
    "key": "Frontend",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-11-07T19-42-22-889Z-en-chemistry.json.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-11-07T19-42-22-889Z-en-chemistry.json.",
    "card": {
     "core": {
      "relevance": "unrelated",
@@ -260,8 +280,10 @@
    "id": "wrong-product",
    "key": "combustion of methane",
    "language": "en",
-   "expected": "fail",
-   "why": "Seeded fault: Complete combustion of methane gives carbon dioxide, not carbon monoxide, and the equation is no longer balanced in oxygen.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Seeded fault: Complete combustion of methane gives carbon dioxide, not carbon monoxide, and the equation is no longer balanced in oxygen.",
    "card": {
     "core": {
      "relevance": "subject",
@@ -300,8 +322,10 @@
    "id": "wrong-species-name",
    "key": "sodium chloride",
    "language": "en",
-   "expected": "fail",
-   "why": "Seeded fault: NaCl is sodium chloride; sodium chlorate is NaClO3.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Seeded fault: NaCl is sodium chloride; sodium chlorate is NaClO3.",
    "card": {
     "core": {
      "relevance": "subject",
@@ -329,8 +353,10 @@
    "id": "factual-error",
    "key": "electronegativity",
    "language": "en",
-   "expected": "fail",
-   "why": "Seeded fault: A large difference makes a bond polar or ionic, and chlorine, not hydrogen, is the more electronegative atom.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Seeded fault: A large difference makes a bond polar or ionic, and chlorine, not hydrogen, is the more electronegative atom.",
    "card": {
     "core": {
      "relevance": "subject",
@@ -348,8 +374,10 @@
    "id": "invented-equation",
    "key": "chirality",
    "language": "en",
-   "expected": "fail",
-   "why": "Seeded fault: Chirality is a property of shape and has no equation; one was constructed, and its species is named after the concept.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Seeded fault: Chirality is a property of shape and has no equation; one was constructed, and its species is named after the concept.",
    "card": {
     "core": {
      "relevance": "subject",
@@ -377,8 +405,10 @@
    "id": "unrelated-as-subject",
    "key": "Frontend",
    "language": "en",
-   "expected": "fail",
-   "why": "Seeded fault: Frontend is unrelated to chemistry, yet explained as a chemistry concept.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Seeded fault: Frontend is unrelated to chemistry, yet explained as a chemistry concept.",
    "card": {
     "core": {
      "relevance": "subject",
@@ -395,8 +425,10 @@
    "id": "wrong-language",
    "key": "mole",
    "language": "en",
-   "expected": "fail",
-   "why": "Seeded fault: The interface language is English, but the explanation is German.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Seeded fault: The interface language is English, but the explanation is German.",
    "card": {
     "core": {
      "relevance": "subject",
@@ -414,8 +446,10 @@
    "id": "neighbouring-as-subject",
    "key": "photon",
    "language": "en",
-   "expected": "fail",
-   "why": "Seeded fault: A photon is a physics term, not a chemistry concept or a particle of an element, and photons do not combine with carbon dioxide.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Seeded fault: A photon is a physics term, not a chemistry concept or a particle of an element, and photons do not combine with carbon dioxide.",
    "card": {
     "core": {
      "relevance": "subject",
