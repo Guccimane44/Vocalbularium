@@ -27,8 +27,8 @@ This step builds a new set on which a judge blind to plausible faults shows up a
   "generator": "claude-haiku-5-5", "fault": "real",
   "criteria": { "sense": "pass", "german": "pass", "facets": "pass", "examples": "pass",
                 "etymology": "fail", "simple-translation": "pass", "grammar-teacher": "pass" },
-  "reasons": { "etymology": { "why": "Says Ufer comes from Latin ora; it is inherited, Middle Low German ōver.",
-                              "source": "DWDS, Pfeifer: Ufer" } },
+  "reasons": { "etymology": [ { "why": "Says Ufer comes from Latin ora; it is inherited, Middle Low German ōver.",
+                                "source": "DWDS, Pfeifer: Ufer" } ] },
   "decided": "claude",
   "card": { "core": {}, "facets": {} } }
 ```
@@ -37,7 +37,7 @@ This step builds a new set on which a judge blind to plausible faults shows up a
 - `generator` is the model that wrote the card.
 - `fault` is `real`, `planted` or absent (for a card with nothing wrong).
 - `criteria` grades every criterion of the module's rubric. A criterion that does not apply to the card (no Grammar teacher on an English key) is graded pass, because its absence is right.
-- `reasons` holds a reason and a source for every criterion graded weak or fail. Under the facets criterion, each reason also names its `facet` (`synonyms`, `antonyms`, `pronunciation`, `article`, `declension`, `conjugation`, `comparison` or `case`), so step 3 can count agreement and missed fails per facet. A facets criterion with faults in two facets has one reason for each.
+- `reasons` holds a list of reasons, each with its source, for every criterion graded weak or fail. Under the facets criterion, each reason also names its `facet` (`synonyms`, `antonyms`, `pronunciation`, `article`, `declension`, `conjugation`, `comparison` or `case`), so step 3 can count agreement and missed fails per facet. A facets criterion with faults in two facets has one reason for each.
 - `decided` says who settled the verdicts: `claude` for a draft the source supports, `owner` where the owner decided.
 - **Messy cards** carry `verdict` (the card as a whole) and `reason` from the owner, instead of `criteria`, because there is no source to grade them criterion by criterion. On these cards a missed fail is a card the judge did not fail.
 
@@ -123,7 +123,7 @@ The owner's answers are recorded on the cards (`"decided": "owner"`).
 ## Tooling
 
 - **The new card format in `scripts/judge.mjs`.** The calibration reads `criteria`, works out the card's verdict as the worst criterion, and counts a missed fail per criterion, and per facet from the `facet` field. `--part dev` runs the dev cards only. The full per-facet report, with held-out and pass/weak agreement, is built in step 3.
-- **A structure test** in `tests/judge.test.mjs`. For every calibration file it checks that each graded card grades every criterion of the module's rubric, that every weak or fail has a reason and a source, that every reason under the facets criterion names a facet the module has, and that a card's split matches its golden item's split. For German it also checks the minimums above, and its message names the criterion or facet and the part that falls short. Other modules' files move to the new format with their current card-level verdicts written out as criteria, so the test holds for them too; their minimums come in step 9.
+- **A structure test** in `tests/judge.test.mjs`. For every calibration file it checks that each graded card grades every criterion of the module's rubric, that every weak or fail has a reason and a source, that every reason under the facets criterion names a facet the module has, and that a card's split matches its golden item's split. For German it also checks the minimums above, and its message names the criterion or facet and the part that falls short. Every current card, in every module's file, moves to the new format graded as a whole: its verdict and reason are the old `expected` and `why`, its split is `dev`, and `decided` is `owner`, so the test holds for them too; other modules' minimums come in step 9.
 - **The review script** `scripts/calibration-review.mjs`, for the messy cards.
 - **Docs.** The calibration part of [quality gate](../../subsystems/quality-gate.md) describes verdicts per criterion, the held-out part and missed fails per criterion.
 
