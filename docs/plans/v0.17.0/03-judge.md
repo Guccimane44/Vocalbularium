@@ -1,13 +1,15 @@
-# Step 3: Qualify the judge (German)
+# Step 3: Measure the judge (German)
 
 Scope agreed in the [master plan](README.md). The full plan is written when this step starts.
 
-Opus 5.5 is the default judge (owner, 2026-11-24), run through headless Claude Code. This step builds the adapter the judge and gate need to call it, and qualifies it on the new calibration set. Only the held-out score counts. The bar stays at 90% agreement with no missed fails, and adds pass/weak agreement as a reported number.
+Opus 5.5 is the judge (owner, 2026-11-24), run through headless Claude Code. No stronger model is available, so this step does not choose a judge or decide whether Opus may judge. It measures where Opus's verdicts can be trusted on German, fixes what its instructions can fix, and records what is left, so steps 4 to 6 know how far to rely on its numbers.
 
-Haiku 5.5, Gemini 4 Argon and Kimi K3.1 Pro are calibrated on the same cards for comparison, and to choose the audit model (the second judge that only informs).
+- **Adapter.** Build what the judge and gate need to call Opus through headless Claude Code.
+- **Measure on the held-out cards.** Opus scores the calibration set without seeing the labels. Only the held-out cards count. The report gives agreement and missed fails per facet, not just one overall score, and pass/weak agreement as a separate number. 90% agreement with no missed fail stays the target for each facet, not a gate.
+- **Fix, then measure again.** Where Opus misses fails, change its instructions or German's `rubric.md`, tuning only against the cards that are not held out, and measure again on the held-out cards.
+- **Record what is left.** Each facet where Opus still misses fails is listed with what checks it instead: the step 1 scorer, a dictionary check, or the owner. Steps 4 to 6 read this list.
+- **Second check on closed facets.** The judge's verdicts on closed facets are compared with the step 1 scorer on the same cards.
+- **Audit model.** Gemini 4 Argon is the second judge, which only informs (owner, 2026-11-25). No other model is run on the calibration set. The gate's `AUDIT_MODEL` default moves from GPT-6 Luna to Argon, and the [quality gate](../../subsystems/quality-gate.md) page says so.
+- Judge output files named so parallel runs cannot overwrite each other.
 
-The judge's verdicts on closed facets are compared with the step 1 scorer on the same cards, as a second check on the judge.
-
-Also in this step: judge output files named so parallel runs cannot overwrite each other.
-
-**Check:** Opus qualifies for German on the held-out cards.
+**Check:** a per-facet report of Opus on German's held-out cards, kept as the baseline for later reruns, and the list of facets its verdicts do not cover.
