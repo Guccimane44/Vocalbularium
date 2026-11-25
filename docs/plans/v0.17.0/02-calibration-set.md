@@ -4,17 +4,17 @@ Draft, 2026-11-25. Part of the [v0.17.0 master plan](README.md). It starts from 
 
 ## What the set is for
 
-The calibration set is the test a judge must pass before its verdicts count. It holds cards whose right verdict a careful reviewer has already decided. The judge grades them without seeing those verdicts, and `npm run judge -- --calibrate german` compares the two.
+The calibration set measures how far a judge's verdicts can be trusted. It holds cards whose right verdict a careful reviewer has already decided. The judge grades them without seeing those verdicts, and `npm run judge -- --calibrate german` compares the two. Opus is the judge either way (owner, 2026-11-24). The set does not decide whether it may judge. It shows, criterion by criterion and facet by facet, where its verdicts hold and where something else must check them ([step 3](03-judge.md)).
 
 Today's German set has 27 cards and is too easy. Haiku passes it 27 out of 27, yet on real cards it misses guessed etymologies that Opus catches. Of its 13 fail cards, about 9 have an obvious planted fault. Only two touch etymology. No card expects weak. The judge prompt was tuned against these same cards.
 
-This step builds a new set that a judge blind to plausible faults fails. Step 3 then measures the Opus judge on it.
+This step builds a new set on which a judge blind to plausible faults shows up as blind. Step 3 then measures the Opus judge on it.
 
 ## What changes from today
 
 1. **A verdict per criterion, not per card.** The judge already grades each rubric criterion separately: sense, german, facets, examples, etymology, simple-translation and grammar-teacher. Today a card stores one verdict for the whole card. So a judge that fails an etymology card for the wrong reason, say the synonyms, still counts as right. The new cards store a verdict for every criterion. A card's overall verdict is no longer stored. It is the worst of its criteria, as the judge works it out.
-2. **A missed fail is counted per criterion.** A criterion labelled fail that the judge did not fail is a missed fail, even when the judge failed the card for another reason.
-3. **Real faults first, with a minimum per criterion.** Enough fails on each criterion that the held-out part alone can show a judge is blind to one.
+2. **A missed fail is counted per criterion, and per facet under the facets criterion.** A criterion labelled fail that the judge did not fail is a missed fail, even when the judge failed the card for another reason.
+3. **Real faults first, with a minimum per criterion and per open facet.** Enough fails on each that the held-out part alone can show a judge is blind to one.
 4. **Cards that expect weak**, so the line between pass and weak is tested.
 5. **A held-out part tied to the golden set's split.** A card made from a golden test item is held out. A card made from a dev item is dev.
 6. **Every verdict other than pass records its reason and its source.**
@@ -37,11 +37,16 @@ This step builds a new set that a judge blind to plausible faults fails. Step 3 
 - `generator` is the model that wrote the card.
 - `fault` is `real`, `planted` or absent (for a card with nothing wrong).
 - `criteria` grades every criterion of the module's rubric. A criterion that does not apply to the card (no Grammar teacher on an English key) is graded pass, because its absence is right.
-- `reasons` holds a reason and a source for every criterion graded weak or fail.
+- `reasons` holds a reason and a source for every criterion graded weak or fail. Under the facets criterion, each reason also names its `facet` (`synonyms`, `antonyms`, `pronunciation`, `article`, `declension`, `conjugation`, `comparison` or `case`), so step 3 can count agreement and missed fails per facet. A facets criterion with faults in two facets has one reason for each.
 - `decided` says who settled the verdicts: `claude` for a draft the source supports, `owner` where the owner decided.
 - **Messy cards** carry `verdict` (the card as a whole) and `reason` from the owner, instead of `criteria`, because there is no source to grade them criterion by criterion. On these cards a missed fail is a card the judge did not fail.
 
-The facets criterion covers synonyms, antonyms, pronunciation and the grammar facets. Its reasons name the facet, so the report can tell an antonym fault from a pronunciation fault.
+The facets criterion covers synonyms, antonyms, pronunciation and the grammar facets. Its `facet` field is what lets the report tell an antonym fault from a pronunciation fault.
+
+```json
+"reasons": { "facets": [ { "facet": "antonyms", "why": "Gives Wasser as the opposite of Ufer; it is related, not opposite.",
+                           "source": "judgement call" } ] }
+```
 
 ## How many cards, and which
 
@@ -49,12 +54,15 @@ The facets criterion covers synonyms, antonyms, pronunciation and the grammar fa
 | --- | --- | --- | --- |
 | Pass (nothing wrong) | about 30 | about 15 | about 45 |
 | Etymology fails | at least 6 | at least 4 | at least 10 |
-| Fails on each other criterion (sense, german, facets, examples, simple-translation, grammar-teacher) | at least 3 each | at least 2 each | at least 30 |
+| Fails on each other criterion (sense, german, examples, simple-translation, grammar-teacher) | at least 3 each | at least 2 each | at least 25 |
+| Fails on each open facet under the facets criterion (synonyms, antonyms, pronunciation) | at least 3 each | at least 2 each | at least 15 |
 | Expect weak | about 10 | about 5 | about 15 |
 | Closed-facet cards (article, declension, conjugation, comparison, case) | 4 | 2 | 6 |
 | Messy cards | 40 | 32 | 72 |
 
-That is about 105 graded cards and 72 messy ones, close to a third held out. The minimums count criteria, not cards, so one card may count toward two minimums when it has two real faults.
+That is about 115 graded cards and 72 messy ones, close to a third held out. The minimums count criteria and facets, not cards, so one card may count toward two minimums when it has two real faults. The closed facets have no minimum here, because the step 1 scorer measures them; their few cards are a second check on the judge.
+
+These numbers are small. With 2 to 4 held-out fails on a facet, one miss moves its agreement by 25 to 50 points. So step 3 reports counts ("missed 1 of 4"), not percentages alone.
 
 **Etymology fails** cover these kinds, each at least once:
 
@@ -63,8 +71,6 @@ That is about 105 graded cards and 72 messy ones, close to a third held out. The
 - a disputed origin stated as certain (Kitsch);
 - an etymology written for a word DWDS calls unclear, where the right card has none;
 - the etymology of the wrong word (English window, not Fenster).
-
-**Fails on the facets criterion** include at least one synonym, one antonym and one pronunciation fault.
 
 **Weak cards** come first from the criteria whose rubric defines weak: simple-translation (words above A2), grammar-teacher (a trivial point) and facets (a near-synonym). At least 2 each.
 
@@ -96,7 +102,7 @@ That is about 105 graded cards and 72 messy ones, close to a third held out. The
 
 Step 1 added 36 messy captures to the golden set: slang, typos, broken selections, made-up words, colloquial forms, and noise such as a hashtag or an emoji, in seven languages. They have no right answer and no dictionary to check against. The golden set gives the model no instruction on them, so it decides what to make of each one. The owner is the judge here.
 
-- **Cards.** Each messy item is generated once by Haiku and once by Opus, so the set holds a weaker and a stronger handling of the same capture: 72 cards.
+- **Cards.** Each messy item is generated once by Haiku and once by Opus, so the set holds a weaker and a stronger handling of the same capture: 72 cards. Half are Opus's own writing, above the third allowed for graded cards. That is fine for building the set, since the owner's verdicts do not depend on any judge. But step 3 reports agreement on messy cards separately for Haiku's and Opus's cards, so Opus grading its own cards kindly cannot hide in one number.
 - **Verdicts.** The owner gives every card pass, weak or fail, with a one-line reason. Claude drafts no verdict on these cards, so the owner's judgement is not anchored to one.
 - **Held out.** The 16 messy items in the golden test split give 32 held-out cards. The 20 dev items give 40 dev cards.
 - **What the reasons become.** Claude gathers the reasons from the **dev cards only** into a short section on messy input in German's `rubric.md`, which the owner approves. Step 3 gives that section to the judge. The held-out reasons are kept in the cards but not read while writing the section. Otherwise the rubric would be fitted to the held-out cards.
@@ -116,8 +122,8 @@ The owner's answers are recorded on the cards (`"decided": "owner"`).
 
 ## Tooling
 
-- **The new card format in `scripts/judge.mjs`.** The calibration reads `criteria`, works out the card's verdict as the worst criterion, and counts a missed fail per criterion. `--part dev` runs the dev cards only. Held-out agreement and pass/weak agreement are reported in step 3.
-- **A structure test** in `tests/judge.test.mjs`. For every calibration file it checks that each graded card grades every criterion of the module's rubric, that every weak or fail has a reason and a source, and that a card's split matches its golden item's split. For German it also checks the minimums above, and its message names the criterion and the part that falls short. Other modules' files move to the new format with their current card-level verdicts written out as criteria, so the test holds for them too; their minimums come in step 9.
+- **The new card format in `scripts/judge.mjs`.** The calibration reads `criteria`, works out the card's verdict as the worst criterion, and counts a missed fail per criterion, and per facet from the `facet` field. `--part dev` runs the dev cards only. The full per-facet report, with held-out and pass/weak agreement, is built in step 3.
+- **A structure test** in `tests/judge.test.mjs`. For every calibration file it checks that each graded card grades every criterion of the module's rubric, that every weak or fail has a reason and a source, that every reason under the facets criterion names a facet the module has, and that a card's split matches its golden item's split. For German it also checks the minimums above, and its message names the criterion or facet and the part that falls short. Other modules' files move to the new format with their current card-level verdicts written out as criteria, so the test holds for them too; their minimums come in step 9.
 - **The review script** `scripts/calibration-review.mjs`, for the messy cards.
 - **Docs.** The calibration part of [quality gate](../../subsystems/quality-gate.md) describes verdicts per criterion, the held-out part and missed fails per criterion.
 
@@ -139,7 +145,7 @@ One PR, with no extension change, so no test build. Tasks 4 and 5 are the long o
 
 - The structure test passes, and fails when an etymology fail is removed from the held-out part (shown in the PR).
 - The owner has gone through the review list and given a verdict on every messy card.
-- **The set is hard enough.** Haiku as judge, on the dev part, is not calibrated, and misses at least one etymology fail. If it is still calibrated, the set is still too easy.
+- **The set is hard enough.** Haiku as judge, on the dev part, falls below the 90% agreement target or misses at least one fail, and among its misses is at least one etymology fail. Haiku is known to miss these, so if it misses none, the set is still too easy. This is a sign about the set, not a gate on any judge.
 - **The set is not wrongly strict.** Opus as judge, on the dev part, through the file route: every pass criterion it fails is rechecked against its source. A label changes only when the source shows it was wrong, never to match the judge.
 - No judge has been run on the held-out part. The first held-out run is step 3's.
 
@@ -151,9 +157,10 @@ One PR, with no extension change, so no test build. Tasks 4 and 5 are the long o
 - DWDS with Pfeifer is the main source. Duden and Kluge only through the owner.
 - The messy-input section of the rubric is written from dev cards only.
 - Haiku and Opus write the messy cards. Argon is left out there to keep the owner's review at 72 cards.
+- Weak has no bar. Step 3 reports pass/weak agreement per criterion and facet, as a number.
+- Minimums are set for the open facets under the facets criterion (synonyms, antonyms, pronunciation), not for the closed ones, which the step 1 scorer measures.
 
 ## Open questions for the owner
 
-1. **A bar for weak.** Today weak counts as pass, so a judge can grade every expected-weak card pass and still be calibrated. Should step 3 require it to grade at least half of the expected-weak criteria weak or fail? The default is to report the number without a bar.
-2. **Duden and Kluge.** Do you have access, to settle the cases where DWDS and Wiktionary disagree on an origin?
-3. Is a third the right cap on Opus-written cards?
+1. **Duden and Kluge.** Do you have access, to settle the cases where DWDS and Wiktionary disagree on an origin?
+2. Is a third the right cap on Opus-written cards?
