@@ -256,3 +256,10 @@ test('the closed-facet check scores German\'s calibration cards with the step 1 
   const agree = rows.filter(row => row.scorer === row.label).length;
   assert.ok(agree / rows.length > 0.7, `the scorer agrees with the labels on ${agree} of ${rows.length}`);
 });
+
+test('the report matches a card to its own module\'s results, since card IDs repeat across modules', async () => {
+  const { tally } = await import('../scripts/judge-report.mjs');
+  const card = module => ({ id: 'recorded-1', module, key: 'x', language: 'en', split: 'dev', decided: 'owner', card: { core: {} }, verdict: 'fail', reason: 'x' });
+  const { verdicts } = tally([card('german'), card('english')], [[{ id: 'recorded-1', module: 'german', verdict: 'fail', missed: [] }]]);
+  assert.deepEqual(verdicts.map(each => each.id), ['recorded-1'], 'the English card with the same ID was not judged');
+});

@@ -9,7 +9,7 @@ import { calibrations } from './calibration.mjs';
 import { moduleSet } from './golden-sets.mjs';
 
 /** @typedef {import('./calibration.mjs').Card} Card */
-/** @typedef {{ id: string, verdict: string, scores?: { criterion: string, verdict: string }[], missed?: import('./calibration.mjs').Miss[], ms?: number }} Result */
+/** @typedef {{ id: string, module?: string, verdict: string, scores?: { criterion: string, verdict: string }[], missed?: import('./calibration.mjs').Miss[], ms?: number }} Result */
 /** @typedef {{ part: string, split: string, fails: number, missed: number, unsteady: number }} FailRow */
 /** @typedef {{ part: string, split: string, label: string, cards: number, agree: number }} LabelRow */
 
@@ -31,7 +31,8 @@ function most(verdicts) {
 /**
  * Tallies cards against several runs. Each labelled fail is one entry per
  * criterion, and per facet under the facets criterion.
- * @param {readonly Card[]} cards @param {readonly (readonly Result[])[]} runs
+ * Card IDs repeat across modules, so a card that names its module matches only that module's results.
+ * @param {readonly (Card & { module?: string })[]} cards @param {readonly (readonly Result[])[]} runs
  */
 export function tally(cards, runs) {
   /** @type {FailRow[]} */ const fails = [];
@@ -39,7 +40,7 @@ export function tally(cards, runs) {
   /** @type {{ id: string, split: string, source: string, expected: string, verdict: string, agrees: boolean, runs: number }[]} */ const verdicts = [];
   /** @type {{ id: string, split: string, part: string, missedIn: number, runs: number }[]} */ const misses = [];
   for (const card of cards) {
-    const judged = runs.map(run => run.find(result => result.id === card.id)).filter(result => result && result.verdict !== 'error');
+    const judged = runs.map(run => run.find(result => result.id === card.id && (!card.module || result.module === card.module))).filter(result => result && result.verdict !== 'error');
     const n = judged.length;
     if (!n) continue;
     const expected = 'criteria' in card ? (Object.values(card.criteria).includes('fail') ? 'fail' : Object.values(card.criteria).includes('weak') ? 'weak' : 'pass') : card.verdict;
@@ -112,7 +113,7 @@ async function main() {
   const loaded = await Promise.all(files.map(async file => JSON.parse(await readFile(file, 'utf8'))));
   const models = [...new Set(loaded.map(run => run.model))];
   if (models.length > 1) throw new Error(`These runs come from different judges: ${models.join(', ')}.`);
-  const cards = (await calibrations()).flatMap(set => set.cards);
+  const cards = (await calibrations()).flatMap(set => set.cards.map(card => ({ ...card, module: set.module })));
   const { fails, labels, verdicts, misses } = tally(cards, loaded.map(run => run.results));
   const splits = [...new Set(verdicts.map(row => row.split))];
   const times = loaded.flatMap(run => run.results.map((/** @type {Result} */ result) => result.ms ?? 0)).filter(Boolean);
@@ -136,8 +137,8 @@ async function main() {
       }), '',
       '### Each miss', '', ...misses.filter(miss => miss.split === split).map(miss => `- \`${miss.id}\` ${miss.part}: missed in ${miss.missedIn} of ${miss.runs} runs${miss.missedIn > miss.runs / 2 ? '' : ' (unsteady)'}`), '');
   }
-  const judgedIds = new Set(loaded.flatMap(run => run.results.map((/** @type {Result} */ result) => result.id)));
-  const closed = closedFacets(cards.filter(card => judgedIds.has(card.id)), loaded.map(run => run.results));
+  const judgedIds = new Set(loaded.flatMap(run => run.results.map((/** @type {Result} */ result) => `${result.module}/${result.id}`)));
+  const closed = closedFacets(cards.filter(card => card.module === 'german' && judgedIds.has(`german/${card.id}`)), loaded.map(run => run.results.filter((/** @type {Result} */ result) => result.module === 'german')));
   lines.push('## Closed facets: the step 1 scorer beside the label and the judge', '',
     'The judge gives one verdict for all facets, so "judge fails" means most runs failed the facets criterion. Where the scorer and the label differ, check the label against DWDS.', '',
     '| Facet | Scored | Scorer agrees with label | Scorer fails | Judge fails those |', '| --- | --- | --- | --- | --- |',
