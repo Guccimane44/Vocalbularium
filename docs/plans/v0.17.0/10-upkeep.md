@@ -4,4 +4,5 @@ Scope agreed in the [master plan](README.md). The full plan is written when this
 
 - New real defects from the judge, the audit or user reports are verified and added to the calibration set.
 - The benchmark is re-run when Go adds a model or prices change.
-- The gate re-qualifies the judge whenever the calibration set grows.
+- The judge is measured again whenever the calibration set grows.
+- Each source's terms and API limits are checked again once a year, and a source that changes them is reviewed before the next release.
