@@ -113,11 +113,12 @@ async function main() {
   const loaded = await Promise.all(files.map(async file => JSON.parse(await readFile(file, 'utf8'))));
   const models = [...new Set(loaded.map(run => run.model))];
   if (models.length > 1) throw new Error(`These runs come from different judges: ${models.join(', ')}.`);
+  if (new Set(loaded.map(run => run.reference ?? null)).size > 1) throw new Error('Report runs with a reference apart from runs without one.');
   const cards = (await calibrations()).flatMap(set => set.cards.map(card => ({ ...card, module: set.module })));
   const { fails, labels, verdicts, misses } = tally(cards, loaded.map(run => run.results));
   const splits = [...new Set(verdicts.map(row => row.split))];
   const times = loaded.flatMap(run => run.results.map((/** @type {Result} */ result) => result.ms ?? 0)).filter(Boolean);
-  const lines = [`# Judge report: ${models[0]}`, '',
+  const lines = [`# Judge report: ${models[0]}${loaded[0].reference ? `, with a ${loaded[0].reference} reference` : ''}`, '', ...(loaded[0].credit ? [loaded[0].credit, ''] : []),
     `${files.length} run${files.length > 1 ? 's' : ''}: ${files.map(file => `\`${file.split('/').at(-1)}\``).join(', ')}. A fail counts as missed when most runs miss it, and as unsteady when fewer do. Under ${PROVEN_FROM} fails a part is unproven: catching them shows no sign of a gap, not that there is none.`, '',
     `Time per card: ${times.length ? `${Math.round(times.reduce((a, b) => a + b, 0) / times.length / 100) / 10} s on average` : 'not recorded'}. List cost per run: $${(loaded.reduce((total, run) => total + (run.cost ?? 0), 0) / loaded.length).toFixed(2)} (Claude Code reports the API price; a plan token does not bill it).`, ''];
   for (const split of splits) {

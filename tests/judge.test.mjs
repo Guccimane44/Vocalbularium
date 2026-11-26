@@ -263,3 +263,28 @@ test('the report matches a card to its own module\'s results, since card IDs rep
   const { verdicts } = tally([card('german'), card('english')], [[{ id: 'recorded-1', module: 'german', verdict: 'fail', missed: [] }]]);
   assert.deepEqual(verdicts.map(each => each.id), ['recorded-1'], 'the English card with the same ID was not judged');
 });
+
+test('a card judged with a reference gets the reference and a note on it; one without gets neither', async () => {
+  const { grammarWord } = await import('../scripts/judge.mjs');
+  assert.equal(grammarWord({ key: 'Ufer', card: { core: { kind: 'word', language: 'Deutsch' } } }), 'Ufer');
+  assert.equal(grammarWord({ key: 'bank', card: { core: { kind: 'word', language: 'Englisch', contextual: 'das Ufer eines Flusses', meanings: ['Geldinstitut'] } } }), 'Ufer');
+  assert.equal(grammarWord({ key: 'We sat.', card: { core: { kind: 'sentence', language: 'Englisch', meanings: ['Wir saßen.'] } } }), null);
+  assert.equal(grammarWord({ key: '经济', card: { core: { kind: 'word', language: 'Chinesisch', meanings: ['Gesamtheit der Produktion'] }, facets: { article: { singular: 'die Wirtschaft' } } } }), 'Wirtschaft', 'the word the grammar facets describe, not the definition\'s first word');
+  assert.equal(grammarWord({ key: '把', card: { core: { kind: 'word', language: 'Chinesisch', meanings: ['anfassen, mit der Hand halten'] }, facets: { conjugation: { rows: [{ label: 'ich', cells: ['halte', 'hielt'] }] } } } }), 'halten');
+  const criteria = await rubricOf('german');
+  const seen = [];
+  const provider = { complete: async request => { seen.push(request); return Object.fromEntries(criteria.map(criterion => [criterion.id, { verdict: 'pass', reason: 'fine' }])); } };
+  const card = { core: { kind: 'word', language: 'Deutsch', key: 'Ufer', meanings: ['Rand'] } };
+  await judgeCard(provider, 'german', criteria, { selection: 'Ufer', language: 'en', card });
+  await judgeCard(provider, 'german', criteria, { selection: 'Ufer', language: 'en', card, reference: { word: 'Ufer', etymology: 'mhd. uover', source: 'de.wiktionary.org' } });
+  assert.doesNotMatch(seen[0].instructions, /"reference"/);
+  assert.match(seen[1].instructions, /"reference" is a dictionary's etymology/);
+  assert.equal(seen[1].input.reference.etymology, 'mhd. uover');
+});
+
+test('Wiktionary\'s Herkunft is read from the German entries only, as plain text', async () => {
+  const { herkunft } = await import('../scripts/wiktionary.mjs');
+  const page = `== Haus ({{Sprache|Deutsch}}) ==\n{{Herkunft}}\n:althochdeutsche Form ''{{Ü|goh|hūs}}''<ref name="Kluge"/>, [[Erbwort|ein Erbwort]]<ref>{{Lit-Kluge}}</ref>.\n\n{{Synonyme}}\n:[1] [[Gebäude]]\n== house ({{Sprache|Englisch}}) ==\n{{Herkunft}}\n:Old English hūs\n`;
+  assert.equal(herkunft(page), 'althochdeutsche Form hūs, ein Erbwort.');
+  assert.equal(herkunft('== wegen ({{Sprache|Deutsch}}) ==\n{{Bedeutungen}}\n:[1] x'), null);
+});
