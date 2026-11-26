@@ -74,7 +74,7 @@ Argon is run once on the held-out part, with the same report. This is not a choi
 
 ## Tasks
 
-1. **Trial.** The owner signs in once (open question 1). Run `claude -p` on 5 dev cards: check what reaches the judge, the reply's shape, time and cost per card.
+1. **Trial.** The owner has put the token in `.env`. Run `claude -p` on 5 dev cards: check what reaches the judge, the reply's shape, time and cost per card.
 2. **The adapter**, with tests that stand in for `claude` (a fake command), and unique output names.
 3. **The messy-capture rules** read by `rubricOf` and the judge's instructions.
 4. **The report**: three runs, majority verdicts, counts per criterion, facet, generator and messy source.
@@ -106,6 +106,6 @@ Tasks 2 to 4 and task 8 can run in parallel; task 5 needs 1 to 4. One PR for the
 - Argon runs once on held-out, for information.
 - The owner reads open facets the judge misses in step 4, by sample.
 
-## Open questions for the owner
+## Owner answers
 
-1. **How should the adapter sign in?** Two ways. A **subscription token**: you run `claude setup-token` once, and judging uses your Claude plan, but the trial must show your own CLAUDE.md and rules can be kept out. An **API key** (`ANTHROPIC_API_KEY`): `--bare` keeps everything out for certain, but each run is billed per token. The default is the subscription token, falling back to an API key if the trial shows it can't be kept clean.
+- **Sign-in** (2026-11-26). The adapter uses the owner's Claude plan. The owner runs `claude setup-token` and puts the token it prints in `.env` as `CLAUDE_CODE_OAUTH_TOKEN` (`.env` is ignored by git). The adapter passes it to `claude -p` and never logs it. If the trial shows the owner's own CLAUDE.md or rules still reach the judge, the owner is asked again before an API key is used.
