@@ -20,6 +20,8 @@ const PARTS = ['knowledge', 'reading', 'sample'];
 const SPLITS = ['dev', 'test'];
 // What a card writes for a form a word does not have.
 const NO_FORM = new Set(['', '—', '-', '–']);
+// A plural cell: the article's plural, or a table's Plural column.
+const PLURAL = /^plural(\|.*)?$/i;
 
 /** @typedef {import('@vocabularium/domain/catalog').ContentModuleId} ModuleId */
 /** @typedef {import('@vocabularium/domain/golden').Band} Band */
@@ -285,7 +287,7 @@ function cellsOfCard(value, shape, bare = false) {
 /**
  * @typedef {{ cell: string, got: string | null, accepted: readonly string[] }} Fault
  *   a wrong cell, against the closest alternative; `got` null when the card has no such cell
- * @typedef {{ verdict: 'pass' } | { verdict: 'fail', faults: readonly Fault[] } | { verdict: 'fail', whole: 'left-out' | 'invented' }} Comparison
+ * @typedef {{ verdict: 'pass' } | { verdict: 'weak' | 'fail', faults: readonly Fault[] } | { verdict: 'fail', whole: 'left-out' | 'invented' }} Comparison
  */
 
 /**
@@ -305,7 +307,10 @@ function compareCells(cells, alternatives) {
     return parts.some(part => accepted.includes(part)) && parts.every(part => anywhere.includes(part)) ? [] : [{ cell, got, accepted }];
   });
   const closest = alternatives.map(faultsAgainst).sort((a, b) => a.length - b.length)[0];
-  return closest.length ? { verdict: 'fail', faults: closest } : { verdict: 'pass' };
+  if (!closest.length) return { verdict: 'pass' };
+  // A plural left out, every form given right, is weak, not fail (owner, 2026-11-25).
+  const leftOutPlural = closest.every(fault => PLURAL.test(fault.cell) && fault.accepted.length && (fault.got === null || NO_FORM.has(fault.got)));
+  return { verdict: leftOutPlural ? 'weak' : 'fail', faults: closest };
 }
 
 /**
@@ -321,9 +326,9 @@ function chosenWord(core, candidates) {
 
 /**
  * @typedef {{ id: string, sample: number, facet: string, word: string | null, band: Band | null, split: 'dev' | 'test' }
- *   & ({ verdict: 'pass' | 'fail', comparison: Comparison, points: readonly { point: string, verdict: 'pass' | 'fail' }[] }
+ *   & ({ verdict: 'pass' | 'weak' | 'fail', comparison: Comparison, points: readonly { point: string, verdict: 'pass' | 'weak' | 'fail' }[] }
  *   | { verdict: 'unscored', why: 'error' | 'routing' | 'other-word' | 'no-reference' })} Score
- * @typedef {{ facet: string, point: string | null, band: Band | null, split: 'dev' | 'test', pass: number, fail: number, unscored: number }} Row
+ * @typedef {{ facet: string, point: string | null, band: Band | null, split: 'dev' | 'test', pass: number, weak: number, fail: number, unscored: number }} Row
  */
 
 /**
@@ -364,18 +369,18 @@ function scoreRun({ module, closed, items, references, selects }, run) {
       } else comparison = compareCells(cellsOfCard(value, /** @type {CellShape} */ (facet.shape), reference?.pos === 'adjective'), answer);
       const points = (item.fills[facet.facet] ?? []).map(id => {
         const point = /** @type {Point} */ (facet.points.find(each => each.id === id));
-        const failed = comparison.verdict === 'fail' && ('whole' in comparison || comparison.faults.some(fault => matches(point.cells ?? [], fault.cell)));
-        return { point: id, verdict: /** @type {'pass' | 'fail'} */ (failed ? 'fail' : 'pass') };
+        const hit = comparison.verdict !== 'pass' && ('whole' in comparison || comparison.faults.some(fault => matches(point.cells ?? [], fault.cell)));
+        return { point: id, verdict: hit ? comparison.verdict : /** @type {'pass'} */ ('pass') };
       });
       return { ...row, verdict: comparison.verdict, comparison, points };
     });
   });
   /** @type {Map<string, Row>} */
   const rows = new Map();
-  /** @param {Score} score @param {string | null} point @param {'pass' | 'fail' | 'unscored'} verdict */
+  /** @param {Score} score @param {string | null} point @param {'pass' | 'weak' | 'fail' | 'unscored'} verdict */
   const count = (score, point, verdict) => {
     const key = [score.facet, point, score.band, score.split].join('|');
-    const row = rows.get(key) ?? { facet: score.facet, point, band: score.band, split: score.split, pass: 0, fail: 0, unscored: 0 };
+    const row = rows.get(key) ?? { facet: score.facet, point, band: score.band, split: score.split, pass: 0, weak: 0, fail: 0, unscored: 0 };
     row[verdict]++;
     rows.set(key, row);
   };

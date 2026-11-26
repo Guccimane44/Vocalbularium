@@ -13,7 +13,7 @@ Opus 5.5 is the judge (owner, 2026-11-24), run through headless Claude Code. No 
 
 ## The adapter
 
-A provider class beside `OpenCodeProvider`, `src/server/claude-code.mjs`, that `judge.mjs` picks when `JUDGE_MODEL` names a Claude model (`claude-opus-5-5`). It runs one `claude -p` per card:
+A provider class, `scripts/claude-code.mjs` (only scripts use it), that `judge.mjs` picks when `JUDGE_MODEL` starts with `claude-code/` (`claude-code/claude-opus-5-5`); `claude-haiku-5-5` alone still names the OpenCode model. It runs one `claude -p` per card:
 
 - the judge's instructions as `--system-prompt`, the card as the prompt on standard input, `--output-format json`; the schema travels inside the instructions, as it does for OpenCode, and the reply's text parses as the verdict;
 - no tools (`--tools ""`), no saved session (`--no-session-persistence`), no settings (`--setting-sources ""`), no skills (`--disable-slash-commands`), a time limit per card;
@@ -35,7 +35,7 @@ A provider class beside `OpenCodeProvider`, `src/server/claude-code.mjs`, that `
 - **One leak to keep in mind.** The messy-capture rules use the dev card した as their example. Its dev result after the rules are wired in shows nothing about the judge.
 
 
-**Parallel runs.** Cards run a few at a time (4 by default), and output files get a unique name (`<date>-calibration-<part>-<run id>.json`), so two runs never overwrite each other.
+**Parallel runs.** Cards run a few at a time (4 by default), and output files get a unique name (`<date>-<random>-calibration-<part>.json`), so two runs never overwrite each other.
 
 ## How the measurement works
 
@@ -43,7 +43,7 @@ A provider class beside `OpenCodeProvider`, `src/server/claude-code.mjs`, that `
 
 **The held-out part is run twice in this step, no more.** Once before any change to the instructions (the baseline), once after all changes (the result). Every other run is on the dev part. Looking at held-out results between changes would tune the instructions to them, and they would stop being held out. Each held-out run is recorded in this plan with its date, so a third one shows.
 
-**The report** (`npm run judge -- --report <calibration run>...`, written to `.data/judge/` as `.md` and `.json`):
+**The report** (`npm run judge:report -- <calibration run>...`, written to `.data/judge/` as `.md` and `.json`):
 
 - per criterion and per facet: cards, fails, missed fails and unsteady misses, as counts ("missed 1 of 2"), never as a percentage below 10 cards;
 - pass/weak agreement per criterion and facet, as a separate count;

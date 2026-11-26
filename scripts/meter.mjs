@@ -16,9 +16,12 @@ export function meter(provider) {
   return { spent: () => spent };
 }
 
-/** The list cost, in dollars, of one raw reply. @param {string | undefined} raw */
+/** The list cost, in dollars, of one raw reply: OpenCode's, or the API price Claude Code reports, which a plan token does not bill. @param {string | undefined} raw */
 export function costOf(raw) {
-  try { return Number(JSON.parse(raw ?? '').usage?.opencode?.list_cost) || 0; } catch { return 0; }
+  try {
+    const reply = JSON.parse(raw ?? '');
+    return Number(reply.usage?.opencode?.list_cost) || Number(reply.total_cost_usd) || 0;
+  } catch { return 0; }
 }
 
 // The judge's model: JUDGE_MODEL, else the generator's (M7). A judge's

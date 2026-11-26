@@ -25,7 +25,7 @@ if (!module || !isContentModule(module)) throw new Error('Name a content module,
 const started = new Date().toISOString();
 // The generator's model and the judge's, which can differ (M7): the judge's
 // calibration was made with one model and counts only for it.
-const models = { generator: process.env.OPENCODE_MODEL || DEFAULT_MODEL, judge: judgeModel(process.env) || DEFAULT_MODEL, audit: process.env.AUDIT_MODEL || 'gpt-6-luna' };
+const models = { generator: process.env.OPENCODE_MODEL || DEFAULT_MODEL, judge: judgeModel(process.env) || DEFAULT_MODEL, audit: process.env.AUDIT_MODEL || 'gemini-4-argon' };
 // A step that only informs, such as the audit, never fails the gate.
 /** @type {{ step: string, passed: boolean, informs?: boolean, summary: string, details?: string[] }[]} */
 const steps = [];
