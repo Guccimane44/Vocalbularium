@@ -43,7 +43,7 @@ Claude Code attaches a short block to every request it sends: "As you answer the
 
 - **Where it goes.** Only to Anthropic, which already holds the account and its email. No card, prompt or verdict file in `.data/judge/` stores it: the judge's output keeps the verdicts and reasons, not the request.
 - **What can drop it.** `--bare` sends no such block, but it reads no OAuth token: it needs an `ANTHROPIC_API_KEY`, billed per token. Claude Code's settings and environment variables documentation (read on 2026-11-26) names no switch that drops the block while signed in with a plan token.
-- **The owner chooses** (open question below): keep the plan token and accept the block, or judge with an API key and `--bare`.
+- **The owner's choice** (2026-11-26): keep the plan token and accept the block.
 
 ## How the measurement works
 
@@ -136,10 +136,7 @@ Tasks 2 to 4 and task 8 can run in parallel; task 5 needs 1 to 4. One PR for the
 - Argon runs once on held-out, for information.
 - The owner reads open facets the judge misses in step 4, by sample.
 
-## Open questions for the owner
-
-1. **The account email in judge requests** (see Privacy). Keep the plan token and accept that Claude Code sends the account's email to Anthropic with each request, or judge with an API key and `--bare`, billed per token. Until the owner answers, dev runs keep the plan token.
-
 ## Owner answers
 
 - **Sign-in** (2026-11-26). The adapter uses the owner's Claude plan. The owner runs `claude setup-token` and puts the token it prints in `.env` as `CLAUDE_CODE_OAUTH_TOKEN` (`.env` is ignored by git). The adapter passes it to `claude -p` and never logs it. If the trial shows the owner's own CLAUDE.md or rules still reach the judge, the owner is asked again before an API key is used.
+- **The account email** (2026-11-26). The owner keeps the plan token and accepts that Claude Code sends the account's email to Anthropic with each judge request (see Privacy). No API key is used.
