@@ -93,7 +93,6 @@ Step 3b was added on 2026-11-26 without renumbering the steps after it, which ot
 | 7 | [Decide, then build the picker](07-picker.md) | A decision record, then the picker and the references in generation, with tests |
 | 8 | [Verify end to end](08-verify.md) | The gate and a real capture on each tier, with and without a reference found, against the baseline |
 | 9 | [Roll out module by module](09-rollout.md) | English and Chinese, then Expertise, then Creativity, each with its own sources |
-| 10 | [Keep the loop running](10-upkeep.md) | Standing rules for growing the calibration set, re-running the benchmark and refreshing the sources |
 
 ## Tooling to build along the way
 
