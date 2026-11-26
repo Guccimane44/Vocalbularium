@@ -15,12 +15,25 @@ Opus 5.5 is the judge (owner, 2026-11-24), run through headless Claude Code. No 
 
 A provider class beside `OpenCodeProvider`, `src/server/claude-code.mjs`, that `judge.mjs` picks when `JUDGE_MODEL` names a Claude model (`claude-opus-5-5`). It runs one `claude -p` per card:
 
-- the judge's instructions as `--system-prompt`, the card as the prompt on standard input, the verdict's JSON schema as `--json-schema`, `--output-format json`;
-- no tools (`--tools ""`), no saved session (`--no-session-persistence`), a time limit per card;
+- the judge's instructions as `--system-prompt`, the card as the prompt on standard input, `--output-format json`; the schema travels inside the instructions, as it does for OpenCode, and the reply's text parses as the verdict;
+- no tools (`--tools ""`), no saved session (`--no-session-persistence`), no settings (`--setting-sources ""`), no skills (`--disable-slash-commands`), a time limit per card;
 - an empty working folder in `.data/`, so this project's CLAUDE.md, hooks and Stop hook never reach the judge;
+- a bare environment: only `HOME`, `PATH` and `CLAUDE_CODE_OAUTH_TOKEN`, so nothing from the shell or the desktop app that started it reaches `claude`;
+- Claude Code 2.1.280 or newer, which Opus 5.5 needs; the adapter names the version when `claude` refuses the model;
 - the reply's text, time, tokens and cost read from the JSON result into the judge's output, as the meter does for OpenCode.
 
-**What must reach the judge, and what must not.** The owner's own CLAUDE.md and rules in `~/.claude/` must not shape a verdict. The first task is a trial on 5 dev cards that checks this, with `--setting-sources` and `--bare` as the two ways to keep them out. If only `--bare` keeps them out, the adapter needs an API key (see open question 1).
+**What must reach the judge, and what must not.** The owner's own CLAUDE.md and rules in `~/.claude/` must not shape a verdict. The trial below showed that `--setting-sources ""` keeps them out with the plan's token, so no API key is needed.
+
+## The trial (2026-11-26)
+
+`.data/calibration/claude-trial.mjs` (local, not committed) judged 5 dev cards through `claude -p` with the adapter's flags above.
+
+- **What reached the judge.** Asked to quote any instructions besides its system prompt: with default settings Opus quoted the owner's CLAUDE.md and `rules/pstack-models.md`; with `--setting-sources ""` it quoted neither. One block stays in every mode: Claude Code attaches the account's email address. It carries no instruction, so it is left as it is.
+- **The reply** is the verdict's JSON as plain text, which the judge's existing parser reads. `--json-schema` is not needed.
+- **Time and size.** 7 to 12 seconds per card, about 4,500 tokens in and 500 to 1,200 out. Claude Code reports $0.01 to $0.05 per card at API prices; on the owner's plan it counts against the plan instead. Three runs of all 216 cards are about 650 calls: about 1.6 hours one at a time, about 25 minutes at 4 at once.
+- **Verdicts**, a sign only: the Ufer etymology fail and the run Präteritum fail were caught. The messy card した was judged weak, not fail, as expected while the messy-capture rules don't reach the judge. A pass card (Computer) was judged weak for a simple translation that leaves out "berechnet"; that is a reading of the rubric, not a dictionary point, so its label is left to the dev fix rounds.
+- **One leak to keep in mind.** The messy-capture rules use the dev card した as their example. Its dev result after the rules are wired in shows nothing about the judge.
+
 
 **Parallel runs.** Cards run a few at a time (4 by default), and output files get a unique name (`<date>-calibration-<part>-<run id>.json`), so two runs never overwrite each other.
 
@@ -74,7 +87,7 @@ Argon is run once on the held-out part, with the same report. This is not a choi
 
 ## Tasks
 
-1. **Trial.** The owner has put the token in `.env`. Run `claude -p` on 5 dev cards: check what reaches the judge, the reply's shape, time and cost per card.
+1. **Trial.** Done on 2026-11-26 (above).
 2. **The adapter**, with tests that stand in for `claude` (a fake command), and unique output names.
 3. **The messy-capture rules** read by `rubricOf` and the judge's instructions.
 4. **The report**: three runs, majority verdicts, counts per criterion, facet, generator and messy source.
