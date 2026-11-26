@@ -50,7 +50,7 @@ Both need two things we do not have yet: per-facet quality numbers we can trust,
 
   The graded-card counts show where faults occur, not how often, because those cards were chosen partly for their faults. Only the scorer's numbers are rates.
 - **Sources for references** (2026-11-26):
-  - **Etymology:** Pfeifer's Etymologisches Wörterbuch, read on DWDS. Its rights lie with the BBAW, and DWDS's terms allow automated queries or any reuse only with explicit permission. DWDS has no etymology API. Wiktionary (CC BY-SA) is free to use but less reliable.
+  - **Etymology:** Wiktionary for now (CC BY-SA, through the MediaWiki API): free to use with credit, but less reliable than Pfeifer. Pfeifer's Etymologisches Wörterbuch, read on DWDS, is better, but its rights lie with the BBAW, and DWDS's terms allow automated queries or any reuse only with explicit permission. DWDS has no etymology API.
   - **Synonyms:** OpenThesaurus, under LGPL or CC BY-SA 4.0, free to reuse with a link to openthesaurus.de, with its own downloads.
   - **Antonyms:** OpenThesaurus has some; Wiktionary has more. Not yet checked.
 - **Go's strongest models**, on the Artificial Analysis Intelligence Index (ModelGrep, November 2026): Gemini 4 Argon 50.4, Kimi K3.1 Pro 46.5, Qwen4 Max 42.9, then Haiku 5.5 at 36.5. Opus 5.5 scores 59.1.
@@ -67,6 +67,7 @@ Both need two things we do not have yet: per-facet quality numbers we can trust,
 8. **The judge signs in with the owner's Claude plan** (2026-11-26), through `claude setup-token`.
 9. **Live lookups** (2026-11-26). References are looked up at generation time, not kept as local data.
 10. **When no entry is found** (2026-11-26). Synonyms and antonyms are written by the model their "without reference" difficulty calls for; etymology is left out.
+11. **Wiktionary for etymology, for now** (2026-11-26). Development does not wait for the BBAW; Pfeifer replaces Wiktionary only if they give permission.
 
 ## German first
 

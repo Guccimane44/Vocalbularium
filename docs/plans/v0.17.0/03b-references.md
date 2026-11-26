@@ -16,8 +16,8 @@ These three are open lists or free text, which the step 1 scorer cannot check. T
 
 | Facet | Source | Licence | Can we use it? |
 | --- | --- | --- | --- |
-| Etymology | Pfeifer, *Etymologisches Wörterbuch des Deutschen*, on DWDS | rights lie with the BBAW | only with the BBAW's written permission |
-| Etymology (fallback) | Wiktionary's etymology sections | CC BY-SA | yes, with credit and the same licence; less reliable |
+| Etymology | Wiktionary: the German Wiktionary's "Herkunft" section, then the English Wiktionary's "Etymology" | CC BY-SA | yes, with credit and the same licence; the source for now (owner, 2026-11-26) |
+| Etymology, later | Pfeifer, *Etymologisches Wörterbuch des Deutschen*, on DWDS | rights lie with the BBAW | only with the BBAW's written permission; replaces Wiktionary if they say yes |
 | Synonyms | OpenThesaurus | LGPL or CC BY-SA 4.0 | yes, with a link to openthesaurus.de |
 | Antonyms | OpenThesaurus (some), Wiktionary (more) | as above | yes; coverage not yet checked |
 
@@ -33,11 +33,13 @@ These three are open lists or free text, which the step 1 scorer cannot check. T
 
 **What follows for work already done.** Step 2's grading subagents and a timing test fetched DWDS pages with scripts: a few hundred pages, for our own checking, with nothing published. That is at best a grey area under § 60d. From now on no script fetches DWDS until permission covers it; a check against Pfeifer is done by a person in a browser.
 
+**Wiktionary** is the etymology source for now (owner, 2026-11-26). Its text is under CC BY-SA (and the GFDL): free to use, change and pass on, with credit and the same licence. It is read through the MediaWiki API, which asks automated clients for a descriptive User-Agent and a modest request rate; the lookup keeps to both, with a generic client name and the project's URL rather than anyone's personal details. Its etymologies are less reliable than Pfeifer's: they are written by volunteers, are sometimes missing or thin, and German Wiktionary's "Herkunft" sections often cite Pfeifer or Kluge without their detail. So numbers measured with Wiktionary are a floor: Pfeifer would do at least as well.
+
 **OpenThesaurus**, also shown on DWDS for synonyms, is a separate project under a free licence. Its data may be used, changed and passed on, as long as what is passed on stays under the same licence and names openthesaurus.de with a link. It offers its own downloads and API, so nothing comes through DWDS.
 
 ## Permission from the BBAW
 
-The owner writes to the BBAW and asks:
+This no longer blocks development (owner, 2026-11-26): the step is built and measured with Wiktionary, and Pfeifer replaces it only if the BBAW says yes. The owner writes to the BBAW in parallel and asks:
 
 1. May the tool look up the Etymologie section of a word when a user saves it, and show a short version in its own words, with the citation, in that user's card?
 2. If not, is there a licence or a data export (the TEI version) of Pfeifer's dictionary for this use, and on what terms?
@@ -45,13 +47,13 @@ The owner writes to the BBAW and asks:
 
 A draft of the message is at the end of this plan.
 
-**If they say no,** etymology uses Wiktionary, or keeps being written from memory with the judge's limits recorded by step 3. The owner decides. Synonyms and antonyms do not wait for this answer.
+**If they say no,** etymology stays on Wiktionary. Nothing waits for this answer.
 
 ## The lookup
 
 - **Live** (owner, 2026-11-26). Each card looks its grammar word up at generation time, so it always uses the source's current entry, and nothing is copied onto the computer. A lookup has a short time limit (2 seconds by default); one that times out counts as "no entry found".
 - **Privacy.** The grammar word, never the user's sentence, goes to the source. The privacy rules in the code standards get a line naming each source.
-- **One function per source**: grammar word in, its entries or "none" out. It runs outside any database transaction, like every provider call. For OpenThesaurus it uses its public API, within the API's stated limits; for Pfeifer, whatever the BBAW allows.
+- **One function per source**: grammar word in, its entries or "none" out. It runs outside any database transaction, like every provider call. For OpenThesaurus it uses its public API, within the API's stated limits; for Wiktionary, the MediaWiki API within its limits; for Pfeifer, only what the BBAW allows. Each source sits behind the same function, so Pfeifer can replace Wiktionary without changing anything else.
 - **When no entry is found** (owner, 2026-11-26): synonyms and antonyms are written by the model their "without reference" difficulty calls for; etymology is left out.
 - **The grammar word** is the key when it is German, otherwise the German word for the core's first meaning, "contextual" first. When the selection is German, the lookup runs before generation; otherwise after the core, for a second, short request (see the [master plan](README.md#how-the-pillars-fit-together)).
 - **Credit on the card.** Each assisted facet carries its source's credit line (for example "nach OpenThesaurus"). This changes the card screen, so the screen reference and the screens check follow.
@@ -68,11 +70,11 @@ A draft of the message is at the end of this plan.
 Before any of this is built, a prototype shows whether references help enough. Nothing is shipped.
 
 1. **Synonyms and antonyms** from OpenThesaurus, within its API's limits: German's calibration cards with a synonyms or antonyms fault, and as many that pass. Haiku writes the facet from the entries; the new facets are graded against DWDS by hand, as in step 2.
-2. **Etymology**, once the BBAW allows scripted fetches: the 39 calibration cards with an etymology fail and 39 that pass. Without that permission, on 20 words whose Pfeifer text the owner or Claude copies by hand.
+2. **Etymology** from Wiktionary: the 39 calibration cards with an etymology fail and 39 that pass. The new facets are graded against the cards' existing verdicts, which rest on Pfeifer; where a new facet says something those verdicts do not cover, a person checks it in a browser. No script fetches DWDS.
 
 **Worth building if:** at least 90% of the former fails now pass, no former pass now fails, and the text reads well for a learner (the owner checks a sample).
 
-**Also measured:** how often a grammar word has no entry, which sets how much the "without reference" difficulty matters.
+**Also measured:** how often a grammar word has no entry (Wiktionary has no etymology for many words), which sets how much the "without reference" difficulty matters.
 
 ## What this step hands on
 
@@ -82,8 +84,7 @@ Before any of this is built, a prototype shows whether references help enough. N
 
 ## Open questions for the owner
 
-1. Will you write to the BBAW?
-2. If they say no: Wiktionary for etymology, or keep it from memory?
+1. Will you write to the BBAW? It no longer blocks anything.
 
 ## Draft message to the BBAW (German)
 
