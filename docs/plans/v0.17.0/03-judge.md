@@ -28,7 +28,7 @@ A provider class, `scripts/claude-code.mjs` (only scripts use it), that `judge.m
 
 `.data/calibration/claude-trial.mjs` (local, not committed) judged 5 dev cards through `claude -p` with the adapter's flags above.
 
-- **What reached the judge.** Asked to quote any instructions besides its system prompt: with default settings Opus quoted the owner's CLAUDE.md and `rules/pstack-models.md`; with `--setting-sources ""` it quoted neither. One block stays in every mode: Claude Code attaches the account's email address. It carries no instruction, so it is left as it is.
+- **What reached the judge.** Asked to quote any instructions besides its system prompt: with default settings Opus quoted the owner's CLAUDE.md and `rules/pstack-models.md`; with `--setting-sources ""` it quoted neither. One block stays in every mode: Claude Code attaches the account's email address (see Privacy below).
 - **The reply** is the verdict's JSON as plain text, which the judge's existing parser reads. `--json-schema` is not needed.
 - **Time and size.** 7 to 12 seconds per card, about 4,500 tokens in and 500 to 1,200 out. Claude Code reports $0.01 to $0.05 per card at API prices; on the owner's plan it counts against the plan instead. Three runs of all 216 cards are about 650 calls: about 1.6 hours one at a time, about 25 minutes at 4 at once.
 - **Verdicts**, a sign only: the Ufer etymology fail and the run Präteritum fail were caught. The messy card した was judged weak, not fail, as expected while the messy-capture rules don't reach the judge. A pass card (Computer) was judged weak for a simple translation that leaves out "berechnet"; that is a reading of the rubric, not a dictionary point, so its label is left to the dev fix rounds.
@@ -37,11 +37,19 @@ A provider class, `scripts/claude-code.mjs` (only scripts use it), that `judge.m
 
 **Parallel runs.** Cards run a few at a time (4 by default), and output files get a unique name (`<date>-<random>-calibration-<part>.json`), so two runs never overwrite each other.
 
+## Privacy: the account's email goes with every judge request
+
+Claude Code attaches a short block to every request it sends: "As you answer the user's questions, you can use the following context", followed by the signed-in account's email address. It does this with the owner's plan token even with `--setting-sources ""`, `--disable-slash-commands`, a bare environment and `--safe-mode` (all tried on 2026-11-26; asked to quote what it was given, Opus quoted the email each time).
+
+- **Where it goes.** Only to Anthropic, which already holds the account and its email. No card, prompt or verdict file in `.data/judge/` stores it: the judge's output keeps the verdicts and reasons, not the request.
+- **What can drop it.** `--bare` sends no such block, but it reads no OAuth token: it needs an `ANTHROPIC_API_KEY`, billed per token. Claude Code's settings and environment variables documentation (read on 2026-11-26) names no switch that drops the block while signed in with a plan token.
+- **The owner chooses** (open question below): keep the plan token and accept the block, or judge with an API key and `--bare`.
+
 ## How the measurement works
 
 **Three runs, not one.** Opus does not give the same verdict every time. Each part is judged three times. A fail counts as missed only when two of the three runs miss it; a miss in one run of three is listed as unsteady. Agreement is the share of cards where at least two runs agree with the label.
 
-**The held-out part is run twice in this step, no more.** Once before any change to the instructions (the baseline), once after all changes (the result). Every other run is on the dev part. Looking at held-out results between changes would tune the instructions to them, and they would stop being held out. Each held-out run is recorded in this plan with its date, so a third one shows.
+**The held-out part is run twice in this step, no more.** Once before any change to the instructions (the baseline), once after all changes (the result). Every other run is on the dev part. Looking at held-out results between changes would tune the instructions to them, and they would stop being held out. Each held-out run is recorded in this plan with its date, so a third one shows. The first held-out run waits until PR 367 is merged, so it runs on merged tooling with the messy-capture rules reaching the judge. Dev runs can go ahead before that.
 
 **The report** (`npm run judge:report -- <calibration run>...`, written to `.data/judge/` as `.md` and `.json`):
 
@@ -60,13 +68,22 @@ Where Opus misses fails on the dev part, change its instructions (`scripts/judge
 
 **The messy-capture rules reach the judge.** `rubricOf` reads only the criterion lines of `rubric.md`. It also reads the "Messy captures" section, and the judge's instructions say to apply it when the capture is messy. This is done before the baseline, since the owner approved the rules in step 2.
 
+## The judge with a reference, on etymology (dev only)
+
+Dev run 1 (2026-11-26, one run) had Opus missing 13 of 16 etymology fails. Etymology is the part where a judge without a dictionary is weakest, and the [master plan](README.md)'s references pillar puts a dictionary entry beside the request. So the dev part is also judged with a Wiktionary etymology beside each card, to show how far a reference closes the gap:
+
+- **Two conditions, same cards.** Three runs without a reference (the dev baseline), three with the card's grammar word's Wiktionary etymology in the judge's input, marked as a reference to check against, never as the answer.
+- **Wiktionary's gaps are counted apart.** Cards where Wiktionary has no etymology, or where it disagrees with the label (which rests on Pfeifer), are listed in their own rows and not counted as judge misses or catches. A miss counts only where Wiktionary's entry supports the label.
+- **Dev only.** The held-out part is not judged with a reference in this step: its two runs stay for the baseline and the result. Whether the judge uses a reference in steps 4 to 6 is decided from these dev numbers, with the owner.
+- **Fetching.** The MediaWiki API, cached per word under `.data/` for the run, with Wiktionary's CC BY-SA credit in the report. No DWDS page is fetched: its terms require permission for automated queries.
+
 ## What's left, and what checks it instead
 
 For each part where Opus still misses fails, or where the held-out count is too small to show anything, the list names what checks it instead in steps 4 to 6:
 
 - **The step 1 scorer**, for the closed facets (article, declension, conjugation, comparison, case). It compares a card's forms with the golden set's references, so it needs no judge.
 - **The owner**, for the open facets the judge cannot be trusted on: a sample of those facets read by hand in step 4.
-- **No dictionary check** is built in this step. If etymology stays unreliable, building one is its own decision.
+- **No dictionary check** is built in this step. The reference measure above shows whether a Wiktionary entry closes the etymology gap; building references into generation is step 3b's work.
 
 The list is written into this plan, and steps 4 to 6 read it.
 
@@ -92,7 +109,7 @@ Argon is run once on the held-out part, with the same report. This is not a choi
 3. **The messy-capture rules** read by `rubricOf` and the judge's instructions.
 4. **The report**: three runs, majority verdicts, counts per criterion, facet, generator and messy source.
 5. **Baseline**: three runs on dev, three on held-out (held-out run 1 of 2).
-6. **Fix rounds** on dev, three at most.
+6. **Fix rounds** on dev, three at most. Then **etymology with a reference**: three dev runs with a Wiktionary entry beside each card, and the report's split of Wiktionary's gaps.
 7. **Result**: three runs on held-out (run 2 of 2). Write the list of what's left.
 8. **Scorer**: weak for a left-out plural, the calibration adapter, the closed-facet comparison.
 9. **Argon**: `AUDIT_MODEL`, one held-out run, the quality-gate page.
@@ -118,6 +135,10 @@ Tasks 2 to 4 and task 8 can run in parallel; task 5 needs 1 to 4. One PR for the
 - No dictionary check built here.
 - Argon runs once on held-out, for information.
 - The owner reads open facets the judge misses in step 4, by sample.
+
+## Open questions for the owner
+
+1. **The account email in judge requests** (see Privacy). Keep the plan token and accept that Claude Code sends the account's email to Anthropic with each request, or judge with an API key and `--bare`, billed per token. Until the owner answers, dev runs keep the plan token.
 
 ## Owner answers
 
