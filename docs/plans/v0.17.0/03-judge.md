@@ -77,6 +77,24 @@ Dev run 1 (2026-11-26, one run) had Opus missing 13 of 16 etymology fails. Etymo
 - **Dev only.** The held-out part is not judged with a reference in this step: its two runs stay for the baseline and the result. Whether the judge uses a reference in steps 4 to 6 is decided from these dev numbers, with the owner.
 - **Fetching.** The MediaWiki API, cached per word under `.data/` for the run, with Wiktionary's CC BY-SA credit in the report. No DWDS page is fetched: its terms require permission for automated queries.
 
+## Dev results so far (2026-11-26 and 27)
+
+Opus through Claude Code, three runs each, on the 123 dev cards. Reports in `.data/judge/`; runs cut off by the plan's 5-hour limit were set aside in `.data/judge/broken/` and rerun.
+
+| | Baseline | With a Wiktionary reference | Fix round 1 | Fix round 2 |
+| --- | --- | --- | --- | --- |
+| Card agrees (fail or not) | 100 of 123 (81%) | 101 of 123 (82%) | 88 of 123 (72%) | 107 of 123 (87%) |
+| Fails missed (most runs) | 29 | 25 | 12 | 15 |
+| Etymology fails missed | 15 of 16 | 13 of 16 | 7 of 16 | 11 of 16 |
+| Etymology passes agreed | 65 of 67 | not counted | 31 of 67 | 52 of 67 |
+
+- **Baseline.** Opus caught every messy-capture fail, and every fail on synonyms, antonyms and conjugation. It missed 15 of 16 etymology fails, mostly by calling them weak (17 verdicts across the runs) or fine (25), and 4 of 13 German fails.
+- **With a Wiktionary reference** (judge instructions as at the baseline). Of the 16 etymology fails, Wiktionary supports the label on 7 (Fenster, Ufer, Junge, Haus, Friseur, klein, halten), has no entry on 2 (planen, wegen), disagrees on 2 (both Kaffee cards: it names the Dutch route Pfeifer does not) and does not settle 5 (Fernweh, Wirtschaft, anfangen, Kühlschrank, gut). On the 7 it supports, Opus caught 3 with the reference and 1 without; three of the four it still missed are cards with no Etymology at all. The reference helps a little; it does not close the gap.
+- **Fix round 1** wrote the owner's step 2 rulings into the rubric: any wrong stage of an etymology fails (weak only for a right but thin one), a card with no Etymology for a word with a known one fails, an example that shows the selection only inside a longer word fails, a Pronunciation of another word fails, a calque fails, and a label in "contextual" fails. Misses fell to 12, but Opus then failed 100 cards for a missing Etymology that the facet selection had simply left out: the judge cannot tell a facet the card was not asked for from one it left out.
+- **Fix round 2** dropped the missing-Etymology rule and kept the rest. Misses are 15, agreement 87%. Examples, pronunciation and sense now miss nothing, but the rules quote those dev cards' own faults (Sandbank, Wissensdurst, ein Satz Räume, "hier:"), so their dev result shows nothing; held-out will. The held-out Kartoffel card was kept out of the rubric's examples for that reason.
+- **Stopped after two rounds.** Of the 11 etymology fails still missed, 3 are missing Etymologies (a structural check, below) and the rest are facts Opus does not know (Kaffee's route, Junge's first sense, Friseur as a German formation). Instructions cannot add knowledge, so a third round would change nothing.
+- **For the owner.** Opus fails the Hängematte card's etymology in all three runs: it says the word came through Dutch hangmat. If Pfeifer says so, the label is wrong. It is listed, not changed, since a fault a judge found never measures that judge and DWDS is not fetched by script.
+
 ## What's left, and what checks it instead
 
 For each part where Opus still misses fails, or where the held-out count is too small to show anything, the list names what checks it instead in steps 4 to 6:
@@ -84,6 +102,7 @@ For each part where Opus still misses fails, or where the held-out count is too 
 - **The step 1 scorer**, for the closed facets (article, declension, conjugation, comparison, case). It compares a card's forms with the golden set's references, so it needs no judge.
 - **The owner**, for the open facets the judge cannot be trusted on: a sample of those facets read by hand in step 4.
 - **No dictionary check** is built in this step. The reference measure above shows whether a Wiktionary entry closes the etymology gap; building references into generation is step 3b's work.
+- **A structural check, for a left-out Etymology.** Whether a card left out a facet it was asked for is a fact about the request, not the text, so the gate compares the requested facets with the card's, and the judge is not asked.
 
 The list is written into this plan, and steps 4 to 6 read it.
 
