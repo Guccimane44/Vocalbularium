@@ -62,36 +62,34 @@ test('family, module and facet pages in one sheet, from the module window, a car
   await sheet.getByRole('button', { name: 'Sentence', exact: true }).click();
   assert.equal(await sheet.locator('.about-key').innerText(), (await catalogSample('main-key', 'ru')).sentence);
   assert.ok((await sheet.locator('.about-card').innerText()).includes((await catalogSample('languages/german', 'ru')).sentence.core.meanings[0]));
-  assert.deepEqual(await sheet.locator('.about-chain .about-mk:not([data-out])').allTextContents(), ['Ex', 'Pr', 'Si'],
-    'a foreign sentence keeps Examples, Pronunciation (D24) and Simple translation; Grammar teacher only for German (0.16.4)');
+  assert.deepEqual(await sheet.locator('.about-chain .about-mk:not([data-out])').allTextContents(), ['Ex', 'Si'],
+    'a foreign sentence keeps Examples and Simple translation; Grammar teacher only for German (0.16.4); Pronunciation retired (D374)');
 
   // Article among its facets opens its facet page; Conjugation from the strip has its own word.
   await sheet.locator('.about-row').filter({ has: a.page.locator('.about-row-name', { hasText: /^Article$/ }) }).click();
   await waitFor(async () => await title() === 'Article', 'Article’s page');
   assert.match(await path(), /^Languages\s*\/\s*German\s*\/\s*Article$/);
-  assert.equal(await sheet.locator('.about-applies').innerText(), 'Nouns');
-  const { singular, plural } = english.word_phrase.facets.article;
-  // The sample sits on its card: the core and the other facets dimmed, Article in full (0.13.1).
+  assert.equal(await sheet.locator('.about-applies').innerText(), 'German nouns');
+  // A grammar facet's sample is a German key in every language (D374): Article sits on Sprache, alone on its card.
+  const { singular, plural } = (await catalogSample('languages/german/facets/article')).word_phrase.facets.article;
+  assert.equal(await sheet.locator('.about-key').innerText(), 'Sprache');
   assert.equal(await sheet.locator('.about-where .about-here .facet-body').innerText(), [singular, plural].filter(Boolean).join(' · '));
-  assert.equal(await sheet.locator('.about-where .about-other').count(), Object.keys(english.word_phrase.facets).length - 1);
+  assert.equal(await sheet.locator('.about-where .about-other').count(), 0);
   assert.equal(await sheet.getByRole('heading', { name: 'Where it sits' }).count(), 0);
   await sheet.getByRole('button', { name: 'Sentence', exact: true }).click();
   assert.match(await sheet.locator('.about-left-out').innerText(), /Left out/);
   await sheet.locator('.about-strip button', { hasText: 'Conjugation' }).click();
   await waitFor(async () => await title() === 'Conjugation', 'Conjugation’s page');
-  assert.equal(await sheet.locator('.about-key').innerText(), 'speak');
-  // Its card is its own word's: the core is sprechen, not German's Sprache.
+  assert.equal(await sheet.locator('.about-key').innerText(), 'sprechen');
+  // Its card is its own word's: the core explains sprechen, not German's Sprache.
   assert.match(await sheet.locator('.about-where .about-here').innerText(), /habe gesprochen/);
-  assert.match(await sheet.locator('.about-where .about-dim').first().innerText(), /sprechen/);
+  assert.match(await sheet.locator('.about-where .about-dim').first().innerText(), /Stimme/);
   assert.doesNotMatch(await sheet.locator('.about-where .about-dim').first().innerText(), /Sprache/);
   assert.equal(await sheet.locator('.about-flow').count(), 0, 'no key-to-core flow above the card');
-  // Declension has a noun and an adjective (language, good); Synonyms shows good, gut (D21).
+  // Declension shows the German adjective gut; Synonyms shows good, with English synonyms (D21, D374).
   await sheet.locator('.about-strip button', { hasText: 'Declension' }).click();
   await waitFor(async () => await title() === 'Declension', 'Declension’s page');
-  assert.deepEqual(await sheet.locator('.about-toggle button').allTextContents(), ['Noun', 'Adjective', 'Sentence']);
-  assert.equal(await sheet.locator('.about-key').innerText(), 'language');
-  await sheet.getByRole('button', { name: 'Adjective', exact: true }).click();
-  assert.equal(await sheet.locator('.about-key').innerText(), 'good');
+  assert.equal(await sheet.locator('.about-key').innerText(), 'gut');
   assert.match(await sheet.locator('.about-where .about-here').innerText(), /ein guter/);
   await sheet.locator('.about-strip button', { hasText: 'Synonyms' }).click();
   await waitFor(async () => await title() === 'Synonyms', 'Synonyms’ page');
@@ -171,7 +169,7 @@ test('family, module and facet pages in one sheet, from the module window, a car
   await sheet.waitFor({ state: 'detached' });
   assert.equal(await facets.isVisible(), true, 'the facet window stays open after a click beside the sheet');
   assert.equal(await focused(info('Examples')), true, 'the focus back on the next row');
-  assert.deepEqual(await inOrder(facets, 'equipped'), [true, true, true, true, ...Array(8).fill(false)], 'the grammar facets, Pronunciation and the 0.16.4 facets are not on a My Deck card (K56)');
+  assert.deepEqual(await inOrder(facets, 'equipped'), [true, true, true, true, ...Array(7).fill(false)], 'the grammar facets and the 0.16.4 facets are not on a My Deck card (K56)');
   await a.page.keyboard.press('Escape');
 
   // The card's own About opens its module page; closing the facet window left the actions out.
