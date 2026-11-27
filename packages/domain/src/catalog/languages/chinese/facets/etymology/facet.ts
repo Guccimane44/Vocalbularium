@@ -3,13 +3,13 @@ import { traditionalIn } from '../../simplified.js';
 
 // Where the Chinese word comes from (0.16.4): the header "源自：古汉语 · 梵语",
 // written by the module from the origins, never by the model, then a short
-// history. It describes the key when it is Chinese, otherwise the Chinese word
-// of its first meaning, `contextual` first. Words and phrases only.
+// history. It describes the selection itself, in its own language (D374).
+// Words and phrases only.
 const LABEL = '源自：';
 const MAX_TEXT = 200;
 
 export default defineFacet({
-  id: 'etymology', label: 'Etymology', abbreviation: 'Et', description: 'Where the Chinese word comes from.',
+  id: 'etymology', label: 'Etymology', abbreviation: 'Et', description: 'Where the selected word comes from.',
   applies: ['word_phrase'],
   shape: object({ origins: list(text('the origin'), { name: 'the origins', each: 'Origin' }), text: text('the history') }),
   format: value => `${LABEL}${value.origins.map(origin => escapeMarkdown(origin.trim())).join(' · ')}\n\n${escapeMarkdown(value.text)}`,
