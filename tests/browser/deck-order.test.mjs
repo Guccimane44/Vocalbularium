@@ -64,11 +64,15 @@ test('deck order: drag a card on Home, move a sidebar row by keyboard and by poi
     const look = () => { const order = [...document.querySelectorAll('.nav-decks .nav-label')].map(node => node.textContent).join(','); if (window.orders.at(-1) !== order) window.orders.push(order); };
     new MutationObserver(look).observe(document.querySelector('#sidebar'), { subtree: true, childList: true }); look();
   });
-  const top = await row('Second').boundingBox(), mine = await row('My Deck').boundingBox();
+  const mine = await row('My Deck').boundingBox();
   await a.page.mouse.move(mine.x + 40, mine.y + mine.height / 2);
   await a.page.mouse.down();
   await a.page.mouse.move(mine.x + 40, mine.y + mine.height / 2 - 10, { steps: 4 });
-  await a.page.mouse.move(mine.x + 40, top.y + 4, { steps: 12 });
+  // Read the target only once the drag is active: the sidebar can render again as the
+  // pickup starts, and a box read before it can aim the drop at a stale place.
+  await settled(a.page);
+  const top = await row('Second').boundingBox();
+  await a.page.mouse.move(mine.x + 40, top.y + top.height * 0.25, { steps: 12 });
   await a.page.mouse.up();
   await waitFor(async () => JSON.stringify(await saved()) === JSON.stringify(['My Deck', 'Second', 'Third']), 'the sidebar drag saved');
   // The old order must not come back after the save: time is what this checks.
