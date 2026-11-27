@@ -41,7 +41,8 @@
     "db:migrate": "node --env-file-if-exists=.env.postgres scripts/migrate.mjs",
     "db:setup": "node scripts/setup-postgres.mjs",
     "db:backup": "node --env-file=.env.postgres scripts/database-backup.mjs backup",
-    "db:restore": "node --env-file=.env.postgres scripts/database-backup.mjs restore"
+    "db:restore": "node --env-file=.env.postgres scripts/database-backup.mjs restore",
+    "check:captures": "node scripts/check-captures.mjs"
   },
   "devDependencies": {
     "@types/pg": "8.23.1",
