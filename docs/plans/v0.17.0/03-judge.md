@@ -95,14 +95,44 @@ Opus through Claude Code, three runs each, on the 123 dev cards. Reports in `.da
 - **Stopped after two rounds.** Of the 11 etymology fails still missed, 3 are missing Etymologies (a structural check, below) and the rest are facts Opus does not know (Kaffee's route, Junge's first sense, Friseur as a German formation). Instructions cannot add knowledge, so a third round would change nothing.
 - **Hängematte: the label stands, the judge was wrong** (owner, 2026-11-27, with Pfeifer's entry). Opus failed the card's etymology in all three runs, saying the word came through Dutch hangmat. Pfeifer says German adapted Spanish hamaca to hängen and Matte itself (Hengmatten, 1627), in the same way as Dutch did in the 17th century, not by way of Dutch; the card says just that. So Opus also fails right etymologies with confident wrong facts, which is why etymology passes agree on only 52 of 67.
 
+## Held-out results (2026-11-27)
+
+The held-out part was run twice, as planned, three runs each, on its 93 cards (61 graded, 32 messy):
+
+- **Held-out run 1** (2026-11-27, 15:39 to 15:46 UTC): the judge's instructions and German's rubric as merged in PR 367, before any fix round.
+- **Held-out run 2** (2026-11-27, 18:32 to 18:39 UTC): after fix round 2, as merged in PR 372. A first attempt at 15:49 was cut off by the plan's 5-hour limit (45, then all 93 cards unscored); it was set aside in `.data/judge/broken/` unread and rerun. Nothing was tuned from it.
+
+| | Run 1, before the fixes | Run 2, after the fixes |
+| --- | --- | --- |
+| Card agrees (fail or not) | 69 of 93 (74%) | 77 of 93 (83%) |
+| Fails missed (most runs) | 31 | 23 |
+| Etymology fails missed | 20 of 23 | 12 of 23 |
+| Etymology passes agreed | 35 of 38 | 31 of 38 |
+| Grammar tip fails missed | 2 of 7 | 3 of 7 |
+| Haiku's cards agree | 23 of 36 | 30 of 36 |
+| Argon's cards agree | 16 of 25 | 19 of 25 |
+| Messy cards agree, Haiku's | 15 of 16 | 13 of 16 |
+| Messy cards agree, Opus's | 15 of 16 | 15 of 16 |
+
+- **The fixes hold on cards they were not tuned on.** The rule that any wrong stage of an etymology fails catches 8 more of the 23 held-out etymology fails. It costs some strictness: 4 more right etymologies are marked down, as on dev.
+- **Every other part has fewer than 5 held-out fails**, so its numbers are unproven either way. Examples (1 of 3 missed), pronunciation (0 of 2) and the German criterion (0 of 3) look fine; declension (2 of 4) and grammar tips (3 of 7) do not.
+- **Still missed, in most runs:** 12 etymologies (among them Chaiselongue, Ziege, Tisch, hoch, wegen, Vielfraß), 3 grammar tips that state a false fact (Kricket, Realpolitik, Häuser), and the r-hubb card's article, declension and synonyms.
+- **The 90% agreement target is not met** (83%), and the judge still misses fails. That is a result, not a gate: the list below says what checks what the judge cannot.
+- The closed-facet check found the scorer and the labels apart on 11 held-out cells: the plural-only labels of Chaiselongue and Realpolitik (weak by the owner's rule, pass for the scorer, whose references accept no plural there), Zeitung's declension (scorer fail, label pass) and r-hubb (label fail, scorer pass). Those labels are checked against DWDS by hand in step 4, since no script fetches DWDS.
+
 ## What's left, and what checks it instead
 
-For each part where Opus still misses fails, or where the held-out count is too small to show anything, the list names what checks it instead in steps 4 to 6:
+For each part where Opus still misses fails, or where the held-out count is too small to show anything, this is what checks it in steps 4 to 6:
 
-- **The step 1 scorer**, for the closed facets (article, declension, conjugation, comparison, case). It compares a card's forms with the golden set's references, so it needs no judge.
-- **The owner**, for the open facets the judge cannot be trusted on: a sample of those facets read by hand in step 4.
-- **No dictionary check** is built in this step. The reference measure above shows whether a Wiktionary entry closes the etymology gap; building references into generation is step 3b's work.
-- **A structural check, for a left-out Etymology.** Whether a card left out a facet it was asked for is a fact about the request, not the text, so the gate compares the requested facets with the card's, and the judge is not asked.
+| Part | The judge's held-out record | Checked instead by |
+| --- | --- | --- |
+| Etymology | misses 12 of 23 fails, and marks down 7 of 38 right ones, some on wrong facts of its own, as with Hängematte on dev | references (step 3b) in generation, and the judge given the reference; until then, the owner reads a sample in step 4 |
+| A left-out Etymology | the judge cannot tell it from a facet never asked for | a structural check in the gate: requested facets against the card's |
+| Article, declension, conjugation, comparison, case | unproven (2 to 4 fails each); misses 2 of 4 declension fails | the step 1 scorer, which needs no judge |
+| Grammar tip | misses 3 of 7, all false facts stated confidently | the owner, by sample in step 4 |
+| Synonyms, antonyms, pronunciation | unproven (2 fails each), 1 synonym miss | the owner, by sample in step 4; references for synonyms and antonyms in step 3b |
+| Meaning, German, examples, simple translation | unproven (2 or 3 fails each), few misses | the judge, with the owner's sample as a check |
+| Messy captures | 2 fails, 1 missed (ruf: the wrong verb table) | the judge; rated a sign only, since Claude graded these cards |
 
 The list is written into this plan, and steps 4 to 6 read it.
 
@@ -121,6 +151,8 @@ Gemini 4 Argon is the second judge, which only informs (owner, 2026-11-25). The 
 
 Argon is run once on the held-out part, with the same report. This is not a choice of judge: it tells steps 4 to 6 how much an Argon disagreement means. Argon wrote 25 of the held-out graded cards, so its agreement on its own cards is reported apart.
 
+**Argon's held-out run** (2026-11-27, one run, through OpenCode, with the rubric after fix round 2): the card agrees on 66 of 93 (71%), against Opus's 83%, and it misses 35 fails, against 23. It misses 19 of 23 etymology fails and every article, declension and synonym fail. On the 25 cards Argon itself wrote it agrees on 12 and misses 15 fails, against 25 of 36 on Haiku's: it is kinder to its own cards. So an Argon disagreement is worth reading when Argon fails a card Opus passed; an Argon pass says little, least of all on Argon's own cards.
+
 ## Tasks
 
 1. **Trial.** Done on 2026-11-26 (above).
@@ -134,7 +166,7 @@ Argon is run once on the held-out part, with the same report. This is not a choi
 9. **Argon**: `AUDIT_MODEL`, one held-out run, the quality-gate page.
 10. `npm run check` and `npm test`.
 
-Tasks 2 to 4 and task 8 can run in parallel; task 5 needs 1 to 4. One PR for the tooling (tasks 2 to 4, 8, 9's code), one for the measurement and the list (tasks 5 to 7, 9's run), so the second PR's numbers come from merged tooling.
+All tasks are done as of 2026-11-27: tooling in PR 367, dev work in PR 372, the held-out runs and Argon's run here. Tasks 2 to 4 and task 8 could run in parallel; task 5 needs 1 to 4. One PR for the tooling (tasks 2 to 4, 8, 9's code), one for the measurement and the list (tasks 5 to 7, 9's run), so the second PR's numbers come from merged tooling.
 
 ## Check
 
