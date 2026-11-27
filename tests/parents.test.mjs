@@ -57,6 +57,10 @@ test('a word gets every facet its flags allow; a sentence only the facets for se
   for (const role of ['noun', 'verb', 'adjective', 'preposition']) {
     assert.deepEqual(facetsFor('german', facetsOf('german'), { ...word(role), language: 'Englisch' }), ['examples', 'synonyms', 'antonyms', 'etymology', 'simple-translation'], role);
   }
+  // English too (D374): Forms only for an English key, and Pronunciation retired.
+  const english = (language, gramRole) => ({ kind: 'word', language, key: 'x', gramRole, meanings: ['y'] });
+  assert.ok(facetsFor('english', facetsOf('english'), english('English', 'noun')).includes('forms'));
+  assert.deepEqual(facetsFor('english', facetsOf('english'), english('German', 'noun')), ['examples', 'synonyms', 'antonyms', 'etymology', 'simple-translation']);
   // A retired facet is never asked for, offered or retried, though a stored card may still have it.
   assert.ok(isRetired('german', 'pronunciation') && facetsOf('german').includes('pronunciation') && !liveFacetsOf('german').includes('pronunciation'));
   assert.equal(ruledOut('german', 'pronunciation', word('noun')), 'retired');

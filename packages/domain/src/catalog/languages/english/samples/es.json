@@ -17,26 +17,9 @@
           "translation": "Spanish is a widely spoken language."
         }
       ],
-      "synonyms": [
-        "tongue"
-      ],
-      "pronunciation": [
-        "language"
-      ],
-      "etymology": {
-        "origins": [
-          "Latin",
-          "Old French"
-        ],
-        "text": "From Old French langage, from langue 'tongue', which comes from Latin lingua; it came into Middle English around 1300."
-      },
       "simple-translation": [
         "the words people use to talk and write"
-      ],
-      "forms": {
-        "word": "language",
-        "plural": "languages"
-      }
+      ]
     }
   },
   "sentence": {
@@ -54,9 +37,6 @@
           "sentence": "Las lenguas son los puentes que conectan a las comunidades con el mundo.",
           "translation": "Languages are the bridges that connect communities with the world."
         }
-      ],
-      "pronunciation": [
-        "Languages are the bridges that connect people with the world."
       ],
       "simple-translation": [
         "Languages help people understand each other and the world."

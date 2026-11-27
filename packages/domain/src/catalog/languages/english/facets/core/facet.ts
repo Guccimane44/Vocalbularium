@@ -8,9 +8,9 @@ import { isEnglish } from '../../english.js';
 // its meaning. A
 // word's `contextual` (D29) is its meaning in this Context, when the Context
 // selects one; the meanings then hold the key's other senses, its original
-// meaning always among them or in `contextual`. A word's `gramRole` and
-// `formsWord` (D35) are the part of speech and dictionary form of the English
-// word Forms describes; the card doesn't show them, so a core read back from
+// meaning always among them or in `contextual`. A word's `gramRole` is the
+// selection's own part of speech, and `formsWord` (D35) the dictionary form of
+// an English selection, which Forms describes (D374); the card doesn't show them, so a core read back from
 // storage has neither.
 const shape = object({
   kind: oneOf(['word', 'sentence'], 'Word or sentence'),

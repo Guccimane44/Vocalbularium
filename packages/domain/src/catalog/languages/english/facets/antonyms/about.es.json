@@ -1,5 +1,5 @@
 {
-  "summary": "Palabras inglesas con el significado opuesto.",
+  "summary": "Palabras con el significado contrario, en el idioma de tu clave.",
   "appliesTo": "Palabras",
-  "describes": "Los significados del núcleo."
+  "describes": "Tu clave: antónimos ingleses para una palabra inglesa, españoles para una española."
 }

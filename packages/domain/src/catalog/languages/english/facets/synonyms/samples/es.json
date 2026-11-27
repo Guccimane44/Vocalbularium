@@ -1,0 +1,20 @@
+{
+  "word_phrase": {
+    "core": {
+      "kind": "word",
+      "language": "English",
+      "key": "language",
+      "gramRole": "noun",
+      "formsWord": "language",
+      "meanings": [
+        "a system of words and grammar that people use to communicate",
+        "the words and style used by a particular group or in a particular field"
+      ]
+    },
+    "facets": {
+      "synonyms": [
+        "tongue"
+      ]
+    }
+  }
+}

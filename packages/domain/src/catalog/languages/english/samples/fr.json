@@ -17,26 +17,9 @@
           "translation": "Every summer, she learns a new language."
         }
       ],
-      "synonyms": [
-        "tongue"
-      ],
-      "pronunciation": [
-        "language"
-      ],
-      "etymology": {
-        "origins": [
-          "Latin",
-          "Old French"
-        ],
-        "text": "From Old French langage, from langue 'tongue', which comes from Latin lingua; it came into Middle English around 1300."
-      },
       "simple-translation": [
         "the words people use to talk and write"
-      ],
-      "forms": {
-        "word": "language",
-        "plural": "languages"
-      }
+      ]
     }
   },
   "sentence": {
@@ -54,9 +37,6 @@
           "sentence": "Les livres sont les fenêtres qui ouvrent sur le monde.",
           "translation": "Books are the windows that open onto the world."
         }
-      ],
-      "pronunciation": [
-        "Languages are the bridges that link people and the world."
       ],
       "simple-translation": [
         "Languages help people understand each other and the world."
