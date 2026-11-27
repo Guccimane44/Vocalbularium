@@ -58,12 +58,13 @@ The self-test runs the model with each break below and confirms that each rule f
 | `saved-before-reply` | The receipt is written saved as the request goes out. | `SavedHasPage` |
 | `recovery-in-fingerprint` | `capture`'s fingerprint also holds `recoverySession`. | `NeverReused` |
 | `interrupted-generates` | An interrupted capture's attempts stay loading. | `Fenced` |
+| `reconcile-marks-in-flight` | `reconcile` marks a capture this worker is still saving. | `InFlightNotInterrupted` |
 
 `--break <name>` runs the full check with one break, to see its counterexample.
 
 ## Read a failure
 
-A failure names the rule, its harm, and a shortest order of steps, in the code's words:
+A failure names the rule, its harm, and a shortest order of steps, in the code's words. This is the finding the check made at `c3d172c`, before its fix:
 
 ```
 Broke "InFlightNotInterrupted": A save in flight is never told it was interrupted.
@@ -81,7 +82,7 @@ Then decide whether it is a bug or a modelling error. Replay the steps against t
 - If a step cannot happen in the code, the model is wrong. Fix the model, and say what was wrong.
 - If every step can happen, it is a bug. Report it with the steps and the harm. Never weaken a rule, or the model, until it passes. Fix the product only when the owner asks.
 
-**A finding open today:** `InFlightNotInterrupted` breaks, as shown above. It was reproduced against the real worker at `c3d172c`. A worker woken by the menu click runs `initialize` for the first time inside the capture's own `submit`, and `reconcile` marks that capture "The save was interrupted. Try saving again." while `/api/capture/prepare` is in flight. The capture still saves; the notice is false. Until it is fixed, `npm run check:captures` exits 1 on this rule alone, and the other five must hold.
+**Past finding.** At `c3d172c`, a worker woken by the menu click ran `initialize` for the first time inside the capture's own `submit`, and `reconcile` marked that capture "The save was interrupted. Try saving again." while `/api/capture/prepare` was in flight. It was reproduced against the real worker and fixed in `eccded0`: `captureRuntime` counts the captures it is saving (`holding`), and `reconcile` leaves those alone. The test "a click that wakes a stopped worker keeps its own capture saving" in `tests/extension.test.mjs` guards it, and the break `reconcile-marks-in-flight` shows the model still catches it. All six rules hold, so `npm run check:captures` exits 0.
 
 ## Change it
 
@@ -93,9 +94,9 @@ A change to a covered function changes its action in `formal/captures/Captures.t
 
 ## What it was last confirmed against
 
-At commit `c3d172c`:
+At commit `eccded0`:
 
-- `extension/capture.js`: `handleCapture`, `submit`, `reconcile`
+- `extension/capture.js`: `handleCapture`, `holding`, `submit`, `send`, `reconcile`
 - `extension/background-runtime.js`: `initialize`, the `try-saving-again` message, `clearHandedOffCaptures`
 - `extension/context-menu.js`: `captureMenu`
 - `src/core/store-sessions.mjs`: `command`, `openSession`, `requireSession`
