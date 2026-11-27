@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readdirSync, readFileSync } from 'node:fs';
 import { disagreements, judgeCard, rubricOf } from '../scripts/judge.mjs';
+import { calibrations, expected, missed, readCalibration } from '../scripts/calibration.mjs';
 import { parentsIn } from '@vocabularium/domain/parents';
 import { checkCard } from '@vocabularium/domain/checks';
 import { checkTools } from '../scripts/check-tools.mjs';
@@ -43,18 +43,85 @@ test('a card fails on any failed criterion or content check, is weak on a weak o
   assert.equal(asked, 2);
 });
 
-test('the calibration set covers every module with a rubric, with recorded passes that pass the content checks and seeded fails', async () => {
-  const directory = new URL('./golden/calibration/', import.meta.url);
-  const sets = readdirSync(directory).filter(file => file.endsWith('.json')).map(file => JSON.parse(readFileSync(new URL(file, directory), 'utf8')));
+test('every calibration file reads, and each module\'s set has passing cards that pass the content checks and cards that fail', async () => {
+  const sets = await calibrations();
   assert.deepEqual(sets.map(set => set.module).sort(), [...parentsIn('translation'), ...parentsIn('expertise'), ...parentsIn('creativity')].sort());
   for (const set of sets) {
-    const pass = set.cards.filter(card => card.expected === 'pass');
-    const fail = set.cards.filter(card => card.expected === 'fail');
-    assert.ok(pass.length >= 5 && fail.length >= 5, set.module);
-    assert.equal(new Set(set.cards.map(card => card.id)).size, set.cards.length, `${set.module} repeats an ID`);
+    const pass = set.cards.filter(card => expected(card) === 'pass');
+    assert.ok(pass.length >= 5 && set.cards.filter(card => expected(card) === 'fail').length >= 5, `${set.module} has at least 5 pass and 5 fail cards`);
     for (const card of pass) assert.deepEqual((await checkCard(set.module, card.card, checkTools)).failures, [], `${set.module} ${card.id}`);
-    for (const card of fail) assert.ok(/^(Seeded fault|Recorded defect): /.test(card.why), `${set.module} ${card.id} says what is wrong`);
   }
+});
+
+// v0.17.0 step 2: enough fails on each criterion and open facet that each part
+// alone, the held-out part above all, can show a judge is blind to one.
+const MINIMUM_FAILS = {
+  etymology: { dev: 6, 'held-out': 4 },
+  ...Object.fromEntries(['sense', 'german', 'examples', 'simple-translation', 'grammar-teacher', 'facets/synonyms', 'facets/antonyms', 'facets/pronunciation']
+    .map(key => [key, { dev: 3, 'held-out': 2 }]))
+};
+
+test('German\'s calibration set has the minimum fails per criterion and open facet in each part', async () => {
+  const set = (await calibrations()).find(each => each.module === 'german');
+  assert.ok(set);
+  const fails = new Map();
+  for (const card of set.cards) {
+    if (!('criteria' in card)) continue;
+    for (const [criterion, verdict] of Object.entries(card.criteria)) {
+      if (verdict !== 'fail') continue;
+      const keys = criterion === 'facets' ? new Set(card.reasons.facets.map(reason => `facets/${reason.facet}`)) : [criterion];
+      for (const key of keys) fails.set(`${key} ${card.split}`, (fails.get(`${key} ${card.split}`) ?? 0) + 1);
+    }
+  }
+  const short = Object.entries(MINIMUM_FAILS).flatMap(([key, parts]) => Object.entries(parts)
+    .filter(([part, minimum]) => (fails.get(`${key} ${part}`) ?? 0) < minimum)
+    .map(([part, minimum]) => `${key} has ${fails.get(`${key} ${part}`) ?? 0} fails in the ${part} part, not ${minimum}; add real faults, or planted ones where none exist`));
+  assert.deepEqual(short, []);
+});
+
+// v0.17.0: a calibration card graded per criterion shows where the judge
+// fails a card for the wrong reason.
+const graded = async (criteria, reasons) => {
+  const ids = (await rubricOf('german')).map(criterion => criterion.id);
+  return { id: 'ufer', key: 'bank', language: 'en', split: 'dev', decided: 'claude', card: { core: {} },
+    criteria: { ...Object.fromEntries(ids.map(id => [id, 'pass'])), ...criteria }, reasons };
+};
+const judged = (verdict, scores) => ({ verdict, scores: Object.entries(scores).map(([criterion, each]) => ({ criterion, verdict: each, reason: '' })) });
+const why = { why: 'Says Ufer comes from Latin ora.', source: 'DWDS, Pfeifer: Ufer' };
+
+test('a graded card fails on its worst criterion, and a fail the judge gives elsewhere still misses it', async () => {
+  const card = await graded({ etymology: 'fail', examples: 'weak' }, { etymology: [why], examples: [why] });
+  assert.equal(expected(card), 'fail');
+  assert.equal(expected(await graded({ examples: 'weak' }, { examples: [why] })), 'weak');
+  assert.equal(expected(await graded({}, {})), 'pass');
+  assert.deepEqual(missed(card, judged('fail', { facets: 'fail', etymology: 'pass' })), [{ criterion: 'etymology', facets: [] }], 'failed for its synonyms, not its etymology');
+  assert.deepEqual(missed(card, judged('fail', { etymology: 'fail' })), []);
+  assert.deepEqual(missed(card, { verdict: 'error', scores: [] }), [{ criterion: 'etymology', facets: [] }], 'a card the judge could not score is no agreement');
+});
+
+test('a missed facets fail names its facets', async () => {
+  const card = await graded({ facets: 'fail' }, { facets: [{ ...why, facet: 'antonyms' }, { ...why, facet: 'pronunciation' }] });
+  assert.deepEqual(missed(card, judged('weak', { facets: 'weak' })), [{ criterion: 'facets', facets: ['antonyms', 'pronunciation'] }]);
+  assert.deepEqual(missed(card, judged('fail', { facets: 'fail' })), []);
+});
+
+test('a card graded as a whole is missed when the judge does not fail it', () => {
+  const card = { id: 'messy', key: 'bank', language: 'en', split: 'dev', decided: 'owner', card: { core: {} }, verdict: 'fail', reason: 'Two senses run together.' };
+  assert.equal(expected(card), 'fail');
+  assert.deepEqual(missed(card, judged('weak', {})), [{ criterion: null, facets: [] }]);
+  assert.deepEqual(missed(card, judged('fail', {})), []);
+  assert.deepEqual(missed({ ...card, verdict: 'weak' }, judged('pass', {})), [], 'only a fail can be missed');
+});
+
+test('the calibration reader rejects a graded card that leaves out a criterion or names a facet the module lacks', async () => {
+  const read = cards => readCalibration('inline.json', { note: '', module: 'german', cards });
+  await read([await graded({ facets: 'fail' }, { facets: [{ ...why, facet: 'antonyms' }] })]);
+  const { etymology, ...partial } = (await graded({}, {})).criteria;
+  await assert.rejects(read([{ ...await graded({}, {}), criteria: partial }]), /inline\.json: card "ufer" grades no "etymology"/);
+  await assert.rejects(read([await graded({ facets: 'fail' }, { facets: [{ ...why, facet: 'mood' }] })]), /facet "mood"; name one of article, /);
+  await assert.rejects(read([await graded({ facets: 'fail' }, { facets: [why] })]), /naming no facet/);
+  await assert.rejects(read([await graded({ etymology: 'weak' }, {})]), /grades "etymology" weak with no reasons/);
+  await assert.rejects(read([{ ...await graded({}, {}), item: 'sample-02' }]), /golden item "sample-02" is test; make it "held-out"/);
 });
 
 // M7: the judge keeps the model its calibration was made with while the generator changes.

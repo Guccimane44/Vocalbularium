@@ -14,7 +14,7 @@ The quality gate gives a quality verdict on a content module's cards. It informs
 | Golden plan | A module's failure points per facet, which facets are scored against references, and the frequency bands. | `catalog/<family>/<module>/golden/plan.ts`, listed in [`golden/index.ts`](../../packages/domain/src/golden/index.ts) (`@vocabularium/domain/golden`, never imported by the extension) |
 | Golden folder | A module's items and reference answers, read and checked through one reader. | `tests/golden/<module>/`; [`scripts/golden-sets.mjs`](../../scripts/golden-sets.mjs) |
 | Scorer | Scores a golden run's closed facets against the references, per facet, failure point, band and split. | [`scripts/golden-score.mjs`](../../scripts/golden-score.mjs) (`npm run golden:score -- <module>`); [`scripts/golden-coverage.mjs`](../../scripts/golden-coverage.mjs); [`scripts/golden-draft.mjs`](../../scripts/golden-draft.mjs) |
-| Calibration set | The answer key: cards with the verdict a careful human gives them. | [`tests/golden/calibration/<module>.json`](../../tests/golden/calibration) |
+| Calibration set | The answer key: cards with the verdicts a careful human gives them, per criterion or for the card as a whole. | [`tests/golden/calibration/<module>.json`](../../tests/golden/calibration), read by [`scripts/calibration.mjs`](../../scripts/calibration.mjs) |
 | Audit | A second judge on the same cards; lists the cards the two score differently. | `disagreements` in [`scripts/judge.mjs`](../../scripts/judge.mjs); the audit step in [`scripts/gate.mjs`](../../scripts/gate.mjs) |
 | Reports | Every gate run, golden run, judgement and calibration, kept locally and never committed. | `.data/gates/`, `.data/golden/`, `.data/judge/` |
 
@@ -52,7 +52,14 @@ A card fails when any content check fails or any criterion fails. It is weak whe
 - cards the owner reviewed as good, labelled *pass*;
 - cards labelled *fail*: copies of good cards with one fault planted on purpose, or real faulty cards recorded from earlier runs.
 
-`npm run judge -- --calibrate <module>` has the judge score every card without seeing the labels. The judge is **calibrated** for the module when it agrees with at least 90 % of the labels and misses no expected fail. Agreement is pass-or-fail only: a card the judge rates *weak* counts as agreeing with a *pass* label. The first rule shows it is not too strict; the second, that it is not blind to a known fault. Because *weak* counts as *pass* here, a judge can rate a real fault weak and still be calibrated. A calibration counts only for the model it ran with: a new judge model calibrates again.
+A card carries its labels in one of two forms:
+
+- **Graded per criterion**: a verdict, pass, weak or fail, for every criterion of the module's rubric, and for each criterion graded weak or fail a list of reasons, each with its source. A reason under the facets criterion also names the facet it is about, such as antonyms. The card's verdict is its worst criterion.
+- **Graded as a whole**: one verdict and one reason for the card. This form is for a card no source can grade criterion by criterion, and every card made before v0.17.0 uses it.
+
+Each card is in one of two parts, `dev` or `held-out`. The judge's prompt is tuned against the dev part; the held-out part shows how it does on cards it was not tuned against. A card made from a golden item is in that item's part, `held-out` for the item's `test` split. A card also says who settled its verdicts (`decided`), and may name the golden item, the model that wrote it and whether its fault is real or planted. [`scripts/calibration.mjs`](../../scripts/calibration.mjs) reads the files and rejects a card that breaks this shape, naming the file, the card and the fix.
+
+`npm run judge -- --calibrate <module>` has the judge score every card without seeing the labels; `--part dev` or `--part held-out` scores one part only. For a card graded per criterion, a **missed fail** is a criterion labelled fail that the judge did not fail, reported with the facets its reasons name: a judge that fails the card for another criterion still misses it. For a card graded as a whole, it is the card labelled fail that the judge did not fail. A card the judge could not score misses every fail it has. The judge is **calibrated** for the module when it agrees with at least 90 % of the labels and misses no fail. Agreement is pass-or-fail only: a card the judge rates *weak* counts as agreeing with a *pass* label. The first rule shows it is not too strict; the second, that it is not blind to a known fault. Because *weak* counts as *pass* here, a judge can rate a real fault weak and still be calibrated. A calibration counts only for the model it ran with: a new judge model calibrates again.
 
 Some rules below are working agreements kept by review, not by code: who writes labels, which model family audits, and who approves a threshold change.
 
@@ -86,9 +93,9 @@ Until v0.17.0 step 3, the judge still scores closed facets too, and the gate doe
 
 | Check | What it covers |
 | --- | --- |
-| [`tests/judge.test.mjs`](../../tests/judge.test.mjs) | Every module with a rubric has named criteria; how a card's verdict follows from its checks and criteria; how the audit matches two judges' verdicts |
+| [`tests/judge.test.mjs`](../../tests/judge.test.mjs) | Every module with a rubric has named criteria; how a card's verdict follows from its checks and criteria; every calibration file reads, with at least 5 pass and 5 fail cards per module; which fails a judgement misses; how the audit matches two judges' verdicts |
 | [`tests/content-checks.test.mjs`](../../tests/content-checks.test.mjs) | Each facet's checks on recorded good and bad cards |
-| `npm run judge -- --calibrate [module]` | Live: a judge model against the calibration sets; reports agreement and missed expected fails |
+| `npm run judge -- --calibrate [module] [--part dev\|held-out]` | Live: a judge model against the calibration sets, or one part of them; reports agreement and missed fails per criterion |
 | `npm run gate -- <module>` | Live: the whole gate, with the audit |
 
 How to work through a failing gate is in the [Verify skill](../../.agents/skills/vocabularium-verify/SKILL.md#the-gate-loop).
