@@ -6,8 +6,10 @@
    "id": "recorded-1",
    "key": "eigenvalue",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-10-28T14-28-36-895Z-en-mathematics.json.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-10-28T14-28-36-895Z-en-mathematics.json.",
    "card": {
     "core": {
      "relevance": "subject",
@@ -42,8 +44,10 @@
    "id": "recorded-2",
    "key": "derivative",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-10-28T14-28-36-895Z-en-mathematics.json.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-10-28T14-28-36-895Z-en-mathematics.json.",
    "card": {
     "core": {
      "relevance": "subject",
@@ -83,8 +87,10 @@
    "id": "recorded-3",
    "key": "prime number",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-10-28T14-28-36-895Z-en-mathematics.json.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-10-28T14-28-36-895Z-en-mathematics.json.",
    "card": {
     "core": {
      "relevance": "subject",
@@ -102,8 +108,10 @@
    "id": "recorded-4",
    "key": "vector space",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-10-28T14-28-36-895Z-en-mathematics.json.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-10-28T14-28-36-895Z-en-mathematics.json.",
    "card": {
     "core": {
      "relevance": "subject",
@@ -121,8 +129,10 @@
    "id": "recorded-5",
    "key": "proof by induction",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-10-28T14-28-36-895Z-en-mathematics.json.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-10-28T14-28-36-895Z-en-mathematics.json.",
    "card": {
     "core": {
      "relevance": "subject",
@@ -141,8 +151,10 @@
    "id": "recorded-6",
    "key": "limit",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-10-28T14-28-36-895Z-en-mathematics.json.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-10-28T14-28-36-895Z-en-mathematics.json.",
    "card": {
     "core": {
      "relevance": "subject",
@@ -196,8 +208,10 @@
    "key": "ring",
    "context": "Every field is a ring in which each nonzero element has an inverse.",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-10-28T14-28-36-895Z-en-mathematics.json.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-10-28T14-28-36-895Z-en-mathematics.json.",
    "card": {
     "core": {
      "relevance": "subject",
@@ -215,8 +229,10 @@
    "id": "recorded-8",
    "key": "field",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-10-28T14-28-36-895Z-en-mathematics.json.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-10-28T14-28-36-895Z-en-mathematics.json.",
    "card": {
     "core": {
      "relevance": "subject",
@@ -234,8 +250,10 @@
    "id": "wrong-formula",
    "key": "eigenvalue",
    "language": "en",
-   "expected": "fail",
-   "why": "Seeded fault: The defining formula is Av = λv, not λ + v.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Seeded fault: The defining formula is Av = λv, not λ + v.",
    "card": {
     "core": {
      "relevance": "subject",
@@ -270,8 +288,10 @@
    "id": "factual-error",
    "key": "derivative",
    "language": "en",
-   "expected": "fail",
-   "why": "Seeded fault: The derivative is a rate of change, not an area, and the derivative of x² is 2x.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Seeded fault: The derivative is a rate of change, not an area, and the derivative of x² is 2x.",
    "card": {
     "core": {
      "relevance": "subject",
@@ -310,8 +330,10 @@
    "id": "factual-error-prime",
    "key": "prime number",
    "language": "en",
-   "expected": "fail",
-   "why": "Seeded fault: A prime has exactly two divisors; 9 and 25 are not prime.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Seeded fault: A prime has exactly two divisors; 9 and 25 are not prime.",
    "card": {
     "core": {
      "relevance": "subject",
@@ -328,8 +350,10 @@
    "id": "unrelated-as-subject",
    "key": "retinol",
    "language": "en",
-   "expected": "fail",
-   "why": "Seeded fault: Retinol is unrelated to mathematics, yet explained as a subject concept.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Seeded fault: Retinol is unrelated to mathematics, yet explained as a subject concept.",
    "card": {
     "core": {
      "relevance": "subject",
@@ -346,8 +370,10 @@
    "id": "wrong-language",
    "key": "derivative",
    "language": "en",
-   "expected": "fail",
-   "why": "Seeded fault: The interface language is English, but the explanation is German.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Seeded fault: The interface language is English, but the explanation is German.",
    "card": {
     "core": {
      "relevance": "subject",

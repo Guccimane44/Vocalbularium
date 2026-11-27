@@ -21,6 +21,7 @@ Generation quality depends on which facets a card has. Some facets need knowledg
 3. **The quality bar is the judge's verdict.** Quality is not scored by hand. The headless Opus judge gives each card pass, weak or fail against the module's rubric, and a tier meets the bar when its cards meet the gate's existing thresholds: no fail, and at most 10% weak.
 4. **No tier cap for users or decks.** Users get a fixed allowance; the picker's cost is ours to manage.
 5. **The older v0.17 plan is deferred** ([incrementv17.md](../incrementv17.md)): no deck-level effort setting, no reflection, no language expansion in this release.
+6. **Argon is the audit model** (2026-11-25). Gemini 4 Argon replaces GPT-6 Luna as the second judge, which only informs. No other model is tested as a judge.
 
 ## German first
 
@@ -36,7 +37,7 @@ golden set → generate → score closed facets against references, judge the op
 | --- | --- | --- |
 | 1 | [Rework the golden set](01-golden-set.md) | A German golden set built from each facet's failure points, with reference answers for the facets that have one right answer, and a test that makes every new facet grow the set |
 | 2 | [Rework the calibration set](02-calibration-set.md) | German cards with verified verdicts, real defects, weak cases and a held-out part, reviewed by the owner |
-| 3 | [Qualify the judge](03-judge.md) | The headless Opus judge qualified on German's held-out cards |
+| 3 | [Measure the judge](03-judge.md) | A per-facet report of the headless Opus judge on German's held-out cards, and the facets its verdicts do not cover |
 | 4 | [Baseline the current model](04-baseline.md) | Haiku's per-facet fail and weak rates, time and cost, with their run-to-run spread |
 | 5 | [Benchmark the candidate models](05-benchmark.md) | The same numbers for Argon, Kimi and Qwen on Go |
 | 6 | [Derive the difficulty table](06-difficulty-table.md) | A tier on each German facet, in the catalog |
@@ -50,6 +51,7 @@ golden set → generate → score closed facets against references, judge the op
 Build these as scripts, not one-off runs. Each step's plan says which one it builds.
 
 - A golden-set coverage report, and a scorer that checks the closed facets (article, declension, conjugation, comparison, case) against reference answers (step 1).
+- Calibration cards graded per criterion, with missed fails counted per criterion, a structure test, and a review file for the messy cards (step 2).
 - Calibration that reports held-out agreement and pass/weak agreement (step 3).
 - A judge adapter for headless Claude Code, so the gate can call Opus (step 3).
 - Judge output files named so that parallel runs cannot overwrite each other (a collision lost three runs on 2026-11-24) (step 3).

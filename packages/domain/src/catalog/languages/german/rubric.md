@@ -5,3 +5,13 @@
 - **etymology**: For a word, Etymology is the grammar word's real etymology as a dictionary gives it: the key when it is German, otherwise the German word for its first meaning, "contextual" first when the core has one (so for breadcrumb read as Navigationspfad it is the etymology of Pfad or Navigation, not of Brotkrümel), by design. Its origins are the languages it came from or through, named in German; its text says its earlier forms and how it reached today's meaning. An invented or guessed etymology, or one of another word, fails; a word whose etymology is unknown has no Etymology, and its absence is right. The card writes "stammt aus:" before the origins itself, so origins without it are right and never weak.
 - **simple-translation**: Simple translation says each of the core's meanings again, in the same order, "contextual" first, in German a learner at CEFR A2 understands; for a sentence, one simple German line. A line that says something other than its meaning fails; a line that uses words well above A2 where simpler ones exist, or leaves part of its meaning out, is weak; a hard term is explained in simple words rather than left out.
 - **grammar-teacher**: Grammar teacher is present only for a German key, by design, and its absence for any other key is right. Each point is true of the key and worth a learner's notice (a separable verb, a case after a preposition, an irregular form, word order); a wrong point fails, a trivial one is weak.
+
+## Messy captures
+
+A capture can be messy: slang or a chat abbreviation, a typo, a fragment of a word, a new coinage, everyday speech, or a word with noise around it. The card is judged on what the user meant, and every criterion above still holds for it.
+
+- The card is built on what the user meant: the whole word for a fragment, the intended word for a typo, the meaning of the slang or abbreviation. Punctuation, hashtags, emoji and wrong capital letters are dropped without comment.
+- A typo is named: the card says the capture is misspelled and gives the right spelling. Correcting it silently, for instance only inside an example, is weak; calling it an accepted variant is weak.
+- The sense the Context uses comes first. A fragment that is part of a longer form in the Context is read as that form: した in 見ました is the end of the polite past, not "did". Missing the Context's reading fails.
+- Slang used inside a sentence of another language is treated as a word of that language. German youth slang such as lost, in a German sentence, gets German examples; treating it as a foreign word is weak.
+- A card that says only what the capture is, with nothing to learn beyond that (no example, no German word), is weak.

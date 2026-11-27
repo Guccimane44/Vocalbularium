@@ -5,13 +5,19 @@
 // set (M7), after the catalog's content checks. Its verdicts count only once
 // it agrees with the calibration set made with the same model.
 // It spends provider usage.
+// JUDGE_MODEL=claude-code/<model> judges through headless Claude Code on the
+// owner's plan (claude-code.mjs); any other model through OpenCode.
 // Usage: npm run judge -- <module> [golden run .json]   judge a golden run (the latest for the module by default)
-//        npm run judge -- --calibrate [module]           score the calibration set and report agreement
+//        npm run judge -- --calibrate [module] [--part dev|held-out]
+//                                                        score the calibration set, or one part of it, and report agreement and missed fails
+//        Either takes --runs <n> (one output file per run, for judge:report) and --parallel <n> (cards at once; 4 through Claude Code, else 1).
 import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
 import { OpenCodeProvider } from '../src/server/opencode.mjs';
+import { CLAUDE_CODE, ClaudeCodeProvider } from './claude-code.mjs';
 import { contentModule, folderOf, isContentModule, MODULES } from '@vocabularium/domain/catalog';
 import { checkCard } from '@vocabularium/domain/checks';
+import { calibrations, expected, missed } from './calibration.mjs';
 import { checkTools } from './check-tools.mjs';
 import { judgeModel, meter } from './meter.mjs';
 
@@ -34,10 +40,18 @@ export async function rubricOf(module) {
   return criteria;
 }
 
+/** What a rubric says after its criteria, such as German's section on messy captures, or nothing. @param {ModuleId} module */
+export async function rubricNotes(module) {
+  const text = await readFile(new URL(`${folderOf(module)}/rubric.md`, catalog), 'utf8');
+  const at = text.search(/^## /m);
+  return at < 0 ? '' : text.slice(at).trim();
+}
+
 /** The judge's request for one card, in the shape every provider takes. @param {ModuleId} module @param {Criterion[]} criteria @param {JudgeInput} input */
 async function request(module, criteria, input) {
+  const notes = await rubricNotes(module);
   const rules = (await readFile(new URL('./judge.md', import.meta.url), 'utf8'))
-    .replace('{{rubric}}', criteria.map(criterion => `- ${criterion.id}: ${criterion.text}`).join('\n'));
+    .replace('{{rubric}}', criteria.map(criterion => `- ${criterion.id}: ${criterion.text}`).join('\n') + (notes ? `\n\n${notes}` : ''));
   const verdict = { type: 'object', properties: { verdict: { type: 'string', enum: VERDICTS }, reason: { type: 'string' } }, required: ['verdict', 'reason'], additionalProperties: false };
   return { name: 'card_judgement', instructions: rules, maxTokens: 16384, input: { ...input, module: MODULES[module].label,
       // What each facet is for, from the catalog, so the judge reads it as intended.
@@ -97,30 +111,52 @@ async function steady(call) {
   }
 }
 
+/** Runs tasks, at most `limit` at a time, keeping their order. @template T @param {(() => Promise<T>)[]} tasks @param {number} limit @returns {Promise<T[]>} */
+export async function inTurn(tasks, limit) {
+  /** @type {T[]} */
+  const results = new Array(tasks.length);
+  let next = 0;
+  const worker = async () => { while (next < tasks.length) { const index = next++; results[index] = await tasks[index](); } };
+  await Promise.all(Array.from({ length: Math.min(limit, tasks.length) }, worker));
+  return results;
+}
+
+/** @param {string[]} args @param {string} flag */
+const option = (args, flag) => { const at = args.indexOf(flag); return at >= 0 ? args.splice(at, 2)[1] : undefined; };
+
 async function main() {
-  if (!process.env.OPENCODE_API_KEY) throw new Error('Configure OPENCODE_API_KEY in the ignored .env file first.');
-  const [first, second] = process.argv.slice(2);
+  const args = process.argv.slice(2);
+  const part = option(args, '--part');
+  const runs = Number(option(args, '--runs') ?? 1);
+  const parallelGiven = option(args, '--parallel');
+  const [first, second] = args;
+  if (part !== undefined && (first !== '--calibrate' || !['dev', 'held-out'].includes(part))) throw new Error('--part is dev or held-out, with --calibrate.');
+  if (!Number.isInteger(runs) || runs < 1) throw new Error('--runs is a whole number from 1.');
+  const name = judgeModel(process.env);
+  const viaClaude = name?.startsWith(CLAUDE_CODE);
+  if (!viaClaude && !process.env.OPENCODE_API_KEY) throw new Error('Configure OPENCODE_API_KEY in the ignored .env file first.');
+  const parallel = Number(parallelGiven ?? (viaClaude ? 4 : 1));
   // Judging a card with many facets reasons longer than generating it.
-  const provider = new OpenCodeProvider({ timeout: 180000, model: judgeModel(process.env) });
-  const cost = meter(provider);
-  const date = new Date().toISOString();
-  // Judged cards beside what the calibration file or golden run, untyped JSON, says of them.
-  /** @type {any[]} */
-  const results = [];
-  let title;
+  const provider = viaClaude && name ? new ClaudeCodeProvider({ model: name.slice(CLAUDE_CODE.length), timeout: 300000 }) : new OpenCodeProvider({ timeout: 180000, model: name });
+  // The name a calibration is matched by: claude-code/… stays apart from the same model on OpenCode.
+  const model = name ?? provider.model;
+  /** @type {{ title: string, tasks: (() => Promise<any>)[] }} each task judges one card, untyped JSON beside what its source says of it */
+  let job;
   if (first === '--calibrate') {
-    title = 'Judge calibration';
-    const directory = new URL('../tests/golden/calibration/', import.meta.url);
-    for (const file of (await readdir(directory)).filter(name => name.endsWith('.json')).sort()) {
-      const set = JSON.parse(await readFile(new URL(file, directory), 'utf8'));
+    /** @type {(() => Promise<any>)[]} */
+    const tasks = [];
+    for (const set of await calibrations()) {
       if (second && set.module !== second) continue;
       const criteria = await rubricOf(set.module);
-      for (const item of set.cards) {
-        const judged = await judgeSafely(provider, set.module, criteria, { selection: item.key, context: item.context, language: item.language ?? 'en', card: item.card });
-        results.push({ module: set.module, id: item.id, key: item.key, expected: item.expected, why: item.why, ...judged,
-          agrees: judged.verdict !== 'error' && (judged.verdict === 'fail') === (item.expected === 'fail') });
-      }
+      for (const card of set.cards.filter(each => !part || each.split === part)) tasks.push(async () => {
+        const started = Date.now();
+        const judged = await judgeSafely(provider, set.module, criteria, { selection: card.key, context: card.context, language: card.language, card: card.card });
+        const why = 'criteria' in card ? Object.entries(card.reasons).flatMap(([criterion, reasons]) => reasons.map(reason => `${criterion} ${card.criteria[criterion]}${reason.facet ? ` (${reason.facet})` : ''}: ${reason.why}`)).join('\n') : card.reason;
+        return { module: set.module, id: card.id, key: card.key, split: card.split, expected: expected(card), why, ...judged, ms: Date.now() - started,
+          agrees: judged.verdict !== 'error' && (judged.verdict === 'fail') === (expected(card) === 'fail'), missed: missed(card, judged) };
+      });
     }
+    job = { title: `Judge calibration${part ? ` (${part})` : ''}`, tasks };
   } else {
     if (!first || !isContentModule(first)) throw new Error('Name a content module, such as german, or --calibrate.');
     const golden = new URL('../.data/golden/', import.meta.url);
@@ -128,36 +164,45 @@ async function main() {
       .find(name => name.includes(`-${first}.json`) || name.endsWith(`-${first}.json`));
     if (!file) throw new Error(`No golden run for ${first}; run npm run smoke:generation -- ${first} first.`);
     const run = JSON.parse(await readFile(new URL(file, golden), 'utf8'));
-    title = `Judgement of ${file}`;
     const criteria = await rubricOf(first);
-    for (const result of run.results.filter((/** @type {any} */ each) => each.parent === first)) {
-      if (!result.json?.core) { results.push({ module: first, key: result.key, verdict: 'fail', checks: [], scores: [], error: result.error ?? 'no card' }); continue; }
+    job = { title: `Judgement of ${file}`, tasks: run.results.filter((/** @type {any} */ each) => each.parent === first).map((/** @type {any} */ result) => async () => {
+      if (!result.json?.core) return { module: first, key: result.key, verdict: 'fail', checks: [], scores: [], error: result.error ?? 'no card' };
       // Only the facets the card shows: one its flags rule out was dropped and never reaches the user (D17).
       const card = { ...result.json, facets: Object.fromEntries(Object.entries(result.json.facets ?? {}).filter(([facet]) => !result.facets || result.facets.includes(facet))) };
-      results.push({ module: first, key: result.key, ...await judgeSafely(provider, first, criteria, { selection: result.key, context: result.context, language: run.language, card }) });
+      const started = Date.now();
+      return { module: first, key: result.key, ...await judgeSafely(provider, first, criteria, { selection: result.key, context: result.context, language: run.language, card }), ms: Date.now() - started };
+    }) };
+  }
+  for (let index = 1; index <= runs; index++) {
+    const cost = meter(provider);
+    const date = new Date().toISOString();
+    const results = await inTurn(job.tasks, parallel);
+    const title = `${job.title}${runs > 1 ? `, run ${index} of ${runs}` : ''}`;
+    // A random part keeps runs started together apart (three were lost to a clash on 2026-11-24). One part is named
+    // apart too, so the gate, which reads only "-calibration.json", never takes it for the whole set.
+    const stamp = `${date.replace(/[:.]/g, '-')}-${randomUUID().slice(0, 8)}${first === '--calibrate' ? `-calibration${part ? `-${part}` : ''}` : `-${first}`}`;
+    await mkdir('.data/judge', { recursive: true });
+    await writeFile(`.data/judge/${stamp}.json`, JSON.stringify({ date, model, cost: cost.spent(), title, part: part ?? null, results }, null, 2) + '\n');
+    const count = (/** @type {string} */ verdict) => results.filter(result => result.verdict === verdict).length;
+    const lines = [`# ${title}`, '', `${date} · model ${model} · ${results.length} cards: ${count('pass')} pass, ${count('weak')} weak, ${count('fail')} fail${count('error') ? `, ${count('error')} not scored` : ''} · ${Math.round(cost.spent() * 1e6)} µ$ list cost`, ''];
+    if (first === '--calibrate') {
+      const agreed = results.filter(result => result.agrees).length;
+      const missedFails = results.reduce((sum, result) => sum + result.missed.length, 0);
+      lines.push(`**Agreement:** ${agreed}/${results.length} (${Math.round(100 * agreed / Math.max(results.length, 1))}%) · **recorded fails missed:** ${missedFails}`, '',
+        missedFails || agreed < 0.9 * results.length ? '**Not calibrated:** the judge\'s verdicts do not count until it agrees on 90% and misses no recorded fail.' : '**Calibrated.**', '');
     }
+    for (const result of results) {
+      lines.push(`## ${result.module}: ${result.key}${result.id ? ` (${result.id})` : ''} · ${result.verdict}${result.expected ? `, expected ${result.expected}${result.agrees ? '' : ' **(disagrees)**'}` : ''}`, '');
+      if (result.why) lines.push(result.why, '');
+      if (result.missed?.length) lines.push(`**Missed:** ${result.missed.map((/** @type {any} */ miss) => miss.criterion ? `${miss.criterion}${miss.facets.length ? ` (${miss.facets.join(', ')})` : ''}` : 'the card').join(', ')}`, '');
+      for (const check of result.checks ?? []) lines.push(`- check ${check.part}.${check.check}: ${check.message}`);
+      for (const score of result.scores ?? []) lines.push(`- ${score.criterion}: **${score.verdict}** · ${score.reason}`);
+      if (result.error) lines.push(`- error: ${result.error}`);
+      lines.push('');
+    }
+    await writeFile(`.data/judge/${stamp}.md`, lines.join('\n'));
+    console.log(`${lines[2]}${first === '--calibrate' ? `\n${lines[4]}` : ''}\nReview .data/judge/${stamp}.md.`);
   }
-  const stamp = `${date.replace(/[:.]/g, '-')}${first === '--calibrate' ? '-calibration' : `-${first}`}`;
-  await mkdir('.data/judge', { recursive: true });
-  await writeFile(`.data/judge/${stamp}.json`, JSON.stringify({ date, model: provider.model, cost: cost.spent(), title, results }, null, 2) + '\n');
-  const count = (/** @type {string} */ verdict) => results.filter(result => result.verdict === verdict).length;
-  const lines = [`# ${title}`, '', `${date} · model ${provider.model} · ${results.length} cards: ${count('pass')} pass, ${count('weak')} weak, ${count('fail')} fail${count('error') ? `, ${count('error')} not scored` : ''} · ${Math.round(cost.spent() * 1e6)} µ$`, ''];
-  if (first === '--calibrate') {
-    const agreed = results.filter(result => result.agrees).length;
-    const missed = results.filter(result => result.expected === 'fail' && result.verdict !== 'fail');
-    lines.push(`**Agreement:** ${agreed}/${results.length} (${Math.round(100 * agreed / Math.max(results.length, 1))}%) · **recorded fails missed:** ${missed.length}`, '',
-      missed.length || agreed < 0.9 * results.length ? '**Not calibrated:** the judge\'s verdicts do not count until it agrees on 90% and misses no recorded fail.' : '**Calibrated.**', '');
-  }
-  for (const result of results) {
-    lines.push(`## ${result.module}: ${result.key}${result.id ? ` (${result.id})` : ''} · ${result.verdict}${result.expected ? `, expected ${result.expected}${result.agrees ? '' : ' **(disagrees)**'}` : ''}`, '');
-    if (result.why) lines.push(result.why, '');
-    for (const check of result.checks ?? []) lines.push(`- check ${check.part}.${check.check}: ${check.message}`);
-    for (const score of result.scores ?? []) lines.push(`- ${score.criterion}: **${score.verdict}** · ${score.reason}`);
-    if (result.error) lines.push(`- error: ${result.error}`);
-    lines.push('');
-  }
-  await writeFile(`.data/judge/${stamp}.md`, lines.join('\n'));
-  console.log(`${lines[2]}${first === '--calibrate' ? `\n${lines[4]}` : ''}\nReview .data/judge/${stamp}.md.`);
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) await main();
