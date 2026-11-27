@@ -2,12 +2,13 @@
   "word_phrase": {
     "core": {
       "kind": "word",
-      "language": "Spanisch",
-      "key": "bueno",
+      "language": "Deutsch",
+      "key": "gut",
       "gramRole": "adjective",
       "meanings": [
-        "gut",
-        "in Ordnung"
+        "von hoher Qualität",
+        "richtig, passend",
+        "angenehm"
       ]
     },
     "facets": {

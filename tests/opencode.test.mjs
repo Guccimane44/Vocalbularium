@@ -131,7 +131,7 @@ test('OpenCode asks a parent for its core, its flags first, and the facets asked
   const german = parentInstructions('german', ['article', 'synonyms']);
   assert.match(german, /"kind": "<word \| sentence>"/);
   assert.match(german, /"gramRole"/);
-  assert.match(german, /only when "gramRole" is noun/, 'a facet says when it applies');
+  assert.match(german, /only when the selection is a German noun/, 'a facet says when it applies');
   assert.ok(german.indexOf('"article"') < german.indexOf('"synonyms"'));
   assert.doesNotMatch(german, /"examples"|"antonyms"|===|\[1\]/);
   const chinese = parentInstructions('chinese', ['examples', 'pinyin']);

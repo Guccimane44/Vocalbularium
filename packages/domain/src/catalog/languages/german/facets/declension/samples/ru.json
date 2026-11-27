@@ -2,13 +2,13 @@
   "word_phrase": {
     "core": {
       "kind": "word",
-      "language": "Russisch",
-      "key": "хороший",
+      "language": "Deutsch",
+      "key": "gut",
       "romanization": "khoroshiy",
       "gramRole": "adjective",
       "meanings": [
-        "gut",
-        "schön",
+        "von hoher Qualität",
+        "richtig, passend",
         "angenehm"
       ]
     },

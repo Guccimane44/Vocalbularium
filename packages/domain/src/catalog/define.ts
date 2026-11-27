@@ -51,6 +51,9 @@ export type FacetDefinition<Id extends string = string, T = any> = Readonly<{
   spoken?: Spoken;
   // What a well-written part always satisfies (0.16.0).
   checks?: readonly Check<T>[];
+  // A facet the module no longer writes: kept only so cards written before
+  // still read, render and play it. It is never offered, requested or retried.
+  retired?: true;
 }>;
 
 // The core: a module's first facet, always present, with one shape (D17). Its

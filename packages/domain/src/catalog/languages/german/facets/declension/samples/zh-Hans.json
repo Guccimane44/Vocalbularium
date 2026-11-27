@@ -2,15 +2,14 @@
   "word_phrase": {
     "core": {
       "kind": "word",
-      "language": "Chinesisch",
-      "key": "好",
+      "language": "Deutsch",
+      "key": "gut",
       "romanization": "hǎo",
       "gramRole": "adjective",
       "meanings": [
-        "gut",
-        "in Ordnung",
-        "schön",
-        "freundlich"
+        "von hoher Qualität",
+        "richtig, passend",
+        "angenehm"
       ]
     },
     "facets": {

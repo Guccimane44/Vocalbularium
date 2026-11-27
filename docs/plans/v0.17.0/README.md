@@ -21,12 +21,12 @@ Both need two things we do not have yet: per-facet quality numbers we can trust,
 
 **One card, step by step:**
 
-1. **The grammar word.** When the selection is German, it is the grammar word and is known at once. Otherwise the model names it in the core.
-2. **Look up references** for that word: etymology, synonyms, antonyms. Each lookup finds an entry or none.
+1. **The word to look up is the selection** (owner, 2026-11-27, [selection facets](../selection-facets.md)). Every facet describes the selection itself, so the word is known before generation, whatever its language.
+2. **Look up references** for that word in its own language's source: etymology from that language's Wiktionary entry, synonyms and antonyms (OpenThesaurus covers only German selections). Each lookup finds an entry or none.
 3. **Pick the model.** The card's difficulty is its hardest facet, an assisted facet counting at its "with reference" difficulty when an entry was found and at its "without" difficulty when not. The cheapest model that handles that difficulty writes the card.
 4. **Generate.** The references go into the request as facts to draw on.
 
-**One request or two.** When the selection is German, which is most German captures, the lookup runs before generation and the card is one request, as today. Otherwise the grammar word exists only after the core is written. Then a second, short request writes the assisted facets, and the picker chooses a model for that request on its own, usually a cheaper one.
+**One request.** Since the word to look up is the selection, every lookup runs before generation and the card is one request, as today. (Until 2026-11-27 a foreign selection's facets described a German "grammar word" that existed only after the core was written, which needed a second request; that rule is gone.)
 
 **Reference, not copy.**
 
@@ -34,7 +34,7 @@ Both need two things we do not have yet: per-facet quality numbers we can trust,
 - A content check compares each assisted facet with its reference and flags long word-for-word runs.
 - The judge is given the reference too, and checks the card against it instead of against its own memory.
 
-**Live lookups** (owner, 2026-11-26). Each card looks its grammar word up in the source at generation time, with a short time limit, so the cards always use the source's current entry and nothing is copied onto the computer. The grammar word, never the user's sentence, goes to the source; the privacy rules in the code standards say so. A lookup that times out counts as "no entry found".
+**Live lookups** (owner, 2026-11-26). Each card looks its selection up in the source at generation time, with a short time limit, so the cards always use the source's current entry and nothing is copied onto the computer. The selected word, never the user's sentence, goes to the source; the privacy rules in the code standards say so. A lookup that times out counts as "no entry found".
 
 **When no entry is found.** Synonyms and antonyms are written by the model the "without reference" difficulty calls for. Etymology is left out (the rubric already accepts a missing etymology when the history is unknown), because a confident invented history is the fault this solves (owner, 2026-11-26).
 
@@ -101,6 +101,6 @@ Build these as scripts, not one-off runs. Each step's plan says which one it bui
 - A golden-set coverage report, and a scorer that checks the closed facets (article, declension, conjugation, comparison, case) against reference answers (step 1).
 - Calibration cards graded per criterion, with missed fails counted per criterion, a structure test, and a review file for the messy cards (step 2).
 - Calibration that reports held-out agreement and pass/weak agreement, a judge adapter for headless Claude Code, and output files named so that parallel runs cannot overwrite each other (step 3).
-- A live lookup per source that finds a grammar word's entries, with a time limit (step 3b).
+- A live lookup per source that finds a selection's entries, with a time limit (step 3b).
 - A bench script that takes the model, effort, sample count and references on or off, and records tokens, time and cost per card (step 4).
 - A per-criterion and per-facet report across runs (`.data/bench/opus/compare.mjs` is the sketch) (step 4).

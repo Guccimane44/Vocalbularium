@@ -31,9 +31,6 @@
       "why": "Simulated capture: mile, drawn with seed 20261124 as draw 2 from Leipzig eng_news_2013_1M, sentence 958148. The Context is about loyalty miles converted to money, a sense the Context picks.",
       "part": "sample",
       "split": "test",
-      "candidates": [
-        "Meile"
-      ],
       "fills": {
         "core": [
           "kind",
@@ -78,10 +75,6 @@
       "why": "Simulated capture: writings, drawn with seed 20261124 as draw 4 from Leipzig eng_wikipedia_2012_1M, sentence 874966.",
       "part": "sample",
       "split": "test",
-      "candidates": [
-        "Schrift",
-        "Werk"
-      ],
       "fills": {
         "core": [
           "kind",
@@ -121,10 +114,6 @@
       "why": "Simulated capture: carriers, drawn with seed 20261124 as draw 6 from Leipzig eng_news_2013_1M, sentence 202514.",
       "part": "sample",
       "split": "dev",
-      "candidates": [
-        "Fluggesellschaft",
-        "Fluglinie"
-      ],
       "fills": {
         "core": [
           "kind",
@@ -169,9 +158,6 @@
       "why": "Simulated capture: stay, drawn with seed 20261124 as draw 8 from Leipzig eng_wikipedia_2012_1M, sentence 262111.",
       "part": "sample",
       "split": "dev",
-      "candidates": [
-        "Aufenthalt"
-      ],
       "fills": {
         "core": [
           "kind",
@@ -211,9 +197,6 @@
       "why": "Simulated capture: day, drawn with seed 20261124 as draw 10 from Leipzig eng_news_2013_1M, sentence 704555.",
       "part": "sample",
       "split": "dev",
-      "candidates": [
-        "Tag#Sonnenaufgang"
-      ],
       "fills": {
         "core": [
           "kind",
@@ -258,9 +241,6 @@
       "why": "Simulated capture: by, drawn with seed 20261124 as draw 12 from Leipzig eng_wikipedia_2012_1M, sentence 397641.",
       "part": "sample",
       "split": "test",
-      "candidates": [
-        "von"
-      ],
       "fills": {
         "core": [
           "kind",
@@ -347,9 +327,6 @@
       "why": "Simulated capture: shuttle, drawn with seed 20261124 as draw 16 from Leipzig eng_wikipedia_2012_1M, sentence 194939.",
       "part": "sample",
       "split": "dev",
-      "candidates": [
-        "Shuttle"
-      ],
       "fills": {
         "core": [
           "kind",
@@ -394,9 +371,6 @@
       "why": "Simulated capture: Author, drawn with seed 20261124 as draw 18 from Leipzig eng_news_2013_1M, sentence 97614.",
       "part": "sample",
       "split": "dev",
-      "candidates": [
-        "Autor"
-      ],
       "fills": {
         "core": [
           "kind",
@@ -438,9 +412,6 @@
       "why": "Simulated capture: showed, drawn with seed 20261124 as draw 20 from Leipzig eng_wikipedia_2012_1M, sentence 927871.",
       "part": "sample",
       "split": "dev",
-      "candidates": [
-        "zeigen"
-      ],
       "fills": {
         "core": [
           "kind",
@@ -483,10 +454,6 @@
       "why": "Simulated capture: songs, drawn with seed 20261124 as draw 22 from Leipzig eng_news_2013_1M, sentence 325875.",
       "part": "sample",
       "split": "test",
-      "candidates": [
-        "Lied",
-        "Song"
-      ],
       "fills": {
         "core": [
           "kind",
@@ -526,9 +493,6 @@
       "why": "Simulated capture: in, drawn with seed 20261124 as draw 24 from Leipzig eng_wikipedia_2012_1M, sentence 904548.",
       "part": "sample",
       "split": "test",
-      "candidates": [
-        "in#örtlich"
-      ],
       "fills": {
         "core": [
           "kind",
@@ -570,10 +534,6 @@
       "why": "Simulated capture: started, drawn with seed 20261124 as draw 26 from Leipzig eng_news_2013_1M, sentence 519484.",
       "part": "sample",
       "split": "dev",
-      "candidates": [
-        "beginnen",
-        "anfangen"
-      ],
       "fills": {
         "core": [
           "kind",
@@ -618,9 +578,6 @@
       "why": "Simulated capture: is, drawn with seed 20261124 as draw 28 from Leipzig eng_wikipedia_2012_1M, sentence 748124.",
       "part": "sample",
       "split": "dev",
-      "candidates": [
-        "sein"
-      ],
       "fills": {
         "core": [
           "kind",
@@ -666,9 +623,6 @@
       "why": "Simulated capture: is, drawn with seed 20261124 as draw 30 from Leipzig eng_news_2013_1M, sentence 8345.",
       "part": "sample",
       "split": "dev",
-      "candidates": [
-        "sein"
-      ],
       "fills": {
         "core": [
           "kind",
@@ -858,9 +812,6 @@
         ],
         "article": [
           "plural-class"
-        ],
-        "pronunciation": [
-          "loanword"
         ]
       },
       "expect": {
@@ -881,9 +832,6 @@
       "fills": {
         "etymology": [
           "french"
-        ],
-        "pronunciation": [
-          "loanword"
         ]
       },
       "expect": {
@@ -907,9 +855,6 @@
         ],
         "article": [
           "gender-loan"
-        ],
-        "pronunciation": [
-          "loanword"
         ]
       },
       "expect": {
@@ -930,9 +875,6 @@
       "fills": {
         "etymology": [
           "english"
-        ],
-        "pronunciation": [
-          "loanword"
         ]
       },
       "expect": {
@@ -3459,22 +3401,12 @@
       "why": "A real past case: an English verb, German laufen or rennen.",
       "part": "reading",
       "split": "dev",
-      "candidates": [
-        "laufen",
-        "rennen"
-      ],
       "fills": {
         "core": [
           "source-language"
         ],
-        "conjugation": [
-          "strong-preterite"
-        ],
         "grammar-teacher": [
           "foreign-key"
-        ],
-        "pronunciation": [
-          "speaks-translation"
         ],
         "examples": [
           "translation"
@@ -3494,17 +3426,11 @@
       "why": "English noun; the Context picks the river bank (Ufer); the money sense stays among the meanings.",
       "part": "reading",
       "split": "dev",
-      "candidates": [
-        "Ufer#Gewässer"
-      ],
       "fills": {
         "core": [
           "context-sense",
           "original-meaning",
           "source-language"
-        ],
-        "pronunciation": [
-          "speaks-translation"
         ]
       },
       "expect": {
@@ -3522,17 +3448,11 @@
       "why": "English noun; the Context picks the money institution, plural Banken.",
       "part": "reading",
       "split": "test",
-      "candidates": [
-        "Bank#Geldinstitut"
-      ],
       "fills": {
         "core": [
           "context-sense",
           "original-meaning",
           "source-language"
-        ],
-        "article": [
-          "plural-sense"
         ]
       },
       "expect": {
@@ -3550,19 +3470,19 @@
       "why": "English noun with one sense: the Context does not narrow it.",
       "part": "reading",
       "split": "dev",
-      "candidates": [
-        "Kühlschrank"
-      ],
       "fills": {
         "core": [
           "context-flat",
           "source-language"
         ],
-        "pronunciation": [
-          "speaks-translation"
-        ],
         "examples": [
           "translation"
+        ],
+        "etymology": [
+          "foreign-key"
+        ],
+        "synonyms": [
+          "foreign-key"
         ]
       },
       "expect": {
@@ -3580,9 +3500,6 @@
       "why": "English gift, spelt like German Gift (poison); the Context makes it English.",
       "part": "reading",
       "split": "test",
-      "candidates": [
-        "Geschenk"
-      ],
       "fills": {
         "core": [
           "shared-spelling",
@@ -3683,6 +3600,9 @@
         ],
         "simple-translation": [
           "abstract"
+        ],
+        "etymology": [
+          "foreign-key"
         ]
       },
       "expect": {
@@ -3739,16 +3659,10 @@
       "why": "A real past case: an English phrasal verb, German aufstehen.",
       "part": "reading",
       "split": "dev",
-      "candidates": [
-        "aufstehen"
-      ],
       "fills": {
         "core": [
           "kind",
           "source-language"
-        ],
-        "conjugation": [
-          "separable"
         ],
         "grammar-teacher": [
           "foreign-key"
@@ -3767,21 +3681,15 @@
       "why": "A real past case: Etymology describes Fenster (Latin fenestra), not window; no Grammar teacher.",
       "part": "reading",
       "split": "test",
-      "candidates": [
-        "Fenster"
-      ],
       "fills": {
         "core": [
           "source-language"
         ],
-        "etymology": [
-          "latin-early"
-        ],
         "grammar-teacher": [
           "foreign-key"
         ],
-        "pronunciation": [
-          "speaks-translation"
+        "etymology": [
+          "foreign-key"
         ]
       },
       "expect": {
@@ -4021,15 +3929,9 @@
       "why": "An Arabic noun, German Liebe.",
       "part": "reading",
       "split": "test",
-      "candidates": [
-        "Liebe#Zuneigung"
-      ],
       "fills": {
         "core": [
           "source-language"
-        ],
-        "pronunciation": [
-          "speaks-translation"
         ]
       },
       "expect": {
@@ -4045,16 +3947,10 @@
       "why": "An English phrase, German wegen with the genitive.",
       "part": "reading",
       "split": "dev",
-      "candidates": [
-        "wegen"
-      ],
       "fills": {
         "core": [
           "kind",
           "source-language"
-        ],
-        "case": [
-          "genitive"
         ]
       },
       "expect": {
@@ -4070,18 +3966,15 @@
       "why": "An English adjective, German gut: besser, am besten.",
       "part": "reading",
       "split": "dev",
-      "candidates": [
-        "gut"
-      ],
       "fills": {
         "core": [
           "source-language"
         ],
-        "comparison": [
-          "suppletive"
-        ],
         "examples": [
           "natural-use"
+        ],
+        "synonyms": [
+          "foreign-key"
         ]
       },
       "expect": {
@@ -4149,16 +4042,13 @@
       "why": "An English adjective, German hoch: höher, am höchsten.",
       "part": "reading",
       "split": "test",
-      "candidates": [
-        "hoch"
-      ],
       "fills": {
         "core": [
           "context-sense",
           "source-language"
         ],
-        "comparison": [
-          "stem-change"
+        "synonyms": [
+          "foreign-key"
         ]
       },
       "expect": {
@@ -4175,16 +4065,10 @@
       "why": "English noun in a fruit Context: German die Orange, spoken as the French loan.",
       "part": "reading",
       "split": "dev",
-      "candidates": [
-        "Orange#süßlich"
-      ],
       "fills": {
         "core": [
           "context-sense",
           "source-language"
-        ],
-        "pronunciation": [
-          "loanword"
         ]
       },
       "expect": {
@@ -4698,6 +4582,81 @@
         ]
       },
       "expect": {}
+    },
+    {
+      "id": "r-besser",
+      "key": "besser",
+      "context": "Heute geht es mir schon viel besser als gestern.",
+      "why": "An inflected German key: the comparative of gut, explained as its headword. Replaces r-good's suppletive point (2026-11-27), now that a foreign key gets no grammar facets.",
+      "part": "reading",
+      "split": "dev",
+      "candidates": [
+        "gut"
+      ],
+      "fills": {
+        "core": [
+          "inflected-key"
+        ],
+        "comparison": [
+          "suppletive"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "adjective"
+        }
+      }
+    },
+    {
+      "id": "r-hoeher",
+      "key": "höher",
+      "context": "Der Turm ist höher als die Kirche.",
+      "why": "An inflected German key: the comparative of hoch, with its stem change. Replaces r-high's point (2026-11-27), now that a foreign key gets no grammar facets.",
+      "part": "reading",
+      "split": "dev",
+      "candidates": [
+        "hoch"
+      ],
+      "fills": {
+        "core": [
+          "inflected-key"
+        ],
+        "comparison": [
+          "stem-change"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "adjective"
+        }
+      }
+    },
+    {
+      "id": "r-banken",
+      "key": "Banken",
+      "context": "Die Banken haben die Zinsen wieder erhöht.",
+      "why": "An inflected German key whose plural depends on the sense: Banken, not Bänke. Replaces r-bank-money's point (2026-11-27), now that a foreign key gets no grammar facets.",
+      "part": "reading",
+      "split": "dev",
+      "candidates": [
+        "Bank#Geldinstitut"
+      ],
+      "fills": {
+        "core": [
+          "inflected-key"
+        ],
+        "article": [
+          "plural-sense"
+        ]
+      },
+      "expect": {
+        "kind": "word",
+        "gramRole": {
+          "german": "noun"
+        }
+      }
     }
   ]
 }

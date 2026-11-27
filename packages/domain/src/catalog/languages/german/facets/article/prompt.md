@@ -1,1 +1,1 @@
-"article": { "singular": "<article> <noun>", "plural": "die <plural>" } for the grammar word, such as { "singular": "das Ufer", "plural": "die Ufer" }, only when "gramRole" is noun. Leave out "plural" when the noun has none.
+"article": { "singular": "<article> <noun>", "plural": "die <plural>" } for the selection, such as { "singular": "das Ufer", "plural": "die Ufer" }, only when the selection is a German noun ("language" is Deutsch and "gramRole" is noun). Leave out "plural" when the noun has none.

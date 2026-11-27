@@ -51,11 +51,11 @@ A draft of the message is at the end of this plan.
 
 ## The lookup
 
-- **Live** (owner, 2026-11-26). Each card looks its grammar word up at generation time, so it always uses the source's current entry, and nothing is copied onto the computer. A lookup has a short time limit (2 seconds by default); one that times out counts as "no entry found".
-- **Privacy.** The grammar word, never the user's sentence, goes to the source. The privacy rules in the code standards get a line naming each source.
-- **One function per source**: grammar word in, its entries or "none" out. It runs outside any database transaction, like every provider call. For OpenThesaurus it uses its public API, within the API's stated limits; for Wiktionary, the MediaWiki API within its limits; for Pfeifer, only what the BBAW allows. Each source sits behind the same function, so Pfeifer can replace Wiktionary without changing anything else.
+- **Live** (owner, 2026-11-26). Each card looks its selection up at generation time, so it always uses the source's current entry, and nothing is copied onto the computer. A lookup has a short time limit (2 seconds by default); one that times out counts as "no entry found".
+- **Privacy.** The selected word, never the user's sentence, goes to the source. The privacy rules in the code standards get a line naming each source.
+- **One function per source**: the selection and its language in, its entries or "none" out. It runs outside any database transaction, like every provider call. For OpenThesaurus it uses its public API, within the API's stated limits; for Wiktionary, the MediaWiki API within its limits; for Pfeifer, only what the BBAW allows. Each source sits behind the same function, so Pfeifer can replace Wiktionary without changing anything else.
 - **When no entry is found** (owner, 2026-11-26): synonyms and antonyms are written by the model their "without reference" difficulty calls for; etymology is left out.
-- **The grammar word** is the key when it is German, otherwise the German word for the core's first meaning, "contextual" first. When the selection is German, the lookup runs before generation; otherwise after the core, for a second, short request (see the [master plan](README.md#how-the-pillars-fit-together)).
+- **The word to look up is the selection** (owner, 2026-11-27, [selection facets](../selection-facets.md)), in its own language: a German selection in the German Wiktionary, a foreign one in its language's entry in the English Wiktionary. OpenThesaurus covers only German selections. The lookup always runs before generation, so a card is one request (see the [master plan](README.md#how-the-pillars-fit-together)).
 - **Credit on the card.** Each assisted facet carries its source's credit line (for example "nach OpenThesaurus"). This changes the card screen, so the screen reference and the screens check follow.
 
 ## Reference, not copy
@@ -70,11 +70,11 @@ A draft of the message is at the end of this plan.
 Before any of this is built, a prototype shows whether references help enough. Nothing is shipped.
 
 1. **Synonyms and antonyms** from OpenThesaurus, within its API's limits: German's calibration cards with a synonyms or antonyms fault, and as many that pass. Haiku writes the facet from the entries; the new facets are graded against DWDS by hand, as in step 2.
-2. **Etymology** from Wiktionary: the 39 calibration cards with an etymology fail and 39 that pass. The new facets are graded against the cards' existing verdicts, which rest on Pfeifer; where a new facet says something those verdicts do not cover, a person checks it in a browser. No script fetches DWDS.
+2. **Etymology** from Wiktionary, looked up by the selection in its own language: German calibration cards with a German key, and foreign keys such as *window*, *refrigerator*, 经济 and тоска. The facet is judged only for agreeing with its entry, not for being true (owner, 2026-11-27): step 3 showed even Opus cannot verify an etymology from memory. A card says what the entry says and adds nothing; no entry means no etymology. Where the facet and its entry disagree, a person checks it in a browser. No script fetches DWDS.
 
-**Worth building if:** at least 90% of the former fails now pass, no former pass now fails, and the text reads well for a learner (the owner checks a sample).
+**Worth building if:** the etymology says what its entry says on at least 90% of the cards, with no fact the entry lacks; the synonyms and antonyms pass on at least 90% of the former fails, with no former pass now failing; and the text reads well for a learner (the owner checks a sample).
 
-**Also measured:** how often a grammar word has no entry (Wiktionary has no etymology for many words), which sets how much the "without reference" difficulty matters.
+**Also measured:** how often a selection has no entry (Wiktionary has no etymology for many words), which sets how much the "without reference" difficulty matters.
 
 ## What this step hands on
 

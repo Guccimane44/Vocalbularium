@@ -2,13 +2,14 @@
   "word_phrase": {
     "core": {
       "kind": "word",
-      "language": "Russisch",
-      "key": "говорить",
+      "language": "Deutsch",
+      "key": "sprechen",
       "romanization": "govorit'",
       "gramRole": "verb",
       "meanings": [
-        "sprechen, sich mündlich äußern",
-        "reden"
+        "Wörter mit der Stimme bilden",
+        "sich mit jemandem unterhalten",
+        "sich äußern"
       ]
     },
     "facets": {

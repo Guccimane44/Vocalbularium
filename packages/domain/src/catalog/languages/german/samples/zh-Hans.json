@@ -11,62 +11,12 @@
       ]
     },
     "facets": {
-      "article": {
-        "singular": "die Sprache",
-        "plural": "die Sprachen"
-      },
       "examples": [
         {
           "sentence": "语言是人与人交流的重要工具。",
           "translation": "Sprache ist ein wichtiges Werkzeug für die Verständigung zwischen Menschen."
         }
       ],
-      "declension": {
-        "columns": [
-          "Singular",
-          "Plural"
-        ],
-        "rows": [
-          {
-            "label": "Nominativ",
-            "cells": [
-              "die Sprache",
-              "die Sprachen"
-            ]
-          },
-          {
-            "label": "Genitiv",
-            "cells": [
-              "der Sprache",
-              "der Sprachen"
-            ]
-          },
-          {
-            "label": "Dativ",
-            "cells": [
-              "der Sprache",
-              "den Sprachen"
-            ]
-          },
-          {
-            "label": "Akkusativ",
-            "cells": [
-              "die Sprache",
-              "die Sprachen"
-            ]
-          }
-        ]
-      },
-      "pronunciation": [
-        "die Sprache"
-      ],
-      "etymology": {
-        "origins": [
-          "Althochdeutsch",
-          "Mittelhochdeutsch"
-        ],
-        "text": "Aus althochdeutsch sprāhha und mittelhochdeutsch sprāche, die mit dem Verb sprechen verwandt sind. Ursprünglich bezeichnete das Wort das Sprechen und die Rede, daraus entwickelte sich die heutige Bedeutung als System der Verständigung."
-      },
       "simple-translation": [
         "die Sprache, mit der Menschen miteinander reden und schreiben"
       ]
@@ -88,9 +38,6 @@
           "sentence": "沟通是连接不同文化的桥梁。",
           "translation": "Kommunikation ist die Brücke, die verschiedene Kulturen verbindet."
         }
-      ],
-      "pronunciation": [
-        "Sprache ist die Brücke, die Menschen und die Welt verbindet"
       ],
       "simple-translation": [
         "Sprache verbindet Menschen mit der Welt."

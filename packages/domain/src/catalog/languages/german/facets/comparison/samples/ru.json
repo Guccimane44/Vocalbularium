@@ -2,15 +2,14 @@
   "word_phrase": {
     "core": {
       "kind": "word",
-      "language": "Russisch",
-      "key": "ясный",
+      "language": "Deutsch",
+      "key": "klar",
       "romanization": "yasnyy",
       "gramRole": "adjective",
       "meanings": [
-        "klar",
-        "hell",
-        "deutlich",
-        "wolkenlos"
+        "deutlich und leicht zu verstehen",
+        "durchsichtig, ohne Trübung",
+        "offensichtlich"
       ]
     },
     "facets": {

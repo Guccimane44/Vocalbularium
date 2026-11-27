@@ -2,15 +2,14 @@
   "word_phrase": {
     "core": {
       "kind": "word",
-      "language": "Chinesisch",
-      "key": "清楚",
+      "language": "Deutsch",
+      "key": "klar",
       "romanization": "qīngchu",
       "gramRole": "adjective",
       "meanings": [
-        "klar",
-        "deutlich",
-        "verstehen",
-        "Bescheid wissen"
+        "deutlich und leicht zu verstehen",
+        "durchsichtig, ohne Trübung",
+        "offensichtlich"
       ]
     },
     "facets": {

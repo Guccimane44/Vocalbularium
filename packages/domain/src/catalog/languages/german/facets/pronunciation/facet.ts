@@ -2,9 +2,11 @@ import { defineFacet, escapeMarkdown, list, text } from '../../../../blocks.js';
 
 // The translation, spoken (D24): one line per meaning, a noun with its article,
 // a sentence's translation, or a German key itself; each line is one clip.
+// Retired since the facets describe the selection (2026-11-27): the Sound
+// module speaks it. Kept so cards written before still render and play.
 export default defineFacet({
   id: 'pronunciation', label: 'Pronunciation', abbreviation: 'Pr', description: 'The German translation, spoken.',
-  applies: ['word_phrase', 'sentence'], spoken: { language: 'de' },
+  applies: ['word_phrase', 'sentence'], spoken: { language: 'de' }, retired: true,
   shape: list(text('the German to speak')),
   format: lines => lines.map(escapeMarkdown).join('\n'),
   // The core's label before a meaning in this Context (D29) is never spoken.

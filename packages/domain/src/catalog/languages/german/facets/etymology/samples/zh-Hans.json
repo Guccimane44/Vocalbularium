@@ -1,0 +1,22 @@
+{
+  "word_phrase": {
+    "core": {
+      "kind": "word",
+      "language": "Deutsch",
+      "key": "Fenster",
+      "gramRole": "noun",
+      "meanings": [
+        "eine Öffnung in einer Wand, durch die Licht fällt, meist mit Glas"
+      ]
+    },
+    "facets": {
+      "etymology": {
+        "origins": [
+          "Latein",
+          "Althochdeutsch"
+        ],
+        "text": "Aus lateinisch fenestra „Fensteröffnung“, als fenstar ins Althochdeutsche übernommen, als die Germanen den römischen Steinbau kennenlernten."
+      }
+    }
+  }
+}

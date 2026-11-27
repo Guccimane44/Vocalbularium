@@ -57,7 +57,7 @@ test('every calibration file reads, and each module\'s set has passing cards tha
 // alone, the held-out part above all, can show a judge is blind to one.
 const MINIMUM_FAILS = {
   etymology: { dev: 6, 'held-out': 4 },
-  ...Object.fromEntries(['sense', 'german', 'examples', 'simple-translation', 'grammar-teacher', 'facets/synonyms', 'facets/antonyms', 'facets/pronunciation']
+  ...Object.fromEntries(['sense', 'german', 'examples', 'simple-translation', 'grammar-teacher', 'facets/synonyms', 'facets/antonyms']
     .map(key => [key, { dev: 3, 'held-out': 2 }]))
 };
 
@@ -265,12 +265,12 @@ test('the report matches a card to its own module\'s results, since card IDs rep
 });
 
 test('a card judged with a reference gets the reference and a note on it; one without gets neither', async () => {
-  const { grammarWord } = await import('../scripts/judge.mjs');
-  assert.equal(grammarWord({ key: 'Ufer', card: { core: { kind: 'word', language: 'Deutsch' } } }), 'Ufer');
-  assert.equal(grammarWord({ key: 'bank', card: { core: { kind: 'word', language: 'Englisch', contextual: 'das Ufer eines Flusses', meanings: ['Geldinstitut'] } } }), 'Ufer');
-  assert.equal(grammarWord({ key: 'We sat.', card: { core: { kind: 'sentence', language: 'Englisch', meanings: ['Wir saßen.'] } } }), null);
-  assert.equal(grammarWord({ key: '经济', card: { core: { kind: 'word', language: 'Chinesisch', meanings: ['Gesamtheit der Produktion'] }, facets: { article: { singular: 'die Wirtschaft' } } } }), 'Wirtschaft', 'the word the grammar facets describe, not the definition\'s first word');
-  assert.equal(grammarWord({ key: '把', card: { core: { kind: 'word', language: 'Chinesisch', meanings: ['anfassen, mit der Hand halten'] }, facets: { conjugation: { rows: [{ label: 'ich', cells: ['halte', 'hielt'] }] } } } }), 'halten');
+  const { etymologyWord } = await import('../scripts/judge.mjs');
+  // The selection itself (2026-11-27); a foreign selection waits for its own language's Wiktionary (step 3b).
+  assert.equal(etymologyWord({ key: 'Ufer', card: { core: { kind: 'word', language: 'Deutsch' } } }), 'Ufer');
+  assert.equal(etymologyWord({ key: 'sich freuen', card: { core: { kind: 'word', language: 'Deutsch' } } }), 'freuen');
+  assert.equal(etymologyWord({ key: 'bank', card: { core: { kind: 'word', language: 'Englisch', contextual: 'das Ufer eines Flusses', meanings: ['Geldinstitut'] } } }), null);
+  assert.equal(etymologyWord({ key: 'Wir saßen.', card: { core: { kind: 'sentence', language: 'Deutsch', meanings: ['…'] } } }), null);
   const criteria = await rubricOf('german');
   const seen = [];
   const provider = { complete: async request => { seen.push(request); return Object.fromEntries(criteria.map(criterion => [criterion.id, { verdict: 'pass', reason: 'fine' }])); } };

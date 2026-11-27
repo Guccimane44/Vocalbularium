@@ -2,13 +2,13 @@
   "word_phrase": {
     "core": {
       "kind": "word",
-      "language": "Arabisch",
-      "key": "واضح",
+      "language": "Deutsch",
+      "key": "klar",
       "romanization": "wāḍiḥ",
       "gramRole": "adjective",
       "meanings": [
-        "klar",
-        "deutlich",
+        "deutlich und leicht zu verstehen",
+        "durchsichtig, ohne Trübung",
         "offensichtlich"
       ]
     },

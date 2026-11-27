@@ -1,1 +1,1 @@
-"case": only when "gramRole" is preposition: one { "case": "<Akkusativ | Dativ | Genitiv>", "use": "<when it takes this case, in German, such as Richtung>", "example": "<a short German example>" } per case it governs.
+"case": only when the selection is a German preposition ("language" is Deutsch and "gramRole" is preposition): one { "case": "<Akkusativ | Dativ | Genitiv>", "use": "<when it takes this case, in German, such as Richtung>", "example": "<a short German example>" } per case it governs.
