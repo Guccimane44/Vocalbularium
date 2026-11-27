@@ -43,7 +43,7 @@ Both need two things we do not have yet: per-facet quality numbers we can trust,
 - **Reasoning effort is not the lever** (2026-11-24). Haiku 5.5 at medium, high and xhigh, against default, on German, Computer Science and Joke (84 cards each, 1 sample). Medium matched default on time and tokens. High cost about 40% more and was no better. Xhigh doubled time and cost, and cut off 4 German cards before they finished. Results: `.data/bench/results.md`.
 - **A stronger model is** (2026-11-24). On the German golden set, the Opus 5.5 judge scored Opus 5.5 cards 45 pass, 9 weak, 0 fail, and Haiku cards 22 pass, 23 weak, 9 fail. Haiku's fails were guessed etymologies (Ufer, Fernweh, wegen), wrong Präteritum forms (run, 把, get up) and a garbled word.
 - **Which facets are hard** (step 1's scorer and step 2's graded cards, 2026-11-26, one run each):
-  - Etymology is hardest for every model: 27 fails in Haiku's 84 graded cards, and 10 in Argon's 22. In step 2's rough check, Opus as judge missed 13 of 16 dev etymology fails.
+  - Etymology is hardest for every model: 27 fails in Haiku's 84 graded cards, and 10 in Argon's 22. Opus as judge missed 15 of 16 dev etymology fails over three runs, and still 11 after step 3's rubric fixes; a Wiktionary entry beside the card helped only a little ([step 3](03-judge.md#dev-results-so-far-2026-11-26-and-27)).
   - Inflection is hard for Haiku and much less so for Argon. The step 1 scorer's fail rates: declension 19% for Haiku and 6% for Argon, conjugation 14% and 3%, article 13% and 5%.
   - The grammar tip is in between: 11 fails for Haiku, mostly false claims, and 2 for Argon.
   - Meaning, examples, simple translation, pronunciation, comparison and case have few fails. Synonyms are often weak, rarely wrong.

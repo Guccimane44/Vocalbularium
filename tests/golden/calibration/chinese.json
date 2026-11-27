@@ -7,8 +7,10 @@
    "key": "bank",
    "context": "We sat on the bank and watched the river go by.",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-10-30T17-37-21-414Z-en-chinese.json. Adapted for D29 (5 November 2026): the Context's sense moved to \"contextual\", and the other sense added to \"meanings\" with its example, pinyin and pronunciation.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-10-30T17-37-21-414Z-en-chinese.json. Adapted for D29 (5 November 2026): the Context's sense moved to \"contextual\", and the other sense added to \"meanings\" with its example, pinyin and pronunciation.",
    "card": {
     "core": {
      "kind": "word",
@@ -51,8 +53,10 @@
    "id": "recorded-2",
    "key": "run",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-10-30T17-37-21-414Z-en-chinese.json.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-10-30T17-37-21-414Z-en-chinese.json.",
    "card": {
     "core": {
      "kind": "word",
@@ -115,8 +119,10 @@
    "id": "recorded-3",
    "key": "serendipity",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-10-30T17-37-21-414Z-en-chinese.json.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-10-30T17-37-21-414Z-en-chinese.json.",
    "card": {
     "core": {
      "kind": "word",
@@ -149,8 +155,10 @@
    "id": "recorded-4",
    "key": "break the ice",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-10-30T17-37-21-414Z-en-chinese.json.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-10-30T17-37-21-414Z-en-chinese.json.",
    "card": {
     "core": {
      "kind": "word",
@@ -193,8 +201,10 @@
    "id": "recorded-5",
    "key": "beautiful",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-10-30T17-37-21-414Z-en-chinese.json.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-10-30T17-37-21-414Z-en-chinese.json.",
    "card": {
     "core": {
      "kind": "word",
@@ -227,8 +237,10 @@
    "id": "recorded-6",
    "key": "幸福",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-10-30T17-37-21-414Z-en-chinese.json.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-10-30T17-37-21-414Z-en-chinese.json.",
    "card": {
     "core": {
      "kind": "word",
@@ -261,8 +273,10 @@
    "id": "recorded-7",
    "key": "打算",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-10-30T17-37-21-414Z-en-chinese.json.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-10-30T17-37-21-414Z-en-chinese.json.",
    "card": {
     "core": {
      "kind": "word",
@@ -298,8 +312,10 @@
    "id": "recorded-8",
    "key": "一举两得",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-10-30T17-37-21-414Z-en-chinese.json.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-10-30T17-37-21-414Z-en-chinese.json.",
    "card": {
     "core": {
      "kind": "word",
@@ -332,8 +348,10 @@
    "id": "sentence-1",
    "key": "We sat on the bank and watched the river.",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-11-03T19-57-42-053Z-en-chinese.json. A sentence's one example is a new sentence of the same structure, by design.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-11-03T19-57-42-053Z-en-chinese.json. A sentence's one example is a new sentence of the same structure, by design.",
    "card": {
     "core": {
      "kind": "sentence",
@@ -366,8 +384,10 @@
    "id": "sentence-2",
    "key": "Ich habe Fernweh.",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-11-03T19-57-42-053Z-en-chinese.json. A sentence's one example is a new sentence of the same structure, by design.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-11-03T19-57-42-053Z-en-chinese.json. A sentence's one example is a new sentence of the same structure, by design.",
    "card": {
     "core": {
      "kind": "sentence",
@@ -401,8 +421,10 @@
    "id": "citation-tone",
    "key": "dépaysement",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-11-03T19-57-42-053Z-en-chinese.json. 不 is written in its citation tone (bù shìyìng), as the standard orthography does.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-11-03T19-57-42-053Z-en-chinese.json. 不 is written in its citation tone (bù shìyìng), as the standard orthography does.",
    "card": {
     "core": {
      "kind": "word",
@@ -446,8 +468,10 @@
    "key": "bank",
    "context": "We sat on the bank and watched the river go by.",
    "language": "en",
-   "expected": "fail",
-   "why": "Seeded fault: The recorded card from before D29, which gives only the sense the Context uses: no \"contextual\", and the word's other, most common meaning is missing.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Seeded fault: The recorded card from before D29, which gives only the sense the Context uses: no \"contextual\", and the word's other, most common meaning is missing.",
    "card": {
     "core": {
      "kind": "word",
@@ -481,8 +505,10 @@
    "key": "bank",
    "context": "We sat on the bank and watched the river go by.",
    "language": "en",
-   "expected": "fail",
-   "why": "Seeded fault: The Context is a river bank; the meaning is the money sense.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Seeded fault: The Context is a river bank; the meaning is the money sense.",
    "card": {
     "core": {
      "kind": "word",
@@ -516,8 +542,10 @@
    "key": "bank",
    "context": "We sat on the bank and watched the river go by.",
    "language": "en",
-   "expected": "fail",
-   "why": "Seeded fault: 河岸 is hé’àn; the tones are wrong though the syllables are valid. Adapted for D29 (5 November 2026): the Context's sense moved to \"contextual\", and the other sense added to \"meanings\" with its example, pinyin and pronunciation.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Seeded fault: 河岸 is hé’àn; the tones are wrong though the syllables are valid. Adapted for D29 (5 November 2026): the Context's sense moved to \"contextual\", and the other sense added to \"meanings\" with its example, pinyin and pronunciation.",
    "card": {
     "core": {
      "kind": "word",
@@ -561,8 +589,10 @@
    "key": "bank",
    "context": "I need to go to the bank before it closes.",
    "language": "en",
-   "expected": "fail",
-   "why": "Seeded fault: 行 in 银行 reads háng, not xíng.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Seeded fault: 行 in 银行 reads háng, not xíng.",
    "card": {
     "core": {
      "kind": "word",
@@ -596,8 +626,10 @@
    "key": "bank",
    "context": "I need to go to the bank before it closes.",
    "language": "en",
-   "expected": "fail",
-   "why": "Seeded fault: The meaning is written in traditional characters (銀).",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Seeded fault: The meaning is written in traditional characters (銀).",
    "card": {
     "core": {
      "kind": "word",
@@ -631,8 +663,10 @@
    "key": "bank",
    "context": "We sat on the bank and watched the river go by.",
    "language": "en",
-   "expected": "fail",
-   "why": "Seeded fault: The translation says something else than its sentence. Adapted for D29 (5 November 2026): the Context's sense moved to \"contextual\", and the other sense added to \"meanings\" with its example, pinyin and pronunciation.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Seeded fault: The translation says something else than its sentence. Adapted for D29 (5 November 2026): the Context's sense moved to \"contextual\", and the other sense added to \"meanings\" with its example, pinyin and pronunciation.",
    "card": {
     "core": {
      "kind": "word",
@@ -675,8 +709,10 @@
    "id": "sentence-translation",
    "key": "We sat on the bank and watched the river.",
    "language": "en",
-   "expected": "fail",
-   "why": "Seeded fault: the example's translation repeats the selection's meaning (sitting on the river bank) instead of saying what its own sentence says (standing on a bridge, watching boats).",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Seeded fault: the example's translation repeats the selection's meaning (sitting on the river bank) instead of saying what its own sentence says (standing on a bridge, watching boats).",
    "card": {
     "core": {
      "kind": "sentence",
@@ -709,8 +745,10 @@
    "id": "sentence-tones",
    "key": "Ich habe Fernweh.",
    "language": "en",
-   "expected": "fail",
-   "why": "Seeded fault: 远方 is yuǎnfāng; the pinyin gives yuānfáng.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Seeded fault: 远方 is yuǎnfāng; the pinyin gives yuānfáng.",
    "card": {
     "core": {
      "kind": "sentence",
@@ -744,8 +782,10 @@
    "id": "facets-1",
    "key": "咖啡",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-11-07T15-35-50-441Z-en-chinese.json: Etymology, Simple translation and Grammar teacher (0.16.4).",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-11-07T15-35-50-441Z-en-chinese.json: Etymology, Simple translation and Grammar teacher (0.16.4).",
    "card": {
     "core": {
      "kind": "word",
@@ -793,8 +833,10 @@
    "id": "facets-2",
    "key": "经济",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-11-07T15-35-50-441Z-en-chinese.json: Etymology, Simple translation and Grammar teacher (0.16.4).",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-11-07T15-35-50-441Z-en-chinese.json: Etymology, Simple translation and Grammar teacher (0.16.4).",
    "card": {
     "core": {
      "kind": "word",
@@ -852,8 +894,10 @@
    "id": "facets-3",
    "key": "我把书放在桌子上了。",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-11-07T15-35-50-441Z-en-chinese.json: Etymology, Simple translation and Grammar teacher (0.16.4).",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-11-07T15-35-50-441Z-en-chinese.json: Etymology, Simple translation and Grammar teacher (0.16.4).",
    "card": {
     "core": {
      "kind": "sentence",
@@ -894,8 +938,10 @@
    "id": "facets-4",
    "key": "一举两得",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-11-07T15-35-50-441Z-en-chinese.json: Etymology, Simple translation and Grammar teacher (0.16.4).",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-11-07T15-35-50-441Z-en-chinese.json: Etymology, Simple translation and Grammar teacher (0.16.4).",
    "card": {
     "core": {
      "kind": "word",
@@ -945,8 +991,10 @@
    "key": "行",
    "context": "他在这一行干了二十年，是真正的专家。",
    "language": "en",
-   "expected": "fail",
-   "why": "Recorded defect: Grammar teacher explains 了 and 是……的 in the Context's sentence instead of 行 itself, and Simple translation calls 银行 a shop; recorded output, golden run 2026-11-07T15-35-50-441Z-en-chinese.json, relabelled after review (0.16.4).",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Recorded defect: Grammar teacher explains 了 and 是……的 in the Context's sentence instead of 行 itself, and Simple translation calls 银行 a shop; recorded output, golden run 2026-11-07T15-35-50-441Z-en-chinese.json, relabelled after review (0.16.4).",
    "card": {
     "core": {
      "kind": "word",
@@ -1014,8 +1062,10 @@
    "id": "invented-etymology",
    "key": "咖啡",
    "language": "en",
-   "expected": "fail",
-   "why": "Seeded fault: the etymology is invented: 咖啡 is a loanword, not a native word of 古汉语.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Seeded fault: the etymology is invented: 咖啡 is a loanword, not a native word of 古汉语.",
    "card": {
     "core": {
      "kind": "word",
@@ -1062,8 +1112,10 @@
    "id": "hard-simple-translation",
    "key": "经济",
    "language": "en",
-   "expected": "fail",
-   "why": "Seeded fault: the simple translation is no simpler than the core: it keeps 宏观, 国民经济 and 资源配置, words no beginner knows.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Seeded fault: the simple translation is no simpler than the core: it keeps 宏观, 国民经济 and 资源配置, words no beginner knows.",
    "card": {
     "core": {
      "kind": "word",
@@ -1121,8 +1173,10 @@
    "id": "simple-translation-sense",
    "key": "The committee postponed the decision indefinitely.",
    "language": "en",
-   "expected": "fail",
-   "why": "Seeded fault: the simple translation says the committee made the decision, the opposite of postponing it.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Seeded fault: the simple translation says the committee made the decision, the opposite of postponing it.",
    "card": {
     "core": {
      "kind": "sentence",
@@ -1158,8 +1212,10 @@
    "id": "wrong-measure-word",
    "key": "咖啡",
    "language": "en",
-   "expected": "fail",
-   "why": "Seeded fault: Grammar teacher gives a wrong measure word: coffee is 一杯咖啡, never 一只咖啡.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Seeded fault: Grammar teacher gives a wrong measure word: coffee is 一杯咖啡, never 一只咖啡.",
    "card": {
     "core": {
      "kind": "word",
@@ -1207,8 +1263,10 @@
    "id": "wrong-aspect",
    "key": "我把书放在桌子上了。",
    "language": "en",
-   "expected": "fail",
-   "why": "Seeded fault: Grammar teacher says 了 marks the future, but here it marks a completed action.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Seeded fault: Grammar teacher says 了 marks the future, but here it marks a completed action.",
    "card": {
     "core": {
      "kind": "sentence",
