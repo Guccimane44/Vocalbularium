@@ -97,8 +97,13 @@ StartSession ==
 
 \* /api/session (SessionStore.openSession), then captures.reconcile(session).
 \* A newer session fails the installation's loading attempts; reconcile turns
-\* every `saving` capture receipt into `pending` with "The save was interrupted".
+\* every `saving` capture receipt into `pending` with "The save was interrupted",
+\* except one this worker is still saving (`saving` in captureRuntime): a submit
+\* in procs is this worker's, since a restart empties procs.
 \* An older session is refused (stale_session) and initialize fails: no step.
+\* Break "reconcile-marks-in-flight": reconcile marks this worker's captures too.
+InFlight(c) == \E p \in Procs : procs[p].busy /\ procs[p].c = c
+
 OpenSessionAndReconcile ==
   /\ ~inited /\ bsession # 0 /\ bsession >= srvCurrent
   /\ srvCurrent' = bsession
@@ -107,6 +112,7 @@ OpenSessionAndReconcile ==
               ELSE gen
   /\ local' = [c \in Captures |->
                  IF local[c].state = "saving"
+                    /\ (~InFlight(c) \/ "reconcile-marks-in-flight" \in Breaks)
                    THEN [local[c] EXCEPT !.state = "pending", !.interrupted = TRUE]
                    ELSE local[c]]
   /\ inited' = TRUE

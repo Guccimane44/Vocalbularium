@@ -28,6 +28,21 @@ export function captureRuntime({ request, initialize, refresh, removeAccess, sav
   /** @type {Promise<void> | undefined} */
   let polling;
   let pollAgain = false;
+  // Captures this worker is saving now, by operation ID. Only a worker that
+  // stopped can have interrupted a save, so reconcile leaves these alone: a
+  // click that wakes a stopped worker runs its first initialize, and so
+  // reconcile, inside its own submit.
+  /** @type {Map<string, number>} */
+  const saving = new Map();
+  /** @template T @param {string} operationId @param {() => Promise<T>} action @returns {Promise<T>} */
+  async function holding(operationId, action) {
+    saving.set(operationId, (saving.get(operationId) ?? 0) + 1);
+    try { return await action(); }
+    finally {
+      const left = (saving.get(operationId) ?? 1) - 1;
+      if (left) saving.set(operationId, left); else saving.delete(operationId);
+    }
+  }
   async function context() {
     const state = await initialize();
     if (!state.signedIn) throw new Error(t('capture.signIn'));
@@ -42,7 +57,11 @@ export function captureRuntime({ request, initialize, refresh, removeAccess, sav
     if (error.status === 401) await removeAccess();
   }
   /** @param {CaptureReceipt} receipt */
-  async function submit(receipt) {
+  function submit(receipt) {
+    return holding(receipt.operationId, () => send(receipt));
+  }
+  /** @param {CaptureReceipt} receipt */
+  async function send(receipt) {
     const key = `capture-${receipt.operationId}`;
     try {
       const { auth, session } = await context();
@@ -96,11 +115,14 @@ export function captureRuntime({ request, initialize, refresh, removeAccess, sav
     const payload = { session, snapshot, mainKey: info.selectionText, ...(context ? { context } : {}) };
     /** @type {CaptureReceipt} */
     const receipt = { operationId, payload, state: 'saving', createdAt: new Date().toISOString() };
-    try { await chrome.storage.local.set({ [`capture-${operationId}`]: receipt }); }
-    catch { await showFeedback(/** @type {number} */ (tab.id), t('capture.notReceived'), true, info.pageUrl ?? tab.url); return; }
-    await showFeedback(/** @type {number} */ (tab.id), t('capture.received'), false, info.pageUrl ?? tab.url, info.selectionText);
-    await submit(receipt).catch(recordError);
-    return operationId;
+    // In flight from the moment its receipt says saving.
+    return holding(operationId, async () => {
+      try { await chrome.storage.local.set({ [`capture-${operationId}`]: receipt }); }
+      catch { await showFeedback(/** @type {number} */ (tab.id), t('capture.notReceived'), true, info.pageUrl ?? tab.url); return; }
+      await showFeedback(/** @type {number} */ (tab.id), t('capture.received'), false, info.pageUrl ?? tab.url, info.selectionText);
+      await submit(receipt).catch(recordError);
+      return operationId;
+    });
   }
   async function poll() {
     // A capture can be accepted while an older poll is about to observe no
@@ -149,7 +171,8 @@ export function captureRuntime({ request, initialize, refresh, removeAccess, sav
       if (key.startsWith('save-publish-') && item.payload.payload.session.sessionId !== session.sessionId) {
         await chrome.storage.local.remove(key);
       }
-      if (key.startsWith('capture-') && item.state === 'saving') {
+      // A capture this worker is still saving was not interrupted.
+      if (key.startsWith('capture-') && item.state === 'saving' && !saving.has(key.slice('capture-'.length))) {
         await chrome.storage.local.set({ [key]: { ...item, state: 'pending', error: t('save.interrupted') } });
       }
     }

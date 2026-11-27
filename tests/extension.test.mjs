@@ -94,6 +94,48 @@ test('account refresh clears only confirmed, unchanged saved capture receipts', 
   assert.equal(api.storage.local.data['capture-pending'].state, 'pending');
 });
 
+// Found by the capture model (InFlightNotInterrupted, vocabularium-captures skill).
+test('a click that wakes a stopped worker keeps its own capture saving; an earlier worker\'s is interrupted', async t => {
+  const fixture = await background(t);
+  const { api, send } = fixture;
+  await send({ type: 'login', username: 'admin', password: 'admin' });
+  assert.ok(api.contextMenus.onClicked.listeners.length, 'the capture menu is wired');
+  Object.assign(api, { scripting: { async executeScript() { return [{ result: Date.now() }]; } }, windows: { async create() {} },
+    tabs: { async get() { return { url: 'https://example.test/' }; }, async sendMessage() {} } });
+  // A capture the stopped worker never finished.
+  await api.storage.local.set({ 'capture-earlier': { operationId: 'earlier', state: 'saving' } });
+  let inFlight;
+  fixture.intercept(async path => {
+    if (path === '/api/capture/prepare') {
+      inFlight = structuredClone(Object.entries(api.storage.local.data).filter(([key]) => key.startsWith('capture-')));
+      return reply(200, { snapshot: { id: 'one', modules: [] } });
+    }
+    if (path === '/api/capture') return reply(200, { pageId: 'page-1' });
+    if (path.endsWith('.css')) return { ok: true, status: 200, async text() { return ''; } };
+  });
+
+  // Chrome stops the worker; the click starts a new one, whose first initialize runs inside the capture.
+  Object.assign(api.runtime, { onMessage: event(), onInstalled: event(), onStartup: event() });
+  api.contextMenus.onClicked = event(); api.alarms.onAlarm = event(); api.action.onClicked = event();
+  await import(`../extension/background.js?test=${crypto.randomUUID()}`);
+  api.contextMenus.onClicked.listeners[0]({ menuItemId: 'capture', selectionText: 'Ufer', pageUrl: 'https://example.test/' }, { id: 7, url: 'https://example.test/' });
+  await waitUntil(() => inFlight, 'the capture reaches prepare');
+
+  const receipts = Object.fromEntries(inFlight);
+  const [own] = Object.keys(receipts).filter(key => key !== 'capture-earlier');
+  assert.equal(receipts[own].state, 'saving', 'the capture in flight is still saving');
+  assert.equal(receipts[own].error, undefined, 'and shows no recovery notice');
+  assert.equal(receipts['capture-earlier'].state, 'pending', 'the earlier worker\'s capture is offered again');
+  assert.equal(receipts['capture-earlier'].error, 'The save was interrupted. Try saving again.');
+});
+
+async function waitUntil(check, what) {
+  for (const start = Date.now(); !check();) {
+    if (Date.now() - start > 5000) throw new Error(`Timed out: ${what}`);
+    await new Promise(resolve => setTimeout(resolve, 5));
+  }
+}
+
 test('a capture wakeup during an ending poll starts a fresh result check', async t => {
   const prior = globalThis.chrome;
   const local = storage(), session = storage();

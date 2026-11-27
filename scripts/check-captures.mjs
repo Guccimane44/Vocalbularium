@@ -40,12 +40,13 @@ const BREAKS = {
   'fail-drops-receipt': 'NeverLost',
   'saved-before-reply': 'SavedHasPage',
   'recovery-in-fingerprint': 'NeverReused',
-  'interrupted-generates': 'Fenced'
+  'interrupted-generates': 'Fenced',
+  'reconcile-marks-in-flight': 'InFlightNotInterrupted'
 };
 // Each action of a counterexample, in the code's words.
 const STEPS = {
   StartSession: 'initialize: the browser has no session, so a new one is made with the next epoch',
-  OpenSessionAndReconcile: 'initialize: /api/session opens the session, then reconcile marks every saving capture "interrupted"',
+  OpenSessionAndReconcile: 'initialize: /api/session opens the session, then reconcile marks "interrupted" every saving capture this worker is not saving',
   WorkerRestart: 'Chrome stops the worker; chrome.storage.session survives',
   BrowserRestart: 'the browser restarts: the worker goes and chrome.storage.session is cleared',
   Capture: 'the user captures from the menu: handleCapture keeps a saving receipt and calls submit',
