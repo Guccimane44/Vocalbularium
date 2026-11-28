@@ -5,7 +5,7 @@
 - **Notion:** pending
 - **Source:** the owner in a Claude Code chat, 27 November 2026, issue [#374](https://github.com/Guccimane44/Vocalbularium/issues/374), and their answers the same day to the [selection facets plan](../plans/selection-facets.md): Pronunciation leaves the language modules; a foreign selection's synonyms and antonyms are in its own language; English and Chinese get the same change; cards stored before stay as they are.
 - **Affected docs:** [module catalog](../subsystems/module-catalog.md#facets-describe-the-selection), [generation](../subsystems/generation.md), [quality gate](../subsystems/quality-gate.md), [page](../screens/page.md), [module pages](../screens/module-pages.md), the [v0.17.0 master plan](../plans/v0.17.0/README.md) and [step 3b](../plans/v0.17.0/03b-references.md)
-- **Open items:** none. Chinese Pinyin keeps giving the reading of each Chinese meaning for a foreign selection: it reads the core, as Simple translation restates it, and describes no translation word.
+- **Open items:** none.
 
 ## Context
 
@@ -28,6 +28,7 @@ It also made v0.17.0 step 3b hard: the word to look up was known only after the 
 | Synonyms, Antonyms | in the module's language | in the selection's language (*icebox* for *fridge*) |
 | Grammar facets (German: Article, Declension, Conjugation, Comparison, Case; English: Forms) | as before | left out |
 | Grammar teacher | as before | left out, as before |
+| Chinese Pinyin | the selection's pinyin, one line | left out (owner, 2026-11-28) |
 | Pronunciation | removed: the Sound module speaks the selection | removed |
 
 - `gramRole` is the selection's own part of speech, whatever its language.

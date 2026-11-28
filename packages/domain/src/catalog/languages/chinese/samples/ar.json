@@ -26,20 +26,6 @@
           "translation": "医生们使用专门的术语。"
         }
       ],
-      "pinyin": [
-        {
-          "text": "语言",
-          "pinyin": "yǔyán"
-        },
-        {
-          "text": "方言",
-          "pinyin": "fāngyán"
-        },
-        {
-          "text": "术语",
-          "pinyin": "shùyǔ"
-        }
-      ],
       "simple-translation": [
         "说话用的东西",
         "一个地方的人说的话",
@@ -62,12 +48,6 @@
         {
           "sentence": "الصداقة هي الجسر الذي يربط القلوب.",
           "translation": "友谊是连接心灵的桥梁。"
-        }
-      ],
-      "pinyin": [
-        {
-          "text": "语言是连接人与世界的桥梁。",
-          "pinyin": "yǔyán shì liánjiē rén yǔ shìjiè de qiáoliáng"
         }
       ],
       "simple-translation": [
