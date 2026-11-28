@@ -72,7 +72,7 @@ If capacity cannot admit every attempt of a **Retry**, report that generation is
 
 **Retry** is available in the page editor for one content component and for one facet of a parent component ([below](#retrying-one-facet)); the API also retries a whole page. Completed, failed, empty, missing, or manually edited components can be targets. Capture origin does not matter: a manually created page has a main key and can retry like a captured one.
 
-Before replacing content, always ask. For one component the question is asked beside the card's tab, as for **Delete** ([components as cards](../screens/page.md#components-as-cards)): "Are you sure?" with a final **Retry** and **Cancel**. If the content changed after the user answered, for example in another browser, the warning below is shown before anything is replaced:
+Before replacing content, always ask; a component with nothing in it, such as a failed one, starts at once. For one component the question is a panel beside **Retry** in the card's **Actions** menu, like the one **Delete** opens ([components as cards](../screens/page.md#components-as-cards)): "[module] will be generated again", that a new version will replace its current content and the current version can't be restored, then **Cancel** and a final **Retry**. A facet and a core ask "Are you sure?" instead ([below](#retrying-one-facet)). If the content changed after the user answered, for example in another browser, the warning below is shown before anything is replaced:
 
 > Retry will replace this component's content, including your edits to it. The main key, Context, and other components will not change.
 

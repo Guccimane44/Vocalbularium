@@ -13,7 +13,7 @@ Its trigger shows the account's initial in a round mark, the account's name, *ad
 
 - **Language** opens the language list (`language-list`) in the menu's place.
 - **Log out** ends the sign-in on this installation and returns to [sign-in](sign-in.md).
-- When the API and the extension were built from different commits, the menu says **Different builds: API …, extension …** ([packaging and releases](../subsystems/packaging-and-releases.md#behaviour)).
+- When the API and the extension were built from different commits, the trigger says **Different builds: API …, extension …** under the server, so it shows without opening the menu ([packaging and releases](../subsystems/packaging-and-releases.md#behaviour)).
 
 ### Report a problem
 
@@ -27,7 +27,7 @@ Its trigger shows the account's initial in a round mark, the account's name, *ad
 
 - **A report that fails to save** keeps the dialog open with what was typed, and says so.
 - **A language that fails to save** keeps the previous language and says so in the list ([interface language](../subsystems/localisation.md#interface-language)).
-- **Different builds** add the warning line to the menu.
+- **Different builds** add the warning line to the trigger, under the server.
 
 ## Source
 
