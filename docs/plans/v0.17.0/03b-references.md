@@ -2,15 +2,24 @@
 
 Scope agreed in the [master plan](README.md) (owner, 2026-11-26). The full plan is written when this step starts; the research below was done early, because its answers decide the step's shape.
 
-The second pillar. Etymology, synonyms and antonyms are written with a dictionary entry beside the request, as facts for the model to draw on. A reference is never copied into a card. This step settles a source for each of the three facets, builds the lookup, and shows how much a reference helps, so steps 4 to 6 can measure each facet with and without one.
+The second pillar. Etymology, synonyms, antonyms and German inflection are written with a dictionary entry beside the request, as facts for the model to draw on. A reference is never copied into a card. This step settles a source for each of these facets, builds the lookup, and shows how much a reference helps, so steps 4 to 6 can measure each facet with and without one.
 
-## Why these three facets
+## Why these facets
 
 - **Etymology** is the hardest facet for every model, and the one the judge is worst at catching (see the [master plan](README.md#what-we-know-already)). Haiku invents histories that read like dictionary entries: Ufer "related to über", Plan from Latin "planum".
 - **Synonyms** are often weak: near-synonyms, or synonyms of another sense.
 - **Antonyms** fail when a merely related word is given as an opposite.
 
-These three are open lists or free text, which the step 1 scorer cannot check. The closed facets (article, declension, conjugation, comparison, case) are not assisted: the scorer already checks them, and the picker handles them.
+- **Inflection** (article, declension, conjugation, comparison), added on 2026-11-28: Haiku gets it wrong often (the step 1 scorer: declension 19%, conjugation 14%, article 13%), and since [D374](../../decisions/d374-selection-facets.md) it appears only on a German selection. The German Wiktionary's inflection tables give each form, so the card takes its forms from the table instead of from the model's memory. If this works, the [picker may not be needed](README.md#is-the-picker-still-needed).
+
+Etymology, synonyms and antonyms are open lists or free text, which the step 1 scorer cannot check. Inflection has one right answer, so the scorer keeps checking it, now against the table as well as against the golden set. Case (which case a preposition takes) is small and rarely wrong, so it stays unassisted.
+
+## Inflection tables
+
+- **Source:** the German Wiktionary's Flexion templates (Deutsch Substantiv Übersicht, Deutsch Verb Übersicht, Deutsch Adjektiv Übersicht) on the selection's page, read through the MediaWiki API like its Herkunft section. CC BY-SA, as for etymology.
+- **Use:** the forms go into the request as the facts the table must show; the model arranges them into the facet's shape and writes nothing the table lacks. A form the table does not give is left as "—", as now.
+- **No entry:** the model writes the facet as today, and the step 1 scorer checks it.
+- **To settle in the full plan:** whether the forms could fill the facet directly, with no model, since they are data rather than prose; D32 (German tables from an imported Wiktionary, on the `claude/german-tables` branch) did that from a local import, which the owner's live-lookup decision of 2026-11-26 replaces.
 
 ## Sources, and what their terms allow (read 2026-11-26)
 
@@ -72,15 +81,17 @@ Before any of this is built, a prototype shows whether references help enough. N
 1. **Synonyms and antonyms** from OpenThesaurus, within its API's limits: German's calibration cards with a synonyms or antonyms fault, and as many that pass. Haiku writes the facet from the entries; the new facets are graded against DWDS by hand, as in step 2.
 2. **Etymology** from Wiktionary, looked up by the selection in its own language: German calibration cards with a German key, and foreign keys such as *window*, *refrigerator*, 经济 and тоска. The facet is judged only for agreeing with its entry, not for being true (owner, 2026-11-27): step 3 showed even Opus cannot verify an etymology from memory. A card says what the entry says and adds nothing; no entry means no etymology. Where the facet and its entry disagree, a person checks it in a browser. No script fetches DWDS.
 
-**Worth building if:** the etymology says what its entry says on at least 90% of the cards, with no fact the entry lacks; the synonyms and antonyms pass on at least 90% of the former fails, with no former pass now failing; and the text reads well for a learner (the owner checks a sample).
+3. **Inflection** from the Wiktionary tables: the golden set's German nouns, verbs and adjectives. The step 1 scorer checks every form against the golden references, so no hand grading is needed.
+
+**Worth building if:** inflection from a table matches the golden references on at least 98% of forms where the table exists; the etymology says what its entry says on at least 90% of the cards, with no fact the entry lacks; the synonyms and antonyms pass on at least 90% of the former fails, with no former pass now failing; and the text reads well for a learner (the owner checks a sample).
 
 **Also measured:** how often a selection has no entry (Wiktionary has no etymology for many words), which sets how much the "without reference" difficulty matters.
 
 ## What this step hands on
 
-- Steps 4 and 5 run each model with and without references on the three assisted facets.
-- Step 6 gives each assisted facet two difficulties.
-- Step 7 builds the lookup into generation, the one-or-two-request flow, and the picker together.
+- Step 4 runs Haiku with and without references on every assisted facet, and decides whether the picker is needed ([master plan](README.md#is-the-picker-still-needed)).
+- Steps 5 and 6 run only if it is.
+- Step 7 builds the lookups into generation, and the picker or the per-facet fix step 4 calls for.
 
 ## Open questions for the owner
 
