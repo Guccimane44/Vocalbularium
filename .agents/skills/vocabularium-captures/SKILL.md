@@ -97,7 +97,7 @@ A change to a covered function changes its action in `formal/captures/Captures.t
 
 ## What it was last confirmed against
 
-At commit `eccded0`:
+At commit `dae31d1`:
 
 - `extension/capture.js`: `handleCapture`, `holding`, `submit`, `send`, `retry`, `reconcile`
 - `extension/background-runtime.js`: `initialize`, the `try-saving-again` message, `clearHandedOffCaptures`
