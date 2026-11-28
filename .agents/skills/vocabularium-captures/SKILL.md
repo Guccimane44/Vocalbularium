@@ -43,6 +43,8 @@ npm run check:captures
 
 It needs Java 11 or later: `JAVA_HOME`, Homebrew's `openjdk` (`brew install openjdk`), or `java` on `PATH`. The first run downloads TLC 1.7.4 into `~/.cache/vocabularium/tlc-1.7.4/` and checks its SHA-256. That download needs the owner's approval when an agent runs it. TLC keeps its state files in a temporary folder, which the script deletes afterwards.
 
+CI runs the check and the self-test in the `captures` job of `.github/workflows/verify.yml`, with Java 21 and the TLC jar cached between runs.
+
 When a rule breaks, the script reports it and checks the rest without it, so every rule gets a verdict. It exits 1 if any rule broke.
 
 ```bash

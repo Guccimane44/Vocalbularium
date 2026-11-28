@@ -40,6 +40,29 @@ jobs:
           path: artifacts/vocabularium-*-candidate.zip*
           if-no-files-found: error
           retention-days: 14
+  # The capture protocol, model-checked with TLA+ on every order of lost
+  # replies, retries and restarts (.agents/skills/vocabularium-captures).
+  # The script uses only Node's built-ins, so it needs no npm install.
+  captures:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+      # TLC is pinned and checksummed by the script; keep the download between runs.
+      - uses: actions/cache@v6
+        with:
+          path: ~/.cache/vocabularium/tlc-*
+          key: tlc-${{ hashFiles('scripts/check-captures.mjs') }}
+      - run: npm run check:captures
+      # Each rule must still fail on its planted mistake, or it proves nothing.
+      - run: npm run check:captures -- --self-test
   postgres:
     runs-on: ubuntu-latest
     services:
