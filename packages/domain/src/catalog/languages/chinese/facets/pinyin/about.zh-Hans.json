@@ -1,5 +1,5 @@
 {
-  "summary": "中文的拼音，带声调。",
-  "appliesTo": "单词 · 句子",
-  "describes": "核心中的中文。"
+  "summary": "你的中文关键词的拼音，带声调。",
+  "appliesTo": "中文词 · 中文句子",
+  "describes": "你的关键词，仅当它是中文时。"
 }

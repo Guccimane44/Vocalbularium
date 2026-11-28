@@ -1,0 +1,23 @@
+{
+  "word_phrase": {
+    "core": {
+      "kind": "word",
+      "language": "中文",
+      "key": "语言",
+      "romanization": "yǔyán",
+      "contextual": "人类用来交流思想的系统，如汉语、英语等",
+      "meanings": [
+        "说的话；言语",
+        "某种表达方式或风格"
+      ]
+    },
+    "facets": {
+      "etymology": {
+        "origins": [
+          "古汉语"
+        ],
+        "text": "由古汉语中表示说话的「语」和「言」合成，早期多指说的话、言辞，后来用来指人类交流思想的系统。"
+      }
+    }
+  }
+}

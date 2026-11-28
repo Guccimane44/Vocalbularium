@@ -13,7 +13,7 @@ function component(id, moduleType, moduleInstanceId = `i-${id}`, status = null) 
 
 // One core shape for a word and a sentence (D17): the core says which it read.
 const wordOf = (meanings, facets = {}, extra = {}) => ({ core: { kind: 'word', language: 'Chinesisch', key: '幸福', ...extra, meanings }, facets });
-const sentenceOf = (translation, facets = {}) => ({ core: { kind: 'sentence', language: 'Chinesisch', key: '我真的很幸福', meanings: [translation] }, facets });
+const sentenceOf = (translation, facets = {}) => ({ core: { kind: 'sentence', language: '中文', key: '我真的很幸福', meanings: [translation] }, facets });
 
 test('each instance produces its own component; one failure leaves the others completed', async () => {
   const outcomes = await generateComponents({
@@ -53,7 +53,7 @@ test('a parent applies to a sentence as well as a word (D08)', async () => {
     generate: async ({ facets }) => { assert.deepEqual(facets, ['article', 'examples']); return sentenceOf('Ich bin wirklich glücklich.'); }
   });
   assert.deepEqual(outcomes, [{ moduleInstanceId: 'm0', status: 'completed', content: withKeyHighlighted(formatContent('german', sentenceOf('Ich bin wirklich glücklich.')), '我真的很幸福') }]);
-  assert.deepEqual(outcomes[0].content.header, { kind: 'sentence', language: 'Chinesisch', key: '我真的很幸福' }, 'a sentence’s top line has its language and key');
+  assert.deepEqual(outcomes[0].content.header, { kind: 'sentence', language: '中文', key: '我真的很幸福' }, 'a sentence’s top line has its language and key');
 });
 
 test('a parent always applies; it asks for its facets and checks the structured result (D09)', async () => {

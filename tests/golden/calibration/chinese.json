@@ -1,5 +1,5 @@
 {
- "note": "The judge's calibration set for chinese (0.16.0): recorded outputs from 2026-10-30T17-37-21-414Z-en-chinese.json that passed review, and from 2026-11-03T19-57-42-053Z-en-chinese.json for sentences and the citation tone of 不, expected to pass, and copies of them with one seeded fault each, expected to fail. The judge counts only once it agrees on 90% and misses no expected fail. Since D29 (5 November 2026) the cards with a Context give the Context's sense as \"contextual\", and \"context-only\" is the earlier recorded card, expected to fail. Since 0.16.4 (7 November 2026), recorded cards from 2026-11-07T15-35-50-441Z-en-chinese.json with Etymology, Simple translation and Grammar teacher, expected to pass, and seeded faults in those facets, expected to fail.",
+ "note": "The judge's calibration set for chinese (0.16.0): recorded outputs from 2026-10-30T17-37-21-414Z-en-chinese.json that passed review, and from 2026-11-03T19-57-42-053Z-en-chinese.json for sentences and the citation tone of 不, expected to pass, and copies of them with one seeded fault each, expected to fail. The judge counts only once it agrees on 90% and misses no expected fail. Since D29 (5 November 2026) the cards with a Context give the Context's sense as \"contextual\", and \"context-only\" is the earlier recorded card, expected to fail. Since 0.16.4 (7 November 2026), recorded cards from 2026-11-07T15-35-50-441Z-en-chinese.json with Etymology, Simple translation and Grammar teacher, expected to pass, and seeded faults in those facets, expected to fail. Since D374 (2026-11-28) Pinyin is only for a Chinese key: a foreign key's card lost its Pinyin, and the three cards whose seeded fault was in it (wrong-tones, wrong-reading, sentence-tones) now pass.",
  "module": "chinese",
  "cards": [
   {
@@ -31,20 +31,6 @@
        "sentence": "I need to go to the bank before it closes.",
        "translation": "我得在银行关门前去一趟。"
       }
-     ],
-     "pinyin": [
-      {
-       "text": "河岸",
-       "pinyin": "hé'àn"
-      },
-      {
-       "text": "银行",
-       "pinyin": "yínháng"
-      }
-     ],
-     "pronunciation": [
-      "河岸",
-      "银行"
      ]
     }
    }
@@ -87,30 +73,6 @@
        "sentence": "Let the water run until it is clear.",
        "translation": "让水一直流到变清为止。"
       }
-     ],
-     "pinyin": [
-      {
-       "text": "跑",
-       "pinyin": "pǎo"
-      },
-      {
-       "text": "经营",
-       "pinyin": "jīngyíng"
-      },
-      {
-       "text": "运行",
-       "pinyin": "yùnxíng"
-      },
-      {
-       "text": "流动",
-       "pinyin": "liúdòng"
-      }
-     ],
-     "pronunciation": [
-      "跑",
-      "经营",
-      "运行",
-      "流动"
      ]
     }
    }
@@ -138,15 +100,6 @@
        "sentence": "Meeting her by serendipity changed my life.",
        "translation": "偶然遇见她改变了我的生活，这真是机缘巧合。"
       }
-     ],
-     "pinyin": [
-      {
-       "text": "机缘巧合",
-       "pinyin": "jīyuán qiǎohé"
-      }
-     ],
-     "pronunciation": [
-      "机缘巧合"
      ]
     }
    }
@@ -179,20 +132,6 @@
        "sentence": "The teacher used a game to break the ice on the first day of class.",
        "translation": "老师在第一天上课时用游戏来缓和气氛。"
       }
-     ],
-     "pinyin": [
-      {
-       "text": "打破僵局",
-       "pinyin": "dǎpò jiāngjú"
-      },
-      {
-       "text": "缓和气氛",
-       "pinyin": "huǎnhé qìfēn"
-      }
-     ],
-     "pronunciation": [
-      "打破僵局",
-      "缓和气氛"
      ]
     }
    }
@@ -220,15 +159,6 @@
        "sentence": "The garden is beautiful in spring.",
        "translation": "春天里这个花园很美。"
       }
-     ],
-     "pinyin": [
-      {
-       "text": "美丽的",
-       "pinyin": "měilì de"
-      }
-     ],
-     "pronunciation": [
-      "美丽的"
      ]
     }
    }
@@ -262,9 +192,6 @@
        "text": "幸福",
        "pinyin": "xìngfú"
       }
-     ],
-     "pronunciation": [
-      "幸福"
      ]
     }
    }
@@ -301,9 +228,6 @@
        "text": "打算",
        "pinyin": "dǎsuàn"
       }
-     ],
-     "pronunciation": [
-      "打算"
      ]
     }
    }
@@ -337,9 +261,6 @@
        "text": "一举两得",
        "pinyin": "yī jǔ liǎng dé"
       }
-     ],
-     "pronunciation": [
-      "一举两得"
      ]
     }
    }
@@ -367,15 +288,6 @@
        "sentence": "We stood on the bridge and watched the boats.",
        "translation": "我们站在桥上，看着船只。"
       }
-     ],
-     "pinyin": [
-      {
-       "text": "我们坐在河岸上，看着河水。",
-       "pinyin": "wǒmen zuò zài hé'àn shàng, kànzhe héshuǐ."
-      }
-     ],
-     "pronunciation": [
-      "我们坐在河岸上看着河水"
      ]
     }
    }
@@ -404,15 +316,6 @@
        "sentence": "Ich habe Heimweh.",
        "translation": "我想家。"
       }
-     ],
-     "pinyin": [
-      {
-       "text": "我渴望去远方；我向往远方。",
-       "pinyin": "wǒ kěwàng qù yuǎnfāng; wǒ xiàngwǎng yuǎnfāng"
-      }
-     ],
-     "pronunciation": [
-      "我渴望去远方"
      ]
     }
    }
@@ -424,7 +327,7 @@
    "split": "dev",
    "decided": "owner",
    "verdict": "pass",
-   "reason": "Recorded output, golden run 2026-11-03T19-57-42-053Z-en-chinese.json. 不 is written in its citation tone (bù shìyìng), as the standard orthography does.",
+   "reason": "Recorded output, golden run 2026-11-03T19-57-42-053Z-en-chinese.json. Its point, 不 in its citation tone in the pinyin, went with the Pinyin a foreign key no longer has (D374).",
    "card": {
     "core": {
      "kind": "word",
@@ -445,20 +348,6 @@
        "sentence": "Après dix ans dans la même ville, il cherchait le dépaysement.",
        "translation": "在同一座城市待了十年后，他渴望换换环境的新鲜感。"
       }
-     ],
-     "pinyin": [
-      {
-       "text": "异乡感",
-       "pinyin": "yìxiānggǎn"
-      },
-      {
-       "text": "环境转换带来的不适应",
-       "pinyin": "huánjìng zhuǎnhuàn dàilái de bù shìyìng"
-      }
-     ],
-     "pronunciation": [
-      "异乡感",
-      "环境转换带来的不适应"
      ]
     }
    }
@@ -487,15 +376,6 @@
        "sentence": "We walked along the bank of the river.",
        "translation": "我们沿着河岸散步。"
       }
-     ],
-     "pinyin": [
-      {
-       "text": "河岸",
-       "pinyin": "hé'àn"
-      }
-     ],
-     "pronunciation": [
-      "河岸"
      ]
     }
    }
@@ -524,15 +404,6 @@
        "sentence": "We walked along the bank of the river.",
        "translation": "我们沿着河岸散步。"
       }
-     ],
-     "pinyin": [
-      {
-       "text": "银行",
-       "pinyin": "yínháng"
-      }
-     ],
-     "pronunciation": [
-      "河岸"
      ]
     }
    }
@@ -544,8 +415,8 @@
    "language": "en",
    "split": "dev",
    "decided": "owner",
-   "verdict": "fail",
-   "reason": "Seeded fault: 河岸 is hé’àn; the tones are wrong though the syllables are valid. Adapted for D29 (5 November 2026): the Context's sense moved to \"contextual\", and the other sense added to \"meanings\" with its example, pinyin and pronunciation.",
+   "verdict": "pass",
+   "reason": "Seeded fault in Pinyin, which a foreign key no longer has (D374, 2026-11-28); with it removed the card is the recorded one and passes. Was: Seeded fault: 河岸 is hé’àn; the tones are wrong though the syllables are valid. Adapted for D29 (5 November 2026): the Context's sense moved to \"contextual\", and the other sense added to \"meanings\" with its example, pinyin and pronunciation.",
    "card": {
     "core": {
      "kind": "word",
@@ -566,20 +437,6 @@
        "sentence": "I need to go to the bank before it closes.",
        "translation": "我得在银行关门前去一趟。"
       }
-     ],
-     "pinyin": [
-      {
-       "text": "河岸",
-       "pinyin": "hē’ǎn"
-      },
-      {
-       "text": "银行",
-       "pinyin": "yínháng"
-      }
-     ],
-     "pronunciation": [
-      "河岸",
-      "银行"
      ]
     }
    }
@@ -591,8 +448,8 @@
    "language": "en",
    "split": "dev",
    "decided": "owner",
-   "verdict": "fail",
-   "reason": "Seeded fault: 行 in 银行 reads háng, not xíng.",
+   "verdict": "pass",
+   "reason": "Seeded fault in Pinyin, which a foreign key no longer has (D374, 2026-11-28); with it removed the card is the recorded one and passes. Was: Seeded fault: 行 in 银行 reads háng, not xíng.",
    "card": {
     "core": {
      "kind": "word",
@@ -608,15 +465,6 @@
        "sentence": "I deposited the money in the bank.",
        "translation": "我把钱存进了银行。"
       }
-     ],
-     "pinyin": [
-      {
-       "text": "银行",
-       "pinyin": "yínxíng"
-      }
-     ],
-     "pronunciation": [
-      "银行"
      ]
     }
    }
@@ -645,15 +493,6 @@
        "sentence": "I deposited the money in the bank.",
        "translation": "我把钱存进了银行。"
       }
-     ],
-     "pinyin": [
-      {
-       "text": "银行",
-       "pinyin": "yínháng"
-      }
-     ],
-     "pronunciation": [
-      "银行"
      ]
     }
    }
@@ -687,20 +526,6 @@
        "sentence": "I need to go to the bank before it closes.",
        "translation": "我得在银行关门前去一趟。"
       }
-     ],
-     "pinyin": [
-      {
-       "text": "河岸",
-       "pinyin": "hé'àn"
-      },
-      {
-       "text": "银行",
-       "pinyin": "yínháng"
-      }
-     ],
-     "pronunciation": [
-      "河岸",
-      "银行"
      ]
     }
    }
@@ -728,15 +553,6 @@
        "sentence": "We stood on the bridge and watched the boats.",
        "translation": "我们坐在河岸上，看着河水。"
       }
-     ],
-     "pinyin": [
-      {
-       "text": "我们坐在河岸上，看着河水。",
-       "pinyin": "wǒmen zuò zài hé'àn shàng, kànzhe héshuǐ."
-      }
-     ],
-     "pronunciation": [
-      "我们坐在河岸上看着河水"
      ]
     }
    }
@@ -747,8 +563,8 @@
    "language": "en",
    "split": "dev",
    "decided": "owner",
-   "verdict": "fail",
-   "reason": "Seeded fault: 远方 is yuǎnfāng; the pinyin gives yuānfáng.",
+   "verdict": "pass",
+   "reason": "Seeded fault in Pinyin, which a foreign key no longer has (D374, 2026-11-28); with it removed the card is the recorded one and passes. Was: Seeded fault: 远方 is yuǎnfāng; the pinyin gives yuānfáng.",
    "card": {
     "core": {
      "kind": "sentence",
@@ -765,15 +581,6 @@
        "sentence": "Ich habe Heimweh.",
        "translation": "我想家。"
       }
-     ],
-     "pinyin": [
-      {
-       "text": "我渴望去远方；我向往远方。",
-       "pinyin": "wǒ kěwàng qù yuānfáng; wǒ xiàngwǎng yuānfáng"
-      }
-     ],
-     "pronunciation": [
-      "我渴望去远方"
      ]
     }
    }
@@ -807,9 +614,6 @@
        "text": "咖啡",
        "pinyin": "kāfēi"
       }
-     ],
-     "pronunciation": [
-      "咖啡"
      ],
      "etymology": {
       "origins": [
@@ -867,9 +671,6 @@
        "pinyin": "jīngjì"
       }
      ],
-     "pronunciation": [
-      "经济"
-     ],
      "etymology": {
       "origins": [
        "古汉语",
@@ -919,9 +720,6 @@
        "pinyin": "wǒ bǎ shū fàng zài zhuōzi shàng le"
       }
      ],
-     "pronunciation": [
-      "我把书放在桌子上了"
-     ],
      "simple-translation": [
       "书现在在桌子上，是我放的。"
      ],
@@ -963,9 +761,6 @@
        "text": "做一件事同时得到两方面的好处",
        "pinyin": "zuò yī jiàn shì tóngshí dédào liǎng fāngmiàn de hǎochù"
       }
-     ],
-     "pronunciation": [
-      "做一件事同时得到两方面的好处"
      ],
      "etymology": {
       "origins": [
@@ -1033,11 +828,6 @@
        "pinyin": "shāngdiàn"
       }
      ],
-     "pronunciation": [
-      "行业",
-      "行列",
-      "商店"
-     ],
      "etymology": {
       "origins": [
        "古汉语"
@@ -1087,9 +877,6 @@
        "text": "咖啡",
        "pinyin": "kāfēi"
       }
-     ],
-     "pronunciation": [
-      "咖啡"
      ],
      "etymology": {
       "origins": [
@@ -1146,9 +933,6 @@
        "pinyin": "jīngjì"
       }
      ],
-     "pronunciation": [
-      "经济"
-     ],
      "etymology": {
       "origins": [
        "古汉语",
@@ -1193,15 +977,6 @@
        "translation": "公司无限期暂停了这个项目。"
       }
      ],
-     "pinyin": [
-      {
-       "text": "委员会无限期推迟了这项决定。",
-       "pinyin": "Wěiyuánhuì wúxiànqī tuīchí le zhè xiàng juédìng."
-      }
-     ],
-     "pronunciation": [
-      "委员会无限期推迟了这项决定。"
-     ],
      "simple-translation": [
       "开会的人今天就把这件事决定好了。"
      ]
@@ -1237,9 +1012,6 @@
        "text": "咖啡",
        "pinyin": "kāfēi"
       }
-     ],
-     "pronunciation": [
-      "咖啡"
      ],
      "etymology": {
       "origins": [
@@ -1287,9 +1059,6 @@
        "text": "我把书放在桌子上了。",
        "pinyin": "wǒ bǎ shū fàng zài zhuōzi shàng le"
       }
-     ],
-     "pronunciation": [
-      "我把书放在桌子上了"
      ],
      "simple-translation": [
       "书现在在桌子上，是我放的。"

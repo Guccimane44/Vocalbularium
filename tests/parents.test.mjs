@@ -61,6 +61,9 @@ test('a word gets every facet its flags allow; a sentence only the facets for se
   const english = (language, gramRole) => ({ kind: 'word', language, key: 'x', gramRole, meanings: ['y'] });
   assert.ok(facetsFor('english', facetsOf('english'), english('English', 'noun')).includes('forms'));
   assert.deepEqual(facetsFor('english', facetsOf('english'), english('German', 'noun')), ['examples', 'synonyms', 'antonyms', 'etymology', 'simple-translation']);
+  // Chinese Pinyin only for a Chinese key (D374, owner 2026-11-28).
+  assert.ok(facetsFor('chinese', facetsOf('chinese'), { kind: 'word', language: '中文', key: '岸', meanings: ['y'] }).includes('pinyin'));
+  assert.ok(!facetsFor('chinese', facetsOf('chinese'), { kind: 'word', language: '英语', key: 'bank', meanings: ['河岸'] }).includes('pinyin'));
   // A retired facet is never asked for, offered or retried, though a stored card may still have it.
   assert.ok(isRetired('german', 'pronunciation') && facetsOf('german').includes('pronunciation') && !liveFacetsOf('german').includes('pronunciation'));
   assert.equal(ruledOut('german', 'pronunciation', word('noun')), 'retired');
