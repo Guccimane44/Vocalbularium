@@ -129,6 +129,40 @@ test('a click that wakes a stopped worker keeps its own capture saving; an earli
   assert.equal(receipts['capture-earlier'].error, 'The save was interrupted. Try saving again.');
 });
 
+// Found by the capture chart: a retry kept showing its old failure while it ran.
+test('Try saving again shows the capture saving while it runs, and a new worker leaves it alone', async t => {
+  const fixture = await background(t);
+  const { api, send } = fixture;
+  await send({ type: 'login', username: 'admin', password: 'admin' });
+  const session = (await api.storage.session.get('session')).session;
+  const interrupted = { operationId: 'retry', state: 'pending', error: 'The save was interrupted. Try saving again.', createdAt: new Date().toISOString(),
+    payload: { session, mainKey: 'Ufer', snapshot: { id: 'one', modules: [] } } };
+  await api.storage.local.set({ 'capture-retry': interrupted });
+  let releasePrepare, inFlight;
+  fixture.intercept(async path => {
+    if (path === '/api/capture/prepare') {
+      inFlight = structuredClone(api.storage.local.data['capture-retry']);
+      await new Promise(resolve => { releasePrepare = resolve; });
+      return reply(200, { snapshot: { id: 'one', modules: [] } });
+    }
+    if (path === '/api/capture') return reply(200, { pageId: 'page-1' });
+  });
+  // Chrome stops the worker; the click starts a new one, whose first initialize
+  // and reconcile run inside the retry.
+  Object.assign(api.runtime, { onMessage: event(), onInstalled: event(), onStartup: event() });
+  api.contextMenus.onClicked = event(); api.alarms.onAlarm = event(); api.action.onClicked = event();
+  await import(`../extension/background.js?test=${crypto.randomUUID()}`);
+  const sessions = fixture.sessionCalls;
+  const retried = send({ type: 'try-saving-again', operationId: 'retry' });
+  await waitUntil(() => inFlight, 'the retry reaches prepare');
+  assert.equal(fixture.sessionCalls, sessions + 1, 'the new worker opened its session, and reconciled, during the retry');
+  assert.equal(inFlight.state, 'saving', 'Recent captures shows it saving');
+  assert.equal(inFlight.error, null, 'without its old failure');
+  releasePrepare();
+  await retried;
+  assert.equal(api.storage.local.data['capture-retry'].state, 'saved');
+});
+
 async function waitUntil(check, what) {
   for (const start = Date.now(); !check();) {
     if (Date.now() - start > 5000) throw new Error(`Timed out: ${what}`);

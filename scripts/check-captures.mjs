@@ -32,7 +32,7 @@ const RULES = {
   SavedHasPage: ['A receipt says saved only when its page exists.', 'Recent captures says saved for a page that does not exist.'],
   NeverReused: ['No capture is refused as operation_reused.', 'A capture can never be saved: every retry is refused.'],
   Fenced: ['No attempt keeps loading once its browser session has ended.', 'A card spins forever, or a late result lands after its session ended.'],
-  InFlightNotInterrupted: ['A save in flight is never told it was interrupted.', 'Recent captures offers Try saving again for a capture that is still saving.']
+  InFlightNotInterrupted: ['A save in flight, from the menu or Try saving again, is never told it was interrupted.', 'Recent captures shows a failure, and offers Try saving again, for a capture that is still saving.']
 };
 // Each modelled code mistake, and the rule that must catch it.
 const BREAKS = {
@@ -41,7 +41,8 @@ const BREAKS = {
   'saved-before-reply': 'SavedHasPage',
   'recovery-in-fingerprint': 'NeverReused',
   'interrupted-generates': 'Fenced',
-  'reconcile-marks-in-flight': 'InFlightNotInterrupted'
+  'reconcile-marks-in-flight': 'InFlightNotInterrupted',
+  'retry-keeps-receipt': 'InFlightNotInterrupted'
 };
 // Each action of a counterexample, in the code's words.
 const STEPS = {
@@ -50,7 +51,7 @@ const STEPS = {
   WorkerRestart: 'Chrome stops the worker; chrome.storage.session survives',
   BrowserRestart: 'the browser restarts: the worker goes and chrome.storage.session is cleared',
   Capture: 'the user captures from the menu: handleCapture keeps a saving receipt and calls submit',
-  TryAgain: 'the user presses Try saving again: submit runs on the stored receipt',
+  TryAgain: 'the user presses Try saving again: retry writes the receipt saving and calls submit',
   DeckChange: 'the default deck\'s configuration changes',
   Ctx: 'submit: context() awaits initialize and reads the session',
   SendPrepare: 'submit sends /api/capture/prepare',

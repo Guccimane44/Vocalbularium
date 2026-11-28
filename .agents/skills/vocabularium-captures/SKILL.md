@@ -1,6 +1,6 @@
 ---
 name: vocabularium-captures
-description: "Model-check the capture protocol between the extension and the store, from the menu click to a saved page, on every order of lost replies, Try saving again, worker restarts and browser restarts, with TLA+ and TLC. Use when a change touches handleCapture, submit, reconcile, initialize, Try saving again, prepareCapture, capture, command, openSession or requireSession."
+description: "Model-check the capture protocol between the extension and the store, from the menu click to a saved page, on every order of lost replies, Try saving again, worker restarts and browser restarts, with TLA+ and TLC. Use when a change touches handleCapture, submit, retry, reconcile, initialize, Try saving again, prepareCapture, capture, command, openSession or requireSession."
 ---
 
 # Vocabularium Captures
@@ -16,9 +16,9 @@ A capture crosses three places that each keep state: the worker's receipt in `ch
 | `SavedHasPage` | A receipt says saved only when its page exists. | Recent captures says saved for a page that does not exist. |
 | `NeverReused` | No capture is refused as `operation_reused`. | A capture can never be saved: every retry is refused. |
 | `Fenced` | No attempt keeps loading once its browser session has ended. | A card spins forever, or a late result lands after its session ended. |
-| `InFlightNotInterrupted` | A save in flight is never told it was interrupted. | Recent captures offers Try saving again for a capture that is still saving. |
+| `InFlightNotInterrupted` | A save in flight, from the menu or Try saving again, is never told it was interrupted. | Recent captures offers Try saving again for a capture that is still saving. |
 
-**What the model holds.** The menu click (`handleCapture`), `submit` one await at a time (`context`, `/api/capture/prepare`, `/api/capture`, and its catch), Try saving again on a stored receipt, `initialize` (a new session when `chrome.storage.session` is empty, `/api/session`, then `reconcile`), `clearHandedOffCaptures`, worker restarts (session kept), browser restarts (session cleared), a deck change at any time, requests lost before the server sees them, replies lost after it served them, and requests served after their sender gave up. On the server: `command`'s receipt and fingerprint, `requireSession`, `openSession` failing the installation's loading attempts, and `capture` failing an interrupted capture's attempts at once.
+**What the model holds.** The menu click (`handleCapture`), `submit` one await at a time (`context`, `/api/capture/prepare`, `/api/capture`, and its catch), Try saving again (`retry`: the receipt written `saving` again, then `submit`), `initialize` (a new session when `chrome.storage.session` is empty, `/api/session`, then `reconcile`), `clearHandedOffCaptures`, worker restarts (session kept), browser restarts (session cleared), a deck change at any time, requests lost before the server sees them, replies lost after it served them, and requests served after their sender gave up. On the server: `command`'s receipt and fingerprint, `requireSession`, `openSession` failing the installation's loading attempts, and `capture` failing an interrupted capture's attempts at once.
 
 **One step is one indivisible step in the code.** A store request is one step because `command` runs in one transaction through the ordered executor (`src/persistence/postgres.ts`). A worker step is the code between two awaits. `openSession` and the `reconcile` that follows it are one step: no submit can act between them, because each waits on `initialize` before its first request.
 
@@ -59,6 +59,7 @@ The self-test runs the model with each break below and confirms that each rule f
 | `recovery-in-fingerprint` | `capture`'s fingerprint also holds `recoverySession`. | `NeverReused` |
 | `interrupted-generates` | An interrupted capture's attempts stay loading. | `Fenced` |
 | `reconcile-marks-in-flight` | `reconcile` marks a capture this worker is still saving. | `InFlightNotInterrupted` |
+| `retry-keeps-receipt` | Try saving again submits the stored receipt as it is, still showing its old failure. | `InFlightNotInterrupted` |
 
 `--break <name>` runs the full check with one break, to see its counterexample.
 
@@ -84,6 +85,8 @@ Then decide whether it is a bug or a modelling error. Replay the steps against t
 
 **Past finding.** At `c3d172c`, a worker woken by the menu click ran `initialize` for the first time inside the capture's own `submit`, and `reconcile` marked that capture "The save was interrupted. Try saving again." while `/api/capture/prepare` was in flight. It was reproduced against the real worker and fixed in `eccded0`: `captureRuntime` counts the captures it is saving (`holding`), and `reconcile` leaves those alone. The test "a click that wakes a stopped worker keeps its own capture saving" in `tests/extension.test.mjs` guards it, and the break `reconcile-marks-in-flight` shows the model still catches it. All six rules hold, so `npm run check:captures` exits 0.
 
+**Past finding.** The statechart of the model showed that Try saving again left the receipt `pending`, so Recent captures kept showing "Not saved" and the old error while the retry ran, and a reload offered the button again. A browser run confirmed it. Fixed by `retry` in `captureRuntime`, which writes the receipt `saving` before it submits; the rule now covers retries, the test "Try saving again shows the capture saving while it runs" guards it, and the break `retry-keeps-receipt` shows the model catches the old behaviour.
+
 ## Change it
 
 A change to a covered function changes its action in `formal/captures/Captures.tla`. Each action's comment names the code it stands for. Keep one indivisible step in the code as one action. Write the change from the code, not from what makes the check pass.
@@ -96,7 +99,7 @@ A change to a covered function changes its action in `formal/captures/Captures.t
 
 At commit `eccded0`:
 
-- `extension/capture.js`: `handleCapture`, `holding`, `submit`, `send`, `reconcile`
+- `extension/capture.js`: `handleCapture`, `holding`, `submit`, `send`, `retry`, `reconcile`
 - `extension/background-runtime.js`: `initialize`, the `try-saving-again` message, `clearHandedOffCaptures`
 - `extension/context-menu.js`: `captureMenu`
 - `src/core/store-sessions.mjs`: `command`, `openSession`, `requireSession`

@@ -177,5 +177,16 @@ export function captureRuntime({ request, initialize, refresh, removeAccess, sav
       }
     }
   }
-  return { handleCapture, submit, poll, reconcile, recordError };
+  // Try saving again: the capture is saving again from the click, so Recent
+  // captures shows it saving, not its old failure, also after a reload.
+  /** @param {CaptureReceipt} receipt */
+  function retry(receipt) {
+    return holding(receipt.operationId, async () => {
+      /** @type {CaptureReceipt} */
+      const saving = { ...receipt, state: 'saving', error: null };
+      await chrome.storage.local.set({ [`capture-${receipt.operationId}`]: saving });
+      return submit(saving);
+    });
+  }
+  return { handleCapture, retry, poll, reconcile, recordError };
 }

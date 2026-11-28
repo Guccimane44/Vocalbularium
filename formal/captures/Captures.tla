@@ -141,14 +141,19 @@ Capture(c, p) ==
   /\ UNCHANGED <<menu, epochLocal, bsession, worker, inited, sends, net, srvCurrent,
                  config, srvPrep, srvCap, pages, gen, reused>>
 
-\* Try saving again (`try-saving-again` in background-runtime.js): submit the
-\* stored receipt as it is, whenever it is not `saved`.
+\* Try saving again (`try-saving-again` in background-runtime.js, `retry` in
+\* capture.js), whenever the receipt is not `saved`: the receipt is written
+\* `saving`, without its old error, then submitted.
+\* Break "retry-keeps-receipt": the stored receipt is submitted as it is.
 TryAgain(c, p) ==
   /\ local[c].state \in {"saving", "pending"} /\ ~procs[p].busy
-  /\ procs' = [procs EXCEPT ![p] =
-                 [Idle EXCEPT !.busy = TRUE, !.c = c, !.by = "retry",
-                              !.rc = local[c], !.pc = "ctx"]]
-  /\ UNCHANGED <<menu, made, epochLocal, bsession, worker, inited, local, sends, net,
+  /\ LET rc == IF "retry-keeps-receipt" \in Breaks THEN local[c]
+               ELSE [local[c] EXCEPT !.state = "saving", !.interrupted = FALSE]
+     IN /\ local' = [local EXCEPT ![c] = rc]
+        /\ procs' = [procs EXCEPT ![p] =
+                       [Idle EXCEPT !.busy = TRUE, !.c = c, !.by = "retry",
+                                    !.rc = rc, !.pc = "ctx"]]
+  /\ UNCHANGED <<menu, made, epochLocal, bsession, worker, inited, sends, net,
                  srvCurrent, config, srvPrep, srvCap, pages, gen, reused>>
 
 \* Deck settings change the default deck's configuration.
@@ -363,10 +368,10 @@ NeverReused == \A c \in Captures : ~reused[c]
 \* No attempt keeps loading once its session has ended.
 Fenced == \A c \in Captures : gen[c] = "loading" => srvCap[c].origin = srvCurrent
 
-\* A save in flight shows no recovery notice: the menu click's own submit is
-\* never told its save was interrupted while it is still running.
+\* A save in flight shows no recovery notice: a capture is never shown as
+\* interrupted while a save of it, from the menu or Try saving again, runs.
 InFlightNotInterrupted == \A p \in Procs :
-  procs[p].busy /\ procs[p].by = "menu" => ~local[procs[p].c].interrupted
+  procs[p].busy => ~local[procs[p].c].interrupted
 
 \* Bounds for the model checker.
 Bounds == sends <= MaxSends /\ epochLocal <= MaxEpoch /\ worker <= MaxWorkers
