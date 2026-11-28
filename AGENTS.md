@@ -61,6 +61,7 @@ Use the project skills relevant to the task. They live in `.agents/skills/`; eac
 - [Vocabularium Deliver](.agents/skills/vocabularium-deliver/SKILL.md): package a candidate, validate its ZIP, and prepare the owner handoff.
 - [Vocabularium Drive](.agents/skills/vocabularium-drive/SKILL.md): run the real extension and API on a disposable account, drive a feature the way a user does, and keep screenshots and database rows as evidence; its [feature map](.agents/skills/vocabularium-drive/features/README.md) says how to drive each feature, and the [screen references](docs/screens/README.md) what a user sees.
 - [Vocabularium Sessions](.agents/skills/vocabularium-sessions/SKILL.md): check the store's session and receipt promises on every order of operations, and extend the check when a change touches them.
+- [Vocabularium Captures](.agents/skills/vocabularium-captures/SKILL.md): model-check the capture protocol between the extension and the store (lost replies, Try saving again, worker and browser restarts) with TLA+, and keep the model in step with the code.
 
 A task may need more than one skill; use Deliver when packaging
 or delivery is part of the request.

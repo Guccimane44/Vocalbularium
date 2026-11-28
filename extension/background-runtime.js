@@ -324,7 +324,7 @@ export function startBackground() {
         const captureKey = /** @type {`capture-${string}`} */ (`capture-${message.operationId}`);
         const { [captureKey]: receipt } = await readLocal(captureKey);
         if (receipt && receipt.state !== 'saved') {
-          await captures.submit(receipt); return refreshAfterMutation();
+          await captures.retry(receipt); return refreshAfterMutation();
         }
         const key = /** @type {`save-${string}`} */ (`save-${message.operationId}`);
         const { [key]: pending } = await readLocal(key);

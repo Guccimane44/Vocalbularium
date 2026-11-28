@@ -12,7 +12,7 @@ Vocabularium has one account and any number of Chrome installations signed in to
 | Refresh | Open views ask the worker for the account every five seconds while visible, and redraw only when it changed. | the `setInterval` at the end of [`app.js`](../../extension/app.js); `refreshAccount` in [`background-runtime.js`](../../extension/background-runtime.js) |
 | Generation recovery | On start, the API stages results kept in its journal and fails every loading attempt that has none. | `Generation.initialize` in [`generation.mjs`](../../src/server/generation.mjs) |
 | Audio recovery | On start, the API fails the clips it was still speaking. | `Audio.initialize` in [`audio.mjs`](../../src/server/audio.mjs) |
-| Receipt recovery | After a worker restart, interrupted capture and save receipts become pending for **Try saving again**. | `reconcile` in [`capture.js`](../../extension/capture.js); `recover` in [`save-operations.js`](../../extension/save-operations.js) |
+| Receipt recovery | After a worker restart, interrupted capture and save receipts become pending for **Try saving again**; a capture the new worker is itself saving is not interrupted. | `reconcile` in [`capture.js`](../../extension/capture.js); `recover` in [`save-operations.js`](../../extension/save-operations.js) |
 
 ## Runtime path
 
