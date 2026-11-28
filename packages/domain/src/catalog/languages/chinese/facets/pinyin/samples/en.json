@@ -1,0 +1,42 @@
+{
+  "word_phrase": {
+    "core": {
+      "kind": "word",
+      "language": "中文",
+      "key": "语言",
+      "romanization": "yǔyán",
+      "contextual": "人类用来交流思想的系统，如汉语、英语等",
+      "meanings": [
+        "说的话；言语",
+        "某种表达方式或风格"
+      ]
+    },
+    "facets": {
+      "pinyin": [
+        {
+          "text": "语言",
+          "pinyin": "yǔyán"
+        }
+      ]
+    }
+  },
+  "sentence": {
+    "core": {
+      "kind": "sentence",
+      "language": "中文",
+      "key": "语言是连接人与世界的桥梁。",
+      "romanization": "yǔyán shì liánjiē rén yǔ shìjiè de qiáoliáng",
+      "meanings": [
+        "这句话用比喻说明语言的作用：它像一座桥，把人跟世界连在一起，让人能互相了解、互相沟通。"
+      ]
+    },
+    "facets": {
+      "pinyin": [
+        {
+          "text": "语言是连接人与世界的桥梁",
+          "pinyin": "yǔyán shì liánjiē rén yǔ shìjiè de qiáoliáng"
+        }
+      ]
+    }
+  }
+}

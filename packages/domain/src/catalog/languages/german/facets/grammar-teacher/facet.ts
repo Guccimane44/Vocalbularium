@@ -1,4 +1,5 @@
 import { defineFacet, escapeMarkdown, foreignLetters, list, scriptsOf, text } from '../../../../blocks.js';
+import { isGermanSelection } from '../../german.js';
 
 // A teacher's comment on a German key's grammar (0.16.4), in German, as a few
 // points. Only when the key is German: the core names its language Deutsch.
@@ -9,13 +10,11 @@ const isGerman = (value: string) => {
   const foreign = (scripts.han ?? 0) + (scripts.cyrillic ?? 0) + (scripts.arabic ?? 0);
   return Boolean(scripts.latin) && foreign < scripts.latin!;
 };
-// The core's names for German as the key's language.
-const GERMAN_NAMES = ['deutsch'];
 
 export default defineFacet({
   id: 'grammar-teacher', label: 'Grammar teacher', abbreviation: 'Gr', description: 'A teacher\'s notes on a German key\'s grammar.',
   applies: ['word_phrase', 'sentence'],
-  when: core => GERMAN_NAMES.includes(String(core.language ?? '').trim().toLowerCase()),
+  when: isGermanSelection,
   shape: list(text('the point'), { name: 'the points', each: 'Point' }),
   format: points => points.map(point => `- ${escapeMarkdown(point.trim())}`).join('\n'),
   checks: [{

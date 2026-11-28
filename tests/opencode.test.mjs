@@ -131,15 +131,15 @@ test('OpenCode asks a parent for its core, its flags first, and the facets asked
   const german = parentInstructions('german', ['article', 'synonyms']);
   assert.match(german, /"kind": "<word \| sentence>"/);
   assert.match(german, /"gramRole"/);
-  assert.match(german, /only when "gramRole" is noun/, 'a facet says when it applies');
+  assert.match(german, /only when the selection is a German noun/, 'a facet says when it applies');
   assert.ok(german.indexOf('"article"') < german.indexOf('"synonyms"'));
   assert.doesNotMatch(german, /"examples"|"antonyms"|===|\[1\]/);
   const chinese = parentInstructions('chinese', ['examples', 'pinyin']);
   assert.doesNotMatch(chinese, /gramRole/, 'Chinese has no grammatical role');
   assert.match(chinese, /simplified characters/);
-  assert.match(chinese, /for a sentence, exactly one \{ "text"/);
+  assert.match(chinese, /only when the selection is Chinese/);
   assert.match(parentInstructions('german', []), /"facets" as an empty object/);
-  assert.match(chinese, /one \{ "text": "<the Chinese word or words of that meaning>", "pinyin": "<their pinyin with tone marks>" \} per meaning/);
+  assert.match(chinese, /exactly one \{ "text": "<the selection>", "pinyin": "<its pinyin with tone marks>" \}/);
   assert.match(chinese, /without Markdown, numbering or headings/);
 
   const schema = parentSchema('german', ['article', 'examples']);

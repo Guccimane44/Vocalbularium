@@ -4,8 +4,11 @@ import { defineGoldenPlan } from '../../../../golden/define.js';
 // German's failure points, as the owner approved them in
 // docs/plans/v0.17.0/01-golden-set.md. Declension cells are "Singular|Genitiv"
 // for a noun and "Maskulinum|stark Nominativ" for an adjective.
-export default defineGoldenPlan<typeof german>({
+export default defineGoldenPlan<typeof german, 'pronunciation'>({
   module: 'german',
+  language: 'Deutsch',
+  // Pronunciation left the language modules (2026-11-27); the Sound module speaks the selection.
+  retired: ['pronunciation'],
   bands: { common: 4, middle: 2 },
   facets: {
     core: { scoring: 'judge', points: [
@@ -42,6 +45,7 @@ export default defineGoldenPlan<typeof german>({
       { id: 'german-key', what: "a German key's examples have no translation", abstain: true }
     ] },
     synonyms: { scoring: 'judge', points: [
+      { id: 'foreign-key', what: "a foreign key's synonyms in its own language (icebox for fridge), never German ones" },
       { id: 'per-sense', what: 'near synonyms for one sense of a word with several' },
       { id: 'register', what: 'synonyms of a phrase or idiom in a matching register' }
     ] },
@@ -95,10 +99,6 @@ export default defineGoldenPlan<typeof german>({
       { id: 'genitive', what: 'wegen, trotz, während, with the colloquial dative noted', cells: ['case'] },
       { id: 'genitive-rare', what: 'anhand, aufgrund, innerhalb', cells: ['case'] }
     ] },
-    pronunciation: { scoring: 'judge', points: [
-      { id: 'speaks-translation', what: 'speaks the German translation, with no label' },
-      { id: 'loanword', what: "a loanword's German form (Restaurant, Orange)" }
-    ] },
     etymology: { scoring: 'judge', perBand: true, points: [
       { id: 'inherited', what: 'a native word with a known line (Wasser); a floor' },
       { id: 'latin-early', what: 'an early Latin loan (Fenster, Mauer, Wein)' },
@@ -111,7 +111,9 @@ export default defineGoldenPlan<typeof german>({
       { id: 'folk-etymology', what: 'a word reshaped by folk etymology (Hängematte, Maulwurf), where a plausible wrong story tempts',
         noWordsIn: { common: 'The folk etymologies found (Friedhof, Wahnsinn, Abenteuer, Hängematte, Maulwurf, Armbrust, Sintflut) are DWDS classes 2 and 3.' } },
       { id: 'disputed', what: 'an origin dictionaries dispute (Kitsch); the card must not state one account as certain' },
-      { id: 'unclear', what: 'Kluge calls the origin unclear; no Etymology is right', abstain: true }
+      { id: 'unclear', what: 'Kluge calls the origin unclear; no Etymology is right', abstain: true },
+      { id: 'foreign-key', what: "a foreign key's own etymology (window from Old Norse vindauga), written in German, never a German translation's",
+        noWordsIn: { common: 'Bands are German frequency classes; a foreign key has none.', middle: 'Bands are German frequency classes; a foreign key has none.', rare: 'Bands are German frequency classes; a foreign key has none.' } }
     ] },
     'simple-translation': { scoring: 'judge', points: [
       { id: 'abstract', what: 'an abstract word in A2 German (Weltschmerz)' },

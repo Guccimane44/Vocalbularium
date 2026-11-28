@@ -1,10 +1,13 @@
 import { defineFacet, escapeMarkdown, hanCount, list, object, text } from '../../../../blocks.js';
 import { readPinyin } from '../../pinyin.js';
+import { isChineseSelection } from '../../chinese.js';
 
-// One line per meaning for a word, one for a sentence: "河岸 hé'àn".
+// The selection's pinyin, one line: "河岸 hé'àn". Only for a Chinese
+// selection (D374): it describes the selection, never a translation of it.
 export default defineFacet({
-  id: 'pinyin', label: 'Pinyin', abbreviation: 'Py', description: 'The pinyin of the Chinese translation.',
+  id: 'pinyin', label: 'Pinyin', abbreviation: 'Py', description: 'The pinyin of a Chinese key.',
   applies: ['word_phrase', 'sentence'],
+  when: isChineseSelection,
   shape: list(object({ text: text('the text'), pinyin: text('the pinyin') })),
   format: lines => lines.map(line => `${escapeMarkdown(line.text)} ${escapeMarkdown(line.pinyin)}`).join('\n'),
   checks: [{

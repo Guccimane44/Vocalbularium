@@ -15,22 +15,23 @@ if (file.endsWith('/')) throw new Error(`No golden run for ${module}; run npm ru
 const run = JSON.parse(await readFile(file, 'utf8'));
 const { scores, rows, unknown } = set.score(run);
 
-const rate = /** @param {{ pass: number, fail: number }} row */ row => row.pass + row.fail ? `${Math.round(100 * row.fail / (row.pass + row.fail))}%` : '–';
+const rate = /** @param {{ pass: number, weak: number, fail: number }} row */ row => row.pass + row.weak + row.fail ? `${Math.round(100 * row.fail / (row.pass + row.weak + row.fail))}%` : '–';
 const facets = [...new Set(rows.map(row => row.facet))];
 const total = /** @param {string} facet */ facet => rows.filter(row => row.facet === facet && row.point === null)
-  .reduce((sum, row) => ({ pass: sum.pass + row.pass, fail: sum.fail + row.fail, unscored: sum.unscored + row.unscored }), { pass: 0, fail: 0, unscored: 0 });
+  .reduce((sum, row) => ({ pass: sum.pass + row.pass, weak: sum.weak + row.weak, fail: sum.fail + row.fail, unscored: sum.unscored + row.unscored }), { pass: 0, weak: 0, fail: 0, unscored: 0 });
 const unscored = scores.filter(score => score.verdict === 'unscored').reduce((/** @type {Record<string, number>} */ sum, score) => ({ ...sum, [score.why]: (sum[score.why] ?? 0) + 1 }), {});
 const fault = /** @param {any} score */ score => 'whole' in score.comparison ? (score.comparison.whole === 'invented' ? 'wrote a facet the word does not have' : 'left the facet out')
   : score.comparison.faults.map((/** @type {any} */ each) => `${each.cell} wrote ${each.got ?? 'nothing'}, accepted ${each.accepted.join(' or ') || 'no form'}`).join('; ');
 const report = [`# Golden score: ${basename(file)}`, '', `Model ${run.model} · ${set.gaps.length ? `**the set has ${set.gaps.length} gaps** (npm test lists them)` : 'the set has no gaps'}`, '',
-  '| Facet | Point | Band | Split | Pass | Fail | Fail rate | Unscored |', '| --- | --- | --- | --- | ---: | ---: | ---: | ---: |',
+  '| Facet | Point | Band | Split | Pass | Weak | Fail | Fail rate | Unscored |', '| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: |',
   ...rows.sort((a, b) => [a.facet, a.point ?? '', a.band ?? '', a.split].join('|').localeCompare([b.facet, b.point ?? '', b.band ?? '', b.split].join('|')))
-    .map(row => `| ${row.facet} | ${row.point ?? 'all'} | ${row.band ?? '–'} | ${row.split} | ${row.pass} | ${row.fail} | ${rate(row)} | ${row.unscored} |`), '',
+    .map(row => `| ${row.facet} | ${row.point ?? 'all'} | ${row.band ?? '–'} | ${row.split} | ${row.pass} | ${row.weak} | ${row.fail} | ${rate(row)} | ${row.unscored} |`), '',
   '## Fails', '', ...scores.filter(score => score.verdict === 'fail').map(score => `- ${score.id} #${score.sample} ${score.facet} (${score.word}): ${fault(score)}`), '',
+  '## Weak', '', ...scores.filter(score => score.verdict === 'weak').map(score => `- ${score.id} #${score.sample} ${score.facet} (${score.word}): ${fault(score)}`), '',
   ...(unknown.length ? [`Results whose item the set no longer has: ${unknown.join(', ')}`, ''] : [])].join('\n');
 await mkdir('.data/golden-score', { recursive: true });
 const stem = `.data/golden-score/${basename(file, '.json')}`;
 await writeFile(`${stem}.json`, JSON.stringify({ run: file, model: run.model, date: new Date().toISOString(), gaps: set.gaps.length, scores, rows, unknown }, null, 2) + '\n');
 await writeFile(`${stem}.md`, report);
-console.log([...facets.map(facet => { const row = total(facet); return `${facet}: ${row.pass} pass, ${row.fail} fail (${rate(row)}), ${row.unscored} unscored`; }),
+console.log([...facets.map(facet => { const row = total(facet); return `${facet}: ${row.pass} pass, ${row.weak} weak, ${row.fail} fail (${rate(row)}), ${row.unscored} unscored`; }),
   `Unscored: ${Object.entries(unscored).map(([why, count]) => `${count} ${why}`).join(', ') || 'none'}. Review ${stem}.md.`].join('\n'));

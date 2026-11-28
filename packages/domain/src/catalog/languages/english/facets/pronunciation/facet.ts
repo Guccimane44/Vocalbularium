@@ -3,10 +3,12 @@ import { keyIsEnglish } from '../../english.js';
 
 // The translation, spoken (D24): one line per meaning, a sentence's
 // translation, or an English key itself; each line is one clip, spoken with
-// the `en` voice, or one named for `english.pronunciation`.
+// the `en` voice, or one named for `english.pronunciation`. Retired since
+// the facets describe the selection (D374): the Sound module speaks it. Kept
+// so cards written before still render and play.
 export default defineFacet({
   id: 'pronunciation', label: 'Pronunciation', abbreviation: 'Pr', description: 'The English translation, spoken.',
-  applies: ['word_phrase', 'sentence'], spoken: { language: 'en' },
+  applies: ['word_phrase', 'sentence'], spoken: { language: 'en' }, retired: true,
   shape: list(text('the English to speak')),
   format: lines => lines.map(escapeMarkdown).join('\n'),
   checks: [{

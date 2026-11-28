@@ -26,7 +26,7 @@ test('a facet’s own Retry beside its Delete, a tag’s remove keeping its colo
   const first = (await store.page(pageId)).components.find(item => item.moduleType === 'german');
   // Structured content (D09).
   // A noun (D17): Article applies, so its own Retry asks the provider.
-  const core = { kind: 'word', language: 'Englisch', key: 'bank', gramRole: 'noun', meanings: ['Ufer'] };
+  const core = { kind: 'word', language: 'Deutsch', key: 'bank', gramRole: 'noun', meanings: ['Ufer'] };
   await store.stage(first.attemptId, staged({ core, facets: { article: { singular: 'das Ufer', plural: 'die Ufer' },
     examples: [{ sentence: 'We sat on the bank.', translation: 'Wir saßen am Ufer.' }] } }));
   await store.publish('facet-retry-publish', { attemptId: first.attemptId, session });

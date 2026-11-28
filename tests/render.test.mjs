@@ -23,3 +23,29 @@ test('the main key is emphasised wherever it occurs, case-insensitively', () => 
   assert.deepEqual(emphasise('nothing here', 'Glück'), [{ text: 'nothing here', key: false }]);
   assert.deepEqual(emphasise('text', '  '), [{ text: 'text', key: false }]);
 });
+
+// Since 2026-11-27 every facet describes the selection: a foreign key gets no
+// grammar facet and no language module writes Pronunciation. Cards written
+// before keep what they have (owner, 2026-11-27): they still read, render and
+// play, though nothing writes those facets again.
+test('a card written before keeps its Pronunciation and its grammar facets for a foreign key: it reads and renders, and generation never asks for them again', async () => {
+  const { renderParent } = await import('@vocabularium/domain/render');
+  const { validateParentContent } = await import('@vocabularium/domain/content');
+  const { generateComponent } = await import('@vocabularium/domain/modules');
+  const { composeModule } = await import('@vocabularium/domain/composer');
+  const stored = validateParentContent('german', {
+    header: { kind: 'word', language: 'Englisch', key: 'bank', gramRole: 'noun' }, core: '1. Ufer',
+    facets: { article: 'das Ufer · die Ufer', pronunciation: 'das Ufer', examples: '1. We sat on the bank.' } });
+  const card = renderParent('german', stored);
+  assert.deepEqual(card.facets.map(each => each.facet), ['article', 'examples', 'pronunciation'], 'every stored facet renders');
+  assert.equal(card.ruledOut.pronunciation, 'retired', 'a retired facet has no Retry');
+  assert.equal(card.ruledOut.article, 'role', 'nor does a grammar facet on a foreign key');
+  const request = composeModule({ module: { id: 'g', type: 'german' }, selectedText: 'bank', facets: ['article', 'pronunciation'] });
+  assert.ok(!('pronunciation' in request.schema.properties.facets.properties) && !/"pronunciation"/.test(request.instructions), 'the request never names it');
+  let asked;
+  const content = await generateComponent({ mainKey: 'bank', module: { id: 'g', type: 'german', facets: ['article', 'pronunciation'] },
+    generate: async input => { asked = input.facets; return { core: { kind: 'word', language: 'Englisch', key: 'bank', gramRole: 'noun', meanings: ['Ufer'] },
+      facets: { article: { singular: 'das Ufer' } } }; } });
+  assert.deepEqual(asked, ['article']);
+  assert.deepEqual(content.facets, {}, 'Article for a foreign key is dropped');
+});

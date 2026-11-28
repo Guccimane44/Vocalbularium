@@ -60,8 +60,9 @@ export async function parentFixture(t, provider, facets = ['article', 'examples'
   await result.store.saveDeck('german', { deck: { ...deck, modules: [deck.modules[0], { id: 'g', type: 'german', facets }] } });
   return result;
 }
-// A German noun (D17): its grammatical role lets Article apply.
-export const BANK = (({ core, facets }) => ({ core: { ...core, gramRole: 'noun' }, facets }))(wordResult(['Ufer'], { article: { singular: 'das Ufer', plural: 'die Ufer' },
+// A German noun (D17): its language and grammatical role let Article apply,
+// since the grammar facets describe only a German selection (2026-11-27).
+export const BANK = (({ core, facets }) => ({ core: { ...core, language: 'Deutsch', gramRole: 'noun' }, facets }))(wordResult(['Ufer'], { article: { singular: 'das Ufer', plural: 'die Ufer' },
   examples: [{ sentence: 'We sat on the bank.', translation: 'Wir saßen am Ufer.' }] }, { key: 'bank' }));
 /** @param {AccountStore} store @param {Page} page */
 export const data = async (store, page) => (await store.page(page.id)).components.filter(item => item.moduleType === 'german').map(item => item.content.blocks[0]);

@@ -2,14 +2,13 @@
   "word_phrase": {
     "core": {
       "kind": "word",
-      "language": "Russisch",
-      "key": "между",
+      "language": "Deutsch",
+      "key": "zwischen",
       "romanization": "mezhdu",
       "gramRole": "preposition",
       "meanings": [
-        "zwischen",
-        "unter",
-        "inmitten"
+        "in der Mitte von zwei oder mehr Dingen oder Personen",
+        "im Zeitraum von einem Zeitpunkt bis zu einem anderen"
       ]
     },
     "facets": {

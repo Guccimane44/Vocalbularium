@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { GUIDE_SECTIONS, moduleInstructions, moduleSchema, writingGuide } from '@vocabularium/domain/composer';
 import { INTERFACE_LANGUAGES } from '@vocabularium/contracts';
-import { facetsOf, parentsIn, PARENTS } from '@vocabularium/domain/parents';
+import { facetsOf, liveFacetsOf, parentsIn, PARENTS } from '@vocabularium/domain/parents';
 
 // The families' modules come from the catalog, so a new module is covered as it joins.
 const LANGUAGES = parentsIn('translation');
@@ -21,7 +21,8 @@ const snapshot = (instructions, schema) => `# instructions\n${instructions}\n\n#
 function cases() {
   const all = {};
   for (const parent of Object.keys(PARENTS)) {
-    const facets = facetsOf(parent);
+    // A retired facet is never asked for, so it has no prompt of its own.
+    const facets = liveFacetsOf(parent);
     all[parent] = snapshot(moduleInstructions(parent, facets), moduleSchema(parent, facets));
     all[`${parent}.core-only`] = snapshot(moduleInstructions(parent, []), moduleSchema(parent, []));
     // The reading prompt, for the core's Retry that keeps the reading of the core it had (D28).

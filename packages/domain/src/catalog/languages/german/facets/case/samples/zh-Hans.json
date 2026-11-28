@@ -2,14 +2,13 @@
   "word_phrase": {
     "core": {
       "kind": "word",
-      "language": "Chinesisch",
-      "key": "之间",
+      "language": "Deutsch",
+      "key": "zwischen",
       "romanization": "zhījiān",
       "gramRole": "preposition",
       "meanings": [
-        "zwischen (räumlich oder zeitlich)",
-        "unter (mehreren Personen oder Dingen)",
-        "im Zeitraum zwischen"
+        "in der Mitte von zwei oder mehr Dingen oder Personen",
+        "im Zeitraum von einem Zeitpunkt bis zu einem anderen"
       ]
     },
     "facets": {

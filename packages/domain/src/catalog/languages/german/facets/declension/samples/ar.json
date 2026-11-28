@@ -2,14 +2,14 @@
   "word_phrase": {
     "core": {
       "kind": "word",
-      "language": "Arabisch",
-      "key": "جيد",
+      "language": "Deutsch",
+      "key": "gut",
       "romanization": "jayyid",
       "gramRole": "adjective",
       "meanings": [
-        "gut",
-        "in Ordnung",
-        "von guter Qualität"
+        "von hoher Qualität",
+        "richtig, passend",
+        "angenehm"
       ]
     },
     "facets": {

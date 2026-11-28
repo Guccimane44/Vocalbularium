@@ -236,7 +236,7 @@ The rule: **a facet comes with its failure points, and the golden set fills ever
 3. **The gate** (`scripts/gate.mjs`) runs the catalog test first, so `npm run gate -- german` refuses a module whose golden set does not cover its facets.
 4. **The rules and docs.** A row in [code standards](../../code-standards.md), under Generation and prompts, names the rule and the catalog test. The [module catalog](../../subsystems/module-catalog.md#what-a-module-folder-holds) adds failure points to what a module folder holds, and the [quality gate](../../subsystems/quality-gate.md) page describes the golden folder, the references and the scoring.
 
-A new failure point found later (a real defect that no point covers) is added to the facet the same way, and the test then asks for its items. That is how step 10 keeps the set growing.
+A new failure point found later (a real defect that no point covers) is added to the facet the same way, and the test then asks for its items. That is how the set keeps growing.
 
 ## Tasks
 

@@ -1,0 +1,20 @@
+{
+  "word_phrase": {
+    "core": {
+      "kind": "word",
+      "language": "Deutsch",
+      "key": "Sprache",
+      "gramRole": "noun",
+      "meanings": [
+        "ein System von Wörtern und Regeln, mit dem Menschen sich verständigen",
+        "die Art, wie jemand spricht"
+      ]
+    },
+    "facets": {
+      "article": {
+        "singular": "die Sprache",
+        "plural": "die Sprachen"
+      }
+    }
+  }
+}

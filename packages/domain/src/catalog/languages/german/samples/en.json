@@ -10,61 +10,12 @@
       ]
     },
     "facets": {
-      "article": {
-        "singular": "die Sprache",
-        "plural": "die Sprachen"
-      },
       "examples": [
         {
           "sentence": "English is a Germanic language.",
           "translation": "Englisch ist eine germanische Sprache."
         }
       ],
-      "declension": {
-        "columns": [
-          "Singular",
-          "Plural"
-        ],
-        "rows": [
-          {
-            "label": "Nominativ",
-            "cells": [
-              "die Sprache",
-              "die Sprachen"
-            ]
-          },
-          {
-            "label": "Genitiv",
-            "cells": [
-              "der Sprache",
-              "der Sprachen"
-            ]
-          },
-          {
-            "label": "Dativ",
-            "cells": [
-              "der Sprache",
-              "den Sprachen"
-            ]
-          },
-          {
-            "label": "Akkusativ",
-            "cells": [
-              "die Sprache",
-              "die Sprachen"
-            ]
-          }
-        ]
-      },
-      "pronunciation": [
-        "die Sprache"
-      ],
-      "etymology": {
-        "origins": [
-          "Althochdeutsch"
-        ],
-        "text": "Aus althochdeutsch sprāhha „Rede, Sprache“, einer Ableitung von sprechen. Die Bedeutung „System der Verständigung“ hat sich aus der Bedeutung „Rede“ entwickelt."
-      },
       "simple-translation": [
         "die Sprache, die Menschen sprechen, wie Deutsch oder Englisch"
       ]
@@ -85,9 +36,6 @@
           "sentence": "Books are the windows opening minds and cultures.",
           "translation": "Bücher sind die Fenster, die Köpfe und Kulturen öffnen."
         }
-      ],
-      "pronunciation": [
-        "Sprachen sind die Brücken die Menschen und die Welt verbinden"
       ],
       "simple-translation": [
         "Sprachen helfen den Menschen, mit anderen Menschen und mit der ganzen Welt in Kontakt zu kommen."

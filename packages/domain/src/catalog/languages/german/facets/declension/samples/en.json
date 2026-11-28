@@ -2,14 +2,12 @@
   "word_phrase": {
     "core": {
       "kind": "word",
-      "language": "Englisch",
-      "key": "good",
+      "language": "Deutsch",
+      "key": "gut",
       "gramRole": "adjective",
       "meanings": [
-        "gut",
         "von hoher Qualität",
-        "richtig",
-        "geeignet",
+        "richtig, passend",
         "angenehm"
       ]
     },

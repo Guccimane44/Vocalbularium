@@ -6,8 +6,10 @@
    "id": "recorded-1",
    "key": "autumn",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-11-07T15-50-16-702Z-en-modern-haiku.json, reviewed.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-11-07T15-50-16-702Z-en-modern-haiku.json, reviewed.",
    "card": {
     "core": {
      "language": "en",
@@ -26,8 +28,10 @@
    "key": "bank",
    "context": "We had a picnic on the bank of the river.",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-11-07T15-50-16-702Z-en-modern-haiku.json, reviewed.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-11-07T15-50-16-702Z-en-modern-haiku.json, reviewed.",
    "card": {
     "core": {
      "language": "en",
@@ -45,8 +49,10 @@
    "id": "recorded-3",
    "key": "The train was late again this morning.",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-11-07T15-50-16-702Z-en-modern-haiku.json, reviewed.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-11-07T15-50-16-702Z-en-modern-haiku.json, reviewed.",
    "card": {
     "core": {
      "language": "en",
@@ -64,8 +70,10 @@
    "id": "recorded-4",
    "key": "Schmetterling",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-11-07T15-50-16-702Z-en-modern-haiku.json, reviewed.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-11-07T15-50-16-702Z-en-modern-haiku.json, reviewed.",
    "card": {
     "core": {
      "language": "de",
@@ -83,8 +91,10 @@
    "id": "recorded-5",
    "key": "月亮",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-11-07T15-50-16-702Z-en-modern-haiku.json, reviewed.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-11-07T15-50-16-702Z-en-modern-haiku.json, reviewed.",
    "card": {
     "core": {
      "language": "zh",
@@ -102,8 +112,10 @@
    "id": "recorded-6",
    "key": "地铁",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-11-07T15-50-16-702Z-en-modern-haiku.json, reviewed.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-11-07T15-50-16-702Z-en-modern-haiku.json, reviewed.",
    "card": {
     "core": {
      "language": "zh",
@@ -121,8 +133,10 @@
    "id": "recorded-7",
    "key": "おにぎり",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-11-07T15-50-16-702Z-en-modern-haiku.json, reviewed.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-11-07T15-50-16-702Z-en-modern-haiku.json, reviewed.",
    "card": {
     "core": {
      "language": "ja",
@@ -141,8 +155,10 @@
    "key": "café",
    "context": "On se retrouve au café ce soir ?",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-11-07T15-50-16-702Z-en-modern-haiku.json, reviewed.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-11-07T15-50-16-702Z-en-modern-haiku.json, reviewed.",
    "card": {
     "core": {
      "language": "fr",
@@ -160,8 +176,10 @@
    "id": "recorded-9",
    "key": "дождь",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-11-07T15-50-16-702Z-en-modern-haiku.json, reviewed.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-11-07T15-50-16-702Z-en-modern-haiku.json, reviewed.",
    "card": {
     "core": {
      "language": "ru",
@@ -179,8 +197,10 @@
    "id": "seeded-1",
    "key": "autumn",
    "language": "en",
-   "expected": "fail",
-   "why": "Seeded fault: written in French for an English key.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Seeded fault: written in French for an English key.",
    "card": {
     "core": {
      "language": "en",
@@ -199,8 +219,10 @@
    "key": "bank",
    "context": "We had a picnic on the bank of the river.",
    "language": "en",
-   "expected": "fail",
-   "why": "Seeded fault: a rhyming title-like statement, no concrete image.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Seeded fault: a rhyming title-like statement, no concrete image.",
    "card": {
     "core": {
      "language": "en",
@@ -218,8 +240,10 @@
    "id": "seeded-3",
    "key": "Schmetterling",
    "language": "en",
-   "expected": "fail",
-   "why": "Seeded fault: nothing to do with the key, a butterfly.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Seeded fault: nothing to do with the key, a butterfly.",
    "card": {
     "core": {
      "language": "de",
@@ -237,8 +261,10 @@
    "id": "seeded-4",
    "key": "地铁",
    "language": "en",
-   "expected": "fail",
-   "why": "Seeded fault: a translation into English added as lines.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Seeded fault: a translation into English added as lines.",
    "card": {
     "core": {
      "language": "zh",
@@ -256,8 +282,10 @@
    "id": "seeded-5",
    "key": "дождь",
    "language": "en",
-   "expected": "fail",
-   "why": "Seeded fault: a stated feeling and lesson instead of an image.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Seeded fault: a stated feeling and lesson instead of an image.",
    "card": {
     "core": {
      "language": "ru",
@@ -276,8 +304,10 @@
    "key": "café",
    "context": "On se retrouve au café ce soir ?",
    "language": "en",
-   "expected": "fail",
-   "why": "Seeded fault: the Context's French café read as Spanish.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Seeded fault: the Context's French café read as Spanish.",
    "card": {
     "core": {
      "language": "es",

@@ -161,3 +161,14 @@ test('a dispute decides the disagreements in its cell, or in every cell it cover
   assert.ok(!decides({ facet: 'declension', cell: '*' }, perfect));
   assert.ok(!decides({ facet: 'conjugation', cell: 'Perfekt' }, perfect));
 });
+
+test('a plural left out, every given form right, is weak; a wrong form beside it still fails (owner, 2026-11-25)', () => {
+  const singular = Object.values(joghurt)[0];
+  const declension = (first, plurals) => table(['Singular', 'Plural'], Object.fromEntries(cases.map((kase, index) => [kase, [index ? singular[index] : first, plurals[index]]])));
+  assert.equal(score([card('joghurt', 'noun', { declension: declension(singular[0], ['—', '—', '—', '—']) })], 'declension').verdict, 'weak');
+  assert.equal(score([card('joghurt', 'noun', { declension: declension('die Joghurt', ['—', '—', '—', '—']) })], 'declension').verdict, 'fail');
+  assert.equal(score([card('joghurt', 'noun', { declension: declension(singular[0], ['die Joghurts', 'der Joghurts', 'den Joghurt', 'die Joghurts']) })], 'declension').verdict, 'fail', 'a wrong plural is not a left-out one');
+  const article = plural => score([card('joghurt', 'noun', { article: { singular: singular[0], ...(plural === undefined ? {} : { plural }) } })], 'article');
+  assert.equal(article(undefined).verdict, 'weak');
+  assert.equal(article('die Joghurts').verdict, 'pass');
+});

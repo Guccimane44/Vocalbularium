@@ -6,8 +6,10 @@
    "id": "recorded-1",
    "key": "autumn",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-11-07T15-45-19-301Z-en-traditional-haiku.json, reviewed.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-11-07T15-45-19-301Z-en-traditional-haiku.json, reviewed.",
    "card": {
     "core": {
      "language": "en",
@@ -26,8 +28,10 @@
    "key": "bank",
    "context": "We had a picnic on the bank of the river.",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-11-07T15-45-19-301Z-en-traditional-haiku.json, reviewed.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-11-07T15-45-19-301Z-en-traditional-haiku.json, reviewed.",
    "card": {
     "core": {
      "language": "en",
@@ -45,8 +49,10 @@
    "id": "recorded-3",
    "key": "The train was late again this morning.",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-11-07T15-45-19-301Z-en-traditional-haiku.json, reviewed.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-11-07T15-45-19-301Z-en-traditional-haiku.json, reviewed.",
    "card": {
     "core": {
      "language": "en",
@@ -64,8 +70,10 @@
    "id": "recorded-4",
    "key": "Feierabend",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-11-07T15-45-19-301Z-en-traditional-haiku.json, reviewed.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-11-07T15-45-19-301Z-en-traditional-haiku.json, reviewed.",
    "card": {
     "core": {
      "language": "de",
@@ -83,8 +91,10 @@
    "id": "recorded-5",
    "key": "地铁",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-11-07T15-45-19-301Z-en-traditional-haiku.json, reviewed.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-11-07T15-45-19-301Z-en-traditional-haiku.json, reviewed.",
    "card": {
     "core": {
      "language": "zh",
@@ -102,8 +112,10 @@
    "id": "recorded-6",
    "key": "桜",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-11-07T15-45-19-301Z-en-traditional-haiku.json, reviewed.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-11-07T15-45-19-301Z-en-traditional-haiku.json, reviewed.",
    "card": {
     "core": {
      "language": "ja",
@@ -126,8 +138,10 @@
    "id": "recorded-7",
    "key": "おにぎり",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-11-07T15-45-19-301Z-en-traditional-haiku.json, reviewed.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-11-07T15-45-19-301Z-en-traditional-haiku.json, reviewed.",
    "card": {
     "core": {
      "language": "ja",
@@ -150,8 +164,10 @@
    "id": "recorded-8",
    "key": "дождь",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-11-07T15-45-19-301Z-en-traditional-haiku.json, reviewed.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-11-07T15-45-19-301Z-en-traditional-haiku.json, reviewed.",
    "card": {
     "core": {
      "language": "ru",
@@ -169,8 +185,10 @@
    "id": "seeded-1",
    "key": "autumn",
    "language": "en",
-   "expected": "fail",
-   "why": "Seeded fault: written in German for an English key.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Seeded fault: written in German for an English key.",
    "card": {
     "core": {
      "language": "en",
@@ -188,8 +206,10 @@
    "id": "seeded-2",
    "key": "autumn",
    "language": "en",
-   "expected": "fail",
-   "why": "Seeded fault: a statement about the season, no image and nowhere near 5-7-5.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Seeded fault: a statement about the season, no image and nowhere near 5-7-5.",
    "card": {
     "core": {
      "language": "en",
@@ -207,8 +227,10 @@
    "id": "seeded-3",
    "key": "Schmetterling",
    "language": "en",
-   "expected": "fail",
-   "why": "Seeded fault: nothing to do with the key, a butterfly.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Seeded fault: nothing to do with the key, a butterfly.",
    "card": {
     "core": {
      "language": "de",
@@ -227,8 +249,10 @@
    "key": "bank",
    "context": "We had a picnic on the bank of the river.",
    "language": "en",
-   "expected": "fail",
-   "why": "Seeded fault: the money sense, though the Context is a river bank.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Seeded fault: the money sense, though the Context is a river bank.",
    "card": {
     "core": {
      "language": "en",
@@ -246,8 +270,10 @@
    "id": "seeded-5",
    "key": "月亮",
    "language": "en",
-   "expected": "fail",
-   "why": "Seeded fault: a 汉俳 of 6-7-5 characters.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Seeded fault: a 汉俳 of 6-7-5 characters.",
    "card": {
     "core": {
      "language": "zh",
@@ -265,8 +291,10 @@
    "id": "seeded-6",
    "key": "дождь",
    "language": "en",
-   "expected": "fail",
-   "why": "Seeded fault: a translation and an explanation added as lines.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Seeded fault: a translation and an explanation added as lines.",
    "card": {
     "core": {
      "language": "ru",

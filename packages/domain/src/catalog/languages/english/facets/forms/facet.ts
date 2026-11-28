@@ -1,12 +1,11 @@
 import { defineFacet, escapeMarkdown, foreignLetters, object, oneOf, optional, table, text } from '../../../../blocks.js';
 import type { Shape } from '../../../../blocks.js';
 import type { CoreValue } from '../../../../define.js';
-import { isEnglish } from '../../english.js';
+import { isEnglish, keyIsEnglish } from '../../english.js';
 
-// How the English word changes (D35): the English word the card describes, by
-// Etymology's rule (the key when it is English, otherwise the English word for
-// its first meaning, `contextual` first), which the core names as `formsWord`
-// with its `gramRole`. One slot per form; a noun, an adjective or adverb and a
+// How the English word changes (D35): the selection, only when it is English
+// (D374), which the core names in its dictionary form as `formsWord` with its
+// `gramRole`. One slot per form; a noun, an adjective or adverb and a
 // modal show in one line joined by a middle dot, a verb in a table of one row.
 // Two accepted forms share a slot, joined by " / " (*travelled / traveled*).
 const ROLES = ['noun', 'verb', 'adjective', 'adverb'];
@@ -42,7 +41,7 @@ export default defineFacet({
   applies: ['word_phrase'],
   // A card read back from storage has no `gramRole` (D35): Forms is offered,
   // and the model decides from the card whether the word inflects.
-  when: core => !role(core) || ROLES.includes(role(core)),
+  when: core => keyIsEnglish(core) && (!role(core) || ROLES.includes(role(core))),
   shape,
   format: value => {
     const word = escapeMarkdown(value.word.trim());

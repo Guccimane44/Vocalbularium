@@ -5,7 +5,7 @@ import { facetAbout, facetSamplesOf, familyAbout, moduleAbout, sampleKeyOf, samp
 import type { FamilyId } from '@vocabularium/domain/catalog';
 import { CATALOG, isModuleType, WINDOW_MODULES } from '@vocabularium/domain/page-modules';
 import type { ModuleFamily } from '@vocabularium/domain/page-modules';
-import { facetsOf, isParentType, PARENTS } from '@vocabularium/domain/parents';
+import { isParentType, liveFacetsOf, PARENTS } from '@vocabularium/domain/parents';
 import type { FacetType, ParentType } from '@vocabularium/domain/parents';
 import type { Rendered } from '@vocabularium/domain/render';
 import { FacetTab } from './facet-tags.tsx';
@@ -143,7 +143,7 @@ function FamilyPage({ family, go }: { family: ModuleFamily; go: (next: AboutTarg
           <button type="button" className="about-row" onClick={() => go({ kind: 'module', module: type })}>
             <span className="about-chip small" aria-hidden="true"><FamilyIcon family={family} /></span>
             <span><span className="about-row-name">{moduleLabel(type)}</span><span className="about-row-desc">{moduleDescription(type)}</span></span>
-            {isParentType(type) ? <span className="about-pill">{t('about.facetCount', { count: facetsOf(type).length })}</span> : <span />}
+            {isParentType(type) ? <span className="about-pill">{t('about.facetCount', { count: liveFacetsOf(type).length })}</span> : <span />}
             <Chevron />
           </button>
         </li>)}
@@ -238,7 +238,7 @@ function ModulePage({ module, go }: { module: string; go: (next: AboutTarget) =>
           <span className="about-chain-value about-flags">{whole.heading.labels.map(flag => <span key={flag} className="about-flag">{flag}</span>)}</span></li>}
         <li><span className="about-chain-label">{t('about.moduleCore')}</span><Markdown blocks={whole.core} mainKey="" className="about-chain-core" /></li>
         <li><span className="about-chain-label">{t('about.facets')}</span><span className="about-chain-value about-marks">
-          {facetsOf(parent).map(facet => <span key={facet} className="about-mk" data-out={!whole.facets.some(each => each.facet === facet) || undefined}
+          {liveFacetsOf(parent).map(facet => <span key={facet} className="about-mk" data-out={!whole.facets.some(each => each.facet === facet) || undefined}
             title={facetName(parent, facet)}>{facetMark(parent, facet)}</span>)}
         </span></li>
       </ol>
@@ -246,7 +246,7 @@ function ModulePage({ module, go }: { module: string; go: (next: AboutTarget) =>
     {parent && <section className="about-section" aria-labelledby="about-facets">
       <h3 id="about-facets">{t('about.facets')}</h3>
       <ul className="about-list">
-        {facetsOf(parent).map(facet => {
+        {liveFacetsOf(parent).map(facet => {
           const own = facetAbout(parent, facet, language);
           return <li key={facet}><button type="button" className="about-row" onClick={() => go({ kind: 'facet', module: parent, facet })}>
             <span className="about-chip small" aria-hidden="true">{facetMark(parent, facet)}</span>
@@ -310,7 +310,7 @@ function FacetPage({ module, facet, go }: { module: ParentType; facet: FacetType
         <article className={`component preview about-card about-where fam-${family}`} data-type={module}>
           <div className="card-tab"><FamilyIcon family={family} /><span className="tab-label">{moduleLabel(module)}</span></div>
           <div className="about-dim"><Content type={module} rendered={{ ...card, facets: [] }} mainKey={key} /></div>
-          {facetsOf(module).filter(each => shown.includes(each)).map(each => each === facet
+          {liveFacetsOf(module).filter(each => shown.includes(each)).map(each => each === facet
             ? <div key={each} className="about-here"><FacetSection parent={module} facet={facet} blocks={blocks} mainKey={key} /></div>
             : <div key={each} className="about-dim about-other" aria-hidden="true"><FacetTab parent={module} facet={each} /></div>)}
         </article>
@@ -320,7 +320,7 @@ function FacetPage({ module, facet, go }: { module: ParentType; facet: FacetType
     <nav className="about-section" aria-label={t('about.facetsOf', { module: moduleLabel(module) })}>
       <h3>{t('about.facetsOf', { module: moduleLabel(module) })}</h3>
       <div className="about-strip">
-        {facetsOf(module).map(each => each === facet
+        {liveFacetsOf(module).map(each => each === facet
           ? <span key={each} className="about-strip-current" aria-current="page"><span className="about-mark">{facetMark(module, each)}</span>{facetName(module, each)}</span>
           : <button type="button" key={each} onClick={() => go({ kind: 'facet', module, facet: each })}><span className="about-mark">{facetMark(module, each)}</span>{facetName(module, each)}</button>)}
       </div>

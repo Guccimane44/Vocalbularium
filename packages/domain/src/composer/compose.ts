@@ -70,7 +70,8 @@ const lengthIn = (unit: string, words: number) =>
 // What the facets rely on from the core (`facets.prompt.md`, optional) follows
 // the core's prompt, or the Retry prompt when a facet is written alone, so a
 // facet request carries it without the core's whole prompt.
-export function moduleInstructions(parent: ParentType, facets: readonly FacetType[], withCore = false, language: InterfaceLanguage = 'en', withPrevious = false): string {
+export function moduleInstructions(parent: ParentType, asked: readonly FacetType[], withCore = false, language: InterfaceLanguage = 'en', withPrevious = false): string {
+  const facets = live(parent, asked);
   const folder = folderOf(parent);
   const forFacets = optionalCatalogFile(`${folder}/facets/core/facets.prompt.md`);
   const withFacets = (text: string) => forFacets ? `${text} ${forFacets}` : text;
@@ -91,11 +92,16 @@ export function moduleInstructions(parent: ParentType, facets: readonly FacetTyp
 
 // The JSON schema of the result: the core (unless a facet's own Retry supplies
 // it) and the facets asked for, each optional.
-export function moduleSchema(parent: ParentType, facets: readonly FacetType[], withCore = false): JsonSchema {
+export function moduleSchema(parent: ParentType, asked: readonly FacetType[], withCore = false): JsonSchema {
+  const facets = live(parent, asked);
   const module = contentModule(parent);
   const facetSchema = schemaOf(Object.fromEntries(facets.map(facet => [facet, module.facets.find(each => each.id === facet)!.shape.schema])), []);
   return withCore ? schemaOf({ facets: facetSchema }) : schemaOf({ core: module.core.shape.schema, facets: facetSchema });
 }
+
+// A retired facet a deck still lists is never asked for.
+const live = (parent: ParentType, facets: readonly FacetType[]) =>
+  facets.filter(facet => !contentModule(parent).facets.find(each => each.id === facet)?.retired);
 
 // One generation attempt for a module instance: its core and the facets that
 // apply, or with `core`, a facet's own Retry written for that core. With

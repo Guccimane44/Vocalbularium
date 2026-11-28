@@ -6,8 +6,10 @@
    "id": "recorded-1",
    "key": "Frontend",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-10-28T14-26-34-981Z-en-computer-science.json.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-10-28T14-26-34-981Z-en-computer-science.json.",
    "card": {
     "core": {
      "relevance": "subject",
@@ -25,8 +27,10 @@
    "id": "recorded-2",
    "key": "recursion",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-10-28T14-26-34-981Z-en-computer-science.json.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-10-28T14-26-34-981Z-en-computer-science.json.",
    "card": {
     "core": {
      "relevance": "subject",
@@ -49,8 +53,10 @@
    "id": "recorded-3",
    "key": "API",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-10-28T14-26-34-981Z-en-computer-science.json.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-10-28T14-26-34-981Z-en-computer-science.json.",
    "card": {
     "core": {
      "relevance": "subject",
@@ -67,8 +73,10 @@
    "id": "recorded-4",
    "key": "garbage collection",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-10-28T14-26-34-981Z-en-computer-science.json.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-10-28T14-26-34-981Z-en-computer-science.json.",
    "card": {
     "core": {
      "relevance": "subject",
@@ -86,8 +94,10 @@
    "id": "recorded-5",
    "key": "race condition",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-10-28T14-26-34-981Z-en-computer-science.json.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-10-28T14-26-34-981Z-en-computer-science.json.",
    "card": {
     "core": {
      "relevance": "subject",
@@ -110,8 +120,10 @@
    "id": "recorded-6",
    "key": "Big O notation",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-10-28T14-26-34-981Z-en-computer-science.json.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-10-28T14-26-34-981Z-en-computer-science.json.",
    "card": {
     "core": {
      "relevance": "subject",
@@ -130,8 +142,10 @@
    "key": "kernel",
    "context": "The kernel schedules every process on the machine.",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-10-28T14-26-34-981Z-en-computer-science.json.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-10-28T14-26-34-981Z-en-computer-science.json.",
    "card": {
     "core": {
      "relevance": "subject",
@@ -149,8 +163,10 @@
    "id": "recorded-8",
    "key": "bug",
    "language": "en",
-   "expected": "pass",
-   "why": "Recorded output, golden run 2026-10-28T14-26-34-981Z-en-computer-science.json.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "pass",
+   "reason": "Recorded output, golden run 2026-10-28T14-26-34-981Z-en-computer-science.json.",
    "card": {
     "core": {
      "relevance": "subject",
@@ -168,8 +184,10 @@
    "id": "unrelated-as-subject",
    "key": "retinol",
    "language": "en",
-   "expected": "fail",
-   "why": "Seeded fault: Retinol is a form of vitamin A, unrelated to computer science, yet explained as a subject concept.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Seeded fault: Retinol is a form of vitamin A, unrelated to computer science, yet explained as a subject concept.",
    "card": {
     "core": {
      "relevance": "subject",
@@ -186,8 +204,10 @@
    "id": "factual-error",
    "key": "recursion",
    "language": "en",
-   "expected": "fail",
-   "why": "Seeded fault: A base case is not optional; without one the recursion does not stop.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Seeded fault: A base case is not optional; without one the recursion does not stop.",
    "card": {
     "core": {
      "relevance": "subject",
@@ -209,8 +229,10 @@
    "id": "factual-error-api",
    "key": "API",
    "language": "en",
-   "expected": "fail",
-   "why": "Seeded fault: An API is an interface, not a database.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Seeded fault: An API is an interface, not a database.",
    "card": {
     "core": {
      "relevance": "subject",
@@ -227,8 +249,10 @@
    "id": "code-not-the-concept",
    "key": "recursion",
    "language": "en",
-   "expected": "fail",
-   "why": "Seeded fault: The example is a loop, not recursion, though its comment says recursion.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Seeded fault: The example is a loop, not recursion, though its comment says recursion.",
    "card": {
     "core": {
      "relevance": "subject",
@@ -251,8 +275,10 @@
    "id": "off-subject",
    "key": "Frontend",
    "language": "en",
-   "expected": "fail",
-   "why": "Seeded fault: Explains an everyday meaning instead of the computer science one.",
+   "split": "dev",
+   "decided": "owner",
+   "verdict": "fail",
+   "reason": "Seeded fault: Explains an everyday meaning instead of the computer science one.",
    "card": {
     "core": {
      "relevance": "subject",

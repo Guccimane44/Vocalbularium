@@ -18,26 +18,9 @@
           "translation": "She is studying Russian."
         }
       ],
-      "synonyms": [
-        "tongue"
-      ],
-      "pronunciation": [
-        "language"
-      ],
-      "etymology": {
-        "origins": [
-          "Latin",
-          "Old French"
-        ],
-        "text": "From Old French langage, from langue 'tongue', which comes from Latin lingua; it came into Middle English around 1300."
-      },
       "simple-translation": [
         "the words people use to talk and write"
-      ],
-      "forms": {
-        "word": "language",
-        "plural": "languages"
-      }
+      ]
     }
   },
   "sentence": {
@@ -56,9 +39,6 @@
           "sentence": "Книги — это окна, открывающие новые миры.",
           "translation": "Books are windows that open new worlds."
         }
-      ],
-      "pronunciation": [
-        "Languages are the bridges connecting people and the world."
       ],
       "simple-translation": [
         "Languages help people understand each other and the world."

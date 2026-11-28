@@ -2,14 +2,14 @@
   "word_phrase": {
     "core": {
       "kind": "word",
-      "language": "Arabisch",
-      "key": "تكلّم",
+      "language": "Deutsch",
+      "key": "sprechen",
       "romanization": "takallama",
       "gramRole": "verb",
       "meanings": [
-        "sprechen",
-        "reden",
-        "sich unterhalten"
+        "Wörter mit der Stimme bilden",
+        "sich mit jemandem unterhalten",
+        "sich äußern"
       ]
     },
     "facets": {

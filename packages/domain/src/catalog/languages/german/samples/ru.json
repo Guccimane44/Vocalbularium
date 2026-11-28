@@ -12,10 +12,6 @@
       ]
     },
     "facets": {
-      "article": {
-        "singular": "die Sprache",
-        "plural": "die Sprachen"
-      },
       "examples": [
         {
           "sentence": "Каждое лето она учит новый язык.",
@@ -26,53 +22,6 @@
           "translation": "Er verbrannte sich die Zunge mit heißem Tee."
         }
       ],
-      "declension": {
-        "columns": [
-          "Singular",
-          "Plural"
-        ],
-        "rows": [
-          {
-            "label": "Nominativ",
-            "cells": [
-              "die Sprache",
-              "die Sprachen"
-            ]
-          },
-          {
-            "label": "Genitiv",
-            "cells": [
-              "der Sprache",
-              "der Sprachen"
-            ]
-          },
-          {
-            "label": "Dativ",
-            "cells": [
-              "der Sprache",
-              "den Sprachen"
-            ]
-          },
-          {
-            "label": "Akkusativ",
-            "cells": [
-              "die Sprache",
-              "die Sprachen"
-            ]
-          }
-        ]
-      },
-      "pronunciation": [
-        "die Sprache",
-        "die Zunge"
-      ],
-      "etymology": {
-        "origins": [
-          "Althochdeutsch",
-          "Mittelhochdeutsch"
-        ],
-        "text": "Aus althochdeutsch sprāhha und mittelhochdeutsch sprāche, verwandt mit sprechen; die Grundbedeutung war „Rede, das Sprechen“. Daraus entwickelte sich die heutige Bedeutung „Sprache“ als System der Verständigung."
-      },
       "simple-translation": [
         "die Wörter, mit denen Menschen sprechen",
         "das weiche Ding im Mund, mit dem man spricht und schmeckt"
@@ -94,9 +43,6 @@
           "sentence": "Книги — это двери, открывающие новые миры.",
           "translation": "Bücher sind Türen, die neue Welten öffnen."
         }
-      ],
-      "pronunciation": [
-        "Sprachen sind Brücken die Menschen und die Welt verbinden"
       ],
       "simple-translation": [
         "Sprachen sind wie Brücken. Sie verbinden Menschen und die Welt."

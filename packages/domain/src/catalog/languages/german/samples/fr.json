@@ -11,10 +11,6 @@
       ]
     },
     "facets": {
-      "article": {
-        "singular": "die Sprache",
-        "plural": "die Sprachen"
-      },
       "examples": [
         {
           "sentence": "Chaque été, elle apprend une nouvelle langue.",
@@ -25,54 +21,6 @@
           "translation": "Er hat sich die Zunge mit dem heißen Kaffee verbrannt."
         }
       ],
-      "declension": {
-        "columns": [
-          "Singular",
-          "Plural"
-        ],
-        "rows": [
-          {
-            "label": "Nominativ",
-            "cells": [
-              "die Sprache",
-              "die Sprachen"
-            ]
-          },
-          {
-            "label": "Genitiv",
-            "cells": [
-              "der Sprache",
-              "der Sprachen"
-            ]
-          },
-          {
-            "label": "Dativ",
-            "cells": [
-              "der Sprache",
-              "den Sprachen"
-            ]
-          },
-          {
-            "label": "Akkusativ",
-            "cells": [
-              "die Sprache",
-              "die Sprachen"
-            ]
-          }
-        ]
-      },
-      "pronunciation": [
-        "die Sprache",
-        "die Zunge"
-      ],
-      "etymology": {
-        "origins": [
-          "Germanisch",
-          "Althochdeutsch",
-          "Mittelhochdeutsch"
-        ],
-        "text": "Aus germanisch spēkijō, im Althochdeutschen als sprāhha „Rede, Sprache“ belegt, im Mittelhochdeutschen dann sprāche. Das Wort gehört zur Sippe von sprechen und bezeichnet seit dem Althochdeutschen die Fähigkeit und das System des Sprechens."
-      },
       "simple-translation": [
         "Das System von Wörtern, mit dem Menschen sprechen und schreiben, zum Beispiel Deutsch oder Französisch.",
         "Das Organ im Mund, mit dem man schmeckt und spricht."
@@ -94,9 +42,6 @@
           "sentence": "Les livres sont les ponts qui relient les cultures et les peuples.",
           "translation": "Bücher sind die Brücken, die Kulturen und Völker verbinden."
         }
-      ],
-      "pronunciation": [
-        "Sprachen sind die Brücken, die Menschen und die Welt verbinden."
       ],
       "simple-translation": [
         "Sprachen sind wie Brücken: Sie verbinden Menschen und die Welt."

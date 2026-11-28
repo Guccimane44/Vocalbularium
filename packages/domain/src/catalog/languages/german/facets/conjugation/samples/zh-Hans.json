@@ -2,14 +2,14 @@
   "word_phrase": {
     "core": {
       "kind": "word",
-      "language": "Chinesisch",
-      "key": "说话",
+      "language": "Deutsch",
+      "key": "sprechen",
       "romanization": "shuōhuà",
       "gramRole": "verb",
       "meanings": [
-        "sprechen",
-        "reden",
-        "sich unterhalten"
+        "Wörter mit der Stimme bilden",
+        "sich mit jemandem unterhalten",
+        "sich äußern"
       ]
     },
     "facets": {

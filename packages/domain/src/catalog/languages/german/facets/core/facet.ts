@@ -7,8 +7,8 @@ import { defineCore, escapeMarkdown, foreignLetters, list, numbered, object, one
 // meaning. A word's `contextual` (D29) is its meaning in this Context, when the
 // Context selects one; the meanings then hold the key's other senses, its
 // original meaning always among them or in `contextual`. The grammatical role
-// describes the grammar word the grammar facets describe: the key when it is
-// German, otherwise the German word for its first meaning, `contextual` first.
+// is the selection's own part of speech, whatever its language; the grammar
+// facets apply only to a German selection.
 const shape = object({
   kind: oneOf(['word', 'sentence'], 'Word or sentence'),
   language: text("The key's language"),

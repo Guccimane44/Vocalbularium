@@ -13,10 +13,6 @@
       ]
     },
     "facets": {
-      "article": {
-        "singular": "die Sprache",
-        "plural": "die Sprachen"
-      },
       "examples": [
         {
           "sentence": "أتعلم كل صيف لغة جديدة.",
@@ -31,59 +27,6 @@
           "translation": "Die Fachsprache der Medizin ist für Anfänger schwierig."
         }
       ],
-      "synonyms": [
-        "Idiom",
-        "Mundart",
-        "Terminologie"
-      ],
-      "declension": {
-        "columns": [
-          "Singular",
-          "Plural"
-        ],
-        "rows": [
-          {
-            "label": "Nominativ",
-            "cells": [
-              "die Sprache",
-              "die Sprachen"
-            ]
-          },
-          {
-            "label": "Genitiv",
-            "cells": [
-              "der Sprache",
-              "der Sprachen"
-            ]
-          },
-          {
-            "label": "Dativ",
-            "cells": [
-              "der Sprache",
-              "den Sprachen"
-            ]
-          },
-          {
-            "label": "Akkusativ",
-            "cells": [
-              "die Sprache",
-              "die Sprachen"
-            ]
-          }
-        ]
-      },
-      "pronunciation": [
-        "die Sprache",
-        "der Dialekt",
-        "die Fachsprache"
-      ],
-      "etymology": {
-        "origins": [
-          "Althochdeutsch",
-          "Mittelhochdeutsch"
-        ],
-        "text": "Das althochdeutsche sprāhha und das mittelhochdeutsche sprāche bedeuteten „Rede“ und gehören zu sprechen. Aus „das Sprechen“ wurde die Bezeichnung für das System der Verständigung."
-      },
       "simple-translation": [
         "die Wörter und Regeln, mit denen Menschen sprechen und sich verstehen",
         "eine Art zu sprechen, die in einer Gegend üblich ist",
@@ -107,9 +50,6 @@
           "sentence": "الكتب هي الجسور التي تربط الناس بالمعرفة.",
           "translation": "Bücher sind die Brücken, die Menschen mit dem Wissen verbinden."
         }
-      ],
-      "pronunciation": [
-        "Sprachen sind die Brücken, die Menschen mit der Welt verbinden."
       ],
       "simple-translation": [
         "Sprachen sind wie Brücken: Sie verbinden Menschen mit der Welt."

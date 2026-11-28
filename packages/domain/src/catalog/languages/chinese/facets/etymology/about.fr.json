@@ -1,5 +1,5 @@
 {
-  "summary": "D’où vient le mot chinois : les langues ou les époques par lesquelles il est passé, puis une courte histoire.",
+  "summary": "D'où vient votre mot : les langues ou les époques par lesquelles il est passé, puis une courte histoire, en chinois.",
   "appliesTo": "Mots",
-  "describes": "La clé si elle est en chinois, sinon le mot chinois de son premier sens."
+  "describes": "Votre clé elle-même, dans sa propre langue : l'histoire de tea pour tea."
 }

@@ -1,5 +1,5 @@
 import type { CoreValue } from './catalog/define.js';
-import { appliesTo, facetsFor, isFacetOf, isParentType, ordered } from './parents.js';
+import { appliesTo, facetsFor, isFacetOf, isParentType, isRetired, ordered } from './parents.js';
 import type { FacetType, ParentType } from './parents.js';
 import { formatContent, formatCore, formatFacet, providerCore, withFacetText, withKeyHighlighted } from './content.js';
 import { contentModule } from './catalog/index.js';
@@ -56,7 +56,8 @@ export async function generateComponent(input: {
 }): Promise<ParentContent> {
   const { module } = input;
   if (!isParentType(module.type)) throw new Error('The deck contains an unsupported module.');
-  const facets = ordered(module.type, module.facets ?? []);
+  // A retired facet a deck still lists is never asked for.
+  const facets = ordered(module.type, module.facets ?? []).filter(facet => !isRetired(module.type as ParentType, facet));
   const value = await input.generate({ module, selectedText: input.mainKey, facets });
   if (!isRecord(value)) throw new Error('A module returned no usable content.');
   const stray = Object.keys(value).find(key => key !== 'core' && key !== 'facets');

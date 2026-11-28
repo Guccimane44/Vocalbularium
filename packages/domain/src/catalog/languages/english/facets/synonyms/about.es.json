@@ -1,5 +1,5 @@
 {
-  "summary": "Palabras inglesas con el mismo significado o uno cercano.",
+  "summary": "Palabras con el mismo significado o uno cercano, en el idioma de tu clave.",
   "appliesTo": "Palabras",
-  "describes": "Los significados del núcleo."
+  "describes": "Tu clave: sinónimos ingleses para una palabra inglesa, españoles para una española."
 }
