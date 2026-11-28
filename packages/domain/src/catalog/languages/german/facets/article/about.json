@@ -1,5 +1,5 @@
 {
-  "summary": "The article, and so the gender, of the German noun, with its plural.",
-  "appliesTo": "Nouns",
-  "describes": "The German noun in the core's first meaning, or your key itself when it is German."
+  "summary": "The article, and so the gender, of a German noun, with its plural.",
+  "appliesTo": "German nouns",
+  "describes": "Your key, only when it is a German noun."
 }

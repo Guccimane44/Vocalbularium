@@ -4,7 +4,7 @@ import Value from 'typebox/value';
 import { BlockDocumentSchema, DeckConfigurationSchema, FacetAddRequestSchema, PageSchema } from '@vocabularium/contracts';
 import {
   applicableFacets, facetAbbreviation, facetAddBlocked, facetDeleteBlocked, facetsOf, facetTargets, facetUnavailable, isParentType, ordered, parentsIn, PARENTS,
-  validateFacets, withFacet, facetsFor, ruledOut, DEFAULT_DECK_MODULES, inOrder, movedFacet, facetMoveBlocked } from '@vocabularium/domain/parents';
+  validateFacets, withFacet, facetsFor, ruledOut, isRetired, liveFacetsOf, DEFAULT_DECK_MODULES, inOrder, movedFacet, facetMoveBlocked } from '@vocabularium/domain/parents';
 import { validateParentContent } from '@vocabularium/domain/content';
 import { copyModules, validateConfiguration } from '@vocabularium/domain/page-modules';
 import { textBlocks } from '@vocabularium/domain/pages';
@@ -41,18 +41,25 @@ test('each facet has its own abbreviation for its tag, unique within its parent 
 });
 
 test('a word gets every facet its flags allow; a sentence only the facets for sentences, Grammar teacher only for a German key', () => {
-  assert.deepEqual(applicableFacets('german', facetsOf('german'), 'word_phrase'), ['article', 'examples', 'synonyms', 'antonyms', 'conjugation', 'declension', 'comparison', 'case', 'pronunciation', 'etymology', 'simple-translation', 'grammar-teacher']);
+  assert.deepEqual(applicableFacets('german', facetsOf('german'), 'word_phrase'), ['article', 'examples', 'synonyms', 'antonyms', 'conjugation', 'declension', 'comparison', 'case', 'etymology', 'simple-translation', 'grammar-teacher']);
   // The grammar facets follow the core's grammatical role (D17).
   const word = gramRole => ({ kind: 'word', language: 'Deutsch', key: 'x', gramRole, meanings: ['y'] });
-  assert.deepEqual(facetsFor('german', facetsOf('german'), word('noun')), ['article', 'examples', 'synonyms', 'antonyms', 'declension', 'pronunciation', 'etymology', 'simple-translation', 'grammar-teacher']);
-  assert.deepEqual(facetsFor('german', facetsOf('german'), word('verb')), ['examples', 'synonyms', 'antonyms', 'conjugation', 'pronunciation', 'etymology', 'simple-translation', 'grammar-teacher']);
-  assert.deepEqual(facetsFor('german', facetsOf('german'), word('adjective')), ['examples', 'synonyms', 'antonyms', 'declension', 'comparison', 'pronunciation', 'etymology', 'simple-translation', 'grammar-teacher']);
-  assert.deepEqual(facetsFor('german', facetsOf('german'), word('Preposition')), ['examples', 'synonyms', 'antonyms', 'case', 'pronunciation', 'etymology', 'simple-translation', 'grammar-teacher']);
-  assert.deepEqual(facetsFor('german', facetsOf('german'), { kind: 'sentence', language: 'Deutsch', key: 'x.', meanings: ['y'] }), ['examples', 'pronunciation', 'simple-translation', 'grammar-teacher']);
+  assert.deepEqual(facetsFor('german', facetsOf('german'), word('noun')), ['article', 'examples', 'synonyms', 'antonyms', 'declension', 'etymology', 'simple-translation', 'grammar-teacher']);
+  assert.deepEqual(facetsFor('german', facetsOf('german'), word('verb')), ['examples', 'synonyms', 'antonyms', 'conjugation', 'etymology', 'simple-translation', 'grammar-teacher']);
+  assert.deepEqual(facetsFor('german', facetsOf('german'), word('adjective')), ['examples', 'synonyms', 'antonyms', 'declension', 'comparison', 'etymology', 'simple-translation', 'grammar-teacher']);
+  assert.deepEqual(facetsFor('german', facetsOf('german'), word('Preposition')), ['examples', 'synonyms', 'antonyms', 'case', 'etymology', 'simple-translation', 'grammar-teacher']);
+  assert.deepEqual(facetsFor('german', facetsOf('german'), { kind: 'sentence', language: 'Deutsch', key: 'x.', meanings: ['y'] }), ['examples', 'simple-translation', 'grammar-teacher']);
   // Grammar teacher only for a German key (0.16.4): the core names its language Deutsch, in any case and spacing.
   for (const language of ['Deutsch', 'deutsch', ' Deutsch ']) assert.ok(facetsFor('german', facetsOf('german'), { ...word('noun'), language }).includes('grammar-teacher'), language);
   for (const language of ['Englisch', 'Chinesisch', 'Schweizerdeutsch', '']) assert.ok(!facetsFor('german', facetsOf('german'), { ...word('noun'), language }).includes('grammar-teacher'), language);
-  assert.deepEqual(applicableFacets('german', facetsOf('german'), 'sentence'), ['examples', 'pronunciation', 'simple-translation', 'grammar-teacher']);
+  assert.deepEqual(applicableFacets('german', facetsOf('german'), 'sentence'), ['examples', 'simple-translation', 'grammar-teacher']);
+  // Every facet describes the selection (2026-11-27): a foreign word gets no grammar facet, whatever its role.
+  for (const role of ['noun', 'verb', 'adjective', 'preposition']) {
+    assert.deepEqual(facetsFor('german', facetsOf('german'), { ...word(role), language: 'Englisch' }), ['examples', 'synonyms', 'antonyms', 'etymology', 'simple-translation'], role);
+  }
+  // A retired facet is never asked for, offered or retried, though a stored card may still have it.
+  assert.ok(isRetired('german', 'pronunciation') && facetsOf('german').includes('pronunciation') && !liveFacetsOf('german').includes('pronunciation'));
+  assert.equal(ruledOut('german', 'pronunciation', word('noun')), 'retired');
   assert.deepEqual(applicableFacets('chinese', ['pinyin', 'examples'], 'sentence'), ['examples', 'pinyin'], 'in the parent’s order');
   assert.deepEqual(applicableFacets('german', [], 'sentence'), [], 'the core alone');
 });

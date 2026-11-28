@@ -2,12 +2,12 @@
   "word_phrase": {
     "core": {
       "kind": "word",
-      "language": "Englisch",
-      "key": "speak",
+      "language": "Deutsch",
+      "key": "sprechen",
       "gramRole": "verb",
       "meanings": [
-        "sprechen",
-        "reden",
+        "Wörter mit der Stimme bilden",
+        "sich mit jemandem unterhalten",
         "sich äußern"
       ]
     },

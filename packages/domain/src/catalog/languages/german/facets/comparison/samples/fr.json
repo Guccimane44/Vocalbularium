@@ -2,13 +2,13 @@
   "word_phrase": {
     "core": {
       "kind": "word",
-      "language": "Französisch",
-      "key": "clair",
+      "language": "Deutsch",
+      "key": "klar",
       "gramRole": "adjective",
       "meanings": [
-        "klar",
-        "hell",
-        "deutlich"
+        "deutlich und leicht zu verstehen",
+        "durchsichtig, ohne Trübung",
+        "offensichtlich"
       ]
     },
     "facets": {

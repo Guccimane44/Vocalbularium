@@ -10,65 +10,12 @@
       ]
     },
     "facets": {
-      "article": {
-        "singular": "die Sprache",
-        "plural": "die Sprachen"
-      },
       "examples": [
         {
           "sentence": "El español es un idioma muy hablado.",
           "translation": "Spanisch ist eine viel gesprochene Sprache."
         }
       ],
-      "synonyms": [
-        "Idiom",
-        "Zunge"
-      ],
-      "declension": {
-        "columns": [
-          "Singular",
-          "Plural"
-        ],
-        "rows": [
-          {
-            "label": "Nominativ",
-            "cells": [
-              "die Sprache",
-              "die Sprachen"
-            ]
-          },
-          {
-            "label": "Genitiv",
-            "cells": [
-              "der Sprache",
-              "der Sprachen"
-            ]
-          },
-          {
-            "label": "Dativ",
-            "cells": [
-              "der Sprache",
-              "den Sprachen"
-            ]
-          },
-          {
-            "label": "Akkusativ",
-            "cells": [
-              "die Sprache",
-              "die Sprachen"
-            ]
-          }
-        ]
-      },
-      "pronunciation": [
-        "die Sprache"
-      ],
-      "etymology": {
-        "origins": [
-          "Althochdeutsch"
-        ],
-        "text": "Aus althochdeutsch sprāhha, das zu sprechen gehört; im Mittelhochdeutschen hieß es sprāche. Ursprünglich meinte es das Sprechen und die Art zu sprechen, später die Sprache eines Volkes."
-      },
       "simple-translation": [
         "die Wörter und Sätze, mit denen Menschen sprechen und schreiben"
       ]
@@ -89,9 +36,6 @@
           "sentence": "Las palabras son los hilos que unen a los amigos con la comunidad.",
           "translation": "Wörter sind die Fäden, die die Freunde mit der Gemeinschaft verbinden."
         }
-      ],
-      "pronunciation": [
-        "Sprachen sind die Brücken, die die Menschen mit der Welt verbinden"
       ],
       "simple-translation": [
         "Sprachen helfen den Menschen, mit anderen und mit der Welt in Kontakt zu kommen. Sie sind wie Brücken zwischen den Menschen."

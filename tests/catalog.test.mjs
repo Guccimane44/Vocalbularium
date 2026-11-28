@@ -64,9 +64,10 @@ test('each facet has one prompt, the core its own, a Retry prompt and a reading 
     // A module without facets has no facet to Retry, so no Retry prompt (D24).
     // What the facets rely on from the core may sit in its own file (facets.prompt.md).
     assert.deepEqual(promptFiles(new URL('facets/core/', folder)).filter(file => file !== 'facets.prompt.md'), ['core.prompt.md', 'reading.prompt.md', ...(module.facets.length ? ['retry.prompt.md'] : [])], `${id}.core`);
+    // A retired facet is never asked for, so it has no prompt.
     for (const facet of module.facets) {
       assert.deepEqual(promptFiles(new URL(`facets/${facet.id}/`, folder)), [], `${id}.${facet.id} has no prompt per input type`);
-      assert.ok(existsSync(new URL(`facets/${facet.id}/prompt.md`, folder)), `${id}.${facet.id} has its prompt`);
+      assert.equal(existsSync(new URL(`facets/${facet.id}/prompt.md`, folder)), !facet.retired, `${id}.${facet.id} has its prompt, unless it is retired`);
     }
     const folders = readdirSync(new URL('facets/', folder)).sort();
     assert.deepEqual(folders, ['core', ...module.facets.map(facet => facet.id)].sort(), `${id} has a facet folder the module does not list`);
@@ -75,7 +76,7 @@ test('each facet has one prompt, the core its own, a Retry prompt and a reading 
 
 test('the composer builds one request for every module with all its facets, and a Retry per facet (D17)', () => {
   for (const id of content) {
-    const facets = MODULES[id].facets.map(facet => facet.id);
+    const facets = MODULES[id].facets.filter(facet => !facet.retired).map(facet => facet.id);
     const request = composeModule({ module: { id: 'i', type: id }, selectedText: 'x', facets });
     assert.ok(request.instructions && request.schema.properties.core && request.maxTokens > 0, id);
     assert.ok(!('inputType' in request.input), `${id} sends no input type`);
@@ -93,7 +94,7 @@ test('what the facets rely on from the core reaches every request that writes a 
     const file = new URL(`${folderOf(id)}/facets/core/facets.prompt.md`, SRC);
     if (!existsSync(file)) continue;
     const text = readFileSync(file, 'utf8').trim();
-    const facets = MODULES[id].facets.map(facet => facet.id);
+    const facets = MODULES[id].facets.filter(facet => !facet.retired).map(facet => facet.id);
     assert.ok(composeModule({ module: { id: 'i', type: id }, selectedText: 'x', facets }).instructions.includes(text), `${id} with its core`);
     for (const facet of facets) {
       assert.ok(composeModule({ module: { id: 'i', type: id }, selectedText: 'x', facets: [facet], core: { kind: 'word' } }).instructions.includes(text), `${id}.${facet} alone`);
@@ -193,7 +194,7 @@ test('every facet page has at least one sample in every interface language (D21)
   const { PARENTS } = await import('@vocabularium/domain/parents');
   for (const language of INTERFACE_LANGUAGES)
     for (const [parent, { facets }] of Object.entries(PARENTS))
-      for (const facet of Object.keys(facets)) assert.ok(facetSamplesOf(parent, facet, language).length, `${parent}/${facet} in ${language}`);
+      for (const [facet, { retired }] of Object.entries(facets)) if (!retired) assert.ok(facetSamplesOf(parent, facet, language).length, `${parent}/${facet} in ${language}`);
 });
 
 test('a facet’s sample is its own part of a sample in the interface language, only for the inputs it applies to', async () => {
@@ -212,19 +213,22 @@ test('a facet’s sample is its own part of a sample in the interface language, 
   // A facet that never applies to a noun has its own word (K65): Conjugation speak, sprechen.
   assert.match(plain(facetSampleOf('german', 'conjugation', 'word_phrase')), /spr(e|i)ch/);
   assert.equal(facetSampleOf('german', 'conjugation', 'sentence'), null);
-  assert.equal(sampleKeyOf('german', 'word_phrase', 'ru', 'conjugation'), 'говорить');
+  // A grammar facet's sample is a German key in every language (2026-11-27).
+  assert.equal(sampleKeyOf('german', 'word_phrase', 'ru', 'conjugation'), 'sprechen');
   // The card a facet sits on is its own sample's, core and all, or its module's.
   const [speak] = facetSamplesOf('german', 'conjugation');
-  assert.match(plain(speak.card.core), /sprechen/);
+  assert.equal(speak.key, 'sprechen');
+  assert.match(plain(speak.card.core), /Stimme/);
   assert.doesNotMatch(plain(speak.card.core), /Sprache/);
-  assert.deepEqual(facetSamplesOf('german', 'article', 'fr').map(each => [each.inputType, each.key]), [['word_phrase', 'langue']]);
-  assert.deepEqual(facetSamplesOf('german', 'article', 'fr')[0].card, sampleOf('german', 'word_phrase', undefined, 'fr'));
-  // Declension has a noun and an adjective; Synonyms and Antonyms show good, gut (D21).
-  assert.deepEqual(facetSamplesOf('german', 'declension').map(each => [each.key, each.role]), [['language', 'noun'], ['good', 'adjective']]);
-  for (const facet of ['synonyms', 'antonyms']) assert.match(plain(facetSamplesOf('german', facet, 'ru')[0].card.core), /gut/, facet);
-  // A module's sample shows every facet its sample holds; given facets, only those that apply.
+  // The module's sample is a foreign key, so Article shows on a German key of its own.
+  assert.deepEqual(facetSamplesOf('german', 'article', 'fr').map(each => [each.inputType, each.key]), [['word_phrase', 'Sprache']]);
+  assert.ok(!sampleOf('german', 'word_phrase', undefined, 'fr').facets.some(each => each.facet === 'article'));
+  // Declension shows gut; Synonyms and Antonyms show good in the key's own language (D21, 2026-11-27).
+  assert.deepEqual(facetSamplesOf('german', 'declension').map(each => [each.key, each.role]), [['gut', 'adjective']]);
+  for (const facet of ['synonyms', 'antonyms']) assert.match(plain(facetSamplesOf('german', facet, 'ru')[0].card.facets.find(each => each.facet === facet).body), /[а-я]/, facet);
+  // A module's sample shows every facet its sample holds that its core allows; given facets, only those that apply.
   const facets = sampleOf('german', 'word_phrase').facets.map(each => each.facet);
-  assert.ok(facets.includes('article') && !facets.includes('conjugation'), facets.join());
+  assert.ok(facets.includes('examples') && !facets.includes('article') && !facets.includes('conjugation'), facets.join());
   assert.deepEqual(sampleOf('german', 'sentence', ['article', 'examples']).facets.map(each => each.facet), ['examples']);
   assert.equal(sampleOf('context', 'word_phrase').kind, 'note');
   assert.equal(sampleOf('text', 'word_phrase'), null, 'Text starts empty');
@@ -310,7 +314,7 @@ test('every module folder holds the parts the modules spec requires', () => {
     if (!module.core.spoken) need(`${folder}/rubric.md`, id);
     for (const file of ['facet.ts', 'core.prompt.md', 'reading.prompt.md']) need(`${folder}/facets/core/${file}`, id);
     for (const facet of module.facets) {
-      for (const file of ['facet.ts', 'prompt.md', 'about.json', ...others.map(language => `about.${language}.json`)]) need(`${folder}/facets/${facet.id}/${file}`, `${id}.${facet.id}`);
+      for (const file of ['facet.ts', ...(facet.retired ? [] : ['prompt.md']), 'about.json', ...others.map(language => `about.${language}.json`)]) need(`${folder}/facets/${facet.id}/${file}`, `${id}.${facet.id}`);
     }
   }
   assert.deepEqual(missing, []);

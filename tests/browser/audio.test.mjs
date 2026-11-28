@@ -113,7 +113,7 @@ test('0.14.0: a Pronunciation card in Sound speaks the main key: generating, fai
   assert.deepEqual((await store.clips(other.pageId)), []);
 });
 
-test('0.14.0: a German card’s Pronunciation facet speaks each line beside its own player; a line fails and retries on its own, and the lines are not edited (D24)', { timeout: 60000 }, async (t) => {
+test('0.14.0: a German card written before keeps its Pronunciation facet, which speaks each line beside its own player; a line fails and retries on its own, and the lines are not edited (D24; retired 2026-11-27)', { timeout: 60000 }, async (t) => {
   const { FakeSpeechProvider } = await import('../helpers/speech.mjs');
   class WavSpeech extends FakeSpeechProvider {
     bitRate = 64000;
@@ -131,7 +131,8 @@ test('0.14.0: a German card’s Pronunciation facet speaks each line beside its 
   const [german] = await useModules(store, ['german']);
   const { pageId } = await store.createPage('pronunciation-facet-page', { deckId: (await store.snapshot()).id, mainKey: 'bank' });
   const component = (await store.page(pageId)).components.find(item => item.moduleType === 'german');
-  assert.ok(component.facets.includes('pronunciation') && german.facets.includes('pronunciation'), 'German offers Pronunciation, last');
+  // A deck from before still lists Pronunciation, which the language modules no longer write (2026-11-27).
+  assert.ok(component.facets.includes('pronunciation') && german.facets.includes('pronunciation'), 'the deck lists Pronunciation');
   const { attemptIds: [attemptId] } = await store.generate('pronunciation-facet-generate', { pageId, target: { scope: 'component', componentId: component.id }, session });
   await store.stage(attemptId, staged(formatContent('german', { core: { kind: 'word', language: 'Englisch', key: 'bank', gramRole: 'noun', meanings: ['Geldinstitut', 'Ufer eines Flusses'] },
     facets: { article: { singular: 'die Bank', plural: 'die Banken' }, pronunciation: ['die Bank', 'das Ufer'] } })));
@@ -150,10 +151,11 @@ test('0.14.0: a German card’s Pronunciation facet speaks each line beside its 
     'each line has its own clip; one failing leaves the other');
   assert.equal(await facet.locator('.facet-title .tag-mark, .facet-title').first().textContent().then(text => text.includes('Pronunciation')), true);
 
-  // The facet has About, Retry and Delete, and no Edit: its lines must match their audio.
+  // The facet has About and Delete, and no Edit: its lines must match their audio.
+  // Its Retry is unavailable: the module no longer writes it (2026-11-27).
   await facet.locator('.facet-title').hover();
   assert.equal(await a.page.getByRole('button', { name: 'Edit Pronunciation from German', exact: true }).count(), 0);
-  assert.equal(await a.page.getByRole('button', { name: 'Retry Pronunciation from German', exact: true }).count(), 1);
+  assert.equal(await a.page.getByRole('button', { name: 'Retry Pronunciation from German', exact: true }).isDisabled(), true);
   assert.equal(await a.page.getByRole('button', { name: 'Edit Article from German', exact: true }).count(), 1, 'other facets keep their Edit');
 
   // The failed line's own Retry speaks it alone again.

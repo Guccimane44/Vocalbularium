@@ -16,7 +16,7 @@ export type ParentFamily = FamilyId;
 
 // `abbreviation` marks the facet's tag on its parent's card (0.7.1), unique
 // within its parent (D11).
-export type FacetDefinition = Readonly<{ label: string; abbreviation: string; description: string; applies: readonly InputType[] }>;
+export type FacetDefinition = Readonly<{ label: string; abbreviation: string; description: string; applies: readonly InputType[]; retired?: true }>;
 export type ParentDefinition = Readonly<{
   label: string;
   description: string;
@@ -30,7 +30,7 @@ export const PARENTS: Readonly<Record<ParentType, ParentDefinition>> = Object.fr
   return [id, {
     label: module.label, description: module.description, family: familyOf(id)!,
     facets: Object.fromEntries(module.facets.map(facet =>
-      [facet.id, { label: facet.label, abbreviation: facet.abbreviation, description: facet.description, applies: facet.applies }]))
+      [facet.id, { label: facet.label, abbreviation: facet.abbreviation, description: facet.description, applies: facet.applies, ...(facet.retired ? { retired: true as const } : {}) }]))
   }];
 })) as Record<ParentType, ParentDefinition>);
 
@@ -38,6 +38,10 @@ export const isParentType = (type: string): type is ParentType => Object.hasOwn(
 // A family's parents in the catalog's order, such as every Languages module.
 export const parentsIn = (family: ParentFamily): ParentType[] => (Object.keys(PARENTS) as ParentType[]).filter(parent => PARENTS[parent].family === family);
 export const facetsOf = (parent: ParentType): FacetType[] => Object.keys(PARENTS[parent].facets) as FacetType[];
+// The facets a module still writes, without the retired ones that only cards
+// written before have: what the facet window offers and generation asks for.
+export const liveFacetsOf = (parent: ParentType): FacetType[] => facetsOf(parent).filter(facet => !PARENTS[parent].facets[facet]!.retired);
+export const isRetired = (parent: ParentType, facet: FacetType): boolean => Boolean(PARENTS[parent].facets[facet]?.retired);
 export const isFacetOf = (parent: string, facet: string): facet is FacetType =>
   isParentType(parent) && Object.hasOwn(PARENTS[parent].facets, facet);
 export const facetLabel = (parent: ParentType, facet: FacetType): string => PARENTS[parent].facets[facet]!.label;
@@ -68,10 +72,10 @@ export function facetMoveBlocked(holder: FacetHolder | undefined, parent: string
   return null;
 }
 
-// The facets that contribute for this kind of key, in order; the core always
-// does. The samples use it; generation asks the core itself (`facetsFor`).
+// The facets that contribute for this kind of key, in order, a retired one
+// never; the core always does. The samples use it; generation asks the core itself (`facetsFor`).
 export function applicableFacets(parent: ParentType, facets: readonly string[], inputType: InputType): FacetType[] {
-  return ordered(parent, facets).filter(facet => PARENTS[parent].facets[facet]!.applies.includes(inputType));
+  return ordered(parent, facets).filter(facet => !PARENTS[parent].facets[facet]!.retired && PARENTS[parent].facets[facet]!.applies.includes(inputType));
 }
 
 // Whether a facet applies to a written core (D17): to the kind of key it read
@@ -79,18 +83,20 @@ export function applicableFacets(parent: ParentType, facets: readonly string[], 
 // the facet's own condition names, such as Article only for a noun.
 export function appliesTo(parent: ParentType, facet: FacetType, core: CoreValue): boolean {
   const definition = contentModule(parent).facets.find(each => each.id === facet);
-  if (!definition) return false;
+  if (!definition || definition.retired) return false;
   const kind: InputType = core.kind === 'sentence' ? 'sentence' : 'word_phrase';
   return definition.applies.includes(kind) && (definition.when?.(core) ?? true);
 }
 // Why a facet does not apply to a written core, or null when it does (D17):
 // a word-only facet on a sentence, a grammar facet for another kind of word,
-// an Expertise facet outside the subject, or a concept that has none.
-export type RuledOut = 'sentence' | 'role' | 'subject' | 'none';
+// an Expertise facet outside the subject, a concept that has none, or a
+// facet the module no longer writes.
+export type RuledOut = 'sentence' | 'role' | 'subject' | 'none' | 'retired';
 export function ruledOut(parent: ParentType, facet: FacetType, core: CoreValue): RuledOut | null {
   if (appliesTo(parent, facet, core)) return null;
   const definition = contentModule(parent).facets.find(each => each.id === facet);
   if (!definition) return null;
+  if (definition.retired) return 'retired';
   if (!definition.applies.includes(core.kind === 'sentence' ? 'sentence' : 'word_phrase')) return 'sentence';
   if (contentModule(parent).core.flags.includes('relevance')) return core.relevance === 'subject' ? 'none' : 'subject';
   return 'role';

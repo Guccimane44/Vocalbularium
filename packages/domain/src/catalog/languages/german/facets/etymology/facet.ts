@@ -1,6 +1,6 @@
 import { defineFacet, escapeMarkdown, foreignLetters, list, object, scriptsOf, text } from '../../../../blocks.js';
 
-// Where the grammar word comes from (0.16.4): the languages it came through,
+// Where the selection comes from (0.16.4), in its own language, written in German: the languages it came through,
 // oldest first, then a short text. The module writes the header, its label and
 // the origins joined by a middle dot, never the model, so a name of several
 // words such as Althochdeutsch or Mittelniederländisch stays whole.
@@ -13,7 +13,7 @@ const isGerman = (value: string) => {
 };
 
 export default defineFacet({
-  id: 'etymology', label: 'Etymology', abbreviation: 'Et', description: 'Where the German word comes from.',
+  id: 'etymology', label: 'Etymology', abbreviation: 'Et', description: 'Where the selected word comes from.',
   applies: ['word_phrase'],
   shape: object({ origins: list(text('the origin'), { name: 'the origins', each: 'Origin' }), text: text('the etymology') }),
   format: value => `${LABEL} ${value.origins.map(origin => escapeMarkdown(origin.trim())).join(' · ')}\n\n${escapeMarkdown(value.text.trim())}`,

@@ -2,12 +2,13 @@
   "word_phrase": {
     "core": {
       "kind": "word",
-      "language": "Spanisch",
-      "key": "hablar",
+      "language": "Deutsch",
+      "key": "sprechen",
       "gramRole": "verb",
       "meanings": [
-        "sprechen",
-        "reden"
+        "Wörter mit der Stimme bilden",
+        "sich mit jemandem unterhalten",
+        "sich äußern"
       ]
     },
     "facets": {

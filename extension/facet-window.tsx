@@ -1,6 +1,6 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
-import { facetsOf } from '@vocabularium/domain/parents';
+import { facetsOf, isRetired } from '@vocabularium/domain/parents';
 import type { FacetType, ParentType } from '@vocabularium/domain/parents';
 import { openAbout } from './about-sheet.tsx';
 import { launchFacet } from './facet-tags.tsx';
@@ -154,7 +154,8 @@ export function FacetWindow({ holderId, parent, title, facets, disabled, hasCont
   const [before, after] = t('card.facetsOf', { card: '\uE000' }).split('\uE000');
   const family = CATALOG[parent].family ?? 'notes';
   const limitId = `${ids}-limit`;
-  const all = facetsOf(parent);
+  // A retired facet shows only on a card that still has it, so it can be removed.
+  const all = facetsOf(parent).filter(facet => !isRetired(parent, facet) || equipped(facet));
   const full = facetsFull(all.filter(equipped).length);
   let drop = 0;
   const row = (facet: FacetType, on: boolean) => {

@@ -1,5 +1,5 @@
 {
-  "summary": "Le positif, le comparatif et le superlatif de l’adjectif allemand.",
-  "appliesTo": "Adjectifs",
-  "describes": "L’adjectif allemand du premier sens du noyau ; laissé de côté pour un adjectif sans comparaison, comme tot."
+  "summary": "Le positif, le comparatif et le superlatif d'un adjectif allemand.",
+  "appliesTo": "Adjectifs allemands",
+  "describes": "Votre clé, seulement quand c'est un adjectif allemand ; absent pour un adjectif sans comparaison, comme tot."
 }

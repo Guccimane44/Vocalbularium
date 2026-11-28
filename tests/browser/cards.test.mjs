@@ -86,7 +86,7 @@ test('0.12.0: a German verb’s Conjugation is a table on the card, its top line
   await a.page.getByRole('button', { name: 'About Conjugation from German', exact: true }).click();
   const conjugationAbout = a.page.getByRole('dialog', { name: 'Conjugation', exact: true });
   await conjugationAbout.waitFor();
-  assert.equal(await conjugationAbout.locator('.about-applies').innerText(), 'Verbs');
+  assert.equal(await conjugationAbout.locator('.about-applies').innerText(), 'German verbs');
   await a.page.keyboard.press('Escape');
   await conjugationAbout.waitFor({ state: 'detached' });
 

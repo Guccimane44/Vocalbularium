@@ -1,5 +1,5 @@
 {
-  "summary": "Des mots allemands de sens identique ou proche.",
+  "summary": "Des mots de sens identique ou proche, dans la langue de votre clé.",
   "appliesTo": "Mots",
-  "describes": "Les sens du noyau."
+  "describes": "Votre clé : des synonymes allemands pour un mot allemand, anglais pour un mot anglais."
 }

@@ -45,9 +45,9 @@ test('parents and facets: core only on add, the facet window on the parent, its 
 
   // A German parent's facet window lists its four facets in the module's order, the ones it has ticked.
   let facets = await facetWindow(a.page, 'German');
-  assert.deepEqual(await inOrder(facets, 'name'), ['Article', 'Examples', 'Synonyms', 'Antonyms', 'Conjugation', 'Declension', 'Comparison', 'Case', 'Pronunciation', 'Etymology', 'Simple translation', 'Grammar teacher'],
-    'every facet of German, the grammar facets (D17), Pronunciation (D24) and the 0.16.4 facets included');
-  assert.deepEqual(await inOrder(facets, 'equipped'), [true, true, true, true, false, false, false, false, false, false, false, false], 'the grammar facets and Pronunciation are not on a My Deck card (K56)');
+  assert.deepEqual(await inOrder(facets, 'name'), ['Article', 'Examples', 'Synonyms', 'Antonyms', 'Conjugation', 'Declension', 'Comparison', 'Case', 'Etymology', 'Simple translation', 'Grammar teacher'],
+    'every facet of German, the grammar facets (D17) and the 0.16.4 facets included; Pronunciation retired (D374)');
+  assert.deepEqual(await inOrder(facets, 'equipped'), [true, true, true, true, false, false, false, false, false, false, false], 'the grammar facets and the 0.16.4 facets are not on a My Deck card (K56)');
   await waitFor(() => tick(facets, 'Article').evaluate(node => node === document.activeElement), 'the first row takes the focus');
   // It hangs from the card's top line, under Facet, and that line flows round it as its frame:
   // the card draws no line of its own along its top while it is open.
@@ -154,7 +154,7 @@ test('parents and facets: core only on add, the facet window on the parent, its 
     };
   });
   facets = await facetWindow(a.page, 'German 2');
-  assert.deepEqual(await inOrder(facets, 'equipped'), Array(12).fill(false), 'a core only');
+  assert.deepEqual(await inOrder(facets, 'equipped'), Array(11).fill(false), 'a core only');
   await tick(facets, 'Synonyms').click();
   await waitFor(async () => (await german())[1].facets.includes('synonyms'), 'Synonyms added to the second German');
   assert.equal((await german())[0].facets.includes('synonyms'), false, 'and not to the first');
@@ -193,25 +193,25 @@ test('parents and facets: core only on add, the facet window on the parent, its 
   assert.deepEqual((await store.deck(deckId)).modules.filter(module => module.type === 'german').map(module => module.facets),
     [['article', 'examples', 'synonyms'], ['antonyms']]);
 
-  // The cap (0.16.4): German offers exactly MAX_FACETS, so a parent picking every
-  // one reaches 12, its window has nothing more to add, and the deck saves it.
+  // Every facet German offers: 11 since Pronunciation retired (D374), one under
+  // the cap of 12, so the window has nothing more to add and the deck saves them all.
   // Saved, the settings leave for the deck; open them again once they have.
   await a.page.waitForFunction(() => !location.hash.startsWith('#configure/'));
   await a.page.goto(`chrome-extension://${a.id}/app.html#configure/${deckId}`);
   await waitFor(async () => await deckGermans.count() === 2, 'deck settings open again');
   facets = await facetWindow(a.page, 'German 2');
   const offered = await inOrder(facets, 'name');
-  assert.equal(offered.length, 12);
+  assert.equal(offered.length, 11);
   for (const name of offered.filter(name => name !== 'Antonyms')) {
     await tick(facets, name).click();
     await waitFor(async () => await ticked(facets, name), `${name} ticked`);
   }
-  assert.deepEqual(await inOrder(facets, 'equipped'), Array(12).fill(true), 'all twelve on the card');
+  assert.deepEqual(await inOrder(facets, 'equipped'), Array(11).fill(true), 'all eleven on the card');
   assert.deepEqual(await facets.locator('.facet-window-group').allTextContents(), ['On this card'], 'nothing left to add');
   assert.equal(await facets.locator('.facet-window-limit').count(), 0, 'no reason without a facet to refuse');
   await a.page.keyboard.press('Escape');
   await a.page.getByRole('button', { name: 'Save', exact: true }).click();
-  await waitFor(async () => (await store.deck(deckId)).modules.filter(module => module.type === 'german')[1].facets.length === 12, 'twelve facets saved');
+  await waitFor(async () => (await store.deck(deckId)).modules.filter(module => module.type === 'german')[1].facets.length === 11, 'eleven facets saved');
 });
 
 test('facet window from the keyboard: Facet among the actions, Space on a tick, the question and Escape, and back to the tab', { timeout: 60000 }, async (t) => {

@@ -2,13 +2,12 @@
   "word_phrase": {
     "core": {
       "kind": "word",
-      "language": "Englisch",
-      "key": "clear",
+      "language": "Deutsch",
+      "key": "klar",
       "gramRole": "adjective",
       "meanings": [
-        "klar",
-        "deutlich",
-        "durchsichtig",
+        "deutlich und leicht zu verstehen",
+        "durchsichtig, ohne Trübung",
         "offensichtlich"
       ]
     },

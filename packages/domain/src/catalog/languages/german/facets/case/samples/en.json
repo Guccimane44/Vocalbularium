@@ -2,11 +2,10 @@
   "word_phrase": {
     "core": {
       "kind": "word",
-      "language": "Englisch",
-      "key": "between",
+      "language": "Deutsch",
+      "key": "zwischen",
       "gramRole": "preposition",
       "meanings": [
-        "zwischen",
         "in der Mitte von zwei oder mehr Dingen oder Personen",
         "im Zeitraum von einem Zeitpunkt bis zu einem anderen"
       ]

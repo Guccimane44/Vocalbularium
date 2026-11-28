@@ -76,7 +76,9 @@ export function moduleSet(module, raw) {
   const facets = facetsOf(plan);
   const byFacet = new Map(facets.map(facet => [facet.facet, facet]));
   /** @param {string} pos @param {string} facet */
-  const selects = (pos, facet) => catalog.facets.find(each => each.id === facet)?.when?.({ gramRole: pos }) ?? false;
+  // A reference is a word in the module's own language, so the core it stands
+  // for names that language: the grammar facets apply only to it (2026-11-27).
+  const selects = (pos, facet) => catalog.facets.find(each => each.id === facet)?.when?.({ gramRole: pos, language: plan.language }) ?? false;
   const closed = facets.filter(facet => facet.scoring === 'reference');
   const references = parseReferences(`${folder}/references.json`, rawReferences, byFacet);
   const items = parseItems(`${folder}/items.json`, rawItems, byFacet, plan);

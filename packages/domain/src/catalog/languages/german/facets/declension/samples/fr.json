@@ -2,13 +2,13 @@
   "word_phrase": {
     "core": {
       "kind": "word",
-      "language": "Französisch",
-      "key": "bon",
+      "language": "Deutsch",
+      "key": "gut",
       "gramRole": "adjective",
       "meanings": [
-        "gut",
-        "richtig",
-        "gültig"
+        "von hoher Qualität",
+        "richtig, passend",
+        "angenehm"
       ]
     },
     "facets": {

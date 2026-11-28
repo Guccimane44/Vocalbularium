@@ -2,14 +2,13 @@
   "word_phrase": {
     "core": {
       "kind": "word",
-      "language": "Spanisch",
-      "key": "claro",
+      "language": "Deutsch",
+      "key": "klar",
       "gramRole": "adjective",
       "meanings": [
-        "klar",
-        "hell",
-        "offensichtlich",
-        "natürlich"
+        "deutlich und leicht zu verstehen",
+        "durchsichtig, ohne Trübung",
+        "offensichtlich"
       ]
     },
     "facets": {

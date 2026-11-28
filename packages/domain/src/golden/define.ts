@@ -33,12 +33,18 @@ export type GoldenFacet = Readonly<{
   | Readonly<{ scoring: 'reference'; shape: CellShape; points: NonEmpty<Point & Readonly<{ cells: NonEmpty<string> }>> }>
 );
 
-export type GoldenPlan<M extends ContentModuleDefinition = ContentModuleDefinition> = Readonly<{
+// `Retired` names the module's retired facets (`retired: true` in their
+// facet.ts), which no card writes any more, so they have no failure points.
+export type GoldenPlan<M extends ContentModuleDefinition = ContentModuleDefinition, Retired extends string = string> = Readonly<{
   module: M['id'];
+  // The core's name for the module's own language, such as Deutsch: the
+  // language of every reference word.
+  language: string;
+  retired?: readonly Retired[];
   // The lowest DWDS frequency class (0 to 6) of a common and of a middle word;
   // anything below is rare.
   bands: Readonly<{ common: number; middle: number }>;
-  facets: Readonly<{ core: GoldenFacet } & { [F in M['facets'][number] as F['id']]: GoldenFacet }>;
+  facets: Readonly<{ core: GoldenFacet } & { [F in M['facets'][number] as F['id'] extends Retired ? never : F['id']]: GoldenFacet }>;
 }>;
 
-export const defineGoldenPlan = <M extends ContentModuleDefinition>(plan: GoldenPlan<M>) => plan;
+export const defineGoldenPlan = <M extends ContentModuleDefinition, const Retired extends M['facets'][number]['id'] = never>(plan: GoldenPlan<M, Retired>) => plan;

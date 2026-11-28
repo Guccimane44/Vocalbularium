@@ -3,10 +3,11 @@ import { CATALOG_FAMILIES, folderOf, isCatalogModule, MODULES } from './catalog/
 import type { FamilyId, ModuleId } from './catalog/index.js';
 import { ABOUT, NAMES, SAMPLES } from './catalog/about.generated.js';
 import { formatContent } from './content.js';
+import type { CoreValue } from './catalog/define.js';
 import type { GeneratedParent } from './generated.js';
 import { parseMarkdown } from './markdown.js';
 import type { MdBlock } from './markdown.js';
-import { applicableFacets, isParentType, PARENTS } from './parents.js';
+import { applicableFacets, appliesTo, isParentType, PARENTS } from './parents.js';
 import type { FacetType, ParentType } from './parents.js';
 import { renderContent, renderParent } from './render.js';
 import type { Rendered } from './render.js';
@@ -81,8 +82,10 @@ export function sampleOf(module: string, inputType: InputType, facets?: readonly
   return renderParent(module, formatContent(module, keep(module, given as GeneratedParent, inputType, facets)));
 }
 function keep(module: ParentType, content: GeneratedParent, inputType: InputType, facets?: readonly string[]): GeneratedParent {
-  // A facet the sample holds nothing for, such as Conjugation beside a noun, is left out.
-  const kept = applicableFacets(module, facets ?? Object.keys(content.facets), inputType).filter(facet => facet in content.facets);
+  // A facet the sample holds nothing for, such as Conjugation beside a noun, is
+  // left out, and so is one its core rules out, such as Article for a foreign key.
+  const kept = applicableFacets(module, facets ?? Object.keys(content.facets), inputType)
+    .filter(facet => facet in content.facets && appliesTo(module, facet, content.core as CoreValue));
   return { core: content.core, facets: Object.fromEntries(kept.map(facet => [facet, content.facets[facet]])) };
 }
 
