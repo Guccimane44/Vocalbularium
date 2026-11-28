@@ -1,8 +1,8 @@
 import { defineFacet, escapeMarkdown, foreignLetters, list, object, text } from '../../../../blocks.js';
 import { isEnglish } from '../../english.js';
 
-// Where the English word comes from (0.16.4): the key when it is English,
-// otherwise the English word for its first meaning, `contextual` first. The
+// Where the selection comes from (0.16.4, D374), in its own language, written
+// in English. The
 // languages it came from or through, oldest first, then a short text. The
 // module writes the header, its label and the origins joined by a middle dot,
 // never the model, so a name of several words such as Old French stays whole.
@@ -10,7 +10,7 @@ const LABEL = 'inherited from:';
 const MAX_TEXT = 600;
 
 export default defineFacet({
-  id: 'etymology', label: 'Etymology', abbreviation: 'Et', description: 'Where the English word comes from.',
+  id: 'etymology', label: 'Etymology', abbreviation: 'Et', description: 'Where the selected word comes from.',
   applies: ['word_phrase'],
   shape: object({ origins: list(text('the origin'), { name: 'the origins', each: 'Origin' }), text: text('the etymology') }),
   format: value => `${LABEL} ${value.origins.map(origin => escapeMarkdown(origin.trim())).join(' · ')}\n\n${escapeMarkdown(value.text.trim())}`,

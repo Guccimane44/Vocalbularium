@@ -1,5 +1,5 @@
 {
-  "summary": "Des mots anglais de sens identique ou proche.",
+  "summary": "Des mots de sens identique ou proche, dans la langue de votre clé.",
   "appliesTo": "Mots",
-  "describes": "Les sens du noyau."
+  "describes": "Votre clé : des synonymes anglais pour un mot anglais, français pour un mot français."
 }
