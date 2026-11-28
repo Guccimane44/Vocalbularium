@@ -54,9 +54,9 @@ export default async function ({ page, context, app, api, shot, json, query, cap
 - `shot(name)` saves a numbered screenshot once running animations have ended (it waits up to 5 seconds); `json(name, value)` saves a value. Motion itself is for `tests/browser/motion.test.mjs`, not screenshots.
 - `query(sql, values)` reads the disposable database.
 - `webPage()` and `capture(text)` capture a selection as the context menu does.
-- The helpers in `tests/browser/helpers.mjs` (`accountMenu`, `facetWindow`, `addFromWindow`, `drag` and others) work on `page` too.
+- The helpers in `tests/browser/helpers.mjs` (`accountMenu`, `facetWindow`, `addFromWindow`, `drag` and others) work on `page` too. The browser is attached over CDP, so `page.viewportSize()` is null until a journey sets one with `page.setViewportSize`; `addFromWindow` needs it.
 
-Use stable handles: roles with their exact names from `extension/locales/en/messages.json`, and the classes the browser tests use. Don't use coordinates or tab order. The browser stays signed in between journeys, so a journey starts from wherever the last one left off: go to the route you need first.
+Use stable handles: roles with their exact names from `extension/locales/en/messages.json`, and the classes the browser tests use. Don't use coordinates or tab order. The browser stays signed in between journeys, so a journey starts from wherever the last one left off: go to the route you need first, and reload to drop what an earlier journey left open. What journeys change stays in the database for the session (a fold even outlives a reload), so write a journey to toggle rather than assume a starting state, and relaunch for a clean seed.
 
 Ready-made journeys are in [journeys/](journeys/), one per mapped feature. Write a new one beside them when a feature has none, and list it in the feature map.
 

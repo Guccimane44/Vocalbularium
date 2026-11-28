@@ -11,7 +11,8 @@ How to drive this feature with `npm run drive`. What the user sees is in the [ca
 
 ## Gotchas
 
-- The `samples` provider answers every module with its catalog sample from `samples/en.json`, with only the key changed. The card's content will not match the word you captured; check that a card completed, not what it says.
+- The `samples` provider answers each parent module with its catalog sample, from `samples/en.json` in the module's folder under `packages/domain/src/catalog/`, with only the key changed. The card's content will not match the word you captured; check that a card completed, not what it says.
 - `--provider unavailable` makes every card fail, which is how to see a capture's failed state.
 - The capture popup is drawn into the web page by the worker. A screenshot of the app page won't show it; take one of the web page's tab.
-- Context comes from the selection on a real page. `capture(text)` passes no page selection, so the Context component stays empty.
+- Context comes from the selection on a real page. The `/health/live` tab holds no selection matching the text, so no Context is found and the Context component stays empty.
+- Nothing stops the same word being captured twice, so a query on `selected_text` can return more than one page.
